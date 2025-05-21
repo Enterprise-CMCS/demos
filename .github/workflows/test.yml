@@ -2,8 +2,20 @@ name: Test Workflow
 on:
   pull_request:
   workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
 jobs:
   echo:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Hello from DEMOS"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+      - name: Check AWS Identity
+        run: aws sts get-caller-identity
