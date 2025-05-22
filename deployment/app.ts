@@ -1,4 +1,4 @@
-import { App, DefaultStackSynthesizer, Tags, Stack } from "aws-cdk-lib";
+import { App, DefaultStackSynthesizer, Tags } from "aws-cdk-lib";
 import { determineDeploymentConfig } from "./config";
 
 import { CoreStack } from "./stacks/core";
@@ -64,6 +64,20 @@ async function main() {
     },
   });
 
+  if (app.node.tryGetContext("db") == "include") {
+    const database = new DatabaseStack(app, `${project}-${stage}-database`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+      vpc: core.vpc,
+      cloudVpnSecurityGroup: core.cloudVpnSecurityGroup,
+      secretsManagerVpceSg: core.secretsManagerVpceSg,
+    });
+    database.addDependency(core);
+  }
+
   const ui = new UiStack(app, `${project}-${stage}-ui`, {
     ...config,
     env: {
@@ -87,14 +101,6 @@ async function main() {
     cognito_userpool: core.cognito_outputs,
   });
   api.addDependency(core);
-
-  // if (app.node.tryGetContext("db") == "include") {
-  //   const database = new DatabaseStack(app, `${project}-${stage}-database`, {
-  //     ...config,
-  //     vpc: core.vpc,
-  //   });
-  //   database.addDependency(core);
-  // }
 }
 
 main();

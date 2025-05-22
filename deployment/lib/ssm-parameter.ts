@@ -1,5 +1,4 @@
-import { aws_ssm, aws_ec2 } from "aws-cdk-lib";
-import { Construct } from "constructs";
+import { aws_ssm } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
 
 interface CreateSSMParameterProps extends CommonProps {
@@ -10,7 +9,7 @@ interface CreateSSMParameterProps extends CommonProps {
 
 export function create(props: CreateSSMParameterProps) {
   const name = `/${props.project}/${props.stage}/${props.name}`;
-  const cogParam = new aws_ssm.StringParameter(
+  new aws_ssm.StringParameter(
     props.scope,
     `parameter${props.project}${props.stage}${props.name}`,
     {

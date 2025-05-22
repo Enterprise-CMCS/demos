@@ -4,7 +4,6 @@ import {
   Duration,
   aws_iam,
   Aws,
-  Fn,
   Stack,
 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
@@ -49,37 +48,29 @@ export function create(props: CognitoProps): CognitoOutputs {
     allowAdminCreateUserOnly: true,
   };
 
-  const userPoolDomain = new aws_cognito.UserPoolDomain(
-    props.scope,
-    "UserPoolDomain",
-    {
-      userPool,
-      cognitoDomain: {
-        domainPrefix:
-          props.userPoolDomainPrefix ||
-          `${props.project}-${props.stage}-login-user-pool-client`,
-      },
-    }
-  );
+  new aws_cognito.UserPoolDomain(props.scope, "UserPoolDomain", {
+    userPool,
+    cognitoDomain: {
+      domainPrefix:
+        props.userPoolDomainPrefix ||
+        `${props.project}-${props.stage}-login-user-pool-client`,
+    },
+  });
 
-  const resourceServer = new aws_cognito.UserPoolResourceServer(
-    props.scope,
-    "ResourceServer",
-    {
-      userPool,
-      identifier: "demosApi",
-      scopes: [
-        new aws_cognito.ResourceServerScope({
-          scopeName: "read",
-          scopeDescription: "read access",
-        }),
-        new aws_cognito.ResourceServerScope({
-          scopeName: "write",
-          scopeDescription: "write access",
-        }),
-      ],
-    }
-  );
+  new aws_cognito.UserPoolResourceServer(props.scope, "ResourceServer", {
+    userPool,
+    identifier: "demosApi",
+    scopes: [
+      new aws_cognito.ResourceServerScope({
+        scopeName: "read",
+        scopeDescription: "read access",
+      }),
+      new aws_cognito.ResourceServerScope({
+        scopeName: "write",
+        scopeDescription: "write access",
+      }),
+    ],
+  });
 
   const appUrl = "http://localhost:3000/";
   const cloudfrontUrl = "https://localhost:3000/"; //This will be a static, public url once available

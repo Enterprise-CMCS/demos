@@ -1,23 +1,7 @@
-import {
-  CfnOutput,
-  Stack,
-  StackProps,
-  aws_iam,
-  aws_cognito,
-  aws_ec2,
-  aws_ssm,
-  aws_apigateway,
-  aws_secretsmanager,
-} from "aws-cdk-lib";
+import { Stack, StackProps, aws_iam, aws_apigateway } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
-
-import {
-  AwsCustomResource,
-  AwsCustomResourcePolicy,
-  PhysicalResourceId,
-} from "aws-cdk-lib/custom-resources";
 
 export class BootstrapStack extends Stack {
   constructor(

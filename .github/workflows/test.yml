@@ -26,5 +26,5 @@ jobs:
         run: npm ci
         working-directory: deployment
       - name: diff cdk
-        run: npx cdk diff --context stage=dev --all
+        run: npx cdk deploy --context stage=dev --all
         working-directory: deployment

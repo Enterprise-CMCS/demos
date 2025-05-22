@@ -89,8 +89,6 @@ export class Lambda extends Construct {
       },
     });
 
-    console.log(props.handler);
-
     this.lambda = new NodejsFunction(this, id, {
       functionName: `${props.project}-${props.stage}-${id}`,
       entry: !asCode ? props.entry : undefined,
@@ -121,7 +119,7 @@ export class Lambda extends Construct {
       });
     }
 
-    if (props.deploymentConfig) {
+    if (alias && props.deploymentConfig) {
       new aws_codedeploy.LambdaDeploymentGroup(this, `${id}-deployment`, {
         alias,
         deploymentConfig: props.deploymentConfig,

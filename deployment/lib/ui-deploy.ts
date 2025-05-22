@@ -4,15 +4,9 @@ import {
   aws_s3,
   aws_s3_deployment,
   Duration,
-  custom_resources,
-  Fn,
-  aws_ssm,
-  aws_wafv2,
-  Aws,
 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
 import path from "path";
-import { execSync } from "node:child_process";
 
 import * as ssm from "../lib/ssm-parameter";
 
@@ -30,7 +24,7 @@ export function create(props: UIDeploymentProps) {
   const spaPath = "../ui/";
   const buildOutputPath = path.join(spaPath, "dist");
 
-  const fullPath = path.resolve(spaPath);
+  // const fullPath = path.resolve(spaPath);
 
   // execSync("npm run build", {
   //   cwd: fullPath,

@@ -3,18 +3,19 @@ import {
   Stack,
   StackProps,
   aws_iam,
-  aws_ec2,
   aws_cognito,
+  aws_ec2,
+  Fn,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
 
-import * as cognito from "../lib/cognito";
 import * as apigateway from "../lib/apigateway";
 import * as lambda from "../lib/lambda";
 import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
+import importNumberValue from "../util/importNumberValue";
 
 interface APIStackProps {
   cognito_userpool: aws_cognito.UserPool;
@@ -46,14 +47,41 @@ export class ApiStack extends Stack {
           : undefined,
     };
 
-    let graphqlLambdaSecurityGroup;
-    if (props.vpc) {
-      graphqlLambdaSecurityGroup = securityGroup.create({
-        ...commonProps,
-        name: "graphqlSecurityGroup",
-        vpc: props.vpc,
-      });
-    }
+    const graphqlLambdaSecurityGroup = securityGroup.create({
+      ...commonProps,
+      name: "graphqlSecurityGroup",
+      vpc: props.vpc,
+    });
+
+    const rdsSecurityGroupId = Fn.importValue(
+      `${commonProps.project}-${commonProps.stage}-rds-security-group-id`
+    );
+
+    const rdsPort = importNumberValue(
+      `${commonProps.project}-${commonProps.stage}-rds-port`
+    );
+
+    const rdsSg = aws_ec2.SecurityGroup.fromSecurityGroupId(
+      commonProps.scope,
+      "rdsSg",
+      rdsSecurityGroupId
+    );
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(
+        graphqlLambdaSecurityGroup.securityGroup.securityGroupId
+      ),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from GraphQL Security Group",
+      true
+    );
+
+    graphqlLambdaSecurityGroup?.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
 
     // const cognito_outputs = cognito.create(commonProps);
     const apigateway_outputs = apigateway.create({

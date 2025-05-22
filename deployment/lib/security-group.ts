@@ -1,11 +1,4 @@
-import {
-  aws_apigateway,
-  Duration,
-  RemovalPolicy,
-  aws_logs,
-  aws_ec2,
-} from "aws-cdk-lib";
-import { Construct } from "constructs";
+import { aws_ec2 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
 
 interface SecurityGroupProps extends CommonProps {

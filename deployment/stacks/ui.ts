@@ -3,24 +3,18 @@ import {
   Stack,
   StackProps,
   aws_iam,
-  aws_ec2,
   aws_s3,
   RemovalPolicy,
   aws_cloudfront,
   Duration,
   aws_certificatemanager,
   aws_cloudfront_origins,
-  aws_cognito,
   aws_wafv2,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
 
-import * as cognito from "../lib/cognito";
-import * as apigateway from "../lib/apigateway";
-import * as lambda from "../lib/lambda";
-import * as securityGroup from "../lib/security-group";
 import * as uiDeploy from "../lib/ui-deploy";
 import { execSync } from "child_process";
 
@@ -206,6 +200,7 @@ export class UiStack extends Stack {
           },
         ],
         webAclId: webAcl.attrArn,
+        enableIpv6: false, //TODO: only in lower environments
       }
     );
     distribution.applyRemovalPolicy(

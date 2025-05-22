@@ -5,17 +5,10 @@ import {
   aws_logs,
   aws_cognito,
   aws_iam,
-  CfnOutput,
 } from "aws-cdk-lib";
-import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { CfnPrefixList, PrefixList } from "aws-cdk-lib/aws-ec2";
-import {
-  AwsCustomResource,
-  AwsCustomResourcePolicy,
-  PhysicalResourceId,
-} from "aws-cdk-lib/custom-resources";
+
 import { execSync } from "node:child_process";
 import {
   MockIntegration,
@@ -96,7 +89,7 @@ export function create(props: ApiGatewayProps) {
     },
   });
 
-  let authorizer = props.isLocalstack
+  const authorizer = props.isLocalstack
     ? undefined
     : new aws_apigateway.CognitoUserPoolsAuthorizer(
         props.scope,

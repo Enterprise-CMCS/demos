@@ -5,7 +5,6 @@ import {
   aws_iam,
   aws_cognito,
   aws_ec2,
-  aws_ssm,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -13,6 +12,7 @@ import { DeploymentConfigProperties } from "../config";
 
 import * as cognito from "../lib/cognito";
 import * as ssm from "../lib/ssm-parameter";
+import * as securityGroup from "../lib/security-group";
 
 export class CoreStack extends Stack {
   public readonly cognito_outputs: aws_cognito.UserPool;
@@ -20,6 +20,8 @@ export class CoreStack extends Stack {
   public readonly cognitoClientIdParamName: string;
   public readonly vpcId?: string;
   public readonly vpc: aws_ec2.IVpc;
+  public readonly secretsManagerVpceSg: aws_ec2.ISecurityGroup;
+  public readonly cloudVpnSecurityGroup: aws_ec2.ISecurityGroup;
 
   constructor(
     scope: Construct,
@@ -81,9 +83,31 @@ export class CoreStack extends Stack {
     this.cognitoAuthorityParamName = ca.name;
     this.cognitoClientIdParamName = cid.name;
 
+    const secretsManagerEndpointSG = securityGroup.create({
+      ...commonProps,
+      vpc,
+      name: `${commonProps.project}-${commonProps.stage}-secrets-manager-vpce`,
+    });
+
+    vpc.addInterfaceEndpoint("secretsManagerEndpoint", {
+      service: aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+      subnets: {
+        subnets: vpc.privateSubnets,
+      },
+      securityGroups: [secretsManagerEndpointSG.securityGroup],
+    });
+    this.secretsManagerVpceSg = secretsManagerEndpointSG.securityGroup;
+
     new CfnOutput(this, "cognitoAuthority", {
       value: cognito_outputs.authority,
       exportName: "cognitoAuthority",
     });
+
+    this.cloudVpnSecurityGroup = aws_ec2.SecurityGroup.fromLookupByName(
+      commonProps.scope,
+      "vpnSecurityGroup",
+      "cmscloud-vpn",
+      vpc
+    );
   }
 }
