@@ -1,4 +1,4 @@
 # demo
 
-## welcome to the project!s
+## Welcome to the project!
 
