@@ -5,7 +5,7 @@ interface OidcConfig {
   scope: string;
   response_type: string;
   post_logout_redirect_uri: string;
-};
+}
 
 export interface CognitoConfig extends OidcConfig {
   domain: string;
@@ -39,9 +39,18 @@ export const getCognitoConfig = (): CognitoConfig => {
   case "test":
     return LOCAL_COGNITO_CONFIG;
   case "production":
-    // Add production configuration here when available
-    throw new Error("Production Cognito configuration is not defined.");
+    return {
+      authority: window._env_!.COGNITO_AUTHORITY!,
+      domain: window._env_!.REDIRECT_URI!,
+      client_id: window._env_!.COGNITO_CLIENT_ID!,
+      post_logout_redirect_uri: `https://${window._env_!.APPLICATION_HOSTNAME}`,
+      redirect_uri: `https://${window._env_!.APPLICATION_HOSTNAME}`,
+      response_type: "code",
+      scope: "openid email profile",
+    };
   default:
-    throw new Error(`Cognito configuration for ${process.env.NODE_ENV} is not defined.`);
+    throw new Error(
+      `Cognito configuration for ${process.env.NODE_ENV} is not defined.`
+    );
   }
 };

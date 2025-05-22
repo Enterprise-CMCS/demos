@@ -1,5 +1,5 @@
 import React from "react";
-import { Column, Table, ColumnFiltersState } from "@tanstack/react-table";
+import { Column, Table } from "@tanstack/react-table";
 
 export interface ColumnFilterByDropdownProps<T extends object> {
   table: Table<T>;
@@ -36,9 +36,8 @@ export function ColumnFilterByDropdown<T extends object>({
   // Compute a small live‐region message to announce the number of filtered rows
   // (optional, but helpful for screen readers).
   const totalRows = table.getFilteredRowModel().rows.length;
-  const liveMessage = totalRows === 0
-    ? "No matching rows"
-    : `Showing ${totalRows} rows`;
+  const liveMessage =
+    totalRows === 0 ? "No matching rows" : `Showing ${totalRows} rows`;
 
   return (
     <div className={className}>
@@ -82,7 +81,10 @@ export function ColumnFilterByDropdown<T extends object>({
             <input
               type="text"
               // Announce to screen reader “Filter <Column Name> by …”
-              aria-label={`Filter ${columns.find(c => c.id === selectedColumn)?.columnDef.header || selectedColumn}`}
+              aria-label={`Filter ${
+                columns.find((c) => c.id === selectedColumn)?.columnDef
+                  .header || selectedColumn
+              }`}
               placeholder="🔍 Type to filter…"
               className="border px-2 py-1 rounded"
               value={filterValue}
@@ -91,11 +93,7 @@ export function ColumnFilterByDropdown<T extends object>({
           </>
         )}
       </div>
-      <div
-        aria-live="polite"
-        role="status"
-        className="sr-only"
-      >
+      <div aria-live="polite" role="status" className="sr-only">
         {liveMessage}
       </div>
     </div>
