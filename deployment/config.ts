@@ -36,9 +36,10 @@ export const determineDeploymentConfig = async (
     isLocalstack: process.env.CDK_DEFAULT_ACCOUNT == "000000000000",
   };
 
-  const secretConfig = JSON.parse(
-    (await getSecret(`${project}-${stage}/config`))!
-  );
+  const secretConfig =
+    stage != "bootstrap"
+      ? JSON.parse((await getSecret(`${project}-${stage}/config`))!)
+      : {};
 
   return {
     ...config,

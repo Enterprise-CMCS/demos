@@ -7,6 +7,7 @@ import {
   aws_ec2,
   aws_ssm,
   aws_apigateway,
+  aws_secretsmanager,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -77,25 +78,56 @@ export class BootstrapStack extends Stack {
       }
     );
 
-    new aws_iam.Role(commonProps.scope, "GithubActionsOIDCRole", {
-      roleName: `${commonProps.project}-github-actions-oidc-role`,
-      permissionsBoundary: commonProps.iamPermissionsBoundary,
-      path: commonProps.iamPath,
-      assumedBy: new aws_iam.WebIdentityPrincipal(
-        oidcProvider.openIdConnectProviderArn,
-        {
-          StringEquals: {
-            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+    const githubActionsRole = new aws_iam.Role(
+      commonProps.scope,
+      "GithubActionsOIDCRole",
+      {
+        roleName: `${commonProps.project}-github-actions-oidc-role`,
+        permissionsBoundary: commonProps.iamPermissionsBoundary,
+        path: commonProps.iamPath,
+        assumedBy: new aws_iam.WebIdentityPrincipal(
+          oidcProvider.openIdConnectProviderArn,
+          {
+            StringEquals: {
+              "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+            },
+            StringLike: {
+              "token.actions.githubusercontent.com:sub": `repo:${githubRepo}:*`,
+            },
+          }
+        ),
+        managedPolicies: [
+          aws_iam.ManagedPolicy.fromAwsManagedPolicyName("ReadOnlyAccess"),
+        ],
+        description: "Role assumed by github actions",
+      }
+    );
+
+    const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
+      statements: [
+        new aws_iam.PolicyStatement({
+          actions: ["secretsmanager:GetSecretValue"],
+          resources: [
+            `arn:aws:secretsmanager:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:secret:demos-*/config*`,
+          ],
+        }),
+        new aws_iam.PolicyStatement({
+          actions: ["sts:AssumeRole"],
+          resources: ["*"],
+          conditions: {
+            "ForAnyValue:StringEquals": {
+              "iam:ResourceTag/aws-cdk:bootstrap-role": [
+                "deploy",
+                "lookup",
+                "file-publishing",
+                "image-publishing",
+              ],
+            },
           },
-          StringLike: {
-            "token.actions.githubusercontent.com:sub": `repo:${githubRepo}:*`,
-          },
-        }
-      ),
-      managedPolicies: [
-        aws_iam.ManagedPolicy.fromAwsManagedPolicyName("ReadOnlyAccess"),
+        }),
       ],
-      description: "Role assumed by github actions",
     });
+
+    githubActionsRole.attachInlinePolicy(policy);
   }
 }
