@@ -1,0 +1,19 @@
+@theme {
+  --spacing-0: 0rem;
+  --spacing-0-5: 0.4rem;
+  --spacing-1: 0.8rem;
+  --spacing-2: 1.6rem;
+  --spacing-3: 2.4rem;
+  --spacing-4: 3.2rem;
+  --spacing-5: 4rem;
+  --spacing-6: 4.8rem;
+
+  --spacing-none: var(--spacing-0);
+  --spacing-xs: var(--spacing-0-5);
+  --spacing-sm: var(--spacing-1);
+  --spacing-md: var(--spacing-2);
+  --spacing-lg: var(--spacing-3);
+  --spacing-xl: var(--spacing-4);
+  --spacing-xxl: var(--spacing-5);
+  --spacing-xxxl: var(--spacing-6);
+}

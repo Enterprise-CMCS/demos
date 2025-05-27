@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "outDir": "dist",
+    "lib": ["es2020", "DOM"],
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "baseUrl": "src",
+    "strict": true,
+    "paths": {
+      "components/*": ["components/*"],
+      "pages/*": ["pages/*"],
+      "models/*": ["../../server/src/model/*"],
+      "hooks/*": ["hooks/*"],
+    }
+  },
+  "exclude": ["node_modules"]
+}
