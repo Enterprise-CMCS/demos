@@ -46,7 +46,7 @@
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "vite build",
     "coverage": "vitest --coverage",
-    "dev": "vite",
+    "dev": "vite --host",
     "test": "vitest",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
