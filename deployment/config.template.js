@@ -3,5 +3,6 @@ window._env_ = {
   REDIRECT_URI: "{{applicationEndpointUrl}}",
   COGNITO_AUTHORITY: "{{cognitoAuthority}}",
   COGNITO_CLIENT_ID: "{{cognitoClientId}}",
+  APPLICATION_HOSTNAME: "{{applicationHostname}}",
   TIMESTAMP: "{{timestamp}}",
 };

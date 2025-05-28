@@ -197,7 +197,7 @@ export class UiStack extends Stack {
           {
             httpStatus: 403,
             responseHttpStatus: 200,
-            responsePagePath: "/403.html",
+            responsePagePath: "/index.html",
           },
         ],
         webAclId: webAcl.attrArn,

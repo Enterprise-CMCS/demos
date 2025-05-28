@@ -3,6 +3,7 @@ import {
   aws_iam,
   aws_s3,
   aws_s3_deployment,
+  custom_resources,
   Duration,
 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
@@ -21,7 +22,7 @@ interface UIDeploymentProps extends CommonProps {
 }
 
 export function create(props: UIDeploymentProps) {
-  const spaPath = "../ui/";
+  const spaPath = "../client/";
   const buildOutputPath = path.join(spaPath, "dist");
 
   // const fullPath = path.resolve(spaPath);
@@ -109,6 +110,7 @@ export function create(props: UIDeploymentProps) {
         timestamp: new Date().toISOString(),
         cognitoAuthority: paramAuthority.stringValue,
         cognitoClientId: paramClientId.stringValue,
+        applicationHostname: props.distribution.distributionDomainName,
       },
     }
   );
@@ -120,31 +122,31 @@ export function create(props: UIDeploymentProps) {
   //   webAclArn: webAcl.attrArn,
   // });
 
-  // const invalidateCloudfront = new custom_resources.AwsCustomResource(
-  //   props.scope,
-  //   "InvalidateCloudfront",
-  //   {
-  //     onCreate: undefined,
-  //     onDelete: undefined,
-  //     onUpdate: {
-  //       service: "CloudFront",
-  //       action: "createInvalidation",
-  //       parameters: {
-  //         DistributionId: props.distribution.distributionId,
-  //         InvalidationBatch: {
-  //           Paths: {
-  //             Quantity: 1,
-  //             Items: ["/*"],
-  //           },
-  //           CallerReference: new Date().toISOString(),
-  //         },
-  //       },
-  //       physicalResourceId: custom_resources.PhysicalResourceId.of(
-  //         `InvalidateCloudfront-${props.stage}`
-  //       ),
-  //     },
-  //     role: deploymentRole,
-  //   }
-  // );
-  // invalidateCloudfront.node.addDependency(deployTimeConfig);
+  const invalidateCloudfront = new custom_resources.AwsCustomResource(
+    props.scope,
+    "InvalidateCloudfront",
+    {
+      onCreate: undefined,
+      onDelete: undefined,
+      onUpdate: {
+        service: "CloudFront",
+        action: "createInvalidation",
+        parameters: {
+          DistributionId: props.distribution.distributionId,
+          InvalidationBatch: {
+            Paths: {
+              Quantity: 1,
+              Items: ["/*"],
+            },
+            CallerReference: new Date().toISOString(),
+          },
+        },
+        physicalResourceId: custom_resources.PhysicalResourceId.of(
+          `InvalidateCloudfront-${props.stage}`
+        ),
+      },
+      role: deploymentRole,
+    }
+  );
+  invalidateCloudfront.node.addDependency(deployTimeConfig);
 }

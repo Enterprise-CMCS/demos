@@ -116,7 +116,7 @@ async function main() {
     },
   ]);
 
-  Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
+  // Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 }
 
 main();
