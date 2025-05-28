@@ -1,0 +1,11 @@
+@theme {
+  --radius-sm: 0.2rem;
+  --radius-md: 0.4rem;
+  --radius-lg: 2rem;
+  --radius-xl: 4rem;
+
+  --radius-minimal: var(--radius-sm);
+  --radius-normal: var(--radius-md);
+  --radius-rounded: var(--radius-lg);
+  --radius-full: var(--radius-xl);
+}

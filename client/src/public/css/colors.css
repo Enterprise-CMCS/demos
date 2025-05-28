@@ -1,0 +1,82 @@
+@theme {
+  /* Neutral */
+  --color-gray-base: #242424;
+  --color-gray-focus: #3a3a3a;
+  --color-gray-darker: #5b616b;
+  --color-gray-dark: #aeb0b5;
+  --color-gray: #d6d7d9;
+  --color-gray-light: #f1f1f1;
+  --color-gray-lighter: #f8f8f8;
+  --color-white: #ffffff;
+
+  /* Brand */
+  --color-brand-dark: #1e2e4e;
+  --color-brand: #205493;
+  --color-action: #0071bc;
+  --color-action-hover: #f2f9ff;
+  --color-action-focus: #ebf5ff;
+  --color-footer: #2e2925;
+
+  /* Secondary */
+  --color-focus: #0096f4;
+  --color-alt-dark: #00a6d2;
+  --color-alt-light: #9bdaf1;
+  --color-alt: #02bfe7;
+  --color-alt-lightest: #e1f3f8;
+  --color-other: #048087;
+
+  /* System */
+  --color-error-dark: #cd2026;
+  --color-error: #e31c3d;
+  --color-error-lightest: #f9d8de;
+  --color-warn: #fdb81e;
+  --color-warn-light: #ffc737;
+  --color-warn-lightest: #fff1d2;
+  --color-success-darkest: #277136;
+  --color-success: #2e8540;
+  --color-success-lightest: #e7f4e4;
+  --color-info-dark: #2367d9;
+  --color-info-light: #e1eafc;
+
+  /* Text Colors */
+  --color-text-white: var(--color-white);
+  --color-text-placeholder: var(--color-gray-darker);
+  --color-text-font: var(--color-gray-base);
+  --color-text-filled: var(--color-gray-base);
+  --color-text-active: var(--color-action);
+  --color-text-brand: var(--color-brand);
+  --color-text-warn: var(--color-error-dark);
+  --color-text-success: var(--color-success-darkest);
+
+  /* Surface Colors */
+  --color-surface-dark: var(--color-gray-base);
+  --color-surface-dark-hover: var(--color-gray-darker);
+  --color-surface-placeholder: var(--color-gray-dark);
+  --color-surface-disabled2: var(--color-gray);
+  --color-surface-disabled: var(--color-gray-light);
+  --color-surface-secondary: var(--color-gray-lighter);
+  --color-surface-white: var(--color-white);
+  --color-surface-brand-dark: var(--color-brand-dark);
+  --color-surface-brand: var(--color-brand);
+  --color-surface-action: var(--color-action);
+  --color-surface-focus: var(--color-action-focus);
+  --color-surface-hover: var(--color-action-hover);
+  --color-surface-error-hover: var(--color-error-dark);
+  --color-surface-error: var(--color-error);
+  --color-surface-warn: var(--color-warn);
+  --color-surface-warn-hover: var(--color-warn-light);
+  --color-surface-info: var(--color-alt-dark);
+  --color-surface-info-hover: var(--color-alt);
+  --color-surface-success: var(--color-success);
+  --color-surface-other: var(--color-other);
+
+  /* Border Colors */
+  --color-border-white: var(--color-white);
+  --color-border-rules: var(--color-gray-dark);
+  --color-border-fields: var(--color-gray-darker);
+  --color-border-focus: var(--color-focus);
+  --color-border-selected: var(--color-border-focus);
+  --color-border-warn: var(--color-error);
+  --color-border-alert: var(--color-warn-light);
+  --color-border-success: var(--color-success);
+}
