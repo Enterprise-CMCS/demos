@@ -8,11 +8,11 @@ import {
   FolderIcon,
   ListIcon,
   MenuCollapseIcon,
-  MenuIcon,
+  MenuIcon
 } from "components/icons";
 import {
   Link,
-  useLocation,
+  useLocation
 } from "react-router-dom";
 
 const navLinks = [
@@ -33,7 +33,7 @@ const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => vo
   return (
     <nav
       className={`h-screen bg-white fixed top-0 left-0 transition-all duration-300 flex flex-col z-20 ${collapsed ? "w-20" : "w-64"
-        } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
+      } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
     >
       {/* Toggle Button */}
       <div className="relative h-12 mt-2">
@@ -87,7 +87,7 @@ const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => vo
                   {/* Icon */}
                   <span
                     className={`shrink-0 ${isActive ? "text-[var(--color-text-active)]" : "text-black"
-                      }`}
+                    }`}
                   >
                     {React.cloneElement(link.icon, {
                       className: "w-[14px] h-[14px]",
