@@ -29,6 +29,7 @@
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.812.0",
     "aws-cdk-lib": "^2.197.0",
+    "cdk-nag": "^2.35.105",
     "constructs": "^10.0.0"
   }
 }

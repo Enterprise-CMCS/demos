@@ -50,14 +50,6 @@ export class UiStack extends Stack {
           : undefined,
     };
 
-    // S3 Bucket for UI hosting
-    const uiBucket = new aws_s3.Bucket(commonProps.scope, "uiBucket", {
-      encryption: aws_s3.BucketEncryption.S3_MANAGED,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
-      // enforceSSL: true, TEMP TESTING BECAUSE THERE WERE ERRORS DURING CREATION
-    });
-
     const logBucket = new aws_s3.Bucket(
       commonProps.scope,
       "CloudfrontLogBucket",
@@ -70,7 +62,7 @@ export class UiStack extends Stack {
           ? RemovalPolicy.DESTROY
           : RemovalPolicy.RETAIN,
         autoDeleteObjects: commonProps.isDev,
-        // enforceSSL: true, TEMP TESTING BECAUSE THERE WERE ERRORS DURING CREATION
+        enforceSSL: true,
       }
     );
 
@@ -83,6 +75,15 @@ export class UiStack extends Stack {
         resources: [`${logBucket.bucketArn}/*`],
       })
     );
+
+    // S3 Bucket for UI hosting
+    const uiBucket = new aws_s3.Bucket(commonProps.scope, "uiBucket", {
+      encryption: aws_s3.BucketEncryption.S3_MANAGED,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      serverAccessLogsBucket: logBucket,
+      enforceSSL: true,
+    });
 
     //
     // WAF

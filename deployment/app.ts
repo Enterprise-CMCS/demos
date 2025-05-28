@@ -1,4 +1,10 @@
-import { App, DefaultStackSynthesizer, Tags } from "aws-cdk-lib";
+import {
+  App,
+  Aspects,
+  CfnOutput,
+  DefaultStackSynthesizer,
+  Tags,
+} from "aws-cdk-lib";
 import { determineDeploymentConfig } from "./config";
 
 import { CoreStack } from "./stacks/core";
@@ -6,6 +12,7 @@ import { ApiStack } from "./stacks/api";
 import { UiStack } from "./stacks/ui";
 import { DatabaseStack } from "./stacks/database";
 import { BootstrapStack } from "./stacks/bootstrap";
+import { AwsSolutionsChecks, NagSuppressions } from "cdk-nag";
 
 async function main() {
   const path = "delegatedadmin/developer/";
@@ -101,6 +108,15 @@ async function main() {
     cognito_userpool: core.cognito_outputs,
   });
   api.addDependency(core);
+  NagSuppressions.addStackSuppressions(core, [
+    {
+      id: "AwsSolutions-COG3",
+      reason:
+        "Advanced security mode is an increased cost and unnecessary since all logins are managed by IDM in PROD",
+    },
+  ]);
+
+  Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 }
 
 main();

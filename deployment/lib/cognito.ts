@@ -40,7 +40,14 @@ export function create(props: CognitoProps): CognitoOutputs {
         mutable: true,
       },
     },
-    removalPolicy: RemovalPolicy.DESTROY,
+    removalPolicy: RemovalPolicy.DESTROY, //TODO: should retain in PROD
+    passwordPolicy: {
+      minLength: 8,
+      requireLowercase: true,
+      requireUppercase: true,
+      requireDigits: true,
+      requireSymbols: true,
+    },
   });
 
   const cfnUserPool = userPool.node.defaultChild as aws_cognito.CfnUserPool;
