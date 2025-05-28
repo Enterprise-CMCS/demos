@@ -35,35 +35,38 @@ const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => vo
       className={`h-screen bg-white fixed top-0 left-0 transition-all duration-300 flex flex-col z-20 ${collapsed ? "w-20" : "w-64"
       } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
     >
-      {/* Toggle Button */}
+      {/* Collapse Toggle */}
       <div className="relative h-12 mt-2">
         {/* Expanded view toggle */}
         {!collapsed && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
             <button
               onClick={() => setCollapsed(true)}
-              className="text-black hover:opacity-80"
+              className="text-[var(--color-text-active)] hover:opacity-80"
               aria-label="Collapse Menu"
             >
-              <MenuCollapseIcon />
+              <div className="w-4 h-4">
+                <MenuCollapseIcon />
+              </div>
             </button>
           </div>
         )}
 
         {/* Collapsed view toggle */}
         {collapsed && (
-          <div className="flex items-center justify-center h-full">
+          <div className="h-12 flex items-center justify-center relative">
             <button
               onClick={() => setCollapsed(false)}
               className="text-black hover:opacity-80"
               aria-label="Expand Menu"
             >
-              <MenuIcon />
+              <div className="w-[14px] h-[14px]">
+                <MenuIcon />
+              </div>
             </button>
           </div>
         )}
       </div>
-
 
       {/* Nav Items */}
       <ul className="flex flex-col gap-[4px] mt-[8px]">
@@ -75,9 +78,10 @@ const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => vo
               <Link to={link.href} title={collapsed ? link.label : ""}>
                 <div
                   className={`relative flex items-center h-10 transition-all duration-150 ease-in-out
-                    ${collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2"}
-                    hover:bg-[var(--color-surface-secondary)]
-                    ${isActive ? "text-black font-semibold" : "text-black font-normal"}`}
+                  text-black
+                  ${collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2"}
+                  hover:bg-[var(--color-surface-secondary)]
+                  ${isActive ? "font-semibold" : "font-normal"}`}
                 >
                   {/* Blue indicator bar */}
                   {isActive && (
@@ -96,7 +100,9 @@ const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => vo
 
                   {/* Label */}
                   {!collapsed && (
-                    <span className="text-sm leading-none">{link.label}</span>
+                    <span className={`text-nav ${isActive ? "font-semibold text-black" : "text-black"}`}>
+                      {link.label}
+                    </span>
                   )}
                 </div>
               </Link>

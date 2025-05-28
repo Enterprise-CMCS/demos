@@ -18,9 +18,8 @@ import {
 } from "react-router-dom";
 
 import { getCognitoConfig } from "./cognitoConfig";
-// import Dashboard from "./Dashboard";
-import PrivateRoute from "./PrivateRoute";
 
+// import Dashboard from "./Dashboard";
 export default function DemosRouter() {
   const cognitoConfig = getCognitoConfig();
 
@@ -28,11 +27,9 @@ export default function DemosRouter() {
   const authenticatedRoutes = (
     <Route
       element={
-        <PrivateRoute>
-          <AppLayout>
-            <Outlet />
-          </AppLayout>
-        </PrivateRoute>
+        <AppLayout>
+          <Outlet />
+        </AppLayout>
       }
     >
       {/* <Route path="/dashboard" element={<Dashboard />} /> */}

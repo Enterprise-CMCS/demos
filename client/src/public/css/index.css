@@ -18,7 +18,7 @@
   --font-h4: 2rem / auto;
   --font-h5: 1.6rem / auto;
   --font-regular: 1.6rem/1.6rem;
-  --font-semibold: 1.6rem/2.1rem;
+  --font-semibold: 600;
   --font-small: 1.4rem/2rem;
   --font-tooltip: 1.4rem/2.1rem;
   --font-id: 1.1rem/1.6rem;
@@ -56,4 +56,15 @@
   /* typography/tag */
   --font-tag-type: 1.6rem / auto;
   --font-tag-amount: 1.4rem/2rem;
+}
+
+.font-semibold {
+  font-weight: var(--font-semibold) !important;
+}
+.text-nav {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0;
+  text-align: center;
 }
