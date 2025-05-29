@@ -1,7 +1,7 @@
 import React from "react";
 
 import AuthComponent from "components/auth/AuthComponent";
-import AppLayout from "components/layout/AppLayout";
+import PrimaryLayout from "layout/PrimaryLayout";
 import Actions from "pages/Actions";
 import Budget from "pages/Budget";
 import ComponentLibrary from "pages/ComponentLibrary";
@@ -27,9 +27,9 @@ export default function DemosRouter() {
   const authenticatedRoutes = (
     <Route
       element={
-        <AppLayout>
+        <PrimaryLayout>
           <Outlet />
-        </AppLayout>
+        </PrimaryLayout>
       }
     >
       {/* <Route path="/dashboard" element={<Dashboard />} /> */}
