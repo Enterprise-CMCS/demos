@@ -3,8 +3,8 @@ import React from "react";
 import {
   ActionsIcon,
   BudgetIcon,
-  DashboardsIcon,
-  DemonstrationsIcon,
+  DashboardIcon,
+  DemonstrationIcon,
   FolderIcon,
   ListIcon,
   MenuCollapseIcon,
@@ -16,10 +16,10 @@ import {
 } from "react-router-dom";
 
 const navLinks = [
-  { label: "Demonstrations", href: "/demonstrations", icon: <DemonstrationsIcon /> },
+  { label: "Demonstrations", href: "/demonstrations", icon: <DemonstrationIcon /> },
   { label: "Actions", href: "/actions", icon: <ActionsIcon /> },
   { label: "Tasks", href: "/tasks", icon: <ListIcon /> },
-  { label: "Dashboards", href: "/components", icon: <DashboardsIcon /> },
+  { label: "Dashboards", href: "/components", icon: <DashboardIcon /> },
   { label: "Reports", href: "/reports", icon: <FolderIcon /> },
   { label: "Budget", href: "/budget", icon: <BudgetIcon /> },
 ];
