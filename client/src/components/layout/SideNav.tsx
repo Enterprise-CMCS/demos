@@ -100,7 +100,7 @@ const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => vo
 
                   {/* Label */}
                   {!collapsed && (
-                    <span className={`text-nav ${isActive ? "font-semibold text-black" : "text-black"}`}>
+                    <span className={`${isActive ? "font-semibold text-black" : "text-black"}`}>
                       {link.label}
                     </span>
                   )}
