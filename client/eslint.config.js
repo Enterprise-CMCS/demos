@@ -17,6 +17,7 @@ export default tseslint.config(
       },
     },
     rules: {
+      "complexity": ["warn", 20],
       "indent": [ "error", 2 ], // 2 spaces for indentation
       "quotes": [ "error", "double" ], // Double quotes
       "semi": [ "error", "always" ], // Semicolons at end of statements
