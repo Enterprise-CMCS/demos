@@ -1,7 +1,7 @@
 import React from "react";
 
 import {
-  ActionsIcon,
+  ActionIcon,
   BudgetIcon,
   DashboardIcon,
   DemonstrationIcon,
@@ -17,7 +17,7 @@ import {
 
 const navLinks = [
   { label: "Demonstrations", href: "/demonstrations", icon: <DemonstrationIcon /> },
-  { label: "Actions", href: "/actions", icon: <ActionsIcon /> },
+  { label: "Actions", href: "/actions", icon: <ActionIcon /> },
   { label: "Tasks", href: "/tasks", icon: <ListIcon /> },
   { label: "Dashboards", href: "/components", icon: <DashboardIcon /> },
   { label: "Reports", href: "/reports", icon: <FolderIcon /> },

@@ -1,4 +1,4 @@
-export * from "./ActionsIcon";
+export * from "./ActionIcon";
 export * from "./BudgetIcon";
 export * from "./DashboardIcon";
 export * from "./DemonstrationIcon";

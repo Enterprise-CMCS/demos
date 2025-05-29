@@ -1,6 +1,6 @@
 import * as React from "react";
 
-export const ActionsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+export const ActionIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     viewBox="0 0 14 14"
     fill="none"
