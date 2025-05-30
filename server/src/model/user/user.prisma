@@ -1,0 +1,15 @@
+model User {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  cognitoSubject          String                   @unique @map("cognito_subject") @db.Uuid
+  username                String
+  email                   String
+  fullName                String                   @map("full_name")
+  displayName             String                   @map("display_name")
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt               DateTime                 @updatedAt @map("updated_at") @db.Timestamptz()
+  userRoles               UserRole[]
+  userStates              UserState[]
+  userStateDemonstrations UserStateDemonstration[]
+
+  @@map("user")
+}
