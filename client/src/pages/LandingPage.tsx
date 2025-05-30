@@ -11,10 +11,10 @@ const LandingPage: React.FC = () => {
     <Fragment>
       <Header />
       <Main>
-        <h1 className="text-2xl font-bold">Welcome to DEMOS</h1>
+        {/* <h1 className="text-2xl font-bold">Welcome to DEMOS</h1> */}
         <LoginButton className="mt-4" />
         <div className="overflow-auto">
-          <TableSection title="Demonstration Table">
+          <TableSection title="Demonstrations">
             <DemonstrationTable
               data={DemoData}
               columns={DemonstrationColumns}

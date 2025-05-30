@@ -4,7 +4,7 @@ import { parseISO, format } from "date-fns";
 
 export type DemonstrationTable = {
   id: number;
-  name: string;
+  title: string;
   description: string;
   eval_period_start_date: string;
   eval_period_end_date: string;
@@ -15,8 +15,10 @@ export type DemonstrationTable = {
 };
 
 export const DemonstrationColumns: ColumnDef<DemonstrationTable>[] = [
-  { header: "ID", accessorKey: "id" },
-  { header: "Name", accessorKey: "name" },
+  // if you wnat to reorder, you set it here.
+  { header: "State", accessorKey: "state_id" },
+  { header: "Number", accessorKey: "demo_number" },
+  { header: "Title", accessorKey: "title" },
   { header: "Description", accessorKey: "description" },
   {
     header: "Eval Start",
@@ -40,8 +42,6 @@ export const DemonstrationColumns: ColumnDef<DemonstrationTable>[] = [
         : format(dt, "yyyy-MM-dd");
     },
   },
-  { header: "Status ID", accessorKey: "demonstration_status_id" },
-  { header: "State", accessorKey: "state_id" },
   {
     header: "Created At",
     accessorKey: "created_at",

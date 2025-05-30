@@ -65,7 +65,7 @@ export default function DemonstrationTable<T extends { id: string | number }>({
       <table className="w-full text-sm">
         <thead>
           {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id} className="bg-gray-100">
+            <tr key={hg.id} className="bg-gray-200">
               {hg.headers.map((header) => (
                 <th
                   key={header.id}

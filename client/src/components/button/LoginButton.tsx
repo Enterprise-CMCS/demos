@@ -14,7 +14,7 @@ export interface LoginButtonProps {
  */
 export const LoginButton: React.FC<LoginButtonProps> = ({
   href = "/login",
-  children = "Log In",
+  children = "Login",
   className = "",
 }) => (
   <a href={href}>
