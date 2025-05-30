@@ -1,26 +1,22 @@
 import React from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route
-} from "react-router-dom";
+import { BrowserRouter,Routes,Route } from "react-router-dom";
 import { AuthProvider } from "react-oidc-context";
 import { getCognitoConfig } from "./cognitoConfig";
-import LandingPage from "pages/LandingPage";
-import ComponentLibrary from "pages/ComponentLibrary";
-import AuthComponent from "components/auth/AuthComponent";
-import TestHooks from "pages/TestHooks";
+import { LandingPage, ComponentLibrary, TestHooks } from "pages";
+import { AuthComponent } from "components/auth/AuthComponent";
 
-export default function DemosRouter() {
-  const cognitoConfig = getCognitoConfig();
-
-  // Routes that are only available in development mode
-  const debugRoutes = process.env.NODE_ENV === "development" ? (
+// Routes that are only available in development mode
+const DebugRoutes = () => {
+  return (
     <>
       <Route path="/components" element={<ComponentLibrary />} />
       <Route path="/hooks" element={<TestHooks />} />
     </>
-  ) : null;
+  );
+};
+
+export const DemosRouter = () =>  {
+  const cognitoConfig = getCognitoConfig();
 
   return (
     <AuthProvider {...cognitoConfig}>
@@ -29,9 +25,9 @@ export default function DemosRouter() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthComponent />} />
           <Route path="/login-redirect" element={<AuthComponent />} />
-          {debugRoutes}
+          {process.env.NODE_ENV === "development" && <DebugRoutes />}
         </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
-}
+};

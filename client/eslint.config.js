@@ -3,13 +3,18 @@ import tseslint from "typescript-eslint";
 import reactEslint from "eslint-plugin-react";
 import noRelativeComponentImports from "./eslint-rules/no-relative-component-imports.js";
 
-const IGNORED_FILES = [ "src/model/types.ts" ];
+const IGNORED_FILES = [ "eslint.config.js" ];
 
 export default tseslint.config(
   jsEslint.configs.recommended,
   tseslint.configs.recommended,
   reactEslint.configs.flat.recommended,
   {
+    settings: {
+      react: {
+        version: "detect"
+      },
+    },
     ignores: IGNORED_FILES,
     plugins: {
       "no-relative-component-imports": {
@@ -23,8 +28,8 @@ export default tseslint.config(
       "no-trailing-spaces": "error", // Disallow trailing spaces
       "no-tabs": "error", // Disallow tabs for indentation
       "eol-last": [ "error", "always" ], // Newline at the end of files
-      // Trailing commas in multiline arrays and objects
-      "comma-dangle": [ "error", { "arrays": "always-multiline", "objects": "always-multiline" } ],
+      "comma-dangle": [ "error", { "arrays": "always-multiline", "objects": "always-multiline" } ], // Trailing commas in multiline arrays and objects
+      "no-restricted-exports": ["error", { "restrictDefaultExports": { "direct": true } }], // Disallow default exports
       "object-curly-spacing": [ "error", "always" ], // Spaces inside object curly braces
       "no-relative-component-imports/no-relative-component-imports": "error", // Disallow relative imports of components
     },

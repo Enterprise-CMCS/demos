@@ -45,10 +45,8 @@ const TestUserOperationsHook: React.FC = () => {
   );
 };
 
-const TestHooks: React.FC = () => (
+export const TestHooks: React.FC = () => (
   <MockedProvider mocks={userMocks} addTypename={false}>
     <TestUserOperationsHook />
   </MockedProvider>
 );
-
-export default TestHooks;

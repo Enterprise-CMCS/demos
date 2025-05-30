@@ -1,7 +1,7 @@
 import React, { Fragment } from "react";
 import { Header, Main, Footer } from "components";
 
-const LandingPage: React.FC = () => {
+export const LandingPage: React.FC = () => {
   return (
     <Fragment>
       <Header />
@@ -17,5 +17,3 @@ const LandingPage: React.FC = () => {
     </Fragment>
   );
 };
-
-export default LandingPage;
