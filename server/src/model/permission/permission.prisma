@@ -1,0 +1,10 @@
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String
+  description     String
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+  rolePermissions RolePermission[]
+
+  @@map("permission")
+}
