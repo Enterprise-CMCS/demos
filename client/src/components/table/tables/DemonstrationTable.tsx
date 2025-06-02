@@ -3,18 +3,21 @@ import * as React from "react";
 import {
   ColumnDef,
   flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
   SortingState,
-  ColumnFiltersState,
   useReactTable,
   PaginationState,
+  getCoreRowModel,
+  getSortedRowModel,
+  ColumnFiltersState,
+  getFilteredRowModel,
+  getPaginationRowModel
 } from "@tanstack/react-table";
-import PaginationControls from "components/table/pagination/PaginationControls";
-// ↓ Import the new column‐filter dropdown
-import ColumnFilterByDropdown from "components/table/filters/ColumnFilterSelect";
+import
+PaginationControls
+  from "components/table/pagination/PaginationControls";
+import
+ColumnFilterByDropdown
+  from "components/table/filters/ColumnFilterSelect";
 
 export interface Demonstration {
   id: number;
@@ -64,7 +67,7 @@ export default function DemonstrationTable<T extends { id: string | number }>({
   const perPageChoices = [10, 20, 50];
 
   return (
-    <div className={`overflow-x-auto ${className}`}>
+    <div className={`overflow-x-auto ${className} mb-2`}>
       {/** ⇩⇩ Our new “Filter by” dropdown ⇩⇩ **/}
       <ColumnFilterByDropdown<T>
         table={table}
