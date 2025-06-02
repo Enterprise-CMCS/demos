@@ -4,6 +4,7 @@ import { AuthProvider } from "react-oidc-context";
 import { getCognitoConfig } from "./cognitoConfig";
 import { LandingPage, ComponentLibrary, TestHooks } from "pages";
 import { AuthComponent } from "components/auth/AuthComponent";
+import PrimaryLayout from "layout/PrimaryLayout";
 
 // Routes that are only available in development mode
 const DebugRoutes = () => {
@@ -22,7 +23,7 @@ export const DemosRouter = () =>  {
     <AuthProvider {...cognitoConfig}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<PrimaryLayout><LandingPage /></PrimaryLayout>} />
           <Route path="/login" element={<AuthComponent />} />
           <Route path="/login-redirect" element={<AuthComponent />} />
           {process.env.NODE_ENV === "development" && <DebugRoutes />}
