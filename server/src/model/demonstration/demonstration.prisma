@@ -1,0 +1,16 @@
+model Demonstration {
+  id                        String                   @id @default(uuid()) @db.Uuid
+  name                      String
+  description               String
+  evaluationPeriodStartDate DateTime                 @map("evaluation_period_start_date") @db.Date
+  evaluationPeriodEndDate   DateTime                 @map("evaluation_period_end_date") @db.Date
+  createdAt                 DateTime                 @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt                 DateTime                 @updatedAt @map("updated_at") @db.Timestamptz()
+  demonstrationStatus       DemonstrationStatus      @relation(fields: [demonstrationStatusId], references: [id])
+  demonstrationStatusId     String                   @map("demonstration_status_id") @db.Uuid
+  state                     State                    @relation(fields: [stateId], references: [id])
+  stateId                   String                   @map("state_id") @db.Uuid
+  userStateDemonstrations   UserStateDemonstration[]
+
+  @@map("demonstration")
+}
