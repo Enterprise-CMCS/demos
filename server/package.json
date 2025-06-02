@@ -6,6 +6,7 @@
     "schema": "./src/model"
   },
   "dependencies": {
+    "@as-integrations/aws-lambda": "^3.1.0",
     "@graphql-tools/merge": "^9.0.24",
     "@prisma/client": "^6.7.0",
     "depcheck": "^1.4.7",

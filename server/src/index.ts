@@ -7,19 +7,23 @@ import {
   getUserRoles,
 } from "./auth/auth.util.js";
 
+// Create the ApolloServer instance exactly as before:
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
 });
 
-const { url } = await startStandaloneServer(server, {
-  listen: { port: 4000 },
-  context: async ({ req }) => {
-    // Add any shared context here, e.g., user authentication
-    const { sub, email } = await getCognitoUserInfo(req);
-    const roles = await getUserRoles(sub);
-    return { user: { id: sub, name: email, roles } };
-  },
-});
+// Only call startStandaloneServer when running locally (e.g., via `npm run dev`).
+// You might guard this behind an environment variable check (e.g., NODE_ENV !== "production").
+if (process.env.LOCAL_DEV === "true") {
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 4000 },
+    context: async ({ req }) => {
+      const { sub, email } = await getCognitoUserInfo(req);
+      const roles = await getUserRoles(sub);
+      return { user: { id: sub, name: email, roles } };
+    },
+  });
 
-console.log(`🚀 Server listening at: ${url}`);
+  console.log(`🚀 Local server listening at: ${url}`);
+}
