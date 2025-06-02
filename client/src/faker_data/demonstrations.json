@@ -3898,5 +3898,18 @@
     "projectOfficer": "Wedge Antilles",
     "createdAt": "2024-04-29T09:10:25.154732",
     "updatedAt": "2024-05-16T09:10:25.154732"
+  },
+  {
+    "id": 301,
+    "title": "Medicaid Texas Reproductive Health: Fertility Demonstration",
+    "demoNumber": "TX-300-2024-07-04",
+    "description": "Extension for Medicaid Texas Reproductive Health: Fertility Demonstration",
+    "evalPeriodStartDate": "2024-07-04",
+    "evalPeriodEndDate": "2024-11-23",
+    "demonstrationStatusId": 5,
+    "stateId": "TX",
+    "projectOfficer": "Kit Fisto",
+    "createdAt": "2024-04-29T09:10:25.154732",
+    "updatedAt": "2024-05-16T09:10:25.154732"
   }
 ]
