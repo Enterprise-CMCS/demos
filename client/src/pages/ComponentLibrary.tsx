@@ -1,5 +1,5 @@
 import Collapsible from "components/collapsible/Collapsible";
-import { Footer, Header, Main } from "components";
+import { Footer, Main } from "components";
 import { InputSandbox } from "components/input";
 import { ButtonGrid } from "components/button";
 import React, { Fragment } from "react";
@@ -7,7 +7,6 @@ import React, { Fragment } from "react";
 const ComponentLibrary: React.FC = () => {
   return (
     <Fragment>
-      <Header />
       <Main>
         <Collapsible title="Button Grid (Click to expand)">
           <ButtonGrid />
@@ -16,7 +15,6 @@ const ComponentLibrary: React.FC = () => {
           <InputSandbox />
         </Collapsible>
       </Main>
-      <Footer />
     </Fragment>
   );
 };

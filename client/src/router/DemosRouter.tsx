@@ -18,6 +18,7 @@ import {
 } from "react-router-dom";
 
 import { getCognitoConfig } from "./cognitoConfig";
+import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 
 // import Dashboard from "./Dashboard";
 export default function DemosRouter() {
@@ -43,17 +44,24 @@ export default function DemosRouter() {
       )}
     </Route>
   );
+  // Create Apollo Client instance
+  const client = new ApolloClient({
+    uri: "/graphql",
+    cache: new InMemoryCache(),
+  });
 
   return (
     <AuthProvider {...cognitoConfig}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<AuthComponent />} />
-          <Route path="/login-redirect" element={<AuthComponent />} />
-          {authenticatedRoutes}
-        </Routes>
-      </BrowserRouter>
+      <ApolloProvider client={client}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<AuthComponent />} />
+            <Route path="/login-redirect" element={<AuthComponent />} />
+            {authenticatedRoutes}
+          </Routes>
+        </BrowserRouter>
+      </ApolloProvider>
     </AuthProvider>
   );
 }

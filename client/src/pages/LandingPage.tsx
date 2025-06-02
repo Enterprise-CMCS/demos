@@ -1,10 +1,9 @@
 import React, { Fragment } from "react";
-import { Header, Main, Footer } from "components";
+import { Main } from "components";
 
 const LandingPage: React.FC = () => {
   return (
     <Fragment>
-      <Header />
       <Main>
         <h1 className="text-2xl font-bold">Welcome to DEMOS</h1>
         <a href="/login">
@@ -13,7 +12,6 @@ const LandingPage: React.FC = () => {
           >Go to Login page</button>
         </a>
       </Main>
-      <Footer />
     </Fragment>
   );
 };
