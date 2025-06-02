@@ -1,4 +1,3 @@
-// src/components/LoginButton.tsx
 import React from "react";
 import { PrimaryButton } from "./PrimaryButton";
 
@@ -15,10 +14,9 @@ export interface LoginButtonProps {
 export const LoginButton: React.FC<LoginButtonProps> = ({
   href = "/login",
   children = "Login",
-  className = "",
 }) => (
   <a href={href}>
-    <PrimaryButton className={className}>
+    <PrimaryButton className="mt-4">
       {children}
     </PrimaryButton>
   </a>
