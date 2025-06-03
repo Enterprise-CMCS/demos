@@ -1,5 +1,5 @@
 import { Collapsible } from "components/collapsible/Collapsible";
-import { logout } from "../../router/cognitoConfig";
+import { logoutToCognito } from "../../router/cognitoConfig";
 import React, { Fragment } from "react";
 import { useAuth } from "react-oidc-context";
 import { DebugOnly } from "components/debug/DebugOnly";
@@ -43,7 +43,7 @@ export const AuthComponent: React.FC = () => {
       className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor:pointer"
       onClick={() => {
         auth.removeUser(); // This is not exactly right, it kills the user locally orphaning the session.
-        logout(); // We should be using auth.sigoutRedirect() but that is not working.
+        logoutToCognito(); // We should be using auth.sigoutRedirect() but that is not working.
       }}
     >
       Sign Out

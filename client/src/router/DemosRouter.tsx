@@ -1,14 +1,9 @@
 import React from "react";
 
-import AuthComponent from "components/auth/AuthComponent";
-import PrimaryLayout from "layout/PrimaryLayout";
-import Actions from "pages/Actions";
-import Budget from "pages/Budget";
-import ComponentLibrary from "pages/ComponentLibrary";
-import Demonstrations from "pages/Demonstrations";
-import LandingPage from "pages/LandingPage";
-import Reports from "pages/Reports";
-import Tasks from "pages/Tasks";
+import { AuthComponent } from "components/auth/AuthComponent";
+import { PrimaryLayout } from "layout/PrimaryLayout";
+import { ComponentLibrary } from "pages/debug";
+import { LandingPage } from "pages/LandingPage";
 import { AuthProvider } from "react-oidc-context";
 import {
   BrowserRouter,
@@ -19,8 +14,7 @@ import {
 
 import { getCognitoConfig } from "./cognitoConfig";
 
-// import Dashboard from "./Dashboard";
-export default function DemosRouter() {
+export function DemosRouter() {
   const cognitoConfig = getCognitoConfig();
 
   // Authenticated routes with shared layout
@@ -32,12 +26,6 @@ export default function DemosRouter() {
         </PrimaryLayout>
       }
     >
-      {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-      <Route path="/demonstrations" element={<Demonstrations />} />
-      <Route path="/actions" element={<Actions />} />
-      <Route path="/tasks" element={<Tasks />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/budget" element={<Budget />} />
       {process.env.NODE_ENV === "development" && (
         <Route path="/components" element={<ComponentLibrary />} />
       )}
