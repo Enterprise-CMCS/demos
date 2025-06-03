@@ -26,7 +26,7 @@ interface SideNavProps {
   setCollapsed: (val: boolean) => void;
 }
 
-const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => {
+export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
 
   return (
@@ -111,5 +111,3 @@ const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => {
     </nav>
   );
 };
-
-export default SideNav;

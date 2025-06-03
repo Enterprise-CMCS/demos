@@ -1,17 +1,16 @@
-// src/components/PrimaryLayout.tsx
-import React, { useState, Fragment } from "react";
-import { Header, Main, Footer } from "components";
-import SideNav from "./SideNav";
+import React, { useState } from "react";
+import { Header, Footer } from "components/index";
+import { SideNav } from "./SideNav";
 
 interface PrimaryLayoutProps {
   children: React.ReactNode;
 }
 
-const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
+export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <Fragment>
+    <>
       <Header />
       <div className="flex mt-16 min-h-[calc(100vh-64px)]">
         <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -26,8 +25,6 @@ const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
       </div>
 
       <Footer />
-    </Fragment>
+    </>
   );
 };
-
-export default PrimaryLayout;

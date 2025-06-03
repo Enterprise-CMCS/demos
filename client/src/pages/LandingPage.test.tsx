@@ -1,20 +1,18 @@
-// src/pages/LandingPage.test.tsx
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
+import { LandingPage } from "./LandingPage";
 
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
-  const mod = await vi.importActual<any>("react-router-dom");
+  const mod = await vi.importActual("react-router-dom");
   return {
     ...mod,
     useNavigate: () => mockNavigate,
   };
 });
-
-import LandingPage from "./LandingPage";
 
 describe("LandingPage", () => {
   beforeEach(() => {

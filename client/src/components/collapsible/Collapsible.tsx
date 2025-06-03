@@ -5,7 +5,7 @@ interface CollapsibleProps {
     children: React.ReactNode;
 }
 
-const Collapsible: React.FC<CollapsibleProps> = ({ title, children }) => {
+export const Collapsible: React.FC<CollapsibleProps> = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleCollapse = () => {
@@ -24,5 +24,3 @@ const Collapsible: React.FC<CollapsibleProps> = ({ title, children }) => {
     </div>
   );
 };
-
-export default Collapsible;

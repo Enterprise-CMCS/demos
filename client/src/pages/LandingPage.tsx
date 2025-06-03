@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Header, Main, Footer } from "components";
 import { PrimaryButton } from "components/button/PrimaryButton";
 
-const LandingPage: React.FC = () => {
+export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   return (
     <Fragment>
@@ -17,5 +17,3 @@ const LandingPage: React.FC = () => {
     </Fragment>
   );
 };
-
-export default LandingPage;

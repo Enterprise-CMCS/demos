@@ -1,8 +1,8 @@
-import Collapsible from "components/collapsible/Collapsible";
+import { Collapsible } from "components/collapsible/Collapsible";
 import { logoutToCognito } from "../../router/cognitoConfig";
 import React, { Fragment } from "react";
 import { useAuth } from "react-oidc-context";
-import DebugOnly from "components/debug/DebugOnly";
+import { DebugOnly } from "components/debug/DebugOnly";
 
 // This is a debug component to show the auth state.
 // It should be removed or hidden in production.
@@ -30,7 +30,7 @@ const AuthDebug = () => {
 // For now a one stop shop for authentication.
 // In the future this may just be things like <LoginButton /> and <LogoutButton />
 // which are used in the header and other places.
-const AuthComponent: React.FC = () => {
+export const AuthComponent: React.FC = () => {
   const auth = useAuth();
 
   if (!auth) {
@@ -73,5 +73,3 @@ const AuthComponent: React.FC = () => {
     </div>
   );
 };
-
-export default AuthComponent;

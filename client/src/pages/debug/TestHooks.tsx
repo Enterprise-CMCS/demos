@@ -1,6 +1,6 @@
 import React from "react";
 import { MockedProvider } from "@apollo/client/testing";
-import { useUserOperations } from "../hooks/useUserOperations";
+import { useUserOperations } from "../../hooks/useUserOperations";
 import { userMocks } from "hooks/userMocks";
 import { PrimaryButton } from "components/button/PrimaryButton";
 import { TextInput } from "components";
@@ -45,10 +45,8 @@ const TestUserOperationsHook: React.FC = () => {
   );
 };
 
-const TestHooks: React.FC = () => (
+export const TestHooks: React.FC = () => (
   <MockedProvider mocks={userMocks} addTypename={false}>
     <TestUserOperationsHook />
   </MockedProvider>
 );
-
-export default TestHooks;
