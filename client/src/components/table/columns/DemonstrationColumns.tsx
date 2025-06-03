@@ -19,7 +19,7 @@ export type DemonstrationTable = {
 
 // 1) “Select” checkbox column
 const selectColumn: ColumnDef<DemonstrationTable> = {
-  id: "select",
+  id: "Select",
   header: ({ table }) => (
     <input
       type="checkbox"

@@ -8,7 +8,10 @@ const Demonstrations: React.FC = () => {
   return (
     <div className="p-0">
       <h1 className="text-2xl font-bold">Demonstrations</h1>
-      <TableTitle title="My Demonstrations">
+      <TableTitle
+        title="My Demonstrations"
+        count={DemoData.length}
+      >
         <DemonstrationTable
           data={DemoData}
         />
