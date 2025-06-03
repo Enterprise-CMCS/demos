@@ -1,64 +1,93 @@
-// src/components/table/tables/DemonstrationTable.tsx
 import * as React from "react";
 import {
-  ColumnDef,
   flexRender,
-  SortingState,
   useReactTable,
-  PaginationState,
   getCoreRowModel,
   getSortedRowModel,
-  ColumnFiltersState,
   getFilteredRowModel,
-  getPaginationRowModel
+  getExpandedRowModel,
+  getPaginationRowModel,
+  SortingState,
+  ColumnFiltersState,
+  ExpandedState,
+  PaginationState,
+  RowSelectionState
 } from "@tanstack/react-table";
-import
-PaginationControls
-  from "components/table/pagination/PaginationControls";
-import
-ColumnFilterByDropdown
-  from "components/table/filters/ColumnFilterSelect";
 
-export interface Demonstration {
+import PaginationControls from "components/table/pagination/PaginationControls";
+import ColumnFilterByDropdown from "components/table/filters/ColumnFilterSelect";
+import { groupByDemoNumber, DemoWithSubRows } from "components/table/preproccessors/GroupByDemoNumber";
+import { DemonstrationColumns } from "components/table/columns/DemonstrationColumns";
+
+export interface RawDemonstration {
   id: number;
-  stateId: string;
-  demoNumber: string;
   title: string;
+  demoNumber: string;
+  description: string;
+  evalPeriodStartDate: string;
+  evalPeriodEndDate: string;
+  demonstrationStatusId: number;
+  stateId: string;
   projectOfficer: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface DemonstrationTableProps<T extends { id: string | number }> {
-  data: T[];
-  columns: ColumnDef<T, unknown>[];
+export interface DemonstrationTableProps {
+  data: RawDemonstration[];
   className?: string;
 }
 
-export default function DemonstrationTable<T extends { id: string | number }>({
+export default function DemonstrationTable({
   data,
-  columns,
   className = "",
-}: DemonstrationTableProps<T>) {
+}: DemonstrationTableProps) {
+  // 1) Pre‐process data into parent+subRows
+  const hierarchicalData: DemoWithSubRows[] = React.useMemo(
+    () => groupByDemoNumber(data),
+    [data]
+  );
+
+  // 2) Table state: sorting, pagination, columnFilters, expansion
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
-  const table = useReactTable<T>({
-    data,
-    columns,
-    state: { sorting, pagination, columnFilters },
+
+  // 3) Build the table with getSubRows and getExpandedRowModel
+  const table = useReactTable<DemoWithSubRows>({
+    data: hierarchicalData,
+    columns: DemonstrationColumns,
+    getSubRows: (row) => row.subRows ?? [],
+
+    // include all pieces of state:
+    state: {
+      sorting,
+      pagination,
+      columnFilters,
+      expanded,
+      rowSelection, // ← include selection in state
+    },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    onExpandedChange: setExpanded,
+    onRowSelectionChange: setRowSelection, // ← wire up row selection
+
+    // plugins:
+    getCoreRowModel:     getCoreRowModel(),
+    getSortedRowModel:   getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // 3) Pagination helpers
+  // 4) Pagination helpers
   const currentPage = table.getState().pagination.pageIndex;
   const totalPages = table.getPageCount();
   const pageSize = table.getState().pagination.pageSize;
@@ -68,15 +97,14 @@ export default function DemonstrationTable<T extends { id: string | number }>({
 
   return (
     <div className={`overflow-x-auto ${className} mb-2`}>
-      {/** ⇩⇩ Our new “Filter by” dropdown ⇩⇩ **/}
-      <ColumnFilterByDropdown<T>
+      {/** Filter‐by column dropdown (unchanged) **/}
+      <ColumnFilterByDropdown<DemoWithSubRows>
         table={table}
-        // Pass in the same columns you gave useReactTable
         columns={table.getAllColumns()}
         label="Filter by:"
       />
 
-      {/** ⇩⇩ The data table ⇩⇩ **/}
+      {/** ⇩⇩ The table with expanders ⇩⇩ **/}
       <table className="w-full text-sm">
         <thead>
           {table.getHeaderGroups().map((hg) => (
@@ -97,11 +125,18 @@ export default function DemonstrationTable<T extends { id: string | number }>({
             </tr>
           ))}
         </thead>
+
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
+            <tr
+              key={row.id}
+              className={row.depth > 0 ? "bg-gray-50" : ""}
+            >
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-2 py-1 border-b">
+                <td
+                  key={cell.id}
+                  className="px-2 py-1 border-b"
+                >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

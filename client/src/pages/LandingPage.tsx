@@ -1,27 +1,17 @@
 import React, { Fragment } from "react";
-import { DemonstrationColumns } from "components/table/columns/DemonstrationColumns";
-import { TableTitle } from "components/table/sections/TableTitle";
-import DemonstrationTable from "components/table/tables/DemonstrationTable";
+import { useNavigate } from "react-router-dom";
 import { Header, Main, Footer } from "components";
 import { PrimaryButton } from "components/button/PrimaryButton";
-import DemoData from "faker_data/demonstrations.json";
 
 const LandingPage: React.FC = () => {
-  const navigate = useNavigation()
+  const navigate = useNavigate();
   return (
     <Fragment>
       <Header />
       <Main>
-        {/* <h1 className="text-2xl font-bold">Welcome to DEMOS</h1> */}
-        <PrimaryButton onclick={() => navigate("/login")}>Login</ PrimaryButton>
-        <div className="overflow-auto">
-          <TableTitle title="Demonstrations">
-            <DemonstrationTable
-              data={DemoData}
-              columns={DemonstrationColumns}
-            />
-          </TableTitle>
-        </div>
+        <PrimaryButton onClick={() => navigate("/login")} className="mb-4">
+          Login
+        </PrimaryButton>
       </Main>
       <Footer />
     </Fragment>

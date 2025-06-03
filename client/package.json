@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
+    "@testing-library/user-event": "^14.6.1",
     "date-fns": "^4.1.0",
     "react-app-polyfill": "^3.0.0",
     "react-oidc-context": "^3.3.0",
