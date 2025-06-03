@@ -1,0 +1,6 @@
+clamav/*.cvd
+clamav/clamscan*
+clamav/main.cvd
+clamav/daily.cvd
+clamav/bytecode.cvd
+node_modules/
