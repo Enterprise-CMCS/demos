@@ -91,7 +91,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         )}
 
         <button
-          className="px-2 py-1 border rounded disabled:opacity-50"
+          className="mr-2 px-2 py-1 border rounded disabled:opacity-50"
           onClick={onNextPage}
           disabled={!canNextPage}
         >
