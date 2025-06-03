@@ -39,12 +39,12 @@ export function groupByDemoNumber(
   const result: DemoWithSubRows[] = [];
 
   // 2) For each group, sort descending by createdAt, then pick the latest as parent
-  for (const [demoNumber, groupArray] of map.entries()) {
-    // Sort descending: newest first
+  for (const groupArray of map.values()) {
+    // Sort descending: newest first - thus making a "history"
     groupArray.sort((a, b) => {
-      const dateA = new Date(a.evalPeriodStartDate).getTime();
-      const dateB = new Date(b.evalPeriodEndDate).getTime();
-      return dateB - dateA;
+      const startDate = new Date(a.evalPeriodStartDate).getTime();
+      const endDate = new Date(b.evalPeriodEndDate).getTime();
+      return endDate - startDate;
     });
 
     // First element is the “parent”
