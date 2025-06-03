@@ -42,33 +42,31 @@ const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
   return (
     <div
       id="profile-container"
-      className="relative flex items-center gap-x-1 mr-2"
+      className="relative flex items-center gap-x-1 mr-2 cursor-pointer"
+      onClick={() => setOpen(!open)}
     >
       <Avatar character={firstCharacter} />
-      <div
-        id="name-container"
-        className="flex items-center cursor-pointer"
-        onClick={() => setOpen(!open)}
-      >
-        <span id="profile-name" className="text-lg font-semibold">
-          {user.fullName}
-        </span>
-        <span className="ml-1">{open ? <ChevronIcon className="rotate-180"/> : <ChevronIcon />}</span>
-        {open && (
-          <ul
-            id="user-actions"
-            className="absolute top-12 min-w-full right-0 bg-white border border-gray-300 rounded shadow-lg"
-          >
-            <li className="hover:bg-gray-100 cursor-pointer p-1">
-              <a>Logout</a>
-            </li>
-            <li className="hover:bg-gray-100 cursor-pointer p-1">
-              <a>View Roles</a>
-            </li>
-          </ul>
-        )}
-      </div>
+      <span id="profile-name" className="text-lg font-semibold">
+        {user.fullName}
+      </span>
+      <span>
+        <ChevronIcon className={open ? "rotate-180" : ""} />
+      </span>
+      {open && (
+        <ul
+          id="user-actions"
+          className="absolute top-12 min-w-full right-0 bg-white border border-gray-300 rounded shadow-lg"
+        >
+          <li className="hover:bg-gray-100 cursor-pointer p-1">
+            <a>Logout</a>
+          </li>
+          <li className="hover:bg-gray-100 cursor-pointer p-1">
+            <a>View Roles</a>
+          </li>
+        </ul>
+      )}
     </div>
+
   );
 };
 

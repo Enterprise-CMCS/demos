@@ -8,19 +8,19 @@ const QuickLinks: React.FC = () => {
     <ul className="flex items-center gap-3">
       <li>
         <a href="#" className="flex items-center gap-1">
-          <GearIcon />
+          <GearIcon className="text-[var(--color-action)]"/>
           <span>Admin</span>
         </a>
       </li>
       <li>
         <a href="#" className="flex items-center gap-1">
-          <BellIcon />
+          <BellIcon className="text-[var(--color-action)]"/>
           <span>Notifications</span>
         </a>
       </li>
       <li>
         <a href="#" className="flex items-center gap-1">
-          <LifeRaftIcon />
+          <LifeRaftIcon className="text-[var(--color-action)]"/>
           <span>Help</span>
         </a>
       </li>

@@ -69,4 +69,30 @@ export const userMocks = [
       },
     },
   },
+  {
+    request: {
+      query: HEADER_LOWER_QUERY,
+      variables: { "id": 2 },
+    },
+    result: {
+      data: {
+        user: {
+          fullName: "John Doe",
+        },
+      },
+    },
+  },
+  {
+    request: {
+      query: PROFILE_BLOCK_QUERY,
+      variables: { "id": 2 },
+    },
+    result: {
+      data: {
+        user: {
+          fullName: "John Doe",
+        },
+      },
+    },
+  },
 ];

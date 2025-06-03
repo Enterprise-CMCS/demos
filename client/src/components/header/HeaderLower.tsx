@@ -35,13 +35,13 @@ const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
   const user = data.user;
 
   return (
-    <div className="w-full bg-blue-900 text-white px-4 py-1 flex items-center justify-between">
+    <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
       <div>
         <span className="font-bold block">Hello {user.fullName}</span>
-        <span className="block">Welcome to DEMOS!</span>
+        <span className="block text-sm">Welcome to DEMOS!</span>
       </div>
       <div>
-        <SecondaryButton size="small" className="flex items-center gap-1 px-1 py-1">
+        <SecondaryButton size="small" className="cursor-pointer flex items-center gap-1 px-1 py-1">
           <span className="">Create New</span>
           <AddIcon/>
         </SecondaryButton>

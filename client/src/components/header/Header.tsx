@@ -8,7 +8,7 @@ const Header: React.FC<{
   return (
     <div id="header-container" className="top-0 left-0 w-full z-11">
       <HeaderUpper userId={userId} />
-      <HeaderLower userId={userId}/>
+      <HeaderLower userId={userId} />
     </div>
   );
 };

@@ -11,7 +11,7 @@ const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
 
   return (
     <div className="h-screen flex flex-col">
-      <Header userId={1}/>
+      <Header userId={2}/>
       <div className="flex flex-1 overflow-hidden">
         {/* Sidenav flex basis */}
         <div className={collapsed ? "w-20" : "w-64"}>

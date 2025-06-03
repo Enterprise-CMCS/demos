@@ -9,9 +9,9 @@ export const EllipsesIcon = (props: React.SVGProps<SVGSVGElement>) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <circle cx="1.5" cy="7.5" r="1.5" fill="#0071BC"/>
-    <circle cx="7" cy="7.5" r="1.5" fill="#0071BC"/>
-    <circle cx="12.5" cy="7.5" r="1.5" fill="#0071BC"/>
+    <circle cx="1.5" cy="7.5" r="1.5" fill="currentColor"/>
+    <circle cx="7" cy="7.5" r="1.5" fill="currentColor"/>
+    <circle cx="12.5" cy="7.5" r="1.5" fill="currentColor"/>
   </svg>
 
 
