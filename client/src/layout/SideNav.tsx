@@ -32,8 +32,7 @@ const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => vo
 
   return (
     <nav
-      className={`h-screen bg-white fixed top-0 left-0 transition-all duration-300 flex flex-col z-20 ${collapsed ? "w-20" : "w-64"
-      } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
+      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${collapsed ? "w-20" : "w-64"} shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
     >
       {/* Collapse Toggle */}
       <div className="relative h-12 mt-2">

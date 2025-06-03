@@ -1,5 +1,5 @@
 import Collapsible from "components/collapsible/Collapsible";
-import { Footer, Main } from "components";
+import { Main } from "components";
 import { InputSandbox } from "components/input";
 import { ButtonGrid } from "components/button";
 import React, { Fragment } from "react";

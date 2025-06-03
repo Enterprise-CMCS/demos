@@ -1,29 +1,26 @@
+import { BellIcon } from "components/icons/BellIcon";
+import { GearIcon } from "components/icons/GearIcon";
+import { LifeRaftIcon } from "components/icons/LifeRaftIcon";
 import React from "react";
 
 const QuickLinks: React.FC = () => {
   return (
-    <ul className="quick-links flex">
+    <ul className="flex items-center gap-3">
       <li>
-        <a>
-          <span role="img" aria-label="gear" className="">
-            ⚙️
-          </span>
+        <a href="#" className="flex items-center gap-1">
+          <GearIcon />
           <span>Admin</span>
         </a>
       </li>
       <li>
-        <a>
-          <span role="img" aria-label="bell" className="">
-            🔔
-          </span>
+        <a href="#" className="flex items-center gap-1">
+          <BellIcon />
           <span>Notifications</span>
         </a>
       </li>
       <li>
-        <a>
-          <span role="img" aria-label="liferaft" className="">
-            🛟
-          </span>
+        <a href="#" className="flex items-center gap-1">
+          <LifeRaftIcon />
           <span>Help</span>
         </a>
       </li>

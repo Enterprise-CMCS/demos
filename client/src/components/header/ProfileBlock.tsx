@@ -1,30 +1,15 @@
 import { gql, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import Avatar from "./Avatar";
+import { ChevronIcon } from "components/icons/ChevronIcon";
 
-const PROFILE_BLOCK_QUERY = gql`
+export const PROFILE_BLOCK_QUERY = gql`
   query ProfileBlockQuery($id: ID!) {
     user(id: $id) {
       fullName
     }
   }
 `;
-
-export const profileBlockQueryMocks = [
-  {
-    request: {
-      query: PROFILE_BLOCK_QUERY,
-      variables: { id: 1 },
-    },
-    result: {
-      data: {
-        user: {
-          fullName: "User Testerson",
-        },
-      },
-    },
-  },
-];
 
 const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
   const [open, setOpen] = useState(false);
@@ -52,7 +37,7 @@ const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
   }
 
   const user = data.user;
-  const firstCharacter = user.firstName.charAt(0).toUpperCase();
+  const firstCharacter = user.fullName.charAt(0).toUpperCase();
 
   return (
     <div
@@ -68,7 +53,7 @@ const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
         <span id="profile-name" className="text-lg font-semibold">
           {user.fullName}
         </span>
-        <span className="ml-1">{open ? "▲" : "▼"}</span>
+        <span className="ml-1">{open ? <ChevronIcon className="rotate-180"/> : <ChevronIcon />}</span>
         {open && (
           <ul
             id="user-actions"

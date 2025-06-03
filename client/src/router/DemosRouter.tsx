@@ -16,9 +16,10 @@ import {
   Route,
   Routes
 } from "react-router-dom";
+import { MockedProvider } from "@apollo/client/testing";
 
-import { getCognitoConfig } from "./cognitoConfig";
-import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
+import { getCognitoConfig } from "../router/cognitoConfig";
+import { userMocks } from "hooks/userMocks";
 
 // import Dashboard from "./Dashboard";
 export default function DemosRouter() {
@@ -44,15 +45,10 @@ export default function DemosRouter() {
       )}
     </Route>
   );
-  // Create Apollo Client instance
-  const client = new ApolloClient({
-    uri: "/graphql",
-    cache: new InMemoryCache(),
-  });
 
   return (
     <AuthProvider {...cognitoConfig}>
-      <ApolloProvider client={client}>
+      <MockedProvider mocks={userMocks} addTypename={false}>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -61,7 +57,7 @@ export default function DemosRouter() {
             {authenticatedRoutes}
           </Routes>
         </BrowserRouter>
-      </ApolloProvider>
+      </MockedProvider>
     </AuthProvider>
   );
 }
