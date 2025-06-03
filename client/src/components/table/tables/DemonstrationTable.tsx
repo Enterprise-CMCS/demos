@@ -48,7 +48,6 @@ export default function DemonstrationTable({
     [data]
   );
 
-  // 2) Table state: sorting, pagination, columnFilters, expansion
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -58,8 +57,6 @@ export default function DemonstrationTable({
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
-
-  // 3) Build the table with getSubRows and getExpandedRowModel
   const table = useReactTable<DemoWithSubRows>({
     data: hierarchicalData,
     columns: DemonstrationColumns,
@@ -71,17 +68,17 @@ export default function DemonstrationTable({
       pagination,
       columnFilters,
       expanded,
-      rowSelection, // ← include selection in state
+      rowSelection,
     },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
     onExpandedChange: setExpanded,
-    onRowSelectionChange: setRowSelection, // ← wire up row selection
+    onRowSelectionChange: setRowSelection,
 
     // plugins:
-    getCoreRowModel:     getCoreRowModel(),
-    getSortedRowModel:   getSortedRowModel(),
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -97,10 +94,11 @@ export default function DemonstrationTable({
 
   return (
     <div className={`overflow-x-auto ${className} mb-2`}>
-      {/** Filter‐by column dropdown (unchanged) **/}
       <ColumnFilterByDropdown<DemoWithSubRows>
         table={table}
-        columns={table.getAllColumns()}
+        columns={table
+          .getAllColumns()
+          .filter((col) => col.id !== "expander" && col.id !== "select")}
         label="Filter by:"
       />
 

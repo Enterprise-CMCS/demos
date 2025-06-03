@@ -36,7 +36,7 @@ export function ColumnFilterByDropdown<T extends object>({
       <label htmlFor="filter-by-column" className="ml-2 font-semibold block mb-1">
         {label}
       </label>
-      <div className="ml-2 mb-4 flex items-center gap-2 text-sm">
+      <div className="ml-2 mb-2 mr-2 flex items-center gap-2 text-sm">
         <select
           id="filter-by-column"
           className="border px-2 py-1 rounded"

@@ -54,6 +54,7 @@ const expanderColumn: ColumnDef<DemonstrationTable> = {
   cell: ({ row }) =>
     row.getCanExpand() ? (
       <span
+        aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
         className="inline-block select-none cursor-pointer"
         onClick={row.getToggleExpandedHandler()}
       >
