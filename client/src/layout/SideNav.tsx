@@ -24,7 +24,7 @@ const navLinks = [
   { label: "Budget", href: "/budget", icon: <BudgetIcon /> },
 ];
 
-const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => void }> = ({
+export const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => void }> = ({
   collapsed,
   setCollapsed,
 }) => {
@@ -113,5 +113,3 @@ const SideNav: React.FC<{ collapsed: boolean; setCollapsed: (val: boolean) => vo
     </nav>
   );
 };
-
-export default SideNav;
