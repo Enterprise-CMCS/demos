@@ -1,8 +1,8 @@
 // src/components/table/columns/DemonstrationColumns.ts
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
+import { ArrowRightIcon, ArrowDownIcon } from "components/icons";
 
-// Your existing data type for rows:
 export type DemonstrationTable = {
   id: number;
   title: string;
@@ -12,12 +12,12 @@ export type DemonstrationTable = {
   demonstrationStatusId: number;
   stateId: string;
   projectOfficer: string;
-  demoNumber: string;        // ← Make sure this exists since you refer to it
+  demoNumber: string;
   createdAt: string;
   updatedAt: string;
 };
 
-// Step 1: Build your “select” column first
+// 1) “Select” checkbox column
 const selectColumn: ColumnDef<DemonstrationTable> = {
   id: "select",
   header: ({ table }) => (
@@ -36,28 +36,40 @@ const selectColumn: ColumnDef<DemonstrationTable> = {
       onChange={row.getToggleSelectedHandler()}
     />
   ),
-  size: 20, // narrow column, just enough for a checkbox
+  size: 20,
 };
 
-// Step 2: Build your other columns (including the expander at the end)
-export const DemonstrationColumns: ColumnDef<DemonstrationTable>[] = [
-  selectColumn,
+// 2) Your data columns
+const dataColumns: ColumnDef<DemonstrationTable>[] = [
   { header: "State/Territory", accessorKey: "stateId" },
   { header: "Number", accessorKey: "demoNumber" },
   { header: "Title", accessorKey: "title" },
   { header: "Project Officer", accessorKey: "projectOfficer" },
-  {
-    id: "expander",
-    header: () => null, // no header label
-    cell: ({ row }) =>
-      row.getCanExpand() ? (
-        <span
-          className="inline-block w-4 text-center select-none cursor-pointer"
-          onClick={row.getToggleExpandedHandler()}
-        >
-          {row.getIsExpanded() ? "▼" : "►"}
-        </span>
-      ) : null,
-    size: 20,
-  },
+];
+
+// 3) Expander column, using SVGs from components/icons
+const expanderColumn: ColumnDef<DemonstrationTable> = {
+  id: "expander",
+  header: () => null,
+  cell: ({ row }) =>
+    row.getCanExpand() ? (
+      <span
+        className="inline-block select-none cursor-pointer"
+        onClick={row.getToggleExpandedHandler()}
+      >
+        {row.getIsExpanded() ? (
+          <ArrowDownIcon className="text-center w-2 h-2 text-gray-600" />
+        ) : (
+          <ArrowRightIcon className="text-center w-2 h-2 text-gray-600" />
+        )}
+      </span>
+    ) : null,
+  size: 20,
+};
+
+// 4) Export final array
+export const DemonstrationColumns: ColumnDef<DemonstrationTable>[] = [
+  selectColumn,
+  ...dataColumns,
+  expanderColumn,
 ];
