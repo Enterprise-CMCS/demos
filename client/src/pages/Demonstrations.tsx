@@ -1,5 +1,4 @@
 import React from "react";
-import { DemonstrationColumns } from "components/table/columns/DemonstrationColumns";
 import { TableTitle } from "components/table/sections/TableTitle";
 import DemonstrationTable from "components/table/tables/DemonstrationTable";
 import DemoData from "faker_data/demonstrations.json";
@@ -12,7 +11,6 @@ const Demonstrations: React.FC = () => {
       <TableTitle title="My Demonstrations">
         <DemonstrationTable
           data={DemoData}
-          columns={DemonstrationColumns}
         />
       </TableTitle>
     </div>

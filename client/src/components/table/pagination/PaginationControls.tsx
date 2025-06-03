@@ -48,7 +48,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 text-sm">
       {/* Rows‐per‐page selector */}
       <div className="flex items-center gap-2 ml-2">
-        <span>Rows per page:</span>
+        <span>Items per page:</span>
         <select
           className="border px-2 py-1 rounded"
           value={pageSize}
