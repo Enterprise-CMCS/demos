@@ -21,6 +21,7 @@ describe("LandingPage", () => {
     mockNavigate.mockReset();
   });
 
+  // I was getting an error on useNavigate, had to add memoryRouter.
   it("renders a Login button", () => {
     render(
       <MemoryRouter>
