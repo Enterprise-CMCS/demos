@@ -1,10 +1,10 @@
-import Collapsible from "components/collapsible/Collapsible";
+import { Collapsible } from "components/collapsible/Collapsible";
 import { Footer, Header, Main } from "components";
 import { InputSandbox } from "components/input";
 import { ButtonGrid } from "components/button";
 import React, { Fragment } from "react";
 
-const ComponentLibrary: React.FC = () => {
+export const ComponentLibrary: React.FC = () => {
   return (
     <Fragment>
       <Header />
@@ -20,5 +20,3 @@ const ComponentLibrary: React.FC = () => {
     </Fragment>
   );
 };
-
-export default ComponentLibrary;

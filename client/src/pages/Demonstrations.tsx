@@ -1,6 +1,6 @@
 import React from "react";
 
-const Demonstrations: React.FC = () => {
+export const Demonstrations: React.FC = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold">Demonstrations Page</h1>
@@ -8,5 +8,3 @@ const Demonstrations: React.FC = () => {
     </div>
   );
 };
-
-export default Demonstrations;
