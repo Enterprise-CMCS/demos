@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import SideNav from "./SideNav";
+import { SideNav } from "./SideNav";
 
 interface PrimaryLayoutProps {
   children: React.ReactNode;
 }
 
-const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
+export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -20,5 +20,3 @@ const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
     </div>
   );
 };
-
-export default PrimaryLayout;

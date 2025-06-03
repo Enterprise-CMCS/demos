@@ -5,7 +5,7 @@ import { getCognitoConfig } from "./cognitoConfig";
 import { LandingPage } from "pages";
 import { ComponentLibrary, TestHooks } from "pages/debug";
 import { AuthComponent } from "components/auth/AuthComponent";
-import PrimaryLayout from "layout/PrimaryLayout";
+import { PrimaryLayout } from "layout/PrimaryLayout";
 
 // Routes that are only available in development mode
 const DebugRoutes = () => {

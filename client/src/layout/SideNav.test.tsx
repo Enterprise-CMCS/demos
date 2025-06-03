@@ -1,8 +1,8 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { vi } from "vitest";
-import SideNav from "./SideNav";
+import { vi, describe, it, expect } from "vitest";
+import { SideNav } from "./SideNav";
 
 describe("SideNav", () => {
   it("renders all nav links", () => {
