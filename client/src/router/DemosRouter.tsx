@@ -2,7 +2,8 @@ import React from "react";
 import { BrowserRouter,Routes,Route } from "react-router-dom";
 import { AuthProvider } from "react-oidc-context";
 import { getCognitoConfig } from "./cognitoConfig";
-import { LandingPage, ComponentLibrary, TestHooks } from "pages";
+import { LandingPage } from "pages";
+import { ComponentLibrary, TestHooks } from "pages/debug";
 import { AuthComponent } from "components/auth/AuthComponent";
 import PrimaryLayout from "layout/PrimaryLayout";
 
