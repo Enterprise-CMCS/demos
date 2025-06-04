@@ -38,7 +38,7 @@ export interface DemonstrationTableProps {
   className?: string;
 }
 
-export default function DemonstrationTable({
+export function DemonstrationTable({
   data,
   className = "",
 }: DemonstrationTableProps) {
@@ -143,7 +143,7 @@ export default function DemonstrationTable({
         </tbody>
       </table>
 
-      {/** ⇩⇩ Pagination Controls ⇩⇩ **/}
+      {/** Pagination Controls **/}
       <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}
