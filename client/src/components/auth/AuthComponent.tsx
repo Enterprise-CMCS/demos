@@ -42,7 +42,7 @@ export const AuthComponent: React.FC = () => {
     <button
       className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor:pointer"
       onClick={() => {
-        auth.removeUser(); // This is not exactly right, it kills the user locally orphaning the session.
+        auth.removeUser(); // This is not exactly right, it kills the user session in the frontend
         logoutToCognito(); // We should be using auth.sigoutRedirect() but that is not working.
       }}
     >

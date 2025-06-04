@@ -3,7 +3,7 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowRightIcon, ArrowDownIcon } from "components/icons";
 
-export type DemonstrationTable = {
+export type DemonstrationColumns = {
   id: number;
   title: string;
   description: string;
@@ -17,8 +17,7 @@ export type DemonstrationTable = {
   updatedAt: string;
 };
 
-// 1) “Select” checkbox column
-const selectColumn: ColumnDef<DemonstrationTable> = {
+const selectColumn: ColumnDef<DemonstrationColumns> = {
   id: "Select",
   header: ({ table }) => (
     <input
@@ -39,16 +38,14 @@ const selectColumn: ColumnDef<DemonstrationTable> = {
   size: 20,
 };
 
-// 2) Your data columns
-const dataColumns: ColumnDef<DemonstrationTable>[] = [
+const dataColumns: ColumnDef<DemonstrationColumns>[] = [
   { header: "State/Territory", accessorKey: "stateId" },
   { header: "Number", accessorKey: "demoNumber" },
   { header: "Title", accessorKey: "title" },
   { header: "Project Officer", accessorKey: "projectOfficer" },
 ];
 
-// 3) Expander column, using SVGs from components/icons
-const expanderColumn: ColumnDef<DemonstrationTable> = {
+const expanderColumn: ColumnDef<DemonstrationColumns> = {
   id: "expander",
   header: () => null,
   cell: ({ row }) =>
@@ -68,8 +65,7 @@ const expanderColumn: ColumnDef<DemonstrationTable> = {
   size: 20,
 };
 
-// 4) Export final array
-export const DemonstrationColumns: ColumnDef<DemonstrationTable>[] = [
+export const DemonstrationColumns: ColumnDef<DemonstrationColumns>[] = [
   selectColumn,
   ...dataColumns,
   expanderColumn,
