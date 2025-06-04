@@ -1,9 +1,14 @@
 import React from "react";
+import HeaderLower from "./HeaderLower";
+import HeaderUpper from "./HeaderUpper";
 
-export const Header: React.FC = () => {
+export const Header: React.FC<{
+  userId?: number;
+}> = ({ userId }) => {
   return (
-    <header className="flex items-center h-fit bg-white text-black border-b-2">
-      <h1 className="text-4xl p-1">DEMOS</h1>
-    </header>
+    <div id="header-container" className="top-0 left-0 w-full z-11">
+      <HeaderUpper userId={userId} />
+      <HeaderLower userId={userId} />
+    </div>
   );
 };
