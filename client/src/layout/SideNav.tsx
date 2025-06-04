@@ -16,7 +16,7 @@ const navLinks = [
   { label: "Demonstrations", href: "/demonstrations", icon: <DemonstrationIcon /> },
   { label: "Actions", href: "/?actions", icon: <ActionIcon /> },
   { label: "Tasks", href: "/?tasks", icon: <ListIcon /> },
-  { label: "Dashboards", href: "/?dashboards", icon: <DashboardIcon /> },
+  { label: "Dashboards", href: "/components", icon: <DashboardIcon /> },
   { label: "Reports", href: "/?reports", icon: <FolderIcon /> },
   { label: "Budget", href: "/?budget", icon: <BudgetIcon /> },
 ];
