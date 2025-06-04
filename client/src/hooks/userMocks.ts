@@ -1,5 +1,7 @@
 import { User } from "models/index";
 import { GET_ALL_USERS, GET_USER_BY_ID } from "./useUserOperations";
+import { HEADER_LOWER_QUERY } from "components/header/HeaderLower";
+import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 
 export const spongebob: Partial<User> = { firstName: "spongebob", lastName: "squarepants" };
 export const squidward: Partial<User> = { firstName: " squidward", lastName: "tentacles" };
@@ -39,6 +41,58 @@ export const userMocks = [
     },
     result: {
       data: { user: squidward },
+    },
+  },
+  {
+    request: {
+      query: HEADER_LOWER_QUERY,
+      variables: { "id": 1 },
+    },
+    result: {
+      data: {
+        user: {
+          fullName: "User Testerson",
+        },
+      },
+    },
+  },
+  {
+    request: {
+      query: PROFILE_BLOCK_QUERY,
+      variables: { "id": 1 },
+    },
+    result: {
+      data: {
+        user: {
+          fullName: "User Testerson",
+        },
+      },
+    },
+  },
+  {
+    request: {
+      query: HEADER_LOWER_QUERY,
+      variables: { "id": 2 },
+    },
+    result: {
+      data: {
+        user: {
+          fullName: "John Doe",
+        },
+      },
+    },
+  },
+  {
+    request: {
+      query: PROFILE_BLOCK_QUERY,
+      variables: { "id": 2 },
+    },
+    result: {
+      data: {
+        user: {
+          fullName: "John Doe",
+        },
+      },
     },
   },
 ];
