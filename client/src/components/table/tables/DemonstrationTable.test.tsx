@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, beforeEach } from "vitest";
 
-import DemonstrationTable from "./DemonstrationTable";
+import { DemonstrationTable } from "./DemonstrationTable";
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 const mockRawData = [

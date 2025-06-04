@@ -1,6 +1,6 @@
 import React from "react";
 import { TableTitle } from "components/table/sections/TableTitle";
-import DemonstrationTable from "components/table/tables/DemonstrationTable";
+import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import DemoData from "faker_data/demonstrations.json";
 
 
