@@ -31,11 +31,7 @@ export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => 
 
   return (
     <nav
-      // Note top-16 instead of top-0:
-      className={`fixed top-20 left-0 h-[calc(100vh-64px)] bg-white 
-        transition-all duration-300 flex flex-col z-10 shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]
-        ${collapsed ? "w-20" : "w-64"}
-      `}
+      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${collapsed ? "w-20" : "w-64"} shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
     >
       {/* Collapse Toggle */}
       <div className="relative h-12 mt-2">

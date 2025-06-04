@@ -12,8 +12,10 @@ import {
   Route,
   Routes
 } from "react-router-dom";
+import { MockedProvider } from "@apollo/client/testing";
 
-import { getCognitoConfig } from "./cognitoConfig";
+import { getCognitoConfig } from "../router/cognitoConfig";
+import { userMocks } from "hooks/userMocks";
 
 export function DemosRouter() {
   const cognitoConfig = getCognitoConfig();
@@ -37,14 +39,16 @@ export function DemosRouter() {
 
   return (
     <AuthProvider {...cognitoConfig}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<AuthComponent />} />
-          <Route path="/login-redirect" element={<AuthComponent />} />
-          {authenticatedRoutes}
-        </Routes>
-      </BrowserRouter>
+      <MockedProvider mocks={userMocks} addTypename={false}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<AuthComponent />} />
+            <Route path="/login-redirect" element={<AuthComponent />} />
+            {authenticatedRoutes}
+          </Routes>
+        </BrowserRouter>
+      </MockedProvider>
     </AuthProvider>
   );
 }

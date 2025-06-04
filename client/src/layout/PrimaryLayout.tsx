@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Header, Footer } from "components/index";
 import { SideNav } from "./SideNav";
+import { Footer, Header } from "components/index";
 
 interface PrimaryLayoutProps {
   children: React.ReactNode;
@@ -10,21 +10,20 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <>
-      <Header />
-      <div className="flex mt-16 min-h-[calc(100vh-64px)]">
-        <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />
+    <div className="h-screen flex flex-col">
+      <Header userId={2}/>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidenav flex basis */}
+        <div className={collapsed ? "w-20" : "w-64"}>
+          <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />
+        </div>
 
-        <main
-          className={`transition-all duration-300 bg-gray-50 w-full p-6 ${
-            collapsed ? "ml-20" : "ml-64"
-          }`}
-        >
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto p-6 bg-gray-50 transition-all duration-300">
           {children}
         </main>
       </div>
-
       <Footer />
-    </>
+    </div>
   );
 };
