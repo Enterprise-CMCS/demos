@@ -4,7 +4,6 @@ interface OidcConfig {
   redirect_uri: string;
   scope: string;
   response_type: string;
-
   post_logout_redirect_uri: string;
 };
 
@@ -16,8 +15,8 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_A7CaR2Wo3",
   domain: "https://us-east-1a7car2wo3.auth.us-east-1.amazoncognito.com",
   client_id: "5km9thunj8g6qd32s5et2i8pga",
-  post_logout_redirect_uri: "http://localhost:3000/logout",
-  redirect_uri: "http://localhost:3000/login-redirect",
+  post_logout_redirect_uri: "http://localhost:3000",
+  redirect_uri: "http://localhost:3000",
   response_type: "code",
   scope: "openid email phone",
 };

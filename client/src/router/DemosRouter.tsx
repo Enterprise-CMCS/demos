@@ -22,18 +22,18 @@ export const DemosRouter = () => {
         <BrowserRouter>
           <Routes>
             <Route element={<PrimaryLayout><Outlet /></PrimaryLayout>}>
+              {/* Real Pages the user should be able to access */}
+              {/* TODO: is the Demonstration page just the landing page? */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="demonstrations" element={<Demonstrations />} />
               {/* These need to exist for Cognito but they don't need to return a component */}
               <Route path="/login" element={<></>} />
-              <Route path="/login-redirect" element={<AuthComponent></AuthComponent>} />
-              <Route path="/login" element={<AuthComponent />} />
-              <Route path="/login-redirect" element={<AuthComponent />} />
-              <Route path="demonstrations" element={<Demonstrations />} />
               {/* Debug routes, only available in development mode */}
               {process.env.NODE_ENV === "development" && (
                 <>
                   <Route path="/components" element={<ComponentLibrary />} />
                   <Route path="/hooks" element={<TestHooks />} />
+                  <Route path="/auth" element={<AuthComponent />}></Route>
                 </>
               )}
             </Route>

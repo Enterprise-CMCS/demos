@@ -3,8 +3,6 @@ import React from "react";
 import { useAuth } from "react-oidc-context";
 import { SigninButton, SignoutButton } from "./AuthButtons";
 
-// This is a debug component to show the auth state.
-// It should be removed or hidden in production.
 const AuthDebug = () => {
   const auth = useAuth();
 

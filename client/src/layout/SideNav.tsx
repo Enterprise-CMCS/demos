@@ -3,23 +3,82 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   ActionIcon,
-  BudgetIcon,
-  DashboardIcon,
   DemonstrationIcon,
   FolderIcon,
   ListIcon,
   MenuCollapseIcon,
   MenuIcon
 } from "components/icons";
+import { DebugOnly } from "components/debug/DebugOnly";
 
-const navLinks = [
+interface NavLink {
+  label: string;
+  href: string;
+  icon: React.ReactElement;
+}
+
+const navLinks: NavLink[] = [
   { label: "Demonstrations", href: "/demonstrations", icon: <DemonstrationIcon /> },
-  { label: "Actions", href: "/?actions", icon: <ActionIcon /> },
-  { label: "Tasks", href: "/?tasks", icon: <ListIcon /> },
-  { label: "Dashboards", href: "/components", icon: <DashboardIcon /> },
-  { label: "Reports", href: "/?reports", icon: <FolderIcon /> },
-  { label: "Budget", href: "/?budget", icon: <BudgetIcon /> },
 ];
+
+const debugNavLinks: NavLink[] = [
+  { label: "Hooks", href: "/hooks", icon: <ListIcon /> },
+  { label: "Components", href: "/components", icon: <FolderIcon /> },
+  { label: "Authentication", href: "/auth", icon: <ActionIcon /> },
+];
+
+interface NavLinkProps {
+  collapsed: boolean;
+  navLinks: NavLink[];
+}
+
+const NavLinks = (props: NavLinkProps) => {
+  const location = useLocation();
+
+  return (
+    <ul className="flex flex-col gap-[4px] mt-[8px]">
+      {props.navLinks.map((link) => {
+        const isActive = location.pathname === link.href;
+        return (
+          <li key={link.href}>
+            <Link to={link.href} title={props.collapsed ? link.label : ""}>
+              <div
+                className={`
+                    relative flex items-center h-10 transition-all duration-150 ease-in-out
+                    text-black
+                    ${props.collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2"}
+                    hover:bg-[var(--color-surface-secondary)]
+                    ${isActive ? "font-semibold" : "font-normal"}
+                  `}
+              >
+                {/* Blue indicator bar */}
+                {isActive && (
+                  <span className="absolute left-0 top-0 bottom-0 w-[6px] bg-[var(--color-text-active)] rounded-r-sm" />
+                )}
+
+                {/* Icon */}
+                <span className={
+                  `shrink-0 ${isActive ? "text-[var(--color-text-active)]" : "text-black"}`
+                }>
+                  {React.cloneElement(link.icon, {
+                    className: "w-[14px] h-[14px]",
+                  })}
+                </span>
+
+                {/* Label */}
+                {!props.collapsed && (
+                  <span className={`${isActive ? "font-semibold text-black" : "text-black"}`}>
+                    {link.label}
+                  </span>
+                )}
+              </div>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
 
 interface SideNavProps {
   collapsed: boolean;
@@ -27,8 +86,6 @@ interface SideNavProps {
 }
 
 export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => {
-  const location = useLocation();
-
   return (
     <nav
       className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${collapsed ? "w-20" : "w-64"} shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
@@ -62,48 +119,12 @@ export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => 
         )}
       </div>
 
-      {/* Nav Items */}
-      <ul className="flex flex-col gap-[4px] mt-[8px]">
-        {navLinks.map((link) => {
-          const isActive = location.pathname === link.href;
-          return (
-            <li key={link.href}>
-              <Link to={link.href} title={collapsed ? link.label : ""}>
-                <div
-                  className={`
-                    relative flex items-center h-10 transition-all duration-150 ease-in-out
-                    text-black
-                    ${collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2"}
-                    hover:bg-[var(--color-surface-secondary)]
-                    ${isActive ? "font-semibold" : "font-normal"}
-                  `}
-                >
-                  {/* Blue indicator bar */}
-                  {isActive && (
-                    <span className="absolute left-0 top-0 bottom-0 w-[6px] bg-[var(--color-text-active)] rounded-r-sm" />
-                  )}
+      <NavLinks collapsed={collapsed} navLinks={navLinks} />
+      <DebugOnly>
+        <hr className="my-2 border-t border-gray-200" />
+        <NavLinks collapsed={collapsed} navLinks={debugNavLinks} />
+      </DebugOnly>
 
-                  {/* Icon */}
-                  <span className={
-                    `shrink-0 ${isActive ? "text-[var(--color-text-active)]" : "text-black"}`
-                  }>
-                    {React.cloneElement(link.icon, {
-                      className: "w-[14px] h-[14px]",
-                    })}
-                  </span>
-
-                  {/* Label */}
-                  {!collapsed && (
-                    <span className={`${isActive ? "font-semibold text-black" : "text-black"}`}>
-                      {link.label}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
     </nav>
   );
 };
