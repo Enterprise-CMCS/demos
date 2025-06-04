@@ -3,6 +3,8 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   ActionIcon,
+  BudgetIcon,
+  DashboardIcon,
   DemonstrationIcon,
   FolderIcon,
   ListIcon,
@@ -19,6 +21,11 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { label: "Demonstrations", href: "/demonstrations", icon: <DemonstrationIcon /> },
+  { label: "Actions", href: "#", icon: <ActionIcon /> },
+  { label: "Tasks", href: "#", icon: <ListIcon /> },
+  { label: "Dashboards", href: "#", icon: <DashboardIcon /> },
+  { label: "Reports", href: "#", icon: <FolderIcon /> },
+  { label: "Budget", href: "#", icon: <BudgetIcon /> },
 ];
 
 const debugNavLinks: NavLink[] = [
