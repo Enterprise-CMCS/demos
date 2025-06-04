@@ -33,7 +33,6 @@ export function DemosRouter() {
       {process.env.NODE_ENV === "development" && (
         <Route path="components" element={<ComponentLibrary />} />
       )}
-      {/* Add other authenticated routes here */}
     </Route>
   );
 
@@ -42,10 +41,16 @@ export function DemosRouter() {
       <MockedProvider mocks={userMocks} addTypename={false}>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<AuthComponent />} />
-            <Route path="/login-redirect" element={<AuthComponent />} />
-            {authenticatedRoutes}
+            <Route element={<PrimaryLayout><Outlet /></PrimaryLayout>}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<AuthComponent />} />
+              <Route path="/login-redirect" element={<AuthComponent />} />
+              <Route path="demonstrations" element={<Demonstrations />} />
+              {process.env.NODE_ENV === "development" && (
+                <Route path="components" element={<ComponentLibrary />} />
+              )}
+              {authenticatedRoutes}
+            </Route>
           </Routes>
         </BrowserRouter>
       </MockedProvider>
