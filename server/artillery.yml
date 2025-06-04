@@ -1,0 +1,64 @@
+# Artillery config file. 
+# usage: with the server running, run:
+#   npx artillery run artillery.yml
+config:
+  target: "http://localhost:4000"
+  plugins:
+    # expect plugin allows us to check for errors in the response
+    # since graphql will return a 200 even if there are errors
+    expect: {
+      outputFormat: silent
+    }
+  phases:
+    # for a duration of 30 seconds, spawn 1 worker per second 
+    # and ramp up to 10 workers per second
+    - duration: 30
+      arrivalRate: 1
+      rampTo: 10
+
+
+scenarios:
+  - flow:
+      # each worker will perform the below query 100 times
+      - loop:
+          - post:
+              url: "/"
+              json:
+                query: |
+                  query DemonstrationStatuses {
+                    demonstrations {
+                      id
+                      name
+                      description
+                      evaluationPeriodStartDate
+                      evaluationPeriodEndDate
+                      createdAt
+                      updatedAt
+                      demonstrationStatus {
+                        id
+                        name
+                        description
+                        createdAt
+                        updatedAt
+                        demonstrations {
+                          id
+                          name
+                          description
+                          evaluationPeriodStartDate
+                          evaluationPeriodEndDate
+                          createdAt
+                          updatedAt
+                        }
+                      }
+                      state {
+                        id
+                        stateCode
+                        stateName
+                      }
+                    }
+                  }
+              # validate that there are no errors in the response, indicating 
+              # postgresql is working    
+              expect:
+                - notHasProperty: "errors"
+        count: 100
