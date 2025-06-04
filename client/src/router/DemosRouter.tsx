@@ -3,6 +3,7 @@ import React from "react";
 import { AuthComponent } from "components/auth/AuthComponent";
 import { PrimaryLayout } from "layout/PrimaryLayout";
 import { ComponentLibrary } from "pages/debug";
+import { Demonstrations } from "pages/Demonstrations";
 import { LandingPage } from "pages/LandingPage";
 import { AuthProvider } from "react-oidc-context";
 import {
@@ -38,6 +39,7 @@ export function DemosRouter() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthComponent />} />
+          <Route path="/demonstrations" element={<Demonstrations />} />
           <Route path="/login-redirect" element={<AuthComponent />} />
           {authenticatedRoutes}
         </Routes>
