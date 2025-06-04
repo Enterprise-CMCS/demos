@@ -4,7 +4,7 @@ interface OidcConfig {
   redirect_uri: string;
   scope: string;
   response_type: string;
-  post_logout_redirect_uri?: string;
+  post_logout_redirect_uri: string;
 };
 
 export interface CognitoConfig extends OidcConfig {
@@ -16,29 +16,32 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   domain: "https://us-east-1a7car2wo3.auth.us-east-1.amazoncognito.com",
   client_id: "5km9thunj8g6qd32s5et2i8pga",
   post_logout_redirect_uri: "http://localhost:3000",
-  redirect_uri: "http://localhost:3000/login-redirect",
+  redirect_uri: "http://localhost:3000",
   response_type: "code",
   scope: "openid email phone",
 };
 
-export const cognitoLogoutUrl = (): string => {
-  const { domain, client_id, post_logout_redirect_uri } = LOCAL_COGNITO_CONFIG;
-
-  if (!post_logout_redirect_uri) {
-    throw new Error("post_logout_redirect_uri is not defined in config");
-  }
-  // Logs you out of cognito logout URL.
-  return `${domain}/logout?client_id=${client_id}&logout_uri=` +
-    `${encodeURIComponent(post_logout_redirect_uri)}`;
+export const getCognitoLogoutUrl = (cognitoConfig: CognitoConfig): string => {
+  const url = `${cognitoConfig.domain}/logout
+  ?client_id=${cognitoConfig.client_id}
+  &logout_uri=${encodeURIComponent(cognitoConfig.post_logout_redirect_uri)}`;
+  return url.replace(/\s+/g, "");
 };
 
+export const logout = () => {
+  window.location.href = getCognitoLogoutUrl(getCognitoConfig());
+};
 
 export const getCognitoConfig = (): CognitoConfig => {
-  return LOCAL_COGNITO_CONFIG;
-};
-
-// Abstract away the window.location.href for safety
-export const logoutToCognito = () => {
-  // Perform the redirect
-  window.location.href = cognitoLogoutUrl();
+  switch (process.env.NODE_ENV) {
+  case "development":
+    return LOCAL_COGNITO_CONFIG;
+  case "test":
+    return LOCAL_COGNITO_CONFIG;
+  case "production":
+    // Add production configuration here when available
+    throw new Error("Production Cognito configuration is not defined.");
+  default:
+    throw new Error(`Cognito configuration for ${process.env.NODE_ENV} is not defined.`);
+  }
 };

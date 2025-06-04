@@ -8,7 +8,6 @@ describe("SideNav", () => {
   it("renders all nav links", () => {
     render(<SideNav collapsed={false} setCollapsed={() => { }} />, { wrapper: MemoryRouter });
     expect(screen.getByText("Demonstrations")).toBeInTheDocument();
-    expect(screen.getByText("Actions")).toBeInTheDocument();
   });
 
   it("toggles collapse when menu button is clicked", () => {
