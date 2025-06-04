@@ -1,35 +1,43 @@
 import { Collapsible } from "components/collapsible/Collapsible";
-import { logoutToCognito } from "../../router/cognitoConfig";
-import React, { Fragment } from "react";
+import React from "react";
 import { useAuth } from "react-oidc-context";
-import { DebugOnly } from "components/debug/DebugOnly";
+import { SigninButton, SignoutButton } from "./AuthButtons";
 
-// This is a debug component to show the auth state.
-// It should be removed or hidden in production.
 const AuthDebug = () => {
   const auth = useAuth();
+  const user = auth.user;
 
   return (
-    <Fragment>
-      <div>
-        <strong>Is Authenticated?</strong> {auth.isAuthenticated ? "Yes" : "No"}
+    <div style={{ marginBottom: 16 }}>
+      <div className="mb-1">
+        Authenticated: <span className={auth.isAuthenticated ? "text-green-600" : "text-red-600"}>{auth.isAuthenticated ? "Yes" : "No"}</span>
       </div>
-      <div>
-        <strong>User:</strong> {auth.user ? JSON.stringify(auth.user, null, 2) : "No user data"}
-      </div>
-      <div>
-        <strong>Access Token:</strong> {auth.user?.access_token || "No access token"}
-      </div>
-      <Collapsible title="Auth Details (Click to Expand)">
-        <pre>{JSON.stringify(auth, null, 2)}</pre>
+      {user && (
+        <>
+          {user.profile?.name && (
+            <div className="mb-1">Name: <span className="font-mono">{user.profile.name}</span></div>
+          )}
+          {user.profile?.email && (
+            <div className="mb-1">Email: <span className="font-mono">{user.profile.email}</span></div>
+          )}
+          {user.profile?.sub && (
+            <div className="mb-1">User ID: <span className="font-mono">{user.profile.sub}</span></div>
+          )}
+        </>
+      )}
+      <Collapsible title="User Access Token (Click to Expand)">
+        <pre className="whitespace-pre-wrap break-all text-xs">{user?.access_token || "No access token"}</pre>
       </Collapsible>
-    </Fragment>
+      <Collapsible title="User ID Token (Click to Expand)">
+        <pre className="whitespace-pre-wrap break-all text-xs">{user?.id_token || "No id token"}</pre>
+      </Collapsible>
+      <Collapsible title="Raw Auth Object (Click to Expand)">
+        <pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify(auth, null, 2)}</pre>
+      </Collapsible>
+    </div>
   );
 };
 
-// For now a one stop shop for authentication.
-// In the future this may just be things like <LoginButton /> and <LogoutButton />
-// which are used in the header and other places.
 export const AuthComponent: React.FC = () => {
   const auth = useAuth();
 
@@ -37,39 +45,13 @@ export const AuthComponent: React.FC = () => {
     return <div>Auth context is not available!</div>;
   }
 
-  // Show sign in or sign out button based on authentication state
-  const authenticationButton = auth.isAuthenticated ? (
-    <button
-      className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor:pointer"
-      onClick={() => {
-        auth.removeUser(); // This is not exactly right, it kills the user session in the frontend
-        logoutToCognito(); // We should be using auth.sigoutRedirect() but that is not working.
-      }}
-    >
-      Sign Out
-    </button>
-  ) : (
-    <button
-      className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor:pointer"
-      onClick={() => auth.signinRedirect()}
-    >
-      Sign In
-    </button>
-  );
-
+  const authenticationButton = auth.isAuthenticated ?
+    (<SignoutButton />) : (<SigninButton />);
 
   return (
-    <div className="border-2 border-gray-300 p-4 rounded-lg">
-      <button
-        onClick={() => (window.location.href = "/")}
-        className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Back to Home
-      </button>
-      <DebugOnly>
-        <AuthDebug />
-      </DebugOnly>
+    <>
+      <AuthDebug />
       {authenticationButton}
-    </div>
+    </>
   );
 };
