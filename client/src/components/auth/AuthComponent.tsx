@@ -5,22 +5,36 @@ import { SigninButton, SignoutButton } from "./AuthButtons";
 
 const AuthDebug = () => {
   const auth = useAuth();
+  const user = auth.user;
 
   return (
-    <>
-      <div>
-        <strong>Is Authenticated?</strong> {auth.isAuthenticated ? "Yes" : "No"}
+    <div style={{ marginBottom: 16 }}>
+      <div className="mb-1">
+        Authenticated: <span className={auth.isAuthenticated ? "text-green-600" : "text-red-600"}>{auth.isAuthenticated ? "Yes" : "No"}</span>
       </div>
-      <div>
-        <strong>User:</strong> {auth.user ? JSON.stringify(auth.user, null, 2) : "No user data"}
-      </div>
-      <div>
-        <strong>Access Token:</strong> {auth.user?.access_token || "No access token"}
-      </div>
-      <Collapsible title="Auth Details (Click to Expand)">
-        <pre>{JSON.stringify(auth, null, 2)}</pre>
+      {user && (
+        <>
+          {user.profile?.name && (
+            <div className="mb-1">Name: <span className="font-mono">{user.profile.name}</span></div>
+          )}
+          {user.profile?.email && (
+            <div className="mb-1">Email: <span className="font-mono">{user.profile.email}</span></div>
+          )}
+          {user.profile?.sub && (
+            <div className="mb-1">User ID: <span className="font-mono">{user.profile.sub}</span></div>
+          )}
+        </>
+      )}
+      <Collapsible title="User Access Token (Click to Expand)">
+        <pre className="whitespace-pre-wrap break-all text-xs">{user?.access_token || "No access token"}</pre>
       </Collapsible>
-    </>
+      <Collapsible title="User ID Token (Click to Expand)">
+        <pre className="whitespace-pre-wrap break-all text-xs">{user?.id_token || "No id token"}</pre>
+      </Collapsible>
+      <Collapsible title="Raw Auth Object (Click to Expand)">
+        <pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify(auth, null, 2)}</pre>
+      </Collapsible>
+    </div>
   );
 };
 

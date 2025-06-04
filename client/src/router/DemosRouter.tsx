@@ -26,8 +26,6 @@ export const DemosRouter = () => {
               {/* TODO: is the Demonstration page just the landing page? */}
               <Route path="/" element={<LandingPage />} />
               <Route path="demonstrations" element={<Demonstrations />} />
-              {/* These need to exist for Cognito but they don't need to return a component */}
-              <Route path="/login" element={<></>} />
               {/* Debug routes, only available in development mode */}
               {process.env.NODE_ENV === "development" && (
                 <>
