@@ -27,9 +27,11 @@ export function DemosRouter() {
         </PrimaryLayout>
       }
     >
+      <Route path="demonstrations" element={<Demonstrations />} />
       {process.env.NODE_ENV === "development" && (
-        <Route path="/components" element={<ComponentLibrary />} />
+        <Route path="components" element={<ComponentLibrary />} />
       )}
+      {/* Add other authenticated routes here */}
     </Route>
   );
 
@@ -39,7 +41,6 @@ export function DemosRouter() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthComponent />} />
-          <Route path="/demonstrations" element={<Demonstrations />} />
           <Route path="/login-redirect" element={<AuthComponent />} />
           {authenticatedRoutes}
         </Routes>
