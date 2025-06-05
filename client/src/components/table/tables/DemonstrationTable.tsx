@@ -1,4 +1,3 @@
-// src/components/table/tables/DemonstrationTable.tsx
 import * as React from "react";
 import {
   flexRender,
@@ -43,13 +42,11 @@ export function DemonstrationTable({
   data,
   className = "",
 }: DemonstrationTableProps) {
-  // 1) Pre‐process data into parent+subRows
   const hierarchicalData: DemoWithSubRows[] = React.useMemo(
     () => groupByDemoNumber(data),
     [data]
   );
 
-  // 2) Table state: sorting, pagination, filters, expansion, row‐selection
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -59,13 +56,11 @@ export function DemonstrationTable({
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
-  // 3) Build the table instance, including filteredRowModel
   const table = useReactTable<DemoWithSubRows>({
     data: hierarchicalData,
     columns: DemonstrationColumns,
     getSubRows: (row) => row.subRows ?? [],
 
-    // Include all state pieces
     state: {
       sorting,
       pagination,
@@ -79,28 +74,23 @@ export function DemonstrationTable({
     onExpandedChange: setExpanded,
     onRowSelectionChange: setRowSelection,
 
-    // Plugins
-    getCoreRowModel:     getCoreRowModel(),
-    getSortedRowModel:   getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),   // ← needed for totalRows
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // 4) Extract pagination‐related values from table state
+  // Pagination state variables
   const currentPage = table.getState().pagination.pageIndex;
-  const totalPages  = table.getPageCount();
-  const pageSize    = table.getState().pagination.pageSize;
+  const totalPages = table.getPageCount();
+  const pageSize = table.getState().pagination.pageSize;
   const canPrevious = table.getCanPreviousPage();
-  const canNext     = table.getCanNextPage();
-
-  // 5) Compute totalRows from filtered model (i.e. after any column filters)
+  const canNext = table.getCanNextPage();
   const totalRows = table.getFilteredRowModel().rows.length;
 
-  // 6) Handle “All” vs numeric page‐size selection
   const handlePageSizeChange = (newSize: number) => {
     if (newSize < 0) {
-      // “All” selected → show every filtered row on one page
       table.setPageSize(totalRows);
       table.setPageIndex(0);
     } else {
@@ -109,13 +99,10 @@ export function DemonstrationTable({
     }
   };
 
-  // 7) Build the list of choices we’ll show in the dropdown:
-  //    10, 20, 50, and “All” (-1)
   const perPageChoices = [10, 20, 50, -1];
 
   return (
     <div className={`overflow-x-auto ${className} mb-2`}>
-      {/* ⇩⇩ Column‐filter dropdown ⇩⇩ */}
       <ColumnFilterByDropdown<DemoWithSubRows>
         table={table}
         columns={table
@@ -165,12 +152,11 @@ export function DemonstrationTable({
         </tbody>
       </table>
 
-      {/* ⇩⇩ Pagination Controls (with “X – Y of Z” counter) ⇩⇩ */}
       <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}
         pageSize={pageSize}
-        totalRows={totalRows}                     // ← pass the filtered‐row count
+        totalRows={totalRows}
         onPageSizeChange={handlePageSizeChange}
         onPageChange={(p) => table.setPageIndex(p)}
         onPreviousPage={() => table.previousPage()}

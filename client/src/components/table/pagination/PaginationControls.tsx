@@ -78,9 +78,8 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 text-sm">
-      {/* Rows‐per‐page selector + counter */}
+      {/* Items‐per‐page section */}
       <div className="flex items-center gap-2">
-        {/* “Items per page” dropdown */}
         <div className="flex items-center gap-1">
           <span>Items per page</span>
           <select
@@ -95,8 +94,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
             ))}
           </select>
         </div>
-
-        {/* “1 - 7 of 7” style counter */}
+        {/* Item counter display */}
         <span className="text-gray-700">
           {totalRows === 0
             ? `0 of 0`
@@ -104,9 +102,8 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         </span>
       </div>
 
-      {/* ─── Prev / Page Buttons / Next ─────────────────────────────────────────── */}
+      {/* Prev Buttons / Page Buttons / Next Buttons*/}
       <div className="mr-2 flex items-center gap-1 flex-wrap">
-        {/* “Prev” button */}
         {canPreviousPage ? (
           <button
             className="px-2 py-1 bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] rounded"
@@ -154,7 +151,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           )
         )}
 
-        {/* “Next” button */}
         {canNextPage ? (
           <button
             className="px-2 py-1 bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] rounded"
