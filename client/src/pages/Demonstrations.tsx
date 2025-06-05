@@ -4,6 +4,7 @@ import { Tabs, TabItem } from "layout/Tabs";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import DemoData from "faker_data/demonstrations.json";
 
+// Using static Synthentic data.
 type RawDemonstration = {
   id: number;
   title: string;
