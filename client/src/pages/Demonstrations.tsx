@@ -52,7 +52,7 @@ export const Demonstrations: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <h1 className="text-2xl font-bold mb-4">Demonstrations</h1>
+      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Demonstrations</h1>
 
       {/* TABS HEADER COMPONENT */}
       <Tabs

@@ -1,17 +1,17 @@
 import * as React from "react";
 
 export interface PaginationControlsProps {
-  currentPage: number;       // zero‐based page index
-  totalPages: number;        // how many pages exist (pageCount)
-  pageSize: number;          // current rows‐per‐page
-  totalRows: number;         // total number of rows (after filtering)
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalRows: number;
   onPageSizeChange: (newSize: number) => void;
   onPageChange: (pageIndex: number) => void;
   onPreviousPage: () => void;
   onNextPage: () => void;
   canPreviousPage: boolean;
   canNextPage: boolean;
-  perPageChoices?: number[]; // e.g. [10,20,50,-1]
+  perPageChoices?: number[];
 }
 
 export const PaginationControls: React.FC<PaginationControlsProps> = ({
@@ -52,7 +52,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       visible.push(-1);
     }
 
-    // Push the “window” of [leftSibling..rightSibling]
     for (let i = leftSibling; i <= rightSibling; i++) {
       visible.push(i);
     }
@@ -68,7 +67,6 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
     return visible;
   }, [currentPage, totalPages]);
 
-  // Calculate “firstRowIndex” and “lastRowIndex” for the “X – Y of Z” display.
   // If totalRows == 0, show “0 of 0”.
   const firstRowIndex = totalRows === 0
     ? 0
@@ -80,11 +78,11 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 text-sm">
-      {/* ─── Rows‐per‐page selector + counter ────────────────────────────────────── */}
-      <div className="flex items-center gap-4 ml-2">
+      {/* Rows‐per‐page selector + counter */}
+      <div className="flex items-center gap-2">
         {/* “Items per page” dropdown */}
-        <div className="flex items-center gap-2">
-          <span>Items per page:</span>
+        <div className="flex items-center gap-1">
+          <span>Items per page</span>
           <select
             className="border px-2 py-1 rounded"
             value={pageSize}
@@ -98,11 +96,11 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           </select>
         </div>
 
-        {/* “1 – 7 of 7” style counter */}
+        {/* “1 - 7 of 7” style counter */}
         <span className="text-gray-700">
           {totalRows === 0
             ? `0 of 0`
-            : `${firstRowIndex} – ${lastRowIndex} of ${totalRows}`}
+            : `${firstRowIndex} - ${lastRowIndex} of ${totalRows}`}
         </span>
       </div>
 
