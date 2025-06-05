@@ -1,4 +1,3 @@
-// src/components/ui/Tabs.tsx
 import React from "react";
 
 export interface TabItem {
@@ -13,6 +12,7 @@ interface TabsProps {
   onChange: (newValue: string) => void;
 }
 
+// As long as you want tabs just like the the datagrid, here yoo go!
 export const Tabs: React.FC<TabsProps> = ({ tabs, selectedValue, onChange }) => {
   return (
     <div className="border-b border-gray-300 mb-2">

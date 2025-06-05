@@ -1,10 +1,9 @@
-// src/pages/Demonstrations.tsx
 import React from "react";
 import { Tabs, TabItem } from "layout/Tabs";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import DemoData from "faker_data/demonstrations.json";
 
-// Using static Synthentic data.
+// Using JSON dummy data.
 type RawDemonstration = {
   id: number;
   title: string;
@@ -21,19 +20,16 @@ type RawDemonstration = {
 };
 
 export const Demonstrations: React.FC = () => {
-  // 1) Suppose we know the current user’s ID is 123
+  // Dummy value - replace me!
   const currentUserId = 123;
 
-  // 2) Split DemoData into “my demos” vs. “all demos”
   const myDemos: RawDemonstration[] = (DemoData as RawDemonstration[]).filter(
     (demo) => demo.userId === currentUserId
   );
-  const allDemos: RawDemonstration[] = (DemoData as RawDemonstration[]);
 
-  // 3) Track which tab is selected (“my” or “all”)
+  const allDemos: RawDemonstration[] = (DemoData as RawDemonstration[]);
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  // 4) Build the tab items (label + count + value)
   const tabList: TabItem[] = [
     {
       value: "my",
@@ -47,7 +43,7 @@ export const Demonstrations: React.FC = () => {
     },
   ];
 
-  // Decide which array to pass to the single <DemonstrationTable>
+  // If you ask me, this is the best part of this feature
   const dataToShow = tab === "my" ? myDemos : allDemos;
 
   return (
@@ -61,7 +57,7 @@ export const Demonstrations: React.FC = () => {
         onChange={(newVal) => setTab(newVal as "my" | "all")}
       />
 
-      {/* SINGLE TABLE, with “dataToShow” changing based on tab */}
+      {/* one table req'd to rule them all */}
       <div className="h-[60vh] overflow-y-auto">
         <DemonstrationTable data={dataToShow} />
       </div>
