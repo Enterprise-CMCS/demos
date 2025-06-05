@@ -29,7 +29,7 @@ export const Demonstrations: React.FC = () => {
               className={
                 "inline-block px-4 py-2 font-medium " +
                   (tab === "my"
-                    ? "border-b-2 border-[var(--color-brand)] text-[var(--color-text-brand)]"
+                    ? "border-b-2 border-[var(--color-brand)] text-brand"
                     : "text-gray-600 hover:text-gray-800")
               }
             >
@@ -42,7 +42,7 @@ export const Demonstrations: React.FC = () => {
               className={
                 "inline-block px-4 py-2 font-medium " +
                 (tab === "all"
-                  ? "border-b-2 border-[var(--color-brand)] text-[var(--color-text-brand)]"
+                  ? "border-b-2 border-[var(--color-brand)] text-brand"
                   : "text-gray-600 hover:text-gray-800")
               }
             >
