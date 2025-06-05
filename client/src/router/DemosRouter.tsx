@@ -16,6 +16,8 @@ import { MockedProvider } from "@apollo/client/testing";
 
 import { getCognitoConfig } from "../router/cognitoConfig";
 import { userMocks } from "hooks/userMocks";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 export function DemosRouter() {
   const cognitoConfig = getCognitoConfig();
@@ -39,20 +41,22 @@ export function DemosRouter() {
   return (
     <AuthProvider {...cognitoConfig}>
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<PrimaryLayout><Outlet /></PrimaryLayout>}>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<AuthComponent />} />
-              <Route path="/login-redirect" element={<AuthComponent />} />
-              <Route path="demonstrations" element={<Demonstrations />} />
-              {process.env.NODE_ENV === "development" && (
-                <Route path="components" element={<ComponentLibrary />} />
-              )}
-              {authenticatedRoutes}
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<PrimaryLayout><Outlet /></PrimaryLayout>}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<AuthComponent />} />
+                <Route path="/login-redirect" element={<AuthComponent />} />
+                <Route path="demonstrations" element={<Demonstrations />} />
+                {process.env.NODE_ENV === "development" && (
+                  <Route path="components" element={<ComponentLibrary />} />
+                )}
+                {authenticatedRoutes}
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </LocalizationProvider>
       </MockedProvider>
     </AuthProvider>
   );

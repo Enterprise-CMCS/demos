@@ -1,14 +1,13 @@
 import { Collapsible } from "components/collapsible/Collapsible";
-import { PrimaryLayout } from "layout/PrimaryLayout";
-import { Footer, Header, Main } from "components";
+import { Main } from "components";
 import { InputSandbox } from "components/input";
 import { ButtonGrid } from "components/button";
 import React, { Fragment } from "react";
+import { DatePickerSandbox } from "components/DatePicker.tsx/DatePickerSandbox";
 
 export const ComponentLibrary: React.FC = () => {
   return (
     <Fragment>
-      <Header />
       <Main>
         <Collapsible title="Button Grid (Click to expand)">
           <ButtonGrid />
@@ -16,8 +15,10 @@ export const ComponentLibrary: React.FC = () => {
         <Collapsible title="Input Sandbox (Click to expand)">
           <InputSandbox />
         </Collapsible>
+        <Collapsible title="DatePicker Sandbox (Click to expand)">
+          <DatePickerSandbox />
+        </Collapsible>
       </Main>
-      <Footer />
     </Fragment>
   );
 };
