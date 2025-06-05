@@ -4,7 +4,6 @@ import { GraphQLResolveInfo, GraphQLError } from "graphql";
 import { IncomingMessage } from "http";
 import { PrismaClient, } from "@prisma/client";
 import { getAuthConfig } from "./auth.config.js";
-import { promiseHooks } from "v8";
 
 const prisma = new PrismaClient();
 const config = getAuthConfig();

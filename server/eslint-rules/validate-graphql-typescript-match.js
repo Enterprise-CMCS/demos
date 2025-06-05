@@ -153,7 +153,7 @@ const compareFieldTypes = (gqlFields, tsFields, tsNode, context) => {
   }
 }
 
-const validateGraphQLTypescriptMatch = createRule({
+export const validateGraphQLTypescriptMatch = createRule({
   name: "validate-graphql-typescript-match",
   meta: {
     docs: {
@@ -237,5 +237,3 @@ const validateGraphQLTypescriptMatch = createRule({
     };
   },
 });
-
-export default validateGraphQLTypescriptMatch;
