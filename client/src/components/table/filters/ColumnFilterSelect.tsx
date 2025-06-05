@@ -70,5 +70,3 @@ export function ColumnFilterByDropdown<T extends object>({
     </div>
   );
 }
-
-export default ColumnFilterByDropdown;

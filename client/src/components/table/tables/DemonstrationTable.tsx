@@ -14,8 +14,8 @@ import {
   RowSelectionState
 } from "@tanstack/react-table";
 
-import PaginationControls from "components/table/pagination/PaginationControls";
-import ColumnFilterByDropdown from "components/table/filters/ColumnFilterSelect";
+import { PaginationControls } from "components/table/pagination/PaginationControls";
+import { ColumnFilterByDropdown } from "components/table/filters/ColumnFilterSelect";
 import { groupByDemoNumber, DemoWithSubRows } from "components/table/preproccessors/GroupByDemoNumber";
 import { DemonstrationColumns } from "components/table/columns/DemonstrationColumns";
 

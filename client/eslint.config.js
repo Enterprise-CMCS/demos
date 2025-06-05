@@ -1,7 +1,7 @@
 import jsEslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import reactEslint from "eslint-plugin-react";
-import noRelativeComponentImports from "./eslint-rules/no-relative-component-imports.js";
+import {noRelativeComponentImports} from "./eslint-rules/no-relative-component-imports.js";
 
 const IGNORED_FILES = [ "eslint.config.js" ];
 

@@ -12,7 +12,7 @@ export const HEADER_LOWER_QUERY = gql`
   }
 `;
 
-const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
+export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
   if (!userId) {
     return (
       <div className="w-full bg-blue-900 text-white px-4 py-1 flex items-center justify-between"/>
@@ -49,5 +49,3 @@ const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
     </div>
   );
 };
-
-export default HeaderLower;

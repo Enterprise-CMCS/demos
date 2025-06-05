@@ -2,7 +2,7 @@ import { ESLintUtils } from "@typescript-eslint/utils";
 
 const createRule = ESLintUtils.RuleCreator(name => name);
 
-const noRelativeComponentImports = createRule({
+export const noRelativeComponentImports = createRule({
   name: "no-relative-component-imports",
   meta: {
     docs: {
@@ -35,5 +35,3 @@ const noRelativeComponentImports = createRule({
     };
   },
 });
-
-export default noRelativeComponentImports;
