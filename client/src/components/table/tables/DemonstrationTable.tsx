@@ -13,11 +13,19 @@ import {
   PaginationState,
   RowSelectionState
 } from "@tanstack/react-table";
-
-import PaginationControls from "components/table/pagination/PaginationControls";
-import ColumnFilterByDropdown from "components/table/filters/ColumnFilterSelect";
-import { groupByDemoNumber, DemoWithSubRows } from "components/table/preproccessors/GroupByDemoNumber";
-import { DemonstrationColumns } from "components/table/columns/DemonstrationColumns";
+import {
+  PaginationControls
+} from "components/table/pagination/PaginationControls";
+import {
+  ColumnFilterByDropdown
+} from "components/table/filters/ColumnFilterSelect";
+import {
+  groupByDemoNumber,
+  DemoWithSubRows
+} from "components/table/preproccessors/GroupByDemoNumber";
+import {
+  DemonstrationColumns
+} from "components/table/columns/DemonstrationColumns";
 
 export interface RawDemonstration {
   id: number;
@@ -90,7 +98,18 @@ export function DemonstrationTable({
   const pageSize = table.getState().pagination.pageSize;
   const canPrevious = table.getCanPreviousPage();
   const canNext = table.getCanNextPage();
-  const perPageChoices = [10, 20, 50];
+  const perPageChoices = [10, 20, 50, -1]; // -1 is ALL items.
+
+  const handlePageSizeChange = (newSize: number) => {
+    if (newSize < 0) {
+      table.setPageSize(data.length);
+      table.setPageIndex(0);
+    } else {
+      table.setPageSize(newSize);
+      table.setPageIndex(0);
+    }
+  };
+
 
   return (
     <div className={`overflow-x-auto ${className} mb-2`}>
@@ -148,8 +167,8 @@ export function DemonstrationTable({
         currentPage={currentPage}
         totalPages={totalPages}
         pageSize={pageSize}
-        onPageSizeChange={(size) => table.setPageSize(size)}
-        onPageChange={(page) => table.setPageIndex(page)}
+        onPageSizeChange={handlePageSizeChange}
+        onPageChange={(p) => table.setPageIndex(p)}
         onPreviousPage={() => table.previousPage()}
         onNextPage={() => table.nextPage()}
         canPreviousPage={canPrevious}
