@@ -20,13 +20,13 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, selectedValue, onChange }) => 
         {tabs.map((tab) => {
           const isSelected = tab.value === selectedValue;
           return (
-            <li key={tab.value} className="mr-4">
+            <li key={tab.value}>
               <button
                 onClick={() => onChange(tab.value)}
                 className={
-                  "inline-block px-4 py-2 font-medium " +
+                  "inline-block px-2 py-2 font-medium " +
                   (isSelected
-                    ? "border-b-2 border-[var(--color-brand)] text-brand"
+                    ? "border-b-5 text-brand"
                     : "text-gray-600 hover:text-gray-800")
                 }
               >
