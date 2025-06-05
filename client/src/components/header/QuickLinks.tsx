@@ -3,7 +3,7 @@ import { GearIcon } from "components/icons/GearIcon";
 import { LifeRaftIcon } from "components/icons/LifeRaftIcon";
 import React from "react";
 
-const QuickLinks: React.FC = () => {
+export const QuickLinks: React.FC = () => {
   return (
     <ul className="flex items-center gap-3">
       <li>
@@ -27,5 +27,3 @@ const QuickLinks: React.FC = () => {
     </ul>
   );
 };
-
-export default QuickLinks;
