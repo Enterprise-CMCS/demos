@@ -15,7 +15,7 @@ interface TabsProps {
 
 export const Tabs: React.FC<TabsProps> = ({ tabs, selectedValue, onChange }) => {
   return (
-    <div className="border-b border-gray-300 mb-4">
+    <div className="border-b border-gray-300 mb-2">
       <ul className="flex -mb-px">
         {tabs.map((tab) => {
           const isSelected = tab.value === selectedValue;

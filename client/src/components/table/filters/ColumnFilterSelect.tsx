@@ -60,8 +60,8 @@ export function ColumnFilterByDropdown<T extends object>({
         {selectedColumn && (
           <input
             type="text"
-            placeholder="Type to filter…"
-            className="border px-2 py-1 rounded flex-1"
+            placeholder="🔍 Type to filter… "
+            className="border px-2 py-1 rounded"
             value={filterValue}
             onChange={(e) => onValueChange(e.target.value)}
           />
