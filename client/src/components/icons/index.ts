@@ -1,5 +1,6 @@
 export * from "./ActionIcon";
 export * from "./BudgetIcon";
+export * from "./CloseIcon";
 export * from "./DashboardIcon";
 export * from "./DemonstrationIcon";
 export * from "./FolderIcon";
