@@ -1,0 +1,5 @@
+{
+    "fail_on_missing_docstring": true,
+    "parser": "google",
+    "verbosity": 2
+}
