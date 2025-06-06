@@ -42,7 +42,6 @@ export function DemonstrationTable({
   data,
   className = "",
 }: DemonstrationTableProps) {
-  // 1) Pre‐process data into parent+subRows
   const hierarchicalData: DemoWithSubRows[] = React.useMemo(
     () => groupByDemoNumber(data),
     [data]
@@ -62,7 +61,6 @@ export function DemonstrationTable({
     columns: DemonstrationColumns,
     getSubRows: (row) => row.subRows ?? [],
 
-    // include all pieces of state:
     state: {
       sorting,
       pagination,
@@ -76,7 +74,6 @@ export function DemonstrationTable({
     onExpandedChange: setExpanded,
     onRowSelectionChange: setRowSelection,
 
-    // plugins:
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -84,13 +81,25 @@ export function DemonstrationTable({
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // 4) Pagination helpers
+  // Pagination state variables
   const currentPage = table.getState().pagination.pageIndex;
   const totalPages = table.getPageCount();
   const pageSize = table.getState().pagination.pageSize;
   const canPrevious = table.getCanPreviousPage();
   const canNext = table.getCanNextPage();
-  const perPageChoices = [10, 20, 50];
+  const totalRows = table.getFilteredRowModel().rows.length;
+
+  const handlePageSizeChange = (newSize: number) => {
+    if (newSize < 0) {
+      table.setPageSize(totalRows);
+      table.setPageIndex(0);
+    } else {
+      table.setPageSize(newSize);
+      table.setPageIndex(0);
+    }
+  };
+
+  const perPageChoices = [10, 20, 50, -1];
 
   return (
     <div className={`overflow-x-auto ${className} mb-2`}>
@@ -98,11 +107,11 @@ export function DemonstrationTable({
         table={table}
         columns={table
           .getAllColumns()
-          .filter((col) => col.id !== "expander" && col.id !== "select")}
+          .filter(col => col.id !== "select" && col.id !== "expander")}
         label="Filter by:"
       />
 
-      {/** ⇩⇩ The table with expanders ⇩⇩ **/}
+      {/* Table header with sorting */}
       <table className="w-full text-sm">
         <thead>
           {table.getHeaderGroups().map((hg) => (
@@ -115,7 +124,7 @@ export function DemonstrationTable({
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
                   {{
-                    asc: " ↑",
+                    asc:  " ↑",
                     desc: " ↓",
                   }[header.column.getIsSorted() as string] ?? null}
                 </th>
@@ -123,33 +132,45 @@ export function DemonstrationTable({
             </tr>
           ))}
         </thead>
-
         <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className={row.depth > 0 ? "bg-gray-50" : ""}
+              className={row.depth > 0 ? "bg-gray-200" : ""}
             >
-              {row.getVisibleCells().map((cell) => (
-                <td
-                  key={cell.id}
-                  className="px-2 py-1 border-b"
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
+              {row.getVisibleCells().map((cell) => {
+                const colId = cell.column.id;
+                if (
+                  row.depth > 0 &&
+                  (colId === "stateId" || colId === "demoNumber")
+                ) {
+                  return (
+                    <td
+                      key={cell.id}
+                      className="px-2 py-1 border-b text-left text-gray-400"
+                    >
+                      &mdash;
+                    </td>
+                  );
+                }
+                return (
+                  <td key={cell.id} className="px-2 py-1 border-b">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/** Pagination Controls **/}
       <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}
         pageSize={pageSize}
-        onPageSizeChange={(size) => table.setPageSize(size)}
-        onPageChange={(page) => table.setPageIndex(page)}
+        totalRows={totalRows}
+        onPageSizeChange={handlePageSizeChange}
+        onPageChange={(p) => table.setPageIndex(p)}
         onPreviousPage={() => table.previousPage()}
         onNextPage={() => table.nextPage()}
         canPreviousPage={canPrevious}

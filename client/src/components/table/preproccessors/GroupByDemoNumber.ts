@@ -1,5 +1,3 @@
-// components/table/preproccessors/GroupDemoNumber.ts
-
 export interface RawDemonstration {
   id: number;
   title: string;
