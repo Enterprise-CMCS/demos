@@ -9,6 +9,7 @@ export * from "./MenuIcon";
 export * from "./ArrowRightIcon";
 export * from "./ArrowDownIcon";
 export * from "./OnHoldStatusIcon";
+export * from "./EllipsesIcon";
 export * from "./RefreshIcon";
 export * from "./SubmittedStatusIcon";
 export * from "./UnderReviewStatusIcon";

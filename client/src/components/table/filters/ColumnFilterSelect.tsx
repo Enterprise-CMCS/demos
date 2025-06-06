@@ -1,4 +1,3 @@
-// src/components/table/filters/ColumnFilterSelect.tsx
 import React from "react";
 import { Column, Table, ColumnFiltersState } from "@tanstack/react-table";
 

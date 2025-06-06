@@ -1,4 +1,3 @@
-// src/components/table/columns/DemonstrationColumns.ts
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowRightIcon, ArrowDownIcon } from "components/icons";

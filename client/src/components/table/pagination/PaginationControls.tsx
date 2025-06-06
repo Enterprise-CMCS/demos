@@ -1,4 +1,3 @@
-// src/components/table/tables/PaginationControls.tsx
 import * as React from "react";
 
 export interface PaginationControlsProps {
