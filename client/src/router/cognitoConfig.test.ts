@@ -33,11 +33,14 @@ describe("cognitoConfig", () => {
       expect(getCognitoConfig()).toBe(LOCAL_COGNITO_CONFIG);
     });
 
-    it("should throw error for production", () => {
+    it("should return production config that matches local", () => {
       process.env.NODE_ENV = "production";
-      expect(() => getCognitoConfig()).toThrow(
-        "Production Cognito configuration is not defined."
-      );
+      window._env_ = {};
+      const config = getCognitoConfig();
+      const keys = Object.keys(LOCAL_COGNITO_CONFIG);
+      keys.forEach(k => {
+        expect(config).toHaveProperty(k);
+      });
     });
 
     it("should throw error for unknown environment", () => {
