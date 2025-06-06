@@ -23,6 +23,7 @@ const selectColumn: ColumnDef<DemonstrationColumns> = {
     <input
       type="checkbox"
       className="cursor-pointer"
+      aria-label="Select all rows"
       checked={table.getIsAllPageRowsSelected()}
       onChange={table.getToggleAllPageRowsSelectedHandler()}
     />
@@ -33,6 +34,7 @@ const selectColumn: ColumnDef<DemonstrationColumns> = {
       className="cursor-pointer"
       checked={row.getIsSelected()}
       onChange={row.getToggleSelectedHandler()}
+      aria-label={`Select row ${row.index + 1}`}
     />
   ),
   size: 20,
@@ -49,19 +51,23 @@ const expanderColumn: ColumnDef<DemonstrationColumns> = {
   id: "expander",
   header: () => null,
   cell: ({ row }) =>
-    row.getCanExpand() ? (
-      <span
-        aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
-        className="inline-block select-none cursor-pointer"
-        onClick={row.getToggleExpandedHandler()}
-      >
-        {row.getIsExpanded() ? (
-          <ArrowDownIcon className="text-center w-2 h-2 text-gray-600" />
-        ) : (
-          <ArrowRightIcon className="text-center w-2 h-2 text-gray-600" />
-        )}
-      </span>
-    ) : null,
+  row.getCanExpand() ? (
+    <button
+      type="button"
+      aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
+      aria-expanded={row.getIsExpanded()}
+      aria-controls={`row-details-${row.id}`}
+      className="inline-block select-none cursor-pointer"
+      onClick={row.getToggleExpandedHandler()}
+      tabIndex={0}
+    >
+      {row.getIsExpanded() ? (
+        <ArrowDownIcon className="text-center w-2 h-2 text-brand" />
+      ) : (
+        <ArrowRightIcon className="text-center w-2 h-2 text-brand" />
+      )}
+    </button>
+  ) : null,
   size: 20,
 };
 

@@ -132,21 +132,33 @@ export function DemonstrationTable({
             </tr>
           ))}
         </thead>
-
         <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className={row.depth > 0 ? "bg-gray-50" : ""}
+              className={row.depth > 0 ? "bg-gray-200" : ""}
             >
-              {row.getVisibleCells().map((cell) => (
-                <td
-                  key={cell.id}
-                  className="px-2 py-1 border-b"
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
+              {row.getVisibleCells().map((cell) => {
+                const colId = cell.column.id;
+                if (
+                  row.depth > 0 &&
+                  (colId === "stateId" || colId === "demoNumber")
+                ) {
+                  return (
+                    <td
+                      key={cell.id}
+                      className="px-2 py-1 border-b text-left text-gray-400"
+                    >
+                      &mdash;
+                    </td>
+                  );
+                }
+                return (
+                  <td key={cell.id} className="px-2 py-1 border-b">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
