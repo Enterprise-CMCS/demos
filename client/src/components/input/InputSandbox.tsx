@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { TextInput } from ".";
-import { SelectDemoStatuses } from "./select/SelectDemoStatus";
+import { SelectDemoStatuses } from "./select/SelectDemoStatuses";
 import { SelectUSStates } from "./select/SelectUSStates";
 
 // TODO replace with our button when it's ready
