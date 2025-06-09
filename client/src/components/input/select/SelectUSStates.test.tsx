@@ -1,23 +1,26 @@
 // client/src/components/select/SelectUSStates.test.tsx
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi } from "vitest";
 import { SelectUSStates } from "./SelectUSStates";
 
-// 1) Mock your JSON import so tests run fast with a small list
-jest.mock(
+// Mock the JSON import
+vi.mock(
   "faker_data/states_territories.json",
-  () => [
-    { name: "Maryland", abbrev: "MD" },
-    { name: "California", abbrev: "CA" },
-    { name: "Texas", abbrev: "TX" },
-  ],
+  () => ({
+    default: [
+      { name: "Maryland", abbrev: "MD" },
+      { name: "California", abbrev: "CA" },
+      { name: "Texas", abbrev: "TX" },
+    ],
+  }),
   { virtual: true }
 );
 
 describe("<SelectUSStates />", () => {
   it("filters options by input and calls onStateChange with the abbrev", async () => {
-    const onStateChange = jest.fn();
+    const onStateChange = vi.fn();
     render(
       <SelectUSStates
         onStateChange={onStateChange}
@@ -27,7 +30,7 @@ describe("<SelectUSStates />", () => {
     );
 
     // Focus the input and type "ma" → should match "Maryland"
-    const input = screen.getByRole("textbox", { name: /us state or territory/i });
+    const input = screen.getByRole("textbox", { name: /state or territory/i });
     await userEvent.click(input);
     await userEvent.type(input, "ma");
 
@@ -47,7 +50,7 @@ describe("<SelectUSStates />", () => {
   it("shows 'No matches found' when filter yields nothing", async () => {
     render(<SelectUSStates onStateChange={() => {}} />);
 
-    const input = screen.getByRole("textbox", { name: /us state or territory/i });
+    const input = screen.getByRole("textbox", { name: /state or territory/i });
     await userEvent.click(input);
     await userEvent.type(input, "zzz");
 
@@ -63,7 +66,7 @@ describe("<SelectUSStates />", () => {
       />
     );
 
-    const input = screen.getByRole("textbox", { name: /us state or territory/i });
+    const input = screen.getByRole("textbox", { name: /state or territory/i });
     expect(input).toBeRequired();
     expect(input).toBeDisabled();
   });
