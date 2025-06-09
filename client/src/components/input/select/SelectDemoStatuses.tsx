@@ -21,15 +21,13 @@ export const SelectDemoStatuses: React.FC<SelectDemoStatusesProps> = ({
   isRequired = false,
   isDisabled = false,
 }) => {
-  // Define the Option type for the select options
   interface Option {
     label: string;
     value: string;
   }
-  // Map each JSON object into { label, value } pairs:
-  const options: Option[] = (statuses as DemonstrationStatus[]).map((s) => ({
-    label: s.name,
-    value: s.name,   // parent will receive the status name
+  const options: Option[] = (statuses as DemonstrationStatus[]).map((state) => ({
+    label: state.name,
+    value: state.name,
   }));
 
   return (
