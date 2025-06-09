@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { TextInput } from ".";
+import { SelectDemoStatuses } from "./select/SelectDemoStatus";
 
 // TODO replace with our button when it's ready
 const BUTTON_CLASS_NAME = "bg-brand text-white my-sm p-sm rounded-normal hover:bg-brand-dark";
@@ -14,9 +15,10 @@ const getValidationMessage = (value: string) => {
 export const InputSandbox: React.FC = () => {
   const [disabled, setDisabled] = useState(false);
   const [isRequired, setIsRequired] = useState(false);
+  const [status, setStatus] = useState<string>("");
 
   return (
-    <div>
+    <>
       <div>
         <div className="flex gap-sm">
           <button className={BUTTON_CLASS_NAME} onClick={() => setDisabled((d) => !d)}>
@@ -34,7 +36,13 @@ export const InputSandbox: React.FC = () => {
           isRequired={isRequired}
           placeholder="Placeholder"
         />
+        <SelectDemoStatuses onStatusChange={setStatus} />
+        {status && (
+          <p className="mt-4">
+              You picked: <strong>{status}</strong>
+          </p>
+        )}
       </div>
-    </div>
+    </>
   );
 };
