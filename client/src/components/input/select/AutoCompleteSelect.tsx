@@ -7,7 +7,6 @@ export interface Option {
 }
 
 export interface AutoCompleteSelectProps {
-  /** List of { label, value } pairs */
   options: Option[];
   placeholder?: string;
   onSelect: (value: string) => void;

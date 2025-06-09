@@ -13,9 +13,8 @@ vi.mock(
       { name: "Maryland", abbrev: "MD" },
       { name: "California", abbrev: "CA" },
       { name: "Texas", abbrev: "TX" },
-    ],
-  }),
-  { virtual: true }
+    ]
+  })
 );
 
 describe("<SelectUSStates />", () => {
@@ -29,20 +28,16 @@ describe("<SelectUSStates />", () => {
       />
     );
 
-    // Focus the input and type "ma" → should match "Maryland"
     const input = screen.getByRole("textbox", { name: /state or territory/i });
     await userEvent.click(input);
     await userEvent.type(input, "ma");
 
-    // The list should show "Maryland" but not "California" or "Texas"
     expect(screen.getByText("Maryland")).toBeInTheDocument();
     expect(screen.queryByText("California")).toBeNull();
     expect(screen.queryByText("Texas")).toBeNull();
 
-    // Click the match
     await userEvent.click(screen.getByText("Maryland"));
 
-    // Callback should have been called once with "MD"
     expect(onStateChange).toHaveBeenCalledTimes(1);
     expect(onStateChange).toHaveBeenCalledWith("MD");
   });
