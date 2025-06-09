@@ -1,100 +1,143 @@
 import React, { useState, useRef, useEffect } from "react";
+import { ChevronIcon } from "components/icons/ChevronIcon";
+
+export interface Option {
+  label: string;
+  value: string;
+}
 
 export interface AutoCompleteSelectProps {
-  options: string[];
+  /** List of { label, value } pairs */
+  options: Option[];
   placeholder?: string;
   onSelect: (value: string) => void;
-  // Optional HTML label ID for accessibility
-  htmlLabelId?: string;
+  id?: string;
+  label?: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
 }
 
 export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   options,
-  placeholder = "Select...",
+  placeholder = "Select",
   onSelect,
-  htmlLabelId = "",
+  id,
+  label,
+  isRequired = false,
+  isDisabled = false,
 }) => {
   const [inputValue, setInputValue] = useState("");
-  const [filtered, setFiltered] = useState<string[]>([]);
+  const [filtered, setFiltered] = useState<Option[]>(options);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Filter by label
   useEffect(() => {
-    if (inputValue) {
-      const lower = inputValue.toLowerCase();
-      setFiltered(options.filter(o => o.toLowerCase().includes(lower)));
-    } else {
-      setFiltered(options);
-    }
+    const low = inputValue.toLowerCase();
+    setFiltered(
+      options.filter((opt) => opt.label.toLowerCase().includes(low))
+    );
     setActiveIndex(-1);
   }, [inputValue, options]);
 
+  // Close on outside click
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+    const onClick = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  // Keyboard navigation
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen && e.key === "ArrowDown") {
       setIsOpen(true);
       return;
     }
     if (e.key === "ArrowDown") {
-      setActiveIndex(i => Math.min(i + 1, filtered.length - 1));
+      setActiveIndex((i) => Math.min(i + 1, filtered.length - 1));
     } else if (e.key === "ArrowUp") {
-      setActiveIndex(i => Math.max(i - 1, 0));
+      setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && activeIndex >= 0) {
-      const val = filtered[activeIndex];
-      setInputValue(val);
-      onSelect(val);
+      const choice = filtered[activeIndex];
+      setInputValue(choice.label);
+      onSelect(choice.value);
       setIsOpen(false);
     } else if (e.key === "Escape") {
       setIsOpen(false);
     }
   };
 
-  const handleSelect = (val: string) => {
-    setInputValue(val);
-    onSelect(val);
+  const choose = (opt: Option) => {
+    setInputValue(opt.label);
+    onSelect(opt.value);
     setIsOpen(false);
   };
 
   return (
-    <div className="relative w-64" ref={containerRef}>
-      <input
-        id={htmlLabelId}
-        type="text"
-        className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring"
-        placeholder={placeholder}
-        value={inputValue}
-        onFocus={() => setIsOpen(true)}
-        onChange={e => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
-      {isOpen && (
-        <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-auto">
-          {filtered.length > 0 ? (
-            filtered.map((opt, idx) => (
-              <li
-                key={opt}
-                className={`p-2 cursor-pointer hover:bg-blue-100 ${idx === activeIndex ? "bg-blue-100" : ""}`}
-                onMouseDown={() => handleSelect(opt)}
-                onMouseEnter={() => setActiveIndex(idx)}
-              >
-                {opt}
-              </li>
-            ))
-          ) : (
-            <li className="p-2 text-gray-500">No matches found</li>
-          )}
-        </ul>
+    <div className="w-64" ref={containerRef}>
+      {label && (
+        <label htmlFor={id} className="block mb-1 font-semibold text-gray-800">
+          {isRequired && <span className="text-red-500 mr-1">*</span>}
+          {label}
+        </label>
       )}
+
+      <div className="relative">
+        <input
+          id={id}
+          type="text"
+          placeholder={placeholder}
+          value={inputValue}
+          onFocus={() => !isDisabled && setIsOpen(true)}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={onKeyDown}
+          required={isRequired}
+          disabled={isDisabled}
+          className={`
+            w-full border border-gray-400 rounded-sm py-1 px-1 pr-10
+            text-gray-700 bg-white disabled:bg-gray-100 disabled:text-gray-500
+            placeholder-gray-400 focus:outline-none focus:border-blue-500
+            focus:ring-1 focus:ring-blue-500 appearance-none
+          `}
+        />
+
+        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+          <ChevronIcon className="text-gray-500 w-2 h-1" />
+        </div>
+
+        {isOpen && (
+          <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-sm mt-0.5 max-h-56 overflow-auto shadow-sm">
+            {filtered.length > 0 ? (
+              filtered.map((opt, i) => (
+                <li
+                  key={opt.value}
+                  className={`
+                    px-1 py-1 text-sm text-gray-800 cursor-pointer
+                    ${i === activeIndex ? "bg-blue-50" : ""}
+                    hover:bg-blue-50
+                  `}
+                  onMouseDown={() => choose(opt)}
+                  onMouseEnter={() => setActiveIndex(i)}
+                >
+                  {opt.label}
+                </li>
+              ))
+            ) : (
+              <li className="px-2 py-1 text-sm text-gray-500">
+                No matches found
+              </li>
+            )}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

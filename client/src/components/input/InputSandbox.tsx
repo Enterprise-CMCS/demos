@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TextInput } from ".";
 import { SelectDemoStatuses } from "./select/SelectDemoStatus";
+import { SelectUSStates } from "./select/SelectUSStates";
 
 // TODO replace with our button when it's ready
 const BUTTON_CLASS_NAME = "bg-brand text-white my-sm p-sm rounded-normal hover:bg-brand-dark";
@@ -19,30 +20,41 @@ export const InputSandbox: React.FC = () => {
 
   return (
     <>
-      <div>
-        <div className="flex gap-sm">
-          <button className={BUTTON_CLASS_NAME} onClick={() => setDisabled((d) => !d)}>
-            {disabled ? "Enable" : "Disable"}
-          </button>
-          <button className={BUTTON_CLASS_NAME} onClick={() => setIsRequired((r) => !r)}>
-            {isRequired ? "Set Not Required" : "Set Required"}
-          </button>
-        </div>
-        <TextInput
-          name="test"
-          label="Label (No Z's allowed)"
-          isDisabled={disabled}
-          getValidationMessage={getValidationMessage}
-          isRequired={isRequired}
-          placeholder="Placeholder"
-        />
-        <SelectDemoStatuses onStatusChange={setStatus} />
-        {status && (
-          <p className="mt-4">
-              You picked: <strong>{status}</strong>
-          </p>
-        )}
+      <div className="flex gap-sm">
+        <button className={BUTTON_CLASS_NAME} onClick={() => setDisabled((d) => !d)}>
+          {disabled ? "Enable" : "Disable"}
+        </button>
+        <button className={BUTTON_CLASS_NAME} onClick={() => setIsRequired((r) => !r)}>
+          {isRequired ? "Set Not Required" : "Set Required"}
+        </button>
       </div>
+      <TextInput
+        name="test"
+        label="Label (No Z's allowed)"
+        isDisabled={disabled}
+        getValidationMessage={getValidationMessage}
+        isRequired={isRequired}
+        placeholder="Placeholder"
+      />
+      <div className="mt-3">
+        <SelectDemoStatuses
+          isRequired={isRequired}
+          isDisabled={disabled}
+          onStatusChange={setStatus}
+        />
+      </div>
+      <div className="mt-3">
+        <SelectUSStates
+          isRequired={isRequired}
+          isDisabled={disabled}
+          onStateChange={setStatus}
+        />
+      </div>
+      {status && (
+        <p className="mt-2">
+          You picked: <strong>{status}</strong>
+        </p>
+      )}
     </>
   );
 };
