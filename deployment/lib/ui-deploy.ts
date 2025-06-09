@@ -9,7 +9,6 @@ import {
 import { CommonProps } from "../types/props";
 import path from "path";
 
-import * as ssm from "../lib/ssm-parameter";
 interface UIDeploymentProps extends CommonProps {
   uiBucket: aws_s3.Bucket;
   distribution: aws_cloudfront.Distribution;
@@ -74,35 +73,24 @@ export function create(props: UIDeploymentProps) {
     }
   );
 
-  const paramAuthority = ssm.get({
-    ...props,
-    name: props.cognitoParamNames.authority,
-  });
-  const paramClientId = ssm.get({
-    ...props,
-    name: props.cognitoParamNames.clientId,
-  });
-
-  // TODO: Revisit when we know more about the runtime vs build-time environment variables
-  const deployTimeConfig = new aws_s3_deployment.DeployTimeSubstitutedFile(
-    props.scope,
-    "DeployTimeConfig",
-    {
-      destinationBucket: props.uiBucket,
-      destinationKey: "env-config.js",
-      source: path.join(".", "config.template.js"),
-      substitutions: {
-        stage: props.stage,
-        applicationEndpointUrl: props.applicationEndpointUrl,
-        timestamp: new Date().toISOString(),
-        cognitoAuthority: paramAuthority.stringValue,
-        cognitoClientId: paramClientId.stringValue,
-        applicationHostname: props.distribution.distributionDomainName,
-      },
-    }
-  );
-
-  deployTimeConfig.node.addDependency(deployWebsite);
+  // No longer used
+  // const deployTimeConfig = new aws_s3_deployment.DeployTimeSubstitutedFile(
+  //   props.scope,
+  //   "DeployTimeConfig",
+  //   {
+  //     destinationBucket: props.uiBucket,
+  //     destinationKey: "env-config.js",
+  //     source: path.join(".", "config.template.js"),
+  //     substitutions: {
+  //       stage: props.stage,
+  //       applicationEndpointUrl: props.applicationEndpointUrl,
+  //       cognitoAuthority: paramAuthority.stringValue,
+  //       cognitoClientId: paramClientId.stringValue,
+  //       applicationHostname: props.distribution.distributionDomainName,
+  //     },
+  //   }
+  // );
+  // deployTimeConfig.node.addDependency(deployWebsite);
 
   const invalidateCloudfront = new custom_resources.AwsCustomResource(
     props.scope,
@@ -130,5 +118,5 @@ export function create(props: UIDeploymentProps) {
       role: deploymentRole,
     }
   );
-  invalidateCloudfront.node.addDependency(deployTimeConfig);
+  invalidateCloudfront.node.addDependency(deployWebsite);
 }

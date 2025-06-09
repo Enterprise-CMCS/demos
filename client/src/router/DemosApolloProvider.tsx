@@ -12,7 +12,7 @@ import { ALL_MOCKS } from "mock-data";
 import { shouldUseMocks } from "config/env";
 import { AuthState, useAuth } from "react-oidc-context";
 
-const GRAPHQL_ENDPOINT = "/graphql";
+const GRAPHQL_ENDPOINT = import.meta.env.VITE_API_URL_PREFIX ?? "/graphql";
 
 const createApolloClient = (auth: AuthState) => {
   // Add the authorization header to each request sent by Apollo Client

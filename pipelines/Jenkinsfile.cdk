@@ -1,0 +1,49 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node", "aws-cli"])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds()
+  }
+
+  stages {
+    stage('CDK - Lint') {
+      steps {
+        dirCon('deployment', 'node') {
+          sh '''
+          npm ci
+          npm run lint
+          '''
+        }
+      }
+    }
+
+    // stage('CDK - Unit Test') {
+    //   steps {
+    //     dir('deployment') {
+    //       container('node') {
+    //         sh '''
+    //           npm run coverage:ci
+    //           '''
+    //       }
+    //     }
+    //   }
+    // }
+
+    stage('CDK - Synth') {
+      steps {
+        assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+        dirCon('deployment', 'node') {
+          sh '''
+          mkdir ../client/dist
+          mkdir ../server/dist
+          npm run synth:dev
+          '''
+        }
+      }
+    }
+  }
+}
