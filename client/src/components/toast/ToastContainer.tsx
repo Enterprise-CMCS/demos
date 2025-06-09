@@ -25,7 +25,7 @@ export const ToastContainer: React.FC = () => {
     case "error":
       return <ErrorToast {...commonProps} />;
     default:
-      return <InfoToast {...commonProps} />;
+      throw new Error(`Unknown toast type: ${toast.type}`);
     }
   };
 

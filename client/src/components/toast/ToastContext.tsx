@@ -5,7 +5,7 @@ export interface Toast {
   id: string;
   type: ToastType;
   message: string;
-  duration?: number;
+  durationMs?: number;
 }
 
 interface ToastContextValue {
@@ -17,6 +17,8 @@ interface ToastContextValue {
   showWarning: (message: string, duration?: number) => void;
   showError: (message: string, duration?: number) => void;
 }
+
+const DEFAULT_TOAST_DURATION_MS = 5000;
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
@@ -31,18 +33,19 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  const addToast = useCallback((type: ToastType, message: string, duration: number = 5000) => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const newToast: Toast = { id, type, message, duration };
+  const addToast = useCallback((type: ToastType, message: string, durationMs: number = DEFAULT_TOAST_DURATION_MS) => {
+    if (durationMs <= 0) {
+      throw new Error("Toast duration must be greater than 0");
+    }
+
+    const newToastID = `toast-${Date.now()}`;
+    const newToast: Toast = { id: newToastID, type, message, durationMs };
 
     setToasts((prev) => [...prev, newToast]);
 
-    // Auto-dismiss after duration
-    if (duration > 0) {
-      setTimeout(() => {
-        removeToast(id);
-      }, duration);
-    }
+    setTimeout(() => {
+      removeToast(newToastID);
+    }, durationMs);
   }, [removeToast]);
 
   const showInfo = useCallback((message: string, duration?: number) => {

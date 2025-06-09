@@ -1,54 +1,52 @@
 import React from "react";
-import { CloseIcon } from "components/icons/CloseIcon";
 import { tw } from "tags/tw";
+import { ExitIcon } from "components/icons/ExitIcon";
 
 export type ToastType = "info" | "success" | "warning" | "error";
 
 const BASE_TOAST_CLASSES = tw`
-    min-w-80 max-w-md p-4 mb-3 rounded-md shadow-lg 
-    flex items-start justify-between gap-3
-    transition-all duration-300 ease-in-out
+  w-[600px] p-sm rounded-md shadow-lg
+  bg-white text-text-font border border-l-4
+  flex items-start justify-between
+  transition-all duration-300 ease-in-out
 `;
 
-// TODO: use real colors from figma
 const getToastColor = (type: ToastType): string => {
   switch (type) {
   case "info":
-    return "bg-blue-50 text-blue-800";
+    return "border-brand";
   case "success":
-    return "bg-green-50 text-green-800";
+    return "border-border-success";
   case "warning":
-    return "bg-yellow-50 text-yellow-800";
+    return "border-border-alert";
   case "error":
-    return "bg-red-50 text-red-800";
+    return "border-border-warn";
   default:
-    return "bg-gray-50 text-gray-800";
+    throw new Error(`Unknown toast type: ${type}`);
   }
 };
 
 interface BaseToastProps {
   message: string;
   toastType: ToastType;
+  onDismiss?: () => void;
 }
 
 export const BaseToast: React.FC<BaseToastProps> = ({
   message,
   toastType,
+  onDismiss,
 }) => {
-  // TODO: Implement onDismiss functionality
-  const onDismiss = () => {};
   const toastClasses = `${BASE_TOAST_CLASSES} ${getToastColor(toastType)}`;
 
   return (
     <div className={toastClasses} role="alert">
-      <div className="flex-1 text-body leading-relaxed">
-        {message}
-      </div>
+      <span>{message}</span>
       <button
         onClick={onDismiss}
-        className="flex-shrink-0 p-1 hover:opacity-70 transition-opacity"
+        className="h-full border-l border-border-rules cursor-pointer px-sm"
         aria-label="Dismiss notification">
-        <CloseIcon />
+        <ExitIcon />
       </button>
     </div>
   );
