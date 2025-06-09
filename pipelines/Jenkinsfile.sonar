@@ -1,0 +1,80 @@
+pipeline {
+  agent {
+    kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins-role
+  restartPolicy: Never
+  containers:
+  # Add more containers to complete the job
+  - name: jenkins-general
+    image: nginx:alpine
+    imagePullPolicy: Always
+    command: ['cat']
+    tty: true
+  - name: scanner
+    image: artifactory.cloud.cms.gov/docker/sonarsource/sonar-scanner-cli:latest
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        cpu: 750m
+        memory: 1Gi
+      limits:
+        cpu: 750m
+        memory: 2Gi
+  - name: node
+    image: artifactory.cloud.cms.gov/docker/node:22-alpine
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        cpu: 750m
+        memory: 2Gi
+      limits:
+        cpu: 750m
+        memory: 2Gi
+"""
+}}
+
+    stages {
+        stage('Sonar Scan') {
+            environment {
+              SONAR_TOKEN = credentials('sonarqube-demos-client')
+            }
+            steps {
+                dir("client") {
+                container('node') {
+                    sh """
+                    npm ci
+                    npm run coverage:ci
+                    """
+                  
+                }
+              }
+                withSonarQubeEnv('SonarQube') { 
+                  container('scanner') {
+                    sh """
+                      sonar-scanner \
+                        -Dsonar.projectKey=demos \
+                        -Dsonar.host.url=https://sonarqube.cloud.cms.gov \
+                        -Dsonar.projectBaseDir=client \
+                        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+                        -Dsonar.testExecutionReportPaths=coverage/test-results.xml \
+                        -Dsonar.sources=src \
+                        -Dsonar.exclusions=**/*.test.ts,**/*.test.tsx \
+                        -Dsonar.tests=src \
+                        -Dsonar.test.inclusions=**/*.test.ts,**/*.test.tsx \
+                        -Dsonar.typescript.tsconfigPath=tsconfig.json \
+                        -X
+                    """
+                  }
+                }
+            }
+        }
+    }
+}
