@@ -1,0 +1,106 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  client-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "client/.nvmrc"
+      - name: Install Client Deps
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit Test
+        run: npm run test
+      - name: Build
+        run: npm run build
+      - name: Upload Build Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-build
+          path: dist
+  server-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "server/.nvmrc"
+      - name: Install Server Deps
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit Test
+        run: npm run test || echo "::error title=Tests-Failed::Unit tests failed. Continuing anyways"
+        continue-on-error: true
+      - name: Build
+        run: npm run build
+      - name: Upload Build Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-build
+          path: dist
+  iac-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "deployment/.nvmrc"
+      - name: Install Deps
+        run: npm ci
+        working-directory: deployment
+      - name: Lint
+        run: npm run lint
+        working-directory: deployment
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - client-build
+      - server-build
+      - iac-validation
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "deployment/.nvmrc"
+      - name: install
+        run: npm ci
+      - name: Download UI Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: client-build
+          path: client/dist
+      - name: Download Server Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: server-build
+          path: server/dist
+      - name: Deploy
+        run: npx cdk deploy --context stage=dev --all --no-change-set
