@@ -25,7 +25,7 @@ export const SelectUSStates: React.FC<{
   return (
     <AutoCompleteSelect
       id="us-state"
-      label="State or Territory"
+      label="Us State or Territory"
       options={options}
       placeholder="Type to search…"
       onSelect={onStateChange}
