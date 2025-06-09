@@ -18,7 +18,7 @@ const server = new ApolloServer<BaseContext>({
 
 export const graphqlHandler = startServerAndCreateLambdaHandler(
     server,
-    handlers.createAPIGatewayProxyEventV2RequestHandler(),
+    handlers.createAPIGatewayProxyEventRequestHandler(),
     {
         context: async ({ event, context }) => {
             // Add any shared context here, e.g., user authentication
