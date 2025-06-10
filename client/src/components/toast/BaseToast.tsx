@@ -46,7 +46,7 @@ const getToastColor = (type: ToastType): string => {
 interface BaseToastProps {
   message: string;
   toastType: ToastType;
-  onDismiss?: () => void;
+  onDismiss: () => void;
 }
 
 export const BaseToast: React.FC<BaseToastProps> = ({
