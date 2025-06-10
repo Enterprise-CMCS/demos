@@ -1,7 +1,6 @@
+import { ErrorIcon, ExitIcon, InfoIcon, SuccessIcon, WarningIcon } from "components/icons";
 import React from "react";
 import { tw } from "tags/tw";
-import { ExitIcon } from "components/icons/ExitIcon";
-import { ErrorIcon, InfoIcon, SuccessIcon, WarningIcon } from "components/icons";
 
 export type ToastType = "info" | "success" | "warning" | "error";
 
