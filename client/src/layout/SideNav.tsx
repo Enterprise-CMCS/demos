@@ -1,17 +1,18 @@
-// src/components/SideNav.tsx
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+
+import { DebugOnly } from "components/debug/DebugOnly";
 import {
-  ActionIcon,
-  BudgetIcon,
-  DashboardIcon,
-  DemonstrationIcon,
+  ActionsIcon,
+  AnalyticsIcon,
+  CompareIcon,
+  FavoriteIcon,
   FolderIcon,
   ListIcon,
-  MenuCollapseIcon,
-  MenuIcon
+  MenuCollapseLeftIcon,
+  MenuCollapseRightIcon,
+  ScaleIcon
 } from "components/icons";
-import { DebugOnly } from "components/debug/DebugOnly";
 
 interface NavLink {
   label: string;
@@ -20,18 +21,19 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: "Demonstrations", href: "/demonstrations", icon: <DemonstrationIcon /> },
-  { label: "Actions", href: "#", icon: <ActionIcon /> },
-  { label: "Tasks", href: "#", icon: <ListIcon /> },
-  { label: "Dashboards", href: "#", icon: <DashboardIcon /> },
-  { label: "Reports", href: "#", icon: <FolderIcon /> },
-  { label: "Budget", href: "#", icon: <BudgetIcon /> },
+  { label: "Demonstrations", href: "/demonstrations", icon: <CompareIcon /> },
+  { label: "Actions", href: "#1", icon: <ActionsIcon /> },
+  { label: "Tasks", href: "#2", icon: <ListIcon /> },
+  { label: "Dashboards", href: "#3", icon: <AnalyticsIcon /> },
+  { label: "Reports", href: "#4", icon: <FolderIcon /> },
+  { label: "Budget", href: "#5", icon: <ScaleIcon /> },
 ];
 
 const debugNavLinks: NavLink[] = [
   { label: "Hooks", href: "/hooks", icon: <ListIcon /> },
   { label: "Components", href: "/components", icon: <FolderIcon /> },
-  { label: "Authentication", href: "/auth", icon: <ActionIcon /> },
+  { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
+  { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
 ];
 
 interface NavLinkProps {
@@ -53,7 +55,7 @@ const NavLinks = (props: NavLinkProps) => {
                 className={`
                     relative flex items-center h-10 transition-all duration-150 ease-in-out
                     text-black
-                    ${props.collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2"}
+                    ${ props.collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2" }
                     hover:bg-[var(--color-surface-secondary)]
                     ${isActive ? "font-semibold" : "font-normal"}
                   `}
@@ -64,9 +66,11 @@ const NavLinks = (props: NavLinkProps) => {
                 )}
 
                 {/* Icon */}
-                <span className={
-                  `shrink-0 ${isActive ? "text-[var(--color-text-active)]" : "text-black"}`
-                }>
+                <span
+                  className={`shrink-0 ${
+                    isActive ? "text-[var(--color-text-active)]" : "text-black"
+                  }`}
+                >
                   {React.cloneElement(link.icon, {
                     className: "w-[14px] h-[14px]",
                   })}
@@ -74,7 +78,11 @@ const NavLinks = (props: NavLinkProps) => {
 
                 {/* Label */}
                 {!props.collapsed && (
-                  <span className={`${isActive ? "font-semibold text-black" : "text-black"}`}>
+                  <span
+                    className={`${
+                      isActive ? "font-semibold text-black" : "text-black"
+                    }`}
+                  >
                     {link.label}
                   </span>
                 )}
@@ -92,10 +100,15 @@ interface SideNavProps {
   setCollapsed: (val: boolean) => void;
 }
 
-export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => {
+export const SideNav: React.FC<SideNavProps> = ({
+  collapsed,
+  setCollapsed,
+}) => {
   return (
     <nav
-      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${collapsed ? "w-20" : "w-64"} shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
+      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${
+        collapsed ? "w-20" : "w-64"
+      } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
     >
       {/* Collapse Toggle */}
       <div className="relative h-12 mt-2">
@@ -107,7 +120,7 @@ export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => 
               aria-label="Collapse Menu"
             >
               <div className="w-4 h-4">
-                <MenuCollapseIcon />
+                <MenuCollapseLeftIcon />
               </div>
             </button>
           </div>
@@ -119,7 +132,7 @@ export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => 
               aria-label="Expand Menu"
             >
               <div className="w-[14px] h-[14px]">
-                <MenuIcon />
+                <MenuCollapseRightIcon />
               </div>
             </button>
           </div>
@@ -131,7 +144,6 @@ export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => 
         <hr className="my-2 border-t border-gray-200" />
         <NavLinks collapsed={collapsed} navLinks={debugNavLinks} />
       </DebugOnly>
-
     </nav>
   );
 };

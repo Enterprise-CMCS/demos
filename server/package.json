@@ -6,6 +6,7 @@
     "schema": "./src/model"
   },
   "dependencies": {
+    "@as-integrations/aws-lambda": "^3.1.0",
     "@graphql-tools/merge": "^9.0.24",
     "@prisma/client": "^6.7.0",
     "depcheck": "^1.4.7",
@@ -26,7 +27,7 @@
     "seed": "npx prisma db push --force-reset && tsx --inspect ./src/seeder.ts"
   },
   "devDependencies": {
-    "@apollo/server": "^4.12.1",
+    "@apollo/server": "^4.12.2",
     "@eslint/js": "^9.27.0",
     "@faker-js/faker": "^9.8.0",
     "@parcel/watcher": "^2.5.1",
