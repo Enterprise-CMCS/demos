@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { TextInput } from ".";
 import { SelectDemoStatuses } from "./select/SelectDemoStatuses";
-import { SelectUSStates } from "./select/SelectUSStates";
+import { SelectUSAStates } from "./select/SelectUSAStates";
 
 // TODO replace with our button when it's ready
 const BUTTON_CLASS_NAME = "bg-brand text-white my-sm p-sm rounded-normal hover:bg-brand-dark";
@@ -44,7 +44,7 @@ export const InputSandbox: React.FC = () => {
         />
       </div>
       <div className="mt-3">
-        <SelectUSStates
+        <SelectUSAStates
           isRequired={isRequired}
           isDisabled={disabled}
           onStateChange={setStatus}

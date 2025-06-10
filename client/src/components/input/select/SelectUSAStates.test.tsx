@@ -1,9 +1,8 @@
-// client/src/components/select/SelectUSStates.test.tsx
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { SelectUSStates } from "./SelectUSStates";
+import { SelectUSAStates } from "./SelectUSAStates";
 
 // Mock the JSON import
 vi.mock(
@@ -17,11 +16,11 @@ vi.mock(
   })
 );
 
-describe("<SelectUSStates />", () => {
+describe("<SelectUSAStates />", () => {
   it("filters options by input and calls onStateChange with the abbrev", async () => {
     const onStateChange = vi.fn();
     render(
-      <SelectUSStates
+      <SelectUSAStates
         onStateChange={onStateChange}
         isRequired={false}
         disabled={false}
@@ -43,7 +42,7 @@ describe("<SelectUSStates />", () => {
   });
 
   it("shows 'No matches found' when filter yields nothing", async () => {
-    render(<SelectUSStates onStateChange={() => {}} />);
+    render(<SelectUSAStates onStateChange={() => {}} />);
 
     const input = screen.getByRole("textbox", { name: /state or territory/i });
     await userEvent.click(input);
@@ -54,7 +53,7 @@ describe("<SelectUSStates />", () => {
 
   it("applies the required and disabled props to the input", () => {
     render(
-      <SelectUSStates
+      <SelectUSAStates
         onStateChange={() => {}}
         isRequired={true}
         disabled={true}

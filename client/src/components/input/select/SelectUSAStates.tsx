@@ -12,7 +12,7 @@ type Option = {
   value: string;
 };
 
-export const SelectUSStates: React.FC<{
+export const SelectUSAStates: React.FC<{
   onStateChange: (abbr: string) => void;
   isRequired?: boolean;
   disabled?: boolean;
