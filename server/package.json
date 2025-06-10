@@ -16,18 +16,19 @@
     "jwks-rsa": "^3.2.0",
     "prettier": "3.5.3",
     "prisma-extension-random": "^0.2.2",
+    "@apollo/server": "^4.12.2",
     "react": "^19.1.0"
   },
   "scripts": {
     "build": "npm install; rm -rf dist; npx tsc",
+    "build:ci": "npm ci; npx prisma generate rm -rf dist; npx tsc -p ./tsconfig-ci.json; npm ci --omit=dev; cp -R node_modules dist",
     "dev": "npm run build && node ./dist/index.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "watch": "concurrently \"tsx watch --clear-screen=false src/index.ts\" \"npx prisma generate --watch\"",
+    "watch": "concurrently \"tsx watch --clear-screen=false src/index.ts\" \"npx prisma generate --schema src/model/schema.prisma --watch\"",
     "seed": "npx prisma db push --force-reset && tsx --inspect ./src/seeder.ts"
   },
   "devDependencies": {
-    "@apollo/server": "^4.12.2",
     "@eslint/js": "^9.27.0",
     "@faker-js/faker": "^9.8.0",
     "@parcel/watcher": "^2.5.1",

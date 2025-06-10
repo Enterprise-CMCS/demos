@@ -12,14 +12,18 @@ const server = new ApolloServer<GraphQLContext>({
   resolvers,
 });
 
-const { url } = await startStandaloneServer(server, {
-  listen: { port: 4000 },
-  context: async ({ req }) => {
-    // Add any shared context here, e.g., user authentication
-    const { sub, email } = await getCognitoUserInfo(req);
-    const roles = await getUserRoles(sub);
-    return { user: { id: sub, name: email, roles } };
-  },
-});
+const startServer = async () => {
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 4000 },
+    context: async ({ req }) => {
+      // Add any shared context here, e.g., user authentication
+      const { sub, email } = await getCognitoUserInfo(req);
+      const roles = await getUserRoles(sub);
+      return { user: { id: sub, name: email, roles } };
+    },
+  });
 
-console.log(`🚀 Server listening at: ${url}`);
+  console.log(`🚀 Server listening at: ${url}`);
+}
+
+startServer()
