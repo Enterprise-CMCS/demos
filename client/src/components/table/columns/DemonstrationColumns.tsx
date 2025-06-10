@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowRightIcon, ArrowDownIcon } from "components/icons";
+import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 
 export type DemonstrationColumns = {
   id: number;
@@ -63,9 +63,9 @@ const expanderColumn: ColumnDef<DemonstrationColumns> = {
         tabIndex={0}
       >
         {row.getIsExpanded() ? (
-          <ArrowDownIcon className="text-center w-2 h-2 text-brand" />
+          <ChevronDownIcon className="text-center w-2 h-2 text-brand" />
         ) : (
-          <ArrowRightIcon className="text-center w-2 h-2 text-brand" />
+          <ChevronRightIcon className="text-center w-2 h-2 text-brand" />
         )}
       </button>
     ) : null,
