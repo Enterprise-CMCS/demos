@@ -26,7 +26,7 @@ interface LambdaProps extends CommonProps {
   environment?: { [key: string]: string };
   path?: string;
   method?: string;
-  api?: aws_apigateway.RestApi;
+  apiParentResource?: aws_apigateway.Resource;
   vpc?: aws_ec2.IVpc;
   securityGroup?: aws_ec2.SecurityGroup;
   useAlias?: boolean;
@@ -100,7 +100,7 @@ export class Lambda extends Construct {
       functionName: `${props.project}-${props.stage}-${id}`,
       entry: !asCode ? props.entry : undefined,
       code: asCode ? aws_lambda.Code.fromAsset(props.entry) : undefined,
-      handler: `index.${props.handler}`,
+      handler: `${props.handler}`,
       runtime: Runtime.NODEJS_22_X,
       timeout,
       memorySize,
@@ -132,8 +132,8 @@ export class Lambda extends Construct {
       });
     }
 
-    if (props.api && props.path && props.method) {
-      const resource = props.api.root.resourceForPath(props.path);
+    if (props.apiParentResource && props.path && props.method) {
+      const resource = props.apiParentResource.resourceForPath(props.path);
       resource.addMethod(
         props.method,
         new aws_apigateway.LambdaIntegration(alias ? alias : this.lambda),
@@ -142,9 +142,9 @@ export class Lambda extends Construct {
             ? undefined
             : aws_apigateway.AuthorizationType.COGNITO,
           authorizer: props.isLocalstack ? undefined : props.authorizer,
-          authorizationScopes: props.isLocalstack
-            ? undefined
-            : ["demosApi/read", "demosApi/write"],
+          // authorizationScopes: props.isLocalstack
+          //   ? undefined
+          //   : ["demosApi/read", "demosApi/write"],
         }
       );
     }
