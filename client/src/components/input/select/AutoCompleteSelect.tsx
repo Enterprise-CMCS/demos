@@ -14,6 +14,7 @@ export interface AutoCompleteSelectProps {
   label?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
+  defaultValue?: string;
 }
 
 export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
@@ -24,8 +25,9 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   label,
   isRequired = false,
   isDisabled = false,
+  defaultValue = "",
 }) => {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(defaultValue);
   const [filtered, setFiltered] = useState<Option[]>(options);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);

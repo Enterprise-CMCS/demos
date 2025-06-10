@@ -18,6 +18,8 @@ export const InputSandbox: React.FC = () => {
   const [disabled, setDisabled] = useState(false);
   const [isRequired, setIsRequired] = useState(false);
   const [status, setStatus] = useState<string>("");
+  // We'll wire this up to use the current cache user id
+  const currnetUserId = 123;
 
   return (
     <>
@@ -57,6 +59,7 @@ export const InputSandbox: React.FC = () => {
           label="Project Officers"
           isDisabled={disabled}
           onStateChange={setStatus}
+          currentUserId={String(currnetUserId)}
         />
       </div>
       {status && (
