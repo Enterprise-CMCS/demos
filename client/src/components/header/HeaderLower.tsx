@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { SecondaryButton } from "components/button/SecondaryButton";
-import { AddIcon } from "components/icons/AddIcon";
+import { AddNew } from "components/icons";
 import { gql } from "graphql-tag";
 import React from "react";
 
@@ -8,14 +8,14 @@ export const HEADER_LOWER_QUERY = gql`
   query HeaderLowerQuery($id: ID!) {
     user(id: $id) {
       fullName
-    } 
+    }
   }
 `;
 
 export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
   if (!userId) {
     return (
-      <div className="w-full bg-blue-900 text-white px-4 py-1 flex items-center justify-between"/>
+      <div className="w-full bg-blue-900 text-white px-4 py-1 flex items-center justify-between" />
     );
   }
 
@@ -41,9 +41,12 @@ export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
         <span className="block text-sm">Welcome to DEMOS!</span>
       </div>
       <div>
-        <SecondaryButton size="small" className="cursor-pointer flex items-center gap-1 px-1 py-1">
+        <SecondaryButton
+          size="small"
+          className="cursor-pointer flex items-center gap-1 px-1 py-1"
+        >
           <span className="">Create New</span>
-          <AddIcon/>
+          <AddNew />
         </SecondaryButton>
       </div>
     </div>

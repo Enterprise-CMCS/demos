@@ -2,6 +2,7 @@ import { Collapsible } from "components/collapsible/Collapsible";
 import { InputSandbox } from "components/input";
 import { ButtonGrid } from "components/button";
 import React from "react";
+import { IconSandbox } from "components/icons/IconSandbox";
 
 export const ComponentLibrary: React.FC = () => {
   return (
@@ -12,6 +13,9 @@ export const ComponentLibrary: React.FC = () => {
       </Collapsible>
       <Collapsible title="Input Sandbox (Click to expand)">
         <InputSandbox />
+      </Collapsible>
+      <Collapsible title="Icons Sandbox (Click to expand)">
+        <IconSandbox />
       </Collapsible>
     </>
   );

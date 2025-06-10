@@ -1,6 +1,4 @@
-import { BellIcon } from "components/icons/BellIcon";
-import { GearIcon } from "components/icons/GearIcon";
-import { LifeRaftIcon } from "components/icons/LifeRaftIcon";
+import { Help, Notify, Settings } from "components/icons";
 import React from "react";
 
 export const QuickLinks: React.FC = () => {
@@ -8,19 +6,19 @@ export const QuickLinks: React.FC = () => {
     <ul className="flex items-center gap-3">
       <li>
         <a href="#" className="flex items-center gap-1">
-          <GearIcon className="text-[var(--color-action)]"/>
+          <Settings className="text-[var(--color-action)]" />
           <span>Admin</span>
         </a>
       </li>
       <li>
         <a href="#" className="flex items-center gap-1">
-          <BellIcon className="text-[var(--color-action)]"/>
+          <Notify className="text-[var(--color-action)]" />
           <span>Notifications</span>
         </a>
       </li>
       <li>
         <a href="#" className="flex items-center gap-1">
-          <LifeRaftIcon className="text-[var(--color-action)]"/>
+          <Help className="text-[var(--color-action)]" />
           <span>Help</span>
         </a>
       </li>
