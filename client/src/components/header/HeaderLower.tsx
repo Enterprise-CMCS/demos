@@ -1,7 +1,7 @@
 import React, {
   useEffect,
   useRef,
-  useState,
+  useState
 } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
