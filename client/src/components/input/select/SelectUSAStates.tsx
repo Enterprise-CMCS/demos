@@ -15,8 +15,8 @@ type Option = {
 export const SelectUSAStates: React.FC<{
   onStateChange: (abbr: string) => void;
   isRequired?: boolean;
-  disabled?: boolean;
-}> = ({ onStateChange, isRequired = false, disabled = false }) => {
+  isDisabled?: boolean;
+}> = ({ onStateChange, isRequired = false, isDisabled = false }) => {
   const options: Option[] = (usStates as USState[]).map((state) => ({
     label: state.name,
     value: state.abbrev,
@@ -27,10 +27,10 @@ export const SelectUSAStates: React.FC<{
       id="us-state"
       label="Us State or Territory"
       options={options}
-      placeholder="Type to search…"
+      placeholder="Select"
       onSelect={onStateChange}
       isRequired={isRequired}
-      isDisabled={disabled}
+      isDisabled={isDisabled}
     />
   );
 };

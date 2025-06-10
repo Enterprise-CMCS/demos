@@ -23,7 +23,7 @@ describe("<SelectUSAStates />", () => {
       <SelectUSAStates
         onStateChange={onStateChange}
         isRequired={false}
-        disabled={false}
+        isDisabled={false}
       />
     );
 
@@ -56,7 +56,7 @@ describe("<SelectUSAStates />", () => {
       <SelectUSAStates
         onStateChange={() => {}}
         isRequired={true}
-        disabled={true}
+        isDisabled={true}
       />
     );
 

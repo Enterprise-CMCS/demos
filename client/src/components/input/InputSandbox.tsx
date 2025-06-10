@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TextInput } from ".";
 import { SelectDemoStatuses } from "./select/SelectDemoStatuses";
 import { SelectUSAStates } from "./select/SelectUSAStates";
+import { SelectUsers } from "./select/SelectUsers";
 
 // TODO replace with our button when it's ready
 const BUTTON_CLASS_NAME = "bg-brand text-white my-sm p-sm rounded-normal hover:bg-brand-dark";
@@ -50,9 +51,17 @@ export const InputSandbox: React.FC = () => {
           onStateChange={setStatus}
         />
       </div>
+      <div className="mt-3">
+        <SelectUsers
+          isRequired={isRequired}
+          label="Project Officers"
+          isDisabled={disabled}
+          onStateChange={setStatus}
+        />
+      </div>
       {status && (
         <p className="mt-2">
-          You picked: <strong>{status}</strong>
+          You most recently selected: <strong>{status}</strong>
         </p>
       )}
     </>
