@@ -12,19 +12,19 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
   const [state, setState] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [projectOfficer, setProjectOfficer] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [effectiveDate, setEffectiveDate] = useState<string>("");
+  const [expirationDate, setExpirationDate] = useState<string>("");
 
   // Check if all required fields are filled
   const isFormValid =
     state &&
     title &&
     projectOfficer &&
-    startDate &&
-    endDate &&
-    endDate >= startDate;
+    effectiveDate &&
+    expirationDate &&
+    expirationDate >= effectiveDate;
 
-  console.log({ state, title, projectOfficer, startDate, endDate, isFormValid });
+  console.log({ state, title, projectOfficer, effectiveDate, expirationDate, isFormValid });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
@@ -94,27 +94,27 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
               </select>
             </div>
             <div>
-              <label className="block font-medium mb-1">Start Date</label>
+              <label className="block font-medium mb-1">Effective Date</label>
               <input
                 type="date"
                 className="w-full border border-[var(--color-border-fields)] rounded px-1 py-1 text-sm"
-                value={startDate}
+                value={effectiveDate}
                 onChange={e => {
-                  setStartDate(e.target.value);
-                  if (endDate && e.target.value && endDate < e.target.value) {
-                    setEndDate("");
+                  setEffectiveDate(e.target.value);
+                  if (expirationDate && e.target.value && expirationDate < e.target.value) {
+                    setExpirationDate("");
                   }
                 }}
               />
             </div>
             <div>
-              <label className="block font-medium mb-1">End Date</label>
+              <label className="block font-medium mb-1">Expiration Date</label>
               <input
                 type="date"
                 className="w-full border border-[var(--color-border-fields)] rounded px-1 py-1 text-sm"
-                value={endDate}
-                min={startDate || undefined}
-                onChange={e => setEndDate(e.target.value)}
+                value={expirationDate}
+                min={effectiveDate || undefined}
+                onChange={e => setExpirationDate(e.target.value)}
               />
             </div>
           </div>
