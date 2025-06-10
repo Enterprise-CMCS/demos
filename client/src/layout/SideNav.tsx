@@ -11,7 +11,7 @@ import {
   ListIcon,
   MenuCollapseLeftIcon,
   MenuCollapseRightIcon,
-  ScaleIcon,
+  ScaleIcon
 } from "components/icons";
 
 interface NavLink {
@@ -55,11 +55,7 @@ const NavLinks = (props: NavLinkProps) => {
                 className={`
                     relative flex items-center h-10 transition-all duration-150 ease-in-out
                     text-black
-                    ${
-                      props.collapsed
-                        ? "justify-center w-20"
-                        : "justify-start w-64 px-4 gap-2"
-                    }
+                    ${ props.collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2" }
                     hover:bg-[var(--color-surface-secondary)]
                     ${isActive ? "font-semibold" : "font-normal"}
                   `}
