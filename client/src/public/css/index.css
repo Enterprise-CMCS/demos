@@ -2,6 +2,7 @@
 @import "./colors.css";
 @import "./spacing.css";
 @import "./radius.css";
+@import "./animations.css";
 
 /** TODO: Sepearate out font-styles and override defaults */
 @theme {
@@ -55,4 +56,7 @@
   /* typography/tag */
   --font-tag-type: 1.6rem / auto;
   --font-tag-amount: 1.4rem/2rem;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.3s ease-out;
 }

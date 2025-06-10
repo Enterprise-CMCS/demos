@@ -35,7 +35,7 @@ export const ToastContainer: React.FC = () => {
 
   return (
     <div
-      className="fixed top-4 right-4 z-50 space-y-2"
+      className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 space-y-2"
       aria-live="polite"
       aria-label="Notifications"
     >

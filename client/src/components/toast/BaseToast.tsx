@@ -10,6 +10,7 @@ const BASE_TOAST_CLASSES = tw`
   bg-white text-text-font border border-l-4
   flex items-center justify-between
   transition-all duration-300 ease-in-out
+  animate-fade-in
 `;
 
 const getToastIcon = (type: ToastType): React.ReactNode => {
