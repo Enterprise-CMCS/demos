@@ -3,7 +3,7 @@ import { BaseToast } from "./BaseToast";
 
 interface SuccessToastProps {
   message: string;
-  onDismiss?: () => void;
+  onDismiss: () => void;
 }
 
 export const SuccessToast: React.FC<SuccessToastProps> = ({

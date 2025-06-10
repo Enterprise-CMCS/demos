@@ -3,7 +3,7 @@ import { BaseToast } from "./BaseToast";
 
 interface InfoToastProps {
   message: string;
-  onDismiss?: () => void;
+  onDismiss: () => void;
 }
 
 export const InfoToast: React.FC<InfoToastProps> = ({

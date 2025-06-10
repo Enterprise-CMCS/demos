@@ -3,7 +3,7 @@ import { BaseToast } from "./BaseToast";
 
 interface ErrorToastProps {
   message: string;
-  onDismiss?: () => void;
+  onDismiss: () => void;
 }
 
 export const ErrorToast: React.FC<ErrorToastProps> = ({
