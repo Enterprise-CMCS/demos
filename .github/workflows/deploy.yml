@@ -53,7 +53,7 @@ jobs:
         run: npm run test || echo "::error title=Tests-Failed::Unit tests failed. Continuing anyways"
         continue-on-error: true
       - name: Build
-        run: npm run build
+        run: npm run build:ci
       - name: Upload Build Output
         uses: actions/upload-artifact@v4
         with:

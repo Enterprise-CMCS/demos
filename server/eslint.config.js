@@ -1,6 +1,6 @@
-import jsEslint from "@eslint/js";
-import tseslint from "typescript-eslint";
-import { validateGraphQLTypescriptMatch } from "./eslint-rules/validate-graphql-typescript-match.js";
+import jsEslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import {validateGraphQLTypescriptMatch} from './eslint-rules/validate-graphql-typescript-match.js';
 
 const eslintConfig = tseslint.config(
   jsEslint.configs.recommended,
@@ -8,20 +8,14 @@ const eslintConfig = tseslint.config(
   {
     plugins: {
       "validate-graphql-typescript-match": {
-        rules: {
-          "validate-graphql-typescript-match": validateGraphQLTypescriptMatch,
-        },
+        rules: { "validate-graphql-typescript-match": validateGraphQLTypescriptMatch },
       },
     },
     rules: {
       "eol-last": ["error", "always"], // Newline at the end of files
-      "no-restricted-exports": [
-        "error",
-        { restrictDefaultExports: { direct: true } },
-      ], // Disallow default exports
-      "validate-graphql-typescript-match/validate-graphql-typescript-match":
-        "error",
-    },
+      "no-restricted-exports": ["error", { "restrictDefaultExports": { "direct": true } }], // Disallow default exports
+      "validate-graphql-typescript-match/validate-graphql-typescript-match": "error",
+    }
   },
 );
 
