@@ -16,8 +16,9 @@ export const GET_USER_BY_ID = gql`
       id
       firstName
       lastName
+    }
   }
-}`;
+`;
 
 interface GetAllUsersOperation {
   trigger: () => void;
@@ -39,8 +40,10 @@ export interface UserOperations {
 }
 
 export const useUserOperations = (): UserOperations => {
-  const [triggerGetAllUsers, { data: allUsersData, loading: allUsersLoading, error: allUsersError }] =
-    useLazyQuery<{ users: User[] }>(GET_ALL_USERS);
+  const [
+    triggerGetAllUsers,
+    { data: allUsersData, loading: allUsersLoading, error: allUsersError },
+  ] = useLazyQuery<{ users: User[] }>(GET_ALL_USERS);
 
   const getAllUsers: GetAllUsersOperation = {
     trigger: () => triggerGetAllUsers(),
@@ -49,8 +52,10 @@ export const useUserOperations = (): UserOperations => {
     error: allUsersError,
   };
 
-  const [triggerGetUserById, { data: userByIdData, loading: userByIdLoading, error: userByIdError }] =
-    useLazyQuery<{ user: User }>(GET_USER_BY_ID);
+  const [
+    triggerGetUserById,
+    { data: userByIdData, loading: userByIdLoading, error: userByIdError },
+  ] = useLazyQuery<{ user: User }>(GET_USER_BY_ID);
 
   const getUserById: GetUserByIdOperation = {
     trigger: (id: string) => triggerGetUserById({ variables: { id } }),
