@@ -3,14 +3,15 @@ import { Link, useLocation } from "react-router-dom";
 
 import { DebugOnly } from "components/debug/DebugOnly";
 import {
-  Actions,
-  Analytics,
-  Compare,
-  Folder,
-  List,
-  MenuCollapseLeft,
-  MenuCollapseRight,
-  Scale
+  ActionsIcon,
+  AnalyticsIcon,
+  CompareIcon,
+  FavoriteIcon,
+  FolderIcon,
+  ListIcon,
+  MenuCollapseLeftIcon,
+  MenuCollapseRightIcon,
+  ScaleIcon,
 } from "components/icons";
 
 interface NavLink {
@@ -20,18 +21,19 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: "Demonstrations", href: "/demonstrations", icon: <Compare /> },
-  { label: "Actions", href: "#1", icon: <Actions /> },
-  { label: "Tasks", href: "#2", icon: <List /> },
-  { label: "Dashboards", href: "#3", icon: <Analytics /> },
-  { label: "Reports", href: "#4", icon: <Folder /> },
-  { label: "Budget", href: "#5", icon: <Scale /> },
+  { label: "Demonstrations", href: "/demonstrations", icon: <CompareIcon /> },
+  { label: "Actions", href: "#1", icon: <ActionsIcon /> },
+  { label: "Tasks", href: "#2", icon: <ListIcon /> },
+  { label: "Dashboards", href: "#3", icon: <AnalyticsIcon /> },
+  { label: "Reports", href: "#4", icon: <FolderIcon /> },
+  { label: "Budget", href: "#5", icon: <ScaleIcon /> },
 ];
 
 const debugNavLinks: NavLink[] = [
-  { label: "Hooks", href: "/hooks", icon: <List /> },
-  { label: "Components", href: "/components", icon: <Folder /> },
-  { label: "Authentication", href: "/auth", icon: <Actions /> },
+  { label: "Hooks", href: "/hooks", icon: <ListIcon /> },
+  { label: "Components", href: "/components", icon: <FolderIcon /> },
+  { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
+  { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
 ];
 
 interface NavLinkProps {
@@ -53,7 +55,11 @@ const NavLinks = (props: NavLinkProps) => {
                 className={`
                     relative flex items-center h-10 transition-all duration-150 ease-in-out
                     text-black
-                    ${props.collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2"}
+                    ${
+                      props.collapsed
+                        ? "justify-center w-20"
+                        : "justify-start w-64 px-4 gap-2"
+                    }
                     hover:bg-[var(--color-surface-secondary)]
                     ${isActive ? "font-semibold" : "font-normal"}
                   `}
@@ -118,7 +124,7 @@ export const SideNav: React.FC<SideNavProps> = ({
               aria-label="Collapse Menu"
             >
               <div className="w-4 h-4">
-                <MenuCollapseLeft />
+                <MenuCollapseLeftIcon />
               </div>
             </button>
           </div>
@@ -130,7 +136,7 @@ export const SideNav: React.FC<SideNavProps> = ({
               aria-label="Expand Menu"
             >
               <div className="w-[14px] h-[14px]">
-                <MenuCollapseRight />
+                <MenuCollapseRightIcon />
               </div>
             </button>
           </div>

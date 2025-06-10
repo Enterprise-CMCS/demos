@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { SecondaryButton } from "components/button/SecondaryButton";
-import { AddNew } from "components/icons";
+import { AddNewIcon } from "components/icons";
 import { gql } from "graphql-tag";
 import React from "react";
 
@@ -46,7 +46,7 @@ export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
           className="cursor-pointer flex items-center gap-1 px-1 py-1"
         >
           <span className="">Create New</span>
-          <AddNew />
+          <AddNewIcon />
         </SecondaryButton>
       </div>
     </div>

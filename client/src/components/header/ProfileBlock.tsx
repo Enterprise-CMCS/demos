@@ -1,7 +1,7 @@
 import { gql, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import { Avatar } from "./Avatar";
-import { ChevronDown } from "components/icons";
+import { ChevronDownIcon } from "components/icons";
 
 export const PROFILE_BLOCK_QUERY = gql`
   query ProfileBlockQuery($id: ID!) {
@@ -50,7 +50,7 @@ export const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
         {user.fullName}
       </span>
       <span>
-        <ChevronDown className={open ? "rotate-180" : ""} />
+        <ChevronDownIcon className={open ? "rotate-180" : ""} />
       </span>
       {open && (
         <ul
