@@ -6,7 +6,7 @@ export const ToastDemo: React.FC = () => {
   const { showInfo, showSuccess, showWarning, showError } = useToast();
 
   const handleInfoToast = () => {
-    showInfo("This is an informational message. It provides helpful context about what's happening in the application.");
+    showInfo("This is a short informational message.");
   };
 
   const handleSuccessToast = () => {
@@ -14,11 +14,11 @@ export const ToastDemo: React.FC = () => {
   };
 
   const handleWarningToast = () => {
-    showWarning("Warning: This action cannot be undone. Please review your selections before proceeding.");
+    showWarning("Warning: This action cannot be undone. Please review your selections before proceeding. This is a longer warning message with some added details");
   };
 
   const handleErrorToast = () => {
-    showError("Error: Unable to process your request. Please check your internet connection and try again.");
+    showError("Error: Unable to process your request. Please check your internet connection and try again. This message is even longer intended to get the text to wrap to multiple lines to test the layout of the error toast component.");
   };
 
   return (
