@@ -1,11 +1,11 @@
 import React, {
   useEffect,
   useRef,
-  useState
+  useState,
 } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
-import { AddIcon } from "components/icons/AddIcon";
+import { AddNewIcon } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { gql } from "graphql-tag";
 
@@ -73,7 +73,7 @@ export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
           onClick={() => setShowDropdown((prev) => !prev)}
         >
           <span>Create New</span>
-          <AddIcon />
+          <AddNewIcon />
         </SecondaryButton>
 
         {showDropdown && (
