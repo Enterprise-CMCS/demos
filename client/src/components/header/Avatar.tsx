@@ -1,6 +1,6 @@
 import React from "react";
 
-const Avatar: React.FC<{ character?: string }> = ({ character }) => {
+export const Avatar: React.FC<{ character?: string }> = ({ character }) => {
   return (
     <div
       id="profile-letter"
@@ -18,5 +18,3 @@ const Avatar: React.FC<{ character?: string }> = ({ character }) => {
     </div>
   );
 };
-
-export default Avatar;

@@ -1,6 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import React, { useState } from "react";
-import Avatar from "./Avatar";
+import { Avatar } from "./Avatar";
 import { ChevronIcon } from "components/icons/ChevronIcon";
 
 export const PROFILE_BLOCK_QUERY = gql`
@@ -11,7 +11,7 @@ export const PROFILE_BLOCK_QUERY = gql`
   }
 `;
 
-const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
+export const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
   const [open, setOpen] = useState(false);
 
   if (!userId) {
@@ -69,5 +69,3 @@ const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
 
   );
 };
-
-export default ProfileBlock;

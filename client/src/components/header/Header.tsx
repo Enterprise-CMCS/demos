@@ -1,6 +1,6 @@
 import React from "react";
-import HeaderLower from "./HeaderLower";
-import HeaderUpper from "./HeaderUpper";
+import { HeaderLower } from "./HeaderLower";
+import { HeaderUpper } from "./HeaderUpper";
 
 export const Header: React.FC<{
   userId?: number;

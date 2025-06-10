@@ -4,7 +4,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 
-export const viteConfig = defineConfig({
+export const config = defineConfig({
   plugins: [react(), tailwindcss(), tsconfigPaths()],
   server: { port: 3000 },
   test: {
@@ -21,3 +21,6 @@ export const viteConfig = defineConfig({
     },
   },
 });
+
+// eslint-disable-next-line no-restricted-exports
+export default config;
