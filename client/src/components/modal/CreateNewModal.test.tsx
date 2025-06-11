@@ -80,4 +80,4 @@ describe("CreateNewModal", () => {
 
     vi.useRealTimers();
   });
-})
+});
