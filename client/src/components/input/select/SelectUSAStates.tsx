@@ -1,26 +1,47 @@
 import React from "react";
-import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
-import { states, USState }  from "data/StatesAndTerritories";
 
-export const SelectUSAStates: React.FC<{
+import {
+  states,
+  USState,
+} from "data/StatesAndTerritories";
+
+import {
+  AutoCompleteSelect,
+  Option,
+} from "./AutoCompleteSelect";
+
+export interface SelectUSAStatesProps {
   onStateChange: (abbr: string) => void;
+  label?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
-}> = ({ onStateChange, isRequired = false, isDisabled = false }) => {
+  currentState?: string;
+}
+
+export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
+  onStateChange,
+  label = "US State or Territory",
+  isRequired = false,
+  isDisabled = false,
+  currentState,
+}) => {
   const options: Option[] = (states as USState[]).map((state) => ({
     label: state.name,
     value: state.abbrev,
   }));
 
+  const defaultLabel = options.find((o) => o.value === currentState)?.label ?? "";
+
   return (
     <AutoCompleteSelect
-      id="us-state"
-      label="Us State or Territory"
+      id={`state-${label.toLowerCase().replace(/\s+/g, "-")}`}
+      label={label}
       options={options}
-      placeholder="Select"
+      placeholder={`Select ${label.toLowerCase()}…`}
       onSelect={onStateChange}
       isRequired={isRequired}
       isDisabled={isDisabled}
+      defaultValue={defaultLabel}
     />
   );
 };

@@ -1,5 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
-import { ChevronDownIcon  } from "components/icons/Symbol/ChevronDownIcon";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
+import { tw } from "tags/tw";
 
 export interface Option {
   label: string;
@@ -32,6 +38,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 
   // Filter by label
   useEffect(() => {
@@ -83,10 +90,10 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   };
 
   return (
-    <div className="w-64" ref={containerRef}>
+    <div className="flex flex-col gap-sm" ref={containerRef}>
       {label && (
-        <label htmlFor={id} className="block mb-1 font-semibold text-gray-800">
-          {isRequired && <span className="text-red-500 mr-1">*</span>}
+        <label htmlFor={id} className={LABEL_CLASSES}>
+          {isRequired && <span className="text-text-warn">*</span>}
           {label}
         </label>
       )}
@@ -103,27 +110,29 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           required={isRequired}
           disabled={isDisabled}
           className={`
-            w-full border border-gray-400 rounded-sm py-1 px-1 pr-10
-            text-gray-700 bg-white disabled:bg-gray-100 disabled:text-gray-500
-            placeholder-gray-400 focus:outline-none focus:border-blue-500
-            focus:ring-1 focus:ring-blue-500 appearance-none
+            w-full border border-[var(--color-border-fields)] rounded px-1 py-1 pr-10
+            text-[var(--color-text-font)] bg-[var(--color-surface-white)]
+            disabled:bg-[var(--color-surface-disabled)] disabled:text-[var(--color-text-placeholder)]
+            placeholder-[var(--color-text-placeholder)] focus:outline-none 
+            focus:border-[var(--color-border-focus)] focus:ring-1 focus:ring-[var(--color-border-focus)]
+            appearance-none text-sm
           `}
         />
 
         <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-          <ChevronDownIcon className="text-gray-500 w-2 h-1" />
+          <ChevronDownIcon className="text-[var(--color-text-placeholder)] w-2 h-1" />
         </div>
 
         {isOpen && (
-          <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-sm mt-0.5 max-h-56 overflow-auto shadow-sm">
+          <ul className="absolute z-10 w-full bg-[var(--color-surface-white)] border border-[var(--color-border-fields)] rounded mt-0.5 max-h-56 overflow-auto shadow-sm">
             {filtered.length > 0 ? (
               filtered.map((opt, i) => (
                 <li
                   key={opt.value}
                   className={`
-                    px-1 py-1 text-sm text-gray-800 cursor-pointer
-                    ${i === activeIndex ? "bg-blue-50" : ""}
-                    hover:bg-blue-50
+                    px-1 py-1 text-sm text-[var(--color-text-font)] cursor-pointer
+                    ${i === activeIndex ? "bg-[var(--color-surface-focus)]" : ""}
+                    hover:bg-[var(--color-surface-focus)]
                   `}
                   onMouseDown={() => choose(opt)}
                   onMouseEnter={() => setActiveIndex(i)}
@@ -132,7 +141,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
                 </li>
               ))
             ) : (
-              <li className="px-2 py-1 text-sm text-gray-500">
+              <li className="px-2 py-1 text-sm text-[var(--color-text-placeholder)]">
                 No matches found
               </li>
             )}

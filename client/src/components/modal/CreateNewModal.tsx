@@ -2,7 +2,12 @@ import React, { useState } from "react";
 
 import { PrimaryButton } from "components/button/PrimaryButton";
 import { SecondaryButton } from "components/button/SecondaryButton";
+import { SelectUSAStates } from "components/input/select/SelectUSAStates";
+import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
+import { tw } from "tags/tw";
+
+const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 
 interface Props {
   onClose: () => void;
@@ -15,7 +20,6 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
   const [effectiveDate, setEffectiveDate] = useState<string>("");
   const [expirationDate, setExpirationDate] = useState<string>("");
 
-  // Check if all required fields are filled
   const isFormValid =
     state &&
     title &&
@@ -24,15 +28,12 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
     expirationDate &&
     expirationDate >= effectiveDate;
 
-  console.log({ state, title, projectOfficer, effectiveDate, expirationDate, isFormValid });
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
       <div
         className="bg-[var(--color-surface-white)] border border-[var(--color-border-rules)] rounded shadow-lg w-[880px] max-w-[95vw]"
         style={{ color: "var(--color-text-font)" }}
       >
-        {/* Header */}
         <div className="flex justify-between items-center px-4 py-1 pt-2 border-b border-[var(--color-border-rules)]">
           <h2 className="text-[22px] font-bold">New Demonstration</h2>
           <button
@@ -44,24 +45,15 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
           </button>
         </div>
 
-        {/* Form */}
         <form className="px-3 py-1 space-y-1 text-[14px]">
-          {/* Row 1 */}
           <div className="grid grid-cols-3 gap-5">
             <div>
-              <label className="block font-medium mb-1">
-                <span className="text-[var(--color-text-warn)]">*</span> State/Territory
-              </label>
-              <select
-                className="w-full border border-[var(--color-border-fields)] rounded px-1 py-1 bg-[var(--color-surface-white)] text-sm"
-                value={state}
-                onChange={e => setState(e.target.value)}
-              >
-                <option value="">Select</option>
-                <option value="NJ">NJ</option>
-                <option value="PA">PA</option>
-                <option value="OH">OH</option>
-              </select>
+              <SelectUSAStates
+                label="State/Territory"
+                isRequired={true}
+                isDisabled={false}
+                onStateChange={setState}
+              />
             </div>
             <div className="col-span-2">
               <TextInput
@@ -71,35 +63,27 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
                 isRequired={true}
                 placeholder="Placeholder"
                 value={title}
-                onChange={e => setTitle(e.target.value)}
+                onChange={(e) => setTitle(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Row 2 */}
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-2">
-              <label className="block font-medium mb-1">
-                <span className="text-[var(--color-text-warn)]">*</span> Project Officer
-              </label>
-              <select
-                className="w-full border border-[var(--color-border-fields)] rounded px-1 py-1 bg-[var(--color-surface-white)] text-sm"
-                value={projectOfficer}
-                onChange={e => setProjectOfficer(e.target.value)}
-              >
-                <option value="">Select</option>
-                <option value="John Doe">John Doe</option>
-                <option value="Tess Davenport">Tess Davenport</option>
-                <option value="Roger Smith">Roger Smith</option>
-              </select>
+              <SelectUsers
+                label="Project Officer"
+                isRequired={true}
+                isDisabled={false}
+                onStateChange={setProjectOfficer}
+              />
             </div>
-            <div>
-              <label className="block font-medium mb-1">Effective Date</label>
+            <div className="flex flex-col gap-sm">
+              <label className={LABEL_CLASSES}>Effective Date</label>
               <input
                 type="date"
                 className="w-full border border-[var(--color-border-fields)] rounded px-1 py-1 text-sm"
                 value={effectiveDate}
-                onChange={e => {
+                onChange={(e) => {
                   setEffectiveDate(e.target.value);
                   if (expirationDate && e.target.value && expirationDate < e.target.value) {
                     setExpirationDate("");
@@ -107,38 +91,31 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
                 }}
               />
             </div>
-            <div>
-              <label className="block font-medium mb-1">Expiration Date</label>
+            <div className="flex flex-col gap-sm">
+              <label className={LABEL_CLASSES}>Expiration Date</label>
               <input
                 type="date"
                 className="w-full border border-[var(--color-border-fields)] rounded px-1 py-1 text-sm"
                 value={expirationDate}
                 min={effectiveDate || undefined}
-                onChange={e => setExpirationDate(e.target.value)}
+                onChange={(e) => setExpirationDate(e.target.value)}
               />
             </div>
           </div>
-          {/* Row 3 */}
-          <div>
-            <label className="block font-medium mb-1">Demonstration Description</label>
+
+          <div className="flex flex-col gap-sm">
+            <label className={LABEL_CLASSES}>Demonstration Description</label>
             <textarea
               placeholder="Enter"
               className="w-full border border-[var(--color-border-fields)] rounded px-1 py-1 text-sm resize-y min-h-[80px]"
             />
           </div>
 
-          {/* Footer */}
           <div className="flex justify-end gap-2 pt-1">
-            <SecondaryButton
-              size="small"
-              onClick={onClose}
-            >
+            <SecondaryButton size="small" onClick={onClose}>
               Cancel
             </SecondaryButton>
-            <PrimaryButton
-              size="small"
-              disabled={!isFormValid}
-            >
+            <PrimaryButton size="small" disabled={!isFormValid}>
               Submit
             </PrimaryButton>
           </div>
