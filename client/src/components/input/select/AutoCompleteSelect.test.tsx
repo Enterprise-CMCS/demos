@@ -4,8 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
 
-// AutoCompleteSelect.test.tsx
-
 const options: Option[] = [
   { label: "Apple", value: "apple" },
   { label: "Banana", value: "banana" },

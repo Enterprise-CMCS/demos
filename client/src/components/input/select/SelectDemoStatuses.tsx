@@ -1,5 +1,5 @@
 import React from "react";
-import { AutoCompleteSelect } from "./AutoCompleteSelect";
+import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
 import statuses from "faker_data/demonstrationStatuses.json";
 
 export interface DemonstrationStatus {
@@ -21,10 +21,7 @@ export const SelectDemoStatuses: React.FC<SelectDemoStatusesProps> = ({
   isRequired = false,
   isDisabled = false,
 }) => {
-  interface Option {
-    label: string;
-    value: string;
-  }
+
   const options: Option[] = (statuses as DemonstrationStatus[]).map((state) => ({
     label: state.name,
     value: state.name,

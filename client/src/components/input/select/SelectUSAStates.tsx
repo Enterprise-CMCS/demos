@@ -1,16 +1,11 @@
 import React from "react";
-import { AutoCompleteSelect } from "./AutoCompleteSelect";
+import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
 import usStates from "faker_data/states_territories.json";
 
 interface USState {
   name: string;
   abbrev: string;
 }
-
-type Option = {
-  label: string;
-  value: string;
-};
 
 export const SelectUSAStates: React.FC<{
   onStateChange: (abbr: string) => void;
