@@ -1,10 +1,10 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Header } from "./Header";
-import ProfileBlock from "./ProfileBlock";
-import QuickLinks from "./QuickLinks";
-import HeaderLower from "./HeaderLower";
-import Avatar from "./Avatar";
+import { ProfileBlock } from "./ProfileBlock";
+import { QuickLinks } from "./QuickLinks";
+import { HeaderLower } from "./HeaderLower";
+import { Avatar } from "./Avatar";
 import { MockedProvider } from "@apollo/client/testing";
 import { userMocks } from "hooks/userMocks";
 

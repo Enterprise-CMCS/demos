@@ -1,19 +1,12 @@
 import React, { Fragment } from "react";
 import { Main } from "components";
-import { PrimaryButton } from "components/button/PrimaryButton";
-import { useNavigate } from "react-router-dom";
 import { Demonstrations } from "pages/Demonstrations";
 
+/** TODO: Look into if the Demonstration Page should just be the landing page */
 export const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
   return (
     <Fragment>
       <Main>
-        <div className="">
-          <PrimaryButton onClick={() => navigate("/login")} className="mb-4">
-          Login
-          </PrimaryButton>
-        </div>
         <Demonstrations />
       </Main>
     </Fragment>

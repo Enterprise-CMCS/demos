@@ -1,9 +1,8 @@
-// src/components/table/columns/DemonstrationColumns.ts
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowRightIcon, ArrowDownIcon } from "components/icons";
+import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 
-export type DemonstrationTable = {
+export type DemonstrationColumns = {
   id: number;
   title: string;
   description: string;
@@ -17,59 +16,63 @@ export type DemonstrationTable = {
   updatedAt: string;
 };
 
-// 1) “Select” checkbox column
-const selectColumn: ColumnDef<DemonstrationTable> = {
+const selectColumn: ColumnDef<DemonstrationColumns> = {
   id: "Select",
   header: ({ table }) => (
     <input
+      id="select-all-rows"
       type="checkbox"
       className="cursor-pointer"
+      aria-label="Select all rows"
       checked={table.getIsAllPageRowsSelected()}
       onChange={table.getToggleAllPageRowsSelectedHandler()}
     />
   ),
   cell: ({ row }) => (
     <input
+      id={`select-row-${row.id}`}
       type="checkbox"
       className="cursor-pointer"
       checked={row.getIsSelected()}
       onChange={row.getToggleSelectedHandler()}
+      aria-label={`Select row ${row.index + 1}`}
     />
   ),
   size: 20,
 };
 
-// 2) Your data columns
-const dataColumns: ColumnDef<DemonstrationTable>[] = [
+const dataColumns: ColumnDef<DemonstrationColumns>[] = [
   { header: "State/Territory", accessorKey: "stateId" },
   { header: "Number", accessorKey: "demoNumber" },
   { header: "Title", accessorKey: "title" },
   { header: "Project Officer", accessorKey: "projectOfficer" },
 ];
 
-// 3) Expander column, using SVGs from components/icons
-const expanderColumn: ColumnDef<DemonstrationTable> = {
+const expanderColumn: ColumnDef<DemonstrationColumns> = {
   id: "expander",
   header: () => null,
   cell: ({ row }) =>
     row.getCanExpand() ? (
-      <span
+      <button
+        type="button"
         aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
+        aria-expanded={row.getIsExpanded()}
+        aria-controls={`row-details-${row.id}`}
         className="inline-block select-none cursor-pointer"
         onClick={row.getToggleExpandedHandler()}
+        tabIndex={0}
       >
         {row.getIsExpanded() ? (
-          <ArrowDownIcon className="text-center w-2 h-2 text-gray-600" />
+          <ChevronDownIcon className="text-center w-2 h-2 text-brand" />
         ) : (
-          <ArrowRightIcon className="text-center w-2 h-2 text-gray-600" />
+          <ChevronRightIcon className="text-center w-2 h-2 text-brand" />
         )}
-      </span>
+      </button>
     ) : null,
   size: 20,
 };
 
-// 4) Export final array
-export const DemonstrationColumns: ColumnDef<DemonstrationTable>[] = [
+export const DemonstrationColumns: ColumnDef<DemonstrationColumns>[] = [
   selectColumn,
   ...dataColumns,
   expanderColumn,

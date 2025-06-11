@@ -1,42 +1,23 @@
 import React from "react";
-
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { AuthProvider } from "react-oidc-context";
+import { getCognitoConfig } from "./cognitoConfig";
+import { LandingPage } from "pages";
+import { ComponentLibrary, TestHooks } from "pages/debug";
 import { AuthComponent } from "components/auth/AuthComponent";
 import { PrimaryLayout } from "layout/PrimaryLayout";
-import { ComponentLibrary } from "pages/debug";
-import { Demonstrations } from "pages/Demonstrations";
-import { LandingPage } from "pages/LandingPage";
-import { AuthProvider } from "react-oidc-context";
-import {
-  BrowserRouter,
-  Outlet,
-  Route,
-  Routes
-} from "react-router-dom";
 import { MockedProvider } from "@apollo/client/testing";
-
-import { getCognitoConfig } from "../router/cognitoConfig";
 import { userMocks } from "hooks/userMocks";
+import { Demonstrations } from "pages/Demonstrations";
+import { IconLibrary } from "pages/debug/IconLibrary";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-export function DemosRouter() {
+export const DemosRouter = () => {
+  // TODO: When we know what IDM integration looks like
+  // We will want to read the JWT claims and
+  // add it to the AuthProvider (specifically the user object)
   const cognitoConfig = getCognitoConfig();
-
-  // Authenticated routes with shared layout
-  const authenticatedRoutes = (
-    <Route
-      element={
-        <PrimaryLayout>
-          <Outlet />
-        </PrimaryLayout>
-      }
-    >
-      <Route path="demonstrations" element={<Demonstrations />} />
-      {process.env.NODE_ENV === "development" && (
-        <Route path="components" element={<ComponentLibrary />} />
-      )}
-    </Route>
-  );
 
   return (
     <AuthProvider {...cognitoConfig}>
@@ -44,15 +25,26 @@ export function DemosRouter() {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <BrowserRouter>
             <Routes>
-              <Route element={<PrimaryLayout><Outlet /></PrimaryLayout>}>
+              <Route
+                element={
+                  <PrimaryLayout>
+                    <Outlet />
+                  </PrimaryLayout>
+                }
+              >
+                {/* Real Pages the user should be able to access */}
+                {/* TODO: is the Demonstration page just the landing page? */}
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<AuthComponent />} />
-                <Route path="/login-redirect" element={<AuthComponent />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
+                {/* Debug routes, only available in development mode */}
                 {process.env.NODE_ENV === "development" && (
-                  <Route path="components" element={<ComponentLibrary />} />
+                  <>
+                    <Route path="/components" element={<ComponentLibrary />} />
+                    <Route path="/hooks" element={<TestHooks />} />
+                    <Route path="/auth" element={<AuthComponent />} />
+                    <Route path="/icons" element={<IconLibrary />} />
+                  </>
                 )}
-                {authenticatedRoutes}
               </Route>
             </Routes>
           </BrowserRouter>
@@ -60,4 +52,4 @@ export function DemosRouter() {
       </MockedProvider>
     </AuthProvider>
   );
-}
+};

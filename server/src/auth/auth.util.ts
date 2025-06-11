@@ -4,7 +4,7 @@ import { GraphQLResolveInfo, GraphQLError } from "graphql";
 import { IncomingMessage } from "http";
 import { PrismaClient, } from "@prisma/client";
 import { getAuthConfig } from "./auth.config.js";
-import { promiseHooks } from "v8";
+import { APIGatewayProxyEventHeaders } from "aws-lambda";
 
 const prisma = new PrismaClient();
 const config = getAuthConfig();
@@ -34,22 +34,7 @@ type DecodedJWT = {
   email: string;
 };
 
-/**
- * Verifies the Cognito JWT and extracts user info.
- */
-export const getCognitoUserInfo = (
-  req: IncomingMessage,
-): Promise<DecodedJWT> => {
-
-  // Bypass authentication for testing purposes
-  if (process.env.BYPASS_AUTH === "true") {
-    return Promise.resolve({
-      sub: "bypassed-user",
-      email: "bypassedUser@email.com"
-    });
-  }
-
-  const token: string = req.headers.authorization?.split(" ")[1] || "";
+const decodeToken = (token: string): Promise<DecodedJWT> => {
   const client = jwksClient({
     jwksUri: config.jwksUri,
   });
@@ -86,6 +71,44 @@ export const getCognitoUserInfo = (
       },
     );
   });
+}
+
+const checkAuthBypass = (): DecodedJWT | undefined => {
+  // Bypass authentication for testing purposes
+  if (process.env.BYPASS_AUTH === "true") {
+    return {
+      sub: "bypassed-user",
+      email: "bypassedUser@email.com"
+    };
+  }
+}
+
+export const getCognitoUserInfo = (
+  req: IncomingMessage,
+): Promise<DecodedJWT> => {
+
+  const bypassResult = checkAuthBypass();
+  if (bypassResult) {
+    return Promise.resolve(bypassResult);
+  }
+
+  const token: string = req.headers.authorization?.split(" ")[1] || "";
+  return decodeToken(token);
+
+};
+
+export const getCognitoUserInfoForLambda = (
+  headers: APIGatewayProxyEventHeaders,
+): Promise<DecodedJWT> => {
+
+  const bypassResult = checkAuthBypass();
+  if (bypassResult) {
+    return Promise.resolve(bypassResult);
+  }
+
+  const token: string = headers.authorization?.split(" ")[1] || "";
+  return decodeToken(token);
+
 };
 
 /**
@@ -124,7 +147,7 @@ export const requireRole = (requiredRoles: string[] = []) => {
   >(
     resolver: ResolverFn<Parent, Args, Context, Result>,
   ): ResolverFn<Parent, Args, Context, Result> => {
-  return async (parent, args, context, info) => {
+    return async (parent, args, context, info) => {
       const user = context.user;
       console.log('user', user)
       if (!user) {
