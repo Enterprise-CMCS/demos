@@ -11,7 +11,7 @@ import {
   ColumnFiltersState,
   ExpandedState,
   PaginationState,
-  RowSelectionState
+  RowSelectionState,
 } from "@tanstack/react-table";
 
 import { PaginationControls } from "components/table/pagination/PaginationControls";

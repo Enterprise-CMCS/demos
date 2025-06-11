@@ -27,10 +27,16 @@ const eslintConfig = tseslint.config(
       "no-trailing-spaces": "error", // Disallow trailing spaces
       "no-tabs": "error", // Disallow tabs for indentation
       "eol-last": ["error", "always"], // Newline at the end of files
+      // Trailing commas in multiline arrays, objects, imports, and exports
       "comma-dangle": [
         "error",
-        { arrays: "always-multiline", objects: "always-multiline" },
-      ], // Trailing commas in multiline arrays and objects
+        {
+          arrays: "always-multiline",
+          objects: "always-multiline",
+          imports: "always-multiline",
+          exports: "always-multiline",
+        },
+      ],
       "no-restricted-exports": [
         "error",
         { restrictDefaultExports: { direct: true } },

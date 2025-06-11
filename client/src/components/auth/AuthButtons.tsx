@@ -5,23 +5,19 @@ import { logout } from "router/cognitoConfig";
 
 export const SignoutButton = () => {
   const auth = useAuth();
+  const handleLogout = () => {
+    auth.removeUser();
+    logout();
+  };
 
-  return (
-    <PrimaryButton
-      onClick={() => {
-        auth.removeUser();
-        logout();
-      }}>Sign Out
-    </PrimaryButton>
-  );
+  return <PrimaryButton onClick={handleLogout}>Sign Out</PrimaryButton>;
 };
 
 export const SigninButton = () => {
   const auth = useAuth();
+  const handleSignin = () => {
+    auth.signinRedirect();
+  };
 
-  return (
-    <PrimaryButton
-      onClick={() => auth.signinRedirect()}>Sign In
-    </PrimaryButton>
-  );
+  return <PrimaryButton onClick={handleSignin}>Sign In</PrimaryButton>;
 };
