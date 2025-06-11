@@ -4,11 +4,11 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { SelectUSAStates } from "./SelectUSAStates";
 
-// Mock the JSON import
+// 1) Mock the `states` export from your TS file
 vi.mock(
-  "faker_data/states_territories.json",
+  "faker_data/usStates",
   () => ({
-    default: [
+    states: [
       { name: "Maryland", abbrev: "MD" },
       { name: "California", abbrev: "CA" },
       { name: "Texas", abbrev: "TX" },
@@ -27,16 +27,20 @@ describe("<SelectUSAStates />", () => {
       />
     );
 
+    // Open the dropdown and type "ma"
     const input = screen.getByRole("textbox", { name: /state or territory/i });
     await userEvent.click(input);
     await userEvent.type(input, "ma");
 
+    // Only “Maryland” should appear
     expect(screen.getByText("Maryland")).toBeInTheDocument();
     expect(screen.queryByText("California")).toBeNull();
     expect(screen.queryByText("Texas")).toBeNull();
 
+    // Select it
     await userEvent.click(screen.getByText("Maryland"));
 
+    // Should call back with “MD”
     expect(onStateChange).toHaveBeenCalledTimes(1);
     expect(onStateChange).toHaveBeenCalledWith("MD");
   });
