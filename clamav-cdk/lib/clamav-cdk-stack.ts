@@ -12,7 +12,7 @@ export class ClamavCdkStack extends Stack {
     super(scope, id, props);
 
     new lambda.Function(this, "ClamAVScanFunction", {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: "handler.scanFile", // From handler.js: `exports.scanFile = ...`
       code: lambda.Code.fromAsset(path.join(__dirname, "../clamav-lambda")),
       timeout: Duration.seconds(30),
