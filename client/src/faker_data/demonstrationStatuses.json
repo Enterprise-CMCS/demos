@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "name": "On Hold",
+    "deletedAt": null,
+    "createdAt": "2025-06-09T14:38:57.893Z",
+    "updatedAt": "2025-06-09T14:38:57.893Z"
+  },
+  {
+    "id": 2,
+    "name": "Under Review",
+    "deletedAt": null,
+    "createdAt": "2025-06-09T14:38:57.893Z",
+    "updatedAt": "2025-06-09T14:38:57.893Z"
+  },
+  {
+    "id": 3,
+    "name": "Pending",
+    "deletedAt": null,
+    "createdAt": "2025-06-09T14:38:57.893Z",
+    "updatedAt": "2025-06-09T14:38:57.893Z"
+  },
+  {
+    "id": 4,
+    "name": "Submitted",
+    "deletedAt": null,
+    "createdAt": "2025-06-09T14:38:57.893Z",
+    "updatedAt": "2025-06-09T14:38:57.893Z"
+  },
+  {
+    "id": 5,
+    "name": "Approved",
+    "deletedAt": null,
+    "createdAt": "2025-06-09T14:38:57.893Z",
+    "updatedAt": "2025-06-09T14:38:57.893Z"
+  }
+]
