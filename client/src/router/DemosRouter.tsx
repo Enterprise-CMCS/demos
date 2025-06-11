@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter,Routes,Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "react-oidc-context";
 import { getCognitoConfig } from "./cognitoConfig";
 import { LandingPage } from "pages";
@@ -9,6 +9,7 @@ import { PrimaryLayout } from "layout/PrimaryLayout";
 import { MockedProvider } from "@apollo/client/testing";
 import { userMocks } from "hooks/userMocks";
 import { Demonstrations } from "pages/Demonstrations";
+import { IconLibrary } from "pages/debug/IconLibrary";
 
 export const DemosRouter = () => {
   // TODO: When we know what IDM integration looks like
@@ -21,7 +22,13 @@ export const DemosRouter = () => {
       <MockedProvider mocks={userMocks} addTypename={false}>
         <BrowserRouter>
           <Routes>
-            <Route element={<PrimaryLayout><Outlet /></PrimaryLayout>}>
+            <Route
+              element={
+                <PrimaryLayout>
+                  <Outlet />
+                </PrimaryLayout>
+              }
+            >
               {/* Real Pages the user should be able to access */}
               {/* TODO: is the Demonstration page just the landing page? */}
               <Route path="/" element={<LandingPage />} />
@@ -31,7 +38,8 @@ export const DemosRouter = () => {
                 <>
                   <Route path="/components" element={<ComponentLibrary />} />
                   <Route path="/hooks" element={<TestHooks />} />
-                  <Route path="/auth" element={<AuthComponent />}></Route>
+                  <Route path="/auth" element={<AuthComponent />} />
+                  <Route path="/icons" element={<IconLibrary />} />
                 </>
               )}
             </Route>
