@@ -2,6 +2,7 @@ import React from "react";
 import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
 import statuses from "faker_data/demonstrationStatuses.json";
 
+// This may not be the final type. This is more of just an exmaple of the select.
 export interface DemonstrationStatus {
   id: number;
   name: string;

@@ -12,7 +12,7 @@ vi.mock(
       { name: "Maryland", abbrev: "MD" },
       { name: "California", abbrev: "CA" },
       { name: "Texas", abbrev: "TX" },
-    ]
+    ],
   })
 );
 
