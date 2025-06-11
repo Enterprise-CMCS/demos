@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronIcon } from "components/icons/ChevronIcon";
+import { ChevronDownIcon  } from "components/icons/Symbol/ChevronDownIcon";
 
 export interface Option {
   label: string;
@@ -111,7 +111,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
         />
 
         <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-          <ChevronIcon className="text-gray-500 w-2 h-1" />
+          <ChevronDownIcon className="text-gray-500 w-2 h-1" />
         </div>
 
         {isOpen && (
