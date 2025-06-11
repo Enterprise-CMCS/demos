@@ -5,12 +5,16 @@ import { DemosRouter } from "./DemosRouter";
 
 // Mock react-oidc-context AuthProvider to just render children
 vi.mock("react-oidc-context", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 // Mock Apollo MockedProvider to just render children
 vi.mock("@apollo/client/testing", () => ({
-  MockedProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  MockedProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 // Mock getCognitoConfig to return an empty object
@@ -32,7 +36,9 @@ vi.mock("components/auth/AuthComponent", () => ({
   AuthComponent: () => <div>AuthComponent</div>,
 }));
 vi.mock("layout/PrimaryLayout", () => ({
-  PrimaryLayout: ({ children }: { children: React.ReactNode }) => <div>PrimaryLayout{children}</div>,
+  PrimaryLayout: ({ children }: { children: React.ReactNode }) => (
+    <div>PrimaryLayout{children}</div>
+  ),
 }));
 vi.mock("pages/Demonstrations", () => ({
   Demonstrations: () => <div>Demonstrations</div>,
