@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { SideNav } from "./SideNav";
-import { Footer, Header, ToastContainer, ToastProvider } from "components/index";
+import {
+  Footer,
+  Header,
+  ToastContainer,
+  ToastProvider,
+} from "components/index";
 
 interface PrimaryLayoutProps {
   children: React.ReactNode;
@@ -12,7 +17,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   return (
     <ToastProvider>
       <div className="h-screen flex flex-col">
-        <Header userId={2}/>
+        <Header userId={2} />
         <div className="flex flex-1 overflow-hidden">
           {/* Sidenav flex basis */}
           <div className={collapsed ? "w-20" : "w-64"}>
