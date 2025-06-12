@@ -2,7 +2,7 @@ import React from "react";
 
 import {
   Input,
-  InputProps
+  InputProps,
 } from "./Input";
 
 export const TextInput = (props: Omit<InputProps, "type">) => {
@@ -14,7 +14,6 @@ export const TextInput = (props: Omit<InputProps, "type">) => {
       isRequired={props.isRequired}
       isDisabled={props.isDisabled}
       placeholder={props.placeholder}
-      defaultValue={props.defaultValue}
       value={props.value}
       onChange={props.onChange}
       getValidationMessage={props.getValidationMessage}

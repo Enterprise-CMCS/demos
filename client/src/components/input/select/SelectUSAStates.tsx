@@ -34,7 +34,7 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
 
   return (
     <AutoCompleteSelect
-      id={`state-${label.toLowerCase().replace(/\s+/g, "-")}`}
+      id="us-state"
       label={label}
       options={options}
       placeholder={`Select ${label.toLowerCase()}…`}

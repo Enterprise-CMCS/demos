@@ -23,6 +23,17 @@ export interface AutoCompleteSelectProps {
   defaultValue?: string;
 }
 
+const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
+const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1 pr-10
+  text-text-font bg-surface-white disabled:bg-surface-disabled
+  disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none 
+  focus:border-border-focus focus:ring-1 focus:ring-border-focus appearance-none text-sm`;
+const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
+const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
+const ITEM_CLASSES = tw`px-1 py-1 text-sm text-text-font cursor-pointer hover:bg-surface-focus`;
+const ITEM_ACTIVE_CLASSES = tw`bg-surface-focus`;
+const EMPTY_CLASSES = tw`px-2 py-1 text-sm text-text-placeholder`;
+
 export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   options,
   placeholder = "Select",
@@ -38,7 +49,6 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 
   // Filter by label
   useEffect(() => {
@@ -63,7 +73,6 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  // Keyboard navigation
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen && e.key === "ArrowDown") {
       setIsOpen(true);
@@ -109,31 +118,20 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           onKeyDown={onKeyDown}
           required={isRequired}
           disabled={isDisabled}
-          className={`
-            w-full border border-[var(--color-border-fields)] rounded px-1 py-1 pr-10
-            text-[var(--color-text-font)] bg-[var(--color-surface-white)]
-            disabled:bg-[var(--color-surface-disabled)] disabled:text-[var(--color-text-placeholder)]
-            placeholder-[var(--color-text-placeholder)] focus:outline-none 
-            focus:border-[var(--color-border-focus)] focus:ring-1 focus:ring-[var(--color-border-focus)]
-            appearance-none text-sm
-          `}
+          className={INPUT_CLASSES}
         />
 
         <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-          <ChevronDownIcon className="text-[var(--color-text-placeholder)] w-2 h-1" />
+          <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
         {isOpen && (
-          <ul className="absolute z-10 w-full bg-[var(--color-surface-white)] border border-[var(--color-border-fields)] rounded mt-0.5 max-h-56 overflow-auto shadow-sm">
+          <ul className={LIST_CLASSES}>
             {filtered.length > 0 ? (
               filtered.map((opt, i) => (
                 <li
                   key={opt.value}
-                  className={`
-                    px-1 py-1 text-sm text-[var(--color-text-font)] cursor-pointer
-                    ${i === activeIndex ? "bg-[var(--color-surface-focus)]" : ""}
-                    hover:bg-[var(--color-surface-focus)]
-                  `}
+                  className={`${ITEM_CLASSES} ${i === activeIndex ? ITEM_ACTIVE_CLASSES : ""}`}
                   onMouseDown={() => choose(opt)}
                   onMouseEnter={() => setActiveIndex(i)}
                 >
@@ -141,9 +139,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
                 </li>
               ))
             ) : (
-              <li className="px-2 py-1 text-sm text-[var(--color-text-placeholder)]">
-                No matches found
-              </li>
+              <li className={EMPTY_CLASSES}>No matches found</li>
             )}
           </ul>
         )}
