@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 console_handler = logging.StreamHandler()
-log_file = f"logs/log_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log"
+log_file = f"logs/log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 file_handler = logging.FileHandler(log_file)
 
 log_formatter = logging.Formatter(
