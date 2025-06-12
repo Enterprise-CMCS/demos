@@ -1,0 +1,19 @@
+[tool.ruff]
+line-length = 120
+indent-width = 4
+target-version = "py313"
+output-format = "concise"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "B"]
+ignore = []
+preview = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pydoclint]
+style = "google"
+require-return-section-when-returning-nothing = false

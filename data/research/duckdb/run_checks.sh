@@ -9,9 +9,9 @@ echo "=========="
 pydocstyle .
 
 echo ""
-echo "pydoctest"
+echo "pydoclint"
 echo "========="
-pydoctest --config ../../pydoctest.json
+pydoclint --config=../../pyproject.toml .
 
 echo ""
 echo "mypy"
