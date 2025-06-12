@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+
 import { tw } from "tags/tw";
 
 /**
@@ -14,25 +15,18 @@ import { tw } from "tags/tw";
  */
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
-const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
-
 const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-1 outline-none focus:ring-2
 bg-surface-white hover:text-text-font
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
+const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 
 const getInputColors = (value: string, validationMessage: string) => {
   let classes = "";
 
-  // Set Text Color
-  if (value) {
-    classes += tw`text-text-filled`;
-  } else {
-    classes += tw`text-text-placeholder`;
-  }
+  classes += tw`text-text-filled`;
 
-  // Set Border Color
   if (validationMessage) {
-    classes += tw`border-border-warn focus:border-border-warn  focus:ring-border-warn`;
+    classes += tw`border-border-warn focus:border-border-warn focus:ring-border-warn`;
   } else {
     classes += tw`border-border-fields focus:ring-action focus:border-action`;
   }
@@ -40,59 +34,54 @@ const getInputColors = (value: string, validationMessage: string) => {
   return classes;
 };
 
-// Returns a string containing the error message if invalid, or an empty string if valid
 export type InputValidationFunction = (value: string) => string;
 
 export interface InputProps {
-    type: string;
-    name: string;
-    label: string;
-    isRequired?: boolean;
-    isDisabled?: boolean;
-    placeholder?: string;
-    defaultValue?: string;
-    getValidationMessage?: InputValidationFunction;
+  name: string;
+  label: string;
+  type: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  getValidationMessage?: (value: string) => string | undefined;
 }
 
-export const Input = (props: InputProps) => {
-  const [value, setValue] = useState(props.defaultValue ?? "");
-  const [validationMessage, setValidationMessage] = useState("");
-  const [inputColorClasses, setInputColorClasses] = useState(getInputColors(value, validationMessage));
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value;
-    const newValidationMessage = getValidationMessage(event);
-    setValue(newValue);
-    setValidationMessage(newValidationMessage);
-    setInputColorClasses(getInputColors(newValue, newValidationMessage));
-  };
-
-  const getValidationMessage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const validationMessage = props.getValidationMessage ?
-      props.getValidationMessage(event.target.value) :
-      event.target.validationMessage ?? "";
-
-    return validationMessage;
-  };
+export const Input: React.FC<InputProps> = ({
+  type,
+  name,
+  label,
+  isRequired,
+  isDisabled,
+  placeholder,
+  value = "",
+  onChange,
+  getValidationMessage,
+}) => {
+  const validationMessage = getValidationMessage ? (getValidationMessage(value) ?? "") : "";
 
   return (
     <div className="flex flex-col gap-sm">
-      <label className={LABEL_CLASSES} htmlFor={props.name}>
-        {props.isRequired && <span className="text-text-warn">*</span>}
-        {props.label}
+      <label className={LABEL_CLASSES} htmlFor={name}>
+        {isRequired && <span className="text-text-warn">*</span>}
+        {label}
       </label>
       <input
-        id={props.name}
-        name={props.name}
-        type={props.type}
-        className={`${INPUT_BASE_CLASSES} ${inputColorClasses}`}
-        placeholder={props.placeholder ?? ""}
-        required={props.isRequired ?? false}
-        disabled={props.isDisabled ?? false}
+        id={name}
+        name={name}
+        type={type}
+        className={`${INPUT_BASE_CLASSES} ${getInputColors(value, validationMessage)}`}
+        placeholder={placeholder ?? ""}
+        required={isRequired ?? false}
+        disabled={isDisabled ?? false}
         value={value}
-        onChange={handleChange}
+        onChange={onChange}
       />
-      {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
+      {validationMessage && (
+        <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
+      )}
     </div>
   );
 };
+

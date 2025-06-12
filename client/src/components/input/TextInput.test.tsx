@@ -39,7 +39,7 @@ describe("TextInput", () => {
         getValidationMessage={getValidationMessage}
       />
     );
-    // getValidationMessage is just passed down, not called by TextInput itself
-    expect(getValidationMessage).not.toHaveBeenCalled();
+    expect(getValidationMessage).toHaveBeenCalledTimes(1);
+    expect(getValidationMessage).toHaveBeenCalledWith("");
   });
 });
