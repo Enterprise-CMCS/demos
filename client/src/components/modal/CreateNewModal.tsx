@@ -132,7 +132,7 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
           </div>
 
           <div className="flex justify-end gap-2 pt-1">
-            <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+            <SecondaryButton type="button" size="small" onClick={() => setShowCancelConfirm(true)}>
               Cancel
             </SecondaryButton>
             <PrimaryButton size="small" disabled={!isFormValid || formStatus === "loading"} onClick={handleSubmit}>
