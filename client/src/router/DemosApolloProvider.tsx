@@ -17,19 +17,6 @@ const createApolloClient = (uri: string) => {
   });
 };
 
-// TODO: This will grab a graphQL URI based on the environment such as
-// dev, test, impl, production - not sure the name of this variable yet.
-// This should be encapsulated in an "env" file when we have more of this setup.
-const getGraphQLUri = () => {
-  if (process.env.NODE_ENV === "development") {
-    return GRAPHQL_ENDPOINT;
-  }
-
-  throw new Error(
-    "GraphQL URI not defined for production or impl environments. Please set the environment variable."
-  );
-};
-
 export const DemosApolloProvider = ({
   children,
 }: {
@@ -50,7 +37,7 @@ export const DemosApolloProvider = ({
       </MockedProvider>
     );
   } else {
-    const apolloClient = createApolloClient(getGraphQLUri());
+    const apolloClient = createApolloClient(GRAPHQL_ENDPOINT);
 
     return <ApolloProvider client={apolloClient}>{children}</ApolloProvider>;
   }

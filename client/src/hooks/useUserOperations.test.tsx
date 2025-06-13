@@ -1,23 +1,13 @@
-import React from "react";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { MockedProvider } from "@apollo/client/testing";
 import { useUserOperations } from "./useUserOperations";
-import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
-import { patrick, spongebob, squidward, userMocks } from "mock-data/userMocks";
-
-function withMocks({ children }: { children: ReactNode }) {
-  return (
-    <MockedProvider mocks={userMocks} addTypename={false}>
-      {children}
-    </MockedProvider>
-  );
-}
+import { patrick, spongebob, squidward } from "mock-data/userMocks";
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 describe("useUserOperations", () => {
   it("can get a user by ID", async () => {
     const { result: userOperations } = renderHook(() => useUserOperations(), {
-      wrapper: withMocks,
+      wrapper: DemosApolloProvider,
     });
 
     // Get spongebob by ID
@@ -49,7 +39,7 @@ describe("useUserOperations", () => {
 
   it("can get all users", async () => {
     const { result: userOperations } = renderHook(() => useUserOperations(), {
-      wrapper: withMocks,
+      wrapper: DemosApolloProvider,
     });
 
     act(() => {
