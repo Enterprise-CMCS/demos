@@ -1,19 +1,16 @@
-import { User } from "models/index";
-import { GET_ALL_USERS, GET_USER_BY_ID } from "../hooks/useUserOperations";
+import { User } from "demos-server";
+import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 import { HEADER_LOWER_QUERY } from "components/header/HeaderLower";
 import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 
 export const spongebob: Partial<User> = {
-  firstName: "spongebob",
-  lastName: "squarepants",
+  fullName: "spongebob squarepants",
 };
 export const squidward: Partial<User> = {
-  firstName: " squidward",
-  lastName: "tentacles",
+  fullName: " squidward tentacles",
 };
 export const patrick: Partial<User> = {
-  firstName: "patrick",
-  lastName: "star",
+  fullName: "patrick star",
 };
 
 export const userMocks = [

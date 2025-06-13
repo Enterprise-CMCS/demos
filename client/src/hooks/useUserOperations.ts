@@ -1,5 +1,5 @@
 import { gql, useLazyQuery } from "@apollo/client";
-import { User } from "models/index";
+import { User } from "demos-server";
 
 export const GET_ALL_USERS = gql`
   query GetUsers {

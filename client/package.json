@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "devDependencies": {
+    "demos-server": "file:../server",
     "@apollo/client": "^3.13.8",
     "@eslint/js": "^9.26.0",
     "@faker-js/faker": "^9.8.0",
@@ -51,6 +52,7 @@
     "build": "vite build",
     "coverage": "vitest --coverage",
     "dev": "vite --host",
+    "dev:mocks": "VITE_USE_MOCKS=true npm run dev",
     "test": "vitest",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",

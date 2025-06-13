@@ -8,26 +8,26 @@ import {
 import { MockedProvider } from "@apollo/client/testing";
 import { ALL_MOCKS } from "mock-data";
 
-const createApolloClient = () => {
-  const httpLink = createHttpLink({
-    uri:
-      process.env.NODE_ENV === "development"
-        ? "http://localhost:4000" // Local GraphQL server
-        : "/graphql", // Production API Gateway endpoint
-  });
+const GRAPHQL_ENDPOINT = "/graphql";
 
+const createApolloClient = (uri: string) => {
   return new ApolloClient({
-    link: httpLink,
+    link: createHttpLink({ uri }),
     cache: new InMemoryCache(),
-    defaultOptions: {
-      watchQuery: {
-        errorPolicy: "all",
-      },
-      query: {
-        errorPolicy: "all",
-      },
-    },
   });
+};
+
+// TODO: This will grab a graphQL URI based on the environment such as
+// dev, test, impl, production - not sure the name of this variable yet.
+// This should be encapsulated in an "env" file when we have more of this setup.
+const getGraphQLUri = () => {
+  if (process.env.NODE_ENV === "development") {
+    return GRAPHQL_ENDPOINT;
+  }
+
+  throw new Error(
+    "GraphQL URI not defined for production or impl environments. Please set the environment variable."
+  );
 };
 
 export const DemosApolloProvider = ({
@@ -35,8 +35,13 @@ export const DemosApolloProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const isTest = process.env.NODE_ENV === "test";
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  // Always use mocks in tests
+  // Use mocks in development mode if USE_MOCKS is set to true
   const useMocks =
-    process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+    isTest || (isDevelopment && import.meta.env.VITE_USE_MOCKS === "true");
 
   if (useMocks) {
     return (
@@ -45,7 +50,8 @@ export const DemosApolloProvider = ({
       </MockedProvider>
     );
   } else {
-    const client = createApolloClient();
-    return <ApolloProvider client={client}>{children}</ApolloProvider>;
+    const apolloClient = createApolloClient(getGraphQLUri());
+
+    return <ApolloProvider client={apolloClient}>{children}</ApolloProvider>;
   }
 };
