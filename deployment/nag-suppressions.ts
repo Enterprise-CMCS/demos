@@ -65,7 +65,7 @@ export function applyApiSuppressions(api: Stack) {
 
   NagSuppressions.addResourceSuppressionsByPath(
     api,
-    "/demos-dev-api/ApiGatewayRestApi/Default/health/GET/Resource",
+    "/demos-dev-api/ApiGatewayRestApi/Default/api/health/GET/Resource",
     [
       {
         id: "AwsSolutions-APIG4",
