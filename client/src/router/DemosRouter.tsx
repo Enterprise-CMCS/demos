@@ -6,10 +6,9 @@ import { LandingPage } from "pages";
 import { ComponentLibrary, TestHooks } from "pages/debug";
 import { AuthComponent } from "components/auth/AuthComponent";
 import { PrimaryLayout } from "layout/PrimaryLayout";
-import { MockedProvider } from "@apollo/client/testing";
-import { userMocks } from "hooks/userMocks";
 import { Demonstrations } from "pages/Demonstrations";
 import { IconLibrary } from "pages/debug/IconLibrary";
+import { DemosApolloProvider } from "./DemosApolloProvider";
 
 export const DemosRouter = () => {
   // TODO: When we know what IDM integration looks like
@@ -19,7 +18,7 @@ export const DemosRouter = () => {
 
   return (
     <AuthProvider {...cognitoConfig}>
-      <MockedProvider mocks={userMocks} addTypename={false}>
+      <DemosApolloProvider>
         <BrowserRouter>
           <Routes>
             <Route
@@ -45,7 +44,7 @@ export const DemosRouter = () => {
             </Route>
           </Routes>
         </BrowserRouter>
-      </MockedProvider>
+      </DemosApolloProvider>
     </AuthProvider>
   );
 };

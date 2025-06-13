@@ -12,8 +12,8 @@
     "paths": {
       "components/*": ["components/*"],
       "pages/*": ["pages/*"],
-      "models/*": ["../../server/src/model/*"],
       "hooks/*": ["hooks/*"],
+      "mock-data/*": ["mock-data/*"]
     }
   },
   "exclude": ["node_modules"]
