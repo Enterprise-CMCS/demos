@@ -2,6 +2,11 @@
   "name": "demos-server",
   "version": "0.1.0",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts"
+    }
+  },
   "prisma": {
     "schema": "./src/model"
   },

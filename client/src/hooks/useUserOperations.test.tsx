@@ -1,18 +1,14 @@
-import React from "react";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { MockedProvider } from "@apollo/client/testing";
 import { useUserOperations } from "./useUserOperations";
-import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
-import { patrick, spongebob, squidward, userMocks } from "./userMocks";
-
-function withMocks({ children }: { children: ReactNode }) {
-  return <MockedProvider mocks={userMocks} addTypename={false}>{children}</MockedProvider>;
-}
+import { patrick, spongebob, squidward } from "mock-data/userMocks";
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 describe("useUserOperations", () => {
   it("can get a user by ID", async () => {
-    const { result: userOperations } = renderHook(() => useUserOperations(), { wrapper: withMocks });
+    const { result: userOperations } = renderHook(() => useUserOperations(), {
+      wrapper: DemosApolloProvider,
+    });
 
     // Get spongebob by ID
     act(() => {
@@ -42,7 +38,9 @@ describe("useUserOperations", () => {
   });
 
   it("can get all users", async () => {
-    const { result: userOperations } = renderHook(() => useUserOperations(), { wrapper: withMocks });
+    const { result: userOperations } = renderHook(() => useUserOperations(), {
+      wrapper: DemosApolloProvider,
+    });
 
     act(() => {
       userOperations.current.getAllUsers.trigger();
@@ -52,7 +50,11 @@ describe("useUserOperations", () => {
       expect(userOperations.current.getAllUsers.data).toBeDefined();
     });
 
-    expect(userOperations.current.getAllUsers.data).toEqual([spongebob, squidward, patrick]);
+    expect(userOperations.current.getAllUsers.data).toEqual([
+      spongebob,
+      squidward,
+      patrick,
+    ]);
     expect(userOperations.current.getAllUsers.loading).toBe(false);
     expect(userOperations.current.getAllUsers.error).toBeUndefined();
   });

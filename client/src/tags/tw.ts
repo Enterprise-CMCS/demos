@@ -4,5 +4,5 @@ export const tw = (str: TemplateStringsArray): string => {
   return str
     .flatMap((input) => input.split(/\s+/g))
     .filter(Boolean)
-    .join(" ");;
+    .join(" ");
 };

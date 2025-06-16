@@ -2,7 +2,7 @@ import React from "react";
 
 import {
   BaseButton,
-  ButtonSize
+  ButtonSize,
 } from "./BaseButton";
 
 interface Props {

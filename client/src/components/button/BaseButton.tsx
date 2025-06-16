@@ -40,7 +40,7 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
   }
 
   const base =
-    "inline-flex items-center justify-center focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center focus:outline-none transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed";
 
   return (
     <button
