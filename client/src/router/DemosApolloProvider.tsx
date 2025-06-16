@@ -7,6 +7,7 @@ import {
 } from "@apollo/client";
 import { MockedProvider } from "@apollo/client/testing";
 import { ALL_MOCKS } from "mock-data";
+import { shouldUseMocks } from "config/env";
 
 const GRAPHQL_ENDPOINT = "/graphql";
 
@@ -22,15 +23,7 @@ export const DemosApolloProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const isTest = process.env.NODE_ENV === "test";
-  const isDevelopment = process.env.NODE_ENV === "development";
-
-  // Always use mocks in tests
-  // Use mocks in development mode if USE_MOCKS is set to true
-  const useMocks =
-    isTest || (isDevelopment && import.meta.env.VITE_USE_MOCKS === "true");
-
-  if (useMocks) {
+  if (shouldUseMocks()) {
     return (
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
         {children}

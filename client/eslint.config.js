@@ -21,7 +21,7 @@ const eslintConfig = tseslint.config(
       },
     },
     rules: {
-      indent: ["error", 2], // 2 spaces for indentation
+      indent: ["error", 2, { SwitchCase: 1 }], // 2 spaces for indentation
       quotes: ["error", "double"], // Double quotes
       semi: ["error", "always"], // Semicolons at end of statements
       "no-trailing-spaces": "error", // Disallow trailing spaces

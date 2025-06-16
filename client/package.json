@@ -54,7 +54,7 @@
     "coverage": "vitest --coverage",
     "dev": "vite --host",
     "dev:mocks": "VITE_USE_MOCKS=true npm run dev",
-    "test": "vitest",
+    "test": "vitest --mode test",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",
