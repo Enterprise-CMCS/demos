@@ -15,7 +15,7 @@ interface Props {
 }
 
 export const PrimaryButton: React.FC<Props> = ({
-  type = "button",
+  type = "submit",
   size = "standard",
   disabled = false,
   onClick,

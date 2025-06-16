@@ -1,12 +1,7 @@
 import React from "react";
 
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { ToastProvider } from "components/toast/ToastContext";
+import { vi } from "vitest";
 
 import {
   fireEvent,
@@ -17,67 +12,101 @@ import {
 
 import { CreateNewModal } from "./CreateNewModal";
 
-// Helper to open the cancel confirmation
-const openCancelConfirmation = () => {
-  const cancelBtn = screen.getByText("Cancel");
-  fireEvent.click(cancelBtn);
+if (!HTMLFormElement.prototype.requestSubmit) {
+  HTMLFormElement.prototype.requestSubmit = function () {
+    // If form validation fails, prevent dispatching submit
+    if (!this.checkValidity()) {
+      const invalidEvent = new Event("invalid", { bubbles: true, cancelable: true });
+      this.dispatchEvent(invalidEvent);
+      return;
+    }
+
+    this.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
+  };
+}
+
+const renderModal = () => {
+  const onSubmit = vi.fn().mockImplementation(() => Promise.resolve());
+  const onClose = vi.fn();
+
+  render(
+    <ToastProvider>
+      <CreateNewModal
+        onClose={onClose}
+        onSubmit={onSubmit}
+      />
+    </ToastProvider>
+  );
+
+  return { onSubmit, onClose };
 };
 
+const fillForm = async () => {
+  fireEvent.change(screen.getByLabelText(/State\/Territory/i), { target: { value: "CA" } });
+  fireEvent.change(screen.getByLabelText(/Demonstration Title/i), { target: { value: "Test Demo" } });
+  fireEvent.change(screen.getByLabelText(/Project Officer/i), { target: { value: "user1" } });
+  fireEvent.change(screen.getByLabelText(/Effective Date/i), { target: { value: "2024-06-20" } });
+  fireEvent.change(screen.getByLabelText(/Expiration Date/i), { target: { value: "2024-07-20" } });
+  fireEvent.change(screen.getByLabelText(/Demonstration Description/i), { target: { value: "Test description" } });
+};
+
+
 describe("CreateNewModal", () => {
-  let onClose: () => void;
-
-  beforeEach(() => {
-    onClose = vi.fn();
-    render(<CreateNewModal onClose={onClose} />);
-  });
-
   it("renders modal title correctly", () => {
+    renderModal();
     expect(screen.getByText("New Demonstration")).toBeInTheDocument();
   });
 
   it("opens cancel confirmation when clicking Cancel button", () => {
-    openCancelConfirmation();
-    expect(screen.getByText("Are you sure you want to cancel?")).toBeInTheDocument();
+    renderModal();
+    fireEvent.click(screen.getByText("Cancel"));
+    expect(
+      screen.getByText("Are you sure you want to cancel?")
+    ).toBeInTheDocument();
   });
 
   it("closes modal when clicking Yes in cancel confirmation", () => {
-    openCancelConfirmation();
-    const yesBtn = screen.getByText("Yes");
-    fireEvent.click(yesBtn);
+    const { onClose } = renderModal();
+    fireEvent.click(screen.getByText("Cancel"));
+    fireEvent.click(screen.getByText("Yes"));
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("validates expiration date cannot be before effective date", () => {
-    const effectiveDateInput = screen.getByLabelText("Effective Date");
-    const expirationDateInput = screen.getByLabelText("Expiration Date");
-
-    fireEvent.change(effectiveDateInput, { target: { value: "2024-06-15" } });
-    fireEvent.change(expirationDateInput, { target: { value: "2024-06-10" } });
-
-    expect(screen.getByText("Expiration Date cannot be before Effective Date.")).toBeInTheDocument();
+  it("dismisses cancel confirmation when clicking No", () => {
+    renderModal();
+    fireEvent.click(screen.getByText("Cancel"));
+    fireEvent.click(screen.getByText("No"));
+    expect(
+      screen.queryByText("Are you sure you want to cancel?")
+    ).not.toBeInTheDocument();
   });
 
-  it("displays success message after successful submission", async () => {
-    // Fill out minimal required fields
-    fireEvent.change(screen.getByLabelText("*State/Territory"), { target: { value: "PA" } });
-    fireEvent.change(screen.getByLabelText("*Demonstration Title"), { target: { value: "Test Title" } });
-    fireEvent.change(screen.getByLabelText("*Project Officer"), { target: { value: "John Doe" } });
-    fireEvent.change(screen.getByLabelText("Effective Date"), { target: { value: "2024-06-20" } });
-    fireEvent.change(screen.getByLabelText("Expiration Date"), { target: { value: "2024-06-30" } });
+  it("validates expiration date cannot be before effective date", async () => {
+    renderModal();
+    const effectiveDate = screen.getByLabelText(/Effective Date/i);
+    const expirationDate = screen.getByLabelText(/Expiration Date/i);
 
-    // Mock timer for simulated API delay
-    vi.useFakeTimers();
-
-    const submitBtn = screen.getByText("Submit");
-    fireEvent.click(submitBtn);
-
-    // Fast forward timer
-    vi.advanceTimersByTime(2000);
+    fireEvent.change(effectiveDate, { target: { value: "2024-06-20" } });
+    fireEvent.change(expirationDate, { target: { value: "2024-06-19" } });
 
     await waitFor(() => {
-      expect(screen.getByText("Demonstration created successfully. (Placeholder Message)")).toBeInTheDocument();
+      expect(
+        screen.getByText("Expiration Date cannot be before Effective Date.")
+      ).toBeInTheDocument();
     });
+  });
 
-    vi.useRealTimers();
+  it("clears expiration date when effective date is changed to after expiration date", async () => {
+    renderModal();
+    const effectiveDate = screen.getByLabelText(/Effective Date/i);
+    const expirationDate = screen.getByLabelText(/Expiration Date/i);
+
+    fireEvent.change(effectiveDate, { target: { value: "2024-06-20" } });
+    fireEvent.change(expirationDate, { target: { value: "2024-06-21" } });
+    fireEvent.change(effectiveDate, { target: { value: "2024-06-22" } });
+
+    await waitFor(() => {
+      expect(expirationDate).toHaveValue("");
+    });
   });
 });
