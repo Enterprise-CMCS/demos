@@ -6,7 +6,7 @@ import { QuickLinks } from "./QuickLinks";
 import { HeaderLower } from "./HeaderLower";
 import { Avatar } from "./Avatar";
 import { MockedProvider } from "@apollo/client/testing";
-import { userMocks } from "hooks/userMocks";
+import { userMocks } from "mock-data/userMocks";
 
 describe("Header", async () => {
   it("renders the logo", () => {
@@ -17,28 +17,30 @@ describe("Header", async () => {
   it("renders all quick links", () => {
     render(<QuickLinks />);
     expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Notifications/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument();
   });
 
   it("renders the profile block", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <ProfileBlock userId={2}/>
+        <ProfileBlock userId={2} />
       </MockedProvider>
     );
     expect(await screen.findByText("John Doe")).toBeInTheDocument();
   });
 
   it("renders the avatar", () => {
-    render(<Avatar character={"J"}/>);
+    render(<Avatar character={"J"} />);
     expect(screen.getByText("J")).toBeInTheDocument();
   });
 
   it("renders the greeting", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <HeaderLower userId={2}/>
+        <HeaderLower userId={2} />
       </MockedProvider>
     );
     expect(await screen.findByText("Hello John Doe")).toBeInTheDocument();
@@ -48,10 +50,12 @@ describe("Header", async () => {
   it("renders the Create New button", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <HeaderLower userId={2}/>
+        <HeaderLower userId={2} />
       </MockedProvider>
     );
-    expect(await screen.findByRole("button", { name: /Create New/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /Create New/i })
+    ).toBeInTheDocument();
   });
 
   it("toggles menu under Profile Block", async () => {

@@ -1,11 +1,10 @@
 import { gql, useLazyQuery } from "@apollo/client";
-import { User } from "models/index";
+import { User } from "demos-server";
 
 export const GET_ALL_USERS = gql`
   query GetUsers {
     users {
-      firstName
-      lastName
+      fullName
     }
   }
 `;
@@ -13,9 +12,7 @@ export const GET_ALL_USERS = gql`
 export const GET_USER_BY_ID = gql`
   query GetUser($id: ID!) {
     user(id: $id) {
-      id
-      firstName
-      lastName
+      fullName
     }
   }
 `;
