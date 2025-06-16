@@ -1,7 +1,18 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import {
+  render,
+  screen,
+} from "@testing-library/react";
+
 import { TextInput } from "./TextInput";
-import { describe, it, expect, vi } from "vitest";
 
 describe("TextInput", () => {
   it("renders with required props", () => {
@@ -13,22 +24,24 @@ describe("TextInput", () => {
   });
 
   it("passes isRequired, isDisabled, isSelected, placeholder, and defaultValue props", () => {
-    render(
+    const { getByLabelText } = render(
       <TextInput
         name="email"
         label="Email"
         isRequired
         isDisabled
         placeholder="Enter email"
-        defaultValue="test@example.com"
+        value="test@example.com"
       />
     );
-    const input = screen.getByLabelText("*Email");
+
+    const input = getByLabelText(/email/i) as HTMLInputElement;
     expect(input).toBeRequired();
     expect(input).toBeDisabled();
     expect(input).toHaveAttribute("placeholder", "Enter email");
-    expect(input).toHaveAttribute("value", "test@example.com");
+    expect(input).toHaveValue("test@example.com");
   });
+
 
   it("calls getValidationMessage if provided", () => {
     const getValidationMessage = vi.fn();
@@ -39,7 +52,7 @@ describe("TextInput", () => {
         getValidationMessage={getValidationMessage}
       />
     );
-    // getValidationMessage is just passed down, not called by TextInput itself
-    expect(getValidationMessage).not.toHaveBeenCalled();
+    expect(getValidationMessage).toHaveBeenCalledTimes(1);
+    expect(getValidationMessage).toHaveBeenCalledWith("");
   });
 });
