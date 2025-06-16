@@ -14,31 +14,31 @@ const BASE_TOAST_CLASSES = tw`
 
 const getToastIcon = (type: ToastType): React.ReactNode => {
   switch (type) {
-  case "info":
-    return <InfoIcon />;
-  case "success":
-    return <SuccessIcon />;
-  case "warning":
-    return <WarningIcon />;
-  case "error":
-    return <ErrorIcon />;
-  default:
-    throw new Error(`Unknown toast type: ${type}`);
+    case "info":
+      return <InfoIcon />;
+    case "success":
+      return <SuccessIcon />;
+    case "warning":
+      return <WarningIcon />;
+    case "error":
+      return <ErrorIcon />;
+    default:
+      throw new Error(`Unknown toast type: ${type}`);
   }
 };
 
 const getToastColor = (type: ToastType): string => {
   switch (type) {
-  case "info":
-    return "border-brand";
-  case "success":
-    return "border-border-success";
-  case "warning":
-    return "border-border-alert";
-  case "error":
-    return "border-border-warn";
-  default:
-    throw new Error(`Unknown toast type: ${type}`);
+    case "info":
+      return "border-brand";
+    case "success":
+      return "border-border-success";
+    case "warning":
+      return "border-border-alert";
+    case "error":
+      return "border-border-warn";
+    default:
+      throw new Error(`Unknown toast type: ${type}`);
   }
 };
 
