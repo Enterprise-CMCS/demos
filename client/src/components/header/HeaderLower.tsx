@@ -1,7 +1,7 @@
 import React, {
   useEffect,
   useRef,
-  useState
+  useState,
 } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
@@ -101,7 +101,12 @@ export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
 
       </div>
 
-      {showModal && <CreateNewModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <CreateNewModal
+          onClose={() => setShowModal(false)}
+          onSubmit={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 };
