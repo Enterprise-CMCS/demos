@@ -43,6 +43,7 @@ export interface InputProps {
   isRequired?: boolean;
   isDisabled?: boolean;
   placeholder?: string;
+  defaultValue?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   getValidationMessage?: (value: string) => string | undefined;
