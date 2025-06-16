@@ -88,6 +88,7 @@ export function create(props: UIDeploymentProps) {
     "DeployTimeConfig",
     {
       destinationBucket: props.uiBucket,
+      // TODO: ask about the best way to handle this for devops
       destinationKey: "env-config.js",
       source: path.join(".", "config.template.js"),
       substitutions: {
@@ -102,7 +103,6 @@ export function create(props: UIDeploymentProps) {
   );
 
   deployTimeConfig.node.addDependency(deployWebsite);
-
 
   const invalidateCloudfront = new custom_resources.AwsCustomResource(
     props.scope,
