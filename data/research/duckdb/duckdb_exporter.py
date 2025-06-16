@@ -1,4 +1,4 @@
-"""Test out various DuckDB functions that may be useful for the project."""
+"""Testing out using DuckDB to ETL data from legacy system to new legacy schema."""
 
 import argparse
 import configparser
@@ -95,7 +95,7 @@ def create_duckdb_conn(config: dict) -> "DuckConn":
         + f"dbname={config['dev-postgresql']['database']}"
     )
     conn.execute(f"ATTACH '{postgres_attach_str}' AS {DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);")
-    conn.execute("SET pg_null_byte_replacement=''")
+    conn.execute("SET pg_null_byte_replacement=''")  # This is necessary to handle nulls from MySQL
     logger.info(f"Attached PostgreSQL database AS {DUCKDB_POSTGRES_DB_NAME}")
 
     mysql_attach_str = (
