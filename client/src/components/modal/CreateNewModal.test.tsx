@@ -26,30 +26,18 @@ if (!HTMLFormElement.prototype.requestSubmit) {
 }
 
 const renderModal = () => {
-  const onSubmit = vi.fn().mockImplementation(() => Promise.resolve());
   const onClose = vi.fn();
 
   render(
     <ToastProvider>
       <CreateNewModal
         onClose={onClose}
-        onSubmit={onSubmit}
       />
     </ToastProvider>
   );
 
-  return { onSubmit, onClose };
+  return { onClose };
 };
-
-const fillForm = async () => {
-  fireEvent.change(screen.getByLabelText(/State\/Territory/i), { target: { value: "CA" } });
-  fireEvent.change(screen.getByLabelText(/Demonstration Title/i), { target: { value: "Test Demo" } });
-  fireEvent.change(screen.getByLabelText(/Project Officer/i), { target: { value: "user1" } });
-  fireEvent.change(screen.getByLabelText(/Effective Date/i), { target: { value: "2024-06-20" } });
-  fireEvent.change(screen.getByLabelText(/Expiration Date/i), { target: { value: "2024-07-20" } });
-  fireEvent.change(screen.getByLabelText(/Demonstration Description/i), { target: { value: "Test description" } });
-};
-
 
 describe("CreateNewModal", () => {
   it("renders modal title correctly", () => {

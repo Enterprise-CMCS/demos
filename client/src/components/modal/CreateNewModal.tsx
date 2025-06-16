@@ -18,12 +18,10 @@ const CONFIRMATION_CONTENT_CLASSES = tw`bg-surface-white border border-border-ru
 
 type Props = {
   onClose: () => void;
-  onSubmit: () => void;
 };
 
 export const CreateNewModal: React.FC<Props> = ({
   onClose,
-  onSubmit,
 }) => {
   const [state, setState] = useState("");
   const [title, setTitle] = useState("");

@@ -104,7 +104,6 @@ export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
       {showModal && (
         <CreateNewModal
           onClose={() => setShowModal(false)}
-          onSubmit={() => setShowModal(false)}
         />
       )}
     </div>
