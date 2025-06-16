@@ -124,8 +124,8 @@ export const CreateNewModal: React.FC<Props> = ({
                 id="expiration-date"
                 type="date"
                 className={`${DATE_INPUT_CLASSES} ${expirationError
-                  ? "border-border-warn focus:ring-border-warn"
-                  : "border-border-fields focus:ring-border-focus"
+                ? "border-border-warn focus:ring-border-warn"
+                : "border-border-fields focus:ring-border-focus"
                   }`}
                 value={expirationDate}
                 min={effectiveDate || undefined}
