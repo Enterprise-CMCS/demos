@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
 import duckdb
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
 
 DATA_CONVERSIONS = {
@@ -288,7 +288,7 @@ def main() -> None:
     return None
 
 
-def custom_excepthook(e_type: Type[BaseException], val: BaseException, trace: Optional[types.TracebackType]) -> None:
+def custom_excepthook(e_type: Type[BaseException], val: BaseException, trace: Optional[types.TracebackType]) -> None:  # pragma: no cover # noqa: E501
     """Log exceptions via the logger rather than stderr.
 
     Args:
@@ -305,7 +305,7 @@ def custom_excepthook(e_type: Type[BaseException], val: BaseException, trace: Op
 
 sys.excepthook = custom_excepthook
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
     args = argparser.parse_args()
