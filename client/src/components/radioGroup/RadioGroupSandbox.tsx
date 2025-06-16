@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { RadioGroup } from "./RadioGroup";
+import { PrimaryButton } from "components/button";
 
-// TODO replace with our button when it's ready
 const BUTTON_CLASS_NAME =
   "bg-brand text-white my-sm p-sm rounded-normal hover:bg-brand-dark";
 
@@ -20,24 +20,24 @@ export const RadioGroupSandbox: React.FC = () => {
   return (
     <div>
       <div className="flex gap-sm mb-sm">
-        <button
+        <PrimaryButton
           className={BUTTON_CLASS_NAME}
           onClick={() => setDisabled((d) => !d)}
         >
           {disabled ? "Enable" : "Disable"}
-        </button>
-        <button
+        </PrimaryButton>
+        <PrimaryButton
           className={BUTTON_CLASS_NAME}
           onClick={() => setIsRequired((r) => !r)}
         >
           {isRequired ? "Set Not Required" : "Set Required"}
-        </button>
-        <button
+        </PrimaryButton>
+        <PrimaryButton
           className={BUTTON_CLASS_NAME}
           onClick={() => setIsInline((r) => !r)}
         >
           {isInline ? "Set Not Inline" : "Set Inline"}
-        </button>
+        </PrimaryButton>
       </div>
       <RadioGroup
         name="pizzaTopping"

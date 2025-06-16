@@ -49,14 +49,14 @@ export const RadioGroup = ({
 }: RadioGroupProps) => {
   const [value, setValue] = useState(defaultValue);
   const [validationMessage, setValidationMessage] = useState("");
-  const [radioColorClasses, setRadioColorClasses] = useState(getRadioColors(""));
   const radioContainerClasses = isInline ? RADIO_CONTAINER_BASE_CLASSES :`${RADIO_CONTAINER_BASE_CLASSES} flex-col`;
+  let radioColorClasses = getRadioColors('');
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     const message = getValidationMessage ? getValidationMessage(newValue) : "";
     setValue(newValue);
     setValidationMessage(message);
-    setRadioColorClasses(getRadioColors(message));
+    radioColorClasses = getRadioColors(message);
   };
 
   return (
