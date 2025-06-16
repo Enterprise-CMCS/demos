@@ -8,7 +8,6 @@ omit = [
 [tool.pytest.ini_options]
 python_files = "test_*.py"
 addopts = "--mocha --cov=. --cov-report html:.cov.html --cov-report term-missing --cov-fail-under=80"
-# norecursedirs = ["*/tests"]
 
 [tool.ruff]
 line-length = 120
