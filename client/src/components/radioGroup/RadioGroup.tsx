@@ -50,7 +50,7 @@ export const RadioGroup = ({
   const [value, setValue] = useState(defaultValue);
   const [validationMessage, setValidationMessage] = useState("");
   const radioContainerClasses = isInline ? RADIO_CONTAINER_BASE_CLASSES :`${RADIO_CONTAINER_BASE_CLASSES} flex-col`;
-  let radioColorClasses = getRadioColors('');
+  let radioColorClasses = getRadioColors("");
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     const message = getValidationMessage ? getValidationMessage(newValue) : "";
