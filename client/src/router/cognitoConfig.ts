@@ -46,7 +46,9 @@ export const logout = () => {
 };
 
 export const getCognitoConfig = (): CognitoConfig => {
-  switch (getAppMode()) {
+  const appMode = getAppMode();
+
+  switch (appMode) {
     case "development":
       return LOCAL_COGNITO_CONFIG;
     case "test":
@@ -54,8 +56,6 @@ export const getCognitoConfig = (): CognitoConfig => {
     case "production":
       return PRODUCTION_COGNITO_CONFIG;
     default:
-      throw new Error(
-        `Cognito configuration for ${getAppMode()} is not defined.`
-      );
+      throw new Error(`Cognito configuration for ${appMode} is not defined.`);
   }
 };
