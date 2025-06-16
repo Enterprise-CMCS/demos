@@ -237,7 +237,7 @@ def save_ddl(tbl: str, ddl: str) -> None:
     """
     logger.debug(f"Saving DDL for table {tbl}")
     with open("ddls/" + tbl + ".sql", "w") as sql_file:
-        sql_file.write(ddl)
+        sql_file.write(ddl + "\n")
     logger.debug("DDL saved successfully")
     return None
 

@@ -1,0 +1,22 @@
+CREATE TABLE legacy_pmda_raw.bdgt_ntrlty_mdcd_elgblty_grp_pop (
+    bdgt_ntrlty_mdcd_elgblty_grp_pop_id INTEGER,
+    bdgt_ntrlty_mdcd_elgblty_grp_id INTEGER,
+    mdcd_ind INTEGER,
+    wth_wvr_ind INTEGER,
+    wthot_wvr_ind INTEGER,
+    percapita_cd CHAR(1),
+    svgs_cd CHAR(1),
+    expndtr_cap_ind SMALLINT,
+    hypthcl_pop_incldd_ind INTEGER,
+    strt_yr_id INTEGER,
+    end_yr_id INTEGER,
+    creatd_dt TIMESTAMP,
+    creatd_user_id INTEGER,
+    dltd_ind SMALLINT,
+    bdgt_ntrlty_tmplt_fil_doc_id INTEGER,
+    mdcd_demo_id INTEGER,
+    bdgt_ntrlty_mdcd_elgblty_grp_desc VARCHAR(1024),
+    row_num INTEGER,
+    hypthcl_pop_num INTEGER,
+    bdgt_ntrlty_mdcd_elgblty_grp_pop_cd SMALLINT
+);

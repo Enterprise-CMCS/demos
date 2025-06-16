@@ -1,0 +1,20 @@
+CREATE TABLE legacy_pmda_raw.tmplt_fil_doc (
+    tmplt_fil_doc_id INTEGER,
+    mdcd_demo_id INTEGER,
+    mdcd_demo_type_cd VARCHAR(5),
+    plcy_area_type_cd INTEGER,
+    upldd_fil_name VARCHAR(256),
+    orgnl_fil_name VARCHAR(256),
+    tmplt_fil_desc VARCHAR(1024),
+    creatd_dt TIMESTAMPTZ,
+    user_id INTEGER,
+    aprvd_dt TIMESTAMPTZ,
+    aprvd_user_id INTEGER,
+    dltd_ind SMALLINT,
+    dltd_user_id INTEGER,
+    dltd_dt TIMESTAMPTZ,
+    crnt_ind INTEGER,
+    tmplt_fil_doc_type_cd INTEGER,
+    submsn_dt DATE,
+    tmplt_fil_doc_vrsn VARCHAR(5)
+);

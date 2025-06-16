@@ -1,0 +1,23 @@
+CREATE TABLE legacy_pmda_raw.mdcd_demo_cntct (
+    mdcd_demo_id INTEGER,
+    state_mdcd_drctr_1st_name VARCHAR(32),
+    state_mdcd_drctr_last_name VARCHAR(64),
+    state_mdcd_drctr_email_adr VARCHAR(256),
+    state_mdcd_drctr_phne_num VARCHAR(32),
+    ro_fincl_lead_1st_name VARCHAR(32),
+    ro_fincl_lead_last_name VARCHAR(64),
+    ro_fincl_lead_email_adr VARCHAR(256),
+    ro_fincl_lead_phne_num VARCHAR(32),
+    sota_1st_name VARCHAR(32),
+    sota_last_name VARCHAR(64),
+    sota_email_adr VARCHAR(256),
+    sota_phne_num VARCHAR(32),
+    ro_state_lead_1st_name VARCHAR(32),
+    ro_state_lead_last_name VARCHAR(64),
+    ro_state_lead_email_adr VARCHAR(256),
+    ro_state_lead_phne_num VARCHAR(32),
+    creatd_dt TIMESTAMPTZ,
+    creatd_user_id INTEGER,
+    updtd_dt TIMESTAMPTZ,
+    updtd_user_id INTEGER
+);
