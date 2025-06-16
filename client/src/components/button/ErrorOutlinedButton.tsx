@@ -1,7 +1,12 @@
 import React from "react";
-import { BaseButton, ButtonSize } from "./BaseButton";
+
+import {
+  BaseButton,
+  ButtonSize,
+} from "./BaseButton";
 
 interface Props {
+  type?: "button" | "submit" | "reset";
   size?: ButtonSize;
   disabled?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -10,6 +15,7 @@ interface Props {
 }
 
 export const ErrorOutlinedButton: React.FC<Props> = ({
+  type = "button",
   size = "standard",
   disabled = false,
   onClick,
@@ -17,6 +23,7 @@ export const ErrorOutlinedButton: React.FC<Props> = ({
   className = "",
 }) => (
   <BaseButton
+    type={type}
     size={size}
     disabled={disabled}
     onClick={onClick}
