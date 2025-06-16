@@ -47,7 +47,6 @@ describe("cognitoConfig", () => {
       const { getAppMode } = await import("config/env");
       vi.mocked(getAppMode).mockImplementation(mockGetAppMode);
 
-      window._env_ = {};
       const config = getCognitoConfig();
       const keys = Object.keys(LOCAL_COGNITO_CONFIG);
       keys.forEach((k) => {

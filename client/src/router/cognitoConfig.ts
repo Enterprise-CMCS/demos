@@ -4,9 +4,9 @@ interface OidcConfig {
   authority: string;
   client_id: string;
   redirect_uri: string;
+  post_logout_redirect_uri: string;
   scope: string;
   response_type: string;
-  post_logout_redirect_uri: string;
 }
 
 export interface CognitoConfig extends OidcConfig {
@@ -21,6 +21,17 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   redirect_uri: "http://localhost:3000",
   response_type: "code",
   scope: "openid email phone",
+};
+
+// TODO: Ask about the best way to handle this for devops
+const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
+  authority: import.meta.env.COGNITO_AUTHORITY,
+  domain: import.meta.env.REDIRECT_URI,
+  client_id: import.meta.env.COGNITO_CLIENT_ID,
+  post_logout_redirect_uri: import.meta.env.BASE_URL,
+  redirect_uri: import.meta.env.BASE_URL,
+  response_type: "code",
+  scope: "openid email profile",
 };
 
 export const getCognitoLogoutUrl = (cognitoConfig: CognitoConfig): string => {
@@ -41,15 +52,7 @@ export const getCognitoConfig = (): CognitoConfig => {
     case "test":
       return LOCAL_COGNITO_CONFIG;
     case "production":
-      return {
-        authority: window._env_!.COGNITO_AUTHORITY!,
-        domain: window._env_!.REDIRECT_URI!,
-        client_id: window._env_!.COGNITO_CLIENT_ID!,
-        post_logout_redirect_uri: `https://${window._env_!.APPLICATION_HOSTNAME}`,
-        redirect_uri: `https://${window._env_!.APPLICATION_HOSTNAME}`,
-        response_type: "code",
-        scope: "openid email profile",
-      };
+      return PRODUCTION_COGNITO_CONFIG;
     default:
       throw new Error(
         `Cognito configuration for ${getAppMode()} is not defined.`
