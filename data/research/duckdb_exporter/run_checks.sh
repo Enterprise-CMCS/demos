@@ -1,12 +1,17 @@
 echo ""
-echo "Ruff"
+echo "ruff"
 echo "===="
 ruff check .
 
 echo ""
+echo "pytest"
+echo "======"
+pytest -c ../../pyproject.toml --cov-config=../../pyproject.toml
+
+echo ""
 echo "pydocstyle"
 echo "=========="
-pydocstyle .
+pydocstyle --config=../../pyproject.toml .
 
 echo ""
 echo "pydoclint"
@@ -21,9 +26,9 @@ mypy .
 echo ""
 echo "radon cyclomatic complexity"
 echo "====="
-radon cc -s .
+radon cc -s --exclude "*__init__.py,*test_*.py" .
 
 echo ""
 echo "radon maintainability index"
 echo "==========================="
-radon mi .
+radon mi --exclude "*__init__.py,*test_*.py" .

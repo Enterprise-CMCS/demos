@@ -243,8 +243,7 @@ def save_ddl(tbl: str, ddl: str) -> None:
 
 
 def transfer_table(conn: "DuckConn", tbl: str, mysql_schema: str = MYSQL_SCHEMA, pg_schema: str = PG_SCHEMA) -> None:
-    """
-    Transfer the contents of a MySQL table to a PostgreSQL table.
+    """Transfer the contents of a MySQL table to a PostgreSQL table.
 
     Args:
         conn ("DuckConn"): The connection to use.
