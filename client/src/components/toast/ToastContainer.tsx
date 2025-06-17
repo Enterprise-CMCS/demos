@@ -16,16 +16,16 @@ export const ToastContainer: React.FC = () => {
     };
 
     switch (toast.type) {
-    case "info":
-      return <InfoToast {...commonProps} />;
-    case "success":
-      return <SuccessToast {...commonProps} />;
-    case "warning":
-      return <WarningToast {...commonProps} />;
-    case "error":
-      return <ErrorToast {...commonProps} />;
-    default:
-      throw new Error(`Unknown toast type: ${toast.type}`);
+      case "info":
+        return <InfoToast {...commonProps} />;
+      case "success":
+        return <SuccessToast {...commonProps} />;
+      case "warning":
+        return <WarningToast {...commonProps} />;
+      case "error":
+        return <ErrorToast {...commonProps} />;
+      default:
+        throw new Error(`Unknown toast type: ${toast.type}`);
     }
   };
 

@@ -1,13 +1,13 @@
-interface OidcConfig {
+import { getAppMode } from "config/env";
+import { AuthProviderBaseProps } from "react-oidc-context";
+
+export interface CognitoConfig extends AuthProviderBaseProps {
   authority: string;
   client_id: string;
   redirect_uri: string;
+  post_logout_redirect_uri: string;
   scope: string;
   response_type: string;
-  post_logout_redirect_uri: string;
-}
-
-export interface CognitoConfig extends OidcConfig {
   domain: string;
 }
 
@@ -19,6 +19,17 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   redirect_uri: "http://localhost:3000",
   response_type: "code",
   scope: "openid email phone",
+};
+
+// TODO: Revisit this when we know more about the deployment setup
+const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
+  authority: import.meta.env.VITE_COGNITO_AUTHORITY!,
+  domain: import.meta.env.VITE_REDIRECT_URI!,
+  client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,
+  post_logout_redirect_uri: import.meta.env.BASE_URL,
+  redirect_uri: import.meta.env.BASE_URL,
+  response_type: "code",
+  scope: "openid email profile",
 };
 
 export const getCognitoLogoutUrl = (cognitoConfig: CognitoConfig): string => {
@@ -33,24 +44,16 @@ export const logout = () => {
 };
 
 export const getCognitoConfig = (): CognitoConfig => {
-  switch (process.env.NODE_ENV) {
-  case "development":
-    return LOCAL_COGNITO_CONFIG;
-  case "test":
-    return LOCAL_COGNITO_CONFIG;
-  case "production":
-    return {
-      authority: window._env_!.COGNITO_AUTHORITY!,
-      domain: window._env_!.REDIRECT_URI!,
-      client_id: window._env_!.COGNITO_CLIENT_ID!,
-      post_logout_redirect_uri: `https://${window._env_!.APPLICATION_HOSTNAME}`,
-      redirect_uri: `https://${window._env_!.APPLICATION_HOSTNAME}`,
-      response_type: "code",
-      scope: "openid email profile",
-    };
-  default:
-    throw new Error(
-      `Cognito configuration for ${process.env.NODE_ENV} is not defined.`
-    );
+  const appMode = getAppMode();
+
+  switch (appMode) {
+    case "development":
+      return LOCAL_COGNITO_CONFIG;
+    case "test":
+      return LOCAL_COGNITO_CONFIG;
+    case "production":
+      return PRODUCTION_COGNITO_CONFIG;
+    default:
+      throw new Error(`Cognito configuration for ${appMode} is not defined.`);
   }
 };

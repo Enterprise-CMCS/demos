@@ -9,6 +9,7 @@ import { PrimaryLayout } from "layout/PrimaryLayout";
 import { Demonstrations } from "pages/Demonstrations";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { DemosApolloProvider } from "./DemosApolloProvider";
+import { isDevelopmentMode } from "config/env";
 
 export const DemosRouter = () => {
   // TODO: When we know what IDM integration looks like
@@ -33,7 +34,7 @@ export const DemosRouter = () => {
               <Route path="/" element={<LandingPage />} />
               <Route path="demonstrations" element={<Demonstrations />} />
               {/* Debug routes, only available in development mode */}
-              {process.env.NODE_ENV === "development" && (
+              {isDevelopmentMode() && (
                 <>
                   <Route path="/components" element={<ComponentLibrary />} />
                   <Route path="/hooks" element={<TestHooks />} />
