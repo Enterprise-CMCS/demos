@@ -127,5 +127,5 @@ describe("CheckboxGroup component", () => {
     fireEvent.click(inputA);
     expect(inputA).not.toBeChecked();
     expect(inputB).toBeChecked();
-    });
+  });
 });
