@@ -5,12 +5,13 @@ interface ViteTypeOptions {
   strictImportMetaEnv: unknown;
 }
 
-/** Some built-in constants are available in all cases:
+/**
+Some built-in constants are available in all cases:
+
 import.meta.env.MODE: {string} the mode the app is running in.
 import.meta.env.BASE_URL: {string} the base url the app is being served from. This is determined by the base config option.
-import.meta.env.PROD: {boolean} whether the app is running in production (running the dev server with NODE_ENV='production' or running an app built with NODE_ENV='production').
+import.meta.env.PROD: {boolean} whether the app is running in production
 import.meta.env.DEV: {boolean} whether the app is running in development (always the opposite of import.meta.env.PROD)
-import.meta.env.SSR: {boolean} whether the app is running in the server.
  */
 interface ImportMetaEnv {
   readonly VITE_USE_MOCKS: boolean;
