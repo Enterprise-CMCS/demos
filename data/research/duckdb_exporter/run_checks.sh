@@ -1,7 +1,7 @@
 echo ""
 echo "ruff"
 echo "===="
-ruff check .
+ruff --config ../../pyproject.toml check .
 
 echo ""
 echo "pytest"
@@ -21,7 +21,7 @@ pydoclint --config=../../pyproject.toml .
 echo ""
 echo "mypy"
 echo "===="
-mypy .
+mypy --config-file ../../pyproject.toml .
 
 echo ""
 echo "radon cyclomatic complexity"
