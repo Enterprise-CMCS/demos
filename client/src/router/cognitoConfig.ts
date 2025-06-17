@@ -1,15 +1,13 @@
 import { getAppMode } from "config/env";
+import { AuthProviderBaseProps } from "react-oidc-context";
 
-interface OidcConfig {
+export interface CognitoConfig extends AuthProviderBaseProps {
   authority: string;
   client_id: string;
   redirect_uri: string;
   post_logout_redirect_uri: string;
   scope: string;
   response_type: string;
-}
-
-export interface CognitoConfig extends OidcConfig {
   domain: string;
 }
 
@@ -25,9 +23,9 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
 
 // TODO: Revisit this when we know more about the deployment setup
 const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
-  authority: import.meta.env.COGNITO_AUTHORITY,
-  domain: import.meta.env.REDIRECT_URI,
-  client_id: import.meta.env.COGNITO_CLIENT_ID,
+  authority: import.meta.env.VITE_COGNITO_AUTHORITY!,
+  domain: import.meta.env.VITE_REDIRECT_URI!,
+  client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,
   post_logout_redirect_uri: import.meta.env.BASE_URL,
   redirect_uri: import.meta.env.BASE_URL,
   response_type: "code",

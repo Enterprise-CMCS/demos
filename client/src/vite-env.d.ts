@@ -5,6 +5,9 @@ interface ViteTypeOptions {
   strictImportMetaEnv: unknown;
 }
 
+// Environment variables are strings or not set
+type EnvironmentVariable = string | undefined;
+
 /**
 Some built-in constants are available in all cases:
 
@@ -14,12 +17,12 @@ import.meta.env.PROD: {boolean} whether the app is running in production
 import.meta.env.DEV: {boolean} whether the app is running in development (always the opposite of import.meta.env.PROD)
  */
 interface ImportMetaEnv {
-  readonly VITE_USE_MOCKS: boolean;
-  // TODO: Ask about the best way to handle this for devops
-  readonly COGNITO_AUTHORITY: string;
-  readonly REDIRECT_URI: string;
-  readonly COGNITO_CLIENT_ID: string;
-  readonly APPLICATION_HOSTNAME: string;
+  readonly VITE_USE_MOCKS: EnvironmentVariable;
+  // TODO: We may end up switching on mode to get these instead of individual vars
+  readonly VITE_COGNITO_AUTHORITY: EnvironmentVariable;
+  readonly VITE_REDIRECT_URI: EnvironmentVariable;
+  readonly VITE_COGNITO_CLIENT_ID: EnvironmentVariable;
+  readonly VITE_APPLICATION_HOSTNAME: EnvironmentVariable;
 }
 
 interface ImportMeta {

@@ -27,7 +27,7 @@ export const isProductionMode = (): boolean => {
 };
 
 export const shouldUseMocks = (): boolean => {
-  return (
-    isTestMode() || (isDevelopmentMode() && import.meta.env.VITE_USE_MOCKS)
-  );
+  const useMocks = import.meta.env.VITE_USE_MOCKS == "true";
+
+  return isTestMode() || (isDevelopmentMode() && useMocks);
 };
