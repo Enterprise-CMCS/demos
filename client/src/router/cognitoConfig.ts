@@ -1,6 +1,13 @@
 import { getAppMode } from "config/env";
 import { AuthProviderBaseProps } from "react-oidc-context";
 
+// Replace the history state to remove the signin callback from the URL
+// From the docs: You must provide an implementation of onSigninCallback
+// to oidcConfig to remove the payload from the URL upon successful login.
+const onSigninCallback = (): void => {
+  window.history.replaceState({}, document.title, window.location.pathname);
+};
+
 export interface CognitoConfig extends AuthProviderBaseProps {
   authority: string;
   client_id: string;
@@ -9,6 +16,7 @@ export interface CognitoConfig extends AuthProviderBaseProps {
   scope: string;
   response_type: string;
   domain: string;
+  onSigninCallback?: () => void;
 }
 
 export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
@@ -19,6 +27,7 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   redirect_uri: "http://localhost:3000",
   response_type: "code",
   scope: "openid email phone",
+  onSigninCallback: onSigninCallback,
 };
 
 // TODO: Revisit this when we know more about the deployment setup
@@ -30,6 +39,7 @@ const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
   redirect_uri: import.meta.env.BASE_URL,
   response_type: "code",
   scope: "openid email profile",
+  onSigninCallback: onSigninCallback,
 };
 
 export const getCognitoLogoutUrl = (cognitoConfig: CognitoConfig): string => {
