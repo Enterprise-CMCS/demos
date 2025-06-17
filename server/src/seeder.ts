@@ -1,7 +1,15 @@
 import { faker } from "@faker-js/faker";
 import { prisma } from "./prismaClient";
 
+function checkIfAllowed() {
+  if(process.env.ALLOW_SEED !== "true") {
+    throw new Error("Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.");
+  }
+}
+
 export function clearDatabase() {
+  checkIfAllowed();
+
   return prisma.$transaction([
     prisma.rolePermission.deleteMany(),
     prisma.userRole.deleteMany(),
@@ -17,6 +25,8 @@ export function clearDatabase() {
 }
 
 async function seedDatabase() {
+  checkIfAllowed();
+  
   clearDatabase();
 
 
