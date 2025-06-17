@@ -9,10 +9,15 @@ import {
 import { CommonProps } from "../types/props";
 import path from "path";
 
+import * as ssm from "../lib/ssm-parameter";
 interface UIDeploymentProps extends CommonProps {
   uiBucket: aws_s3.Bucket;
   distribution: aws_cloudfront.Distribution;
   applicationEndpointUrl: string;
+  cognitoParamNames: {
+    authority: string;
+    clientId: string;
+  };
 }
 
 export function create(props: UIDeploymentProps) {
@@ -69,22 +74,35 @@ export function create(props: UIDeploymentProps) {
     }
   );
 
+  const paramAuthority = ssm.get({
+    ...props,
+    name: props.cognitoParamNames.authority,
+  });
+  const paramClientId = ssm.get({
+    ...props,
+    name: props.cognitoParamNames.clientId,
+  });
+
   const deployTimeConfig = new aws_s3_deployment.DeployTimeSubstitutedFile(
     props.scope,
     "DeployTimeConfig",
     {
       destinationBucket: props.uiBucket,
-      // TODO: ask about the best way to handle this for devops
+      destinationKey: "env-config.js",
+      source: path.join(".", "config.template.js"),
       substitutions: {
         stage: props.stage,
         applicationEndpointUrl: props.applicationEndpointUrl,
         timestamp: new Date().toISOString(),
+        cognitoAuthority: paramAuthority.stringValue,
+        cognitoClientId: paramClientId.stringValue,
         applicationHostname: props.distribution.distributionDomainName,
       },
     }
   );
 
   deployTimeConfig.node.addDependency(deployWebsite);
+
 
   const invalidateCloudfront = new custom_resources.AwsCustomResource(
     props.scope,
