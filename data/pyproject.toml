@@ -1,7 +1,6 @@
 [tool.coverage.run]
 omit = [
     "*/__init__.py",
-    "*/tests/*",
     "*/test_*.py"
 ]
 
@@ -27,9 +26,19 @@ line-ending = "lf"
 
 [tool.pydoclint]
 style = "google"
-exclude = '"*__init__.py|tests"'
+exclude = [
+    "__init__\\.py$",
+    "test_.*\\.py$"
+]
 require-return-section-when-returning-nothing = false
 
 [tool.pydocstyle]
 convention = "google"
 match = "(?!test_|__init__).*\\.py"
+
+[tool.mypy]
+python_version = "3.13"
+exclude = [
+    "__init__\\.py$",
+    "test_.*\\.py$"
+]

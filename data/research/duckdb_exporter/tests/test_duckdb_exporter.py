@@ -302,4 +302,4 @@ class TestDuckDBExporter():
         mocker.patch("builtins.open", mocked_open)
         duckdb_exporter.save_ddl("tbl1", "this is a test line")
         mocked_open.assert_called_once_with("ddls/tbl1.sql", "w")
-        mocked_open.return_value.write.assert_called_once_with("this is a test line")
+        mocked_open.return_value.write.assert_called_once_with("this is a test line\n")
