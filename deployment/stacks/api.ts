@@ -92,8 +92,8 @@ export class ApiStack extends Stack {
       {
         ...commonProps,
         entry: "../server/dist",
-        handler: "graphqlHandler",
-        api: apigateway_outputs.api,
+        handler: "server.graphqlHandler",
+        apiParentResource: apigateway_outputs.apiParentResource,
         path: "graphql",
         method: "POST",
         vpc: props.vpc,
@@ -104,6 +104,9 @@ export class ApiStack extends Stack {
           ? undefined
           : apigateway_outputs.authorizer,
         asCode: true,
+        environment: {
+          BYPASS_AUTH: commonProps.stage == "dev" ? "true" : ""
+        }
       },
       "graphql"
     );

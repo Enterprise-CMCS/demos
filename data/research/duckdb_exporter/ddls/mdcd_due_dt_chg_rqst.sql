@@ -1,0 +1,20 @@
+CREATE TABLE legacy_pmda_raw.mdcd_due_dt_chg_rqst (
+    mdcd_due_dt_chg_rqst_id INTEGER,
+    mdcd_dlvrbl_id INTEGER,
+    mdcd_state_user_due_dt_chg_rsn_cd VARCHAR(5),
+    mdcd_due_dt_chg_rqst_dtrmntn_cd VARCHAR(5),
+    rqst_dlvrbl_due_dt DATE,
+    altrnt_dlvrbl_due_dt DATE,
+    acptd_dlvrbl_due_dt DATE,
+    orgnl_dlvrbl_due_dt DATE,
+    mdcd_due_dt_chg_rqst_dtl_txt VARCHAR(1024),
+    mdcd_dlvrbl_open_endd_ind SMALLINT,
+    cmt_txt VARCHAR(1024),
+    creatd_dt TIMESTAMPTZ,
+    dltd_ind SMALLINT,
+    dtrmntn_dt TIMESTAMPTZ,
+    dtrmntn_user_id INTEGER,
+    rqst_user_id INTEGER,
+    prvs_dlvrbl_stus_cd INTEGER,
+    prvs_dlvrbl_stus_dt DATE
+);
