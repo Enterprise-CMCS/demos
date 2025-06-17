@@ -1,0 +1,21 @@
+CREATE TABLE legacy_pmda_raw.users (
+    id INTEGER,
+    datecreated TIMESTAMPTZ,
+    username VARCHAR(256),
+    password VARCHAR(64),
+    firstname VARCHAR(32),
+    lastname VARCHAR(64),
+    deleted INTEGER,
+    deleted_at TIMESTAMPTZ,
+    remote INTEGER,
+    remember_token VARCHAR(100),
+    updated_at TIMESTAMPTZ,
+    phone VARCHAR(32),
+    active INTEGER,
+    euaid VARCHAR(4),
+    lastaccess TIMESTAMP,
+    email VARCHAR(256),
+    show_login_dshbd_ind SMALLINT,
+    testing_user_ind SMALLINT,
+    api_tokn_cd CHAR(35)
+);
