@@ -9,7 +9,6 @@ import {
 import { CommonProps } from "../types/props";
 import path from "path";
 
-import * as ssm from "../lib/ssm-parameter";
 interface UIDeploymentProps extends CommonProps {
   uiBucket: aws_s3.Bucket;
   distribution: aws_cloudfront.Distribution;

@@ -23,7 +23,7 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   scope: "openid email phone",
 };
 
-// TODO: Ask about the best way to handle this for devops
+// TODO: Revisit this when we know more about the deployment setup
 const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
   authority: import.meta.env.COGNITO_AUTHORITY,
   domain: import.meta.env.REDIRECT_URI,
