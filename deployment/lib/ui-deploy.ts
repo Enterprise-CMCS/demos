@@ -83,6 +83,7 @@ export function create(props: UIDeploymentProps) {
     name: props.cognitoParamNames.clientId,
   });
 
+  // TODO: Revisit when we know more about the runtime vs build-time environment variables
   const deployTimeConfig = new aws_s3_deployment.DeployTimeSubstitutedFile(
     props.scope,
     "DeployTimeConfig",
@@ -102,7 +103,6 @@ export function create(props: UIDeploymentProps) {
   );
 
   deployTimeConfig.node.addDependency(deployWebsite);
-
 
   const invalidateCloudfront = new custom_resources.AwsCustomResource(
     props.scope,
