@@ -115,7 +115,9 @@ export function create(props: ApiGatewayProps) {
     },
   });
 
-  const healthResource = api.root.addResource("health");
+  const apiParentResource = api.root.addResource("api")
+
+  const healthResource = apiParentResource.addResource("health");
   healthResource.addMethod("GET", healthEndpoint, {
     methodResponses: [
       {
@@ -132,5 +134,6 @@ export function create(props: ApiGatewayProps) {
     restApiId: api.restApiId,
     apiGatewayRestApiUrl: api.url.slice(0, -1),
     authorizer,
+    apiParentResource
   };
 }
