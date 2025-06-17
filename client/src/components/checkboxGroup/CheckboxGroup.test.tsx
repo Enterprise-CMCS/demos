@@ -107,4 +107,25 @@ describe("CheckboxGroup component", () => {
     const container = screen.getByText("Option A").closest("div")?.parentElement?.parentElement;
     expect(container?.className).toContain("flex-col");
   });
+
+  it("tracks selectedValues correctly through a sequence of changes", () => {
+    render(<CheckboxGroup {...requiredProps} />);
+    const inputA = screen.getByText("Option A").closest("label")!.querySelector("input")!;
+    const inputB = screen.getByText("Option B").closest("label")!.querySelector("input")!;
+
+    // Select A
+    fireEvent.click(inputA);
+    expect(inputA).toBeChecked();
+    expect(inputB).not.toBeChecked();
+
+    // Select B
+    fireEvent.click(inputB);
+    expect(inputA).toBeChecked();
+    expect(inputB).toBeChecked();
+
+    // Deselect A
+    fireEvent.click(inputA);
+    expect(inputA).not.toBeChecked();
+    expect(inputB).toBeChecked();
+    });
 });
