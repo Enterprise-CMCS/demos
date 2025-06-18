@@ -3,6 +3,17 @@ import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 import { HEADER_LOWER_QUERY } from "components/header/HeaderLower";
 import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 
+export const johnDoe: User = {
+  id: "1",
+  fullName: "John Doe",
+  cognitoSubject: "1234567890",
+  username: "johndoe",
+  email: "johndoe@example.com",
+  displayName: "John",
+  createdAt: new Date("2025-01-01"),
+  updatedAt: new Date("2025-01-01"),
+  roles: [],
+};
 export const spongebob: Partial<User> = {
   fullName: "spongebob squarepants",
 };

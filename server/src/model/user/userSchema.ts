@@ -1,7 +1,5 @@
 import { gql } from "graphql-tag";
-import { State } from "../state/stateSchema";
 import { Role } from "../role/roleSchema";
-import { Demonstration } from "../demonstration/demonstrationSchema";
 
 export const userSchema = gql`
   type User {
@@ -13,9 +11,7 @@ export const userSchema = gql`
     displayName: String!
     createdAt: DateTime!
     updatedAt: DateTime!
-    states: [State!]!
     roles: [Role!]!
-    demonstrations: [Demonstration!]!
   }
 
   input AddUserInput {
@@ -62,9 +58,7 @@ export interface User {
   displayName: string;
   createdAt: DateTime;
   updatedAt: DateTime;
-  states: State[];
   roles: Role[];
-  demonstrations: Demonstration[];
 }
 
 export interface AddUserInput {
