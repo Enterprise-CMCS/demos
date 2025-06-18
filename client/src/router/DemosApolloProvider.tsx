@@ -4,39 +4,52 @@ import {
   InMemoryCache,
   ApolloProvider,
   createHttpLink,
+  ApolloLink,
 } from "@apollo/client";
 import { MockedProvider } from "@apollo/client/testing";
 import { setContext } from "@apollo/client/link/context";
 import { ALL_MOCKS } from "mock-data";
 import { shouldUseMocks } from "config/env";
+import { AuthState, useAuth } from "react-oidc-context";
 
 const GRAPHQL_ENDPOINT = "/graphql";
 
-const createApolloClient = (uri: string) => {
+const createApolloClient = (auth: AuthState) => {
+  // Add the authorization header to each request sent by Apollo Client
+  const setAuthHeaders: ApolloLink = setContext(
+    (_, { headers: previousHeaders }) => {
+      const token = auth.user?.access_token;
+      const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const newHeaders = {
+        headers: {
+          ...previousHeaders,
+          ...authHeader,
+        },
+      };
+
+      return newHeaders;
+    }
+  );
+
+  // Create the HTTP Link for Apollo Client, pointing to the GraphQL endpoint
+  const httpLink: ApolloLink = createHttpLink({
+    uri: GRAPHQL_ENDPOINT,
+  });
+
   return new ApolloClient({
-    link: setAuthHeaders.concat(createHttpLink({ uri })),
+    link: setAuthHeaders.concat(httpLink),
     cache: new InMemoryCache(),
   });
 };
-
-// Add the authorization header to each request sent by Apollo Client
-const setAuthHeaders = setContext((_, { previousHeaders }) => {
-  // const token = auth.user?.access_token;
-  const token = "";
-
-  return {
-    headers: {
-      ...previousHeaders,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  };
-});
 
 export const DemosApolloProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
+  const auth: AuthState = useAuth();
+
   if (shouldUseMocks()) {
     return (
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
@@ -44,7 +57,7 @@ export const DemosApolloProvider = ({
       </MockedProvider>
     );
   } else {
-    const apolloClient = createApolloClient(GRAPHQL_ENDPOINT);
+    const apolloClient = createApolloClient(auth);
 
     return <ApolloProvider client={apolloClient}>{children}</ApolloProvider>;
   }

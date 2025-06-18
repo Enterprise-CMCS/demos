@@ -2,23 +2,24 @@
 
 This page documents some of the considerations when authenticating a user on the client-side. This information comes largely from the documentation for [react-oidc-context](https://www.npmjs.com/package/react-oidc-context) with some added considerations for [AWS Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html)
 
-## Route Protection
-
-### Current Situation
+## Sign-In Flow
 
 In lower environments users log in using Cognito without IDM. If the user is logged in, they can see all available routes.
 
 In production, users will log in through IDM and IDM will talk to Cognito for us and determine a user's authentication status.
 
-### Future Situation
+## Route Protection
 
-In the fututre we might need to secure a route, particularly for the `/admin` page. There are limitations to this as the frontend can only secure routes absolutely, depending on whether the user is logged in at all or not and we cannot secure routes based on role.
+Currently there are no requirements to protect any particular routes. In the future we might need to secure a route, particularly for the `/admin` page. There are limitations to this as the frontend can only secure routes absolutely, depending on whether the user is logged in at all or not and we cannot secure routes based on role.
 
-This means we'll need to incorporate some type of role-based authentication check in the server to determine if a user can access this page. Alternatively we could look into using multiple cognito user pools if we did want to simplify this sort of role-based access we handle on the BE.
+There are a couple of approaches we can take here, the first being more standard:
 
-#### Securing all Routes
+1. A role-based authentication check in the server to determine if a user can access this page.
+2. As an alternative perhaps using multiple cognito user pools could avoid doing us having to check for this on the server. It might complicate our authentication setup on the FE however.
 
-If we did want to secure a route to make sure the user is logged in at all we would do something like this:
+#### To Secure a Route
+
+If we did want to secure a route on the front (only ensures the user is logged in at all) we would do something like this:
 
 ```
 import React from 'react';
@@ -31,13 +32,18 @@ export const authenticatedComponent = withAuthenticationRequired(MyComponent, {
 });
 ```
 
-## Passsing Tokens
+## Storing / Passsing Tokens
 
 What follows is an example of how the client and frontend can exchange tokens in a way that is secure and trusted.
 
 ### Client Side
 
-Using Apollo Client we can make sure that the authorization headers are always present in a user's request using the `setContext` function:
+For Storing Tokens we have two options:
+
+1. localStorage - user stays signed in across tab closes, expiration handled by the token
+2. sessionStorage - user must sign in again after tab closes.
+
+For Passing Tokens using Apollo Client we can make sure that the authorization headers are always present in a user's request using the `setContext` function:
 
 ```
 const httpLink = createHttpLink({
