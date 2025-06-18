@@ -8,3 +8,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum RevisionType {
+  I
+  U
+  D
+
+  @@map("revision_type_enum")
+}

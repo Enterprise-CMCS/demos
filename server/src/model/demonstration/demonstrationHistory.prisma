@@ -1,0 +1,16 @@
+model DemonstrationHistory {
+  revisionId                Int          @id @map("revision_id") @default(autoincrement())
+  revisionType              RevisionType @map("revision_type")
+  modifiedAt                DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  id                        String       @db.Uuid
+  name                      String
+  description               String
+  evaluationPeriodStartDate DateTime     @map("evaluation_period_start_date") @db.Date
+  evaluationPeriodEndDate   DateTime     @map("evaluation_period_end_date") @db.Date
+  createdAt                 DateTime     @map("created_at") @db.Timestamptz()
+  updatedAt                 DateTime     @map("updated_at") @db.Timestamptz()
+  demonstrationStatusId     String       @map("demonstration_status_id") @db.Uuid
+  stateId                   String       @map("state_id") @db.Uuid
+
+  @@map("demonstration_history")
+}
