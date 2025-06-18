@@ -44,7 +44,7 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
 const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
   ...BASE_COGNITO_CONFIG,
   authority: import.meta.env.VITE_COGNITO_AUTHORITY!,
-  domain: import.meta.env.VITE_REDIRECT_URI!,
+  domain: import.meta.env.VITE_COGNITO_DOMAIN!,
   client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,
   post_logout_redirect_uri: import.meta.env.BASE_URL,
   redirect_uri: import.meta.env.BASE_URL,
