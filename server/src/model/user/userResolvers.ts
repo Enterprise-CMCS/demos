@@ -1,7 +1,7 @@
 import { User } from "@prisma/client";
-import { prisma } from "../../prismaClient";
-import { AddUserInput } from "./userSchema";
-import { requireRole } from "../../auth/auth.util";
+import { prisma } from "../../prismaClient.js";
+import { AddUserInput } from "./userSchema.js";
+import { requireRole } from "../../auth/auth.util.js";
 
 export const userResolvers = {
   Query: {

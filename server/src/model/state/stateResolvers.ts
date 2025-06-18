@@ -1,6 +1,6 @@
 import { State } from "@prisma/client";
-import { prisma } from "../../prismaClient";
-import { AddStateInput, UpdateStateInput } from "./stateSchema";
+import { prisma } from "../../prismaClient.js";
+import { AddStateInput, UpdateStateInput } from "./stateSchema.js";
 
 export const stateResolvers = {
   Query: {

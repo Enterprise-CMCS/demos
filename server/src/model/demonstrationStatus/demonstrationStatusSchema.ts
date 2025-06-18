@@ -1,5 +1,5 @@
 import { gql } from "graphql-tag";
-import { Demonstration } from "../demonstration/demonstrationSchema";
+import { Demonstration } from "../demonstration/demonstrationSchema.js";
 
 export const demonstrationStatusSchema = gql`
   type DemonstrationStatus {
