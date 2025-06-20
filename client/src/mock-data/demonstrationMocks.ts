@@ -2,6 +2,8 @@ import { Demonstration } from "demos-server";
 import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
+import { GET_ALL_DEMONSTRATIONS } from "queries/demonstrationQueries";
+import { MockedResponse } from "@apollo/client/testing";
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -15,3 +17,14 @@ export const testDemonstration: Demonstration = {
   state: california,
   users: [johnDoe],
 };
+
+export const demonstrationMocks: MockedResponse[] = [
+  {
+    request: {
+      query: GET_ALL_DEMONSTRATIONS,
+    },
+    result: {
+      data: { demonstrations: [testDemonstration] },
+    },
+  },
+];

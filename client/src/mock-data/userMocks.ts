@@ -2,6 +2,7 @@ import { User } from "demos-server";
 import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 import { HEADER_LOWER_QUERY } from "components/header/HeaderLower";
 import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
+import { MockedResponse } from "@apollo/client/testing";
 
 export const johnDoe: User = {
   id: "1",
@@ -24,7 +25,7 @@ export const patrick: Partial<User> = {
   fullName: "patrick star",
 };
 
-export const userMocks = [
+export const userMocks: MockedResponse[] = [
   {
     request: {
       query: GET_ALL_USERS,
