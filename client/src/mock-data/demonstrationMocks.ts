@@ -3,9 +3,9 @@ import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
 import {
-  ADD_DEMONSTRATION,
-  GET_ALL_DEMONSTRATIONS,
-  GET_DEMONSTRATION_BY_ID,
+  ADD_DEMONSTRATION_QUERY,
+  GET_ALL_DEMONSTRATIONS_QUERY,
+  GET_DEMONSTRATION_BY_ID_QUERY,
 } from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
 
@@ -22,7 +22,7 @@ export const testDemonstration: Demonstration = {
   users: [johnDoe],
 };
 
-const mockAddDemonstrationInput: AddDemonstrationInput = {
+export const mockAddDemonstrationInput: AddDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
   evaluationPeriodStartDate: new Date("2025-01-01"),
@@ -35,7 +35,7 @@ const mockAddDemonstrationInput: AddDemonstrationInput = {
 export const demonstrationMocks: MockedResponse[] = [
   {
     request: {
-      query: GET_ALL_DEMONSTRATIONS,
+      query: GET_ALL_DEMONSTRATIONS_QUERY,
     },
     result: {
       data: { demonstrations: [testDemonstration] },
@@ -44,7 +44,7 @@ export const demonstrationMocks: MockedResponse[] = [
 
   {
     request: {
-      query: GET_DEMONSTRATION_BY_ID,
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
       variables: { id: testDemonstration.id },
     },
     result: {
@@ -54,7 +54,7 @@ export const demonstrationMocks: MockedResponse[] = [
 
   {
     request: {
-      query: ADD_DEMONSTRATION,
+      query: ADD_DEMONSTRATION_QUERY,
       variables: { input: mockAddDemonstrationInput },
     },
     result: {

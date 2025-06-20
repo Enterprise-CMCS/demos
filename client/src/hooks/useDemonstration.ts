@@ -1,9 +1,9 @@
 import { useLazyQuery, useMutation, ApolloError } from "@apollo/client";
 import { Demonstration, AddDemonstrationInput } from "demos-server";
 import {
-  ADD_DEMONSTRATION,
-  GET_ALL_DEMONSTRATIONS,
-  GET_DEMONSTRATION_BY_ID,
+  ADD_DEMONSTRATION_QUERY,
+  GET_ALL_DEMONSTRATIONS_QUERY,
+  GET_DEMONSTRATION_BY_ID_QUERY,
 } from "queries/demonstrationQueries";
 
 interface GetAllDemonstrationsOperation {
@@ -41,7 +41,9 @@ const createGetAllDemonstrationsHook = (): GetAllDemonstrationsOperation => {
       loading: allDemonstrationsLoading,
       error: allDemonstrationsError,
     },
-  ] = useLazyQuery<{ demonstrations: Demonstration[] }>(GET_ALL_DEMONSTRATIONS);
+  ] = useLazyQuery<{ demonstrations: Demonstration[] }>(
+    GET_ALL_DEMONSTRATIONS_QUERY
+  );
 
   return {
     trigger: () => triggerGetAllDemonstrations(),
@@ -59,7 +61,9 @@ const createGetDemonstrationByIdHook = (): GetDemonstrationByIdOperation => {
       loading: demonstrationByIdLoading,
       error: demonstrationByIdError,
     },
-  ] = useLazyQuery<{ demonstration: Demonstration }>(GET_DEMONSTRATION_BY_ID);
+  ] = useLazyQuery<{ demonstration: Demonstration }>(
+    GET_DEMONSTRATION_BY_ID_QUERY
+  );
 
   return {
     trigger: (id: string) => triggerGetDemonstrationById({ variables: { id } }),
@@ -77,7 +81,7 @@ const createAddDemonstrationHook = (): AddDemonstrationOperation => {
       loading: addDemonstrationLoading,
       error: addDemonstrationError,
     },
-  ] = useMutation<{ addDemonstration: Demonstration }>(ADD_DEMONSTRATION);
+  ] = useMutation<{ addDemonstration: Demonstration }>(ADD_DEMONSTRATION_QUERY);
 
   return {
     trigger: (input: AddDemonstrationInput) =>

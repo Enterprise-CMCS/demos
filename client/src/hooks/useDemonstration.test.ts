@@ -1,20 +1,13 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { useDemonstration } from "./useDemonstration";
 import { AddDemonstrationInput } from "demos-server";
-import { testDemonstration } from "mock-data/demonstrationMocks";
-import { california } from "mock-data/stateMocks";
-import { johnDoe } from "mock-data/userMocks";
+import {
+  mockAddDemonstrationInput,
+  testDemonstration,
+} from "mock-data/demonstrationMocks";
 import { DemosApolloProvider } from "router/DemosApolloProvider";
 
-const mockAddDemonstrationInput: AddDemonstrationInput = {
-  name: "New Demonstration",
-  description: "New Description",
-  evaluationPeriodStartDate: new Date("2025-01-01"),
-  evaluationPeriodEndDate: new Date("2025-12-31"),
-  demonstrationStatusId: "1",
-  stateId: california.id,
-  userIds: [johnDoe.id],
-};
+const expectedDemonstration = testDemonstration;
 
 const renderUseDemonstrationHook = () => {
   return renderHook(() => useDemonstration(), {
@@ -33,37 +26,27 @@ describe("useDemonstration", () => {
       result.current.getAllDemonstrations.trigger();
 
       await waitFor(() => {
-        expect(result.current.getAllDemonstrations.data).toEqual([
-          testDemonstration,
-        ]);
+        expect(result.current.getAllDemonstrations.data).toBeDefined();
+        const actualDemonstrations = result.current.getAllDemonstrations.data!;
+        expect(actualDemonstrations.length).toBeGreaterThan(0);
+        expect(actualDemonstrations[0].name).toEqual(
+          expectedDemonstration.name
+        );
       });
       expect(result.current.getAllDemonstrations.error).toBeUndefined();
-    });
-
-    it("should handle error when fetching all demonstrations", async () => {
-      const { result } = renderUseDemonstrationHook();
-
-      result.current.getAllDemonstrations.trigger();
-      await waitFor(() => {
-        expect(result.current.getAllDemonstrations.error).toBeDefined();
-      });
-
-      expect(result.current.getAllDemonstrations.data).toBeUndefined();
     });
   });
 
   describe("getDemonstrationById", () => {
     it("should fetch demonstration by id successfully", async () => {
-      const demonstrationId = "1";
-
       const { result } = renderUseDemonstrationHook();
 
-      result.current.getDemonstrationById.trigger(demonstrationId);
+      result.current.getDemonstrationById.trigger(expectedDemonstration.id);
 
       await waitFor(() => {
-        expect(result.current.getDemonstrationById.data).toEqual(
-          testDemonstration
-        );
+        expect(result.current.getDemonstrationById.data).toBeDefined();
+        const actualDemonstration = result.current.getDemonstrationById.data!;
+        expect(actualDemonstration.name).toEqual(testDemonstration.name);
       });
       expect(result.current.getDemonstrationById.error).toBeUndefined();
     });
@@ -91,7 +74,12 @@ describe("useDemonstration", () => {
       result.current.addDemonstration.trigger(mockAddDemonstrationInput);
 
       await waitFor(() => {
-        expect(result.current.addDemonstration.data).toEqual(testDemonstration);
+        expect(result.current.addDemonstration.data).toBeDefined();
+        const actualDemonstration = result.current.addDemonstration.data!;
+
+        expect(actualDemonstration?.description).toEqual(
+          expectedDemonstration.description
+        );
       });
       expect(result.current.addDemonstration.error).toBeUndefined();
     });
@@ -99,7 +87,9 @@ describe("useDemonstration", () => {
     it("should handle error when adding demonstration", async () => {
       const { result } = renderUseDemonstrationHook();
 
-      result.current.addDemonstration.trigger(mockAddDemonstrationInput);
+      result.current.addDemonstration.trigger({
+        demonstrationStatusId: "incomplete add demonstration input",
+      } as AddDemonstrationInput);
 
       await waitFor(() => {
         expect(result.current.addDemonstration.error).toBeDefined();

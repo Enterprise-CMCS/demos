@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-export const GET_ALL_DEMONSTRATIONS = gql`
+export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
   query GetDemonstrations {
     demonstrations {
       id
@@ -27,7 +27,7 @@ export const GET_ALL_DEMONSTRATIONS = gql`
   }
 `;
 
-export const GET_DEMONSTRATION_BY_ID = gql`
+export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
   query GetDemonstration($id: ID!) {
     demonstration(id: $id) {
       id
@@ -54,7 +54,7 @@ export const GET_DEMONSTRATION_BY_ID = gql`
   }
 `;
 
-export const ADD_DEMONSTRATION = gql`
+export const ADD_DEMONSTRATION_QUERY = gql`
   mutation AddDemonstration($input: AddDemonstrationInput!) {
     addDemonstration(input: $input) {
       id
@@ -77,42 +77,6 @@ export const ADD_DEMONSTRATION = gql`
         id
         fullName
       }
-    }
-  }
-`;
-
-export const UPDATE_DEMONSTRATION = gql`
-  mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
-    updateDemonstration(id: $id, input: $input) {
-      id
-      name
-      description
-      evaluationPeriodStartDate
-      evaluationPeriodEndDate
-      createdAt
-      updatedAt
-      demonstrationStatus {
-        id
-        name
-      }
-      state {
-        id
-        stateName
-        stateCode
-      }
-      users {
-        id
-        fullName
-      }
-    }
-  }
-`;
-
-export const DELETE_DEMONSTRATION = gql`
-  mutation DeleteDemonstration($id: ID!) {
-    deleteDemonstration(id: $id) {
-      id
-      name
     }
   }
 `;
