@@ -34,61 +34,47 @@ export interface DemonstrationOperations {
 }
 
 const createGetAllDemonstrationsHook = (): GetAllDemonstrationsOperation => {
-  const [
-    triggerGetAllDemonstrations,
-    {
-      data: allDemonstrationsData,
-      loading: allDemonstrationsLoading,
-      error: allDemonstrationsError,
-    },
-  ] = useLazyQuery<{ demonstrations: Demonstration[] }>(
-    GET_ALL_DEMONSTRATIONS_QUERY
-  );
+  const [trigger, { data, loading, error }] = useLazyQuery<{
+    demonstrations: Demonstration[];
+  }>(GET_ALL_DEMONSTRATIONS_QUERY);
 
   return {
-    trigger: () => triggerGetAllDemonstrations(),
-    data: allDemonstrationsData?.demonstrations,
-    loading: allDemonstrationsLoading,
-    error: allDemonstrationsError,
+    trigger,
+    data: data?.demonstrations,
+    loading,
+    error,
   };
 };
 
 const createGetDemonstrationByIdHook = (): GetDemonstrationByIdOperation => {
-  const [
-    triggerGetDemonstrationById,
-    {
-      data: demonstrationByIdData,
-      loading: demonstrationByIdLoading,
-      error: demonstrationByIdError,
-    },
-  ] = useLazyQuery<{ demonstration: Demonstration }>(
-    GET_DEMONSTRATION_BY_ID_QUERY
-  );
+  const [trigger, { data, loading, error }] = useLazyQuery<{
+    demonstration: Demonstration;
+  }>(GET_DEMONSTRATION_BY_ID_QUERY);
 
   return {
-    trigger: (id: string) => triggerGetDemonstrationById({ variables: { id } }),
-    data: demonstrationByIdData?.demonstration,
-    loading: demonstrationByIdLoading,
-    error: demonstrationByIdError,
+    trigger: (id: string) => trigger({ variables: { id } }),
+    data: data?.demonstration,
+    loading,
+    error,
   };
 };
 
 const createAddDemonstrationHook = (): AddDemonstrationOperation => {
-  const [
-    triggerAddDemonstration,
-    {
-      data: addDemonstrationData,
-      loading: addDemonstrationLoading,
-      error: addDemonstrationError,
-    },
-  ] = useMutation<{ addDemonstration: Demonstration }>(ADD_DEMONSTRATION_QUERY);
+  const [trigger, { data, loading, error }] = useMutation<{
+    addDemonstration: Demonstration;
+  }>(ADD_DEMONSTRATION_QUERY);
 
   return {
-    trigger: (input: AddDemonstrationInput) =>
-      triggerAddDemonstration({ variables: { input } }),
-    data: addDemonstrationData?.addDemonstration,
-    loading: addDemonstrationLoading,
-    error: addDemonstrationError,
+    trigger: async (input: AddDemonstrationInput) => {
+      try {
+        await trigger({ variables: { input } });
+      } catch {
+        // Error is already captured in the error state, no need to rethrow
+      }
+    },
+    data: data?.addDemonstration,
+    loading,
+    error,
   };
 };
 

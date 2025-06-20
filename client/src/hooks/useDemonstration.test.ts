@@ -84,13 +84,17 @@ describe("useDemonstration", () => {
 
     it("should handle error when adding demonstration", async () => {
       const { result } = renderUseDemonstrationHook();
+      const badAddDemonstrationInput: AddDemonstrationInput = {
+        name: "bad add demonstration",
+      } as AddDemonstrationInput;
 
-      result.current.addDemonstration.trigger({
-        demonstrationStatusId: "incomplete add demonstration input",
-      } as AddDemonstrationInput);
+      result.current.addDemonstration.trigger(badAddDemonstrationInput);
 
       await waitFor(() => {
         expect(result.current.addDemonstration.error).toBeDefined();
+        expect(result.current.addDemonstration.error!.message).toContain(
+          "Failed to add demonstration"
+        );
       });
 
       expect(result.current.addDemonstration.data).toBeUndefined();

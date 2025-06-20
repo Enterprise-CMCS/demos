@@ -61,4 +61,12 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { addDemonstration: testDemonstration },
     },
   },
+
+  {
+    request: {
+      query: ADD_DEMONSTRATION_QUERY,
+      variables: { input: { name: "bad add demonstration" } },
+    },
+    error: new Error("Failed to add demonstration"),
+  },
 ];
