@@ -1,34 +1,53 @@
 import { getAppMode } from "config/env";
 import { AuthProviderBaseProps } from "react-oidc-context";
+import { WebStorageStateStore } from "oidc-client-ts";
 
-export interface CognitoConfig extends AuthProviderBaseProps {
+// Replace the history state to remove the signin callback from the URL
+const onSigninCallback = (): void => {
+  window.history.replaceState({}, document.title, window.location.pathname);
+};
+
+interface BaseCognitoConfig extends AuthProviderBaseProps {
+  onSigninCallback: () => void;
+  automaticSilentRenew: boolean;
+  userStore?: WebStorageStateStore;
+  response_type: string;
+}
+
+export interface CognitoConfig extends BaseCognitoConfig {
   authority: string;
   client_id: string;
   redirect_uri: string;
   post_logout_redirect_uri: string;
   scope: string;
-  response_type: string;
   domain: string;
 }
 
+const BASE_COGNITO_CONFIG: BaseCognitoConfig = {
+  response_type: "code",
+  onSigninCallback: onSigninCallback,
+  automaticSilentRenew: true,
+  userStore: new WebStorageStateStore({ store: window.localStorage }),
+};
+
 export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
+  ...BASE_COGNITO_CONFIG,
   authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_A7CaR2Wo3",
   domain: "https://us-east-1a7car2wo3.auth.us-east-1.amazoncognito.com",
   client_id: "5km9thunj8g6qd32s5et2i8pga",
   post_logout_redirect_uri: "http://localhost:3000",
   redirect_uri: "http://localhost:3000",
-  response_type: "code",
   scope: "openid email phone",
 };
 
 // TODO: Revisit this when we know more about the deployment setup
 const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
+  ...BASE_COGNITO_CONFIG,
   authority: import.meta.env.VITE_COGNITO_AUTHORITY!,
-  domain: import.meta.env.VITE_REDIRECT_URI!,
+  domain: import.meta.env.VITE_COGNITO_DOMAIN!,
   client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,
   post_logout_redirect_uri: import.meta.env.BASE_URL,
   redirect_uri: import.meta.env.BASE_URL,
-  response_type: "code",
   scope: "openid email profile",
 };
 

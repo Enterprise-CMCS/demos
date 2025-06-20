@@ -20,9 +20,8 @@ interface ImportMetaEnv {
   readonly VITE_USE_MOCKS: EnvironmentVariable;
   // TODO: We may end up switching on mode to get these instead of individual vars
   readonly VITE_COGNITO_AUTHORITY: EnvironmentVariable;
-  readonly VITE_REDIRECT_URI: EnvironmentVariable;
+  readonly VITE_COGNITO_DOMAIN: EnvironmentVariable;
   readonly VITE_COGNITO_CLIENT_ID: EnvironmentVariable;
-  readonly VITE_APPLICATION_HOSTNAME: EnvironmentVariable;
 }
 
 interface ImportMeta {
