@@ -16,5 +16,8 @@ export default tseslint.config(
         { avoidEscape: true, allowTemplateLiterals: true },
       ],
     },
+    env: {
+      node: true,
+    },
   }
 );
