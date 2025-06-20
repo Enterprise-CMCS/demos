@@ -31,7 +31,7 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
   const [description, setDescription] = useState("");
   const [expirationError, setExpirationError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [formStatus, setFormStatus] = useState<"idle" | "loading">("idle");
+  const [formStatus, setFormStatus] = useState<"idle" | "pending">("idle");
 
   const isFormValid = state && title && projectOfficer;
   const { showSuccess, showError } = useToast();
@@ -50,20 +50,24 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
   };
 
   const handleSubmit = async () => {
-    setFormStatus("loading");
+    setFormStatus("pending");
 
-    const addDemonstrationResult = addDemonstration.trigger(
-      getAddDemonstrationInputFromModal()
-    );
+    try {
+      const result = await addDemonstration.trigger(
+        getAddDemonstrationInputFromModal()
+      );
 
-    if (addDemonstrationResult.error) {
-      showError(addDemonstrationResult.error.message);
+      if (result.data?.addDemonstration) {
+        showSuccess("Demonstration created successfully!");
+        onClose();
+      } else {
+        showError("Failed to create demonstration. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error creating demonstration:", error);
+      showError("Failed to create demonstration. Please try again.");
+    } finally {
       setFormStatus("idle");
-      return;
-    } else {
-      showSuccess("Demonstration created successfully!");
-      setFormStatus("idle");
-      onClose();
     }
   };
 
@@ -188,7 +192,7 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
             </SecondaryButton>
             <PrimaryButton
               size="small"
-              disabled={!isFormValid || formStatus === "loading"}
+              disabled={!isFormValid || formStatus === "pending"}
               onClick={() => {
                 if (!isFormValid) {
                   showError("Please complete all required fields.");
@@ -197,7 +201,7 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
                 handleSubmit();
               }}
             >
-              {formStatus === "loading" ? (
+              {formStatus === "pending" ? (
                 <svg
                   className="animate-spin h-2 w-2 text-white"
                   xmlns="http://www.w3.org/2000/svg"
