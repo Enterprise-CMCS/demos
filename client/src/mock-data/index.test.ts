@@ -16,8 +16,8 @@ describe("ALL_MOCKS", () => {
       return {
         query: print(mock.request.query),
         variables: mock.request.variables,
-        result: mock.result ?? null,
-        error: mock.error ?? null,
+        result: mock.result,
+        error: mock.error,
       };
     });
 

@@ -38,6 +38,11 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
   const { addDemonstration } = useDemonstration();
 
   const getAddDemonstrationInputFromModal = (): AddDemonstrationInput => {
+    // TODO: This will need updates when the backend is expecting the appropriate types
+    // related to this modal. The tests and types should catch what needs to change.
+    // A couple that come to mind:
+    // - We'll need a useState hook to resolve stateIds. No way to know what these are yet.
+    // - There's no Project Officer field on the backend yet and it's needed here.
     return {
       name: title,
       description,
@@ -45,7 +50,7 @@ export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
       evaluationPeriodEndDate: new Date(expirationDate),
       demonstrationStatusId: "1",
       stateId: state,
-      userIds: projectOfficer ? [projectOfficer] : [],
+      userIds: [projectOfficer],
     };
   };
 
