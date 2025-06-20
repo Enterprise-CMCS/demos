@@ -18,7 +18,8 @@
     "jwks-rsa": "^3.2.0",
     "prisma-extension-random": "^0.2.2",
     "@apollo/server": "^4.12.2",
-    "react": "^19.1.0"
+    "react": "^19.1.0",
+    "graphql-tools": "^9.0.18"
   },
   "scripts": {
     "build": "npm install; rm -rf dist; npx tsc",
@@ -43,7 +44,6 @@
     "eslint": "^9.27.0",
     "eslint-utils": "^3.0.0",
     "graphql": "^16.11.0",
-    "graphql-tools": "^9.0.18",
     "jest": "^29.7.0",
     "prettier": "^3.5.3",
     "prisma": "^6.6.0",

@@ -9,7 +9,7 @@ import { MockedProvider } from "@apollo/client/testing";
 import { ALL_MOCKS } from "mock-data";
 import { shouldUseMocks } from "config/env";
 
-const GRAPHQL_ENDPOINT = "/graphql";
+const GRAPHQL_ENDPOINT = import.meta.env.VITE_API_URL_PREFIX ?? "/graphql";
 
 const createApolloClient = (uri: string) => {
   return new ApolloClient({

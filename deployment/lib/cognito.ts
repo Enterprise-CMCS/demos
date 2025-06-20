@@ -19,6 +19,7 @@ export interface CognitoOutputs {
   userPool: aws_cognito.UserPool;
   createAuthRole: (restApiId: string) => void;
   authority: string;
+  domain: string;
 }
 
 export function create(props: CognitoProps): CognitoOutputs {
@@ -56,7 +57,7 @@ export function create(props: CognitoProps): CognitoOutputs {
     allowAdminCreateUserOnly: true,
   };
 
-  new aws_cognito.UserPoolDomain(props.scope, "UserPoolDomain", {
+  const domain = new aws_cognito.UserPoolDomain(props.scope, "UserPoolDomain", {
     userPool,
     cognitoDomain: {
       domainPrefix:
@@ -631,6 +632,7 @@ export function create(props: CognitoProps): CognitoOutputs {
     authority: `https://cognito-idp.${
       Stack.of(props.scope).region
     }.amazonaws.com/${userPool.userPoolId}`,
+    domain: domain.baseUrl()
   };
 }
 

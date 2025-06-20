@@ -6,12 +6,7 @@
     "test": "bin/test.js"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk",
-    "lint": "eslint ./",
-    "lint:fix": "eslint ./ --fix"
+    "deploy:core": "cdk deploy --context stage=dev demos-dev-core"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
@@ -31,6 +26,7 @@
     "@aws-sdk/client-secrets-manager": "^3.812.0",
     "aws-cdk-lib": "^2.197.0",
     "cdk-nag": "^2.35.105",
+    "chalk": "^5.4.1",
     "constructs": "^10.0.0"
   }
 }
