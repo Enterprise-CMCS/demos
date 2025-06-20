@@ -9,6 +9,8 @@ import { TextInput } from "components/input/TextInput";
 import { Modal } from "components/modal/Modal";
 import { useToast } from "components/toast/ToastContext";
 import { tw } from "tags/tw";
+import { useDemonstration } from "hooks/useDemonstration";
+import { AddDemonstrationInput } from "demos-server";
 
 const HEADER_CLASSES = tw`flex justify-between items-center px-4 py-1 pt-2 border-b border-border-rules`;
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -20,9 +22,7 @@ type Props = {
   onClose: () => void;
 };
 
-export const CreateNewModal: React.FC<Props> = ({
-  onClose,
-}) => {
+export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
   const [state, setState] = useState("");
   const [title, setTitle] = useState("");
   const [projectOfficer, setProjectOfficer] = useState("");
@@ -35,21 +35,36 @@ export const CreateNewModal: React.FC<Props> = ({
 
   const isFormValid = state && title && projectOfficer;
   const { showSuccess, showError } = useToast();
+  const { addDemonstration } = useDemonstration();
+
+  const getAddDemonstrationInputFromModal = (): AddDemonstrationInput => {
+    return {
+      name: title,
+      description,
+      evaluationPeriodStartDate: new Date(effectiveDate),
+      evaluationPeriodEndDate: new Date(expirationDate),
+      demonstrationStatusId: "1",
+      stateId: state,
+      userIds: projectOfficer ? [projectOfficer] : [],
+    };
+  };
 
   const handleSubmit = async () => {
     setFormStatus("loading");
 
-    setTimeout(() => {
-      const isSuccess = Math.random() > 0.2;
+    const addDemonstrationResult = addDemonstration.trigger(
+      getAddDemonstrationInputFromModal()
+    );
 
-      if (isSuccess) {
-        showSuccess("Demonstration created successfully.");
-      } else {
-        showError("Failed to create demonstration.");
-      }
-
-      setFormStatus("idle"); // always reset back to idle after toast
-    }, 2000);
+    if (addDemonstrationResult.error) {
+      showError(addDemonstrationResult.error.message);
+      setFormStatus("idle");
+      return;
+    } else {
+      showSuccess("Demonstration created successfully!");
+      setFormStatus("idle");
+      onClose();
+    }
   };
 
   return (
@@ -123,9 +138,10 @@ export const CreateNewModal: React.FC<Props> = ({
               <input
                 id="expiration-date"
                 type="date"
-                className={`${DATE_INPUT_CLASSES} ${expirationError
-                  ? "border-border-warn focus:ring-border-warn"
-                  : "border-border-fields focus:ring-border-focus"
+                className={`${DATE_INPUT_CLASSES} ${
+                  expirationError
+                    ? "border-border-warn focus:ring-border-warn"
+                    : "border-border-fields focus:ring-border-focus"
                 }`}
                 value={expirationDate}
                 min={effectiveDate || undefined}
@@ -223,10 +239,7 @@ export const CreateNewModal: React.FC<Props> = ({
               >
                 No
               </SecondaryButton>
-              <ErrorOutlinedButton
-                size="small"
-                onClick={onClose}
-              >
+              <ErrorOutlinedButton size="small" onClick={onClose}>
                 Yes
               </ErrorOutlinedButton>
             </div>

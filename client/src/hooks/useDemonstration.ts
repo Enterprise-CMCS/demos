@@ -1,4 +1,9 @@
-import { useLazyQuery, useMutation, ApolloError } from "@apollo/client";
+import {
+  useLazyQuery,
+  useMutation,
+  ApolloError,
+  FetchResult,
+} from "@apollo/client";
 import { Demonstration, AddDemonstrationInput } from "demos-server";
 import {
   ADD_DEMONSTRATION_QUERY,
@@ -21,7 +26,9 @@ interface GetDemonstrationByIdOperation {
 }
 
 interface AddDemonstrationOperation {
-  trigger: (input: AddDemonstrationInput) => void;
+  trigger: (
+    input: AddDemonstrationInput
+  ) => Promise<FetchResult<{ addDemonstration: Demonstration }>>;
   data?: Demonstration;
   loading: boolean;
   error?: ApolloError;
@@ -65,8 +72,8 @@ const createAddDemonstrationHook = (): AddDemonstrationOperation => {
   }>(ADD_DEMONSTRATION_QUERY);
 
   return {
-    trigger: (input: AddDemonstrationInput) =>
-      trigger({ variables: { input } }),
+    trigger: async (input: AddDemonstrationInput) =>
+      await trigger({ variables: { input } }),
     data: data?.addDemonstration,
     loading,
     error,
