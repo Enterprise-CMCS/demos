@@ -58,7 +58,7 @@ export const demonstrationMocks: MockedResponse[] = [
       variables: { input: mockAddDemonstrationInput },
     },
     result: {
-      data: { demonstration: testDemonstration },
+      data: { addDemonstration: testDemonstration },
     },
   },
 ];

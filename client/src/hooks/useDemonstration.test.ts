@@ -75,12 +75,10 @@ describe("useDemonstration", () => {
 
       await waitFor(() => {
         expect(result.current.addDemonstration.data).toBeDefined();
-        const actualDemonstration = result.current.addDemonstration.data!;
-
-        expect(actualDemonstration?.description).toEqual(
-          expectedDemonstration.description
-        );
       });
+
+      const actualDemonstration = result.current.addDemonstration.data!;
+      expect(actualDemonstration.name).toEqual(expectedDemonstration.name);
       expect(result.current.addDemonstration.error).toBeUndefined();
     });
 
