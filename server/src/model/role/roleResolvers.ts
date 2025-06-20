@@ -1,6 +1,6 @@
 import { Role } from "@prisma/client";
-import { prisma } from "../../prismaClient";
-import { AddRoleInput, UpdateRoleInput } from "./roleSchema";
+import { prisma } from "../../prismaClient.js";
+import { AddRoleInput, UpdateRoleInput } from "./roleSchema.js";
 
 export const roleResolvers = {
   Query: {

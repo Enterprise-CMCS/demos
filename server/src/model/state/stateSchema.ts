@@ -1,6 +1,6 @@
 import { gql } from "graphql-tag";
-import { Demonstration } from "../demonstration/demonstrationSchema";
-import { User } from "../user/userSchema";
+import { Demonstration } from "../demonstration/demonstrationSchema.js";
+import { User } from "../user/userSchema.js";
 
 export const stateSchema = gql`
   type State {
