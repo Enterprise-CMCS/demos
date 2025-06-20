@@ -88,7 +88,11 @@ describe("useDemonstration", () => {
         name: "bad add demonstration",
       } as AddDemonstrationInput;
 
-      result.current.addDemonstration.trigger(badAddDemonstrationInput);
+      try {
+        await result.current.addDemonstration.trigger(badAddDemonstrationInput);
+      } catch {
+        // Error should be captured in state, not thrown
+      }
 
       await waitFor(() => {
         expect(result.current.addDemonstration.error).toBeDefined();

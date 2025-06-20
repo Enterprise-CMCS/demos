@@ -65,13 +65,8 @@ const createAddDemonstrationHook = (): AddDemonstrationOperation => {
   }>(ADD_DEMONSTRATION_QUERY);
 
   return {
-    trigger: async (input: AddDemonstrationInput) => {
-      try {
-        await trigger({ variables: { input } });
-      } catch {
-        // Error is already captured in the error state, no need to rethrow
-      }
-    },
+    trigger: (input: AddDemonstrationInput) =>
+      trigger({ variables: { input } }),
     data: data?.addDemonstration,
     loading,
     error,
