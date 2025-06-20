@@ -2,6 +2,7 @@ import React from "react";
 import { useUserOperations } from "hooks/useUserOperations";
 import { PrimaryButton } from "components/button/PrimaryButton";
 import { TextInput } from "components";
+import { Collapsible } from "components/collapsible/Collapsible";
 
 const TestUserOperationsHook: React.FC = () => {
   const userOperations = useUserOperations();
@@ -56,4 +57,12 @@ const TestUserOperationsHook: React.FC = () => {
   );
 };
 
-export const TestHooks: React.FC = () => <TestUserOperationsHook />;
+export const TestHooks: React.FC = () => {
+  return (
+    <div className="flex flex-col gap-md">
+      <Collapsible title="Test User Operations Hook">
+        <TestUserOperationsHook />
+      </Collapsible>
+    </div>
+  );
+};

@@ -9,6 +9,8 @@ import { TextInput } from "components/input/TextInput";
 import { Modal } from "components/modal/Modal";
 import { useToast } from "components/toast/ToastContext";
 import { tw } from "tags/tw";
+import { useDemonstration } from "hooks/useDemonstration";
+import { AddDemonstrationInput } from "demos-server";
 
 const HEADER_CLASSES = tw`flex justify-between items-center px-4 py-1 pt-2 border-b border-border-rules`;
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -20,9 +22,7 @@ type Props = {
   onClose: () => void;
 };
 
-export const CreateNewModal: React.FC<Props> = ({
-  onClose,
-}) => {
+export const CreateNewModal: React.FC<Props> = ({ onClose }) => {
   const [state, setState] = useState("");
   const [title, setTitle] = useState("");
   const [projectOfficer, setProjectOfficer] = useState("");
@@ -31,25 +31,49 @@ export const CreateNewModal: React.FC<Props> = ({
   const [description, setDescription] = useState("");
   const [expirationError, setExpirationError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [formStatus, setFormStatus] = useState<"idle" | "loading">("idle");
+  const [formStatus, setFormStatus] = useState<"idle" | "pending">("idle");
 
   const isFormValid = state && title && projectOfficer;
   const { showSuccess, showError } = useToast();
+  const { addDemonstration } = useDemonstration();
+
+  const getAddDemonstrationInputFromModal = (): AddDemonstrationInput => {
+    // TODO: This will need updates when the backend is expecting the appropriate types
+    // related to this modal. The tests and types should catch what needs to change.
+    // A couple that come to mind:
+    // - We'll need a useState hook to resolve stateIds. No way to know what these are yet.
+    // - There's no Project Officer field on the backend yet and it's needed here.
+    return {
+      name: title,
+      description,
+      evaluationPeriodStartDate: new Date(effectiveDate),
+      evaluationPeriodEndDate: new Date(expirationDate),
+      demonstrationStatusId: "1",
+      stateId: state,
+      userIds: [projectOfficer],
+    };
+  };
 
   const handleSubmit = async () => {
-    setFormStatus("loading");
+    setFormStatus("pending");
 
-    setTimeout(() => {
-      const isSuccess = Math.random() > 0.2;
+    try {
+      const result = await addDemonstration.trigger(
+        getAddDemonstrationInputFromModal()
+      );
 
-      if (isSuccess) {
-        showSuccess("Demonstration created successfully.");
+      if (result.data?.addDemonstration) {
+        showSuccess("Demonstration created successfully!");
+        onClose();
       } else {
-        showError("Failed to create demonstration.");
+        showError("Failed to create demonstration. Please try again.");
       }
-
-      setFormStatus("idle"); // always reset back to idle after toast
-    }, 2000);
+    } catch (error) {
+      console.error("Error creating demonstration:", error);
+      showError("Failed to create demonstration. Please try again.");
+    } finally {
+      setFormStatus("idle");
+    }
   };
 
   return (
@@ -123,9 +147,10 @@ export const CreateNewModal: React.FC<Props> = ({
               <input
                 id="expiration-date"
                 type="date"
-                className={`${DATE_INPUT_CLASSES} ${expirationError
-                  ? "border-border-warn focus:ring-border-warn"
-                  : "border-border-fields focus:ring-border-focus"
+                className={`${DATE_INPUT_CLASSES} ${
+                  expirationError
+                    ? "border-border-warn focus:ring-border-warn"
+                    : "border-border-fields focus:ring-border-focus"
                 }`}
                 value={expirationDate}
                 min={effectiveDate || undefined}
@@ -172,7 +197,7 @@ export const CreateNewModal: React.FC<Props> = ({
             </SecondaryButton>
             <PrimaryButton
               size="small"
-              disabled={!isFormValid || formStatus === "loading"}
+              disabled={!isFormValid || formStatus === "pending"}
               onClick={() => {
                 if (!isFormValid) {
                   showError("Please complete all required fields.");
@@ -181,7 +206,7 @@ export const CreateNewModal: React.FC<Props> = ({
                 handleSubmit();
               }}
             >
-              {formStatus === "loading" ? (
+              {formStatus === "pending" ? (
                 <svg
                   className="animate-spin h-2 w-2 text-white"
                   xmlns="http://www.w3.org/2000/svg"
@@ -223,10 +248,7 @@ export const CreateNewModal: React.FC<Props> = ({
               >
                 No
               </SecondaryButton>
-              <ErrorOutlinedButton
-                size="small"
-                onClick={onClose}
-              >
+              <ErrorOutlinedButton size="small" onClick={onClose}>
                 Yes
               </ErrorOutlinedButton>
             </div>
