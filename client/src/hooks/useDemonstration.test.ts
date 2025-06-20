@@ -4,6 +4,7 @@ import { AddDemonstrationInput } from "demos-server";
 import { testDemonstration } from "mock-data/demonstrationMocks";
 import { california } from "mock-data/stateMocks";
 import { johnDoe } from "mock-data/userMocks";
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 const mockAddDemonstrationInput: AddDemonstrationInput = {
   name: "New Demonstration",
@@ -15,10 +16,16 @@ const mockAddDemonstrationInput: AddDemonstrationInput = {
   userIds: [johnDoe.id],
 };
 
+const renderUseDemonstrationHook = () => {
+  return renderHook(() => useDemonstration(), {
+    wrapper: DemosApolloProvider,
+  });
+};
+
 describe("useDemonstration", () => {
   describe("getAllDemonstrations", () => {
     it("should fetch all demonstrations successfully", async () => {
-      const { result } = renderHook(() => useDemonstration());
+      const { result } = renderUseDemonstrationHook();
 
       expect(result.current.getAllDemonstrations.loading).toBe(false);
       expect(result.current.getAllDemonstrations.data).toBeUndefined();
@@ -26,17 +33,15 @@ describe("useDemonstration", () => {
       result.current.getAllDemonstrations.trigger();
 
       await waitFor(() => {
-        expect(result.current.getAllDemonstrations.data).toEqual(
-          testDemonstration
-        );
+        expect(result.current.getAllDemonstrations.data).toEqual([
+          testDemonstration,
+        ]);
       });
       expect(result.current.getAllDemonstrations.error).toBeUndefined();
     });
 
     it("should handle error when fetching all demonstrations", async () => {
-      const errorMessage = "Failed to fetch demonstrations";
-
-      const { result } = renderHook(() => useDemonstration());
+      const { result } = renderUseDemonstrationHook();
 
       result.current.getAllDemonstrations.trigger();
       await waitFor(() => {
@@ -51,7 +56,7 @@ describe("useDemonstration", () => {
     it("should fetch demonstration by id successfully", async () => {
       const demonstrationId = "1";
 
-      const { result } = renderHook(() => useDemonstration());
+      const { result } = renderUseDemonstrationHook();
 
       result.current.getDemonstrationById.trigger(demonstrationId);
 
@@ -64,12 +69,9 @@ describe("useDemonstration", () => {
     });
 
     it("should handle error when fetching demonstration by id", async () => {
-      const demonstrationId = "1";
-      const errorMessage = "Demonstration not found";
+      const { result } = renderUseDemonstrationHook();
 
-      const { result } = renderHook(() => useDemonstration());
-
-      result.current.getDemonstrationById.trigger(demonstrationId);
+      result.current.getDemonstrationById.trigger("fakeID");
 
       await waitFor(() => {
         expect(result.current.getDemonstrationById.error).toBeDefined();
@@ -81,7 +83,7 @@ describe("useDemonstration", () => {
 
   describe("addDemonstration", () => {
     it("should add demonstration successfully", async () => {
-      const { result } = renderHook(() => useDemonstration());
+      const { result } = renderUseDemonstrationHook();
 
       expect(result.current.addDemonstration.loading).toBe(false);
       expect(result.current.addDemonstration.data).toBeUndefined();
@@ -95,9 +97,7 @@ describe("useDemonstration", () => {
     });
 
     it("should handle error when adding demonstration", async () => {
-      const errorMessage = "Failed to add demonstration";
-
-      const { result } = renderHook(() => useDemonstration());
+      const { result } = renderUseDemonstrationHook();
 
       result.current.addDemonstration.trigger(mockAddDemonstrationInput);
 
@@ -111,7 +111,7 @@ describe("useDemonstration", () => {
 
   describe("initial state", () => {
     it("should have correct initial state for all operations", () => {
-      const { result } = renderHook(() => useDemonstration());
+      const { result } = renderUseDemonstrationHook();
 
       // Check initial state for all operations
       expect(result.current.getAllDemonstrations.loading).toBe(false);
