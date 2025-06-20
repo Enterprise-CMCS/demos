@@ -6,7 +6,11 @@
     "test": "bin/test.js"
   },
   "scripts": {
-    "deploy:core": "cdk deploy --context stage=dev demos-dev-core"
+    "diff:core": "cdk diff --context stage=dev demos-dev-core",
+    "deploy:core": "cdk deploy --context stage=dev demos-dev-core",
+    "deploy:core:output": "cdk deploy --context stage=dev demos-dev-core --outputs-file core-outputs.json",
+    "diff": "cdk diff --context stage=dev --all --no-change-set",
+    "deploy": "cdk deploy --context stage=dev --all --no-change-set --require-approval=never"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
@@ -23,6 +27,7 @@
     "typescript-eslint": "^8.32.1"
   },
   "dependencies": {
+    "@aws-sdk/client-ec2": "^3.830.0",
     "@aws-sdk/client-secrets-manager": "^3.812.0",
     "aws-cdk-lib": "^2.197.0",
     "cdk-nag": "^2.35.105",

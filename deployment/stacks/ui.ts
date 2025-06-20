@@ -90,15 +90,15 @@ export class UiStack extends Stack {
     // WAF
     //
 
-    const prefixListEntries = execSync(
-      `aws ec2 get-managed-prefix-list-entries --prefix-list-id $(aws ec2 describe-managed-prefix-lists --filters "Name=prefix-list-name,Values=zscaler" --query 'PrefixLists[0].PrefixListId' --output text) --output json --query "Entries[*].Cidr"`
-    );
+    // const prefixListEntries = execSync(
+    //   `aws ec2 get-managed-prefix-list-entries --prefix-list-id $(aws ec2 describe-managed-prefix-lists --filters "Name=prefix-list-name,Values=zscaler" --query 'PrefixLists[0].PrefixListId' --output text) --output json --query "Entries[*].Cidr"`
+    // );
 
     const ipSet = new aws_wafv2.CfnIPSet(commonProps.scope, "cloudfrontWaf", {
       name: "AllowVPNIps",
       scope: "CLOUDFRONT",
       ipAddressVersion: "IPV4",
-      addresses: JSON.parse(prefixListEntries.toString()),
+      addresses: commonProps.zScalerIps,
     });
 
     const webAcl = new aws_wafv2.CfnWebACL(

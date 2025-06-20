@@ -1,0 +1,80 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node", "aws-cli"])
+    }
+  }
+
+  environment {
+    NO_COLOR = 1
+  }
+  
+  stages {
+    stage('Build & Test') {
+      failFast true
+      parallel {
+        stage('Builds') {
+          steps {
+            dir('deployment') {
+              script {
+                assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+                container('node') {
+                  sh '''
+                  mkdir ../client/dist
+                  mkdir ../server/dist
+                  npm ci
+                  node build.js dev deploy:core
+                  '''
+                }
+              }
+            }
+            script {
+              parallel(
+              'Build Client': {
+                container('node') {
+                  dir('deployment') {
+                    sh '''
+                    node build.js dev build:client
+                    '''
+                  }
+                }
+              }, 'Build Server': {
+                container('node') {
+                  dir('deployment') {
+                    sh '''
+                    node build.js dev build:server
+                    '''
+                  }
+                }
+              }
+              )
+            }
+          }
+        }
+        stage('Test Client') {
+          steps {
+            build(job: "Sonar Scan/$BRANCH_NAME", propagate: true, wait: true)
+          }
+        }
+        stage('Test Server') {
+          steps {
+            build(job: "Server/$BRANCH_NAME", propagate: true, wait: true)
+          }
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+        dir('deployment') {
+          script {
+            container('node') {
+              sh '''
+              node build.js dev deploy:all
+              '''
+            }
+          }
+        }
+      }
+    }
+  }
+}

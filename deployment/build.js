@@ -84,85 +84,84 @@ function runShell(name, sh, opts) {
   });
 }
 
-async function main() {
-  const coreOutputCmd = await runCommand("core-deploy", "cdk", [
-    "deploy",
-    "--context",
-    "stage=dev",
-    "demos-dev-core",
-    "--outputs-file",
-    "core-outputs.json",
-  ]);
-
-  if (coreOutputCmd != 0) {
-    process.stderr.write(
-      `core output command failed with code ${coreOutputCmd}`
-    );
-    process.exit(coreOutputCmd);
-  }
-
-  const coreOutputs = fs.readFileSync("core-outputs.json", "utf8");
-  const coreOutputData = JSON.parse(coreOutputs);
-
+async function buildClient(environment) {
   const clientPath = path.join("..", "client");
 
-  const uiBuildCmd = runShell(
-    "ui-build",
-    "source ~/.nvm/nvm.sh && nvm use && npm ci && npm run build",
-    {
-      cwd: clientPath,
-      env: {
-        VITE_COGNITO_AUTHORITY:
-          coreOutputData["demos-dev-core"].cognitoAuthority,
-        VITE_COGNITO_DOMAIN: coreOutputData["demos-dev-core"].cognitoDomain,
-        VITE_COGNITO_CLIENT_ID:
-          coreOutputData["demos-dev-core"].cognitoClientId,
-        VITE_BASE_URL: coreOutputData["demos-dev-core"].baseUrl,
-        VITE_API_URL_PREFIX: "/api/graphql",
-      },
-    }
-  );
+  const coreOutputData = readCoreOutputs();
 
+  await runShell("client-build", "npm ci && npm run build", {
+    cwd: clientPath,
+    env: {
+      ...process.env,
+      VITE_COGNITO_AUTHORITY: coreOutputData[`demos-${environment}-core`].cognitoAuthority,
+      VITE_COGNITO_DOMAIN: coreOutputData[`demos-${environment}-core`].cognitoDomain,
+      VITE_COGNITO_CLIENT_ID: coreOutputData[`demos-${environment}-core`].cognitoClientId,
+      VITE_BASE_URL: coreOutputData[`demos-${environment}-core`].baseUrl,
+      VITE_API_URL_PREFIX: "/api/graphql",
+    },
+  });
+}
+
+async function buildServer() {
   const serverPath = path.join("..", "server");
-  const serverBuildCmd = runShell(
-    "server-build",
-    "source ~/.nvm/nvm.sh && nvm use && npm ci && npm run build:ci",
-    {
-      cwd: serverPath,
-    }
-  );
+  await runShell("server-build", "npm run build:ci", {
+    cwd: serverPath,
+  });
+}
 
-  const uiBuildResult = await uiBuildCmd;
-  const serverBuildResult = await serverBuildCmd;
+async function getCoreOutputs(environment) {
+  const coreOutputCmd = await runCommand("core-deploy", "npm", ["run", "deploy:core:output"]);
 
-  if (uiBuildResult != 0) {
-    process.stderr.write(`ui build command failed with code ${uiBuildResult}`);
-    process.exit(uiBuildResult);
+  if (coreOutputCmd != 0) {
+    process.stderr.write(`core output command failed with code ${coreOutputCmd}`);
+    process.exit(coreOutputCmd);
   }
+  return readCoreOutputs();
+}
 
-  if (serverBuildResult != 0) {
-    process.stderr.write(
-      `server build command failed with code ${serverBuildResult}`
-    );
-    process.exit(serverBuildResult);
-  }
+function readCoreOutputs(fileName = "core-outputs.json") {
+  const coreOutputs = fs.readFileSync(fileName, "utf8");
+  const coreOutputData = JSON.parse(coreOutputs);
+  return coreOutputData;
+}
 
-  const completeDeployCmd = await runCommand("deploy-all", "cdk", [
-    "deploy",
-    "--context",
-    "stage=dev",
-    "--all",
-    "--no-change-set",
-  ]);
+async function fullDeploy() {
+  const completeDeployCmd = await runCommand("deploy-all", "npm", ["run", "deploy"]);
 
   if (completeDeployCmd != 0) {
-    process.stderr.write(
-      `complete deploy command failed with code ${completeDeployCmd}`
-    );
+    process.stderr.write(`complete deploy command failed with code ${completeDeployCmd}`);
     process.exit(completeDeployCmd);
   }
 
-  process.stdout.write(`complete deploy command succeeded`);
+  process.stdout.write(`\n======\ncomplete deploy command succeeded\n======\n`);
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  if (args.length < 2) {
+    console.log("environment and command must be specified");
+    process.exit(1);
+  }
+
+  const environment = args[0];
+  const command = args[1];
+  switch (command) {
+    case "build:client":
+      await buildClient(environment);
+      break;
+    case "build:server":
+      await buildServer(environment);
+      break;
+    case "deploy:core":
+      await getCoreOutputs(environment);
+      break;
+    case "deploy:all":
+      await fullDeploy(environment);
+      break;
+    default:
+      console.log(`Unknown command: ${command}`);
+      process.exit(1);
+  }
 }
 
 main();

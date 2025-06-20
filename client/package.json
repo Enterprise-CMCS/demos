@@ -69,5 +69,9 @@
     "@testing-library/user-event": "^14.6.1",
     "react-oidc-context": "^3.3.0",
     "react-router-dom": "^7.5.2"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-musl": "^4.44.0",
+    "lightningcss": "^1.30.1"
   }
 }
