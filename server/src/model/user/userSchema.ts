@@ -1,5 +1,5 @@
 import { gql } from "graphql-tag";
-import { Role } from "../role/roleSchema";
+import { Role } from "../role/roleSchema.js";
 
 export const userSchema = gql`
   type User {

@@ -2,6 +2,7 @@ import { Collapsible } from "components/collapsible/Collapsible";
 import { InputSandbox } from "components/input";
 import { ButtonGrid } from "components/button";
 import { RadioGroupSandbox } from "components/radioGroup";
+import { CheckboxGroupSandbox } from "components/checkboxGroup";
 import { ToastDemo } from "./ToastDemo";
 import React from "react";
 
@@ -20,6 +21,9 @@ export const ComponentLibrary: React.FC = () => {
       </Collapsible>
       <Collapsible title="Toast Components (Click to expand)">
         <ToastDemo />
+      </Collapsible>
+      <Collapsible title="Checkbox Group Sandbox (Click to expand)">
+        <CheckboxGroupSandbox />
       </Collapsible>
     </>
   );

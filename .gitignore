@@ -1,6 +1,7 @@
 **/.vscode/**
 **/.DS_Store
 **/dist/**
+**/build/**
 **/node_modules/**
 
 cdk.out/
