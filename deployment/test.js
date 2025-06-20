@@ -85,7 +85,8 @@ function runShell(name, sh, opts) {
 }
 
 async function main() {
-  const coreOutputCmd = await runCommand("core-deploy", "cdk", [
+  const coreOutputCmd = await runCommand("core-deploy", "npx", [
+    "cdk",
     "deploy",
     "--context",
     "stage=dev",
@@ -106,27 +107,21 @@ async function main() {
 
   const clientPath = path.join("..", "client");
 
-  const uiBuildCmd = runShell(
-    "ui-build",
-    "source ~/.nvm/nvm.sh && nvm use && npm ci && npm run build",
-    {
-      cwd: clientPath,
-      env: {
-        VITE_COGNITO_AUTHORITY:
-          coreOutputData["demos-dev-core"].cognitoAuthority,
-        VITE_COGNITO_DOMAIN: coreOutputData["demos-dev-core"].cognitoDomain,
-        VITE_COGNITO_CLIENT_ID:
-          coreOutputData["demos-dev-core"].cognitoClientId,
-        VITE_BASE_URL: coreOutputData["demos-dev-core"].baseUrl,
-        VITE_API_URL_PREFIX: "/api/graphql",
-      },
-    }
-  );
+  const uiBuildCmd = runShell("ui-build", "npm ci && npm run build", {
+    cwd: clientPath,
+    env: {
+      VITE_COGNITO_AUTHORITY: coreOutputData["demos-dev-core"].cognitoAuthority,
+      VITE_COGNITO_DOMAIN: coreOutputData["demos-dev-core"].cognitoDomain,
+      VITE_COGNITO_CLIENT_ID: coreOutputData["demos-dev-core"].cognitoClientId,
+      VITE_BASE_URL: coreOutputData["demos-dev-core"].baseUrl,
+      VITE_API_URL_PREFIX: "/api/graphql",
+    },
+  });
 
   const serverPath = path.join("..", "server");
   const serverBuildCmd = runShell(
     "server-build",
-    "source ~/.nvm/nvm.sh && nvm use && npm ci && npm run build:ci",
+    "npm ci && npm run build:ci",
     {
       cwd: serverPath,
     }
@@ -148,7 +143,7 @@ async function main() {
   }
 
   const completeDeployCmd = await runCommand("deploy-all", "cdk", [
-    "deploy",
+    "diff",
     "--context",
     "stage=dev",
     "--all",

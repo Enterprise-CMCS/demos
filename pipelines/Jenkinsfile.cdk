@@ -1,0 +1,53 @@
+pipeline {
+  agent {
+    kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins-role
+  restartPolicy: Never
+  containers:
+  # Add more containers to complete the job
+  - name: node
+    image: artifactory.cloud.cms.gov/docker/node:22-alpine
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        cpu: 750m
+        memory: 2Gi
+      limits:
+        cpu: 750m
+        memory: 2Gi
+  - name: aws-cli
+    image: artifactory.cloud.cms.gov/docker/amazon/aws-cli:latest
+    command:
+    - cat
+    tty: true
+"""
+}}
+
+
+    stages {
+        stage('AWS Test') {
+            steps {
+                dir("deployment") {
+                script {
+                  assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+                  container('node') {
+                      sh """
+                      mkdir ../client/dist
+                      mkdir ../server/dist
+                      npm ci
+                      NO_COLOR=1 node test.js || true
+                      cat core-outputs.json
+                      """
+                  }
+                }
+              }
+            }
+        }
+    }
+}
