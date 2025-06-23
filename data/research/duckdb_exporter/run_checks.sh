@@ -9,14 +9,9 @@ echo "======"
 pytest -c ../../pyproject.toml --cov-config=../../pyproject.toml
 
 echo ""
-echo "pydocstyle"
-echo "=========="
-pydocstyle --config=../../pyproject.toml .
-
-echo ""
 echo "pydoclint"
 echo "========="
-pydoclint --config=../../pyproject.toml .
+pydoclint -q --config=../../pyproject.toml .
 
 echo ""
 echo "mypy"

@@ -56,8 +56,6 @@ pre-commit==4.2.0
     # via -r requirements.in
 pydoclint==0.6.6
     # via -r requirements.in
-pydocstyle==6.3.0
-    # via -r requirements.in
 pygments==2.19.1
     # via pytest
 pyproject-hooks==1.2.0
@@ -86,8 +84,6 @@ ruff==0.11.13
     # via -r requirements.in
 six==1.17.0
     # via mando
-snowballstemmer==3.0.1
-    # via pydocstyle
 typing-extensions==4.14.0
     # via mypy
 virtualenv==20.31.2
