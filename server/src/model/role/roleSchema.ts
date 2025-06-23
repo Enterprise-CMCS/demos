@@ -1,6 +1,6 @@
 import { gql } from "graphql-tag";
-import { User } from "../user/userSchema";
-import { Permission } from "../permission/permissionSchema";
+import { User } from "../user/userSchema.js";
+import { Permission } from "../permission/permissionSchema.js";
 
 export const roleSchema = gql`
   type Role {

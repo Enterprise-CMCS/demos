@@ -13,7 +13,8 @@
       "components/*": ["components/*"],
       "pages/*": ["pages/*"],
       "hooks/*": ["hooks/*"],
-      "mock-data/*": ["mock-data/*"]
+      "mock-data/*": ["mock-data/*"],
+      "queries/*": ["queries/*"]
     }
   },
   "exclude": ["node_modules"]

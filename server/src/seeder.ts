@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { prisma } from "./prismaClient";
+import { prisma } from "./prismaClient.js";
 
 function checkIfAllowed() {
   if(process.env.ALLOW_SEED !== "true") {

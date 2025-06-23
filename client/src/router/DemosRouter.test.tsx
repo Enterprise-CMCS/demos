@@ -13,6 +13,7 @@ vi.mock("react-oidc-context", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
+  useAuth: vi.fn(() => ({})),
 }));
 
 // Mock Apollo MockedProvider to just render children

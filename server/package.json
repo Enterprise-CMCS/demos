@@ -11,27 +11,28 @@
     "schema": "./src/model"
   },
   "dependencies": {
+    "@apollo/server": "^4.12.2",
     "@as-integrations/aws-lambda": "^3.1.0",
     "@prisma/client": "^6.7.0",
     "graphql-scalars": "^1.24.2",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.0",
     "prisma-extension-random": "^0.2.2",
-    "@apollo/server": "^4.12.2",
     "react": "^19.1.0"
   },
   "scripts": {
-    "build": "npm install; rm -rf dist; npx tsc",
-    "build:ci": "npm ci; npx prisma generate; rm -rf dist; npx tsc -p ./tsconfig-ci.json; npm ci --omit=dev; cp -R node_modules dist",
-    "dev": "npm run build && node ./dist/index.js",
+    "clean": "rm -rf dist; npm ci",
+    "build": "tsc; esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify",
+    "build:ci": "npm ci; prisma generate; rm -rf dist; tsc -p ./tsconfig-ci.json; npm ci --omit=dev; cp -R node_modules dist",
+    "dev": "node ./dist/index.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "watch": "concurrently \"tsx watch --clear-screen=false src/index.ts\" \"npx prisma generate --watch\"",
+    "watch": "concurrently \"tsx watch --clear-screen=false src/index.ts\" \"prisma generate --watch\"",
     "seed": "ALLOW_SEED=true tsx --inspect ./src/seeder.ts",
-    "seed:fresh": "npx prisma db push --force-reset && tsx --inspect ./src/seeder.ts",
-    "migrate:empty": "npx prisma migrate dev --create-only",
-    "migrate:reset": "npx prisma migrate reset --force",
-    "depcheck": "npx depcheck"
+    "seed:fresh": "prisma db push --force-reset && tsx --inspect ./src/seeder.ts",
+    "migrate:empty": "prisma migrate dev --create-only",
+    "migrate:reset": "prisma migrate reset --force",
+    "depcheck": "depcheck"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
@@ -43,6 +44,7 @@
     "artillery": "^2.0.23",
     "concurrently": "^9.1.2",
     "depcheck": "^1.4.7",
+    "esbuild": "^0.25.5",
     "eslint": "^9.27.0",
     "eslint-utils": "^3.0.0",
     "graphql": "^16.11.0",
@@ -51,6 +53,7 @@
     "prettier": "^3.5.3",
     "prisma": "^6.6.0",
     "ts-jest": "^29.3.3",
+    "tsc-watch": "^7.1.1",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"

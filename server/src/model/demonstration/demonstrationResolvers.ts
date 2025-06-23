@@ -1,9 +1,9 @@
 import { Demonstration } from "@prisma/client";
-import { prisma } from "../../prismaClient";
+import { prisma } from "../../prismaClient.js";
 import {
   AddDemonstrationInput,
   UpdateDemonstrationInput,
-} from "./demonstrationSchema";
+} from "./demonstrationSchema.js";
 
 export const demonstrationResolvers = {
   Query: {

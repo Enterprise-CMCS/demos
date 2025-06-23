@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm
 
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive  && apt-get -y install python3 python3-pip && pip3 install pre-commit --break-system-packages
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive  && apt-get -y install python3 python3-pip python-is-python3 && pip3 install pre-commit --break-system-packages
 
 # [Optional] Uncomment if you want to install an additional version of node using nvm
 # ARG EXTRA_NODE_VERSION=10
