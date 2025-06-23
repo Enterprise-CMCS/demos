@@ -2,28 +2,28 @@ CREATE OR REPLACE FUNCTION log_changes_role_permission()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO role_permission_history (
             revision_type,
             role_id,
             permission_id
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.role_id,
             NEW.permission_id
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO role_permission_history (
             revision_type,
             role_id,
             permission_id
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.role_id,
             OLD.permission_id
         );
@@ -48,8 +48,8 @@ BEGIN
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.user_id,
             NEW.role_id
@@ -62,7 +62,7 @@ BEGIN
             role_id
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.user_id,
             OLD.role_id
         );
@@ -80,28 +80,28 @@ CREATE OR REPLACE FUNCTION log_changes_user_state()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO user_state_history (
             revision_type,
             user_id,
             state_id
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.user_id,
             NEW.state_id
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO user_state_history (
             revision_type,
             user_id,
             state_id
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.user_id,
             OLD.state_id
         );
@@ -119,7 +119,7 @@ CREATE OR REPLACE FUNCTION log_changes_user_state_demonstration()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO user_state_demonstration_history (
             revision_type,
             user_id,
             state_id,
@@ -127,8 +127,8 @@ BEGIN
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.user_id,
             NEW.state_id,
@@ -136,14 +136,14 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO user_state_demonstration_history (
             revision_type,
             user_id,
             state_id,
             demonstration_id
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.user_id,
             OLD.state_id,
             OLD.demonstration_id
@@ -162,7 +162,7 @@ CREATE OR REPLACE FUNCTION log_changes_demonstration()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO demonstration_history (
             revision_type,
             id,
             name,
@@ -176,8 +176,8 @@ BEGIN
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.id,
             NEW.name,
@@ -191,7 +191,7 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO demonstration_history (
             revision_type,
             id,
             name,
@@ -204,7 +204,7 @@ BEGIN
             state_id
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.id,
             OLD.name,
             OLD.description,
@@ -229,7 +229,7 @@ CREATE OR REPLACE FUNCTION log_changes_demonstration_status()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO demonstration_status_history (
             revision_type,
             id,
             name,
@@ -239,8 +239,8 @@ BEGIN
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.id,
             NEW.name,
@@ -250,7 +250,7 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO demonstration_status_history (
             revision_type,
             id,
             name,
@@ -259,7 +259,7 @@ BEGIN
             updated_at
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.id,
             OLD.name,
             OLD.description,
@@ -280,7 +280,7 @@ CREATE OR REPLACE FUNCTION log_changes_permission()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO permission_history (
             revision_type,
             id,
             name,
@@ -290,8 +290,8 @@ BEGIN
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.id,
             NEW.name,
@@ -301,7 +301,7 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO permission_history (
             revision_type,
             id,
             name,
@@ -310,7 +310,7 @@ BEGIN
             updated_at
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.id,
             OLD.name,
             OLD.description,
@@ -331,7 +331,7 @@ CREATE OR REPLACE FUNCTION log_changes_role()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO role_history (
             revision_type,
             id,
             name,
@@ -341,8 +341,8 @@ BEGIN
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.id,
             NEW.name,
@@ -352,7 +352,7 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO role_history (
             revision_type,
             id,
             name,
@@ -361,7 +361,7 @@ BEGIN
             updated_at
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.id,
             OLD.name,
             OLD.description,
@@ -382,7 +382,7 @@ CREATE OR REPLACE FUNCTION log_changes_state()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO state_history (
             revision_type,
             id,
             state_code,
@@ -390,8 +390,8 @@ BEGIN
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.id,
             NEW.state_code,
@@ -399,14 +399,14 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO state_history (
             revision_type,
             id,
             state_code,
             state_name
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.id,
             OLD.state_code,
             OLD.state_name
@@ -421,14 +421,14 @@ CREATE TRIGGER log_changes_state_trigger
 AFTER INSERT OR UPDATE OR DELETE ON state
 FOR EACH ROW EXECUTE FUNCTION log_changes_state();
 
-CREATE OR REPLACE FUNCTION log_changes_user()
+CREATE OR REPLACE FUNCTION log_changes_users()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO user_role_history (
+        INSERT INTO users_history (
             revision_type,
             id,
-            cognitoSubject,
+            cognito_subject,
             username,
             email,
             full_name,
@@ -438,11 +438,11 @@ BEGIN
         )
         VALUES (
             CASE TG_OP
-                WHEN 'INSERT' THEN 'I'
-                WHEN 'UPDATE' THEN 'U'
+                WHEN 'INSERT' THEN 'I'::revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::revision_type_enum
             END,
             NEW.id,
-            NEW.cognitoSubject,
+            NEW.cognito_subject,
             NEW.username,
             NEW.email,
             NEW.full_name,
@@ -452,10 +452,10 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO user_role_history (
+        INSERT INTO users_history (
             revision_type,
             id,
-            cognitoSubject,
+            cognito_subject,
             username,
             email,
             full_name,
@@ -464,9 +464,9 @@ BEGIN
             updated_at
         )
         VALUES (
-            'D',
+            'D'::revision_type_enum,
             OLD.id,
-            OLD.cognitoSubject,
+            OLD.cognito_subject,
             OLD.username,
             OLD.email,
             OLD.full_name,
@@ -480,7 +480,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_user_trigger
-AFTER INSERT OR UPDATE OR DELETE ON "user"
-FOR EACH ROW EXECUTE FUNCTION log_changes_user();
+CREATE TRIGGER log_changes_users_trigger
+AFTER INSERT OR UPDATE OR DELETE ON users
+FOR EACH ROW EXECUTE FUNCTION log_changes_users();
 

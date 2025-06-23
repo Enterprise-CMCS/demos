@@ -27,7 +27,10 @@
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "watch": "concurrently \"tsx watch --clear-screen=false src/index.ts\" \"npx prisma generate --watch\"",
-    "seed": "npx prisma db push --force-reset && tsx --inspect ./src/seeder.ts",
+    "seed": "ALLOW_SEED=true tsx --inspect ./src/seeder.ts",
+    "seed:fresh": "npx prisma db push --force-reset && tsx --inspect ./src/seeder.ts",
+    "migrate:empty": "npx prisma migrate dev --create-only",
+    "migrate:reset": "npx prisma migrate reset --force",
     "depcheck": "npx depcheck"
   },
   "devDependencies": {

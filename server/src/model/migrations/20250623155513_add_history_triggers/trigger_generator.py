@@ -17,22 +17,18 @@ TBL_FOLDERS = [
 ]
 
 def get_table_name(prisma_lines):
-    """Get table name from lines of a Prisma file."""
-    # I wrote this slightly more generally than needed
-    # Handles one-word table names correctly, but no history table has this
+    """Get table name from lines of a Prisma file defining a history table."""
     tbl_map_line = [x for x in prisma_lines if x[0:4] == "  @@"]
-    pattern1 = "^model (\\w+)"
-    pattern2 = '@@map\\("([^"]*)"\\)'
-    if not tbl_map_line:
-        matched = re.search(pattern1, prisma_lines[0])
-        tbl_name = matched.group(1)
-    else:
-        matched = re.search(pattern2, tbl_map_line[0])
-        tbl_name = matched.group(1)
+    pattern = '@@map\\("([^"]*)"\\)'
+    tbl_name = re.search(pattern, tbl_map_line[0]).group(1)
 
-    # Removing the _history that is always returned here
-    tbl_name = tbl_name[:-8]
-    return tbl_name
+    # Simple check to make sure we actually read a history table
+    if tbl_name[-8:] != "_history":
+        raise Exception("You have executed the get_table_name function on a non-history table!")
+
+    # Return table name and historical table name
+    return {"tbl": tbl_name[:-8], "tbl_hist": tbl_name}
+
 
 def get_columns(prisma_lines):
     """Get columns from lines of a Prisma file."""
@@ -54,7 +50,9 @@ def get_columns(prisma_lines):
 
 def get_trigger_code(prisma_lines):
     """Create a trigger from lines in Prisma."""
-    tbl_name = get_table_name(prisma_lines)
+    tbl_names = get_table_name(prisma_lines)
+    table_name = tbl_names["tbl"]
+    hist_table_name = tbl_names["tbl_hist"]
     col_names = get_columns(prisma_lines)
 
     # Indenting these lines
@@ -68,29 +66,29 @@ def get_trigger_code(prisma_lines):
     old_name_list = old_name_list.replace("                ", "", 1)
 
     query = f"""
-    CREATE OR REPLACE FUNCTION log_changes_{tbl_name}()
+    CREATE OR REPLACE FUNCTION log_changes_{table_name}()
     RETURNS TRIGGER AS $$
     BEGIN
         IF TG_OP IN ('INSERT', 'UPDATE') THEN
-            INSERT INTO user_role_history (
+            INSERT INTO {hist_table_name} (
                 revision_type,
                 {col_name_list}
             )
             VALUES (
                 CASE TG_OP
-                    WHEN 'INSERT' THEN 'I'
-                    WHEN 'UPDATE' THEN 'U'
+                    WHEN 'INSERT' THEN 'I'::revision_type_enum
+                    WHEN 'UPDATE' THEN 'U'::revision_type_enum
                 END,
                 {new_name_list}
             );
             RETURN NEW;
         ELSIF TG_OP = 'DELETE' THEN
-            INSERT INTO user_role_history (
+            INSERT INTO {hist_table_name} (
                 revision_type,
                 {col_name_list}
             )
             VALUES (
-                'D',
+                'D'::revision_type_enum,
                 {old_name_list}
             );
             RETURN OLD;
@@ -99,15 +97,16 @@ def get_trigger_code(prisma_lines):
     END;
     $$ LANGUAGE plpgsql;
 
-    CREATE TRIGGER log_changes_{tbl_name}_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON {tbl_name}
-    FOR EACH ROW EXECUTE FUNCTION log_changes_{tbl_name}();"""
+    CREATE TRIGGER log_changes_{table_name}_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON {table_name}
+    FOR EACH ROW EXECUTE FUNCTION log_changes_{table_name}();"""
     query = query.replace("\n", "", 1)
     query = dedent(query)
     return query
 
 def get_prisma_lines (folder):
     """Get Prisma lines from a folder."""
+    # Join tables are prefixed with _ so this removes that
     file_name = folder if folder[0] != "_" else folder[1:]
     file_path = f"../../{folder}/{file_name}History.prisma"
     with open(file_path, "r") as prisma_file:

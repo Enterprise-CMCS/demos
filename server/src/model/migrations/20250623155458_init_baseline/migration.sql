@@ -209,7 +209,7 @@ CREATE TABLE "state_history" (
 );
 
 -- CreateTable
-CREATE TABLE "user" (
+CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "cognito_subject" UUID NOT NULL,
     "username" TEXT NOT NULL,
@@ -219,16 +219,16 @@ CREATE TABLE "user" (
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "user_history" (
+CREATE TABLE "users_history" (
     "revision_id" SERIAL NOT NULL,
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
-    "cognitoSubject" UUID NOT NULL,
+    "cognito_subject" UUID NOT NULL,
     "username" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "full_name" TEXT NOT NULL,
@@ -236,11 +236,11 @@ CREATE TABLE "user_history" (
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "user_history_pkey" PRIMARY KEY ("revision_id")
+    CONSTRAINT "users_history_pkey" PRIMARY KEY ("revision_id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_cognito_subject_key" ON "user"("cognito_subject");
+CREATE UNIQUE INDEX "users_cognito_subject_key" ON "users"("cognito_subject");
 
 -- AddForeignKey
 ALTER TABLE "role_permission" ADD CONSTRAINT "role_permission_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -249,13 +249,13 @@ ALTER TABLE "role_permission" ADD CONSTRAINT "role_permission_role_id_fkey" FORE
 ALTER TABLE "role_permission" ADD CONSTRAINT "role_permission_permission_id_fkey" FOREIGN KEY ("permission_id") REFERENCES "permission"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_role" ADD CONSTRAINT "user_role_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user_role" ADD CONSTRAINT "user_role_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_role" ADD CONSTRAINT "user_role_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_state" ADD CONSTRAINT "user_state_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user_state" ADD CONSTRAINT "user_state_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_state" ADD CONSTRAINT "user_state_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "state"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -264,7 +264,7 @@ ALTER TABLE "user_state" ADD CONSTRAINT "user_state_state_id_fkey" FOREIGN KEY (
 ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_user_id_state_id_fkey" FOREIGN KEY ("user_id", "state_id") REFERENCES "user_state"("user_id", "state_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
