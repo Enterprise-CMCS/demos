@@ -3,25 +3,85 @@ import React from "react";
 import { ToastProvider } from "components/toast/ToastContext";
 import { vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { CreateNewModal } from "./CreateNewModal";
+
+// Mock the useDemonstration hook
+vi.mock("hooks/useDemonstration", () => ({
+  useDemonstration: vi.fn(() => ({
+    addDemonstration: {
+      trigger: vi.fn().mockResolvedValue({
+        data: { addDemonstration: { id: "1", name: "Test Demo" } },
+      }),
+      data: undefined,
+      loading: false,
+      error: undefined,
+    },
+  })),
+}));
+
+// Mock the SelectUSAStates component
+vi.mock("components/input/select/SelectUSAStates", () => ({
+  SelectUSAStates: ({
+    label,
+    onStateChange,
+  }: {
+    label: string;
+    onStateChange: (state: string) => void;
+  }) => (
+    <div>
+      <label>{label}</label>
+      <select
+        data-testid="state-select"
+        onChange={(e) => onStateChange(e.target.value)}
+      >
+        <option value="">Select a state</option>
+        <option value="1">California</option>
+        <option value="2">Texas</option>
+      </select>
+    </div>
+  ),
+}));
+
+// Mock the SelectUsers component
+vi.mock("components/input/select/SelectUsers", () => ({
+  SelectUsers: ({
+    label,
+    onStateChange,
+  }: {
+    label: string;
+    onStateChange: (user: string) => void;
+  }) => (
+    <div>
+      <label>{label}</label>
+      <select
+        data-testid="user-select"
+        onChange={(e) => onStateChange(e.target.value)}
+      >
+        <option value="">Select a user</option>
+        <option value="1">John Doe</option>
+        <option value="2">Jane Smith</option>
+      </select>
+    </div>
+  ),
+}));
 
 if (!HTMLFormElement.prototype.requestSubmit) {
   HTMLFormElement.prototype.requestSubmit = function () {
     // If form validation fails, prevent dispatching submit
     if (!this.checkValidity()) {
-      const invalidEvent = new Event("invalid", { bubbles: true, cancelable: true });
+      const invalidEvent = new Event("invalid", {
+        bubbles: true,
+        cancelable: true,
+      });
       this.dispatchEvent(invalidEvent);
       return;
     }
 
-    this.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
+    this.dispatchEvent(
+      new SubmitEvent("submit", { bubbles: true, cancelable: true })
+    );
   };
 }
 
@@ -30,9 +90,7 @@ const renderModal = () => {
 
   render(
     <ToastProvider>
-      <CreateNewModal
-        onClose={onClose}
-      />
+      <CreateNewModal onClose={onClose} />
     </ToastProvider>
   );
 
@@ -95,6 +153,49 @@ describe("CreateNewModal", () => {
 
     await waitFor(() => {
       expect(expirationDate).toHaveValue("");
+    });
+  });
+
+  it("submits form with valid data", async () => {
+    const { useDemonstration } = await import("hooks/useDemonstration");
+    const mockTrigger = vi.fn().mockResolvedValue({
+      data: { addDemonstration: { id: "1", name: "Test Demo" } },
+    });
+
+    // Override the addDemonstration trigger with our mock to spy on it
+    const currentMock = vi.mocked(useDemonstration)();
+    vi.mocked(useDemonstration).mockReturnValue({
+      ...currentMock,
+      addDemonstration: {
+        ...currentMock.addDemonstration,
+        trigger: mockTrigger,
+      },
+    });
+
+    renderModal();
+
+    // Fill out the form
+    const stateSelect = screen.getByTestId("state-select");
+    const titleInput = screen.getByLabelText(/Demonstration Title/i);
+    const userSelect = screen.getByTestId("user-select");
+    const submitButton = screen.getByText("Submit");
+
+    fireEvent.change(stateSelect, { target: { value: "1" } });
+    fireEvent.change(titleInput, { target: { value: "Test Demonstration" } });
+    fireEvent.change(userSelect, { target: { value: "1" } });
+
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockTrigger).toHaveBeenCalledWith({
+        name: "Test Demonstration",
+        description: "",
+        evaluationPeriodStartDate: expect.any(Date),
+        evaluationPeriodEndDate: expect.any(Date),
+        demonstrationStatusId: "1",
+        stateId: "1",
+        userIds: ["1"],
+      });
     });
   });
 });
