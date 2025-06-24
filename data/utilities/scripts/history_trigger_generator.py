@@ -17,6 +17,7 @@ TBL_FOLDERS = [
     "state",
     "user"
 ]
+APP_SCHEMA = "demos_app"
 
 
 def get_table_name(prisma_lines: List[str]) -> dict:
@@ -96,29 +97,29 @@ def get_trigger_code(prisma_lines: List[str]) -> str:
     old_name_list = old_name_list.replace("                ", "", 1)
 
     query = f"""
-    CREATE OR REPLACE FUNCTION log_changes_{table_name}()
+    CREATE OR REPLACE FUNCTION {APP_SCHEMA}.log_changes_{table_name}()
     RETURNS TRIGGER AS $$
     BEGIN
         IF TG_OP IN ('INSERT', 'UPDATE') THEN
-            INSERT INTO {hist_table_name} (
+            INSERT INTO {APP_SCHEMA}.{hist_table_name} (
                 revision_type,
                 {col_name_list}
             )
             VALUES (
                 CASE TG_OP
-                    WHEN 'INSERT' THEN 'I'::revision_type_enum
-                    WHEN 'UPDATE' THEN 'U'::revision_type_enum
+                    WHEN 'INSERT' THEN 'I'::{APP_SCHEMA}.revision_type_enum
+                    WHEN 'UPDATE' THEN 'U'::{APP_SCHEMA}.revision_type_enum
                 END,
                 {new_name_list}
             );
             RETURN NEW;
         ELSIF TG_OP = 'DELETE' THEN
-            INSERT INTO {hist_table_name} (
+            INSERT INTO {APP_SCHEMA}.{hist_table_name} (
                 revision_type,
                 {col_name_list}
             )
             VALUES (
-                'D'::revision_type_enum,
+                'D'::{APP_SCHEMA}.revision_type_enum,
                 {old_name_list}
             );
             RETURN OLD;
@@ -128,8 +129,8 @@ def get_trigger_code(prisma_lines: List[str]) -> str:
     $$ LANGUAGE plpgsql;
 
     CREATE OR REPLACE TRIGGER log_changes_{table_name}_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON {table_name}
-    FOR EACH ROW EXECUTE FUNCTION log_changes_{table_name}();"""
+    AFTER INSERT OR UPDATE OR DELETE ON {APP_SCHEMA}.{table_name}
+    FOR EACH ROW EXECUTE FUNCTION {APP_SCHEMA}.log_changes_{table_name}();"""
     query = query.replace("\n", "", 1)
     query = dedent(query)
     return query
