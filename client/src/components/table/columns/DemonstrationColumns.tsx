@@ -55,19 +55,23 @@ const dataColumns: ColumnDef<DemonstrationColumns>[] = [
   { header: "Project Officer", accessorKey: "projectOfficer" },
   {
     id: "viewDetails",
-    cell: ({ row }) => (
-      <SecondaryButton
-        type="button"
-        size="small"
-        onClick={() => {
-          const demoId = row.original.id;
-          window.location.href = `/demonstrations/${demoId}`;
-        }}
-        className="px-2 py-0 text-sm font-medium"
-      >
-        View
-      </SecondaryButton>
-    ),
+    cell: ({ row }) => {
+      const handleClick = () => {
+        const demoId = row.original.id;
+        window.location.href = `/demonstrations/${demoId}`;
+      };
+
+      return (
+        <SecondaryButton
+          type="button"
+          size="small"
+          onClick={handleClick}
+          className="px-2 py-0 text-sm font-medium"
+        >
+          View
+        </SecondaryButton>
+      );
+    },
     enableSorting: false,
   },
 ];
