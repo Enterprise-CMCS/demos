@@ -1,11 +1,12 @@
+import { isDevelopmentMode } from "config/env";
 import React from "react";
 
 interface DebugOnlyProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export const DebugOnly: React.FC<DebugOnlyProps> = ({ children }) => {
-  if (process.env.NODE_ENV === "development"){
+  if (isDevelopmentMode()) {
     return <>{children}</>;
   } else {
     return null;

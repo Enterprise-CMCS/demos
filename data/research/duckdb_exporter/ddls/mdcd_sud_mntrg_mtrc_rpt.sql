@@ -1,0 +1,22 @@
+CREATE TABLE legacy_pmda_raw.mdcd_sud_mntrg_mtrc_rpt (
+    mdcd_sud_mntrg_mtrc_rpt_id INTEGER,
+    tmplt_fil_doc_id INTEGER,
+    mdcd_demo_id INTEGER,
+    mdcd_dlvrbl_id INTEGER,
+    mdcd_dlvrbl_fil_doc_id INTEGER,
+    aprvl_from_dt DATE,
+    aprvl_to_dt DATE,
+    mdcd_sud_strt_dt DATE,
+    mdcd_sud_impltn_dt DATE,
+    mdcd_sud_objctv_txt VARCHAR(4096),
+    demo_yr_txt VARCHAR(2),
+    demo_qtr_txt VARCHAR(1),
+    rptg_prd_from_dt DATE,
+    rptg_prd_to_dt DATE,
+    exctv_smry_txt VARCHAR(4096),
+    creatd_dt TIMESTAMPTZ,
+    creatd_user_id INTEGER,
+    dltd_ind SMALLINT,
+    dltd_dt TIMESTAMPTZ,
+    dltd_user_id INTEGER
+);

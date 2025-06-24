@@ -3,6 +3,7 @@ import React from "react";
 export type ButtonSize = "small" | "standard" | "large";
 
 interface BaseButtonProps {
+  type?: "button" | "submit" | "reset";
   size?: ButtonSize;
   disabled?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -11,6 +12,7 @@ interface BaseButtonProps {
 }
 
 export const BaseButton: React.FC<BaseButtonProps> = ({
+  type = "button", // default behavior (good practice)
   size = "standard",
   disabled = false,
   onClick,
@@ -40,10 +42,11 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
   }
 
   const base =
-    "inline-flex items-center justify-center focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center focus:outline-none transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed";
 
   return (
     <button
+      type={type}
       className={`${base} ${sizeClass} ${className}`}
       disabled={disabled}
       onClick={onClick}

@@ -1,0 +1,44 @@
+[tool.coverage.run]
+omit = [
+    "*/__init__.py",
+    "*/test_*.py"
+]
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+addopts = "--mocha --cov=. --cov-report html:.cov.html --cov-report term-missing --cov-fail-under=80"
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+target-version = "py313"
+output-format = "concise"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "B"]
+ignore = []
+preview = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pydoclint]
+style = "google"
+exclude = [
+    "__init__\\.py$",
+    "test_.*\\.py$"
+]
+require-return-section-when-returning-nothing = false
+
+[tool.pydocstyle]
+convention = "google"
+match = "(?!test_|__init__).*\\.py"
+
+[tool.mypy]
+python_version = "3.13"
+exclude = [
+    "__init__\\.py$",
+    "test_.*\\.py$"
+]

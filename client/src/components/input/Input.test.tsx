@@ -1,7 +1,22 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import { Input, InputProps } from "./Input";
+
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import {
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
+
+import {
+  Input,
+  InputProps,
+} from "./Input";
 
 describe("Input component", () => {
   const requiredProps: InputProps = {
@@ -33,7 +48,11 @@ describe("Input component", () => {
   });
 
   it("renders with defaultValue", () => {
-    render(<Input {...requiredProps} defaultValue="default" />);
+    const Component = () => {
+      const [value, setValue] = React.useState("default");
+      return <Input {...requiredProps} value={value} onChange={(e) => setValue(e.target.value)} />;
+    };
+    render(<Component />);
     expect(screen.getByDisplayValue("default")).toBeInTheDocument();
   });
 

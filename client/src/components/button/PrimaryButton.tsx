@@ -2,10 +2,11 @@ import React from "react";
 
 import {
   BaseButton,
-  ButtonSize
+  ButtonSize,
 } from "./BaseButton";
 
 interface Props {
+  type?: "button" | "submit" | "reset";
   size?: ButtonSize;
   disabled?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export const PrimaryButton: React.FC<Props> = ({
+  type = "submit",
   size = "standard",
   disabled = false,
   onClick,
@@ -21,6 +23,7 @@ export const PrimaryButton: React.FC<Props> = ({
   className = "",
 }) => (
   <BaseButton
+    type={type}
     size={size}
     disabled={disabled}
     onClick={onClick}

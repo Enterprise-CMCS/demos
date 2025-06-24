@@ -11,7 +11,7 @@ import {
   ListIcon,
   MenuCollapseLeftIcon,
   MenuCollapseRightIcon,
-  ScaleIcon
+  ScaleIcon,
 } from "components/icons";
 
 interface NavLink {

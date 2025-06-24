@@ -1,0 +1,20 @@
+CREATE TABLE legacy_pmda_raw.mdcd_mntrg_data_and_rptg_iss (
+    mdcd_mntrg_data_and_rptg_iss_id INTEGER,
+    tmplt_fil_doc_id INTEGER,
+    mdcd_dlvrbl_fil_doc_id INTEGER,
+    mdcd_demo_id INTEGER,
+    mdcd_dlvrbl_id INTEGER,
+    msr_milstn_rptg_topc_txt VARCHAR(256),
+    msr_num VARCHAR(5),
+    msr_name_txt VARCHAR(256),
+    smry_of_iss_txt VARCHAR(1024),
+    date_and_rpt_1st_rptd_txt VARCHAR(45),
+    rmdy_plan_txt VARCHAR(2048),
+    msr_iss_stus_txt VARCHAR(45),
+    msr_iss_updt_txt VARCHAR(256),
+    creatd_dt TIMESTAMPTZ,
+    creatd_user_id INTEGER,
+    dltd_ind SMALLINT,
+    dltd_dt TIMESTAMPTZ,
+    dltd_user_id INTEGER
+);

@@ -1,21 +1,21 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { describe, beforeEach, afterEach, expect, it } from "vitest";
+import { describe, beforeEach, expect, it, vi } from "vitest";
 import { DebugOnly } from "./DebugOnly";
 
+vi.mock("config/env", () => ({
+  isDevelopmentMode: vi.fn(),
+}));
+
 describe("DebugOnly", () => {
-  let originalEnv: string | undefined;
-
   beforeEach(() => {
-    originalEnv = process.env.NODE_ENV;
+    vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    process.env.NODE_ENV = originalEnv;
-  });
+  it("renders children when in development mode", async () => {
+    const { isDevelopmentMode } = await import("config/env");
+    vi.mocked(isDevelopmentMode).mockReturnValue(true);
 
-  it("renders children when NODE_ENV is 'development'", () => {
-    process.env.NODE_ENV = "development";
     render(
       <DebugOnly>
         <span>Debug Content</span>
@@ -24,18 +24,10 @@ describe("DebugOnly", () => {
     expect(screen.getByText("Debug Content")).toBeInTheDocument();
   });
 
-  it("renders nothing when NODE_ENV is not 'development'", () => {
-    process.env.NODE_ENV = "production";
-    const { container } = render(
-      <DebugOnly>
-        <span>Debug Content</span>
-      </DebugOnly>
-    );
-    expect(container).toBeEmptyDOMElement();
-  });
+  it("renders nothing when not in development mode", async () => {
+    const { isDevelopmentMode } = await import("config/env");
+    vi.mocked(isDevelopmentMode).mockReturnValue(false);
 
-  it("renders nothing when NODE_ENV is undefined", () => {
-    process.env.NODE_ENV = undefined;
     const { container } = render(
       <DebugOnly>
         <span>Debug Content</span>

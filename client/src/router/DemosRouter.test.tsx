@@ -3,14 +3,24 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 
+vi.mock("config/env", () => ({
+  isDevelopmentMode: vi.fn(),
+  shouldUseMocks: vi.fn(() => true),
+}));
+
 // Mock react-oidc-context AuthProvider to just render children
 vi.mock("react-oidc-context", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  useAuth: vi.fn(() => ({})),
 }));
 
 // Mock Apollo MockedProvider to just render children
 vi.mock("@apollo/client/testing", () => ({
-  MockedProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  MockedProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 // Mock getCognitoConfig to return an empty object
@@ -32,7 +42,9 @@ vi.mock("components/auth/AuthComponent", () => ({
   AuthComponent: () => <div>AuthComponent</div>,
 }));
 vi.mock("layout/PrimaryLayout", () => ({
-  PrimaryLayout: ({ children }: { children: React.ReactNode }) => <div>PrimaryLayout{children}</div>,
+  PrimaryLayout: ({ children }: { children: React.ReactNode }) => (
+    <div>PrimaryLayout{children}</div>
+  ),
 }));
 vi.mock("pages/Demonstrations", () => ({
   Demonstrations: () => <div>Demonstrations</div>,
@@ -52,9 +64,10 @@ describe("DemosRouter", () => {
     expect(screen.getByText("Demonstrations")).toBeInTheDocument();
   });
 
-  it("renders debug routes in development mode", () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "development";
+  it("renders debug routes in development mode", async () => {
+    const { isDevelopmentMode } = await import("config/env");
+    vi.mocked(isDevelopmentMode).mockReturnValue(true);
+
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
     expect(screen.getByText("ComponentLibrary")).toBeInTheDocument();
@@ -66,16 +79,14 @@ describe("DemosRouter", () => {
     window.history.pushState({}, "Auth", "/auth");
     render(<DemosRouter />);
     expect(screen.getByText("AuthComponent")).toBeInTheDocument();
-
-    process.env.NODE_ENV = originalEnv;
   });
 
-  it("does not render debug routes outside development mode", () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
+  it("does not render debug routes outside development mode", async () => {
+    const { isDevelopmentMode } = await import("config/env");
+    vi.mocked(isDevelopmentMode).mockReturnValue(false);
+
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
     expect(screen.queryByText("ComponentLibrary")).not.toBeInTheDocument();
-    process.env.NODE_ENV = originalEnv;
   });
 });
