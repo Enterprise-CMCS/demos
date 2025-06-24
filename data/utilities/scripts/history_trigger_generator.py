@@ -1,7 +1,9 @@
 """Generate trigger functions for history tables automatically."""
 
+import argparse
 import re
 from textwrap import dedent
+from typing import List
 
 TBL_FOLDERS = [
     "_rolePermission",
@@ -16,11 +18,24 @@ TBL_FOLDERS = [
     "user"
 ]
 
-def get_table_name(prisma_lines):
-    """Get table name from lines of a Prisma file defining a history table."""
+
+def get_table_name(prisma_lines: List[str]) -> dict:
+    """Get table name from lines of a Prisma file defining a history table.
+
+    Args:
+        prisma_lines (List[str]): List of lines from a Prisma file.
+
+    Returns:
+        dict: The table name and history table name.
+
+    Raises:
+        Exception: If the table is not a history table.
+    """
     tbl_map_line = [x for x in prisma_lines if x[0:4] == "  @@"]
     pattern = '@@map\\("([^"]*)"\\)'
-    tbl_name = re.search(pattern, tbl_map_line[0]).group(1)
+    tbl_match = re.search(pattern, tbl_map_line[0])
+    if tbl_match is not None:
+        tbl_name = tbl_match.group(1)
 
     # Simple check to make sure we actually read a history table
     if tbl_name[-8:] != "_history":
@@ -30,8 +45,15 @@ def get_table_name(prisma_lines):
     return {"tbl": tbl_name[:-8], "tbl_hist": tbl_name}
 
 
-def get_columns(prisma_lines):
-    """Get columns from lines of a Prisma file."""
+def get_columns(prisma_lines: List[str]) -> List[str]:
+    """Get columns from lines of a Prisma file.
+
+    Args:
+        prisma_lines (List[str]): List of lines from a Prisma file.
+
+    Returns:
+        List[str]: A list of columns to use in the query.
+    """
     cols = []
     for x in prisma_lines:
         pattern1 = '\\s@map\\("([^"]*)"\\)'
@@ -48,8 +70,16 @@ def get_columns(prisma_lines):
             cols.append(col_name)
     return cols
 
-def get_trigger_code(prisma_lines):
-    """Create a trigger from lines in Prisma."""
+
+def get_trigger_code(prisma_lines: List[str]) -> str:
+    """Create a trigger from lines in Prisma.
+
+    Args:
+        prisma_lines (List[str]): List of lines from a Prisma file.
+
+    Returns:
+        str: The properly formatted query creating the trigger.
+    """
     tbl_names = get_table_name(prisma_lines)
     table_name = tbl_names["tbl"]
     hist_table_name = tbl_names["tbl_hist"]
@@ -97,26 +127,50 @@ def get_trigger_code(prisma_lines):
     END;
     $$ LANGUAGE plpgsql;
 
-    CREATE TRIGGER log_changes_{table_name}_trigger
+    CREATE OR REPLACE TRIGGER log_changes_{table_name}_trigger
     AFTER INSERT OR UPDATE OR DELETE ON {table_name}
     FOR EACH ROW EXECUTE FUNCTION log_changes_{table_name}();"""
     query = query.replace("\n", "", 1)
     query = dedent(query)
     return query
 
-def get_prisma_lines (folder):
-    """Get Prisma lines from a folder."""
+
+def get_prisma_lines(folder: str) -> List[str]:
+    """Get Prisma lines from a folder.
+
+    Args:
+        folder (str): Folder name of a model to be read.
+
+    Returns:
+        List[str]: List of lines from a Prisma file.
+    """
     # Join tables are prefixed with _ so this removes that
     file_name = folder if folder[0] != "_" else folder[1:]
-    file_path = f"../../{folder}/{file_name}History.prisma"
+    file_path = f"../../../server/src/model/{folder}/{file_name}History.prisma"
     with open(file_path, "r") as prisma_file:
         prisma_lines = prisma_file.readlines()
     return prisma_lines
 
-queries = []
-for x in TBL_FOLDERS:
-    prisma_lines = get_prisma_lines(x)
-    queries.append(get_trigger_code(prisma_lines) + "\n\n")
 
-with open("migration.sql", "w") as query_file:
-    query_file.writelines(queries)
+def main(migration: str) -> None:
+    """Execute main program function.
+
+    Args:
+        migration (str): The migration folder where the SQL should be placed.
+    """
+    queries = []
+    for x in TBL_FOLDERS:
+        prisma_lines = get_prisma_lines(x)
+        queries.append(get_trigger_code(prisma_lines) + "\n\n")
+
+    with open(f"../../../server/src/model/migrations/{migration}/migration.sql", "w") as query_file:
+        query_file.writelines(queries)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Generate history table triggers from models in the server folder."
+    )
+    parser.add_argument("migration", help="The migration folder where the output should be written.")
+    args = parser.parse_args()
+    main(args.migration)

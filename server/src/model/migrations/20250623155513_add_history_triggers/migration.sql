@@ -33,7 +33,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_role_permission_trigger
+CREATE OR REPLACE TRIGGER log_changes_role_permission_trigger
 AFTER INSERT OR UPDATE OR DELETE ON role_permission
 FOR EACH ROW EXECUTE FUNCTION log_changes_role_permission();
 
@@ -72,7 +72,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_user_role_trigger
+CREATE OR REPLACE TRIGGER log_changes_user_role_trigger
 AFTER INSERT OR UPDATE OR DELETE ON user_role
 FOR EACH ROW EXECUTE FUNCTION log_changes_user_role();
 
@@ -111,7 +111,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_user_state_trigger
+CREATE OR REPLACE TRIGGER log_changes_user_state_trigger
 AFTER INSERT OR UPDATE OR DELETE ON user_state
 FOR EACH ROW EXECUTE FUNCTION log_changes_user_state();
 
@@ -154,7 +154,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_user_state_demonstration_trigger
+CREATE OR REPLACE TRIGGER log_changes_user_state_demonstration_trigger
 AFTER INSERT OR UPDATE OR DELETE ON user_state_demonstration
 FOR EACH ROW EXECUTE FUNCTION log_changes_user_state_demonstration();
 
@@ -221,7 +221,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_demonstration_trigger
+CREATE OR REPLACE TRIGGER log_changes_demonstration_trigger
 AFTER INSERT OR UPDATE OR DELETE ON demonstration
 FOR EACH ROW EXECUTE FUNCTION log_changes_demonstration();
 
@@ -272,7 +272,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_demonstration_status_trigger
+CREATE OR REPLACE TRIGGER log_changes_demonstration_status_trigger
 AFTER INSERT OR UPDATE OR DELETE ON demonstration_status
 FOR EACH ROW EXECUTE FUNCTION log_changes_demonstration_status();
 
@@ -323,7 +323,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_permission_trigger
+CREATE OR REPLACE TRIGGER log_changes_permission_trigger
 AFTER INSERT OR UPDATE OR DELETE ON permission
 FOR EACH ROW EXECUTE FUNCTION log_changes_permission();
 
@@ -374,7 +374,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_role_trigger
+CREATE OR REPLACE TRIGGER log_changes_role_trigger
 AFTER INSERT OR UPDATE OR DELETE ON role
 FOR EACH ROW EXECUTE FUNCTION log_changes_role();
 
@@ -417,7 +417,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_state_trigger
+CREATE OR REPLACE TRIGGER log_changes_state_trigger
 AFTER INSERT OR UPDATE OR DELETE ON state
 FOR EACH ROW EXECUTE FUNCTION log_changes_state();
 
@@ -480,7 +480,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER log_changes_users_trigger
+CREATE OR REPLACE TRIGGER log_changes_users_trigger
 AFTER INSERT OR UPDATE OR DELETE ON users
 FOR EACH ROW EXECUTE FUNCTION log_changes_users();
 
