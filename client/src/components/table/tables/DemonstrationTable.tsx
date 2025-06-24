@@ -1,23 +1,33 @@
 import * as React from "react";
+
 import {
-  flexRender,
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getExpandedRowModel,
-  getPaginationRowModel,
-  SortingState,
+  DemonstrationColumns,
+} from "components/table/columns/DemonstrationColumns";
+import {
+  ColumnFilterByDropdown,
+} from "components/table/filters/ColumnFilterSelect";
+import {
+  PaginationControls,
+} from "components/table/pagination/PaginationControls";
+import {
+  DemoWithSubRows,
+  groupByDemoNumber,
+} from "components/table/preproccessors/GroupByDemoNumber";
+
+import {
   ColumnFiltersState,
   ExpandedState,
+  flexRender,
+  getCoreRowModel,
+  getExpandedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   PaginationState,
   RowSelectionState,
+  SortingState,
+  useReactTable,
 } from "@tanstack/react-table";
-
-import { PaginationControls } from "components/table/pagination/PaginationControls";
-import { ColumnFilterByDropdown } from "components/table/filters/ColumnFilterSelect";
-import { groupByDemoNumber, DemoWithSubRows } from "components/table/preproccessors/GroupByDemoNumber";
-import { DemonstrationColumns } from "components/table/columns/DemonstrationColumns";
 
 export interface RawDemonstration {
   id: number;
@@ -47,7 +57,10 @@ export function DemonstrationTable({
     [data]
   );
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "stateId", desc: false },
+    { id: "title", desc: false },
+  ]);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -124,7 +137,7 @@ export function DemonstrationTable({
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
                   {{
-                    asc:  " ↑",
+                    asc: " ↑",
                     desc: " ↓",
                   }[header.column.getIsSorted() as string] ?? null}
                 </th>
