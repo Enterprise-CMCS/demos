@@ -1,7 +1,13 @@
-import { gql, useQuery } from "@apollo/client";
 import React, { useState } from "react";
-import { Avatar } from "./Avatar";
+
 import { ChevronDownIcon } from "components/icons";
+
+import {
+  gql,
+  useQuery,
+} from "@apollo/client";
+
+import { Avatar } from "./Avatar";
 
 export const PROFILE_BLOCK_QUERY = gql`
   query ProfileBlockQuery($id: ID!) {
@@ -55,7 +61,7 @@ export const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
       {open && (
         <ul
           id="user-actions"
-          className="absolute top-12 min-w-full right-0 bg-white border border-gray-300 rounded shadow-lg"
+          className="absolute top-12 min-w-full right-0 bg-white border border-gray-300 rounded shadow-lg z-11"
         >
           <li className="hover:bg-gray-100 cursor-pointer p-1">
             <a>Logout</a>
