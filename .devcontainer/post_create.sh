@@ -7,5 +7,5 @@ aws configure set region us-east-1
 
 # The ENDPOINT_URL setting is broken in all contexts except on the command line
 # Add this alias to handle it
-echo "alias aws='aws --endpoint-url=http://localhost:4566'" >> ~/.bashrc
-echo "alias aws='aws --endpoint-url=http://localhost:4566'" >> ~/.zshrc
+echo "alias aws='aws --endpoint-url=http://localstack:4566'" >> ~/.bashrc
+echo "alias aws='aws --endpoint-url=http://localstack:4566'" >> ~/.zshrc

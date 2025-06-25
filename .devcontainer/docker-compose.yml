@@ -8,7 +8,9 @@ services:
     volumes:
       - ../..:/workspaces:cached
     command: sleep infinity # Overrides default command so things don't shut down after the process ends.
-    network_mode: service:db # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    ports:
+      - "3000:3000"
+      - "4000:4000"
 
   db:
     image: postgres:latest
@@ -20,11 +22,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: demos
     ports:
-      - "3000:3000"
-      - "4000:4000"
-      - "4566:4566"
       - "5432:5432"
-      - "9092:9093"
 
   kafka-mock:
     image: apache/kafka:latest
@@ -40,11 +38,11 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-    network_mode: service:db
+    ports:
+      - "9092:9093"
 
   localstack:
     image: localstack/localstack:latest
-    network_mode: service:db
     environment:
       - DEBUG=${DEBUG:-0}
       - DOCKER_HOST=unix:///var/run/docker.sock
@@ -53,6 +51,8 @@ services:
     volumes:
       - "localstack-data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+    ports:
+      - "4566:4566"
 
 volumes:
   postgres-data:
