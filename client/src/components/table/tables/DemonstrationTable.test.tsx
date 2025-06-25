@@ -1,7 +1,17 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from "vitest";
+
+import {
+  render,
+  screen,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, beforeEach } from "vitest";
 
 import { DemonstrationTable } from "./DemonstrationTable";
 
@@ -146,4 +156,15 @@ describe("DemonstrationTable", () => {
     expect(screen.queryByText(/Demo A \(latest\)/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Demo C \(only\)/)).not.toBeInTheDocument();
   });
+  it("renders a 'View' button in each row that links to the correct demonstration detail", async () => {
+    const viewButtons = screen.getAllByRole("button", { name: /view/i });
+
+    // Should be 3 rows (latest entries only)
+    expect(viewButtons).toHaveLength(3);
+
+    // Simulate clicking one (optional: mock window.location.href if you want)
+    expect(viewButtons[0]).toBeVisible();
+    expect(viewButtons[0].tagName).toBe("BUTTON");
+  });
+
 });

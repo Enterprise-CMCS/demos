@@ -1,6 +1,13 @@
 import * as React from "react";
+
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+} from "components/icons";
+
 import { ColumnDef } from "@tanstack/react-table";
-import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
+
+import { SecondaryButton } from "../../button/SecondaryButton";
 
 export type DemonstrationColumns = {
   id: number;
@@ -46,6 +53,27 @@ const dataColumns: ColumnDef<DemonstrationColumns>[] = [
   { header: "Number", accessorKey: "demoNumber" },
   { header: "Title", accessorKey: "title" },
   { header: "Project Officer", accessorKey: "projectOfficer" },
+  {
+    id: "viewDetails",
+    cell: ({ row }) => {
+      const handleClick = () => {
+        const demoId = row.original.id;
+        window.location.href = `/demonstrations/${demoId}`;
+      };
+
+      return (
+        <SecondaryButton
+          type="button"
+          size="small"
+          onClick={handleClick}
+          className="px-2 py-0 text-sm font-medium"
+        >
+          View
+        </SecondaryButton>
+      );
+    },
+    enableSorting: false,
+  },
 ];
 
 const expanderColumn: ColumnDef<DemonstrationColumns> = {
