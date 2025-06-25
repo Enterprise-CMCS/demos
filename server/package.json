@@ -28,7 +28,9 @@
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "watch": "concurrently \"tsx watch --clear-screen=false src/index.ts\" \"prisma generate --watch\"",
-    "seed": "prisma db push --force-reset && tsx --inspect ./src/seeder.ts",
+    "seed": "prisma migrate reset --force && tsx --inspect ./src/seeder.ts",
+    "migrate:empty": "prisma migrate dev --create-only",
+    "migrate:reset": "prisma migrate reset --force",
     "depcheck": "depcheck"
   },
   "devDependencies": {

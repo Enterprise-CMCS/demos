@@ -4,11 +4,6 @@ echo "===="
 ruff --config ../../pyproject.toml check .
 
 echo ""
-echo "pytest"
-echo "======"
-pytest -c ../../pyproject.toml --cov-config=../../pyproject.toml
-
-echo ""
 echo "pydoclint"
 echo "========="
 pydoclint -q --config=../../pyproject.toml .

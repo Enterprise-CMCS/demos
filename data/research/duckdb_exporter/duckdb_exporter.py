@@ -196,7 +196,7 @@ def sanitize_table_name(tbl: str) -> str:
     Returns:
         str: The safe table name.
     """
-    if '-' in tbl:
+    if "-" in tbl:
         logger.warning(f"Dashes found in table name {tbl}! Properly escaping it")
         tbl = '"' + tbl + '"'
     return tbl
