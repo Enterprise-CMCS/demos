@@ -73,25 +73,6 @@ export function create(props: UIDeploymentProps) {
     }
   );
 
-  // No longer used
-  // const deployTimeConfig = new aws_s3_deployment.DeployTimeSubstitutedFile(
-  //   props.scope,
-  //   "DeployTimeConfig",
-  //   {
-  //     destinationBucket: props.uiBucket,
-  //     destinationKey: "env-config.js",
-  //     source: path.join(".", "config.template.js"),
-  //     substitutions: {
-  //       stage: props.stage,
-  //       applicationEndpointUrl: props.applicationEndpointUrl,
-  //       cognitoAuthority: paramAuthority.stringValue,
-  //       cognitoClientId: paramClientId.stringValue,
-  //       applicationHostname: props.distribution.distributionDomainName,
-  //     },
-  //   }
-  // );
-  // deployTimeConfig.node.addDependency(deployWebsite);
-
   const invalidateCloudfront = new custom_resources.AwsCustomResource(
     props.scope,
     "InvalidateCloudfront",

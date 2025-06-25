@@ -21,18 +21,6 @@ pipeline {
       }
     }
 
-    // stage('CDK - Unit Test') {
-    //   steps {
-    //     dir('deployment') {
-    //       container('node') {
-    //         sh '''
-    //           npm run coverage:ci
-    //           '''
-    //       }
-    //     }
-    //   }
-    // }
-
     stage('CDK - Synth') {
       steps {
         assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)

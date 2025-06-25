@@ -21,18 +21,6 @@ pipeline {
       }
     }
 
-    // stage('Server - Unit Test') {
-    //   steps {
-    //     dir('server') {
-    //       container('node') {
-    //         sh '''
-    //           npm run coverage:ci
-    //           '''
-    //       }
-    //     }
-    //   }
-    // }
-
     stage('Server - Sonar Scan') {
       steps {
         script {
