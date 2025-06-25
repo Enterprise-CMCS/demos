@@ -1,0 +1,79 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node", "aws-cli"])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds()
+  }
+
+  parameters {
+    string(name: 'STAGE', defaultValue: 'dev', description: 'The deployment stage / environment')
+  }
+
+  environment {
+    NO_COLOR = 1
+  }
+  
+  stages {
+    stage('Build & Test') {
+      failFast true
+      parallel {
+        stage('Builds') {
+          steps {
+            script {
+              assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+              dirCon('deployment', 'node') {
+                sh """
+                mkdir ../client/dist
+                mkdir ../server/dist
+                npm ci
+                node build.js ${params.STAGE} deploy:core
+                """
+              }
+              parallel(
+                'Build Client': {
+                  dirCon('deployment','node') {
+                      sh "node build.js ${params.STAGE} build:client"
+                      
+                      
+                  }
+                }, 'Build Server': {
+                  dirCon('deployment', 'node') {
+                      sh "node build.js ${params.STAGE} build:server"
+                  }
+                }
+              )
+            }
+          }
+        }
+        stage('Test Client') {
+          steps {
+            build(job: "Client/$BRANCH_NAME", propagate: true, wait: true)
+          }
+        }
+        stage('Test Server') {
+          steps {
+            build(job: "Server/$BRANCH_NAME", propagate: true, wait: true)
+          }
+        }
+        stage('Test CDK') {
+          steps {
+            build(job: "CDK/$BRANCH_NAME", propagate: true, wait: true)
+          }
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+          script {
+            dirCon('deployment','node') {
+              sh "node build.js ${params.STAGE} deploy:all"
+            }
+          }
+      }
+    }
+  }
+}

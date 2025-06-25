@@ -16,7 +16,6 @@ import { Construct } from "constructs";
 import { DeploymentConfigProperties } from "../config";
 
 import * as uiDeploy from "../lib/ui-deploy";
-import { execSync } from "child_process";
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 
 interface UIStackProps {
@@ -90,15 +89,11 @@ export class UiStack extends Stack {
     // WAF
     //
 
-    const prefixListEntries = execSync(
-      `aws ec2 get-managed-prefix-list-entries --prefix-list-id $(aws ec2 describe-managed-prefix-lists --filters "Name=prefix-list-name,Values=zscaler" --query 'PrefixLists[0].PrefixListId' --output text) --output json --query "Entries[*].Cidr"`
-    );
-
     const ipSet = new aws_wafv2.CfnIPSet(commonProps.scope, "cloudfrontWaf", {
       name: "AllowVPNIps",
       scope: "CLOUDFRONT",
       ipAddressVersion: "IPV4",
-      addresses: JSON.parse(prefixListEntries.toString()),
+      addresses: commonProps.zScalerIps,
     });
 
     const webAcl = new aws_wafv2.CfnWebACL(
@@ -157,7 +152,7 @@ export class UiStack extends Stack {
           },
           contentSecurityPolicy: {
             contentSecurityPolicy:
-              "default-src 'self'; img-src 'self' data: https://www.google-analytics.com; script-src 'self' https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com tags.tiqcdn.com tags.tiqcdn.cn tags-eu.tiqcdn.com tealium-tags.cms.gov dap.digitalgov.gov https://*.adoberesources.net 'unsafe-inline'; style-src 'self' maxcdn.bootstrapcdn.com fonts.googleapis.com 'unsafe-inline'; font-src 'self' maxcdn.bootstrapcdn.com fonts.gstatic.com; connect-src https://*.amazonaws.com/ https://*.amazoncognito.com https://www.google-analytics.com https://*.launchdarkly.us https://adobe-ep.cms.gov https://adobedc.demdex.net; frame-ancestors 'none'; object-src 'none'",
+              "default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; object-src 'none'",
             override: true,
           },
         },

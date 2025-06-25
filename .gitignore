@@ -6,3 +6,4 @@
 
 cdk.out/
 cdk.context.json
+core-outputs.json
