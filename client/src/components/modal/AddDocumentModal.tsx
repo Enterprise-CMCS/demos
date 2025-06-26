@@ -51,6 +51,7 @@ const AddDocumentModal: React.FC<Props> = ({ onClose }) => {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/msword",
     "application/vnd.ms-excel",
+    "application / vnd.ms - excel.sheet.macroEnabled.12",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "application/zip",
   ];
