@@ -114,16 +114,19 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
         />
       </div>
 
-      <AutoCompleteSelect
-        label="Document Type"
-        options={DOCUMENT_TYPES}
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        onSelect={(_value: string) => {
-          // TO DO: Save for now until defined in the backend
-          // setProvider(value);
-          if (error) setError("");
-        }}
-      />
+      {/* Narrowed down to match old layout */}
+      <div className="w-[240px]">
+        <AutoCompleteSelect
+          label="Document Type"
+          options={DOCUMENT_TYPES}
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          onSelect={(_value: string) => {
+            // TO DO: Save for now until defined in the backend
+            // setProvider(value);
+            if (error) setError("");
+          }}
+        />
+      </div>
 
       <div className={DROPZONE}>
         <p className={DROPZONE_HEADER}>Drop file(s) to upload</p>
