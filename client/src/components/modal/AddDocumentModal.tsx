@@ -117,6 +117,7 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
       {/* Narrowed down to match old layout */}
       <div className="w-[240px]">
         <AutoCompleteSelect
+          id="document-type"
           label="Document Type"
           options={DOCUMENT_TYPES}
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -137,6 +138,7 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
           className="hidden"
           accept=".pdf,.doc,.docx,.xls,.xlsx,.zip"
           onChange={handleFileChange}
+          data-testid="file-input"
         />
         <SecondaryButton size="small" onClick={triggerFileSelect}>
           {file ? (
