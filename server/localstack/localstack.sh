@@ -6,6 +6,7 @@ PACKAGE_NAME="demos-server"
 PACKAGE_VERSION="0.1.0"
 DEPLOY_BUCKET="${PACKAGE_NAME}-deployment"
 API_NAME="${PACKAGE_NAME}-api"
+SECRET_NAME="${PACKAGE_NAME}-database-url"
 
 # Convert exit codes to booleans for easy processing
 clean_exit() {
@@ -24,9 +25,13 @@ API_ID=$(aws apigateway get-rest-apis \
   --output text)
 API_EXISTS=$([ -n "${API_ID}" ] && echo true || echo false)
 
+aws ${ENDPOINT} secretsmanager describe-secret --secret-id ${SECRET_NAME} >/dev/null 2>&1
+SECRET_EXISTS=$(clean_exit)
+
 echo "Bucket exists in localstack: ${BUCKET_EXISTS}"
 echo "Lambda exists in localstack: ${LAMBDA_EXISTS}"
 echo "Gateway exists in localstack: ${API_EXISTS}"
+echo "Secret exists in localstack: ${SECRET_EXISTS}"
 
 # Clean up old stuff in localstack
 if [[ ${BUCKET_EXISTS} == true ]]; then
@@ -38,16 +43,34 @@ fi
 if [[ ${API_EXISTS} == true ]]; then
   aws ${ENDPOINT} apigateway delete-rest-api --rest-api-id ${API_ID}
 fi
+if [[ ${SECRET_EXISTS} == true ]]; then
+  aws ${ENDPOINT} secretsmanager delete-secret --secret-id ${SECRET_NAME} --force-delete-without-recovery
+fi
 
 # Build file
 npm run build
+
+# This copies binaries to the installed server file
+mkdir -p node_modules/.prisma/client
+cp -r ../node_modules/.prisma/client/*.node node_modules/.prisma/client/
 cp ../build/server.cjs .
-zip ${PACKAGE_NAME}.zip server.cjs
+zip -r ${PACKAGE_NAME}.zip server.cjs node_modules
+
+# Clean up old files
 rm server.cjs
+rm -r node_modules
 
 # Make a bucket and upload the zip
 aws ${ENDPOINT} s3 mb s3://${DEPLOY_BUCKET}
 aws ${ENDPOINT} s3 cp ${PACKAGE_NAME}.zip s3://${DEPLOY_BUCKET}/${PACKAGE_NAME}.zip
+
+# Create a secret
+SECRET_ARN=$(aws secretsmanager create-secret \
+  ${ENDPOINT} \
+  --name "${SECRET_NAME}" \
+  --secret-string '{"DATABASE_URL":"postgresql://postgres:postgres@db:5432/demos?schema=demos_app"}' \ # pragma: allowlist secret \
+  --query "ARN" \
+  --output text)
 
 # Create a function
 aws lambda create-function \
@@ -56,7 +79,8 @@ aws lambda create-function \
   --code S3Bucket=${DEPLOY_BUCKET},S3Key=${PACKAGE_NAME}.zip \
   --handler server.graphqlHandler \
   --runtime nodejs22.x \
-  --role arn:aws:iam::000000000000:role/${PACKAGE_NAME}-localstack-lambda
+  --role arn:aws:iam::000000000000:role/${PACKAGE_NAME}-localstack-lambda \
+  --environment "Variables={BYPASS_AUTH=true, DATABASE_SECRET_ARN=${SECRET_ARN}, DATABASE_URL=postgres://placeholder}"
 
 # Add Lambda permission for API Gateway
 aws lambda add-permission \
