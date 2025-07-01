@@ -6,9 +6,9 @@ interface HeaderConfig {
 
 const HeaderConfigContext = createContext<{
   setHeaderConfig: (config: HeaderConfig) => void;
-}>({
-  setHeaderConfig: () => {},
-});
+    }>({
+      setHeaderConfig: () => {},
+    });
 
 export const useHeaderConfig = () => useContext(HeaderConfigContext);
 

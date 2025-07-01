@@ -6,8 +6,8 @@ import {
   ToastContainer,
   ToastProvider,
 } from "components/index";
-import { HeaderLower } from "../components/header/HeaderLower"; // import your default header lower
-import { HeaderConfigProvider } from "../components/header/HeaderConfigContext";
+import { DefaultHeaderLower } from "components/header/DefaultHeaderLower"; // import your default header lower
+import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
 
 interface PrimaryLayoutProps {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
 
   return (
     <ToastProvider>
-      <HeaderConfigProvider defaultLowerContent={<HeaderLower userId={2} />}>
+      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower userId={2} />}>
         <div className="h-screen flex flex-col">
           <Header userId={2} />
           <div className="flex flex-1 overflow-hidden">

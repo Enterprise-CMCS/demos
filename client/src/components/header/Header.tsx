@@ -1,5 +1,4 @@
 import React from "react";
-import { HeaderLower } from "./HeaderLower";
 import { HeaderUpper } from "./HeaderUpper";
 
 export const Header: React.FC<{

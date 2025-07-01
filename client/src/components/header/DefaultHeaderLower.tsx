@@ -20,7 +20,7 @@ export const HEADER_LOWER_QUERY = gql`
   }
 `;
 
-export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
+export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [modalType, setModalType] = useState<"create" | "document" | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
