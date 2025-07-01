@@ -6,8 +6,10 @@ interface HeaderConfig {
 
 const HeaderConfigContext = createContext<{
   setHeaderConfig: (config: HeaderConfig) => void;
+  effectiveContent: ReactNode;
     }>({
       setHeaderConfig: () => {},
+      effectiveContent: null,
     });
 
 export const useHeaderConfig = () => useContext(HeaderConfigContext);
@@ -21,11 +23,8 @@ export const HeaderConfigProvider: React.FC<{
   const effectiveContent = headerConfig.lowerContent ?? defaultLowerContent;
 
   return (
-    <HeaderConfigContext.Provider value={{ setHeaderConfig }}>
+    <HeaderConfigContext.Provider value={{ setHeaderConfig, effectiveContent }}>
       {children}
-      <div className="absolute top-12 w-full z-10">
-        {effectiveContent}
-      </div>
     </HeaderConfigContext.Provider>
   );
 };

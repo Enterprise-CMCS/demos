@@ -6,7 +6,7 @@ import {
   ToastContainer,
   ToastProvider,
 } from "components/index";
-import { DefaultHeaderLower } from "components/header/DefaultHeaderLower"; // import your default header lower
+import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
 import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
 
 interface PrimaryLayoutProps {
