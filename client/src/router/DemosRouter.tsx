@@ -7,6 +7,7 @@ import { ComponentLibrary, TestHooks } from "pages/debug";
 import { AuthComponent } from "components/auth/AuthComponent";
 import { PrimaryLayout } from "layout/PrimaryLayout";
 import { Demonstrations } from "pages/Demonstrations";
+import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import { isDevelopmentMode } from "config/env";
@@ -33,6 +34,7 @@ export const DemosRouter = () => {
               {/* TODO: is the Demonstration page just the landing page? */}
               <Route path="/" element={<LandingPage />} />
               <Route path="demonstrations" element={<Demonstrations />} />
+              <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
               {/* Debug routes, only available in development mode */}
               {isDevelopmentMode() && (
                 <>
