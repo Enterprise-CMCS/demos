@@ -1,12 +1,14 @@
 #!/usr/bin/bash
 
 # Static variables
+# Note, using escaped quotes for the SECRET_VALUE because of needing to double-quote it later
 ENDPOINT="--endpoint-url=http://localstack:4566"
 PACKAGE_NAME="demos-server"
 PACKAGE_VERSION="0.1.0"
 DEPLOY_BUCKET="${PACKAGE_NAME}-deployment"
 API_NAME="${PACKAGE_NAME}-api"
 SECRET_NAME="${PACKAGE_NAME}-database-url"
+SECRET_VALUE="{\"DATABASE_URL\":\"postgresql://postgres:postgres@db:5432/demos?schema=demos_app\"}" # pragma: allowlist secret
 
 # Convert exit codes to booleans for easy processing
 clean_exit() {
@@ -68,7 +70,7 @@ aws ${ENDPOINT} s3 cp ${PACKAGE_NAME}.zip s3://${DEPLOY_BUCKET}/${PACKAGE_NAME}.
 SECRET_ARN=$(aws secretsmanager create-secret \
   ${ENDPOINT} \
   --name "${SECRET_NAME}" \
-  --secret-string '{"DATABASE_URL":"postgresql://postgres:postgres@db:5432/demos?schema=demos_app"}' \ # pragma: allowlist secret \
+  --secret-string "${SECRET_VALUE}" \
   --query "ARN" \
   --output text)
 
