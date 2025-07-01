@@ -35,7 +35,7 @@ export const DemonstrationDetail = () => {
           <span className="font-bold block">{data.name}</span>
           {/* TODO: Replace Project Officer with correct value */}
           <span className="block text-sm">
-            State/Territory: {data.state.stateCode} 
+            State/Territory: {data.state.stateCode}
             <span className="mx-1">|</span>
             Project Officer {data.description}
           </span>
