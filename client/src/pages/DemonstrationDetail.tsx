@@ -37,7 +37,7 @@ export const DemonstrationDetail = () => {
           <span className="block text-sm">
             State/Territory: {data.state.stateCode}
             <span className="mx-1">|</span>
-            Project Officer {data.description}
+            Project Officer: {data.description}
           </span>
         </div>
         <div className="relative">
