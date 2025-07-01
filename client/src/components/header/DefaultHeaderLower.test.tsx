@@ -1,4 +1,4 @@
-// src/components/HeaderLower.test.tsx
+// src/components/DefaultHeaderLower.test.tsx
 import React from "react";
 
 import { vi } from "vitest";
@@ -10,7 +10,7 @@ import {
   screen,
 } from "@testing-library/react";
 
-import { HeaderLower } from "./HeaderLower";
+import { DefaultHeaderLower } from "./DefaultHeaderLower";
 
 // Mock Apollo
 vi.mock("@apollo/client", async () => {
@@ -39,14 +39,14 @@ vi.mock("components/modal/AddDocumentModal", () => ({
   ),
 }));
 
-describe("HeaderLower", () => {
+describe("DefaultHeaderLower", () => {
   afterEach(() => {
     vi.resetAllMocks();
   });
 
   it("renders empty bar when no userId is passed", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({});
-    const { container } = render(<HeaderLower />);
+    const { container } = render(<DefaultHeaderLower />);
     expect(container.firstChild?.childNodes.length).toBe(0);
   });
 
@@ -56,7 +56,7 @@ describe("HeaderLower", () => {
       error: null,
       data: null,
     });
-    render(<HeaderLower userId={1} />);
+    render(<DefaultHeaderLower userId={1} />);
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
@@ -66,7 +66,7 @@ describe("HeaderLower", () => {
       error: { message: "fail" },
       data: null,
     });
-    render(<HeaderLower userId={2} />);
+    render(<DefaultHeaderLower userId={2} />);
     expect(screen.getByText("Error: fail")).toBeInTheDocument();
   });
 
@@ -76,7 +76,7 @@ describe("HeaderLower", () => {
       error: null,
       data: { user: null },
     });
-    const { container } = render(<HeaderLower userId={3} />);
+    const { container } = render(<DefaultHeaderLower userId={3} />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -86,7 +86,7 @@ describe("HeaderLower", () => {
       error: null,
       data: { user: { fullName: "John Test" } },
     });
-    render(<HeaderLower userId={4} />);
+    render(<DefaultHeaderLower userId={4} />);
     expect(screen.getByText("Hello John Test")).toBeInTheDocument();
   });
 
@@ -96,7 +96,7 @@ describe("HeaderLower", () => {
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<HeaderLower userId={5} />);
+    render(<DefaultHeaderLower userId={5} />);
     const button = screen.getByText("Create New");
     fireEvent.click(button);
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe("HeaderLower", () => {
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<HeaderLower userId={6} />);
+    render(<DefaultHeaderLower userId={6} />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
     expect(screen.getByTestId("create-modal")).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe("HeaderLower", () => {
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<HeaderLower userId={7} />);
+    render(<DefaultHeaderLower userId={7} />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Add New Document"));
     expect(screen.getByTestId("add-document-modal")).toBeInTheDocument();
@@ -138,7 +138,7 @@ describe("HeaderLower", () => {
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<HeaderLower userId={8} />);
+    render(<DefaultHeaderLower userId={8} />);
     fireEvent.click(screen.getByText("Create New"));
 
     fireEvent.click(screen.getByText("Amendment"));
