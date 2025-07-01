@@ -8,3 +8,5 @@ cdk.out/
 cdk.context.json
 
 server/localstack/demos-server.zip
+
+core-outputs.json

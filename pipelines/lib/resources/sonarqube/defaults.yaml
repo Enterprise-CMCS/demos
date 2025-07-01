@@ -1,0 +1,5 @@
+sources: src
+tests: src
+exclusions: '**/*.test.ts,**/*.test.tsx'
+test.inclusions: '**/*.test.ts,**/*.test.tsx'
+typescript.tsconfigPath: tsconfig.json
