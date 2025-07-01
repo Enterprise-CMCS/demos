@@ -33,7 +33,12 @@ export const DemonstrationDetail = () => {
           {/* TODO: Replace with breadcrumb */}
           <span className="-ml-2 block text-sm"><a className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40" href="/demonstrations">Demonstration List</a> {">"} {data.id}</span>
           <span className="font-bold block">{data.name}</span>
-          <span className="block text-sm">State/Territory: {`${data.state.stateCode}`}</span>
+          {/* TODO: Replace Project Officer with correct value */}
+          <span className="block text-sm">
+            State/Territory: {data.state.stateCode} 
+            <span className="mx-1">|</span>
+            Project Officer {data.description}
+          </span>
         </div>
         <div className="relative">
           { showButtons && (
