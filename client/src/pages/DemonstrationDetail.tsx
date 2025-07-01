@@ -31,7 +31,7 @@ export const DemonstrationDetail = () => {
       <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
         <div>
           {/* TODO: Replace with breadcrumb */}
-          <span className="-ml-2 block text-sm"><a className="underline decoration-gray-400 decoration-1 decoration-opacity-40" href="/demonstrations">Demonstration List</a> {">"} {data.id}</span>
+          <span className="-ml-2 block text-sm"><a className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40" href="/demonstrations">Demonstration List</a> {">"} {data.id}</span>
           <span className="font-bold block">{data.name}</span>
           <span className="block text-sm">State/Territory: {`${data.state.stateCode}`}</span>
         </div>
