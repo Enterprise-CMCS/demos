@@ -18,7 +18,7 @@ export const HeaderConfigProvider: React.FC<{
   children: React.ReactNode;
   defaultLowerContent: React.ReactNode;
 }> = ({ children, defaultLowerContent }) => {
-  const [headerConfig, setHeaderConfig] = useState<HeaderConfig>({});
+  const [headerConfig, setHeaderConfig] = useState<HeaderConfig | null>(null);```
 
   const effectiveContent = headerConfig.lowerContent ?? defaultLowerContent;
 
