@@ -115,6 +115,7 @@ export class ApiStack extends Stack {
 
     new CfnOutput(this, "ApiUrl", {
       value: apigateway_outputs.apiGatewayRestApiUrl,
+      exportName: `${commonProps.stage}ApiGWUrl`
     });
   }
 }

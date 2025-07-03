@@ -105,17 +105,17 @@ export class CoreStack extends Stack {
 
     new CfnOutput(this, "cognitoAuthority", {
       value: cognito_outputs.authority,
-      exportName: "cognitoAuthority",
+      exportName: `${commonProps.stage}CognitoAuthority`,
     });
 
     new CfnOutput(this, "cognitoDomain", {
       value: cognito_outputs.domain,
-      exportName: "cognitoDomain"
+      exportName: `${commonProps.stage}CognitoDomain`
     })
 
     new CfnOutput(this, "cognitoClientId", {
       value: cognito_outputs.userPoolClientId,
-      exportName: "cognitoClientId"
+      exportName: `${commonProps.stage}CognitoClientId`
     })
 
     this.cloudVpnSecurityGroup = aws_ec2.SecurityGroup.fromLookupByName(
