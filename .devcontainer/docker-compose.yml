@@ -5,18 +5,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-
     volumes:
       - ../..:/workspaces:cached
-      
-    # Overrides default command so things don't shut down after the process ends.
-    command: sleep infinity
-
-    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
-    network_mode: service:db
-
-    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally. 
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
+    command: sleep infinity # Overrides default command so things don't shut down after the process ends.
+    environment:
+      AWS_PAGER: ""
+    ports:
+      - "3000:3000"
+      - "4000:4000"
 
   db:
     image: postgres:latest
@@ -27,15 +23,14 @@ services:
       POSTGRES_PASSWORD: postgres # pragma: allowlist secret
       POSTGRES_USER: postgres
       POSTGRES_DB: demos
+    ports:
+      - "5432:5432"
 
-    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
-  
   kafka-mock:
-    image: apache/kafka:latest    
+    image: apache/kafka:latest
     environment:
       KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES:  broker,controller
+      KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -44,8 +39,23 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0      
-    network_mode: service:db
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "9092:9093"
+
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      DEBUG: ${DEBUG:-0}
+      DOCKER_HOST: unix:///var/run/docker.sock
+      HOSTNAME_EXTERNAL: localstack
+      SERVICES: s3,lambda,apigateway,secretsmanager,logs
+    volumes:
+      - "localstack-data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    ports:
+      - "4566:4566"
 
 volumes:
   postgres-data:
+  localstack-data:
