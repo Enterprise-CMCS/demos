@@ -93,10 +93,10 @@ async function buildClient(environment) {
     cwd: clientPath,
     env: {
       ...process.env,
-      VITE_COGNITO_AUTHORITY: coreOutputData[`demos-${environment}-core`].cognitoAuthority,
-      VITE_COGNITO_DOMAIN: coreOutputData[`demos-${environment}-core`].cognitoDomain,
-      VITE_COGNITO_CLIENT_ID: coreOutputData[`demos-${environment}-core`].cognitoClientId,
-      VITE_BASE_URL: coreOutputData[`demos-${environment}-core`].baseUrl,
+      VITE_COGNITO_AUTHORITY: coreOutputData[`demos-${environment}-core`][`${environment}CognitoAuthority`],
+      VITE_COGNITO_DOMAIN: coreOutputData[`demos-${environment}-core`][`${environment}CognitoDomain`],
+      VITE_COGNITO_CLIENT_ID: coreOutputData[`demos-${environment}-core`][`${environment}CognitoClientId`],
+      VITE_BASE_URL: coreOutputData[`demos-${environment}-core`][`${environment}BaseUrl`],
       VITE_API_URL_PREFIX: "/api/graphql",
     },
   });

@@ -232,7 +232,7 @@ export class UiStack extends Stack {
 
     new CfnOutput(this, "Cloudfront URL", {
       value: applicationEndpointUrl,
-      exportName: "cloudfrontUrl",
+      exportName: `${commonProps.stage}CloudfrontUrl`,
     });
   }
 }
