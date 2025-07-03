@@ -24,7 +24,7 @@ export interface AutoCompleteSelectProps {
 }
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
-const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1 pr-10
+const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1
   text-text-font bg-surface-white disabled:bg-surface-disabled
   disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none 
   focus:border-border-focus focus:ring-1 focus:ring-border-focus appearance-none text-sm`;
@@ -107,7 +107,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
         </label>
       )}
 
-      <div className="relative">
+      <div className="relative w-full">
         <input
           id={id}
           type="text"
@@ -120,8 +120,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           disabled={isDisabled}
           className={INPUT_CLASSES}
         />
-
-        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
