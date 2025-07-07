@@ -15,6 +15,7 @@ export const demonstrationSchema = gql`
     demonstrationStatus: DemonstrationStatus!
     state: State!
     users: [User!]!
+    projectOfficer: User!
   }
 
   input AddDemonstrationInput {
@@ -25,6 +26,7 @@ export const demonstrationSchema = gql`
     demonstrationStatusId: ID!
     stateId: ID!
     userIds: [ID!]
+    projectOfficer: String!
   }
 
   input UpdateDemonstrationInput {
@@ -35,6 +37,7 @@ export const demonstrationSchema = gql`
     demonstrationStatusId: ID
     stateId: ID
     userIds: [ID!]
+    projectOfficer: String
   }
 
   type Mutation {
@@ -61,6 +64,7 @@ export interface Demonstration {
   demonstrationStatus: DemonstrationStatus;
   state: State;
   users: User[];
+  projectOfficer: User;
 }
 
 export interface AddDemonstrationInput {
@@ -71,6 +75,7 @@ export interface AddDemonstrationInput {
   demonstrationStatusId: string;
   stateId: string;
   userIds?: string[];
+  projectOfficer: string; 
 }
 
 export interface UpdateDemonstrationInput {
@@ -81,4 +86,5 @@ export interface UpdateDemonstrationInput {
   demonstrationStatusId?: string;
   stateId?: string;
   userIds?: string[];
+  projectOfficer?: string; 
 }

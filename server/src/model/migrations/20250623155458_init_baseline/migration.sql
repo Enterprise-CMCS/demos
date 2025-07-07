@@ -90,6 +90,7 @@ CREATE TABLE "demonstration" (
     "updated_at" TIMESTAMPTZ NOT NULL,
     "demonstration_status_id" UUID NOT NULL,
     "state_id" UUID NOT NULL,
+    "project_officer_user_id" UUID NOT NULL,
 
     CONSTRAINT "demonstration_pkey" PRIMARY KEY ("id")
 );
@@ -108,6 +109,7 @@ CREATE TABLE "demonstration_history" (
     "updated_at" TIMESTAMPTZ NOT NULL,
     "demonstration_status_id" UUID NOT NULL,
     "state_id" UUID NOT NULL,
+    "project_officer_user_id" UUID NOT NULL,
 
     CONSTRAINT "demonstration_history_pkey" PRIMARY KEY ("revision_id")
 );
@@ -274,3 +276,9 @@ ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_demonstration_status_i
 
 -- AddForeignKey
 ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "state"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_project_officer_user_id_fkey" FOREIGN KEY ("project_officer_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demonstration_history" ADD CONSTRAINT "demonstration_history_project_officer_id_fkey" FOREIGN KEY ("project_officer_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

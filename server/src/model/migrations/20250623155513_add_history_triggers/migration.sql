@@ -172,7 +172,8 @@ BEGIN
             created_at,
             updated_at,
             demonstration_status_id,
-            state_id
+            state_id,
+            project_officer_user_id
         )
         VALUES (
             CASE TG_OP
@@ -187,7 +188,8 @@ BEGIN
             NEW.created_at,
             NEW.updated_at,
             NEW.demonstration_status_id,
-            NEW.state_id
+            NEW.state_id,
+            NEW.project_officer_user_id
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
@@ -201,7 +203,8 @@ BEGIN
             created_at,
             updated_at,
             demonstration_status_id,
-            state_id
+            state_id,
+            project_officer_user_id
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
@@ -213,7 +216,8 @@ BEGIN
             OLD.created_at,
             OLD.updated_at,
             OLD.demonstration_status_id,
-            OLD.state_id
+            OLD.state_id,
+            OLD.project_officer_user_id
         );
         RETURN OLD;
     END IF;

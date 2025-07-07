@@ -1,4 +1,4 @@
-import { Demonstration } from "@prisma/client";
+import { Demonstration, User } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import {
   AddDemonstrationInput,
@@ -121,6 +121,13 @@ export const demonstrationResolvers = {
       return userStateDemonstrations.map(
         (userStateDemonstration) => userStateDemonstration.user,
       );
+    },
+
+    projectOfficer: async (parent: User) => {            
+      if (!parent) return null;
+      return await prisma.user.findUnique({
+        where: { id: parent.id },
+      });
     },
   },
 };
