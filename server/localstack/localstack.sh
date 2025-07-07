@@ -8,7 +8,7 @@ PACKAGE_VERSION="0.1.0"
 DEPLOY_BUCKET="${PACKAGE_NAME}-deployment"
 API_NAME="${PACKAGE_NAME}-api"
 SECRET_NAME="${PACKAGE_NAME}-database-url"
-SECRET_VALUE="{\"DATABASE_URL\":\"postgresql://postgres:postgres@db:5432/demos?schema=demos_app\"}" # pragma: allowlist secret
+SECRET_VALUE="{\"password\":\"postgres\",\"dbname\":\"demos\",\"port\":\"5432\",\"host\":\"db\",\"username\":\"postgres\"}" # pragma: allowlist secret
 
 # Convert exit codes to booleans for easy processing
 clean_exit() {

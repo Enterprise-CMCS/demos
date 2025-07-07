@@ -37,7 +37,7 @@ interface LambdaProps extends CommonProps {
 
 export function create(props: LambdaProps, id: string) {
   const lambda = new Lambda(props.scope, id, props);
-
+  
   return {
     functionName: lambda.lambda.functionName,
     lambda,
@@ -46,6 +46,7 @@ export function create(props: LambdaProps, id: string) {
 
 export class Lambda extends Construct {
   public readonly lambda: NodejsFunction;
+  public readonly role: Role;
 
   constructor(scope: Construct, id: string, props: LambdaProps) {
     super(scope, id);
@@ -95,7 +96,7 @@ export class Lambda extends Construct {
         }),
       },
     });
-
+    this.role = role;
     this.lambda = new NodejsFunction(this, id, {
       functionName: `${props.project}-${props.stage}-${id}`,
       entry: !asCode ? props.entry : undefined,
