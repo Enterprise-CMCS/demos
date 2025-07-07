@@ -5,7 +5,7 @@ import { RadioGroupSandbox } from "components/radioGroup";
 import { CheckboxGroupSandbox } from "components/checkboxGroup";
 import { ToastDemo } from "./ToastDemo";
 import React from "react";
-import { DatePickerSandbox } from "components/input/DatePicker.tsx/DatePickerSandbox";
+import { DatePickerSandbox } from "components/input/DatePicker/DatePickerSandbox";
 
 export const ComponentLibrary: React.FC = () => {
   return (

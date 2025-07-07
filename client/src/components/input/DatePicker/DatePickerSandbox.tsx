@@ -1,33 +1,14 @@
 import React, { useState } from "react";
 import { DatePicker, TYPE_DATETIME, TYPE_TIME } from "./DatePicker";
 import dayjs, { Dayjs } from "dayjs";
-import { DateTimeValidationError } from "@mui/x-date-pickers";
 
 export const DatePickerSandbox: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [error, setError] = React.useState<DateTimeValidationError | null>(null);
 
   const isInvalidRange =
     startDate && endDate && startDate.isAfter(endDate);
-
-  const errorMessage = React.useMemo(() => {
-    switch (error) {
-      case "maxDate":
-      case "minDate": {
-        return "Please select a date in the first quarter of 2022";
-      }
-
-      case "invalidDate": {
-        return "Your date is not valid";
-      }
-
-      default: {
-        return "";
-      }
-    }
-  }, [error]);
 
   return (
     <>
@@ -64,12 +45,7 @@ export const DatePickerSandbox: React.FC = () => {
           onChange={setEndDate}
           minDate={dayjs().subtract(3, "day")}
           maxDate={dayjs().add(3, "day")}
-          onError={(newError) => setError(newError)}
-          slotProps={{
-            textField: {
-              helperText: errorMessage,
-            },
-          }}
+
         >Required Date Picker with validation (three days before and after today)</DatePicker>
       </div>
     </>
