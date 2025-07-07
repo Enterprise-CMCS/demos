@@ -10,11 +10,13 @@ export default tseslint.config(
   {
     rules: {
       "eol-last": ["error", "always"],
-      quotes: [
-        "error",
-        "double",
-        { avoidEscape: true, allowTemplateLiterals: true },
-      ],
+      quotes: ["error", "double", { avoidEscape: true, allowTemplateLiterals: true }],
+    },
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        console: "readonly",
+      },
     },
   }
 );

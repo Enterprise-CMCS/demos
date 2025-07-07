@@ -1,0 +1,53 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node", "scanner"])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds()
+  }
+
+  stages {
+    stage('Client - Lint') {
+      steps {
+        dirCon('client', 'node') {
+            sh '''
+            npm ci
+            npm run lint
+            '''
+        }
+      }
+    }
+
+    stage('Client - Unit Test') {
+      steps {
+        dirCon('client', 'node') {
+          sh '''
+            npm run coverage:ci
+            '''
+        }
+      }
+    }
+
+    stage('Client - Sonar Scan') {
+      steps {
+        script {
+          sonarQubeScan(
+            projectKey: 'demos',
+            credentialsId: 'sonarqube-demos-client',
+            projectBaseDir: 'client',
+            sonarqubeFlags: [
+              "javascript.lcov.reportPaths": "coverage/lcov.info",
+              "testExecutionReportPaths": "coverage/test-results.xml",
+              "pullrequest.key": env.CHANGE_ID ?: null,
+              "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
+              "pullrequest.base": env.CHANGE_TARGET ?: null
+            ]
+          )
+        }
+      }
+    }
+  }
+}

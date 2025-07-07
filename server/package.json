@@ -13,12 +13,14 @@
   "dependencies": {
     "@apollo/server": "^4.12.2",
     "@as-integrations/aws-lambda": "^3.1.0",
+    "@aws-sdk/client-secrets-manager": "^3.840.0",
     "@prisma/client": "^6.7.0",
     "graphql-scalars": "^1.24.2",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.0",
     "prisma-extension-random": "^0.2.2",
-    "react": "^19.1.0"
+    "react": "^19.1.0",
+    "graphql-tools": "^9.0.18"
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
@@ -28,7 +30,9 @@
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "watch": "concurrently \"tsx watch --clear-screen=false src/index.ts\" \"prisma generate --watch\"",
-    "seed": "prisma db push --force-reset && tsx --inspect ./src/seeder.ts",
+    "seed": "prisma migrate reset --force && tsx --inspect ./src/seeder.ts",
+    "migrate:empty": "prisma migrate dev --create-only",
+    "migrate:reset": "prisma migrate reset --force",
     "depcheck": "depcheck"
   },
   "devDependencies": {
@@ -45,7 +49,6 @@
     "eslint": "^9.27.0",
     "eslint-utils": "^3.0.0",
     "graphql": "^16.11.0",
-    "graphql-tools": "^9.0.18",
     "jest": "^29.7.0",
     "prettier": "^3.5.3",
     "prisma": "^6.6.0",

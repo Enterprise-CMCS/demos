@@ -6,6 +6,7 @@ import React, {
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
+import { AddDocumentModal } from "components/modal/AddDocumentModal";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { gql } from "graphql-tag";
 
@@ -19,9 +20,9 @@ export const HEADER_LOWER_QUERY = gql`
   }
 `;
 
-export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
+export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState<"create" | "document" | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -56,8 +57,9 @@ export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
 
   const handleSelect = (item: string) => {
     setShowDropdown(false);
-    if (item === "Demonstration") setShowModal(true);
-    // Can handle Amendment/Extension here later
+    if (item === "Demonstration") setModalType("create");
+    if (item === "AddDocument") setModalType("document");
+    // Can handle Amendment/Extension later
   };
 
   return (
@@ -85,6 +87,12 @@ export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
               Demonstration
             </button>
             <button
+              onClick={() => handleSelect("AddDocument")}
+              className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
+            >
+              Add New Document
+            </button>
+            <button
               onClick={() => handleSelect("Amendment")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
@@ -98,13 +106,14 @@ export const HeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
             </button>
           </div>
         )}
-
       </div>
 
-      {showModal && (
-        <CreateNewModal
-          onClose={() => setShowModal(false)}
-        />
+      {/* Modal render */}
+      {modalType === "create" && (
+        <CreateNewModal onClose={() => setModalType(null)} />
+      )}
+      {modalType === "document" && (
+        <AddDocumentModal onClose={() => setModalType(null)} />
       )}
     </div>
   );

@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { Header } from "./Header";
 import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
-import { HeaderLower } from "./HeaderLower";
+import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Avatar } from "./Avatar";
 import { MockedProvider } from "@apollo/client/testing";
 import { userMocks } from "mock-data/userMocks";
@@ -40,7 +40,7 @@ describe("Header", async () => {
   it("renders the greeting", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <HeaderLower userId={2} />
+        <DefaultHeaderLower userId={2} />
       </MockedProvider>
     );
     expect(await screen.findByText("Hello John Doe")).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe("Header", async () => {
   it("renders the Create New button", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <HeaderLower userId={2} />
+        <DefaultHeaderLower userId={2} />
       </MockedProvider>
     );
     expect(

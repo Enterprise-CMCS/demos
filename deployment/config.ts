@@ -1,5 +1,6 @@
 import { Aws } from "aws-cdk-lib";
 import { getSecret } from "./util/getSecret";
+import { getZScalerIps } from "./util/zscalerIps";
 
 export interface DeploymentConfigProperties {
   project: string;
@@ -9,6 +10,7 @@ export interface DeploymentConfigProperties {
   isDev: boolean;
   isLocalstack: boolean;
   cloudfrontCertificateArn?: string;
+  zScalerIps: string[];
 }
 
 export const determineDeploymentConfig = async (
@@ -33,8 +35,11 @@ export const determineDeploymentConfig = async (
       ? JSON.parse((await getSecret(`${project}-${stage}/config`))!)
       : {};
 
+  const zScalerIps = await getZScalerIps()
+
   return {
     ...config,
     ...secretConfig,
+    zScalerIps
   };
 };

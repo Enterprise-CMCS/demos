@@ -1,0 +1,41 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node", "scanner"])
+    }
+  }
+  
+  options {
+    disableConcurrentBuilds()
+  }
+
+  stages {
+    stage('Server - Lint') {
+      steps {
+        dirCon('server', 'node') {
+          sh '''
+          npm ci
+          npm run lint
+          '''
+        }
+      }
+    }
+
+    stage('Server - Sonar Scan') {
+      steps {
+        script {
+          sonarQubeScan(
+            projectKey: 'demos-server',
+            credentialsId: 'sonarqube-demos-server',
+            projectBaseDir: 'server',
+            sonarqubeFlags: [
+              "pullrequest.key": env.CHANGE_ID ?: null,
+              "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
+              "pullrequest.base": env.CHANGE_TARGET ?: null
+            ]
+          )
+        }
+      }
+    }
+  }
+}

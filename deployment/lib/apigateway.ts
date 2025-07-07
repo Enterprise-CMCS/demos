@@ -9,7 +9,6 @@ import {
 import { CommonProps } from "../types/props";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 
-import { execSync } from "node:child_process";
 import {
   MockIntegration,
   Model,
@@ -24,10 +23,6 @@ export function create(props: ApiGatewayProps) {
   const logGroup = new aws_logs.LogGroup(props.scope, "ApiAccessLogs", {
     removalPolicy: props.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
   });
-
-  const prefixListEntries = execSync(
-    `aws ec2 get-managed-prefix-list-entries --prefix-list-id $(aws ec2 describe-managed-prefix-lists --filters "Name=prefix-list-name,Values=zscaler" --query 'PrefixLists[0].PrefixListId' --output text) --output json --query "Entries[*].Cidr"`
-  );
 
   const api = new aws_apigateway.RestApi(props.scope, "ApiGatewayRestApi", {
     restApiName: `${props.project}-${props.stage}-api`,
@@ -66,7 +61,7 @@ export function create(props: ApiGatewayProps) {
     resources: ["execute-api:/*/*/*"],
     conditions: {
       IpAddress: {
-        "aws:SourceIp": JSON.parse(prefixListEntries.toString()),
+        "aws:SourceIp": props.zScalerIps,
       },
     },
   });

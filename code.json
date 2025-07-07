@@ -1,0 +1,67 @@
+{
+  "name": "demos",
+  "description": "Demonstration Evaluation and Management Oversight System",
+  "longDescription": "",
+  "status": "",
+  "permissions": {
+    "license": [
+      {
+        "name": "",
+        "URL": ""
+      }
+    ],
+    "usageType": "",
+    "exemptionText": ""
+  },
+  "organization": "",
+  "repositoryURL": "https://github.com/Enterprise-CMCS/demos",
+  "projectURL": "",
+  "repositoryHost": "github",
+  "repositoryVisibility": "",
+  "vcs": "git",
+  "laborHours": 9850,
+  "reuseFrequency": {
+    "forks": 0,
+    "clones": 0
+  },
+  "platforms": [],
+  "categories": [],
+  "softwareType": "",
+  "languages": [
+    "TypeScript",
+    "Python",
+    "JavaScript",
+    "PLpgSQL",
+    "CSS",
+    "Groovy",
+    "Shell",
+    "Dockerfile",
+    "HTML"
+  ],
+  "maintenance": "",
+  "contractNumber": "",
+  "date": {
+    "created": "2025-05-08T12:52:27Z",
+    "lastModified": "2025-06-26T18:00:39Z",
+    "metaDataLastUpdated": "2025-06-27T15:40:53.183Z"
+  },
+  "tags": [],
+  "contact": {
+    "email": "",
+    "name": ""
+  },
+  "feedbackMechanisms": [
+    "https://github.com/Enterprise-CMCS/demos/issues"
+  ],
+  "localisation": false,
+  "repositoryType": "",
+  "userInput": false,
+  "fismaLevel": "",
+  "group": "",
+  "projects": [],
+  "systems": [],
+  "upstream": "",
+  "subsetInHealthcare": [],
+  "userType": [],
+  "maturityModelTier": 0
+}

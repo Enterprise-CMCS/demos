@@ -5,6 +5,10 @@ import { IncomingMessage } from "http";
 import { PrismaClient, } from "@prisma/client";
 import { getAuthConfig } from "./auth.config.js";
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand
+} from "@aws-sdk/client-secrets-manager";
 
 const prisma = new PrismaClient();
 const config = getAuthConfig();
@@ -172,3 +176,30 @@ export const requireRole = (requiredRoles: string[] = []) => {
     };
   };
 };
+
+/**
+ * Obtaining (with caching) secrets from SecretsManager.
+ */
+const secretsManager = new SecretsManagerClient({ region: process.env.AWS_REGION });
+let databaseUrlCache = "";
+let cacheExpiration = 0;
+
+export async function getDatabaseUrl(): Promise<string> {
+  const now = Date.now();
+  if (databaseUrlCache && cacheExpiration > now) {
+    return databaseUrlCache;
+  }
+
+  const secretArn = process.env.DATABASE_SECRET_ARN;
+  const command = new GetSecretValueCommand({ SecretId: secretArn });
+  const response = await secretsManager.send(command);
+    
+  if (!response.SecretString) {
+    throw new Error("The SecretString value is undefined!")
+  }
+  const secretData = JSON.parse(response.SecretString);
+  databaseUrlCache = secretData.DATABASE_URL;
+  cacheExpiration = now + 60 * 60 * 1000; // Cache for 1 hour
+    
+  return databaseUrlCache;
+}

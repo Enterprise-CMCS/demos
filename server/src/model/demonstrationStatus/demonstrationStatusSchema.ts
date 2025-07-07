@@ -1,4 +1,5 @@
 import { gql } from "graphql-tag";
+import { Demonstration } from "../demonstration/demonstrationSchema.js";
 
 export const demonstrationStatusSchema = gql`
   type DemonstrationStatus {
@@ -7,7 +8,7 @@ export const demonstrationStatusSchema = gql`
     description: String!
     createdAt: DateTime!
     updatedAt: DateTime!
-    demonstrationIds: [ID!]
+    demonstrations: [Demonstration!]!
   }
 
   input AddDemonstrationStatusInput {
@@ -45,7 +46,7 @@ export interface DemonstrationStatus {
   description: string;
   createdAt: DateTime;
   updatedAt: DateTime;
-  demonstrationIds?: string[];
+  demonstrations: Demonstration[];
 }
 
 export interface AddDemonstrationStatusInput {

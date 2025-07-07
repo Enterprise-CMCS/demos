@@ -33,7 +33,8 @@
     "vite": "^6.2.5",
     "vite-bundle-visualizer": "^1.2.1",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.1.4"
+    "vitest": "^3.2.4",
+    "vitest-sonar-reporter": "^2.0.1"
   },
   "browserslist": {
     "production": [
@@ -52,6 +53,7 @@
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "vite build",
     "coverage": "vitest --coverage",
+    "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
     "dev": "vite --host",
     "dev:mocks": "VITE_USE_MOCKS=true npm run dev",
     "test": "vitest --mode test",
@@ -69,7 +71,12 @@
     "@mui/x-date-pickers": "^8.5.0",
     "@tanstack/react-table": "^8.21.3",
     "@testing-library/user-event": "^14.6.1",
+    "dayjs": "^1.11.13",
     "react-oidc-context": "^3.3.0",
     "react-router-dom": "^7.5.2"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-musl": "^4.44.0",
+    "lightningcss": "^1.30.1"
   }
 }
