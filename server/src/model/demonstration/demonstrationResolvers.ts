@@ -34,13 +34,13 @@ export const demonstrationResolvers = {
           },
           ...(userIds &&
             stateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId,
-                })),
-              },
-            }),
+            userStateDemonstrations: {
+              create: userIds.map((userId: string) => ({
+                userId,
+                stateId,
+              })),
+            },
+          }),
         },
       });
     },
@@ -49,7 +49,7 @@ export const demonstrationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, userIds, stateId, ...rest } = input;      
+      const { demonstrationStatusId, userIds, stateId, ...rest } = input;
 
       // If stateId is not provided, use the demonstration's existing stateId
       let existingStateId = stateId;
@@ -78,18 +78,18 @@ export const demonstrationResolvers = {
           }),
           ...(userIds &&
             existingStateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId: existingStateId,
-                })),
-              },
-            }),
+            userStateDemonstrations: {
+              create: userIds.map((userId: string) => ({
+                userId,
+                stateId: existingStateId,
+              })),
+            },
+          }),
         },
       });
     },
 
-    deleteDemonstration: async (_: undefined, { id }: { id: string }) => {      
+    deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
       return await prisma.demonstration.delete({
         where: { id: id },
       });
@@ -127,7 +127,7 @@ export const demonstrationResolvers = {
       );
     },
 
-    projectOfficer: async (parent: Demonstration) => {            
+    projectOfficer: async (parent: Demonstration) => {
       if (!parent) return null;
       return await prisma.user.findUnique({
         where: { id: parent.projectOfficer },
