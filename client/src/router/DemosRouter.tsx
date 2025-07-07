@@ -23,32 +23,34 @@ export const DemosRouter = () => {
   return (
     <AuthProvider {...cognitoConfig}>
       <DemosApolloProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route
-              element={
-                <PrimaryLayout>
-                  <Outlet />
-                </PrimaryLayout>
-              }
-            >
-              {/* Real Pages the user should be able to access */}
-              {/* TODO: is the Demonstration page just the landing page? */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="demonstrations" element={<Demonstrations />} />
-              <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
-              {/* Debug routes, only available in development mode */}
-              {isDevelopmentMode() && (
-                <>
-                  <Route path="/components" element={<ComponentLibrary />} />
-                  <Route path="/hooks" element={<TestHooks />} />
-                  <Route path="/auth" element={<AuthComponent />} />
-                  <Route path="/icons" element={<IconLibrary />} />
-                </>
-              )}
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <BrowserRouter>
+            <Routes>
+              <Route
+                element={
+                  <PrimaryLayout>
+                    <Outlet />
+                  </PrimaryLayout>
+                }
+              >
+                {/* Real Pages the user should be able to access */}
+                {/* TODO: is the Demonstration page just the landing page? */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="demonstrations" element={<Demonstrations />} />
+                <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+                {/* Debug routes, only available in development mode */}
+                {isDevelopmentMode() && (
+                  <>
+                    <Route path="/components" element={<ComponentLibrary />} />
+                    <Route path="/hooks" element={<TestHooks />} />
+                    <Route path="/auth" element={<AuthComponent />} />
+                    <Route path="/icons" element={<IconLibrary />} />
+                  </>
+                )}
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </LocalizationProvider>
       </DemosApolloProvider>
     </AuthProvider>
   );
