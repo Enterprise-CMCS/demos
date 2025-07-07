@@ -6,6 +6,7 @@ import {
 } from "./BaseButton";
 
 interface Props {
+  type?: "button" | "submit" | "reset";
   size?: ButtonSize;
   disabled?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export const TertiaryButton: React.FC<Props> = ({
+  type = "button", // ← default it to "button" for safety
   size = "standard",
   disabled = false,
   onClick,
@@ -21,6 +23,7 @@ export const TertiaryButton: React.FC<Props> = ({
   className = "",
 }) => (
   <BaseButton
+    type={type}
     size={size}
     disabled={disabled}
     onClick={onClick}

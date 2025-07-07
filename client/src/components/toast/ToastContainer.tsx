@@ -10,20 +10,19 @@ export const ToastContainer: React.FC = () => {
 
   const renderToast = (toast: Toast) => {
     const commonProps = {
-      key: toast.id,
       message: toast.message,
       onDismiss: () => removeToast(toast.id),
     };
 
     switch (toast.type) {
       case "info":
-        return <InfoToast {...commonProps} />;
+        return <InfoToast key={toast.id} {...commonProps} />;
       case "success":
-        return <SuccessToast {...commonProps} />;
+        return <SuccessToast key={toast.id} {...commonProps} />;
       case "warning":
-        return <WarningToast {...commonProps} />;
+        return <WarningToast key={toast.id} {...commonProps} />;
       case "error":
-        return <ErrorToast {...commonProps} />;
+        return <ErrorToast key={toast.id} {...commonProps} />;
       default:
         throw new Error(`Unknown toast type: ${toast.type}`);
     }
