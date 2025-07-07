@@ -42,7 +42,7 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     addDemonstration(input: AddDemonstrationInput!): Demonstration
-    updateDemonstration(input: UpdateDemonstrationInput!): Demonstration
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 

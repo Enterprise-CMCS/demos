@@ -49,7 +49,7 @@ export const demonstrationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, userIds, stateId, ...rest } = input;
+      const { demonstrationStatusId, userIds, stateId, ...rest } = input;      
 
       // If stateId is not provided, use the demonstration's existing stateId
       let existingStateId = stateId;
@@ -89,7 +89,7 @@ export const demonstrationResolvers = {
       });
     },
 
-    deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
+    deleteDemonstration: async (_: undefined, { id }: { id: string }) => {      
       return await prisma.demonstration.delete({
         where: { id: id },
       });
@@ -118,15 +118,19 @@ export const demonstrationResolvers = {
           },
         });
 
+      interface UserStateDemonstrationWithUser {
+        user: User;
+      }
+
       return userStateDemonstrations.map(
-        (userStateDemonstration) => userStateDemonstration.user,
+        (userStateDemonstration: UserStateDemonstrationWithUser) => userStateDemonstration.user,
       );
     },
 
-    projectOfficer: async (parent: User) => {            
+    projectOfficer: async (parent: Demonstration) => {            
       if (!parent) return null;
       return await prisma.user.findUnique({
-        where: { id: parent.id },
+        where: { id: parent.projectOfficer },
       });
     },
   },
