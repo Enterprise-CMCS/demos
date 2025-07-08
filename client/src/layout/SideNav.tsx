@@ -1,5 +1,4 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
 
 import { DebugOnly } from "components/debug/DebugOnly";
 import {
@@ -13,11 +12,17 @@ import {
   MenuCollapseRightIcon,
   ScaleIcon,
 } from "components/icons";
+import {
+  Link,
+  useLocation,
+} from "react-router-dom";
+
+type SVGIconElement = React.ReactElement<React.SVGProps<SVGSVGElement>>;
 
 interface NavLink {
   label: string;
   href: string;
-  icon: React.ReactElement;
+  icon: SVGIconElement;
 }
 
 const navLinks: NavLink[] = [
@@ -47,7 +52,9 @@ const NavLinks = (props: NavLinkProps) => {
   return (
     <ul className="flex flex-col gap-[4px] mt-[8px]">
       {props.navLinks.map((link) => {
-        const isActive = location.pathname === link.href;
+        const isActive =
+          location.pathname === link.href ||
+          (link.href === "/demonstrations" && location.pathname === "/");
         return (
           <li key={link.href}>
             <Link to={link.href} title={props.collapsed ? link.label : ""}>
@@ -55,9 +62,9 @@ const NavLinks = (props: NavLinkProps) => {
                 className={`
                     relative flex items-center h-10 transition-all duration-150 ease-in-out
                     text-black
-                    ${ props.collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2" }
+                    ${props.collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2"}
                     hover:bg-[var(--color-surface-secondary)]
-                    ${isActive ? "font-semibold" : "font-normal"}
+                    ${isActive ? "font-semibold bg-[var(--color-surface-selected)] rounded-md" : "font-normal"}
                   `}
               >
                 {/* Blue indicator bar */}
@@ -67,8 +74,7 @@ const NavLinks = (props: NavLinkProps) => {
 
                 {/* Icon */}
                 <span
-                  className={`shrink-0 ${
-                    isActive ? "text-[var(--color-text-active)]" : "text-black"
+                  className={`shrink-0 ${isActive ? "text-[var(--color-text-active)]" : "text-black"
                   }`}
                 >
                   {React.cloneElement(link.icon, {
@@ -79,8 +85,7 @@ const NavLinks = (props: NavLinkProps) => {
                 {/* Label */}
                 {!props.collapsed && (
                   <span
-                    className={`${
-                      isActive ? "font-semibold text-black" : "text-black"
+                    className={`${isActive ? "font-semibold text-black" : "text-black"
                     }`}
                   >
                     {link.label}
@@ -106,12 +111,11 @@ export const SideNav: React.FC<SideNavProps> = ({
 }) => {
   return (
     <nav
-      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${
-        collapsed ? "w-20" : "w-64"
+      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${collapsed ? "w-20" : "w-64"
       } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
     >
       {/* Collapse Toggle */}
-      <div className="relative h-12 mt-2">
+      <div className="relative h-12">
         {!collapsed ? (
           <div className="absolute right-2 top-1/2 -translate-y-1/2">
             <button
@@ -119,7 +123,7 @@ export const SideNav: React.FC<SideNavProps> = ({
               className="text-[var(--color-text-active)] hover:opacity-80"
               aria-label="Collapse Menu"
             >
-              <div className="w-4 h-4">
+              <div className="w-1 h-1">
                 <MenuCollapseLeftIcon />
               </div>
             </button>
