@@ -25,7 +25,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
             <div className={collapsed ? "w-20" : "w-64"}>
               <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />
             </div>
-            <main className="flex-1 overflow-auto p-6 bg-gray-50 transition-all duration-300">
+            <main className="flex-1 overflow-auto p-2 bg-gray-50 transition-all duration-300">
               {children}
             </main>
           </div>

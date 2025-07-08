@@ -74,7 +74,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       aria-label="Pagination"
       className="flex flex-col sm:flex-row
         sm:items-center sm:justify-between
-        gap-4 mt-4 pb-1 text-sm"
+        gap-4 mt-2 pb-1 text-sm"
     >
       <div className="flex items-center gap-2">
         {/* Label + select: use htmlFor so accessible */}
