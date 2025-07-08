@@ -15,7 +15,7 @@ interface Props {
 }
 
 export const TertiaryButton: React.FC<Props> = ({
-  type = "button", // ← default it to "button" for safety
+  type = "button", // default it to "button" for safety
   size = "standard",
   disabled = false,
   onClick,
