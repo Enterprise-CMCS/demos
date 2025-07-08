@@ -167,7 +167,7 @@ export function DemonstrationTable({
             <tr>
               <td
                 colSpan={table.getAllLeafColumns().length}
-                className="px-4 py-8 text-center text-gray-800 text-xl font-semibold"
+                className="px-4 py-8 text-center text-gray-800 text-xl"
               >
                 {noResultsFoundMessage}
               </td>
@@ -176,7 +176,7 @@ export function DemonstrationTable({
             <tr>
               <td
                 colSpan={table.getAllLeafColumns().length}
-                className="px-4 py-8 text-center text-gray-800 text-xl font-semibold"
+                className="px-4 py-8 text-center text-gray-800 text-xl"
               >
                 {emptyRowsMessage}
               </td>
