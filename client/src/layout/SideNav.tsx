@@ -75,7 +75,7 @@ const NavLinks = (props: NavLinkProps) => {
                 {/* Icon */}
                 <span
                   className={`shrink-0 ${isActive ? "text-[var(--color-text-active)]" : "text-black"
-                    }`}
+                  }`}
                 >
                   {React.cloneElement(link.icon, {
                     className: "w-[14px] h-[14px]",
@@ -86,7 +86,7 @@ const NavLinks = (props: NavLinkProps) => {
                 {!props.collapsed && (
                   <span
                     className={`${isActive ? "font-semibold text-black" : "text-black"
-                      }`}
+                    }`}
                   >
                     {link.label}
                   </span>
@@ -112,7 +112,7 @@ export const SideNav: React.FC<SideNavProps> = ({
   return (
     <nav
       className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${collapsed ? "w-20" : "w-64"
-        } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
+      } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
     >
       {/* Collapse Toggle */}
       <div className="relative h-12">

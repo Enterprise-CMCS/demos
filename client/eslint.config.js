@@ -1,21 +1,21 @@
 import prettierConfig from "eslint-config-prettier/flat";
-import reactEslint from "eslint-plugin-react";
+import reactPlugin from "eslint-plugin-react";
 import tseslint from "typescript-eslint";
 
-import jsEslint from "@eslint/js";
+import js from "@eslint/js";
 
 import {
   noRelativeComponentImports,
 } from "./eslint-rules/no-relative-component-imports.js";
 
-const eslintConfig = [
-  jsEslint.configs.recommended,
-  tseslint.configs.recommended,
-  reactEslint.configs.flat.recommended,
+export default [
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  reactPlugin.configs.flat.recommended,
   prettierConfig,
 
-  // Base config
   {
+    files: ["src/**/*.{js,ts,jsx,tsx}"],
     settings: {
       react: {
         version: "detect",
@@ -23,7 +23,9 @@ const eslintConfig = [
     },
     plugins: {
       "no-relative-component-imports": {
-        rules: { "no-relative-component-imports": noRelativeComponentImports },
+        rules: {
+          "no-relative-component-imports": noRelativeComponentImports,
+        },
       },
     },
     rules: {
@@ -50,7 +52,6 @@ const eslintConfig = [
     },
   },
 
-  // TypeScript + React override to disable prop-types
   {
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
@@ -58,6 +59,3 @@ const eslintConfig = [
     },
   },
 ];
-
-// eslint-disable-next-line no-restricted-exports
-export default eslintConfig;
