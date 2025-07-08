@@ -12,6 +12,7 @@ interface Props {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children: React.ReactNode;
   className?: string;
+  form?: string;
 }
 
 export const PrimaryButton: React.FC<Props> = ({
@@ -21,12 +22,14 @@ export const PrimaryButton: React.FC<Props> = ({
   onClick,
   children,
   className = "",
+  form,
 }) => (
   <BaseButton
     type={type}
     size={size}
     disabled={disabled}
     onClick={onClick}
+    form={form}
     className={`bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-action-focus)] rounded-md ${className}`}
   >
     {children}

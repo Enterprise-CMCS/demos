@@ -8,6 +8,7 @@ import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
 import { AddDocumentModal } from "components/modal/AddDocumentModal";
 import { CreateNewModal } from "components/modal/CreateNewModal";
+import { CreateNewAmendmentModal } from "components/modal/CreateNewAmendmentModal";
 import { gql } from "graphql-tag";
 
 import { useQuery } from "@apollo/client";
@@ -22,7 +23,7 @@ export const HEADER_LOWER_QUERY = gql`
 
 export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"create" | "document" | null>(null);
+  const [modalType, setModalType] = useState<"create" | "document" | "amendment" | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -58,9 +59,11 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
   const handleSelect = (item: string) => {
     setShowDropdown(false);
     if (item === "Demonstration") setModalType("create");
-    if (item === "AddDocument") setModalType("document");
-    // Can handle Amendment/Extension later
+    else if (item === "AddDocument") setModalType("document");
+    else if (item === "Amendment") setModalType("amendment");
+    // TODO: handle "Extension" later
   };
+
 
   return (
     <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
@@ -114,6 +117,9 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
       )}
       {modalType === "document" && (
         <AddDocumentModal onClose={() => setModalType(null)} />
+      )}
+      {modalType === "amendment" && (
+        <CreateNewAmendmentModal onClose={() => setModalType(null)} />
       )}
     </div>
   );
