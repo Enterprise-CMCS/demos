@@ -8,11 +8,13 @@ import {
   noRelativeComponentImports,
 } from "./eslint-rules/no-relative-component-imports.js";
 
-const eslintConfig = tseslint.config(
+const eslintConfig = [
   jsEslint.configs.recommended,
   tseslint.configs.recommended,
   reactEslint.configs.flat.recommended,
   prettierConfig,
+
+  // Base config
   {
     settings: {
       react: {
@@ -46,16 +48,16 @@ const eslintConfig = tseslint.config(
       ],
       "no-relative-component-imports/no-relative-component-imports": "error",
     },
-    overrides: [
-      {
-        files: ["*.ts", "*.tsx"],
-        rules: {
-          "react/prop-types": "off", // Disable prop-types for TypeScript files
-        },
-      },
-    ],
-  }
-);
+  },
+
+  // TypeScript + React override to disable prop-types
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      "react/prop-types": "off",
+    },
+  },
+];
 
 // eslint-disable-next-line no-restricted-exports
 export default eslintConfig;
