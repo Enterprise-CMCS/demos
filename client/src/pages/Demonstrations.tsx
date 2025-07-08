@@ -1,7 +1,11 @@
 import React from "react";
-import { Tabs, TabItem } from "layout/Tabs";
+
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import DemoData from "faker_data/demonstrations.json";
+import {
+  TabItem,
+  Tabs,
+} from "layout/Tabs";
 
 // Using JSON dummy data.
 type RawDemonstration = {
@@ -47,7 +51,7 @@ export const Demonstrations: React.FC = () => {
   const dataToShow = tab === "my" ? myDemos : allDemos;
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div>
       <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Demonstrations</h1>
 
       {/* TABS HEADER COMPONENT */}

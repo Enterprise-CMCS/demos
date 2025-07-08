@@ -1,8 +1,12 @@
-import jsEslint from "@eslint/js";
-import tseslint from "typescript-eslint";
-import reactEslint from "eslint-plugin-react";
 import prettierConfig from "eslint-config-prettier/flat";
-import { noRelativeComponentImports } from "./eslint-rules/no-relative-component-imports.js";
+import reactEslint from "eslint-plugin-react";
+import tseslint from "typescript-eslint";
+
+import jsEslint from "@eslint/js";
+
+import {
+  noRelativeComponentImports,
+} from "./eslint-rules/no-relative-component-imports.js";
 
 const eslintConfig = tseslint.config(
   jsEslint.configs.recommended,
@@ -21,13 +25,12 @@ const eslintConfig = tseslint.config(
       },
     },
     rules: {
-      indent: ["error", 2, { SwitchCase: 1 }], // 2 spaces for indentation
-      quotes: ["error", "double"], // Double quotes
-      semi: ["error", "always"], // Semicolons at end of statements
-      "no-trailing-spaces": "error", // Disallow trailing spaces
-      "no-tabs": "error", // Disallow tabs for indentation
-      "eol-last": ["error", "always"], // Newline at the end of files
-      // Trailing commas in multiline arrays, objects, imports, and exports
+      indent: ["error", 2, { SwitchCase: 1 }],
+      quotes: ["error", "double"],
+      semi: ["error", "always"],
+      "no-trailing-spaces": "error",
+      "no-tabs": "error",
+      "eol-last": ["error", "always"],
       "comma-dangle": [
         "error",
         {
@@ -40,9 +43,17 @@ const eslintConfig = tseslint.config(
       "no-restricted-exports": [
         "error",
         { restrictDefaultExports: { direct: true } },
-      ], // Disallow default exports
-      "no-relative-component-imports/no-relative-component-imports": "error", // Disallow relative imports of components
+      ],
+      "no-relative-component-imports/no-relative-component-imports": "error",
     },
+    overrides: [
+      {
+        files: ["*.ts", "*.tsx"],
+        rules: {
+          "react/prop-types": "off", // Disable prop-types for TypeScript files
+        },
+      },
+    ],
   }
 );
 
