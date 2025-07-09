@@ -1,4 +1,5 @@
 import React, {
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -24,6 +25,8 @@ const DOCUMENT_TYPES = [
   { label: "General File", value: "generalFile" },
 ];
 
+
+
 export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { showSuccess } = useToast();
   const [description, setDescription] = useState("");
@@ -33,6 +36,13 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
   const [error, setError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+
+  useEffect(() => {
+    setUploadProgress(0);
+    setUploadStatus("idle");
+  }, []);
 
   const allowedTypes = [
     "application/pdf",
@@ -48,20 +58,45 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
-    if (selected) {
-      if (!allowedTypes.includes(selected.type)) {
-        setError("File type not allowed.");
-        setFile(null);
-        return;
-      }
-      if (selected.size > 600_000_000) {
-        setError("File is too large. Max 600MB.");
-        setFile(null);
-        return;
-      }
-      setError("");
-      setFile(selected);
+    if (!selected) return;
+
+    if (!allowedTypes.includes(selected.type)) {
+      setError("File type not allowed.");
+      setFile(null);
+      return;
     }
+
+    if (selected.size > 600_000_000) {
+      setError("File is too large. Max 600MB.");
+      setFile(null);
+      return;
+    }
+
+    setError("");
+    e.target.value = ""; // Allow same file to be reselected
+    setFile(selected);
+
+    const reader = new FileReader();
+
+    reader.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percent);
+      }
+    };
+
+    reader.onloadend = () => {
+      setUploadStatus("success");
+      showSuccess("File loaded into browser!");
+    };
+
+    reader.onerror = () => {
+      setUploadStatus("error");
+      setError("Error reading file.");
+    };
+
+    // Start "uploading" (reading into memory)
+    reader.readAsArrayBuffer(selected);
   };
 
   const handleUpload = () => {
@@ -75,6 +110,12 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
     }
     showSuccess("File uploaded successfully!");
     onClose();
+  };
+
+  const truncateMiddle = (str: string, maxLength: number): string => {
+    if (str.length <= maxLength) return str;
+    const half = Math.floor((maxLength - 3) / 2);
+    return `${str.slice(0, half)}...${str.slice(-half)}`;
   };
 
   return (
@@ -91,10 +132,12 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
           <PrimaryButton
             size="small"
             onClick={handleUpload}
-            disabled={!description || !file}
+            disabled={!description || !file || uploadStatus === "uploading"}
+            aria-label="Upload Document"
           >
             Upload
           </PrimaryButton>
+
         </>
       }
     >
@@ -140,15 +183,54 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
           onChange={handleFileChange}
           data-testid="file-input"
         />
-        <SecondaryButton size="small" onClick={triggerFileSelect}>
+        <SecondaryButton
+          type="button"
+          aria-label="Select File"
+          data-testid="file-button"
+          size="small"
+          onClick={triggerFileSelect}
+          disabled={uploadStatus === "uploading"}
+          className="w-full max-w-full overflow-hidden text-ellipsis"
+        >
           {file ? (
-            <span className="max-w-[90%] inline-block text-left truncate">
-              {file.name}
+            <span
+              className="inline-block max-w-full truncate text-left"
+              title={file.name}
+            >
+              {truncateMiddle(file.name, 60)}
             </span>
           ) : (
             "Select File(s)"
           )}
         </SecondaryButton>
+
+        {file && (
+          <div className="mt-xs w-full text-left space-y-1">
+            <div className="flex flex-col sm:flex-row sm:justify-between text-sm font-medium">
+              <div className="break-all max-w-full">{file.name}</div>
+              <div className="text-xs text-text-placeholder sm:ml-sm mt-xs sm:mt-0">
+                {(file.size / (1024 * 1024)).toFixed(1)} MB
+              </div>
+            </div>
+
+            <div className="w-full bg-border-fields rounded h-[6px] overflow-hidden">
+              <div role="progressbar"
+                className={`h-full transition-all ease-in-out duration-500 ${uploadStatus === "error"
+                  ? "bg-red-500"
+                  : uploadStatus === "success"
+                    ? "bg-green-500"
+                    : "bg-primary"
+                  // eslint-disable-next-line indent
+                  }`}
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+
+            {uploadStatus === "error" && (
+              <div className="text-xs text-red-600">Upload failed. Please try again.</div>
+            )}
+          </div>
+        )}
         <p className={FILE_NOTE}>
           (Note: Files must be less than 600MB)<br />
           Allowed file types: .pdf, .docx, .doc, .xls, .xlsx, .zip

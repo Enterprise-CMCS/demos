@@ -88,4 +88,35 @@ describe("AddDocumentModal", () => {
 
     expect(input).toHaveValue("General File");
   });
+
+  it("shows upload progress bar after file load", async () => {
+    setup();
+    const file = new File(["sample"], "test.pdf", { type: "application/pdf" });
+
+    fireEvent.change(screen.getByTestId("file-input"), {
+      target: { files: [file] },
+    });
+
+    await waitFor(() => {
+      const progressBar = screen.getByRole("progressbar");
+      expect(progressBar).toBeInTheDocument();
+    });
+  });
+
+  it("truncates and displays file name with title after upload", async () => {
+    setup();
+
+    const longName = "this_is_a_very_long_file_name_that_should_be_truncated_in_the_button_display_but_visible_on_hover.pdf";
+    const file = new File(["content"], longName, { type: "application/pdf" });
+
+    fireEvent.change(screen.getByTestId("file-input"), {
+      target: { files: [file] },
+    });
+
+    // Wait for the rendered span to appear with title
+    const titleSpan = await screen.findByTitle(longName);
+
+    expect(titleSpan.textContent).toContain("...");
+  });
+
 });
