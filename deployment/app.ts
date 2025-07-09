@@ -44,7 +44,8 @@ async function main() {
   });
 
   const stage = app.node.getContext("stage");
-  const config = await determineDeploymentConfig(stage);
+  const hostEnv = app.node.tryGetContext("hostEnv");
+  const config = await determineDeploymentConfig(stage, hostEnv);
 
   const project = config.project;
 
@@ -86,19 +87,6 @@ async function main() {
     database.addDependency(core);
   }
 
-  const ui = new UiStack(app, `${project}-${stage}-ui`, {
-    ...config,
-    env: {
-      account: process.env.CDK_DEFAULT_ACCOUNT,
-      region: process.env.CDK_DEFAULT_REGION,
-    },
-    cognitoParamNames: {
-      authority: core.cognitoAuthorityParamName,
-      clientId: core.cognitoClientIdParamName,
-    },
-  });
-  ui.addDependency(core);
-
   const api = new ApiStack(app, `${project}-${stage}-api`, {
     ...config,
     env: {
@@ -110,9 +98,24 @@ async function main() {
   });
   api.addDependency(core);
 
+const ui = new UiStack(app, `${project}-${stage}-ui`, {
+    ...config,
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: process.env.CDK_DEFAULT_REGION,
+    },
+    cognitoParamNames: {
+      authority: core.cognitoAuthorityParamName,
+      clientId: core.cognitoClientIdParamName,
+    },
+  });
+  ui.addDependency(core);
+  ui.addDependency(api)
+
+
   applyCoreSuppressions(core);
-  applyApiSuppressions(api);
-  applyUISuppressions(ui);
+  applyApiSuppressions(api, stage);
+  applyUISuppressions(ui, stage);
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 }
 

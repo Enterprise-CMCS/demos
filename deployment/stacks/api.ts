@@ -6,6 +6,7 @@ import {
   aws_cognito,
   aws_ec2,
   Fn,
+  aws_secretsmanager,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -54,11 +55,11 @@ export class ApiStack extends Stack {
     });
 
     const rdsSecurityGroupId = Fn.importValue(
-      `${commonProps.project}-${commonProps.stage}-rds-security-group-id`
+      `${commonProps.project}-${commonProps.hostEnvironment}-rds-security-group-id`
     );
 
     const rdsPort = importNumberValue(
-      `${commonProps.project}-${commonProps.stage}-rds-port`
+      `${commonProps.project}-${commonProps.hostEnvironment}-rds-port`
     );
 
     const rdsSg = aws_ec2.SecurityGroup.fromSecurityGroupId(
@@ -83,12 +84,24 @@ export class ApiStack extends Stack {
       true
     );
 
+    const secretsManagerVpceSgId = Fn.importValue(
+      `${commonProps.stage}SecretsManagerVpceSg`
+    );
+
+    graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+
     const apigateway_outputs = apigateway.create({
       ...commonProps,
       userPool: props.cognito_userpool,
     });
 
-    lambda.create(
+    const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(commonProps.scope, "rdsDatabaseSecret",`demos-${commonProps.hostEnvironment}-rds-admin`)
+
+    const graphqlLambda = lambda.create(
       {
         ...commonProps,
         entry: "../server/dist",
@@ -105,11 +118,14 @@ export class ApiStack extends Stack {
           : apigateway_outputs.authorizer,
         asCode: true,
         environment: {
-          BYPASS_AUTH: commonProps.stage == "dev" ? "true" : ""
+          BYPASS_AUTH: commonProps.hostEnvironment == "dev" ? "true" : "",
+          DATABASE_URL: "postgres://placeholder",
+          DATABASE_SECRET_ARN: dbSecret.secretName // This needs to be the name rather than the arn, otherwise the request from the lambda fails since no secret suffix is available
         }
       },
       "graphql"
     );
+    dbSecret.grantRead(graphqlLambda.lambda.role)
 
     // Outputs
 

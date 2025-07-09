@@ -46,11 +46,13 @@ export interface RawDemonstration {
 export interface DemonstrationTableProps {
   data: RawDemonstration[];
   className?: string;
+  isMyDemosTable?: boolean;
 }
 
 export function DemonstrationTable({
   data,
   className = "",
+  isMyDemosTable = false,
 }: DemonstrationTableProps) {
   const hierarchicalData: DemoWithSubRows[] = React.useMemo(
     () => groupByDemoNumber(data),
@@ -113,19 +115,34 @@ export function DemonstrationTable({
   };
 
   const perPageChoices = [10, 20, 50, -1];
+  // We can expand this if we want to add more types of demo tables in the future.
+
+  const emptyRowsMessage = isMyDemosTable
+    ? "You have no assigned demonstrations at this time."
+    : "No demonstrations are tracked.";
+
+  const noResultsFoundMessage = isMyDemosTable
+    ? "Your search returned no results."
+    : "No demonstrations match your filter criteria.";
+
+  const hasDataInitially = hierarchicalData.length > 0;
+  const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
+  const filtersClearedOutData =
+    hasDataInitially && !hasDataAfterFiltering;
 
   return (
-    <div className={`overflow-x-auto ${className} mb-2`}>
+    <div className={`overflow-x-auto w-full ${className} mb-2`}>
       <ColumnFilterByDropdown<DemoWithSubRows>
         table={table}
         columns={table
           .getAllColumns()
           .filter(col => col.id !== "select" && col.id !== "expander")}
         label="Filter by:"
+        isMyDemosTable={isMyDemosTable}
       />
 
       {/* Table header with sorting */}
-      <table className="w-full text-sm">
+      <table className="w-full table-fixed text-sm">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id} className="bg-gray-200">
@@ -146,37 +163,58 @@ export function DemonstrationTable({
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              className={row.depth > 0 ? "bg-gray-200" : ""}
-            >
-              {row.getVisibleCells().map((cell) => {
-                const colId = cell.column.id;
-                if (
-                  row.depth > 0 &&
-                  (colId === "stateId" || colId === "demoNumber")
-                ) {
+          {filtersClearedOutData ? (
+            <tr>
+              <td
+                colSpan={table.getAllLeafColumns().length}
+                className="px-4 py-8 text-center text-gray-800 text-xl"
+              >
+                {noResultsFoundMessage}
+              </td>
+            </tr>
+          ) : !hasDataInitially ? (
+            <tr>
+              <td
+                colSpan={table.getAllLeafColumns().length}
+                className="px-4 py-8 text-center text-gray-800 text-xl"
+              >
+                {emptyRowsMessage}
+              </td>
+            </tr>
+          ) : (
+            table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.id}
+                className={row.depth > 0 ? "bg-gray-200" : ""}
+              >
+                {row.getVisibleCells().map((cell) => {
+                  const colId = cell.column.id;
+                  if (
+                    row.depth > 0 &&
+                    (colId === "stateId" || colId === "demoNumber")
+                  ) {
+                    return (
+                      <td
+                        key={cell.id}
+                        className="px-2 py-1 border-b text-left text-gray-400"
+                      >
+                        &mdash;
+                      </td>
+                    );
+                  }
                   return (
-                    <td
-                      key={cell.id}
-                      className="px-2 py-1 border-b text-left text-gray-400"
-                    >
-                      &mdash;
+                    <td key={cell.id} className="px-2 py-1 border-b">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   );
-                }
-                return (
-                  <td key={cell.id} className="px-2 py-1 border-b">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+                })}
+              </tr>
+            ))
+          )}
         </tbody>
-      </table>
 
+      </table>
+      <hr className="border-t-2 border-gray-400" />
       <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}

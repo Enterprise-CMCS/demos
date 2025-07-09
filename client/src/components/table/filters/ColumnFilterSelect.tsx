@@ -36,8 +36,7 @@ export function ColumnFilterByDropdown<T extends object>({
   // Compute a small live‐region message to announce the number of filtered rows
   // (optional, but helpful for screen readers).
   const totalRows = table.getFilteredRowModel().rows.length;
-  const liveMessage =
-    totalRows === 0 ? "No matching rows" : `Showing ${totalRows} rows`;
+  const liveMessage = `Showing ${totalRows} rows`;
 
   return (
     <div className={className}>
