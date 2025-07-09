@@ -4,10 +4,8 @@ import {
   RemovalPolicy,
   aws_logs,
   aws_cognito,
-  aws_iam,
 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
-import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 
 import {
   MockIntegration,
@@ -53,20 +51,6 @@ export function create(props: ApiGatewayProps) {
       allowMethods: aws_apigateway.Cors.ALL_METHODS,
     },
   });
-
-  const resourcePolicy = new PolicyStatement({
-    effect: Effect.ALLOW,
-    principals: [new aws_iam.AnyPrincipal()],
-    actions: ["execute-api:Invoke"],
-    resources: ["execute-api:/*/*/*"],
-    conditions: {
-      IpAddress: {
-        "aws:SourceIp": props.zScalerIps,
-      },
-    },
-  });
-
-  api.addToResourcePolicy(resourcePolicy);
 
   api.addGatewayResponse("Default4XXResponse", {
     type: aws_apigateway.ResponseType.DEFAULT_4XX,

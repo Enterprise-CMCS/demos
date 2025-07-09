@@ -9,9 +9,11 @@ import {
     getUserRoles,
     getDatabaseUrl
 } from "./auth/auth.util.js";
+import { initializeClient } from './prismaClient.js';
 
 const databaseUrlPromise = getDatabaseUrl().then(url => {
     process.env.DATABASE_URL = url;
+    initializeClient()
     return url;
 }).catch(error => {
     console.error("Failed to get database URL:", error);

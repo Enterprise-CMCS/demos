@@ -54,7 +54,7 @@ export class CoreStack extends Stack {
       ? undefined
       : aws_ec2.Vpc.fromLookup(this, "vpc", {
           tags: {
-            Name: `demos-east-${commonProps.stage}`,
+            Name: `demos-east-${!commonProps.isEphemeral ? commonProps.stage : commonProps.hostEnvironment}`,
           },
         });
 
@@ -83,23 +83,37 @@ export class CoreStack extends Stack {
     this.cognitoAuthorityParamName = ca.name;
     this.cognitoClientIdParamName = cid.name;
 
-    const secretsManagerEndpointSG = securityGroup.create({
-      ...commonProps,
-      vpc,
-      name: `${commonProps.project}-${commonProps.stage}-secrets-manager-vpce`,
-    });
+    const secretsManagerSecurityGroupName = `${commonProps.project}-${commonProps.hostEnvironment}-secrets-manager-vpce`
 
-    vpc.addInterfaceEndpoint("secretsManagerEndpoint", {
-      service: aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-      subnets: {
-        subnets: vpc.privateSubnets,
-      },
-      securityGroups: [secretsManagerEndpointSG.securityGroup],
-    });
+    let secretsManagerEndpointSG: aws_ec2.ISecurityGroup;
 
-    this.secretsManagerVpceSg = secretsManagerEndpointSG.securityGroup;
+    if (!commonProps.isEphemeral) {
+
+      secretsManagerEndpointSG = securityGroup.create({
+        ...commonProps,
+        vpc,
+        name: secretsManagerSecurityGroupName,
+      }).securityGroup;
+
+      vpc.addInterfaceEndpoint("secretsManagerEndpoint", {
+        service: aws_ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+        subnets: {
+          subnets: vpc.privateSubnets,
+        },
+        securityGroups: [secretsManagerEndpointSG],
+      });
+
+    } else {
+
+      // Ephemeral Environments
+      secretsManagerEndpointSG = aws_ec2.SecurityGroup.fromLookupByName(commonProps.scope, "hostEnvSecretsManagerSG", `${commonProps.project}-${commonProps.hostEnvironment}-${secretsManagerSecurityGroupName}`, vpc)
+
+
+    }
+
+    this.secretsManagerVpceSg = secretsManagerEndpointSG;
     new CfnOutput(commonProps.scope, "secretsManagerVpceSg", {
-      value: secretsManagerEndpointSG.securityGroup.securityGroupId,
+      value: secretsManagerEndpointSG.securityGroupId,
       exportName: `${commonProps.stage}SecretsManagerVpceSg`,
     });
 
