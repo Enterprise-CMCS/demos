@@ -132,18 +132,13 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByTestId("add-document-modal")).not.toBeInTheDocument();
   });
 
-  it("handles Amendment and Extension clicks without opening modal", () => {
+  it("handles Extension clicks without opening modal", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { user: { fullName: "X" } },
     });
     render(<DefaultHeaderLower userId={8} />);
-    fireEvent.click(screen.getByText("Create New"));
-
-    fireEvent.click(screen.getByText("Amendment"));
-    expect(screen.queryByTestId("create-modal")).toBeNull();
-    expect(screen.queryByTestId("add-document-modal")).toBeNull();
 
     fireEvent.click(screen.getByText("Create New")); // reopen dropdown
     fireEvent.click(screen.getByText("Extension"));

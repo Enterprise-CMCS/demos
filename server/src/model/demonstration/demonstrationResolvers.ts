@@ -1,4 +1,4 @@
-import { Demonstration } from "@prisma/client";
+import { Demonstration, User } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import {
   AddDemonstrationInput,
@@ -34,13 +34,13 @@ export const demonstrationResolvers = {
           },
           ...(userIds &&
             stateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId,
-                })),
-              },
-            }),
+            userStateDemonstrations: {
+              create: userIds.map((userId: string) => ({
+                userId,
+                stateId,
+              })),
+            },
+          }),
         },
       });
     },
@@ -78,13 +78,13 @@ export const demonstrationResolvers = {
           }),
           ...(userIds &&
             existingStateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId: existingStateId,
-                })),
-              },
-            }),
+            userStateDemonstrations: {
+              create: userIds.map((userId: string) => ({
+                userId,
+                stateId: existingStateId,
+              })),
+            },
+          }),
         },
       });
     },
@@ -118,9 +118,20 @@ export const demonstrationResolvers = {
           },
         });
 
+      interface UserStateDemonstrationWithUser {
+        user: User;
+      }
+
       return userStateDemonstrations.map(
-        (userStateDemonstration) => userStateDemonstration.user,
+        (userStateDemonstration: UserStateDemonstrationWithUser) => userStateDemonstration.user,
       );
+    },
+
+    projectOfficer: async (parent: Demonstration) => {
+      if (!parent) return null;
+      return await prisma.user.findUnique({
+        where: { id: parent.projectOfficer },
+      });
     },
   },
 };

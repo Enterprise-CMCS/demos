@@ -10,6 +10,7 @@ import {
   aws_certificatemanager,
   aws_cloudfront_origins,
   aws_wafv2,
+  Fn,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -90,7 +91,7 @@ export class UiStack extends Stack {
     //
 
     const ipSet = new aws_wafv2.CfnIPSet(commonProps.scope, "cloudfrontWaf", {
-      name: "AllowVPNIps",
+      name: `${commonProps.stage}AllowVPNIps`,
       scope: "CLOUDFRONT",
       ipAddressVersion: "IPV4",
       addresses: commonProps.zScalerIps,
@@ -203,10 +204,13 @@ export class UiStack extends Stack {
       commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
     );
 
+    const apiUrl = Fn.importValue(`${commonProps.stage}ApiGWUrl`)
+    const apiDomainName = Fn.parseDomainName(apiUrl)
+
     const apiOrigin = new HttpOrigin(
-      "o9aa8lp6p3.execute-api.us-east-1.amazonaws.com",
+      apiDomainName,
       {
-        originPath: "/dev",
+        originPath: `/${commonProps.stage}`,
       }
     );
 
@@ -232,7 +236,7 @@ export class UiStack extends Stack {
 
     new CfnOutput(this, "Cloudfront URL", {
       value: applicationEndpointUrl,
-      exportName: "cloudfrontUrl",
+      exportName: `${commonProps.stage}CloudfrontUrl`,
     });
   }
 }

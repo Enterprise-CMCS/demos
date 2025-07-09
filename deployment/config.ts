@@ -9,12 +9,15 @@ export interface DeploymentConfigProperties {
   iamPath?: string;
   isDev: boolean;
   isLocalstack: boolean;
+  isEphemeral: boolean;
+  hostEnvironment: string;
   cloudfrontCertificateArn?: string;
   zScalerIps: string[];
 }
 
 export const determineDeploymentConfig = async (
-  stage: string
+  stage: string,
+  hostEnv?: string
 ): Promise<DeploymentConfigProperties> => {
   const project = process.env.PROJECT || "demos";
 
@@ -30,9 +33,12 @@ export const determineDeploymentConfig = async (
     isLocalstack: process.env.CDK_DEFAULT_ACCOUNT == "000000000000",
   };
 
+  const isEphemeral = !["dev","test","prod"].includes(stage)
+  const hostEnvironment = !isEphemeral ? stage : hostEnv ? hostEnv : "dev"
+
   const secretConfig =
     stage != "bootstrap"
-      ? JSON.parse((await getSecret(`${project}-${stage}/config`))!)
+      ? JSON.parse((await getSecret(`${project}-${hostEnvironment}/config`))!)
       : {};
 
   const zScalerIps = await getZScalerIps()
@@ -40,6 +46,8 @@ export const determineDeploymentConfig = async (
   return {
     ...config,
     ...secretConfig,
+    isEphemeral,
+    hostEnvironment,
     zScalerIps
   };
 };

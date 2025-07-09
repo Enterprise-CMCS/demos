@@ -76,4 +76,16 @@ describe("AddDocumentModal", () => {
       expect(onClose).toHaveBeenCalled();
     });
   });
+
+  it("renders and allows selecting a document type", async () => {
+    setup();
+    const input = screen.getByRole("textbox", { name: "Document Type" });
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "General" } });
+
+    const option = await screen.findByText("General File");
+    fireEvent.mouseDown(option);
+
+    expect(input).toHaveValue("General File");
+  });
 });

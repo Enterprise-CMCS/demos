@@ -11,7 +11,7 @@ export function applyCoreSuppressions(core: Stack) {
   ]);
 }
 
-export function applyUISuppressions(ui: Stack) {
+export function applyUISuppressions(ui: Stack, stage: string) {
   NagSuppressions.addStackSuppressions(ui, [
     {
       id: "AwsSolutions-L1",
@@ -22,7 +22,7 @@ export function applyUISuppressions(ui: Stack) {
 
   NagSuppressions.addResourceSuppressionsByPath(
     ui,
-    "/demos-dev-ui/BucketDeploymentRole/DefaultPolicy/Resource",
+    `/demos-${stage}-ui/BucketDeploymentRole/DefaultPolicy/Resource`,
     [
       {
         id: "AwsSolutions-IAM5",
@@ -39,7 +39,7 @@ export function applyUISuppressions(ui: Stack) {
 
   NagSuppressions.addResourceSuppressionsByPath(
     ui,
-    "/demos-dev-ui/BucketDeploymentRole/Resource",
+    `/demos-${stage}-ui/BucketDeploymentRole/Resource`,
     [
       {
         id: "AwsSolutions-IAM5",
@@ -50,10 +50,10 @@ export function applyUISuppressions(ui: Stack) {
   );
 }
 
-export function applyApiSuppressions(api: Stack) {
+export function applyApiSuppressions(api: Stack, stage: string) {
   NagSuppressions.addResourceSuppressionsByPath(
     api,
-    "/demos-dev-api/ApiGatewayRestApi/Resource",
+    `/demos-${stage}-api/ApiGatewayRestApi/Resource`,
     [
       {
         id: "AwsSolutions-APIG4",
@@ -65,7 +65,7 @@ export function applyApiSuppressions(api: Stack) {
 
   NagSuppressions.addResourceSuppressionsByPath(
     api,
-    "/demos-dev-api/ApiGatewayRestApi/Default/api/health/GET/Resource",
+    `/demos-${stage}-api/ApiGatewayRestApi/Default/api/health/GET/Resource`,
     [
       {
         id: "AwsSolutions-APIG4",
@@ -81,7 +81,7 @@ export function applyApiSuppressions(api: Stack) {
 
   NagSuppressions.addResourceSuppressionsByPath(
     api,
-    "/demos-dev-api/ApiGatewayRestApi/Resource",
+    `/demos-${stage}-api/ApiGatewayRestApi/Resource`,
     [
       {
         id: "AwsSolutions-APIG2",
@@ -93,7 +93,7 @@ export function applyApiSuppressions(api: Stack) {
 
   NagSuppressions.addResourceSuppressionsByPath(
     api,
-    "/demos-dev-api/graphql/graphqlLambdaExecutionRole/Resource",
+    `/demos-${stage}-api/graphql/graphqlLambdaExecutionRole/Resource`,
     [
       {
         id: "AwsSolutions-IAM5",
@@ -126,7 +126,7 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
   );
   NagSuppressions.addResourceSuppressionsByPath(
     database,
-    "/demos-dev-database/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource", // pragma: allowlist secret
+    `/demos-${stage}-database/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource`, // pragma: allowlist secret
     [
       {
         id: "AwsSolutions-IAM5",
