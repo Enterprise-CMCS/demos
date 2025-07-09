@@ -2,20 +2,28 @@ import React from "react";
 
 export type ButtonSize = "small" | "standard" | "large";
 
-interface BaseButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface BaseButtonProps {
+  type?: "button" | "submit" | "reset";
+  form?: string;
   size?: ButtonSize;
+  disabled?: boolean;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   className?: string;
   children: React.ReactNode;
+  "data-testid"?: string;
 }
 
 export const BaseButton: React.FC<BaseButtonProps> = ({
   type = "button",
+  form,
   size = "standard",
+  disabled = false,
+  onClick,
   className = "",
   children,
-  ...rest
+  "data-testid": dataTestId,
 }) => {
-  const isCircle = className.includes("rounded-full");
+  const isCircle = className?.includes("rounded-full");
 
   const sizeClass = isCircle
     ? {
@@ -35,8 +43,11 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
   return (
     <button
       type={type}
+      form={form}
       className={`${base} ${sizeClass} ${className}`}
-      {...rest}
+      disabled={disabled}
+      onClick={onClick}
+      data-testid={dataTestId}
     >
       {children}
     </button>

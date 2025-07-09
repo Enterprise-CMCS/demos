@@ -5,21 +5,35 @@ import {
   ButtonSize,
 } from "./BaseButton";
 
-interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface Props {
+  type?: "button" | "submit" | "reset";
   size?: ButtonSize;
+  disabled?: boolean;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  children: React.ReactNode;
   className?: string;
+  form?: string;
+  "data-testid"?: string;
 }
 
 export const PrimaryButton: React.FC<Props> = ({
+  type = "submit",
   size = "standard",
-  className = "",
+  disabled = false,
+  onClick,
   children,
-  ...rest
+  className = "",
+  form,
+  "data-testid": dataTestId,
 }) => (
   <BaseButton
+    type={type}
     size={size}
+    disabled={disabled}
+    onClick={onClick}
+    form={form}
     className={`bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-action-focus)] rounded-md ${className}`}
-    {...rest}
+    data-testid={dataTestId}
   >
     {children}
   </BaseButton>
