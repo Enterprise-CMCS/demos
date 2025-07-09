@@ -1,6 +1,7 @@
 import React from "react";
 
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
+// import DemoData from "faker_data/empty_demonstrations.json";
 import DemoData from "faker_data/demonstrations.json";
 import {
   TabItem,
@@ -63,7 +64,10 @@ export const Demonstrations: React.FC = () => {
 
       {/* one table req'd to rule them all */}
       <div className="h-[60vh] overflow-y-auto">
-        <DemonstrationTable data={dataToShow} />
+        <DemonstrationTable
+          data={dataToShow}
+          isMyDemosTable={tab === "my"}
+        />
       </div>
     </div>
   );
