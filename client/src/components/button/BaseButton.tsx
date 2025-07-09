@@ -10,7 +10,6 @@ interface BaseButtonProps {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   className?: string;
   children: React.ReactNode;
-  "data-testid"?: string;
 }
 
 export const BaseButton: React.FC<BaseButtonProps> = ({
@@ -21,7 +20,6 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
   onClick,
   className = "",
   children,
-  "data-testid": dataTestId,
 }) => {
   const isCircle = className?.includes("rounded-full");
 
@@ -47,7 +45,6 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
       className={`${base} ${sizeClass} ${className}`}
       disabled={disabled}
       onClick={onClick}
-      data-testid={dataTestId}
     >
       {children}
     </button>

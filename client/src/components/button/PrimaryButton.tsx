@@ -13,7 +13,6 @@ interface Props {
   children: React.ReactNode;
   className?: string;
   form?: string;
-  "data-testid"?: string;
 }
 
 export const PrimaryButton: React.FC<Props> = ({
@@ -24,7 +23,6 @@ export const PrimaryButton: React.FC<Props> = ({
   children,
   className = "",
   form,
-  "data-testid": dataTestId,
 }) => (
   <BaseButton
     type={type}
@@ -33,7 +31,6 @@ export const PrimaryButton: React.FC<Props> = ({
     onClick={onClick}
     form={form}
     className={`bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-action-focus)] rounded-md ${className}`}
-    data-testid={dataTestId}
   >
     {children}
   </BaseButton>

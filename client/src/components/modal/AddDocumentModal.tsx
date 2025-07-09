@@ -191,7 +191,6 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
         <SecondaryButton
           type="button"
           aria-label="Select File"
-          data-testid="file-button"
           size="small"
           onClick={triggerFileSelect}
           disabled={uploadStatus === "uploading"}
