@@ -8,12 +8,12 @@ import {
 export const demonstrationStatusResolvers = {
   Query: {
     demonstrationStatus: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.demonstrationStatus.findUnique({
+      return await prisma().demonstrationStatus.findUnique({
         where: { id },
       });
     },
     demonstrationStatuses: async () => {
-      return await prisma.demonstrationStatus.findMany();
+      return await prisma().demonstrationStatus.findMany();
     },
   },
 
@@ -22,7 +22,7 @@ export const demonstrationStatusResolvers = {
       _: undefined,
       { input }: { input: AddDemonstrationStatusInput },
     ) => {
-      return await prisma.demonstrationStatus.create({
+      return await prisma().demonstrationStatus.create({
         data: input,
       });
     },
@@ -31,14 +31,14 @@ export const demonstrationStatusResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDemonstrationStatusInput },
     ) => {
-      return await prisma.demonstrationStatus.update({
+      return await prisma().demonstrationStatus.update({
         where: { id },
         data: input,
       });
     },
 
     deleteDemonstrationStatus: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.demonstrationStatus.delete({
+      return await prisma().demonstrationStatus.delete({
         where: { id },
       });
     },
@@ -46,7 +46,7 @@ export const demonstrationStatusResolvers = {
 
   DemonstrationStatus: {
     demonstrations: async (parent: DemonstrationStatus) => {
-      return await prisma.demonstration.findMany({
+      return await prisma().demonstration.findMany({
         where: { demonstrationStatusId: parent.id },
       });
     },

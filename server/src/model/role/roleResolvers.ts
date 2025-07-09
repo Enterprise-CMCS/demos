@@ -5,19 +5,19 @@ import { AddRoleInput, UpdateRoleInput } from "./roleSchema.js";
 export const roleResolvers = {
   Query: {
     role: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.role.findUnique({
+      return await prisma().role.findUnique({
         where: { id: id },
       });
     },
     roles: async () => {
-      return await prisma.role.findMany();
+      return await prisma().role.findMany();
     },
   },
 
   Mutation: {
     addRole: async (_: undefined, { input }: { input: AddRoleInput }) => {
       const { userIds, permissionIds, ...rest } = input;
-      return await prisma.role.create({
+      return await prisma().role.create({
         data: {
           ...rest,
           ...(userIds && {
@@ -43,7 +43,7 @@ export const roleResolvers = {
       { id, input }: { id: string; input: UpdateRoleInput },
     ) => {
       const { userIds, permissionIds, ...rest } = input;
-      return await prisma.role.update({
+      return await prisma().role.update({
         where: { id },
         data: {
           ...rest,
@@ -66,7 +66,7 @@ export const roleResolvers = {
     },
 
     deleteState: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.state.delete({
+      return await prisma().state.delete({
         where: { id: id },
       });
     },
@@ -74,7 +74,7 @@ export const roleResolvers = {
 
   Role: {
     permissions: async (parent: Role) => {
-      const rolePermissions = await prisma.rolePermission.findMany({
+      const rolePermissions = await prisma().rolePermission.findMany({
         where: { roleId: parent.id },
         include: {
           permission: true,
@@ -83,7 +83,7 @@ export const roleResolvers = {
       return rolePermissions.map((rolePermission) => rolePermission.permission);
     },
     users: async (parent: Role) => {
-      const userRoles = await prisma.userRole.findMany({
+      const userRoles = await prisma().userRole.findMany({
         where: { roleId: parent.id },
         include: {
           user: true,
