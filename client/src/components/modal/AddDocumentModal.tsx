@@ -86,8 +86,13 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
     };
 
     reader.onloadend = () => {
+      setUploadProgress(100); // ensure it's full
       setUploadStatus("success");
-      showSuccess("File loaded into browser!");
+
+      // Simulate delay so user can see the final progress
+      setTimeout(() => {
+        showSuccess("File loaded into browser!");
+      }, 1000);
     };
 
     reader.onerror = () => {
@@ -205,16 +210,10 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
         </SecondaryButton>
 
         {file && (
-          <div className="mt-xs w-full text-left space-y-1">
-            <div className="flex flex-col sm:flex-row sm:justify-between text-sm font-medium">
-              <div className="break-all max-w-full">{file.name}</div>
-              <div className="text-xs text-text-placeholder sm:ml-sm mt-xs sm:mt-0">
-                {(file.size / (1024 * 1024)).toFixed(1)} MB
-              </div>
-            </div>
-
-            <div className="w-full bg-border-fields rounded h-[6px] overflow-hidden">
-              <div role="progressbar"
+          <div className="w-full">
+            <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
+              <div
+                role="progressbar"
                 className={`h-full transition-all ease-in-out duration-500 ${uploadStatus === "error"
                   ? "bg-red-500"
                   : uploadStatus === "success"
@@ -226,11 +225,16 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
               />
             </div>
 
-            {uploadStatus === "error" && (
-              <div className="text-xs text-red-600">Upload failed. Please try again.</div>
+            {uploadProgress > 0 && (
+              <div className="flex justify-between mt-1 text-[12px] text-text-placeholder font-medium">
+                <span>{(file.size / 1_000_000).toFixed(1)} MB</span>
+                <span>{uploadProgress}%</span>
+              </div>
             )}
           </div>
         )}
+
+
         <p className={FILE_NOTE}>
           (Note: Files must be less than 600MB)<br />
           Allowed file types: .pdf, .docx, .doc, .xls, .xlsx, .zip
