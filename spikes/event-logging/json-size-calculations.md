@@ -18,3 +18,19 @@ It seems like 4KB might be a nice sweet spot allowing for a pretty descriptive f
 ## 1KB Limit
 - **Characters**: ~1,024 characters
 - **Records per GB**: ~1,048,576 records (1M+ records)
+
+## Regarding the usage of JSON / JSONB within postgres:
+
+Postgres is going to store different sized fields differently:
+
+Small objects (< 2KB): Stored inline with the row
+Large objects (> 2KB): Automatically moved to TOAST tables
+
+Mixed sizes cause fragmented storage patterns across main table and TOAST storage, slowing down queries.
+
+Can add a constraint of a particular size to keep fields under a certain size
+
+```
+ALTER TABLE event 
+ADD CONSTRAINT event_data  CHECK (octet_length(payload::text) <= 2048);
+```
