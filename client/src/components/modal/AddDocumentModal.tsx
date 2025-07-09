@@ -117,7 +117,7 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
     onClose();
   };
 
-  const truncateMiddle = (str: string, maxLength: number): string => {
+  const abbreviateFilename = (str: string, maxLength: number): string => {
     if (str.length <= maxLength) return str;
     const half = Math.floor((maxLength - 3) / 2);
     return `${str.slice(0, half)}...${str.slice(-half)}`;
@@ -201,7 +201,7 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
               className="inline-block max-w-full truncate text-left"
               title={file.name}
             >
-              {truncateMiddle(file.name, 60)}
+              {abbreviateFilename(file.name, 60)}
             </span>
           ) : (
             "Select File(s)"
