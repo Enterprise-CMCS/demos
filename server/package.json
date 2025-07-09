@@ -29,7 +29,8 @@
     "dev": "node ./dist/index.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-"watch": "concurrently \"tsx watch --inspect=9229 --clear-screen=false src/index.ts\" \"prisma generate --watch\"",    "seed": "prisma migrate reset --force && tsx --inspect ./src/seeder.ts",
+    "watch": "concurrently \"tsx watch --inspect=9229 --clear-screen=false src/index.ts\" \"prisma generate --watch\"",    
+    "seed": "prisma migrate reset --force && tsx --inspect ./src/seeder.ts",
     "migrate:empty": "prisma migrate dev --create-only",
     "migrate:reset": "prisma migrate reset --force",
     "depcheck": "depcheck"

@@ -5,8 +5,6 @@ import {
   UpdateDemonstrationInput,
 } from "./demonstrationSchema.js";
 
-
-
 export const demonstrationResolvers = {
   Query: {
     demonstration: async (_: undefined, { id }: { id: string }) => {
