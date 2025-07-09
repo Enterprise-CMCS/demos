@@ -10,6 +10,7 @@ model User {
   userRoles               UserRole[]
   userStates              UserState[]
   userStateDemonstrations UserStateDemonstration[]
+  events                  Event[]
 
   @@map("users") // user is a reserved word in PostgreSQL; users is not, which is why this is plural
 }

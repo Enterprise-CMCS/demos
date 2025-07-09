@@ -1,0 +1,8 @@
+model EventType {
+  id          String  @id
+  description String
+
+  events       Event[]
+
+  @@map("event_type")
+}

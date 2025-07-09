@@ -1,3 +1,9 @@
+/**
+TODO: We probably don't want to use UUIDs for state IDs.
+We can use the state code as the primary key instead.
+This will allow us to use natural keys, which are more meaningful and easier to work with.
+This also avoids the problem of regenerating these IDs and invalidating existing records that reference them.
+*/
 model State {
   id             String          @id @default(uuid()) @db.Uuid
   stateCode      String          @map("state_code")

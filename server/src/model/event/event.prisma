@@ -1,0 +1,12 @@
+model Event {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  eventTypeId String   @map("event_type_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  eventData   Json     @map("event_data") @db.Json
+
+  user      User      @relation(fields: [userId], references: [id])
+  eventType EventType @relation(fields: [eventTypeId], references: [id])
+
+  @@map("event")
+}
