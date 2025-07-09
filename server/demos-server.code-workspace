@@ -1,5 +1,5 @@
 {
-  "folders": [{ "path": "." }, {"path": "../spikes"}],
+  "folders": [{ "path": "." }],
   "settings": {
     "files.exclude": {
       "**/node_modules": true,
