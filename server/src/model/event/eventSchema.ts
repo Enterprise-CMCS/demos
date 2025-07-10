@@ -44,3 +44,17 @@ export const eventSchema = gql`
     eventData: JSONObject!
   }
 `;
+
+export interface Event {
+  id: string;
+  userId: string;
+  eventTypeId: string;
+  createdAt: Date;
+  eventData: object;
+}
+
+export interface CreateEventInput {
+  userId: string;
+  eventTypeId: string;
+  eventData: object;
+}

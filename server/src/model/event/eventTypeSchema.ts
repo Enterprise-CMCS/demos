@@ -16,3 +16,8 @@ export const eventTypeSchema = gql`
     eventType(id: ID!): EventType
   }
 `;
+
+export interface EventType {
+  id: string;
+  description: string;
+}

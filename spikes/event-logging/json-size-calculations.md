@@ -33,4 +33,5 @@ Can add a constraint of a particular size to keep fields under a certain size
 ```
 ALTER TABLE event 
 ADD CONSTRAINT event_data  CHECK (octet_length(payload::text) <= 2048);
+-- or 4096, 8192, etc
 ```
