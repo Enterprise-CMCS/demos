@@ -6,6 +6,7 @@ model Role {
   updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
   userRoles       UserRole[]
   rolePermissions RolePermission[]
+  events          Event[]
 
   @@map("role")
 }

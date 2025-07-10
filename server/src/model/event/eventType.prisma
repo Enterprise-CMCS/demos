@@ -1,6 +1,14 @@
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
 model EventType {
-  id          String  @id
+  id          String   @id
   description String
+  logLevel    LogLevel
 
   events       Event[]
 

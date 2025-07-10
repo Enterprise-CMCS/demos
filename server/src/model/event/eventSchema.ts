@@ -8,21 +8,19 @@ export const eventSchema = gql`
     id: ID!
     userId: ID!
     eventTypeId: ID!
+    withRoleId: ID
+    route: String
     createdAt: DateTime!
-    """
-    Event-specific data structure depends on eventType
-    
-    Maximum size: 4KB
-    Characters: ~4,096 characters
-    Records per GB: ~262,144 records
-    """
     eventData: JSONObject!
   }
 
+  # An event with all the fields populated for easier querying
   type EventHydrated {
     id: ID!
     user: User!
     eventType: EventType!
+    withRole: Role
+    route: String
     createdAt: DateTime!
     eventData: JSONObject!
   }
@@ -32,15 +30,21 @@ export const eventSchema = gql`
     event(id: ID!): EventHydrated
     eventsByType(eventTypeId: ID!): [EventHydrated!]!
     eventsByUser(userId: ID!): [EventHydrated!]!
+    eventsByRoute(route: String!): [EventHydrated!]!
   }
   
   type Mutation {
     createEvent(input: CreateEventInput!): EventHydrated!
   }
 
+  """
+  Some event inputs come from the client and others will
+  need to be populated by the server for a full event record.
+  """
   input CreateEventInput {
     userId: ID!
     eventTypeId: ID!
+    route: String
     eventData: JSONObject!
   }
 `;
@@ -57,5 +61,6 @@ export interface Event {
 export interface CreateEventInput {
   userId: string;
   eventTypeId: string;
+  route: string;
   eventData: object;
 }

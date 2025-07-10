@@ -1,8 +1,13 @@
+-- CreateEnum
+CREATE TYPE "LogLevel" AS ENUM ('DEBUG', 'INFO', 'WARN', 'ERROR');
+
 -- CreateTable
 CREATE TABLE "event" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
     "event_type_id" TEXT NOT NULL,
+    "with_role_id" UUID,
+    "route" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "event_data" JSON NOT NULL,
 
@@ -13,6 +18,7 @@ CREATE TABLE "event" (
 CREATE TABLE "event_type" (
     "id" TEXT NOT NULL,
     "description" TEXT NOT NULL,
+    "log_level" "LogLevel" NOT NULL,
 
     CONSTRAINT "event_type_pkey" PRIMARY KEY ("id")
 );
@@ -23,16 +29,12 @@ ALTER TABLE "event" ADD CONSTRAINT "event_user_id_fkey" FOREIGN KEY ("user_id") 
 -- AddForeignKey
 ALTER TABLE "event" ADD CONSTRAINT "event_event_type_id_fkey" FOREIGN KEY ("event_type_id") REFERENCES "event_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Insert standard event types
-INSERT INTO "event_type" ("id", "description") VALUES
-  ('LOGIN', 'User attempted to login to the system'),
-  ('LOGOUT', 'User attempted to logout of the system'),
-  ('CREATE_DEMONSTRATION', 'User created a demonstration'),
-  ('EDIT_DEMONSTRATION', 'User edited a demonstration'),
-  ('CREATE_AMENDMENT', 'User created an amendment'),
-  ('EDIT_AMENDMENT', 'User edited an amendment'),
-  ('CREATE_EXTENSION', 'User created an extension'),
-  ('EDIT_EXTENSION', 'User edited an extension'),
-  ('UPLOAD_DOCUMENT', 'User uploaded a document'),
-  ('ADD_DOCUMENT', 'User added a document'),
-  ('REMOVE_DOCUMENT', 'User removed a document')
+-- AddForeignKey
+ALTER TABLE "event" ADD CONSTRAINT "event_with_role_id_fkey" FOREIGN KEY ("with_role_id") REFERENCES "role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Insert initial event types
+INSERT INTO "event_type" ("id", "description", "log_level") VALUES
+  ('LOGIN_ATTEMPTED', 'User attempted to login to the system', 'INFO'),
+  ('LOGOUT_ATTEMPTED', 'User attempted to logout of the system', 'INFO'),
+  ('CREATE_DEMONSTRATION_MODAL_OPENED', 'User opened the create demonstration modal', 'INFO'),
+  ('EDIT_DEMONSTRATION_ATTEMPTED', 'User edited a demonstration', 'INFO');

@@ -113,27 +113,6 @@ async function seedDatabase() {
     });
   }
 
-  console.log("🌱 Seeding events...");
-  const eventTypes = await prisma.eventType.findMany();
-  for (let i = 0; i < entityCount * 5; i++) {
-    const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-    const randomUser = await prisma.user.findRandom();
-    
-    // For now keep eventData simple and generic
-    const eventData = {
-      action: faker.lorem.word(),
-      details: faker.lorem.sentence()
-    };
-
-    await prisma.event.create({
-      data: {
-        userId: randomUser!.id,
-        eventTypeId: randomEventType.id,
-        eventData: eventData,
-      },
-    });
-  }
-
   console.log("🔗 Generating entries in join tables...");
   for (let i = 0; i < entityCount; i++) {
     try {

@@ -1,3 +1,5 @@
+# JSON Size Calculations
+
 It might be best to limit the size of possible payloads in our event table since this table will only ever get larger and will have many many inserts.
 Here are the calculations for different maximum payload sizes (assuming 1 byte per character for basic ASCII/UTF-8).
 
@@ -35,3 +37,14 @@ ALTER TABLE event
 ADD CONSTRAINT event_data  CHECK (octet_length(payload::text) <= 2048);
 -- or 4096, 8192, etc
 ```
+
+## For now
+
+No size limit, log everything we need.
+
+Partitioning is helpful here for query results, depending on what we need to partition on
+
+## Look into payload limits
+
+- Lambda Limits
+- DOS limits
