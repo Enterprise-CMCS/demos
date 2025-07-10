@@ -24,10 +24,12 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   PaginationState,
+  Row,
   RowSelectionState,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { KeywordSearch } from "../search/KeywordSearch";
 
 export interface RawDemonstration {
   id: number;
@@ -71,6 +73,24 @@ export function DemonstrationTable({
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
+  const arrIncludesAllInsensitive = (row: Row<DemonstrationColumns>, columnId: string, filterValue: (string | undefined)[]) => {
+    const validFilterValues = filterValue.filter((val): val is string => val != null);
+
+    if (validFilterValues.length === 0) {
+      return true;
+    }
+
+    return !validFilterValues.some((val: string) => {
+      const search = val.toLowerCase();
+      const rowValue = row.getValue(columnId);
+
+      return !(
+        rowValue != null &&
+        rowValue.toString().toLowerCase().includes(search)
+      );
+    });
+  };
+
   const table = useReactTable<DemoWithSubRows>({
     data: hierarchicalData,
     columns: DemonstrationColumns,
@@ -94,7 +114,10 @@ export function DemonstrationTable({
     getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: arrIncludesAllInsensitive,
   });
+
+
 
   // Pagination state variables
   const currentPage = table.getState().pagination.pageIndex;
@@ -123,7 +146,7 @@ export function DemonstrationTable({
 
   const noResultsFoundMessage = isMyDemosTable
     ? "Your search returned no results."
-    : "No demonstrations match your filter criteria.";
+    : "No demonstrations match your filter/search criteria.";
 
   const hasDataInitially = hierarchicalData.length > 0;
   const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
@@ -132,15 +155,17 @@ export function DemonstrationTable({
 
   return (
     <div className={`overflow-x-auto w-full ${className} mb-2`}>
-      <ColumnFilterByDropdown<DemoWithSubRows>
-        table={table}
-        columns={table
-          .getAllColumns()
-          .filter(col => col.id !== "select" && col.id !== "expander")}
-        label="Filter by:"
-        isMyDemosTable={isMyDemosTable}
-      />
-
+      <div className="flex items-center mb-2">
+        <KeywordSearch<DemoWithSubRows> table={table} label="Search"></KeywordSearch>
+        <ColumnFilterByDropdown<DemoWithSubRows>
+          table={table}
+          columns={table
+            .getAllColumns()
+            .filter(col => col.id !== "select" && col.id !== "expander")}
+          label="Filter by:"
+          isMyDemosTable={isMyDemosTable}
+        />
+      </div>
       {/* Table header with sorting */}
       <table className="w-full table-fixed text-sm">
         <thead>
