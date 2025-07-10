@@ -10,18 +10,39 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
       evaluationPeriodEndDate
       createdAt
       updatedAt
-      demonstrationStatus {
+      projectOfficerUser {
+        displayName
+        email
         id
-        name
       }
       state {
+        stateCode
         id
         stateName
-        stateCode
+      }
+      demonstrationStatus {
+        name
+        id
+        description
       }
       users {
-        id
+        roles {
+          name
+          permissions {
+            name
+            id
+            description
+          }
+        }
+        email
+        displayName
         fullName
+        id
+        states {
+          stateCode
+          stateName
+          id
+        }
       }
     }
   }
@@ -49,6 +70,11 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
       users {
         id
         fullName
+      }
+      projectOfficerUser {
+        id
+        fullName
+        displayName
       }
     }
   }

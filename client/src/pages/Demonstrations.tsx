@@ -1,39 +1,30 @@
-import React from "react";
-
+import React, { useEffect } from "react";
+import { useDemonstration } from "hooks/useDemonstration";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
-// import DemoData from "faker_data/empty_demonstrations.json";
-import DemoData from "faker_data/demonstrations.json";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
-
-// Using JSON dummy data.
-type RawDemonstration = {
-  id: number;
-  title: string;
-  demoNumber: string;
-  description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
-  demonstrationStatusId: number;
-  stateId: string;
-  projectOfficer: string;
-  userId: number;
-  createdAt: string;
-  updatedAt: string;
-};
+import { Tabs, TabItem } from "layout/Tabs";
 
 export const Demonstrations: React.FC = () => {
-  // Dummy value - replace me!
-  const currentUserId = 123;
+  const {
+    getAllDemonstrations: { trigger, data, loading, error },
+  } = useDemonstration();
 
-  const myDemos: RawDemonstration[] = (DemoData as RawDemonstration[]).filter(
-    (demo) => demo.userId === currentUserId
-  );
-
-  const allDemos: RawDemonstration[] = (DemoData as RawDemonstration[]);
+  // Kick off the query when the component mounts
+  useEffect(() => {
+    trigger();
+  }, [trigger]);
   const [tab, setTab] = React.useState<"my" | "all">("my");
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  const allDemos = data || [];
+
+  // Replace with real user id from auth context or wherever you store it
+  const currentUserId = "123";
+
+  const myDemos = allDemos.filter((demo) =>
+    demo.users?.some((u) => u.id === currentUserId)
+  );
 
   const tabList: TabItem[] = [
     {
@@ -47,25 +38,39 @@ export const Demonstrations: React.FC = () => {
       count: allDemos.length,
     },
   ];
-
-  // If you ask me, this is the best part of this feature
+  console.log("Tab List:", data);
   const dataToShow = tab === "my" ? myDemos : allDemos;
+  // Transform the data to your frontend table shape:
+  const transformedData = dataToShow.map((demo) => ({
+    id: demo.id,
+    title: demo.name,
+    demoNumber: "", // only if needed
+    description: demo.description,
+    evalPeriodStartDate: demo.evaluationPeriodStartDate,
+    evalPeriodEndDate: demo.evaluationPeriodEndDate,
+    demonstrationStatusId: demo.demonstrationStatus?.id,
+    stateName: demo.state.stateName,
+    projectOfficer: demo.projectOfficerUser.displayName || "N/A",
+    userId: demo.users?.[0]?.id,
+    createdAt: demo.createdAt,
+    updatedAt: demo.updatedAt,
+  }));
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Demonstrations</h1>
+      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">
+        Demonstrations
+      </h1>
 
-      {/* TABS HEADER COMPONENT */}
       <Tabs
         tabs={tabList}
         selectedValue={tab}
-        onChange={(newVal) => setTab(newVal as "my" | "all")}
+        onChange={(val) => setTab(val as "my" | "all")}
       />
 
-      {/* one table req'd to rule them all */}
       <div className="h-[60vh] overflow-y-auto">
         <DemonstrationTable
-          data={dataToShow}
+          data={transformedData}
           isMyDemosTable={tab === "my"}
         />
       </div>

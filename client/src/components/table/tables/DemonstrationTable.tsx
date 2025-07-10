@@ -11,7 +11,6 @@ import {
 } from "components/table/pagination/PaginationControls";
 import {
   DemoWithSubRows,
-  groupByDemoNumber,
 } from "components/table/preproccessors/GroupByDemoNumber";
 
 import {
@@ -30,17 +29,11 @@ import {
 } from "@tanstack/react-table";
 
 export interface RawDemonstration {
-  id: number;
+  id: string | number;
+  stateName: string;
   title: string;
-  demoNumber: string;
-  description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
-  demonstrationStatusId: number;
-  stateId: string;
   projectOfficer: string;
-  createdAt: string;
-  updatedAt: string;
+  status: string;
 }
 
 export interface DemonstrationTableProps {
@@ -54,13 +47,9 @@ export function DemonstrationTable({
   className = "",
   isMyDemosTable = false,
 }: DemonstrationTableProps) {
-  const hierarchicalData: DemoWithSubRows[] = React.useMemo(
-    () => groupByDemoNumber(data),
-    [data]
-  );
-
+  const hierarchicalData = data;
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "stateId", desc: false },
+    { id: "stateName", desc: false },
     { id: "title", desc: false },
   ]);
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -191,7 +180,7 @@ export function DemonstrationTable({
                   const colId = cell.column.id;
                   if (
                     row.depth > 0 &&
-                    (colId === "stateId" || colId === "demoNumber")
+                    (colId === "stateName" || colId === "demoNumber")
                   ) {
                     return (
                       <td

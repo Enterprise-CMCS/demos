@@ -1,58 +1,49 @@
 import * as React from "react";
-
-import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-} from "components/icons";
-
 import { ColumnDef } from "@tanstack/react-table";
-
 import { SecondaryButton } from "../../button/SecondaryButton";
+import { RawDemonstration } from "../tables/DemonstrationTable";
 
-export type DemonstrationColumns = {
-  id: number;
-  title: string;
-  description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
-  demonstrationStatusId: number;
-  stateId: string;
-  projectOfficer: string;
-  demoNumber: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-const selectColumn: ColumnDef<DemonstrationColumns> = {
-  id: "Select",
-  header: ({ table }) => (
-    <input
-      id="select-all-rows"
-      type="checkbox"
-      className="cursor-pointer"
-      aria-label="Select all rows"
-      checked={table.getIsAllPageRowsSelected()}
-      onChange={table.getToggleAllPageRowsSelectedHandler()}
-    />
-  ),
-  cell: ({ row }) => (
-    <input
-      id={`select-row-${row.id}`}
-      type="checkbox"
-      className="cursor-pointer"
-      checked={row.getIsSelected()}
-      onChange={row.getToggleSelectedHandler()}
-      aria-label={`Select row ${row.index + 1}`}
-    />
-  ),
-  size: 20,
-};
-
-const dataColumns: ColumnDef<DemonstrationColumns>[] = [
-  { header: "State/Territory", accessorKey: "stateId" },
-  { header: "Number", accessorKey: "demoNumber" },
-  { header: "Title", accessorKey: "title" },
-  { header: "Project Officer", accessorKey: "projectOfficer" },
+export const DemonstrationColumns: ColumnDef<RawDemonstration>[] = [
+  {
+    id: "Select",
+    header: ({ table }) => (
+      <input
+        id="select-all-rows"
+        type="checkbox"
+        className="cursor-pointer"
+        aria-label="Select all rows"
+        checked={table.getIsAllPageRowsSelected()}
+        onChange={table.getToggleAllPageRowsSelectedHandler()}
+      />
+    ),
+    cell: ({ row }) => (
+      <input
+        id={`select-row-${row.id}`}
+        type="checkbox"
+        className="cursor-pointer"
+        checked={row.getIsSelected()}
+        onChange={row.getToggleSelectedHandler()}
+        aria-label={`Select row ${row.index + 1}`}
+      />
+    ),
+    size: 20,
+  },
+  {
+    header: "State/Territory",
+    accessorKey: "stateName",
+  },
+  {
+    header: "Title",
+    accessorKey: "title",
+  },
+  {
+    header: "Project Officer",
+    accessorKey: "projectOfficer",
+  },
+  {
+    header: "Status",
+    accessorKey: "status",
+  },
   {
     id: "viewDetails",
     cell: ({ row }) => {
@@ -74,34 +65,4 @@ const dataColumns: ColumnDef<DemonstrationColumns>[] = [
     },
     enableSorting: false,
   },
-];
-
-const expanderColumn: ColumnDef<DemonstrationColumns> = {
-  id: "expander",
-  header: () => null,
-  cell: ({ row }) =>
-    row.getCanExpand() ? (
-      <button
-        type="button"
-        aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
-        aria-expanded={row.getIsExpanded()}
-        aria-controls={`row-details-${row.id}`}
-        className="inline-block select-none cursor-pointer"
-        onClick={row.getToggleExpandedHandler()}
-        tabIndex={0}
-      >
-        {row.getIsExpanded() ? (
-          <ChevronDownIcon className="text-center w-2 h-2 text-brand" />
-        ) : (
-          <ChevronRightIcon className="text-center w-2 h-2 text-brand" />
-        )}
-      </button>
-    ) : null,
-  size: 20,
-};
-
-export const DemonstrationColumns: ColumnDef<DemonstrationColumns>[] = [
-  selectColumn,
-  ...dataColumns,
-  expanderColumn,
 ];

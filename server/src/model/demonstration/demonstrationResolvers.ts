@@ -127,10 +127,10 @@ export const demonstrationResolvers = {
       );
     },
 
-    projectOfficer: async (parent: Demonstration) => {
+    projectOfficerUser: async (parent: Demonstration) => {
       if (!parent) return null;
       return await prisma.user.findUnique({
-        where: { id: parent.projectOfficer },
+        where: { id: parent.projectOfficerUserId },
       });
     },
   },
