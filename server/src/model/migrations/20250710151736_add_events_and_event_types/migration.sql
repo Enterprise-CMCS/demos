@@ -27,3 +27,12 @@ ALTER TABLE "event" ADD CONSTRAINT "event_event_type_id_fkey" FOREIGN KEY ("even
 INSERT INTO "event_type" ("id", "description") VALUES
   ('LOGIN', 'User attempted to login to the system'),
   ('LOGOUT', 'User attempted to logout of the system'),
+  ('CREATE_DEMONSTRATION', 'User created a demonstration'),
+  ('EDIT_DEMONSTRATION', 'User edited a demonstration'),
+  ('CREATE_AMENDMENT', 'User created an amendment'),
+  ('EDIT_AMENDMENT', 'User edited an amendment'),
+  ('CREATE_EXTENSION', 'User created an extension'),
+  ('EDIT_EXTENSION', 'User edited an extension'),
+  ('UPLOAD_DOCUMENT', 'User uploaded a document'),
+  ('ADD_DOCUMENT', 'User added a document'),
+  ('REMOVE_DOCUMENT', 'User removed a document')

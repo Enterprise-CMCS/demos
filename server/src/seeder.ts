@@ -119,21 +119,11 @@ async function seedDatabase() {
     const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
     const randomUser = await prisma.user.findRandom();
     
-    let eventData = {};
-    switch (randomEventType.id) {
-      case 'LOGIN':
-        eventData = { 
-          page: faker.internet.url(), 
-          referrer: faker.internet.url(),
-          userAgent: faker.internet.userAgent()
-        };
-        break;
-      default:
-        eventData = { 
-          action: faker.lorem.word(),
-          details: faker.lorem.sentence()
-        };
-    }
+    // For now keep eventData simple and generic
+    const eventData = {
+      action: faker.lorem.word(),
+      details: faker.lorem.sentence()
+    };
 
     await prisma.event.create({
       data: {
