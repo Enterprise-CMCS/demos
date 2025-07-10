@@ -156,14 +156,13 @@ export function DemonstrationTable({
   return (
     <div className={`overflow-x-auto w-full ${className} mb-2`}>
       <div className="flex items-center mb-2">
-        <KeywordSearch<DemoWithSubRows> table={table} label="Search"></KeywordSearch>
+        <KeywordSearch<DemoWithSubRows> table={table} label="Search:"></KeywordSearch>
         <ColumnFilterByDropdown<DemoWithSubRows>
           table={table}
           columns={table
             .getAllColumns()
             .filter(col => col.id !== "select" && col.id !== "expander")}
           label="Filter by:"
-          isMyDemosTable={isMyDemosTable}
         />
       </div>
       {/* Table header with sorting */}

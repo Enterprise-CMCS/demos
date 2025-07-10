@@ -1,5 +1,5 @@
 import { Table } from "@tanstack/react-table";
-import { ExitIcon } from "components/icons";
+import { ExitIcon, SearchIcon } from "components/icons";
 import React from "react";
 
 export interface KeywordSearchProps<T extends object> {
@@ -76,9 +76,10 @@ export function KeywordSearch<T extends object>({
       </label>
 
       <div className="ml-2 mb-2 mr-2 flex items-center gap-2 text-sm relative">
+        <SearchIcon className="absolute left-1 top-1/2 transform -translate-y-1/2 text-gray-500" />
         <input
           id="keyword-search"
-          className="border px-2 py-1 rounded"
+          className="border px-3 py-1 rounded"
           value={queryString}
           onChange={(e) => onValueChange(e.target.value)}
           aria-label="Input keyword search query"
