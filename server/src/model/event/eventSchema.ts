@@ -45,11 +45,12 @@ export const eventSchema = gql`
   }
 `;
 
+type DateTime = Date;
 export interface Event {
   id: string;
   userId: string;
   eventTypeId: string;
-  createdAt: Date;
+  createdAt: DateTime;
   eventData: object;
 }
 

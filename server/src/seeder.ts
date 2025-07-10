@@ -11,6 +11,7 @@ export function clearDatabase() {
   checkIfAllowed();
 
   return prisma.$transaction([
+    prisma.event.deleteMany(),
     prisma.rolePermission.deleteMany(),
     prisma.userRole.deleteMany(),
     prisma.userState.deleteMany(),
@@ -108,6 +109,37 @@ async function seedDatabase() {
         demonstrationStatusId: (await prisma.demonstrationStatus.findRandom())!.id,
         stateId: (await prisma.state.findRandom())!.id,
         projectOfficer: (await prisma.user.findRandom())!.id,
+      },
+    });
+  }
+
+  console.log("🌱 Seeding events...");
+  const eventTypes = await prisma.eventType.findMany();
+  for (let i = 0; i < entityCount * 5; i++) {
+    const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+    const randomUser = await prisma.user.findRandom();
+    
+    let eventData = {};
+    switch (randomEventType.id) {
+      case 'LOGIN':
+        eventData = { 
+          page: faker.internet.url(), 
+          referrer: faker.internet.url(),
+          userAgent: faker.internet.userAgent()
+        };
+        break;
+      default:
+        eventData = { 
+          action: faker.lorem.word(),
+          details: faker.lorem.sentence()
+        };
+    }
+
+    await prisma.event.create({
+      data: {
+        userId: randomUser!.id,
+        eventTypeId: randomEventType.id,
+        eventData: eventData,
       },
     });
   }
