@@ -5,6 +5,7 @@ import { RadioGroupSandbox } from "components/radioGroup";
 import { CheckboxGroupSandbox } from "components/checkboxGroup";
 import { ToastDemo } from "./ToastDemo";
 import React from "react";
+import { DatePickerSandbox } from "components/input/DatePicker/DatePickerSandbox";
 
 export const ComponentLibrary: React.FC = () => {
   return (
@@ -15,6 +16,9 @@ export const ComponentLibrary: React.FC = () => {
       </Collapsible>
       <Collapsible title="Input Sandbox (Click to expand)">
         <InputSandbox />
+      </Collapsible>
+      <Collapsible title="DatePicker Sandbox (Click to expand)">
+        <DatePickerSandbox />
       </Collapsible>
       <Collapsible title="Radio Group Sandbox (Click to expand)">
         <RadioGroupSandbox />
