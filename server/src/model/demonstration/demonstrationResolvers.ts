@@ -22,10 +22,20 @@ export const demonstrationResolvers = {
       _: undefined,
       { input }: { input: AddDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, stateId, userIds, projectOfficerUserId, ...rest } = input;
+      const { 
+        demonstrationStatusId, 
+        stateId, 
+        userIds, 
+        projectOfficerUserId, 
+        evaluationPeriodStartDate, 
+        evaluationPeriodEndDate, 
+        ...rest 
+    } = input;
       return await prisma().demonstration.create({
         data: {
           ...rest,
+          evaluationPeriodStartDate: new Date(evaluationPeriodStartDate),
+          evaluationPeriodEndDate: new Date(evaluationPeriodEndDate),
           demonstrationStatus: {
             connect: { id: demonstrationStatusId },
           },
@@ -52,7 +62,7 @@ export const demonstrationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, userIds, stateId, projectOfficerUserId, ...rest } = input;
+      const { demonstrationStatusId, userIds, stateId, projectOfficerUserId, evaluationPeriodStartDate, evaluationPeriodEndDate, ...rest } = input;
 
       // If stateId is not provided, use the demonstration's existing stateId
       let existingStateId = stateId;
@@ -69,6 +79,12 @@ export const demonstrationResolvers = {
         where: { id },
         data: {
           ...rest,
+          ...(evaluationPeriodStartDate && {
+            evaluationPeriodStartDate: new Date(evaluationPeriodStartDate),
+          }),
+          ...(evaluationPeriodEndDate && {
+            evaluationPeriodEndDate: new Date(evaluationPeriodEndDate),
+          }),
           ...(demonstrationStatusId && {
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
