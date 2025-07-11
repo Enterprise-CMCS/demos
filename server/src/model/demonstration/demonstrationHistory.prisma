@@ -11,6 +11,6 @@ model DemonstrationHistory {
   updatedAt                 DateTime     @map("updated_at") @db.Timestamptz()
   demonstrationStatusId     String       @map("demonstration_status_id") @db.Uuid
   stateId                   String       @map("state_id") @db.Uuid
-
+  projectOfficerUserId      String?      @map("project_officer_user_id") @db.Uuid
   @@map("demonstration_history")
 }

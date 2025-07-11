@@ -20,10 +20,10 @@ export const Demonstrations: React.FC = () => {
   const allDemos = data || [];
 
   // Replace with real user id from auth context or wherever you store it
-  const currentUserId = "123";
+  const currentUserId = "b9901f9d-56cd-4df0-9792-27224af27b28";
 
   const myDemos = allDemos.filter((demo) =>
-    demo.users?.some((u) => u.id === currentUserId)
+    demo.projectOfficerUser?.id === currentUserId
   );
 
   const tabList: TabItem[] = [
@@ -38,7 +38,7 @@ export const Demonstrations: React.FC = () => {
       count: allDemos.length,
     },
   ];
-  console.log("Tab List:", data);
+
   const dataToShow = tab === "my" ? myDemos : allDemos;
   // Transform the data to your frontend table shape:
   const transformedData = dataToShow.map((demo) => ({
@@ -50,7 +50,7 @@ export const Demonstrations: React.FC = () => {
     evalPeriodEndDate: demo.evaluationPeriodEndDate,
     demonstrationStatusId: demo.demonstrationStatus?.id,
     stateName: demo.state.stateName,
-    projectOfficer: demo.projectOfficerUser.displayName || "N/A",
+    projectOfficer: demo?.projectOfficerUser?.displayName,
     userId: demo.users?.[0]?.id,
     createdAt: demo.createdAt,
     updatedAt: demo.updatedAt,

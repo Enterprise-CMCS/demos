@@ -3,7 +3,7 @@ import { Logo } from "./Logo";
 import { QuickLinks } from "./QuickLinks";
 import { ProfileBlock } from "./ProfileBlock";
 
-export const HeaderUpper: React.FC<{ userId?: number }> = ({ userId }) => {
+export const HeaderUpper: React.FC<{ userId?: string }> = ({ userId }) => {
   return (
     <header className="w-full flex items-stretch justify-between py-1 px-2 gap-1">
       <div id="header-upper-left">

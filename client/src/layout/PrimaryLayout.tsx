@@ -15,6 +15,8 @@ import { SideNav } from "./SideNav";
 interface PrimaryLayoutProps {
   children: React.ReactNode;
 }
+// If you get no demos, then reset to the userId in your database
+const userGUID = "b9901f9d-56cd-4df0-9792-27224af27b28";
 
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -23,7 +25,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
     <ToastProvider>
       <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower userId={2} />}>
         <div className="h-screen flex flex-col">
-          <Header userId={2} />
+          <Header userId={userGUID} />
           <div className="flex flex-1 overflow-hidden bg-gray-100">
             <div className={collapsed ? "w-20" : "w-64"}>
               <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />

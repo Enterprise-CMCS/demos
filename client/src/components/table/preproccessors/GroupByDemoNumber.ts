@@ -1,33 +1,29 @@
-export interface RawDemonstration {
-  id: number;
+export interface DemosWithEvalDatesForSorting {
+  id: number | string;
   title: string;
-  demoNumber: string;
-  description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
-  demonstrationStatusId: number;
-  stateId: string;
+  stateName: string;
   projectOfficer: string;
-  createdAt: string;
-  updatedAt: string;
+  evalPeriodStartDate: Date;
+  evalPeriodEndDate: Date;
+  status: string;
 }
 
-export interface DemoWithSubRows extends RawDemonstration {
-  subRows?: RawDemonstration[];
+export interface DemoWithSubRows extends DemosWithEvalDatesForSorting {
+  subRows?: DemosWithEvalDatesForSorting[];
 }
 
 /**
- * Given a flat array of RawDemonstration, return an array of parents,
+ * Given a flat array of DemosWithEvalDatesForSorting, return an array of parents,
  * each with a subRows array of any older entries with the same demoNumber.
  */
 export function groupByDemoNumber(
-  raw: RawDemonstration[]
+  raw: DemosWithEvalDatesForSorting[]
 ): DemoWithSubRows[] {
-  const map = new Map<string, RawDemonstration[]>();
+  const map = new Map<string, DemosWithEvalDatesForSorting[]>();
 
   // 1) Group each row by its demoNumber
   raw.forEach((item) => {
-    const key = item.demoNumber;
+    const key = String(item.id);
     if (!map.has(key)) {
       map.set(key, []);
     }
