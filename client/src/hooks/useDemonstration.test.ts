@@ -136,12 +136,12 @@ describe("useDemonstration", () => {
     it("should handle error when updating demonstration", async () => {
       const { result } = renderUseDemonstrationHook();
 
-      const badInput = {
-        name: "", // invalid
-      } as any;
+      const badInput: Partial<AddDemonstrationInput> = {
+        name: "",
+      };
 
       try {
-        await result.current.updateDemonstration.trigger("invalid-id", badInput);
+        await result.current.updateDemonstration.trigger("invalid-id", badInput as AddDemonstrationInput);
       } catch {
         // do nothing, error will be handled in state
       }
@@ -153,7 +153,6 @@ describe("useDemonstration", () => {
       expect(result.current.updateDemonstration.data).toBeUndefined();
     });
   });
-
 
   describe("initial state", () => {
     it("should have correct initial state for all operations", () => {
