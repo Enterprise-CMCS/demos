@@ -143,7 +143,7 @@ describe("DemonstrationTable", () => {
 
     expect(
       await screen.findByText((content) =>
-        content.includes("No demonstrations match your filter criteria")
+        content.includes("No demonstrations match your filter/search criteria.")
       )
     ).toBeInTheDocument();
   });
