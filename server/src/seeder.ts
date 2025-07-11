@@ -107,7 +107,7 @@ async function seedDatabase() {
         evaluationPeriodEndDate: faker.date.future({ years: 1 }),
         demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
-        projectOfficer: (await prisma().user.findRandom())!.id,
+        projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
   }

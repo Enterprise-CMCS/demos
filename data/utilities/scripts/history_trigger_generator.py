@@ -153,18 +153,18 @@ def get_prisma_lines(folder: str) -> List[str]:
     return prisma_lines
 
 
-def main(migration: str) -> None:
+def main(migration: str, folders: List[str] = TBL_FOLDERS) -> None:
     """Execute main program function.
 
     Args:
         migration (str): The migration folder where the SQL should be placed.
     """
     queries = []
-    for x in TBL_FOLDERS:
+    for x in folders:
         prisma_lines = get_prisma_lines(x)
         queries.append(get_trigger_code(prisma_lines) + "\n\n")
 
-    with open(f"../../../server/src/model/migrations/{migration}/migration.sql", "w") as query_file:
+    with open(f"../../../server/src/model/migrations/{migration}/migration.sql", "a") as query_file:
         query_file.writelines(queries)
 
 
@@ -173,5 +173,12 @@ if __name__ == "__main__":
         description="Generate history table triggers from models in the server folder."
     )
     parser.add_argument("migration", help="The migration folder where the output should be written.")
+    parser.add_argument(
+        "-m",
+        "--models",
+        nargs="+",
+        choices=TBL_FOLDERS,
+        help="A list of models to process, which must be found in TBL_FOLDERS."
+    )
     args = parser.parse_args()
-    main(args.migration)
+    main(args.migration, args.models if args.models is not None else TBL_FOLDERS)

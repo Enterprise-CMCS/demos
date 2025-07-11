@@ -242,6 +242,9 @@ CREATE TABLE "users_history" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "demonstration_id_state_id_key" ON "demonstration"("id", "state_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_cognito_subject_key" ON "users"("cognito_subject");
 
 -- AddForeignKey
@@ -263,13 +266,13 @@ ALTER TABLE "user_state" ADD CONSTRAINT "user_state_user_id_fkey" FOREIGN KEY ("
 ALTER TABLE "user_state" ADD CONSTRAINT "user_state_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "state"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_user_id_state_id_fkey" FOREIGN KEY ("user_id", "state_id") REFERENCES "user_state"("user_id", "state_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_user_id_state_id_fkey" FOREIGN KEY ("user_id", "state_id") REFERENCES "user_state"("user_id", "state_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_state_demonstration" ADD CONSTRAINT "user_state_demonstration_demonstration_id_state_id_fkey" FOREIGN KEY ("demonstration_id", "state_id") REFERENCES "demonstration"("id", "state_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_status_id") REFERENCES "demonstration_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -278,7 +281,4 @@ ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_demonstration_status_i
 ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "state"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_project_officer_user_id_fkey" FOREIGN KEY ("project_officer_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demonstration_history" ADD CONSTRAINT "demonstration_history_project_officer_id_fkey" FOREIGN KEY ("project_officer_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_project_officer_user_id_fkey" FOREIGN KEY ("project_officer_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
