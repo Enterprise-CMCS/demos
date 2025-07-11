@@ -10,6 +10,7 @@ import {
 import {
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -62,6 +63,7 @@ const mockRawData = [
 
 describe("DemonstrationTable", () => {
   beforeEach(() => {
+    localStorage.clear();
     render(<DemonstrationTable data={mockRawData} />);
   });
 
@@ -112,24 +114,28 @@ describe("DemonstrationTable", () => {
     // Type search term
     await user.type(keywordSearchInput, "Montana");
 
-    // Use a function matcher to handle broken up text
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).toBeInTheDocument();
+    // Wait for debounce (300ms + buffer)
+    await waitFor(() => {
+      expect(
+        screen.getByText((content, element) => {
+          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
+        })
+      ).toBeInTheDocument();
 
-    // Should not show other demonstrations
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-      })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration";
-      })
-    ).not.toBeInTheDocument();
+      // Should not show other demonstrations
+      expect(
+        screen.queryByText((content, element) => {
+          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
+        })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText((content, element) => {
+          return element?.textContent === "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration";
+        })
+      ).not.toBeInTheDocument();
+    }, { timeout: 500 });
+
+
   });
 
   it("filters table based on multiple keywords", async () => {
@@ -139,24 +145,28 @@ describe("DemonstrationTable", () => {
     // Type multiple keywords
     await user.type(keywordSearchInput, "Medicaid Florida");
 
-    // Should show Florida demonstration (contains both keywords)
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-      })
-    ).toBeInTheDocument();
+    // Wait for debounce
+    await waitFor(() => {
+      expect(
+        screen.getByText((content, element) => {
+          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
+        })
+      ).toBeInTheDocument();
 
-    // Should not show demonstrations that don't contain both keywords
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration";
-      })
-    ).not.toBeInTheDocument();
+      // Should not show demonstrations that don't contain both keywords
+      expect(
+        screen.queryByText((content, element) => {
+          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
+        })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText((content, element) => {
+          return element?.textContent === "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration";
+        })
+      ).not.toBeInTheDocument();
+    }, { timeout: 500 });
+
+
   });
 
   it("highlights matching text in search results", async () => {
@@ -166,17 +176,19 @@ describe("DemonstrationTable", () => {
     // Type search term
     await user.type(keywordSearchInput, "Montana");
 
-    // Look for highlighted text in the results
-    const highlightedText = screen.getByText("Montana");
-    expect(highlightedText.tagName.toLowerCase()).toBe("mark");
-    expect(highlightedText).toHaveClass("bg-yellow-200", "font-semibold");
+    // Wait for debounce and highlighting to apply
+    await waitFor(() => {
+      const highlightedText = screen.getByText("Montana");
+      expect(highlightedText.tagName.toLowerCase()).toBe("mark");
+      expect(highlightedText).toHaveClass("bg-yellow-200", "font-semibold");
 
-    // Verify the full text is still present (even if split across elements)
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).toBeInTheDocument();
+      // Verify the full text is still present (even if split across elements)
+      expect(
+        screen.getByText((content, element) => {
+          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
+        })
+      ).toBeInTheDocument();
+    }, { timeout: 500 });
   });
 
   it("preserves existing filters when searching", async () => {
@@ -205,40 +217,24 @@ describe("DemonstrationTable", () => {
     const keywordSearchInput = screen.getByLabelText(/keyword search/i);
     await user.type(keywordSearchInput, "Medicaid");
 
-    // Both filters should be active - still only Montana demonstration
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-      })
-    ).not.toBeInTheDocument();
+    // Wait for debounce
+    await waitFor(() => {
+      expect(
+        screen.getByText((content, element) => {
+          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
+        })
+      ).toBeInTheDocument();
+
+      // Both filters should be active - still only Montana demonstration
+      expect(
+        screen.queryByText((content, element) => {
+          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
+        })
+      ).not.toBeInTheDocument();
+    }, { timeout: 500 });
 
     // Verify the column filter input still has its value
     expect(filterInput).toHaveValue("MT");
-  });
-
-  it("highlights matching text in search results", async () => {
-    const user = userEvent.setup();
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-
-    // Type search term
-    await user.type(keywordSearchInput, "Montana");
-
-    // Look for highlighted text in the results
-    const highlightedText = screen.getByText("Montana");
-    expect(highlightedText.tagName.toLowerCase()).toBe("mark");
-    expect(highlightedText).toHaveClass("bg-yellow-200", "font-semibold");
-
-    // Verify the full text is still present (even if split across elements)
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).toBeInTheDocument();
   });
 
   it("maintains sorting regardless of search state", async () => {
@@ -252,21 +248,23 @@ describe("DemonstrationTable", () => {
     const keywordSearchInput = screen.getByLabelText(/keyword search/i);
     await user.type(keywordSearchInput, "Medicaid");
 
-    // Get all visible rows and verify they"re still sorted
-    const tableRows = screen.getAllByRole("row");
-    const dataRows = tableRows.slice(1); // Skip header row
+    // Wait for debounce
+    await waitFor(() => {
+      const tableRows = screen.getAllByRole("row");
+      const dataRows = tableRows.slice(1);
 
-    // Extract titles from visible rows
-    const visibleTitles = dataRows
-      .map(row => {
-        const titleCell = within(row).queryByText(/Medicaid.*Demonstration/);
-        return titleCell?.textContent || "";
-      })
-      .filter(title => title.length > 0);
+      // Extract titles from visible rows
+      const visibleTitles = dataRows
+        .map(row => {
+          const titleCell = within(row).queryByText(/Medicaid.*Demonstration/);
+          return titleCell?.textContent || "";
+        })
+        .filter(title => title.length > 0);
 
-    // Verify titles are sorted alphabetically
-    const sortedTitles = [...visibleTitles].sort();
-    expect(visibleTitles).toEqual(sortedTitles);
+      // Verify titles are sorted alphabetically
+      const sortedTitles = [...visibleTitles].sort();
+      expect(visibleTitles).toEqual(sortedTitles);
+    }, { timeout: 500 });
 
     // Clear search and verify sorting is maintained
     const clearButton = screen.getByLabelText(/clear search/i);
