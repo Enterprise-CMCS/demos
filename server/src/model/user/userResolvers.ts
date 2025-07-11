@@ -6,19 +6,19 @@ import { requireRole } from "../../auth/auth.util.js";
 export const userResolvers = {
   Query: {
     user: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.user.findUnique({
+      return await prisma().user.findUnique({
         where: { id: id },
       });
     },
     users: requireRole(["ADMIN"])(async () => {
-      return await prisma.user.findMany();
+      return await prisma().user.findMany();
     }),
   },
 
   Mutation: {
     addUser: async (_: undefined, { input }: { input: AddUserInput }) => {
       const { stateIds, roleIds, demonstrationIds, ...rest } = input;
-      return await prisma.user.create({
+      return await prisma().user.create({
         data: {
           ...rest,
           ...(stateIds && {
@@ -34,7 +34,7 @@ export const userResolvers = {
           ...(demonstrationIds && {
             userStateDemonstrations: {
               create: (
-                await prisma.demonstration.findMany({
+                await prisma().demonstration.findMany({
                   where: { id: { in: demonstrationIds } },
                   select: { id: true, stateId: true },
                 })
@@ -53,7 +53,7 @@ export const userResolvers = {
       { id, input }: { id: string; input: AddUserInput },
     ) => {
       const { stateIds, roleIds, demonstrationIds, ...rest } = input;
-      return await prisma.user.update({
+      return await prisma().user.update({
         where: { id },
         data: {
           ...rest,
@@ -70,7 +70,7 @@ export const userResolvers = {
           ...(demonstrationIds && {
             userStateDemonstrations: {
               create: (
-                await prisma.demonstration.findMany({
+                await prisma().demonstration.findMany({
                   where: { id: { in: demonstrationIds } },
                   select: { id: true, stateId: true },
                 })
@@ -85,7 +85,7 @@ export const userResolvers = {
     },
 
     deleteUser: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.user.delete({
+      return await prisma().user.delete({
         where: { id: id },
       });
     },
@@ -93,7 +93,7 @@ export const userResolvers = {
 
   User: {
     states: async (parent: User) => {
-      const userStates = await prisma.userState.findMany({
+      const userStates = await prisma().userState.findMany({
         where: { userId: parent.id },
         include: {
           state: true,
@@ -102,7 +102,7 @@ export const userResolvers = {
       return userStates.map((userState) => userState.state);
     },
     roles: async (parent: User) => {
-      const userRoles = await prisma.userRole.findMany({
+      const userRoles = await prisma().userRole.findMany({
         where: { userId: parent.id },
         include: {
           role: true,
@@ -113,7 +113,7 @@ export const userResolvers = {
 
     demonstrations: async (parent: User) => {
       const userStateDemonstrations =
-        await prisma.userStateDemonstration.findMany({
+        await prisma().userStateDemonstration.findMany({
           where: { userId: parent.id },
           include: {
             demonstration: true,

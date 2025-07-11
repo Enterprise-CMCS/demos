@@ -5,19 +5,19 @@ import { AddStateInput, UpdateStateInput } from "./stateSchema.js";
 export const stateResolvers = {
   Query: {
     state: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.state.findUnique({
+      return await prisma().state.findUnique({
         where: { id: id },
       });
     },
     states: async () => {
-      return await prisma.state.findMany();
+      return await prisma().state.findMany();
     },
   },
 
   Mutation: {
     addState: async (_: undefined, { input }: { input: AddStateInput }) => {
       const { userIds, ...rest } = input;
-      return await prisma.state.create({
+      return await prisma().state.create({
         data: {
           ...rest,
           ...(userIds && {
@@ -36,7 +36,7 @@ export const stateResolvers = {
       { id, input }: { id: string; input: UpdateStateInput },
     ) => {
       const { userIds, ...rest } = input;
-      return await prisma.state.update({
+      return await prisma().state.update({
         where: { id },
         data: {
           ...rest,
@@ -52,7 +52,7 @@ export const stateResolvers = {
     },
 
     deleteState: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.state.delete({
+      return await prisma().state.delete({
         where: { id: id },
       });
     },
@@ -60,7 +60,7 @@ export const stateResolvers = {
 
   State: {
     users: async (parent: State) => {
-      const userStates = await prisma.userState.findMany({
+      const userStates = await prisma().userState.findMany({
         where: { stateId: parent.id },
         include: {
           user: true,
@@ -69,7 +69,7 @@ export const stateResolvers = {
       return userStates.map((userState) => userState.user);
     },
     demonstrations: async (parent: State) => {
-      return await prisma.demonstration.findMany({
+      return await prisma().demonstration.findMany({
         where: { stateId: parent.id },
       });
     },

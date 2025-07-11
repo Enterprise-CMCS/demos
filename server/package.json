@@ -31,10 +31,10 @@
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "prisma:format": "prisma format",
-    "migrate:empty": "prisma migrate dev --create-only",
-    "migrate:reset": "prisma migrate reset --force",
+    "watch": "concurrently \"tsx watch --inspect=9229 --clear-screen=false src/index.ts\" \"prisma generate --watch\"",    
     "seed": "prisma migrate reset --force && tsx --inspect ./src/seeder.ts",
-    "watch": "concurrently \"tsx watch --clear-screen=false src/index.ts\" \"prisma generate --watch\""
+    "migrate:empty": "prisma migrate dev --create-only",
+    "migrate:reset": "prisma migrate reset --force"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
