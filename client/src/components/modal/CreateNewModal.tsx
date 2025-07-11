@@ -45,7 +45,7 @@ export const CreateNewModal: React.FC<Props> = ({
 
   useEffect(() => {
     if (demonstration) {
-      setState(demonstration.state?.id || "");
+      setState(demonstration.state?.stateCode || "");
       setTitle(demonstration.name || "");
       setProjectOfficer(demonstration.users?.[0]?.id || "");
       setEffectiveDate(new Date(demonstration.evaluationPeriodStartDate).toISOString().slice(0, 10));
@@ -153,6 +153,7 @@ export const CreateNewModal: React.FC<Props> = ({
           <SelectUSAStates
             label="State/Territory"
             currentState={state}
+            value={state}
             isRequired
             onStateChange={setState}
           />
