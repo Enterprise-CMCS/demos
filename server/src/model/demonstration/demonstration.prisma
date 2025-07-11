@@ -1,5 +1,6 @@
 model Demonstration {
-  id                        String   @id @default(uuid()) @db.Uuid
+  id                        String   @default(uuid()) @db.Uuid
+  bundleTypeId              String   @map("bundle_type_id")
   name                      String
   description               String
   evaluationPeriodStartDate DateTime @map("evaluation_period_start_date") @db.Date
@@ -10,11 +11,15 @@ model Demonstration {
   stateId                   String   @map("state_id") @db.Uuid
   projectOfficerUserId      String   @map("project_officer_user_id") @db.Uuid
 
+  bundle                  Bundle                   @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
+  bundleType              DemonstrationBundleType  @relation(fields: [bundleTypeId], references: [id])
   demonstrationStatus     DemonstrationStatus      @relation(fields: [demonstrationStatusId], references: [id])
   state                   State                    @relation(fields: [stateId], references: [id])
   projectOfficer          User                     @relation(fields: [projectOfficerUserId], references: [id])
   userStateDemonstrations UserStateDemonstration[]
 
+  @@id([id])
   @@unique([id, stateId])
+  @@unique([id, bundleTypeId])
   @@map("demonstration")
 }

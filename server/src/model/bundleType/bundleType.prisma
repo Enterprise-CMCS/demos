@@ -1,0 +1,12 @@
+model BundleType {
+  id          String   @id
+  name        String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  bundle                  Bundle[]
+  demonstrationBundleType DemonstrationBundleType[]
+
+  @@map("bundle_type")
+}
