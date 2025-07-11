@@ -1,10 +1,11 @@
 model UserStateDemonstration {
-  userState       UserState     @relation(fields: [userId, stateId], references: [userId, stateId])
-  user            User          @relation(fields: [userId], references: [id])
-  userId          String        @map("user_id") @db.Uuid
-  stateId         String        @map("state_id") @db.Uuid
-  demonstration   Demonstration @relation(fields: [demonstrationId], references: [id])
-  demonstrationId String        @map("demonstration_id") @db.Uuid
+  userId          String @map("user_id") @db.Uuid
+  stateId         String @map("state_id") @db.Uuid
+  demonstrationId String @map("demonstration_id") @db.Uuid
+
+  user               User          @relation(fields: [userId], references: [id])
+  userState          UserState     @relation(fields: [userId, stateId], references: [userId, stateId])
+  demonstrationState Demonstration @relation(fields: [demonstrationId, stateId], references: [id, stateId])
 
   @@id([userId, stateId, demonstrationId])
   @@map("user_state_demonstration")
