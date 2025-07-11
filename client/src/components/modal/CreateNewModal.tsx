@@ -8,7 +8,7 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
-import { AddDemonstrationInput } from "demos-server";
+import { AddDemonstrationInput, Demonstration } from "demos-server";
 import { useDemonstration } from "hooks/useDemonstration";
 import { tw } from "tags/tw";
 
@@ -19,7 +19,7 @@ type DemonstrationModalMode = "add" | "edit";
 
 type Props = {
   onClose: () => void;
-  demonstration?: any; // TODO: replace with actual type
+  demonstration?: Demonstration; // TODO: replace with actual type
   mode: DemonstrationModalMode;
 };
 
