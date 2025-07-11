@@ -50,12 +50,13 @@ export const eventResolvers = {
 
   Mutation: {
     createEvent: async (_: undefined, { input }: { input: CreateEventInput }) => {
-      const { userId, eventTypeId, eventData } = input;
+      const { userId, eventTypeId, route, eventData } = input;
       
       return await prisma.event.create({
         data: {
           userId,
           eventTypeId,
+          route,
           eventData
         },
         include: {

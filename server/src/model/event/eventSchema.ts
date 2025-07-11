@@ -11,7 +11,7 @@ export const eventSchema = gql`
     withRoleId: ID!
     route: String!
     createdAt: DateTime!
-    eventData: JSONObject!
+    eventData: JSONObject
   }
 
   # An event with all the fields populated for easier querying
@@ -22,7 +22,7 @@ export const eventSchema = gql`
     withRole: Role!
     route: String!
     createdAt: DateTime!
-    eventData: JSONObject!
+    eventData: JSONObject
   }
 
   type Query {
@@ -57,7 +57,7 @@ export interface Event {
   withRoleId: string;
   route: string;
   createdAt: DateTime;
-  eventData: object;
+  eventData?: object;
 }
 
 export interface CreateEventInput {

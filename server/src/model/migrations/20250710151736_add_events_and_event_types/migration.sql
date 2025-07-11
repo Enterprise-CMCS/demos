@@ -9,7 +9,7 @@ CREATE TABLE "event" (
     "with_role_id" UUID NOT NULL,
     "route" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "event_data" JSON NOT NULL,
+    "event_data" JSON,
 
     CONSTRAINT "event_pkey" PRIMARY KEY ("id")
 );
