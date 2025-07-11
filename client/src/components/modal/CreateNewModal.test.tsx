@@ -18,8 +18,17 @@ vi.mock("hooks/useDemonstration", () => ({
       loading: false,
       error: undefined,
     },
+    updateDemonstration: {
+      trigger: vi.fn().mockResolvedValue({
+        data: { updateDemonstration: { id: "1", name: "Updated Demo" } },
+      }),
+      data: undefined,
+      loading: false,
+      error: undefined,
+    },
   })),
 }));
+
 
 // Mock the SelectUSAStates component
 vi.mock("components/input/select/SelectUSAStates", () => ({
@@ -85,12 +94,18 @@ if (!HTMLFormElement.prototype.requestSubmit) {
   };
 }
 
-const renderModal = () => {
+const renderModal = ({
+  mode = "add",
+  demonstration,
+}: {
+  mode?: "add" | "edit";
+  demonstration?: any;
+} = {}) => {
   const onClose = vi.fn();
 
   render(
     <ToastProvider>
-      <CreateNewModal onClose={onClose} />
+      <CreateNewModal mode={mode} onClose={onClose} demonstration={demonstration} />
     </ToastProvider>
   );
 
@@ -192,6 +207,58 @@ describe("CreateNewModal", () => {
         description: "",
         evaluationPeriodStartDate: expect.any(Date),
         evaluationPeriodEndDate: expect.any(Date),
+        demonstrationStatusId: "1",
+        stateId: "1",
+        userIds: ["1"],
+      });
+    });
+  });
+
+  it("submits updated data in edit mode", async () => {
+    const { useDemonstration } = await import("hooks/useDemonstration");
+    const mockTrigger = vi.fn().mockResolvedValue({
+      data: { updateDemonstration: { id: "1", name: "Updated Demo" } },
+    });
+
+    const currentMock = vi.mocked(useDemonstration)();
+    vi.mocked(useDemonstration).mockReturnValue({
+      ...currentMock,
+      updateDemonstration: {
+        ...currentMock.updateDemonstration,
+        trigger: mockTrigger,
+      },
+    });
+
+    const demonstration = {
+      id: "1",
+      name: "Original Demo",
+      state: { id: "1", stateName: "California" },
+      userIds: ["1"],
+      evaluationPeriodStartDate: "2024-06-20T00:00:00.000Z",
+      evaluationPeriodEndDate: "2024-07-20T00:00:00.000Z",
+      description: "Original description",
+    };
+
+    renderModal({ mode: "edit", demonstration });
+
+    // Fill out the form
+    const stateSelect = screen.getByTestId("state-select");
+    const titleInput = screen.getByLabelText(/Demonstration Title/i);
+    const userSelect = screen.getByTestId("user-select");
+    const submitButton = screen.getByText("Submit");
+
+    fireEvent.change(stateSelect, { target: { value: "1" } });
+    fireEvent.change(titleInput, { target: { value: "Updated Demo" } });
+    fireEvent.change(userSelect, { target: { value: "1" } });
+
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockTrigger).toHaveBeenCalledWith("1", {
+        name: "Updated Demo",
+        description: "Original description",
+        evaluationPeriodStartDate: new Date("2024-06-20T00:00:00.000Z"),
+        evaluationPeriodEndDate: new Date("2024-07-20T00:00:00.000Z"),
         demonstrationStatusId: "1",
         stateId: "1",
         userIds: ["1"],

@@ -113,7 +113,7 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
 
       {/* Modal render */}
       {modalType === "create" && (
-        <CreateNewModal onClose={() => setModalType(null)} />
+        <CreateNewModal mode="add" onClose={() => setModalType(null)} />
       )}
       {modalType === "document" && (
         <AddDocumentModal onClose={() => setModalType(null)} />

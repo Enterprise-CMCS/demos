@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
 import {
   PrimaryButton,
   SecondaryButton,
@@ -16,7 +15,19 @@ import { tw } from "tags/tw";
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
 
-export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+type DemonstrationModalMode = "add" | "edit";
+
+type Props = {
+  onClose: () => void;
+  demonstration?: any; // TODO: replace with actual type
+  mode: DemonstrationModalMode;
+};
+
+export const CreateNewModal: React.FC<Props> = ({
+  onClose,
+  demonstration,
+  mode,
+}) => {
   const [state, setState] = useState("");
   const [title, setTitle] = useState("");
   const [projectOfficer, setProjectOfficer] = useState("");
@@ -28,9 +39,20 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
   const [formStatus, setFormStatus] = useState<"idle" | "pending">("idle");
 
   const { showSuccess, showError } = useToast();
-  const { addDemonstration } = useDemonstration();
+  const { addDemonstration, updateDemonstration } = useDemonstration();
 
   const isFormValid = state && title && projectOfficer;
+
+  useEffect(() => {
+    if (demonstration) {
+      setState(demonstration.state?.id || "");
+      setTitle(demonstration.name || "");
+      setProjectOfficer(demonstration.users?.[0]?.id || "");
+      setEffectiveDate(new Date(demonstration.evaluationPeriodStartDate).toISOString().slice(0, 10));
+      setExpirationDate(new Date(demonstration.evaluationPeriodEndDate).toISOString().slice(0, 10));
+      setDescription(demonstration.description || "");
+    }
+  }, [demonstration]);
 
   const getInput = (): AddDemonstrationInput => ({
     name: title,
@@ -43,17 +65,39 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
   });
 
   const handleSubmit = async () => {
+    if (!isFormValid) {
+      showError("Please complete all required fields.");
+      return;
+    }
+
     setFormStatus("pending");
+
     try {
-      const result = await addDemonstration.trigger(getInput());
-      if (result.data?.addDemonstration) {
-        showSuccess("Demonstration created successfully!");
+      const input = getInput();
+      let result;
+
+      if (mode === "edit" && demonstration?.id) {
+        result = await updateDemonstration.trigger(demonstration.id, input);
+      } else {
+        result = await addDemonstration.trigger(input);
+      }
+
+      if (
+        result.data &&
+        ("addDemonstration" in result.data || "updateDemonstration" in result.data)
+      ) {
+        showSuccess(
+          mode === "edit"
+            ? "Demonstration updated successfully!"
+            : "Demonstration created successfully!"
+        );
         onClose();
       } else {
-        showError("Failed to create demonstration. Please try again.");
+        showError("Failed to save demonstration. Please try again.");
       }
-    } catch {
-      showError("Failed to create demonstration. Please try again.");
+    } catch (error) {
+      console.error(error);
+      showError("Failed to save demonstration. Please try again.");
     } finally {
       setFormStatus("idle");
     }
@@ -61,7 +105,7 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
   return (
     <BaseModal
-      title="New Demonstration"
+      title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -74,13 +118,7 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
           <PrimaryButton
             size="small"
             disabled={!isFormValid || formStatus === "pending"}
-            onClick={() => {
-              if (!isFormValid) {
-                showError("Please complete all required fields.");
-                return;
-              }
-              handleSubmit();
-            }}
+            onClick={handleSubmit}
           >
             {formStatus === "pending" ? (
               <svg
@@ -112,14 +150,19 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
     >
       <div className="grid grid-cols-3 gap-5">
         <div>
-          <SelectUSAStates label="State/Territory" isRequired onStateChange={setState} />
+          <SelectUSAStates
+            label="State/Territory"
+            currentState={state}
+            isRequired
+            onStateChange={setState}
+          />
         </div>
         <div className="col-span-2">
           <TextInput
             name="title"
             label="Demonstration Title"
             isRequired
-            placeholder="Placeholder"
+            placeholder="Enter title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -128,7 +171,12 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
       <div className="grid grid-cols-4 gap-4">
         <div className="col-span-2">
-          <SelectUsers label="Project Officer" isRequired onStateChange={setProjectOfficer} />
+          <SelectUsers
+            label="Project Officer"
+            isRequired
+            onStateChange={setProjectOfficer}
+            value={projectOfficer}
+          />
         </div>
         <div className="flex flex-col gap-sm">
           <label className={LABEL_CLASSES} htmlFor="effective-date">
@@ -154,9 +202,10 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
           <input
             id="expiration-date"
             type="date"
-            className={`${DATE_INPUT_CLASSES} ${expirationError
-              ? "border-border-warn focus:ring-border-warn"
-              : "border-border-fields focus:ring-border-focus"
+            className={`${DATE_INPUT_CLASSES} ${
+              expirationError
+                ? "border-border-warn focus:ring-border-warn"
+                : "border-border-fields focus:ring-border-focus"
             }`}
             value={expirationDate}
             min={effectiveDate || undefined}
@@ -182,7 +231,7 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
         </label>
         <textarea
           id="description"
-          placeholder="Enter"
+          placeholder="Enter description"
           className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
