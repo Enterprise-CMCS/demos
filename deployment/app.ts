@@ -60,6 +60,10 @@ async function main() {
   if (stage == "bootstrap") {
     new BootstrapStack(app, `${config.project}-${stage}`, {
       ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
     });
     return;
   }
