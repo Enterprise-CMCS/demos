@@ -14,7 +14,7 @@ export const demonstrationSchema = gql`
       updatedAt: DateTime!
       demonstrationStatus: DemonstrationStatus!
       state: State!
-      projectOfficerUser: User
+      projectOfficerUser: User!
       users: [User!]!
   }
 

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDemonstration } from "hooks/useDemonstration";
-import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
+import { DemonstrationTable, FullDemonstrationTableRow } from "components/table/tables/DemonstrationTable";
 import { Tabs, TabItem } from "layout/Tabs";
 
 export const Demonstrations: React.FC = () => {
@@ -41,20 +41,24 @@ export const Demonstrations: React.FC = () => {
 
   const dataToShow = tab === "my" ? myDemos : allDemos;
   // Transform the data to your frontend table shape:
-  const transformedData = dataToShow.map((demo) => ({
-    id: demo.id,
-    title: demo.name,
-    demoNumber: "", // only if needed
-    description: demo.description,
-    evalPeriodStartDate: demo.evaluationPeriodStartDate,
-    evalPeriodEndDate: demo.evaluationPeriodEndDate,
-    demonstrationStatusId: demo.demonstrationStatus?.id,
-    stateName: demo.state.stateName,
-    projectOfficer: demo?.projectOfficerUser?.displayName,
-    userId: demo.users?.[0]?.id,
-    createdAt: demo.createdAt,
-    updatedAt: demo.updatedAt,
+  const transformedData: FullDemonstrationTableRow[] = dataToShow.map((demonstration) => ({
+    id: demonstration.id,
+    title: demonstration.name,
+    // demoNumber: Not in schema, so just leaving this head
+    description: demonstration.description,
+    evalPeriodStartDate: demonstration.evaluationPeriodStartDate,
+    evalPeriodEndDate: demonstration.evaluationPeriodEndDate,
+    demonstrationStatusId: demonstration.demonstrationStatus?.id,
+    stateName: demonstration.state.stateName,
+    projectOfficer:
+      demonstration.projectOfficerUser?.displayName ||
+      demonstration.projectOfficerUser?.fullName || null,
+    userId: demonstration.projectOfficerUser?.id || null,
+    createdAt: demonstration.createdAt,
+    updatedAt: demonstration.updatedAt,
+    status: demonstration.demonstrationStatus?.name || "Unknown",
   }));
+
 
   return (
     <div>

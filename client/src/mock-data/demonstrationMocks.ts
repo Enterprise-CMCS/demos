@@ -9,7 +9,12 @@ import {
 } from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
 
-export const testDemonstration: Demonstration = {
+const statuses = ["Approved", "Expired", "Withdrawn"];
+const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+
+export const testDemonstration: Demonstration & {
+  projectOfficerUser?: typeof johnDoe | null;
+} = {
   id: "1",
   name: "Test Demonstration",
   description: "Test Description",
@@ -19,7 +24,9 @@ export const testDemonstration: Demonstration = {
   updatedAt: new Date("2025-01-01"),
   demonstrationStatus: activeDemonstrationStatus,
   state: california,
+  status: randomStatus,
   users: [johnDoe],
+  projectOfficerUser: johnDoe,
 };
 
 export const mockAddDemonstrationInput: AddDemonstrationInput = {
@@ -28,6 +35,7 @@ export const mockAddDemonstrationInput: AddDemonstrationInput = {
   evaluationPeriodStartDate: new Date("2025-01-01"),
   evaluationPeriodEndDate: new Date("2025-12-31"),
   demonstrationStatusId: activeDemonstrationStatus.id,
+  status: randomStatus,
   stateId: california.id,
   userIds: [johnDoe.id],
 };

@@ -27,6 +27,25 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { User } from "demos-server";
+
+
+export interface FullDemonstrationTableRow {
+  id: string;
+  title: string;
+  demoNumber: string;
+  description: string;
+  evalPeriodStartDate?: Date | null;
+  evalPeriodEndDate?: Date | null;
+  demonstrationStatusId?: string | null;
+  stateName: string;
+  projectOfficer?: User | null;
+  userId?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  status: string;
+}
+
 
 export interface RawDemonstration {
   id: string | number;
