@@ -23,7 +23,7 @@ type Props = {
   mode: DemonstrationModalMode;
 };
 
-export const CreateNewModal: React.FC<Props> = ({
+export const DemonstrationModal: React.FC<Props> = ({
   onClose,
   demonstration,
   mode,

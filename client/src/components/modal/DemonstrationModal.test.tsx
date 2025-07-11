@@ -5,7 +5,7 @@ import { vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { CreateNewModal } from "./CreateNewModal";
+import { DemonstrationModal } from "./DemonstrationModal";
 import { Demonstration } from "demos-server";
 
 // Mock the useDemonstration hook
@@ -106,14 +106,14 @@ const renderModal = ({
 
   render(
     <ToastProvider>
-      <CreateNewModal mode={mode} onClose={onClose} demonstration={demonstration} />
+      <DemonstrationModal mode={mode} onClose={onClose} demonstration={demonstration} />
     </ToastProvider>
   );
 
   return { onClose };
 };
 
-describe("CreateNewModal", () => {
+describe("DemonstrationModal", () => {
   it("renders modal title correctly", () => {
     renderModal();
     expect(screen.getByText("New Demonstration")).toBeInTheDocument();

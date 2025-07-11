@@ -4,7 +4,7 @@ import { useDemonstration } from "hooks/useDemonstration";
 
 import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { CircleButton } from "components/button/CircleButton";
-import { CreateNewModal } from "components/modal/CreateNewModal";
+import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { usePageHeader } from "hooks/usePageHeader";
 
 
@@ -95,7 +95,7 @@ export const DemonstrationDetail = () => {
       )}
 
       {modalType === "edit" && (
-        <CreateNewModal demonstration={data} mode="edit" onClose={() => setModalType(null)} />
+        <DemonstrationModal demonstration={data} mode="edit" onClose={() => setModalType(null)} />
       )}
     </div>
   );
