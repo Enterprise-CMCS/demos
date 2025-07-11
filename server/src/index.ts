@@ -10,6 +10,7 @@ import {
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
+  introspection: process.env.NODE_ENV === "development",
 });
 
 const { url } = await startStandaloneServer(server, {

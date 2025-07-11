@@ -1,5 +1,5 @@
 model UserRoleHistory {
-  revisionId   Int          @id @map("revision_id") @default(autoincrement())
+  revisionId   Int          @id @default(autoincrement()) @map("revision_id")
   revisionType RevisionType @map("revision_type")
   modifiedAt   DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
   userId       String       @map("user_id") @db.Uuid

@@ -14,6 +14,7 @@ const STRING = "string";
 const NUMBER = "number";
 const BOOLEAN = "boolean";
 const LIST = "list";
+const OBJECT = "object";
 
 const GQL_NAMED_TYPE = "NamedType";
 const GQL_LIST_TYPE = "ListType";
@@ -25,6 +26,7 @@ const GQL_TYPE_TO_NORMALIZED_TYPE = {
   Float: NUMBER,
   Boolean: BOOLEAN,
   ID: STRING,
+  JSONObject: OBJECT,
 }
 
 const TS_INTERFACE_DECLARATION = "TSInterfaceDeclaration";
@@ -34,6 +36,7 @@ const TS_AST_TYPE_TO_NORMALIZED_TYPE = {
   TSNumberKeyword: NUMBER,
   TSBooleanKeyword: BOOLEAN,
   TSArrayType: LIST,
+  TSObjectKeyword: OBJECT,
 }
 
 // Checks if a graphQL schema variable is valid
