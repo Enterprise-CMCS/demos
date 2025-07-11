@@ -6,8 +6,8 @@ CREATE TABLE "event" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
     "event_type_id" TEXT NOT NULL,
-    "with_role_id" UUID,
-    "route" TEXT,
+    "with_role_id" UUID NOT NULL,
+    "route" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "event_data" JSON NOT NULL,
 
@@ -34,7 +34,21 @@ ALTER TABLE "event" ADD CONSTRAINT "event_with_role_id_fkey" FOREIGN KEY ("with_
 
 -- Insert initial event types
 INSERT INTO "event_type" ("id", "description", "log_level") VALUES
-  ('LOGIN_ATTEMPTED', 'User attempted to login to the system', 'INFO'),
-  ('LOGOUT_ATTEMPTED', 'User attempted to logout of the system', 'INFO'),
-  ('CREATE_DEMONSTRATION_MODAL_OPENED', 'User opened the create demonstration modal', 'INFO'),
-  ('EDIT_DEMONSTRATION_ATTEMPTED', 'User edited a demonstration', 'INFO');
+-- Authentication
+  ('LOGIN_SUCCEEDED', 'User logged in to the system', 'INFO'),
+  ('LOGOUT_SUCCEEDED', 'User logged out of the system', 'INFO'),
+-- Record Creation
+  ('CREATE_DEMONSTRATION_SUCCEEDED', 'A demonstration was created', 'INFO'),
+  ('CREATE_DEMONSTRATION_FAILED', 'Demonstration creation failed', 'ERROR'),
+  ('CREATE_EXTENSION_SUCCEEDED', 'An extension was created', 'INFO'),
+  ('CREATE_EXTENSION_FAILED', 'Extension creation failed', 'ERROR'),
+  ('CREATE_AMENDMENT_SUCCEEDED', 'An amendment was created', 'INFO'),
+  ('CREATE_AMENDMENT_FAILED', 'Amendment creation failed', 'ERROR'),
+-- Editing
+  ('EDIT_DEMONSTRATION_SUCCEEDED', 'A demonstration was edited', 'INFO'),
+  ('EDIT_DEMONSTRATION_FAILED', 'Demonstration editing failed', 'ERROR'),
+-- Deletion
+  ('DELETE_DEMONSTRATION_SUCCEEDED', 'A demonstration was deleted', 'INFO'),
+  ('DELETE_DEMONSTRATION_FAILED', 'Demonstration deletion failed', 'ERROR'),
+  ('DELETE_DOCUMENT_SUCCEEDED', 'A document was deleted', 'INFO'),
+  ('DELETE_DOCUMENT_FAILED', 'Document deletion failed', 'ERROR')

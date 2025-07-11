@@ -8,8 +8,8 @@ export const eventSchema = gql`
     id: ID!
     userId: ID!
     eventTypeId: ID!
-    withRoleId: ID
-    route: String
+    withRoleId: ID!
+    route: String!
     createdAt: DateTime!
     eventData: JSONObject!
   }
@@ -19,8 +19,8 @@ export const eventSchema = gql`
     id: ID!
     user: User!
     eventType: EventType!
-    withRole: Role
-    route: String
+    withRole: Role!
+    route: String!
     createdAt: DateTime!
     eventData: JSONObject!
   }
@@ -44,7 +44,7 @@ export const eventSchema = gql`
   input CreateEventInput {
     userId: ID!
     eventTypeId: ID!
-    route: String
+    route: String!
     eventData: JSONObject!
   }
 `;
@@ -54,6 +54,8 @@ export interface Event {
   id: string;
   userId: string;
   eventTypeId: string;
+  withRoleId: string;
+  route: string;
   createdAt: DateTime;
   eventData: object;
 }
