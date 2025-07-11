@@ -6,6 +6,8 @@ export interface KeywordSearchProps<T extends object> {
   table: Table<T>;
   label?: string;
   className?: string;
+  debounceMs?: number;
+  storageKey?: string;
 }
 
 // Helper function to highlight matching text
@@ -48,23 +50,95 @@ export function KeywordSearch<T extends object>({
   table,
   label = "Search",
   className = "",
+  debounceMs = 300,
+  storageKey = "keyword-search",
 }: KeywordSearchProps<T>) {
-  const [queryString, setQueryString] = React.useState<string>("");
+  const debounceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize state with localStorage value
+  const [queryString, setQueryString] = React.useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem(storageKey) || "";
+      } catch (error) {
+        console.warn("Failed to read from localStorage:", error);
+        return "";
+      }
+    }
+    return "";
+  });
+
+  const debouncedSearch = React.useCallback((val: string) => {
+    // Clear existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Set new timeout
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (val) {
+        const keywords = val.trim().split(/\s+/).filter(word => word.length > 0);
+        table.setGlobalFilter(keywords);
+      } else {
+        table.setGlobalFilter("");
+      }
+    }, debounceMs);
+  }, [table, debounceMs]);
 
   const onValueChange = (val: string) => {
     setQueryString(val);
-    if (val) {
-      const keywords = val.trim().split(/\s+/).filter(word => word.length > 0);
-      table.setGlobalFilter(keywords);
-    } else {
-      table.setGlobalFilter("");
+
+    // Persist to localStorage
+    if (typeof window !== "undefined") {
+      try {
+        if (val) {
+          localStorage.setItem(storageKey, val);
+        } else {
+          localStorage.removeItem(storageKey);
+        }
+      } catch (error) {
+        console.warn("Failed to write to localStorage:", error);
+      }
     }
+
+    debouncedSearch(val);
   };
 
   const clearSearch = () => {
     setQueryString("");
+
+    // Remove from localStorage
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(storageKey);
+      } catch (error) {
+        console.warn("Failed to remove from localStorage:", error);
+      }
+    }
+
+    // Clear any pending debounced search
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
     table.setGlobalFilter("");
   };
+
+  // Apply initial search on mount if there's a stored value
+  React.useEffect(() => {
+    if (queryString) {
+      debouncedSearch(queryString);
+    }
+  }, [queryString, debouncedSearch]);
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className={className}>
