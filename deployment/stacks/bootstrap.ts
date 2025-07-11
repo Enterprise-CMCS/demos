@@ -1,7 +1,8 @@
-import { Stack, StackProps, aws_iam, aws_apigateway } from "aws-cdk-lib";
+import { Stack, StackProps, aws_iam, aws_apigateway, aws_ec2 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
+import { PrivateHostedZone } from "aws-cdk-lib/aws-route53";
 
 export class BootstrapStack extends Stack {
   constructor(
@@ -113,8 +114,8 @@ export class BootstrapStack extends Stack {
           ],
         }),
         new aws_iam.PolicyStatement({
-          actions: ['ec2:DescribeManagedPrefixLists', 'ec2:GetManagedPrefixListEntries'],
-          resources: ['*']
+          actions: ["ec2:DescribeManagedPrefixLists", "ec2:GetManagedPrefixListEntries"],
+          resources: ["*"]
         }),
         new aws_iam.PolicyStatement({
           actions: ["sts:AssumeRole"],
@@ -135,5 +136,26 @@ export class BootstrapStack extends Stack {
 
     githubActionsRole.attachInlinePolicy(policy);
     jenkinsRole.attachInlinePolicy(policy);
-    cbcJenkinsRole.attachInlinePolicy(policy);  }
+    cbcJenkinsRole.attachInlinePolicy(policy);  
+  
+    // Private Hosted Zones
+    
+    createPHZ(commonProps.scope, "dev")
+    createPHZ(commonProps.scope, "test")
+    createPHZ(commonProps.scope, "impl")
+  }
+}
+
+function createPHZ(scope: Construct, env: string) {
+  const dnsSuffix = "demos.internal.cms.gov"
+
+    const devVpc = aws_ec2.Vpc.fromLookup(scope, `${env}Vpc`, {
+          tags: {
+            Name: `demos-east-${env}`,
+          },
+        });
+    new PrivateHostedZone(scope, `${env}PrivateZone`, {
+      zoneName: `${env}.${dnsSuffix}`,
+      vpc: devVpc,
+    })
 }
