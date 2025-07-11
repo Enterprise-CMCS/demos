@@ -5,7 +5,8 @@ import { vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { CreateNewModal } from "./CreateNewModal";
+import { DemonstrationModal } from "./DemonstrationModal";
+import { Demonstration } from "demos-server";
 
 // Mock the useDemonstration hook
 vi.mock("hooks/useDemonstration", () => ({
@@ -18,8 +19,17 @@ vi.mock("hooks/useDemonstration", () => ({
       loading: false,
       error: undefined,
     },
+    updateDemonstration: {
+      trigger: vi.fn().mockResolvedValue({
+        data: { updateDemonstration: { id: "1", name: "Updated Demo" } },
+      }),
+      data: undefined,
+      loading: false,
+      error: undefined,
+    },
   })),
 }));
+
 
 // Mock the SelectUSAStates component
 vi.mock("components/input/select/SelectUSAStates", () => ({
@@ -85,19 +95,25 @@ if (!HTMLFormElement.prototype.requestSubmit) {
   };
 }
 
-const renderModal = () => {
+const renderModal = ({
+  mode = "add",
+  demonstration,
+}: {
+  mode?: "add" | "edit";
+  demonstration?: Demonstration;
+} = {}) => {
   const onClose = vi.fn();
 
   render(
     <ToastProvider>
-      <CreateNewModal onClose={onClose} />
+      <DemonstrationModal mode={mode} onClose={onClose} demonstration={demonstration} />
     </ToastProvider>
   );
 
   return { onClose };
 };
 
-describe("CreateNewModal", () => {
+describe("DemonstrationModal", () => {
   it("renders modal title correctly", () => {
     renderModal();
     expect(screen.getByText("New Demonstration")).toBeInTheDocument();
@@ -192,6 +208,79 @@ describe("CreateNewModal", () => {
         description: "",
         evaluationPeriodStartDate: expect.any(Date),
         evaluationPeriodEndDate: expect.any(Date),
+        demonstrationStatusId: "1",
+        stateId: "1",
+        userIds: ["1"],
+      });
+    });
+  });
+
+  it("submits updated data in edit mode", async () => {
+    const { useDemonstration } = await import("hooks/useDemonstration");
+    const mockTrigger = vi.fn().mockResolvedValue({
+      data: { updateDemonstration: { id: "1", name: "Updated Demo" } },
+    });
+
+    const currentMock = vi.mocked(useDemonstration)();
+    vi.mocked(useDemonstration).mockReturnValue({
+      ...currentMock,
+      updateDemonstration: {
+        ...currentMock.updateDemonstration,
+        trigger: mockTrigger,
+      },
+    });
+
+    const demonstration: Demonstration = {
+      id: "1",
+      name: "Original Demo",
+      state: { id: "1", stateName: "California", stateCode: "CA" },
+      evaluationPeriodStartDate: new Date("2024-06-20T00:00:00.000Z"),
+      evaluationPeriodEndDate: new Date("2024-07-20T00:00:00.000Z"),
+      description: "Original description",
+      createdAt: new Date("2024-06-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-06-10T00:00:00.000Z"),
+      demonstrationStatus: {
+        id: "active",
+        name: "Active",
+        description: "Active Description",
+        createdAt: new Date("2024-06-01T00:00:00.000Z"),
+        updatedAt: new Date("2024-06-10T00:00:00.000Z"),
+      },
+      users: [
+        {
+          id: "1",
+          cognitoSubject: "xyz",
+          username: "johndoe",
+          fullName: "John Doe",
+          email: "johndoe@john.com",
+          displayName: "John",
+          createdAt: new Date("2024-06-01T00:00:00.000Z"),
+          updatedAt: new Date("2024-06-10T00:00:00.000Z"),
+          roles: [],
+        },
+      ],
+    };
+
+    renderModal({ mode: "edit", demonstration });
+
+    // Fill out the form
+    const stateSelect = screen.getByTestId("state-select");
+    const titleInput = screen.getByLabelText(/Demonstration Title/i);
+    const userSelect = screen.getByTestId("user-select");
+    const submitButton = screen.getByText("Submit");
+
+    fireEvent.change(stateSelect, { target: { value: "1" } });
+    fireEvent.change(titleInput, { target: { value: "Updated Demo" } });
+    fireEvent.change(userSelect, { target: { value: "1" } });
+
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockTrigger).toHaveBeenCalledWith("1", {
+        name: "Updated Demo",
+        description: "Original description",
+        evaluationPeriodStartDate: new Date("2024-06-20T00:00:00.000Z"),
+        evaluationPeriodEndDate: new Date("2024-07-20T00:00:00.000Z"),
         demonstrationStatusId: "1",
         stateId: "1",
         userIds: ["1"],

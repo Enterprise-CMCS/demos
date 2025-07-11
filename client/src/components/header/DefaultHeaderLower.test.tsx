@@ -22,10 +22,10 @@ vi.mock("@apollo/client", async () => {
 });
 
 // Stub modals
-vi.mock("components/modal/CreateNewModal", () => ({
-  CreateNewModal: ({ onClose }: { onClose: () => void }) => (
+vi.mock("components/modal/DemonstrationModal", () => ({
+  DemonstrationModal: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="create-modal">
-      CreateNewModal
+      DemonstrationModal
       <button onClick={onClose}>Close</button>
     </div>
   ),
@@ -104,7 +104,7 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByText("Demonstration")).not.toBeInTheDocument();
   });
 
-  it("opens CreateNewModal", () => {
+  it("opens DemonstrationModal", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,

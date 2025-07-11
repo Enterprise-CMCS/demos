@@ -80,3 +80,30 @@ export const ADD_DEMONSTRATION_QUERY = gql`
     }
   }
 `;
+
+export const UPDATE_DEMONSTRATION_MUTATION = gql`
+  mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
+    updateDemonstration(id: $id, input: $input) {
+      id
+      name
+      description
+      evaluationPeriodStartDate
+      evaluationPeriodEndDate
+      createdAt
+      updatedAt
+      demonstrationStatus {
+        id
+        name
+      }
+      state {
+        id
+        stateName
+        stateCode
+      }
+      users {
+        id
+        fullName
+      }
+    }
+  }
+`;

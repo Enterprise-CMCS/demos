@@ -4,12 +4,14 @@ import { useDemonstration } from "hooks/useDemonstration";
 
 import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { CircleButton } from "components/button/CircleButton";
+import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { usePageHeader } from "hooks/usePageHeader";
 
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [showButtons, setShowButtons] = useState(false);
+  const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;
 
@@ -47,6 +49,7 @@ export const DemonstrationDetail = () => {
                 aria-label="Delete demonstration"
                 className="cursor-pointer flex items-center gap-1 px-1 py-1 mr-0.75"
                 data-testid="delete-button"
+                onClick={() => setModalType("delete")}
               >
                 <DeleteIcon width="24" height="24" />
               </CircleButton>
@@ -54,6 +57,7 @@ export const DemonstrationDetail = () => {
                 aria-label="Edit demonstration"
                 className="cursor-pointer flex items-center gap-1 px-1 py-1"
                 data-testid="edit-button"
+                onClick={() => setModalType("edit")}
               >
                 <EditIcon width="24" height="24" />
               </CircleButton>
@@ -88,6 +92,10 @@ export const DemonstrationDetail = () => {
         <>
           Demonstration Detail Content
         </>
+      )}
+
+      {modalType === "edit" && (
+        <DemonstrationModal demonstration={data} mode="edit" onClose={() => setModalType(null)} />
       )}
     </div>
   );

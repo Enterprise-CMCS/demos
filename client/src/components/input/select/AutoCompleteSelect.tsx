@@ -21,6 +21,7 @@ export interface AutoCompleteSelectProps {
   isRequired?: boolean;
   isDisabled?: boolean;
   defaultValue?: string;
+  value?: string;
 }
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -43,12 +44,21 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   isRequired = false,
   isDisabled = false,
   defaultValue = "",
+  value,
 }) => {
   const [inputValue, setInputValue] = useState(defaultValue);
   const [filtered, setFiltered] = useState<Option[]>(options);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync external controlled value
+  useEffect(() => {
+    if (value !== undefined) {
+      const match = options.find((opt) => opt.value === value);
+      setInputValue(match?.label || "");
+    }
+  }, [value, options]);
 
   // Filter by label
   useEffect(() => {
