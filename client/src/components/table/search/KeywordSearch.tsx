@@ -3,7 +3,7 @@ import { ExitIcon, SearchIcon } from "components/icons";
 import React from "react";
 
 export interface KeywordSearchProps<T extends object> {
-  table: Table<T>;
+  table?: Table<T>; // Make table optional since it comes from parent
   label?: string;
   className?: string;
   debounceMs?: number;
@@ -54,6 +54,12 @@ export function KeywordSearch<T extends object>({
   storageKey = "keyword-search",
 }: KeywordSearchProps<T>) {
   const debounceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Early return if table is not provided
+  if (!table) {
+    console.warn("KeywordSearch: table prop is required");
+    return null;
+  }
 
   // Initialize state with localStorage value
   const [queryString, setQueryString] = React.useState<string>(() => {

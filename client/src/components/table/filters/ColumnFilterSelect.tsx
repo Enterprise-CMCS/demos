@@ -2,8 +2,8 @@ import React from "react";
 import { Column, Table } from "@tanstack/react-table";
 
 export interface ColumnFilterByDropdownProps<T extends object> {
-  table: Table<T>;
-  columns: Column<T, unknown>[];
+  table?: Table<T>; // Make table optional since it comes from parent
+  columns?: Column<T, unknown>[]; // Make columns optional since it comes from parent
   label?: string;
   className?: string;
 }
@@ -17,13 +17,22 @@ export function ColumnFilterByDropdown<T extends object>({
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
   const [filterValue, setFilterValue] = React.useState<string>("");
 
+  // Early return if table or columns are not provided
+  if (!table) {
+    console.warn("ColumnFilterByDropdown: table prop is required");
+    return null;
+  }
+
+  // Get columns from table if not provided as prop
+  const availableColumns = columns || table.getAllColumns().filter(column => column.getCanFilter());
+
   // Whenever the selected column changes, reset the filterValue and clear filters
   React.useEffect(() => {
     setFilterValue("");
     table.setColumnFilters([]);
   }, [selectedColumn, table]);
 
-  // Update the filter: if `val` is nonempty and there’s a column selected, apply that filter
+  // Update the filter: if `val` is nonempty and there's a column selected, apply that filter
   const onValueChange = (val: string) => {
     setFilterValue(val);
     if (val && selectedColumn) {
@@ -60,7 +69,7 @@ export function ColumnFilterByDropdown<T extends object>({
             Select a Column...
           </option>
 
-          {columns.map((col) => {
+          {availableColumns.map((col) => {
             // Derive a display label:
             // If header is a string, use it; otherwise fall back to the column id.
             const displayLabel =
@@ -79,9 +88,9 @@ export function ColumnFilterByDropdown<T extends object>({
           <>
             <input
               type="text"
-              // Announce to screen reader “Filter <Column Name> by …”
+              // Announce to screen reader "Filter <Column Name> by …"
               aria-label={`Filter ${
-                columns.find((c) => c.id === selectedColumn)?.columnDef
+                availableColumns.find((c) => c.id === selectedColumn)?.columnDef
                   .header || selectedColumn
               }`}
               placeholder="🔍 Type to filter…"

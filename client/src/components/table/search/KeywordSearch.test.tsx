@@ -14,7 +14,7 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DemonstrationTable } from "../tables/DemonstrationTable";
+import { DemonstrationTable } from "../Table";
 
 const mockRawData = [
   {

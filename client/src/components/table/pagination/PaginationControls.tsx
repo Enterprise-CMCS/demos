@@ -1,32 +1,52 @@
 import * as React from "react";
+import { Table } from "@tanstack/react-table";
 
-export interface PaginationControlsProps {
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  totalRows: number;
-  onPageSizeChange: (newSize: number) => void;
-  onPageChange: (pageIndex: number) => void;
-  onPreviousPage: () => void;
-  onNextPage: () => void;
-  canPreviousPage: boolean;
-  canNextPage: boolean;
+export interface PaginationControlsProps<T extends object> {
+  table?: Table<T>; // Make table optional since it comes from parent
   perPageChoices?: number[];
 }
 
-export const PaginationControls: React.FC<PaginationControlsProps> = ({
-  currentPage,
-  totalPages,
-  pageSize,
-  totalRows,
-  onPageSizeChange,
-  onPageChange,
-  onPreviousPage,
-  onNextPage,
-  canPreviousPage,
-  canNextPage,
+export function PaginationControls<T extends object>({
+  table,
   perPageChoices = [10, 20, 50, -1],
-}) => {
+}: PaginationControlsProps<T>) {
+  // Early return if table is not provided
+  if (!table) {
+    console.warn("PaginationControls: table prop is required");
+    return null;
+  }
+
+  // Get pagination state from table
+  const {
+    getState,
+    setPageSize,
+    setPageIndex,
+    previousPage,
+    nextPage,
+    getCanPreviousPage,
+    getCanNextPage,
+    getPageCount,
+    getFilteredRowModel,
+  } = table;
+
+  const { pagination } = getState();
+  const { pageIndex, pageSize } = pagination;
+
+  const totalRows = getFilteredRowModel().rows.length;
+  const totalPages = getPageCount();
+  const currentPage = pageIndex;
+  const canPreviousPage = getCanPreviousPage();
+  const canNextPage = getCanNextPage();
+
+  const handlePageSizeChange = (newSize: number) => {
+    if (newSize < 0) {
+      // "All" option - set to total rows
+      setPageSize(totalRows);
+    } else {
+      setPageSize(newSize);
+    }
+  };
+
   /**
    * Build a list of page indices or -1 for ellipses,
    * showing at most 5 actual page‐numbers.
@@ -60,7 +80,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
     return visible;
   }, [currentPage, totalPages]);
 
-  // ZERO state - If totalRows == 0, show “0 of 0”
+  // ZERO state - If totalRows == 0, show "0 of 0"
   const firstRowIndex = totalRows === 0
     ? 0
     : currentPage * pageSize + 1;
@@ -86,7 +106,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           aria-labelledby="pagination-page-size"
           className="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={pageSize}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
+          onChange={(e) => handlePageSizeChange(Number(e.target.value))}
         >
           {perPageChoices.map((size) => (
             <option key={size} value={size}>
@@ -105,7 +125,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       {/* Prev / Page Buttons / Next */}
       <div className="mr-2 flex items-center gap-1 flex-wrap">
         <button
-          onClick={onPreviousPage}
+          onClick={previousPage}
           disabled={!canPreviousPage}
           aria-label={canPreviousPage ? "Go to previous page" : "No previous page"}
           aria-disabled={!canPreviousPage}
@@ -130,7 +150,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           ) : (
             <button
               key={page}
-              onClick={() => onPageChange(page)}
+              onClick={() => setPageIndex(page)}
               aria-label={
                 page === currentPage
                   ? `Page ${page + 1}, current page`
@@ -148,7 +168,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           )
         )}
         <button
-          onClick={onNextPage}
+          onClick={nextPage}
           disabled={!canNextPage}
           aria-label={canNextPage ? "Go to next page" : "No next page"}
           aria-disabled={!canNextPage}
@@ -163,4 +183,4 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       </div>
     </nav>
   );
-};
+}

@@ -7,6 +7,7 @@ import {
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
 } from "queries/demonstrationQueries";
+import { DEMONSTRATIONS_TABLE_QUERY } from "pages/Demonstrations";
 import { MockedResponse } from "@apollo/client/testing";
 
 export const testDemonstration: Demonstration = {
@@ -20,6 +21,7 @@ export const testDemonstration: Demonstration = {
   demonstrationStatus: activeDemonstrationStatus,
   state: california,
   users: [johnDoe],
+  projectOfficer: johnDoe,
 };
 
 export const mockAddDemonstrationInput: AddDemonstrationInput = {
@@ -30,6 +32,7 @@ export const mockAddDemonstrationInput: AddDemonstrationInput = {
   demonstrationStatusId: activeDemonstrationStatus.id,
   stateId: california.id,
   userIds: [johnDoe.id],
+  projectOfficerUserId: johnDoe.id,
 };
 
 export const demonstrationMocks: MockedResponse[] = [
@@ -68,5 +71,19 @@ export const demonstrationMocks: MockedResponse[] = [
       variables: { input: { name: "bad add demonstration" } },
     },
     error: new Error("Failed to add demonstration"),
+  },
+  {
+    request: {
+      query: DEMONSTRATIONS_TABLE_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: [
+          {
+            ...testDemonstration,
+          },
+        ],
+      },
+    },
   },
 ];

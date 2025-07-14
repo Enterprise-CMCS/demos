@@ -13,7 +13,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DemoData from "faker_data/demonstrations.json";
-import { DemonstrationTable } from "./DemonstrationTable";
+import { DemonstrationTable } from "../Table";
 
 const mydemos = DemoData.filter(d => d.userId === 139);
 
