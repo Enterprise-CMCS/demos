@@ -5,12 +5,12 @@ import { AddPermissionInput, UpdatePermissionInput } from "./permissionSchema.js
 export const permissionResolvers = {
   Query: {
     permission: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.permission.findUnique({
+      return await prisma().permission.findUnique({
         where: { id: id },
       });
     },
     permissions: async () => {
-      return await prisma.permission.findMany();
+      return await prisma().permission.findMany();
     },
   },
 
@@ -19,7 +19,7 @@ export const permissionResolvers = {
       _: undefined,
       { input }: { input: AddPermissionInput },
     ) => {
-      return await prisma.permission.create({
+      return await prisma().permission.create({
         data: {
           ...input,
           rolePermissions: {
@@ -35,7 +35,7 @@ export const permissionResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdatePermissionInput },
     ) => {
-      return await prisma.permission.update({
+      return await prisma().permission.update({
         where: { id },
         data: {
           ...input,
@@ -49,7 +49,7 @@ export const permissionResolvers = {
     },
 
     deletePermission: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.permission.delete({
+      return await prisma().permission.delete({
         where: { id: id },
       });
     },
@@ -57,7 +57,7 @@ export const permissionResolvers = {
 
   Permission: {
     roles: async (parent: Permission) => {
-      const rolePermissions = await prisma.rolePermission.findMany({
+      const rolePermissions = await prisma().rolePermission.findMany({
         where: { permissionId: parent.id },
         include: {
           role: true,

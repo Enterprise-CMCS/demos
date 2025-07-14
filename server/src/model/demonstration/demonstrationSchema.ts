@@ -26,7 +26,7 @@ export const demonstrationSchema = gql`
     demonstrationStatusId: ID!
     stateId: ID!
     userIds: [ID!]
-    projectOfficer: String!
+    projectOfficerUserId: String!
   }
 
   input UpdateDemonstrationInput {
@@ -37,7 +37,7 @@ export const demonstrationSchema = gql`
     demonstrationStatusId: ID
     stateId: ID
     userIds: [ID!]
-    projectOfficer: String
+    projectOfficerUserId: String
   }
 
   type Mutation {
@@ -75,7 +75,7 @@ export interface AddDemonstrationInput {
   demonstrationStatusId: string;
   stateId: string;
   userIds?: string[];
-  projectOfficer: string; 
+  projectOfficerUserId: string; 
 }
 
 export interface UpdateDemonstrationInput {
@@ -86,5 +86,5 @@ export interface UpdateDemonstrationInput {
   demonstrationStatusId?: string;
   stateId?: string;
   userIds?: string[];
-  projectOfficer?: string; 
+  projectOfficerUserId?: string; 
 }
