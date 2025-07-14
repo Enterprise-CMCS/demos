@@ -19,7 +19,7 @@ type DemonstrationModalMode = "add" | "edit";
 
 type Props = {
   onClose: () => void;
-  demonstration?: Demonstration; // TODO: replace with actual type
+  demonstration?: Demonstration;
   mode: DemonstrationModalMode;
 };
 
