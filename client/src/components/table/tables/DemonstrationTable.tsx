@@ -1,17 +1,19 @@
 import * as React from "react";
-
+import { gql } from "@apollo/client";
 import {
   DemonstrationColumns,
 } from "components/table/columns/DemonstrationColumns";
+
 import {
   ColumnFilterByDropdown,
 } from "components/table/filters/ColumnFilterSelect";
+
 import {
   PaginationControls,
 } from "components/table/pagination/PaginationControls";
+
 import {
   DemoWithSubRows,
-  groupByDemoNumber,
 } from "components/table/preproccessors/GroupByDemoNumber";
 
 import {
@@ -31,22 +33,35 @@ import {
 } from "@tanstack/react-table";
 import { KeywordSearch } from "../search/KeywordSearch";
 
-export interface RawDemonstration {
-  id: number;
+
+export interface FullDemonstrationTableRow {
+  id: string;
   title: string;
+  getSubRows?: DemoWithSubRows[];
   demoNumber: string;
   description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
-  demonstrationStatusId: number;
-  stateId: string;
+  evalPeriodStartDate?: Date | null;
+  evalPeriodEndDate?: Date | null;
+  demonstrationStatusId?: string | null;
+  stateName: string;
+  projectOfficerUser?: User | null;
+  userId?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  status: string;
+}
+
+
+export interface RawDemonstration {
+  id: string | number;
+  stateName: string;
+  title: string;
   projectOfficer: string;
-  createdAt: string;
-  updatedAt: string;
+  status: string;
 }
 
 export interface DemonstrationTableProps {
-  data: RawDemonstration[];
+  data: FullDemonstrationTableRow[];
   className?: string;
   isMyDemosTable?: boolean;
 }
@@ -56,13 +71,9 @@ export function DemonstrationTable({
   className = "",
   isMyDemosTable = false,
 }: DemonstrationTableProps) {
-  const hierarchicalData: DemoWithSubRows[] = React.useMemo(
-    () => groupByDemoNumber(data),
-    [data]
-  );
-
+  const hierarchicalData = data;
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "stateId", desc: false },
+    { id: "stateName", desc: false },
     { id: "title", desc: false },
   ]);
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -91,10 +102,10 @@ export function DemonstrationTable({
     });
   };
 
-  const table = useReactTable<DemoWithSubRows>({
+  const table = useReactTable<FullDemonstrationTableRow>({
     data: hierarchicalData,
     columns: DemonstrationColumns,
-    getSubRows: (row) => row.subRows ?? [],
+    getSubRows: (row) => row.getSubRows ?? [],
 
     state: {
       sorting,
@@ -213,7 +224,7 @@ export function DemonstrationTable({
                   const colId = cell.column.id;
                   if (
                     row.depth > 0 &&
-                    (colId === "stateId" || colId === "demoNumber")
+                    (colId === "stateName" || colId === "demoNumber")
                   ) {
                     return (
                       <td

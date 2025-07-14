@@ -2,7 +2,7 @@ import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import {
   DemonstrationTable,
-  FullDemonstrationTableRow
+  FullDemonstrationTableRow,
 } from "components/table/tables/DemonstrationTable";
 import { Tabs, TabItem } from "layout/Tabs";
 
@@ -16,27 +16,62 @@ const DEMONSTRATIONS_TABLE = gql`
       evaluationPeriodEndDate
       createdAt
       updatedAt
-      projectOfficer {
+      projectOfficerUser {
+        id
         displayName
         email
-        id
       }
       state {
-        stateCode
         id
+        stateCode
         stateName
       }
       demonstrationStatus {
-        name
         id
+        name
         description
       }
     }
   }
 `;
 
+interface GetDemonstrationsData {
+  demonstrations: Demonstration[];
+}
+interface ProjectOfficerUser {
+  id: string;
+  displayName?: string;
+  fullName?: string;
+  email?: string;
+}
+
+interface State {
+  id: string;
+  stateCode?: string;
+  stateName?: string;
+}
+
+interface DemonstrationStatus {
+  id: string;
+  name?: string;
+  description?: string;
+}
+
+interface Demonstration {
+  id: string;
+  name: string;
+  description?: string;
+  evaluationPeriodStartDate?: string;
+  evaluationPeriodEndDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  projectOfficerUser?: ProjectOfficerUser;
+  state?: State;
+  demonstrationStatus?: DemonstrationStatus;
+}
+
 export const Demonstrations: React.FC = () => {
-  const { data, loading, error } = useQuery(DEMONSTRATIONS_TABLE);
+  const { data, loading, error } = useQuery<GetDemonstrationsData>(DEMONSTRATIONS_TABLE)
 
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
@@ -46,10 +81,10 @@ export const Demonstrations: React.FC = () => {
   const allDemos = data?.demonstrations || [];
 
   // Replace with real user id from auth context or wherever you store it
-  const currentUserId = "b9901f9d-56cd-4df0-9792-27224af27b28";
+  const currentUserId = "ba67a354-b73b-4ea9-8134-c7fccfd5fad8";
 
   const myDemos = allDemos.filter(
-    (demo) => demo.projectOfficer?.id === currentUserId
+    (demo) => demo.projectOfficerUser?.id === currentUserId
   );
 
   const tabList: TabItem[] = [
@@ -68,23 +103,25 @@ export const Demonstrations: React.FC = () => {
   const dataToShow = tab === "my" ? myDemos : allDemos;
 
   // Transform the data for the table
-  const transformedData: FullDemonstrationTableRow[] = dataToShow.map(
-    (demonstration) => ({
-      id: demonstration.id,
-      title: demonstration.name,
-      description: demonstration.description,
-      evalPeriodStartDate: demonstration.evaluationPeriodStartDate,
-      evalPeriodEndDate: demonstration.evaluationPeriodEndDate,
-      demonstrationStatusId: demonstration.demonstrationStatus?.id,
-      stateName: demonstration.state?.stateName,
+
+
+  const transformedData: FullDemonstrationTableRow[] = (dataToShow as Demonstration[]).map(
+    (demo) => ({
+      id: demo.id,
+      title: demo.name,
+      description: demo.description,
+      evalPeriodStartDate: demo.evaluationPeriodStartDate,
+      evalPeriodEndDate: demo.evaluationPeriodEndDate,
+      demonstrationStatusId: demo.demonstrationStatus?.id,
+      stateName: demo.state?.stateName,
       projectOfficer:
-        demonstration?.projectOfficerUser?.displayName ||
-        demonstration?.projectOfficerUser?.fullName ||
+        demo?.projectOfficerUser?.displayName ||
+        demo?.projectOfficerUser?.fullName ||
         null,
-      Id: demonstration?.projectOfficerUser?.id || null,
-      createdAt: demonstration.createdAt,
-      updatedAt: demonstration.updatedAt,
-      status: demonstration.demonstrationStatus?.name || "Unknown",
+      Id: demo?.projectOfficerUser?.id || null,
+      createdAt: demo.createdAt,
+      updatedAt: demo.updatedAt,
+      status: demo.demonstrationStatus?.name || "Unknown",
     })
   );
 

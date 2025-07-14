@@ -19,7 +19,6 @@ export type DemonstrationColumns = {
   demonstrationStatusId: number;
   stateId: string;
   projectOfficer: string;
-  demoNumber: string;
   createdAt: string;
   updatedAt: string;
 };

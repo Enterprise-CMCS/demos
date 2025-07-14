@@ -4,18 +4,18 @@ import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
 
 export const demonstrationSchema = gql`
-    type Demonstration {
-      id: ID!
-      name: String!
-      description: String!
-      evaluationPeriodStartDate: Date
-      evaluationPeriodEndDate: Date
-      createdAt: DateTime!
-      updatedAt: DateTime!
-      demonstrationStatus: DemonstrationStatus!
-      state: State!
-      projectOfficerUser: User!
-      users: [User!]!
+  type Demonstration {
+    id: ID!
+    name: String!
+    description: String!
+    evaluationPeriodStartDate: Date!
+    evaluationPeriodEndDate: Date!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    demonstrationStatus: DemonstrationStatus!
+    state: State!
+    users: [User!]!
+    projectOfficerUser: User!
   }
 
   input AddDemonstrationInput {
@@ -58,14 +58,14 @@ export interface Demonstration {
   id: string;
   name: string;
   description: string;
-  evaluationPeriodStartDate?: Date;
-  evaluationPeriodEndDate?: Date;
+  evaluationPeriodStartDate: Date;
+  evaluationPeriodEndDate: Date;
   createdAt: DateTime;
   updatedAt: DateTime;
   demonstrationStatus: DemonstrationStatus;
   state: State;
   users: User[];
-  projectOfficerUser?: User;
+  projectOfficerUser: User;
 }
 
 export interface AddDemonstrationInput {

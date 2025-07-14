@@ -26,12 +26,8 @@ export const demonstrationResolvers = {
       return await prisma().demonstration.create({
         data: {
           ...rest,
-          demonstrationStatus: {
-            connect: { id: demonstrationStatusId },
-          },
-          state: {
-            connect: { id: stateId },
-          },
+          demonstrationStatusId: demonstrationStatusId,
+          stateId: stateId,
           ...(userIds &&
             stateId && {
             userStateDemonstrations: {
@@ -41,9 +37,7 @@ export const demonstrationResolvers = {
               })),
             },
           }),
-          projectOfficer: {
-            connect: { id: projectOfficerUserId },
-          },
+          projectOfficerUserId: projectOfficerUserId,
         },
       });
     },
@@ -89,7 +83,7 @@ export const demonstrationResolvers = {
             },
           }),
           ...(projectOfficerUserId && {
-            projectOfficer: {
+            projectOfficerUser: {
               connect: { id: projectOfficerUserId },
             },
           }),
