@@ -10,17 +10,17 @@ function checkIfAllowed() {
 export function clearDatabase() {
   checkIfAllowed();
 
-  return prisma.$transaction([
-    prisma.rolePermission.deleteMany(),
-    prisma.userRole.deleteMany(),
-    prisma.userState.deleteMany(),
-    prisma.userStateDemonstration.deleteMany(),
-    prisma.demonstration.deleteMany(),
-    prisma.demonstrationStatus.deleteMany(),
-    prisma.permission.deleteMany(),
-    prisma.role.deleteMany(),
-    prisma.state.deleteMany(),
-    prisma.user.deleteMany(),
+  return prisma().$transaction([
+    prisma().rolePermission.deleteMany(),
+    prisma().userRole.deleteMany(),
+    prisma().userState.deleteMany(),
+    prisma().userStateDemonstration.deleteMany(),
+    prisma().demonstration.deleteMany(),
+    prisma().demonstrationStatus.deleteMany(),
+    prisma().permission.deleteMany(),
+    prisma().role.deleteMany(),
+    prisma().state.deleteMany(),
+    prisma().user.deleteMany(),
   ]);
 }
 
@@ -34,7 +34,7 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding roles...");
   for (let i = 0; i < entityCount; i++) {
-    await prisma.role.create({
+    await prisma().role.create({
       data: {
         name: faker.person.jobTitle(),
         description: faker.person.jobDescriptor(),
@@ -56,7 +56,7 @@ async function seedDatabase() {
     { name: "Georgia", abbreviation: "GA" },
   ];
   for (const state of states) {
-    await prisma.state.create({
+    await prisma().state.create({
       data: {
         stateCode: state.abbreviation,
         stateName: state.name,
@@ -66,7 +66,7 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding users...");
   for (let i = 0; i < entityCount; i++) {
-    await prisma.user.create({
+    await prisma().user.create({
       data: {
         cognitoSubject: faker.string.uuid(),
         username: faker.internet.username(),
@@ -79,7 +79,7 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding permissions...");
   for (let i = 0; i < entityCount; i++) {
-    await prisma.permission.create({
+    await prisma().permission.create({
       data: {
         name: faker.lorem.word(),
         description: faker.lorem.sentence(),
@@ -89,7 +89,7 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding demonstration statuses...");
   for (let i = 0; i < entityCount; i++) {
-    await prisma.demonstrationStatus.create({
+    await prisma().demonstrationStatus.create({
       data: {
         name: faker.lorem.word(),
         description: faker.lorem.sentence(),
@@ -99,15 +99,15 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < entityCount; i++) {
-    await prisma.demonstration.create({
+    await prisma().demonstration.create({
       data: {
         name: faker.lorem.words(3),
         description: faker.lorem.sentence(),
         evaluationPeriodStartDate: faker.date.future(),
         evaluationPeriodEndDate: faker.date.future({ years: 1 }),
-        demonstrationStatusId: (await prisma.demonstrationStatus.findRandom())!.id,
-        stateId: (await prisma.state.findRandom())!.id,
-        projectOfficer: (await prisma.user.findRandom())!.id,
+        demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
+        stateId: (await prisma().state.findRandom())!.id,
+        projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
   }
@@ -115,32 +115,32 @@ async function seedDatabase() {
   console.log("🔗 Generating entries in join tables...");
   for (let i = 0; i < entityCount; i++) {
     try {
-      await prisma.rolePermission.create({
+      await prisma().rolePermission.create({
         data: {
-          roleId: (await prisma.role.findRandom())!.id,
-          permissionId: (await prisma.permission.findRandom())!.id,
+          roleId: (await prisma().role.findRandom())!.id,
+          permissionId: (await prisma().permission.findRandom())!.id,
         },
       });
-      await prisma.userRole.create({
+      await prisma().userRole.create({
         data: {
-          userId: (await prisma.user.findRandom())!.id,
-          roleId: (await prisma.role.findRandom())!.id,
+          userId: (await prisma().user.findRandom())!.id,
+          roleId: (await prisma().role.findRandom())!.id,
         },
       });
 
       // need to find valid state-demonstration pairs 
-      const state = await prisma.state.findRandom();
-      const demonstration = await prisma.demonstration.findRandom();
-      const user = await prisma.user.findRandom();
+      const state = await prisma().state.findRandom();
+      const demonstration = await prisma().demonstration.findRandom();
+      const user = await prisma().user.findRandom();
 
-      await prisma.userState.create({
+      await prisma().userState.create({
         data: {
           userId: user!.id,
           stateId: state!.id,
         },
       });
       
-      await prisma.userStateDemonstration.create({
+      await prisma().userStateDemonstration.create({
         data: {
           userId: user!.id,
           stateId: state!.id,

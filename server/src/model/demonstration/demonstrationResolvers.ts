@@ -8,12 +8,12 @@ import {
 export const demonstrationResolvers = {
   Query: {
     demonstration: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.demonstration.findUnique({
+      return await prisma().demonstration.findUnique({
         where: { id: id },
       });
     },
     demonstrations: async () => {
-      return await prisma.demonstration.findMany();
+      return await prisma().demonstration.findMany();
     },
   },
 
@@ -22,8 +22,8 @@ export const demonstrationResolvers = {
       _: undefined,
       { input }: { input: AddDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, stateId, userIds, ...rest } = input;
-      return await prisma.demonstration.create({
+      const { demonstrationStatusId, stateId, userIds, projectOfficerUserId, ...rest } = input;
+      return await prisma().demonstration.create({
         data: {
           ...rest,
           demonstrationStatus: {
@@ -41,6 +41,9 @@ export const demonstrationResolvers = {
               })),
             },
           }),
+          projectOfficer: {
+            connect: { id: projectOfficerUserId },
+          },
         },
       });
     },
@@ -49,20 +52,20 @@ export const demonstrationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, userIds, stateId, ...rest } = input;
+      const { demonstrationStatusId, userIds, stateId, projectOfficerUserId, ...rest } = input;
 
       // If stateId is not provided, use the demonstration's existing stateId
       let existingStateId = stateId;
       if (!existingStateId) {
         existingStateId = (
-          await prisma.demonstration.findUnique({
+          await prisma().demonstration.findUnique({
             where: { id },
             select: { stateId: true },
           })
         )?.stateId;
       }
 
-      return await prisma.demonstration.update({
+      return await prisma().demonstration.update({
         where: { id },
         data: {
           ...rest,
@@ -85,12 +88,17 @@ export const demonstrationResolvers = {
               })),
             },
           }),
+          ...(projectOfficerUserId && {
+            projectOfficer: {
+              connect: { id: projectOfficerUserId },
+            },
+          }),
         },
       });
     },
 
     deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
-      return await prisma.demonstration.delete({
+      return await prisma().demonstration.delete({
         where: { id: id },
       });
     },
@@ -98,20 +106,20 @@ export const demonstrationResolvers = {
 
   Demonstration: {
     state: async (parent: Demonstration) => {
-      return await prisma.state.findUnique({
+      return await prisma().state.findUnique({
         where: { id: parent.stateId },
       });
     },
 
     demonstrationStatus: async (parent: Demonstration) => {
-      return await prisma.demonstrationStatus.findUnique({
+      return await prisma().demonstrationStatus.findUnique({
         where: { id: parent.demonstrationStatusId },
       });
     },
 
     users: async (parent: Demonstration) => {
       const userStateDemonstrations =
-        await prisma.userStateDemonstration.findMany({
+        await prisma().userStateDemonstration.findMany({
           where: { demonstrationId: parent.id, stateId: parent.stateId },
           include: {
             user: true,
@@ -129,7 +137,7 @@ export const demonstrationResolvers = {
 
     projectOfficerUser: async (parent: Demonstration) => {
       if (!parent) return null;
-      return await prisma.user.findUnique({
+      return await prisma().user.findUnique({
         where: { id: parent.projectOfficerUserId },
       });
     },
