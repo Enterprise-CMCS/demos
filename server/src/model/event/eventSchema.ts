@@ -1,4 +1,7 @@
 import { gql } from "graphql-tag";
+import { User } from "../user/userSchema";
+import { EventType } from "./eventTypeSchema";
+import { Role } from "../role/roleSchema";
 
 export const eventSchema = gql`
   """
@@ -34,17 +37,17 @@ export const eventSchema = gql`
   }
   
   type Mutation {
-    createEvent(input: CreateEventInput!): EventHydrated!
+    logEvent(input: LogEventInput!): EventHydrated!
   }
 
   """
   Some event inputs come from the client and others will
   need to be populated by the server for a full event record.
   """
-  input CreateEventInput {
+  input LogEventInput {
     eventTypeId: ID!
     route: String!
-    eventData: JSONObject!
+    eventData: JSONObject
   }
 `;
 
@@ -59,8 +62,18 @@ export interface Event {
   eventData?: object;
 }
 
-export interface CreateEventInput {
+export interface EventHydrated {
+  id: string;
+  user: User;
+  eventType: EventType;
+  withRole: Role;
+  route: string;
+  createdAt: DateTime;
+  eventData?: object;
+}
+
+export interface LogEventInput {
   eventTypeId: string;
   route: string;
-  eventData: object;
+  eventData?: object;
 }

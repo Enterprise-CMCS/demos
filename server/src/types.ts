@@ -34,3 +34,9 @@ export type {
   AddPermissionInput,
   UpdatePermissionInput,
 } from "./model/permission/permissionSchema.js";
+
+export type {
+  Event,
+  LogEventInput,
+  EventHydrated,
+} from "./model/event/eventSchema.js";
