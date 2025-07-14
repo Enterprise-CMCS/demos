@@ -53,6 +53,7 @@ export const demonstrationSchema = gql`
 `;
 
 export type DateTime = Date;
+
 export interface Demonstration {
   id: string;
   name: string;

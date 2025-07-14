@@ -1,29 +1,55 @@
-import React, { useEffect } from "react";
-import { useDemonstration } from "hooks/useDemonstration";
-import { DemonstrationTable, FullDemonstrationTableRow } from "components/table/tables/DemonstrationTable";
+import React from "react";
+import { gql, useQuery } from "@apollo/client";
+import {
+  DemonstrationTable,
+  FullDemonstrationTableRow
+} from "components/table/tables/DemonstrationTable";
 import { Tabs, TabItem } from "layout/Tabs";
 
-export const Demonstrations: React.FC = () => {
-  const {
-    getAllDemonstrations: { trigger, data, loading, error },
-  } = useDemonstration();
+const DEMONSTRATIONS_TABLE = gql`
+  query GetDemonstrations {
+    demonstrations {
+      id
+      name
+      description
+      evaluationPeriodStartDate
+      evaluationPeriodEndDate
+      createdAt
+      updatedAt
+      projectOfficer {
+        displayName
+        email
+        id
+      }
+      state {
+        stateCode
+        id
+        stateName
+      }
+      demonstrationStatus {
+        name
+        id
+        description
+      }
+    }
+  }
+`;
 
-  // Kick off the query when the component mounts
-  useEffect(() => {
-    trigger();
-  }, [trigger]);
+export const Demonstrations: React.FC = () => {
+  const { data, loading, error } = useQuery(DEMONSTRATIONS_TABLE);
+
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const allDemos = data || [];
+  const allDemos = data?.demonstrations || [];
 
   // Replace with real user id from auth context or wherever you store it
   const currentUserId = "b9901f9d-56cd-4df0-9792-27224af27b28";
 
-  const myDemos = allDemos.filter((demo) =>
-    demo.projectOfficerUser?.id === currentUserId
+  const myDemos = allDemos.filter(
+    (demo) => demo.projectOfficer?.id === currentUserId
   );
 
   const tabList: TabItem[] = [
@@ -40,25 +66,27 @@ export const Demonstrations: React.FC = () => {
   ];
 
   const dataToShow = tab === "my" ? myDemos : allDemos;
-  // Transform the data to your frontend table shape:
-  const transformedData: FullDemonstrationTableRow[] = dataToShow.map((demonstration) => ({
-    id: demonstration.id,
-    title: demonstration.name,
-    // demoNumber: Not in schema, so just leaving this head
-    description: demonstration.description,
-    evalPeriodStartDate: demonstration.evaluationPeriodStartDate,
-    evalPeriodEndDate: demonstration.evaluationPeriodEndDate,
-    demonstrationStatusId: demonstration.demonstrationStatus?.id,
-    stateName: demonstration.state.stateName,
-    projectOfficer:
-      demonstration?.projectOfficerUser?.displayName ||
-      demonstration?.projectOfficerUser?.fullName || null,
-    userId: demonstration?.projectOfficerUser?.id || null,
-    createdAt: demonstration.createdAt,
-    updatedAt: demonstration.updatedAt,
-    status: demonstration.demonstrationStatus?.name || "Unknown",
-  }));
 
+  // Transform the data for the table
+  const transformedData: FullDemonstrationTableRow[] = dataToShow.map(
+    (demonstration) => ({
+      id: demonstration.id,
+      title: demonstration.name,
+      description: demonstration.description,
+      evalPeriodStartDate: demonstration.evaluationPeriodStartDate,
+      evalPeriodEndDate: demonstration.evaluationPeriodEndDate,
+      demonstrationStatusId: demonstration.demonstrationStatus?.id,
+      stateName: demonstration.state?.stateName,
+      projectOfficer:
+        demonstration?.projectOfficerUser?.displayName ||
+        demonstration?.projectOfficerUser?.fullName ||
+        null,
+      Id: demonstration?.projectOfficerUser?.id || null,
+      createdAt: demonstration.createdAt,
+      updatedAt: demonstration.updatedAt,
+      status: demonstration.demonstrationStatus?.name || "Unknown",
+    })
+  );
 
   return (
     <div>
