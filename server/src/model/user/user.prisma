@@ -13,6 +13,5 @@ model User {
   userStateDemonstrations      UserStateDemonstration[]
   projectOfficerDemonstrations Demonstration[]
 
-  demonstrationsAsProjectOfficer Demonstration[] @relation("ProjectOfficerUser")
   @@map("users") // user is a reserved word in PostgreSQL; users is not, which is why this is plural
 }
