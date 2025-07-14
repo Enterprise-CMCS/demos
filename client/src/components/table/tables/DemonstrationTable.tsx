@@ -11,6 +11,7 @@ import {
 } from "components/table/pagination/PaginationControls";
 import {
   DemoWithSubRows,
+  groupByDemoNumber,
 } from "components/table/preproccessors/GroupByDemoNumber";
 
 import {
@@ -23,36 +24,25 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   PaginationState,
+  Row,
   RowSelectionState,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { User } from "demos-server";
+import { KeywordSearch } from "../search/KeywordSearch";
 
-
-export interface FullDemonstrationTableRow {
-  id: string;
+export interface RawDemonstration {
+  id: number;
   title: string;
   demoNumber: string;
   description: string;
-  evalPeriodStartDate?: Date | null;
-  evalPeriodEndDate?: Date | null;
-  demonstrationStatusId?: string | null;
-  stateName: string;
-  projectOfficer?: User | null;
-  userId?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-}
-
-
-export interface RawDemonstration {
-  id: string | number;
-  stateName: string;
-  title: string;
+  evalPeriodStartDate: string;
+  evalPeriodEndDate: string;
+  demonstrationStatusId: number;
+  stateId: string;
   projectOfficer: string;
-  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface DemonstrationTableProps {
@@ -66,9 +56,13 @@ export function DemonstrationTable({
   className = "",
   isMyDemosTable = false,
 }: DemonstrationTableProps) {
-  const hierarchicalData = data;
+  const hierarchicalData: DemoWithSubRows[] = React.useMemo(
+    () => groupByDemoNumber(data),
+    [data]
+  );
+
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "stateName", desc: false },
+    { id: "stateId", desc: false },
     { id: "title", desc: false },
   ]);
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -78,6 +72,24 @@ export function DemonstrationTable({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+
+  const arrIncludesAllInsensitive = (row: Row<DemonstrationColumns>, columnId: string, filterValue: (string | undefined)[]) => {
+    const validFilterValues = filterValue.filter((val): val is string => val != null);
+
+    if (validFilterValues.length === 0) {
+      return true;
+    }
+
+    return !validFilterValues.some((val: string) => {
+      const search = val.toLowerCase();
+      const rowValue = row.getValue(columnId);
+
+      return !(
+        rowValue != null &&
+        rowValue.toString().toLowerCase().includes(search)
+      );
+    });
+  };
 
   const table = useReactTable<DemoWithSubRows>({
     data: hierarchicalData,
@@ -102,7 +114,10 @@ export function DemonstrationTable({
     getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: arrIncludesAllInsensitive,
   });
+
+
 
   // Pagination state variables
   const currentPage = table.getState().pagination.pageIndex;
@@ -129,9 +144,7 @@ export function DemonstrationTable({
     ? "You have no assigned demonstrations at this time."
     : "No demonstrations are tracked.";
 
-  const noResultsFoundMessage = isMyDemosTable
-    ? "Your search returned no results."
-    : "No demonstrations match your filter criteria.";
+  const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
 
   const hasDataInitially = hierarchicalData.length > 0;
   const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
@@ -140,15 +153,16 @@ export function DemonstrationTable({
 
   return (
     <div className={`overflow-x-auto w-full ${className} mb-2`}>
-      <ColumnFilterByDropdown<DemoWithSubRows>
-        table={table}
-        columns={table
-          .getAllColumns()
-          .filter(col => col.id !== "select" && col.id !== "expander")}
-        label="Filter by:"
-        isMyDemosTable={isMyDemosTable}
-      />
-
+      <div className="flex items-center mb-2">
+        <KeywordSearch<DemoWithSubRows> table={table} label="Search:"></KeywordSearch>
+        <ColumnFilterByDropdown<DemoWithSubRows>
+          table={table}
+          columns={table
+            .getAllColumns()
+            .filter(col => col.id !== "select" && col.id !== "expander")}
+          label="Filter by:"
+        />
+      </div>
       {/* Table header with sorting */}
       <table className="w-full table-fixed text-sm">
         <thead>
@@ -199,7 +213,7 @@ export function DemonstrationTable({
                   const colId = cell.column.id;
                   if (
                     row.depth > 0 &&
-                    (colId === "stateName" || colId === "demoNumber")
+                    (colId === "stateId" || colId === "demoNumber")
                   ) {
                     return (
                       <td
