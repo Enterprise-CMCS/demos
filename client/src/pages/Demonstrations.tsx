@@ -51,9 +51,9 @@ export const Demonstrations: React.FC = () => {
     demonstrationStatusId: demonstration.demonstrationStatus?.id,
     stateName: demonstration.state.stateName,
     projectOfficer:
-      demonstration.projectOfficerUser?.displayName ||
-      demonstration.projectOfficerUser?.fullName || null,
-    userId: demonstration.projectOfficerUser?.id || null,
+      demonstration?.projectOfficerUser?.displayName ||
+      demonstration?.projectOfficerUser?.fullName || null,
+    userId: demonstration?.projectOfficerUser?.id || null,
     createdAt: demonstration.createdAt,
     updatedAt: demonstration.updatedAt,
     status: demonstration.demonstrationStatus?.name || "Unknown",
