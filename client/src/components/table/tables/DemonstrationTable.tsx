@@ -144,9 +144,7 @@ export function DemonstrationTable({
     ? "You have no assigned demonstrations at this time."
     : "No demonstrations are tracked.";
 
-  const noResultsFoundMessage = isMyDemosTable
-    ? "Your search returned no results."
-    : "No demonstrations match your filter/search criteria.";
+  const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
 
   const hasDataInitially = hierarchicalData.length > 0;
   const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;

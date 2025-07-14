@@ -283,4 +283,19 @@ describe("DemonstrationTable", () => {
     const allSortedTitles = [...allTitles].sort();
     expect(allTitles).toEqual(allSortedTitles);
   });
+
+  it("renders the 'no results found' message for all demonstrations", async () => {
+    const user = userEvent.setup();
+    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+    await user.type(keywordSearchInput, "ZZZZZZZ");
+
+    // Wait for debounce
+    await waitFor(() => {
+      expect(
+        screen.getByText((content) =>
+          content.includes("No results were returned. Adjust your search and filter criteria.")
+        )
+      ).toBeInTheDocument();
+    }, { timeout: 500 });
+  });
 });
