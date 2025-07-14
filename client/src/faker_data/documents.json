@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "title": "Project Plan",
+    "description": "Initial project planning document.",
+    "type": "Pre-Submission Concept",
+    "uploadedBy": "Alice",
+    "uploadDate": "2025-07-01",
+    "createdAt": "2025-06-30",
+    "updatedAt": "2025-07-01"
+  },
+  {
+    "id": 2,
+    "title": "Final Report",
+    "description": "Comprehensive final report.",
+    "type": "General File",
+    "uploadedBy": "Bob",
+    "uploadDate": "2025-07-10",
+    "createdAt": "2025-07-09",
+    "updatedAt": "2025-07-10"
+  }
+]
