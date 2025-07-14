@@ -291,3 +291,8 @@ CREATE OR REPLACE TRIGGER log_changes_demonstration_bundle_type_trigger
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration_bundle_type
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration_bundle_type();
 
+-- Insert standard values
+INSERT INTO bundle_type (id, name, description, created_at, updated_at)
+VALUES ('DEMONSTRATION', 'Demonstration', 'Demonstration bundle type.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO demonstration_bundle_type (id) VALUES ('DEMONSTRATION');

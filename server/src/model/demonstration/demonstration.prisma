@@ -1,5 +1,5 @@
 model Demonstration {
-  id                        String   @default(uuid()) @db.Uuid
+  id                        String   @db.Uuid
   bundleTypeId              String   @map("bundle_type_id")
   name                      String
   description               String
