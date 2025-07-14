@@ -16,8 +16,8 @@ export type DemonstrationColumns = {
   description: string;
   evalPeriodStartDate: string;
   evalPeriodEndDate: string;
-  demonstrationStatusId: number;
-  stateId: string;
+  demonstrationStatus: string;
+  state: string;
   projectOfficer: string;
   createdAt: string;
   updatedAt: string;
@@ -58,8 +58,8 @@ const dataColumns: ColumnDef<DemonstrationColumns>[] = [
       return highlightText(value, searchQuery);
     },
   },
-  // ticket says this should be not searchable, though i feel like it should be.
-  { header: "Number", accessorKey: "demoNumber", enableGlobalFilter: false },
+  // ticket says this should be not searchable, though i feel like it should be. - no demo id.
+  // { header: "Number", accessorKey: "demoNumber", enableGlobalFilter: false },
   {
     header: "Title",
     accessorKey: "title",

@@ -1,5 +1,3 @@
-// client/src/faker_data/usStates.ts
-
 export interface USState {
   name: string;
   abbrev: string;
