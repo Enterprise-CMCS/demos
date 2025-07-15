@@ -6,6 +6,7 @@ import {
 } from "components/icons";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { highlightText } from "../search/KeywordSearch";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 
@@ -49,12 +50,38 @@ const selectColumn: ColumnDef<DemonstrationColumns> = {
 };
 
 const dataColumns: ColumnDef<DemonstrationColumns>[] = [
-  { header: "State/Territory", accessorKey: "stateId" },
-  { header: "Number", accessorKey: "demoNumber" },
-  { header: "Title", accessorKey: "title" },
-  { header: "Project Officer", accessorKey: "projectOfficer" },
+  {
+    header: "State/Territory",
+    accessorKey: "stateId",
+    cell: ({ row, table }) => {
+      const value = row.getValue("stateId") as string;
+      const searchQuery = table.getState().globalFilter || "";
+      return highlightText(value, searchQuery);
+    },
+  },
+  // ticket says this should be not searchable, though i feel like it should be.
+  { header: "Number", accessorKey: "demoNumber", enableGlobalFilter: false },
+  {
+    header: "Title",
+    accessorKey: "title",
+    cell: ({ row, table }) => {
+      const value = row.getValue("title") as string;
+      const searchQuery = table.getState().globalFilter || "";
+      return highlightText(value, searchQuery);
+    },
+  },
+  {
+    header: "Project Officer",
+    accessorKey: "projectOfficer",
+    cell: ({ row, table }) => {
+      const value = row.getValue("projectOfficer") as string;
+      const searchQuery = table.getState().globalFilter || "";
+      return highlightText(value, searchQuery);
+    },
+  },
   {
     id: "viewDetails",
+    enableGlobalFilter: false,
     cell: ({ row }) => {
       const handleClick = () => {
         const demoId = row.original.id;

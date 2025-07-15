@@ -4,6 +4,10 @@ import {
   AddDemonstrationInput,
   UpdateDemonstrationInput,
 } from "./demonstrationSchema.js";
+import { BUNDLE_TYPE } from "../../constants.js";
+import { BundleType } from "../../types.js";
+
+const demonstrationBundleType: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 
 export const demonstrationResolvers = {
   Query: {
@@ -23,28 +27,45 @@ export const demonstrationResolvers = {
       { input }: { input: AddDemonstrationInput },
     ) => {
       const { demonstrationStatusId, stateId, userIds, projectOfficerUserId, ...rest } = input;
-      return await prisma().demonstration.create({
-        data: {
-          ...rest,
-          demonstrationStatus: {
-            connect: { id: demonstrationStatusId },
-          },
-          state: {
-            connect: { id: stateId },
-          },
-          ...(userIds &&
-            stateId && {
-            userStateDemonstrations: {
-              create: userIds.map((userId: string) => ({
-                userId,
-                stateId,
-              })),
+
+      return await prisma().$transaction(async (tx) => {
+        const bundle = await tx.bundle.create({
+          data: {
+            bundleType: {
+              connect: { id: demonstrationBundleType }
+            }
+          }
+        });
+
+        return await tx.demonstration.create({
+          data: {
+            ...rest,
+            bundle: {
+              connect: { id: bundle.id }
             },
-          }),
-          projectOfficer: {
-            connect: { id: projectOfficerUserId },
+            bundleType: {
+              connect: { id: demonstrationBundleType }
+            },
+            demonstrationStatus: {
+              connect: { id: demonstrationStatusId },
+            },
+            state: {
+              connect: { id: stateId },
+            },
+            ...(userIds &&
+              stateId && {
+              userStateDemonstrations: {
+                create: userIds.map((userId: string) => ({
+                  userId,
+                  stateId,
+                })),
+              },
+            }),
+            projectOfficer: {
+              connect: { id: projectOfficerUserId },
+            },
           },
-        },
+        });
       });
     },
 
