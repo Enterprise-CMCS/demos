@@ -1,4 +1,4 @@
-import { EventHydrated, LogEventInput } from "demos-server";
+import { EventHydrated } from "demos-server";
 import { johnDoe } from "../userMocks";
 import {
   LOG_EVENT_MUTATION,
@@ -6,13 +6,21 @@ import {
 } from "queries/eventQueries";
 import { MockedResponse } from "@apollo/client/testing";
 import { EventType } from "demos-server";
+import { LogEventArguments } from "hooks/event/useEvent";
 
-export const testEventType: EventType = {
-  id: "PAGE_VIEW",
-  description: "User page view event",
+const testEventType: EventType = {
+  id: "LOGIN_SUCCEEDED",
+  logLevel: "INFO",
+  description: "User login succeeded",
 };
 
-export const testRole = {
+const createDemonstrationEventType: EventType = {
+  id: "CREATE_DEMONSTRATION_SUCCEEDED",
+  logLevel: "INFO",
+  description: "Demonstration created successfully",
+};
+
+const testRole = {
   id: "CMS_USER",
   name: "CMS User",
   description: "CMS User Role",
@@ -22,39 +30,29 @@ export const testRole = {
   permissions: [],
 };
 
-export const testEvent: EventHydrated = {
+const testEvent: EventHydrated = {
   id: "1",
   user: johnDoe,
-  eventType: testEventType,
+  eventType: createDemonstrationEventType,
   withRole: testRole,
-  route: "/demonstrations",
+  route: "/events",
   createdAt: new Date("2025-01-01T10:00:00Z"),
   eventData: {
-    demonstrationId: "demo-123",
-    additionalInfo: "User viewed demonstrations page",
+    additionalInfo: "User Created event from events page",
   },
 };
 
-export const testEvent2: EventHydrated = {
+const testEvent2: EventHydrated = {
   id: "2",
   user: johnDoe,
-  eventType: testEventType,
+  eventType: createDemonstrationEventType,
   withRole: testRole,
-  route: "/demonstrations/new",
+  route: "/demonstrations",
   createdAt: new Date("2025-01-01T11:00:00Z"),
-  eventData: {
-    buttonId: "add-demonstration",
-    action: "create",
-  },
 };
 
-export const mockLogEventInput: LogEventInput = {
+const mockLogEventInput: LogEventArguments = {
   eventTypeId: testEventType.id,
-  route: "/demonstrations",
-  eventData: {
-    demonstrationId: "demo-123",
-    additionalInfo: "Test event log",
-  },
 };
 
 export const eventMocks: MockedResponse[] = [
@@ -70,7 +68,7 @@ export const eventMocks: MockedResponse[] = [
   {
     request: {
       query: LOG_EVENT_MUTATION,
-      variables: { input: mockLogEventInput },
+      variables: { input: {...mockLogEventInput, route: "/events"} },
     },
     result: {
       data: { logEvent: testEvent },
