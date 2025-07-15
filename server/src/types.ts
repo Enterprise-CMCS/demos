@@ -40,3 +40,7 @@ export type {
   LogEventInput,
   EventHydrated,
 } from "./model/event/eventSchema.js";
+
+export type {
+  EventType,
+} from "./model/event/eventTypeSchema.js"
