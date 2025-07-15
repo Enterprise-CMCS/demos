@@ -16,6 +16,7 @@ export function transformRawDemos(rawData: any[]) {
       (s) => s.abbrev === row.stateId
     );
 
+    // Match is working
     const statusMatch = demonstrationStatuses.find(
       (status) => String(status.id) === String(row.demonstrationStatusId)
     );
@@ -31,7 +32,7 @@ export function transformRawDemos(rawData: any[]) {
 
     return {
       id: convertToUUID(row.id),
-      name: row.name,
+      title: row.title || row.name, // <-- ensure 'title' is present
       description: row.description,
       evaluationPeriodStartDate: row.evaluationPeriodStartDate
         ? new Date(row.evaluationPeriodStartDate)

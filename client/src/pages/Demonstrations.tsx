@@ -7,6 +7,7 @@ import {
   TabItem,
   Tabs,
 } from "layout/Tabs";
+import { DemonstrationStatus } from "demos-server";
 
 // Using JSON dummy data.
 type RawDemonstration = {
@@ -16,7 +17,8 @@ type RawDemonstration = {
   description: string;
   evalPeriodStartDate: string;
   evalPeriodEndDate: string;
-  demonstrationStatusId: number;
+  demonstrationStatus: DemonstrationStatus;
+  demonstrationStatusId: string;
   stateId: string;
   projectOfficer: string;
   userId: number;
@@ -91,7 +93,7 @@ export const Demonstrations: React.FC = () => {
         selectedValue={tab}
         onChange={(newVal) => setTab(newVal as "my" | "all")}
       />
-
+      {console.log("Data:", dataToShow[0])}
       {/* one table req'd to rule them all */}
       <div className="h-[60vh] overflow-y-auto">
         <DemonstrationTable

@@ -30,6 +30,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { KeywordSearch } from "../search/KeywordSearch";
+import { DemonstrationStatus } from "demos-server";
 
 export interface RawDemonstration {
   id: number;
@@ -38,7 +39,7 @@ export interface RawDemonstration {
   description: string;
   evalPeriodStartDate: string;
   evalPeriodEndDate: string;
-  demonstrationStatusId: number;
+  demonstrationStatus: DemonstrationStatus;
   stateId: string;
   projectOfficer: string;
   createdAt: string;

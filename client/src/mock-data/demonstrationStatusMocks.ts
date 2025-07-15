@@ -2,7 +2,7 @@ import { DemonstrationStatus } from "demos-server";
 
 export const demonstrationStatuses: DemonstrationStatus[] = [
   {
-    id: "1",
+    id: "12345678-1234-1234-1234-000000000001",
     name: "Active",
     description: "Demonstration is currently active.",
     createdAt: new Date("2025-01-01"),
@@ -10,7 +10,7 @@ export const demonstrationStatuses: DemonstrationStatus[] = [
     demonstrations: [],
   },
   {
-    id: "2",
+    id: "12345678-1234-1234-1234-000000000002",
     name: "Approved",
     description: "Demonstration has been officially approved.",
     createdAt: new Date("2025-01-02"),
@@ -18,7 +18,7 @@ export const demonstrationStatuses: DemonstrationStatus[] = [
     demonstrations: [],
   },
   {
-    id: "3",
+    id: "12345678-1234-1234-1234-000000000003",
     name: "Expired",
     description: "Demonstration has expired and is no longer active.",
     createdAt: new Date("2025-01-03"),
@@ -26,7 +26,7 @@ export const demonstrationStatuses: DemonstrationStatus[] = [
     demonstrations: [],
   },
   {
-    id: "4",
+    id: "12345678-1234-1234-1234-000000000004",
     name: "Withdrawn",
     description: "Demonstration was withdrawn before completion.",
     createdAt: new Date("2025-01-04"),
