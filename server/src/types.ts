@@ -39,8 +39,10 @@ export type {
   Event,
   LogEventInput,
   EventHydrated,
+  EventLoggedStatus
 } from "./model/event/eventSchema.js";
 
 export type {
   EventType,
+  EventTypeId
 } from "./model/event/eventTypeSchema.js"

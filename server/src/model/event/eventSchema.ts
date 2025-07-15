@@ -37,7 +37,7 @@ export const eventSchema = gql`
   }
   
   type Mutation {
-    logEvent(input: LogEventInput!): EventHydrated!
+    logEvent(input: LogEventInput!): EventLoggedStatus!
   }
 
   """
@@ -48,6 +48,11 @@ export const eventSchema = gql`
     eventTypeId: ID!
     route: String!
     eventData: JSONObject
+  }
+
+  type EventLoggedStatus {
+    success: Boolean!
+    message: String
   }
 `;
 
@@ -76,4 +81,9 @@ export interface LogEventInput {
   eventTypeId: string;
   route: string;
   eventData?: object;
+}
+
+export interface EventLoggedStatus {
+  success: boolean;
+  message?: string;
 }

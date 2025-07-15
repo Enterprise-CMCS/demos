@@ -12,6 +12,7 @@ export interface EventOperations {
 
 export const useEvent = (): EventOperations => {
   const location = useLocation();
+
   const [logEventTrigger] = useMutation<{ logEvent: EventHydrated }>(LOG_EVENT_MUTATION);
   const [getEventsTrigger] = useLazyQuery<{ events: EventHydrated[] }>(GET_EVENTS_QUERY);
 

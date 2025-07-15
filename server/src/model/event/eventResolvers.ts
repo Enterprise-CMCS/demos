@@ -70,20 +70,20 @@ export const eventResolvers = {
       const userId = await getCurrentUserId(context);
       const withRoleId = await getCurrentUserRoleId(context);
       
-      return await prisma().event.create({
-        data: {
-          userId,
-          eventTypeId,
-          withRoleId,
-          route,
-          eventData
-        },
-        include: {
-          user: true,
-          eventType: true,
-          withRole: true
-        }
-      });
+      try {
+        await prisma().event.create({
+          data: {
+            userId,
+            eventTypeId,
+            withRoleId,
+            route,
+            eventData
+          }
+        });
+        return { success: true };
+      } catch (error) {
+        return { success: false, message: error instanceof Error ? error.message : "Unknown error" };
+      }
     }
   }
 };

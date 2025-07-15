@@ -1,22 +1,14 @@
 import React from "react";
-import { LogEventArguments, useEvent } from "hooks/useEvent";
+import { LogEventArguments, useEvent } from "hooks/event/useEvent";
 import { EventHydrated } from "demos-server";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { useToast } from "components/toast";
 import { PrimaryButton } from "components/button";
-
-const predefinedEventTypes = [
-  "PAGE_VIEW",
-  "BUTTON_CLICK",
-  "FORM_SUBMIT",
-  "NAVIGATION",
-  "USER_ACTION",
-  "ERROR_OCCURRED",
-];
+import { ALL_EVENT_TYPE_IDS } from "hooks/event/eventTypes";
 
 const EventList = ({events}: {events: EventHydrated[]}) => {
   return (
-    <div>
+    <div className="border boder-brand p-2">
       <h3 className="text-lg font-semibold mb-4">Recent Events</h3>
       <ul className="space-y-2">
         {events.map((event: EventHydrated) => (
@@ -64,9 +56,9 @@ const LogNewEventForm = () => {
   };
 
   return (
-    <form onSubmit={handleLogEvent} className="flex flex-row gap-2">
+    <form onSubmit={handleLogEvent} className="flex flex-row gap-2 border border-brand p-2">
       <AutoCompleteSelect
-        options={predefinedEventTypes.map((type) => ({
+        options={ALL_EVENT_TYPE_IDS.map((type) => ({
           label: type,
           value: type,
         }))}
@@ -106,7 +98,7 @@ export const EventSandbox: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-4">
       <h2 className="text-2xl font-bold">Event Logging Sandbox</h2>
       <LogNewEventForm />
       <EventList events={events} />
