@@ -1,20 +1,15 @@
 import * as React from "react";
 import { Table } from "@tanstack/react-table";
 
-export interface PaginationControlsProps<T extends object> {
-  table?: Table<T>; // Make table optional since it comes from parent
+export interface PaginationControlsProps<T> {
+  table: Table<T>; // Make table optional since it comes from parent
   perPageChoices?: number[];
 }
 
-export function PaginationControls<T extends object>({
+export function PaginationControls<T>({
   table,
   perPageChoices = [10, 20, 50, -1],
 }: PaginationControlsProps<T>) {
-  // Early return if table is not provided
-  if (!table) {
-    console.warn("PaginationControls: table prop is required");
-    return null;
-  }
 
   // Get pagination state from table
   const {

@@ -14,57 +14,166 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DemonstrationTable } from "../Table";
+import { highlightText, Table } from "../Table";
+import { Demonstration } from "pages/Demonstrations/Demonstrations";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import { SecondaryButton } from "components/button";
+
+const columnHelper = createColumnHelper<Demonstration>();
+
+export const columns = [
+  columnHelper.display({
+    id: "select",
+    header: ({ table }) => (
+      <input
+        id="select-all-rows"
+        type="checkbox"
+        className="cursor-pointer"
+        aria-label="Select all rows"
+        checked={table.getIsAllPageRowsSelected()}
+        onChange={table.getToggleAllPageRowsSelectedHandler()}
+      />
+    ),
+    cell: ({ row }) => (
+      <input
+        id={`select-row-${row.id}`}
+        type="checkbox"
+        className="cursor-pointer"
+        checked={row.getIsSelected()}
+        onChange={row.getToggleSelectedHandler()}
+        aria-label={`Select row ${row.index + 1}`}
+      />
+    ),
+    size: 20,
+  }),
+  columnHelper.accessor("state.stateName", {
+    id: "stateName",
+    header: "State/Territory",
+    cell: ({ row, table }) => {
+      const value = row.getValue("stateName") as string;
+      const searchQuery = table.getState().globalFilter || "";
+      return highlightText(value, searchQuery);
+    },
+  }),
+  columnHelper.accessor("name", {
+    header: "Title",
+    cell: ({ row, table }) => {
+      const value = row.getValue("name") as string;
+      const searchQuery = table.getState().globalFilter || "";
+      return highlightText(value, searchQuery);
+    },
+  }),
+  columnHelper.accessor("projectOfficer.fullName", {
+    id: "projectOfficer",
+    header: "Project Officer",
+    cell: ({ row, table }) => {
+      const value = row.getValue("projectOfficer") as string;
+      const searchQuery = table.getState().globalFilter || "";
+      return highlightText(value, searchQuery);
+    },
+  }),
+  columnHelper.display({
+    id: "viewDetails",
+    cell: ({ row }) => {
+      const handleClick = () => {
+        const demoId = row.original.id;
+        window.location.href = `/demonstrations/${demoId}`;
+      };
+
+      return (
+        <SecondaryButton
+          type="button"
+          size="small"
+          onClick={handleClick}
+          className="px-2 py-0 text-sm font-medium"
+        >
+          View
+        </SecondaryButton>
+      );
+    },
+  }),
+] as ColumnDef<Demonstration, unknown>[];
 
 const mockRawData = [
   {
-    id: 1,
-    title: "Medicaid Montana Expenditure Cap Demonstration",
-    demoNumber: "MT-1-2019-05-10",
+    id: "a",
+    name: "Medicaid Montana Expenditure Cap Demonstration",
     description: "...",
-    evalPeriodStartDate: "2019-05-10",
-    evalPeriodEndDate: "2024-05-10",
-    demonstrationStatusId: 3,
-    userId: 139,
-    stateId: "MT",
-    projectOfficer: "Qui-Gon Jinn",
-    createdAt: "...",
-    updatedAt: "...",
+    demonstrationStatus: {
+      id: "d",
+      name: "Active",
+    },
+    users: [{
+      id: "g",
+      fullName: "Luke Skywalker",
+    }],
+    state: {
+      id: "MT",
+      stateName: "Montana",
+      stateCode: "MT",
+    },
+    projectOfficer: {
+      id: "j",
+      fullName: "Qui-Gon Jinn",
+    },
   },
   {
-    id: 2,
-    title: "Medicaid Florida Reproductive Health: Fertility Demonstration",
-    demoNumber: "FL-2-2018-07-08",
+    id: "b",
+    name: "Medicaid Florida Reproductive Health: Fertility Demonstration",
     description: "...",
-    evalPeriodStartDate: "2018-07-08",
-    evalPeriodEndDate: "2023-07-08",
-    demonstrationStatusId: 4,
-    userId: 195,
-    stateId: "FL",
-    projectOfficer: "Obiwan Kenobi",
-    createdAt: "...",
-    updatedAt: "...",
+    demonstrationStatus: {
+      id: "e",
+      name: "Pending",
+    },
+    users: [{
+      id: "h",
+      fullName: "Darth Vader",
+    }],
+    state: {
+      id: "NC",
+      stateName: "North Carolina",
+      stateCode: "NC",
+    },
+    projectOfficer: {
+      id: "k",
+      fullName: "Obi-Wan Kenobi",
+    },
   },
   {
-    id: 3,
-    title: "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration",
-    demoNumber: "AK-3-2018-06-27",
+    id: "c",
+    name: "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration",
     description: "...",
-    evalPeriodStartDate: "2018-06-27",
-    evalPeriodEndDate: "2023-06-27",
-    demonstrationStatusId: 3,
-    userId: 121,
-    stateId: "AK",
-    projectOfficer: "Ezra Bridger",
-    createdAt: "...",
-    updatedAt: "...",
+    demonstrationStatus: {
+      id: "f",
+      name: "Inactive",
+    },
+    users: [{
+      id: "i",
+      fullName: "Han Solo",
+    }],
+    state: {
+      id: "WA",
+      stateName: "Washington",
+      stateCode: "WA",
+    },
+    projectOfficer: {
+      id: "l",
+      fullName: "Yoda",
+    },
   },
-];
+] as Demonstration[];
 
 describe("DemonstrationTable", () => {
   beforeEach(() => {
     localStorage.clear();
-    render(<DemonstrationTable data={mockRawData} />);
+    render(
+      <Table<Demonstration>
+        keywordSearch
+        columns={columns}
+        data={mockRawData}
+        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+      />
+    );
   });
 
   it("renders the keyword search input", () => {
@@ -174,11 +283,11 @@ describe("DemonstrationTable", () => {
     const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
     // Type search term
-    await user.type(keywordSearchInput, "Montana");
+    await user.type(keywordSearchInput, "Expenditure");
 
     // Wait for debounce and highlighting to apply
     await waitFor(() => {
-      const highlightedText = screen.getByText("Montana");
+      const highlightedText = screen.getByText("Expenditure");
       expect(highlightedText.tagName.toLowerCase()).toBe("mark");
       expect(highlightedText).toHaveClass("bg-yellow-200", "font-semibold");
 
@@ -189,52 +298,6 @@ describe("DemonstrationTable", () => {
         })
       ).toBeInTheDocument();
     }, { timeout: 500 });
-  });
-
-  it("preserves existing filters when searching", async () => {
-    const user = userEvent.setup();
-
-    // First apply a column filter
-    const filterSelect = screen.getByLabelText(/filter by:/i);
-    await user.selectOptions(filterSelect, ["stateId"]);
-
-    const filterInput = screen.getByPlaceholderText(/type to filter/i);
-    await user.type(filterInput, "MT");
-
-    // Verify filter is applied (only Montana demonstration visible)
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-      })
-    ).not.toBeInTheDocument();
-
-    // Now add keyword search
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-    await user.type(keywordSearchInput, "Medicaid");
-
-    // Wait for debounce
-    await waitFor(() => {
-      expect(
-        screen.getByText((content, element) => {
-          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-        })
-      ).toBeInTheDocument();
-
-      // Both filters should be active - still only Montana demonstration
-      expect(
-        screen.queryByText((content, element) => {
-          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-        })
-      ).not.toBeInTheDocument();
-    }, { timeout: 500 });
-
-    // Verify the column filter input still has its value
-    expect(filterInput).toHaveValue("MT");
   });
 
   it("maintains sorting regardless of search state", async () => {

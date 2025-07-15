@@ -4,20 +4,61 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  Row,
   useReactTable,
 } from "@tanstack/react-table";
+import { KeywordSearch } from "./search/KeywordSearch";
+import { ColumnFilter } from "./filters/ColumnFilter";
+import { PaginationControls } from "./pagination/PaginationControls";
 
 export interface TableProps<T> {
   data: T[];
   columns: ColumnDef<T, unknown>[];
   className?: string;
-  keywordSearch?: React.ReactNode;
-  columnFilter?: React.ReactNode;
-  pagination?: React.ReactNode;
+  keywordSearch?: boolean;
+  columnFilter?: boolean;
+  pagination?: boolean;
+  emptyRowsMessage?: string;
+  noResultsFoundMessage?: string;
+}
+
+// Helper function to highlight matching text
+export function highlightText(text: string, query: string | string[]): React.ReactNode {
+  if (!query || (Array.isArray(query) && query.length === 0)) {
+    return text;
+  }
+
+  // Handle both string and array inputs
+  const keywords = Array.isArray(query) ? query : [query];
+  const validKeywords = keywords.filter(k => k.trim().length > 0);
+
+  if (validKeywords.length === 0) {
+    return text;
+  }
+
+  // Create regex pattern for all keywords
+  const pattern = validKeywords.map(k => `(${k})`).join("|");
+  const regex = new RegExp(pattern, "gi");
+  const parts = text.split(regex);
+
+  return parts.map((part, index) => {
+    // Create a fresh regex for each test, or use a different method
+    const testRegex = new RegExp(pattern, "gi");
+    if (testRegex.test(part)) {
+      return (
+        <mark
+          key={index}
+          className="bg-yellow-200 font-semibold"
+        >
+          {part}
+        </mark>
+      );
+    }
+    return part;
+  });
 }
 
 export function Table<T>({
@@ -27,27 +68,42 @@ export function Table<T>({
   keywordSearch,
   columnFilter,
   pagination,
+  emptyRowsMessage = "No data available.",
+  noResultsFoundMessage = "No results found.",
 }: TableProps<T>) {
-  const table = useReactTable({
+
+  const arrIncludesAllInsensitive = (row: Row<T>, columnId: string, filterValue: (string | undefined)[]) => {
+    const validFilterValues = filterValue.filter((val): val is string => val != null);
+
+    if (validFilterValues.length === 0) {
+      return true;
+    }
+
+    return !validFilterValues.some((val: string) => {
+      const search = val.toLowerCase();
+      const rowValue = row.getValue(columnId);
+
+      return !(
+        rowValue != null &&
+        rowValue.toString().toLowerCase().includes(search)
+      );
+    });
+  };
+
+  const table = useReactTable<T>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: arrIncludesAllInsensitive,
   });
 
-  // Helper function to clone component with table props
-  const cloneWithTableProps = (component: React.ReactNode) => {
-    if (React.isValidElement(component)) {
-      return React.cloneElement(component, {
-        table,
-        columns: table.getAllColumns().filter(col => col.getCanFilter()),
-      } as Record<string, unknown>);
-    }
-    return component;
-  };
+  const hasDataInitially = data.length > 0;
+  const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
+  const filtersClearedOutData =
+    hasDataInitially && !hasDataAfterFiltering;
 
   return (
     <div className={`${className || ""}`}>
@@ -55,16 +111,12 @@ export function Table<T>({
 
         {/* Search Section */}
         {keywordSearch && (
-          <div>
-            {cloneWithTableProps(keywordSearch)}
-          </div>
+          <KeywordSearch table={table} />
         )}
 
         {/* Filter Section */}
         {columnFilter && (
-          <div>
-            {cloneWithTableProps(columnFilter)}
-          </div>
+          <ColumnFilter table={table} />
         )}
       </div>
 
@@ -91,26 +143,44 @@ export function Table<T>({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className={row.depth > 0 ? "bg-gray-200" : ""}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  return (
-                    <td key={cell.id} className="px-2 py-1 border-b">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  );
-                })}
+            {filtersClearedOutData ? (
+              <tr>
+                <td
+                  colSpan={table.getAllLeafColumns().length}
+                  className="px-4 py-8 text-center text-gray-800 text-xl"
+                >
+                  {noResultsFoundMessage}
+                </td>
               </tr>
-            ))}
+            ) : !hasDataInitially ? (
+              <tr>
+                <td
+                  colSpan={table.getAllLeafColumns().length}
+                  className="px-4 py-8 text-center text-gray-800 text-xl"
+                >
+                  {emptyRowsMessage}
+                </td>
+              </tr>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className={row.depth > 0 ? "bg-gray-200" : ""}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <td key={cell.id} className="px-2 py-1 border-b">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
         {pagination && (
-          <div>
-            {cloneWithTableProps(pagination)}
-          </div>
+          <PaginationControls table={table} />
         )}
       </div>
     </div>

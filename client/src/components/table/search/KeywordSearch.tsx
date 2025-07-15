@@ -2,7 +2,7 @@ import { Table } from "@tanstack/react-table";
 import { ExitIcon, SearchIcon } from "components/icons";
 import React from "react";
 
-export interface KeywordSearchProps<T extends object> {
+export interface KeywordSearchProps<T> {
   table?: Table<T>; // Make table optional since it comes from parent
   label?: string;
   className?: string;
@@ -10,45 +10,11 @@ export interface KeywordSearchProps<T extends object> {
   storageKey?: string;
 }
 
-// Helper function to highlight matching text
-export function highlightText(text: string, query: string | string[]): React.ReactNode {
-  if (!query || (Array.isArray(query) && query.length === 0)) {
-    return text;
-  }
 
-  // Handle both string and array inputs
-  const keywords = Array.isArray(query) ? query : [query];
-  const validKeywords = keywords.filter(k => k.trim().length > 0);
 
-  if (validKeywords.length === 0) {
-    return text;
-  }
-
-  // Create regex pattern for all keywords
-  const pattern = validKeywords.map(k => `(${k})`).join("|");
-  const regex = new RegExp(pattern, "gi");
-  const parts = text.split(regex);
-
-  return parts.map((part, index) => {
-    // Create a fresh regex for each test, or use a different method
-    const testRegex = new RegExp(pattern, "gi");
-    if (testRegex.test(part)) {
-      return (
-        <mark
-          key={index}
-          className="bg-yellow-200 font-semibold"
-        >
-          {part}
-        </mark>
-      );
-    }
-    return part;
-  });
-}
-
-export function KeywordSearch<T extends object>({
+export function KeywordSearch<T>({
   table,
-  label = "Search",
+  label = "Search:",
   className = "",
   debounceMs = 300,
   storageKey = "keyword-search",

@@ -46,9 +46,14 @@ vi.mock("layout/PrimaryLayout", () => ({
     <div>PrimaryLayout{children}</div>
   ),
 }));
-vi.mock("pages/Demonstrations", () => ({
-  Demonstrations: () => <div>Demonstrations</div>,
-}));
+// To this:
+vi.mock("pages/Demonstrations/Demonstrations", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual as object, // Keep all the original exports (including DEMONSTRATIONS_TABLE_QUERY)
+    Demonstrations: () => <div>Demonstrations</div>, // Only mock the component
+  };
+});
 
 describe("DemosRouter", () => {
   it("renders the LandingPage at root path", () => {

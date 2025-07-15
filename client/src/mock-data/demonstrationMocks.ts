@@ -7,8 +7,8 @@ import {
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
 } from "queries/demonstrationQueries";
-import { DEMONSTRATIONS_TABLE_QUERY } from "pages/Demonstrations";
 import { MockedResponse } from "@apollo/client/testing";
+import { DEMONSTRATIONS_TABLE_QUERY } from "pages/Demonstrations/Demonstrations";
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -54,7 +54,6 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { demonstration: testDemonstration },
     },
   },
-
   {
     request: {
       query: ADD_DEMONSTRATION_QUERY,

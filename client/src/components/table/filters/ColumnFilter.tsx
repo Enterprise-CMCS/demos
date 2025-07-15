@@ -1,30 +1,21 @@
 import React from "react";
-import { Column, Table } from "@tanstack/react-table";
+import { Table } from "@tanstack/react-table";
 
-export interface ColumnFilterByDropdownProps<T extends object> {
-  table?: Table<T>; // Make table optional since it comes from parent
-  columns?: Column<T, unknown>[]; // Make columns optional since it comes from parent
+export interface ColumnFilterByDropdownProps<T> {
+  table: Table<T>; // Make table optional since it comes from parent
   label?: string;
   className?: string;
 }
 
-export function ColumnFilterByDropdown<T extends object>({
+export function ColumnFilter<T>({
   table,
-  columns,
   label = "Filter by:",
   className = "",
 }: ColumnFilterByDropdownProps<T>) {
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
   const [filterValue, setFilterValue] = React.useState<string>("");
 
-  // Early return if table or columns are not provided
-  if (!table) {
-    console.warn("ColumnFilterByDropdown: table prop is required");
-    return null;
-  }
-
-  // Get columns from table if not provided as prop
-  const availableColumns = columns || table.getAllColumns().filter(column => column.getCanFilter());
+  const availableColumns = table.getAllColumns().filter(column => column.getCanFilter());
 
   // Whenever the selected column changes, reset the filterValue and clear filters
   React.useEffect(() => {
