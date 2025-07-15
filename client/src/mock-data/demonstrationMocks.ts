@@ -2,15 +2,28 @@ import rawDemoData from "../faker_data/demonstrations.json";
 import { states } from "../data/StatesAndTerritories";
 import { demonstrationStatuses } from "./demonstrationStatusMocks";
 import { MockedResponse } from "@apollo/client/testing";
-import { gql } from "@apollo/client";
-// Replace query with your own.
-// import { DEMONSTRATIONS_TABLE } from "../pages/Demonstrations";
+import { DEMONSTRATIONS_TABLE } from "../pages/Demonstrations";
 
 function convertToUUID(originalId: string | number) {
   return `00000000-0000-0000-0000-${String(originalId).padStart(12, "0")}`;
 }
 
-export function transformRawDemos(rawData: any[]) {
+// This is just the type for the JSON data structure.
+interface JSONDemoData {
+  id: string | number;
+  title?: string;
+  name?: string;
+  description?: string;
+  evaluationPeriodStartDate?: string;
+  evaluationPeriodEndDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  demonstrationStatusId?: string | number;
+  stateId?: string;
+  projectOfficerUser?: string;
+}
+
+export function transformRawDemos(rawData: JSONDemoData[]) {
   return rawData.map((row) => {
     const stateMatch = states.find(
       (s) => s.abbrev === row.stateId
@@ -73,34 +86,6 @@ export function transformRawDemos(rawData: any[]) {
     };
   });
 }
-// Presumably this would be imported from page/Demonstration.tsx
-const DEMONSTRATIONS_TABLE = gql`
-  query GetDemonstrations {
-    demonstrations {
-      id
-      name
-      description
-      evaluationPeriodStartDate
-      evaluationPeriodEndDate
-      createdAt
-      updatedAt
-      projectOfficerUser {
-        id
-        displayName
-        email
-      }
-      state {
-        id
-        stateCode
-        stateName
-      }
-      demonstrationStatus {
-        id
-        name
-      }
-    }
-  }
-`;
 
 export const transformedDemonstrations = transformRawDemos(rawDemoData);
 

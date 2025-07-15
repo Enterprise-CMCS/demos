@@ -32,5 +32,5 @@ export const demonstrationStatuses: DemonstrationStatus[] = [
     createdAt: new Date("2025-01-04"),
     updatedAt: new Date("2025-01-04"),
     demonstrations: [],
-  }
+  },
 ];

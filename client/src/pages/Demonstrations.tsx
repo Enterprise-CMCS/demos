@@ -4,7 +4,7 @@ import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import { TabItem, Tabs } from "layout/Tabs";
 import { DemonstrationStatus } from "demos-server";
 
-type RawDemonstration = {
+export type RawDemonstration = {
   id: number;
   title: string;
   demoNumber: string;
