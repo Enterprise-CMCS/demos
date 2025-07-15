@@ -2,7 +2,9 @@ import rawDemoData from "../faker_data/demonstrations_take_2.json";
 import { states } from "../data/StatesAndTerritories";
 import { demonstrationStatuses } from "./demonstrationStatusMocks";
 import { MockedResponse } from "@apollo/client/testing";
-import { DEMONSTRATIONS_TABLE } from "../pages/Demonstrations";
+import { gql } from "@apollo/client";
+// Replace query with your own.
+// import { DEMONSTRATIONS_TABLE } from "../pages/Demonstrations";
 
 function convertToUUID(originalId: string | number) {
   return `00000000-0000-0000-0000-${String(originalId).padStart(12, "0")}`;
@@ -66,8 +68,35 @@ export function transformRawDemos(rawData: any[]) {
     };
   });
 }
-
-
+// Presumably this would be imported from page/Demonstration.tsx
+const DEMONSTRATIONS_TABLE = gql`
+  query GetDemonstrations {
+    demonstrations {
+      id
+      name
+      description
+      evaluationPeriodStartDate
+      evaluationPeriodEndDate
+      createdAt
+      updatedAt
+      projectOfficerUser {
+        id
+        displayName
+        email
+      }
+      state {
+        id
+        stateCode
+        stateName
+      }
+      demonstrationStatus {
+        id
+        name
+        description
+      }
+    }
+  }
+`;
 
 export const transformedDemonstrations = transformRawDemos(rawDemoData);
 

@@ -1,5 +1,5 @@
 import React from "react";
-
+import { gql } from "@apollo/client";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 // import DemoData from "faker_data/empty_demonstrations.json";
 import DemoData from "faker_data/demonstrations.json";
@@ -23,6 +23,36 @@ type RawDemonstration = {
   createdAt: string;
   updatedAt: string;
 };
+
+export const DEMONSTRATIONS_TABLE = gql`
+  query GetDemonstrations {
+    demonstrations {
+      id
+      name
+      description
+      evaluationPeriodStartDate
+      evaluationPeriodEndDate
+      createdAt
+      updatedAt
+      projectOfficerUser {
+        id
+        displayName
+        email
+      }
+      state {
+        id
+        stateCode
+        stateName
+      }
+      demonstrationStatus {
+        id
+        name
+        description
+      }
+    }
+  }
+`;
+
 
 export const Demonstrations: React.FC = () => {
   // Dummy value - replace me!
