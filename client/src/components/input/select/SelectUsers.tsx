@@ -18,6 +18,7 @@ export interface SelectUsersProps {
   isRequired?: boolean;
   isDisabled?: boolean;
   currentUserId?: string;
+  value?: string;
 }
 
 export const SelectUsers: React.FC<SelectUsersProps> = ({
@@ -26,12 +27,15 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
   isRequired = false,
   isDisabled = false,
   currentUserId,
+  value,
 }) => {
   const options: Option[] = (users as User[]).map((u) => ({
     label: u.name,
     value: String(u.id),
   }));
-  const defaultLabel = options.find((o) => o.value === currentUserId)?.label ?? "";
+
+  const defaultLabel =
+    options.find((o) => o.value === currentUserId)?.label ?? "";
 
   return (
     <AutoCompleteSelect
@@ -43,6 +47,8 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
       isRequired={isRequired}
       isDisabled={isDisabled}
       defaultValue={defaultLabel}
+      value={value} // <-- pass controlled value
     />
   );
 };
+

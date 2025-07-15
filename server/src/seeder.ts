@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { prisma } from "./prismaClient.js";
+import { BUNDLE_TYPE } from "./constants.js";
 
 function checkIfAllowed() {
   if(process.env.ALLOW_SEED !== "true") {
@@ -99,8 +100,17 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < entityCount; i++) {
+    const bundle = await prisma().bundle.create({
+      data: {
+        bundleType: {
+          connect: { id: BUNDLE_TYPE.DEMONSTRATION }
+        }
+      }
+    });
     await prisma().demonstration.create({
       data: {
+        id: bundle.id,
+        bundleTypeId: BUNDLE_TYPE.DEMONSTRATION,
         name: faker.lorem.words(3),
         description: faker.lorem.sentence(),
         evaluationPeriodStartDate: faker.date.future(),

@@ -24,7 +24,7 @@
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
-    "build": "tsc; esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify",
+    "build": "prisma generate; tsc; esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify",
     "build:ci": "npm ci; prisma generate; rm -rf dist; tsc -p ./tsconfig-ci.json; npm ci --omit=dev; cp -R node_modules dist",
     "depcheck": "depcheck",
     "dev": "node ./dist/index.js",

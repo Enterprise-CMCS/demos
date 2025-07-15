@@ -46,3 +46,6 @@ export type {
   EventType,
   EventTypeId
 } from "./model/event/eventTypeSchema.js"
+
+import { BUNDLE_TYPE } from "./constants.js";
+export type BundleType = typeof BUNDLE_TYPE[keyof typeof BUNDLE_TYPE];

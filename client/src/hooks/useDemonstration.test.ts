@@ -105,6 +105,55 @@ describe("useDemonstration", () => {
     });
   });
 
+  describe("updateDemonstration", () => {
+    it("should update demonstration successfully", async () => {
+      const { result } = renderUseDemonstrationHook();
+
+      const updatedInput = {
+        name: "Updated Demo Name",
+        description: "Updated description",
+        evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
+        evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
+        demonstrationStatusId: "1",
+        stateId: "1",
+        userIds: ["1"],
+      };
+
+      const demonstrationId = expectedDemonstration.id;
+
+      // Trigger update
+      await result.current.updateDemonstration.trigger(demonstrationId, updatedInput);
+
+      await waitFor(() => {
+        expect(result.current.updateDemonstration.data).toBeDefined();
+      });
+
+      const updatedDemo = result.current.updateDemonstration.data!;
+      expect(updatedDemo.name).toEqual("Updated Demo Name");
+      expect(result.current.updateDemonstration.error).toBeUndefined();
+    });
+
+    it("should handle error when updating demonstration", async () => {
+      const { result } = renderUseDemonstrationHook();
+
+      const badInput: Partial<AddDemonstrationInput> = {
+        name: "",
+      };
+
+      try {
+        await result.current.updateDemonstration.trigger("invalid-id", badInput as AddDemonstrationInput);
+      } catch {
+        // do nothing, error will be handled in state
+      }
+
+      await waitFor(() => {
+        expect(result.current.updateDemonstration.error).toBeDefined();
+      });
+
+      expect(result.current.updateDemonstration.data).toBeUndefined();
+    });
+  });
+
   describe("initial state", () => {
     it("should have correct initial state for all operations", () => {
       const { result } = renderUseDemonstrationHook();
@@ -121,6 +170,10 @@ describe("useDemonstration", () => {
       expect(result.current.addDemonstration.loading).toBe(false);
       expect(result.current.addDemonstration.data).toBeUndefined();
       expect(result.current.addDemonstration.error).toBeUndefined();
+
+      expect(result.current.updateDemonstration.loading).toBe(false);
+      expect(result.current.updateDemonstration.data).toBeUndefined();
+      expect(result.current.updateDemonstration.error).toBeUndefined();
     });
   });
 });
