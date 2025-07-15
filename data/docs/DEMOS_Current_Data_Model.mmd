@@ -25,11 +25,11 @@ erDiagram
 
   bundle {
     uuid id PK, UK "UK: (id, bundle_type_id)"
-    string bundle_type_id FK, UK "FK: bundle_type.id, UK: (id, bundle_type_id)"
+    text bundle_type_id FK, UK "FK: bundle_type.id, UK: (id, bundle_type_id)"
   }
 
   bundle_type {
-    uuid id PK "Natural Key"
+    text id PK "Natural Key"
     text name
     text description
     timestamptz created_at
@@ -51,7 +51,7 @@ erDiagram
   }
 
   demonstration_bundle_type {
-    string id PK, FK "FK: bundle_type.id"
+    text id PK, FK "FK: bundle_type.id"
   }
 
   demonstration_status {
