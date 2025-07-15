@@ -107,4 +107,4 @@ INSERT INTO "event_type" ("id", "description", "log_level", "updated_at") VALUES
   ('DELETE_DEMONSTRATION_SUCCEEDED', 'A demonstration was deleted', 'INFO', CURRENT_TIMESTAMP),
   ('DELETE_DEMONSTRATION_FAILED', 'Demonstration deletion failed', 'ERROR', CURRENT_TIMESTAMP),
   ('DELETE_DOCUMENT_SUCCEEDED', 'A document was deleted', 'INFO', CURRENT_TIMESTAMP),
-  ('DELETE_DOCUMENT_FAILED', 'Document deletion failed', 'ERROR', CURRENT_TIMESTAMP)
+  ('DELETE_DOCUMENT_FAILED', 'Document deletion failed', 'ERROR', CURRENT_TIMESTAMP);
