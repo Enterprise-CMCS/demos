@@ -41,18 +41,17 @@ const LogNewEventForm = () => {
   const handleLogEvent = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const logEventInput: LogEventArguments = {
-        eventTypeId,
-      };
+    const logEventInput: LogEventArguments = {
+      eventTypeId,
+    };
 
-      const result = await logEvent(logEventInput);
-      if (result.data?.logEvent) {
-        showSuccess(`Event logged successfully with ID: ${result.data.logEvent.id}`);
-      }
-    } catch (err) {
-      showError(err instanceof Error ? err.message : "Failed to log event");
+    const result = await logEvent(logEventInput);
+    if (result.data?.logEvent.success) {
+      showSuccess("Event logged successfully");
+    } else {
+      showError("Failed to log event: " +  result.data?.logEvent.message || "Unknown error");
     }
+
   };
 
   return (
