@@ -2,7 +2,7 @@ model Event {
   id          String   @id @default(uuid()) @db.Uuid
   userId      String   @map("user_id") @db.Uuid
   eventTypeId String   @map("event_type_id")
-  withRoleId  String   @map("with_role_id")
+  withRoleId  String   @map("with_role_id") @db.Uuid
   route       String
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
   eventData   Json?    @map("event_data") @db.Json

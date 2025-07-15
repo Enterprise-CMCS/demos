@@ -1,0 +1,11 @@
+model EventType {
+  id          String   @id
+  description String
+  logLevel    LogLevel @map("log_level")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  events Event[]
+
+  @@map("event_type")
+}
