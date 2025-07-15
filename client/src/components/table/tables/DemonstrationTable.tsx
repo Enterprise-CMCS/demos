@@ -1,5 +1,5 @@
 import * as React from "react";
-
+import { RawDemonstration } from "../../../pages/Demonstrations";
 import { DemonstrationColumns } from "components/table/columns/DemonstrationColumns";
 import { ColumnFilterByDropdown } from "components/table/filters/ColumnFilterSelect";
 import { PaginationControls } from "components/table/pagination/PaginationControls";
@@ -17,22 +17,8 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { KeywordSearch } from "../search/KeywordSearch";
-import { DemonstrationStatus } from "demos-server";
 
-export interface RawDemonstration {
-  id: number;
-  title: string;
-  demoNumber: string;
-  description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
-  demonstrationStatus: DemonstrationStatus;
-  stateId: string;
-  projectOfficer: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { KeywordSearch } from "../search/KeywordSearch";
 
 export interface DemonstrationTableProps {
   data: RawDemonstration[];

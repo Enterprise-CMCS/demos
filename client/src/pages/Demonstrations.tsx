@@ -4,6 +4,7 @@ import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import { TabItem, Tabs } from "layout/Tabs";
 import { DemonstrationStatus } from "demos-server";
 
+// Centalized all type to come from this file
 export type RawDemonstration = {
   id: number;
   title: string;
@@ -11,7 +12,7 @@ export type RawDemonstration = {
   description: string;
   evalPeriodStartDate: string;
   evalPeriodEndDate: string;
-  demonstrationStatus: DemonstrationStatus;
+  demonstrationStatus: DemonstrationStatus | null;
   demonstrationStatusId: string;
   stateId: string;
   state: string;
@@ -20,6 +21,40 @@ export type RawDemonstration = {
   createdAt: string;
   updatedAt: string;
 };
+
+export interface DemoStatus {
+  id: string;
+  name: string;
+}
+
+export interface StatesAndTerritories {
+  id: string; // will be statecode.
+  stateCode: string;
+  stateName: string;
+}
+
+export interface ProjectOfficerUser {
+  id: string;
+  displayName: string;
+  email: string;
+}
+
+export interface DemoFromQuery {
+  id: string;
+  name: string;
+  description: string;
+  evaluationPeriodStartDate: string;
+  evaluationPeriodEndDate: string;
+  createdAt: string;
+  updatedAt: string;
+  projectOfficerUser: ProjectOfficerUser | null;
+  state: StatesAndTerritories | null;
+  demonstrationStatus: DemoStatus | null;
+}
+
+export interface DemonstrationsQueryData {
+    demonstrations: DemoFromQuery[];
+  }
 
 export const DEMONSTRATIONS_TABLE = gql`
   query GetDemonstrations {
@@ -55,16 +90,16 @@ export const Demonstrations: React.FC = () => {
   const { data, loading, error } = useQuery(DEMONSTRATIONS_TABLE);
 
   const allDemos: RawDemonstration[] =
-    data?.demonstrations?.map((demo) => ({
+    (data as DemonstrationsQueryData)?.demonstrations?.map((demo: DemoFromQuery) => ({
       id: parseInt(demo.id),
       title: demo.name,
       demoNumber: "",
       description: demo.description,
       evalPeriodStartDate: demo.evaluationPeriodStartDate,
       evalPeriodEndDate: demo.evaluationPeriodEndDate,
-      demonstrationStatus: demo.demonstrationStatus,
-      demonstrationStatusId: demo.demonstrationStatus?.id,
-      stateId: demo.state?.id,
+      demonstrationStatus: demo.demonstrationStatus as DemonstrationStatus | null,
+      demonstrationStatusId: demo.demonstrationStatus?.id || "",
+      stateId: demo.state?.id || "",
       state: demo.state?.stateName || "",
       projectOfficer: demo.projectOfficerUser?.displayName || "",
       userId: parseInt(demo.projectOfficerUser?.id || "0"),

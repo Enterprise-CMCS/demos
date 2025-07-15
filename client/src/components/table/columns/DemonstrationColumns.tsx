@@ -7,24 +7,10 @@ import {
 
 import { ColumnDef } from "@tanstack/react-table";
 import { highlightText } from "../search/KeywordSearch";
-import { DemonstrationStatus } from "demos-server";
 import { SecondaryButton } from "../../button/SecondaryButton";
+import { RawDemonstration } from "../../../pages/Demonstrations";
 
-export type DemonstrationColumns = {
-  id: number;
-  title: string;
-  description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
-  demonstrationStatus: DemonstrationStatus;
-  stateId: string;
-  projectOfficer: string;
-  demoNumber: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-const selectColumn: ColumnDef<DemonstrationColumns> = {
+const selectColumn: ColumnDef<RawDemonstration> = {
   id: "Select",
   header: ({ table }) => (
     <input
@@ -49,7 +35,7 @@ const selectColumn: ColumnDef<DemonstrationColumns> = {
   size: 20,
 };
 
-const dataColumns: ColumnDef<DemonstrationColumns>[] = [
+const dataColumns: ColumnDef<RawDemonstration>[] = [
   {
     header: "State/Territory",
     accessorKey: "stateId",
@@ -113,7 +99,7 @@ const dataColumns: ColumnDef<DemonstrationColumns>[] = [
   },
 ];
 
-const expanderColumn: ColumnDef<DemonstrationColumns> = {
+const expanderColumn: ColumnDef<RawDemonstration> = {
   id: "expander",
   header: () => null,
   cell: ({ row }) =>
@@ -137,7 +123,7 @@ const expanderColumn: ColumnDef<DemonstrationColumns> = {
   size: 20,
 };
 
-export const DemonstrationColumns: ColumnDef<DemonstrationColumns>[] = [
+export const DemonstrationColumns: ColumnDef<RawDemonstration>[] = [
   selectColumn,
   ...dataColumns,
   expanderColumn,
