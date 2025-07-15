@@ -4,6 +4,7 @@ import { DebugOnly } from "components/debug/DebugOnly";
 import {
   ActionsIcon,
   AnalyticsIcon,
+  CommentIcon,
   CompareIcon,
   FavoriteIcon,
   FolderIcon,
@@ -39,6 +40,7 @@ const debugNavLinks: NavLink[] = [
   { label: "Components", href: "/components", icon: <FolderIcon /> },
   { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
   { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
+  { label: "Events", href: "/events", icon: <CommentIcon /> },
 ];
 
 interface NavLinkProps {

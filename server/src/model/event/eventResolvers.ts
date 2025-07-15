@@ -1,5 +1,5 @@
 import { prisma } from '../../prismaClient.js';
-import { CreateEventInput } from './eventSchema.js';
+import { LogEventInput } from './eventSchema.js';
 import { GraphQLContext, getCurrentUserId, getCurrentUserRoleId } from '../../auth/auth.util.js';
 
 export const eventResolvers = {
@@ -64,7 +64,7 @@ export const eventResolvers = {
   },
 
   Mutation: {
-    createEvent: async (_: undefined, { input }: { input: CreateEventInput }, context: GraphQLContext) => {
+    logEvent: async (_: undefined, { input }: { input: LogEventInput }, context: GraphQLContext) => {
       const { eventTypeId, route, eventData } = input;
       
       const userId = await getCurrentUserId(context);

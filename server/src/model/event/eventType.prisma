@@ -10,7 +10,7 @@ model EventType {
   description String
   logLevel    LogLevel
 
-  events       Event[]
+  events Event[]
 
   @@map("event_type")
 }

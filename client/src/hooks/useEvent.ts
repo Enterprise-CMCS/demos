@@ -25,7 +25,7 @@ interface GetEventsOperation {
 }
 
 export interface EventOperations {
-  logEvent: (input: LogEventInput) => Promise<FetchResult<{ logEvent: EventHydrated }>>;
+  logEvent: LogEventOperation;
   getEvents: GetEventsOperation;
 }
 
@@ -63,7 +63,7 @@ export const useEvent = (): EventOperations => {
   const getEventsOperation = createGetEventsHook();
 
   return {
-    logEvent: logEventOperation.trigger,
+    logEvent: logEventOperation,
     getEvents: getEventsOperation,
   };
 };

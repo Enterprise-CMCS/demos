@@ -13,6 +13,7 @@ import { DemosApolloProvider } from "./DemosApolloProvider";
 import { isDevelopmentMode } from "config/env";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { EventList } from "pages/debug/EventList";
 
 export const DemosRouter = () => {
   // TODO: When we know what IDM integration looks like
@@ -45,6 +46,7 @@ export const DemosRouter = () => {
                     <Route path="/hooks" element={<TestHooks />} />
                     <Route path="/auth" element={<AuthComponent />} />
                     <Route path="/icons" element={<IconLibrary />} />
+                    <Route path="/events" element={<EventList />} />
                   </>
                 )}
               </Route>
