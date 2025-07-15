@@ -13,6 +13,7 @@ import {
 
 import { DocumentColumns } from "components/table/columns/DocumentColumns";
 import { AutoCompleteSelect, Option } from "components/input/select/AutoCompleteSelect";
+import { PaginationControls } from "components/table//pagination/PaginationControls";
 
 export interface RawDocument {
   id: number;
@@ -179,8 +180,28 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
           )}
         </tbody>
       </table>
-
-      {/* Pagination controls can be added here if needed */}
+      <hr className="border-t-2 border-gray-400 my-4" />
+      <PaginationControls
+        currentPage={table.getState().pagination.pageIndex}
+        totalPages={table.getPageCount()}
+        pageSize={table.getState().pagination.pageSize}
+        totalRows={table.getFilteredRowModel().rows.length}
+        onPageSizeChange={(newSize) => {
+          if (newSize < 0) {
+            table.setPageSize(table.getFilteredRowModel().rows.length);
+            table.setPageIndex(0);
+          } else {
+            table.setPageSize(newSize);
+            table.setPageIndex(0);
+          }
+        }}
+        onPageChange={(p) => table.setPageIndex(p)}
+        onPreviousPage={() => table.previousPage()}
+        onNextPage={() => table.nextPage()}
+        canPreviousPage={table.getCanPreviousPage()}
+        canNextPage={table.getCanNextPage()}
+        perPageChoices={[5, 10, 20, 50, -1]}
+      />
     </div>
   );
 }
