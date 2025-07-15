@@ -1,4 +1,4 @@
-import rawDemoData from "../faker_data/demonstrations_take_2.json";
+import rawDemoData from "../faker_data/demonstrations.json";
 import { states } from "../data/StatesAndTerritories";
 import { demonstrationStatuses } from "./demonstrationStatusMocks";
 import { MockedResponse } from "@apollo/client/testing";
@@ -32,7 +32,7 @@ export function transformRawDemos(rawData: any[]) {
 
     return {
       id: convertToUUID(row.id),
-      title: row.title || row.name, // <-- ensure 'title' is present
+      name: row.title || row.name, // <-- ensure 'title' is present
       description: row.description,
       evaluationPeriodStartDate: row.evaluationPeriodStartDate
         ? new Date(row.evaluationPeriodStartDate)
@@ -57,14 +57,14 @@ export function transformRawDemos(rawData: any[]) {
         : null,
       state: stateMatch
         ? {
-          id: convertToUUID(stateMatch.abbrev),
+          id: stateMatch.abbrev,
           stateName: stateMatch.name,
           stateCode: stateMatch.abbrev,
         }
         : null,
       stateName: stateMatch?.name || "",
       users: [],
-      projectOfficer: projectOfficer,
+      projectOfficerUser: projectOfficer,
       status: statusMatch?.name || "Unknown",
     };
   });

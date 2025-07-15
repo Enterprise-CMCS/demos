@@ -1,15 +1,9 @@
 import React from "react";
-import { gql } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
-// import DemoData from "faker_data/empty_demonstrations.json";
-import DemoData from "faker_data/demonstrations.json";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
 import { DemonstrationStatus } from "demos-server";
 
-// Using JSON dummy data.
 type RawDemonstration = {
   id: number;
   title: string;
@@ -20,6 +14,7 @@ type RawDemonstration = {
   demonstrationStatus: DemonstrationStatus;
   demonstrationStatusId: string;
   stateId: string;
+  state: string;
   projectOfficer: string;
   userId: number;
   createdAt: string;
@@ -55,16 +50,33 @@ export const DEMONSTRATIONS_TABLE = gql`
   }
 `;
 
-
 export const Demonstrations: React.FC = () => {
-  // Dummy value - replace me!
   const currentUserId = 123;
 
-  const myDemos: RawDemonstration[] = (DemoData as RawDemonstration[]).filter(
+  const { data, loading, error } = useQuery(DEMONSTRATIONS_TABLE);
+
+  const allDemos: RawDemonstration[] =
+    data?.demonstrations?.map((demo) => ({
+      id: parseInt(demo.id),
+      title: demo.name,
+      demoNumber: "",
+      description: demo.description,
+      evalPeriodStartDate: demo.evaluationPeriodStartDate,
+      evalPeriodEndDate: demo.evaluationPeriodEndDate,
+      demonstrationStatus: demo.demonstrationStatus,
+      demonstrationStatusId: demo.demonstrationStatus?.id,
+      stateId: demo.state?.id,
+      state: demo.state?.stateName || "",
+      projectOfficer: demo.projectOfficerUser?.displayName || "",
+      userId: parseInt(demo.projectOfficerUser?.id || "0"),
+      createdAt: demo.createdAt,
+      updatedAt: demo.updatedAt,
+    })) || [];
+
+  const myDemos = allDemos.filter(
     (demo) => demo.userId === currentUserId
   );
 
-  const allDemos: RawDemonstration[] = (DemoData as RawDemonstration[]);
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
   const tabList: TabItem[] = [
@@ -80,21 +92,29 @@ export const Demonstrations: React.FC = () => {
     },
   ];
 
-  // If you ask me, this is the best part of this feature
   const dataToShow = tab === "my" ? myDemos : allDemos;
+  console.log("Data to show:", allDemos);
+  // return;
+  if (loading) {
+    return <div>Loading demonstrations…</div>;
+  }
+
+  if (error) {
+    return <div>Error loading demonstrations: {error.message}</div>;
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Demonstrations</h1>
+      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">
+        Demonstrations
+      </h1>
 
-      {/* TABS HEADER COMPONENT */}
       <Tabs
         tabs={tabList}
         selectedValue={tab}
         onChange={(newVal) => setTab(newVal as "my" | "all")}
       />
-      {console.log("Data:", dataToShow[0])}
-      {/* one table req'd to rule them all */}
+
       <div className="h-[60vh] overflow-y-auto">
         <DemonstrationTable
           data={dataToShow}

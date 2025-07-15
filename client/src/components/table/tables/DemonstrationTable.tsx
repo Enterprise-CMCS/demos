@@ -1,25 +1,13 @@
 import * as React from "react";
 
-import {
-  DemonstrationColumns,
-} from "components/table/columns/DemonstrationColumns";
-import {
-  ColumnFilterByDropdown,
-} from "components/table/filters/ColumnFilterSelect";
-import {
-  PaginationControls,
-} from "components/table/pagination/PaginationControls";
-import {
-  DemoWithSubRows,
-  groupByDemoNumber,
-} from "components/table/preproccessors/GroupByDemoNumber";
+import { DemonstrationColumns } from "components/table/columns/DemonstrationColumns";
+import { ColumnFilterByDropdown } from "components/table/filters/ColumnFilterSelect";
+import { PaginationControls } from "components/table/pagination/PaginationControls";
 
 import {
   ColumnFiltersState,
-  ExpandedState,
   flexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -57,10 +45,7 @@ export function DemonstrationTable({
   className = "",
   isMyDemosTable = false,
 }: DemonstrationTableProps) {
-  const hierarchicalData: DemoWithSubRows[] = React.useMemo(
-    () => groupByDemoNumber(data),
-    [data]
-  );
+  const tableData = data;
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "stateId", desc: false },
@@ -71,11 +56,16 @@ export function DemonstrationTable({
     pageSize: 10,
   });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
-  const arrIncludesAllInsensitive = (row: Row<DemonstrationColumns>, columnId: string, filterValue: (string | undefined)[]) => {
-    const validFilterValues = filterValue.filter((val): val is string => val != null);
+  const arrIncludesAllInsensitive = (
+    row: Row<RawDemonstration>,
+    columnId: string,
+    filterValue: (string | undefined)[]
+  ) => {
+    const validFilterValues = filterValue.filter(
+      (val): val is string => val != null
+    );
 
     if (validFilterValues.length === 0) {
       return true;
@@ -92,35 +82,28 @@ export function DemonstrationTable({
     });
   };
 
-  const table = useReactTable<DemoWithSubRows>({
-    data: hierarchicalData,
+  const table = useReactTable<RawDemonstration>({
+    data: tableData,
     columns: DemonstrationColumns,
-    getSubRows: (row) => row.subRows ?? [],
 
     state: {
       sorting,
       pagination,
       columnFilters,
-      expanded,
       rowSelection,
     },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
-    onExpandedChange: setExpanded,
     onRowSelectionChange: setRowSelection,
 
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     globalFilterFn: arrIncludesAllInsensitive,
   });
 
-
-
-  // Pagination state variables
   const currentPage = table.getState().pagination.pageIndex;
   const totalPages = table.getPageCount();
   const pageSize = table.getState().pagination.pageSize;
@@ -139,15 +122,15 @@ export function DemonstrationTable({
   };
 
   const perPageChoices = [10, 20, 50, -1];
-  // We can expand this if we want to add more types of demo tables in the future.
 
   const emptyRowsMessage = isMyDemosTable
     ? "You have no assigned demonstrations at this time."
     : "No demonstrations are tracked.";
 
-  const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
+  const noResultsFoundMessage =
+    "No results were returned. Adjust your search and filter criteria.";
 
-  const hasDataInitially = hierarchicalData.length > 0;
+  const hasDataInitially = tableData.length > 0;
   const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
   const filtersClearedOutData =
     hasDataInitially && !hasDataAfterFiltering;
@@ -155,16 +138,20 @@ export function DemonstrationTable({
   return (
     <div className={`overflow-x-auto w-full ${className} mb-2`}>
       <div className="flex items-center mb-2">
-        <KeywordSearch<DemoWithSubRows> table={table} label="Search:"></KeywordSearch>
-        <ColumnFilterByDropdown<DemoWithSubRows>
+        <KeywordSearch<RawDemonstration>
+          table={table}
+          label="Search:"
+        ></KeywordSearch>
+        <ColumnFilterByDropdown<RawDemonstration>
           table={table}
           columns={table
             .getAllColumns()
-            .filter(col => col.id !== "select" && col.id !== "expander")}
+            .filter(
+              (col) => col.id !== "select" && col.id !== "expander"
+            )}
           label="Filter by:"
         />
       </div>
-      {/* Table header with sorting */}
       <table className="w-full table-fixed text-sm">
         <thead>
           {table.getHeaderGroups().map((hg) => (
@@ -175,7 +162,10 @@ export function DemonstrationTable({
                   className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
                   onClick={header.column.getToggleSortingHandler()}
                 >
-                  {flexRender(header.column.columnDef.header, header.getContext())}
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
                   {{
                     asc: " ↑",
                     desc: " ↓",
@@ -206,36 +196,22 @@ export function DemonstrationTable({
             </tr>
           ) : (
             table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className={row.depth > 0 ? "bg-gray-200" : ""}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const colId = cell.column.id;
-                  if (
-                    row.depth > 0 &&
-                    (colId === "stateId" || colId === "demoNumber")
-                  ) {
-                    return (
-                      <td
-                        key={cell.id}
-                        className="px-2 py-1 border-b text-left text-gray-400"
-                      >
-                        &mdash;
-                      </td>
-                    );
-                  }
-                  return (
-                    <td key={cell.id} className="px-2 py-1 border-b">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  );
-                })}
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className="px-2 py-1 border-b"
+                  >
+                    {flexRender(
+                      cell.column.columnDef.cell,
+                      cell.getContext()
+                    )}
+                  </td>
+                ))}
               </tr>
             ))
           )}
         </tbody>
-
       </table>
       <hr className="border-t-2 border-gray-400" />
       <PaginationControls
