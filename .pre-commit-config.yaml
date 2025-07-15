@@ -3,6 +3,7 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-added-large-files
+        args: ['--maxkb=1024']
       - id: no-commit-to-branch
       - id: check-case-conflict
   - repo: https://github.com/gitleaks/gitleaks

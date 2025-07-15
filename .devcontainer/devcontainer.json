@@ -28,5 +28,12 @@
 
     "otherPortsAttributes": {
         "onAutoForward": "ignore"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "tomoyukim.vscode-mermaid-editor"
+            ]
+        }
     }
 }
