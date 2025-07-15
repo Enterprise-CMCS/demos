@@ -80,47 +80,53 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
   return (
     <div className={`overflow-x-auto w-full ${className} mb-2`}>
       <div className="mb-4 flex items-center gap-4">
-        <label htmlFor="filterBy" className="font-semibold">
-          Filter by:
-        </label>
-        <select
-          id="filterBy"
-          className="border border-gray-300 rounded px-2 py-1"
-          value={filterBy}
-          onChange={(e) => {
-            setFilterBy(e.target.value as FilterType);
-            setTypeFilter("");
-            setDateFilter("");
-          }}
-        >
-          <option value="">Select filter</option>
-          <option value="type">Type</option>
-          <option value="uploadDate">Upload Date</option>
-        </select>
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="filterBy"
+            className="font-semibold"
+          >
+            Filter By:
+          </label>
+          <div className="flex gap-1">
+            <select
+              id="filterBy"
+              className="border px-2 py-1 rounded"
+              value={filterBy}
+              onChange={(e) => {
+                setFilterBy(e.target.value as FilterType);
+                setTypeFilter("");
+                setDateFilter("");
+              }}
+            >
+              <option value="">Select filter</option>
+              <option value="type">Type</option>
+              <option value="uploadDate">Upload Date</option>
+            </select>
+            {filterBy === "type" && (
+              <div className="w-48">
+                { /* TODO: This needs to be updated to multiselect once implemented */ }
+                <AutoCompleteSelect
+                  options={typeOptions}
+                  placeholder="Select document type"
+                  value={typeFilter}
+                  onSelect={(val) => setTypeFilter(val)}
+                  id="documentTypeFilter"
+                />
+              </div>
+            )}
 
-        {filterBy === "type" && (
-          <div className="w-48">
-            { /* TODO: This needs to be updated to multiselect once implemented */ }
-            <AutoCompleteSelect
-              options={typeOptions}
-              placeholder="Select document type"
-              value={typeFilter}
-              onSelect={(val) => setTypeFilter(val)}
-              id="documentTypeFilter"
-            />
+            {filterBy === "uploadDate" && (
+              <input
+                type="date"
+                id="uploadDateFilter"
+                data-testid="upload-date-filter"
+                className="border border-gray-300 rounded px-2 py-1"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+              />
+            )}
           </div>
-        )}
-
-        {filterBy === "uploadDate" && (
-          <input
-            type="date"
-            id="uploadDateFilter"
-            data-testid="upload-date-filter"
-            className="border border-gray-300 rounded px-2 py-1"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-          />
-        )}
+        </div>
       </div>
 
       <table className="w-full table-fixed text-sm border-collapse border border-gray-200">

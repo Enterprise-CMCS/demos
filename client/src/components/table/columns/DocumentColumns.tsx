@@ -3,8 +3,45 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { RawDocument } from "components/table/tables/DocumentTable";
+import { DemonstrationColumns } from "./DemonstrationColumns";
 
-export const DocumentColumns: ColumnDef<RawDocument>[] = [
+export type DocumentColumns = {
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  uploadedBy: string;
+  uploadDate: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const selectColumn: ColumnDef<DocumentColumns> = {
+  id: "Select",
+  header: ({ table }) => (
+    <input
+      id="select-all-rows"
+      type="checkbox"
+      className="cursor-pointer"
+      aria-label="Select all rows"
+      checked={table.getIsAllPageRowsSelected()}
+      onChange={table.getToggleAllPageRowsSelectedHandler()}
+    />
+  ),
+  cell: ({ row }) => (
+    <input
+      id={`select-row-${row.id}`}
+      type="checkbox"
+      className="cursor-pointer"
+      checked={row.getIsSelected()}
+      onChange={row.getToggleSelectedHandler()}
+      aria-label={`Select row ${row.index + 1}`}
+    />
+  ),
+  size: 20,
+};
+
+const dataColumns: ColumnDef<RawDocument>[] = [
   {
     header: "Title",
     accessorKey: "title",
@@ -45,4 +82,9 @@ export const DocumentColumns: ColumnDef<RawDocument>[] = [
     },
     enableSorting: false,
   },
+];
+
+export const DocumentColumns: ColumnDef<DocumentColumns>[] = [
+  selectColumn,
+  ...dataColumns,
 ];
