@@ -44,7 +44,6 @@ export const DEMONSTRATIONS_TABLE = gql`
       demonstrationStatus {
         id
         name
-        description
       }
     }
   }

@@ -21,12 +21,17 @@ export function transformRawDemos(rawData: any[]) {
       (status) => String(status.id) === String(row.demonstrationStatusId)
     );
 
+    const randomEmail = () => {
+      const randomStr = Math.random().toString(36).substring(2, 10);
+      return `${randomStr}@example.com`;
+    };
+    console.log(``)
     // Instead of joining userMocks, just use projectOfficerUser
     const projectOfficer = row.projectOfficerUser
       ? {
-        id: convertToUUID(row.projectOfficerUserId),
-        fullName: row.projectOfficerUser,
-        displayName: row.projectOfficerUser,
+        id: row.id,
+        displayName: row.projectOfficerUser || "John Doe",
+        email: randomEmail(),
       }
       : null;
 
@@ -48,12 +53,12 @@ export function transformRawDemos(rawData: any[]) {
         : new Date(),
       demonstrationStatus: statusMatch
         ? {
-          id: convertToUUID(statusMatch.id),
+          id: statusMatch.id,
           name: statusMatch.name,
         }
         : null,
       demonstrationStatusId: statusMatch
-        ? convertToUUID(statusMatch.id)
+        ? statusMatch.id
         : null,
       state: stateMatch
         ? {
@@ -93,7 +98,6 @@ const DEMONSTRATIONS_TABLE = gql`
       demonstrationStatus {
         id
         name
-        description
       }
     }
   }
