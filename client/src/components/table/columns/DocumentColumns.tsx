@@ -3,7 +3,6 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { RawDocument } from "components/table/tables/DocumentTable";
-import { DemonstrationColumns } from "./DemonstrationColumns";
 
 export type DocumentColumns = {
   id: number;
