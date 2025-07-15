@@ -25,7 +25,6 @@ export function transformRawDemos(rawData: any[]) {
       const randomStr = Math.random().toString(36).substring(2, 10);
       return `${randomStr}@example.com`;
     };
-    console.log(``)
     // Instead of joining userMocks, just use projectOfficerUser
     const projectOfficer = row.projectOfficerUser
       ? {

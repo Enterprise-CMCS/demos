@@ -92,8 +92,7 @@ export const Demonstrations: React.FC = () => {
   ];
 
   const dataToShow = tab === "my" ? myDemos : allDemos;
-  console.log("Data to show:", allDemos);
-  // return;
+
   if (loading) {
     return <div>Loading demonstrations…</div>;
   }
