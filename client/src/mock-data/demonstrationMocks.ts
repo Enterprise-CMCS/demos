@@ -1,7 +1,6 @@
 import rawDemoData from "../faker_data/demonstrations_take_2.json";
 import { states } from "../data/StatesAndTerritories";
 import { demonstrationStatuses } from "./demonstrationStatusMocks";
-import { userMocks } from "./userMocks";
 import { MockedResponse } from "@apollo/client/testing";
 import { DEMONSTRATIONS_TABLE } from "../pages/Demonstrations";
 
@@ -19,7 +18,7 @@ export function transformRawDemos(rawData: any[]) {
       (status) => String(status.id) === String(row.demonstrationStatusId)
     );
 
-    // Instead of trying to join with userMocks, just use the projectOfficerUser string
+    // Instead of joining userMocks, just use projectOfficerUser
     const projectOfficer = row.projectOfficerUser
       ? {
         id: convertToUUID(row.projectOfficerUserId),
@@ -28,19 +27,30 @@ export function transformRawDemos(rawData: any[]) {
       }
       : null;
 
-    const users = userMocks.filter(
-      (user) => row.userIds?.includes(String(user.id))
-    );
-
     return {
       id: convertToUUID(row.id),
       name: row.name,
       description: row.description,
+      evaluationPeriodStartDate: row.evaluationPeriodStartDate
+        ? new Date(row.evaluationPeriodStartDate)
+        : null,
+      evaluationPeriodEndDate: row.evaluationPeriodEndDate
+        ? new Date(row.evaluationPeriodEndDate)
+        : null,
+      createdAt: row.createdAt
+        ? new Date(row.createdAt)
+        : new Date(),
+      updatedAt: row.updatedAt
+        ? new Date(row.updatedAt)
+        : new Date(),
       demonstrationStatus: statusMatch
         ? {
           id: convertToUUID(statusMatch.id),
           name: statusMatch.name,
         }
+        : null,
+      demonstrationStatusId: statusMatch
+        ? convertToUUID(statusMatch.id)
         : null,
       state: stateMatch
         ? {
@@ -49,14 +59,14 @@ export function transformRawDemos(rawData: any[]) {
           stateCode: stateMatch.abbrev,
         }
         : null,
-      users: users.map((u) => ({
-        id: convertToUUID(u.id),
-        fullName: u.fullName,
-      })),
+      stateName: stateMatch?.name || "",
+      users: [],
       projectOfficer: projectOfficer,
+      status: statusMatch?.name || "Unknown",
     };
   });
 }
+
 
 
 export const transformedDemonstrations = transformRawDemos(rawDemoData);

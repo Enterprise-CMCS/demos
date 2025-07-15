@@ -6,7 +6,7 @@ import {
 } from "components/table/tables/DemonstrationTable";
 import { Tabs, TabItem } from "layout/Tabs";
 
-const DEMONSTRATIONS_TABLE = gql`
+export const DEMONSTRATIONS_TABLE = gql`
   query GetDemonstrations {
     demonstrations {
       id
@@ -79,6 +79,7 @@ export const Demonstrations: React.FC = () => {
   if (error) return <div>Error: {error.message}</div>;
 
   const allDemos = data?.demonstrations || [];
+  console.log("All Demonstrations:", allDemos[0]);
 
   // Replace with real user id from auth context or wherever you store it
   const currentUserId = "ba67a354-b73b-4ea9-8134-c7fccfd5fad8";
@@ -113,7 +114,7 @@ export const Demonstrations: React.FC = () => {
       evalPeriodStartDate: demo.evaluationPeriodStartDate,
       evalPeriodEndDate: demo.evaluationPeriodEndDate,
       demonstrationStatusId: demo.demonstrationStatus?.id,
-      stateName: demo.state?.stateName,
+      state: demo.state?.stateName,
       projectOfficer:
         demo?.projectOfficerUser?.displayName ||
         demo?.projectOfficerUser?.fullName ||

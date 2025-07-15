@@ -1,4 +1,5 @@
 import * as React from "react";
+import { User } from "demos-server";
 import { gql } from "@apollo/client";
 import {
   DemonstrationColumns,
@@ -38,14 +39,12 @@ export interface FullDemonstrationTableRow {
   id: string;
   title: string;
   getSubRows?: DemoWithSubRows[];
-  demoNumber: string;
   description: string;
   evalPeriodStartDate?: Date | null;
   evalPeriodEndDate?: Date | null;
   demonstrationStatusId?: string | null;
-  stateName: string;
+  state: string;
   projectOfficerUser?: User | null;
-  userId?: string | null;
   createdAt: Date;
   updatedAt: Date;
   status: string;
@@ -54,7 +53,7 @@ export interface FullDemonstrationTableRow {
 
 export interface RawDemonstration {
   id: string | number;
-  stateName: string;
+  state: string;
   title: string;
   projectOfficer: string;
   status: string;
@@ -73,7 +72,7 @@ export function DemonstrationTable({
 }: DemonstrationTableProps) {
   const hierarchicalData = data;
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "stateName", desc: false },
+    { id: "state", desc: false },
     { id: "title", desc: false },
   ]);
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -105,7 +104,7 @@ export function DemonstrationTable({
   const table = useReactTable<FullDemonstrationTableRow>({
     data: hierarchicalData,
     columns: DemonstrationColumns,
-    getSubRows: (row) => row.getSubRows ?? [],
+    // getSubRows: (row) => row.getSubRows ?? [],
 
     state: {
       sorting,
@@ -224,7 +223,7 @@ export function DemonstrationTable({
                   const colId = cell.column.id;
                   if (
                     row.depth > 0 &&
-                    (colId === "stateName" || colId === "demoNumber")
+                    (colId === "state" || colId === "demoNumber")
                   ) {
                     return (
                       <td
