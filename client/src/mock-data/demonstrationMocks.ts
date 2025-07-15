@@ -6,6 +6,7 @@ import {
   ADD_DEMONSTRATION_QUERY,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
+  UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
 
@@ -68,5 +69,35 @@ export const demonstrationMocks: MockedResponse[] = [
       variables: { input: { name: "bad add demonstration" } },
     },
     error: new Error("Failed to add demonstration"),
+  },
+
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "1",
+        input: {
+          name: "Updated Demo Name",
+          description: "Updated description",
+          evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
+          evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
+          demonstrationStatusId: "1",
+          stateId: "1",
+          userIds: ["1"],
+        },
+      },
+    },
+    result: {
+      data: {
+        updateDemonstration: {
+          ...testDemonstration,
+          name: "Updated Demo Name",
+          description: "Updated description",
+          evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
+          evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
+          updatedAt: new Date("2024-07-01T00:00:00.000Z"),
+        },
+      },
+    },
   },
 ];
