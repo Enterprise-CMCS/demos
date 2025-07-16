@@ -3,7 +3,12 @@ import { states } from "../data/StatesAndTerritories";
 import { demonstrationStatuses } from "./demonstrationStatusMocks";
 import { MockedResponse } from "@apollo/client/testing";
 import { DEMONSTRATIONS_TABLE } from "../pages/Demonstrations";
-import { ADD_DEMONSTRATION_QUERY } from "queries/demonstrationQueries";
+import {
+  ADD_DEMONSTRATION_QUERY,
+  GET_DEMONSTRATION_BY_ID_QUERY,
+  GET_ALL_DEMONSTRATIONS_QUERY,
+  UPDATE_DEMONSTRATION_MUTATION,
+} from "queries/demonstrationQueries";
 import { johnDoe } from "./userMocks";
 import { AddDemonstrationInput } from "demos-server";
 
@@ -100,6 +105,36 @@ export const mockAddDemonstrationInput: AddDemonstrationInput = {
   projectOfficerUserId: johnDoe.id,
 };
 
+const sampleState = states.find(s => s.abbreviation === "MD")!;
+
+
+export const testDemonstration = {
+  id: "00000000-0000-0000-0000-000000000001",
+  name: "Medicaid Illinois Tribal Demonstration",
+  description: "This is a test demonstration record for unit tests.",
+  evaluationPeriodStartDate: new Date("2025-01-01T00:00:00.000Z"),
+  evaluationPeriodEndDate: new Date("2025-12-31T23:59:59.000Z"),
+  createdAt: new Date("2025-01-01T12:00:00.000Z"),
+  updatedAt: new Date("2025-02-01T12:00:00.000Z"),
+  demonstrationStatus: {
+    id: demonstrationStatuses[0].id,
+    name: demonstrationStatuses[0].name,
+  },
+  demonstrationStatusId: demonstrationStatuses[0].id,
+  state: {
+    id: sampleState.abbreviation,
+    stateName: sampleState.name,
+    stateCode: sampleState.abbreviation,
+  },
+  stateName: sampleState.name,
+  users: [],
+  projectOfficerUser: {
+    id: johnDoe.id,
+    displayName: johnDoe.displayName,
+    email: johnDoe.email,
+  },
+  status: demonstrationStatuses[0].name,
+};
 
 export const transformedDemonstrations = transformRawDemos(rawDemoData);
 
@@ -114,28 +149,74 @@ export const demonstrationMocks: MockedResponse[] = [
       },
     },
   },
+  {
+    request: {
+      query: GET_ALL_DEMONSTRATIONS_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: transformedDemonstrations,
+      },
+    },
+  },
+
+  {
+    request: {
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      variables: { id: testDemonstration.id },
+    },
+    result: {
+      data: { demonstration: testDemonstration },
+    },
+  },
 
   {
     request: {
       query: ADD_DEMONSTRATION_QUERY,
+      variables: { input: mockAddDemonstrationInput },
+    },
+    result: {
+      data: { addDemonstration: testDemonstration },
+    },
+  },
+
+  {
+    request: {
+      query: ADD_DEMONSTRATION_QUERY,
+      variables: { input: { name: "bad add demonstration" } },
+    },
+    error: new Error("Failed to add demonstration"),
+  },
+
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
       variables: {
-        input: mockAddDemonstrationInput,
+        id: testDemonstration.id,
+        input: {
+          name: "Updated Demo Name",
+          description: "Updated description",
+          evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
+          evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
+          demonstrationStatusId: testDemonstration.demonstrationStatusId,
+          stateId: testDemonstration.state?.id,
+          userIds: [],
+          projectOfficerUserId: testDemonstration.projectOfficerUser?.id,
+        },
       },
     },
     result: {
       data: {
-        addDemonstration: mockAddDemonstrationInput,
+        updateDemonstration: {
+          ...testDemonstration,
+          name: "Updated Demo Name",
+          description: "Updated description",
+          evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
+          evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
+          updatedAt: new Date("2024-07-01T00:00:00.000Z"),
+        },
       },
     },
   },
 
-  {
-    request: {
-      query: ADD_DEMONSTRATION_QUERY,
-      variables: {
-        input: { name: "bad add demonstration" },
-      },
-    },
-    error: new Error("Failed to add demonstration"),
-  },
 ];

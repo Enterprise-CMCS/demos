@@ -9,15 +9,15 @@ vi.mock(
   "faker_data/usStates",
   () => ({
     states: [
-      { name: "Maryland", abbrev: "MD" },
-      { name: "California", abbrev: "CA" },
-      { name: "Texas", abbrev: "TX" },
+      { name: "Maryland", abbreviation: "MD" },
+      { name: "California", abbreviation: "CA" },
+      { name: "Texas", abbreviation: "TX" },
     ],
   })
 );
 
 describe("<SelectUSAStates />", () => {
-  it("filters options by input and calls onStateChange with the abbrev", async () => {
+  it("filters options by input and calls onStateChange with the abbreviation", async () => {
     const onStateChange = vi.fn();
     render(
       <SelectUSAStates

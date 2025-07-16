@@ -29,7 +29,7 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
 }) => {
   const options: Option[] = (states as USState[]).map((state) => ({
     label: state.name,
-    value: state.abbrev,
+    value: state.abbreviation,
   }));
 
   const selectedValue = value ?? currentState;

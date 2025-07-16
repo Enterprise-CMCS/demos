@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
-  query GetDemonstrations {
+  query GetAllDemonstrations {
     demonstrations {
       id
       name
@@ -10,18 +10,19 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
       evaluationPeriodEndDate
       createdAt
       updatedAt
-      demonstrationStatus {
+      projectOfficerUser {
         id
-        name
+        displayName
+        email
       }
       state {
         id
-        stateName
         stateCode
+        stateName
       }
-      users {
+      demonstrationStatus {
         id
-        fullName
+        name
       }
     }
   }
