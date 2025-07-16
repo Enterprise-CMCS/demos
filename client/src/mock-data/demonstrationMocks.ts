@@ -1,102 +1,118 @@
-import rawDemoData from "../faker_data/demonstrations.json";
-import { states } from "../data/StatesAndTerritories";
-import { demonstrationStatuses } from "./demonstrationStatusMocks";
+import { AddDemonstrationInput, Demonstration } from "demos-server";
+import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
+import { california } from "./stateMocks";
+import { johnDoe } from "./userMocks";
+import {
+  ADD_DEMONSTRATION_QUERY,
+  GET_ALL_DEMONSTRATIONS_QUERY,
+  GET_DEMONSTRATION_BY_ID_QUERY,
+  UPDATE_DEMONSTRATION_MUTATION,
+} from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
-import { DEMONSTRATIONS_TABLE } from "../pages/Demonstrations";
+import { DEMONSTRATIONS_TABLE_QUERY } from "pages/Demonstrations/Demonstrations";
 
-function convertToUUID(originalId: string | number) {
-  return `00000000-0000-0000-0000-${String(originalId).padStart(12, "0")}`;
-}
+export const testDemonstration: Demonstration = {
+  id: "1",
+  name: "Test Demonstration",
+  description: "Test Description",
+  evaluationPeriodStartDate: new Date("2025-01-01"),
+  evaluationPeriodEndDate: new Date("2025-12-31"),
+  createdAt: new Date("2025-01-01"),
+  updatedAt: new Date("2025-01-01"),
+  demonstrationStatus: activeDemonstrationStatus,
+  state: california,
+  users: [johnDoe],
+  projectOfficer: johnDoe,
+};
 
-// This is just the type for the JSON data structure.
-interface JSONDemoData {
-  id: string | number;
-  title?: string;
-  name?: string;
-  description?: string;
-  evaluationPeriodStartDate?: string;
-  evaluationPeriodEndDate?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  demonstrationStatusId?: string | number;
-  stateId?: string;
-  projectOfficerUser?: string;
-}
-
-export function transformRawDemos(rawData: JSONDemoData[]) {
-  return rawData.map((row) => {
-    const stateMatch = states.find(
-      (s) => s.abbrev === row.stateId
-    );
-
-    // Match is working
-    const statusMatch = demonstrationStatuses.find(
-      (status) => String(status.id) === String(row.demonstrationStatusId)
-    );
-
-    const randomEmail = () => {
-      const randomStr = Math.random().toString(36).substring(2, 10);
-      return `${randomStr}@example.com`;
-    };
-    // Instead of joining userMocks, just use projectOfficerUser
-    const projectOfficer = row.projectOfficerUser
-      ? {
-        id: row.id,
-        displayName: row.projectOfficerUser || "John Doe",
-        email: randomEmail(),
-      }
-      : null;
-
-    return {
-      id: convertToUUID(row.id),
-      name: row.title || row.name, // <-- ensure 'title' is present
-      description: row.description,
-      evaluationPeriodStartDate: row.evaluationPeriodStartDate
-        ? new Date(row.evaluationPeriodStartDate)
-        : null,
-      evaluationPeriodEndDate: row.evaluationPeriodEndDate
-        ? new Date(row.evaluationPeriodEndDate)
-        : null,
-      createdAt: row.createdAt
-        ? new Date(row.createdAt)
-        : new Date(),
-      updatedAt: row.updatedAt
-        ? new Date(row.updatedAt)
-        : new Date(),
-      demonstrationStatus: statusMatch
-        ? {
-          id: statusMatch.id,
-          name: statusMatch.name,
-        }
-        : null,
-      demonstrationStatusId: statusMatch
-        ? statusMatch.id
-        : null,
-      state: stateMatch
-        ? {
-          id: stateMatch.abbrev,
-          stateName: stateMatch.name,
-          stateCode: stateMatch.abbrev,
-        }
-        : null,
-      stateName: stateMatch?.name || "",
-      users: [],
-      projectOfficerUser: projectOfficer,
-      status: statusMatch?.name || "Unknown",
-    };
-  });
-}
-
-export const transformedDemonstrations = transformRawDemos(rawDemoData);
+export const mockAddDemonstrationInput: AddDemonstrationInput = {
+  name: "New Demonstration",
+  description: "New Description",
+  evaluationPeriodStartDate: new Date("2025-01-01"),
+  evaluationPeriodEndDate: new Date("2025-12-31"),
+  demonstrationStatusId: activeDemonstrationStatus.id,
+  stateId: california.id,
+  userIds: [johnDoe.id],
+  projectOfficerUserId: johnDoe.id,
+};
 
 export const demonstrationMocks: MockedResponse[] = [
   {
     request: {
-      query: DEMONSTRATIONS_TABLE,
+      query: GET_ALL_DEMONSTRATIONS_QUERY,
+    },
+    result: {
+      data: { demonstrations: [testDemonstration] },
+    },
+  },
+
+  {
+    request: {
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      variables: { id: testDemonstration.id },
+    },
+    result: {
+      data: { demonstration: testDemonstration },
+    },
+  },
+  {
+    request: {
+      query: ADD_DEMONSTRATION_QUERY,
+      variables: { input: mockAddDemonstrationInput },
+    },
+    result: {
+      data: { addDemonstration: testDemonstration },
+    },
+  },
+
+  {
+    request: {
+      query: ADD_DEMONSTRATION_QUERY,
+      variables: { input: { name: "bad add demonstration" } },
+    },
+    error: new Error("Failed to add demonstration"),
+  },
+
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "1",
+        input: {
+          name: "Updated Demo Name",
+          description: "Updated description",
+          evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
+          evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
+          demonstrationStatusId: "1",
+          stateId: "1",
+          userIds: ["1"],
+        },
+      },
     },
     result: {
       data: {
-        demonstrations: transformedDemonstrations,
+        updateDemonstration: {
+          ...testDemonstration,
+          name: "Updated Demo Name",
+          description: "Updated description",
+          evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
+          evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
+          updatedAt: new Date("2024-07-01T00:00:00.000Z"),
+        },
+      },
+    },
+  },
+  {
+    request: {
+      query: DEMONSTRATIONS_TABLE_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: [
+          {
+            ...testDemonstration,
+          },
+        ],
       },
     },
   },
