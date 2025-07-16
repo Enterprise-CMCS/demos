@@ -1,38 +1,116 @@
 import React from "react";
-
+import { gql, useQuery } from "@apollo/client";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
-// import DemoData from "faker_data/empty_demonstrations.json";
-import DemoData from "faker_data/demonstrations.json";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
+import { DemonstrationStatus } from "demos-server";
 
-// Using JSON dummy data.
-type RawDemonstration = {
+// Centalized all type to come from this file
+export type RawDemonstration = {
   id: number;
   title: string;
   demoNumber: string;
   description: string;
   evalPeriodStartDate: string;
   evalPeriodEndDate: string;
-  demonstrationStatusId: number;
+  demonstrationStatus: DemonstrationStatus | null;
+  demonstrationStatusId: string;
   stateId: string;
+  state: string;
   projectOfficer: string;
   userId: number;
   createdAt: string;
   updatedAt: string;
 };
 
+export interface DemoStatus {
+  id: string;
+  name: string;
+}
+
+export interface StatesAndTerritories {
+  id: string; // will be statecode.
+  stateCode: string;
+  stateName: string;
+}
+
+export interface ProjectOfficerUser {
+  id: string;
+  displayName: string;
+  email: string;
+}
+
+export interface DemoFromQuery {
+  id: string;
+  name: string;
+  description: string;
+  evaluationPeriodStartDate: string;
+  evaluationPeriodEndDate: string;
+  createdAt: string;
+  updatedAt: string;
+  projectOfficerUser: ProjectOfficerUser | null;
+  state: StatesAndTerritories | null;
+  demonstrationStatus: DemoStatus | null;
+}
+
+export interface DemonstrationsQueryData {
+    demonstrations: DemoFromQuery[];
+  }
+
+export const DEMONSTRATIONS_TABLE = gql`
+  query GetDemonstrations {
+    demonstrations {
+      id
+      name
+      description
+      evaluationPeriodStartDate
+      evaluationPeriodEndDate
+      createdAt
+      updatedAt
+      projectOfficerUser {
+        id
+        displayName
+        email
+      }
+      state {
+        id
+        stateCode
+        stateName
+      }
+      demonstrationStatus {
+        id
+        name
+      }
+    }
+  }
+`;
+
 export const Demonstrations: React.FC = () => {
-  // Dummy value - replace me!
   const currentUserId = 123;
 
-  const myDemos: RawDemonstration[] = (DemoData as RawDemonstration[]).filter(
+  const { data, loading, error } = useQuery(DEMONSTRATIONS_TABLE);
+
+  const allDemos: RawDemonstration[] =
+    (data as DemonstrationsQueryData)?.demonstrations?.map((demo: DemoFromQuery) => ({
+      id: parseInt(demo.id),
+      title: demo.name,
+      demoNumber: "",
+      description: demo.description,
+      evalPeriodStartDate: demo.evaluationPeriodStartDate,
+      evalPeriodEndDate: demo.evaluationPeriodEndDate,
+      demonstrationStatus: demo.demonstrationStatus as DemonstrationStatus | null,
+      demonstrationStatusId: demo.demonstrationStatus?.id || "",
+      stateId: demo.state?.id || "",
+      state: demo.state?.stateName || "",
+      projectOfficer: demo.projectOfficerUser?.displayName || "",
+      userId: parseInt(demo.projectOfficerUser?.id || "0"),
+      createdAt: demo.createdAt,
+      updatedAt: demo.updatedAt,
+    })) || [];
+
+  const myDemos = allDemos.filter(
     (demo) => demo.userId === currentUserId
   );
 
-  const allDemos: RawDemonstration[] = (DemoData as RawDemonstration[]);
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
   const tabList: TabItem[] = [
@@ -48,21 +126,28 @@ export const Demonstrations: React.FC = () => {
     },
   ];
 
-  // If you ask me, this is the best part of this feature
   const dataToShow = tab === "my" ? myDemos : allDemos;
+
+  if (loading) {
+    return <div>Loading demonstrations…</div>;
+  }
+
+  if (error) {
+    return <div>Error loading demonstrations: {error.message}</div>;
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Demonstrations</h1>
+      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">
+        Demonstrations
+      </h1>
 
-      {/* TABS HEADER COMPONENT */}
       <Tabs
         tabs={tabList}
         selectedValue={tab}
         onChange={(newVal) => setTab(newVal as "my" | "all")}
       />
 
-      {/* one table req'd to rule them all */}
       <div className="h-[60vh] overflow-y-auto">
         <DemonstrationTable
           data={dataToShow}

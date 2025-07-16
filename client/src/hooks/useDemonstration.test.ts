@@ -4,7 +4,7 @@ import { AddDemonstrationInput } from "demos-server";
 import {
   mockAddDemonstrationInput,
   testDemonstration,
-} from "mock-data/demonstrationMocks";
+} from "../mock-data/demonstrationMocks";
 import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 const expectedDemonstration = testDemonstration;
@@ -26,12 +26,12 @@ describe("useDemonstration", () => {
       result.current.getAllDemonstrations.trigger();
 
       await waitFor(() => {
-        expect(result.current.getAllDemonstrations.data).toBeDefined();
         const actualDemonstrations = result.current.getAllDemonstrations.data!;
-        expect(actualDemonstrations.length).toBeGreaterThan(0);
-        expect(actualDemonstrations[0].name).toEqual(
-          expectedDemonstration.name
-        );
+        const demo = actualDemonstrations.find(d => d.id === expectedDemonstration.id);
+
+        expect(demo).toBeDefined();
+        expect(demo!.name).toEqual(expectedDemonstration.name);
+
       });
       expect(result.current.getAllDemonstrations.error).toBeUndefined();
     });
@@ -114,9 +114,10 @@ describe("useDemonstration", () => {
         description: "Updated description",
         evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
         evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
-        demonstrationStatusId: "1",
-        stateId: "1",
-        userIds: ["1"],
+        demonstrationStatusId: testDemonstration.demonstrationStatusId,
+        stateId: testDemonstration.state?.id,
+        userIds: [],
+        projectOfficerUserId: testDemonstration.projectOfficerUser?.id,
       };
 
       const demonstrationId = expectedDemonstration.id;

@@ -7,24 +7,10 @@ import {
 
 import { ColumnDef } from "@tanstack/react-table";
 import { highlightText } from "../search/KeywordSearch";
-
 import { SecondaryButton } from "../../button/SecondaryButton";
+import { RawDemonstration } from "../../../pages/Demonstrations";
 
-export type DemonstrationColumns = {
-  id: number;
-  title: string;
-  description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
-  demonstrationStatusId: number;
-  stateId: string;
-  projectOfficer: string;
-  demoNumber: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-const selectColumn: ColumnDef<DemonstrationColumns> = {
+const selectColumn: ColumnDef<RawDemonstration> = {
   id: "Select",
   header: ({ table }) => (
     <input
@@ -49,7 +35,7 @@ const selectColumn: ColumnDef<DemonstrationColumns> = {
   size: 20,
 };
 
-const dataColumns: ColumnDef<DemonstrationColumns>[] = [
+const dataColumns: ColumnDef<RawDemonstration>[] = [
   {
     header: "State/Territory",
     accessorKey: "stateId",
@@ -60,7 +46,7 @@ const dataColumns: ColumnDef<DemonstrationColumns>[] = [
     },
   },
   // ticket says this should be not searchable, though i feel like it should be.
-  { header: "Number", accessorKey: "demoNumber", enableGlobalFilter: false },
+  // { header: "Number", accessorKey: "demoNumber", enableGlobalFilter: false },
   {
     header: "Title",
     accessorKey: "title",
@@ -75,6 +61,16 @@ const dataColumns: ColumnDef<DemonstrationColumns>[] = [
     accessorKey: "projectOfficer",
     cell: ({ row, table }) => {
       const value = row.getValue("projectOfficer") as string;
+      const searchQuery = table.getState().globalFilter || "";
+      return highlightText(value, searchQuery);
+    },
+  },
+  {
+    header: "Status",
+    accessorKey: "demonstrationStatus",
+    cell: ({ row, table }) => {
+      const statusObj = row.getValue("demonstrationStatus") as { name: string };
+      const value = statusObj?.name || "";
       const searchQuery = table.getState().globalFilter || "";
       return highlightText(value, searchQuery);
     },
@@ -103,7 +99,7 @@ const dataColumns: ColumnDef<DemonstrationColumns>[] = [
   },
 ];
 
-const expanderColumn: ColumnDef<DemonstrationColumns> = {
+const expanderColumn: ColumnDef<RawDemonstration> = {
   id: "expander",
   header: () => null,
   cell: ({ row }) =>
@@ -127,7 +123,7 @@ const expanderColumn: ColumnDef<DemonstrationColumns> = {
   size: 20,
 };
 
-export const DemonstrationColumns: ColumnDef<DemonstrationColumns>[] = [
+export const DemonstrationColumns: ColumnDef<RawDemonstration>[] = [
   selectColumn,
   ...dataColumns,
   expanderColumn,

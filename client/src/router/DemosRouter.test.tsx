@@ -48,6 +48,7 @@ vi.mock("layout/PrimaryLayout", () => ({
 }));
 vi.mock("pages/Demonstrations", () => ({
   Demonstrations: () => <div>Demonstrations</div>,
+  DEMONSTRATIONS_TABLE: {},
 }));
 
 describe("DemosRouter", () => {

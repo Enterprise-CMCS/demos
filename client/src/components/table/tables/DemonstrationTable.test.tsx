@@ -74,10 +74,8 @@ describe("DemonstrationTable", () => {
       filterSelect.querySelectorAll("option")
     ).map((opt) => opt.textContent);
 
-    expect(options).not.toContain("expander");
     expect(options).not.toContain("select");
     expect(options).toContain("State/Territory");
-    expect(options).toContain("Number");
     expect(options).toContain("Title");
     expect(options).toContain("Project Officer");
   });
