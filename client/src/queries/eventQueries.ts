@@ -19,7 +19,6 @@ export const GET_EVENTS_QUERY = gql`
       }
       eventType {
         id
-        name
       }
       withRole {
         id

@@ -66,7 +66,10 @@ export const eventResolvers = {
   Mutation: {
     logEvent: async (_: undefined, { input }: { input: LogEventInput }, context: GraphQLContext) => {
       const { eventTypeId, route, eventData } = input;
-      
+
+      // TODO: For testing this we have the `bypass-auth` user and
+      // this doesn't currently have a valid userId since it needs to be a uuid
+      // Might need to make this a valid UUID in order to not fail on logEvent
       const userId = await getCurrentUserId(context);
       const withRoleId = await getCurrentUserRoleId(context);
       

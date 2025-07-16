@@ -8,7 +8,7 @@ enum LogLevel {
 model EventType {
   id          String   @id
   description String
-  logLevel    LogLevel
+  logLevel    LogLevel @map("log_level")
 
   events Event[]
 

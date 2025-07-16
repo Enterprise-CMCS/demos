@@ -52,10 +52,3 @@ finally {
 It almost seems like we'd be served best by multiple event types here to capture success and failure for different operations. (`MY_OPERATION_SUCCEEDED`, `MY_OPERATION_FAILED`, `MY_OPERATION_ATTEMPTED`)
 
 With the team we sort of determined this latter approach might be best
-
-## TODO:
-
-- Stacktrace inclusion Difficulty, how about component?
-- B/E & F/E interaction, 
-- sessionId / AppVersion?
-- DataDog, how can we use this?
