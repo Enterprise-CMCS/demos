@@ -541,14 +541,14 @@ describe("Demonstrations", () => {
     const stateFilterSelect = screen.getByPlaceholderText(/filter state\/territory/i);
     // Click to open the dropdown
     await user.click(stateFilterSelect);
-    
+
     // Wait for the dropdown to appear within the parent container
     await waitFor(() => {
       const parentContainer = stateFilterSelect.parentElement;
       const dropdown = within(parentContainer).getByRole("list");
       expect(dropdown).toBeInTheDocument();
     });
-    
+
     // Find and click the Texas option within the parent container
     const parentContainer = stateFilterSelect.parentElement;
     const dropdown = within(parentContainer).getByRole("list");
