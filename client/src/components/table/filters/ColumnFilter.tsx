@@ -1,10 +1,26 @@
 import React from "react";
 import { Table } from "@tanstack/react-table";
+import { AutoCompleteSelect, Option } from "components/input/select/AutoCompleteSelect";
 
 export interface ColumnFilterByDropdownProps<T> {
-  table: Table<T>; // Make table optional since it comes from parent
+  table: Table<T>;
   label?: string;
   className?: string;
+}
+export interface ColumnMetaFilterConfig {
+  filterConfig?:
+    | {
+        filterType: "select";
+        options: Option[]; // Required for select
+      }
+    | {
+        filterType: "text";
+        options?: never; // Explicitly exclude options for text
+      }
+    | {
+        filterType: "date";
+        options?: never; // Explicitly exclude options for date
+      };
 }
 
 export function ColumnFilter<T>({
@@ -33,8 +49,59 @@ export function ColumnFilter<T>({
     }
   };
 
+  // Get the selected column's filter configuration
+  const selectedColumnObj = availableColumns.find(col => col.id === selectedColumn);
+  const meta: ColumnMetaFilterConfig | undefined = selectedColumnObj?.columnDef.meta;
+  const filterConfig = meta?.filterConfig;
+
+  // Render the appropriate input based on filter configuration
+  const renderFilterInput = () => {
+    if (!selectedColumn) return null;
+
+    const filterType = filterConfig?.filterType || "text";
+    const columnDisplayName = typeof selectedColumnObj?.columnDef.header === "string"
+      ? selectedColumnObj.columnDef.header
+      : selectedColumn;
+
+    switch (filterType) {
+      case "select":
+        return (
+          <AutoCompleteSelect
+            options={filterConfig?.options || []}
+            placeholder={`Filter ${columnDisplayName}`}
+            value={filterValue}
+            onSelect={(val) => onValueChange(val)}
+            id={`filter-${selectedColumn}`}
+          />
+        );
+
+      case "date":
+        return (
+          <input
+            type="date"
+            aria-label={`Filter ${columnDisplayName} by date`}
+            className="border px-2 py-1 rounded"
+            value={filterValue}
+            onChange={(e) => onValueChange(e.target.value)}
+          />
+        );
+
+      case "text":
+      default:
+        return (
+          <input
+            type="text"
+            aria-label={`Filter ${columnDisplayName}`}
+            placeholder="🔍 Type to filter…"
+            className="border px-2 py-1 rounded"
+            value={filterValue}
+            onChange={(e) => onValueChange(e.target.value)}
+          />
+        );
+    }
+  };
+
   // Compute a small live‐region message to announce the number of filtered rows
-  // (optional, but helpful for screen readers).
   const totalRows = table.getFilteredRowModel().rows.length;
   const liveMessage = `Showing ${totalRows} rows`;
 
@@ -55,17 +122,15 @@ export function ColumnFilter<T>({
           onChange={(e) => setSelectedColumn(e.target.value)}
           aria-label="Choose column to filter"
         >
-          {/* Select a col better for screen */}
           <option value="" disabled>
             Select a Column...
           </option>
 
           {availableColumns.map((col) => {
-            // Derive a display label:
-            // If header is a string, use it; otherwise fall back to the column id.
+            const columnDef = col.columnDef;
             const displayLabel =
-              typeof col.columnDef.header === "string"
-                ? col.columnDef.header
+              typeof columnDef.header === "string"
+                ? columnDef.header
                 : col.id;
 
             return (
@@ -75,23 +140,10 @@ export function ColumnFilter<T>({
             );
           })}
         </select>
-        {selectedColumn && (
-          <>
-            <input
-              type="text"
-              // Announce to screen reader "Filter <Column Name> by …"
-              aria-label={`Filter ${
-                availableColumns.find((c) => c.id === selectedColumn)?.columnDef
-                  .header || selectedColumn
-              }`}
-              placeholder="🔍 Type to filter…"
-              className="border px-2 py-1 rounded"
-              value={filterValue}
-              onChange={(e) => onValueChange(e.target.value)}
-            />
-          </>
-        )}
+
+        {renderFilterInput()}
       </div>
+
       <div aria-live="polite" role="status" className="sr-only">
         {liveMessage}
       </div>

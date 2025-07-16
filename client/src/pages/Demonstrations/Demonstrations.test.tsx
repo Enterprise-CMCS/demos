@@ -9,10 +9,12 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { Demonstrations, DEMONSTRATIONS_TABLE_QUERY } from "./Demonstrations";
+import { GET_PROJECT_OFFICERS_FOR_SELECT, GET_STATES_FOR_SELECT } from "./DemonstrationColumns";
 
 const mockDemonstrations = [
   {
@@ -55,6 +57,82 @@ const mocks = [
       },
     },
   },
+  {
+    request: {
+      query: GET_STATES_FOR_SELECT,
+    },
+    result: {
+      data: {
+        states: [
+          {
+            stateCode: "NC",
+            stateName: "North Carolina",
+          },
+          {
+            stateCode: "CA",
+            stateName: "California",
+          },
+          {
+            stateCode: "TX",
+            stateName: "Texas",
+          },
+          {
+            stateCode: "FL",
+            stateName: "Florida",
+          },
+          {
+            stateCode: "NY",
+            stateName: "New York",
+          },
+          {
+            stateCode: "WA",
+            stateName: "Washington",
+          },
+          {
+            stateCode: "IL",
+            stateName: "Illinois",
+          },
+          {
+            stateCode: "PA",
+            stateName: "Pennsylvania",
+          },
+          {
+            stateCode: "OH",
+            stateName: "Ohio",
+          },
+        ],
+      },
+    },
+  },
+  {
+    request: {
+      query: GET_PROJECT_OFFICERS_FOR_SELECT,
+    },
+    result: {
+      data: {
+        users: [{
+          id: "1",
+          fullName: "John Doe",
+        },
+        {
+          id: "2",
+          fullName: "Leia Organa",
+        },
+        {
+          id: "3",
+          fullName: "Han Solo",
+        },
+        {
+          id: "4",
+          fullName: "Luke Skywalker",
+        },
+        {
+          id: "5",
+          fullName: "Darth Vader",
+        }],
+      },
+    },
+  },
 ];
 
 const errorMock = [
@@ -63,6 +141,48 @@ const errorMock = [
       query: DEMONSTRATIONS_TABLE_QUERY,
     },
     error: new Error("GraphQL error occurred"),
+  },
+  {
+    request: {
+      query: GET_STATES_FOR_SELECT,
+    },
+    result: {
+      data: {
+        states: [
+          {
+            stateCode: "NC",
+            stateName: "North Carolina",
+          },
+          {
+            stateCode: "CA",
+            stateName: "California",
+          },
+          {
+            stateCode: "TX",
+            stateName: "Texas",
+          },
+        ],
+      },
+    },
+  },
+  {
+    request: {
+      query: GET_PROJECT_OFFICERS_FOR_SELECT,
+    },
+    result: {
+      data: {
+        users: [
+          {
+            id: "1",
+            fullName: "John Doe",
+          },
+          {
+            id: "2",
+            fullName: "Jane Smith",
+          },
+        ],
+      },
+    },
   },
 ];
 
@@ -74,6 +194,48 @@ const emptyMocks = [
     result: {
       data: {
         demonstrations: [],
+      },
+    },
+  },
+  {
+    request: {
+      query: GET_STATES_FOR_SELECT,
+    },
+    result: {
+      data: {
+        states: [
+          {
+            stateCode: "NC",
+            stateName: "North Carolina",
+          },
+          {
+            stateCode: "CA",
+            stateName: "California",
+          },
+          {
+            stateCode: "TX",
+            stateName: "Texas",
+          },
+        ],
+      },
+    },
+  },
+  {
+    request: {
+      query: GET_PROJECT_OFFICERS_FOR_SELECT,
+    },
+    result: {
+      data: {
+        users: [
+          {
+            id: "1",
+            fullName: "John Doe",
+          },
+          {
+            id: "2",
+            fullName: "Jane Smith",
+          },
+        ],
       },
     },
   },
@@ -111,7 +273,7 @@ describe("Demonstrations", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Error: GraphQL error occurred")).toBeInTheDocument();
+      expect(screen.getByText("Error loading demonstrations:")).toBeInTheDocument();
     });
   });
 
@@ -358,13 +520,40 @@ describe("Demonstrations", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
     });
 
-    // Select state filter
-    const filterSelect = screen.getByLabelText(/filter by:/i);
-    await user.selectOptions(filterSelect, ["stateName"]);
+    // Switch to All Demonstrations using regex or role-based selector
+    const allDemosTab = screen.getByText(/All Demonstrations/);
+    await user.click(allDemosTab);
 
-    // Filter by "Texas"
-    const filterInput = screen.getByPlaceholderText(/type to filter/i);
-    await user.type(filterInput, "Texas");
+    // Clear any existing search first
+    const searchInput = screen.getByLabelText(/keyword search/i);
+    await user.clear(searchInput);
+
+    // Select state filter from column dropdown
+    const columnSelect = screen.getByLabelText(/choose column to filter/i);
+    await user.selectOptions(columnSelect, ["stateName"]);
+
+    // Wait for the state filter dropdown to appear
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/filter state\/territory/i)).toBeInTheDocument();
+    });
+
+    // Filter by "Texas" using the state filter dropdown
+    const stateFilterSelect = screen.getByPlaceholderText(/filter state\/territory/i);
+    // Click to open the dropdown
+    await user.click(stateFilterSelect);
+    
+    // Wait for the dropdown to appear within the parent container
+    await waitFor(() => {
+      const parentContainer = stateFilterSelect.parentElement;
+      const dropdown = within(parentContainer).getByRole("list");
+      expect(dropdown).toBeInTheDocument();
+    });
+    
+    // Find and click the Texas option within the parent container
+    const parentContainer = stateFilterSelect.parentElement;
+    const dropdown = within(parentContainer).getByRole("list");
+    const texasOption = within(dropdown).getByText("Texas");
+    await user.click(texasOption);
 
     await waitFor(() => {
       // Should show only Texas demonstration

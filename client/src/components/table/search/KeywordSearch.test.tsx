@@ -14,7 +14,7 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { highlightText, Table } from "../Table";
+import { highlightCell, Table } from "../Table";
 import { Demonstration } from "pages/Demonstrations/Demonstrations";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { SecondaryButton } from "components/button";
@@ -49,28 +49,16 @@ export const columns = [
   columnHelper.accessor("state.stateName", {
     id: "stateName",
     header: "State/Territory",
-    cell: ({ row, table }) => {
-      const value = row.getValue("stateName") as string;
-      const searchQuery = table.getState().globalFilter || "";
-      return highlightText(value, searchQuery);
-    },
+    cell: highlightCell,
   }),
   columnHelper.accessor("name", {
     header: "Title",
-    cell: ({ row, table }) => {
-      const value = row.getValue("name") as string;
-      const searchQuery = table.getState().globalFilter || "";
-      return highlightText(value, searchQuery);
-    },
+    cell: highlightCell,
   }),
   columnHelper.accessor("projectOfficer.fullName", {
     id: "projectOfficer",
     header: "Project Officer",
-    cell: ({ row, table }) => {
-      const value = row.getValue("projectOfficer") as string;
-      const searchQuery = table.getState().globalFilter || "";
-      return highlightText(value, searchQuery);
-    },
+    cell: highlightCell,
   }),
   columnHelper.display({
     id: "viewDetails",

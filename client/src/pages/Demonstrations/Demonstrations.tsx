@@ -3,7 +3,7 @@ import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import { TabItem, Tabs } from "layout/Tabs";
 import { Table } from "components/table/Table";
-import { demonstrationColumns } from "./DemonstrationColumns";
+import { useDemonstrationColumns } from "./DemonstrationColumns";
 
 export type Demonstration = {
   id: string;
@@ -39,7 +39,6 @@ export const DEMONSTRATIONS_TABLE_QUERY = gql`
           name
         }
         state {
-          id
           stateName
           stateCode
         }
@@ -56,16 +55,26 @@ export const DEMONSTRATIONS_TABLE_QUERY = gql`
   `;
 
 export const Demonstrations: React.FC = () => {
+  // Query for main demonstrations data
   const { data, error, loading } = useQuery(DEMONSTRATIONS_TABLE_QUERY);
+
+  // Hook for columns with filter options
+  const { columns, loading: columnsLoading, error: columnsError } = useDemonstrationColumns();
 
   // Tab state management
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
-  if (loading) {
+  // Handle loading states for both queries
+  if (loading || columnsLoading) {
     return <div>Loading...</div>;
+  }
+
+  // Handle errors
+  if (error) {
+    return <div>Error loading demonstrations:</div>;
+  }
+  if (columnsError) {
+    return <div>Error loading filter options: {columnsError.message}</div>;
   }
   if (!data || !data.demonstrations) {
     return null;
@@ -114,7 +123,7 @@ export const Demonstrations: React.FC = () => {
 
       <Table<Demonstration>
         data={dataToShow}
-        columns={demonstrationColumns}
+        columns={columns}
         keywordSearch
         columnFilter
         pagination

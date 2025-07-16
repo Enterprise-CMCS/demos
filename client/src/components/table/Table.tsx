@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import {
+  CellContext,
   ColumnDef,
   flexRender,
   getCoreRowModel,
@@ -25,8 +26,10 @@ export interface TableProps<T> {
   noResultsFoundMessage?: string;
 }
 
-// Helper function to highlight matching text
-export function highlightText(text: string, query: string | string[]): React.ReactNode {
+export function highlightCell<TData>({ cell, table }: CellContext<TData, unknown>): React.ReactNode {
+  const text = cell.getValue() as string;
+  const query = table.getState().globalFilter || "";
+
   if (!query || (Array.isArray(query) && query.length === 0)) {
     return text;
   }
