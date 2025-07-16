@@ -1,0 +1,8 @@
+model DemonstrationBundleType {
+  id String @id
+
+  bundleType    BundleType      @relation(fields: [id], references: [id])
+  demonstration Demonstration[]
+
+  @@map("demonstration_bundle_type")
+}
