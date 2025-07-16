@@ -4,6 +4,9 @@ title: DEMOS Current Data Model
 
 erDiagram
 
+  document_type ||--|{ document : "document.document_type_id ∈ document_type.id"
+  document }|--|| bundle : "document.bundle_id ∈ bundle.id"
+  document }|--|| users : "document.owner_user_id ∈ users.id"
   bundle }|--|| bundle_type : "bundle.bundle_type_id ∈ bundle_type.id"
   bundle ||--|| demonstration : "demonstration.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
   bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
@@ -57,6 +60,25 @@ erDiagram
   demonstration_status {
     uuid id PK
     text name
+    text description
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  document {
+    uuid id PK
+    text title
+    text description
+    text s3_path
+    uuid owner_user_id FK "FK: users.id"
+    text document_type_id FK "FK: document_type.id"
+    uuid bundle_id FK "FK: bundle.id"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  document_type {
+    text id PK
     text description
     timestamptz created_at
     timestamptz updated_at

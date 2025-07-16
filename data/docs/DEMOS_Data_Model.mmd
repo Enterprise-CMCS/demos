@@ -52,7 +52,7 @@ erDiagram
 
   bundle_type_default_requirement {
     text bundle_type_id PK, FK "FK: bundle_type.id"
-    uuid document_type_id PK, FK "FK: document_type.id"
+    text document_type_id PK, FK "FK: document_type.id"
   }
 
   demonstration {
@@ -87,15 +87,14 @@ erDiagram
     text description
     text s3_path
     uuid owner_user_id FK "FK: users.id"
-    uuid document_type_id FK "FK: document_type.id"
+    text document_type_id FK "FK: document_type.id"
     uuid bundle_id FK "FK: bundle.id"
     timestamptz created_at
     timestamptz updated_at
   }
 
   document_type {
-    uuid id PK
-    text name
+    text id PK
     text description
     timestamptz created_at
     timestamptz updated_at
@@ -154,7 +153,7 @@ erDiagram
   requirement {
     uuid id PK
     uuid bundle_id FK "FK: bundle.id"
-    uuid document_type_id FK, FK, UK "FK1: document_type.id, FK2: (document.id, document.document_type_id), UK: (document_id, document_type_id)"
+    text document_type_id FK, FK, UK "FK1: document_type.id, FK2: (document.id, document.document_type_id), UK: (document_id, document_type_id)"
     uuid document_id FK, UK "FK2: (document.id, document.document_type_id), UK: (document_id, document_type_id), NULLABLE"
     timestamptz created_at
     timestamptz updated_at

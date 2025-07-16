@@ -4,6 +4,12 @@ import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.j
 import { demonstrationStatusSchema } from "./demonstrationStatus/demonstrationStatusSchema.js";
 import { demonstrationStatusResolvers } from "./demonstrationStatus/demonstrationStatusResolvers.js";
 
+import { documentSchema } from "./document/documentSchema.js";
+import { documentResolvers } from "./document/documentResolvers.js";
+
+import { documentTypeSchema } from "./documentType/documentTypeSchema.js";
+import { documentTypeResolvers } from "./documentType/documentTypeResolver.js";
+
 import { eventSchema, eventResolvers } from "./event/index.js";
 import { eventTypeSchema, eventTypeResolvers } from "./eventType/index.js"
 
@@ -34,6 +40,8 @@ const scalarTypes = [
 export const typeDefs = [
   demonstrationSchema,
   demonstrationStatusSchema,
+  documentSchema,
+  documentTypeSchema,
   eventSchema,
   eventTypeSchema,
   permissionSchema,
@@ -46,6 +54,8 @@ export const typeDefs = [
 export const resolvers = [
   demonstrationResolvers,
   demonstrationStatusResolvers,
+  documentResolvers,
+  documentTypeResolvers,
   eventTypeResolvers,
   eventResolvers,
   permissionResolvers,
