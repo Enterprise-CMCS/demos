@@ -8,7 +8,8 @@ function convertToUUID(originalId: string | number) {
   return `00000000-0000-0000-0000-${String(originalId).padStart(12, "0")}`;
 }
 
-// This is just the type for the JSON data structure.
+// This is just the type for the JSON data seeder structure.
+// I was told that ppl like the Star Wars users, so who am i to remove them? 🚀
 interface JSONDemoData {
   id: string | number;
   title?: string;
@@ -29,11 +30,12 @@ export function transformRawDemos(rawData: JSONDemoData[]) {
       (s) => s.abbrev === row.stateId
     );
 
-    // Match is working
+    // Made fake GUIDS in demostatesMocks that match json data
     const statusMatch = demonstrationStatuses.find(
       (status) => String(status.id) === String(row.demonstrationStatusId)
     );
 
+    // i tried a few things. but this is best way to make an mocke an email.
     const randomEmail = () => {
       const randomStr = Math.random().toString(36).substring(2, 10);
       return `${randomStr}@example.com`;
@@ -49,7 +51,7 @@ export function transformRawDemos(rawData: JSONDemoData[]) {
 
     return {
       id: convertToUUID(row.id),
-      name: row.title || row.name, // <-- ensure 'title' is present
+      name: row.title || row.name,
       description: row.description,
       evaluationPeriodStartDate: row.evaluationPeriodStartDate
         ? new Date(row.evaluationPeriodStartDate)
