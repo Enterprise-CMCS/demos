@@ -78,6 +78,16 @@ export function applyApiSuppressions(api: Stack, stage: string) {
       },
     ]
   );
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/ApiGatewayRestApi/Default/api/graphql/POST/Resource`,
+    [
+      {
+        id: "AwsSolutions-COG4",
+        reason: "Cognito is still being used for authorization, but done with a custom authorizer rather than the AWS default one",
+      },
+    ]
+  );
 
   NagSuppressions.addResourceSuppressionsByPath(
     api,
@@ -94,6 +104,17 @@ export function applyApiSuppressions(api: Stack, stage: string) {
   NagSuppressions.addResourceSuppressionsByPath(
     api,
     `/demos-${stage}-api/graphql/graphqlLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/authorizer/authorizerLambdaExecutionRole/Resource`,
     [
       {
         id: "AwsSolutions-IAM5",

@@ -3,10 +3,11 @@ import {
   Stack,
   StackProps,
   aws_iam,
-  aws_cognito,
   aws_ec2,
   Fn,
   aws_secretsmanager,
+  aws_cognito,
+  aws_apigateway,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -94,12 +95,35 @@ export class ApiStack extends Stack {
       "Allow traffic to secrets manager VPCE"
     );
 
+    const cognitoAuthority = Fn.importValue(
+      `${commonProps.hostEnvironment}CognitoAuthority`
+    )
+    
     const apigateway_outputs = apigateway.create({
       ...commonProps,
       userPool: props.cognito_userpool,
     });
 
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(commonProps.scope, "rdsDatabaseSecret",`demos-${commonProps.hostEnvironment}-rds-admin`)
+
+    const authorizerLambda = lambda.create(
+      {
+        ...commonProps,
+        entry: "../lambda_authorizer",
+        handler: "index.handler",
+        asCode: true,
+        environment: {
+          JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
+          ...props.cognito_userpool.env
+        }
+      },
+      "authorizer"
+    )
+
+    const tokenAuthorizer = new aws_apigateway.TokenAuthorizer(commonProps.scope, "jwtTokenAuthorizer", {
+      handler: authorizerLambda.lambda.lambda,
+      authorizerName: "cognitoTokenAuth"
+    })
 
     const graphqlLambda = lambda.create(
       {
@@ -115,7 +139,7 @@ export class ApiStack extends Stack {
           : graphqlLambdaSecurityGroup?.securityGroup,
         authorizer: props.isLocalstack
           ? undefined
-          : apigateway_outputs.authorizer,
+          : tokenAuthorizer,
         asCode: true,
         environment: {
           BYPASS_AUTH: commonProps.hostEnvironment == "dev" ? "true" : "",

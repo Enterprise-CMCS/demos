@@ -1,6 +1,7 @@
 import { Aws } from "aws-cdk-lib";
 import { getSecret } from "./util/getSecret";
 import { getZScalerIps } from "./util/zscalerIps";
+import { execSync } from "child_process";
 
 export interface DeploymentConfigProperties {
   project: string;
@@ -20,6 +21,10 @@ export const determineDeploymentConfig = async (
   hostEnv?: string
 ): Promise<DeploymentConfigProperties> => {
   const project = process.env.PROJECT || "demos";
+
+  execSync("npm ci", {
+    cwd: "../lambda_authorizer"
+  })
 
   const iamPermissionsBoundaryArn = `arn:aws:iam::${Aws.ACCOUNT_ID}:policy/cms-cloud-admin/developer-boundary-policy`;
   const iamPath = "/delegatedadmin/developer/";

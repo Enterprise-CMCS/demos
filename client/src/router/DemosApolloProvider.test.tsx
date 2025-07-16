@@ -16,6 +16,7 @@ vi.mock("react-oidc-context", () => ({
   useAuth: vi.fn(() => ({
     user: {
       access_token: "mock-access-token-123",
+      id_token: "mock-id-token-123",
     },
   })),
 }));
@@ -72,7 +73,7 @@ describe("DemosApolloProvider", () => {
     expect(result).toEqual({
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer mock-access-token-123",
+        Authorization: "Bearer mock-id-token-123",
       },
     });
   });

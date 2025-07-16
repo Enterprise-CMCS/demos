@@ -18,7 +18,7 @@ const createApolloClient = (auth: AuthState) => {
   // Add the authorization header to each request sent by Apollo Client
   const setAuthHeaders: ApolloLink = setContext(
     (_, { headers: previousHeaders }) => {
-      const token = auth.user?.access_token;
+      const token = auth.user?.id_token;
       const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
       const newHeaders = {

@@ -106,6 +106,7 @@ export function create(props: ApiGatewayProps) {
         },
       },
     ],
+    authorizer: authorizer // TODO: remove after removing dependency on dynamic core output
   });
 
   return {
