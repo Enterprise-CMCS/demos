@@ -141,7 +141,7 @@ export class Lambda extends Construct {
         {
           authorizationType: props.isLocalstack
             ? undefined
-            : aws_apigateway.AuthorizationType.COGNITO,
+            : aws_apigateway.AuthorizationType.CUSTOM,
           authorizer: props.isLocalstack ? undefined : props.authorizer,
           // authorizationScopes: props.isLocalstack
           //   ? undefined
