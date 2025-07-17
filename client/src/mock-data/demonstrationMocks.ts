@@ -1,4 +1,8 @@
-import { AddDemonstrationInput, Demonstration, DemonstrationStatus } from "demos-server";
+import {
+  AddDemonstrationInput,
+  Demonstration,
+  DemonstrationStatus,
+} from "demos-server";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
 import {
@@ -117,7 +121,31 @@ export const demonstrationMocks: MockedResponse[] = [
       data: {
         demonstrations: [
           {
-            ...testDemonstration,
+            id: "1",
+            name: "Montana Medicaid Waiver",
+            description: "Montana waiver demonstration",
+            demonstrationStatus: { id: "1", name: "Active" },
+            state: { id: "MT", stateName: "Montana", stateCode: "MT" },
+            projectOfficer: { id: "1", fullName: "John Doe" },
+            users: [{ id: "1", fullName: "Current User" }],
+          },
+          {
+            id: "2",
+            name: "Florida Health Innovation",
+            description: "Florida innovation demonstration",
+            demonstrationStatus: { id: "2", name: "Pending" },
+            state: { id: "FL", stateName: "Florida", stateCode: "FL" },
+            projectOfficer: { id: "2", fullName: "Jane Smith" },
+            users: [{ id: "2", fullName: "Other User" }],
+          },
+          {
+            id: "3",
+            name: "Texas Reform Initiative",
+            description: "Texas reform demonstration",
+            demonstrationStatus: { id: "3", name: "Active" },
+            state: { id: "TX", stateName: "Texas", stateCode: "TX" },
+            projectOfficer: { id: "3", fullName: "Bob Johnson" },
+            users: [{ id: "1", fullName: "Current User" }],
           },
         ],
       },
