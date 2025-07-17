@@ -1,5 +1,4 @@
-import { AddDemonstrationInput, Demonstration } from "demos-server";
-import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
+import { AddDemonstrationInput, Demonstration, DemonstrationStatus } from "demos-server";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
 import {
@@ -10,6 +9,14 @@ import {
 } from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
 import { DEMONSTRATIONS_TABLE_QUERY } from "pages/Demonstrations/Demonstrations";
+
+const activeDemonstrationStatus: DemonstrationStatus = {
+  id: "1",
+  name: "Approved",
+  createdAt: new Date("2025-01-01"),
+  updatedAt: new Date("2025-01-01"),
+  description: "Active Demonstration Status",
+};
 
 export const testDemonstration: Demonstration = {
   id: "1",

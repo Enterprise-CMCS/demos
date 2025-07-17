@@ -14,7 +14,7 @@ import {
 import userEvent from "@testing-library/user-event";
 
 import { Demonstrations, DEMONSTRATIONS_TABLE_QUERY } from "./Demonstrations";
-import { GET_PROJECT_OFFICERS_FOR_SELECT, GET_STATES_FOR_SELECT } from "./DemonstrationColumns";
+import { GET_DEMONSTRATION_STATUSES_FOR_SELECT, GET_PROJECT_OFFICERS_FOR_SELECT, GET_STATES_FOR_SELECT } from "./DemonstrationColumns";
 
 const mockDemonstrations = [
   {
@@ -133,6 +133,27 @@ const mocks = [
       },
     },
   },
+  {
+    request: {
+      query: GET_DEMONSTRATION_STATUSES_FOR_SELECT,
+    },
+    result: {
+      data: { demonstrationStatuses: [
+        {
+          id: "1",
+          name: "Approved",
+        },
+        {
+          id: "2",
+          name: "Expired",
+        },
+        {
+          id: "2",
+          name: "Withdrawn",
+        },
+      ]},
+    },
+  },
 ];
 
 const errorMock = [
@@ -182,6 +203,27 @@ const errorMock = [
           },
         ],
       },
+    },
+  },
+  {
+    request: {
+      query: GET_DEMONSTRATION_STATUSES_FOR_SELECT,
+    },
+    result: {
+      data: { demonstrationStatuses: [
+        {
+          id: "1",
+          name: "Approved",
+        },
+        {
+          id: "2",
+          name: "Expired",
+        },
+        {
+          id: "2",
+          name: "Withdrawn",
+        },
+      ]},
     },
   },
 ];
@@ -237,6 +279,27 @@ const emptyMocks = [
           },
         ],
       },
+    },
+  },
+  {
+    request: {
+      query: GET_DEMONSTRATION_STATUSES_FOR_SELECT,
+    },
+    result: {
+      data: { demonstrationStatuses: [
+        {
+          id: "1",
+          name: "Approved",
+        },
+        {
+          id: "2",
+          name: "Expired",
+        },
+        {
+          id: "2",
+          name: "Withdrawn",
+        },
+      ]},
     },
   },
 ];
@@ -418,7 +481,7 @@ describe("Demonstrations", () => {
     await waitFor(() => {
       // Use columnheader role instead of text
       const headers = screen.getAllByRole("columnheader");
-      expect(headers).toHaveLength(5); // Including the checkbox column and empty column
+      expect(headers).toHaveLength(6); // Including the checkbox column and empty column
     });
 
     // Then check for specific text within column headers
@@ -544,15 +607,15 @@ describe("Demonstrations", () => {
 
     // Wait for the dropdown to appear within the parent container
     await waitFor(() => {
-      const parentContainer = stateFilterSelect.parentElement;
+      const parentContainer = stateFilterSelect.parentElement!;
       const dropdown = within(parentContainer).getByRole("list");
       expect(dropdown).toBeInTheDocument();
     });
 
     // Find and click the Texas option within the parent container
-    const parentContainer = stateFilterSelect.parentElement;
+    const parentContainer = stateFilterSelect.parentElement!;
     const dropdown = within(parentContainer).getByRole("list");
-    const texasOption = within(dropdown).getByText("Texas");
+    const texasOption = within(dropdown).getByText("TX");
     await user.click(texasOption);
 
     await waitFor(() => {

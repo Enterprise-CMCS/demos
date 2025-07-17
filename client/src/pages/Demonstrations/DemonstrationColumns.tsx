@@ -36,13 +36,28 @@ export const GET_STATES_FOR_SELECT = gql`
   }
 `;
 
-// Hook for columns with filter options
+type DemonstrationStatus = {
+  id: string;
+  name: string;
+};
+
+export const GET_DEMONSTRATION_STATUSES_FOR_SELECT = gql`
+  query GetDemonstrationStatuses {
+    demonstrationStatuses {
+      id
+      name
+    }
+  }
+`;
+
 export const useDemonstrationColumns = () => {
   const { data: usersData, loading: usersLoading, error: usersError } = useQuery<{users: ProjectOfficer[]}>(GET_PROJECT_OFFICERS_FOR_SELECT);
   const { data: statesData, loading: statesLoading, error: statesError } = useQuery<{states: State[]}>(GET_STATES_FOR_SELECT);
+  const { data: demonstrationStatusesData, loading: demonstrationStatusesLoading, error: demonstrationStatusesError } = useQuery<{demonstrationStatuses: DemonstrationStatus[]}>(GET_DEMONSTRATION_STATUSES_FOR_SELECT);
 
   const projectOfficers = usersData?.users || [];
   const states = statesData?.states || [];
+  const demonstrationStatuses = demonstrationStatusesData?.demonstrationStatuses || [];
 
   const demonstrationColumns = [
     columnHelper.display({
@@ -77,7 +92,7 @@ export const useDemonstrationColumns = () => {
         filterConfig: {
           filterType: "select",
           options: states.map(state => ({
-            label: state.stateName,
+            label: state.stateCode,
             value: state.stateName,
           })),
         },
@@ -86,6 +101,7 @@ export const useDemonstrationColumns = () => {
     columnHelper.accessor("name", {
       header: "Title",
       cell: highlightCell,
+      enableColumnFilter: false,
     }),
     columnHelper.accessor("projectOfficer.fullName", {
       id: "projectOfficer",
@@ -97,6 +113,20 @@ export const useDemonstrationColumns = () => {
           options: projectOfficers.map((officer) => ({
             label: officer.fullName,
             value: officer.id,
+          })),
+        },
+      },
+    }),
+    columnHelper.accessor("demonstrationStatus.name", {
+      id: "demonstrationStatus",
+      header: "Status",
+      cell: highlightCell,
+      meta: {
+        filterConfig: {
+          filterType: "select",
+          options: demonstrationStatuses.map((demonstrationStatus) => ({
+            label: demonstrationStatus.name,
+            value: demonstrationStatus.name,
           })),
         },
       },
@@ -125,7 +155,7 @@ export const useDemonstrationColumns = () => {
 
   return {
     columns: demonstrationColumns as ColumnDef<Demonstration, unknown>[],
-    loading: usersLoading || statesLoading,
-    error: usersError || statesError,
+    loading: usersLoading || statesLoading || demonstrationStatusesLoading,
+    error: usersError || statesError || demonstrationStatusesError,
   };
 };
