@@ -8,7 +8,7 @@ export const eventResolvers = {
       return await prisma().event.findMany({
         include: {
           user: true,
-          eventType: true,
+          logLevel: true,
           withRole: true
         },
         orderBy: { createdAt: 'desc' }
@@ -20,7 +20,7 @@ export const eventResolvers = {
         where: { id },
         include: {
           user: true,
-          eventType: true,
+          logLevel: true,
           withRole: true
         }
       });
@@ -31,7 +31,7 @@ export const eventResolvers = {
         where: { eventTypeId },
         include: {
           user: true,
-          eventType: true,
+          logLevel: true,
           withRole: true
         },
         orderBy: { createdAt: 'desc' }
@@ -43,7 +43,7 @@ export const eventResolvers = {
         where: { userId },
         include: {
           user: true,
-          eventType: true,
+          logLevel: true,
           withRole: true
         },
         orderBy: { createdAt: 'desc' }
@@ -55,7 +55,7 @@ export const eventResolvers = {
         where: { route },
         include: {
           user: true,
-          eventType: true,
+          logLevel: true,
           withRole: true
         },
         orderBy: { createdAt: 'desc' }
@@ -65,22 +65,23 @@ export const eventResolvers = {
 
   Mutation: {
     createEvent: async (_: undefined, { input }: { input: CreateEventInput }, context: GraphQLContext) => {
-      const { eventTypeId, route, eventData } = input;
-      
+      const { eventTypeId, logLevelId, route, eventData } = input;
+
       const userId = await getCurrentUserId(context);
       const withRoleId = await getCurrentUserRoleId(context);
-      
+
       return await prisma().event.create({
         data: {
           userId,
           eventTypeId,
+          logLevelId,
           withRoleId,
           route,
           eventData
         },
         include: {
           user: true,
-          eventType: true,
+          logLevel: true,
           withRole: true
         }
       });
