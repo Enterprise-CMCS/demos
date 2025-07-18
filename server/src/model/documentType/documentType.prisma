@@ -1,0 +1,10 @@
+model DocumentType {
+  id          String   @id
+  description String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  Document Document[]
+
+  @@map("document_type")
+}
