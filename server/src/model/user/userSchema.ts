@@ -2,6 +2,7 @@ import { gql } from "graphql-tag";
 import { State } from "../state/stateSchema.js";
 import { Role } from "../role/roleSchema.js";
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
+import { Event } from "../event/eventSchema.js"
 
 export const userSchema = gql`
   type User {
@@ -16,6 +17,7 @@ export const userSchema = gql`
     states: [State!]!
     roles: [Role!]!
     demonstrations: [Demonstration!]!
+    events: [Event!]!
   }
 
   input AddUserInput {
@@ -42,7 +44,7 @@ export const userSchema = gql`
 
   type Mutation {
     addUser(input: AddUserInput!): User
-    updateUser(input: UpdateUserInput!): User
+    updateUser(id: ID!, input: UpdateUserInput!): User
     deleteUser(id: ID!): User
   }
 
@@ -65,6 +67,7 @@ export interface User {
   states: State[];
   roles: Role[];
   demonstrations: Demonstration[];
+  events: Event[];
 }
 
 export interface AddUserInput {
