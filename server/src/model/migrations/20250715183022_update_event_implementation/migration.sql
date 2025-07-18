@@ -1,18 +1,27 @@
 /*
   Warnings:
 
+  - You are about to drop the column `with_role_id` on the `event` table. All the data in the column will be lost.
   - You are about to drop the `event_type` table. If the table is not empty, all the data it contains will be lost.
   - Added the required column `log_level_id` to the `event` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `role_id` to the `event` table without a default value. This is not possible if the table is not empty.
 
 */
 -- DropForeignKey
 ALTER TABLE "event" DROP CONSTRAINT "event_event_type_id_fkey";
 
 -- DropForeignKey
+ALTER TABLE "event" DROP CONSTRAINT "event_user_id_fkey";
+
+-- DropForeignKey
 ALTER TABLE "event" DROP CONSTRAINT "event_with_role_id_fkey";
 
 -- AlterTable
-ALTER TABLE "event" ADD COLUMN     "log_level_id" TEXT NOT NULL;
+ALTER TABLE "event" DROP COLUMN "with_role_id",
+ADD COLUMN     "active_role_id" UUID,
+ADD COLUMN     "active_user_id" UUID,
+ADD COLUMN     "log_level_id" TEXT NOT NULL,
+ADD COLUMN     "role_id" UUID NOT NULL;
 
 -- DropTable
 DROP TABLE "event_type";
@@ -24,7 +33,7 @@ DROP TYPE "LogLevel";
 CREATE TABLE "log_level" (
     "id" TEXT NOT NULL,
     "severity" TEXT NOT NULL,
-    "level" INT NOT NULL,
+    "level" INTEGER NOT NULL,
 
     CONSTRAINT "log_level_pkey" PRIMARY KEY ("id")
 );
@@ -71,7 +80,10 @@ INSERT INTO "reportable_event_type" ("id", "description") VALUES
   ('DELETE_DOCUMENT_FAILED', 'Document deletion failed');
 
 -- AddForeignKey
-ALTER TABLE "event" ADD CONSTRAINT "event_with_role_id_fkey" FOREIGN KEY ("with_role_id") REFERENCES "role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "event" ADD CONSTRAINT "event_active_user_id_fkey" FOREIGN KEY ("active_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "event" ADD CONSTRAINT "event_active_role_id_fkey" FOREIGN KEY ("active_role_id") REFERENCES "role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "event" ADD CONSTRAINT "event_log_level_id_fkey" FOREIGN KEY ("log_level_id") REFERENCES "log_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

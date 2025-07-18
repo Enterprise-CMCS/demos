@@ -28,8 +28,8 @@ erDiagram
   user_state_demonstration }|--|| user_state : "user_state_demonstration.(user_id, state_id) ∈ user_state.(user_id, state_id)"
   state ||--|{ user_state : "user_state.user_id ∈ state.id"
   demonstration ||--|{ user_state_demonstration : "user_state_demonstration.(demonstration_id, state_id) ∈ demonstration.(id, state_id)"
-  role ||--|{ event: "event.with_role_id ∈ role.id"
-  users ||--|{ event : "event.user_id ∈ users.id"
+  role ||--|{ event: "event.active_role_id ∈ role.id"
+  users ||--|{ event : "event.active_user_id ∈ users.id"
   user_role }|--|| role : "user_role.role_id ∈ role.id"
   users ||--|{ user_role : "user_role.user_id ∈ users.id"
   permission ||--|{ role_permission : "role_permission.permission_id ∈ permission.id"
@@ -104,11 +104,13 @@ erDiagram
 
   event {
     uuid id PK
-    uuid user_id FK "FK: users.id"
+    uuid user_id
+    uuid active_user_id FK "FK: users.id, NULLABLE"
     text event_type_id FK
-    string with_role_id FK "FK: role.id"
-    string log_level_id FK "FK: log_level.id"
-    string route
+    uuid role_id
+    uuid active_role_id FK "FK: role.id, NULLABLE"
+    text log_level_id FK "FK: log_level.id"
+    text route
     timestamptz created_at
     jsonb event_data "NULLABLE"
   }

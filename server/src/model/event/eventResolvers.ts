@@ -24,13 +24,6 @@ export const eventResolvers = {
       });
     },
 
-    eventsByUser: async (_: undefined, { userId }: { userId: string }) => {
-      return await prisma().event.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' }
-      });
-    },
-
     eventsByRoute: async (_: undefined, { route }: { route: string }) => {
       return await prisma().event.findMany({
         where: { route },
@@ -44,19 +37,21 @@ export const eventResolvers = {
       const { eventTypeId, logLevelId, route, eventData } = input;
 
       const userId = await getCurrentUserId(context);
-      const withRoleId = await getCurrentUserRoleId(context);
+      const roleId = await getCurrentUserRoleId(context);
 
       return await prisma().event.create({
         data: {
+          userId: userId,
           user: {
             connect: {
-              id: userId
+              id: userId 
             }
           },
           eventTypeId: eventTypeId,
-          withRole: {
+          roleId: roleId,
+          role: {
             connect: {
-              id: withRoleId
+              id: roleId
             }
           },
           logLevel: {
@@ -78,9 +73,9 @@ export const eventResolvers = {
       });
     },
 
-    withRole: async (parent: Event) => {
+    role: async (parent: Event) => {
       return await prisma().role.findUnique({
-        where: { id: parent.withRoleId },
+        where: { id: parent.roleId },
       });
     },
   }
