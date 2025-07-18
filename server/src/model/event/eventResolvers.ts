@@ -1,5 +1,5 @@
 import { prisma } from '../../prismaClient.js';
-import { CreateEventInput } from './eventSchema.js';
+import { LogEventInput } from './eventSchema.js';
 import { GraphQLContext, getCurrentUserId, getCurrentUserRoleId } from '../../auth/auth.util.js';
 
 export const eventResolvers = {
@@ -64,26 +64,29 @@ export const eventResolvers = {
   },
 
   Mutation: {
-    createEvent: async (_: undefined, { input }: { input: CreateEventInput }, context: GraphQLContext) => {
+    logEvent: async (_: undefined, { input }: { input: LogEventInput }, context: GraphQLContext) => {
       const { eventTypeId, route, eventData } = input;
-      
+
+      // TODO: For testing this we have the `bypass-auth` user and
+      // this doesn't currently have a valid userId since it needs to be a uuid
+      // Might need to make this a valid UUID in order to not fail on logEvent
       const userId = await getCurrentUserId(context);
       const withRoleId = await getCurrentUserRoleId(context);
       
-      return await prisma().event.create({
-        data: {
-          userId,
-          eventTypeId,
-          withRoleId,
-          route,
-          eventData
-        },
-        include: {
-          user: true,
-          eventType: true,
-          withRole: true
-        }
-      });
+      try {
+        await prisma().event.create({
+          data: {
+            userId,
+            eventTypeId,
+            withRoleId,
+            route,
+            eventData
+          }
+        });
+        return { success: true };
+      } catch (error) {
+        return { success: false, message: error instanceof Error ? error.message : "Unknown error" };
+      }
     }
   }
 };
