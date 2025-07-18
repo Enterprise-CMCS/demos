@@ -4,6 +4,7 @@ title: DEMOS Current Data Model
 
 erDiagram
 
+
   document_type ||--|{ document : "document.document_type_id ∈ document_type.id"
   document }|--|| bundle : "document.bundle_id ∈ bundle.id"
   document }|--|| users : "document.owner_user_id ∈ users.id"
@@ -18,13 +19,14 @@ erDiagram
   user_state_demonstration }|--|| user_state : "user_state_demonstration.(user_id, state_id) ∈ user_state.(user_id, state_id)"
   state ||--|{ user_state : "user_state.user_id ∈ state.id"
   demonstration ||--|{ user_state_demonstration : "user_state_demonstration.(demonstration_id, state_id) ∈ demonstration.(id, state_id)"
-  users ||--|{ event : "event.user_id ∈ users.id"
+  users ||--|{ event : "event.active_user_id ∈ users.id"
   role ||--|{ user_role : "user_role.role_id ∈ role.id"
-  event }|--|| role : "event.with_role_id ∈ role.id"
+  event }|--|| role : "event.active_role_id ∈ role.id"
   users ||--|{ user_role : "user_role.user_id ∈ users.id"
   permission ||--|{ role_permission : "role_permission.permission_id ∈ permission.id"
   role ||--|{ role_permission : "role_permission.role_id ∈ role.id"
-  event }|--|| event_type : "event.event_type_id ∈ event_type.id"
+  event }|--|| log_level : "event.log_level_id ∈ log_level.id"
+  event }O..|| reportable_event_type : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
 
   bundle {
     uuid id PK, UK "UK: (id, bundle_type_id)"
@@ -32,7 +34,7 @@ erDiagram
   }
 
   bundle_type {
-    text id PK "Natural Key"
+    text id PK
     text name
     text description
     timestamptz created_at
@@ -86,20 +88,21 @@ erDiagram
 
   event {
     uuid id PK
-    uuid user_id FK "FK: users.id"
-    text event_type_id FK "FK: event_type.id"
-    uuid with_role_id FK "FK: role.id, NULLABLE"
+    uuid user_id
+    uuid active_user_id FK "FK: users.id, NULLABLE"
+    text event_type_id FK
+    uuid role_id
+    uuid active_role_id FK "FK: role.id, NULLABLE"
+    text log_level_id FK "FK: log_level.id"
     text route
     timestamptz created_at
     jsonb event_data "NULLABLE"
   }
 
-  event_type {
-    text id PK "Natural Key"
-    text description
-    enum log_level
-    timestamptz created_at
-    timestamptz updated_at
+  log_level {
+    text id PK
+    text severity
+    int level
   }
 
   permission {
@@ -108,6 +111,11 @@ erDiagram
     text description
     timestamptz created_at
     timestamptz updated_at
+  }
+
+  reportable_event_type {
+    text id PK
+    text description
   }
 
   role {

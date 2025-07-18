@@ -6,6 +6,8 @@ import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { CircleButton } from "components/button/CircleButton";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { usePageHeader } from "hooks/usePageHeader";
+import { DocumentTable } from "components/table/tables/DocumentTable";
+import DocumentData from "faker_data/documents.json";
 
 
 export const DemonstrationDetail = () => {
@@ -89,9 +91,14 @@ export const DemonstrationDetail = () => {
       {loading && <p>Loading...</p>}
       {error && <p>Error loading demonstration</p>}
       {data && (
-        <>
-          Demonstration Detail Content
-        </>
+        <div>
+          <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Documents</h1>
+          <div className="h-[60vh] overflow-y-auto">
+            <DocumentTable
+              data={DocumentData}
+            />
+          </div>
+        </div>
       )}
 
       {modalType === "edit" && (
