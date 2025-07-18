@@ -21,7 +21,8 @@ erDiagram
   users ||--|{ user_role : "user_role.user_id ∈ users.id"
   permission ||--|{ role_permission : "role_permission.permission_id ∈ permission.id"
   role ||--|{ role_permission : "role_permission.role_id ∈ role.id"
-  event }|--|| event_type : "event.event_type_id ∈ event_type.id"
+  event }|--|| log_level : "event.log_level_id ∈ log_level.id"
+  event }O..|| reportable_event_type : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
 
   bundle {
     uuid id PK, UK "UK: (id, bundle_type_id)"
@@ -29,7 +30,7 @@ erDiagram
   }
 
   bundle_type {
-    text id PK "Natural Key"
+    text id PK
     text name
     text description
     timestamptz created_at
@@ -65,19 +66,18 @@ erDiagram
   event {
     uuid id PK
     uuid user_id FK "FK: users.id"
-    text event_type_id FK "FK: event_type.id"
-    uuid with_role_id FK "FK: role.id, NULLABLE"
-    text route
+    text event_type_id FK
+    string with_role_id FK "FK: role.id"
+    string log_level_id FK "FK: log_level.id"
+    string route
     timestamptz created_at
     jsonb event_data "NULLABLE"
   }
 
-  event_type {
-    text id PK "Natural Key"
-    text description
-    enum log_level
-    timestamptz created_at
-    timestamptz updated_at
+  log_level {
+    text id PK
+    text severity
+    int level
   }
 
   permission {
@@ -86,6 +86,11 @@ erDiagram
     text description
     timestamptz created_at
     timestamptz updated_at
+  }
+
+  reportable_event_type {
+    text id PK
+    text description
   }
 
   role {

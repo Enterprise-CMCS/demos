@@ -1,39 +1,25 @@
 import { prisma } from '../../prismaClient.js';
 import { CreateEventInput } from './eventSchema.js';
+import { Event } from "@prisma/client";
 import { GraphQLContext, getCurrentUserId, getCurrentUserRoleId } from '../../auth/auth.util.js';
 
 export const eventResolvers = {
   Query: {
     events: async () => {
       return await prisma().event.findMany({
-        include: {
-          user: true,
-          logLevel: true,
-          withRole: true
-        },
         orderBy: { createdAt: 'desc' }
       });
     },
 
     event: async (_: undefined, { id }: { id: string }) => {
       return await prisma().event.findUnique({
-        where: { id },
-        include: {
-          user: true,
-          logLevel: true,
-          withRole: true
-        }
+        where: { id }
       });
     },
 
     eventsByType: async (_: undefined, { eventTypeId }: { eventTypeId: string }) => {
       return await prisma().event.findMany({
         where: { eventTypeId },
-        include: {
-          user: true,
-          logLevel: true,
-          withRole: true
-        },
         orderBy: { createdAt: 'desc' }
       });
     },
@@ -41,11 +27,6 @@ export const eventResolvers = {
     eventsByUser: async (_: undefined, { userId }: { userId: string }) => {
       return await prisma().event.findMany({
         where: { userId },
-        include: {
-          user: true,
-          logLevel: true,
-          withRole: true
-        },
         orderBy: { createdAt: 'desc' }
       });
     },
@@ -53,11 +34,6 @@ export const eventResolvers = {
     eventsByRoute: async (_: undefined, { route }: { route: string }) => {
       return await prisma().event.findMany({
         where: { route },
-        include: {
-          user: true,
-          logLevel: true,
-          withRole: true
-        },
         orderBy: { createdAt: 'desc' }
       });
     }
@@ -72,19 +48,41 @@ export const eventResolvers = {
 
       return await prisma().event.create({
         data: {
-          userId,
-          eventTypeId,
-          logLevelId,
-          withRoleId,
-          route,
-          eventData
-        },
-        include: {
-          user: true,
-          logLevel: true,
-          withRole: true
+          user: {
+            connect: {
+              id: userId
+            }
+          },
+          eventTypeId: eventTypeId,
+          withRole: {
+            connect: {
+              id: withRoleId
+            }
+          },
+          logLevel: {
+            connect: {
+              id: logLevelId
+            }
+          },
+          route: route,
+          eventData: eventData
         }
       });
     }
+  },
+
+  Event: {
+    user: async (parent: Event) => {
+      return await prisma().user.findUnique({
+        where: { id: parent.userId },
+      });
+    },
+
+    withRole: async (parent: Event) => {
+      return await prisma().role.findUnique({
+        where: { id: parent.withRoleId },
+      });
+    },
   }
+
 };

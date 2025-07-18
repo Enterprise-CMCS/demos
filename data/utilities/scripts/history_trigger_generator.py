@@ -15,7 +15,6 @@ TBL_FOLDERS = [
     "demonstration",
     "demonstrationBundleType",
     "demonstrationStatus",
-    "eventType",
     "permission",
     "role",
     "state",
