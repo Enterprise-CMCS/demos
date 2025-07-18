@@ -43,9 +43,9 @@ export const eventSchema = gql`
 type DateTime = Date;
 export interface Event {
   id: string;
-  user: User | null;
+  user?: User; // TODO: I think this isn't right but eslint doesn't handle User | null at the moment
   eventTypeId: string;
-  role: Role | null;
+  role?: Role; // TODO: I think this isn't right but eslint doesn't handle User | null at the moment
   logLevelId: string;
   route: string;
   createdAt: DateTime;
