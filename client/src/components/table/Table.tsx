@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import {
-  CellContext,
   ColumnDef,
   flexRender,
   getCoreRowModel,
@@ -17,51 +16,15 @@ import { PaginationControls } from "./pagination/PaginationControls";
 
 export interface TableProps<T> {
   data: T[];
-  columns: ColumnDef<T, unknown>[];
+  // any is allowed because the column definitions intentionally allow for flexibility in types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  columns: ColumnDef<T, any>[];
   className?: string;
   keywordSearch?: boolean;
   columnFilter?: boolean;
   pagination?: boolean;
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
-}
-
-export function highlightCell<TData>({ cell, table }: CellContext<TData, unknown>): React.ReactNode {
-  const text = cell.getValue() as string;
-  const query = table.getState().globalFilter || "";
-
-  if (!query || (Array.isArray(query) && query.length === 0)) {
-    return text;
-  }
-
-  // Handle both string and array inputs
-  const keywords = Array.isArray(query) ? query : [query];
-  const validKeywords = keywords.filter(k => k.trim().length > 0);
-
-  if (validKeywords.length === 0) {
-    return text;
-  }
-
-  // Create regex pattern for all keywords
-  const pattern = validKeywords.map(k => `(${k})`).join("|");
-  const regex = new RegExp(pattern, "gi");
-  const parts = text.split(regex);
-
-  return parts.map((part, index) => {
-    // Create a fresh regex for each test, or use a different method
-    const testRegex = new RegExp(pattern, "gi");
-    if (testRegex.test(part)) {
-      return (
-        <mark
-          key={index}
-          className="bg-yellow-200 font-semibold"
-        >
-          {part}
-        </mark>
-      );
-    }
-    return part;
-  });
 }
 
 export function Table<T>({
@@ -74,9 +37,14 @@ export function Table<T>({
   emptyRowsMessage = "No data available.",
   noResultsFoundMessage = "No results found.",
 }: TableProps<T>) {
-
-  const arrIncludesAllInsensitive = (row: Row<T>, columnId: string, filterValue: (string | undefined)[]) => {
-    const validFilterValues = filterValue.filter((val): val is string => val != null);
+  const arrIncludesAllInsensitive = (
+    row: Row<T>,
+    columnId: string,
+    filterValue: (string | undefined)[]
+  ) => {
+    const validFilterValues = filterValue.filter(
+      (val): val is string => val != null
+    );
 
     if (validFilterValues.length === 0) {
       return true;
@@ -87,8 +55,7 @@ export function Table<T>({
       const rowValue = row.getValue(columnId);
 
       return !(
-        rowValue != null &&
-        rowValue.toString().toLowerCase().includes(search)
+        rowValue != null && rowValue.toString().toLowerCase().includes(search)
       );
     });
   };
@@ -105,22 +72,16 @@ export function Table<T>({
 
   const hasDataInitially = data.length > 0;
   const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
-  const filtersClearedOutData =
-    hasDataInitially && !hasDataAfterFiltering;
+  const filtersClearedOutData = hasDataInitially && !hasDataAfterFiltering;
 
   return (
     <div className={`${className || ""}`}>
       <div className="flex items-center mb-2">
-
         {/* Search Section */}
-        {keywordSearch && (
-          <KeywordSearch table={table} />
-        )}
+        {keywordSearch && <KeywordSearch table={table} />}
 
         {/* Filter Section */}
-        {columnFilter && (
-          <ColumnFilter table={table} />
-        )}
+        {columnFilter && <ColumnFilter table={table} />}
       </div>
 
       {/* Table Section */}
@@ -135,7 +96,10 @@ export function Table<T>({
                     className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
                     onClick={header.column.getToggleSortingHandler()}
                   >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                     {{
                       asc: " ↑",
                       desc: " ↓",
@@ -166,14 +130,14 @@ export function Table<T>({
               </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={row.depth > 0 ? "bg-gray-200" : ""}
-                >
+                <tr key={row.id} className={row.depth > 0 ? "bg-gray-200" : ""}>
                   {row.getVisibleCells().map((cell) => {
                     return (
                       <td key={cell.id} className="px-2 py-1 border-b">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     );
                   })}
@@ -182,9 +146,7 @@ export function Table<T>({
             )}
           </tbody>
         </table>
-        {pagination && (
-          <PaginationControls table={table} />
-        )}
+        {pagination && <PaginationControls table={table} />}
       </div>
     </div>
   );

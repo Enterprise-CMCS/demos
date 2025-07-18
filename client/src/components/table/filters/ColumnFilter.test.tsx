@@ -1,220 +1,567 @@
 import React from "react";
 
-import {
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import {
-  render,
-  screen,
-} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { highlightCell, Table } from "../Table";
-import { SecondaryButton } from "components/button";
-import { Demonstration } from "pages/Demonstrations/Demonstrations";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { Table } from "../Table";
+import { testTableData, TestType } from "../Table.test";
+import { createColumnHelper } from "@tanstack/react-table";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-const columnHelper = createColumnHelper<Demonstration>();
+const columnHelper = createColumnHelper<TestType>();
 
-export const columns = [
-  columnHelper.display({
-    id: "select",
-    header: ({ table }) => (
-      <input
-        id="select-all-rows"
-        type="checkbox"
-        className="cursor-pointer"
-        aria-label="Select all rows"
-        checked={table.getIsAllPageRowsSelected()}
-        onChange={table.getToggleAllPageRowsSelectedHandler()}
-      />
-    ),
-    cell: ({ row }) => (
-      <input
-        id={`select-row-${row.id}`}
-        type="checkbox"
-        className="cursor-pointer"
-        checked={row.getIsSelected()}
-        onChange={row.getToggleSelectedHandler()}
-        aria-label={`Select row ${row.index + 1}`}
-      />
-    ),
-    size: 20,
-  }),
-  columnHelper.accessor("state.stateName", {
-    id: "stateName",
-    header: "State/Territory",
-    cell: highlightCell,
-  }),
+export const testColumns = [
   columnHelper.accessor("name", {
-    header: "Title",
-    cell: highlightCell,
+    header: "Name",
   }),
-  columnHelper.accessor("projectOfficer.fullName", {
-    id: "projectOfficer",
-    header: "Project Officer",
-    cell: highlightCell,
+  columnHelper.accessor("description", {
+    header: "Description",
+    enableColumnFilter: false,
   }),
-  columnHelper.display({
-    id: "viewDetails",
-    cell: ({ row }) => {
-      const handleClick = () => {
-        const demoId = row.original.id;
-        window.location.href = `/demonstrations/${demoId}`;
-      };
+  columnHelper.accessor("option.name", {
+    header: "Option",
+    meta: {
+      filterConfig: {
+        filterType: "select",
+        options: [
+          { label: "Option Alpha", value: "Option Alpha" },
+          { label: "Option Beta", value: "Option Beta" },
+          { label: "Option Gamma", value: "Option Gamma" },
+          { label: "Option Delta", value: "Option Delta" },
+        ],
+      },
+    },
+  }),
+  columnHelper.accessor("date", {
+    id: "date",
+    header: "Date",
+    cell: ({ getValue }) => {
+      const date = getValue() as Date;
+      return date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    },
+    meta: {
+      filterConfig: {
+        filterType: "date",
+      },
+    },
+  }),
+];
 
-      return (
-        <SecondaryButton
-          type="button"
-          size="small"
-          onClick={handleClick}
-          className="px-2 py-0 text-sm font-medium"
-        >
-          View
-        </SecondaryButton>
+describe("ColumnFilter Component", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    render(
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Table<TestType>
+          columns={testColumns}
+          data={testTableData}
+          columnFilter
+          noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+        />
+      </LocalizationProvider>
+    );
+  });
+
+  describe("Initial Render", () => {
+    it("renders the filter dropdown with correct label", () => {
+      expect(screen.getByText(/filter by:/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/filter by:/i)).toBeInTheDocument();
+    });
+
+    it("displays all table rows initially", () => {
+      // All 5 items should be visible
+      expect(screen.getByText("Item One")).toBeInTheDocument();
+      expect(screen.getByText("Item Two")).toBeInTheDocument();
+      expect(screen.getByText("Item Three")).toBeInTheDocument();
+      expect(screen.getByText("Item Four")).toBeInTheDocument();
+      expect(screen.getByText("Item Five")).toBeInTheDocument();
+    });
+
+    it("does not show filter input initially", () => {
+      // No filter input should be visible until a column is selected
+      expect(
+        screen.queryByPlaceholderText(/filter name/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText(/filter option/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText(/filter date/i)
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Filter Selection", () => {
+    it("shows filter input when a column is selected", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+
+      // Type to filter the options and then click on the option
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        // Look for the Name option in the dropdown list
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      // Click on the Name option in the dropdown
+      const dropdownOptions = screen.getAllByText("Name");
+      const dropdownOption = dropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
       );
-    },
-  }),
-] as ColumnDef<Demonstration, unknown>[];
+      await user.click(dropdownOption!);
 
-const mockRawData = [
-  {
-    id: "a",
-    name: "Medicaid Montana Expenditure Cap Demonstration",
-    description: "...",
-    demonstrationStatus: {
-      id: "d",
-      name: "Active",
-    },
-    users: [{
-      id: "g",
-      fullName: "Luke Skywalker",
-    }],
-    state: {
-      id: "MT",
-      stateName: "Montana",
-      stateCode: "MT",
-    },
-    projectOfficer: {
-      id: "j",
-      fullName: "Qui-Gon Jinn",
-    },
-  },
-  {
-    id: "b",
-    name: "Medicaid Florida Reproductive Health: Fertility Demonstration",
-    description: "...",
-    demonstrationStatus: {
-      id: "e",
-      name: "Pending",
-    },
-    users: [{
-      id: "h",
-      fullName: "Darth Vader",
-    }],
-    state: {
-      id: "NC",
-      stateName: "North Carolina",
-      stateCode: "NC",
-    },
-    projectOfficer: {
-      id: "k",
-      fullName: "Obi-Wan Kenobi",
-    },
-  },
-  {
-    id: "c",
-    name: "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration",
-    description: "...",
-    demonstrationStatus: {
-      id: "f",
-      name: "Inactive",
-    },
-    users: [{
-      id: "i",
-      fullName: "Han Solo",
-    }],
-    state: {
-      id: "WA",
-      stateName: "Washington",
-      stateCode: "WA",
-    },
-    projectOfficer: {
-      id: "l",
-      fullName: "Yoda",
-    },
-  },
-] as Demonstration[];
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+    });
 
-describe("DemonstrationTable", () => {
+    it("changes filter input type based on column selection", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-  it("filters rows correctly when using the dropdown and typing a filter value", async () => {
-    render(<Table<Demonstration> columnFilter columns={columns} data={mockRawData} />);
+      // Test text filter (Name column)
+      await user.type(columnSelect, "Name");
 
-    const user = userEvent.setup();
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
 
-    const filterSelect = screen.getByLabelText(/filter by:/i);
-    await user.selectOptions(filterSelect, ["stateName"]);
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
 
-    const filterInput = screen.getByPlaceholderText(/type to filter/i);
-    await user.type(filterInput, "North Carolina");
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
 
-    expect(
-      screen.getByText("Medicaid Florida Reproductive Health: Fertility Demonstration")
-    ).toBeInTheDocument();
+      // Test select filter (Option column)
+      await user.clear(columnSelect);
+      await user.type(columnSelect, "Option");
 
-    expect(
-      screen.queryByText("Medicaid Montana Expenditure Cap Demonstration")
-    ).not.toBeInTheDocument();
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Option");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
 
-    expect(
-      screen.queryByText("Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration")
-    ).not.toBeInTheDocument();
+      const optionDropdownOptions = screen.getAllByText("Option");
+      const optionDropdownOption = optionDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(optionDropdownOption!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText(/filter option/i)
+        ).toBeInTheDocument();
+      });
+
+      // Test date filter (Date column)
+      await user.clear(columnSelect);
+      await user.type(columnSelect, "Date");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Date");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const dateDropdownOptions = screen.getAllByText("Date");
+      const dateDropdownOption = dateDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(dateDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter date/i)).toBeInTheDocument();
+      });
+    });
+
+    it("clears filter value when changing columns", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+
+      // Select name column and enter a filter
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "Item One");
+
+      // Change to option column
+      await user.clear(columnSelect);
+      await user.type(columnSelect, "Option");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Option");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const optionDropdownOptions = screen.getAllByText("Option");
+      const optionDropdownOption = optionDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(optionDropdownOption!);
+
+      await waitFor(() => {
+        const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+        expect(optionFilterInput).toHaveValue("");
+      });
+    });
   });
 
-  it("renders the 'no results found' message when filter results return no demonstrations", async () => {
-    render(
-      <Table<Demonstration>
-        columns={columns}
-        data={mockRawData}
-        columnFilter
-        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-      />
-    );
-    const user = userEvent.setup();
+  describe("Text Filtering", () => {
+    it("filters rows correctly by name column", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-    const filterSelect = screen.getByLabelText(/filter by:/i);
-    await user.selectOptions(filterSelect, ["name"]);
+      await user.type(columnSelect, "Name");
 
-    const filterInput = screen.getByPlaceholderText(/type to filter/i);
-    await user.type(filterInput, "ZZZZZZZ");
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
 
-    expect(
-      screen.getByText("No results were returned. Adjust your search and filter criteria.")
-    ).toBeInTheDocument();
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "Item One");
+
+      await waitFor(() => {
+        // Should show only Item One
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+
+        // Should not show other items
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+      });
+    });
+
+    it("is case insensitive", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "item one");
+
+      await waitFor(() => {
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+      });
+    });
+
+    it("handles partial matches", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "Item");
+
+      await waitFor(() => {
+        // Should show all items since they all contain "Item"
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.getByText("Item Two")).toBeInTheDocument();
+        expect(screen.getByText("Item Three")).toBeInTheDocument();
+        expect(screen.getByText("Item Four")).toBeInTheDocument();
+        expect(screen.getByText("Item Five")).toBeInTheDocument();
+      });
+    });
   });
 
-  it("renders the filter dropdown without `expander` or `select` options", () => {
-    render(
-      <Table<Demonstration>
-        columns={columns}
-        data={mockRawData}
-        columnFilter
-      />
-    );
+  describe("Select Filter Type", () => {
+    it("renders AutoCompleteSelect when column has select filter type", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-    const filterSelect = screen.getByLabelText(/filter by:/i);
+      await user.type(columnSelect, "Option");
 
-    const options = Array.from(
-      filterSelect.querySelectorAll("option")
-    ).map((opt) => opt.textContent);
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Option");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
 
-    expect(options).not.toContain("expander");
-    expect(options).not.toContain("select");
-    expect(options).toContain("State/Territory");
-    expect(options).toContain("Title");
-    expect(options).toContain("Project Officer");
+      const optionDropdownOptions = screen.getAllByText("Option");
+      const optionDropdownOption = optionDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(optionDropdownOption!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText(/filter option/i)
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("filters correctly using select filter", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+
+      await user.type(columnSelect, "Option");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Option");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const optionDropdownOptions = screen.getAllByText("Option");
+      const optionDropdownOption = optionDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(optionDropdownOption!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText(/filter option/i)
+        ).toBeInTheDocument();
+      });
+
+      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      await user.type(optionFilterInput, "Option Alpha");
+
+      await waitFor(() => {
+        const alphaOptions = screen.getAllByText("Option Alpha");
+        const alphaDropdownOption = alphaOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(alphaDropdownOption).toBeInTheDocument();
+      });
+
+      const alphaOptions = screen.getAllByText("Option Alpha");
+      const alphaDropdownOption = alphaOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(alphaDropdownOption!);
+
+      await waitFor(() => {
+        // Should show items with Option Alpha (Item One and Item Five)
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.getByText("Item Five")).toBeInTheDocument();
+
+        // Should not show items with other options
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("Date Filter Type", () => {
+    it("renders DatePicker when column has date filter type", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+
+      await user.type(columnSelect, "Date");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Date");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const dateDropdownOptions = screen.getAllByText("Date");
+      const dateDropdownOption = dateDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(dateDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter date/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("No Results State", () => {
+    it("shows no results message when filter yields no matches", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "NonexistentItem");
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
+        ).toBeInTheDocument();
+
+        // No table rows should be visible
+        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+      });
+    });
+
+    it("returns to showing results when valid filter is applied after no results", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+
+      // First filter with no results
+      await user.type(nameFilterInput, "NonexistentItem");
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
+        ).toBeInTheDocument();
+      });
+
+      // Clear and filter for something that exists
+      await user.clear(nameFilterInput);
+      await user.type(nameFilterInput, "Item One");
+
+      await waitFor(() => {
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(
+          screen.queryByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
+        ).not.toBeInTheDocument();
+      });
+    });
   });
 });

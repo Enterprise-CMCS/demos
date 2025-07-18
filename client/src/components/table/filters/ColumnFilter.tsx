@@ -1,37 +1,59 @@
 import React from "react";
 import { Table } from "@tanstack/react-table";
-import { AutoCompleteSelect, Option } from "components/input/select/AutoCompleteSelect";
+import {
+  AutoCompleteSelect,
+  Option,
+} from "components/input/select/AutoCompleteSelect";
+import { TextInput } from "components/input";
+import { DatePicker } from "@mui/x-date-pickers";
+import dayjs, { Dayjs } from "dayjs";
 
 export interface ColumnFilterByDropdownProps<T> {
   table: Table<T>;
   label?: string;
   className?: string;
 }
+
 export interface ColumnMetaFilterConfig {
   filterConfig?:
     | {
         filterType: "select";
-        options: Option[]; // Required for select
+        options: Option[];
       }
     | {
         filterType: "text";
-        options?: never; // Explicitly exclude options for text
+        options?: never;
       }
     | {
         filterType: "date";
-        options?: never; // Explicitly exclude options for date
+        options?: never;
       };
 }
 
 export function ColumnFilter<T>({
   table,
-  label = "Filter by:",
   className = "",
 }: ColumnFilterByDropdownProps<T>) {
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
-  const [filterValue, setFilterValue] = React.useState<string>("");
+  const [filterValue, setFilterValue] = React.useState<string | Date | null>(
+    ""
+  );
 
-  const availableColumns = table.getAllColumns().filter(column => column.getCanFilter());
+  const availableColumns = table
+    .getAllColumns()
+    .filter((column) => column.getCanFilter());
+
+  // Create options for column selection
+  const columnOptions: Option[] = availableColumns.map((col) => {
+    const columnDef = col.columnDef;
+    const displayLabel =
+      typeof columnDef.header === "string" ? columnDef.header : col.id;
+
+    return {
+      label: displayLabel,
+      value: col.id,
+    };
+  });
 
   // Whenever the selected column changes, reset the filterValue and clear filters
   React.useEffect(() => {
@@ -40,7 +62,7 @@ export function ColumnFilter<T>({
   }, [selectedColumn, table]);
 
   // Update the filter: if `val` is nonempty and there's a column selected, apply that filter
-  const onValueChange = (val: string) => {
+  const onValueChange = (val: string | Date | null) => {
     setFilterValue(val);
     if (val && selectedColumn) {
       table.setColumnFilters([{ id: selectedColumn, value: val }]);
@@ -50,8 +72,11 @@ export function ColumnFilter<T>({
   };
 
   // Get the selected column's filter configuration
-  const selectedColumnObj = availableColumns.find(col => col.id === selectedColumn);
-  const meta: ColumnMetaFilterConfig | undefined = selectedColumnObj?.columnDef.meta;
+  const selectedColumnObj = availableColumns.find(
+    (col) => col.id === selectedColumn
+  );
+  const meta: ColumnMetaFilterConfig | undefined =
+    selectedColumnObj?.columnDef.meta;
   const filterConfig = meta?.filterConfig;
 
   // Render the appropriate input based on filter configuration
@@ -59,17 +84,19 @@ export function ColumnFilter<T>({
     if (!selectedColumn) return null;
 
     const filterType = filterConfig?.filterType || "text";
-    const columnDisplayName = typeof selectedColumnObj?.columnDef.header === "string"
-      ? selectedColumnObj.columnDef.header
-      : selectedColumn;
+    const columnDisplayName =
+      typeof selectedColumnObj?.columnDef.header === "string"
+        ? selectedColumnObj.columnDef.header
+        : selectedColumn;
 
     switch (filterType) {
       case "select":
         return (
           <AutoCompleteSelect
+            label={`${columnDisplayName} Filter`}
             options={filterConfig?.options || []}
             placeholder={`Filter ${columnDisplayName}`}
-            value={filterValue}
+            value={filterValue as string}
             onSelect={(val) => onValueChange(val)}
             id={`filter-${selectedColumn}`}
           />
@@ -77,24 +104,30 @@ export function ColumnFilter<T>({
 
       case "date":
         return (
-          <input
-            type="date"
-            aria-label={`Filter ${columnDisplayName} by date`}
-            className="border px-2 py-1 rounded"
-            value={filterValue}
-            onChange={(e) => onValueChange(e.target.value)}
+          <DatePicker
+            label={`${columnDisplayName} Filter`}
+            value={filterValue instanceof Date ? dayjs(filterValue) : null}
+            onChange={(newValue: Dayjs | null) => {
+              const date = newValue ? newValue.toDate() : null;
+              onValueChange(date);
+            }}
+            slotProps={{
+              textField: {
+                placeholder: `Filter ${columnDisplayName.toLowerCase()}...`,
+                name: `filter-${selectedColumn}`,
+              },
+            }}
           />
         );
 
       case "text":
       default:
         return (
-          <input
-            type="text"
-            aria-label={`Filter ${columnDisplayName}`}
-            placeholder="🔍 Type to filter…"
-            className="border px-2 py-1 rounded"
-            value={filterValue}
+          <TextInput
+            label={`${columnDisplayName} Filter`}
+            name={`filter-${selectedColumn}`}
+            placeholder={`Filter ${columnDisplayName}`}
+            value={filterValue as string}
             onChange={(e) => onValueChange(e.target.value)}
           />
         );
@@ -107,39 +140,15 @@ export function ColumnFilter<T>({
 
   return (
     <div className={className}>
-      <label
-        htmlFor="filter-by-column"
-        className="ml-2 font-semibold block mb-1"
-      >
-        {label}
-      </label>
-
       <div className="ml-2 mb-2 mr-2 flex items-center gap-2 text-sm">
-        <select
-          id="filter-by-column"
-          className="border px-2 py-1 rounded"
+        <AutoCompleteSelect
+          label="Filter by:"
+          options={columnOptions}
+          placeholder="Select a Column..."
           value={selectedColumn}
-          onChange={(e) => setSelectedColumn(e.target.value)}
-          aria-label="Choose column to filter"
-        >
-          <option value="" disabled>
-            Select a Column...
-          </option>
-
-          {availableColumns.map((col) => {
-            const columnDef = col.columnDef;
-            const displayLabel =
-              typeof columnDef.header === "string"
-                ? columnDef.header
-                : col.id;
-
-            return (
-              <option key={col.id} value={col.id}>
-                {displayLabel}
-              </option>
-            );
-          })}
-        </select>
+          onSelect={(val) => setSelectedColumn(val)}
+          id="filter-by-column"
+        />
 
         {renderFilterInput()}
       </div>

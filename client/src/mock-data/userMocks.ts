@@ -3,7 +3,10 @@ import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
 import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 import { MockedResponse } from "@apollo/client/testing";
-import { GET_PROJECT_OFFICERS_FOR_SELECT } from "pages/Demonstrations/DemonstrationColumns";
+import {
+  GET_PROJECT_OFFICERS_FOR_SELECT,
+  ProjectOfficerSelectOptions,
+} from "pages/Demonstrations/DemonstrationColumns";
 
 export const johnDoe: User = {
   id: "1",
@@ -120,26 +123,23 @@ export const userMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        users: [{
-          id: "1",
-          fullName: "John Doe",
-        },
-        {
-          id: "2",
-          fullName: "Leia Organa",
-        },
-        {
-          id: "3",
-          fullName: "Han Solo",
-        },
-        {
-          id: "4",
-          fullName: "Luke Skywalker",
-        },
-        {
-          id: "5",
-          fullName: "Darth Vader",
-        }],
+        users: [
+          {
+            fullName: "John Doe",
+          },
+          {
+            fullName: "Leia Organa",
+          },
+          {
+            fullName: "Han Solo",
+          },
+          {
+            fullName: "Luke Skywalker",
+          },
+          {
+            fullName: "Darth Vader",
+          },
+        ] satisfies ProjectOfficerSelectOptions[],
       },
     },
   },

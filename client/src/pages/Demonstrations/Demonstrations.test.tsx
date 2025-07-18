@@ -1,7 +1,7 @@
 import React from "react";
 import { MockedProvider } from "@apollo/client/testing";
 import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { Demonstrations, DEMONSTRATIONS_TABLE_QUERY } from "./Demonstrations";
@@ -50,12 +50,16 @@ const waitForTableData = async () => {
   });
 };
 
-const switchToAllDemonstrationsTab = async (user: ReturnType<typeof userEvent.setup>) => {
+const switchToAllDemonstrationsTab = async (
+  user: ReturnType<typeof userEvent.setup>
+) => {
   const allDemosTab = screen.getByText(/All Demonstrations/);
   await user.click(allDemosTab);
 };
 
-const switchToMyDemonstrationsTab = async (user: ReturnType<typeof userEvent.setup>) => {
+const switchToMyDemonstrationsTab = async (
+  user: ReturnType<typeof userEvent.setup>
+) => {
   const myDemosTab = screen.getByText(/My Demonstrations/);
   await user.click(myDemosTab);
 };
@@ -65,42 +69,72 @@ const clearSearchInput = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.clear(searchInput);
 };
 
-const searchForText = async (user: ReturnType<typeof userEvent.setup>, searchText: string) => {
+const searchForText = async (
+  user: ReturnType<typeof userEvent.setup>,
+  searchText: string
+) => {
   const searchInput = screen.getByLabelText(/keyword search/i);
   await user.type(searchInput, searchText);
 };
 
-const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateCode: string) => {
+const applyStateFilter = async (
+  user: ReturnType<typeof userEvent.setup>,
+  stateCode: string
+) => {
   // Select state filter from column dropdown
-  const columnSelect = screen.getByLabelText(/choose column to filter/i);
-  await user.selectOptions(columnSelect, ["stateName"]);
+  const columnSelect = screen.getByLabelText(/filter by:/i);
+  await user.type(columnSelect, "State/Territory");
 
-  // Wait for the state filter dropdown to appear
+  // Wait for dropdown option to appear and click it
   await waitFor(() => {
-    expect(screen.getByPlaceholderText(/filter state\/territory/i)).toBeInTheDocument();
+    const dropdownOptions = screen.getAllByText("State/Territory");
+    const dropdownOption = dropdownOptions.find(
+      (el) => el.tagName === "LI" || el.closest("li")
+    );
+    expect(dropdownOption).toBeInTheDocument();
+  });
+
+  const stateDropdownOptions = screen.getAllByText("State/Territory");
+  const stateDropdownOption = stateDropdownOptions.find(
+    (el) => el.tagName === "LI" || el.closest("li")
+  );
+  await user.click(stateDropdownOption!);
+
+  // Wait for the state filter input to appear
+  await waitFor(() => {
+    expect(
+      screen.getByPlaceholderText(/filter state\/territory/i)
+    ).toBeInTheDocument();
   });
 
   // Filter by the specified state
-  const stateFilterSelect = screen.getByPlaceholderText(/filter state\/territory/i);
-  await user.click(stateFilterSelect);
+  const stateFilterInput = screen.getByPlaceholderText(
+    /filter state\/territory/i
+  );
+  await user.type(stateFilterInput, stateCode);
 
   // Wait for dropdown and select state
   await waitFor(() => {
-    const parentContainer = stateFilterSelect.parentElement!;
-    const dropdown = within(parentContainer).getByRole("list");
-    expect(dropdown).toBeInTheDocument();
+    const stateOptions = screen.getAllByText(stateCode);
+    const stateDropdownOption = stateOptions.find(
+      (el) => el.tagName === "LI" || el.closest("li")
+    );
+    expect(stateDropdownOption).toBeInTheDocument();
   });
 
-  const parentContainer = stateFilterSelect.parentElement!;
-  const dropdown = within(parentContainer).getByRole("list");
-  const stateOption = within(dropdown).getByText(stateCode);
-  await user.click(stateOption);
+  const stateOptions = screen.getAllByText(stateCode);
+  const stateOptionToClick = stateOptions.find(
+    (el) => el.tagName === "LI" || el.closest("li")
+  );
+  await user.click(stateOptionToClick!);
 };
 
 const expectMyDemonstrationResults = () => {
   expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
   expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-  expect(screen.queryByText("Florida Health Innovation")).not.toBeInTheDocument();
+  expect(
+    screen.queryByText("Florida Health Innovation")
+  ).not.toBeInTheDocument();
 };
 
 const expectAllDemonstrationResults = () => {
@@ -130,7 +164,9 @@ describe("Demonstrations", () => {
     it("handles GraphQL errors gracefully", async () => {
       renderDemonstrations([]);
       await waitFor(() => {
-        expect(screen.getByText("Error loading demonstrations:")).toBeInTheDocument();
+        expect(
+          screen.getByText("Error loading demonstrations:")
+        ).toBeInTheDocument();
       });
     });
   });
@@ -150,17 +186,26 @@ describe("Demonstrations", () => {
 
     it("defaults to 'My Demonstrations' tab", () => {
       const myDemosTab = screen.getByText(/My Demonstrations/);
-      expect(myDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
+      expect(myDemosTab.closest("button")).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
     });
 
     it("switches between tabs correctly", async () => {
       await switchToAllDemonstrationsTab(user);
       const allDemosTab = screen.getByText(/All Demonstrations/);
-      expect(allDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
+      expect(allDemosTab.closest("button")).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
 
       await switchToMyDemonstrationsTab(user);
       const myDemosTab = screen.getByText(/My Demonstrations/);
-      expect(myDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
+      expect(myDemosTab.closest("button")).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
     });
 
     it("maintains tab state when switching between tabs with data", async () => {
@@ -186,7 +231,9 @@ describe("Demonstrations", () => {
     it("passes correct empty message for My Demonstrations tab", async () => {
       renderDemonstrations(emptyMocks);
       await waitFor(() => {
-        expect(screen.getByText("You have no assigned demonstrations at this time.")).toBeInTheDocument();
+        expect(
+          screen.getByText("You have no assigned demonstrations at this time.")
+        ).toBeInTheDocument();
       });
     });
 
@@ -197,7 +244,9 @@ describe("Demonstrations", () => {
       });
 
       await switchToAllDemonstrationsTab(user);
-      expect(screen.getByText("No demonstrations are tracked.")).toBeInTheDocument();
+      expect(
+        screen.getByText("No demonstrations are tracked.")
+      ).toBeInTheDocument();
     });
   });
 
@@ -219,9 +268,15 @@ describe("Demonstrations", () => {
     it("renders table columns correctly", () => {
       const headers = screen.getAllByRole("columnheader");
       expect(headers).toHaveLength(6);
-      expect(screen.getByRole("columnheader", { name: "Title" })).toBeInTheDocument();
-      expect(screen.getByRole("columnheader", { name: "State/Territory" })).toBeInTheDocument();
-      expect(screen.getByRole("columnheader", { name: "Project Officer" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("columnheader", { name: "Title" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("columnheader", { name: "State/Territory" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("columnheader", { name: "Project Officer" })
+      ).toBeInTheDocument();
     });
 
     it("renders demonstration data correctly in table cells", () => {
@@ -254,17 +309,25 @@ describe("Demonstrations", () => {
     it("allows searching within demonstrations", async () => {
       await searchForText(user, "Montana");
       await waitFor(() => {
-        expect(screen.getByText((content, element) => {
-          return element?.textContent === "Montana Medicaid Waiver";
-        })).toBeInTheDocument();
-        expect(screen.queryByText("Texas Reform Initiative")).not.toBeInTheDocument();
+        expect(
+          screen.getByText((content, element) => {
+            return element?.textContent === "Montana Medicaid Waiver";
+          })
+        ).toBeInTheDocument();
+        expect(
+          screen.queryByText("Texas Reform Initiative")
+        ).not.toBeInTheDocument();
       });
     });
 
     it("shows correct no results message when search returns no results", async () => {
       await searchForText(user, "NonexistentDemo");
       await waitFor(() => {
-        expect(screen.getByText("No results were returned. Adjust your search and filter criteria.")).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
+        ).toBeInTheDocument();
       });
     });
 
@@ -275,7 +338,9 @@ describe("Demonstrations", () => {
 
       await waitFor(() => {
         expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-        expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
+        expect(
+          screen.queryByText("Montana Medicaid Waiver")
+        ).not.toBeInTheDocument();
       });
     });
   });

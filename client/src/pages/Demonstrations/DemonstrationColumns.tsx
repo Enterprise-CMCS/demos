@@ -3,26 +3,24 @@ import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { useQuery } from "@apollo/client";
 import { SecondaryButton } from "components/button";
 import { Demonstration } from "./Demonstrations";
-import { highlightCell } from "components/table/Table";
 import { gql } from "@apollo/client";
+import { highlightCell } from "components/table/search/KeywordSearch";
 
 const columnHelper = createColumnHelper<Demonstration>();
 
-type ProjectOfficer = {
-  id: string;
+export type ProjectOfficerSelectOptions = {
   fullName: string;
 };
 
 export const GET_PROJECT_OFFICERS_FOR_SELECT = gql`
   query GetUsers {
     users {
-      id
       fullName
     }
   }
 `;
 
-type State = {
+export type StateSelectOptions = {
   stateCode: string;
   stateName: string;
 };
@@ -36,28 +34,43 @@ export const GET_STATES_FOR_SELECT = gql`
   }
 `;
 
-type DemonstrationStatus = {
-  id: string;
+export type DemonstrationStatusSelectOptions = {
   name: string;
 };
 
 export const GET_DEMONSTRATION_STATUSES_FOR_SELECT = gql`
   query GetDemonstrationStatuses {
     demonstrationStatuses {
-      id
       name
     }
   }
 `;
 
 export const useDemonstrationColumns = () => {
-  const { data: usersData, loading: usersLoading, error: usersError } = useQuery<{users: ProjectOfficer[]}>(GET_PROJECT_OFFICERS_FOR_SELECT);
-  const { data: statesData, loading: statesLoading, error: statesError } = useQuery<{states: State[]}>(GET_STATES_FOR_SELECT);
-  const { data: demonstrationStatusesData, loading: demonstrationStatusesLoading, error: demonstrationStatusesError } = useQuery<{demonstrationStatuses: DemonstrationStatus[]}>(GET_DEMONSTRATION_STATUSES_FOR_SELECT);
+  const {
+    data: usersData,
+    loading: usersLoading,
+    error: usersError,
+  } = useQuery<{ users: ProjectOfficerSelectOptions[] }>(
+    GET_PROJECT_OFFICERS_FOR_SELECT
+  );
+  const {
+    data: statesData,
+    loading: statesLoading,
+    error: statesError,
+  } = useQuery<{ states: StateSelectOptions[] }>(GET_STATES_FOR_SELECT);
+  const {
+    data: demonstrationStatusesData,
+    loading: demonstrationStatusesLoading,
+    error: demonstrationStatusesError,
+  } = useQuery<{ demonstrationStatuses: DemonstrationStatusSelectOptions[] }>(
+    GET_DEMONSTRATION_STATUSES_FOR_SELECT
+  );
 
   const projectOfficers = usersData?.users || [];
   const states = statesData?.states || [];
-  const demonstrationStatuses = demonstrationStatusesData?.demonstrationStatuses || [];
+  const demonstrationStatuses =
+    demonstrationStatusesData?.demonstrationStatuses || [];
 
   const demonstrationColumns = [
     columnHelper.display({
@@ -91,7 +104,7 @@ export const useDemonstrationColumns = () => {
       meta: {
         filterConfig: {
           filterType: "select",
-          options: states.map(state => ({
+          options: states.map((state) => ({
             label: state.stateCode,
             value: state.stateName,
           })),
@@ -112,7 +125,7 @@ export const useDemonstrationColumns = () => {
           filterType: "select",
           options: projectOfficers.map((officer) => ({
             label: officer.fullName,
-            value: officer.id,
+            value: officer.fullName,
           })),
         },
       },

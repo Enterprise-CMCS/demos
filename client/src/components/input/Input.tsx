@@ -78,9 +78,7 @@ export const Input: React.FC<InputProps> = ({
         onChange={handleChange}
       />
       {validationMessage && (
-        <span className={VALIDATION_MESSAGE_CLASSES}>
-          {validationMessage}
-        </span>
+        <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
       )}
     </div>
   );

@@ -1,16 +1,41 @@
-import { Table } from "@tanstack/react-table";
+import { CellContext, Table } from "@tanstack/react-table";
 import { ExitIcon, SearchIcon } from "components/icons";
 import React from "react";
 
 export interface KeywordSearchProps<T> {
-  table?: Table<T>; // Make table optional since it comes from parent
+  table: Table<T>;
   label?: string;
   className?: string;
   debounceMs?: number;
   storageKey?: string;
 }
 
+export function highlightCell<TData>({
+  cell,
+  table,
+}: CellContext<TData, unknown>): React.ReactNode {
+  const text = cell.getValue() as string;
+  const query = table.getState().globalFilter || "";
 
+  const keywords = Array.isArray(query) ? query : [query];
+  const validKeywords = keywords.filter((k) => k?.trim().length > 0);
+
+  if (!validKeywords.length) return text;
+
+  const pattern = validKeywords.map((k) => `(${k})`).join("|");
+  const regex = new RegExp(pattern, "gi");
+  const parts = text.split(regex);
+
+  return parts.map((part, index) =>
+    regex.test(part) ? (
+      <mark key={index} className="bg-yellow-200 font-semibold">
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
+}
 
 export function KeywordSearch<T>({
   table,
@@ -21,74 +46,62 @@ export function KeywordSearch<T>({
 }: KeywordSearchProps<T>) {
   const debounceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Early return if table is not provided
-  if (!table) {
-    console.warn("KeywordSearch: table prop is required");
-    return null;
-  }
-
-  // Initialize state with localStorage value
   const [queryString, setQueryString] = React.useState<string>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        return localStorage.getItem(storageKey) || "";
-      } catch (error) {
-        console.warn("Failed to read from localStorage:", error);
-        return "";
-      }
+    if (typeof window === "undefined") return "";
+
+    try {
+      return localStorage.getItem(storageKey) || "";
+    } catch (error) {
+      console.warn("Failed to read from localStorage:", error);
+      return "";
     }
-    return "";
   });
 
-  const debouncedSearch = React.useCallback((val: string) => {
-    // Clear existing timeout
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    // Set new timeout
-    debounceTimeoutRef.current = setTimeout(() => {
-      if (val) {
-        const keywords = val.trim().split(/\s+/).filter(word => word.length > 0);
-        table.setGlobalFilter(keywords);
-      } else {
-        table.setGlobalFilter("");
+  const debouncedSearch = React.useCallback(
+    (val: string) => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
       }
-    }, debounceMs);
-  }, [table, debounceMs]);
+
+      debounceTimeoutRef.current = setTimeout(() => {
+        if (val) {
+          const keywords = val
+            .trim()
+            .split(/\s+/)
+            .filter((word) => word.length > 0);
+          table.setGlobalFilter(keywords);
+        } else {
+          table.setGlobalFilter("");
+        }
+      }, debounceMs);
+    },
+    [table, debounceMs]
+  );
+
+  const updateLocalStorage = (val: string) => {
+    if (typeof window === "undefined") return;
+
+    try {
+      if (val) {
+        localStorage.setItem(storageKey, val);
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+    } catch (error) {
+      console.warn("Failed to update localStorage:", error);
+    }
+  };
 
   const onValueChange = (val: string) => {
     setQueryString(val);
-
-    // Persist to localStorage
-    if (typeof window !== "undefined") {
-      try {
-        if (val) {
-          localStorage.setItem(storageKey, val);
-        } else {
-          localStorage.removeItem(storageKey);
-        }
-      } catch (error) {
-        console.warn("Failed to write to localStorage:", error);
-      }
-    }
-
+    updateLocalStorage(val);
     debouncedSearch(val);
   };
 
   const clearSearch = () => {
     setQueryString("");
+    updateLocalStorage("");
 
-    // Remove from localStorage
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem(storageKey);
-      } catch (error) {
-        console.warn("Failed to remove from localStorage:", error);
-      }
-    }
-
-    // Clear any pending debounced search
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
@@ -96,14 +109,12 @@ export function KeywordSearch<T>({
     table.setGlobalFilter("");
   };
 
-  // Apply initial search on mount if there's a stored value
   React.useEffect(() => {
     if (queryString) {
       debouncedSearch(queryString);
     }
   }, [queryString, debouncedSearch]);
 
-  // Cleanup timeout on unmount
   React.useEffect(() => {
     return () => {
       if (debounceTimeoutRef.current) {
@@ -114,10 +125,7 @@ export function KeywordSearch<T>({
 
   return (
     <div className={className}>
-      <label
-        htmlFor="keyword-search"
-        className="ml-2 font-semibold block mb-1"
-      >
+      <label htmlFor="keyword-search" className="ml-2 font-semibold block mb-1">
         {label}
       </label>
 
@@ -125,7 +133,7 @@ export function KeywordSearch<T>({
         <SearchIcon className="absolute left-1 top-1/2 transform -translate-y-1/2 text-gray-500" />
         <input
           id="keyword-search"
-          className="border px-3 py-1 rounded"
+          className="border px-3 py-1 rounded pl-8 pr-8"
           value={queryString}
           onChange={(e) => onValueChange(e.target.value)}
           aria-label="Input keyword search query"

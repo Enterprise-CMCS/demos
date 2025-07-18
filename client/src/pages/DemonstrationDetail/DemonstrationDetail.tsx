@@ -12,14 +12,14 @@ import { Table } from "components/table/Table";
 import { gql } from "@apollo/client";
 
 export type Document = {
-    id: number;
-    title: string;
-    description: string;
-    type: string;
-    uploadedBy: string;
-    uploadDate: string;
-    createdAt: string;
-    updatedAt: string;
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  uploadedBy: string;
+  uploadDate: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export const DOCUMENT_TABLE_QUERY = gql`
@@ -43,7 +43,11 @@ export const DemonstrationDetail = () => {
   const { trigger, data, loading, error } = getDemonstrationById;
 
   // Query for documents data
-  const { data: documentsData, loading: documentsLoading, error: documentsError } = useQuery<{documents: Document[]}>(DOCUMENT_TABLE_QUERY);
+  const {
+    data: documentsData,
+    loading: documentsLoading,
+    error: documentsError,
+  } = useQuery<{ documents: Document[] }>(DOCUMENT_TABLE_QUERY);
 
   // Use the document columns hook
   const { columns } = useDocumentColumns();
@@ -55,18 +59,34 @@ export const DemonstrationDetail = () => {
   // Build dynamic header content
   const headerContent = useMemo(() => {
     if (loading) {
-      return <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">Loading demonstration...</div>;
+      return (
+        <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
+          Loading demonstration...
+        </div>
+      );
     }
 
     if (error || !data) {
-      return <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">Failed to load demonstration</div>;
+      return (
+        <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
+          Failed to load demonstration
+        </div>
+      );
     }
 
     return (
       <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
         <div>
           {/* TODO: Replace with breadcrumb */}
-          <span className="-ml-2 block text-sm"><a className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40" href="/demonstrations">Demonstration List</a> {">"} {data.id}</span>
+          <span className="-ml-2 block text-sm">
+            <a
+              className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
+              href="/demonstrations"
+            >
+              Demonstration List
+            </a>{" "}
+            {">"} {data.id}
+          </span>
           <span className="font-bold block">{data.name}</span>
           {/* TODO: Replace Project Officer with correct value */}
           <span className="block text-sm">
@@ -76,7 +96,7 @@ export const DemonstrationDetail = () => {
           </span>
         </div>
         <div className="relative">
-          { showButtons && (
+          {showButtons && (
             <span className="mr-0.75">
               <CircleButton
                 aria-label="Delete demonstration"
@@ -124,11 +144,17 @@ export const DemonstrationDetail = () => {
 
   // Handle errors
   if (error) {
-    return <div className="p-4">Error loading demonstration: {error.message}</div>;
+    return (
+      <div className="p-4">Error loading demonstration: {error.message}</div>
+    );
   }
 
   if (documentsError) {
-    return <div className="p-4">Error loading documents: {documentsError.message}</div>;
+    return (
+      <div className="p-4">
+        Error loading documents: {documentsError.message}
+      </div>
+    );
   }
 
   if (!data) {
@@ -140,7 +166,9 @@ export const DemonstrationDetail = () => {
   return (
     <div className="p-4">
       <div>
-        <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Documents</h1>
+        <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">
+          Documents
+        </h1>
         <div className="h-[60vh] overflow-y-auto">
           <Table<Document>
             data={documents}
@@ -154,7 +182,11 @@ export const DemonstrationDetail = () => {
       </div>
 
       {modalType === "edit" && (
-        <DemonstrationModal demonstration={data} mode="edit" onClose={() => setModalType(null)} />
+        <DemonstrationModal
+          demonstration={data}
+          mode="edit"
+          onClose={() => setModalType(null)}
+        />
       )}
     </div>
   );

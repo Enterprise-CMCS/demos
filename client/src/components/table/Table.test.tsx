@@ -1,288 +1,621 @@
 import React from "react";
 
-import {
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { describe, expect, it } from "vitest";
 
-import {
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { highlightCell, Table } from "./Table";
-import { SecondaryButton } from "components/button";
-import { Demonstration } from "pages/Demonstrations/Demonstrations";
+import { createColumnHelper } from "@tanstack/react-table";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Table } from "./Table";
+import { highlightCell } from "./search/KeywordSearch";
 
-const columnHelper = createColumnHelper<Demonstration>();
+type TestOptionType = {
+  name: string;
+};
 
-export const columns = [
-  columnHelper.display({
-    id: "select",
-    header: ({ table }) => (
-      <input
-        id="select-all-rows"
-        type="checkbox"
-        className="cursor-pointer"
-        aria-label="Select all rows"
-        checked={table.getIsAllPageRowsSelected()}
-        onChange={table.getToggleAllPageRowsSelectedHandler()}
-      />
-    ),
-    cell: ({ row }) => (
-      <input
-        id={`select-row-${row.id}`}
-        type="checkbox"
-        className="cursor-pointer"
-        checked={row.getIsSelected()}
-        onChange={row.getToggleSelectedHandler()}
-        aria-label={`Select row ${row.index + 1}`}
-      />
-    ),
-    size: 20,
-  }),
-  columnHelper.accessor("state.stateName", {
-    id: "stateName",
-    header: "State/Territory",
-    cell: highlightCell,
-  }),
+export type TestType = {
+  name: string;
+  description: string;
+  option: TestOptionType;
+  date: Date;
+};
+
+const columnHelper = createColumnHelper<TestType>();
+
+export const testColumns = [
   columnHelper.accessor("name", {
-    header: "Title",
+    header: "Name",
+    cell: highlightCell,
+    enableGlobalFilter: false,
+  }),
+  columnHelper.accessor("description", {
+    header: "Description",
     cell: highlightCell,
   }),
-  columnHelper.accessor("projectOfficer.fullName", {
-    id: "projectOfficer",
-    header: "Project Officer",
+  columnHelper.accessor("option.name", {
+    header: "Option",
     cell: highlightCell,
   }),
-  columnHelper.display({
-    id: "viewDetails",
-    cell: ({ row }) => {
-      const handleClick = () => {
-        const demoId = row.original.id;
-        window.location.href = `/demonstrations/${demoId}`;
-      };
+  columnHelper.accessor("date", {
+    id: "date",
+    header: "Date",
+    enableGlobalFilter: false,
+  }),
+];
 
-      return (
-        <SecondaryButton
-          type="button"
-          size="small"
-          onClick={handleClick}
-          className="px-2 py-0 text-sm font-medium"
-        >
-          View
-        </SecondaryButton>
+// Test columns with filter configuration for interaction tests
+export const testColumnsWithFilters = [
+  columnHelper.accessor("name", {
+    header: "Name",
+    cell: highlightCell,
+    enableGlobalFilter: false,
+  }),
+  columnHelper.accessor("description", {
+    header: "Description",
+    cell: highlightCell,
+  }),
+  columnHelper.accessor("option.name", {
+    header: "Option",
+    cell: highlightCell,
+    meta: {
+      filterConfig: {
+        filterType: "select",
+        options: [
+          { label: "Option Alpha", value: "Option Alpha" },
+          { label: "Option Beta", value: "Option Beta" },
+          { label: "Option Gamma", value: "Option Gamma" },
+          { label: "Option Delta", value: "Option Delta" },
+        ],
+      },
+    },
+  }),
+  columnHelper.accessor("date", {
+    id: "date",
+    header: "Date",
+    enableGlobalFilter: false,
+    meta: {
+      filterConfig: {
+        filterType: "date",
+      },
+    },
+  }),
+];
+
+export const testTableData: TestType[] = [
+  {
+    name: "Item One",
+    description: "This is the first item with unique content",
+    option: {
+      name: "Option Alpha",
+    },
+    date: new Date("2023-01-01"),
+  },
+  {
+    name: "Item Two",
+    description: "This is the second item with different content",
+    option: {
+      name: "Option Beta",
+    },
+    date: new Date("2023-02-01"),
+  },
+  {
+    name: "Item Three",
+    description: "This is the third item with special keywords",
+    option: {
+      name: "Option Gamma",
+    },
+    date: new Date("2023-03-01"),
+  },
+  {
+    name: "Item Four",
+    description: "This is the fourth item with Alpha reference",
+    option: {
+      name: "Option Delta",
+    },
+    date: new Date("2023-04-01"),
+  },
+  {
+    name: "Item Five",
+    description: "This is the fifth item with common words",
+    option: {
+      name: "Option Alpha",
+    },
+    date: new Date("2023-05-01"),
+  },
+];
+
+describe("Table Component Interactions", () => {
+  describe("Basic Rendering", () => {
+    it("renders all test items initially", () => {
+      render(
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Table<TestType> columns={testColumns} data={testTableData} />
+        </LocalizationProvider>
       );
-    },
-  }),
-] as ColumnDef<Demonstration, unknown>[];
 
-const mockRawData = [
-  {
-    id: "a",
-    name: "Medicaid Montana Expenditure Cap Demonstration",
-    description: "...",
-    demonstrationStatus: {
-      id: "d",
-      name: "Active",
-    },
-    users: [{
-      id: "g",
-      fullName: "Luke Skywalker",
-    }],
-    state: {
-      id: "MT",
-      stateName: "Montana",
-      stateCode: "MT",
-    },
-    projectOfficer: {
-      id: "j",
-      fullName: "Qui-Gon Jinn",
-    },
-  },
-  {
-    id: "b",
-    name: "Medicaid Florida Reproductive Health: Fertility Demonstration",
-    description: "...",
-    demonstrationStatus: {
-      id: "e",
-      name: "Pending",
-    },
-    users: [{
-      id: "h",
-      fullName: "Darth Vader",
-    }],
-    state: {
-      id: "NC",
-      stateName: "North Carolina",
-      stateCode: "NC",
-    },
-    projectOfficer: {
-      id: "k",
-      fullName: "Obi-Wan Kenobi",
-    },
-  },
-  {
-    id: "c",
-    name: "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration",
-    description: "...",
-    demonstrationStatus: {
-      id: "f",
-      name: "Inactive",
-    },
-    users: [{
-      id: "i",
-      fullName: "Han Solo",
-    }],
-    state: {
-      id: "WA",
-      stateName: "Washington",
-      stateCode: "WA",
-    },
-    projectOfficer: {
-      id: "l",
-      fullName: "Yoda",
-    },
-  },
-] as Demonstration[];
+      expect(screen.getByText("Item One")).toBeInTheDocument();
+      expect(screen.getByText("Item Two")).toBeInTheDocument();
+      expect(screen.getByText("Item Three")).toBeInTheDocument();
+      expect(screen.getByText("Item Four")).toBeInTheDocument();
+      expect(screen.getByText("Item Five")).toBeInTheDocument();
+    });
 
-describe("DemonstrationTable", () => {
+    it("renders the empty state message when there is no data", () => {
+      render(
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Table<TestType>
+            columns={testColumns}
+            data={[]}
+            emptyRowsMessage="No items are available"
+          />
+        </LocalizationProvider>
+      );
 
-  it("renders all demonstration titles initially", () => {
-    render(<Table<Demonstration> columns={columns} data={mockRawData} />);
-
-    expect(
-      screen.getByText("Medicaid Montana Expenditure Cap Demonstration")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Medicaid Florida Reproductive Health: Fertility Demonstration")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration")
-    ).toBeInTheDocument();
+      expect(screen.getByText(/no items are available/i)).toBeInTheDocument();
+    });
   });
 
-  it("renders the empty state message for all demonstrations when there is no data", () => {
-    render(
-      <Table<Demonstration>
-        columns={columns}
-        data={[]}
-        emptyRowsMessage="No Demonstrations are tracked"
-      />
-    );
+  describe("Filter and Search Interactions", () => {
+    it("preserves existing column filters when keyword searching", async () => {
+      render(
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Table<TestType>
+            columnFilter
+            keywordSearch
+            columns={testColumnsWithFilters}
+            data={testTableData}
+          />
+        </LocalizationProvider>
+      );
+      const user = userEvent.setup();
 
-    expect(
-      screen.getByText(/no demonstrations are tracked/i)
-    ).toBeInTheDocument();
+      // First apply a column filter for Option
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+      await user.type(columnSelect, "Option");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Option");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const optionDropdownOptions = screen.getAllByText("Option");
+      const optionDropdownOption = optionDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(optionDropdownOption!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText(/filter option/i)
+        ).toBeInTheDocument();
+      });
+
+      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      await user.type(optionFilterInput, "Option Alpha");
+
+      await waitFor(() => {
+        const alphaOptions = screen.getAllByText("Option Alpha");
+        const alphaDropdownOption = alphaOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(alphaDropdownOption).toBeInTheDocument();
+      });
+
+      const alphaOptions = screen.getAllByText("Option Alpha");
+      const alphaDropdownOption = alphaOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(alphaDropdownOption!);
+
+      // Verify filter is applied (only items with Option Alpha visible)
+      await waitFor(() => {
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.getByText("Item Five")).toBeInTheDocument();
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+      });
+
+      // Now add keyword search
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.type(keywordSearchInput, "first");
+
+      // Wait for debounce
+      await waitFor(
+        () => {
+          // Should show only "Item One" (has "first" and "Option Alpha")
+          expect(screen.getByText("Item One")).toBeInTheDocument();
+          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+
+      // Verify the column filter input still has its value
+      expect(optionFilterInput).toHaveValue("Option Alpha");
+    });
+
+    it("preserves existing keyword search when applying column filters", async () => {
+      render(
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Table<TestType>
+            columnFilter
+            keywordSearch
+            columns={testColumnsWithFilters}
+            data={testTableData}
+          />
+        </LocalizationProvider>
+      );
+      const user = userEvent.setup();
+
+      // First apply a keyword search
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.clear(keywordSearchInput); // Clear any existing content
+      await user.type(keywordSearchInput, "different");
+
+      // Wait for debounce to apply search
+      await waitFor(
+        () => {
+          // Should show only "Item Two" (contains "different")
+          expect(screen.getByText("Item Two")).toBeInTheDocument();
+          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+
+      // Now apply a column filter for Name
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+      await user.clear(columnSelect); // Clear any existing content
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "Item Two");
+
+      // Verify both filters are active - only Item Two visible (matches both filters)
+      await waitFor(() => {
+        expect(screen.getByText("Item Two")).toBeInTheDocument();
+        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+      });
+
+      // Verify the keyword search input still has its value
+      expect(keywordSearchInput).toHaveValue("different");
+    });
+
+    it("clears keyword search but preserves column filters when clearing keyword search", async () => {
+      render(
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Table<TestType>
+            columnFilter
+            keywordSearch
+            columns={testColumnsWithFilters}
+            data={testTableData}
+          />
+        </LocalizationProvider>
+      );
+      const user = userEvent.setup();
+
+      // Apply keyword search first
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.type(keywordSearchInput, "Alpha");
+
+      // Apply column filter
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "Item Four");
+
+      // Verify filtered state - only Item Four should be visible (has "Alpha" and matches "Item Four")
+      await waitFor(() => {
+        expect(screen.getByText("Item Four")).toBeInTheDocument();
+        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+      });
+
+      // Clear keyword search
+      const clearButton = screen.getByLabelText(/clear search/i);
+      await user.click(clearButton);
+
+      // Verify keyword search is cleared but column filter is preserved
+      await waitFor(() => {
+        // Only Item Four should still be visible (column filter is still active)
+        expect(screen.getByText("Item Four")).toBeInTheDocument();
+        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+      });
+
+      // Verify keyword search is cleared
+      expect(keywordSearchInput).toHaveValue("");
+
+      // Verify column filter is still active
+      expect(nameFilterInput).toHaveValue("Item Four");
+    });
+
+    it("clears column filter but preserves keyword search when column filter is manually cleared", async () => {
+      render(
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Table<TestType>
+            columnFilter
+            keywordSearch
+            columns={testColumnsWithFilters}
+            data={testTableData}
+          />
+        </LocalizationProvider>
+      );
+      const user = userEvent.setup();
+
+      // Apply both filters
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.type(keywordSearchInput, "Alpha");
+
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+      await user.type(columnSelect, "Name");
+
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "Item Four");
+
+      // Verify filtered state
+      await waitFor(() => {
+        expect(screen.getByText("Item Four")).toBeInTheDocument();
+        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+      });
+
+      // Clear column filter by clearing the name filter input
+      await user.clear(nameFilterInput);
+
+      // Verify all items matching keyword search are visible again
+      await waitFor(() => {
+        // Should show Item One, Item Four, and Item Five (all contain "Alpha")
+        // Item One: has "Option Alpha"
+        // Item Four: description contains "Alpha reference"
+        // Item Five: has "Option Alpha"
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.getByText("Item Four")).toBeInTheDocument();
+        expect(screen.getByText("Item Five")).toBeInTheDocument();
+
+        // Should not show items that don't contain "Alpha"
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+      });
+
+      // Verify keyword search is still active
+      expect(keywordSearchInput).toHaveValue("Alpha");
+
+      // Verify column filter is cleared
+      expect(nameFilterInput).toHaveValue("");
+    });
   });
 
-  it("preserves existing filters when searching", async () => {
-    render(
-      <Table<Demonstration>
-        columnFilter
-        keywordSearch
-        columns={columns}
-        data={mockRawData}
-      />
-    );
-    const user = userEvent.setup();
+  describe("Sorting Interactions", () => {
+    it("maintains sorting when applying filters and search", async () => {
+      render(
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Table<TestType>
+            columnFilter
+            keywordSearch
+            columns={testColumnsWithFilters}
+            data={testTableData}
+          />
+        </LocalizationProvider>
+      );
+      const user = userEvent.setup();
 
-    // First apply a column filter
-    const filterSelect = screen.getByLabelText(/filter by:/i);
-    await user.selectOptions(filterSelect, ["stateName"]);
+      // Click on Name column header to sort
+      const nameHeader = screen.getByText("Name");
+      await user.click(nameHeader);
 
-    const filterInput = screen.getByPlaceholderText(/type to filter/i);
-    await user.type(filterInput, "Montana");
+      // Apply keyword search that returns multiple results
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.type(keywordSearchInput, "Item");
 
-    // Verify filter is applied (only Montana demonstration visible)
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-      })
-    ).not.toBeInTheDocument();
+      // Wait for debounce and verify all items are still sorted
+      await waitFor(
+        () => {
+          const tableRows = screen.getAllByRole("row");
+          const dataRows = tableRows.slice(1); // Skip header row
 
-    // Now add keyword search
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-    await user.type(keywordSearchInput, "Medicaid");
+          // Extract names from visible rows
+          const visibleNames = dataRows
+            .map((row) => {
+              const nameCell = within(row).queryByText(/Item/);
+              return nameCell?.textContent || "";
+            })
+            .filter((name) => name.length > 0);
 
-    // Wait for debounce
-    await waitFor(() => {
-      expect(
-        screen.getByText((content, element) => {
-          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-        })
-      ).toBeInTheDocument();
+          // Verify names are sorted alphabetically
+          const sortedNames = [...visibleNames].sort();
+          expect(visibleNames).toEqual(sortedNames);
+        },
+        { timeout: 500 }
+      );
 
-      // Both filters should be active - still only Montana demonstration
-      expect(
-        screen.queryByText((content, element) => {
-          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-        })
-      ).not.toBeInTheDocument();
-    }, { timeout: 500 });
+      // Apply column filter and verify sorting is maintained
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+      await user.type(columnSelect, "Option");
 
-    // Verify the column filter input still has its value
-    expect(filterInput).toHaveValue("Montana");
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Option");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
+
+      const optionDropdownOptions = screen.getAllByText("Option");
+      const optionDropdownOption = optionDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(optionDropdownOption!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByPlaceholderText(/filter option/i)
+        ).toBeInTheDocument();
+      });
+
+      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      await user.type(optionFilterInput, "Option Alpha");
+
+      await waitFor(() => {
+        const alphaOptions = screen.getAllByText("Option Alpha");
+        const alphaDropdownOption = alphaOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(alphaDropdownOption).toBeInTheDocument();
+      });
+
+      const alphaOptions = screen.getAllByText("Option Alpha");
+      const alphaDropdownOption = alphaOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(alphaDropdownOption!);
+
+      // Verify filtered items are still sorted
+      await waitFor(() => {
+        const tableRows = screen.getAllByRole("row");
+        const dataRows = tableRows.slice(1);
+
+        const visibleNames = dataRows
+          .map((row) => {
+            const nameCell = within(row).queryByText(/Item/);
+            return nameCell?.textContent || "";
+          })
+          .filter((name) => name.length > 0);
+
+        // Should show "Item Five" and "Item One" in that order (alphabetical)
+        expect(visibleNames).toEqual(["Item Five", "Item One"]);
+      });
+    });
   });
 
-  it("preserves existing search terms when applying a filter", async () => {
-    render(
-      <Table<Demonstration>
-        columnFilter
-        keywordSearch
-        columns={columns}
-        data={mockRawData}
-      />
-    );
-    const user = userEvent.setup();
+  describe("No Results State Interactions", () => {
+    it("shows no results message when both filters yield no matches", async () => {
+      render(
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Table<TestType>
+            columnFilter
+            keywordSearch
+            columns={testColumnsWithFilters}
+            data={testTableData}
+            noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+          />
+        </LocalizationProvider>
+      );
+      const user = userEvent.setup();
 
-    // First apply a keyword search
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-    await user.clear(keywordSearchInput); // Clear first
-    await user.type(keywordSearchInput, "Medicaid");
+      // Apply keyword search
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.type(keywordSearchInput, "nonexistent");
 
-    // Wait for debounce
-    await waitFor(() => {
-      expect(
-        screen.getByText((content, element) => {
-          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-        })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText((content, element) => {
-          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-        })
-      ).toBeInTheDocument();
-    }, { timeout: 500 });
+      // Apply column filter
+      const columnSelect = screen.getByLabelText(/filter by:/i);
+      await user.type(columnSelect, "Name");
 
-    // Now apply a column filter
-    const filterSelect = screen.getByLabelText(/filter by:/i);
-    await user.selectOptions(filterSelect, ["stateName"]);
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Name");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
 
-    const filterInput = screen.getByPlaceholderText(/type to filter/i);
-    await user.type(filterInput, "Montana");
+      const nameDropdownOptions = screen.getAllByText("Name");
+      const nameDropdownOption = nameDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(nameDropdownOption!);
 
-    // Verify both filters are active - only Montana demonstration visible
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-      })
-    ).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
 
-    // Verify the keyword search input still has its value
-    expect(keywordSearchInput).toHaveValue("Medicaid");
+      const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.type(nameFilterInput, "nonexistent");
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
+        ).toBeInTheDocument();
+
+        // No table rows should be visible
+        expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+      });
+    });
   });
 });

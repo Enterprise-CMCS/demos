@@ -1,5 +1,8 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { GET_STATES_FOR_SELECT } from "pages/Demonstrations/DemonstrationColumns";
+import {
+  GET_STATES_FOR_SELECT,
+  StateSelectOptions,
+} from "pages/Demonstrations/DemonstrationColumns";
 
 export const california = {
   id: "1",
@@ -51,7 +54,7 @@ export const stateMocks: MockedResponse[] = [
             stateCode: "OH",
             stateName: "Ohio",
           },
-        ],
+        ] satisfies StateSelectOptions[],
       },
     },
   },

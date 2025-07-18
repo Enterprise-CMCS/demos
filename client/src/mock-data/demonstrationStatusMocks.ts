@@ -1,5 +1,8 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { GET_DEMONSTRATION_STATUSES_FOR_SELECT } from "pages/Demonstrations/DemonstrationColumns";
+import {
+  DemonstrationStatusSelectOptions,
+  GET_DEMONSTRATION_STATUSES_FOR_SELECT,
+} from "pages/Demonstrations/DemonstrationColumns";
 
 export const demonstrationStatusMocks: MockedResponse[] = [
   {
@@ -7,20 +10,19 @@ export const demonstrationStatusMocks: MockedResponse[] = [
       query: GET_DEMONSTRATION_STATUSES_FOR_SELECT,
     },
     result: {
-      data: { demonstrationStatuses: [
-        {
-          id: "1",
-          name: "Approved",
-        },
-        {
-          id: "2",
-          name: "Expired",
-        },
-        {
-          id: "2",
-          name: "Withdrawn",
-        },
-      ]},
+      data: {
+        demonstrationStatuses: [
+          {
+            name: "Approved",
+          },
+          {
+            name: "Expired",
+          },
+          {
+            name: "Withdrawn",
+          },
+        ] satisfies DemonstrationStatusSelectOptions[],
+      },
     },
   },
 ];
