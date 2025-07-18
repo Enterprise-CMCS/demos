@@ -1,5 +1,8 @@
-import { AddDemonstrationInput, Demonstration } from "demos-server";
-import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
+import {
+  AddDemonstrationInput,
+  Demonstration,
+  DemonstrationStatus,
+} from "demos-server";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
 import {
@@ -9,6 +12,15 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
+import { DEMONSTRATIONS_TABLE_QUERY } from "pages/Demonstrations/Demonstrations";
+
+const activeDemonstrationStatus: DemonstrationStatus = {
+  id: "1",
+  name: "Approved",
+  createdAt: new Date("2025-01-01"),
+  updatedAt: new Date("2025-01-01"),
+  description: "Active Demonstration Status",
+};
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -21,6 +33,7 @@ export const testDemonstration: Demonstration = {
   demonstrationStatus: activeDemonstrationStatus,
   state: california,
   users: [johnDoe],
+  projectOfficer: johnDoe,
 };
 
 export const mockAddDemonstrationInput: AddDemonstrationInput = {
@@ -31,6 +44,7 @@ export const mockAddDemonstrationInput: AddDemonstrationInput = {
   demonstrationStatusId: activeDemonstrationStatus.id,
   stateId: california.id,
   userIds: [johnDoe.id],
+  projectOfficerUserId: johnDoe.id,
 };
 
 export const demonstrationMocks: MockedResponse[] = [
@@ -52,7 +66,6 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { demonstration: testDemonstration },
     },
   },
-
   {
     request: {
       query: ADD_DEMONSTRATION_QUERY,
@@ -97,6 +110,44 @@ export const demonstrationMocks: MockedResponse[] = [
           evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
           updatedAt: new Date("2024-07-01T00:00:00.000Z"),
         },
+      },
+    },
+  },
+  {
+    request: {
+      query: DEMONSTRATIONS_TABLE_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: [
+          {
+            id: "1",
+            name: "Montana Medicaid Waiver",
+            description: "Montana waiver demonstration",
+            demonstrationStatus: { id: "1", name: "Active" },
+            state: { id: "MT", stateName: "Montana", stateCode: "MT" },
+            projectOfficer: { id: "1", fullName: "John Doe" },
+            users: [{ id: "1", fullName: "Current User" }],
+          },
+          {
+            id: "2",
+            name: "Florida Health Innovation",
+            description: "Florida innovation demonstration",
+            demonstrationStatus: { id: "2", name: "Pending" },
+            state: { id: "FL", stateName: "Florida", stateCode: "FL" },
+            projectOfficer: { id: "2", fullName: "Jane Smith" },
+            users: [{ id: "2", fullName: "Other User" }],
+          },
+          {
+            id: "3",
+            name: "Texas Reform Initiative",
+            description: "Texas reform demonstration",
+            demonstrationStatus: { id: "3", name: "Active" },
+            state: { id: "TX", stateName: "Texas", stateCode: "TX" },
+            projectOfficer: { id: "3", fullName: "Bob Johnson" },
+            users: [{ id: "1", fullName: "Current User" }],
+          },
+        ],
       },
     },
   },

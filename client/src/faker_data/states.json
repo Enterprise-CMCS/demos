@@ -1,0 +1,282 @@
+[
+  {
+    "id": "AL",
+    "stateName": "Alabama",
+    "stateCode": "AL"
+  },
+  {
+    "id": "AK",
+    "stateName": "Alaska",
+    "stateCode": "AK"
+  },
+  {
+    "id": "AZ",
+    "stateName": "Arizona",
+    "stateCode": "AZ"
+  },
+  {
+    "id": "AR",
+    "stateName": "Arkansas",
+    "stateCode": "AR"
+  },
+  {
+    "id": "CA",
+    "stateName": "California",
+    "stateCode": "CA"
+  },
+  {
+    "id": "CO",
+    "stateName": "Colorado",
+    "stateCode": "CO"
+  },
+  {
+    "id": "CT",
+    "stateName": "Connecticut",
+    "stateCode": "CT"
+  },
+  {
+    "id": "DE",
+    "stateName": "Delaware",
+    "stateCode": "DE"
+  },
+  {
+    "id": "FL",
+    "stateName": "Florida",
+    "stateCode": "FL"
+  },
+  {
+    "id": "GA",
+    "stateName": "Georgia",
+    "stateCode": "GA"
+  },
+  {
+    "id": "HI",
+    "stateName": "Hawaii",
+    "stateCode": "HI"
+  },
+  {
+    "id": "ID",
+    "stateName": "Idaho",
+    "stateCode": "ID"
+  },
+  {
+    "id": "IL",
+    "stateName": "Illinois",
+    "stateCode": "IL"
+  },
+  {
+    "id": "IN",
+    "stateName": "Indiana",
+    "stateCode": "IN"
+  },
+  {
+    "id": "IA",
+    "stateName": "Iowa",
+    "stateCode": "IA"
+  },
+  {
+    "id": "KS",
+    "stateName": "Kansas",
+    "stateCode": "KS"
+  },
+  {
+    "id": "KY",
+    "stateName": "Kentucky",
+    "stateCode": "KY"
+  },
+  {
+    "id": "LA",
+    "stateName": "Louisiana",
+    "stateCode": "LA"
+  },
+  {
+    "id": "ME",
+    "stateName": "Maine",
+    "stateCode": "ME"
+  },
+  {
+    "id": "MD",
+    "stateName": "Maryland",
+    "stateCode": "MD"
+  },
+  {
+    "id": "MA",
+    "stateName": "Massachusetts",
+    "stateCode": "MA"
+  },
+  {
+    "id": "MI",
+    "stateName": "Michigan",
+    "stateCode": "MI"
+  },
+  {
+    "id": "MN",
+    "stateName": "Minnesota",
+    "stateCode": "MN"
+  },
+  {
+    "id": "MS",
+    "stateName": "Mississippi",
+    "stateCode": "MS"
+  },
+  {
+    "id": "MO",
+    "stateName": "Missouri",
+    "stateCode": "MO"
+  },
+  {
+    "id": "MT",
+    "stateName": "Montana",
+    "stateCode": "MT"
+  },
+  {
+    "id": "NE",
+    "stateName": "Nebraska",
+    "stateCode": "NE"
+  },
+  {
+    "id": "NV",
+    "stateName": "Nevada",
+    "stateCode": "NV"
+  },
+  {
+    "id": "NH",
+    "stateName": "New Hampshire",
+    "stateCode": "NH"
+  },
+  {
+    "id": "NJ",
+    "stateName": "New Jersey",
+    "stateCode": "NJ"
+  },
+  {
+    "id": "NM",
+    "stateName": "New Mexico",
+    "stateCode": "NM"
+  },
+  {
+    "id": "NY",
+    "stateName": "New York",
+    "stateCode": "NY"
+  },
+  {
+    "id": "NC",
+    "stateName": "North Carolina",
+    "stateCode": "NC"
+  },
+  {
+    "id": "ND",
+    "stateName": "North Dakota",
+    "stateCode": "ND"
+  },
+  {
+    "id": "OH",
+    "stateName": "Ohio",
+    "stateCode": "OH"
+  },
+  {
+    "id": "OK",
+    "stateName": "Oklahoma",
+    "stateCode": "OK"
+  },
+  {
+    "id": "OR",
+    "stateName": "Oregon",
+    "stateCode": "OR"
+  },
+  {
+    "id": "PA",
+    "stateName": "Pennsylvania",
+    "stateCode": "PA"
+  },
+  {
+    "id": "RI",
+    "stateName": "Rhode Island",
+    "stateCode": "RI"
+  },
+  {
+    "id": "SC",
+    "stateName": "South Carolina",
+    "stateCode": "SC"
+  },
+  {
+    "id": "SD",
+    "stateName": "South Dakota",
+    "stateCode": "SD"
+  },
+  {
+    "id": "TN",
+    "stateName": "Tennessee",
+    "stateCode": "TN"
+  },
+  {
+    "id": "TX",
+    "stateName": "Texas",
+    "stateCode": "TX"
+  },
+  {
+    "id": "UT",
+    "stateName": "Utah",
+    "stateCode": "UT"
+  },
+  {
+    "id": "VT",
+    "stateName": "Vermont",
+    "stateCode": "VT"
+  },
+  {
+    "id": "VA",
+    "stateName": "Virginia",
+    "stateCode": "VA"
+  },
+  {
+    "id": "WA",
+    "stateName": "Washington",
+    "stateCode": "WA"
+  },
+  {
+    "id": "WV",
+    "stateName": "West Virginia",
+    "stateCode": "WV"
+  },
+  {
+    "id": "WI",
+    "stateName": "Wisconsin",
+    "stateCode": "WI"
+  },
+  {
+    "id": "WY",
+    "stateName": "Wyoming",
+    "stateCode": "WY"
+  },
+  {
+    "id": "DC",
+    "stateName": "District of Columbia",
+    "stateCode": "DC"
+  },
+  {
+    "id": "AS",
+    "stateName": "American Samoa",
+    "stateCode": "AS"
+  },
+  {
+    "id": "GU",
+    "stateName": "Guam",
+    "stateCode": "GU"
+  },
+  {
+    "id": "MP",
+    "stateName": "Northern Mariana Islands",
+    "stateCode": "MP"
+  },
+  {
+    "id": "PR",
+    "stateName": "Puerto Rico",
+    "stateCode": "PR"
+  },
+  {
+    "id": "VI",
+    "stateName": "U.S. Virgin Islands",
+    "stateCode": "VI"
+  }
+]

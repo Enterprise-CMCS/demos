@@ -29,6 +29,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, selectedValue, onChange }) => 
                     ? "border-b-5 text-brand"
                     : "text-gray-600 hover:text-gray-800")
                 }
+                aria-selected={isSelected}
               >
                 {tab.label} ({tab.count})
               </button>
