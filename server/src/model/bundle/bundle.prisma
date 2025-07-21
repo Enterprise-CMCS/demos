@@ -1,3 +1,5 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS
+// Table is largely associative and timestamps are found on subtables
 model Bundle {
   id           String @id @default(uuid()) @db.Uuid
   bundleTypeId String @map("bundle_type_id")
