@@ -39,6 +39,11 @@ vi.mock("components/modal/AddDocumentModal", () => ({
   ),
 }));
 
+// Mock Toast Context
+vi.mock("components/toast", () => ({
+  useToast: () => ({ showSuccess: vi.fn() }),
+}));
+
 describe("DefaultHeaderLower", () => {
   afterEach(() => {
     vi.resetAllMocks();
