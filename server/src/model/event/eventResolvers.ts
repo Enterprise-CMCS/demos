@@ -17,9 +17,9 @@ export const eventResolvers = {
       });
     },
 
-    eventsByType: async (_: undefined, { eventTypeId }: { eventTypeId: string }) => {
+    eventsByType: async (_: undefined, { eventType }: { eventType: string }) => {
       return await prisma().event.findMany({
-        where: { eventTypeId },
+        where: { eventType },
         orderBy: { createdAt: 'desc' }
       });
     },
@@ -33,7 +33,7 @@ export const eventResolvers = {
   },
 
   Mutation: {
-    createEvent: async (_: undefined, { input }: { input: LogEventInput }, context: GraphQLContext) => {
+    logEvent: async (_: undefined, { input }: { input: LogEventInput }, context: GraphQLContext) => {
       const { eventType, logLevel, route, eventData } = input;
 
       const userId = await getCurrentUserId(context);
@@ -42,19 +42,9 @@ export const eventResolvers = {
       return await prisma().event.create({
         data: {
           userId: userId,
-          user: {
-            connect: {
-              id: userId 
-            }
-          },
           eventType: eventType,
           logLevel: logLevel,
-          roleId: roleId,
-          role: {
-            connect: {
-              id: roleId
-            }
-          },
+          withRoleId: roleId,
           route: route,
           eventData: eventData
         }

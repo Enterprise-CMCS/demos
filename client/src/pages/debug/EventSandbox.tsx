@@ -1,21 +1,21 @@
 import React from "react";
 import { LogEventArguments, useEvent } from "hooks/event/useEvent";
-import { EventHydrated } from "demos-server";
+import { Event } from "demos-server";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { useToast } from "components/toast";
 import { PrimaryButton } from "components/button";
-import { ALL_EVENT_TYPE_IDS } from "hooks/event/eventTypes";
+import { ALL_EVENT_TYPES, EventType } from "hooks/event/eventTypes";
 
-const EventList = ({events}: {events: EventHydrated[]}) => {
+const EventList = ({events}: {events: Event[]}) => {
   return (
     <div className="border boder-brand p-2">
       <h3 className="text-lg font-semibold mb-4">Recent Events</h3>
       <ul className="space-y-2">
-        {events.map((event: EventHydrated) => (
+        {events.map((event: Event) => (
           <li key={event.id} className="p-3 bg-white border border-gray-200 rounded-md">
             <div className="flex justify-between items-start">
               <div>
-                <strong className="text-blue-600">{event.eventType.id}</strong>
+                <strong className="text-blue-600">{event.eventType}</strong>
                 <span className="text-gray-500 ml-2">{event.route}</span>
               </div>
               <span className="text-gray-400 text-sm">{String(event.createdAt)}</span>
@@ -36,13 +36,13 @@ const LogNewEventForm = () => {
   const { logEvent } = useEvent();
   const { showError, showSuccess } = useToast();
 
-  const [eventTypeId, setEventTypeId] = React.useState<string>("PAGE_VIEW");
+  const [eventType, setEventType] = React.useState<EventType>("LOGIN_SUCCEEDED");
 
   const handleLogEvent = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const logEventInput: LogEventArguments = {
-      eventTypeId,
+      eventType,
     };
 
     const result = await logEvent(logEventInput);
@@ -57,13 +57,13 @@ const LogNewEventForm = () => {
   return (
     <form onSubmit={handleLogEvent} className="flex flex-row gap-2 border border-brand p-2">
       <AutoCompleteSelect
-        options={ALL_EVENT_TYPE_IDS.map((type) => ({
+        options={ALL_EVENT_TYPES.map((type) => ({
           label: type,
           value: type,
         }))}
         id="eventType"
         label="Event Type"
-        onSelect={(label) => setEventTypeId(label)}
+        onSelect={(eventType) => setEventType(eventType as EventType)}
       />
 
       <PrimaryButton
@@ -77,7 +77,7 @@ const LogNewEventForm = () => {
 
 export const EventSandbox: React.FC = () => {
   const { getEvents } = useEvent();
-  const [events, setEvents] = React.useState<EventHydrated[]>([]);
+  const [events, setEvents] = React.useState<Event[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
