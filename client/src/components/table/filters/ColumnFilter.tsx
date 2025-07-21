@@ -5,8 +5,8 @@ import {
   Option,
 } from "components/input/select/AutoCompleteSelect";
 import { TextInput } from "components/input";
-import { DatePicker } from "@mui/x-date-pickers";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
+import { DatePicker } from "components/input/DatePicker/DatePicker";
 
 export interface ColumnFilterByDropdownProps<T> {
   table: Table<T>;
@@ -35,7 +35,7 @@ export function ColumnFilter<T>({
   className = "",
 }: ColumnFilterByDropdownProps<T>) {
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
-  const [filterValue, setFilterValue] = React.useState<string | Date | null>(
+  const [filterValue, setFilterValue] = React.useState<string | Dayjs | null>(
     ""
   );
 
@@ -62,7 +62,7 @@ export function ColumnFilter<T>({
   }, [selectedColumn, table]);
 
   // Update the filter: if `val` is nonempty and there's a column selected, apply that filter
-  const onValueChange = (val: string | Date | null) => {
+  const onValueChange = (val: string | Dayjs | null) => {
     setFilterValue(val);
     if (val && selectedColumn) {
       table.setColumnFilters([{ id: selectedColumn, value: val }]);
@@ -105,11 +105,8 @@ export function ColumnFilter<T>({
       case "date":
         return (
           <DatePicker
-            label={`${columnDisplayName} Filter`}
-            value={filterValue instanceof Date ? dayjs(filterValue) : null}
-            onChange={(newValue: Dayjs | null) => {
-              const date = newValue ? newValue.toDate() : null;
-              onValueChange(date);
+            onChange={(date) => {
+              onValueChange(date?.format("YYYY-MM-DD") || null);
             }}
             slotProps={{
               textField: {
@@ -117,7 +114,10 @@ export function ColumnFilter<T>({
                 name: `filter-${selectedColumn}`,
               },
             }}
-          />
+            name="date-filter"
+          >
+            {`${columnDisplayName} Filter`}
+          </DatePicker>
         );
 
       case "text":

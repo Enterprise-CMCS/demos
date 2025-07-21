@@ -37,10 +37,6 @@ export const testColumns = [
   columnHelper.accessor("date", {
     id: "date",
     header: "Date",
-    cell: ({ getValue }) => {
-      const date = getValue() as Date;
-      return date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
-    },
     meta: {
       filterConfig: {
         filterType: "date",
@@ -443,28 +439,141 @@ describe("ColumnFilter Component", () => {
   });
 
   describe("Date Filter Type", () => {
-    it("renders DatePicker when column has date filter type", async () => {
-      const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+    describe("Date Filter Type", () => {
+      it("renders DatePicker when column has date filter type", async () => {
+        const user = userEvent.setup();
+        const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Date");
+        await user.type(columnSelect, "Date");
 
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Date");
-        const dropdownOption = dropdownOptions.find(
+        await waitFor(() => {
+          const dropdownOptions = screen.getAllByText("Date");
+          const dropdownOption = dropdownOptions.find(
+            (el) => el.tagName === "LI" || el.closest("li")
+          );
+          expect(dropdownOption).toBeInTheDocument();
+        });
+
+        const dateDropdownOptions = screen.getAllByText("Date");
+        const dateDropdownOption = dateDropdownOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
-        expect(dropdownOption).toBeInTheDocument();
+        await user.click(dateDropdownOption!);
+
+        await waitFor(() => {
+          expect(
+            screen.getByPlaceholderText(/filter date/i)
+          ).toBeInTheDocument();
+          // Check for all expected date fields
+          expect(screen.getByLabelText("Month")).toBeInTheDocument();
+          expect(screen.getByLabelText("Day")).toBeInTheDocument();
+          expect(screen.getByLabelText("Year")).toBeInTheDocument();
+        });
       });
 
-      const dateDropdownOptions = screen.getAllByText("Date");
-      const dateDropdownOption = dateDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(dateDropdownOption!);
+      describe("Date Filter Type", () => {
+        it("filters rows by date", async () => {
+          const user = userEvent.setup();
+          screen.debug(document.body, 100000);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/filter date/i)).toBeInTheDocument();
+          const columnSelect = screen.getByLabelText(/filter by:/i);
+
+          await user.type(columnSelect, "Date");
+
+          await waitFor(() => {
+            const dropdownOptions = screen.getAllByText("Date");
+            const dropdownOption = dropdownOptions.find(
+              (el) => el.tagName === "LI" || el.closest("li")
+            );
+            expect(dropdownOption).toBeInTheDocument();
+          });
+
+          const dateDropdownOptions = screen.getAllByText("Date");
+          const dateDropdownOption = dateDropdownOptions.find(
+            (el) => el.tagName === "LI" || el.closest("li")
+          );
+          await user.click(dateDropdownOption!);
+
+          // Wait for the segmented date picker to appear
+          await waitFor(() => {
+            expect(screen.getByLabelText("Month")).toBeInTheDocument();
+            expect(screen.getByLabelText("Day")).toBeInTheDocument();
+            expect(screen.getByLabelText("Year")).toBeInTheDocument();
+          });
+
+          await user.click(screen.getByLabelText("Year"));
+          await user.keyboard("2023");
+
+          await user.click(screen.getByLabelText("Month"));
+          await user.keyboard("01");
+
+          await user.click(screen.getByLabelText("Day"));
+          await user.keyboard("01");
+
+          await waitFor(() => {
+            const hiddenDateInput = screen
+              .getAllByRole("textbox", { hidden: true })
+              .find(
+                (input) =>
+                  input.getAttribute("aria-hidden") === "true" &&
+                  input.getAttribute("name") === "filter-date"
+              );
+            expect(hiddenDateInput).toHaveValue("01/01/2023");
+          });
+          screen.debug(document.body, 100000);
+          await waitFor(() => {
+            expect(screen.getByText("Item One")).toBeInTheDocument();
+            expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+            expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+            expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+            expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+          });
+        });
+
+        it("shows no results for unmatched MM/DD/YYYY date", async () => {
+          const user = userEvent.setup();
+          const columnSelect = screen.getByLabelText(/filter by:/i);
+
+          await user.type(columnSelect, "Date");
+
+          await waitFor(() => {
+            const dropdownOptions = screen.getAllByText("Date");
+            const dropdownOption = dropdownOptions.find(
+              (el) => el.tagName === "LI" || el.closest("li")
+            );
+            expect(dropdownOption).toBeInTheDocument();
+          });
+
+          const dateDropdownOptions = screen.getAllByText("Date");
+          const dateDropdownOption = dateDropdownOptions.find(
+            (el) => el.tagName === "LI" || el.closest("li")
+          );
+          await user.click(dateDropdownOption!);
+
+          // Wait for the segmented date picker to appear
+          await waitFor(() => {
+            expect(screen.getByLabelText("Month")).toBeInTheDocument();
+            expect(screen.getByLabelText("Day")).toBeInTheDocument();
+            expect(screen.getByLabelText("Year")).toBeInTheDocument();
+          });
+
+          await user.click(screen.getByLabelText("Year"));
+          await user.keyboard("2000");
+
+          await user.click(screen.getByLabelText("Month"));
+          await user.keyboard("01");
+
+          await user.click(screen.getByLabelText("Day"));
+          await user.keyboard("01");
+
+          await waitFor(() => {
+            expect(
+              screen.getByText(
+                "No results were returned. Adjust your search and filter criteria."
+              )
+            ).toBeInTheDocument();
+          });
+        });
       });
     });
   });

@@ -120,15 +120,6 @@ describe("Demonstration Detail", () => {
     );
     await user.click(dateUploadedDropdownOption!);
 
-    // Wait for the date filter to appear - target the group element specifically
-    await waitFor(() => {
-      const dateFilters = screen.getAllByLabelText(/date uploaded filter/i);
-      const dateFilterGroup = dateFilters.find(
-        (el) => el.getAttribute("role") === "group"
-      );
-      expect(dateFilterGroup).toBeInTheDocument();
-    });
-
     // Interact with the MUI DatePicker segments
     const monthInput = screen.getByLabelText("Month");
     const dayInput = screen.getByLabelText("Day");
