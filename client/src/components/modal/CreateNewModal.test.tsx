@@ -83,11 +83,13 @@ vi.mock("components/input/TextInput", () => ({
   ),
 }));
 
-describe.each(["amendment", "extension"] as const)("CreateNewModal (%s)", (mode) => {
+describe.each(["amendment", "extension", "demonstration"] as const)("CreateNewModal (%s)", (mode) => {
   const onClose = vi.fn();
 
-  const fillForm = () => {
-    fireEvent.change(screen.getByTestId("demo-select"), { target: { value: "demo" } });
+  const fillForm = (mode: string) => {
+    if (mode !== "demonstration") {
+      fireEvent.change(screen.getByTestId("demo-select"), { target: { value: "demo" } });
+    }
     fireEvent.change(screen.getByTestId("title-input"), { target: { value: "Test Title" } });
     fireEvent.change(screen.getByTestId("state-select"), { target: { value: "CA" } });
     fireEvent.change(screen.getByTestId("user-select"), { target: { value: "user1" } });
@@ -98,7 +100,7 @@ describe.each(["amendment", "extension"] as const)("CreateNewModal (%s)", (mode)
 
     expect(screen.getByText(`New ${mode.charAt(0).toUpperCase() + mode.slice(1)}`)).toBeInTheDocument();
 
-    fillForm();
+    fillForm(mode);
 
     fireEvent.submit(screen.getByTestId("modal-content").querySelector("form")!);
 
@@ -108,16 +110,18 @@ describe.each(["amendment", "extension"] as const)("CreateNewModal (%s)", (mode)
     });
   });
 
-  it("shows validation warning if demonstration is empty", () => {
-    render(<CreateNewModal mode={mode} onClose={onClose} />);
-    fireEvent.submit(screen.getByTestId("modal-content").querySelector("form")!);
-    expect(screen.getByText(/must be linked to an existing demonstration/)).toBeInTheDocument();
-  });
+  if (mode !== "demonstration") {
+    it("shows validation warning if demonstration is empty", () => {
+      render(<CreateNewModal mode={mode} onClose={onClose} />);
+      fireEvent.submit(screen.getByTestId("modal-content").querySelector("form")!);
+      expect(screen.getByText(/must be linked to an existing demonstration/)).toBeInTheDocument();
+    });
+  }
 
   it("disables submit button if required fields are missing", () => {
     render(<CreateNewModal mode={mode} onClose={onClose} />);
     expect(screen.getByTestId("primary-btn")).toBeDisabled();
-    fillForm();
+    fillForm(mode);
     expect(screen.getByTestId("primary-btn")).not.toBeDisabled();
   });
 

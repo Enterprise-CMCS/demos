@@ -1,54 +1,71 @@
 import React, { useState } from "react";
 
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "components/button";
+import { PrimaryButton } from "components/button/PrimaryButton";
+import { SecondaryButton } from "components/button/SecondaryButton";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
-import { tw } from "tags/tw";
 
-const LABEL = tw`text-text-font font-bold text-field-label flex gap-0-5`;
-const DATE_INPUT = tw`w-full border rounded px-1 py-1 text-sm`;
+const DEMO_OPTIONS = [
+  { label: "Medicaid Reform - Florida", value: "medicaid-fl" },
+  { label: "Innovative Care - California", value: "innovative-ca" },
+];
+
+export type ModalMode = "amendment" | "extension" | "demonstration";
 
 type Props = {
   onClose: () => void;
-  mode: "amendment" | "extension";
+  mode: ModalMode;
+  data?: {
+    title?: string;
+    state?: string;
+    projectOfficer?: string;
+    effectiveDate?: string;
+    expirationDate?: string;
+    description?: string;
+    demonstration?: string;
+  };
 };
 
-export const CreateNewModal: React.FC<Props> = ({ onClose, mode }) => {
+export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
   const { showSuccess } = useToast();
-
-  const [title, setTitle] = useState("");
-  const [state, setState] = useState("");
-  const [projectOfficer, setProjectOfficer] = useState("");
-  const [effectiveDate, setEffectiveDate] = useState("");
-  const [expirationDate, setExpirationDate] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(data?.title || "");
+  const [state, setState] = useState(data?.state || "");
+  const [projectOfficer, setProjectOfficer] = useState(data?.projectOfficer || "");
+  const [effectiveDate, setEffectiveDate] = useState(data?.effectiveDate || "");
+  const [expirationDate, setExpirationDate] = useState(data?.expirationDate || "");
+  const [description, setDescription] = useState(data?.description || "");
+  const [demonstration, setDemonstration] = useState(data?.demonstration || "");
+  const [showWarning, setShowWarning] = useState(false);
   const [expirationError, setExpirationError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [demonstration, setDemonstration] = useState("");
-  const [showValidation, setShowValidation] = useState(false);
 
-  const isSubmitDisabled = !demonstration || !title || !state || !projectOfficer;
-  const labelPrefix = mode === "amendment" ? "Amendment" : "Extension";
+  const capitalized = mode.charAt(0).toUpperCase() + mode.slice(1);
+  const showDemoSelect = mode !== "demonstration";
+
+  const isSubmitDisabled =
+    (showDemoSelect && !demonstration) ||
+    !title ||
+    !state ||
+    !projectOfficer;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setShowValidation(true);
-    if (!demonstration || !title || !state || !projectOfficer) return;
-
-    showSuccess(`${labelPrefix} created successfully!`);
+    if (showDemoSelect && !demonstration) {
+      setShowWarning(true);
+      return;
+    }
+    setShowWarning(false);
+    showSuccess(`${capitalized} created successfully!`);
     onClose();
   };
 
   return (
     <BaseModal
-      title={`New ${labelPrefix}`}
+      title={`New ${capitalized}`}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -71,32 +88,31 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode }) => {
     >
       <form
         id={`create-${mode}-form`}
-        onSubmit={handleSubmit}
         className="space-y-1"
+        onSubmit={handleSubmit}
       >
-        <div>
-          <AutoCompleteSelect
-            label="Demonstration"
-            placeholder="Select demonstration"
-            isRequired
-            options={[
-              { label: "Medicaid Reform - Florida", value: "medicaid-fl" },
-              { label: "Innovative Care - California", value: "innovative-ca" },
-            ]}
-            onSelect={(val) => setDemonstration(val)}
-          />
-          {showValidation && !demonstration && (
-            <p className="text-sm text-text-warn mt-0.5">
-              Each {labelPrefix.toLowerCase()} must be linked to an existing demonstration.
-            </p>
-          )}
-        </div>
+        {showDemoSelect && (
+          <div>
+            <AutoCompleteSelect
+              label="Demonstration"
+              placeholder="Select demonstration"
+              isRequired
+              options={DEMO_OPTIONS}
+              onSelect={setDemonstration}
+            />
+            {showWarning && !demonstration && (
+              <p className="text-sm text-text-warn mt-0.5">
+                Each {mode} record must be linked to an existing demonstration.
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-3">
           <div className="col-span-2">
             <TextInput
               name="title"
-              label={`${labelPrefix} Title`}
+              label={`${capitalized} Title`}
               placeholder="Enter title"
               isRequired
               value={title}
@@ -123,13 +139,13 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode }) => {
             />
           </div>
           <div className="flex flex-col gap-sm">
-            <label className={LABEL} htmlFor="effective-date">
+            <label className="text-text-font font-bold text-field-label flex gap-0-5" htmlFor="effective-date">
               Effective Date
             </label>
             <input
               id="effective-date"
               type="date"
-              className={DATE_INPUT}
+              className="w-full border rounded px-1 py-1 text-sm"
               value={effectiveDate}
               onChange={(e) => {
                 setEffectiveDate(e.target.value);
@@ -140,17 +156,13 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode }) => {
             />
           </div>
           <div className="flex flex-col gap-sm">
-            <label className={LABEL} htmlFor="expiration-date">
+            <label className={"text-text-font font-bold text-field-label flex gap-0-5"} htmlFor="expiration-date">
               Expiration Date
             </label>
             <input
               id="expiration-date"
               type="date"
-              className={`${DATE_INPUT} ${expirationError
-                ? "border-border-warn focus:ring-border-warn"
-                : "border-border-fields focus:ring-border-focus"
-                // eslint-disable-next-line indent
-                }`}
+              className={`w-full border rounded px-1 py-1 text-sm ${expirationError ? "border-border-warn focus:ring-border-warn" : "border-border-fields focus:ring-border-focus"}`}
               value={expirationDate}
               min={effectiveDate || undefined}
               onChange={(e) => {
@@ -170,8 +182,8 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode }) => {
         </div>
 
         <div className="flex flex-col gap-sm">
-          <label className={LABEL} htmlFor="description">
-            {labelPrefix} Description
+          <label htmlFor="description" className="text-text-font font-bold text-field-label flex gap-0-5">
+            {capitalized} Description
           </label>
           <textarea
             id="description"

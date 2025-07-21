@@ -8,7 +8,6 @@ import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
 import { AddDocumentModal } from "components/modal/AddDocumentModal";
 import { CreateNewModal } from "components/modal/CreateNewModal";
-import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { gql } from "graphql-tag";
 
 import { useQuery } from "@apollo/client";
@@ -114,7 +113,7 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
 
       {/* Modal render */}
       {modalType === "create" && (
-        <DemonstrationModal mode="add" onClose={() => setModalType(null)} />
+        <CreateNewModal mode="demonstration" onClose={() => setModalType(null)} />
       )}
       {modalType === "document" && (
         <AddDocumentModal onClose={() => setModalType(null)} />
