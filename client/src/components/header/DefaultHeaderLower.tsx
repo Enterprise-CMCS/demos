@@ -7,12 +7,7 @@ import React, {
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
 import { AddDocumentModal } from "components/modal/AddDocumentModal";
-import {
-  CreateNewAmendmentModal,
-} from "components/modal/CreateNewAmendmentModal";
-import {
-  CreateNewExtensionModal,
-} from "components/modal/CreateNewExtensionModal";
+import { CreateNewModal } from "components/modal/CreateNewModal";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { gql } from "graphql-tag";
 
@@ -125,11 +120,12 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
         <AddDocumentModal onClose={() => setModalType(null)} />
       )}
       {modalType === "amendment" && (
-        <CreateNewAmendmentModal onClose={() => setModalType(null)} />
+        <CreateNewModal mode="amendment" onClose={() => setModalType(null)} />
       )}
       {modalType === "extension" && (
-        <CreateNewExtensionModal onClose={() => setModalType(null)} />
+        <CreateNewModal mode="extension" onClose={() => setModalType(null)} />
       )}
+
     </div>
   );
 };

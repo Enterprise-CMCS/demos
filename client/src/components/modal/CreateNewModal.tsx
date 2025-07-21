@@ -17,9 +17,10 @@ const DATE_INPUT = tw`w-full border rounded px-1 py-1 text-sm`;
 
 type Props = {
   onClose: () => void;
+  mode: "amendment" | "extension";
 };
 
-export const CreateNewExtensionModal: React.FC<Props> = ({ onClose }) => {
+export const CreateNewModal: React.FC<Props> = ({ onClose, mode }) => {
   const { showSuccess } = useToast();
 
   const [title, setTitle] = useState("");
@@ -34,19 +35,20 @@ export const CreateNewExtensionModal: React.FC<Props> = ({ onClose }) => {
   const [showValidation, setShowValidation] = useState(false);
 
   const isSubmitDisabled = !demonstration || !title || !state || !projectOfficer;
+  const labelPrefix = mode === "amendment" ? "Amendment" : "Extension";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setShowValidation(true);
     if (!demonstration || !title || !state || !projectOfficer) return;
 
-    showSuccess("Extension created successfully!");
+    showSuccess(`${labelPrefix} created successfully!`);
     onClose();
   };
 
   return (
     <BaseModal
-      title="New Extension"
+      title={`New ${labelPrefix}`}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -59,7 +61,7 @@ export const CreateNewExtensionModal: React.FC<Props> = ({ onClose }) => {
           <PrimaryButton
             size="small"
             type="submit"
-            form="create-extension-form"
+            form={`create-${mode}-form`}
             disabled={isSubmitDisabled}
           >
             Submit
@@ -68,7 +70,7 @@ export const CreateNewExtensionModal: React.FC<Props> = ({ onClose }) => {
       }
     >
       <form
-        id="create-extension-form"
+        id={`create-${mode}-form`}
         onSubmit={handleSubmit}
         className="space-y-1"
       >
@@ -85,7 +87,7 @@ export const CreateNewExtensionModal: React.FC<Props> = ({ onClose }) => {
           />
           {showValidation && !demonstration && (
             <p className="text-sm text-text-warn mt-0.5">
-              Each extension record must first be linked to an existing demonstration in the system
+              Each {labelPrefix.toLowerCase()} must be linked to an existing demonstration.
             </p>
           )}
         </div>
@@ -94,7 +96,7 @@ export const CreateNewExtensionModal: React.FC<Props> = ({ onClose }) => {
           <div className="col-span-2">
             <TextInput
               name="title"
-              label="Extension Title"
+              label={`${labelPrefix} Title`}
               placeholder="Enter title"
               isRequired
               value={title}
@@ -169,7 +171,7 @@ export const CreateNewExtensionModal: React.FC<Props> = ({ onClose }) => {
 
         <div className="flex flex-col gap-sm">
           <label className={LABEL} htmlFor="description">
-            Extension Description
+            {labelPrefix} Description
           </label>
           <textarea
             id="description"
