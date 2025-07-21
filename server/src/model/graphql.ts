@@ -4,7 +4,7 @@ import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.j
 import { demonstrationStatusSchema } from "./demonstrationStatus/demonstrationStatusSchema.js";
 import { demonstrationStatusResolvers } from "./demonstrationStatus/demonstrationStatusResolvers.js";
 
-import { eventSchema, eventTypeSchema, eventResolvers, eventTypeResolvers} from "./event/index.js";
+import { eventSchema, eventResolvers } from "./event/index.js";
 
 import { permissionSchema } from "./permission/permissionSchema.js";
 import { permissionResolvers } from "./permission/permissionResolvers.js";
@@ -34,7 +34,6 @@ export const typeDefs = [
   demonstrationSchema,
   demonstrationStatusSchema,
   eventSchema,
-  eventTypeSchema,
   permissionSchema,
   roleSchema,
   stateSchema,
@@ -45,7 +44,6 @@ export const typeDefs = [
 export const resolvers = [
   demonstrationResolvers,
   demonstrationStatusResolvers,
-  eventTypeResolvers,
   eventResolvers,
   permissionResolvers,
   roleResolvers,

@@ -1,7 +1,8 @@
-import { Stack, StackProps, aws_iam, aws_apigateway } from "aws-cdk-lib";
+import { Stack, StackProps, aws_iam, aws_apigateway, aws_ec2 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
+import { PrivateHostedZone } from "aws-cdk-lib/aws-route53";
 
 export class BootstrapStack extends Stack {
   constructor(
@@ -87,6 +88,23 @@ export class BootstrapStack extends Stack {
       }
     );
 
+    const jenkinsRole = new aws_iam.Role(
+      commonProps.scope,
+      "jenkinsRole",
+      {
+        roleName: `${commonProps.project}-jenkins-role`,
+        permissionsBoundary: commonProps.iamPermissionsBoundary,
+        path: commonProps.iamPath,
+        assumedBy: new aws_iam.ArnPrincipal("arn:aws:iam::478919403635:role/cbc-demos"),
+        managedPolicies: [
+          aws_iam.ManagedPolicy.fromAwsManagedPolicyName("ReadOnlyAccess"),
+        ],
+        description: "Role assumed by github actions",
+      }
+    );
+
+    const cbcJenkinsRole = aws_iam.Role.fromRoleName(commonProps.scope, "cbcJenkinsRole", "jenkins-role")
+
     const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
       statements: [
         new aws_iam.PolicyStatement({
@@ -94,6 +112,10 @@ export class BootstrapStack extends Stack {
           resources: [
             `arn:aws:secretsmanager:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:secret:demos-*/config*`,
           ],
+        }),
+        new aws_iam.PolicyStatement({
+          actions: ["ec2:DescribeManagedPrefixLists", "ec2:GetManagedPrefixListEntries"],
+          resources: ["*"]
         }),
         new aws_iam.PolicyStatement({
           actions: ["sts:AssumeRole"],
@@ -113,5 +135,27 @@ export class BootstrapStack extends Stack {
     });
 
     githubActionsRole.attachInlinePolicy(policy);
+    jenkinsRole.attachInlinePolicy(policy);
+    cbcJenkinsRole.attachInlinePolicy(policy);  
+  
+    // Private Hosted Zones
+    
+    createPHZ(commonProps.scope, "dev")
+    createPHZ(commonProps.scope, "test")
+    createPHZ(commonProps.scope, "impl")
   }
+}
+
+function createPHZ(scope: Construct, env: string) {
+  const dnsSuffix = "demos.internal.cms.gov"
+
+    const devVpc = aws_ec2.Vpc.fromLookup(scope, `${env}Vpc`, {
+          tags: {
+            Name: `demos-east-${env}`,
+          },
+        });
+    new PrivateHostedZone(scope, `${env}PrivateZone`, {
+      zoneName: `${env}.${dnsSuffix}`,
+      vpc: devVpc,
+    })
 }
