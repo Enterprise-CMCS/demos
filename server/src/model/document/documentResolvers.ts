@@ -3,6 +3,7 @@ import { Document } from "@prisma/client";
 import { BundleType } from "../../types.js";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { GraphQLError } from "graphql";
+import { AddDemonstrationDocumentInput, UpdateDemonstrationDocumentInput } from "./documentSchema.js";
 
 // TODO: We should look into caching this
 // Otherwise, there are duplicative DB calls if requesting bundle and bundleType
@@ -57,6 +58,63 @@ export const documentResolvers = {
             }
           }
         }
+      });
+    }
+  },
+
+  Mutation: {
+    addDemonstrationDocument: async (
+      _: undefined,
+      { input }: { input: AddDemonstrationDocumentInput}
+    ) => {
+      const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
+      return await prisma().document.create({
+        data: {
+          ...rest,
+          owner: {
+            connect: { id: ownerUserId }
+          },
+          documentType: {
+            connect: { id: documentTypeId }
+          },
+          bundle: {
+            connect: { id: demonstrationId }
+          }
+        }
+      })
+    },
+
+    updateDemonstrationDocument: async (
+      _: undefined,
+      { id, input }: { id: string, input: UpdateDemonstrationDocumentInput }
+    ) => {
+      const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
+      return await prisma().document.update({
+        where: { id: id },
+        data: {
+          ...rest,
+          ...(ownerUserId && {
+            owner: {
+              connect: { id: ownerUserId }
+            }
+          }),
+          ...(documentTypeId && {
+            documentType: {
+              connect: { id: documentTypeId }
+            }
+          }),
+          ...(demonstrationId && {
+            bundle: {
+              connect: { id: demonstrationId }
+            }
+          })
+        }
+      })
+    },
+
+    deleteDemonstrationDocument: async (_: undefined, { id }: { id: string }) => {
+      return await prisma().document.delete({
+        where: { id: id },
       });
     }
   },

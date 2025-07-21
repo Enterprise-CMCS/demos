@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { prisma } from "./prismaClient.js";
 import { BUNDLE_TYPE } from "./constants.js";
-import { _ } from "@faker-js/faker/dist/airline-CLphikKp.js";
 
 function checkIfAllowed() {
   if(process.env.ALLOW_SEED !== "true") {

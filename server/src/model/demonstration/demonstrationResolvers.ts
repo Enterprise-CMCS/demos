@@ -157,10 +157,17 @@ export const demonstrationResolvers = {
     },
 
     projectOfficer: async (parent: Demonstration) => {
-      if (!parent) return null;
       return await prisma().user.findUnique({
         where: { id: parent.projectOfficerUserId },
       });
     },
+
+    documents: async (parent: Demonstration) => {
+      return await prisma().document.findMany({
+        where: {
+          bundleId: parent.id
+        }
+      });
+    }
   },
 };

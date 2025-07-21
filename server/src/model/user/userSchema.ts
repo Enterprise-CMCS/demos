@@ -3,6 +3,7 @@ import { State } from "../state/stateSchema.js";
 import { Role } from "../role/roleSchema.js";
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
 import { Event } from "../event/eventSchema.js"
+import { Document } from "../document/documentSchema.js"
 
 export const userSchema = gql`
   type User {
@@ -18,6 +19,7 @@ export const userSchema = gql`
     roles: [Role!]!
     demonstrations: [Demonstration!]!
     events: [Event!]!
+    ownedDocuments: [Document!]!
   }
 
   input AddUserInput {
@@ -50,7 +52,7 @@ export const userSchema = gql`
 
   type Query {
     users: [User]!
-    user(id: Int!): User
+    user(id: ID!): User
   }
 `;
 
@@ -68,6 +70,7 @@ export interface User {
   roles: Role[];
   demonstrations: Demonstration[];
   events: Event[];
+  ownedDocuments: Document[];
 }
 
 export interface AddUserInput {

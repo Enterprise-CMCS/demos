@@ -30,15 +30,15 @@ export const documentSchema = gql`
     title: String
     description: String
     s3Path: String
-    ownerUserId: ID!
-    documentTypeId: String!
-    demonstrationId: ID!
+    ownerUserId: ID
+    documentTypeId: String
+    demonstrationId: ID
   }
 
   type Mutation {
     addDemonstrationDocument(input: AddDemonstrationDocumentInput!): Document
     updateDemonstrationDocument(id: ID!, input: UpdateDemonstrationDocumentInput!): Document
-    deleteDemonstrationDocumente(id: ID!): Document
+    deleteDemonstrationDocument(id: ID!): Document
   }
 
   type Query {
@@ -74,7 +74,7 @@ export interface UpdateDemonstrationDocumentInput {
   title?: string;
   description?: string;
   s3Path?: string;
-  ownerUserId: string;
-  documentTypeId: string;
-  demonstrationId: string;
+  ownerUserId?: string;
+  documentTypeId?: string;
+  demonstrationId?: string;
 };
