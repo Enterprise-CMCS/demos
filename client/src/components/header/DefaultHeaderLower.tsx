@@ -7,8 +7,13 @@ import React, {
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
 import { AddDocumentModal } from "components/modal/AddDocumentModal";
+import {
+  CreateNewAmendmentModal,
+} from "components/modal/CreateNewAmendmentModal";
+import {
+  CreateNewExtensionModal,
+} from "components/modal/CreateNewExtensionModal";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
-import { CreateNewAmendmentModal } from "components/modal/CreateNewAmendmentModal";
 import { gql } from "graphql-tag";
 
 import { useQuery } from "@apollo/client";
@@ -23,7 +28,7 @@ export const HEADER_LOWER_QUERY = gql`
 
 export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"create" | "document" | "amendment" | null>(null);
+  const [modalType, setModalType] = useState<"create" | "document" | "amendment" | "extension" | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -61,6 +66,7 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
     if (item === "Demonstration") setModalType("create");
     else if (item === "AddDocument") setModalType("document");
     else if (item === "Amendment") setModalType("amendment");
+    else if (item === "Extension") setModalType("extension");
     // TODO: handle "Extension" later
   };
 
@@ -120,6 +126,9 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
       )}
       {modalType === "amendment" && (
         <CreateNewAmendmentModal onClose={() => setModalType(null)} />
+      )}
+      {modalType === "extension" && (
+        <CreateNewExtensionModal onClose={() => setModalType(null)} />
       )}
     </div>
   );
