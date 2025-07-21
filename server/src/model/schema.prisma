@@ -16,12 +16,3 @@ enum RevisionType {
 
   @@map("revision_type_enum")
 }
-
-enum LogLevel {
-  DEBUG
-  INFO
-  WARN
-  ERROR
-
-  @@map("log_level")
-}

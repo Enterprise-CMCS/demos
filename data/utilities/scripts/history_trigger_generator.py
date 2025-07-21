@@ -17,7 +17,6 @@ TBL_FOLDERS = [
     "demonstrationStatus",
     "document",
     "documentType",
-    "eventType",
     "permission",
     "role",
     "state",
