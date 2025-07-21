@@ -29,15 +29,18 @@ export function clearDatabase() {
 
   return prisma().$transaction([
     prisma().rolePermission.deleteMany(),
-    prisma().userRole.deleteMany(),
-    prisma().userState.deleteMany(),
-    prisma().userStateDemonstration.deleteMany(),
-    prisma().demonstration.deleteMany(),
-    prisma().demonstrationStatus.deleteMany(),
-    prisma().permission.deleteMany(),
     prisma().role.deleteMany(),
     prisma().state.deleteMany(),
     prisma().user.deleteMany(),
+
+    prisma().demonstration.deleteMany(),
+    prisma().demonstrationStatus.deleteMany(),
+    prisma().permission.deleteMany(),
+
+    // Delete join tables last (no FK constraints)
+    prisma().userRole.deleteMany(),
+    prisma().userState.deleteMany(),
+    prisma().userStateDemonstration.deleteMany(),
   ]);
 }
 
@@ -61,7 +64,6 @@ async function seedDatabase() {
   checkIfAllowed();
   clearDatabase();
   createBypassUser();
-
 
   const entityCount = 100;
 
