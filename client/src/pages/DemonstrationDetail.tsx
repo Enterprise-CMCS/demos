@@ -7,6 +7,8 @@ import { CircleButton } from "components/button/CircleButton";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { usePageHeader } from "hooks/usePageHeader";
 import { DocumentTable } from "components/table/tables/DocumentTable";
+import { Tabs, TabItem } from "layout/Tabs";
+
 import DocumentData from "faker_data/documents.json";
 
 
@@ -14,6 +16,8 @@ export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [showButtons, setShowButtons] = useState(false);
   const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
+  const [tab, setTab] = useState<"details" | "amendments" | "extensions">("details");
+
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;
 
@@ -21,23 +25,43 @@ export const DemonstrationDetail = () => {
     if (id) trigger(id);
   }, [id]);
 
-  // Build dynamic header content
+  const tabList: TabItem[] = [
+    { value: "details", label: "Demonstration Details" },
+    { value: "amendments", label: "Amendments", count: 0 },
+    { value: "extensions", label: "Extensions", count: 0 },
+  ];
+
+  // Header content setup
   const headerContent = useMemo(() => {
     if (loading) {
-      return <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">Loading demonstration...</div>;
+      return (
+        <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
+          Loading demonstration...
+        </div>
+      );
     }
 
     if (error || !data) {
-      return <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">Failed to load demonstration</div>;
+      return (
+        <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
+          Failed to load demonstration
+        </div>
+      );
     }
 
     return (
       <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
         <div>
-          {/* TODO: Replace with breadcrumb */}
-          <span className="-ml-2 block text-sm"><a className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40" href="/demonstrations">Demonstration List</a> {">"} {data.id}</span>
+          <span className="-ml-2 block text-sm">
+            <a
+              className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
+              href="/demonstrations"
+            >
+              Demonstration List
+            </a>{" "}
+            {">"} {data.id}
+          </span>
           <span className="font-bold block">{data.name}</span>
-          {/* TODO: Replace Project Officer with correct value */}
           <span className="block text-sm">
             State/Territory: {data.state.stateCode}
             <span className="mx-1">|</span>
@@ -45,7 +69,7 @@ export const DemonstrationDetail = () => {
           </span>
         </div>
         <div className="relative">
-          { showButtons && (
+          {showButtons && (
             <span className="mr-0.75">
               <CircleButton
                 aria-label="Delete demonstration"
@@ -87,21 +111,45 @@ export const DemonstrationDetail = () => {
   usePageHeader(headerContent);
 
   return (
-    <div className="p-4">
+    <div>
       {loading && <p>Loading...</p>}
       {error && <p>Error loading demonstration</p>}
+
       {data && (
-        <div>
-          <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Documents</h1>
-          <div className="h-[60vh] overflow-y-auto">
-            <DocumentTable
-              data={DocumentData}
-            />
+        <>
+          {/* Tabs Component */}
+          <Tabs
+            tabs={tabList}
+            selectedValue={tab}
+            onChange={(newVal) => setTab(newVal as typeof tab)}
+          />
+
+          <div className="mt-4 h-[60vh] overflow-y-auto">
+            {tab === "details" && (
+              <div>
+                <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">Demonstration Details</h1>
+                <DocumentTable data={DocumentData} />
+              </div>
+            )}
+
+            {tab === "amendments" && (
+              <div className="p-4 border rounded bg-gray-50">
+                <p className="text-sm text-gray-700">No amendments available yet.</p>
+                {/* Add amendments table or content here when available */}
+              </div>
+            )}
+
+            {tab === "extensions" && (
+              <div className="p-4 border rounded bg-gray-50">
+                <p className="text-sm text-gray-700">No extensions have been filed.</p>
+                {/* Add extensions content or components here */}
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
 
-      {modalType === "edit" && (
+      {modalType === "edit" && data && (
         <DemonstrationModal demonstration={data} mode="edit" onClose={() => setModalType(null)} />
       )}
     </div>
