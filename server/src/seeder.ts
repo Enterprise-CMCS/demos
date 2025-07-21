@@ -2,6 +2,22 @@ import { faker } from "@faker-js/faker";
 import { prisma } from "./prismaClient.js";
 import { BUNDLE_TYPE } from "./constants.js";
 
+const AUTH_BYPASS_USER = {
+  user: {
+    id: "00000000-1111-2222-3333-123abc123abc",
+    cognitoSubject: "1234abcd-0000-1111-2222-333333333333",
+    username: "BYPASSED_USER",
+    email: "bypassedUser@email.com",
+    fullName: "Bypassed J. User",
+    displayName: "Bypass"
+  },
+  role: {
+    id: "abcdef09-0000-0000-0000-123412341234",
+    name: "Bypassed Admin Role",
+    description: "This role is a testing role for the bypassed user and is not a real role."
+  }
+};
+
 function checkIfAllowed() {
   if(process.env.ALLOW_SEED !== "true") {
     throw new Error("Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.");
@@ -25,34 +41,27 @@ export function clearDatabase() {
   ]);
 }
 
-async function seedDatabase() {
-  checkIfAllowed();
-  clearDatabase();
-
+const createBypassUser = async () => {
   console.log("🌱 Generating bypassed user...");
-  await prisma().user.create({
-    data: {
-      id: "00000000-1111-2222-3333-123abc123abc",
-      cognitoSubject: "1234abcd-0000-1111-2222-333333333333",
-      username: "BYPASSED_USER",
-      email: "bypassedUser@email.com",
-      fullName: "Bypassed J. User",
-      displayName: "Bypass"
-    }
-  });
   await prisma().role.create({
-    data: {
-      id: "abcdef09-0000-0000-0000-123412341234",
-      name: "Bypassed Admin Role",
-      description: "This role is a testing role for the bypassed user and is not a real role."
-    }
+    data: AUTH_BYPASS_USER.role
+  });
+  await prisma().user.create({
+    data: AUTH_BYPASS_USER.user
   });
   await prisma().userRole.create({
     data: {
-      userId: "00000000-1111-2222-3333-123abc123abc",
-      roleId: "abcdef09-0000-0000-0000-123412341234"
+      userId: AUTH_BYPASS_USER.user.id,
+      roleId: AUTH_BYPASS_USER.role.id
     }
-  })
+  });
+};
+
+async function seedDatabase() {
+  checkIfAllowed();
+  clearDatabase();
+  createBypassUser();
+
 
   const entityCount = 100;
 
