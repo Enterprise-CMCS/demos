@@ -3,7 +3,7 @@
 model Event {
   id         String   @id @default(uuid()) @db.Uuid
   userId     String   @map("user_id") @db.Uuid
-  withRoleId String   @map("role_id") @db.Uuid
+  withRoleId String   @map("with_role_id") @db.Uuid
   eventType  String   @map("event_type")
   logLevel   String   @map("log_level")
   route      String

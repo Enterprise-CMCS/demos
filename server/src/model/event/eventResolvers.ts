@@ -39,16 +39,21 @@ export const eventResolvers = {
       const userId = await getCurrentUserId(context);
       const roleId = await getCurrentUserRoleId(context);
 
-      return await prisma().event.create({
-        data: {
-          userId: userId,
-          eventType: eventType,
-          logLevel: logLevel,
-          withRoleId: roleId,
-          route: route,
-          eventData: eventData
-        }
-      });
+      try {
+        await prisma().event.create({
+          data: {
+            userId: userId,
+            eventType: eventType,
+            logLevel: logLevel,
+            withRoleId: roleId,
+            route: route,
+            eventData: eventData
+          }
+        });
+        return { success: true };
+      } catch (error) {
+        return { success: false, message: (error as Error).message };
+      }
     }
   },
 
@@ -59,7 +64,7 @@ export const eventResolvers = {
       });
     },
 
-    role: async (parent: Event) => {
+    withRole: async (parent: Event) => {
       return await prisma().role.findUnique({
         where: { id: parent.withRoleId },
       });

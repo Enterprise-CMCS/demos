@@ -13,20 +13,19 @@ export const GET_EVENTS_QUERY = gql`
   query GetEvents {
     events {
       id
+      eventType
+      logLevel
+      route
+      createdAt
+      eventData
       user {
         id
         fullName
-      }
-      eventType {
-        id
       }
       withRole {
         id
         name
       }
-      route
-      createdAt
-      eventData
     }
   }
 `;

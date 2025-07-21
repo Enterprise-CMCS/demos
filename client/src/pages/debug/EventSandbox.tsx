@@ -46,6 +46,7 @@ const LogNewEventForm = () => {
     };
 
     const result = await logEvent(logEventInput);
+
     if (result.data?.logEvent.success) {
       showSuccess("Event logged successfully");
     } else {
