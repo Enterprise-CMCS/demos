@@ -4,25 +4,31 @@ import React, {
   useState,
 } from "react";
 
+import { SecondaryButton } from "components/button";
 import { CircleButton } from "components/button/CircleButton";
 import {
+  AddNewIcon,
   DeleteIcon,
   EditIcon,
   EllipsisIcon,
 } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
+import { RawAmendment } from "components/table/columns/AmendmentColumns";
+import { AmendmentTable } from "components/table/tables/AmendmentTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
-import { Tabs, TabItem } from "layout/Tabs";
-
 import DocumentData from "faker_data/documents.json";
 import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
+import {
+  TabItem,
+  Tabs,
+} from "layout/Tabs";
 import { useParams } from "react-router-dom";
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [showButtons, setShowButtons] = useState(false);
-  const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
+  const [modalType, setModalType] = useState<"edit" | "delete" | "amendment" | null>(null);
   const [tab, setTab] = useState<"details" | "amendments" | "extensions">("details");
 
   const { getDemonstrationById } = useDemonstration();
@@ -32,9 +38,15 @@ export const DemonstrationDetail = () => {
     if (id) trigger(id);
   }, [id]);
 
+  const mockAmendments: RawAmendment[] = [
+    { id: "1", title: "Amendment 3", status: "Under Review", effectiveDate: "2025-07-21" },
+    { id: "2", title: "Amendment 2", status: "Approved", effectiveDate: "2024-09-14" },
+    { id: "3", title: "Amendment 1", status: "Draft", effectiveDate: "2023-01-03" },
+  ];
+
   const tabList: TabItem[] = [
     { value: "details", label: "Demonstration Details" },
-    { value: "amendments", label: "Amendments", count: 0 },
+    { value: "amendments", label: "Amendments", count: mockAmendments.length },
     { value: "extensions", label: "Extensions", count: 0 },
   ];
 
@@ -140,9 +152,19 @@ export const DemonstrationDetail = () => {
             )}
 
             {tab === "amendments" && (
-              <div className="p-4 border rounded bg-gray-50">
-                <p className="text-sm text-gray-700">No amendments available yet.</p>
-                {/* Add amendments table or content here when available */}
+              <div>
+                <div className="flex justify-between items-center pb-1 mb-4 border-b border-[var(--color-brand)]">
+                  <h1 className="text-xl font-bold text-brand uppercase">Amendments</h1>
+                  <SecondaryButton
+                    size="small"
+                    className="flex items-center gap-1 px-1 py-1"
+                    onClick={() => setModalType("amendment")}
+                  >
+                    <span>Add New</span>
+                    <AddNewIcon className="w-2 h-2" />
+                  </SecondaryButton>
+                </div>
+                <AmendmentTable data={mockAmendments} demonstrationId={data.id} />
               </div>
             )}
 
@@ -154,6 +176,13 @@ export const DemonstrationDetail = () => {
             )}
           </div>
         </>
+      )}
+      {modalType === "amendment" && data && (
+        <CreateNewModal
+          mode="amendment"
+          data={{ demonstration: data.id }}
+          onClose={() => setModalType(null)}
+        />
       )}
 
       {modalType === "edit" && data && (
