@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { LogEventArguments, useEvent } from "./useEvent";
-import { LogEventInput } from "demos-server";
 
 /**
  * MOCKS
@@ -41,11 +40,11 @@ describe("useEvent", () => {
     expect(typeof result.current.getEvents).toBe("function");
   });
 
-  it("should support LogEventInput without eventData or route", () => {
+  it("should support LogEventArguments without eventData or route", () => {
     const { result } = renderHook(() => useEvent());
 
     const eventInput: LogEventArguments = {
-      eventTypeId: "event-type-1",
+      eventType: "LOGIN_SUCCEEDED",
     };
 
     result.current.logEvent(eventInput);
@@ -54,9 +53,8 @@ describe("useEvent", () => {
   it("should handle event data properly", () => {
     const { result } = renderHook(() => useEvent());
 
-    const eventInput: LogEventInput = {
-      eventTypeId: "page-view-type",
-      route: "/users",
+    const eventInput: LogEventArguments = {
+      eventType: "LOGIN_SUCCEEDED",
       eventData: {
         userId: "123",
         timestamp: new Date().toISOString(),
