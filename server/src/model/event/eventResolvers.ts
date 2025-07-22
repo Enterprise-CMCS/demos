@@ -34,10 +34,12 @@ export const eventResolvers = {
 
   Mutation: {
     logEvent: async (_: undefined, { input }: { input: LogEventInput }, context: GraphQLContext) => {
-      const { eventType, logLevel, route, eventData } = input;
+      const { eventType, logLevel, route, eventData: clientEventData } = input;
 
       const userId = await getCurrentUserId(context);
       const roleId = await getCurrentUserRoleId(context);
+
+      const eventData = { ...clientEventData, userId, roleId };
 
       try {
         await prisma().event.create({

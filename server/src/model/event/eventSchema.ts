@@ -19,9 +19,6 @@ export const eventSchema = gql`
 
   type Query {
     events: [Event]!
-    event(id: ID!): Event
-    eventsByType(eventTypeId: String!): [Event]!
-    eventsByRoute(route: String!): [Event]!
   }
   
   type Mutation {

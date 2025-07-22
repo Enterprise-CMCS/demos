@@ -27,7 +27,8 @@ export const useEvent = (): EventOperations => {
         route: location.pathname,
         logLevel: getLogLevelForEventType(input.eventType),
       };
-      return await logEventTrigger({ variables: { input: logEventInput } });
+      return await logEventTrigger({
+        variables: { input: logEventInput }      });
     },
     getEvents: async () => await getEventsTrigger(),
   };
