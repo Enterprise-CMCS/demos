@@ -24,6 +24,7 @@ def graphql_request(input_tuple, url="http://localhost:4000/"):
 
 # Seed the DB for testing
 subprocess.run("npm run seed", shell=True)
+print("\nTEST ASSERTIONS\n---------------")
 
 # Test variables
 # Document creation
@@ -175,7 +176,7 @@ result = graphql_request(add_demo)
 DEMO_ID_2 = result["data"]["addDemonstration"]["id"]
 
 # Show doc type creation
-fetch_doc_type_1 = (
+get_doc_type_1 = (
     """
     query Query($documentTypeId: String!) {
         documentType(id: $documentTypeId) {
@@ -188,7 +189,8 @@ fetch_doc_type_1 = (
         "documentTypeId": DOC_TYPE_1
     }
 )
-result = graphql_request(fetch_doc_type_1)
+result = graphql_request(get_doc_type_1)
+print("Asserting document type created correctly")
 assert result["data"]["documentType"]["id"] == DOC_TYPE_1
 assert result["data"]["documentType"]["description"] == DOC_TYPE_1_DESC_1
 
@@ -207,7 +209,8 @@ no_change_update_doc_type = (
     }
 )
 result = graphql_request(no_change_update_doc_type)
-result = graphql_request(fetch_doc_type_1)
+result = graphql_request(get_doc_type_1)
+print("Asserting that empty updates do not change document type")
 assert result["data"]["documentType"]["id"] == DOC_TYPE_1
 assert result["data"]["documentType"]["description"] == DOC_TYPE_1_DESC_1
 
@@ -228,7 +231,8 @@ update_doc_type = (
     }
 )
 result = graphql_request(update_doc_type)
-result = graphql_request(fetch_doc_type_1)
+result = graphql_request(get_doc_type_1)
+print("Asserting that non-empty updates change document type correctly")
 assert result["data"]["documentType"]["id"] == DOC_TYPE_1
 assert result["data"]["documentType"]["description"] == DOC_TYPE_1_DESC_2
 
@@ -302,6 +306,7 @@ expected = {
         }
     }
 }
+print("Asserting document created correctly")
 assert result == expected
 
 # Update demo doc
@@ -347,4 +352,281 @@ expected = {
         }
     }
 }
+print("Asserting that non-empty updates change document correctly")
+assert result == expected
+
+# List documents from doc types
+# None expected for type 1 because we assigned it to type 2
+list_docs_type_1 = (
+    """
+    query Query($documentTypeId: String!) {
+        documentType(id: $documentTypeId) {
+            id
+            documents {
+                id
+            }
+        }
+    }
+    """,
+    {
+        "documentTypeId": DOC_TYPE_1
+    }
+)
+result = graphql_request(list_docs_type_1)
+expected = {
+    "data": {
+        "documentType": {
+            "id": DOC_TYPE_1,
+            "documents": []
+        }
+    }
+}
+print("Asserting that listing documents from document type works as expected for empty sets")
+assert result == expected
+
+list_docs_type_2 = (
+    """
+    query Query($documentTypeId: String!) {
+        documentType(id: $documentTypeId) {
+            id
+            documents {
+                id
+            }
+        }
+    }
+    """,
+    {
+        "documentTypeId": DOC_TYPE_2
+    }
+)
+result = graphql_request(list_docs_type_2)
+expected = {
+    "data": {
+        "documentType": {
+            "id": DOC_TYPE_2,
+            "documents": [{
+                "id": DEMO_DOC_ID
+            }]
+        }
+    }
+}
+print("Asserting that listing documents from document type works as expected for non-empty sets")
+assert result == expected
+
+# List document from users
+# Like above, there are two test users
+list_docs_by_user_1 = (
+    """
+    query User($userId: ID!) {
+        user(id: $userId) {
+            id
+            ownedDocuments {
+                id
+            }
+        }
+    }
+    """,
+    {
+        "userId": TEST_USER_1
+    }
+)
+result = graphql_request(list_docs_by_user_1)
+expected = {
+    "data": {
+        "user": {
+            "id": TEST_USER_1,
+            "ownedDocuments": []
+        }
+    }
+}
+print("Asserting that listing documents from user works as expected for empty sets")
+assert result == expected
+
+list_docs_by_user_2 = (
+    """
+    query User($userId: ID!) {
+        user(id: $userId) {
+            id
+            ownedDocuments {
+                id
+            }
+        }
+    }
+    """,
+    {
+        "userId": TEST_USER_2
+    }
+)
+result = graphql_request(list_docs_by_user_2)
+expected = {
+    "data": {
+        "user": {
+            "id": TEST_USER_2,
+            "ownedDocuments": [{
+                "id": DEMO_DOC_ID
+            }]
+        }
+    }
+}
+print("Asserting that listing documents from user works as expected for non-empty sets")
+assert result == expected
+
+# List docs by demonstration
+# Two test demonstrations
+list_docs_by_demo_1 = (
+    """
+    query Demonstration($demonstrationId: ID!) {
+        demonstration(id: $demonstrationId) {
+            id
+            documents {
+                id
+            }
+        }
+    }
+    """,
+    {
+        "demonstrationId": DEMO_ID_1
+    }
+)
+result = graphql_request(list_docs_by_demo_1)
+expected = {
+    "data": {
+        "demonstration": {
+            "id": DEMO_ID_1,
+            "documents": []
+        }
+    }
+}
+print("Asserting that listing documents from demonstration works as expected for empty sets")
+assert result == expected
+
+list_docs_by_demo_2 = (
+    """
+    query Demonstration($demonstrationId: ID!) {
+        demonstration(id: $demonstrationId) {
+            id
+            documents {
+                id
+            }
+        }
+    }
+    """,
+    {
+        "demonstrationId": DEMO_ID_2
+    }
+)
+result = graphql_request(list_docs_by_demo_2)
+expected = {
+    "data": {
+        "demonstration": {
+            "id": DEMO_ID_2,
+            "documents": [{
+                "id": DEMO_DOC_ID
+            }]
+        }
+    }
+}
+print("Asserting that listing documents from demonstration works as expected for non-empty sets")
+assert result == expected
+
+# List docs for specific bundle types
+# Shows the error handling
+list_docs_for_demonstrations = (
+    """
+    query Documents($bundleTypeId: String) {
+        documents(bundleTypeId: $bundleTypeId) {
+            id
+        }
+    }
+    """,
+    {
+        "bundleTypeId": "DEMONSTRATION"
+    }
+)
+result = graphql_request(list_docs_for_demonstrations)
+print("Asserting that listing documents for demonstrations returns at least one row")
+assert len(result["data"]["documents"]) >= 1
+
+list_docs_for_invalid_bundle = (
+    """
+    query Documents($bundleTypeId: String) {
+        documents(bundleTypeId: $bundleTypeId) {
+            id
+        }
+    }
+    """,
+    {
+        "bundleTypeId": "DEMONS"
+    }
+)
+try:
+    print("Asserting that listing documents for invalid bundle types returns errors")
+    result = graphql_request(list_docs_for_invalid_bundle)
+except Exception as e:
+    assert e.reason == "Unprocessable Entity"
+    assert e.status == 422
+
+list_docs_for_unimplemented_bundle = (
+    """
+    query Documents($bundleTypeId: String) {
+        documents(bundleTypeId: $bundleTypeId) {
+            id
+        }
+    }
+    """,
+    {
+        "bundleTypeId": "AMENDMENT"
+    }
+)
+try:
+    print("Asserting that listing documents for unimplemented bundle types returns errors")
+    result = graphql_request(list_docs_for_unimplemented_bundle)
+except Exception as e:
+    assert e.reason == "Not Implemented"
+    assert e.status == 501
+
+# Deleting documents
+delete_doc = (
+    """
+    mutation Mutation($deleteDemonstrationDocumentId: ID!) {
+        deleteDemonstrationDocument(id: $deleteDemonstrationDocumentId) {
+            id
+        }
+    }
+    """,
+    {
+        "deleteDemonstrationDocumentId": DEMO_DOC_ID
+    }
+)
+result = graphql_request(delete_doc)
+result = graphql_request(get_demo_doc)
+expected = {
+    "data": {
+        "document": None
+    }
+}
+print("Asserting that deleting documents works correctly")
+assert result == expected
+
+# Deleting documents
+delete_doc_type = (
+    """
+    mutation Mutation($deleteDocumentTypeId: String!) {
+        deleteDocumentType(id: $deleteDocumentTypeId) {
+            id
+        }
+    }
+    """,
+    {
+        "deleteDocumentTypeId": DOC_TYPE_1
+    }
+)
+result = graphql_request(delete_doc_type)
+result = graphql_request(get_doc_type_1)
+expected = {
+    "data": {
+        "documentType": None
+    }
+}
+print("Asserting that deleting document types works correctly")
 assert result == expected
