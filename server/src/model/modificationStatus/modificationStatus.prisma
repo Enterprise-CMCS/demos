@@ -1,8 +1,9 @@
 model ModificationStatus {
-  id            String         @id @default(uuid())
-  description   String
-  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
+  id          String   @id @default(uuid())
+  description String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
   modifications Modification[]
 
   @@map("modification_status")

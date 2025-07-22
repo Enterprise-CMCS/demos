@@ -1,6 +1,7 @@
 model Modification {
   id                   String   @db.Uuid
   bundleTypeId         String   @map("bundle_type_id")
+  demonstrationId      String   @map("demonstration_id") @db.Uuid
   name                 String
   description          String
   effectiveDate        DateTime @map("effective_date") @db.Date
@@ -12,6 +13,7 @@ model Modification {
 
   bundle             Bundle                 @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
   bundleType         ModificationBundleType @relation(fields: [bundleTypeId], references: [id])
+  demonstration      Demonstration          @relation(fields: [demonstrationId], references: [id])
   modificationStatus ModificationStatus     @relation(fields: [modificationStatusId], references: [id])
   projectOfficer     User                   @relation(fields: [projectOfficerUserId], references: [id])
 

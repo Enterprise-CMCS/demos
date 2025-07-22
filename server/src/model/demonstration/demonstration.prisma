@@ -17,6 +17,7 @@ model Demonstration {
   state                   State                    @relation(fields: [stateId], references: [id])
   projectOfficer          User                     @relation(fields: [projectOfficerUserId], references: [id])
   userStateDemonstrations UserStateDemonstration[]
+  modification            Modification[]
 
   @@id([id])
   @@unique([id, stateId])

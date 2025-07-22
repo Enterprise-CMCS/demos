@@ -2,6 +2,7 @@
 CREATE TABLE "modification" (
     "id" UUID NOT NULL,
     "bundle_type_id" TEXT NOT NULL,
+    "demonstration_id" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "effective_date" DATE NOT NULL,
@@ -21,6 +22,7 @@ CREATE TABLE "modification_history" (
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
     "bundle_type_id" TEXT NOT NULL,
+    "demonstration_id" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "effective_date" DATE NOT NULL,
@@ -71,6 +73,9 @@ ALTER TABLE "modification" ADD CONSTRAINT "modification_id_bundle_type_id_fkey" 
 ALTER TABLE "modification" ADD CONSTRAINT "modification_bundle_type_id_fkey" FOREIGN KEY ("bundle_type_id") REFERENCES "modification_bundle_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "modification" ADD CONSTRAINT "modification_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "modification" ADD CONSTRAINT "modification_modification_status_id_fkey" FOREIGN KEY ("modification_status_id") REFERENCES "modification_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -87,6 +92,7 @@ BEGIN
             revision_type,
             id,
             bundle_type_id,
+            demonstration_id,
             name,
             description,
             effective_date,
@@ -103,6 +109,7 @@ BEGIN
             END,
             NEW.id,
             NEW.bundle_type_id,
+            NEW.demonstration_id,
             NEW.name,
             NEW.description,
             NEW.effective_date,
@@ -118,6 +125,7 @@ BEGIN
             revision_type,
             id,
             bundle_type_id,
+            demonstration_id,
             name,
             description,
             effective_date,
@@ -131,6 +139,7 @@ BEGIN
             'D'::demos_app.revision_type_enum,
             OLD.id,
             OLD.bundle_type_id,
+            OLD.demonstration_id,
             OLD.name,
             OLD.description,
             OLD.effective_date,
