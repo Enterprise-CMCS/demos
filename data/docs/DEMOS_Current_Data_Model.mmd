@@ -4,17 +4,22 @@ title: DEMOS Current Data Model
 
 erDiagram
 
-
   document_type ||--|{ document : "document.document_type_id ∈ document_type.id"
+  bundle ||--|| modification : "modificaton.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
   document }|--|| bundle : "document.bundle_id ∈ bundle.id"
   document }|--|| users : "document.owner_user_id ∈ users.id"
+  modification }|--|| users : "modification.project_officer_user_id ∈ users.id"
   bundle }|--|| bundle_type : "bundle.bundle_type_id ∈ bundle_type.id"
-  bundle ||--|| demonstration : "demonstration.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
-  bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
   demonstration_bundle_type ||--|{ demonstration : "demonstration.bundle_type_id ∈ demonstration_bundle_type.id"
+  bundle ||--|| demonstration : "demonstration.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
+  bundle_type ||--|| modification_bundle_type : "modification_bundle_type.id ∈ bundle_type.id"
+  bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
+  modification_status ||--|{ modification : "modification.modification_status_id ∈ modification_status.id"
+  modification_bundle_type ||--|{ modification : "modification.bundle_type_id ∈ modification_bundle_type.id"
   demonstration_status ||--|{ demonstration : "demonstration.demonstration_status_id ∈ demonstration_status.id"
   state ||--|{ demonstration : "demonstration.state_id ∈ state.id"
   demonstration }|--|| users : "demonstration.project_officer_user_id ∈ users.id"
+  demonstration ||--|{ modification : "modification.demonstration_id ∈ demonstration.id"
   users ||--|{ user_state : "user_state.user_id ∈ users.id"
   user_state_demonstration }|--|| user_state : "user_state_demonstration.(user_id, state_id) ∈ user_state.(user_id, state_id)"
   state ||--|{ user_state : "user_state.user_id ∈ state.id"
@@ -103,6 +108,31 @@ erDiagram
     text id PK
     text severity
     int level
+  }
+
+  modification {
+    uuid id PK, FK "FK1: bundle.(id, bundle_type_id)"
+    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id), FK: modification_bundle_type.id"
+    uuid demonstration_id FK "FK: demonstration.id"
+    text name
+    text description
+    date effective_date
+    date expiration_date
+    timestamptz created_at
+    timestamptz updated_at
+    text modification_status_id FK "FK: modification_status.id"
+    uuid project_officer_user_id FK "FK: users.id"
+  }
+
+  modification_bundle_type {
+    text uuid PK, FK "FK: bundle_type.id"
+  }
+
+  modification_status {
+    text id PK
+    text description
+    timestamptz created_at
+    timestamptz updated_at
   }
 
   permission {

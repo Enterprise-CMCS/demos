@@ -126,19 +126,20 @@ erDiagram
     uuid demonstration_id FK "FK: demonstration.id"
     text name
     text description
+    date effective_date
+    date expiration_date
     timestamptz created_at
     timestamptz updated_at
-    uuid modification_status_id FK "FK: modification_status.id"
+    text modification_status_id FK "FK: modification_status.id"
     uuid project_officer_user_id FK "FK: users.id"
   }
 
   modification_bundle_type {
-    id uuid PK, FK "FK: bundle_type.id"
+    text uuid PK, FK "FK: bundle_type.id"
   }
 
   modification_status {
-    uuid id PK
-    text name
+    text id PK
     text description
     timestamptz created_at
     timestamptz updated_at
