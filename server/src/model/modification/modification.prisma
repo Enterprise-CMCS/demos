@@ -14,7 +14,7 @@ model Modification {
   bundle             Bundle                 @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
   bundleType         ModificationBundleType @relation(fields: [bundleTypeId], references: [id])
   demonstration      Demonstration          @relation(fields: [demonstrationId], references: [id])
-  modificationStatus ModificationStatus     @relation(fields: [modificationStatusId], references: [id])
+  modificationStatus ModificationStatus     @relation(fields: [modificationStatusId, bundleTypeId], references: [id, bundleTypeId])
   projectOfficer     User                   @relation(fields: [projectOfficerUserId], references: [id])
 
   @@id([id])

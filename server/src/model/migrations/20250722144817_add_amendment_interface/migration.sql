@@ -45,11 +45,12 @@ CREATE TABLE "modification_bundle_type" (
 -- CreateTable
 CREATE TABLE "modification_status" (
     "id" TEXT NOT NULL,
+    "bundle_type_id" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "modification_status_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "modification_status_pkey" PRIMARY KEY ("id","bundle_type_id")
 );
 
 -- CreateTable
@@ -58,6 +59,7 @@ CREATE TABLE "modification_status_history" (
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" TEXT NOT NULL,
+    "bundle_type_id" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
@@ -75,7 +77,7 @@ ALTER TABLE "modification" ADD CONSTRAINT "modification_bundle_type_id_fkey" FOR
 ALTER TABLE "modification" ADD CONSTRAINT "modification_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "modification" ADD CONSTRAINT "modification_modification_status_id_fkey" FOREIGN KEY ("modification_status_id") REFERENCES "modification_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "modification" ADD CONSTRAINT "modification_modification_status_id_bundle_type_id_fkey" FOREIGN KEY ("modification_status_id", "bundle_type_id") REFERENCES "modification_status"("id", "bundle_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "modification" ADD CONSTRAINT "modification_project_officer_user_id_fkey" FOREIGN KEY ("project_officer_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -83,6 +85,8 @@ ALTER TABLE "modification" ADD CONSTRAINT "modification_project_officer_user_id_
 -- AddForeignKey
 ALTER TABLE "modification_bundle_type" ADD CONSTRAINT "modification_bundle_type_id_fkey" FOREIGN KEY ("id") REFERENCES "bundle_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+-- AddForeignKey
+ALTER TABLE "modification_status" ADD CONSTRAINT "modification_status_bundle_type_id_fkey" FOREIGN KEY ("bundle_type_id") REFERENCES "modification_bundle_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 CREATE OR REPLACE FUNCTION demos_app.log_changes_modification()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -165,6 +169,7 @@ BEGIN
         INSERT INTO demos_app.modification_status_history (
             revision_type,
             id,
+            bundle_type_id,
             description,
             created_at,
             updated_at
@@ -175,6 +180,7 @@ BEGIN
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
             NEW.id,
+            NEW.bundle_type_id,
             NEW.description,
             NEW.created_at,
             NEW.updated_at
@@ -184,6 +190,7 @@ BEGIN
         INSERT INTO demos_app.modification_status_history (
             revision_type,
             id,
+            bundle_type_id,
             description,
             created_at,
             updated_at
@@ -191,6 +198,7 @@ BEGIN
         VALUES (
             'D'::demos_app.revision_type_enum,
             OLD.id,
+            OLD.bundle_type_id,
             OLD.description,
             OLD.created_at,
             OLD.updated_at

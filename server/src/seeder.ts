@@ -239,17 +239,18 @@ async function seedDatabase() {
     });
   };
 
-  console.log("🌱 Seeding modification statuses...");
+  console.log("🌱 Seeding amendment statuses...");
   const modificationStatuses = [
-    { id: "NEW", description: "New modification." },
-    { id: "IN_PROGRESS", description: "Modification is in progress." },
-    { id: "COMPLETED", description: "Completed modification." }
+    { id: "NEW", description: "New amendment." },
+    { id: "IN_PROGRESS", description: "Amendment is in progress." },
+    { id: "COMPLETED", description: "Completed amendment." }
   ];
   for (const status of modificationStatuses) {
     await prisma().modificationStatus.create({
       data: {
         id: status.id,
-        description: status.description,
+        bundleTypeId: BUNDLE_TYPE.AMENDMENT,
+        description: status.description
       },
     });
   };

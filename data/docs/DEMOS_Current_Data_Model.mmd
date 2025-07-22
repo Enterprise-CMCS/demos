@@ -16,6 +16,7 @@ erDiagram
   bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
   modification_status ||--|{ modification : "modification.modification_status_id ∈ modification_status.id"
   modification_bundle_type ||--|{ modification : "modification.bundle_type_id ∈ modification_bundle_type.id"
+  modification_bundle_type ||--|{ modification_status: "modification_status.bundle_type_id ∈ modification_bundle_type.id"
   demonstration_status ||--|{ demonstration : "demonstration.demonstration_status_id ∈ demonstration_status.id"
   state ||--|{ demonstration : "demonstration.state_id ∈ state.id"
   demonstration }|--|| users : "demonstration.project_officer_user_id ∈ users.id"
@@ -112,7 +113,7 @@ erDiagram
 
   modification {
     uuid id PK, FK "FK1: bundle.(id, bundle_type_id)"
-    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id), FK: modification_bundle_type.id"
+    text bundle_type_id FK, FK, FK "FK1: bundle.(id, bundle_type_id), FK2: modification_status.(id, bundle_type_id), FK: modification_bundle_type.id"
     uuid demonstration_id FK "FK: demonstration.id"
     text name
     text description
@@ -120,7 +121,7 @@ erDiagram
     date expiration_date
     timestamptz created_at
     timestamptz updated_at
-    text modification_status_id FK "FK: modification_status.id"
+    text modification_status_id FK "FK2: modification_status.(id, bundle_type_id),"
     uuid project_officer_user_id FK "FK: users.id"
   }
 
@@ -130,6 +131,7 @@ erDiagram
 
   modification_status {
     text id PK
+    text bundle_type_id PK, FK "FK: modification_bundle_type.id"
     text description
     timestamptz created_at
     timestamptz updated_at

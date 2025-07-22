@@ -1,3 +1,4 @@
+// Flags: NATURAL_KEY
 model BundleType {
   id          String   @id
   name        String

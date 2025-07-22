@@ -18,6 +18,12 @@ export type {
 } from "./model/demonstrationStatus/demonstrationStatusSchema.js";
 
 export type {
+  AmendmentStatus,
+  AddAmendmentStatusInput,
+  UpdateAmendmentStatusInput,
+} from "./model/modificationStatus/modificationStatusSchema.js";
+
+export type {
   State,
   AddStateInput,
   UpdateStateInput,
