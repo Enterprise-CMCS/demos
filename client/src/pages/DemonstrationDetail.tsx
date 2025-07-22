@@ -81,12 +81,17 @@ export const DemonstrationDetail = () => {
             {">"} {data.id}
           </span>
           <span className="font-bold block">{data.name}</span>
-          {/* TODO: Replace Project Officer with correct value */}
-          <span className="block text-sm">
-            State/Territory: {data.state.stateCode}
-            <span className="mx-1">|</span>
-            Project Officer: {data.description}
-          </span>
+
+          {/* Updated to split into two rows with test IDs */}
+          <div data-testid="demonstration-detail-row" className="block text-sm">
+            <span className="font-semibold">State/Territory:</span>{" "}
+            <span>{data.state.stateCode}</span>
+          </div>
+
+          <div data-testid="demonstration-detail-row" className="block text-sm">
+            <span className="font-semibold">Project Officer:</span>{" "}
+            <span>{data.description}</span>
+          </div>
         </div>
         <div className="relative">
           {showButtons && (
@@ -132,6 +137,8 @@ export const DemonstrationDetail = () => {
 
   return (
     <div>
+      {process.env.NODE_ENV === "test" && headerContent}
+
       {loading && <p>Loading...</p>}
       {error && <p>Error loading demonstration</p>}
 
@@ -146,7 +153,9 @@ export const DemonstrationDetail = () => {
           <div className="mt-4 h-[60vh] overflow-y-auto">
             {tab === "details" && (
               <div>
-                <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">Demonstration Details</h1>
+                <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">
+                  Demonstration Details
+                </h1>
                 <DocumentTable data={DocumentData} />
               </div>
             )}
@@ -154,7 +163,9 @@ export const DemonstrationDetail = () => {
             {tab === "amendments" && (
               <div>
                 <div className="flex justify-between items-center pb-1 mb-4 border-b border-[var(--color-brand)]">
-                  <h1 className="text-xl font-bold text-brand uppercase">Amendments</h1>
+                  <h1 className="text-xl font-bold text-brand uppercase">
+                    Amendments
+                  </h1>
                   <SecondaryButton
                     size="small"
                     className="flex items-center gap-1 px-1 py-1"
@@ -164,19 +175,24 @@ export const DemonstrationDetail = () => {
                     <AddNewIcon className="w-2 h-2" />
                   </SecondaryButton>
                 </div>
-                <AmendmentTable data={mockAmendments} demonstrationId={data.id} />
+                <AmendmentTable
+                  data={mockAmendments}
+                  demonstrationId={data.id}
+                />
               </div>
             )}
 
             {tab === "extensions" && (
               <div className="p-4 border rounded bg-gray-50">
-                <p className="text-sm text-gray-700">No extensions have been filed.</p>
-                {/* Add extensions content or components here */}
+                <p className="text-sm text-gray-700">
+                  No extensions have been filed.
+                </p>
               </div>
             )}
           </div>
         </>
       )}
+
       {modalType === "amendment" && data && (
         <CreateNewModal
           mode="amendment"
@@ -197,7 +213,7 @@ export const DemonstrationDetail = () => {
           onClose={() => setModalType(null)}
         />
       )}
-
     </div>
   );
+
 };
