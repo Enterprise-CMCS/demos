@@ -58,7 +58,6 @@ CREATE TABLE "modification_status_history" (
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
@@ -166,7 +165,6 @@ BEGIN
         INSERT INTO demos_app.modification_status_history (
             revision_type,
             id,
-            name,
             description,
             created_at,
             updated_at
@@ -177,7 +175,6 @@ BEGIN
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
             NEW.id,
-            NEW.name,
             NEW.description,
             NEW.created_at,
             NEW.updated_at
@@ -187,7 +184,6 @@ BEGIN
         INSERT INTO demos_app.modification_status_history (
             revision_type,
             id,
-            name,
             description,
             created_at,
             updated_at
@@ -195,7 +191,6 @@ BEGIN
         VALUES (
             'D'::demos_app.revision_type_enum,
             OLD.id,
-            OLD.name,
             OLD.description,
             OLD.created_at,
             OLD.updated_at

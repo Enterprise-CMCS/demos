@@ -43,6 +43,8 @@ function clearDatabase() {
     // Delete various bundle types
     prisma().demonstration.deleteMany(),
     prisma().demonstrationStatus.deleteMany(),
+    prisma().modification.deleteMany(),
+    prisma().modificationStatus.deleteMany(),
 
     // States are only connected to specific bundles and to the join tables
     prisma().state.deleteMany(),
@@ -72,6 +74,7 @@ async function seedDatabase() {
   const userCount = 9;
   const permissionCount = 9;
   const demonstrationCount = 20;
+  const amendmentCount = 10;
   const documentCount = 130;
   const syntheticEventCount = 140;
   const syntheticEventTypeCount = 10;
@@ -236,6 +239,45 @@ async function seedDatabase() {
     });
   };
 
+  console.log("🌱 Seeding modification statuses...");
+  const modificationStatuses = [
+    { id: "NEW", description: "New modification." },
+    { id: "IN_PROGRESS", description: "Modification is in progress." },
+    { id: "COMPLETED", description: "Completed modification." }
+  ];
+  for (const status of modificationStatuses) {
+    await prisma().modificationStatus.create({
+      data: {
+        id: status.id,
+        description: status.description,
+      },
+    });
+  };
+
+  console.log("🌱 Seeding amendments...");
+  for (let i = 0; i < amendmentCount; i++) {
+    const bundle = await prisma().bundle.create({
+      data: {
+        bundleType: {
+          connect: { id: BUNDLE_TYPE.AMENDMENT }
+        }
+      }
+    });
+    await prisma().modification.create({
+      data: {
+        id: bundle.id,
+        bundleTypeId: BUNDLE_TYPE.AMENDMENT,
+        demonstrationId: (await prisma().demonstration.findRandom())!.id,
+        name: faker.lorem.words(3),
+        description: faker.lorem.sentence(),
+        effectiveDate: faker.date.future(),
+        expirationDate: faker.date.future({ years: 1 }),
+        modificationStatusId: (await prisma().modificationStatus.findRandom())!.id,
+        projectOfficerUserId: (await prisma().user.findRandom())!.id,
+      },
+    });
+  };
+
   console.log("🌱 Seeding document types...");
   const documentTypes = [
     { id: "DEMONSTRATION_APPLICATION", description: "Demonstration application file." },
@@ -244,7 +286,8 @@ async function seedDatabase() {
     { id: "COI_DISCLOSURE", description: "Conflict of interest disclosure." },
     { id: "DEVIATION_REPORT", description: "Report of a deviation." },
     { id: "EXPENSE_TABLE", description: "Expense table." },
-    { id: "INTENTIONALLY_OMITTED", description: "A document type intended not to be used, to allow for zero-count joins." }
+    { id: "INTENTIONALLY_OMITTED", description: "A document type intended not to be used, to allow for zero-count joins." },
+    { id: "AMENDMENT_APPLICATION", description: "Application for an amendment." }
   ];
   for (const documentType of documentTypes) {
     await prisma().documentType.create({
@@ -275,6 +318,28 @@ async function seedDatabase() {
       }
     });
   };
+  // Every amendment has an application
+  const amendmentIds = await prisma().modification.findMany({
+    select: {
+      id: true
+    },
+    where: {
+      bundleTypeId: BUNDLE_TYPE.AMENDMENT
+    }
+  });
+  for (const amendmentId of amendmentIds) {
+    const fakeTitle = faker.lorem.sentence(2);
+    await prisma().document.create({
+      data: {
+        title: fakeTitle,
+        description: "Application for " + fakeTitle,
+        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
+        ownerUserId: (await prisma().user.findRandom())!.id,
+        documentTypeId: "DEMONSTRATION_APPLICATION",
+        bundleId: amendmentId.id
+      }
+    });
+  };
   // Now, the rest can be largely randomized
   for (let i = 0; i < documentCount; i++) {
     const documentTypeId = await prisma().documentType.findRandom({
@@ -284,7 +349,11 @@ async function seedDatabase() {
       where: {
         NOT: {
           id: {
-            in: ["DEMONSTRATION_APPLICATION", "INTENTIONALLY_OMITTED"]
+            in: [
+              "DEMONSTRATION_APPLICATION",
+              "INTENTIONALLY_OMITTED",
+              "AMENDMENT_APPLICATION"
+            ]
           }
         }
       }
@@ -296,7 +365,7 @@ async function seedDatabase() {
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: documentTypeId!.id,
-        bundleId: (await prisma().demonstration.findRandom())!.id
+        bundleId: (await prisma().bundle.findRandom())!.id
       },
     });
   };
