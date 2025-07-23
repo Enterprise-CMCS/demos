@@ -1,13 +1,10 @@
 import { MockedResponse } from "@apollo/client/testing";
-import {
-  DemonstrationStatusSelectOptions,
-  GET_DEMONSTRATION_STATUSES_FOR_SELECT,
-} from "components/table/tables/DemonstrationsTable";
+import { GET_ALL_DEMONSTRATION_STATUSES_QUERY } from "hooks/useDemonstrationStatus";
 
 export const demonstrationStatusMocks: MockedResponse[] = [
   {
     request: {
-      query: GET_DEMONSTRATION_STATUSES_FOR_SELECT,
+      query: GET_ALL_DEMONSTRATION_STATUSES_QUERY,
     },
     result: {
       data: {
@@ -21,7 +18,7 @@ export const demonstrationStatusMocks: MockedResponse[] = [
           {
             name: "Withdrawn",
           },
-        ] satisfies DemonstrationStatusSelectOptions[],
+        ],
       },
     },
   },

@@ -1,19 +1,18 @@
 import { MockedResponse } from "@apollo/client/testing";
-import {
-  GET_STATES_FOR_SELECT,
-  StateSelectOptions,
-} from "components/table/tables/DemonstrationsTable";
+import { GET_ALL_STATES_QUERY } from "hooks/useStates";
 
 export const california = {
   id: "1",
   stateCode: "CA",
   stateName: "California",
+  users: [],
+  demonstrations: [],
 };
 
 export const stateMocks: MockedResponse[] = [
   {
     request: {
-      query: GET_STATES_FOR_SELECT,
+      query: GET_ALL_STATES_QUERY,
     },
     result: {
       data: {
@@ -54,7 +53,7 @@ export const stateMocks: MockedResponse[] = [
             stateCode: "OH",
             stateName: "Ohio",
           },
-        ] satisfies StateSelectOptions[],
+        ],
       },
     },
   },

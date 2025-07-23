@@ -1,47 +1,51 @@
-import React from "react";
-import { useQuery } from "@apollo/client";
+import React, { useEffect } from "react";
 
 import { Table } from "components/table/Table";
-import { gql } from "@apollo/client";
 import { SecondaryButton } from "components/button";
 import { createColumnHelper } from "@tanstack/react-table";
 import { highlightCell } from "../search/KeywordSearch";
-import { Option } from "components/input/select/AutoCompleteSelect";
-
-const typeOptions: Option[] = [
-  { label: "Pre-Submission Concept", value: "Pre-Submission Concept" },
-  { label: "General File", value: "General File" },
-  { label: "Budget Neutrality Workbook", value: "Budget Neutrality Workbook" },
-];
-
-export type Document = {
-  id: number;
-  title: string;
-  description: string;
-  type: string;
-  uploadedBy: string;
-  uploadDate: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export const DOCUMENT_TABLE_QUERY = gql`
-  query GetDocuments {
-    documents {
-      id
-      title
-      description
-      type
-      uploadedBy
-      uploadDate
-    }
-  }
-`;
+import { useDocument } from "hooks/useDocuments";
+import { useDocumentType } from "hooks/useDocumentType";
 
 export const DocumentsTable = () => {
+  const { getAllDocumentTypes } = useDocumentType();
+  const {
+    trigger: triggerGetAllDocumentTypes,
+    data: documentTypesData,
+    loading: documentTypesLoading,
+    error: documentTypesError,
+  } = getAllDocumentTypes;
+  useEffect(() => {
+    triggerGetAllDocumentTypes();
+  }, []);
+
+  const { getAllDocuments } = useDocument();
+  const {
+    trigger: triggerGetAllDocuments,
+    data: documentsData,
+    loading: documentsLoading,
+    error: documentsError,
+  } = getAllDocuments;
+  useEffect(() => {
+    triggerGetAllDocuments();
+  }, []);
+
+  if (documentTypesLoading) {
+    return <div className="p-4">Loading...</div>;
+  }
+  if (documentTypesError) {
+    return <div className="p-4">Error loading document types</div>;
+  }
+
+  if (documentsLoading) {
+    return <div className="p-4">Loading...</div>;
+  }
+  if (documentsError) {
+    return <div className="p-4">Error loading documents</div>;
+  }
 
   const columnHelper = createColumnHelper<Document>();
-  const columns = [
+  const documentColumns = [
     columnHelper.display({
       id: "Select",
       header: ({ table }) => (
@@ -82,7 +86,10 @@ export const DocumentsTable = () => {
       meta: {
         filterConfig: {
           filterType: "select",
-          options: typeOptions,
+          options: documentTypesData?.documents.map((type) => ({
+            label: type.name,
+            value: type.name,
+          })),
         },
       },
     }),
@@ -125,28 +132,6 @@ export const DocumentsTable = () => {
     }),
   ];
 
-  const {
-    data: documentsData,
-    loading: documentsLoading,
-    error: documentsError,
-  } = useQuery<{ documents: Document[] }>(DOCUMENT_TABLE_QUERY);
-
-  if (documentsLoading) {
-    return <div className="p-4">Loading...</div>;
-  }
-
-  if (documentsError) {
-    return (
-      <div className="p-4">
-        Error loading documents: {documentsError.message}
-      </div>
-    );
-  }
-
-  if (!documentsData) {
-    return <div className="p-4">Demonstration not found</div>;
-  }
-
   return (
     <div className="p-4">
       <div>
@@ -155,8 +140,8 @@ export const DocumentsTable = () => {
         </h1>
         <div className="h-[60vh] overflow-y-auto">
           <Table<Document>
-            data={documentsData.documents}
-            columns={columns}
+            data={documentsData}
+            columns={documentColumns}
             keywordSearch
             columnFilter
             emptyRowsMessage="No documents available."

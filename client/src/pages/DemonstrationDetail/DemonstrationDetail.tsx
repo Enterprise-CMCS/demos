@@ -6,7 +6,6 @@ import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { CircleButton } from "components/button/CircleButton";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { usePageHeader } from "hooks/usePageHeader";
-import { gql } from "@apollo/client";
 import { DocumentsTable } from "components/table/tables/DocumentsTable";
 
 export type Document = {
@@ -19,19 +18,6 @@ export type Document = {
   createdAt: string;
   updatedAt: string;
 };
-
-export const DOCUMENT_TABLE_QUERY = gql`
-  query GetDocuments {
-    documents {
-      id
-      title
-      description
-      type
-      uploadedBy
-      uploadDate
-    }
-  }
-`;
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
