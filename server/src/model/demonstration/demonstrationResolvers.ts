@@ -26,26 +26,36 @@ export const demonstrationResolvers = {
       _: undefined,
       { input }: { input: AddDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, stateId, userIds, projectOfficerUserId, ...rest } = input;
+      const {
+        demonstrationStatusId,
+        stateId,
+        userIds,
+        projectOfficerUserId,
+        evaluationPeriodStartDate,
+        evaluationPeriodEndDate,
+        ...rest
+      } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
           data: {
             bundleType: {
-              connect: { id: demonstrationBundleTypeId }
-            }
-          }
+              connect: { id: demonstrationBundleTypeId },
+            },
+          },
         });
 
         return await tx.demonstration.create({
           data: {
             ...rest,
             bundle: {
-              connect: { id: bundle.id }
+              connect: { id: bundle.id },
             },
             bundleType: {
-              connect: { id: demonstrationBundleTypeId }
+              connect: { id: demonstrationBundleTypeId },
             },
+            evaluationPeriodStartDate: new Date(evaluationPeriodStartDate),
+            evaluationPeriodEndDate: new Date(evaluationPeriodEndDate),
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
             },
@@ -54,13 +64,13 @@ export const demonstrationResolvers = {
             },
             ...(userIds &&
               stateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId,
-                })),
-              },
-            }),
+                userStateDemonstrations: {
+                  create: userIds.map((userId: string) => ({
+                    userId,
+                    stateId,
+                  })),
+                },
+              }),
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -73,7 +83,15 @@ export const demonstrationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, userIds, stateId, projectOfficerUserId, ...rest } = input;
+      const {
+        demonstrationStatusId,
+        userIds,
+        stateId,
+        projectOfficerUserId,
+        evaluationPeriodStartDate,
+        evaluationPeriodEndDate,
+        ...rest
+      } = input;
 
       // If stateId is not provided, use the demonstration's existing stateId
       let existingStateId = stateId;
@@ -90,6 +108,12 @@ export const demonstrationResolvers = {
         where: { id },
         data: {
           ...rest,
+          ...(evaluationPeriodStartDate && {
+            evaluationPeriodStartDate: new Date(evaluationPeriodStartDate),
+          }),
+          ...(evaluationPeriodEndDate && {
+            evaluationPeriodEndDate: new Date(evaluationPeriodEndDate),
+          }),
           ...(demonstrationStatusId && {
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
@@ -102,13 +126,13 @@ export const demonstrationResolvers = {
           }),
           ...(userIds &&
             existingStateId && {
-            userStateDemonstrations: {
-              create: userIds.map((userId: string) => ({
-                userId,
-                stateId: existingStateId,
-              })),
-            },
-          }),
+              userStateDemonstrations: {
+                create: userIds.map((userId: string) => ({
+                  userId,
+                  stateId: existingStateId,
+                })),
+              },
+            }),
           ...(projectOfficerUserId && {
             projectOfficer: {
               connect: { id: projectOfficerUserId },
@@ -152,7 +176,8 @@ export const demonstrationResolvers = {
       }
 
       return userStateDemonstrations.map(
-        (userStateDemonstration: UserStateDemonstrationWithUser) => userStateDemonstration.user,
+        (userStateDemonstration: UserStateDemonstrationWithUser) =>
+          userStateDemonstration.user,
       );
     },
 
@@ -165,9 +190,9 @@ export const demonstrationResolvers = {
     documents: async (parent: Demonstration) => {
       return await prisma().document.findMany({
         where: {
-          bundleId: parent.id
-        }
+          bundleId: parent.id,
+        },
       });
-    }
+    },
   },
 };
