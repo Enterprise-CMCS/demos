@@ -72,7 +72,7 @@ describe("DemonstrationDetail", () => {
     expect(officerRow).toBeDefined();
   });
 
-  it("renders and switches tabs", () => {
+  it("renders and switches to Amendments tab", () => {
     renderWithProviders();
 
     expect(
@@ -93,5 +93,19 @@ describe("DemonstrationDetail", () => {
     fireEvent.click(screen.getByRole("button", { name: /Add New/i }));
 
     expect(screen.getByText(/New Amendment/i)).toBeInTheDocument();
+  });
+
+  it("renders and switches to Extensions tab", () => {
+    renderWithProviders();
+
+    expect(
+      screen.getByRole("heading", { name: /Demonstration Details/i })
+    ).toBeInTheDocument();
+
+    const extensionsTab = screen.getByRole("button", { name: /Extensions/i });
+    fireEvent.click(extensionsTab);
+
+    expect(screen.getByText("Extensions")).toBeInTheDocument();
+    expect(screen.getByText("Extension 1")).toBeInTheDocument();
   });
 });
