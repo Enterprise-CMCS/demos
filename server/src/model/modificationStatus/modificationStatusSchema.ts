@@ -21,13 +21,16 @@ export const modificationStatusSchema = gql`
 
   type Mutation {
     addAmendmentStatus(input: AddAmendmentStatusInput!): AmendmentStatus
-    updateAmendmentStatus(id: String!, input: UpdateAmendmentStatusInput!): AmendmentStatus
+    updateAmendmentStatus(
+      id: String!
+      input: UpdateAmendmentStatusInput!
+    ): AmendmentStatus
     deleteAmendmentStatus(id: String!): AmendmentStatus
   }
 
   type Query {
-    getAmendmentStatuses: [AmendmentStatus]!
-    getAmendmentStatus(id: String!): AmendmentStatus
+    amendmentStatuses: [AmendmentStatus]!
+    amendmentStatus(id: String!): AmendmentStatus
   }
 `;
 

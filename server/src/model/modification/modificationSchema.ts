@@ -2,7 +2,7 @@ import { gql } from "graphql-tag";
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
 import { AmendmentStatus } from "../modificationStatus/modificationStatusSchema.js";
 import { User } from "../user/userSchema.js";
-import { Document } from "../document/documentSchema.js"
+import { Document } from "../document/documentSchema.js";
 
 export const modificationSchema = gql`
   type Amendment {
@@ -46,8 +46,8 @@ export const modificationSchema = gql`
   }
 
   type Query {
-    getAmendments: [Amendment]!
-    getAmendment(id: ID!): Amendment
+    amendments: [Amendment]!
+    amendment(id: ID!): Amendment
   }
 `;
 
@@ -73,7 +73,7 @@ export interface AddAmendmentInput {
   effectiveDate: Date;
   expirationDate: Date;
   amendmentStatusId: string;
-  projectOfficerUserId: string; 
+  projectOfficerUserId: string;
 }
 
 export interface UpdateAmendmentInput {

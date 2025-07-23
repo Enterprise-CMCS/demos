@@ -3,6 +3,7 @@ import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusS
 import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
 import { Document } from "../document/documentSchema.js"
+import { Amendment } from "../modification/modificationSchema.js";
 
 export const demonstrationSchema = gql`
   type Demonstration {
@@ -18,6 +19,7 @@ export const demonstrationSchema = gql`
     users: [User!]!
     projectOfficer: User!
     documents: [Document!]!
+    amendments: [Amendment!]!
   }
 
   input AddDemonstrationInput {
@@ -68,6 +70,7 @@ export interface Demonstration {
   users: User[];
   projectOfficer: User;
   documents: Document[];
+  amendments: Amendment[];
 }
 
 export interface AddDemonstrationInput {

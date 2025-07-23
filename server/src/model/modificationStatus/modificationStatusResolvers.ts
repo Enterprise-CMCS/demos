@@ -1,7 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import {
   AddAmendmentStatusInput,
-  UpdateAmendmentStatusInput
+  UpdateAmendmentStatusInput,
 } from "./modificationStatusSchema.js";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { BundleType } from "../../types.js";
@@ -11,21 +11,21 @@ const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 
 export const modificationStatusResolvers = {
   Query: {
-    getAmendmentStatus: async (_: undefined, { id }: { id: string }) => {
+    amendmentStatus: async (_: undefined, { id }: { id: string }) => {
       return await prisma().modificationStatus.findUnique({
         where: {
           modificationStatusId: {
             id: id,
-            bundleTypeId: amendmentBundleTypeId
-          }
-        }
+            bundleTypeId: amendmentBundleTypeId,
+          },
+        },
       });
     },
-    getAmendmentStatuses: async () => {
+    amendmentStatuses: async () => {
       return await prisma().modificationStatus.findMany({
         where: {
-          bundleTypeId: amendmentBundleTypeId
-        }
+          bundleTypeId: amendmentBundleTypeId,
+        },
       });
     },
   },
@@ -39,8 +39,8 @@ export const modificationStatusResolvers = {
         data: {
           id: input.id,
           bundleTypeId: amendmentBundleTypeId,
-          description: input.description
-        }
+          description: input.description,
+        },
       });
     },
 
@@ -52,8 +52,8 @@ export const modificationStatusResolvers = {
         where: {
           modificationStatusId: {
             id: id,
-            bundleTypeId: amendmentBundleTypeId
-          }
+            bundleTypeId: amendmentBundleTypeId,
+          },
         },
         data: input,
       });
@@ -64,9 +64,9 @@ export const modificationStatusResolvers = {
         where: {
           modificationStatusId: {
             id: id,
-            bundleTypeId: amendmentBundleTypeId
-          }
-        }
+            bundleTypeId: amendmentBundleTypeId,
+          },
+        },
       });
     },
   },
@@ -76,8 +76,8 @@ export const modificationStatusResolvers = {
       return await prisma().modification.findMany({
         where: {
           modificationStatusId: parent.id,
-          bundleTypeId: amendmentBundleTypeId
-        }
+          bundleTypeId: amendmentBundleTypeId,
+        },
       });
     },
   },

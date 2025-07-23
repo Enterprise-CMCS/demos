@@ -1,9 +1,11 @@
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
-import { User } from "../user/userSchema.js"
+import { Amendment } from "../modification/modificationSchema.js";
+import { User } from "../user/userSchema.js";
 import { gql } from "graphql-tag";
 import { DocumentType } from "../documentType/documentTypeSchema.js";
 
 export const documentSchema = gql`
+  union Bundle = Demonstration | Amendment
   type Document {
     id: ID!
     title: String!
@@ -11,7 +13,7 @@ export const documentSchema = gql`
     s3Path: String!
     owner: User!
     documentType: DocumentType!
-    bundle: Demonstration!
+    bundle: Bundle!
     bundleType: String!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -35,10 +37,37 @@ export const documentSchema = gql`
     demonstrationId: ID
   }
 
+  input AddAmendmentDocumentInput {
+    title: String!
+    description: String!
+    s3Path: String!
+    ownerUserId: ID!
+    documentTypeId: String!
+    amendmentId: ID!
+  }
+
+  input UpdateAmendmentDocumentInput {
+    title: String
+    description: String
+    s3Path: String
+    ownerUserId: ID
+    documentTypeId: String
+    amendmentId: ID
+  }
+
   type Mutation {
     addDemonstrationDocument(input: AddDemonstrationDocumentInput!): Document
-    updateDemonstrationDocument(id: ID!, input: UpdateDemonstrationDocumentInput!): Document
+    updateDemonstrationDocument(
+      id: ID!
+      input: UpdateDemonstrationDocumentInput!
+    ): Document
     deleteDemonstrationDocument(id: ID!): Document
+    addAmendmentDocument(input: AddAmendmentDocumentInput!): Document
+    updateAmendmentDocument(
+      id: ID!
+      input: UpdateAmendmentDocumentInput!
+    ): Document
+    deleteAmendmentDocument(id: ID!): Document
   }
 
   type Query {
@@ -47,6 +76,7 @@ export const documentSchema = gql`
   }
 `;
 
+type Bundle = Demonstration | Amendment;
 export type DateTime = Date;
 export interface Document {
   id: string;
@@ -55,11 +85,11 @@ export interface Document {
   s3Path: string;
   owner: User;
   documentType: DocumentType;
-  bundle: Demonstration;
+  bundle: Bundle;
   bundleType: string;
   createdAt: DateTime;
   updatedAt: DateTime;
-};
+}
 
 export interface AddDemonstrationDocumentInput {
   title: string;
@@ -68,7 +98,7 @@ export interface AddDemonstrationDocumentInput {
   ownerUserId: string;
   documentTypeId: string;
   demonstrationId: string;
-};
+}
 
 export interface UpdateDemonstrationDocumentInput {
   title?: string;
@@ -77,4 +107,22 @@ export interface UpdateDemonstrationDocumentInput {
   ownerUserId?: string;
   documentTypeId?: string;
   demonstrationId?: string;
-};
+}
+
+export interface AddAmendmentDocumentInput {
+  title: string;
+  description: string;
+  s3Path: string;
+  ownerUserId: string;
+  documentTypeId: string;
+  amendmentId: string;
+}
+
+export interface UpdateAmendmentDocumentInput {
+  title?: string;
+  description?: string;
+  s3Path?: string;
+  ownerUserId?: string;
+  documentTypeId?: string;
+  amendmentId?: string;
+}

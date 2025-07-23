@@ -8,6 +8,7 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { BundleType } from "../../types.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
+const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 
 export const demonstrationResolvers = {
   Query: {
@@ -166,6 +167,15 @@ export const demonstrationResolvers = {
       return await prisma().document.findMany({
         where: {
           bundleId: parent.id
+        }
+      });
+    },
+
+    amendments: async (parent: Demonstration) => {
+      return await prisma().modification.findMany({
+        where: {
+          demonstrationId: parent.id,
+          bundleTypeId: amendmentBundleTypeId
         }
       });
     }

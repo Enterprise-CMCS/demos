@@ -1,6 +1,9 @@
 import { Modification } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { AddAmendmentInput, UpdateAmendmentInput } from "./modificationSchema.js";
+import {
+  AddAmendmentInput,
+  UpdateAmendmentInput,
+} from "./modificationSchema.js";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { BundleType } from "../../types.js";
 
@@ -8,19 +11,19 @@ const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 
 export const modificationResolvers = {
   Query: {
-    getAmendment: async (_: undefined, { id }: { id: string }) => {
+    amendment: async (_: undefined, { id }: { id: string }) => {
       return await prisma().modification.findUnique({
         where: {
           id: id,
-          bundleTypeId: amendmentBundleTypeId
+          bundleTypeId: amendmentBundleTypeId,
         },
       });
     },
-    getAmendments: async () => {
+    amendments: async () => {
       return await prisma().modification.findMany({
         where: {
-          bundleTypeId: amendmentBundleTypeId
-        }
+          bundleTypeId: amendmentBundleTypeId,
+        },
       });
     },
   },
@@ -30,41 +33,46 @@ export const modificationResolvers = {
       _: undefined,
       { input }: { input: AddAmendmentInput },
     ) => {
-      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
+      const {
+        demonstrationId,
+        amendmentStatusId,
+        projectOfficerUserId,
+        ...rest
+      } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
           data: {
             bundleType: {
-              connect: { id: amendmentBundleTypeId }
-            }
-          }
+              connect: { id: amendmentBundleTypeId },
+            },
+          },
         });
 
         return await tx.modification.create({
           data: {
             bundle: {
-              connect: { id: bundle.id }
+              connect: { id: bundle.id },
             },
             bundleType: {
-              connect: { id: amendmentBundleTypeId }
+              connect: { id: amendmentBundleTypeId },
             },
             demonstration: {
-              connect: { id: demonstrationId }
+              connect: { id: demonstrationId },
             },
             modificationStatus: {
-              connect: { 
+              connect: {
                 modificationStatusId: {
                   id: amendmentStatusId,
-                  bundleTypeId: amendmentBundleTypeId
-                }
+                  bundleTypeId: amendmentBundleTypeId,
+                },
               },
             },
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
-            ...rest
-          }
+            ...rest,
+          },
         });
       });
     },
@@ -73,36 +81,41 @@ export const modificationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateAmendmentInput },
     ) => {
-      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
+      const {
+        demonstrationId,
+        amendmentStatusId,
+        projectOfficerUserId,
+        ...rest
+      } = input;
 
       return await prisma().modification.update({
         where: {
           id: id,
-          bundleTypeId: amendmentBundleTypeId
+          bundleTypeId: amendmentBundleTypeId,
         },
         data: {
           ...(demonstrationId && {
             demonstration: {
               connect: { id: demonstrationId },
-            }
+            },
           }),
           ...(amendmentStatusId && {
             modificationStatus: {
-              connect: { 
+              connect: {
                 modificationStatusId: {
                   id: amendmentStatusId,
-                  bundleTypeId: amendmentBundleTypeId
-                }
-              }
-            }
+                  bundleTypeId: amendmentBundleTypeId,
+                },
+              },
+            },
           }),
           ...(projectOfficerUserId && {
             projectOfficer: {
               connect: { id: projectOfficerUserId },
-            }
+            },
           }),
           ...rest,
-        }
+        },
       });
     },
 
@@ -110,8 +123,8 @@ export const modificationResolvers = {
       return await prisma().modification.delete({
         where: {
           id: id,
-          bundleTypeId: amendmentBundleTypeId
-        }
+          bundleTypeId: amendmentBundleTypeId,
+        },
       });
     },
   },
@@ -122,9 +135,9 @@ export const modificationResolvers = {
         where: {
           modificationStatusId: {
             id: parent.modificationStatusId,
-            bundleTypeId: amendmentBundleTypeId
-          }
-        }
+            bundleTypeId: amendmentBundleTypeId,
+          },
+        },
       });
     },
 
@@ -137,9 +150,9 @@ export const modificationResolvers = {
     documents: async (parent: Modification) => {
       return await prisma().document.findMany({
         where: {
-          bundleId: parent.id
-        }
+          bundleId: parent.id,
+        },
       });
-    }
+    },
   },
 };

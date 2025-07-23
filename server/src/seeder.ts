@@ -3,10 +3,12 @@ import { prisma } from "./prismaClient.js";
 import { BUNDLE_TYPE } from "./constants.js";
 
 function checkIfAllowed() {
-  if(process.env.ALLOW_SEED !== "true") {
-    throw new Error("Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.");
+  if (process.env.ALLOW_SEED !== "true") {
+    throw new Error(
+      "Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.",
+    );
   }
-};
+}
 
 function shuffleArray<T>(arrayToShuffle: T[]): T[] {
   const shuffledArray = Array.from(arrayToShuffle);
@@ -16,9 +18,9 @@ function shuffleArray<T>(arrayToShuffle: T[]): T[] {
     const newValue = shuffledArray[newIndex];
     shuffledArray[oldIndex] = newValue;
     shuffledArray[newIndex] = oldValue;
-  };
+  }
   return shuffledArray;
-};
+}
 
 function sampleFromArray<T>(arrayToSample: T[], recordsToSample: number): T[] {
   const shuffledArray = shuffleArray(arrayToSample);
@@ -83,11 +85,23 @@ async function seedDatabase() {
   const syntheticEventTypeValues = [];
   for (let i = 0; i < syntheticEventTypeCount; i++) {
     syntheticEventTypeValues.push({
-      eventTypeId: faker.lorem.sentence(2).toLocaleUpperCase().replace(" ", "_").replace(".", ""),
-      logLevelId: (await prisma().logLevel.findRandom({ select: { id: true } }))!.id,
-      route: "/" + faker.lorem.word() + "/" + faker.lorem.word() + "/" + faker.lorem.word()
+      eventTypeId: faker.lorem
+        .sentence(2)
+        .toLocaleUpperCase()
+        .replace(" ", "_")
+        .replace(".", ""),
+      logLevelId: (await prisma().logLevel.findRandom({
+        select: { id: true },
+      }))!.id,
+      route:
+        "/" +
+        faker.lorem.word() +
+        "/" +
+        faker.lorem.word() +
+        "/" +
+        faker.lorem.word(),
     });
-  };
+  }
 
   console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
@@ -101,37 +115,41 @@ async function seedDatabase() {
       username: "BYPASSED_USER",
       email: "bypassedUser@email.com",
       fullName: "Bypassed J. User",
-      displayName: "Bypass"
-    }
+      displayName: "Bypass",
+    },
   });
   await prisma().role.create({
     data: {
       id: bypassRoleId,
       name: "Bypassed Admin Role",
-      description: "This role is a testing role for the bypassed user and is not a real role."
-    }
+      description:
+        "This role is a testing role for the bypassed user and is not a real role.",
+    },
   });
   await prisma().userRole.create({
     data: {
       userId: bypassUserId,
-      roleId: bypassRoleId
-    }
-  })
+      roleId: bypassRoleId,
+    },
+  });
   await prisma().permission.create({
     data: {
       id: bypassPermissionId,
       name: "Bypassed Admin Permission",
-      description: "This permission is a testing permission for the bypassed user and is not a real permission."
-    }
+      description:
+        "This permission is a testing permission for the bypassed user and is not a real permission.",
+    },
   });
   await prisma().rolePermission.create({
     data: {
       roleId: bypassRoleId,
-      permissionId: bypassPermissionId
-    }
+      permissionId: bypassPermissionId,
+    },
   });
   for (let i = 0; i < 10; i++) {
-    const eventTypeIndex = Math.floor(Math.random() * syntheticEventTypeValues.length);
+    const eventTypeIndex = Math.floor(
+      Math.random() * syntheticEventTypeValues.length,
+    );
     await prisma().event.create({
       data: {
         userId: bypassUserId,
@@ -143,12 +161,12 @@ async function seedDatabase() {
         route: syntheticEventTypeValues[eventTypeIndex].route,
         createdAt: faker.date.past(),
         eventData: {
-          "key": faker.lorem.word(),
-          "value": faker.lorem.sentence()
-        }
-      }
+          key: faker.lorem.word(),
+          value: faker.lorem.sentence(),
+        },
+      },
     });
-  };
+  }
 
   console.log("🌱 Seeding roles...");
   for (let i = 0; i < roleCount; i++) {
@@ -158,7 +176,7 @@ async function seedDatabase() {
         description: faker.person.jobDescriptor(),
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding states...");
   const states = [
@@ -166,7 +184,7 @@ async function seedDatabase() {
     { name: "Georgia", abbreviation: "GA" },
     { name: "Hawaii", abbreviation: "HI" },
     { name: "Maryland", abbreviation: "MD" },
-    { name: "Vermont", abbreviation: "VT" }
+    { name: "Vermont", abbreviation: "VT" },
   ];
   for (const state of states) {
     await prisma().state.create({
@@ -175,7 +193,7 @@ async function seedDatabase() {
         stateName: state.name,
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding users...");
   for (let i = 0; i < userCount; i++) {
@@ -188,7 +206,7 @@ async function seedDatabase() {
         displayName: faker.internet.username(),
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding permissions...");
   for (let i = 0; i < permissionCount; i++) {
@@ -198,13 +216,13 @@ async function seedDatabase() {
         description: faker.lorem.sentence(),
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding demonstration statuses...");
   const demonstrationStatuses = [
     { name: "New", description: "New" },
     { name: "In Progress", description: "In Progress" },
-    { name: "Completed", description: "Completed" }
+    { name: "Completed", description: "Completed" },
   ];
   for (const status of demonstrationStatuses) {
     await prisma().demonstrationStatus.create({
@@ -213,16 +231,16 @@ async function seedDatabase() {
         description: status.description,
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < demonstrationCount; i++) {
     const bundle = await prisma().bundle.create({
       data: {
         bundleType: {
-          connect: { id: BUNDLE_TYPE.DEMONSTRATION }
-        }
-      }
+          connect: { id: BUNDLE_TYPE.DEMONSTRATION },
+        },
+      },
     });
     await prisma().demonstration.create({
       data: {
@@ -232,37 +250,38 @@ async function seedDatabase() {
         description: faker.lorem.sentence(),
         evaluationPeriodStartDate: faker.date.future(),
         evaluationPeriodEndDate: faker.date.future({ years: 1 }),
-        demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
+        demonstrationStatusId:
+          (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
         projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding amendment statuses...");
   const modificationStatuses = [
     { id: "NEW", description: "New amendment." },
     { id: "IN_PROGRESS", description: "Amendment is in progress." },
-    { id: "COMPLETED", description: "Completed amendment." }
+    { id: "COMPLETED", description: "Completed amendment." },
   ];
   for (const status of modificationStatuses) {
     await prisma().modificationStatus.create({
       data: {
         id: status.id,
         bundleTypeId: BUNDLE_TYPE.AMENDMENT,
-        description: status.description
+        description: status.description,
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding amendments...");
   for (let i = 0; i < amendmentCount; i++) {
     const bundle = await prisma().bundle.create({
       data: {
         bundleType: {
-          connect: { id: BUNDLE_TYPE.AMENDMENT }
-        }
-      }
+          connect: { id: BUNDLE_TYPE.AMENDMENT },
+        },
+      },
     });
     await prisma().modification.create({
       data: {
@@ -273,22 +292,36 @@ async function seedDatabase() {
         description: faker.lorem.sentence(),
         effectiveDate: faker.date.future(),
         expirationDate: faker.date.future({ years: 1 }),
-        modificationStatusId: (await prisma().modificationStatus.findRandom())!.id,
+        modificationStatusId: (await prisma().modificationStatus.findRandom())!
+          .id,
         projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding document types...");
   const documentTypes = [
-    { id: "DEMONSTRATION_APPLICATION", description: "Demonstration application file." },
+    {
+      id: "DEMONSTRATION_APPLICATION",
+      description: "Demonstration application file.",
+    },
     { id: "BUDGET_PROPOSAL", description: "Proposed budget for the project." },
-    { id: "ELECTED_OFFICAL_ENDORSEMENT", description: "Endorsement by elected official." },
+    {
+      id: "ELECTED_OFFICAL_ENDORSEMENT",
+      description: "Endorsement by elected official.",
+    },
     { id: "COI_DISCLOSURE", description: "Conflict of interest disclosure." },
     { id: "DEVIATION_REPORT", description: "Report of a deviation." },
     { id: "EXPENSE_TABLE", description: "Expense table." },
-    { id: "INTENTIONALLY_OMITTED", description: "A document type intended not to be used, to allow for zero-count joins." },
-    { id: "AMENDMENT_APPLICATION", description: "Application for an amendment." }
+    {
+      id: "INTENTIONALLY_OMITTED",
+      description:
+        "A document type intended not to be used, to allow for zero-count joins.",
+    },
+    {
+      id: "AMENDMENT_APPLICATION",
+      description: "Application for an amendment.",
+    },
   ];
   for (const documentType of documentTypes) {
     await prisma().documentType.create({
@@ -297,14 +330,14 @@ async function seedDatabase() {
         description: documentType.description,
       },
     });
-  };
+  }
 
   console.log("🌱 Seeding documents...");
   // Every demonstration has an application
   const demonstrationIds = await prisma().demonstration.findMany({
     select: {
-      id: true
-    }
+      id: true,
+    },
   });
   for (const demonstrationId of demonstrationIds) {
     const fakeTitle = faker.lorem.sentence(2);
@@ -315,18 +348,18 @@ async function seedDatabase() {
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: "DEMONSTRATION_APPLICATION",
-        bundleId: demonstrationId.id
-      }
+        bundleId: demonstrationId.id,
+      },
     });
-  };
+  }
   // Every amendment has an application
   const amendmentIds = await prisma().modification.findMany({
     select: {
-      id: true
+      id: true,
     },
     where: {
-      bundleTypeId: BUNDLE_TYPE.AMENDMENT
-    }
+      bundleTypeId: BUNDLE_TYPE.AMENDMENT,
+    },
   });
   for (const amendmentId of amendmentIds) {
     const fakeTitle = faker.lorem.sentence(2);
@@ -337,15 +370,15 @@ async function seedDatabase() {
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: "DEMONSTRATION_APPLICATION",
-        bundleId: amendmentId.id
-      }
+        bundleId: amendmentId.id,
+      },
     });
-  };
+  }
   // Now, the rest can be largely randomized
   for (let i = 0; i < documentCount; i++) {
     const documentTypeId = await prisma().documentType.findRandom({
       select: {
-        id: true
+        id: true,
       },
       where: {
         NOT: {
@@ -353,11 +386,11 @@ async function seedDatabase() {
             in: [
               "DEMONSTRATION_APPLICATION",
               "INTENTIONALLY_OMITTED",
-              "AMENDMENT_APPLICATION"
-            ]
-          }
-        }
-      }
+              "AMENDMENT_APPLICATION",
+            ],
+          },
+        },
+      },
     });
     await prisma().document.create({
       data: {
@@ -366,10 +399,10 @@ async function seedDatabase() {
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: documentTypeId!.id,
-        bundleId: (await prisma().bundle.findRandom())!.id
+        bundleId: (await prisma().bundle.findRandom())!.id,
       },
     });
-  };
+  }
 
   // Getting IDs for join tables and events
   // Note we exclude the bypass user to avoid conflicts
@@ -377,28 +410,28 @@ async function seedDatabase() {
     select: { id: true },
     where: {
       NOT: {
-        id: bypassRoleId
-      }
-    }
+        id: bypassRoleId,
+      },
+    },
   });
   const stateIds = await prisma().state.findMany({
-    select: { id: true }
+    select: { id: true },
   });
   const userIds = await prisma().user.findMany({
     select: { id: true },
     where: {
       NOT: {
-        id: bypassUserId
-      }
-    }
+        id: bypassUserId,
+      },
+    },
   });
   const permissionIds = await prisma().permission.findMany({
     select: { id: true },
     where: {
       NOT: {
-        id: bypassPermissionId
-      }
-    }
+        id: bypassPermissionId,
+      },
+    },
   });
 
   console.log("🔗 Assigning permissions to roles...");
@@ -408,11 +441,11 @@ async function seedDatabase() {
       await prisma().rolePermission.create({
         data: {
           roleId: roleId.id,
-          permissionId: assignedPermissionIds[i].id
-        }
+          permissionId: assignedPermissionIds[i].id,
+        },
       });
-    };
-  };
+    }
+  }
 
   console.log("🔗 Assigning users to roles...");
   for (const userId of userIds) {
@@ -421,11 +454,11 @@ async function seedDatabase() {
       await prisma().userRole.create({
         data: {
           userId: userId.id,
-          roleId: assignedRoleIds[i].id
-        }
+          roleId: assignedRoleIds[i].id,
+        },
       });
-    };
-  };
+    }
+  }
 
   console.log("🔗 Assigning users to states...");
   for (const userId of userIds) {
@@ -434,24 +467,24 @@ async function seedDatabase() {
       await prisma().userState.create({
         data: {
           userId: userId.id,
-          stateId: assignedStateIds[i].id
-        }
+          stateId: assignedStateIds[i].id,
+        },
       });
-    };
-  };
+    }
+  }
 
   console.log("🔗 Assigning users to demonstrations...");
   const demonstrationStates = await prisma().demonstration.findMany({
     select: {
       id: true,
-      stateId: true
-    }
+      stateId: true,
+    },
   });
   const userStates = await prisma().userState.findMany({
     select: {
       userId: true,
-      stateId: true
-    }
+      stateId: true,
+    },
   });
   const userStateDemonstrationValues = [];
   for (const userState of userStates) {
@@ -460,31 +493,33 @@ async function seedDatabase() {
         userStateDemonstrationValues.push({
           userId: userState.userId,
           stateId: userState.stateId,
-          demonstrationId: demonstrationState.id
+          demonstrationId: demonstrationState.id,
         });
-      };
-    };
-  };
+      }
+    }
+  }
   for (const userStateDemonstrationValue of userStateDemonstrationValues) {
     await prisma().userStateDemonstration.create({
       data: {
         userId: userStateDemonstrationValue.userId,
         stateId: userStateDemonstrationValue.stateId,
-        demonstrationId: userStateDemonstrationValue.demonstrationId
-      }
+        demonstrationId: userStateDemonstrationValue.demonstrationId,
+      },
     });
-  };
+  }
 
   const userRoleIds = await prisma().userRole.findMany({
     where: {
       NOT: {
-        userId: bypassUserId
-      }
-    }
+        userId: bypassUserId,
+      },
+    },
   });
   console.log("🌱 Seeding events...");
   for (let i = 0; i < syntheticEventCount; i++) {
-    const eventTypeIndex = Math.floor(Math.random() * syntheticEventTypeValues.length);
+    const eventTypeIndex = Math.floor(
+      Math.random() * syntheticEventTypeValues.length,
+    );
     const userRoleIndex = Math.floor(Math.random() * userRoleIds.length);
     await prisma().event.create({
       data: {
@@ -497,17 +532,15 @@ async function seedDatabase() {
         route: syntheticEventTypeValues[eventTypeIndex].route,
         createdAt: faker.date.past(),
         eventData: {
-          "key": faker.lorem.word(),
-          "value": faker.lorem.sentence()
-        }
-      }
+          key: faker.lorem.word(),
+          value: faker.lorem.sentence(),
+        },
+      },
     });
-  };
+  }
 
-  console.log(
-    "✨ Database seeding complete.",
-  );
-};
+  console.log("✨ Database seeding complete.");
+}
 
 seedDatabase().catch((error) => {
   console.error("❌ An error occurred while seeding the database:", error);

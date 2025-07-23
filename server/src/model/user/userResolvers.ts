@@ -128,17 +128,17 @@ export const userResolvers = {
     events: async (parent: User) => {
       return await prisma().event.findMany({
         where: {
-          userId: parent.id
-        }
+          userId: parent.id,
+        },
       });
     },
 
     ownedDocuments: async (parent: User) => {
       return await prisma().document.findMany({
         where: {
-          ownerUserId: parent.id
-        }
+          ownerUserId: parent.id,
+        },
       });
-    }
+    },
   },
 };
