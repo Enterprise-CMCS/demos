@@ -4,10 +4,6 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { demonstrationMocks } from "mock-data/demonstrationMocks";
-import { userMocks } from "mock-data/userMocks";
-import { stateMocks } from "mock-data/stateMocks";
-import { demonstrationStatusMocks } from "mock-data/demonstrationStatusMocks";
 import { GET_ALL_DEMONSTRATIONS_QUERY } from "queries/demonstrationQueries";
 import { GET_ALL_USERS } from "hooks/useUserOperations";
 import { GET_ALL_STATES_QUERY } from "hooks/useStates";
@@ -361,9 +357,9 @@ describe("Demonstrations", () => {
   describe("Empty states", () => {
     const emptyMocks = [
       emptyDemonstrationsMock,
-      ...userMocks,
-      ...stateMocks,
-      ...demonstrationStatusMocks,
+      userMock,
+      stateMock,
+      demonstrationStatusMock,
     ];
 
     it("passes correct empty message for My Demonstrations tab", async () => {

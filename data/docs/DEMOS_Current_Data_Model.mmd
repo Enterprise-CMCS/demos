@@ -1,40 +1,30 @@
 ---
-title: DEMOS Data Model
+title: DEMOS Current Data Model
 ---
 
 erDiagram
 
+
   document_type ||--|{ document : "document.document_type_id ∈ document_type.id"
-  document_type ||--|{ requirement : "requirement.document_type_id ∈ document_type.id"
-  bundle ||--|| modification : "modificaton.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
   document }|--|| bundle : "document.bundle_id ∈ bundle.id"
-  requirement }|--|| bundle : "requirement.bundle_id ∈ bundle.id"
-  bundle ||--|| demonstration : "demonstration.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
-  bundle_type ||--|| modification_bundle_type : "modification_bundle_type.id ∈ bundle_type.id"
-  bundle_type ||--|{ bundle : "bundle.bundle_type_id ∈ bundle_type.id"
-  bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
-  modification_status ||--|{ modification : "modification.modification_status_id ∈ modification_status.id"
-  modification_bundle_type ||--|{ modification : "modification.bundle_type_id ∈ modification_bundle_type.id"
-  demonstration_bundle_type ||--|{ demonstration : "demonstration.bundle_type_id ∈ demonstration_bundle_type.id"
   document }|--|| users : "document.owner_user_id ∈ users.id"
-  modification }|--|| users : "modification.project_officer_user_id ∈ users.id"
+  bundle }|--|| bundle_type : "bundle.bundle_type_id ∈ bundle_type.id"
+  bundle ||--|| demonstration : "demonstration.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
+  bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
+  demonstration_bundle_type ||--|{ demonstration : "demonstration.bundle_type_id ∈ demonstration_bundle_type.id"
+  demonstration_status ||--|{ demonstration : "demonstration.demonstration_status_id ∈ demonstration_status.id"
+  state ||--|{ demonstration : "demonstration.state_id ∈ state.id"
   demonstration }|--|| users : "demonstration.project_officer_user_id ∈ users.id"
+  users ||--|{ user_state : "user_state.user_id ∈ users.id"
   user_state_demonstration }|--|| user_state : "user_state_demonstration.(user_id, state_id) ∈ user_state.(user_id, state_id)"
-  role ||--|{ event: "event.active_role_id ∈ role.id"
-  users ||--|{ event : "event.active_user_id ∈ users.id"
-  users ||--|{ user_role : "user_role.user_id ∈ users.id"
-  user_state }|--|| users : "user_state.user_id ∈ users.id"
   state ||--|{ user_state : "user_state.user_id ∈ state.id"
-  demonstration }|--|| state : "demonstration.state_id ∈ state.id"
   demonstration ||--|{ user_state_demonstration : "user_state_demonstration.(demonstration_id, state_id) ∈ demonstration.(id, state_id)"
-  demonstration_status }|--|| demonstration : "demonstration.demonstration_status_id ∈ demonstration_status.id"
-  user_role }|--|| role : "user_role.role_id ∈ role.id"
+  users ||--|{ event : "event.active_user_id ∈ users.id"
+  role ||--|{ user_role : "user_role.role_id ∈ role.id"
+  event }|--|| role : "event.active_role_id ∈ role.id"
+  users ||--|{ user_role : "user_role.user_id ∈ users.id"
+  permission ||--|{ role_permission : "role_permission.permission_id ∈ permission.id"
   role ||--|{ role_permission : "role_permission.role_id ∈ role.id"
-  role_permission }|--|| permission : "role_permission.permission_id ∈ permission.id"
-  demonstration ||--|{ modification : "modification.demonstration_id ∈ demonstration.id"
-  requirement ||--|| document : "requirement.(document_id, document_type_id) ∈ document(id, document_type_id)"
-  bundle_type_default_requirement }|--|| document_type : "bundle_type_default_requirement.document_type_id ∈ document_type.id"
-  bundle_type ||--|{ bundle_type_default_requirement : "bundle_type_default_requirement.bundle_type_id ∈ bundle_type.id"
   event }|--|| log_level : "event.log_level_id ∈ log_level.id"
   event }O..|| reportable_event_type : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
 
@@ -49,11 +39,6 @@ erDiagram
     text description
     timestamptz created_at
     timestamptz updated_at
-  }
-
-  bundle_type_default_requirement {
-    text bundle_type_id PK, FK "FK: bundle_type.id"
-    text document_type_id PK, FK "FK: document_type.id"
   }
 
   demonstration {
@@ -120,43 +105,10 @@ erDiagram
     int level
   }
 
-  modification {
-    uuid id PK, FK "FK1: bundle.(id, bundle_type_id)"
-    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id), FK: modification_bundle_type.id"
-    uuid demonstration_id FK "FK: demonstration.id"
-    text name
-    text description
-    timestamptz created_at
-    timestamptz updated_at
-    uuid modification_status_id FK "FK: modification_status.id"
-    uuid project_officer_user_id FK "FK: users.id"
-  }
-
-  modification_bundle_type {
-    id uuid PK, FK "FK: bundle_type.id"
-  }
-
-  modification_status {
-    uuid id PK
-    text name
-    text description
-    timestamptz created_at
-    timestamptz updated_at
-  }
-
   permission {
     uuid id PK
     text name
     text description
-    timestamptz created_at
-    timestamptz updated_at
-  }
-
-  requirement {
-    uuid id PK
-    uuid bundle_id FK "FK: bundle.id"
-    text document_type_id FK, FK, UK "FK1: document_type.id, FK2: (document.id, document.document_type_id), UK: (document_id, document_type_id)"
-    uuid document_id FK, UK "FK2: (document.id, document.document_type_id), UK: (document_id, document_type_id), NULLABLE"
     timestamptz created_at
     timestamptz updated_at
   }

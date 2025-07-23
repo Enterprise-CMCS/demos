@@ -138,6 +138,7 @@ export const DocumentsTable = () => {
         columns={documentColumns}
         keywordSearch
         columnFilter
+        pagination
         emptyRowsMessage="No documents available."
         noResultsFoundMessage="No documents match your search criteria."
       />

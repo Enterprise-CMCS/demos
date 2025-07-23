@@ -7,7 +7,6 @@ import { MockedProvider } from "@apollo/client/testing";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { documentTypeMocks } from "mock-data/documentTypeMocks";
 import { GET_DEMONSTRATION_BY_ID_QUERY } from "queries/demonstrationQueries";
 import { GET_ALL_DOCUMENTS_QUERY } from "hooks/useDocuments";
 import documentData from "faker_data/documents.json";

@@ -1,11 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useDemonstration } from "hooks/useDemonstration";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { CircleButton } from "components/button/CircleButton";
-import { DemonstrationModal } from "components/modal/DemonstrationModal";
-import { usePageHeader } from "hooks/usePageHeader";
+import {
+  DeleteIcon,
+  EditIcon,
+  EllipsisIcon,
+} from "components/icons";
+import { CreateNewModal } from "components/modal/CreateNewModal";
 import { DocumentsTable } from "components/table/tables/DocumentsTable";
 
 export type Document = {
@@ -17,7 +22,9 @@ export type Document = {
   uploadDate: string;
   createdAt: string;
   updatedAt: string;
-};
+};import { useDemonstration } from "hooks/useDemonstration";
+import { usePageHeader } from "hooks/usePageHeader";
+import { useParams } from "react-router-dom";
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -96,9 +103,9 @@ export const DemonstrationDetail = () => {
             onClick={() => setShowButtons((prev) => !prev)}
           >
             <span
-              className={`transform transition-transform duration-200 ease-in-out ${
-                showButtons ? "rotate-90" : "rotate-0"
-              }`}
+              className={`transform transition-transform duration-200 ease-in-out ${showButtons ? "rotate-90" : "rotate-0"
+                // eslint-disable-next-line indent
+                }`}
             >
               <EllipsisIcon width="24" height="24" />
             </span>
@@ -118,7 +125,7 @@ export const DemonstrationDetail = () => {
   }
 
   return (
-    <div className="p-4">
+    <div className="pb-4">
       <div>
         <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">
           Documents
@@ -126,13 +133,19 @@ export const DemonstrationDetail = () => {
         <DocumentsTable />
       </div>
 
-      {modalType === "edit" && (
-        <DemonstrationModal
-          demonstration={data}
-          mode="edit"
+      {modalType === "edit" && data && (
+        <CreateNewModal
+          mode="demonstration"
+          data={{
+            title: data.name,
+            state: data.state?.stateCode,
+            projectOfficer: data.description,
+            description: data.description,
+          }}
           onClose={() => setModalType(null)}
         />
       )}
+
     </div>
   );
 };

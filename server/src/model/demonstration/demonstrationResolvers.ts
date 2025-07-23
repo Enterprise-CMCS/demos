@@ -7,7 +7,7 @@ import {
 import { BUNDLE_TYPE } from "../../constants.js";
 import { BundleType } from "../../types.js";
 
-const demonstrationBundleType: BundleType = BUNDLE_TYPE.DEMONSTRATION;
+const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 
 export const demonstrationResolvers = {
   Query: {
@@ -26,26 +26,36 @@ export const demonstrationResolvers = {
       _: undefined,
       { input }: { input: AddDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, stateId, userIds, projectOfficerUserId, ...rest } = input;
+      const {
+        demonstrationStatusId,
+        stateId,
+        userIds,
+        projectOfficerUserId,
+        evaluationPeriodStartDate,
+        evaluationPeriodEndDate,
+        ...rest
+      } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
           data: {
             bundleType: {
-              connect: { id: demonstrationBundleType }
-            }
-          }
+              connect: { id: demonstrationBundleTypeId },
+            },
+          },
         });
 
         return await tx.demonstration.create({
           data: {
             ...rest,
             bundle: {
-              connect: { id: bundle.id }
+              connect: { id: bundle.id },
             },
             bundleType: {
-              connect: { id: demonstrationBundleType }
+              connect: { id: demonstrationBundleTypeId },
             },
+            evaluationPeriodStartDate: new Date(evaluationPeriodStartDate),
+            evaluationPeriodEndDate: new Date(evaluationPeriodEndDate),
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
             },
@@ -54,13 +64,13 @@ export const demonstrationResolvers = {
             },
             ...(userIds &&
               stateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId,
-                })),
-              },
-            }),
+                userStateDemonstrations: {
+                  create: userIds.map((userId: string) => ({
+                    userId,
+                    stateId,
+                  })),
+                },
+              }),
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -73,7 +83,15 @@ export const demonstrationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
-      const { demonstrationStatusId, userIds, stateId, projectOfficerUserId, ...rest } = input;
+      const {
+        demonstrationStatusId,
+        userIds,
+        stateId,
+        projectOfficerUserId,
+        evaluationPeriodStartDate,
+        evaluationPeriodEndDate,
+        ...rest
+      } = input;
 
       // If stateId is not provided, use the demonstration's existing stateId
       let existingStateId = stateId;
@@ -90,6 +108,12 @@ export const demonstrationResolvers = {
         where: { id },
         data: {
           ...rest,
+          ...(evaluationPeriodStartDate && {
+            evaluationPeriodStartDate: new Date(evaluationPeriodStartDate),
+          }),
+          ...(evaluationPeriodEndDate && {
+            evaluationPeriodEndDate: new Date(evaluationPeriodEndDate),
+          }),
           ...(demonstrationStatusId && {
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
@@ -102,13 +126,13 @@ export const demonstrationResolvers = {
           }),
           ...(userIds &&
             existingStateId && {
-            userStateDemonstrations: {
-              create: userIds.map((userId: string) => ({
-                userId,
-                stateId: existingStateId,
-              })),
-            },
-          }),
+              userStateDemonstrations: {
+                create: userIds.map((userId: string) => ({
+                  userId,
+                  stateId: existingStateId,
+                })),
+              },
+            }),
           ...(projectOfficerUserId && {
             projectOfficer: {
               connect: { id: projectOfficerUserId },
@@ -152,14 +176,22 @@ export const demonstrationResolvers = {
       }
 
       return userStateDemonstrations.map(
-        (userStateDemonstration: UserStateDemonstrationWithUser) => userStateDemonstration.user,
+        (userStateDemonstration: UserStateDemonstrationWithUser) =>
+          userStateDemonstration.user,
       );
     },
 
     projectOfficer: async (parent: Demonstration) => {
-      if (!parent) return null;
       return await prisma().user.findUnique({
         where: { id: parent.projectOfficerUserId },
+      });
+    },
+
+    documents: async (parent: Demonstration) => {
+      return await prisma().document.findMany({
+        where: {
+          bundleId: parent.id,
+        },
       });
     },
   },

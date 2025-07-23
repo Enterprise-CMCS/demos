@@ -1,0 +1,8 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY, NATURAL_KEY
+// Table will be updated and maintained entirely via migrations
+model ReportableEventType {
+  id          String @id
+  description String
+
+  @@map("reportable_event_type")
+}

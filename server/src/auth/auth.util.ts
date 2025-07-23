@@ -81,7 +81,7 @@ const checkAuthBypass = (): DecodedJWT | undefined => {
   // Bypass authentication for testing purposes
   if (process.env.BYPASS_AUTH === "true") {
     return {
-      sub: "bypassed-user",
+      sub: "1234abcd-0000-1111-2222-333333333333",
       email: "bypassedUser@email.com"
     };
   }

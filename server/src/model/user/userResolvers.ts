@@ -124,5 +124,21 @@ export const userResolvers = {
         (userStateDemonstration) => userStateDemonstration.demonstration,
       );
     },
+
+    events: async (parent: User) => {
+      return await prisma().event.findMany({
+        where: {
+          userId: parent.id
+        }
+      });
+    },
+
+    ownedDocuments: async (parent: User) => {
+      return await prisma().document.findMany({
+        where: {
+          ownerUserId: parent.id
+        }
+      });
+    }
   },
 };
