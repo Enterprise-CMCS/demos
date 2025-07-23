@@ -60,15 +60,6 @@ function clearDatabase() {
     // Finally, roles and users
     prisma().role.deleteMany(),
     prisma().user.deleteMany(),
-
-    prisma().demonstration.deleteMany(),
-    prisma().demonstrationStatus.deleteMany(),
-    prisma().permission.deleteMany(),
-
-    // Delete join tables last (no FK constraints)
-    prisma().userRole.deleteMany(),
-    prisma().userState.deleteMany(),
-    prisma().userStateDemonstration.deleteMany(),
   ]);
 }
 
