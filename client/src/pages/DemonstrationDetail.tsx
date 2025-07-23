@@ -14,8 +14,10 @@ import {
 } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { RawAmendment } from "components/table/columns/AmendmentColumns";
+import { RawExtension } from "components/table/columns/ExtensionColumns";
 import { AmendmentTable } from "components/table/tables/AmendmentTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
+import { ExtensionTable } from "components/table/tables/ExtensionTable";
 import DocumentData from "faker_data/documents.json";
 import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
@@ -28,7 +30,7 @@ import { useParams } from "react-router-dom";
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [showButtons, setShowButtons] = useState(false);
-  const [modalType, setModalType] = useState<"edit" | "delete" | "amendment" | null>(null);
+  const [modalType, setModalType] = useState<"edit" | "delete" | "amendment" | "extension" | null>(null);
   const [tab, setTab] = useState<"details" | "amendments" | "extensions">("details");
 
   const { getDemonstrationById } = useDemonstration();
@@ -44,10 +46,18 @@ export const DemonstrationDetail = () => {
     { id: "3", title: "Amendment 1", status: "Draft", effectiveDate: "2023-01-03" },
   ];
 
+  const mockExtensions: RawExtension[] = [
+    { id: "1", title: "Extension 1", status: "Approved", effectiveDate: "2025-01-01" },
+    { id: "2", title: "Extension 2", status: "Under Review", effectiveDate: "2025-06-01" },
+    { id: "3", title: "Extension 3", status: "Draft", effectiveDate: "2023-01-03" },
+    { id: "4", title: "Extension 4", status: "Under Review", effectiveDate: "2025-01-01" },
+    { id: "5", title: "Extension 5", status: "Approved", effectiveDate: "2025-06-01" },
+  ];
+
   const tabList: TabItem[] = [
     { value: "details", label: "Demonstration Details" },
     { value: "amendments", label: "Amendments", count: mockAmendments.length },
-    { value: "extensions", label: "Extensions", count: 0 },
+    { value: "extensions", label: "Extensions", count: mockExtensions.length },
   ];
 
   // Header content setup
@@ -183,10 +193,24 @@ export const DemonstrationDetail = () => {
             )}
 
             {tab === "extensions" && (
-              <div className="p-4 border rounded bg-gray-50">
-                <p className="text-sm text-gray-700">
-                  No extensions have been filed.
-                </p>
+              <div>
+                <div className="flex justify-between items-center pb-1 mb-4 border-b border-[var(--color-brand)]">
+                  <h1 className="text-xl font-bold text-brand uppercase">
+                    Extensions
+                  </h1>
+                  <SecondaryButton
+                    size="small"
+                    className="flex items-center gap-1 px-1 py-1"
+                    onClick={() => setModalType("extension")}
+                  >
+                    <span>Add New</span>
+                    <AddNewIcon className="w-2 h-2" />
+                  </SecondaryButton>
+                </div>
+                <ExtensionTable
+                  data={mockExtensions}
+                  demonstrationId={data.id}
+                />
               </div>
             )}
           </div>
@@ -196,6 +220,14 @@ export const DemonstrationDetail = () => {
       {modalType === "amendment" && data && (
         <CreateNewModal
           mode="amendment"
+          data={{ demonstration: data.id }}
+          onClose={() => setModalType(null)}
+        />
+      )}
+
+      {modalType === "extension" && data && (
+        <CreateNewModal
+          mode="extension"
           data={{ demonstration: data.id }}
           onClose={() => setModalType(null)}
         />
