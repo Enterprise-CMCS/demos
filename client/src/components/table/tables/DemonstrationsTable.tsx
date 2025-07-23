@@ -65,13 +65,12 @@ export const DemonstrationsTable: React.FC = () => {
   ) {
     return <div className="p-4">Loading...</div>;
   }
-  if (projectOfficersError || statesError || demonstrationStatusesError) {
-    return <div className="p-4">Error loading column options</div>;
+  if (demonstrationsError || projectOfficersError || statesError || demonstrationStatusesError) {
+    return <div className="p-4">Error loading demonstrations:</div>;
   }
-  if (demonstrationsError) {
-    return <div className="p-4">Error loading demonstrations</div>;
+  if (!demonstrationsData || !projectOfficersData || !statesData || !demonstrationStatusesData) {
+    return <div className="p-4">No data available</div>;
   }
-
 
   const columnHelper = createColumnHelper<Demonstration>();
   const demonstrationColumns = [
@@ -197,7 +196,7 @@ export const DemonstrationsTable: React.FC = () => {
     "No results were returned. Adjust your search and filter criteria.";
 
   return (
-    <div>
+    <>
       <Tabs
         tabs={tabList}
         selectedValue={tab}
@@ -212,6 +211,6 @@ export const DemonstrationsTable: React.FC = () => {
         emptyRowsMessage={emptyRowsMessage}
         noResultsFoundMessage={noResultsFoundMessage}
       />
-    </div>
+    </>
   );
 };

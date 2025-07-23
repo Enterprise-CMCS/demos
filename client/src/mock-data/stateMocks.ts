@@ -9,6 +9,22 @@ export const california = {
   demonstrations: [],
 };
 
+export const texas = {
+  id: "2",
+  stateCode: "TX",
+  stateName: "Texas",
+  users: [],
+  demonstrations: [],
+};
+
+export const northCarolina = {
+  id: "3",
+  stateCode: "NC",
+  stateName: "North Carolina",
+  users: [],
+  demonstrations: [],
+};
+
 export const stateMocks: MockedResponse[] = [
   {
     request: {

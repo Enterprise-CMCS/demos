@@ -23,6 +23,10 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
         id
         fullName
       }
+      projectOfficer {
+        id
+        fullName
+      }
     }
   }
 `;

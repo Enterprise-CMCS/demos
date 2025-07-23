@@ -1,10 +1,9 @@
 import {
   AddDemonstrationInput,
   Demonstration,
-  DemonstrationStatus,
 } from "demos-server";
-import { california } from "./stateMocks";
-import { johnDoe } from "./userMocks";
+import { california, texas } from "./stateMocks";
+import { johnDoe, testUser2 } from "./userMocks";
 import {
   ADD_DEMONSTRATION_QUERY,
   GET_ALL_DEMONSTRATIONS_QUERY,
@@ -12,15 +11,9 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
+import { approvedDemonstrationStatus, expiredDemonstrationStatus, withdrawnDemonstrationStatus } from "./demonstrationStatusMocks";
 
-const activeDemonstrationStatus: DemonstrationStatus = {
-  id: "1",
-  name: "Approved",
-  createdAt: new Date("2025-01-01"),
-  updatedAt: new Date("2025-01-01"),
-  description: "Active Demonstration Status",
-  demonstrations: [],
-};
+
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -30,10 +23,38 @@ export const testDemonstration: Demonstration = {
   evaluationPeriodEndDate: new Date("2025-12-31"),
   createdAt: new Date("2025-01-01"),
   updatedAt: new Date("2025-01-01"),
-  demonstrationStatus: activeDemonstrationStatus,
+  demonstrationStatus: approvedDemonstrationStatus,
   state: california,
   users: [johnDoe],
   projectOfficer: johnDoe,
+};
+
+export const testDemonstration2: Demonstration = {
+  id: "1",
+  name: "Test Demonstration Two",
+  description: "Test Description Two",
+  evaluationPeriodStartDate: new Date("2025-02-02"),
+  evaluationPeriodEndDate: new Date("2025-12-31"),
+  createdAt: new Date("2025-01-01"),
+  updatedAt: new Date("2025-02-02"),
+  demonstrationStatus: expiredDemonstrationStatus,
+  state: california,
+  users: [testUser2],
+  projectOfficer: johnDoe,
+};
+
+export const testDemonstration3: Demonstration = {
+  id: "1",
+  name: "Test Demonstration Three",
+  description: "Test Description three",
+  evaluationPeriodStartDate: new Date("2025-03-03"),
+  evaluationPeriodEndDate: new Date("2025-12-31"),
+  createdAt: new Date("2025-03-03"),
+  updatedAt: new Date("2025-03-03"),
+  demonstrationStatus: withdrawnDemonstrationStatus,
+  state: texas,
+  users: [johnDoe, testUser2],
+  projectOfficer: testUser2,
 };
 
 export const mockAddDemonstrationInput: AddDemonstrationInput = {
@@ -41,7 +62,7 @@ export const mockAddDemonstrationInput: AddDemonstrationInput = {
   description: "New Description",
   evaluationPeriodStartDate: new Date("2025-01-01"),
   evaluationPeriodEndDate: new Date("2025-12-31"),
-  demonstrationStatusId: activeDemonstrationStatus.id,
+  demonstrationStatusId: approvedDemonstrationStatus.id,
   stateId: california.id,
   userIds: [johnDoe.id],
   projectOfficerUserId: johnDoe.id,
@@ -53,7 +74,7 @@ export const demonstrationMocks: MockedResponse[] = [
       query: GET_ALL_DEMONSTRATIONS_QUERY,
     },
     result: {
-      data: { demonstrations: [testDemonstration] },
+      data: { demonstrations: [testDemonstration, testDemonstration2, testDemonstration3] },
     },
   },
 

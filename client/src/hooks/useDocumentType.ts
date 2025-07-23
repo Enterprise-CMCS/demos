@@ -1,10 +1,10 @@
 import { useLazyQuery, ApolloError, gql } from "@apollo/client";
+import { DocumentType } from "demos-server";
 
 export const GET_ALL_DOCUMENT_TYPES_QUERY = gql`
   query GetAllDocumentTypes {
-    documents {
+    documentTypes {
       name
-      description
     }
   }
 `;
@@ -22,7 +22,7 @@ export interface DocumentTypeOperations {
 
 const createGetAllDocumentTypesHook = (): GetAllDocumentTypesOperation => {
   const [trigger, { data, loading, error }] = useLazyQuery<{
-    documents: Document[];
+    documentTypes: DocumentType[];
   }>(GET_ALL_DOCUMENT_TYPES_QUERY);
 
   return {

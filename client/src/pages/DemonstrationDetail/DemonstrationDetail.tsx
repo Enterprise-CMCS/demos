@@ -123,9 +123,7 @@ export const DemonstrationDetail = () => {
         <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">
           Documents
         </h1>
-        <div className="h-[60vh] overflow-y-auto">
-          <DocumentsTable />
-        </div>
+        <DocumentsTable />
       </div>
 
       {modalType === "edit" && (

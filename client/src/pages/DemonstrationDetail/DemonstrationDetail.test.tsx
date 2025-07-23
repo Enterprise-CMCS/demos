@@ -7,11 +7,63 @@ import { MockedProvider } from "@apollo/client/testing";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { demonstrationMocks } from "mock-data/demonstrationMocks";
-import { documentMocks } from "mock-data/documentMocks";
+import { documentTypeMocks } from "mock-data/documentTypeMocks";
+import { GET_DEMONSTRATION_BY_ID_QUERY } from "queries/demonstrationQueries";
+import { GET_ALL_DOCUMENTS_QUERY } from "hooks/useDocuments";
+import documentData from "faker_data/documents.json";
+import { testDemonstration } from "mock-data/demonstrationMocks";
+import { GET_ALL_DOCUMENT_TYPES_QUERY } from "hooks/useDocumentType";
+
+const demonstrationMocks = [
+  {
+    request: {
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      variables: { id: "1" },
+    },
+    result: {
+      data: { demonstration: testDemonstration },
+    },
+  },
+];
+
+const documentMocks = [
+  {
+    request: {
+      query: GET_ALL_DOCUMENTS_QUERY,
+    },
+    result: {
+      data: {
+        documents: documentData,
+      },
+    },
+  },
+];
+
+const documentTypeMocks = [
+  {
+    request: {
+      query: GET_ALL_DOCUMENT_TYPES_QUERY,
+    },
+    result: {
+      data: {
+        documentTypes: [
+          { name: "Pre-Submission Concept" },
+          { name: "General File" },
+          {
+            name: "Budget Neutrality Workbook",
+          },
+        ],
+      },
+    },
+  },
+];
 
 // Combine both mock arrays
-const combinedMocks = [...demonstrationMocks, ...documentMocks];
+const combinedMocks = [
+  ...demonstrationMocks,
+  ...documentMocks,
+  ...documentTypeMocks,
+];
 
 describe("Demonstration Detail", () => {
   it("renders the filter dropdown initially", async () => {

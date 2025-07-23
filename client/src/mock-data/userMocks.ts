@@ -17,6 +17,19 @@ export const johnDoe: User = {
   states: [],
   demonstrations: [],
 };
+export const testUser2: User = {
+  id: "2",
+  fullName: "Luke Skywalker",
+  cognitoSubject: "2",
+  username: "LukeSkywalker",
+  email: "lukeskywalker@starwars.com",
+  displayName: "Luke",
+  createdAt: new Date("2025-02-02"),
+  updatedAt: new Date("2025-02-02"),
+  roles: [],
+  states: [],
+  demonstrations: [],
+};
 export const spongebob: Partial<User> = {
   fullName: "spongebob squarepants",
 };

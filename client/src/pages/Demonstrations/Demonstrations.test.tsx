@@ -4,23 +4,161 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { Demonstrations, DEMONSTRATIONS_TABLE_QUERY } from "./Demonstrations";
-
 import { demonstrationMocks } from "mock-data/demonstrationMocks";
 import { userMocks } from "mock-data/userMocks";
 import { stateMocks } from "mock-data/stateMocks";
 import { demonstrationStatusMocks } from "mock-data/demonstrationStatusMocks";
+import { GET_ALL_DEMONSTRATIONS_QUERY } from "queries/demonstrationQueries";
+import { GET_ALL_USERS } from "hooks/useUserOperations";
+import { GET_ALL_STATES_QUERY } from "hooks/useStates";
+import { GET_ALL_DEMONSTRATION_STATUSES_QUERY } from "hooks/useDemonstrationStatus";
+import { Demonstrations } from "./Demonstrations";
+
+const demonstrationMock = {
+  request: {
+    query: GET_ALL_DEMONSTRATIONS_QUERY,
+  },
+  result: {
+    data: {
+      demonstrations: [
+        {
+          id: "1",
+          name: "Montana Medicaid Waiver",
+          description: "Montana waiver demonstration",
+          demonstrationStatus: { id: "1", name: "Active" },
+          state: { id: "MT", stateName: "Montana", stateCode: "MT" },
+          projectOfficer: { id: "1", fullName: "John Doe" },
+          users: [{ id: "1", fullName: "Current User" }],
+        },
+        {
+          id: "2",
+          name: "Florida Health Innovation",
+          description: "Florida innovation demonstration",
+          demonstrationStatus: { id: "2", name: "Pending" },
+          state: { id: "FL", stateName: "Florida", stateCode: "FL" },
+          projectOfficer: { id: "2", fullName: "Jane Smith" },
+          users: [{ id: "2", fullName: "Other User" }],
+        },
+        {
+          id: "3",
+          name: "Texas Reform Initiative",
+          description: "Texas reform demonstration",
+          demonstrationStatus: { id: "3", name: "Active" },
+          state: { id: "TX", stateName: "Texas", stateCode: "TX" },
+          projectOfficer: { id: "3", fullName: "Bob Johnson" },
+          users: [{ id: "1", fullName: "Current User" }],
+        },
+      ],
+    },
+  },
+};
+
+const userMock = {
+  request: {
+    query: GET_ALL_USERS,
+  },
+  result: {
+    data: {
+      users: [
+        {
+          fullName: "John Doe",
+        },
+        {
+          fullName: "Leia Organa",
+        },
+        {
+          fullName: "Han Solo",
+        },
+        {
+          fullName: "Luke Skywalker",
+        },
+        {
+          fullName: "Darth Vader",
+        },
+      ],
+    },
+  },
+};
+
+const stateMock = {
+  request: {
+    query: GET_ALL_STATES_QUERY,
+  },
+  result: {
+    data: {
+      states: [
+        {
+          stateCode: "NC",
+          stateName: "North Carolina",
+        },
+        {
+          stateCode: "CA",
+          stateName: "California",
+        },
+        {
+          stateCode: "TX",
+          stateName: "Texas",
+        },
+        {
+          stateCode: "FL",
+          stateName: "Florida",
+        },
+        {
+          stateCode: "NY",
+          stateName: "New York",
+        },
+        {
+          stateCode: "WA",
+          stateName: "Washington",
+        },
+        {
+          stateCode: "IL",
+          stateName: "Illinois",
+        },
+        {
+          stateCode: "PA",
+          stateName: "Pennsylvania",
+        },
+        {
+          stateCode: "OH",
+          stateName: "Ohio",
+        },
+      ],
+    },
+  },
+};
+
+const demonstrationStatusMock = {
+  request: {
+    query: GET_ALL_DEMONSTRATION_STATUSES_QUERY,
+  },
+  result: {
+    data: {
+      demonstrationStatuses: [
+        {
+          name: "Approved",
+        },
+        {
+          name: "Expired",
+        },
+        {
+          name: "Withdrawn",
+        },
+      ],
+    },
+  },
+};
 
 const standardMocks = [
-  ...demonstrationMocks,
-  ...userMocks,
-  ...stateMocks,
-  ...demonstrationStatusMocks,
+  demonstrationMock,
+  userMock,
+  stateMock,
+  demonstrationStatusMock,
 ];
 
 const emptyDemonstrationsMock = {
   request: {
-    query: DEMONSTRATIONS_TABLE_QUERY,
+    query: GET_ALL_DEMONSTRATIONS_QUERY,
   },
   result: {
     data: {

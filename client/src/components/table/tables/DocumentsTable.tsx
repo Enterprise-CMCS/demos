@@ -30,18 +30,17 @@ export const DocumentsTable = () => {
     triggerGetAllDocuments();
   }, []);
 
-  if (documentTypesLoading) {
+  if (documentTypesLoading || documentsLoading) {
     return <div className="p-4">Loading...</div>;
   }
   if (documentTypesError) {
     return <div className="p-4">Error loading document types</div>;
   }
-
-  if (documentsLoading) {
-    return <div className="p-4">Loading...</div>;
-  }
   if (documentsError) {
     return <div className="p-4">Error loading documents</div>;
+  }
+  if (!documentsData || !documentTypesData) {
+    return <div className="p-4">No documents available.</div>;
   }
 
   const columnHelper = createColumnHelper<Document>();
@@ -86,7 +85,7 @@ export const DocumentsTable = () => {
       meta: {
         filterConfig: {
           filterType: "select",
-          options: documentTypesData?.documents.map((type) => ({
+          options: documentTypesData?.map((type) => ({
             label: type.name,
             value: type.name,
           })),
@@ -133,22 +132,15 @@ export const DocumentsTable = () => {
   ];
 
   return (
-    <div className="p-4">
-      <div>
-        <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">
-          Documents
-        </h1>
-        <div className="h-[60vh] overflow-y-auto">
-          <Table<Document>
-            data={documentsData}
-            columns={documentColumns}
-            keywordSearch
-            columnFilter
-            emptyRowsMessage="No documents available."
-            noResultsFoundMessage="No documents match your search criteria."
-          />
-        </div>
-      </div>
-    </div>
+    <>
+      <Table<Document>
+        data={documentsData}
+        columns={documentColumns}
+        keywordSearch
+        columnFilter
+        emptyRowsMessage="No documents available."
+        noResultsFoundMessage="No documents match your search criteria."
+      />
+    </>
   );
 };
