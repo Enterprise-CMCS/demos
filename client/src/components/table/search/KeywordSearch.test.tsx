@@ -5,7 +5,32 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Table } from "../Table";
-import { TestType, testColumns, testTableData } from "../Table.test";
+import { TestType, testTableData } from "../Table.test";
+import { highlightCell } from "./KeywordSearch";
+import { createColumnHelper } from "@tanstack/react-table";
+
+const columnHelper = createColumnHelper<TestType>();
+
+export const testColumns = [
+  columnHelper.accessor("name", {
+    header: "Name",
+    cell: highlightCell,
+    enableGlobalFilter: false,
+  }),
+  columnHelper.accessor("description", {
+    header: "Description",
+    cell: highlightCell,
+  }),
+  columnHelper.accessor("option.name", {
+    header: "Option",
+    cell: highlightCell,
+  }),
+  columnHelper.accessor("date", {
+    id: "date",
+    header: "Date",
+    enableGlobalFilter: false,
+  }),
+];
 
 describe("KeywordSearch Component", () => {
   beforeEach(() => {

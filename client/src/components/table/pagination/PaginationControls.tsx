@@ -2,7 +2,7 @@ import * as React from "react";
 import { Table } from "@tanstack/react-table";
 
 export interface PaginationControlsProps<T> {
-  table: Table<T>; // Make table optional since it comes from parent
+  table: Table<T>;
   perPageChoices?: number[];
 }
 
@@ -10,8 +10,6 @@ export function PaginationControls<T>({
   table,
   perPageChoices = [10, 20, 50, -1],
 }: PaginationControlsProps<T>) {
-
-  // Get pagination state from table
   const {
     getState,
     setPageSize,
@@ -56,7 +54,7 @@ export function PaginationControls<T>({
 
     visible.push(0); // Always show the first page
 
-    const leftSibling  = Math.max(1, currentPage - 1);
+    const leftSibling = Math.max(1, currentPage - 1);
     const rightSibling = Math.min(lastPage - 1, currentPage + 1);
 
     if (leftSibling > 1) {
@@ -76,13 +74,10 @@ export function PaginationControls<T>({
   }, [currentPage, totalPages]);
 
   // ZERO state - If totalRows == 0, show "0 of 0"
-  const firstRowIndex = totalRows === 0
-    ? 0
-    : currentPage * pageSize + 1;
+  const firstRowIndex = totalRows === 0 ? 0 : currentPage * pageSize + 1;
 
-  const lastRowIndex = totalRows === 0
-    ? 0
-    : Math.min((currentPage + 1) * pageSize, totalRows);
+  const lastRowIndex =
+    totalRows === 0 ? 0 : Math.min((currentPage + 1) * pageSize, totalRows);
 
   return (
     <nav
@@ -122,7 +117,9 @@ export function PaginationControls<T>({
         <button
           onClick={previousPage}
           disabled={!canPreviousPage}
-          aria-label={canPreviousPage ? "Go to previous page" : "No previous page"}
+          aria-label={
+            canPreviousPage ? "Go to previous page" : "No previous page"
+          }
           aria-disabled={!canPreviousPage}
           className={`px-2 py-1 rounded ${
             canPreviousPage

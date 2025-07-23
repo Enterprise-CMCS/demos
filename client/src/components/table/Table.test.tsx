@@ -36,28 +36,6 @@ export const testColumns = [
   columnHelper.accessor("option.name", {
     header: "Option",
     cell: highlightCell,
-  }),
-  columnHelper.accessor("date", {
-    id: "date",
-    header: "Date",
-    enableGlobalFilter: false,
-  }),
-];
-
-// Test columns with filter configuration for interaction tests
-export const testColumnsWithFilters = [
-  columnHelper.accessor("name", {
-    header: "Name",
-    cell: highlightCell,
-    enableGlobalFilter: false,
-  }),
-  columnHelper.accessor("description", {
-    header: "Description",
-    cell: highlightCell,
-  }),
-  columnHelper.accessor("option.name", {
-    header: "Option",
-    cell: highlightCell,
     meta: {
       filterConfig: {
         filterType: "select",
@@ -163,7 +141,7 @@ describe("Table Component Interactions", () => {
           <Table<TestType>
             columnFilter
             keywordSearch
-            columns={testColumnsWithFilters}
+            columns={testColumns}
             data={testTableData}
           />
         </LocalizationProvider>
@@ -247,7 +225,7 @@ describe("Table Component Interactions", () => {
           <Table<TestType>
             columnFilter
             keywordSearch
-            columns={testColumnsWithFilters}
+            columns={testColumns}
             data={testTableData}
           />
         </LocalizationProvider>
@@ -317,7 +295,7 @@ describe("Table Component Interactions", () => {
           <Table<TestType>
             columnFilter
             keywordSearch
-            columns={testColumnsWithFilters}
+            columns={testColumns}
             data={testTableData}
           />
         </LocalizationProvider>
@@ -389,7 +367,7 @@ describe("Table Component Interactions", () => {
           <Table<TestType>
             columnFilter
             keywordSearch
-            columns={testColumnsWithFilters}
+            columns={testColumns}
             data={testTableData}
           />
         </LocalizationProvider>
@@ -463,7 +441,7 @@ describe("Table Component Interactions", () => {
           <Table<TestType>
             columnFilter
             keywordSearch
-            columns={testColumnsWithFilters}
+            columns={testColumns}
             data={testTableData}
           />
         </LocalizationProvider>
@@ -565,7 +543,7 @@ describe("Table Component Interactions", () => {
           <Table<TestType>
             columnFilter
             keywordSearch
-            columns={testColumnsWithFilters}
+            columns={testColumns}
             data={testTableData}
             noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           />

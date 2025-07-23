@@ -16,7 +16,7 @@ import { PaginationControls } from "./pagination/PaginationControls";
 
 export interface TableProps<T> {
   data: T[];
-  // any is allowed because the column definitions intentionally allow for flexibility in types
+  // explicitly allowing any because the column definitions intentionally allow for flexibility in types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<T, any>[];
   className?: string;

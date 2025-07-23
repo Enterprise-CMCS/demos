@@ -42,21 +42,18 @@ export const DemonstrationDetail = () => {
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;
 
-  // Query for documents data
   const {
     data: documentsData,
     loading: documentsLoading,
     error: documentsError,
   } = useQuery<{ documents: Document[] }>(DOCUMENT_TABLE_QUERY);
 
-  // Use the document columns hook
   const { columns } = useDocumentColumns();
 
   useEffect(() => {
     if (id) trigger(id);
   }, [id]);
 
-  // Build dynamic header content
   const headerContent = useMemo(() => {
     if (loading) {
       return (

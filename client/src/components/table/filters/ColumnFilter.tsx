@@ -43,7 +43,6 @@ export function ColumnFilter<T>({
     .getAllColumns()
     .filter((column) => column.getCanFilter());
 
-  // Create options for column selection
   const columnOptions: Option[] = availableColumns.map((col) => {
     const columnDef = col.columnDef;
     const displayLabel =

@@ -26,50 +26,49 @@ export type Demonstration = {
     id: string;
     fullName: string;
   }[];
-}
+};
 
 export const DEMONSTRATIONS_TABLE_QUERY = gql`
-    query GetDemonstrations {
-      demonstrations {
+  query GetDemonstrations {
+    demonstrations {
+      id
+      name
+      description
+      demonstrationStatus {
         id
         name
-        description
-        demonstrationStatus {
-          id
-          name
-        }
-        state {
-          stateName
-          stateCode
-        }
-        users {
-          id
-          fullName
-        }
-        projectOfficer {
-          id
-          fullName
-        }
+      }
+      state {
+        stateName
+        stateCode
+      }
+      users {
+        id
+        fullName
+      }
+      projectOfficer {
+        id
+        fullName
       }
     }
-  `;
+  }
+`;
 
 export const Demonstrations: React.FC = () => {
-  // Query for main demonstrations data
   const { data, error, loading } = useQuery(DEMONSTRATIONS_TABLE_QUERY);
 
-  // Hook for columns with filter options
-  const { columns, loading: columnsLoading, error: columnsError } = useDemonstrationColumns();
+  const {
+    columns,
+    loading: columnsLoading,
+    error: columnsError,
+  } = useDemonstrationColumns();
 
-  // Tab state management
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  // Handle loading states for both queries
   if (loading || columnsLoading) {
     return <div>Loading...</div>;
   }
 
-  // Handle errors
   if (error) {
     return <div>Error loading demonstrations:</div>;
   }
@@ -80,17 +79,16 @@ export const Demonstrations: React.FC = () => {
     return null;
   }
 
-  // Filter demonstrations based on current user
   // TODO: Replace with actual current user ID from authentication context
   const currentUserId = "1";
 
   const myDemos: Demonstration[] = data.demonstrations.filter(
-    (demo: Demonstration) => demo.users.some(user => user.id === currentUserId)
+    (demo: Demonstration) =>
+      demo.users.some((user) => user.id === currentUserId)
   );
 
   const allDemos: Demonstration[] = data.demonstrations;
 
-  // Create tab configuration
   const tabList: TabItem[] = [
     {
       value: "my",
@@ -104,16 +102,19 @@ export const Demonstrations: React.FC = () => {
     },
   ];
 
-  // Determine which data to show based on selected tab
   const dataToShow = tab === "my" ? myDemos : allDemos;
-  const emptyRowsMessage = tab === "my"
-    ? "You have no assigned demonstrations at this time."
-    : "No demonstrations are tracked.";
-  const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
+  const emptyRowsMessage =
+    tab === "my"
+      ? "You have no assigned demonstrations at this time."
+      : "No demonstrations are tracked.";
+  const noResultsFoundMessage =
+    "No results were returned. Adjust your search and filter criteria.";
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Demonstrations</h1>
+      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">
+        Demonstrations
+      </h1>
 
       <Tabs
         tabs={tabList}
