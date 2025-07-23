@@ -10,8 +10,8 @@ model Event {
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
   eventData  Json?    @map("event_data") @db.Json
 
-  role Role? @relation(fields: [withRoleId], references: [id])
-  user User? @relation(fields: [userId], references: [id])
+  role Role? @relation(fields: [withRoleId], references: [id], onDelete: SetNull)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("event")
 }
