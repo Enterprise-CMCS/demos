@@ -1,15 +1,26 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useDemonstration } from "hooks/useDemonstration";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { CircleButton } from "components/button/CircleButton";
+import {
+  DeleteIcon,
+  EditIcon,
+  EllipsisIcon,
+} from "components/icons";
+import { CreateNewModal } from "components/modal/CreateNewModal";
+import { DocumentTable } from "components/table/tables/DocumentTable";
+import DocumentData from "faker_data/documents.json";
+import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
-
+import { useParams } from "react-router-dom";
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [showButtons, setShowButtons] = useState(false);
+  const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;
 
@@ -41,12 +52,13 @@ export const DemonstrationDetail = () => {
           </span>
         </div>
         <div className="relative">
-          { showButtons && (
+          {showButtons && (
             <span className="mr-0.75">
               <CircleButton
                 aria-label="Delete demonstration"
                 className="cursor-pointer flex items-center gap-1 px-1 py-1 mr-0.75"
                 data-testid="delete-button"
+                onClick={() => setModalType("delete")}
               >
                 <DeleteIcon width="24" height="24" />
               </CircleButton>
@@ -54,6 +66,7 @@ export const DemonstrationDetail = () => {
                 aria-label="Edit demonstration"
                 className="cursor-pointer flex items-center gap-1 px-1 py-1"
                 data-testid="edit-button"
+                onClick={() => setModalType("edit")}
               >
                 <EditIcon width="24" height="24" />
               </CircleButton>
@@ -66,9 +79,9 @@ export const DemonstrationDetail = () => {
             onClick={() => setShowButtons((prev) => !prev)}
           >
             <span
-              className={`transform transition-transform duration-200 ease-in-out ${
-                showButtons ? "rotate-90" : "rotate-0"
-              }`}
+              className={`transform transition-transform duration-200 ease-in-out ${showButtons ? "rotate-90" : "rotate-0"
+                // eslint-disable-next-line indent
+                }`}
             >
               <EllipsisIcon width="24" height="24" />
             </span>
@@ -85,10 +98,29 @@ export const DemonstrationDetail = () => {
       {loading && <p>Loading...</p>}
       {error && <p>Error loading demonstration</p>}
       {data && (
-        <>
-          Demonstration Detail Content
-        </>
+        <div>
+          <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Documents</h1>
+          <div className="h-[60vh] overflow-y-auto">
+            <DocumentTable
+              data={DocumentData}
+            />
+          </div>
+        </div>
       )}
+
+      {modalType === "edit" && data && (
+        <CreateNewModal
+          mode="demonstration"
+          data={{
+            title: data.name,
+            state: data.state?.stateCode,
+            projectOfficer: data.description,
+            description: data.description,
+          }}
+          onClose={() => setModalType(null)}
+        />
+      )}
+
     </div>
   );
 };

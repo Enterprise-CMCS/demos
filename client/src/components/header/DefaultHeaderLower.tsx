@@ -8,7 +8,6 @@ import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
 import { AddDocumentModal } from "components/modal/AddDocumentModal";
 import { CreateNewModal } from "components/modal/CreateNewModal";
-import { CreateNewAmendmentModal } from "components/modal/CreateNewAmendmentModal";
 import { gql } from "graphql-tag";
 
 import { useQuery } from "@apollo/client";
@@ -23,7 +22,7 @@ export const HEADER_LOWER_QUERY = gql`
 
 export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"create" | "document" | "amendment" | null>(null);
+  const [modalType, setModalType] = useState<"create" | "document" | "amendment" | "extension" | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -61,6 +60,7 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
     if (item === "Demonstration") setModalType("create");
     else if (item === "AddDocument") setModalType("document");
     else if (item === "Amendment") setModalType("amendment");
+    else if (item === "Extension") setModalType("extension");
     // TODO: handle "Extension" later
   };
 
@@ -113,14 +113,18 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
 
       {/* Modal render */}
       {modalType === "create" && (
-        <CreateNewModal onClose={() => setModalType(null)} />
+        <CreateNewModal mode="demonstration" onClose={() => setModalType(null)} />
       )}
       {modalType === "document" && (
         <AddDocumentModal onClose={() => setModalType(null)} />
       )}
       {modalType === "amendment" && (
-        <CreateNewAmendmentModal onClose={() => setModalType(null)} />
+        <CreateNewModal mode="amendment" onClose={() => setModalType(null)} />
       )}
+      {modalType === "extension" && (
+        <CreateNewModal mode="extension" onClose={() => setModalType(null)} />
+      )}
+
     </div>
   );
 };

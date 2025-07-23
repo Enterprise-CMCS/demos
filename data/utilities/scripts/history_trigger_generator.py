@@ -10,8 +10,13 @@ TBL_FOLDERS = [
     "_userRole",
     "_userState",
     "_userStateDemonstration",
+    "bundle",
+    "bundleType",
     "demonstration",
+    "demonstrationBundleType",
     "demonstrationStatus",
+    "document",
+    "documentType",
     "permission",
     "role",
     "state",
@@ -158,6 +163,7 @@ def main(migration: str, folders: List[str] = TBL_FOLDERS) -> None:
 
     Args:
         migration (str): The migration folder where the SQL should be placed.
+        folders (List[str]): The folders and by extension models to process.
     """
     queries = []
     for x in folders:

@@ -1,67 +1,71 @@
 import React, { useState } from "react";
 
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "components/button";
+import { PrimaryButton } from "components/button/PrimaryButton";
+import { SecondaryButton } from "components/button/SecondaryButton";
+import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
-import { AddDemonstrationInput } from "demos-server";
-import { useDemonstration } from "hooks/useDemonstration";
-import { tw } from "tags/tw";
 
-const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
-const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
+const DEMO_OPTIONS = [
+  { label: "Medicaid Reform - Florida", value: "medicaid-fl" },
+  { label: "Innovative Care - California", value: "innovative-ca" },
+];
 
-export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [state, setState] = useState("");
-  const [title, setTitle] = useState("");
-  const [projectOfficer, setProjectOfficer] = useState("");
-  const [effectiveDate, setEffectiveDate] = useState("");
-  const [expirationDate, setExpirationDate] = useState("");
-  const [description, setDescription] = useState("");
+export type ModalMode = "amendment" | "extension" | "demonstration";
+
+type Props = {
+  onClose: () => void;
+  mode: ModalMode;
+  data?: {
+    title?: string;
+    state?: string;
+    projectOfficer?: string;
+    effectiveDate?: string;
+    expirationDate?: string;
+    description?: string;
+    demonstration?: string;
+  };
+};
+
+export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
+  const { showSuccess } = useToast();
+  const [title, setTitle] = useState(data?.title || "");
+  const [state, setState] = useState(data?.state || "");
+  const [projectOfficer, setProjectOfficer] = useState(data?.projectOfficer || "");
+  const [effectiveDate, setEffectiveDate] = useState(data?.effectiveDate || "");
+  const [expirationDate, setExpirationDate] = useState(data?.expirationDate || "");
+  const [description, setDescription] = useState(data?.description || "");
+  const [demonstration, setDemonstration] = useState(data?.demonstration || "");
+  const [showWarning, setShowWarning] = useState(false);
   const [expirationError, setExpirationError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [formStatus, setFormStatus] = useState<"idle" | "pending">("idle");
 
-  const { showSuccess, showError } = useToast();
-  const { addDemonstration } = useDemonstration();
+  const capitalized = mode.charAt(0).toUpperCase() + mode.slice(1);
+  const showDemoSelect = mode !== "demonstration";
 
-  const isFormValid = state && title && projectOfficer;
+  const isSubmitDisabled =
+    (showDemoSelect && !demonstration) ||
+    !title ||
+    !state ||
+    !projectOfficer;
 
-  const getInput = (): AddDemonstrationInput => ({
-    name: title,
-    description,
-    evaluationPeriodStartDate: new Date(effectiveDate),
-    evaluationPeriodEndDate: new Date(expirationDate),
-    demonstrationStatusId: "1",
-    stateId: state,
-    userIds: [projectOfficer],
-  });
-
-  const handleSubmit = async () => {
-    setFormStatus("pending");
-    try {
-      const result = await addDemonstration.trigger(getInput());
-      if (result.data?.addDemonstration) {
-        showSuccess("Demonstration created successfully!");
-        onClose();
-      } else {
-        showError("Failed to create demonstration. Please try again.");
-      }
-    } catch {
-      showError("Failed to create demonstration. Please try again.");
-    } finally {
-      setFormStatus("idle");
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (showDemoSelect && !demonstration) {
+      setShowWarning(true);
+      return;
     }
+    setShowWarning(false);
+    showSuccess(`${capitalized} created successfully!`);
+    onClose();
   };
 
   return (
     <BaseModal
-      title="New Demonstration"
+      title={`New ${capitalized}`}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -73,121 +77,123 @@ export const CreateNewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =
           </SecondaryButton>
           <PrimaryButton
             size="small"
-            disabled={!isFormValid || formStatus === "pending"}
-            onClick={() => {
-              if (!isFormValid) {
-                showError("Please complete all required fields.");
-                return;
-              }
-              handleSubmit();
-            }}
+            type="submit"
+            form={`create-${mode}-form`}
+            disabled={isSubmitDisabled}
           >
-            {formStatus === "pending" ? (
-              <svg
-                className="animate-spin h-2 w-2 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-            ) : (
-              "Submit"
-            )}
+            Submit
           </PrimaryButton>
         </>
       }
     >
-      <div className="grid grid-cols-3 gap-5">
-        <div>
-          <SelectUSAStates label="State/Territory" isRequired onStateChange={setState} />
-        </div>
-        <div className="col-span-2">
-          <TextInput
-            name="title"
-            label="Demonstration Title"
-            isRequired
-            placeholder="Placeholder"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-      </div>
+      <form
+        id={`create-${mode}-form`}
+        className="space-y-1"
+        onSubmit={handleSubmit}
+      >
+        {showDemoSelect && (
+          <div>
+            <AutoCompleteSelect
+              label="Demonstration"
+              placeholder="Select demonstration"
+              isRequired
+              options={DEMO_OPTIONS}
+              onSelect={setDemonstration}
+            />
+            {showWarning && !demonstration && (
+              <p className="text-sm text-text-warn mt-0.5">
+                Each {mode} record must be linked to an existing demonstration.
+              </p>
+            )}
+          </div>
+        )}
 
-      <div className="grid grid-cols-4 gap-4">
-        <div className="col-span-2">
-          <SelectUsers label="Project Officer" isRequired onStateChange={setProjectOfficer} />
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2">
+            <TextInput
+              name="title"
+              label={`${capitalized} Title`}
+              placeholder="Enter title"
+              isRequired
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div>
+            <SelectUSAStates
+              label="State/Territory"
+              isRequired
+              currentState={state}
+              onStateChange={setState}
+            />
+          </div>
         </div>
-        <div className="flex flex-col gap-sm">
-          <label className={LABEL_CLASSES} htmlFor="effective-date">
-            Effective Date
-          </label>
-          <input
-            id="effective-date"
-            type="date"
-            className={DATE_INPUT_CLASSES}
-            value={effectiveDate}
-            onChange={(e) => {
-              setEffectiveDate(e.target.value);
-              if (expirationDate && expirationDate < e.target.value) {
-                setExpirationDate("");
-              }
-            }}
-          />
-        </div>
-        <div className="flex flex-col gap-sm">
-          <label className={LABEL_CLASSES} htmlFor="expiration-date">
-            Expiration Date
-          </label>
-          <input
-            id="expiration-date"
-            type="date"
-            className={`${DATE_INPUT_CLASSES} ${expirationError
-              ? "border-border-warn focus:ring-border-warn"
-              : "border-border-fields focus:ring-border-focus"
-            }`}
-            value={expirationDate}
-            min={effectiveDate || undefined}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (effectiveDate && val < effectiveDate) {
-                setExpirationError("Expiration Date cannot be before Effective Date.");
-              } else {
-                setExpirationError("");
-                setExpirationDate(val);
-              }
-            }}
-          />
-          {expirationError && (
-            <div className="text-text-warn text-sm mt-1">{expirationError}</div>
-          )}
-        </div>
-      </div>
 
-      <div className="flex flex-col gap-sm">
-        <label className={LABEL_CLASSES} htmlFor="description">
-          Demonstration Description
-        </label>
-        <textarea
-          id="description"
-          placeholder="Enter"
-          className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </div>
+        <div className="grid grid-cols-4 gap-3">
+          <div className="col-span-2">
+            <SelectUsers
+              label="Project Officer"
+              isRequired
+              currentUserId={projectOfficer}
+              onStateChange={setProjectOfficer}
+            />
+          </div>
+          <div className="flex flex-col gap-sm">
+            <label className="text-text-font font-bold text-field-label flex gap-0-5" htmlFor="effective-date">
+              Effective Date
+            </label>
+            <input
+              id="effective-date"
+              type="date"
+              className="w-full border rounded px-1 py-1 text-sm"
+              value={effectiveDate}
+              onChange={(e) => {
+                setEffectiveDate(e.target.value);
+                if (expirationDate && expirationDate < e.target.value) {
+                  setExpirationDate("");
+                }
+              }}
+            />
+          </div>
+          <div className="flex flex-col gap-sm">
+            <label className={"text-text-font font-bold text-field-label flex gap-0-5"} htmlFor="expiration-date">
+              Expiration Date
+            </label>
+            <input
+              id="expiration-date"
+              type="date"
+              className={`w-full border rounded px-1 py-1 text-sm ${expirationError ? "border-border-warn focus:ring-border-warn" : "border-border-fields focus:ring-border-focus"}`}
+              value={expirationDate}
+              min={effectiveDate || undefined}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (effectiveDate && val < effectiveDate) {
+                  setExpirationError("Expiration Date cannot be before Effective Date.");
+                } else {
+                  setExpirationError("");
+                  setExpirationDate(val);
+                }
+              }}
+            />
+            {expirationError && (
+              <div className="text-text-warn text-sm mt-1">{expirationError}</div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-sm">
+          <label htmlFor="description" className="text-text-font font-bold text-field-label flex gap-0-5">
+            {capitalized} Description
+          </label>
+          <textarea
+            id="description"
+            placeholder="Enter"
+            className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+      </form>
     </BaseModal>
   );
 };

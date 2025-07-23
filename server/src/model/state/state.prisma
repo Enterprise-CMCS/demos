@@ -1,7 +1,8 @@
 model State {
-  id             String          @id @default(uuid()) @db.Uuid
-  stateCode      String          @map("state_code")
-  stateName      String          @map("state_name")
+  id        String @id @default(uuid()) @db.Uuid
+  stateCode String @map("state_code")
+  stateName String @map("state_name")
+
   userStates     UserState[]
   demonstrations Demonstration[]
 

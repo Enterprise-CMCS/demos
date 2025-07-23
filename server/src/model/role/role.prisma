@@ -1,11 +1,13 @@
 model Role {
-  id              String           @id @default(uuid()) @db.Uuid
-  name            String
-  description     String
-  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
   userRoles       UserRole[]
   rolePermissions RolePermission[]
+  events          Event[]
 
   @@map("role")
 }

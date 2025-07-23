@@ -22,14 +22,6 @@ vi.mock("@apollo/client", async () => {
 });
 
 // Stub modals
-vi.mock("components/modal/CreateNewModal", () => ({
-  CreateNewModal: ({ onClose }: { onClose: () => void }) => (
-    <div data-testid="create-modal">
-      CreateNewModal
-      <button onClick={onClose}>Close</button>
-    </div>
-  ),
-}));
 vi.mock("components/modal/AddDocumentModal", () => ({
   AddDocumentModal: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="add-document-modal">
@@ -37,6 +29,20 @@ vi.mock("components/modal/AddDocumentModal", () => ({
       <button onClick={onClose}>CloseDoc</button>
     </div>
   ),
+}));
+
+vi.mock("components/modal/CreateNewModal", () => ({
+  CreateNewModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div data-testid={`modal-${mode}`}>
+      CreateNewModal ({mode})
+      <button onClick={onClose}>Close</button>
+    </div>
+  ),
+}));
+
+// Mock Toast Context
+vi.mock("components/toast", () => ({
+  useToast: () => ({ showSuccess: vi.fn() }),
 }));
 
 describe("DefaultHeaderLower", () => {
@@ -104,7 +110,7 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByText("Demonstration")).not.toBeInTheDocument();
   });
 
-  it("opens CreateNewModal", () => {
+  it("opens CreateNewModal for demonstration", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
@@ -113,9 +119,9 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower userId={6} />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
-    expect(screen.getByTestId("create-modal")).toBeInTheDocument();
+    expect(screen.getByTestId("modal-demonstration")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Close"));
-    expect(screen.queryByTestId("create-modal")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("modal-demonstration")).not.toBeInTheDocument();
   });
 
   it("opens AddDocumentModal", () => {
@@ -132,17 +138,27 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByTestId("add-document-modal")).not.toBeInTheDocument();
   });
 
-  it("handles Extension clicks without opening modal", () => {
+  it("opens CreateNewModal for amendment", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { user: { fullName: "X" } },
     });
     render(<DefaultHeaderLower userId={8} />);
+    fireEvent.click(screen.getByText("Create New"));
+    fireEvent.click(screen.getByText("Amendment"));
+    expect(screen.getByTestId("modal-amendment")).toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByText("Create New")); // reopen dropdown
+  it("opens CreateNewModal for extension", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
+      loading: false,
+      error: null,
+      data: { user: { fullName: "X" } },
+    });
+    render(<DefaultHeaderLower userId={9} />);
+    fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
-    expect(screen.queryByTestId("create-modal")).toBeNull();
-    expect(screen.queryByTestId("add-document-modal")).toBeNull();
+    expect(screen.getByTestId("modal-extension")).toBeInTheDocument();
   });
 });

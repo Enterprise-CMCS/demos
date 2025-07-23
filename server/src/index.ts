@@ -10,6 +10,7 @@ import {
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
+  introspection: process.env.ALLOW_INTROSPECTION === "true",
 });
 
 const { url } = await startStandaloneServer(server, {

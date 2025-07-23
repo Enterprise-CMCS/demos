@@ -81,7 +81,7 @@ const checkAuthBypass = (): DecodedJWT | undefined => {
   // Bypass authentication for testing purposes
   if (process.env.BYPASS_AUTH === "true") {
     return {
-      sub: "bypassed-user",
+      sub: "1234abcd-0000-1111-2222-333333333333",
       email: "bypassedUser@email.com"
     };
   }
@@ -137,6 +137,64 @@ export const getUserRoles = async (
     where: { cognitoSubject },
   });
   return user?.userRoles.map(userRole => userRole.role.name) || null;
+};
+
+function assertContextUserExists(context: GraphQLContext)
+: asserts context is GraphQLContext & { user: NonNullable<GraphQLContext['user']> } {
+  if (!context.user) {
+    throw new GraphQLError("User not authenticated", {
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+  }
+};
+
+/**
+ * Gets the current user's primary role ID from the GraphQL context.
+ * This is useful for associating actions with the role the user was acting under.
+ */
+export const getCurrentUserRoleId = async (context: GraphQLContext): Promise<string> => {
+  assertContextUserExists(context);
+
+  // Find the user with their roles to get the role ID
+  const userWithRoles = await prisma.user.findUnique({
+    where: { cognitoSubject: context.user.id },
+    include: {
+      userRoles: {
+        include: {
+          role: true
+        }
+      }
+    }
+  });
+
+  if (!userWithRoles || userWithRoles.userRoles.length === 0) {
+    throw new GraphQLError("User has no assigned roles", {
+      extensions: { code: "FORBIDDEN" },
+    });
+  }
+
+  return userWithRoles.userRoles[0].role.id;
+};
+
+/**
+ * Gets the current user's database ID from the GraphQL context.
+ */
+export const getCurrentUserId = async (context: GraphQLContext): Promise<string> => {
+  assertContextUserExists(context);
+
+  // Find the user by their Cognito subject to get the database ID
+  const user = await prisma.user.findUnique({
+    where: { cognitoSubject: context.user.id },
+    select: { id: true }
+  });
+
+  if (!user) {
+    throw new GraphQLError("User not found in database", {
+      extensions: { code: "NOT_FOUND" },
+    });
+  }
+
+  return user.id;
 };
 
 /**

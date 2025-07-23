@@ -3,9 +3,9 @@ model UserStateDemonstration {
   stateId         String @map("state_id") @db.Uuid
   demonstrationId String @map("demonstration_id") @db.Uuid
 
-  user               User          @relation(fields: [userId], references: [id])
-  userState          UserState     @relation(fields: [userId, stateId], references: [userId, stateId])
-  demonstration      Demonstration @relation(fields: [demonstrationId, stateId], references: [id, stateId])
+  user          User          @relation(fields: [userId], references: [id])
+  userState     UserState     @relation(fields: [userId, stateId], references: [userId, stateId])
+  demonstration Demonstration @relation(fields: [demonstrationId, stateId], references: [id, stateId])
 
   @@id([userId, stateId, demonstrationId])
   @@map("user_state_demonstration")
