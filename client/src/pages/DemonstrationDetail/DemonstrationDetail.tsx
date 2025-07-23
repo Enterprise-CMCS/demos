@@ -1,15 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDemonstration } from "hooks/useDemonstration";
-import { useQuery } from "@apollo/client";
 
 import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { CircleButton } from "components/button/CircleButton";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { usePageHeader } from "hooks/usePageHeader";
-import { useDocumentColumns } from "./DocumentColumns";
-import { Table } from "components/table/Table";
 import { gql } from "@apollo/client";
+import { DocumentsTable } from "components/table/tables/DocumentsTable";
 
 export type Document = {
   id: number;
@@ -41,14 +39,6 @@ export const DemonstrationDetail = () => {
   const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;
-
-  const {
-    data: documentsData,
-    loading: documentsLoading,
-    error: documentsError,
-  } = useQuery<{ documents: Document[] }>(DOCUMENT_TABLE_QUERY);
-
-  const { columns } = useDocumentColumns();
 
   useEffect(() => {
     if (id) trigger(id);
@@ -134,31 +124,12 @@ export const DemonstrationDetail = () => {
 
   usePageHeader(headerContent);
 
-  // Handle loading states
-  if (loading || documentsLoading) {
-    return <div className="p-4">Loading...</div>;
-  }
-
   // Handle errors
   if (error) {
     return (
       <div className="p-4">Error loading demonstration: {error.message}</div>
     );
   }
-
-  if (documentsError) {
-    return (
-      <div className="p-4">
-        Error loading documents: {documentsError.message}
-      </div>
-    );
-  }
-
-  if (!data) {
-    return <div className="p-4">Demonstration not found</div>;
-  }
-
-  const documents = documentsData?.documents || [];
 
   return (
     <div className="p-4">
@@ -167,14 +138,7 @@ export const DemonstrationDetail = () => {
           Documents
         </h1>
         <div className="h-[60vh] overflow-y-auto">
-          <Table<Document>
-            data={documents}
-            columns={columns}
-            keywordSearch
-            columnFilter
-            emptyRowsMessage="No documents available."
-            noResultsFoundMessage="No documents match your search criteria."
-          />
+          <DocumentsTable />
         </div>
       </div>
 

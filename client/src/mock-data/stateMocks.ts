@@ -2,7 +2,7 @@ import { MockedResponse } from "@apollo/client/testing";
 import {
   GET_STATES_FOR_SELECT,
   StateSelectOptions,
-} from "pages/Demonstrations/DemonstrationColumns";
+} from "components/table/tables/DemonstrationsTable";
 
 export const california = {
   id: "1",

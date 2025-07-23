@@ -12,7 +12,7 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
-import { DEMONSTRATIONS_TABLE_QUERY } from "pages/Demonstrations/Demonstrations";
+import { DEMONSTRATIONS_TABLE_QUERY } from "components/table/tables/DemonstrationsTable";
 
 const activeDemonstrationStatus: DemonstrationStatus = {
   id: "1",

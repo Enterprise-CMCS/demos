@@ -2,7 +2,7 @@ import { MockedResponse } from "@apollo/client/testing";
 import {
   DemonstrationStatusSelectOptions,
   GET_DEMONSTRATION_STATUSES_FOR_SELECT,
-} from "pages/Demonstrations/DemonstrationColumns";
+} from "components/table/tables/DemonstrationsTable";
 
 export const demonstrationStatusMocks: MockedResponse[] = [
   {

@@ -6,7 +6,7 @@ import { MockedResponse } from "@apollo/client/testing";
 import {
   GET_PROJECT_OFFICERS_FOR_SELECT,
   ProjectOfficerSelectOptions,
-} from "pages/Demonstrations/DemonstrationColumns";
+} from "components/table/tables/DemonstrationsTable";
 
 export const johnDoe: User = {
   id: "1",
