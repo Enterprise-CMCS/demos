@@ -131,6 +131,14 @@ export const userResolvers = {
           userId: parent.id
         }
       });
+    },
+
+    ownedDocuments: async (parent: User) => {
+      return await prisma().document.findMany({
+        where: {
+          ownerUserId: parent.id
+        }
+      });
     }
   },
 };

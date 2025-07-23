@@ -2,6 +2,7 @@ import { gql } from "graphql-tag";
 import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusSchema.js";
 import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
+import { Document } from "../document/documentSchema.js"
 
 export const demonstrationSchema = gql`
   type Demonstration {
@@ -16,6 +17,7 @@ export const demonstrationSchema = gql`
     state: State!
     users: [User!]!
     projectOfficer: User!
+    documents: [Document!]!
   }
 
   input AddDemonstrationInput {
@@ -65,6 +67,7 @@ export interface Demonstration {
   state: State;
   users: User[];
   projectOfficer: User;
+  documents: Document[];
 }
 
 export interface AddDemonstrationInput {

@@ -7,7 +7,7 @@ import {
 import { BUNDLE_TYPE } from "../../constants.js";
 import { BundleType } from "../../types.js";
 
-const demonstrationBundleType: BundleType = BUNDLE_TYPE.DEMONSTRATION;
+const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 
 export const demonstrationResolvers = {
   Query: {
@@ -32,7 +32,7 @@ export const demonstrationResolvers = {
         const bundle = await tx.bundle.create({
           data: {
             bundleType: {
-              connect: { id: demonstrationBundleType }
+              connect: { id: demonstrationBundleTypeId }
             }
           }
         });
@@ -44,7 +44,7 @@ export const demonstrationResolvers = {
               connect: { id: bundle.id }
             },
             bundleType: {
-              connect: { id: demonstrationBundleType }
+              connect: { id: demonstrationBundleTypeId }
             },
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
@@ -157,10 +157,17 @@ export const demonstrationResolvers = {
     },
 
     projectOfficer: async (parent: Demonstration) => {
-      if (!parent) return null;
       return await prisma().user.findUnique({
         where: { id: parent.projectOfficerUserId },
       });
     },
+
+    documents: async (parent: Demonstration) => {
+      return await prisma().document.findMany({
+        where: {
+          bundleId: parent.id
+        }
+      });
+    }
   },
 };
