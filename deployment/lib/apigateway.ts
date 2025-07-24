@@ -68,17 +68,6 @@ export function create(props: ApiGatewayProps) {
     },
   });
 
-  // const authorizer = props.isLocalstack
-  //   ? undefined
-  //   : new aws_apigateway.CognitoUserPoolsAuthorizer(
-  //       props.scope,
-  //       "cognitoAuthorizer",
-  //       {
-  //         cognitoUserPools: [props.userPool],
-  //         authorizerName: "cognito-auth",
-  //       }
-  //     );
-
   const healthEndpoint = new MockIntegration({
     integrationResponses: [
       {
