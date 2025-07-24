@@ -1,6 +1,6 @@
 import { prisma } from '../../prismaClient.js';
-import { Event } from '@prisma/client';
 import { LogEventInput } from './eventSchema.js';
+import { Event } from '@prisma/client';
 import { GraphQLContext, getCurrentUserId, getCurrentUserRoleId } from '../../auth/auth.util.js';
 export const eventResolvers = {
   Query: {
