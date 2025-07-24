@@ -66,7 +66,7 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
 
 
   return (
-    <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
+    <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
       <div>
         <span className="font-bold block">Hello {user.fullName}</span>
         <span className="block text-sm">Welcome to DEMOS!</span>
@@ -111,7 +111,6 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
         )}
       </div>
 
-      {/* Modal render */}
       {modalType === "create" && (
         <CreateNewModal mode="demonstration" onClose={() => setModalType(null)} />
       )}

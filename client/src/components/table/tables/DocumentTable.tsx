@@ -54,7 +54,9 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
     return [];
   }, [filterBy, typeFilter, dateFilter]);
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "uploadDate", desc: true },
+  ]);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
