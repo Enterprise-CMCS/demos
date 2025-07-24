@@ -37,4 +37,18 @@ export const eventResolvers = {
       }
     }
   },
+
+  Event: {
+    user: async (parent: Event) => {
+      return await prisma().user.findUnique({
+        where: { id: parent.userId },
+      });
+    },
+
+    withRole: async (parent: Event) => {
+      return await prisma().role.findUnique({
+        where: { id: parent.withRoleId },
+      });
+    },
+  }
 };
