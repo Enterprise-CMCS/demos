@@ -1,4 +1,4 @@
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
 import {
@@ -34,6 +34,9 @@ interface LambdaProps extends CommonProps {
   authorizer?: aws_apigateway.Authorizer;
   authorizationType?: aws_apigateway.AuthorizationType;
   asCode?: boolean;
+  externalModules?: string[];
+  nodeModules?: string[];
+  depsLockFilePath?: string;
 }
 
 export function create(props: LambdaProps, id: string) {
@@ -102,6 +105,7 @@ export class Lambda extends Construct {
       functionName: `${props.project}-${props.stage}-${id}`,
       entry: !asCode ? props.entry : undefined,
       code: asCode ? aws_lambda.Code.fromAsset(props.entry) : undefined,
+      depsLockFilePath: props.depsLockFilePath,
       handler: `${props.handler}`,
       runtime: Runtime.NODEJS_22_X,
       timeout,
@@ -112,6 +116,9 @@ export class Lambda extends Construct {
       bundling: {
         minify: true,
         sourceMap: true,
+        externalModules: props.externalModules,
+        nodeModules: props.nodeModules,
+        logLevel: LogLevel.VERBOSE
       },
       environment: props.environment,
       vpc: props.vpc,
