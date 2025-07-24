@@ -2,7 +2,7 @@ import { gql } from "graphql-tag";
 import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusSchema.js";
 import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
-import { Document } from "../document/documentSchema.js"
+import { Document } from "../document/documentSchema.js";
 import { Amendment } from "../modification/modificationSchema.js";
 
 export const demonstrationSchema = gql`
@@ -10,8 +10,8 @@ export const demonstrationSchema = gql`
     id: ID!
     name: String!
     description: String!
-    evaluationPeriodStartDate: Date!
-    evaluationPeriodEndDate: Date!
+    effectiveDate: Date!
+    expirationDate: Date!
     createdAt: DateTime!
     updatedAt: DateTime!
     demonstrationStatus: DemonstrationStatus!
@@ -25,8 +25,8 @@ export const demonstrationSchema = gql`
   input AddDemonstrationInput {
     name: String!
     description: String!
-    evaluationPeriodStartDate: Date!
-    evaluationPeriodEndDate: Date!
+    effectiveDate: Date!
+    expirationDate: Date!
     demonstrationStatusId: ID!
     stateId: ID!
     userIds: [ID!]
@@ -36,8 +36,8 @@ export const demonstrationSchema = gql`
   input UpdateDemonstrationInput {
     name: String
     description: String
-    evaluationPeriodStartDate: Date
-    evaluationPeriodEndDate: Date
+    effectiveDate: Date
+    expirationDate: Date
     demonstrationStatusId: ID
     stateId: ID
     userIds: [ID!]
@@ -46,7 +46,10 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     addDemonstration(input: AddDemonstrationInput!): Demonstration
-    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
+    updateDemonstration(
+      id: ID!
+      input: UpdateDemonstrationInput!
+    ): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
@@ -61,8 +64,8 @@ export interface Demonstration {
   id: string;
   name: string;
   description: string;
-  evaluationPeriodStartDate: Date;
-  evaluationPeriodEndDate: Date;
+  effectiveDate: Date;
+  expirationDate: Date;
   createdAt: DateTime;
   updatedAt: DateTime;
   demonstrationStatus: DemonstrationStatus;
@@ -76,21 +79,21 @@ export interface Demonstration {
 export interface AddDemonstrationInput {
   name: string;
   description: string;
-  evaluationPeriodStartDate: Date;
-  evaluationPeriodEndDate: Date;
+  effectiveDate: Date;
+  expirationDate: Date;
   demonstrationStatusId: string;
   stateId: string;
   userIds?: string[];
-  projectOfficerUserId: string; 
+  projectOfficerUserId: string;
 }
 
 export interface UpdateDemonstrationInput {
   name?: string;
   description?: string;
-  evaluationPeriodStartDate?: Date;
-  evaluationPeriodEndDate?: Date;
+  effectiveDate?: Date;
+  expirationDate?: Date;
   demonstrationStatusId?: string;
   stateId?: string;
   userIds?: string[];
-  projectOfficerUserId?: string; 
+  projectOfficerUserId?: string;
 }

@@ -31,7 +31,6 @@ erDiagram
   users ||--|{ user_role : "user_role.user_id ∈ users.id"
   permission ||--|{ role_permission : "role_permission.permission_id ∈ permission.id"
   role ||--|{ role_permission : "role_permission.role_id ∈ role.id"
-  event }|--|| log_level : "event.log_level_id ∈ log_level.id"
   event }O..|| reportable_event_type : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
 
   bundle {
@@ -43,8 +42,6 @@ erDiagram
     text id PK
     text name
     text description
-    timestamptz created_at
-    timestamptz updated_at
   }
 
   demonstration {
@@ -52,12 +49,12 @@ erDiagram
     text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id), FK: demonstration_bundle_type.id"
     text name
     text description
-    date eval_period_start_date
-    date eval_period_end_date
+    date effective_date
+    date expiration_date
     timestamptz created_at
     timestamptz updated_at
-    uuid demonstration_status_id FK "FK: demonstration_status.id"
-    uuid state_id FK, UK "FK: state.id, UK2: (id, state_id)"
+    text demonstration_status_id FK "FK: demonstration_status.id"
+    text state_id FK, UK "FK: state.id, UK2: (id, state_id)"
     uuid project_officer_user_id FK "FK: users.id"
   }
 
@@ -66,7 +63,7 @@ erDiagram
   }
 
   demonstration_status {
-    uuid id PK
+    text id PK
     text name
     text description
     timestamptz created_at
@@ -87,6 +84,7 @@ erDiagram
 
   document_type {
     text id PK
+    text name
     text description
     timestamptz created_at
     timestamptz updated_at
@@ -94,21 +92,13 @@ erDiagram
 
   event {
     uuid id PK
-    uuid user_id
-    uuid active_user_id FK "FK: users.id, NULLABLE"
-    text event_type_id FK
-    uuid role_id
-    uuid active_role_id FK "FK: role.id, NULLABLE"
-    text log_level_id FK "FK: log_level.id"
+    uuid user_id FK "FK: users.id, NULLABLE"
+    text with_role_id FK "FK: role.id, NULLABLE"
+    text event_type
+    text log_level
     text route
     timestamptz created_at
-    jsonb event_data "NULLABLE"
-  }
-
-  log_level {
-    text id PK
-    text severity
-    int level
+    jsonb event_data
   }
 
   modification {
@@ -138,7 +128,7 @@ erDiagram
   }
 
   permission {
-    uuid id PK
+    text id PK
     text name
     text description
     timestamptz created_at
@@ -147,11 +137,12 @@ erDiagram
 
   reportable_event_type {
     text id PK
+    text name
     text description
   }
 
   role {
-    uuid id PK
+    text id PK
     text name
     text description
     timestamptz created_at
@@ -159,29 +150,28 @@ erDiagram
   }
 
   role_permission {
-    uuid role_id PK, FK "FK: role.id"
-    uuid permission_id PK, FK "FK: permission.id"
+    text role_id PK, FK "FK: role.id"
+    text permission_id PK, FK "FK: permission.id"
   }
 
   state {
-    uuid id PK
-    text state_code
-    text state_name
+    text id PK
+    text name
   }
 
   user_role {
     uuid user_id PK, FK "FK: users.id"
-    uuid role_id PK, FK "FK: role.id"
+    text role_id PK, FK "FK: role.id"
   }
 
   user_state {
     uuid user_id PK, FK "FK: users.id"
-    uuid state_id PK, FK "FK: state.id"
+    text state_id PK, FK "FK: state.id"
   }
 
   user_state_demonstration {
     uuid user_id FK "FK: (user_state.user_id, user_state.state_id)"
-    uuid state_id FK, FK "FK: (user_state.user_id, user_state.state_id)<br>FK: (demonstration.id, demonstration.state_id)"
+    text state_id FK, FK "FK: (user_state.user_id, user_state.state_id)<br>FK: (demonstration.id, demonstration.state_id)"
     uuid demonstration_id FK "FK: (demonstration.id, demonstration.state_id)"
   }
 

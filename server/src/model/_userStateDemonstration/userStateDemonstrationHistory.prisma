@@ -3,7 +3,7 @@ model UserStateDemonstrationHistory {
   revisionType    RevisionType @map("revision_type")
   modifiedAt      DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
   userId          String       @map("user_id") @db.Uuid
-  stateId         String       @map("state_id") @db.Uuid
+  stateId         String       @map("state_id")
   demonstrationId String       @map("demonstration_id") @db.Uuid
 
   @@map("user_state_demonstration_history")
