@@ -37,7 +37,6 @@ export function AmendmentTable({ data }: AmendmentTableProps) {
 
   return (
     <div className="w-full">
-      {/* Amendment List */}
       <div className="flex flex-col gap-2">
         {table.getRowModel().rows.map((row) => {
           const { title, effectiveDate, status } = row.original;
@@ -49,24 +48,19 @@ export function AmendmentTable({ data }: AmendmentTableProps) {
                 onClick={() => row.toggleExpanded()}
                 className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 cursor-pointer"
               >
-                {/* Title */}
                 <div className="text-sm font-bold text-blue-900">{title}</div>
 
-                {/* Spacer */}
-                <div></div>
+                <div className="h-1" />
 
-                {/* Status */}
                 <div>{renderStatus(status)}</div>
 
-                {/* Date + Chevron */}
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
                   <ChevronRightIcon
-                    className={`w-[18px] h-[18px] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
+                    className={`w-[1.4rem] h-[1.4rem] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
                   />
                 </div>
               </div>
-              {/* Expanded Content */}
               {isExpanded && (
                 <div className="mt-2 px-2 py-2 bg-gray-100 text-sm italic text-gray-600 rounded-sm">
                   Expanded details coming soon.
@@ -91,21 +85,21 @@ const renderStatus = (status: string) => {
     case "Under Review":
       return (
         <div className={`${baseStyle} text-left`}>
-          <ReviewIcon className="w-[18px] h-[18px] text-yellow-500" />
+          <ReviewIcon className="w-[1.4rem] h-[1.4rem] text-yellow-500" />
           {status}
         </div>
       );
     case "Approved":
       return (
         <div className={`${baseStyle} text-left`}>
-          <SuccessIcon className="w-[18px] h-[18px]" />
+          <SuccessIcon className="w-[1.4rem] h-[1.4rem]" />
           {status}
         </div>
       );
     case "Draft":
       return (
         <div className={`${baseStyle} text-left`}>
-          <SuccessIcon className="w-[18px] h-[18px]" />
+          <SuccessIcon className="w-[1.4rem] h-[1.4rem]" />
           {status}
         </div>
       );

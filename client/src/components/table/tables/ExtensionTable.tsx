@@ -37,7 +37,6 @@ export function ExtensionTable({ data }: ExtensionTableProps) {
 
   return (
     <div className="w-full">
-      {/* Extension List */}
       <div className="flex flex-col gap-2">
         {table.getRowModel().rows.map((row) => {
           const { title, effectiveDate, status } = row.original;
@@ -49,16 +48,12 @@ export function ExtensionTable({ data }: ExtensionTableProps) {
                 onClick={() => row.toggleExpanded()}
                 className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 cursor-pointer"
               >
-                {/* Title */}
                 <div className="text-sm font-bold text-blue-900">{title}</div>
 
-                {/* Spacer */}
-                <div></div>
+                <div className="h-1" />
 
-                {/* Status */}
                 <div>{renderStatus(status)}</div>
 
-                {/* Date + Chevron */}
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
                   <ChevronRightIcon
@@ -66,7 +61,6 @@ export function ExtensionTable({ data }: ExtensionTableProps) {
                   />
                 </div>
               </div>
-              {/* Expanded Content */}
               {isExpanded && (
                 <div className="mt-2 px-2 py-2 bg-gray-100 text-sm italic text-gray-600 rounded-sm">
                   Expanded details coming soon.

@@ -13,8 +13,6 @@ import {
   EllipsisIcon,
 } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
-import { RawAmendment } from "components/table/columns/AmendmentColumns";
-import { RawExtension } from "components/table/columns/ExtensionColumns";
 import { AmendmentTable } from "components/table/tables/AmendmentTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { ExtensionTable } from "components/table/tables/ExtensionTable";
@@ -25,7 +23,11 @@ import {
   TabItem,
   Tabs,
 } from "layout/Tabs";
+import { mockAmendments } from "mock-data/amendmentMocks";
+import { mockExtensions } from "mock-data/extensionMocks";
 import { useParams } from "react-router-dom";
+
+import { isTestMode } from "../config/env";
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,19 +42,6 @@ export const DemonstrationDetail = () => {
     if (id) trigger(id);
   }, [id]);
 
-  const mockAmendments: RawAmendment[] = [
-    { id: "1", title: "Amendment 3", status: "Under Review", effectiveDate: "2025-07-21" },
-    { id: "2", title: "Amendment 2", status: "Approved", effectiveDate: "2024-09-14" },
-    { id: "3", title: "Amendment 1", status: "Draft", effectiveDate: "2023-01-03" },
-  ];
-
-  const mockExtensions: RawExtension[] = [
-    { id: "1", title: "Extension 1", status: "Approved", effectiveDate: "2025-01-01" },
-    { id: "2", title: "Extension 2", status: "Under Review", effectiveDate: "2025-06-01" },
-    { id: "3", title: "Extension 3", status: "Draft", effectiveDate: "2023-01-03" },
-    { id: "4", title: "Extension 4", status: "Under Review", effectiveDate: "2025-01-01" },
-    { id: "5", title: "Extension 5", status: "Approved", effectiveDate: "2025-06-01" },
-  ];
 
   const tabList: TabItem[] = [
     { value: "details", label: "Demonstration Details" },
@@ -64,7 +53,7 @@ export const DemonstrationDetail = () => {
   const headerContent = useMemo(() => {
     if (loading) {
       return (
-        <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
+        <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
           Loading demonstration...
         </div>
       );
@@ -72,14 +61,14 @@ export const DemonstrationDetail = () => {
 
     if (error || !data) {
       return (
-        <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
+        <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
           Failed to load demonstration
         </div>
       );
     }
 
     return (
-      <div className="w-full bg-[var(--color-brand)] text-white px-4 py-1 flex items-center justify-between">
+      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
         <div>
           <span className="-ml-2 block text-sm">
             <a
@@ -92,7 +81,6 @@ export const DemonstrationDetail = () => {
           </span>
           <span className="font-bold block">{data.name}</span>
 
-          {/* Updated to split into two rows with test IDs */}
           <div data-testid="demonstration-detail-row" className="block text-sm">
             <span className="font-semibold">State/Territory:</span>{" "}
             <span>{data.state.stateCode}</span>
@@ -147,7 +135,7 @@ export const DemonstrationDetail = () => {
 
   return (
     <div>
-      {process.env.NODE_ENV === "test" && headerContent}
+      {isTestMode() && headerContent}
 
       {loading && <p>Loading...</p>}
       {error && <p>Error loading demonstration</p>}
@@ -172,7 +160,7 @@ export const DemonstrationDetail = () => {
 
             {tab === "amendments" && (
               <div>
-                <div className="flex justify-between items-center pb-1 mb-4 border-b border-[var(--color-brand)]">
+                <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
                   <h1 className="text-xl font-bold text-brand uppercase">
                     Amendments
                   </h1>
@@ -194,7 +182,7 @@ export const DemonstrationDetail = () => {
 
             {tab === "extensions" && (
               <div>
-                <div className="flex justify-between items-center pb-1 mb-4 border-b border-[var(--color-brand)]">
+                <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
                   <h1 className="text-xl font-bold text-brand uppercase">
                     Extensions
                   </h1>

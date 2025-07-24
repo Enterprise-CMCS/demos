@@ -41,7 +41,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
 
     visible.push(0); // Always show the first page
 
-    const leftSibling  = Math.max(1, currentPage - 1);
+    const leftSibling = Math.max(1, currentPage - 1);
     const rightSibling = Math.min(lastPage - 1, currentPage + 1);
 
     if (leftSibling > 1) {
@@ -109,11 +109,10 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           disabled={!canPreviousPage}
           aria-label={canPreviousPage ? "Go to previous page" : "No previous page"}
           aria-disabled={!canPreviousPage}
-          className={`px-2 py-1 rounded ${
-            canPreviousPage
-              ? "bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`px-2 py-1 rounded ${canPreviousPage
+              ? "bg-[var(--color-action)] text-white hover:bg-brand focus:outline-none focus:ring-2 focus:ring-blue-500"
               : "bg-gray-200 text-gray-500 cursor-not-allowed"
-          }`}
+            }`}
         >
           Prev
         </button>
@@ -137,11 +136,10 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
                   : `Go to page ${page + 1}`
               }
               aria-current={page === currentPage ? "page" : undefined}
-              className={`px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                page === currentPage
-                  ? "bg-[var(--color-brand)] text-white font-semibold"
+              className={`px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 ${page === currentPage
+                  ? "bg-brand text-white font-semibold"
                   : "bg-white text-black hover:bg-gray-100"
-              }`}
+                }`}
             >
               {page + 1}
             </button>
@@ -152,11 +150,10 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           disabled={!canNextPage}
           aria-label={canNextPage ? "Go to next page" : "No next page"}
           aria-disabled={!canNextPage}
-          className={`px-2 py-1 rounded ${
-            canNextPage
-              ? "bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`px-2 py-1 rounded ${canNextPage
+              ? "bg-[var(--color-action)] text-white hover:bg-brand focus:outline-none focus:ring-2 focus:ring-blue-500"
               : "bg-gray-200 text-gray-500 cursor-not-allowed"
-          }`}
+            }`}
         >
           Next
         </button>
