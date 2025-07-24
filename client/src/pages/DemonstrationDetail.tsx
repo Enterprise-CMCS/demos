@@ -83,7 +83,7 @@ export const DemonstrationDetail = () => {
 
           <div data-testid="demonstration-detail-row" className="block text-sm">
             <span className="font-semibold">State/Territory:</span>{" "}
-            <span>{data.state.stateCode}</span>
+            <span>{data.state.id}</span>
           </div>
 
           <div data-testid="demonstration-detail-row" className="block text-sm">
@@ -226,7 +226,7 @@ export const DemonstrationDetail = () => {
           mode="demonstration"
           data={{
             title: data.name,
-            state: data.state?.stateCode,
+            state: data.state?.id,
             projectOfficer: data.description,
             description: data.description,
           }}

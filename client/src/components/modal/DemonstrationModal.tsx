@@ -45,11 +45,19 @@ export const DemonstrationModal: React.FC<Props> = ({
 
   useEffect(() => {
     if (demonstration) {
-      setState(demonstration.state?.stateCode || "");
+      setState(demonstration.state?.id || "");
       setTitle(demonstration.name || "");
       setProjectOfficer(demonstration.users?.[0]?.id || "");
-      setEffectiveDate(new Date(demonstration.evaluationPeriodStartDate).toISOString().slice(0, 10));
-      setExpirationDate(new Date(demonstration.evaluationPeriodEndDate).toISOString().slice(0, 10));
+      setEffectiveDate(
+        new Date(demonstration.evaluationPeriodStartDate)
+          .toISOString()
+          .slice(0, 10)
+      );
+      setExpirationDate(
+        new Date(demonstration.evaluationPeriodEndDate)
+          .toISOString()
+          .slice(0, 10)
+      );
       setDescription(demonstration.description || "");
     }
   }, [demonstration]);

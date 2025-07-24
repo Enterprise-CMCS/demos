@@ -233,7 +233,7 @@ describe("DemonstrationModal", () => {
     const demonstration: Demonstration = {
       id: "1",
       name: "Original Demo",
-      state: { id: "1", stateName: "California", stateCode: "CA" },
+      state: { id: "CA", name: "California" },
       evaluationPeriodStartDate: new Date("2024-06-20T00:00:00.000Z"),
       evaluationPeriodEndDate: new Date("2024-07-20T00:00:00.000Z"),
       description: "Original description",
