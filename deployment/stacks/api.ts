@@ -18,6 +18,7 @@ import * as lambda from "../lib/lambda";
 import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import importNumberValue from "../util/importNumberValue";
+import path from "path";
 
 interface APIStackProps {
   cognito_userpool: aws_cognito.UserPool;
@@ -106,16 +107,25 @@ export class ApiStack extends Stack {
 
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(commonProps.scope, "rdsDatabaseSecret",`demos-${commonProps.hostEnvironment}-rds-admin`)
 
+    const authPath = path.join("..", "lambda_authorizer")
+    console.log("authPath", authPath)
+    const rel = path.resolve(authPath)
+    console.log("rel", rel)
+
     const authorizerLambda = lambda.create(
       {
         ...commonProps,
-        entry: "../lambda_authorizer",
+        entry: path.join(rel, "index.mjs"),
         handler: "index.handler",
-        asCode: true,
+        asCode: false,
         environment: {
           JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
           ...props.cognito_userpool.env
-        }
+        },
+        externalModules: ["aws-sdk"],
+        nodeModules: ["jsonwebtoken","jwks-rsa"],       
+        depsLockFilePath: path.join(rel, "package-lock.json"),
+        forceDocker: true,
       },
       "authorizer"
     )
