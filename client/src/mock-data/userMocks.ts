@@ -3,6 +3,7 @@ import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
 import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 import { MockedResponse } from "@apollo/client/testing";
+import { USER_OPTIONS_QUERY } from "queries/userQueries";
 
 export const johnDoe: User = {
   id: "1",
@@ -110,6 +111,32 @@ export const userMocks: MockedResponse[] = [
         user: {
           fullName: "John Doe",
         },
+      },
+    },
+  },
+  {
+    request: {
+      query: USER_OPTIONS_QUERY,
+    },
+    result: {
+      data: {
+        users: [
+          {
+            fullName: "Yoda",
+          },
+          {
+            fullName: "Leia Organa",
+          },
+          {
+            fullName: "Han Solo",
+          },
+          {
+            fullName: "Luke Skywalker",
+          },
+          {
+            fullName: "Darth Vader",
+          },
+        ],
       },
     },
   },

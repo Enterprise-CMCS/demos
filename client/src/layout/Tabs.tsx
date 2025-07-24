@@ -13,7 +13,11 @@ interface TabsProps {
 }
 
 // As long as you want tabs just like the the datagrid, here yoo go!
-export const Tabs: React.FC<TabsProps> = ({ tabs, selectedValue, onChange }) => {
+export const Tabs: React.FC<TabsProps> = ({
+  tabs,
+  selectedValue,
+  onChange,
+}) => {
   return (
     <div className="border-b border-gray-300 mb-2">
       <ul className="flex -mb-px">
@@ -29,6 +33,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, selectedValue, onChange }) => 
                     ? "border-b-5 text-brand"
                     : "text-gray-600 hover:text-gray-800")
                 }
+                aria-selected={isSelected}
               >
                 {tab.label}
                 {tab.count != null && ` (${tab.count})`}

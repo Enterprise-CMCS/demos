@@ -4,6 +4,7 @@ import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
 import {
   ADD_DEMONSTRATION_QUERY,
+  DEMONSTRATION_TABLE_QUERY,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
@@ -97,6 +98,44 @@ export const demonstrationMocks: MockedResponse[] = [
           evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
           updatedAt: new Date("2024-07-01T00:00:00.000Z"),
         },
+      },
+    },
+  },
+  {
+    request: {
+      query: DEMONSTRATION_TABLE_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: [
+          {
+            id: "1",
+            name: "Montana Medicaid Waiver",
+            description: "Montana waiver demonstration",
+            demonstrationStatus: { id: "1", name: "Active" },
+            state: { stateCode: "MT", stateName: "Montana" },
+            projectOfficer: { id: "1", fullName: "John Doe" },
+            users: [{ id: "1", fullName: "Current User" }],
+          },
+          {
+            id: "2",
+            name: "Florida Health Innovation",
+            description: "Florida innovation demonstration",
+            demonstrationStatus: { id: "2", name: "Pending" },
+            state: { stateCode: "FL", stateName: "Florida" },
+            projectOfficer: { id: "2", fullName: "Jane Smith" },
+            users: [{ id: "2", fullName: "Other User" }],
+          },
+          {
+            id: "3",
+            name: "Texas Reform Initiative",
+            description: "Texas reform demonstration",
+            demonstrationStatus: { id: "3", name: "Active" },
+            state: { stateCode: "TX", stateName: "Texas" },
+            projectOfficer: { id: "3", fullName: "Bob Johnson" },
+            users: [{ id: "1", fullName: "Current User" }],
+          },
+        ],
       },
     },
   },
