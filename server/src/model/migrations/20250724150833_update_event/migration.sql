@@ -9,6 +9,7 @@
   - You are about to drop the `log_level` table. If the table is not empty, all the data it contains will be lost.
   - Added the required column `event_type` to the `event` table without a default value. This is not possible if the table is not empty.
   - Added the required column `log_level` to the `event` table without a default value. This is not possible if the table is not empty.
+  - Made the column `event_data` on table `event` required. This step will fail if there are existing NULL values in that column.
 
 */
 -- DropForeignKey
@@ -29,7 +30,8 @@ DROP COLUMN "role_id",
 ADD COLUMN     "event_type" TEXT NOT NULL,
 ADD COLUMN     "log_level" TEXT NOT NULL,
 ADD COLUMN     "with_role_id" UUID,
-ALTER COLUMN "user_id" DROP NOT NULL;
+ALTER COLUMN "user_id" DROP NOT NULL,
+ALTER COLUMN "event_data" SET NOT NULL;
 
 -- DropTable
 DROP TABLE "log_level";
