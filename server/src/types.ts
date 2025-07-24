@@ -18,6 +18,12 @@ export type {
 } from "./model/demonstrationStatus/demonstrationStatusSchema.js";
 
 export type {
+  AmendmentStatus,
+  AddAmendmentStatusInput,
+  UpdateAmendmentStatusInput,
+} from "./model/modificationStatus/modificationStatusSchema.js";
+
+export type {
   State,
   AddStateInput,
   UpdateStateInput,
@@ -36,4 +42,4 @@ export type {
 } from "./model/permission/permissionSchema.js";
 
 import { BUNDLE_TYPE } from "./constants.js";
-export type BundleType = typeof BUNDLE_TYPE[keyof typeof BUNDLE_TYPE];
+export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];

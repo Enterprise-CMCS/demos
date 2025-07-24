@@ -12,6 +12,7 @@ model User {
   userStates                   UserState[]
   userStateDemonstrations      UserStateDemonstration[]
   projectOfficerDemonstrations Demonstration[]
+  projectOfficerModifications  Modification[]
   events                       Event[]
   ownedDocuments               Document[]
 

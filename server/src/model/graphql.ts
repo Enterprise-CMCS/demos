@@ -12,6 +12,12 @@ import { documentTypeResolvers } from "./documentType/documentTypeResolver.js";
 
 import { eventSchema, eventResolvers } from "./event/index.js";
 
+import { modificationSchema } from "./modification/modificationSchema.js";
+import { modificationStatusSchema } from "./modificationStatus/modificationStatusSchema.js";
+
+import { modificationResolvers } from "./modification/modificationResolvers.js";
+import { modificationStatusResolvers } from "./modificationStatus/modificationStatusResolvers.js";
+
 import { permissionSchema } from "./permission/permissionSchema.js";
 import { permissionResolvers } from "./permission/permissionResolvers.js";
 
@@ -42,6 +48,8 @@ export const typeDefs = [
   documentSchema,
   documentTypeSchema,
   eventSchema,
+  modificationSchema,
+  modificationStatusSchema,
   permissionSchema,
   roleSchema,
   stateSchema,
@@ -55,6 +63,8 @@ export const resolvers = [
   documentResolvers,
   documentTypeResolvers,
   eventResolvers,
+  modificationResolvers,
+  modificationStatusResolvers,
   permissionResolvers,
   roleResolvers,
   stateResolvers,

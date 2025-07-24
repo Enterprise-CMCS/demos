@@ -1,3 +1,4 @@
+// Flags: NATURAL_KEY
 model BundleType {
   id          String   @id
   name        String
@@ -7,6 +8,7 @@ model BundleType {
 
   bundle                  Bundle[]
   demonstrationBundleType DemonstrationBundleType[]
+  modificationBundleType  ModificationBundleType[]
 
   @@map("bundle_type")
 }

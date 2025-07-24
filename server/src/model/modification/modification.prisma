@@ -1,0 +1,22 @@
+model Modification {
+  id                   String   @db.Uuid
+  bundleTypeId         String   @map("bundle_type_id")
+  demonstrationId      String   @map("demonstration_id") @db.Uuid
+  name                 String
+  description          String
+  effectiveDate        DateTime @map("effective_date") @db.Date
+  expirationDate       DateTime @map("expiration_date") @db.Date
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  modificationStatusId String   @map("modification_status_id")
+  projectOfficerUserId String   @map("project_officer_user_id") @db.Uuid
+
+  bundle             Bundle                 @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
+  bundleType         ModificationBundleType @relation(fields: [bundleTypeId], references: [id])
+  demonstration      Demonstration          @relation(fields: [demonstrationId], references: [id])
+  modificationStatus ModificationStatus     @relation(fields: [modificationStatusId, bundleTypeId], references: [id, bundleTypeId])
+  projectOfficer     User                   @relation(fields: [projectOfficerUserId], references: [id])
+
+  @@id([id])
+  @@map("modification")
+}
