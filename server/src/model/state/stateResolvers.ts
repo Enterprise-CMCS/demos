@@ -1,6 +1,5 @@
 import { State } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { AddStateInput, UpdateStateInput } from "./stateSchema.js";
 
 export const stateResolvers = {
   Query: {
@@ -11,50 +10,6 @@ export const stateResolvers = {
     },
     states: async () => {
       return await prisma().state.findMany();
-    },
-  },
-
-  Mutation: {
-    addState: async (_: undefined, { input }: { input: AddStateInput }) => {
-      const { userIds, ...rest } = input;
-      return await prisma().state.create({
-        data: {
-          ...rest,
-          ...(userIds && {
-            userStates: {
-              create: userIds.map((userId: string) => ({
-                userId,
-              })),
-            },
-          }),
-        },
-      });
-    },
-
-    updateState: async (
-      _: undefined,
-      { id, input }: { id: string; input: UpdateStateInput },
-    ) => {
-      const { userIds, ...rest } = input;
-      return await prisma().state.update({
-        where: { id },
-        data: {
-          ...rest,
-          ...(userIds && {
-            userStates: {
-              create: userIds.map((userId: string) => ({
-                userId,
-              })),
-            },
-          }),
-        },
-      });
-    },
-
-    deleteState: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().state.delete({
-        where: { id: id },
-      });
     },
   },
 

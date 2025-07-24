@@ -64,12 +64,6 @@ export const roleResolvers = {
         },
       });
     },
-
-    deleteState: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().state.delete({
-        where: { id: id },
-      });
-    },
   },
 
   Role: {

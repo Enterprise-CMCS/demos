@@ -1,5 +1,5 @@
 import { prisma } from "../../prismaClient.js";
-import { Document } from "@prisma/client";
+import { Bundle, Document } from "@prisma/client";
 import { BundleType } from "../../types.js";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { GraphQLError } from "graphql";
@@ -239,7 +239,7 @@ export const documentResolvers = {
   },
 
   Bundle: {
-    __resolveType(obj) {
+    __resolveType(obj: Bundle) {
       if (obj.bundleTypeId === demonstrationBundleTypeId) {
         return "Demonstration";
       } else if (obj.bundleTypeId === amendmentBundleTypeId) {
