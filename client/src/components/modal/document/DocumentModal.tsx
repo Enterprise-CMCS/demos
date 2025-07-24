@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
+import { useFileDrop } from "hooks/useFileDrop";
 import { useFileUpload } from "hooks/file/useFileUpload";
 import { PrimaryButton, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
@@ -49,12 +50,6 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
   const half = Math.floor((maxLength - 3) / 2);
   return `${str.slice(0, half)}...${str.slice(-half)}`;
-};
-
-type BaseDocumentModalProps = {
-  title: string;
-  onClose?: () => void;
-  documentId?: string;
 };
 
 const DescriptionInput: React.FC<{
@@ -115,7 +110,7 @@ const ProgressBar: React.FC<{ progress: number; status: string }> = ({
 
 const DropTarget: React.FC<{
   file: File | null;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   uploadStatus: string;
   uploadProgress: number;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -126,62 +121,87 @@ const DropTarget: React.FC<{
   uploadStatus,
   uploadProgress,
   handleFileChange,
-}) => (
-  <div className={STYLES.dropzone}>
-    <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
-    <p className={STYLES.dropzoneOr}>or</p>
-    <input
-      type="file"
-      ref={fileInputRef}
-      className="hidden"
-      accept={ACCEPTED_EXTENSIONS}
-      onChange={handleFileChange}
-      data-testid="file-input"
-    />
-    <SecondaryButton
-      type="button"
-      aria-label="Select File"
-      size="small"
-      onClick={() => fileInputRef.current?.click()}
-      disabled={uploadStatus === "uploading"}
-      className="w-full max-w-full overflow-hidden text-ellipsis"
+}) => {
+  // Clean useFileDrop for files
+  const handleFiles = useCallback(
+    (files: FileList) => {
+      if (!files || files.length === 0) return;
+      const input = document.createElement("input");
+      input.type = "file";
+      const dt = new DataTransfer();
+      Array.from(files).forEach((f) => dt.items.add(f));
+      input.files = dt.files;
+      // @ts-expect-error for React synthetic event compatibility
+      handleFileChange({ target: input });
+    },
+    [handleFileChange]
+  );
+  const { handleDragOver, handleDrop } = useFileDrop(handleFiles);
+  return (
+    <div
+      className={STYLES.dropzone}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
-      {file ? (
-        <span
-          className="inline-block max-w-full truncate text-left"
-          title={file.name}
-        >
-          {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
-        </span>
-      ) : (
-        "Select File(s)"
-      )}
-    </SecondaryButton>
-
-    {file && (
-      <div className="w-full">
-        <ProgressBar progress={uploadProgress} status={uploadStatus} />
-        {uploadProgress > 0 && (
-          <div className="flex justify-between mt-1 text-[12px] text-text-placeholder font-medium">
-            <span>{(file.size / 1_000_000).toFixed(1)} MB</span>
-            <span>{uploadProgress}%</span>
-          </div>
+      <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
+      <p className={STYLES.dropzoneOr}>or</p>
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept={ACCEPTED_EXTENSIONS}
+        onChange={handleFileChange}
+        data-testid="file-input"
+      />
+      <SecondaryButton
+        type="button"
+        aria-label="Select File"
+        size="small"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploadStatus === "uploading"}
+        className="w-full max-w-full overflow-hidden text-ellipsis"
+      >
+        {file ? (
+          <span
+            className="inline-block max-w-full truncate text-left"
+            title={file.name}
+          >
+            {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
+          </span>
+        ) : (
+          "Select File(s)"
         )}
-      </div>
-    )}
+      </SecondaryButton>
 
-    <p className={STYLES.fileNote}>
-      (Note: Files must be less than {MAX_FILE_SIZE_MB}MB)
-      <br />
-      Allowed file types: {ACCEPTED_EXTENSIONS.split(",").join(", ")}
-    </p>
-  </div>
-);
+      {file && (
+        <div className="w-full">
+          <ProgressBar progress={uploadProgress} status={uploadStatus} />
+          {uploadProgress > 0 && (
+            <div className="flex justify-between mt-1 text-[12px] text-text-placeholder font-medium">
+              <span>{(file.size / 1_000_000).toFixed(1)} MB</span>
+              <span>{uploadProgress}%</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <p className={STYLES.fileNote}>
+        (Note: Files must be less than {MAX_FILE_SIZE_MB}MB)
+        <br />
+        Allowed file types: {ACCEPTED_EXTENSIONS.split(",").join(", ")}
+      </p>
+    </div>
+  );
+};
+
+type BaseDocumentModalProps = {
+  title: string;
+  onClose?: () => void;
+};
 
 const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   onClose = () => {},
   title,
-  documentId,
 }) => {
   const { showSuccess } = useToast();
 
