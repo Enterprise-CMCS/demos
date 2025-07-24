@@ -52,8 +52,6 @@ const mockRawData = [
     description: "...",
     effectiveDate: "2018-06-27",
     expirationDate: "2023-06-27",
-    effectiveDate: "2018-06-27",
-    expirationDate: "2023-06-27",
     demonstrationStatusId: 3,
     userId: 121,
     stateId: "AK",
