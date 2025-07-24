@@ -32,6 +32,7 @@ interface LambdaProps extends CommonProps {
   useAlias?: boolean;
   deploymentConfig?: aws_codedeploy.ILambdaDeploymentConfig;
   authorizer?: aws_apigateway.Authorizer;
+  authorizationType?: aws_apigateway.AuthorizationType;
   asCode?: boolean;
 }
 
@@ -141,7 +142,7 @@ export class Lambda extends Construct {
         {
           authorizationType: props.isLocalstack
             ? undefined
-            : aws_apigateway.AuthorizationType.CUSTOM,
+            : props.authorizationType,
           authorizer: props.isLocalstack ? undefined : props.authorizer,
           // authorizationScopes: props.isLocalstack
           //   ? undefined

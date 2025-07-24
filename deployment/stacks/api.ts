@@ -140,6 +140,9 @@ export class ApiStack extends Stack {
         authorizer: props.isLocalstack
           ? undefined
           : tokenAuthorizer,
+        authorizationType: props.isLocalstack
+          ? undefined
+          : aws_apigateway.AuthorizationType.CUSTOM,
         asCode: true,
         environment: {
           BYPASS_AUTH: commonProps.hostEnvironment == "dev" ? "true" : "",
