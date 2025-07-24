@@ -32,6 +32,13 @@ export const handler = async (event, context, callback) => {
     return generatePolicy(decoded.sub, "Deny", event.methodArn, {});
   }
 
+  const validRoles = ["demos-admin", "demos-cms-user", "demos-state-user"];
+
+  if (!validRoles.some((role) => roles.includes(role))) {
+    console.log(`user sub [${decoded.sub}] rejected with invalid roles [${roles}]`);
+    return generatePolicy(decoded.sub, "Deny", event.methodArn, {});
+  }
+
   console.log(`user sub [${decoded.sub}] authorized with role [${roles}]`);
   return generatePolicy(decoded.sub, "Allow", event.methodArn, {
     sub: decoded.sub,
