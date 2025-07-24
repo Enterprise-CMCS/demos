@@ -110,9 +110,9 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           aria-label={canPreviousPage ? "Go to previous page" : "No previous page"}
           aria-disabled={!canPreviousPage}
           className={`px-2 py-1 rounded ${canPreviousPage
-              ? "bg-[var(--color-action)] text-white hover:bg-brand focus:outline-none focus:ring-2 focus:ring-blue-500"
-              : "bg-gray-200 text-gray-500 cursor-not-allowed"
-            }`}
+            ? "bg-[var(--color-action)] text-white hover:bg-brand focus:outline-none focus:ring-2 focus:ring-blue-500"
+            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+          }`}
         >
           Prev
         </button>
@@ -137,9 +137,9 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
               }
               aria-current={page === currentPage ? "page" : undefined}
               className={`px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 ${page === currentPage
-                  ? "bg-brand text-white font-semibold"
-                  : "bg-white text-black hover:bg-gray-100"
-                }`}
+                ? "bg-brand text-white font-semibold"
+                : "bg-white text-black hover:bg-gray-100"
+              }`}
             >
               {page + 1}
             </button>
@@ -151,9 +151,9 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           aria-label={canNextPage ? "Go to next page" : "No next page"}
           aria-disabled={!canNextPage}
           className={`px-2 py-1 rounded ${canNextPage
-              ? "bg-[var(--color-action)] text-white hover:bg-brand focus:outline-none focus:ring-2 focus:ring-blue-500"
-              : "bg-gray-200 text-gray-500 cursor-not-allowed"
-            }`}
+            ? "bg-[var(--color-action)] text-white hover:bg-brand focus:outline-none focus:ring-2 focus:ring-blue-500"
+            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+          }`}
         >
           Next
         </button>
