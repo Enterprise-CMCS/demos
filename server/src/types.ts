@@ -41,5 +41,11 @@ export type {
   UpdatePermissionInput,
 } from "./model/permission/permissionSchema.js";
 
+export type {
+  Event,
+  LogEventInput,
+  EventLoggedStatus
+} from "./model/event/eventSchema.js";
+
 import { BUNDLE_TYPE } from "./constants.js";
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];

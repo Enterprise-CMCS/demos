@@ -78,30 +78,6 @@ async function seedDatabase() {
   const demonstrationCount = 20;
   const amendmentCount = 10;
   const documentCount = 130;
-  const syntheticEventCount = 140;
-  const syntheticEventTypeCount = 10;
-
-  console.log("🌱 Generating synthetic event types...");
-  const syntheticEventTypeValues = [];
-  for (let i = 0; i < syntheticEventTypeCount; i++) {
-    syntheticEventTypeValues.push({
-      eventTypeId: faker.lorem
-        .sentence(2)
-        .toLocaleUpperCase()
-        .replace(" ", "_")
-        .replace(".", ""),
-      logLevelId: (await prisma().logLevel.findRandom({
-        select: { id: true },
-      }))!.id,
-      route:
-        "/" +
-        faker.lorem.word() +
-        "/" +
-        faker.lorem.word() +
-        "/" +
-        faker.lorem.word(),
-    });
-  }
 
   console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
@@ -146,27 +122,6 @@ async function seedDatabase() {
       permissionId: bypassPermissionId,
     },
   });
-  for (let i = 0; i < 10; i++) {
-    const eventTypeIndex = Math.floor(
-      Math.random() * syntheticEventTypeValues.length,
-    );
-    await prisma().event.create({
-      data: {
-        userId: bypassUserId,
-        activeUserId: bypassUserId,
-        eventTypeId: syntheticEventTypeValues[eventTypeIndex].eventTypeId,
-        roleId: bypassRoleId,
-        activeRoleId: bypassRoleId,
-        logLevelId: syntheticEventTypeValues[eventTypeIndex].logLevelId,
-        route: syntheticEventTypeValues[eventTypeIndex].route,
-        createdAt: faker.date.past(),
-        eventData: {
-          key: faker.lorem.word(),
-          value: faker.lorem.sentence(),
-        },
-      },
-    });
-  }
 
   console.log("🌱 Seeding roles...");
   for (let i = 0; i < roleCount; i++) {
@@ -508,39 +463,10 @@ async function seedDatabase() {
     });
   }
 
-  const userRoleIds = await prisma().userRole.findMany({
-    where: {
-      NOT: {
-        userId: bypassUserId,
-      },
-    },
-  });
-  console.log("🌱 Seeding events...");
-  for (let i = 0; i < syntheticEventCount; i++) {
-    const eventTypeIndex = Math.floor(
-      Math.random() * syntheticEventTypeValues.length,
-    );
-    const userRoleIndex = Math.floor(Math.random() * userRoleIds.length);
-    await prisma().event.create({
-      data: {
-        userId: userRoleIds[userRoleIndex].userId,
-        activeUserId: userRoleIds[userRoleIndex].userId,
-        eventTypeId: syntheticEventTypeValues[eventTypeIndex].eventTypeId,
-        roleId: userRoleIds[userRoleIndex].roleId,
-        activeRoleId: userRoleIds[userRoleIndex].roleId,
-        logLevelId: syntheticEventTypeValues[eventTypeIndex].logLevelId,
-        route: syntheticEventTypeValues[eventTypeIndex].route,
-        createdAt: faker.date.past(),
-        eventData: {
-          key: faker.lorem.word(),
-          value: faker.lorem.sentence(),
-        },
-      },
-    });
-  }
-
-  console.log("✨ Database seeding complete.");
-}
+  console.log(
+    "✨ Database seeding complete.",
+  );
+};
 
 seedDatabase().catch((error) => {
   console.error("❌ An error occurred while seeding the database:", error);
