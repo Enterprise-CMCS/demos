@@ -1,5 +1,5 @@
 import { prisma } from '../../prismaClient.js';
-import { CreateEventInput } from './eventSchema.js';
+import { LogEventInput } from './eventSchema.js';
 import { Event } from "@prisma/client";
 import { GraphQLContext, getCurrentUserId, getCurrentUserRoleId } from '../../auth/auth.util.js';
 
@@ -17,9 +17,9 @@ export const eventResolvers = {
       });
     },
 
-    eventsByType: async (_: undefined, { eventTypeId }: { eventTypeId: string }) => {
+    eventsByType: async (_: undefined, { eventType }: { eventType: string }) => {
       return await prisma().event.findMany({
-        where: { eventTypeId },
+        where: { eventType },
         orderBy: { createdAt: 'desc' }
       });
     },
@@ -33,36 +33,29 @@ export const eventResolvers = {
   },
 
   Mutation: {
-    createEvent: async (_: undefined, { input }: { input: CreateEventInput }, context: GraphQLContext) => {
-      const { eventTypeId, logLevelId, route, eventData } = input;
+    logEvent: async (_: undefined, { input }: { input: LogEventInput }, context: GraphQLContext) => {
+      const { eventType, logLevel, route, eventData: clientEventData } = input;
 
       const userId = await getCurrentUserId(context);
       const roleId = await getCurrentUserRoleId(context);
 
-      return await prisma().event.create({
-        data: {
-          userId: userId,
-          user: {
-            connect: {
-              id: userId 
-            }
-          },
-          eventTypeId: eventTypeId,
-          roleId: roleId,
-          role: {
-            connect: {
-              id: roleId
-            }
-          },
-          logLevel: {
-            connect: {
-              id: logLevelId
-            }
-          },
-          route: route,
-          eventData: eventData
-        }
-      });
+      const eventData = { ...clientEventData, userId, roleId };
+
+      try {
+        await prisma().event.create({
+          data: {
+            userId: userId,
+            eventType: eventType,
+            logLevel: logLevel,
+            withRoleId: roleId,
+            route: route,
+            eventData: eventData
+          }
+        });
+        return { success: true };
+      } catch (error) {
+        return { success: false, message: (error as Error).message };
+      }
     }
   },
 
@@ -73,9 +66,9 @@ export const eventResolvers = {
       });
     },
 
-    role: async (parent: Event) => {
+    withRole: async (parent: Event) => {
       return await prisma().role.findUnique({
-        where: { id: parent.roleId },
+        where: { id: parent.withRoleId },
       });
     },
   }

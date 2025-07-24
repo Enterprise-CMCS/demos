@@ -85,6 +85,20 @@ describe("DocumentTable", () => {
 
     // No documents should appear
     expect(within(table).queryByRole("row", { name: /document/i })).toBeNull();
-    // Optionally, you could check for "No documents found" message if your component has one
+  });
+
+  it("defaults to sorting by uploadDate descending (newest first)", () => {
+    const rows = screen.getAllByRole("row").slice(1); // skip header
+
+    const titles = rows.map(row => {
+      const cells = row.querySelectorAll("td");
+      return cells[1]?.textContent?.trim() || "";
+    });
+
+    expect(titles).toEqual([
+      "Pre-Submission Concept Note",
+      "Budget Summary",
+      "State Plan Amendment",
+    ]);
   });
 });

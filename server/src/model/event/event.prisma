@@ -1,20 +1,17 @@
 // Flags: NO_UPDATED_TS, NO_HISTORY
 // Table is append-only with no deletions or updates
 model Event {
-  id           String   @id @default(uuid()) @db.Uuid
-  userId       String   @map("user_id") @db.Uuid
-  activeUserId String?  @map("active_user_id") @db.Uuid
-  eventTypeId  String   @map("event_type_id")
-  roleId       String   @map("role_id") @db.Uuid
-  activeRoleId String?  @map("active_role_id") @db.Uuid
-  logLevelId   String   @map("log_level_id")
-  route        String
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  eventData    Json?    @map("event_data") @db.Json
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  withRoleId String?  @map("with_role_id") @db.Uuid
+  eventType  String   @map("event_type")
+  logLevel   String   @map("log_level")
+  route      String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  eventData  Json     @map("event_data") @db.Json
 
-  user     User?    @relation(fields: [activeUserId], references: [id])
-  role     Role?    @relation(fields: [activeRoleId], references: [id])
-  logLevel LogLevel @relation(fields: [logLevelId], references: [id])
+  role Role? @relation(fields: [withRoleId], references: [id], onDelete: SetNull)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("event")
 }

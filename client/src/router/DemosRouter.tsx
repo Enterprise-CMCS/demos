@@ -13,6 +13,7 @@ import { DemosApolloProvider } from "./DemosApolloProvider";
 import { isDevelopmentMode } from "config/env";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { EventSandbox } from "pages/debug/EventSandbox";
 
 export const DemosRouter = () => {
   // TODO: When we know what IDM integration looks like
@@ -34,7 +35,6 @@ export const DemosRouter = () => {
                 }
               >
                 {/* Real Pages the user should be able to access */}
-                {/* TODO: is the Demonstration page just the landing page? */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
@@ -45,6 +45,7 @@ export const DemosRouter = () => {
                     <Route path="/hooks" element={<TestHooks />} />
                     <Route path="/auth" element={<AuthComponent />} />
                     <Route path="/icons" element={<IconLibrary />} />
+                    <Route path="/events" element={<EventSandbox />} />
                   </>
                 )}
               </Route>
