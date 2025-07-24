@@ -68,17 +68,6 @@ export function create(props: ApiGatewayProps) {
     },
   });
 
-  const authorizer = props.isLocalstack
-    ? undefined
-    : new aws_apigateway.CognitoUserPoolsAuthorizer(
-        props.scope,
-        "cognitoAuthorizer",
-        {
-          cognitoUserPools: [props.userPool],
-          authorizerName: "cognito-auth",
-        }
-      );
-
   const healthEndpoint = new MockIntegration({
     integrationResponses: [
       {
@@ -112,7 +101,6 @@ export function create(props: ApiGatewayProps) {
     api,
     restApiId: api.restApiId,
     apiGatewayRestApiUrl: api.url.slice(0, -1),
-    authorizer,
     apiParentResource
   };
 }

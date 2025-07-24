@@ -11,6 +11,7 @@ import {
   aws_cloudfront_origins,
   aws_wafv2,
   Fn,
+  Aws,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -131,6 +132,7 @@ export class UiStack extends Stack {
       }
     );
 
+    const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`)
     const securityHeadersPolicy = new aws_cloudfront.ResponseHeadersPolicy(
       commonProps.scope,
       "CloudFormationHeadersPolicy",
@@ -153,7 +155,7 @@ export class UiStack extends Stack {
           },
           contentSecurityPolicy: {
             contentSecurityPolicy:
-              "default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; object-src 'none'",
+              `default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain}; frame-ancestors 'none'; object-src 'none'`,
             override: true,
           },
         },

@@ -7,6 +7,7 @@ model Bundle {
   bundleType    BundleType     @relation(fields: [bundleTypeId], references: [id])
   demonstration Demonstration?
   document      Document[]
+  modification  Modification[]
 
   @@unique([id, bundleTypeId])
   @@map("bundle")

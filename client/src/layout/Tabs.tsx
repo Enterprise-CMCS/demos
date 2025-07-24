@@ -2,7 +2,7 @@ import React from "react";
 
 export interface TabItem {
   label: string;
-  count: number;
+  count?: number;
   value: string;
 }
 
@@ -30,7 +30,8 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, selectedValue, onChange }) => 
                     : "text-gray-600 hover:text-gray-800")
                 }
               >
-                {tab.label} ({tab.count})
+                {tab.label}
+                {tab.count != null && ` (${tab.count})`}
               </button>
             </li>
           );

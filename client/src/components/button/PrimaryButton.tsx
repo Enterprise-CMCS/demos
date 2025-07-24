@@ -30,7 +30,7 @@ export const PrimaryButton: React.FC<Props> = ({
     disabled={disabled}
     onClick={onClick}
     form={form}
-    className={`bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-action-focus)] rounded-md ${className}`}
+    className={`bg-[var(--color-action)] text-white hover:bg-brand focus:ring-2 focus:ring-[var(--color-action-focus)] rounded-md ${className}`}
   >
     {children}
   </BaseButton>

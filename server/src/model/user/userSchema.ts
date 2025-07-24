@@ -2,8 +2,8 @@ import { gql } from "graphql-tag";
 import { State } from "../state/stateSchema.js";
 import { Role } from "../role/roleSchema.js";
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
-import { Event } from "../event/eventSchema.js"
-import { Document } from "../document/documentSchema.js"
+import { Event } from "../event/eventSchema.js";
+import { Document } from "../document/documentSchema.js";
 
 export const userSchema = gql`
   type User {

@@ -1,0 +1,11 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY, NATURAL_KEY
+// Table is a static constraint and is updated entirely via migrations
+model ModificationBundleType {
+  id String @id
+
+  bundleType         BundleType           @relation(fields: [id], references: [id])
+  modification       Modification[]
+  modificationStatus ModificationStatus[]
+
+  @@map("modification_bundle_type")
+}

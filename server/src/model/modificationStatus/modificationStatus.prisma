@@ -1,0 +1,14 @@
+// Flags: NATURAL_KEY
+model ModificationStatus {
+  id           String
+  bundleTypeId String   @map("bundle_type_id")
+  description  String
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  bundleType    ModificationBundleType @relation(fields: [bundleTypeId], references: [id])
+  modifications Modification[]
+
+  @@id(name: "modificationStatusId", [id, bundleTypeId])
+  @@map("modification_status")
+}
