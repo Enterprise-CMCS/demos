@@ -4,11 +4,13 @@ import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
 import {
   ADD_DEMONSTRATION_QUERY,
+  DEMONSTRATION_TABLE_QUERY,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 import { MockedResponse } from "@apollo/client/testing";
+import { DemonstrationTableRow } from "hooks/useDemonstration";
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -97,6 +99,41 @@ export const demonstrationMocks: MockedResponse[] = [
           expirationDate: new Date("2024-07-31T00:00:00.000Z"),
           updatedAt: new Date("2024-07-01T00:00:00.000Z"),
         },
+      },
+    },
+  },
+  {
+    request: {
+      query: DEMONSTRATION_TABLE_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: [
+          {
+            id: "1",
+            name: "Montana Medicaid Waiver",
+            demonstrationStatus: { name: "Approved" },
+            state: { name: "Montana" },
+            projectOfficer: { fullName: "John Doe" },
+            users: [{ id: "1" }],
+          },
+          {
+            id: "2",
+            name: "Florida Health Innovation",
+            demonstrationStatus: { name: "Expired" },
+            state: { name: "Florida" },
+            projectOfficer: { fullName: "Jane Smith" },
+            users: [{ id: "2" }],
+          },
+          {
+            id: "3",
+            name: "Texas Reform Initiative",
+            demonstrationStatus: { name: "Withdrawn" },
+            state: { name: "Texas" },
+            projectOfficer: { fullName: "Bob Johnson" },
+            users: [{ id: "1" }],
+          },
+        ] satisfies DemonstrationTableRow[],
       },
     },
   },

@@ -26,6 +26,27 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
   }
 `;
 
+export const DEMONSTRATION_TABLE_QUERY = gql`
+  query GetDemonstrations {
+    demonstrations {
+      id
+      name
+      demonstrationStatus {
+        name
+      }
+      state {
+        name
+      }
+      users {
+        id
+      }
+      projectOfficer {
+        fullName
+      }
+    }
+  }
+`;
+
 export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
   query GetDemonstration($id: ID!) {
     demonstration(id: $id) {

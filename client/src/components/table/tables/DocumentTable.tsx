@@ -12,7 +12,10 @@ import {
 } from "@tanstack/react-table";
 
 import { DocumentColumns } from "components/table/columns/DocumentColumns";
-import { AutoCompleteSelect, Option } from "components/input/select/AutoCompleteSelect";
+import {
+  AutoCompleteSelect,
+  Option,
+} from "components/input/select/AutoCompleteSelect";
 import { PaginationControls } from "components/table//pagination/PaginationControls";
 
 export interface RawDocument {
@@ -84,10 +87,7 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
     <div className={`overflow-x-auto w-full ${className} mb-2`}>
       <div className="mb-4 flex items-center gap-4">
         <div className="flex flex-col gap-1">
-          <label
-            htmlFor="filterBy"
-            className="font-semibold"
-          >
+          <label htmlFor="filterBy" className="font-semibold">
             Filter By:
           </label>
           <div className="flex gap-1">
@@ -107,7 +107,7 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
             </select>
             {filterBy === "type" && (
               <div className="w-48">
-                { /* TODO: This needs to be updated to multiselect once implemented */ }
+                {/* TODO: This needs to be updated to multiselect once implemented */}
                 <AutoCompleteSelect
                   options={typeOptions}
                   placeholder="Select document type"
@@ -171,7 +171,10 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
             table.getRowModel().rows.map((row) => (
               <tr key={row.id} className="">
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="border-b border-gray-200 px-2 py-1">
+                  <td
+                    key={cell.id}
+                    className="border-b border-gray-200 px-2 py-1"
+                  >
                     {cell.column.columnDef.cell instanceof Function
                       ? cell.column.columnDef.cell(cell.getContext())
                       : cell.getValue()}
@@ -183,27 +186,7 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
         </tbody>
       </table>
       <hr className="border-t-2 border-gray-400 my-4" />
-      <PaginationControls
-        currentPage={table.getState().pagination.pageIndex}
-        totalPages={table.getPageCount()}
-        pageSize={table.getState().pagination.pageSize}
-        totalRows={table.getFilteredRowModel().rows.length}
-        onPageSizeChange={(newSize) => {
-          if (newSize < 0) {
-            table.setPageSize(table.getFilteredRowModel().rows.length);
-            table.setPageIndex(0);
-          } else {
-            table.setPageSize(newSize);
-            table.setPageIndex(0);
-          }
-        }}
-        onPageChange={(p) => table.setPageIndex(p)}
-        onPreviousPage={() => table.previousPage()}
-        onNextPage={() => table.nextPage()}
-        canPreviousPage={table.getCanPreviousPage()}
-        canNextPage={table.getCanNextPage()}
-        perPageChoices={[5, 10, 20, 50, -1]}
-      />
+      <PaginationControls table={table} />
     </div>
   );
 }

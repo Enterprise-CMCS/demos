@@ -1,5 +1,6 @@
 import { gql, useLazyQuery } from "@apollo/client";
 import { User } from "demos-server";
+import { USER_OPTIONS_QUERY } from "queries/userQueries";
 
 export const GET_ALL_USERS = gql`
   query GetUsers {
@@ -24,6 +25,15 @@ interface GetAllUsersOperation {
   error?: Error;
 }
 
+export type UserOption = Pick<User, "fullName">;
+
+interface GetUserOptionsOperation {
+  trigger: () => void;
+  data?: UserOption[];
+  loading: boolean;
+  error?: Error;
+}
+
 interface GetUserByIdOperation {
   trigger: (id: string) => void;
   data?: User;
@@ -34,6 +44,7 @@ interface GetUserByIdOperation {
 export interface UserOperations {
   getAllUsers: GetAllUsersOperation;
   getUserById: GetUserByIdOperation;
+  getUserOptions: GetUserOptionsOperation;
 }
 
 export const useUserOperations = (): UserOperations => {
@@ -50,6 +61,22 @@ export const useUserOperations = (): UserOperations => {
   };
 
   const [
+    triggerGetUserOptions,
+    {
+      data: userOptionsData,
+      loading: userOptionsLoading,
+      error: userOptionsError,
+    },
+  ] = useLazyQuery<{ users: UserOption[] }>(USER_OPTIONS_QUERY);
+
+  const getUserOptions: GetUserOptionsOperation = {
+    trigger: () => triggerGetUserOptions(),
+    data: userOptionsData?.users,
+    loading: userOptionsLoading,
+    error: userOptionsError,
+  };
+
+  const [
     triggerGetUserById,
     { data: userByIdData, loading: userByIdLoading, error: userByIdError },
   ] = useLazyQuery<{ user: User }>(GET_USER_BY_ID);
@@ -61,5 +88,5 @@ export const useUserOperations = (): UserOperations => {
     error: userByIdError,
   };
 
-  return { getAllUsers, getUserById };
+  return { getAllUsers, getUserOptions, getUserById };
 };

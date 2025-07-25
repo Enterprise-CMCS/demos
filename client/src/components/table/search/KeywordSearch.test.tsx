@@ -1,301 +1,438 @@
 import React from "react";
 
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import {
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DemonstrationTable } from "../tables/DemonstrationTable";
+import { Table } from "../Table";
+import { TestType, testTableData } from "../Table.test";
+import { highlightCell } from "./KeywordSearch";
+import { createColumnHelper } from "@tanstack/react-table";
 
-const mockRawData = [
-  {
-    id: 1,
-    title: "Medicaid Montana Expenditure Cap Demonstration",
-    demoNumber: "MT-1-2019-05-10",
-    description: "...",
-    effectiveDate: "2019-05-10",
-    expirationDate: "2024-05-10",
-    demonstrationStatusId: 3,
-    userId: 139,
-    stateId: "MT",
-    projectOfficer: "Qui-Gon Jinn",
-    createdAt: "...",
-    updatedAt: "...",
-  },
-  {
-    id: 2,
-    title: "Medicaid Florida Reproductive Health: Fertility Demonstration",
-    demoNumber: "FL-2-2018-07-08",
-    description: "...",
-    effectiveDate: "2018-07-08",
-    expirationDate: "2023-07-08",
-    demonstrationStatusId: 4,
-    userId: 195,
-    stateId: "FL",
-    projectOfficer: "Obiwan Kenobi",
-    createdAt: "...",
-    updatedAt: "...",
-  },
-  {
-    id: 3,
-    title: "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration",
-    demoNumber: "AK-3-2018-06-27",
-    description: "...",
-    effectiveDate: "2018-06-27",
-    expirationDate: "2023-06-27",
-    demonstrationStatusId: 3,
-    userId: 121,
-    stateId: "AK",
-    projectOfficer: "Ezra Bridger",
-    createdAt: "...",
-    updatedAt: "...",
-  },
+const columnHelper = createColumnHelper<TestType>();
+
+export const testColumns = [
+  columnHelper.accessor("name", {
+    header: "Name",
+    cell: highlightCell,
+    enableGlobalFilter: false,
+  }),
+  columnHelper.accessor("description", {
+    header: "Description",
+    cell: highlightCell,
+  }),
+  columnHelper.accessor("option.name", {
+    header: "Option",
+    cell: highlightCell,
+  }),
+  columnHelper.accessor("date", {
+    id: "date",
+    header: "Date",
+    enableGlobalFilter: false,
+  }),
 ];
 
-describe("DemonstrationTable", () => {
+describe("KeywordSearch Component", () => {
   beforeEach(() => {
     localStorage.clear();
-    render(<DemonstrationTable data={mockRawData} />);
+    render(
+      <Table<TestType>
+        keywordSearch
+        columns={testColumns}
+        data={testTableData}
+        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+      />
+    );
   });
 
-  it("renders the keyword search input", () => {
-    const keywordSearchInput = screen.getByLabelText(/Search:/i);
+  describe("Initial Render", () => {
+    it("renders the keyword search input with correct label", () => {
+      const keywordSearchInput = screen.getByLabelText(/Search:/i);
 
-    expect(keywordSearchInput).toBeInTheDocument();
-    expect(keywordSearchInput).toHaveValue("");
+      expect(keywordSearchInput).toBeInTheDocument();
+      expect(keywordSearchInput).toHaveValue("");
+      expect(screen.getByText("Search:")).toBeInTheDocument();
+    });
+
+    it("renders with search icon and no clear icon initially", () => {
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const searchContainer = keywordSearchInput.closest("div");
+
+      // Search icon should be present
+      const searchIcon = (searchContainer as HTMLElement).querySelector("svg");
+      expect(searchIcon).toBeInTheDocument();
+
+      // Clear button should not be present initially
+      const clearButton = screen.queryByLabelText(/clear search/i);
+      expect(clearButton).not.toBeInTheDocument();
+    });
+
+    it("displays all table rows initially", () => {
+      // All 5 items should be visible
+      expect(screen.getByText("Item One")).toBeInTheDocument();
+      expect(screen.getByText("Item Two")).toBeInTheDocument();
+      expect(screen.getByText("Item Three")).toBeInTheDocument();
+      expect(screen.getByText("Item Four")).toBeInTheDocument();
+      expect(screen.getByText("Item Five")).toBeInTheDocument();
+    });
   });
 
-  it("renders with search icon and no clear icon initially", () => {
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-    const searchContainer = keywordSearchInput.closest("div");
+  describe("Input Interaction", () => {
+    it("shows clear icon when text is typed", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
-    // Search icon should be present
-    const searchIcon = (searchContainer as HTMLElement).querySelector("svg");
-    expect(searchIcon).toBeInTheDocument();
+      await user.type(keywordSearchInput, "unique");
 
-    // Clear button should not be present initially
-    const clearButton = screen.queryByLabelText(/clear search/i);
-    expect(clearButton).not.toBeInTheDocument();
+      // Clear button should now be visible
+      const clearButton = screen.getByLabelText(/clear search/i);
+      expect(clearButton).toBeInTheDocument();
+      expect(keywordSearchInput).toHaveValue("unique");
+    });
+
+    it("clears input and removes clear icon when clear button is clicked", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+
+      // Type in search input
+      await user.type(keywordSearchInput, "unique");
+
+      // Verify clear button appears
+      const clearButton = screen.getByLabelText(/clear search/i);
+      expect(clearButton).toBeInTheDocument();
+
+      // Click clear button
+      await user.click(clearButton);
+
+      // Input should be cleared and clear button should disappear
+      expect(keywordSearchInput).toHaveValue("");
+      expect(screen.queryByLabelText(/clear search/i)).not.toBeInTheDocument();
+    });
+
+    it("restores all rows when search is cleared", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+
+      // Search for something specific
+      await user.type(keywordSearchInput, "unique");
+
+      // Wait for filtering
+      await waitFor(() => {
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+      });
+
+      // Clear search
+      const clearButton = screen.getByLabelText(/clear search/i);
+      await user.click(clearButton);
+
+      // All items should be visible again
+      await waitFor(() => {
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.getByText("Item Two")).toBeInTheDocument();
+        expect(screen.getByText("Item Three")).toBeInTheDocument();
+        expect(screen.getByText("Item Four")).toBeInTheDocument();
+        expect(screen.getByText("Item Five")).toBeInTheDocument();
+      });
+    });
   });
 
-  it("shows clear icon when text is typed and clears input when clicked", async () => {
-    const user = userEvent.setup();
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+  describe("Search Filtering", () => {
+    it("filters table content based on single keyword in description", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
-    // Type in search input
-    await user.type(keywordSearchInput, "Montana");
+      await user.type(keywordSearchInput, "unique");
 
-    // Clear button should now be visible
-    const clearButton = screen.getByLabelText(/clear search/i);
-    expect(clearButton).toBeInTheDocument();
-    expect(keywordSearchInput).toHaveValue("Montana");
+      await waitFor(
+        () => {
+          // Should show Item One (has "unique" in description)
+          expect(screen.getByText("Item One")).toBeInTheDocument();
 
-    // Click clear button
-    await user.click(clearButton);
+          // Should not show other items
+          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
 
-    // Input should be cleared and clear button should disappear
-    expect(keywordSearchInput).toHaveValue("");
-    expect(screen.queryByLabelText(/clear search/i)).not.toBeInTheDocument();
+    it("filters table content based on option values", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+
+      await user.type(keywordSearchInput, "Beta");
+
+      await waitFor(
+        () => {
+          // Should show Item Two (has "Option Beta")
+          expect(screen.getByText("Item Two")).toBeInTheDocument();
+
+          // Should not show other items
+          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it("filters based on multiple keywords", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+
+      await user.type(keywordSearchInput, "fourth Alpha");
+
+      await waitFor(
+        () => {
+          // Should show Item Four (has "fourth" in description and "Alpha" in description)
+          expect(screen.getByText("Item Four")).toBeInTheDocument();
+
+          // Should not show other items
+          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it("shows multiple results when keyword matches multiple rows", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+
+      await user.type(keywordSearchInput, "Alpha");
+
+      await waitFor(
+        () => {
+          // Should show Item One, Item Four, and Item Five (all have "Alpha")
+          expect(screen.getByText("Item One")).toBeInTheDocument();
+          expect(screen.getByText("Item Four")).toBeInTheDocument();
+          expect(screen.getByText("Item Five")).toBeInTheDocument();
+
+          // Should not show Item Two and Item Three
+          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it("is case insensitive", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+
+      await user.type(keywordSearchInput, "UNIQUE");
+
+      await waitFor(
+        () => {
+          expect(screen.getByText("Item One")).toBeInTheDocument();
+          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it("handles partial word matches", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+
+      await user.type(keywordSearchInput, "spec");
+
+      await waitFor(
+        () => {
+          // Should show Item Three (has "special" in description)
+          expect(screen.getByText("Item Three")).toBeInTheDocument();
+
+          // Should not show other items
+          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
   });
 
-  it("filters table content based on search string", async () => {
-    const user = userEvent.setup();
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+  describe("Text Highlighting", () => {
+    it("highlights matching text in search results", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
-    // Type search term
-    await user.type(keywordSearchInput, "Montana");
+      await user.type(keywordSearchInput, "unique");
 
-    // Wait for debounce (300ms + buffer)
-    await waitFor(() => {
-      expect(
-        screen.getByText((content, element) => {
-          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-        })
-      ).toBeInTheDocument();
+      await waitFor(
+        () => {
+          const highlightedText = screen.getByText("unique");
+          expect(highlightedText.tagName.toLowerCase()).toBe("mark");
+          expect(highlightedText).toHaveClass("bg-yellow-200", "font-semibold");
+        },
+        { timeout: 500 }
+      );
+    });
 
-      // Should not show other demonstrations
-      expect(
-        screen.queryByText((content, element) => {
-          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-        })
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText((content, element) => {
-          return element?.textContent === "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration";
-        })
-      ).not.toBeInTheDocument();
-    }, { timeout: 500 });
+    it("highlights multiple instances of the same keyword", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
+      await user.type(keywordSearchInput, "item");
 
+      await waitFor(
+        () => {
+          const highlightedTexts = screen.getAllByText("item");
+          expect(highlightedTexts.length).toBeGreaterThan(1);
+
+          highlightedTexts.forEach((element) => {
+            expect(element.tagName.toLowerCase()).toBe("mark");
+            expect(element).toHaveClass("bg-yellow-200", "font-semibold");
+          });
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it("highlights multiple different keywords", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+
+      await user.type(keywordSearchInput, "fourth Alpha");
+
+      await waitFor(
+        () => {
+          const fourthText = screen.getByText("fourth");
+          const alphaText = screen.getByText("Alpha");
+
+          expect(fourthText.tagName.toLowerCase()).toBe("mark");
+          expect(alphaText.tagName.toLowerCase()).toBe("mark");
+
+          expect(fourthText).toHaveClass("bg-yellow-200", "font-semibold");
+          expect(alphaText).toHaveClass("bg-yellow-200", "font-semibold");
+        },
+        { timeout: 500 }
+      );
+    });
   });
 
-  it("filters table based on multiple keywords", async () => {
-    const user = userEvent.setup();
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+  describe("No Results State", () => {
+    it("shows no results message when search yields no matches", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
-    // Type multiple keywords
-    await user.type(keywordSearchInput, "Medicaid Florida");
+      await user.type(keywordSearchInput, "nonexistent");
 
-    // Wait for debounce
-    await waitFor(() => {
-      expect(
-        screen.getByText((content, element) => {
-          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-        })
-      ).toBeInTheDocument();
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(
+              "No results were returned. Adjust your search and filter criteria."
+            )
+          ).toBeInTheDocument();
 
-      // Should not show demonstrations that don't contain both keywords
-      expect(
-        screen.queryByText((content, element) => {
-          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-        })
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText((content, element) => {
-          return element?.textContent === "Medicaid Alaska Delivery System Reform Incentive Payment (DSRIP) Demonstration";
-        })
-      ).not.toBeInTheDocument();
-    }, { timeout: 500 });
+          // No table rows should be visible
+          expect(screen.queryByText("Item One")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+          expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
 
+    it("returns to showing results when valid search is entered after no results", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
+      // First search with no results
+      await user.type(keywordSearchInput, "nonexistent");
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
+        ).toBeInTheDocument();
+      });
+
+      // Clear and search for something that exists
+      await user.clear(keywordSearchInput);
+      await user.type(keywordSearchInput, "unique");
+
+      await waitFor(
+        () => {
+          expect(screen.getByText("Item One")).toBeInTheDocument();
+          expect(
+            screen.queryByText(
+              "No results were returned. Adjust your search and filter criteria."
+            )
+          ).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
   });
 
-  it("highlights matching text in search results", async () => {
-    const user = userEvent.setup();
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+  describe("Debouncing", () => {
+    it("debounces search input to avoid excessive filtering", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
-    // Type search term
-    await user.type(keywordSearchInput, "Montana");
+      // Type quickly without waiting
+      await user.type(keywordSearchInput, "u");
+      await user.type(keywordSearchInput, "n");
+      await user.type(keywordSearchInput, "i");
+      await user.type(keywordSearchInput, "q");
+      await user.type(keywordSearchInput, "u");
+      await user.type(keywordSearchInput, "e");
 
-    // Wait for debounce and highlighting to apply
-    await waitFor(() => {
-      const highlightedText = screen.getByText("Montana");
-      expect(highlightedText.tagName.toLowerCase()).toBe("mark");
-      expect(highlightedText).toHaveClass("bg-yellow-200", "font-semibold");
+      // Should still show all items initially (debounce hasn't fired)
+      expect(screen.getByText("Item One")).toBeInTheDocument();
+      expect(screen.getByText("Item Two")).toBeInTheDocument();
 
-      // Verify the full text is still present (even if split across elements)
-      expect(
-        screen.getByText((content, element) => {
-          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-        })
-      ).toBeInTheDocument();
-    }, { timeout: 500 });
+      // Wait for debounce to complete
+      await waitFor(
+        () => {
+          expect(screen.getByText("Item One")).toBeInTheDocument();
+          expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        },
+        { timeout: 500 }
+      );
+    });
   });
 
-  it("preserves existing filters when searching", async () => {
-    const user = userEvent.setup();
+  describe("Persistence", () => {
+    it("persists search value to localStorage", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
-    // First apply a column filter
-    const filterSelect = screen.getByLabelText(/filter by:/i);
-    await user.selectOptions(filterSelect, ["stateId"]);
+      await user.type(keywordSearchInput, "unique");
 
-    const filterInput = screen.getByPlaceholderText(/type to filter/i);
-    await user.type(filterInput, "MT");
+      // Wait for value to be persisted
+      await waitFor(() => {
+        expect(localStorage.getItem("keyword-search")).toBe("unique");
+      });
+    });
 
-    // Verify filter is applied (only Montana demonstration visible)
-    expect(
-      screen.getByText((content, element) => {
-        return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText((content, element) => {
-        return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-      })
-    ).not.toBeInTheDocument();
+    it("removes value from localStorage when cleared", async () => {
+      const user = userEvent.setup();
+      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
 
-    // Now add keyword search
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-    await user.type(keywordSearchInput, "Medicaid");
+      // Set a value first
+      await user.type(keywordSearchInput, "unique");
+      await waitFor(() => {
+        expect(localStorage.getItem("keyword-search")).toBe("unique");
+      });
 
-    // Wait for debounce
-    await waitFor(() => {
-      expect(
-        screen.getByText((content, element) => {
-          return element?.textContent === "Medicaid Montana Expenditure Cap Demonstration";
-        })
-      ).toBeInTheDocument();
+      // Clear the search
+      const clearButton = screen.getByLabelText(/clear search/i);
+      await user.click(clearButton);
 
-      // Both filters should be active - still only Montana demonstration
-      expect(
-        screen.queryByText((content, element) => {
-          return element?.textContent === "Medicaid Florida Reproductive Health: Fertility Demonstration";
-        })
-      ).not.toBeInTheDocument();
-    }, { timeout: 500 });
-
-    // Verify the column filter input still has its value
-    expect(filterInput).toHaveValue("MT");
-  });
-
-  it("maintains sorting regardless of search state", async () => {
-    const user = userEvent.setup();
-
-    // Click on Title column header to sort
-    const titleHeader = screen.getByText("Title");
-    await user.click(titleHeader);
-
-    // Apply keyword search
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-    await user.type(keywordSearchInput, "Medicaid");
-
-    // Wait for debounce
-    await waitFor(() => {
-      const tableRows = screen.getAllByRole("row");
-      const dataRows = tableRows.slice(1);
-
-      // Extract titles from visible rows
-      const visibleTitles = dataRows
-        .map(row => {
-          const titleCell = within(row).queryByText(/Medicaid.*Demonstration/);
-          return titleCell?.textContent || "";
-        })
-        .filter(title => title.length > 0);
-
-      // Verify titles are sorted alphabetically
-      const sortedTitles = [...visibleTitles].sort();
-      expect(visibleTitles).toEqual(sortedTitles);
-    }, { timeout: 500 });
-
-    // Clear search and verify sorting is maintained
-    const clearButton = screen.getByLabelText(/clear search/i);
-    await user.click(clearButton);
-
-    const newTableRows = screen.getAllByRole("row");
-    const newDataRows = newTableRows.slice(1);
-
-    const allTitles = newDataRows
-      .map(row => {
-        const titleCell = within(row).queryByText(/Medicaid.*Demonstration/);
-        return titleCell?.textContent || "";
-      })
-      .filter(title => title.length > 0);
-
-    const allSortedTitles = [...allTitles].sort();
-    expect(allTitles).toEqual(allSortedTitles);
-  });
-
-  it("renders the 'no results found' message for all demonstrations", async () => {
-    const user = userEvent.setup();
-    const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-    await user.type(keywordSearchInput, "ZZZZZZZ");
-
-    // Wait for debounce
-    await waitFor(() => {
-      expect(
-        screen.getByText((content) =>
-          content.includes("No results were returned. Adjust your search and filter criteria.")
-        )
-      ).toBeInTheDocument();
-    }, { timeout: 500 });
+      expect(localStorage.getItem("keyword-search")).toBeNull();
+    });
   });
 });
