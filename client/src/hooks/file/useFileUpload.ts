@@ -1,40 +1,45 @@
 import { useState } from "react";
 
+const ERROR_MESSAGES = {
+  FILE_TYPE_NOT_ALLOWED: "File type not allowed.",
+  FILE_TOO_LARGE: "File is too large.",
+  FILE_READ_ERROR: "Error reading file.",
+};
+
+type UploadStatus = "idle" | "uploading" | "success" | "error";
+type ErrorMessage = string;
+
 export const useFileUpload = ({
   allowedMimeTypes,
   maxFileSizeBytes,
-  onSuccess,
-  onError,
+  onSuccessCallback,
+  onErrorCallback,
 }: {
   allowedMimeTypes: string[];
   maxFileSizeBytes: number;
-  onSuccess?: (file: File) => void;
-  onError?: (error: string) => void;
+  onSuccessCallback?: (file: File) => void;
+  onErrorCallback?: (errorMessage: ErrorMessage) => void;
 }) => {
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState("");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
     if (!selected) return;
 
     if (!allowedMimeTypes.includes(selected.type)) {
-      setError("File type not allowed.");
       setFile(null);
-      onError?.("File type not allowed.");
+      onErrorCallback?.(ERROR_MESSAGES.FILE_TYPE_NOT_ALLOWED);
       return;
     }
 
     if (selected.size > maxFileSizeBytes) {
-      setError("File is too large.");
       setFile(null);
-      onError?.("File is too large.");
+      onErrorCallback?.(ERROR_MESSAGES.FILE_TOO_LARGE);
       return;
     }
 
-    setError("");
     e.target.value = ""; // Allow same file to be reselected
     setFile(selected);
     setUploadStatus("uploading");
@@ -52,13 +57,12 @@ export const useFileUpload = ({
     reader.onloadend = () => {
       setUploadProgress(100);
       setUploadStatus("success");
-      onSuccess?.(selected);
+      onSuccessCallback?.(selected);
     };
 
     reader.onerror = () => {
       setUploadStatus("error");
-      setError("Error reading file.");
-      onError?.("Error reading file.");
+      onErrorCallback?.(ERROR_MESSAGES.FILE_READ_ERROR);
     };
 
     reader.readAsArrayBuffer(selected);
@@ -67,8 +71,6 @@ export const useFileUpload = ({
   return {
     file,
     setFile,
-    error,
-    setError,
     uploadProgress,
     uploadStatus,
     setUploadProgress,

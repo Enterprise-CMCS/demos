@@ -7,6 +7,8 @@ import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 
+type DocumentModalType = "add" | "edit";
+
 // TODO: get these from the server or a shared constants file.
 const DOCUMENT_TYPES = [
   { label: "Pre-Submission Concept", value: "preSubmissionConcept" },
@@ -23,11 +25,8 @@ const STYLES = {
 };
 
 const ERROR_MESSAGES = {
-  fileTypeNotAllowed: "File type not allowed.",
-  fileTooLarge: "File is too large. Max 600MB.",
   noFileSelected: "Please select a file to upload.",
   descriptionRequired: "Document description is required.",
-  fileReadError: "Error reading file.",
 };
 
 const ALLOWED_MIME_TYPES = [
@@ -122,7 +121,6 @@ const DropTarget: React.FC<{
   uploadProgress,
   handleFileChange,
 }) => {
-  // Clean useFileDrop for files
   const handleFiles = useCallback(
     (files: FileList) => {
       if (!files || files.length === 0) return;
@@ -206,23 +204,19 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   const { showSuccess } = useToast();
 
   const [description, setDescription] = useState("");
+  const [error, setError] = useState<string>("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const {
-    file,
-    error,
-    setError,
-    uploadProgress,
-    uploadStatus,
-    handleFileChange,
-  } = useFileUpload({
-    allowedMimeTypes: ALLOWED_MIME_TYPES,
-    maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
-    onSuccess: () => {
-      showSuccess("File loaded into browser!");
-    },
-    onError: () => {},
-  });
+  const { file, uploadProgress, uploadStatus, handleFileChange } =
+    useFileUpload({
+      allowedMimeTypes: ALLOWED_MIME_TYPES,
+      maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
+      onSuccessCallback: () => {
+        showSuccess("File loaded into browser!");
+      },
+      onErrorCallback: () => {},
+    });
 
   const handleUpload = () => {
     if (!description) {
