@@ -21,7 +21,6 @@ import importNumberValue from "../util/importNumberValue";
 import path from "path";
 
 interface APIStackProps {
-  cognito_userpool: aws_cognito.UserPool;
   vpc: IVpc;
 }
 
@@ -99,10 +98,12 @@ export class ApiStack extends Stack {
     const cognitoAuthority = Fn.importValue(
       `${commonProps.hostEnvironment}CognitoAuthority`
     )
-    
+    const parts = Fn.split("com/",cognitoAuthority, 2)
+    const cognitoUserPoolId = Fn.select(1, parts)
+    const userPool = aws_cognito.UserPool.fromUserPoolId(commonProps.scope, "coreCognitoUserPool", cognitoUserPoolId)
     const apigateway_outputs = apigateway.create({
       ...commonProps,
-      userPool: props.cognito_userpool,
+      userPool: userPool,
     });
 
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(commonProps.scope, "rdsDatabaseSecret",`demos-${commonProps.hostEnvironment}-rds-admin`)
@@ -120,12 +121,10 @@ export class ApiStack extends Stack {
         asCode: false,
         environment: {
           JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
-          ...props.cognito_userpool.env
         },
         externalModules: ["aws-sdk"],
         nodeModules: ["jsonwebtoken","jwks-rsa"],       
         depsLockFilePath: path.join(rel, "package-lock.json"),
-        forceDocker: true,
       },
       "authorizer"
     )
