@@ -14,7 +14,7 @@ import {
 } from "aws-cdk-lib/aws-apigateway";
 
 interface ApiGatewayProps extends CommonProps {
-  userPool: aws_cognito.UserPool;
+  userPool: aws_cognito.IUserPool;
 }
 
 export function create(props: ApiGatewayProps) {

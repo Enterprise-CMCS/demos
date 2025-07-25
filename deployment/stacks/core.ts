@@ -15,7 +15,7 @@ import * as ssm from "../lib/ssm-parameter";
 import * as securityGroup from "../lib/security-group";
 
 export class CoreStack extends Stack {
-  public readonly cognito_outputs: aws_cognito.UserPool;
+  public readonly cognito_outputs: aws_cognito.UserPool | aws_cognito.IUserPool;
   public readonly cognitoAuthorityParamName: string;
   public readonly cognitoClientIdParamName: string;
   public readonly vpcId?: string;
@@ -47,8 +47,16 @@ export class CoreStack extends Stack {
           : undefined,
     };
 
-    const cognito_outputs = cognito.create(commonProps);
-    this.cognito_outputs = cognito_outputs.userPool;
+    let cognito_outputs: cognito.CognitoOutputs;
+    if (!commonProps.isEphemeral) {
+      cognito_outputs = cognito.create(commonProps);
+      this.cognito_outputs = cognito_outputs.userPool;
+    } else if (commonProps.hostUserPoolId) {
+      cognito_outputs = cognito.createUserPoolClient(commonProps, commonProps.hostUserPoolId, commonProps.hostEnvironment);
+      this.cognito_outputs = cognito_outputs.userPool;
+    } else {
+      throw new Error("cannot start ephemeral environment without host user pool")
+    }
 
     const vpc = props.isLocalstack
       ? undefined
