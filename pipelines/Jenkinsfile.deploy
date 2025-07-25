@@ -33,21 +33,22 @@ pipeline {
                 # These are needed for the built-in CDK bundling
                 apk add bash
                 npm i -g esbuild
+                npm i -g tsx
 
                 npm ci
-                node build.js ${params.STAGE} deploy:core
+                npx tsx demosctl/index deploy:core ${params.STAGE}
                 """
               }
               parallel(
                 'Build Client': {
                   dirCon('deployment','node') {
-                      sh "node build.js ${params.STAGE} build:client"
+                      sh "npx tsx demosctl/index build:client ${params.STAGE}"
                       
                       
                   }
                 }, 'Build Server': {
                   dirCon('deployment', 'node') {
-                      sh "node build.js ${params.STAGE} build:server"
+                      sh "npx tsx demosctl/index build:server ${params.STAGE}"
                   }
                 }
               )
@@ -75,7 +76,7 @@ pipeline {
       steps {
           script {
             dirCon('deployment','node') {
-              sh "node build.js ${params.STAGE} deploy:all"
+              sh "npx tsx demosctl/index deploy:all ${params.STAGE}"
             }
           }
       }

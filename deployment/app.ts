@@ -98,7 +98,6 @@ async function main() {
       region: process.env.CDK_DEFAULT_REGION,
     },
     vpc: core.vpc,
-    cognito_userpool: core.cognito_outputs,
   });
   api.addDependency(core);
 
