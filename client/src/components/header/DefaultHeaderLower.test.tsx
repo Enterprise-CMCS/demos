@@ -4,17 +4,14 @@ import React from "react";
 import { vi } from "vitest";
 
 import { useQuery } from "@apollo/client";
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 
 // Mock Apollo
 vi.mock("@apollo/client", async () => {
-  const actual = await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
+  const actual =
+    await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
   return {
     ...actual,
     useQuery: vi.fn(),
@@ -22,7 +19,7 @@ vi.mock("@apollo/client", async () => {
 });
 
 // Stub modals
-vi.mock("components/modal/AddDocumentModal", () => ({
+vi.mock("components/modal/document/DocumentModal", () => ({
   AddDocumentModal: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="add-document-modal">
       AddDocumentModal
@@ -32,10 +29,15 @@ vi.mock("components/modal/AddDocumentModal", () => ({
 }));
 
 vi.mock("components/modal/CreateNewModal", () => ({
-  CreateNewModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+  CreateNewModal: ({
+    mode,
+    onClose,
+  }: {
+    mode: string;
+    onClose: () => void;
+  }) => (
     <div data-testid={`modal-${mode}`}>
-      CreateNewModal ({mode})
-      <button onClick={onClose}>Close</button>
+      CreateNewModal ({mode})<button onClick={onClose}>Close</button>
     </div>
   ),
 }));

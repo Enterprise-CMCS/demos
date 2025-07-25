@@ -14,6 +14,10 @@ import { isDevelopmentMode } from "config/env";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { EventSandbox } from "pages/debug/EventSandbox";
+import {
+  AddDocumentModal,
+  EditDocumentModal,
+} from "components/modal/document/DocumentModal";
 
 export const DemosRouter = () => {
   // TODO: When we know what IDM integration looks like
@@ -37,7 +41,10 @@ export const DemosRouter = () => {
                 {/* Real Pages the user should be able to access */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
-                <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+                <Route
+                  path="demonstrations/:id"
+                  element={<DemonstrationDetail />}
+                />
                 {/* Debug routes, only available in development mode */}
                 {isDevelopmentMode() && (
                   <>
@@ -46,6 +53,19 @@ export const DemosRouter = () => {
                     <Route path="/auth" element={<AuthComponent />} />
                     <Route path="/icons" element={<IconLibrary />} />
                     <Route path="/events" element={<EventSandbox />} />
+                    <Route
+                      path="/edit"
+                      element={
+                        <EditDocumentModal
+                          onClose={() => {}}
+                          documentId="02336a68-26af-42ef-b550-5610d8f6007d"
+                        />
+                      }
+                    />
+                    <Route
+                      path="/add"
+                      element={<AddDocumentModal onClose={() => {}} />}
+                    />
                   </>
                 )}
               </Route>
