@@ -39,6 +39,7 @@ export const modificationStatusResolvers = {
         data: {
           id: input.id,
           bundleTypeId: amendmentBundleTypeId,
+          name: input.name,
           description: input.description,
         },
       });
