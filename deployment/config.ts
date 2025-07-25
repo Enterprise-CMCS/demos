@@ -15,6 +15,7 @@ export interface DeploymentConfigProperties {
   cloudfrontCertificateArn?: string;
   zScalerIps: string[];
   hostUserPoolId?: string;
+  idmMetadataEndpoint?: string;
 }
 
 export const determineDeploymentConfig = async (
