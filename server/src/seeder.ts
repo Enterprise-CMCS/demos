@@ -232,14 +232,16 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding amendment statuses...");
   const modificationStatuses = [
-    { id: "NEW", description: "New amendment." },
-    { id: "IN_PROGRESS", description: "Amendment is in progress." },
-    { id: "COMPLETED", description: "Completed amendment." },
+    { name: "New", description: "New amendment." },
+    { name: "In Progress", description: "Amendment is in progress." },
+    { name: "On Hold", description: "Amendment is on hold." },
+    { name: "Completed", description: "Completed amendment." },
   ];
   for (const status of modificationStatuses) {
     await prisma().modificationStatus.create({
       data: {
-        id: status.id,
+        id: makeIdStyleString(status.name),
+        name: status.name,
         bundleTypeId: BUNDLE_TYPE.AMENDMENT,
         description: status.description,
       },
