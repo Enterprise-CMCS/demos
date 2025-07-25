@@ -36,8 +36,8 @@ export interface RawDemonstration {
   title: string;
   demoNumber: string;
   description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
+  effectiveDate: string;
+  expirationDate: string;
   demonstrationStatusId: number;
   stateId: string;
   projectOfficer: string;

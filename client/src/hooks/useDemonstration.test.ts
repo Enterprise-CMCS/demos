@@ -112,8 +112,8 @@ describe("useDemonstration", () => {
       const updatedInput = {
         name: "Updated Demo Name",
         description: "Updated description",
-        evaluationPeriodStartDate: new Date("2024-07-01T00:00:00.000Z"),
-        evaluationPeriodEndDate: new Date("2024-07-31T00:00:00.000Z"),
+        effectiveDate: new Date("2024-07-01T00:00:00.000Z"),
+        expirationDate: new Date("2024-07-31T00:00:00.000Z"),
         demonstrationStatusId: "1",
         stateId: "1",
         userIds: ["1"],

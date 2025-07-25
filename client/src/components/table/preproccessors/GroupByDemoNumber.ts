@@ -3,8 +3,8 @@ export interface RawDemonstration {
   title: string;
   demoNumber: string;
   description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
+  effectiveDate: string;
+  expirationDate: string;
   demonstrationStatusId: number;
   stateId: string;
   projectOfficer: string;
@@ -40,8 +40,8 @@ export function groupByDemoNumber(
   for (const groupArray of map.values()) {
     // Sort descending: newest first - thus making a "history"
     groupArray.sort((a, b) => {
-      const startDate = new Date(a.evalPeriodStartDate).getTime();
-      const endDate = new Date(b.evalPeriodEndDate).getTime();
+      const startDate = new Date(a.effectiveDate).getTime();
+      const endDate = new Date(b.expirationDate).getTime();
       return endDate - startDate;
     });
 

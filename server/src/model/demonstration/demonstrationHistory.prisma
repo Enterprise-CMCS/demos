@@ -1,18 +1,18 @@
 model DemonstrationHistory {
-  revisionId                Int          @id @default(autoincrement()) @map("revision_id")
-  revisionType              RevisionType @map("revision_type")
-  modifiedAt                DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
-  id                        String       @db.Uuid
-  bundle_type_id            String
-  name                      String
-  description               String
-  evaluationPeriodStartDate DateTime     @map("evaluation_period_start_date") @db.Date
-  evaluationPeriodEndDate   DateTime     @map("evaluation_period_end_date") @db.Date
-  createdAt                 DateTime     @map("created_at") @db.Timestamptz()
-  updatedAt                 DateTime     @map("updated_at") @db.Timestamptz()
-  demonstrationStatusId     String       @map("demonstration_status_id") @db.Uuid
-  stateId                   String       @map("state_id") @db.Uuid
-  projectOfficerUserId      String       @map("project_officer_user_id") @db.Uuid
+  revisionId            Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType          RevisionType @map("revision_type")
+  modifiedAt            DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  id                    String       @db.Uuid
+  bundle_type_id        String
+  name                  String
+  description           String
+  effectiveDate         DateTime     @map("effective_date") @db.Date
+  expirationDate        DateTime     @map("expiration_date") @db.Date
+  createdAt             DateTime     @map("created_at") @db.Timestamptz()
+  updatedAt             DateTime     @map("updated_at") @db.Timestamptz()
+  demonstrationStatusId String       @map("demonstration_status_id")
+  stateId               String       @map("state_id")
+  projectOfficerUserId  String       @map("project_officer_user_id") @db.Uuid
 
   @@map("demonstration_history")
 }

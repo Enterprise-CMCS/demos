@@ -1,6 +1,9 @@
 import { Permission } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { AddPermissionInput, UpdatePermissionInput } from "./permissionSchema.js";
+import {
+  AddPermissionInput,
+  UpdatePermissionInput,
+} from "./permissionSchema.js";
 
 export const permissionResolvers = {
   Query: {

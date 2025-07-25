@@ -14,8 +14,8 @@ export type DemonstrationColumns = {
   id: number;
   title: string;
   description: string;
-  evalPeriodStartDate: string;
-  evalPeriodEndDate: string;
+  effectiveDate: string;
+  expirationDate: string;
   demonstrationStatusId: number;
   stateId: string;
   projectOfficer: string;

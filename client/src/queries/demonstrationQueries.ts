@@ -6,8 +6,8 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
       id
       name
       description
-      evaluationPeriodStartDate
-      evaluationPeriodEndDate
+      effectiveDate
+      expirationDate
       createdAt
       updatedAt
       demonstrationStatus {
@@ -16,8 +16,7 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
       }
       state {
         id
-        stateName
-        stateCode
+        name
       }
       users {
         id
@@ -33,8 +32,8 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
       id
       name
       description
-      evaluationPeriodStartDate
-      evaluationPeriodEndDate
+      effectiveDate
+      expirationDate
       createdAt
       updatedAt
       demonstrationStatus {
@@ -43,8 +42,7 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
       }
       state {
         id
-        stateName
-        stateCode
+        name
       }
       users {
         id
@@ -60,8 +58,8 @@ export const ADD_DEMONSTRATION_QUERY = gql`
       id
       name
       description
-      evaluationPeriodStartDate
-      evaluationPeriodEndDate
+      effectiveDate
+      expirationDate
       createdAt
       updatedAt
       demonstrationStatus {
@@ -70,8 +68,7 @@ export const ADD_DEMONSTRATION_QUERY = gql`
       }
       state {
         id
-        stateName
-        stateCode
+        name
       }
       users {
         id
@@ -87,8 +84,8 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       id
       name
       description
-      evaluationPeriodStartDate
-      evaluationPeriodEndDate
+      effectiveDate
+      expirationDate
       createdAt
       updatedAt
       demonstrationStatus {
@@ -97,8 +94,7 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       }
       state {
         id
-        stateName
-        stateCode
+        name
       }
       users {
         id

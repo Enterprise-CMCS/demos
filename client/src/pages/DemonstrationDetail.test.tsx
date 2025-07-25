@@ -29,7 +29,7 @@ vi.mock("hooks/useDemonstration", () => ({
       data: {
         id: "demo-123",
         name: "Test Demo",
-        state: { stateCode: "CA" },
+        state: { id: "CA" },
         description: "Test Project Officer",
       },
       loading: false,
