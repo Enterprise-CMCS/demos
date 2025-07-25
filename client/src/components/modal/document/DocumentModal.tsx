@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from "react";
-import { useFileDrop } from "hooks/useFileDrop";
+import { useFileDrop } from "hooks/file/useFileDrop";
 import { useFileUpload } from "hooks/file/useFileUpload";
 import { PrimaryButton, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
