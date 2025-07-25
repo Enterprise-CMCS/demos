@@ -1,6 +1,6 @@
 model UserRole {
   userId String @map("user_id") @db.Uuid
-  roleId String @map("role_id") @db.Uuid
+  roleId String @map("role_id")
 
   user User @relation(fields: [userId], references: [id])
   role Role @relation(fields: [roleId], references: [id])

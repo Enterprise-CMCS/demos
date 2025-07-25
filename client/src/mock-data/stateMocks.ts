@@ -1,12 +1,12 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { states } from "data/StatesAndTerritories";
 import { State } from "demos-server";
+import { StateOption } from "hooks/useState";
 import { STATE_OPTIONS_QUERY } from "queries/stateQueries";
 
 export const california: State = {
-  id: "1",
-  stateCode: "CA",
-  stateName: "California",
+  id: "CA",
+  name: "California",
 };
 
 export const stateMocks: MockedResponse[] = [
@@ -17,9 +17,9 @@ export const stateMocks: MockedResponse[] = [
     result: {
       data: {
         states: states.map((state) => ({
-          stateCode: state.abbrev,
-          stateName: state.name,
-        })),
+          id: state.abbrev,
+          name: state.name,
+        })) satisfies StateOption[],
       },
     },
   },

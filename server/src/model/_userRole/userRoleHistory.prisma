@@ -3,7 +3,7 @@ model UserRoleHistory {
   revisionType RevisionType @map("revision_type")
   modifiedAt   DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
   userId       String       @map("user_id") @db.Uuid
-  roleId       String       @map("role_id") @db.Uuid
+  roleId       String       @map("role_id")
 
   @@map("user_role_history")
 }

@@ -106,7 +106,7 @@ export const DemonstrationTable: React.FC = () => {
       ),
       size: 20,
     }),
-    columnHelper.accessor("state.stateName", {
+    columnHelper.accessor("state.name", {
       id: "stateName",
       header: "State/Territory",
       cell: highlightCell,
@@ -115,8 +115,8 @@ export const DemonstrationTable: React.FC = () => {
         filterConfig: {
           filterType: "select",
           options: statesData.map((state) => ({
-            label: state.stateCode,
-            value: state.stateName,
+            label: state.id,
+            value: state.name,
           })),
         },
       },
@@ -130,7 +130,7 @@ export const DemonstrationTable: React.FC = () => {
       id: "projectOfficer",
       header: "Project Officer",
       cell: highlightCell,
-      filterFn: "arrIncludes",
+      filterFn: "arrIncludesSome",
       meta: {
         filterConfig: {
           filterType: "select",
@@ -145,7 +145,7 @@ export const DemonstrationTable: React.FC = () => {
       id: "demonstrationStatus",
       header: "Status",
       cell: highlightCell,
-      filterFn: "arrIncludes",
+      filterFn: "arrIncludesSome",
       meta: {
         filterConfig: {
           filterType: "select",

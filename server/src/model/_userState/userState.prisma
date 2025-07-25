@@ -1,6 +1,6 @@
 model UserState {
   userId  String @map("user_id") @db.Uuid
-  stateId String @map("state_id") @db.Uuid
+  stateId String @map("state_id")
 
   user                    User                     @relation(fields: [userId], references: [id])
   state                   State                    @relation(fields: [stateId], references: [id])

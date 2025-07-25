@@ -23,7 +23,7 @@ interface GetAllDemonstrationsOperation {
 export type DemonstrationTableRow = {
   id: Demonstration["id"];
   name: Demonstration["name"];
-  state: Pick<Demonstration["state"], "stateCode" | "stateName">;
+  state: Pick<Demonstration["state"], "name">;
   projectOfficer: Pick<Demonstration["projectOfficer"], "fullName">;
   users: Pick<Demonstration["users"][number], "id">[];
   demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;

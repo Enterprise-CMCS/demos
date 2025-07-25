@@ -2,7 +2,7 @@ import { useLazyQuery, ApolloError } from "@apollo/client";
 import { State } from "demos-server";
 import { STATE_OPTIONS_QUERY } from "queries/stateQueries";
 
-export type StateOption = Pick<State, "stateName" | "stateCode">;
+export type StateOption = Pick<State, "id" | "name">;
 
 interface GetStateOptionsOperation {
   trigger: () => void;

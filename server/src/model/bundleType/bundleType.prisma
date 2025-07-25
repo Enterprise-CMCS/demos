@@ -1,10 +1,9 @@
-// Flags: NATURAL_KEY
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY, NATURAL_KEY
+// Table is a static constraint and is updated entirely via migrations
 model BundleType {
-  id          String   @id
+  id          String @id
   name        String
   description String
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   bundle                  Bundle[]
   demonstrationBundleType DemonstrationBundleType[]

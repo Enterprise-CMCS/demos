@@ -3,7 +3,7 @@ import { Role } from "../role/roleSchema.js";
 
 export const permissionSchema = gql`
   type Permission {
-    id: ID!
+    id: String!
     name: String!
     description: String!
     createdAt: DateTime!
@@ -12,6 +12,7 @@ export const permissionSchema = gql`
   }
 
   input AddPermissionInput {
+    id: String!
     name: String!
     description: String!
     roleIds: [ID!]
@@ -25,8 +26,8 @@ export const permissionSchema = gql`
 
   type Mutation {
     addPermission(input: AddPermissionInput!): Permission
-    updatePermission(input: UpdatePermissionInput!): Permission
-    deletePermission(id: ID!): Permission
+    updatePermission(id: String!, input: UpdatePermissionInput!): Permission
+    deletePermission(id: String!): Permission
   }
 
   type Query {
@@ -46,6 +47,7 @@ export interface Permission {
 }
 
 export interface AddPermissionInput {
+  id: string;
   name: string;
   description: string;
   roleIds?: string[];

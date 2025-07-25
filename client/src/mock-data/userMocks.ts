@@ -1,5 +1,9 @@
 import { User } from "demos-server";
-import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
+import {
+  GET_ALL_USERS,
+  GET_USER_BY_ID,
+  UserOption,
+} from "hooks/useUserOperations";
 import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
 import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 import { MockedResponse } from "@apollo/client/testing";
@@ -136,7 +140,7 @@ export const userMocks: MockedResponse[] = [
           {
             fullName: "Darth Vader",
           },
-        ],
+        ] satisfies UserOption[],
       },
     },
   },
