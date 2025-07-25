@@ -131,6 +131,10 @@ export class BootstrapStack extends Stack {
             },
           },
         }),
+        new aws_iam.PolicyStatement({
+          actions: ["cognito-idp:ListUserPools","cognito-idp:DescribeUserPoolClient", "cognito-idp:UpdateUserPoolClient"],
+          resources: ["*"]
+        }),
       ],
     });
 

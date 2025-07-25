@@ -4,6 +4,7 @@ import { Amendment } from "../modification/modificationSchema.js";
 export const modificationStatusSchema = gql`
   type AmendmentStatus {
     id: String!
+    name: String!
     description: String!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -12,10 +13,12 @@ export const modificationStatusSchema = gql`
 
   input AddAmendmentStatusInput {
     id: String!
+    name: String!
     description: String!
   }
 
   input UpdateAmendmentStatusInput {
+    name: String
     description: String
   }
 
@@ -37,6 +40,7 @@ export const modificationStatusSchema = gql`
 export type DateTime = Date;
 export interface AmendmentStatus {
   id: string;
+  name: string;
   description: string;
   createdAt: DateTime;
   updatedAt: DateTime;
@@ -45,9 +49,11 @@ export interface AmendmentStatus {
 
 export interface AddAmendmentStatusInput {
   id: string;
+  name: string;
   description: string;
 }
 
 export interface UpdateAmendmentStatusInput {
+  name?: string;
   description?: string;
 }

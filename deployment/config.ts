@@ -1,6 +1,7 @@
 import { Aws } from "aws-cdk-lib";
 import { getSecret } from "./util/getSecret";
 import { getZScalerIps } from "./util/zscalerIps";
+import { getUserPoolIdByName } from "./util/getUserPoolId";
 
 export interface DeploymentConfigProperties {
   project: string;
@@ -13,6 +14,7 @@ export interface DeploymentConfigProperties {
   hostEnvironment: string;
   cloudfrontCertificateArn?: string;
   zScalerIps: string[];
+  hostUserPoolId?: string;
 }
 
 export const determineDeploymentConfig = async (
@@ -35,6 +37,7 @@ export const determineDeploymentConfig = async (
 
   const isEphemeral = !["dev","test","prod"].includes(stage)
   const hostEnvironment = !isEphemeral ? stage : hostEnv ? hostEnv : "dev"
+  const hostUserPoolId = isEphemeral ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`) : undefined;
 
   const secretConfig =
     stage != "bootstrap"
@@ -48,6 +51,7 @@ export const determineDeploymentConfig = async (
     ...secretConfig,
     isEphemeral,
     hostEnvironment,
-    zScalerIps
+    zScalerIps,
+    hostUserPoolId
   };
 };
