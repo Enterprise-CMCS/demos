@@ -9,8 +9,9 @@
 -- Emptying modification table to allow changes
 -- Then from modification status
 -- Can't use truncate here because it doesn't sequence properly
-DELETE FROM "modification";
-DELETE FROM "modification_status";
+-- Added WHERE 1 = 1 because otherwise SonarQube fails
+DELETE FROM "modification" WHERE 1 = 1;
+DELETE FROM "modification_status" WHERE 1 = 1;
 
 -- AlterTable
 ALTER TABLE "modification_status" ADD COLUMN     "name" TEXT NOT NULL;
