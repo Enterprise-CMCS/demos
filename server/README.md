@@ -80,7 +80,11 @@ Each model folder will generally have up to four files. For the hypothetical `Do
 
 If a model has a `Resolvers.ts` file, it should also have a `Schema.ts` file.
 
-## Model File Standards
+# Standards and Conventions
+
+This section covers coding / design standards and conventions. These are not intended to be iron-clad rules, but instead, to give general guidance about expectations. If you have questions or think something should deviate from these standards, bring it up! The goal is to provide a set of guidance that covers 80-90% of the day-to-day scenarios encountered, not to completely limit flexibility in favor of standardization.
+
+## Model File Standards and Conventions
 
 We break our Prisma model files into four sections.
 
@@ -100,8 +104,8 @@ model Proposal {
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  primaryReviewer User             @relation(fields: [ownerUserId], references: [id])
-  proposalAuthors ProposalAuthor[]
+  primaryReviewer User   @relation(fields: [primaryReviewerUserId], references: [id])
+  authors         User[]
 
   @@id([id])
   @@map("proposal")
@@ -148,9 +152,269 @@ In Prisma, fields that exist on the model and in the database are known as "scal
   updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 ```
 
+Putting these here, and then adding an empty line, means that they will be formatted as a single block when you run `prisma format`. It also helps to distinguish between the part of the Prisma file that contains strictly column definitions, from the section containing the relation fields.
+
+Table and column naming standards are described [below](#database-guidelines-and-conventions).
+
+Fields are named using camelCase. By default, Prisma will quote the names you give in the model and put them as-written into the database. However, we use snake_case when in the database. As a result, any field which contains more than one word must have an `@map` statement, which maps the Prisma name to some alternative. So, for instance, above, `primaryReviewerUserId` has `@map("primary_reviewer_user_id")` to ensure that the database name is consistent with our naming schema.
+
+Any fields that are present as part of a relation field (described [below](#relation-fields) should also be found here.
+
 ### Relation Fields
 
+Fields that exist strictly on the model, but not in the database, are known as "relation fields". This name indicates that they are used to connect two models together.
+
+We put all the relation fields in the second block in the model, followed by an empty line, for similar reasons as we do for the scalar fields. You can read more about relation fields [here](https://www.prisma.io/docs/orm/prisma-schema/data-model/relations#relation-fields).
+
+Unlike scalar fields, do not name relation fields with suffixes like `UserId` or `Id`. They are referring to other Prisma objects, not to specific columns in the database.
+
+```
+  primaryReviewer User   @relation(fields: [primaryReviewerUserId], references: [id])
+  authors         User[]
+```
+
+Above, there are two relation fields defined.
+
+The `primaryReviwer` has type `User` and is related to the `User` model via the `@relation` statement (in this case, the statement says that the `primaryReviewerUserId` must be an element of `User.id`).
+
+The `authors` relation field tells us that there is a list of `User` objects associated with this. You'll note that there's no connection information here. In Prisma, a relation field must be present on _both ends_ of the relationship. In this context, this probably means that there's a constraint elsewhere in the database to a join table. Fortunately, `prisma format` automatically adds in the other end of relationships in case you forget to do so. Just be sure to fix the names, as by default, `prisma format` adds them in using PascalCase and not camelCase.
+
+You can denote an optional connection by using `?` after the type (e.g. `User?`). If you do this, be sure to also mark the scalar field as optional in the same way. When you do this, Prisma will automatically generate the SQL with a constraint where on delete, the values are set to `NULL`.
+
 ### Table Constraints / Parameters
+
+The last part of the model file is the table-level constraints and parameters. These are prefixed with two `@` symbols. Like `@map` on a column, `@@map` gives a database-specific name to a model. This is necessary on all models to make them snake_case (even single-word models will need this to avoid being capitalized and quoted in the SQL / database).
+
+More complex ID and unique constraints can be defined in this section. You may put `@id` in-line for tables with a single-column ID, but putting it at the bottom is preferred for consistency.
+
+```
+  @@id([id])
+  @@map("proposal")
+```
+
+## GraphQL Standards and Conventions
+
+GraphQL types and inputs should be named using PascalCase (similar to Prisma models). However, mutations and queries should be named using camelCase. Here's an example of what the GraphQL schemas might look like for the Proposal object discussed above. (This does not have all possible types of mutator described below.)
+
+```typescript
+import { gql } from "graphql-tag";
+export const proposalSchema = gql`
+  type Proposal {
+    id: ID!
+    title: String!
+    description: String!
+    primaryReviewer: User!
+    authors: [User!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  input CreateProposalInput {
+    title: String!
+    description: String!
+    primaryReviewerUserId: ID!
+  }
+
+  input UpdateProposalInput {
+    title: String!
+    description: String!
+    primaryReviewerUserId: ID!
+  }
+
+  type Mutation {
+     createProposal(input: CreateProposalInput!): Proposal
+     updateProposal(id: ID!, input: UpdateProposalInput!): Proposal
+     deleteProposal(id: ID!): Proposal
+  }
+
+  type Query {
+    proposals: [Proposal!]!
+    proposal(id: ID!): Proposal
+  }
+```
+
+Every set of GraphQL types needs a corresponding set of TypeScript types. In your `schema.ts` file, after the GQL section, you would define them as follows.
+
+```typescript
+import { User } from "../user/userSchema.js";
+export type DateTime = Date;
+export interface Proposal {
+  id: string;
+  title: string;
+  description: string;
+  primaryReviewer: User;
+  authors: User[];
+  createdAt: DateTime;
+  updatedAt: DateTime;
+}
+
+export interface CreateProposalInput {
+  title: string;
+  description: string;
+  primaryReviewerUserId: string;
+}
+
+export interface UpdateProposalInput {
+  title?: string;
+  description?: string;
+  primaryReviewerUserId?: string;
+}
+```
+
+A few notes:
+
+* GQL and TypeScript have slightly different ways of denoting optional / required fields.
+* GQL has a DateTime type, which is equivalent to the Date type in TypeScript. To ensure that our custom linting works correctly and does not identify a mismatch in the types between GraphQL and TypeScript, we create the `DateTime` type as being the same as the `Date` one.
+* Note that for inputs, we accept a specific `primaryReviewerUserId`; however, for the actual `Proposal` type, the field is `primaryReviewer` and has the type `User`. This is expected; the type shows the nested nature of the object, while the inputs accept specific IDs for use in the resolver code.
+  * In general, you will use the "relational field" names and types from Prisma on the object type, and the "scalar field" names and types on the inputs.
+* Human-readable ID fields should be given the GraphQL type of `String`, while synthetic / meaningless keys (i.e. UUIDs) should be given the type of `ID`. This is consistent with [GraphQL documentation](https://graphql.org/learn/schema/):
+
+  > ID: A unique identifier, often used to refetch an object or as the key for a cache. The ID type is serialized in the same way as a String; however, defining it as an ID signifies that it is not intended to be human‐readable.
+  
+  Within TypeScript, both are `string` types, since GraphQL treats the `ID` type as a string under the hood.
+
+## Resolver Standards and Conventions
+
+Every object should have a resolver and schema definition which provides for the following:
+
+* [Queries](#queries)
+* [Mutators](#mutators)
+* [Field Resolvers](#field-resolvers) (if relevant)
+* [Type Resolvers](#type-resolvers) (if relevant)
+
+However, as noted above, there is no need to add resolvers for associative / join tables; the resolvers relating to these should be on the objects being associated, not on the associative table itself.
+
+Resolvers relating to a specific model are stored in the same folder as the model, as described in [Structure](#structure).
+
+> Remember, this is only a matter of where the code is _placed_ in the codebase; naturally, a resolver that works on an associative table will need to modify that table. This simply means that the resolver for UserRole should be found in either the User or Role model folders, not on a separate UserRole resolver definition. Another way to think about this is that Users and Roles are things the API should allow people to interact with; UserRoles are not separate objects / concepts.
+
+### Field Naming
+
+As shown in the schema section, resolvers are named using camelCase, as are the fields (just like the Prisma models). The types are named via PascalCase, again, consistent with the actual names of the Prisma models.
+
+### Queries
+
+An object will most likely have two queries: one to retrieve a single item, and one to retrieve a list of items (possibly with some filtering). Do not prefix these with `get` or something similar; by definition, they are already `Query` actions in GraphQL, so getting things is implied. Instead, simply refer to the queries as the singular and plural names of the object. For instance, a proposal object should have `proposal` and `proposals` queries.
+
+The singular query should look up the entity by its ID unless there is compelling reason to use another identifier. Be cautious with adding filtering to the list query. In general, if filtering is needed, it should be accomplished by retrieving the item from the resolver associated with the specific object being used for filtering. Using our Proposal item above, if proposals are connected to authors, you wouldn't want to add a `proposalsByAuthor` query. Instead, you would retrieve the relevant author and then get the `proposals` object from its field resolvers.
+
+Note that it's acceptable to have fields in a query / return type that are not one-to-one matches to the database. Ideally, we will harmonize the names of the Prisma relation fields with the GraphQL models, but there may be instances where this makes less sense - the API may not need to use names with as much precision as is useful in the database. As long as this is properly documented, there are no issues. Similarly, there may be times when a constructed field is needed in a query response (for instance, if a query has a key that may return different types, it can be useful to denote what type of thing is being returned at the top level).
+
+### Mutators
+
+Mutators are named using a standard syntax and with standard inputs.
+
+| Mutator | Meaning | Example |
+|---------|---------|---------|
+| `createX` | Create a new X. | Create a new proposal. |
+| `updateX` | Update the _scalar fields_ of a specific X. | Change the title of a proposal. |
+| `deleteX` | Delete a specifc X. | Delete an existing proposal. |
+| `addYToX` | Add a specific Y to a specific X. | Add an author to a proposal. |
+| `removeYFromX` | Remove a specific Y from a specific X. | Remove an author from a proposal. |
+| `setYsForX` | Set a list of Y on X. | Remove all existing authors on a proposal and replace them with a new list. |
+
+| Mutator | Arguments | Notes |
+|---------|-----------|-------|
+| `createX` | `input`: Required and optional keys | May include `id`, generally in cases where `id` is human-readable. |
+| `updateX` | `id`: ID to update, `input`: Update values. | Generally, all values in `input` should be optional. |
+| `deleteX` | `id`: ID to delete. | |
+| `addYToX` | `XId`, `YId`: IDs to associate. | |
+| `removeYFromX` | `XId`, `YId`: IDs to disassociate. | |
+| `setYsForX` | `XId`, `YIds`: IDs to change, with `YIds` a list. | An empty list of `YIds` should result in no change. |
+
+A few general rules that apply here are outlined below.
+
+__Not All Mutators Are Required.__ You do not need to implement every possible combination of mutator for every object. The required mutators should be defined as part of the requirements. Without this, the amount of possible routes and combinations of queries rapidly become untenable.
+
+__Create and Update Are For Scalar Fields.__ In general, when creating a new item, only scalar fields should be accepted, not lists of things to be associated. For instance, `createUser` should not accept a list of roles to assign to the user. Instead, `createUser` should be called, and then `addRoleToUser` or `setRolesForUser` should be used to add roles to the user. Similarly, `updateUser` should allow you to change the name of a user, but not change their roles; this is what `setRolesForUser` does.
+
+__Add, Remove, and Set Should Be Defined In One Place.__ Usually, it is not necessary to define a resolver to perform operations from both directions. For instance, it would be redundant to have a resolver to add users to a role, and a separate resolver to add roles to a user. Ideally, a single route or definition should be derived from the requirements.
+  * As with most things, there may be exceptions to this rule, which should be documented.
+  * The model where these are implemented should be whatever X is. For instance, AddUserToRole would be defined on the Role model, while AddRoleToUser would be defined on the User model.
+
+### Field Resolvers
+
+Field resolvers tell GraphQL how to properly resolve nested fields on query objects. For instance, if you have a Proposal, which has several Authors, and the Authors each have multiple Proposals, GraphQL would support a query like this:
+
+```
+query Query {
+  proposal(id: "some-id") {
+    id
+    title
+    description
+    authors {
+      id
+      proposals {
+        id
+        title
+        description
+      }
+    }
+  }
+}
+```
+
+For this to work, _field resolvers_ will be necessary on the proposal and author models. These generally take the form of:
+
+```
+  Object: {
+    objectField: async (parent: Object) => {
+      return await prisma().objectField.findMany({
+        where: {
+          id: parent.objectFieldId
+        },
+      });
+    },
+```
+
+These tell GraphQL that if I am looking for some field on object, to use this Prisma query to get back the results needed. By properly defining field resolvers, we enable chaining of resolvers to give our GraphQL system flexibility.
+
+### Type Resolvers
+
+Type resolvers are necessary in cases where a resolver might return a key that could have different types. They serve to allow GraphQL to understand the type of the returned object, and in turn, to properly check the requested fields for type safety.
+
+When implemented, you can write queries using the `... on Type` notation to dynamically return different fields based on the resolved type of the object. For an example, consider a media library which contains both movies and books.
+
+```
+query MediaItems {
+  mediaLibrary {
+    items {
+      ... on Movie {
+        id
+        director
+        runtime
+      }
+      ... on Book {
+        id
+        author
+        pageCount
+      }
+    }
+  }
+}
+```
+
+This is implemented using the `__resolveType` resolver function.
+
+```
+  MediaItem: {
+    __resolveType(obj: Item) {
+      if (obj.itemTypeId === "MOVIE") {
+        return "Movie";
+      } else if (obj.itemTypeId === "BOOK") {
+        return "Book";
+      }
+    }
+  },
+```
+
+## Database Standards and Conventions
+
+1. __Name Formatting__: Use snake_case for all database-related items.
+2. __Table Naming__: Tables should be named using the singular if possible (e.g. `author`, not `authors`). Exceptions to this are allowable for good reason. For instance, the word `USER` is reserved in SQL, so the table with users is called `users`. This is documented in the Prisma model. In contexts where the table name is made plural in this manner, do not make other references plural; having `user_id` in one table be constrained by `users.id` in the `users` table is correct.
+3. __ID Columns__: Most tables will have a column named `id` which represents the identifier for that table. Do not prefix the ID with the name of the table (i.e. use `state.id`, not `state.state_id`).
+4. __Foreign Keys__: When using a column in a table that references the ID column of another table, refer to it with a prefix. Ideally, you should simply use `table_name_id`. In some contexts, it is necessary to add additional context about the meaning of a column. For instance, the primary reviewer of a proposal is a user, but naming the column `user_id` is ambiguous. In those contexts, you can use the format of `meaningful_name_type_id`. So, `primary_reviewer_user_id` indicates the the column is the primary reviewer and that it is a user ID, meaning it can be looked up in `users.id`.
+5. __History Table Specifics__: Every history table should begein with three columns: `revision_id`, `revision_type`, and `modified_at`. These are expected by the Python tool which generates the triggers. Every other column should be reproduced from the source table, but no constraints or checks should be duplicated.
 
 # How To Guides
 
