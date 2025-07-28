@@ -30,14 +30,14 @@ def call(Map params) {
   def formattedFlags = (sonarqubeCliFlags.findAll { k, v -> v != null }).collect { k, v -> "-Dsonar.${k}=${v}" }.join(" ")
 
   withCredentials([string(credentialsId: "${credentialsId}", variable: 'TOKEN')]) {
-    withSonarQubeEnv('SonarQube') {
+      container('scanner') {
         sh """
-          ${scannerHome}/bin/sonar-scanner \
+          sonar-scanner \
             -Dsonar.projectKey=${projectKey} \
             -Dsonar.projectBaseDir=${projectBaseDir} \
             -Dsonar.host.url=https://sonarqube.cloud.cms.gov \
             -Dsonar.qualitygate.wait=true \
-            -Dsonar.login=\$TOKEN \
+            -Dsonar.token=\$TOKEN \
             ${formattedFlags} \
             -X
         """
