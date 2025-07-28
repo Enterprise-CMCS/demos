@@ -16,7 +16,7 @@ import {
   AutoCompleteSelect,
   Option,
 } from "components/input/select/AutoCompleteSelect";
-import { PaginationControls } from "components/table//pagination/PaginationControls";
+import { PaginationControls } from "components/table/PaginationControls";
 
 export interface RawDocument {
   id: number;

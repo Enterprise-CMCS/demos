@@ -43,6 +43,24 @@ export const DEMONSTRATION_TABLE_QUERY = gql`
       projectOfficer {
         fullName
       }
+      amendments {
+        name
+        projectOfficer {
+          fullName
+        }
+        amendmentStatus {
+          name
+        }
+      }
+      extensions {
+        name
+        projectOfficer {
+          fullName
+        }
+        extensionStatus {
+          name
+        }
+      }
     }
   }
 `;

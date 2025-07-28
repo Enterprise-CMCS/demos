@@ -57,6 +57,7 @@
     "dev": "vite --host",
     "dev:mocks": "VITE_USE_MOCKS=true npm run dev",
     "test": "vitest --mode test",
+    "test:debug": "vitest --mode test --run --inspect-brk --no-file-parallelism",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",

@@ -28,6 +28,12 @@ export const demonstrationStatusMocks: MockedResponse[] = [
           {
             name: "Withdrawn",
           },
+          {
+            name: "Active",
+          },
+          {
+            name: "Draft",
+          },
         ] satisfies DemonstrationStatusOption[],
       },
     },

@@ -1,4 +1,4 @@
-import { CellContext, Table } from "@tanstack/react-table";
+import { CellContext, Row, Table } from "@tanstack/react-table";
 import { ExitIcon, SearchIcon } from "components/icons";
 import React from "react";
 
@@ -9,6 +9,29 @@ export interface KeywordSearchProps<T> {
   debounceMs?: number;
   storageKey?: string;
 }
+
+export const arrIncludesAllInsensitive = <T,>(
+  row: Row<T>,
+  columnId: string,
+  filterValue: (string | undefined)[]
+) => {
+  const validFilterValues = filterValue.filter(
+    (val): val is string => val != null
+  );
+
+  if (validFilterValues.length === 0) {
+    return true;
+  }
+
+  return !validFilterValues.some((val: string) => {
+    const search = val.toLowerCase();
+    const rowValue = row.getValue(columnId);
+
+    return !(
+      rowValue != null && rowValue.toString().toLowerCase().includes(search)
+    );
+  });
+};
 
 export function highlightCell<TData>({
   cell,

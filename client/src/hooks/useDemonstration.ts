@@ -4,7 +4,10 @@ import {
   ApolloError,
   FetchResult,
 } from "@apollo/client";
-import { Demonstration, AddDemonstrationInput } from "demos-server";
+import {
+  Demonstration as ServerDemonstration,
+  AddDemonstrationInput,
+} from "demos-server";
 import {
   ADD_DEMONSTRATION_QUERY,
   DEMONSTRATION_TABLE_QUERY,
@@ -13,6 +16,14 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 
+type Demonstration = ServerDemonstration & {
+  extensions: {
+    name: string;
+    projectOfficer: { fullName: string };
+    extensionStatus: { name: string };
+  }[];
+};
+
 interface GetAllDemonstrationsOperation {
   trigger: () => void;
   data?: Demonstration[];
@@ -20,18 +31,40 @@ interface GetAllDemonstrationsOperation {
   error?: ApolloError;
 }
 
-export type DemonstrationTableRow = {
+export type DemonstrationTableItem = {
   id: Demonstration["id"];
   name: Demonstration["name"];
   state: Pick<Demonstration["state"], "name">;
   projectOfficer: Pick<Demonstration["projectOfficer"], "fullName">;
   users: Pick<Demonstration["users"][number], "id">[];
   demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;
+  amendments: {
+    name: Demonstration["amendments"][number]["name"];
+    projectOfficer: Pick<
+      Demonstration["amendments"][number]["projectOfficer"],
+      "fullName"
+    >;
+    amendmentStatus: Pick<
+      Demonstration["amendments"][number]["amendmentStatus"],
+      "name"
+    >;
+  }[];
+  extensions: {
+    name: Demonstration["extensions"][number]["name"];
+    projectOfficer: Pick<
+      Demonstration["extensions"][number]["projectOfficer"],
+      "fullName"
+    >;
+    extensionStatus: Pick<
+      Demonstration["extensions"][number]["extensionStatus"],
+      "name"
+    >;
+  }[];
 };
 
 interface GetDemonstrationTableOperation {
   trigger: () => void;
-  data?: DemonstrationTableRow[];
+  data?: DemonstrationTableItem[];
   loading: boolean;
   error?: ApolloError;
 }
@@ -85,7 +118,7 @@ const createGetAllDemonstrationsHook = (): GetAllDemonstrationsOperation => {
 
 const createGetDemonstrationTableHook = (): GetDemonstrationTableOperation => {
   const [trigger, { data, loading, error }] = useLazyQuery<{
-    demonstrations: DemonstrationTableRow[];
+    demonstrations: DemonstrationTableItem[];
   }>(DEMONSTRATION_TABLE_QUERY);
 
   return {

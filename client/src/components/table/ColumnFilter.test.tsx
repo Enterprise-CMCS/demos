@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { Table } from "../Table";
-import { testTableData, TestType } from "../Table.test";
+import { Table } from "./Table";
+import { testTableData, TestType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
