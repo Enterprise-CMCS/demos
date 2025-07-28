@@ -6,8 +6,8 @@ const ERROR_MESSAGES = {
   FILE_READ_ERROR: "Error reading file.",
 };
 
-type UploadStatus = "idle" | "uploading" | "success" | "error";
-type ErrorMessage = string;
+export type UploadStatus = "idle" | "uploading" | "success" | "error";
+export type ErrorMessage = string;
 
 export const useFileUpload = ({
   allowedMimeTypes,

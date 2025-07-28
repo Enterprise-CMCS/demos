@@ -1,11 +1,16 @@
 import React, { useRef, useState, useCallback } from "react";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import { useFileUpload } from "hooks/file/useFileUpload";
+import {
+  ErrorMessage,
+  UploadStatus,
+  useFileUpload,
+} from "hooks/file/useFileUpload";
 import { PrimaryButton, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
+import { TextInput } from "components/input";
 
 type DocumentModalType = "add" | "edit";
 
@@ -51,6 +56,20 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
 
+const TitleInput: React.FC<{
+  value: string;
+  onChange: (v: string) => void;
+}> = ({ value, onChange }) => (
+  <TextInput
+    name="title"
+    label="Document Title"
+    isRequired
+    placeholder="Enter document title"
+    onChange={(e) => onChange(e.target.value)}
+    value={value}
+  />
+);
+
 const DescriptionInput: React.FC<{
   value: string;
   onChange: (v: string) => void;
@@ -88,29 +107,33 @@ const DocumentTypeInput: React.FC<{
   />
 );
 
-const ProgressBar: React.FC<{ progress: number; status: string }> = ({
-  progress,
-  status,
-}) => (
-  <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
-    <div
-      role="progressbar"
-      className={`h-full transition-all ease-in-out duration-500 ${
-        status === "error"
-          ? "bg-red-500"
-          : status === "success"
-            ? "bg-green-500"
-            : "bg-primary"
-      }`}
-      style={{ width: `${progress}%` }}
-    />
-  </div>
-);
+const ProgressBar: React.FC<{
+  progress: number;
+  uploadStatus: UploadStatus;
+}> = ({ progress, uploadStatus }) => {
+  const progressBarColor =
+    {
+      error: "bg-red-500",
+      success: "bg-green-500",
+      uploading: "bg-primary",
+      idle: "bg-primary",
+    }[uploadStatus] || "bg-primary";
+
+  return (
+    <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
+      <div
+        role="progressbar"
+        className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`}
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  );
+};
 
 const DropTarget: React.FC<{
   file: File | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-  uploadStatus: string;
+  uploadStatus: UploadStatus;
   uploadProgress: number;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
@@ -173,7 +196,7 @@ const DropTarget: React.FC<{
 
       {file && (
         <div className="w-full">
-          <ProgressBar progress={uploadProgress} status={uploadStatus} />
+          <ProgressBar progress={uploadProgress} uploadStatus={uploadStatus} />
           {uploadProgress > 0 && (
             <div className="flex justify-between mt-1 text-[12px] text-text-placeholder font-medium">
               <span>{(file.size / 1_000_000).toFixed(1)} MB</span>
@@ -193,16 +216,22 @@ const DropTarget: React.FC<{
 };
 
 type BaseDocumentModalProps = {
-  title: string;
   onClose?: () => void;
+  forDocumentId?: string;
 };
 
 const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   onClose = () => {},
-  title,
+  forDocumentId,
 }) => {
   const { showSuccess } = useToast();
 
+  const documentModalType: DocumentModalType = forDocumentId ? "edit" : "add";
+  const modalTitle =
+    documentModalType === "edit" ? "Edit Document" : "Add New Document";
+
+  // TODO: get this from GQL hook
+  const [documentTitle, setDocumentTitle] = useState("Document title");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string>("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -212,10 +241,9 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
     useFileUpload({
       allowedMimeTypes: ALLOWED_MIME_TYPES,
       maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
-      onSuccessCallback: () => {
-        showSuccess("File loaded into browser!");
+      onErrorCallback: (errorMessage: ErrorMessage) => {
+        setError(errorMessage);
       },
-      onErrorCallback: () => {},
     });
 
   const handleUpload = () => {
@@ -233,7 +261,7 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
 
   return (
     <BaseModal
-      title={title}
+      title={modalTitle}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -256,6 +284,12 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
         </>
       }
     >
+      {documentModalType === "edit" && (
+        <TitleInput
+          value={documentTitle}
+          onChange={(newTitle) => setDocumentTitle(newTitle)}
+        />
+      )}
       <DescriptionInput
         value={description}
         onChange={setDescription}
@@ -277,20 +311,11 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
 
 export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({
   onClose,
-}) => <BaseDocumentModal onClose={onClose} title="Add New Document" />;
+}) => <BaseDocumentModal onClose={onClose} />;
 
-interface EditDocumentModalProps {
+export const EditDocumentModal: React.FC<{
   documentId: string;
   onClose: () => void;
-}
-
-export const EditDocumentModal: React.FC<EditDocumentModalProps> = ({
-  documentId,
-  onClose,
-}) => (
-  <BaseDocumentModal
-    documentId={documentId}
-    onClose={onClose}
-    title="Edit Document"
-  />
+}> = ({ documentId, onClose }) => (
+  <BaseDocumentModal forDocumentId={documentId} onClose={onClose} />
 );

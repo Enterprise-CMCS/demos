@@ -1,8 +1,4 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { SecondaryButton } from "components/button";
 import { CircleButton } from "components/button/CircleButton";
@@ -19,29 +15,28 @@ import { ExtensionTable } from "components/table/tables/ExtensionTable";
 import DocumentData from "faker_data/documents.json";
 import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
 import { mockAmendments } from "mock-data/amendmentMocks";
 import { mockExtensions } from "mock-data/extensionMocks";
 import { useParams } from "react-router-dom";
 
-import { isTestMode } from "../config/env";
+import { isTestMode } from "config/env";
+
+type ModalType = "edit" | "delete" | "amendment" | "extension" | null;
+type TabType = "details" | "amendments" | "extensions";
 
 export const DemonstrationDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: demonstrationId } = useParams<{ id: string }>();
   const [showButtons, setShowButtons] = useState(false);
-  const [modalType, setModalType] = useState<"edit" | "delete" | "amendment" | "extension" | null>(null);
-  const [tab, setTab] = useState<"details" | "amendments" | "extensions">("details");
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [tab, setTab] = useState<TabType>("details");
 
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;
 
   useEffect(() => {
-    if (id) trigger(id);
-  }, [id]);
-
+    if (demonstrationId) trigger(demonstrationId);
+  }, [demonstrationId]);
 
   const tabList: TabItem[] = [
     { value: "details", label: "Demonstration Details" },
@@ -119,9 +114,9 @@ export const DemonstrationDetail = () => {
             onClick={() => setShowButtons((prev) => !prev)}
           >
             <span
-              className={`transform transition-transform duration-200 ease-in-out ${showButtons ? "rotate-90" : "rotate-0"
-                // eslint-disable-next-line indent
-                }`}
+              className={`transform transition-transform duration-200 ease-in-out ${
+                showButtons ? "rotate-90" : "rotate-0"
+              }`}
             >
               <EllipsisIcon width="24" height="24" />
             </span>
@@ -152,7 +147,7 @@ export const DemonstrationDetail = () => {
             {tab === "details" && (
               <div>
                 <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">
-                  Demonstration Details
+                  Documents
                 </h1>
                 <DocumentTable data={DocumentData} />
               </div>
@@ -235,5 +230,4 @@ export const DemonstrationDetail = () => {
       )}
     </div>
   );
-
 };

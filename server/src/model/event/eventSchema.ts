@@ -33,7 +33,7 @@ export const eventSchema = gql`
     eventType: String!
     logLevel: String!
     route: String!
-    eventData: JSONObject!
+    eventData: JSONObject
   }
 
   type EventLoggedStatus {
@@ -58,7 +58,7 @@ export interface LogEventInput {
   eventType: string;
   logLevel: string;
   route: string;
-  eventData: object;
+  eventData?: object;
 }
 
 export interface EventLoggedStatus {
