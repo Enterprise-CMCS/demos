@@ -1,5 +1,3 @@
-@Library('demos-lib@DEMOS-564-snyk-jenkins') _
-
 pipeline {
   agent {
     kubernetes { 
