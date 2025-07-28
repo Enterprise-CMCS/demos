@@ -3,7 +3,7 @@ import { Demonstration } from "../demonstration/demonstrationSchema.js";
 
 export const demonstrationStatusSchema = gql`
   type DemonstrationStatus {
-    id: ID!
+    id: String!
     name: String!
     description: String!
     createdAt: DateTime!
@@ -12,6 +12,7 @@ export const demonstrationStatusSchema = gql`
   }
 
   input AddDemonstrationStatusInput {
+    id: String!
     name: String!
     description: String!
     demonstrationIds: [ID!]
@@ -28,14 +29,15 @@ export const demonstrationStatusSchema = gql`
       input: AddDemonstrationStatusInput!
     ): DemonstrationStatus
     updateDemonstrationStatus(
+      id: String!
       input: UpdateDemonstrationStatusInput!
     ): DemonstrationStatus
-    deleteDemonstrationStatus(id: ID!): DemonstrationStatus
+    deleteDemonstrationStatus(id: String!): DemonstrationStatus
   }
 
   type Query {
     demonstrationStatuses: [DemonstrationStatus]!
-    demonstrationStatus(id: ID!): DemonstrationStatus
+    demonstrationStatus(id: String!): DemonstrationStatus
   }
 `;
 
@@ -50,6 +52,7 @@ export interface DemonstrationStatus {
 }
 
 export interface AddDemonstrationStatusInput {
+  id: string;
   name: string;
   description: string;
   demonstrationIds?: string[];

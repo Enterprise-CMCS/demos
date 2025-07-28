@@ -1,6 +1,9 @@
 import { prisma } from "../../prismaClient.js";
 import { DocumentType } from "@prisma/client";
-import { AddDocumentTypeInput, UpdateDocumentTypeInput } from "./documentTypeSchema.js";
+import {
+  AddDocumentTypeInput,
+  UpdateDocumentTypeInput,
+} from "./documentTypeSchema.js";
 
 export const documentTypeResolvers = {
   Query: {
@@ -11,31 +14,33 @@ export const documentTypeResolvers = {
     },
     documentTypes: async () => {
       return await prisma().documentType.findMany();
-    }
+    },
   },
 
   Mutation: {
     addDocumentType: async (
       _: undefined,
-      { input }: { input: AddDocumentTypeInput }
+      { input }: { input: AddDocumentTypeInput },
     ) => {
       return await prisma().documentType.create({
         data: {
           id: input.id,
-          description: input.description
-        }
+          name: input.name,
+          description: input.description,
+        },
       });
     },
 
     updateDocumentType: async (
       _: undefined,
-      { id, input }: { id: string, input: UpdateDocumentTypeInput }
+      { id, input }: { id: string; input: UpdateDocumentTypeInput },
     ) => {
       return await prisma().documentType.update({
         where: { id: id },
         data: {
-          description: input.description
-        }
+          name: input.name,
+          description: input.description,
+        },
       });
     },
 
@@ -43,18 +48,18 @@ export const documentTypeResolvers = {
       return await prisma().documentType.delete({
         where: { id: id },
       });
-    }
+    },
   },
 
   DocumentType: {
-    documents: async(parent: DocumentType) => {
+    documents: async (parent: DocumentType) => {
       return await prisma().document.findMany({
         where: {
           documentType: {
-            id: parent.id
-          }
-        }
+            id: parent.id,
+          },
+        },
       });
-    }
-  }
+    },
+  },
 };

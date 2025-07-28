@@ -27,6 +27,10 @@ function sampleFromArray<T>(arrayToSample: T[], recordsToSample: number): T[] {
   return shuffledArray.slice(0, recordsToSample);
 }
 
+function makeIdStyleString(inputString: string): string {
+  return inputString.toUpperCase().replace(/ /g, "_").replace(/\./g, "");
+}
+
 function clearDatabase() {
   // Note: the history tables are not truncated in this process
   // Almost always, this runs via npm run seed which empties the DB anyway
@@ -43,10 +47,10 @@ function clearDatabase() {
     prisma().permission.deleteMany(),
 
     // Delete various bundle types
-    prisma().demonstration.deleteMany(),
-    prisma().demonstrationStatus.deleteMany(),
     prisma().modification.deleteMany(),
     prisma().modificationStatus.deleteMany(),
+    prisma().demonstration.deleteMany(),
+    prisma().demonstrationStatus.deleteMany(),
 
     // States are only connected to specific bundles and to the join tables
     prisma().state.deleteMany(),
@@ -82,8 +86,8 @@ async function seedDatabase() {
   console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
-  const bypassRoleId = "abcdef09-0000-0000-0000-123412341234";
-  const bypassPermissionId = "aaaaaaaa-0000-0000-0000-ffffffffffff";
+  const bypassRoleId = "BYPASSED_ADMIN_ROLE";
+  const bypassPermissionId = "BYPASSED_ADMIN_PERMISSION";
   await prisma().user.create({
     data: {
       id: bypassUserId,
@@ -125,9 +129,11 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding roles...");
   for (let i = 0; i < roleCount; i++) {
+    const title = faker.person.jobTitle();
     await prisma().role.create({
       data: {
-        name: faker.person.jobTitle(),
+        id: makeIdStyleString(title),
+        name: title,
         description: faker.person.jobDescriptor(),
       },
     });
@@ -144,8 +150,8 @@ async function seedDatabase() {
   for (const state of states) {
     await prisma().state.create({
       data: {
-        stateCode: state.abbreviation,
-        stateName: state.name,
+        id: state.abbreviation,
+        name: state.name,
       },
     });
   }
@@ -165,9 +171,19 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding permissions...");
   for (let i = 0; i < permissionCount; i++) {
+    const permissionName = sampleFromArray(
+      [
+        faker.lorem.sentence(1),
+        faker.lorem.sentence(2),
+        faker.lorem.sentence(3),
+      ],
+      1,
+    );
+
     await prisma().permission.create({
       data: {
-        name: faker.lorem.word(),
+        id: makeIdStyleString(permissionName[0]),
+        name: permissionName[0],
         description: faker.lorem.sentence(),
       },
     });
@@ -182,6 +198,7 @@ async function seedDatabase() {
   for (const status of demonstrationStatuses) {
     await prisma().demonstrationStatus.create({
       data: {
+        id: makeIdStyleString(status.name),
         name: status.name,
         description: status.description,
       },
@@ -203,8 +220,8 @@ async function seedDatabase() {
         bundleTypeId: BUNDLE_TYPE.DEMONSTRATION,
         name: faker.lorem.words(3),
         description: faker.lorem.sentence(),
-        evaluationPeriodStartDate: faker.date.future(),
-        evaluationPeriodEndDate: faker.date.future({ years: 1 }),
+        effectiveDate: faker.date.future(),
+        expirationDate: faker.date.future({ years: 1 }),
         demonstrationStatusId:
           (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
@@ -215,14 +232,16 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding amendment statuses...");
   const modificationStatuses = [
-    { id: "NEW", description: "New amendment." },
-    { id: "IN_PROGRESS", description: "Amendment is in progress." },
-    { id: "COMPLETED", description: "Completed amendment." },
+    { name: "New", description: "New amendment." },
+    { name: "In Progress", description: "Amendment is in progress." },
+    { name: "On Hold", description: "Amendment is on hold." },
+    { name: "Completed", description: "Completed amendment." },
   ];
   for (const status of modificationStatuses) {
     await prisma().modificationStatus.create({
       data: {
-        id: status.id,
+        id: makeIdStyleString(status.name),
+        name: status.name,
         bundleTypeId: BUNDLE_TYPE.AMENDMENT,
         description: status.description,
       },
@@ -257,31 +276,38 @@ async function seedDatabase() {
   console.log("🌱 Seeding document types...");
   const documentTypes = [
     {
-      id: "DEMONSTRATION_APPLICATION",
+      name: "Demonstration Application",
       description: "Demonstration application file.",
     },
-    { id: "BUDGET_PROPOSAL", description: "Proposed budget for the project." },
     {
-      id: "ELECTED_OFFICAL_ENDORSEMENT",
+      name: "Budget Proposal",
+      description: "Proposed budget for the project.",
+    },
+    {
+      name: "Elected Official Endorsement",
       description: "Endorsement by elected official.",
     },
-    { id: "COI_DISCLOSURE", description: "Conflict of interest disclosure." },
-    { id: "DEVIATION_REPORT", description: "Report of a deviation." },
-    { id: "EXPENSE_TABLE", description: "Expense table." },
     {
-      id: "INTENTIONALLY_OMITTED",
+      name: "Conflict of Interest Disclosure",
+      description: "Conflict of interest disclosure.",
+    },
+    { name: "Deviation Report", description: "Report of a deviation." },
+    { name: "Expense Table", description: "Expense table." },
+    {
+      name: "Intentionally Omitted",
       description:
         "A document type intended not to be used, to allow for zero-count joins.",
     },
     {
-      id: "AMENDMENT_APPLICATION",
+      name: "Amendment Application",
       description: "Application for an amendment.",
     },
   ];
   for (const documentType of documentTypes) {
     await prisma().documentType.create({
       data: {
-        id: documentType.id,
+        id: makeIdStyleString(documentType.name),
+        name: documentType.name,
         description: documentType.description,
       },
     });
@@ -463,10 +489,8 @@ async function seedDatabase() {
     });
   }
 
-  console.log(
-    "✨ Database seeding complete.",
-  );
-};
+  console.log("✨ Database seeding complete.");
+}
 
 seedDatabase().catch((error) => {
   console.error("❌ An error occurred while seeding the database:", error);

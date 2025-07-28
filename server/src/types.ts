@@ -23,11 +23,7 @@ export type {
   UpdateAmendmentStatusInput,
 } from "./model/modificationStatus/modificationStatusSchema.js";
 
-export type {
-  State,
-  AddStateInput,
-  UpdateStateInput,
-} from "./model/state/stateSchema.js";
+export type { State } from "./model/state/stateSchema.js";
 
 export type {
   Role,
@@ -44,7 +40,7 @@ export type {
 export type {
   Event,
   LogEventInput,
-  EventLoggedStatus
+  EventLoggedStatus,
 } from "./model/event/eventSchema.js";
 
 import { BUNDLE_TYPE } from "./constants.js";

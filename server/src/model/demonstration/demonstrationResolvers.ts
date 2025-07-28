@@ -32,8 +32,8 @@ export const demonstrationResolvers = {
         stateId,
         userIds,
         projectOfficerUserId,
-        evaluationPeriodStartDate,
-        evaluationPeriodEndDate,
+        effectiveDate,
+        expirationDate,
         ...rest
       } = input;
 
@@ -55,8 +55,8 @@ export const demonstrationResolvers = {
             bundleType: {
               connect: { id: demonstrationBundleTypeId },
             },
-            evaluationPeriodStartDate: new Date(evaluationPeriodStartDate),
-            evaluationPeriodEndDate: new Date(evaluationPeriodEndDate),
+            effectiveDate: new Date(effectiveDate),
+            expirationDate: new Date(expirationDate),
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
             },
@@ -89,8 +89,8 @@ export const demonstrationResolvers = {
         userIds,
         stateId,
         projectOfficerUserId,
-        evaluationPeriodStartDate,
-        evaluationPeriodEndDate,
+        effectiveDate,
+        expirationDate,
         ...rest
       } = input;
 
@@ -109,11 +109,11 @@ export const demonstrationResolvers = {
         where: { id },
         data: {
           ...rest,
-          ...(evaluationPeriodStartDate && {
-            evaluationPeriodStartDate: new Date(evaluationPeriodStartDate),
+          ...(effectiveDate && {
+            effectiveDate: new Date(effectiveDate),
           }),
-          ...(evaluationPeriodEndDate && {
-            evaluationPeriodEndDate: new Date(evaluationPeriodEndDate),
+          ...(expirationDate && {
+            expirationDate: new Date(expirationDate),
           }),
           ...(demonstrationStatusId && {
             demonstrationStatus: {

@@ -1,7 +1,8 @@
+// Flags: NATURAL_KEY, NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// State codes are managed via migration and should almost never change
 model State {
-  id        String @id @default(uuid()) @db.Uuid
-  stateCode String @map("state_code")
-  stateName String @map("state_name")
+  id   String @id
+  name String
 
   userStates     UserState[]
   demonstrations Demonstration[]

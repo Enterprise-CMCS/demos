@@ -1,9 +1,9 @@
 {
-  "name": "test",
+  "name": "deployment",
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "test": "bin/test.js"
+    "demosctl": "demosctl/index.ts"
   },
   "scripts": {
     "diff:core": "cdk diff --context stage=dev demos-dev-core",
@@ -30,6 +30,7 @@
     "typescript-eslint": "^8.32.1"
   },
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.844.0",
     "@aws-sdk/client-ec2": "^3.830.0",
     "@aws-sdk/client-secrets-manager": "^3.812.0",
     "aws-cdk-lib": "^2.197.0",

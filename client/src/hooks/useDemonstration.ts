@@ -7,6 +7,7 @@ import {
 import { Demonstration, AddDemonstrationInput } from "demos-server";
 import {
   ADD_DEMONSTRATION_QUERY,
+  DEMONSTRATION_TABLE_QUERY,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
@@ -15,6 +16,22 @@ import {
 interface GetAllDemonstrationsOperation {
   trigger: () => void;
   data?: Demonstration[];
+  loading: boolean;
+  error?: ApolloError;
+}
+
+export type DemonstrationTableRow = {
+  id: Demonstration["id"];
+  name: Demonstration["name"];
+  state: Pick<Demonstration["state"], "name">;
+  projectOfficer: Pick<Demonstration["projectOfficer"], "fullName">;
+  users: Pick<Demonstration["users"][number], "id">[];
+  demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;
+};
+
+interface GetDemonstrationTableOperation {
+  trigger: () => void;
+  data?: DemonstrationTableRow[];
   loading: boolean;
   error?: ApolloError;
 }
@@ -47,6 +64,7 @@ interface UpdateDemonstrationOperation {
 
 export interface DemonstrationOperations {
   getAllDemonstrations: GetAllDemonstrationsOperation;
+  getDemonstrationTable: GetDemonstrationTableOperation;
   getDemonstrationById: GetDemonstrationByIdOperation;
   addDemonstration: AddDemonstrationOperation;
   updateDemonstration: UpdateDemonstrationOperation;
@@ -56,6 +74,19 @@ const createGetAllDemonstrationsHook = (): GetAllDemonstrationsOperation => {
   const [trigger, { data, loading, error }] = useLazyQuery<{
     demonstrations: Demonstration[];
   }>(GET_ALL_DEMONSTRATIONS_QUERY);
+
+  return {
+    trigger,
+    data: data?.demonstrations,
+    loading,
+    error,
+  };
+};
+
+const createGetDemonstrationTableHook = (): GetDemonstrationTableOperation => {
+  const [trigger, { data, loading, error }] = useLazyQuery<{
+    demonstrations: DemonstrationTableRow[];
+  }>(DEMONSTRATION_TABLE_QUERY);
 
   return {
     trigger,
@@ -109,6 +140,7 @@ const createUpdateDemonstrationHook = (): UpdateDemonstrationOperation => {
 export const useDemonstration = (): DemonstrationOperations => {
   return {
     getAllDemonstrations: createGetAllDemonstrationsHook(),
+    getDemonstrationTable: createGetDemonstrationTableHook(),
     getDemonstrationById: createGetDemonstrationByIdHook(),
     addDemonstration: createAddDemonstrationHook(),
     updateDemonstration: createUpdateDemonstrationHook(),

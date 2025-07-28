@@ -1,5 +1,6 @@
+// Flags: NATURAL_KEY
 model Role {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String   @id
   name        String
   description String
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()

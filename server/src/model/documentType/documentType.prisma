@@ -1,6 +1,7 @@
 // Flags: NATURAL_KEY
 model DocumentType {
   id          String   @id
+  name        String
   description String
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()

@@ -30,8 +30,8 @@ scenarios:
                       id
                       name
                       description
-                      evaluationPeriodStartDate
-                      evaluationPeriodEndDate
+                      effectiveDate
+                      expirationDate
                       createdAt
                       updatedAt
                       demonstrationStatus {
@@ -44,16 +44,15 @@ scenarios:
                           id
                           name
                           description
-                          evaluationPeriodStartDate
-                          evaluationPeriodEndDate
+                          effectiveDate
+                          expirationDate
                           createdAt
                           updatedAt
                         }
                       }
                       state {
                         id
-                        stateCode
-                        stateName
+                        name
                       }
                     }
                   }
