@@ -43,6 +43,13 @@ def call(Map params = [:]) {
     limits:
       cpu: 3000m
       memory: 4Gi
+""",
+      'snyk': """
+- name: snyk
+  image: ${opts.SCANNER_IMAGE ?: 'artifactory.cloud.cms.gov/docker/snyk/snyk:alpine'}
+  command:
+  - cat
+  tty: true
 """
     ]
 
