@@ -21,6 +21,7 @@ export type TableRow = {
   applicationStatus?: { name: string };
   demonstrationStatus?: { name: string };
   status?: { name: string };
+  parentId?: string;
 };
 
 // Map demonstration data to generic TableRow
@@ -33,6 +34,7 @@ function mapToTableRow(item: DemonstrationTableItem): TableRow {
     applicationStatus: app.amendmentStatus,
     state: item.state,
     status: app.amendmentStatus,
+    parentId: item.id,
   }));
 
   const extensions = (item.extensions || []).map((app) => ({
@@ -43,6 +45,7 @@ function mapToTableRow(item: DemonstrationTableItem): TableRow {
     applicationStatus: app.extensionStatus,
     state: item.state,
     status: app.extensionStatus,
+    parentId: item.id,
   }));
 
   const applications = [...amendments, ...extensions];

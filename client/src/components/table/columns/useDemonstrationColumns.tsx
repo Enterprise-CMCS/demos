@@ -6,21 +6,7 @@ import { useUserOperations } from "hooks/useUserOperations";
 import { useState } from "hooks/useState";
 import { useDemonstrationStatus } from "hooks/useDemonstrationStatus";
 import React from "react";
-
-type TableRow = {
-  id: string;
-  name: string;
-  state?: { name: string };
-  projectOfficer?: { fullName: string };
-  users?: { id: string }[];
-  amendments?: TableRow[];
-  extensions?: TableRow[];
-  applications?: TableRow[];
-  type?: "amendment" | "extension";
-  applicationStatus?: { name: string };
-  demonstrationStatus?: { name: string };
-  status?: { name: string };
-};
+import { TableRow } from "../tables/DemonstrationTable";
 
 export function useDemonstrationColumns() {
   const { getUserOptions } = useUserOperations();
@@ -170,9 +156,22 @@ export function useDemonstrationColumns() {
     columnHelper.display({
       id: "viewDetails",
       cell: ({ row }) => {
+        // Always link to the parent demonstration page
+        // If this row is an amendment or extension, use the parent id and add the correct query param
+        let demoId = row.original.id;
+        let queryParam = "";
+        if (row.original.type === "amendment" && row.original.parentId) {
+          demoId = row.original.parentId;
+          queryParam = "amendments=true";
+        } else if (row.original.type === "extension" && row.original.parentId) {
+          demoId = row.original.parentId;
+          queryParam = "extensions=true";
+        }
+        const href = queryParam
+          ? `/demonstrations/${demoId}?${queryParam}`
+          : `/demonstrations/${demoId}`;
         const handleClick = () => {
-          const demoId = row.original.id;
-          window.location.href = `/demonstrations/${demoId}`;
+          window.location.href = href;
         };
         return (
           <SecondaryButton
