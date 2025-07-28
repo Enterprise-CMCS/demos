@@ -1,3 +1,4 @@
+// TODO: probably best to rename this to `environment.ts` to be more explicit
 const VALID_MODES = ["development", "test", "production"] as const;
 
 export type AppMode = (typeof VALID_MODES)[number];
