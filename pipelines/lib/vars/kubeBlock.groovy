@@ -38,11 +38,11 @@ def call(Map params = [:]) {
   tty: true
   resources:
     requests:
-      cpu: 750m
-      memory: 1Gi
-    limits:
       cpu: 1500m
       memory: 2Gi
+    limits:
+      cpu: 3000m
+      memory: 4Gi
 """
     ]
 
