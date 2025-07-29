@@ -12,7 +12,6 @@ import { CreateNewModal } from "components/modal/CreateNewModal";
 import { AmendmentTable } from "components/table/tables/AmendmentTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { ExtensionTable } from "components/table/tables/ExtensionTable";
-import DocumentData from "faker_data/documents.json";
 import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
@@ -178,7 +177,7 @@ export const DemonstrationDetail = () => {
                 <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">
                   Demonstration Details
                 </h1>
-                <DocumentTable data={DocumentData} />
+                <DocumentTable />
               </div>
             )}
 
