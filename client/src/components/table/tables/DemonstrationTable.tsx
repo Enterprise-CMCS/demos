@@ -5,7 +5,7 @@ import {
   DemonstrationTableItem,
   useDemonstration,
 } from "hooks/useDemonstration";
-import { useDemonstrationColumns } from "../columns/useDemonstrationColumns";
+import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 
 // --- Generic TableRow type for both demonstration and application rows ---
 export type TableRow = {
@@ -73,7 +73,7 @@ export const DemonstrationTable: React.FC = () => {
     demonstrationColumns,
     demonstrationColumnsLoading,
     demonstrationColumnsError,
-  } = useDemonstrationColumns();
+  } = DemonstrationColumns();
 
   const { getDemonstrationTable } = useDemonstration();
   const {

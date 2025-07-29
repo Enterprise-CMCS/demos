@@ -31,6 +31,7 @@ interface GetAllDemonstrationsOperation {
   error?: ApolloError;
 }
 
+// TODO: as the demonstration model changes, this will likely need to be updated
 export type DemonstrationTableItem = {
   id: Demonstration["id"];
   name: Demonstration["name"];
