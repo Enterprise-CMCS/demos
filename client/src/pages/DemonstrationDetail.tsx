@@ -1,8 +1,4 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { SecondaryButton } from "components/button";
 import { CircleButton } from "components/button/CircleButton";
@@ -19,21 +15,49 @@ import { ExtensionTable } from "components/table/tables/ExtensionTable";
 import DocumentData from "faker_data/documents.json";
 import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
 import { mockAmendments } from "mock-data/amendmentMocks";
 import { mockExtensions } from "mock-data/extensionMocks";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import { isTestMode } from "../config/env";
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+
+  // Parse query params
+  const queryParams = React.useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+  const initialTab = React.useMemo(() => {
+    if (
+      queryParams.get("amendment") === "true" ||
+      queryParams.get("amendments") === "true"
+    ) {
+      return "amendments";
+    }
+    if (
+      queryParams.get("extension") === "true" ||
+      queryParams.get("extensions") === "true"
+    ) {
+      return "extensions";
+    }
+    return "details";
+  }, [queryParams]);
+
   const [showButtons, setShowButtons] = useState(false);
-  const [modalType, setModalType] = useState<"edit" | "delete" | "amendment" | "extension" | null>(null);
-  const [tab, setTab] = useState<"details" | "amendments" | "extensions">("details");
+  const [modalType, setModalType] = useState<
+    "edit" | "delete" | "amendment" | "extension" | null
+  >(null);
+  const [tab, setTab] = useState<"details" | "amendments" | "extensions">(
+    "details"
+  );
+
+  React.useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
 
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;
@@ -41,7 +65,6 @@ export const DemonstrationDetail = () => {
   useEffect(() => {
     if (id) trigger(id);
   }, [id]);
-
 
   const tabList: TabItem[] = [
     { value: "details", label: "Demonstration Details" },
@@ -119,9 +142,10 @@ export const DemonstrationDetail = () => {
             onClick={() => setShowButtons((prev) => !prev)}
           >
             <span
-              className={`transform transition-transform duration-200 ease-in-out ${showButtons ? "rotate-90" : "rotate-0"
+              className={`transform transition-transform duration-200 ease-in-out ${
+                showButtons ? "rotate-90" : "rotate-0"
                 // eslint-disable-next-line indent
-                }`}
+              }`}
             >
               <EllipsisIcon width="24" height="24" />
             </span>
@@ -235,5 +259,4 @@ export const DemonstrationDetail = () => {
       )}
     </div>
   );
-
 };
