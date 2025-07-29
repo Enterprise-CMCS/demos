@@ -2,17 +2,18 @@ import * as React from "react";
 
 import {
   ColumnDef,
+  ExpandedState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  Row,
   useReactTable,
 } from "@tanstack/react-table";
-import { KeywordSearch } from "./search/KeywordSearch";
-import { ColumnFilter } from "./filters/ColumnFilter";
-import { PaginationControls } from "./pagination/PaginationControls";
+import { arrIncludesAllInsensitive, KeywordSearch } from "./KeywordSearch";
+import { ColumnFilter } from "./ColumnFilter";
+import { PaginationControls } from "./PaginationControls";
 
 export interface TableProps<T> {
   data: T[];
@@ -25,6 +26,7 @@ export interface TableProps<T> {
   pagination?: boolean;
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
+  getSubRows?: (originalRow: T, index: number) => T[] | undefined;
 }
 
 export function Table<T>({
@@ -36,29 +38,9 @@ export function Table<T>({
   pagination,
   emptyRowsMessage = "No data available.",
   noResultsFoundMessage = "No results found.",
+  getSubRows,
 }: TableProps<T>) {
-  const arrIncludesAllInsensitive = (
-    row: Row<T>,
-    columnId: string,
-    filterValue: (string | undefined)[]
-  ) => {
-    const validFilterValues = filterValue.filter(
-      (val): val is string => val != null
-    );
-
-    if (validFilterValues.length === 0) {
-      return true;
-    }
-
-    return !validFilterValues.some((val: string) => {
-      const search = val.toLowerCase();
-      const rowValue = row.getValue(columnId);
-
-      return !(
-        rowValue != null && rowValue.toString().toLowerCase().includes(search)
-      );
-    });
-  };
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
   const table = useReactTable<T>({
     data,
@@ -68,11 +50,42 @@ export function Table<T>({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     globalFilterFn: arrIncludesAllInsensitive,
+    getExpandedRowModel: getExpandedRowModel(),
+    getSubRows: getSubRows,
+    filterFromLeafRows: true,
+    state: { expanded },
+    onExpandedChange: setExpanded,
   });
 
   const hasDataInitially = data.length > 0;
   const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
   const filtersClearedOutData = hasDataInitially && !hasDataAfterFiltering;
+
+  // Auto-expand parents with visible children after filtering
+  React.useEffect(() => {
+    const isFiltering =
+      table.getState().columnFilters?.length > 0 ||
+      !!table.getState().globalFilter;
+
+    if (isFiltering) {
+      const filteredRows = table.getFilteredRowModel().rows;
+      const newExpanded: ExpandedState = {};
+
+      filteredRows.forEach((row) => {
+        if (row.subRows && row.subRows.length > 0) {
+          newExpanded[row.id] = true;
+        }
+      });
+
+      setExpanded(newExpanded);
+    } else {
+      setExpanded({});
+    }
+  }, [
+    table.getFilteredRowModel().rows,
+    table.getState().columnFilters,
+    table.getState().globalFilter,
+  ]);
 
   return (
     <div className={`${className || ""}`}>

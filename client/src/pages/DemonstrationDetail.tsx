@@ -18,7 +18,7 @@ import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
 import { mockAmendments } from "mock-data/amendmentMocks";
 import { mockExtensions } from "mock-data/extensionMocks";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import { isTestMode } from "config/env";
 
@@ -27,9 +27,36 @@ type TabType = "details" | "amendments" | "extensions";
 
 export const DemonstrationDetail = () => {
   const { id: demonstrationId } = useParams<{ id: string }>();
+  const location = useLocation();
+
   const [showButtons, setShowButtons] = useState(false);
   const [modalType, setModalType] = useState<ModalType>(null);
   const [tab, setTab] = useState<TabType>("details");
+
+  // Parse query params
+  const queryParams = React.useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+  const initialTab = React.useMemo(() => {
+    if (
+      queryParams.get("amendment") === "true" ||
+      queryParams.get("amendments") === "true"
+    ) {
+      return "amendments";
+    }
+    if (
+      queryParams.get("extension") === "true" ||
+      queryParams.get("extensions") === "true"
+    ) {
+      return "extensions";
+    }
+    return "details";
+  }, [queryParams]);
+
+  React.useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
 
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;

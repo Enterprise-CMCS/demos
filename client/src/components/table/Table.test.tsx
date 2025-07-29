@@ -8,7 +8,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Table } from "./Table";
-import { highlightCell } from "./search/KeywordSearch";
+import { highlightCell } from "./KeywordSearch";
 
 type TestOptionType = {
   name: string;

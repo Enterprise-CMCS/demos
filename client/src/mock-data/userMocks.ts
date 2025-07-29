@@ -140,6 +140,33 @@ export const userMocks: MockedResponse[] = [
           {
             fullName: "Darth Vader",
           },
+          {
+            fullName: "John Doe",
+          },
+          {
+            fullName: "spongebob squarepants",
+          },
+          {
+            fullName: " squidward tentacles",
+          },
+          {
+            fullName: "patrick star",
+          },
+          {
+            fullName: "User Testerson",
+          },
+          {
+            fullName: "Jane Smith",
+          },
+          {
+            fullName: "Jim Smith",
+          },
+          {
+            fullName: "Darth Smith",
+          },
+          {
+            fullName: "Bob Johnson",
+          },
         ] satisfies UserOption[],
       },
     },

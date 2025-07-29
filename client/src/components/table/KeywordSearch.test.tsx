@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Table } from "../Table";
-import { TestType, testTableData } from "../Table.test";
+import { Table } from "./Table";
+import { TestType, testTableData } from "./Table.test";
 import { highlightCell } from "./KeywordSearch";
 import { createColumnHelper } from "@tanstack/react-table";
 
