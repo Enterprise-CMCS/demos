@@ -286,8 +286,6 @@ However, as noted above, there is no need to add resolvers for associative / joi
 
 Resolvers relating to a specific model are stored in the same folder as the model, as described in [Structure](#structure).
 
-> Remember, this is only a matter of where the code is _placed_ in the codebase; naturally, a resolver that works on an associative table will need to modify that table. This simply means that the resolver for UserRole should be found in either the User or Role model folders, not on a separate UserRole resolver definition. Another way to think about this is that Users and Roles are things the API should allow people to interact with; UserRoles are not separate objects / concepts.
-
 ### Field Naming
 
 As shown in the schema section, resolvers are named using camelCase, as are the fields (just like the Prisma models). The types are named via PascalCase, again, consistent with the actual names of the Prisma models.
@@ -307,10 +305,10 @@ Mutators are named using a standard syntax and with standard inputs.
 | Mutator | Meaning | Example |
 |---------|---------|---------|
 | `createX` | Create a new X. | Create a new proposal. |
-| `updateX` | Update the _scalar fields_ of a specific X. | Change the title of a proposal. |
+| `updateX` | Update fields that accept a single value for a specific X. | Change the title of a proposal. |
 | `deleteX` | Delete a specifc X. | Delete an existing proposal. |
-| `addYToX` | Add a specific Y to a specific X. | Add an author to a proposal. |
-| `removeYFromX` | Remove a specific Y from a specific X. | Remove an author from a proposal. |
+| `addYsToX` | Add one or more Ys to a specific X. | Add an author to a proposal. |
+| `removeYsFromX` | Remove one or more Ys from a specific X. | Remove two authors from a proposal. |
 | `setYsForX` | Set a list of Y on X. | Remove all existing authors on a proposal and replace them with a new list. |
 
 | Mutator | Arguments | Notes |
@@ -318,15 +316,15 @@ Mutators are named using a standard syntax and with standard inputs.
 | `createX` | `input`: Required and optional keys | May include `id`, generally in cases where `id` is human-readable. |
 | `updateX` | `id`: ID to update, `input`: Update values. | Generally, all values in `input` should be optional. |
 | `deleteX` | `id`: ID to delete. | |
-| `addYToX` | `XId`, `YId`: IDs to associate. | |
-| `removeYFromX` | `XId`, `YId`: IDs to disassociate. | |
-| `setYsForX` | `XId`, `YIds`: IDs to change, with `YIds` a list. | An empty list of `YIds` is equivalent to removing all associations. |
+| `addYsToX` | `XId`, `YIds`: A single `XId` and a list of `YIds` to add to it. | |
+| `removeYsFromX` | `XId`, `YIds`: A single `XId` and a list of `YIds` to remove from it. | |
+| `setYsForX` | `XId`, `YIds`: A single `XId` and a list of `YIds` IDs; all existing associations are replaced by the list. | An empty list of `YIds` is equivalent to removing all associations. |
 
 A few general rules that apply here are outlined below.
 
 __Not All Mutators Are Required.__ You do not need to implement every possible combination of mutator for every object. The required mutators should be defined as part of the requirements. Without this, the amount of possible routes and combinations of queries rapidly become untenable.
 
-__Create and Update Are For Scalar Fields.__ In general, when creating a new item, only scalar fields should be accepted, not lists of things to be associated. For instance, `createUser` should not accept a list of roles to assign to the user. Instead, `createUser` should be called, and then `addRoleToUser` or `setRolesForUser` should be used to add roles to the user. Similarly, `updateUser` should allow you to change the name of a user, but not change their roles; this is what `setRolesForUser` does.
+__Create and Update Are For Single Values.__ In general, when creating a new item, only fields with a single value should be accepted, not lists of things to be associated. For instance, `createUser` should not accept a list of roles to assign to the user. Instead, `createUser` should be called, and then `addRolesToUser` or `setRolesForUser` should be used to add roles to the user. Similarly, `updateUser` should allow you to change the name of a user, but not change their roles; this is what `setRolesForUser` does.
 
 __Add, Remove, and Set Should Be Defined In One Place.__ Usually, it is not necessary to define a resolver to perform operations from both directions. For instance, it would be redundant to have a resolver to add users to a role, and a separate resolver to add roles to a user. Ideally, a single route or definition should be derived from the requirements.
   * As with most things, there may be exceptions to this rule, which should be documented.
@@ -367,7 +365,7 @@ For this to work, _field resolvers_ will be necessary on the proposal and author
     },
 ```
 
-These tell GraphQL that if I am looking for some field on object, to use this Prisma query to get back the results needed. By properly defining field resolvers, we enable chaining of resolvers to give our GraphQL system flexibility.
+These tell GraphQL that if I am looking for some field on object, to use this Prisma query to get back the results needed. By properly defining field resolvers, we enable something called resolver chaining, which gives our GraphQL system flexibility.
 
 ### Type Resolvers
 
