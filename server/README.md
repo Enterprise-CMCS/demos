@@ -264,7 +264,7 @@ export interface UpdateProposalInput {
 A few notes:
 
 * GQL and TypeScript have slightly different ways of denoting optional / required fields.
-* GQL has a DateTime type, which is equivalent to the Date type in TypeScript. To ensure that our custom linting works correctly and does not identify a mismatch in the types between GraphQL and TypeScript, we create the `DateTime` type as being the same as the `Date` one.
+* GQL doesn't have a native DateTime type, but we are using the [GraphQL Scalars](https://the-guild.dev/graphql/scalars) package for these. The DateTime type from this package is equivalent to the Date type in TypeScript. To ensure that our custom linting works correctly and does not identify a mismatch in the types between GraphQL and TypeScript, we create the `DateTime` type as being the same as the `Date` one.
 * Note that for inputs, we accept a specific `primaryReviewerUserId`; however, for the actual `Proposal` type, the field is `primaryReviewer` and has the type `User`. This is expected; the type shows the nested nature of the object, while the inputs accept specific IDs for use in the resolver code.
   * In general, you will use the "relational field" names and types from Prisma on the object type, and the "scalar field" names and types on the inputs.
 * Human-readable ID fields should be given the GraphQL type of `String`, while synthetic / meaningless keys (i.e. UUIDs) should be given the type of `ID`. This is consistent with [GraphQL documentation](https://graphql.org/learn/schema/):
@@ -320,7 +320,7 @@ Mutators are named using a standard syntax and with standard inputs.
 | `deleteX` | `id`: ID to delete. | |
 | `addYToX` | `XId`, `YId`: IDs to associate. | |
 | `removeYFromX` | `XId`, `YId`: IDs to disassociate. | |
-| `setYsForX` | `XId`, `YIds`: IDs to change, with `YIds` a list. | An empty list of `YIds` should result in no change. |
+| `setYsForX` | `XId`, `YIds`: IDs to change, with `YIds` a list. | An empty list of `YIds` is equivalent to removing all associations. |
 
 A few general rules that apply here are outlined below.
 
