@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["node", "aws-cli"])
+      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk"])
     }
   }
 
@@ -10,6 +10,14 @@ pipeline {
   }
 
   stages {
+
+    stage('CDK - Snyk') {
+      steps {
+        snykScan('deployment')
+        snykScan('lambda_authorizer')
+      }
+    }
+
     stage('CDK - Lint') {
       steps {
         dirCon('deployment', 'node') {
