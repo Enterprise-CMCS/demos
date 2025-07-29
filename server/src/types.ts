@@ -1,47 +1,63 @@
+import { BUNDLE_TYPE } from "./constants.js";
+
 // Export types for use in the client code
 export type {
-  User,
   AddUserInput,
   UpdateUserInput,
+  User,
 } from "./model/user/userSchema.js";
 
 export type {
-  Demonstration,
   AddDemonstrationInput,
+  Demonstration,
   UpdateDemonstrationInput,
 } from "./model/demonstration/demonstrationSchema.js";
 
 export type {
-  DemonstrationStatus,
   AddDemonstrationStatusInput,
+  DemonstrationStatus,
   UpdateDemonstrationStatusInput,
 } from "./model/demonstrationStatus/demonstrationStatusSchema.js";
 
 export type {
-  AmendmentStatus,
   AddAmendmentStatusInput,
+  AmendmentStatus,
   UpdateAmendmentStatusInput,
 } from "./model/modificationStatus/modificationStatusSchema.js";
 
 export type { State } from "./model/state/stateSchema.js";
 
 export type {
-  Role,
   AddRoleInput,
+  Role,
   UpdateRoleInput,
 } from "./model/role/roleSchema.js";
 
 export type {
-  Permission,
   AddPermissionInput,
+  Permission,
   UpdatePermissionInput,
 } from "./model/permission/permissionSchema.js";
 
 export type {
   Event,
-  LogEventInput,
   EventLoggedStatus,
+  LogEventInput,
 } from "./model/event/eventSchema.js";
 
-import { BUNDLE_TYPE } from "./constants.js";
+export type EventData = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
+
+export type LogEventArguments = {
+  eventType: string; // use your EventType enum if available in server
+  eventData?: EventData; // additional event data
+};
+
+export interface GQLContext {
+  logEvent?: (payload: LogEventArguments) => Promise<void>;
+  user?: { id: string };
+}
+
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];

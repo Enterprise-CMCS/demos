@@ -16,3 +16,16 @@ enum RevisionType {
 
   @@map("revision_type_enum")
 }
+
+model Extension {
+  id               String   @id @default(uuid())
+  title            String
+  state            String
+  projectOfficerId String
+  effectiveDate    DateTime?
+  expirationDate   DateTime?
+  description      String?
+  demonstrationId  String
+
+  @@map("extension") // ensures lowercase table name
+}
