@@ -9,6 +9,7 @@ import { Table } from "./Table";
 import { testTableData, TestType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Dayjs } from "dayjs";
 
 const columnHelper = createColumnHelper<TestType>();
 
@@ -38,10 +39,31 @@ export const testColumns = [
   columnHelper.accessor("date", {
     id: "date",
     header: "Date",
+    cell: ({ getValue }) => {
+      return getValue().format("MM/DD/YYYY");
+    },
     meta: {
       filterConfig: {
         filterType: "date",
       },
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const date: Dayjs = row.getValue(columnId);
+      const { start, end } = filterValue || {};
+      if (start && end) {
+        return (
+          date.isSame(start, "day") ||
+          date.isSame(end, "day") ||
+          (date.isAfter(start, "day") && date.isBefore(end, "day"))
+        );
+      }
+      if (start) {
+        return date.isSame(start, "day") || date.isAfter(start, "day");
+      }
+      if (end) {
+        return date.isSame(end, "day") || date.isBefore(end, "day");
+      }
+      return true;
     },
   }),
 ];
@@ -187,7 +209,8 @@ describe("ColumnFilter Component", () => {
       await user.click(dateDropdownOption!);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText(/filter date/i)).toBeInTheDocument();
+        // Expect two date filter pickers (start and end)
+        expect(screen.getAllByPlaceholderText(/date/i)).toHaveLength(2);
       });
     });
 
@@ -559,7 +582,7 @@ describe("ColumnFilter Component", () => {
           (el) => el.tagName === "LI" || el.closest("li")
         );
         const alphaCheckbox = alphaDropdownOption?.querySelector(
-          "input[type=\"checkbox\"]"
+          'input[type="checkbox"]'
         );
         expect(alphaCheckbox).toHaveProperty("checked", false);
       });
@@ -567,141 +590,152 @@ describe("ColumnFilter Component", () => {
   });
 
   describe("Date Filter Type", () => {
-    describe("Date Filter Type", () => {
-      it("renders DatePicker when column has date filter type", async () => {
-        const user = userEvent.setup();
-        const columnSelect = screen.getByLabelText(/filter by:/i);
+    it("renders DatePicker when column has date filter type", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-        await user.type(columnSelect, "Date");
+      await user.type(columnSelect, "Date");
 
-        await waitFor(() => {
-          const dropdownOptions = screen.getAllByText("Date");
-          const dropdownOption = dropdownOptions.find(
-            (el) => el.tagName === "LI" || el.closest("li")
-          );
-          expect(dropdownOption).toBeInTheDocument();
-        });
-
-        const dateDropdownOptions = screen.getAllByText("Date");
-        const dateDropdownOption = dateDropdownOptions.find(
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Date");
+        const dropdownOption = dropdownOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
-        await user.click(dateDropdownOption!);
-
-        await waitFor(() => {
-          expect(
-            screen.getByPlaceholderText(/filter date/i)
-          ).toBeInTheDocument();
-          // Check for all expected date fields
-          expect(screen.getByLabelText("Month")).toBeInTheDocument();
-          expect(screen.getByLabelText("Day")).toBeInTheDocument();
-          expect(screen.getByLabelText("Year")).toBeInTheDocument();
-        });
+        expect(dropdownOption).toBeInTheDocument();
       });
 
-      describe("Date Filter Type", () => {
-        it("filters rows by date", async () => {
-          const user = userEvent.setup();
-          screen.debug(document.body, 100000);
+      const dateDropdownOptions = screen.getAllByText("Date");
+      const dateDropdownOption = dateDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(dateDropdownOption!);
 
-          const columnSelect = screen.getByLabelText(/filter by:/i);
+      await waitFor(() => {
+        // Expect two date filter pickers (start and end)
+        expect(screen.getAllByPlaceholderText(/date/i)).toHaveLength(2);
+        // Check for all expected date fields for both pickers
+        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
+      });
+    });
 
-          await user.type(columnSelect, "Date");
+    it("filters rows by date range", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-          await waitFor(() => {
-            const dropdownOptions = screen.getAllByText("Date");
-            const dropdownOption = dropdownOptions.find(
-              (el) => el.tagName === "LI" || el.closest("li")
-            );
-            expect(dropdownOption).toBeInTheDocument();
-          });
+      // Select the Date column
+      await user.type(columnSelect, "Date");
 
-          const dateDropdownOptions = screen.getAllByText("Date");
-          const dateDropdownOption = dateDropdownOptions.find(
-            (el) => el.tagName === "LI" || el.closest("li")
-          );
-          await user.click(dateDropdownOption!);
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Date");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
 
-          // Wait for the segmented date picker to appear
-          await waitFor(() => {
-            expect(screen.getByLabelText("Month")).toBeInTheDocument();
-            expect(screen.getByLabelText("Day")).toBeInTheDocument();
-            expect(screen.getByLabelText("Year")).toBeInTheDocument();
-          });
+      const dateDropdownOptions = screen.getAllByText("Date");
+      const dateDropdownOption = dateDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(dateDropdownOption!);
 
-          await user.click(screen.getByLabelText("Year"));
-          await user.keyboard("2023");
+      // Wait for both calendar pickers to appear
+      await waitFor(() => {
+        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
+      });
 
-          await user.click(screen.getByLabelText("Month"));
-          await user.keyboard("01");
+      // Fill in the start date picker (first set of fields)
+      const yearFields = screen.getAllByLabelText("Year");
+      const monthFields = screen.getAllByLabelText("Month");
+      const dayFields = screen.getAllByLabelText("Day");
 
-          await user.click(screen.getByLabelText("Day"));
-          await user.keyboard("01");
+      // Set start date to 2023-02-01 (Item Two)
+      await user.click(yearFields[0]);
+      await user.keyboard("2023");
+      await user.click(monthFields[0]);
+      await user.keyboard("02");
+      await user.click(dayFields[0]);
+      await user.keyboard("01");
 
-          await waitFor(() => {
-            const hiddenDateInput = screen
-              .getAllByRole("textbox", { hidden: true })
-              .find(
-                (input) =>
-                  input.getAttribute("aria-hidden") === "true" &&
-                  input.getAttribute("name") === "filter-date"
-              );
-            expect(hiddenDateInput).toHaveValue("01/01/2023");
-          });
-          screen.debug(document.body, 100000);
-          await waitFor(() => {
-            expect(screen.getByText("Item One")).toBeInTheDocument();
-            expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-            expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-            expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-            expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
-          });
-        });
+      // Set end date to 2023-04-01 (Item Four)
+      await user.click(yearFields[1]);
+      await user.keyboard("2023");
+      await user.click(monthFields[1]);
+      await user.keyboard("04");
+      await user.click(dayFields[1]);
+      await user.keyboard("01");
 
-        it("shows no results for unmatched MM/DD/YYYY date", async () => {
-          const user = userEvent.setup();
-          const columnSelect = screen.getByLabelText(/filter by:/i);
+      // Wait for the filtered results
+      await waitFor(() => {
+        // Should show only items with date between 2023-02-01 and 2023-04-01 (inclusive)
+        expect(screen.getByText("Item Two")).toBeInTheDocument(); // 2023-02-01
+        expect(screen.getByText("Item Three")).toBeInTheDocument(); // 2023-03-01
+        expect(screen.getByText("Item Four")).toBeInTheDocument(); // 2023-04-01
 
-          await user.type(columnSelect, "Date");
+        // Should not show items outside the range
+        expect(screen.queryByText("Item One")).not.toBeInTheDocument(); // 2023-01-01
+        expect(screen.queryByText("Item Five")).not.toBeInTheDocument(); // 2023-05-01
+      });
+    });
 
-          await waitFor(() => {
-            const dropdownOptions = screen.getAllByText("Date");
-            const dropdownOption = dropdownOptions.find(
-              (el) => el.tagName === "LI" || el.closest("li")
-            );
-            expect(dropdownOption).toBeInTheDocument();
-          });
+    it("shows no results for unmatched MM/DD/YYYY date", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-          const dateDropdownOptions = screen.getAllByText("Date");
-          const dateDropdownOption = dateDropdownOptions.find(
-            (el) => el.tagName === "LI" || el.closest("li")
-          );
-          await user.click(dateDropdownOption!);
+      await user.type(columnSelect, "Date");
 
-          // Wait for the segmented date picker to appear
-          await waitFor(() => {
-            expect(screen.getByLabelText("Month")).toBeInTheDocument();
-            expect(screen.getByLabelText("Day")).toBeInTheDocument();
-            expect(screen.getByLabelText("Year")).toBeInTheDocument();
-          });
+      await waitFor(() => {
+        const dropdownOptions = screen.getAllByText("Date");
+        const dropdownOption = dropdownOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(dropdownOption).toBeInTheDocument();
+      });
 
-          await user.click(screen.getByLabelText("Year"));
-          await user.keyboard("2000");
+      const dateDropdownOptions = screen.getAllByText("Date");
+      const dateDropdownOption = dateDropdownOptions.find(
+        (el) => el.tagName === "LI" || el.closest("li")
+      );
+      await user.click(dateDropdownOption!);
 
-          await user.click(screen.getByLabelText("Month"));
-          await user.keyboard("01");
+      // Wait for both calendar pickers to appear
+      await waitFor(() => {
+        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
+      });
 
-          await user.click(screen.getByLabelText("Day"));
-          await user.keyboard("01");
+      // Fill in the start date picker (first set of fields)
+      const yearFields = screen.getAllByLabelText("Year");
+      const monthFields = screen.getAllByLabelText("Month");
+      const dayFields = screen.getAllByLabelText("Day");
 
-          await waitFor(() => {
-            expect(
-              screen.getByText(
-                "No results were returned. Adjust your search and filter criteria."
-              )
-            ).toBeInTheDocument();
-          });
-        });
+      await user.click(yearFields[0]);
+      await user.keyboard("2000");
+
+      await user.click(monthFields[0]);
+      await user.keyboard("01");
+
+      await user.click(dayFields[0]);
+      await user.keyboard("01");
+
+      await user.click(yearFields[1]);
+      await user.keyboard("2000");
+      await user.click(monthFields[1]);
+      await user.keyboard("01");
+      await user.click(dayFields[1]);
+      await user.keyboard("01");
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
+        ).toBeInTheDocument();
       });
     });
   });

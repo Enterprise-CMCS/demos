@@ -9,6 +9,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Table } from "./Table";
 import { highlightCell } from "./KeywordSearch";
+import dayjs, { Dayjs } from "dayjs";
 
 type TestOptionType = {
   name: string;
@@ -18,7 +19,7 @@ export type TestType = {
   name: string;
   description: string;
   option: TestOptionType;
-  date: string;
+  date: Dayjs;
 };
 
 const columnHelper = createColumnHelper<TestType>();
@@ -67,7 +68,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Alpha",
     },
-    date: "2023-01-01",
+    date: dayjs("2023-01-01"),
   },
   {
     name: "Item Two",
@@ -75,7 +76,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Beta",
     },
-    date: "2023-02-01",
+    date: dayjs("2023-02-01"),
   },
   {
     name: "Item Three",
@@ -83,7 +84,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Gamma",
     },
-    date: "2023-03-01",
+    date: dayjs("2023-03-01"),
   },
   {
     name: "Item Four",
@@ -91,7 +92,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Delta",
     },
-    date: "2023-04-01",
+    date: dayjs("2023-04-01"),
   },
   {
     name: "Item Five",
@@ -99,7 +100,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Alpha",
     },
-    date: "2023-05-01",
+    date: dayjs("2023-05-01"),
   },
 ];
 

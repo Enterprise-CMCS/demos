@@ -1,35 +1,35 @@
 // DocumentTable.tsx
 import * as React from "react";
 import { Table } from "../Table";
-import { useDocumentColumns } from "../columns/useDocumentColumns";
-
-export interface DocumentTableRow {
-  id: number;
-  title: string;
-  description: string;
-  type: string;
-  uploadedBy: string;
-  uploadDate: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { DocumentColumns } from "../columns/DocumentColumns";
+import { DocumentTableRow, useDocument } from "hooks/useDocument";
 
 export function DocumentTable() {
   const { documentColumns, documentColumnsLoading, documentColumnsError } =
-    useDocumentColumns();
+    DocumentColumns();
 
-  const { getDocumentsTable } = useDocument();
+  const { getDocumentTable } = useDocument();
   const {
     data: documentsTableData,
     loading: documentTableLoading,
     error: documentsTableError,
-  } = getDocumentsTable;
+  } = getDocumentTable;
 
-  if (documentsTableLoading) return <div className="p-4">Loading...</div>;
+  React.useEffect(() => {
+    getDocumentTable.trigger();
+  }, []);
+
+  if (documentColumnsLoading) return <div className="p-4">Loading...</div>;
+  if (documentColumnsError)
+    return (
+      <div className="p-4">Error loading data: {documentColumnsError}</div>
+    );
+
+  if (documentTableLoading) return <div className="p-4">Loading...</div>;
   if (documentsTableError)
     return <div className="p-4">Error loading demonstrations</div>;
   if (!documentsTableData)
-    return <div className="p-4">Demonstrations not found</div>;
+    return <div className="p-4">Documents not found</div>;
 
   return (
     <div className="overflow-x-auto w-full mb-2">

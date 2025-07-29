@@ -3,6 +3,7 @@ import { Amendment } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
 import { gql } from "graphql-tag";
 import { DocumentType } from "../documentType/documentTypeSchema.js";
+import { Dayjs } from "dayjs";
 
 export const documentSchema = gql`
   union Bundle = Demonstration | Amendment
@@ -77,7 +78,7 @@ export const documentSchema = gql`
 `;
 
 type Bundle = Demonstration | Amendment;
-export type DateTime = Date;
+export type DateTime = Dayjs;
 export interface Document {
   id: string;
   title: string;

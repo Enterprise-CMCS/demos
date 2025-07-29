@@ -6,7 +6,7 @@ export const DOCUMENT_TABLE_QUERY = gql`
       id
       title
       description
-      type
+      documentType
       uploadedBy
       uploadDate
     }

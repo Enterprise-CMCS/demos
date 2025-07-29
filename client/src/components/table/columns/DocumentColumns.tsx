@@ -2,11 +2,12 @@
 import * as React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { SecondaryButton } from "../../button/SecondaryButton";
-import { DocumentTableRow } from "components/table/tables/DocumentTable";
 import { highlightCell } from "../KeywordSearch";
 import { useDocumentType } from "hooks/useDocumentType";
+import { DocumentTableRow } from "hooks/useDocument";
+import { Dayjs } from "dayjs";
 
-export function useDocumentColumns() {
+export function DocumentColumns() {
   const { getDocumentTypeOptions } = useDocumentType();
 
   // Trigger queries on mount
@@ -63,9 +64,10 @@ export function useDocumentColumns() {
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("type", {
+    columnHelper.accessor("documentType.name", {
       header: "Type",
       cell: highlightCell,
+      filterFn: "arrIncludesSome",
       meta: {
         filterConfig: {
           filterType: "select",
@@ -77,7 +79,7 @@ export function useDocumentColumns() {
         },
       },
     }),
-    columnHelper.accessor("uploadedBy", {
+    columnHelper.accessor("uploadedBy.fullName", {
       header: "Uploaded By",
       cell: highlightCell,
       enableColumnFilter: false,
@@ -85,8 +87,25 @@ export function useDocumentColumns() {
     columnHelper.accessor("uploadDate", {
       header: "Date Uploaded",
       cell: ({ getValue }) => {
-        const [yyyy, mm, dd] = (getValue() as string).split("-");
-        return `${mm}/${dd}/${yyyy}`;
+        return getValue().format("MM/DD/YYYY");
+      },
+      filterFn: (row, columnId, filterValue) => {
+        const date: Dayjs = row.getValue(columnId);
+        const { start, end } = filterValue || {};
+        if (start && end) {
+          return (
+            date.isSame(start, "day") ||
+            date.isSame(end, "day") ||
+            (date.isAfter(start, "day") && date.isBefore(end, "day"))
+          );
+        }
+        if (start) {
+          return date.isSame(start, "day") || date.isAfter(start, "day");
+        }
+        if (end) {
+          return date.isSame(end, "day") || date.isBefore(end, "day");
+        }
+        return true;
       },
       meta: {
         filterConfig: {

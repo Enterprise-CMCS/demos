@@ -1,4 +1,5 @@
 import { useLazyQuery, ApolloError } from "@apollo/client";
+import { Dayjs } from "dayjs";
 import { Document, User } from "demos-server";
 import { DOCUMENT_TABLE_QUERY } from "queries/documentQueries";
 
@@ -8,7 +9,7 @@ export type DocumentTableRow = {
   description: Document["description"];
   documentType: Pick<Document["documentType"], "name">;
   uploadedBy: Pick<User, "fullName">;
-  uploadDate: Date;
+  uploadDate: Dayjs;
 };
 
 interface GetDocumentTableOperation {
@@ -35,7 +36,7 @@ const createGetDocumentTableHook = (): GetDocumentTableOperation => {
   };
 };
 
-export const useDocumentType = (): DocumentOperations => {
+export const useDocument = (): DocumentOperations => {
   return {
     getDocumentTable: createGetDocumentTableHook(),
   };

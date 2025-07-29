@@ -3,43 +3,16 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DocumentTable } from "./DocumentTable";
-
-const mockRawDocuments = [
-  {
-    id: 1,
-    title: "Pre-Submission Concept Note",
-    description: "Initial proposal for demonstration.",
-    type: "Pre-Submission Concept",
-    uploadedBy: "Leia Organa",
-    uploadDate: "2025-07-10",
-    createdAt: "...",
-    updatedAt: "...",
-  },
-  {
-    id: 2,
-    title: "Budget Summary",
-    description: "Summary of Medicaid budget projections.",
-    type: "General File",
-    uploadedBy: "Han Solo",
-    uploadDate: "2025-07-09",
-    createdAt: "...",
-    updatedAt: "...",
-  },
-  {
-    id: 3,
-    title: "State Plan Amendment",
-    description: "Amendment submission for review.",
-    type: "General File",
-    uploadedBy: "Luke Skywalker",
-    uploadDate: "2025-07-08",
-    createdAt: "...",
-    updatedAt: "...",
-  },
-];
+import { MockedProvider } from "@apollo/client/testing";
+import { ALL_MOCKS } from "mock-data/index";
 
 describe("DocumentTable", () => {
   beforeEach(() => {
-    render(<DocumentTable data={mockRawDocuments} />);
+    render(
+      <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
+        <DocumentTable />
+      </MockedProvider>
+    );
   });
 
   it("renders the filter dropdown initially", () => {
@@ -55,7 +28,9 @@ describe("DocumentTable", () => {
   it("filters documents by upload date when 'Upload Date' filter is used", async () => {
     const user = userEvent.setup();
 
-    await user.selectOptions(screen.getByLabelText(/filter by:/i), ["uploadDate"]);
+    await user.selectOptions(screen.getByLabelText(/filter by:/i), [
+      "uploadDate",
+    ]);
 
     const dateInput = screen.getByTestId("upload-date-filter");
     expect(dateInput).toBeInTheDocument();
@@ -90,7 +65,7 @@ describe("DocumentTable", () => {
   it("defaults to sorting by uploadDate descending (newest first)", () => {
     const rows = screen.getAllByRole("row").slice(1); // skip header
 
-    const titles = rows.map(row => {
+    const titles = rows.map((row) => {
       const cells = row.querySelectorAll("td");
       return cells[1]?.textContent?.trim() || "";
     });
