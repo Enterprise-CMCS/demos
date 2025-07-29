@@ -102,6 +102,10 @@ export const demonstrationMocks: MockedResponse[] = [
       },
     },
   },
+  // TODO: we should revisit mock data in general. Suggestion to have a common set of three or so mock objects with primitives
+  // which can be stitched together (deterministically, not randomly) in runtime. Would like to have a structure like
+  // Demonstration A with amendments B and C and Extension D, user E, and project officer F. Each mapped to contain the data
+  // its looking for. Surely there is a way that, providing a slim type, we can return a mock object that satisfies the type exactly.
   {
     request: {
       query: DEMONSTRATION_TABLE_QUERY,

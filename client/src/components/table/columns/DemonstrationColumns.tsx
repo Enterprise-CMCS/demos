@@ -8,7 +8,9 @@ import { useDemonstrationStatus } from "hooks/useDemonstrationStatus";
 import React from "react";
 import { TableRow } from "../tables/DemonstrationTable";
 
-export function useDemonstrationColumns() {
+// TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
+// reformat to be more like a utility function.
+export function DemonstrationColumns() {
   const { getUserOptions } = useUserOperations();
   const { getStateOptions } = useState();
   const { getDemonstrationStatusOptions } = useDemonstrationStatus();
