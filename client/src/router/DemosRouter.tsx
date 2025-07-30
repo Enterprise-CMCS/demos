@@ -37,7 +37,10 @@ export const DemosRouter = () => {
                 {/* Real Pages the user should be able to access */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
-                <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+                <Route
+                  path="demonstrations/:id"
+                  element={<DemonstrationDetail />}
+                />
                 {/* Debug routes, only available in development mode */}
                 {isDevelopmentMode() && (
                   <>

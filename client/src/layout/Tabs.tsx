@@ -28,7 +28,7 @@ export const Tabs: React.FC<TabsProps> = ({
               <button
                 onClick={() => onChange(tab.value)}
                 className={
-                  "inline-block px-2 py-2 font-medium " +
+                  "inline-block px-2 py-2 font-medium cursor-pointer " +
                   (isSelected
                     ? "border-b-5 text-brand"
                     : "text-gray-600 hover:text-gray-800")

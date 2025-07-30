@@ -1,23 +1,10 @@
 import React from "react";
 
 import { ToastProvider } from "components/toast/ToastContext";
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-} from "react-router-dom";
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { describe, expect, it, vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DemonstrationDetail } from "./DemonstrationDetail";
 
@@ -40,7 +27,7 @@ vi.mock("hooks/useDemonstration", () => ({
 
 // Mock usePageHeader (no-op)
 vi.mock("hooks/usePageHeader", () => ({
-  usePageHeader: () => { },
+  usePageHeader: () => {},
 }));
 
 describe("DemonstrationDetail", () => {
@@ -49,7 +36,10 @@ describe("DemonstrationDetail", () => {
       <ToastProvider>
         <MemoryRouter initialEntries={["/demonstrations/demo-123"]}>
           <Routes>
-            <Route path="/demonstrations/:id" element={<DemonstrationDetail />} />
+            <Route
+              path="/demonstrations/:id"
+              element={<DemonstrationDetail />}
+            />
           </Routes>
         </MemoryRouter>
       </ToastProvider>
@@ -61,11 +51,15 @@ describe("DemonstrationDetail", () => {
 
     const rows = screen.getAllByTestId("demonstration-detail-row");
 
-    const stateRow = rows.find((row) =>
-      row.textContent?.includes("State/Territory:") && row.textContent?.includes("CA")
+    const stateRow = rows.find(
+      (row) =>
+        row.textContent?.includes("State/Territory:") &&
+        row.textContent?.includes("CA")
     );
-    const officerRow = rows.find((row) =>
-      row.textContent?.includes("Project Officer:") && row.textContent?.includes("Test Project Officer")
+    const officerRow = rows.find(
+      (row) =>
+        row.textContent?.includes("Project Officer:") &&
+        row.textContent?.includes("Test Project Officer")
     );
 
     expect(stateRow).toBeDefined();
@@ -76,7 +70,7 @@ describe("DemonstrationDetail", () => {
     renderWithProviders();
 
     expect(
-      screen.getByRole("heading", { name: /Demonstration Details/i })
+      screen.getByRole("heading", { name: /Documents/i })
     ).toBeInTheDocument();
 
     const amendmentsTab = screen.getByRole("button", { name: /Amendments/i });
@@ -99,7 +93,7 @@ describe("DemonstrationDetail", () => {
     renderWithProviders();
 
     expect(
-      screen.getByRole("heading", { name: /Demonstration Details/i })
+      screen.getByRole("heading", { name: /Documents/i })
     ).toBeInTheDocument();
 
     const extensionsTab = screen.getByRole("button", { name: /Extensions/i });

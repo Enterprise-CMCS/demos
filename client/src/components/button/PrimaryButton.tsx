@@ -1,9 +1,6 @@
 import React from "react";
 
-import {
-  BaseButton,
-  ButtonSize,
-} from "./BaseButton";
+import { BaseButton, ButtonSize } from "./BaseButton";
 
 interface Props {
   type?: "button" | "submit" | "reset";

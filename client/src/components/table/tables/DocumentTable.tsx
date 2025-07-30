@@ -16,7 +16,14 @@ import {
   AutoCompleteSelect,
   Option,
 } from "components/input/select/AutoCompleteSelect";
+
 import { PaginationControls } from "components/table/PaginationControls";
+import { CircleButton } from "components/button/CircleButton";
+import {
+  AddDocumentModal,
+  EditDocumentModal,
+} from "components/modal/document/DocumentModal";
+import { EditIcon, ImportIcon } from "components/icons";
 
 export interface RawDocument {
   id: number;
@@ -34,17 +41,68 @@ interface DocumentTableProps {
   className?: string;
 }
 
+type DisplayedModal = null | "add" | "edit";
 type FilterType = "" | "type" | "uploadDate";
 
-const typeOptions: Option[] = [
+// TODO: Get this from GQL or a constants file that matches the system
+const filterTypeOptions: Option[] = [
   { label: "Pre-Submission Concept", value: "Pre-Submission Concept" },
   { label: "General File", value: "General File" },
 ];
+
+interface DocumentModalsProps {
+  displayedModal: DisplayedModal;
+  onClose: () => void;
+  documentId: string;
+}
+
+function DocumentModals({
+  displayedModal,
+  onClose,
+  documentId,
+}: DocumentModalsProps) {
+  return (
+    <>
+      {displayedModal === "add" && <AddDocumentModal onClose={onClose} />}
+      {displayedModal === "edit" && (
+        <EditDocumentModal documentId={documentId} onClose={onClose} />
+      )}
+    </>
+  );
+}
+
+interface DocumentActionButtonsProps {
+  onShowModal: (modal: DisplayedModal) => void;
+  editDisabled: boolean;
+}
+
+function DocumentActionButtons({
+  onShowModal,
+  editDisabled,
+}: DocumentActionButtonsProps) {
+  return (
+    <div className="flex gap-2 ml-4">
+      <CircleButton ariaLabel="Add Document" onClick={() => onShowModal("add")}>
+        <ImportIcon />
+      </CircleButton>
+      <CircleButton
+        ariaLabel="Edit Document"
+        onClick={() => !editDisabled && onShowModal("edit")}
+        disabled={editDisabled}
+      >
+        <EditIcon />
+      </CircleButton>
+    </div>
+  );
+}
 
 export function DocumentTable({ data, className = "" }: DocumentTableProps) {
   const [filterBy, setFilterBy] = React.useState<FilterType>("");
   const [typeFilter, setTypeFilter] = React.useState<string>("");
   const [dateFilter, setDateFilter] = React.useState<string>("");
+  const [displayedModal, setDisplayedModal] =
+    React.useState<DisplayedModal>(null);
+  const [selectedIds, setSelectedIds] = React.useState<Set<number>>(new Set());
 
   // Build columnFilters for react-table based on the selected filter
   const columnFilters: ColumnFiltersState = React.useMemo(() => {
@@ -85,12 +143,12 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
 
   return (
     <div className={`overflow-x-auto w-full ${className} mb-2`}>
-      <div className="mb-4 flex items-center gap-4">
-        <div className="flex flex-col gap-1">
+      <div className="mb-4 flex items-center gap-4 px-1">
+        <div className="flex flex-col gap-1 flex-1">
           <label htmlFor="filterBy" className="font-semibold">
             Filter By:
           </label>
-          <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
             <select
               id="filterBy"
               className="border px-2 py-1 rounded"
@@ -109,7 +167,7 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
               <div className="w-48">
                 {/* TODO: This needs to be updated to multiselect once implemented */}
                 <AutoCompleteSelect
-                  options={typeOptions}
+                  options={filterTypeOptions}
                   placeholder="Select document type"
                   value={typeFilter}
                   onSelect={(val) => setTypeFilter(val)}
@@ -130,7 +188,21 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
             )}
           </div>
         </div>
+        <div className="flex-shrink-0 ml-auto">
+          <DocumentActionButtons
+            onShowModal={setDisplayedModal}
+            editDisabled={selectedIds.size !== 1}
+          />
+        </div>
       </div>
+
+      <DocumentModals
+        displayedModal={displayedModal}
+        onClose={() => setDisplayedModal(null)}
+        documentId={
+          selectedIds.size === 1 ? String(Array.from(selectedIds)[0]) : ""
+        }
+      />
 
       <table className="w-full table-fixed text-sm border-collapse border border-gray-200">
         <thead>
@@ -168,20 +240,36 @@ export function DocumentTable({ data, className = "" }: DocumentTableProps) {
               </td>
             </tr>
           ) : (
-            table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="">
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="border-b border-gray-200 px-2 py-1"
-                  >
-                    {cell.column.columnDef.cell instanceof Function
-                      ? cell.column.columnDef.cell(cell.getContext())
-                      : cell.getValue()}
-                  </td>
-                ))}
-              </tr>
-            ))
+            table.getRowModel().rows.map((row) => {
+              return (
+                <tr
+                  key={row.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
+                    setSelectedIds((prev) => {
+                      const nextSet = new Set<number>(prev);
+                      if (nextSet.has(row.original.id)) {
+                        nextSet.delete(row.original.id);
+                      } else {
+                        nextSet.add(row.original.id);
+                      }
+                      return nextSet;
+                    });
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="border-b border-gray-200 px-2 py-1"
+                    >
+                      {cell.column.columnDef.cell instanceof Function
+                        ? cell.column.columnDef.cell(cell.getContext())
+                        : cell.getValue()}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>

@@ -9,6 +9,7 @@ interface BaseButtonProps {
   disabled?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   className?: string;
+  ariaLabel?: string;
   children: React.ReactNode;
 }
 
@@ -19,6 +20,7 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
   disabled = false,
   onClick,
   className = "",
+  ariaLabel,
   children,
 }) => {
   const isCircle = className?.includes("rounded-full");
@@ -30,9 +32,12 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
       standard: "w-12 h-12 text-[1.2rem] font-semibold leading-none",
     }[size]
     : {
-      large: "text-[1.6rem] font-semibold px-6 py-3 leading-tight tracking-wide",
-      small: "text-[1.2rem] font-medium px-1 py-1 leading-tight tracking-wide",
-      standard: "text-[1.4rem] font-medium px-4 py-2 leading-tight tracking-wide",
+      large:
+          "text-[1.6rem] font-semibold px-6 py-3 leading-tight tracking-wide",
+      small:
+          "text-[1.2rem] font-medium px-1 py-1 leading-tight tracking-wide",
+      standard:
+          "text-[1.4rem] font-medium px-4 py-2 leading-tight tracking-wide",
     }[size];
 
   const base =
@@ -45,6 +50,7 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
       className={`${base} ${sizeClass} ${className}`}
       disabled={disabled}
       onClick={onClick}
+      aria-label={ariaLabel}
     >
       {children}
     </button>
