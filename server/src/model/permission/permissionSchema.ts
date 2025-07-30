@@ -31,7 +31,7 @@ export const permissionSchema = gql`
   }
 
   type Query {
-    permissions: [Permission]!
+    permissions: [Permission!]!
     permission(id: ID!): Permission
   }
 `;
