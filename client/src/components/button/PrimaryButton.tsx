@@ -2,7 +2,6 @@ import React from "react";
 
 import { BaseButton, ButtonSize } from "./BaseButton";
 
-// TODO: Let's rename this to `ButtonProps` and export it for the other buttons
 interface Props {
   type?: "button" | "submit" | "reset";
   size?: ButtonSize;
@@ -13,7 +12,6 @@ interface Props {
   form?: string;
 }
 
-// TODO: Let's rename this to just <Button> - should be its own PR
 export const PrimaryButton: React.FC<Props> = ({
   type = "submit",
   size = "standard",

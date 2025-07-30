@@ -14,7 +14,6 @@ import { TextInput } from "components/input";
 
 type DocumentModalType = "add" | "edit";
 
-// TODO: get these from the server or a shared constants file.
 const DOCUMENT_TYPES = [
   { label: "Pre-Submission Concept", value: "preSubmissionConcept" },
   { label: "General File", value: "generalFile" },
