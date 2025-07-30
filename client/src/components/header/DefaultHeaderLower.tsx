@@ -6,7 +6,7 @@ import React, {
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
-import { AddDocumentModal } from "components/modal/AddDocumentModal";
+import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { gql } from "graphql-tag";
 
@@ -63,7 +63,6 @@ export const DefaultHeaderLower: React.FC<{ userId?: number }> = ({ userId }) =>
     else if (item === "Extension") setModalType("extension");
     // TODO: handle "Extension" later
   };
-
 
   return (
     <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">

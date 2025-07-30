@@ -20,11 +20,18 @@ import { mockAmendments } from "mock-data/amendmentMocks";
 import { mockExtensions } from "mock-data/extensionMocks";
 import { useLocation, useParams } from "react-router-dom";
 
-import { isTestMode } from "../config/env";
+import { isTestMode } from "config/env";
+
+type ModalType = "edit" | "delete" | "amendment" | "extension" | null;
+type TabType = "details" | "amendments" | "extensions";
 
 export const DemonstrationDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: demonstrationId } = useParams<{ id: string }>();
   const location = useLocation();
+
+  const [showButtons, setShowButtons] = useState(false);
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [tab, setTab] = useState<TabType>("details");
 
   // Parse query params
   const queryParams = React.useMemo(
@@ -47,14 +54,6 @@ export const DemonstrationDetail = () => {
     return "details";
   }, [queryParams]);
 
-  const [showButtons, setShowButtons] = useState(false);
-  const [modalType, setModalType] = useState<
-    "edit" | "delete" | "amendment" | "extension" | null
-  >(null);
-  const [tab, setTab] = useState<"details" | "amendments" | "extensions">(
-    "details"
-  );
-
   React.useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
@@ -63,8 +62,8 @@ export const DemonstrationDetail = () => {
   const { trigger, data, loading, error } = getDemonstrationById;
 
   useEffect(() => {
-    if (id) trigger(id);
-  }, [id]);
+    if (demonstrationId) trigger(demonstrationId);
+  }, [demonstrationId]);
 
   const tabList: TabItem[] = [
     { value: "details", label: "Demonstration Details" },
@@ -144,7 +143,6 @@ export const DemonstrationDetail = () => {
             <span
               className={`transform transition-transform duration-200 ease-in-out ${
                 showButtons ? "rotate-90" : "rotate-0"
-                // eslint-disable-next-line indent
               }`}
             >
               <EllipsisIcon width="24" height="24" />
@@ -176,7 +174,7 @@ export const DemonstrationDetail = () => {
             {tab === "details" && (
               <div>
                 <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">
-                  Demonstration Details
+                  Documents
                 </h1>
                 <DocumentTable data={DocumentData} />
               </div>

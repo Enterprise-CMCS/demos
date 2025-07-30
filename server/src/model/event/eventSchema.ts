@@ -34,7 +34,7 @@ export const eventSchema = gql`
     eventType: String!
     logLevel: String!
     route: String!
-    eventData: JSONObject!
+    eventData: JSONObject
   }
 
   type EventLoggedStatus {
