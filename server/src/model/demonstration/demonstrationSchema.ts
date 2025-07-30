@@ -54,7 +54,7 @@ export const demonstrationSchema = gql`
   }
 
   type Query {
-    demonstrations: [Demonstration]!
+    demonstrations: [Demonstration!]!
     demonstration(id: ID!): Demonstration
   }
 `;

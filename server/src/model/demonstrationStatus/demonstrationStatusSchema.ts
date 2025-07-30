@@ -36,7 +36,7 @@ export const demonstrationStatusSchema = gql`
   }
 
   type Query {
-    demonstrationStatuses: [DemonstrationStatus]!
+    demonstrationStatuses: [DemonstrationStatus!]!
     demonstrationStatus(id: String!): DemonstrationStatus
   }
 `;
