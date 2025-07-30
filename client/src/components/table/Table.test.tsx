@@ -151,29 +151,15 @@ describe("Table Component Interactions", () => {
 
       // First apply a column filter for Option
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/select option/i)
         ).toBeInTheDocument();
       });
 
-      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      const optionFilterInput = screen.getByPlaceholderText(/select option/i);
       await user.type(optionFilterInput, "Option Alpha");
 
       await waitFor(() => {
@@ -253,22 +239,7 @@ describe("Table Component Interactions", () => {
 
       // Now apply a column filter for Name
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.clear(columnSelect); // Clear any existing content
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -305,25 +276,12 @@ describe("Table Component Interactions", () => {
 
       // Apply keyword search first
       const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.clear(keywordSearchInput); // Clear any existing content
       await user.type(keywordSearchInput, "Alpha");
 
       // Apply column filter
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -377,30 +335,18 @@ describe("Table Component Interactions", () => {
 
       // Apply both filters
       const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.clear(keywordSearchInput);
       await user.type(keywordSearchInput, "Alpha");
 
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
       });
 
       const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.clear(nameFilterInput);
       await user.type(nameFilterInput, "Item Four");
 
       // Verify filtered state
@@ -450,7 +396,7 @@ describe("Table Component Interactions", () => {
       const user = userEvent.setup();
 
       // Click on Name column header to sort
-      const nameHeader = screen.getByText("Name");
+      const nameHeader = screen.getByRole("columnheader", { name: "Name" });
       await user.click(nameHeader);
 
       // Apply keyword search that returns multiple results
@@ -480,29 +426,15 @@ describe("Table Component Interactions", () => {
 
       // Apply column filter and verify sorting is maintained
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/select option/i)
         ).toBeInTheDocument();
       });
 
-      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      const optionFilterInput = screen.getByPlaceholderText(/select option/i);
       await user.type(optionFilterInput, "Option Alpha");
 
       await waitFor(() => {
@@ -558,21 +490,7 @@ describe("Table Component Interactions", () => {
 
       // Apply column filter
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();

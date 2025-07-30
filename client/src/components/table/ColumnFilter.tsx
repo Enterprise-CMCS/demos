@@ -1,13 +1,10 @@
 import React from "react";
 import { Table } from "@tanstack/react-table";
-import {
-  AutoCompleteSelect,
-  Option,
-} from "components/input/select/AutoCompleteSelect";
 import { TextInput } from "components/input";
 import { Dayjs } from "dayjs";
 import { DatePicker } from "components/input/DatePicker/DatePicker";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
+import { Option, Select } from "components/input/select/Select";
 
 export interface ColumnFilterByDropdownProps<T> {
   table: Table<T>;
@@ -108,7 +105,7 @@ export function ColumnFilter<T>({
           <AutoCompleteMultiselect
             label={`${columnDisplayName} Filter`}
             options={filterConfig?.options || []}
-            placeholder={`Filter ${columnDisplayName}`}
+            placeholder={`Select ${columnDisplayName}`}
             onSelect={(val) => onValueChange(val)}
             id={`filter-${selectedColumn}`}
           />
@@ -122,7 +119,7 @@ export function ColumnFilter<T>({
               slotProps={{
                 textField: {
                   placeholder: "Start date",
-                  name: `filter-${selectedColumn}-start`,
+                  name: "date-filter-start",
                 },
               }}
               name="date-filter-start"
@@ -134,7 +131,7 @@ export function ColumnFilter<T>({
               slotProps={{
                 textField: {
                   placeholder: "End date",
-                  name: `filter-${selectedColumn}-end`,
+                  name: "date-filter-end",
                 },
               }}
               name="date-filter-end"
@@ -165,7 +162,7 @@ export function ColumnFilter<T>({
   return (
     <div className={className}>
       <div className="ml-2 mb-2 mr-2 flex items-center gap-2 text-sm">
-        <AutoCompleteSelect
+        <Select
           label="Filter by:"
           options={columnOptions}
           placeholder="Select a Column..."

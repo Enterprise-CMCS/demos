@@ -31,6 +31,10 @@ export function DocumentTable() {
   if (!documentsTableData)
     return <div className="p-4">Documents not found</div>;
 
+  const initialState = {
+    sorting: [{ id: "uploadDate", desc: true }],
+  };
+
   return (
     <div className="overflow-x-auto w-full mb-2">
       {documentColumns && (
@@ -41,7 +45,8 @@ export function DocumentTable() {
           columnFilter
           pagination
           emptyRowsMessage="No documents available."
-          noResultsFoundMessage="Documents not found."
+          noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+          initialState={initialState}
         />
       )}
     </div>

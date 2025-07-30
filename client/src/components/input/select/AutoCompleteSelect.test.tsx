@@ -2,7 +2,8 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
+import { AutoCompleteSelect } from "./AutoCompleteSelect";
+import { Option } from "./Select";
 
 const options: Option[] = [
   { label: "Apple", value: "apple" },
@@ -18,7 +19,13 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("renders input with placeholder", () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} placeholder="Pick fruit" />);
+    render(
+      <AutoCompleteSelect
+        options={options}
+        onSelect={onSelect}
+        placeholder="Pick fruit"
+      />
+    );
     expect(screen.getByPlaceholderText("Pick fruit")).toBeInTheDocument();
   });
 
@@ -96,7 +103,7 @@ describe("AutoCompleteSelect", () => {
     input.focus();
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 0
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 1
-    fireEvent.keyDown(input, { key: "ArrowUp" });   // index 0
+    fireEvent.keyDown(input, { key: "ArrowUp" }); // index 0
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onSelect).toHaveBeenCalledWith("apple");
   });

@@ -10,6 +10,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  InitialTableState,
 } from "@tanstack/react-table";
 import { arrIncludesAllInsensitive, KeywordSearch } from "./KeywordSearch";
 import { ColumnFilter } from "./ColumnFilter";
@@ -27,6 +28,7 @@ export interface TableProps<T> {
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
   getSubRows?: (originalRow: T, index: number) => T[] | undefined;
+  initialState?: InitialTableState;
 }
 
 export function Table<T>({
@@ -39,6 +41,7 @@ export function Table<T>({
   emptyRowsMessage = "No data available.",
   noResultsFoundMessage = "No results found.",
   getSubRows,
+  initialState,
 }: TableProps<T>) {
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
@@ -55,6 +58,7 @@ export function Table<T>({
     filterFromLeafRows: true,
     state: { expanded },
     onExpandedChange: setExpanded,
+    initialState,
   });
 
   const hasDataInitially = data.length > 0;

@@ -1,13 +1,72 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DatePicker } from "./DatePicker";
 import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers";
+
+export async function pickDateInCalendar({
+  datePickerRoot,
+  year,
+  month,
+  day,
+}: {
+  datePickerRoot: HTMLElement;
+  year: string | number;
+  month: string | number;
+  day: string | number;
+}) {
+  // Open the calendar widget by clicking the icon button
+  const openPickerButton = within(datePickerRoot).getByRole("button", {
+    name: /choose date/i,
+  });
+  expect(openPickerButton).toBeInTheDocument();
+  await userEvent.click(openPickerButton);
+
+  console.log(openPickerButton); // Should be the calendar icon button
+  await waitFor(() => {
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+  // Switch to year view
+  const switchViewButton = screen.getByLabelText(/switch to year view/i);
+  expect(switchViewButton).toBeInTheDocument();
+  await userEvent.click(switchViewButton);
+
+  // Assert year view is open
+  const yearViewButton = screen.getByLabelText(/switch to calendar view/i);
+  expect(yearViewButton).toBeInTheDocument();
+
+  // Select year
+  const yearButton = screen.getByRole("radio", { name: String(year) });
+  expect(yearButton).toBeInTheDocument();
+  await userEvent.click(yearButton);
+
+  // Assert correct month is shown
+  const monthName =
+    typeof month === "number"
+      ? dayjs()
+        .month(Number(month) - 1)
+        .format("MMMM")
+      : String(month);
+  const header = screen.getByText(new RegExp(`${monthName} ${year}`));
+  expect(header).toBeInTheDocument();
+
+  // Select day
+  const dayButton = screen.getByRole("gridcell", { name: String(day) });
+  expect(dayButton).toBeInTheDocument();
+  await userEvent.click(dayButton);
+
+  // Optionally, confirm selection if your widget requires it
+  const okButton = screen.queryByRole("button", { name: /ok|confirm/i });
+  if (okButton) {
+    expect(okButton).toBeInTheDocument();
+    await userEvent.click(okButton);
+  }
+}
 
 describe("Input component", () => {
   it("renders label and input", () => {
@@ -63,7 +122,9 @@ describe("Input component", () => {
         <DatePicker label="this is the label">Test Date Picker</DatePicker>
       </LocalizationProvider>
     );
-    expect(  screen.getByText("this is the label", { selector: "label" })).toBeInTheDocument();
+    expect(
+      screen.getByText("this is the label", { selector: "label" })
+    ).toBeInTheDocument();
 
     expect(screen.getByRole("group")).toBeInTheDocument();
 
@@ -82,7 +143,9 @@ describe("Input component", () => {
       );
     };
     render(<Component />);
-    expect(screen.getByDisplayValue(now.format("MM/DD/YYYY"))).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue(now.format("MM/DD/YYYY"))
+    ).toBeInTheDocument();
   });
 
   it("renders as disabled when isDisabled is true", () => {
@@ -144,5 +207,34 @@ describe("Input component", () => {
     expect(screen.getByLabelText(/hours/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/minutes/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/meridiem/i)).toBeInTheDocument();
+  });
+
+  it("updates value correctly", async () => {
+    let pickedValue: string | undefined;
+    render(
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DatePicker
+          name="required-date-picker"
+          onChange={(value) => {
+            pickedValue = value ? value.format("MM/DD/YYYY") : undefined;
+          }}
+        />
+      </LocalizationProvider>
+    );
+    const input = screen
+      .getByRole("group")
+      .querySelector("input[name=\"required-date-picker\"]");
+    expect(input).not.toBeNull();
+    const datePickerRoot = input!.closest("[role=\"group\"]");
+    expect(datePickerRoot).not.toBeNull();
+
+    await pickDateInCalendar({
+      datePickerRoot: datePickerRoot as HTMLElement,
+      year: 2025,
+      month: "July",
+      day: 4,
+    });
+
+    expect(pickedValue).toBe("07/04/2025");
   });
 });

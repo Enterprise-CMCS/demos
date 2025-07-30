@@ -65,7 +65,8 @@ export function DocumentColumns() {
       enableColumnFilter: false,
     }),
     columnHelper.accessor("documentType.name", {
-      header: "Type",
+      id: "type",
+      header: "Document Type",
       cell: highlightCell,
       filterFn: "arrIncludesSome",
       meta: {

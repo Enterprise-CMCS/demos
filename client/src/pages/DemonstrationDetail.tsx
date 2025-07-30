@@ -110,7 +110,7 @@ export const DemonstrationDetail = () => {
 
           <div data-testid="demonstration-detail-row" className="block text-sm">
             <span className="font-semibold">Project Officer:</span>{" "}
-            <span>{data.description}</span>
+            <span>{data.projectOfficer.fullName}</span>
           </div>
         </div>
         <div className="relative">
@@ -143,7 +143,6 @@ export const DemonstrationDetail = () => {
             <span
               className={`transform transition-transform duration-200 ease-in-out ${
                 showButtons ? "rotate-90" : "rotate-0"
-                // eslint-disable-next-line indent
               }`}
             >
               <EllipsisIcon width="24" height="24" />

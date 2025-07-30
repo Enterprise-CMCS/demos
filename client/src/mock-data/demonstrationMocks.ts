@@ -23,6 +23,7 @@ export const testDemonstration: Demonstration = {
   demonstrationStatus: activeDemonstrationStatus,
   state: california,
   users: [johnDoe],
+  projectOfficer: johnDoe,
 };
 
 export const mockAddDemonstrationInput: AddDemonstrationInput = {
