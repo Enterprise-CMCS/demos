@@ -32,7 +32,7 @@ export const testColumns = [
   }),
 ];
 
-describe("KeywordSearch Component", () => {
+describe.sequential("KeywordSearch Component", () => {
   beforeEach(() => {
     localStorage.clear();
     render(

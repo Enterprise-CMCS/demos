@@ -103,7 +103,7 @@ export const testTableData: TestType[] = [
   },
 ];
 
-describe("Table Component Interactions", () => {
+describe.sequential("Table Component Interactions", () => {
   describe("Basic Rendering", () => {
     it("renders all test items initially", () => {
       render(

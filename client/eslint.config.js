@@ -30,7 +30,7 @@ export default [
     },
     rules: {
       indent: ["error", 2, { SwitchCase: 1 }],
-      quotes: ["error", "double"],
+      quotes: ["error", "double", { avoidEscape: true }],
       semi: ["error", "always"],
       "no-trailing-spaces": "error",
       "no-tabs": "error",
