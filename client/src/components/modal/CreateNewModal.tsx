@@ -8,11 +8,12 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
-
-const DEMO_OPTIONS = [
-  { label: "Medicaid Reform - Florida", value: "medicaid-fl" },
-  { label: "Innovative Care - California", value: "innovative-ca" },
-];
+import { useDemonstration } from "hooks/useDemonstration";
+import { useExtension } from "hooks/useExtension";
+import {
+  normalizeDemonstrationId,
+  normalizeUserId,
+} from "utils/uuidHelpers";
 
 export type ModalMode = "amendment" | "extension" | "demonstration";
 
@@ -31,7 +32,9 @@ type Props = {
 };
 
 export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
+  const { addExtension } = useExtension();
+  const { getAllDemonstrations } = useDemonstration();
   const [title, setTitle] = useState(data?.title || "");
   const [state, setState] = useState(data?.state || "");
   const [projectOfficer, setProjectOfficer] = useState(data?.projectOfficer || "");
@@ -42,6 +45,18 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
   const [showWarning, setShowWarning] = useState(false);
   const [expirationError, setExpirationError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch real demonstrations from the database
+  React.useEffect(() => {
+    getAllDemonstrations.trigger();
+  }, [getAllDemonstrations]);
+
+  // Convert demonstrations to options format for the dropdown
+  const demoOptions = getAllDemonstrations.data?.map((demo) => ({
+    label: demo.name,
+    value: demo.id,
+  })) || [];
 
   const capitalized = mode.charAt(0).toUpperCase() + mode.slice(1);
   const showDemoSelect = mode !== "demonstration";
@@ -50,17 +65,42 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
     (showDemoSelect && !demonstration) ||
     !title ||
     !state ||
-    !projectOfficer;
+    !projectOfficer ||
+    isSubmitting;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (showDemoSelect && !demonstration) {
       setShowWarning(true);
       return;
     }
     setShowWarning(false);
-    showSuccess(`${capitalized} created successfully!`);
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      if (mode === "extension") {
+        // For extensions, we need to create the extension using the addExtension API
+        const extensionData = {
+          demonstrationId: normalizeDemonstrationId(demonstration),
+          name: title,
+          description: description,
+          extensionStatusId: "EXTENSION_NEW", // Default status for new extensions
+          projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
+          ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
+          ...(expirationDate && { expirationDate: new Date(expirationDate) }),
+        };
+        await addExtension.trigger(extensionData);
+      }
+      // TODO: Add similar logic for amendments when needed
+
+      showSuccess(`${capitalized} created successfully!`);
+      onClose();
+    } catch (error) {
+      console.error(`Error creating ${mode}:`, error);
+      showError(`Failed to create ${mode}. Please try again.`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -81,7 +121,7 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
             form={`create-${mode}-form`}
             disabled={isSubmitDisabled}
           >
-            Submit
+            {isSubmitting ? "Creating..." : "Submit"}
           </PrimaryButton>
         </>
       }
@@ -97,7 +137,7 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
               label="Demonstration"
               placeholder="Select demonstration"
               isRequired
-              options={DEMO_OPTIONS}
+              options={demoOptions}
               onSelect={setDemonstration}
             />
             {showWarning && !demonstration && (

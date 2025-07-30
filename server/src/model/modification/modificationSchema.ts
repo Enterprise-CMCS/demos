@@ -14,8 +14,8 @@ export const modificationSchema = gql`
     demonstration: Demonstration!
     name: String!
     description: String!
-    effectiveDate: Date!
-    expirationDate: Date!
+    effectiveDate: Date
+    expirationDate: Date
     createdAt: DateTime!
     updatedAt: DateTime!
     amendmentStatus: AmendmentStatus!
@@ -48,8 +48,8 @@ export const modificationSchema = gql`
     demonstration: Demonstration!
     name: String!
     description: String!
-    effectiveDate: Date!
-    expirationDate: Date!
+    effectiveDate: Date
+    expirationDate: Date
     createdAt: DateTime!
     updatedAt: DateTime!
     extensionStatus: ExtensionStatus!
@@ -61,8 +61,8 @@ export const modificationSchema = gql`
     demonstrationId: ID!
     name: String!
     description: String!
-    effectiveDate: Date!
-    expirationDate: Date!
+    effectiveDate: Date
+    expirationDate: Date
     extensionStatusId: ID!
     projectOfficerUserId: String!
   }
@@ -100,8 +100,8 @@ export interface Amendment {
   demonstration: Demonstration;
   name: string;
   description: string;
-  effectiveDate: Date;
-  expirationDate: Date;
+  effectiveDate?: Date;
+  expirationDate?: Date;
   createdAt: DateTime;
   updatedAt: DateTime;
   amendmentStatus: AmendmentStatus;
@@ -134,8 +134,8 @@ export interface Extension {
   demonstration: Demonstration;
   name: string;
   description: string;
-  effectiveDate: Date;
-  expirationDate: Date;
+  effectiveDate?: Date;
+  expirationDate?: Date;
   createdAt: DateTime;
   updatedAt: DateTime;
   extensionStatus: ExtensionStatus; // Assuming ExtensionStatus is defined elsewhere
@@ -147,8 +147,8 @@ export interface AddExtensionInput {
   demonstrationId: string;
   name: string;
   description: string;
-  effectiveDate: Date;
-  expirationDate: Date;
+  effectiveDate?: Date;
+  expirationDate?: Date;
   extensionStatusId: string; // Assuming ExtensionStatus is defined elsewhere
   projectOfficerUserId: string;
 }

@@ -47,4 +47,14 @@ export type {
   EventLoggedStatus,
   LogEventInput,
 } from "./model/event/eventSchema.js";
+
+export type {
+  AddAmendmentInput,
+  AddExtensionInput,
+  Amendment,
+  Extension,
+  UpdateAmendmentInput,
+  UpdateExtensionInput,
+} from "./model/modification/modificationSchema.js";
+
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];

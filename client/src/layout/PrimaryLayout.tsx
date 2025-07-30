@@ -9,6 +9,7 @@ import {
   ToastContainer,
   ToastProvider,
 } from "components/index";
+import { shouldUseMocks } from "config/env";
 
 import { SideNav } from "./SideNav";
 
@@ -19,11 +20,14 @@ interface PrimaryLayoutProps {
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
 
+  // Use different user ID based on environment
+  const userId = shouldUseMocks() ? 2 : "00000000-1111-2222-3333-123abc123abc";
+
   return (
     <ToastProvider>
-      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower userId={2} />}>
+      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower userId={userId} />}>
         <div className="h-screen flex flex-col">
-          <Header userId={2} />
+          <Header userId={userId} />
           <div className="flex flex-1 overflow-hidden bg-gray-100">
             <div className={collapsed ? "w-20" : "w-64"}>
               <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />
