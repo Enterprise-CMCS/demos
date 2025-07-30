@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["node", "scanner", "snyk"])
+      yaml kubeBlock(containerNames:["node", "scanner", "snyk","aws-cli"])
     }
   }
   
@@ -27,20 +27,47 @@ pipeline {
       }
     }
 
-    stage('Server - Sonar Scan') {
-      steps {
-        script {
-          sonarQubeScan(
-            projectKey: 'demos-server',
-            credentialsId: 'sonarqube-demos-server',
-            projectBaseDir: 'server',
-            sonarqubeFlags: [
-              "pullrequest.key": env.CHANGE_ID ?: null,
-              "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-              "pullrequest.base": env.CHANGE_TARGET ?: null,
-              "exclusions": "**/*.test.ts,**/*.sql"
-            ]
-          )
+    stage('Server - Concurrent Steps') {
+      parallel {
+        stage('Server - Sonar Scan') {
+          steps {
+            script {
+              sonarQubeScan(
+                projectKey: 'demos-server',
+                credentialsId: 'sonarqube-demos-server',
+                projectBaseDir: 'server',
+                sonarqubeFlags: [
+                  "pullrequest.key": env.CHANGE_ID ?: null,
+                  "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
+                  "pullrequest.base": env.CHANGE_TARGET ?: null,
+                  "exclusions": "**/*.test.ts,**/*.sql"
+                ]
+              )
+            }
+          }
+        }
+
+        stage('Server - Validate Migrations') {
+          when {
+            expression {
+              def diff = sh(
+                script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD",
+                returnStdout: true
+              ).trim()
+              return diff.split('\n').any { it.startsWith('server/src/model/migrations/') }
+            }
+          }
+          steps {
+            assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+            script {
+              dirCon('deployment', 'node') {
+                sh """
+                npm ci
+                npx tsx demosctl/index test-migration dev "temp_${env.CHANGE_ID}_${currentBuild.startTimeInMillis}"
+                """
+              }
+            }
+          }
         }
       }
     }
