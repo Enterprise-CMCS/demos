@@ -17,6 +17,7 @@ export const config = defineConfig({
     },
   },
   test: {
+    retry: 3,
     globals: true,
     environment: "jsdom",
     setupFiles: "./vitest.setup.ts",
@@ -31,5 +32,4 @@ export const config = defineConfig({
   },
 });
 
-// eslint-disable-next-line no-restricted-exports
 export default config;

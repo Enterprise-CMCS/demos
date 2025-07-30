@@ -559,7 +559,7 @@ describe("ColumnFilter Component", () => {
           (el) => el.tagName === "LI" || el.closest("li")
         );
         const alphaCheckbox = alphaDropdownOption?.querySelector(
-          "input[type=\"checkbox\"]"
+          'input[type="checkbox"]'
         );
         expect(alphaCheckbox).toHaveProperty("checked", false);
       });
@@ -602,8 +602,6 @@ describe("ColumnFilter Component", () => {
       describe("Date Filter Type", () => {
         it("filters rows by date", async () => {
           const user = userEvent.setup();
-          screen.debug(document.body, 100000);
-
           const columnSelect = screen.getByLabelText(/filter by:/i);
 
           await user.type(columnSelect, "Date");
@@ -648,7 +646,6 @@ describe("ColumnFilter Component", () => {
               );
             expect(hiddenDateInput).toHaveValue("01/01/2023");
           });
-          screen.debug(document.body, 100000);
           await waitFor(() => {
             expect(screen.getByText("Item One")).toBeInTheDocument();
             expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
