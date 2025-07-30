@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["node", "scanner"])
+      yaml kubeBlock(containerNames:["node", "scanner", "snyk"])
     }
   }
   
@@ -10,6 +10,12 @@ pipeline {
   }
 
   stages {
+    stage('Server - Snyk') {
+      steps {
+        snykScan('server')
+      }
+    }
+
     stage('Server - Lint') {
       steps {
         dirCon('server', 'node') {
@@ -31,7 +37,8 @@ pipeline {
             sonarqubeFlags: [
               "pullrequest.key": env.CHANGE_ID ?: null,
               "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-              "pullrequest.base": env.CHANGE_TARGET ?: null
+              "pullrequest.base": env.CHANGE_TARGET ?: null,
+              "exclusions": "**/*.test.ts,**/*.sql"
             ]
           )
         }

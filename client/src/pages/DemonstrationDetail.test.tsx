@@ -60,7 +60,7 @@ describe("DemonstrationDetail", () => {
     });
 
     expect(
-      screen.getByRole("heading", { name: /Demonstration Details/i })
+      screen.getByRole("heading", { name: /Documents/i })
     ).toBeInTheDocument();
 
     const amendmentsTab = screen.getByRole("button", { name: /Amendments/i });
@@ -88,7 +88,7 @@ describe("DemonstrationDetail", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
     expect(
-      screen.getByRole("heading", { name: /Demonstration Details/i })
+      screen.getByRole("heading", { name: /Documents/i })
     ).toBeInTheDocument();
 
     const extensionsTab = screen.getByRole("button", { name: /Extensions/i });

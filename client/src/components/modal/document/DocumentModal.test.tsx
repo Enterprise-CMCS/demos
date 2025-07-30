@@ -17,7 +17,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 
-import { AddDocumentModal } from "./AddDocumentModal";
+import { AddDocumentModal } from "./DocumentModal";
 
 describe("AddDocumentModal", () => {
   const setup = () => {

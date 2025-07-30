@@ -7,6 +7,8 @@ import {
 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
 import { readFileSync } from "fs";
+import { ProviderAttribute, UserPoolClientIdentityProvider, UserPoolIdentityProviderSaml, UserPoolIdentityProviderSamlMetadata } from "aws-cdk-lib/aws-cognito";
+import { Construct } from "constructs";
 
 interface CognitoProps extends CommonProps {
   userPoolDomainPrefix?: string;
@@ -86,6 +88,8 @@ export function create(props: CognitoProps): CognitoOutputs {
     ],
   });
 
+  const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!)
+
   const appUrl = "http://localhost:3000/";
   const cloudfrontUrl = "https://localhost:3000/"; //This will be a static, public url once available
   const userPoolClient = new aws_cognito.UserPoolClient(
@@ -113,25 +117,14 @@ export function create(props: CognitoProps): CognitoOutputs {
       accessTokenValidity: Duration.minutes(30),
       idTokenValidity: Duration.minutes(30),
       refreshTokenValidity: Duration.hours(24),
-      // supportedIdentityProviders,
+      supportedIdentityProviders: [
+        UserPoolClientIdentityProvider.custom(IDM.providerName),
+        UserPoolClientIdentityProvider.COGNITO
+      ],
       generateSecret: false,
     }
   );
 
-  // const identityPool = new aws_cognito.CfnIdentityPool(
-  //   props.scope,
-  //   "CognitoIdentityPool",
-  //   {
-  //     identityPoolName: `${props.stage}IdentityPool`,
-  //     allowUnauthenticatedIdentities: false,
-  //     cognitoIdentityProviders: [
-  //       {
-  //         clientId: userPoolClient.userPoolClientId,
-  //         providerName: userPool.userPoolProviderName,
-  //       },
-  //     ],
-  //   }
-  // );
 
   const formLogo = readFileSync("images/formLogo.png");
   const pageFooterLogo = readFileSync("images/pageFooterLogo.png");
@@ -692,11 +685,29 @@ export function create(props: CognitoProps): CognitoOutputs {
 //     );
 //   };
 
+function createIdmIdp(scope: Construct, stage: string, userPool: aws_cognito.IUserPool, metadataEndpoint: string) {
+  return new UserPoolIdentityProviderSaml(scope, "idmSamlProvider", {
+    userPool,
+    name: `demos-${stage}-idm`,
+    metadata: UserPoolIdentityProviderSamlMetadata.url(metadataEndpoint),
+    attributeMapping: {
+      email: ProviderAttribute.other("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"),
+      familyName: ProviderAttribute.other("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"),
+      givenName: ProviderAttribute.other("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"),
+      custom: {
+        "custom:roles": ProviderAttribute.other("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/roles")
+      }
+    }
+  })
+}
+
 export const createUserPoolClient = (props: CognitoProps, userPoolId: string, hostEnvironment: string): CognitoOutputs => {
   const userPool = aws_cognito.UserPool.fromUserPoolId(props.scope, "importedUserPool", userPoolId)
 
   const appUrl = "http://localhost:3000/";
   const cloudfrontUrl = "https://localhost:3000/"; //This will be a static, public url once available
+
+  const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!)
 
   const userPoolClient = new aws_cognito.UserPoolClient(
     props.scope,
@@ -723,7 +734,10 @@ export const createUserPoolClient = (props: CognitoProps, userPoolId: string, ho
       accessTokenValidity: Duration.minutes(30),
       idTokenValidity: Duration.minutes(30),
       refreshTokenValidity: Duration.hours(24),
-      // supportedIdentityProviders,
+      supportedIdentityProviders: [
+        UserPoolClientIdentityProvider.custom(IDM.providerName),
+        UserPoolClientIdentityProvider.COGNITO
+      ],
       generateSecret: false,
       }
   );

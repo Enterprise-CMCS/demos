@@ -19,7 +19,7 @@ import { mockAmendments } from "mock-data/amendmentMocks";
 import { mockExtensions } from "mock-data/extensionMocks";
 import { useLocation, useParams } from "react-router-dom";
 
-import { isTestMode } from "../config/env";
+import { isTestMode } from "config/env";
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -174,7 +174,7 @@ export const DemonstrationDetail = () => {
             {tab === "details" && (
               <div>
                 <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">
-                  Demonstration Details
+                  Documents
                 </h1>
                 <DocumentTable />
               </div>
