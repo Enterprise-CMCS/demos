@@ -11,10 +11,9 @@ import {
   getSortedRowModel,
   useReactTable,
   InitialTableState,
+  Table as TanstackTable,
 } from "@tanstack/react-table";
-import { arrIncludesAllInsensitive, KeywordSearch } from "./KeywordSearch";
-import { ColumnFilter } from "./ColumnFilter";
-import { PaginationControls } from "./PaginationControls";
+import { arrIncludesAllInsensitive } from "./KeywordSearch";
 
 export interface TableProps<T> {
   data: T[];
@@ -22,26 +21,30 @@ export interface TableProps<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<T, any>[];
   className?: string;
-  keywordSearch?: boolean;
-  columnFilter?: boolean;
-  pagination?: boolean;
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
   getSubRows?: (originalRow: T, index: number) => T[] | undefined;
   initialState?: InitialTableState;
+  keywordSearch?: (table: TanstackTable<T>) => React.ReactNode;
+  columnFilter?: (table: TanstackTable<T>) => React.ReactNode;
+  pagination?: (table: TanstackTable<T>) => React.ReactNode;
+  actionButtons?: (table: TanstackTable<T>) => React.ReactNode;
+  actionModals?: (table: TanstackTable<T>) => React.ReactNode;
 }
 
 export function Table<T>({
   data,
   columns,
   className,
-  keywordSearch,
-  columnFilter,
-  pagination,
   emptyRowsMessage = "No data available.",
   noResultsFoundMessage = "No results found.",
   getSubRows,
   initialState,
+  keywordSearch,
+  columnFilter,
+  pagination,
+  actionButtons,
+  actionModals,
 }: TableProps<T>) {
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
@@ -93,78 +96,84 @@ export function Table<T>({
 
   return (
     <div className={`${className || ""}`}>
-      <div className="flex items-center mb-2">
-        {/* Search Section */}
-        {keywordSearch && <KeywordSearch table={table} />}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center mb-2">
+          {/* Search Section */}
+          {keywordSearch && keywordSearch(table)}
 
-        {/* Filter Section */}
-        {columnFilter && <ColumnFilter table={table} />}
+          {/* Filter Section */}
+          {columnFilter && columnFilter(table)}
+        </div>
+        <div>
+          {/* Action Buttons Section */}
+          {actionButtons && actionButtons(table)}
+        </div>
       </div>
+
+      {actionModals && actionModals(table)}
 
       {/* Table Section */}
-      <div className="h-[60vh] overflow-y-auto">
-        <table className="w-full table-fixed text-sm">
-          <thead>
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id} className="bg-gray-200">
-                {hg.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                    {{
-                      asc: " ↑",
-                      desc: " ↓",
-                    }[header.column.getIsSorted() as string] ?? null}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {filtersClearedOutData ? (
-              <tr>
-                <td
-                  colSpan={table.getAllLeafColumns().length}
-                  className="px-4 py-8 text-center text-gray-800 text-xl"
+      <table className="w-full table-fixed text-sm">
+        <thead>
+          {table.getHeaderGroups().map((hg) => (
+            <tr key={hg.id} className="bg-gray-200">
+              {hg.headers.map((header) => (
+                <th
+                  key={header.id}
+                  className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
+                  onClick={header.column.getToggleSortingHandler()}
                 >
-                  {noResultsFoundMessage}
-                </td>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                  {{
+                    asc: " ↑",
+                    desc: " ↓",
+                  }[header.column.getIsSorted() as string] ?? null}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {filtersClearedOutData ? (
+            <tr>
+              <td
+                colSpan={table.getAllLeafColumns().length}
+                className="px-4 py-8 text-center text-gray-800 text-xl"
+              >
+                {noResultsFoundMessage}
+              </td>
+            </tr>
+          ) : !hasDataInitially ? (
+            <tr>
+              <td
+                colSpan={table.getAllLeafColumns().length}
+                className="px-4 py-8 text-center text-gray-800 text-xl"
+              >
+                {emptyRowsMessage}
+              </td>
+            </tr>
+          ) : (
+            table.getRowModel().rows.map((row) => (
+              <tr key={row.id} className={row.depth > 0 ? "bg-gray-200" : ""}>
+                {row.getVisibleCells().map((cell) => {
+                  return (
+                    <td key={cell.id} className="px-2 py-1 border-b">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  );
+                })}
               </tr>
-            ) : !hasDataInitially ? (
-              <tr>
-                <td
-                  colSpan={table.getAllLeafColumns().length}
-                  className="px-4 py-8 text-center text-gray-800 text-xl"
-                >
-                  {emptyRowsMessage}
-                </td>
-              </tr>
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className={row.depth > 0 ? "bg-gray-200" : ""}>
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <td key={cell.id} className="px-2 py-1 border-b">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        {pagination && <PaginationControls table={table} />}
-      </div>
+            ))
+          )}
+        </tbody>
+      </table>
+      {pagination && pagination(table)}
     </div>
   );
 }
