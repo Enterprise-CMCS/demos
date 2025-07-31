@@ -97,14 +97,14 @@ export function Table<T>({
   return (
     <div className={`${className || ""}`}>
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center mb-2">
+        <div className="flex items-center">
           {/* Search Section */}
           {keywordSearch && keywordSearch(table)}
 
           {/* Filter Section */}
           {columnFilter && columnFilter(table)}
         </div>
-        <div>
+        <div className="mr-1">
           {/* Action Buttons Section */}
           {actionButtons && actionButtons(table)}
         </div>

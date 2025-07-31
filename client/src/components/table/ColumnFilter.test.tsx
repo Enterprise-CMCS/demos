@@ -10,6 +10,7 @@ import { testTableData, TestType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Dayjs } from "dayjs";
+import { ColumnFilter } from "./ColumnFilter";
 
 const columnHelper = createColumnHelper<TestType>();
 
@@ -76,7 +77,7 @@ describe("ColumnFilter Component", () => {
         <Table<TestType>
           columns={testColumns}
           data={testTableData}
-          columnFilter
+          columnFilter={(table) => <ColumnFilter table={table} />}
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
         />
       </LocalizationProvider>

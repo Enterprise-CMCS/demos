@@ -8,8 +8,9 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Table } from "./Table";
-import { highlightCell } from "./KeywordSearch";
+import { highlightCell, KeywordSearch } from "./KeywordSearch";
 import dayjs, { Dayjs } from "dayjs";
+import { ColumnFilter } from "./ColumnFilter";
 
 type TestOptionType = {
   name: string;
@@ -140,8 +141,8 @@ describe("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -210,8 +211,8 @@ describe("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -265,8 +266,8 @@ describe("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -324,8 +325,8 @@ describe("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -386,8 +387,8 @@ describe("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -474,8 +475,10 @@ describe("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => (
+              <KeywordSearch table={table} debounceMs={500} />
+            )}
             columns={testColumns}
             data={testTableData}
             noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."

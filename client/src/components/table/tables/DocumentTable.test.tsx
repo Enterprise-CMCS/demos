@@ -20,6 +20,42 @@ describe("DocumentTable", () => {
     );
   });
 
+  it("renders action buttons (add/edit)", () => {
+    expect(screen.getByLabelText(/Add Document/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Edit Document/i)).toBeInTheDocument();
+  });
+
+  it("opens AddDocumentModal when add button is clicked", async () => {
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText(/Add Document/i));
+    expect(screen.getByText(/Add New Document/i)).toBeInTheDocument();
+  });
+
+  it("disables Edit button when no or multiple documents are selected, enables for one", async () => {
+    const user = userEvent.setup();
+    const editBtn = screen.getByLabelText(/Edit Document/i);
+    expect(editBtn).toBeDisabled();
+    // Select one row
+    await user.click(screen.getByText("Pre-Submission Concept Note"));
+    expect(editBtn).not.toBeDisabled();
+    // Select another row (should switch selection)
+    await user.click(screen.getByText("Budget Summary"));
+    expect(editBtn).toBeDisabled();
+  });
+
+  it("opens EditDocumentModal with correct documentId when edit button is clicked", async () => {
+    const user = userEvent.setup();
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+    // Select a row
+    await user.click(screen.getByText("Feedback Summary"));
+    const editBtn = screen.getByLabelText(/Edit Document/i);
+    await user.click(editBtn);
+    // Modal should open, assuming it renders 'edit document' text
+    expect(screen.getByText(/edit document/i)).toBeInTheDocument();
+  });
+
   it("renders the filter dropdown initially", async () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -55,10 +91,10 @@ describe("DocumentTable", () => {
     ]);
 
     const startInput = document.body.querySelector(
-      "input[name=\"date-filter-start\"]"
+      'input[name="date-filter-start"]'
     );
     const endInput = document.body.querySelector(
-      "input[name=\"date-filter-end\"]"
+      'input[name="date-filter-end"]'
     );
     // Open the start date picker calendar popup by clicking the calendar button
     await pickDateInCalendar({
