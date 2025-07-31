@@ -1,6 +1,7 @@
-import { parse } from "graphql";
-import { ESLintUtils } from "@typescript-eslint/utils";
 import { getInnermostScope } from "eslint-utils";
+import { parse } from "graphql";
+
+import { ESLintUtils } from "@typescript-eslint/utils";
 
 /**
  * Wishlist:
@@ -8,7 +9,7 @@ import { getInnermostScope } from "eslint-utils";
  * 2. Support enums
  * 3. Get this to work with type aliases
  */
-const createRule = ESLintUtils.RuleCreator(name => name);
+const createRule = ESLintUtils.RuleCreator((name) => name);
 
 const STRING = "string";
 const NUMBER = "number";
@@ -27,7 +28,7 @@ const GQL_TYPE_TO_NORMALIZED_TYPE = {
   Boolean: BOOLEAN,
   ID: STRING,
   JSONObject: OBJECT,
-}
+};
 
 const TS_INTERFACE_DECLARATION = "TSInterfaceDeclaration";
 
@@ -37,7 +38,7 @@ const TS_AST_TYPE_TO_NORMALIZED_TYPE = {
   TSBooleanKeyword: BOOLEAN,
   TSArrayType: LIST,
   TSObjectKeyword: OBJECT,
-}
+};
 
 // Checks if a graphQL schema variable is valid
 const isValidGraphQLSchema = (variable) => {
@@ -47,43 +48,56 @@ const isValidGraphQLSchema = (variable) => {
   } catch {
     return false;
   }
-}
+};
 
 // Gets the normalized type of a GraphQL field
 const getTypeOfGqlField = (field) => {
-  const getFieldType = () => { switch (field.type.kind) {
-    case GQL_NAMED_TYPE:
-      return field.type.name.value;
-    case GQL_LIST_TYPE:
-      return LIST;
-    case GQL_NON_NULL_TYPE:
-      switch(field.type.type.kind) {
-        case GQL_NAMED_TYPE:
-          return field.type.type.name.value;
-        case GQL_LIST_TYPE:
-          return LIST;
-        default:
-          throw new Error(`Unknown field type: ${field.type.type.kind}`);
-      }
-    default:
-      throw new Error(`Unknown field type: ${field.type.kind}`);
-  }}
+  const getFieldType = () => {
+    switch (field.type.kind) {
+      case GQL_NAMED_TYPE:
+        return field.type.name.value;
+      case GQL_LIST_TYPE:
+        return LIST;
+      case GQL_NON_NULL_TYPE:
+        switch (field.type.type.kind) {
+          case GQL_NAMED_TYPE:
+            return field.type.type.name.value;
+          case GQL_LIST_TYPE:
+            return LIST;
+          default:
+            throw new Error(`Unknown field type: ${field.type.type.kind}`);
+        }
+      default:
+        throw new Error(`Unknown field type: ${field.type.kind}`);
+    }
+  };
 
   const fieldType = getFieldType();
   const normalizedType = GQL_TYPE_TO_NORMALIZED_TYPE[fieldType] || fieldType;
   return normalizedType;
-}
+};
 
 // Gets normalized field information from the TypeScript AST
 const getTsFieldInfo = (field) => {
+  const keyName = field.key?.name || field.key?.value || "unknown";
+
+  const typeNode = field.typeAnnotation?.typeAnnotation;
+  let tsType = "unknown";
+
+  if (typeNode) {
+    tsType =
+      TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type] ||
+      typeNode.typeName?.name ||
+      "unknown";
+  }
+
   return {
-    name: field.key.name,
-    type: TS_AST_TYPE_TO_NORMALIZED_TYPE[field.typeAnnotation.typeAnnotation.type] 
-    ?? field.typeAnnotation.typeAnnotation.typeName.name,
-    nullable: field.optional,
+    name: keyName,
+    type: tsType,
+    nullable: field.optional ?? true,
     loc: field.loc,
   };
-}
+};
 
 // Gets normalized field information from the GraphQL AST
 const getGqlFieldInfo = (field) => {
@@ -94,7 +108,7 @@ const getGqlFieldInfo = (field) => {
   };
 
   return gqlFields;
-}
+};
 
 // Get the variable with the gql tag
 const getGQLVariable = (variableScope) => {
@@ -103,13 +117,13 @@ const getGQLVariable = (variableScope) => {
       return false;
     }
 
-    return(
+    return (
       variable.defs[0].node.type === "VariableDeclarator" &&
       variable.defs[0].node.init.type === "TaggedTemplateExpression" &&
       variable.defs[0].node.init.tag.name === "gql"
-    )
+    );
   });
-}
+};
 
 // Compare the field types of the GraphQL schema and the TypeScript types
 const compareFieldTypes = (gqlFields, tsFields, tsNode, context) => {
@@ -154,13 +168,14 @@ const compareFieldTypes = (gqlFields, tsFields, tsNode, context) => {
       });
     }
   }
-}
+};
 
 export const validateGraphQLTypescriptMatch = createRule({
   name: "validate-graphql-typescript-match",
   meta: {
     docs: {
-      description: "Validate that GraphQL types and TypeScript interfaces match",
+      description:
+        "Validate that GraphQL types and TypeScript interfaces match",
       recommended: "error",
     },
     type: "problem",
@@ -172,7 +187,10 @@ export const validateGraphQLTypescriptMatch = createRule({
       Program(programNode) {
         // Scope to the file we're working on
         const scopeManager = context.sourceCode.scopeManager;
-        const innermostScope = getInnermostScope(scopeManager.globalScope, programNode);
+        const innermostScope = getInnermostScope(
+          scopeManager.globalScope,
+          programNode,
+        );
 
         // Try to get a GQL schema variable,
         // if there's not one theres nothing else to do.
@@ -191,7 +209,8 @@ export const validateGraphQLTypescriptMatch = createRule({
         }
 
         // Parse the GraphQL Schema variable and extract the field types
-        const gqlSchemaRaw = graphQLSchemaVariable.defs[0].node.init.quasi.quasis[0].value.raw;
+        const gqlSchemaRaw =
+          graphQLSchemaVariable.defs[0].node.init.quasi.quasis[0].value.raw;
         const gqlAST = parse(gqlSchemaRaw);
 
         // Guard: If no definitions in the GQL schema, nothing else to do.
@@ -206,7 +225,7 @@ export const validateGraphQLTypescriptMatch = createRule({
         // Get all the types and inputs in the GQL schema
         const gqlDefinitions = gqlAST.definitions.filter((definition) => {
           return (
-            definition.kind === "ObjectTypeDefinition" ||  // Type keyword
+            definition.kind === "ObjectTypeDefinition" || // Type keyword
             definition.kind === "InputObjectTypeDefinition" // Input keyword
           );
         });
@@ -216,20 +235,22 @@ export const validateGraphQLTypescriptMatch = createRule({
         const gqlTypes = Object.fromEntries(
           gqlDefinitions.map((definition) => [
             definition.name.value,
-            definition.fields.map(getGqlFieldInfo)
-          ])
+            (definition.fields || []).map(getGqlFieldInfo),
+          ]),
         );
 
         // Get all the Typescript interfaces in the file (and eventually types)
         const tsTypes = innermostScope.variables.filter((variable) => {
-            return variable.defs[0].node.type === TS_INTERFACE_DECLARATION
+          return variable.defs[0].node.type === TS_INTERFACE_DECLARATION;
         });
 
         // Check all the ts types against the gql schema
         tsTypes.forEach((tsType) => {
           // Guard: If TS type name is not in the GQL schema, do nothing
           const tsTypeName = tsType.defs[0].node.id.name;
-          if(!gqlTypes[tsTypeName]) { return; }
+          if (!gqlTypes[tsTypeName]) {
+            return;
+          }
 
           // Compare the fields of the TS type and the GQL type
           const tsFields = tsType.defs[0].node.body.body.map(getTsFieldInfo);
