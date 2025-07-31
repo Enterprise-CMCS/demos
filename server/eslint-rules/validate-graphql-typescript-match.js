@@ -28,6 +28,9 @@ const GQL_TYPE_TO_NORMALIZED_TYPE = {
   Boolean: BOOLEAN,
   ID: STRING,
   JSONObject: OBJECT,
+  // Add custom scalars
+  Date: "Date",
+  DateTime: "DateTime",
 };
 
 const TS_INTERFACE_DECLARATION = "TSInterfaceDeclaration";
@@ -40,6 +43,13 @@ const TS_AST_TYPE_TO_NORMALIZED_TYPE = {
   TSObjectKeyword: OBJECT,
   TSUnknownKeyword: OBJECT,
   TSAnyKeyword: OBJECT,
+  // Handle Date type specifically
+  TSTypeReference: (typeName) => {
+    if (typeName === "Date") return "Date";
+    if (typeName === "DateTime") return "DateTime";
+    // For other type references, return the actual type name for comparison
+    return typeName;
+  },
 };
 
 // Checks if a graphQL schema variable is valid
@@ -88,10 +98,16 @@ const getTsFieldInfo = (field) => {
 
   if (typeNode) {
     if (TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type]) {
-      tsType = TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type];
+      // Handle function-based type mapping (like TSTypeReference)
+      if (typeof TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type] === 'function') {
+        const typeName = typeNode.typeName?.name || "unknown";
+        tsType = TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type](typeName);
+      } else {
+        tsType = TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type];
+      }
     } else if (typeNode.type === "TSTypeReference") {
-      // Treat all references as objects for now
-      tsType = OBJECT;
+      // Get the actual type name for comparison with GraphQL types
+      tsType = typeNode.typeName?.name || "unknown";
     } else if (
       typeNode.type === "TSUnknownKeyword" ||
       typeNode.type === "TSAnyKeyword"

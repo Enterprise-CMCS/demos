@@ -59,7 +59,7 @@ export interface LogEventInput {
   eventType: string;
   logLevel: string;
   route: string;
-  eventData?: object | null;
+  eventData?: object;
 }
 
 export interface EventLoggedStatus {
