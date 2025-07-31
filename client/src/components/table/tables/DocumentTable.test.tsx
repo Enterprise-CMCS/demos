@@ -20,12 +20,18 @@ describe("DocumentTable", () => {
     );
   });
 
-  it("renders action buttons (add/edit)", () => {
+  it("renders action buttons (add/edit)", async () => {
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
     expect(screen.getByLabelText(/Add Document/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Edit Document/i)).toBeInTheDocument();
   });
 
   it("opens AddDocumentModal when add button is clicked", async () => {
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
     const user = userEvent.setup();
     await user.click(screen.getByLabelText(/Add Document/i));
     expect(screen.getByText(/Add New Document/i)).toBeInTheDocument();
@@ -33,13 +39,16 @@ describe("DocumentTable", () => {
 
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {
     const user = userEvent.setup();
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
     const editBtn = screen.getByLabelText(/Edit Document/i);
     expect(editBtn).toBeDisabled();
     // Select one row
-    await user.click(screen.getByText("Pre-Submission Concept Note"));
+    await user.click(screen.getByText("Presentation Slides"));
     expect(editBtn).not.toBeDisabled();
     // Select another row (should switch selection)
-    await user.click(screen.getByText("Budget Summary"));
+    await user.click(screen.getByText("Legal Review"));
     expect(editBtn).toBeDisabled();
   });
 

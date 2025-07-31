@@ -12,6 +12,7 @@ import {
   useReactTable,
   InitialTableState,
   Table as TanstackTable,
+  RowSelectionState,
 } from "@tanstack/react-table";
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
 
@@ -30,8 +31,8 @@ export interface TableProps<T> {
   pagination?: (table: TanstackTable<T>) => React.ReactNode;
   actionButtons?: (table: TanstackTable<T>) => React.ReactNode;
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
+  rowClickHandler?: (rowId: string) => void;
 }
-
 export function Table<T>({
   data,
   columns,
@@ -47,6 +48,7 @@ export function Table<T>({
   actionModals,
 }: TableProps<T>) {
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
   const table = useReactTable<T>({
     data,
@@ -59,9 +61,10 @@ export function Table<T>({
     getExpandedRowModel: getExpandedRowModel(),
     getSubRows: getSubRows,
     filterFromLeafRows: true,
-    state: { expanded },
+    state: { expanded, rowSelection },
     onExpandedChange: setExpanded,
     initialState,
+    onRowSelectionChange: setRowSelection,
   });
 
   const hasDataInitially = data.length > 0;
@@ -157,7 +160,11 @@ export function Table<T>({
             </tr>
           ) : (
             table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className={row.depth > 0 ? "bg-gray-200" : ""}>
+              <tr
+                onClick={row.getToggleSelectedHandler()}
+                key={row.id}
+                className={row.depth > 0 ? "bg-gray-200" : ""}
+              >
                 {row.getVisibleCells().map((cell) => {
                   return (
                     <td key={cell.id} className="px-2 py-1 border-b">
