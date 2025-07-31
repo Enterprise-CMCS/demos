@@ -72,6 +72,19 @@ pipeline {
         }
       }
     }
+
+    stage("Run Migrations") {
+      steps {
+        script {
+          dirCon('deployment', 'node') {
+            sh """
+            npx tsx demosctl/index migrate ${params.STAGE}
+            """
+          }
+        }
+      }
+    }
+
     stage('Deploy') {
       steps {
           script {

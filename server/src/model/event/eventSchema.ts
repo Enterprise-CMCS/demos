@@ -19,7 +19,7 @@ export const eventSchema = gql`
   }
 
   type Query {
-    events: [Event]!
+    events: [Event!]!
   }
 
   type Mutation {

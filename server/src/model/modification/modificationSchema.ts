@@ -87,7 +87,7 @@ export const modificationSchema = gql`
   }
 
   type Query {
-    amendments: [Amendment]!
+    amendments: [Amendment!]!
     amendment(id: ID!): Amendment
     extensions: [Extension]!
     extension(id: ID!): Extension

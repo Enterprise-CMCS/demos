@@ -35,7 +35,7 @@ export const roleSchema = gql`
   }
 
   type Query {
-    roles: [Role]!
+    roles: [Role!]!
     role(id: ID!): Role
   }
 `;

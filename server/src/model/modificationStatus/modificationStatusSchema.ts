@@ -58,7 +58,7 @@ export const modificationStatusSchema = gql`
   }
 
   type Query {
-    amendmentStatuses: [AmendmentStatus]!
+    amendmentStatuses: [AmendmentStatus!]!
     amendmentStatus(id: String!): AmendmentStatus
     extensionStatuses: [ExtensionStatus]!
     extensionStatus(id: String!): ExtensionStatus

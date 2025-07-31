@@ -58,7 +58,7 @@ export function runCommand(name: string, cmd: string, args: string[], opts?: Spa
   });
 }
 
-export function runShell(name: string, sh: string, opts?: SpawnOptionsWithoutStdio) {
+export function runShell(name: string, sh: string, opts?: SpawnOptionsWithoutStdio): Promise<number | null> {
   const child = spawn(sh, { ...opts, shell: true });
   const color = reserveRandomColor();
   const nameC = chalk[color](`[${name}]`);
@@ -71,13 +71,13 @@ export function runShell(name: string, sh: string, opts?: SpawnOptionsWithoutStd
   });
   return new Promise((resolve, reject) => {
     child.on("error", (error) => {
-      process.stderr.write(`child process error: ${error}`);
+      process.stderr.write(`child process error: ${error}\n`);
       colorOpts[color] = false;
       reject(error);
     });
 
     child.on("close", (code) => {
-      process.stdout.write(`${sh} exited with code ${code}`);
+      process.stdout.write(`${sh} exited with code ${code}\n`);
       colorOpts[color] = false;
       resolve(code);
     });

@@ -99,7 +99,7 @@ export const documentSchema = gql`
   }
 
   type Query {
-    documents(bundleTypeId: String): [Document]!
+    documents(bundleTypeId: String): [Document!]!
     document(id: ID!): Document
   }
 `;

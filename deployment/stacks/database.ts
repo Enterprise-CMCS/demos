@@ -55,6 +55,13 @@ export class DatabaseStack extends Stack {
       name: `${commonProps.project}-${commonProps.stage}-rds-sg`,
     });
 
+    const sharedServicesSg = aws_ec2.SecurityGroup.fromLookupByName(
+      commonProps.scope,
+      "vpnSecurityGroup",
+      "cmscloud-shared-services",
+      props.vpc
+    );
+
     new CfnOutput(commonProps.scope, "dbSecurityGroupID", {
       value: rdsSecurityGroup.securityGroup.securityGroupId,
       exportName: `${commonProps.project}-${commonProps.stage}-rds-security-group-id`,
@@ -90,6 +97,7 @@ export class DatabaseStack extends Stack {
         securityGroups: [
           rdsSecurityGroup.securityGroup,
           commonProps.cloudVpnSecurityGroup,
+          sharedServicesSg
         ],
         publiclyAccessible: false,
         removalPolicy: ["prod", "impl"].includes(commonProps.stage)

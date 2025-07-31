@@ -32,7 +32,7 @@ export const documentTypeSchema = gql`
   }
 
   type Query {
-    documentTypes: [DocumentType]!
+    documentTypes: [DocumentType!]!
     documentType(id: String!): DocumentType
   }
 `;

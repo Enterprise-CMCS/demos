@@ -11,7 +11,7 @@ export const stateSchema = gql`
   }
 
   type Query {
-    states: [State]!
+    states: [State!]!
     state(id: String!): State
   }
 `;
