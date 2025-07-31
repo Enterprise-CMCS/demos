@@ -8,13 +8,16 @@ import { ALL_MOCKS } from "mock-data/index";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { pickDateInCalendar } from "components/input/DatePicker/DatePicker.test";
+import { ToastProvider } from "components/toast";
 
 describe("DocumentTable", () => {
   beforeEach(() => {
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DocumentTable />
+          <ToastProvider>
+            <DocumentTable />
+          </ToastProvider>
         </LocalizationProvider>
       </MockedProvider>
     );
