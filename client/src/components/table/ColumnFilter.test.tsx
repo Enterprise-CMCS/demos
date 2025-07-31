@@ -396,7 +396,7 @@ describe("ColumnFilter Component", () => {
           (el) => el.tagName === "LI" || el.closest("li")
         );
         const alphaCheckbox = alphaDropdownOption?.querySelector(
-          "input[type=\"checkbox\"]"
+          'input[type="checkbox"]'
         );
         expect(alphaCheckbox).toHaveProperty("checked", false);
       });

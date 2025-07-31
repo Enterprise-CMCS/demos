@@ -110,7 +110,9 @@ export class BootstrapStack extends Stack {
         new aws_iam.PolicyStatement({
           actions: ["secretsmanager:GetSecretValue"],
           resources: [
+            // Trailing * in these arns are required because a random string is added at the end when created
             `arn:aws:secretsmanager:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:secret:demos-*/config*`,
+            `arn:aws:secretsmanager:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:secret:demos-*-rds-admin*`,
           ],
         }),
         new aws_iam.PolicyStatement({
