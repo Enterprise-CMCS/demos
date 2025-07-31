@@ -78,7 +78,7 @@ pipeline {
         script {
           dirCon('deployment', 'node') {
             sh """
-            npx tsx demosctl/index run-migrations ${params.STAGE}
+            npx tsx demosctl/index migrate ${params.STAGE}
             """
           }
         }
