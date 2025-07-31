@@ -8,6 +8,16 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DemonstrationDetail } from "./DemonstrationDetail";
 
+// Mock CreateNewModal component
+vi.mock("components/modal/CreateNewModal", () => ({
+  CreateNewModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div data-testid="create-new-modal">
+      <h2>New {mode.charAt(0).toUpperCase() + mode.slice(1)}</h2>
+      <button onClick={onClose}>Close</button>
+    </div>
+  ),
+}));
+
 // Mock useDemonstration hook
 vi.mock("hooks/useDemonstration", () => ({
   useDemonstration: () => ({

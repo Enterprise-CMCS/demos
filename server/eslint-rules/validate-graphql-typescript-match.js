@@ -38,6 +38,8 @@ const TS_AST_TYPE_TO_NORMALIZED_TYPE = {
   TSBooleanKeyword: BOOLEAN,
   TSArrayType: LIST,
   TSObjectKeyword: OBJECT,
+  TSUnknownKeyword: OBJECT,
+  TSAnyKeyword: OBJECT,
 };
 
 // Checks if a graphQL schema variable is valid
@@ -85,10 +87,19 @@ const getTsFieldInfo = (field) => {
   let tsType = "unknown";
 
   if (typeNode) {
-    tsType =
-      TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type] ||
-      typeNode.typeName?.name ||
-      "unknown";
+    if (TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type]) {
+      tsType = TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type];
+    } else if (typeNode.type === "TSTypeReference") {
+      // Treat all references as objects for now
+      tsType = OBJECT;
+    } else if (
+      typeNode.type === "TSUnknownKeyword" ||
+      typeNode.type === "TSAnyKeyword"
+    ) {
+      tsType = OBJECT;
+    } else {
+      tsType = typeNode.typeName?.name || "unknown";
+    }
   }
 
   return {
