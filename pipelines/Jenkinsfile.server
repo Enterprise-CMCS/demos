@@ -50,6 +50,9 @@ pipeline {
         stage('Server - Validate Migrations') {
           when {
             expression {
+              if (!env.CHANGE_TARGET) {
+                return false
+              }
               def diff = sh(
                 script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD",
                 returnStdout: true
