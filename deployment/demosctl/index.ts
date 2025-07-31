@@ -7,6 +7,8 @@ import { fullDeploy } from "./commands/fullDeploy";
 import { addCloudfrontRedirect } from "./commands/addCloudfrontRedirect";
 import { up } from "./commands/up";
 import { down } from "./commands/down";
+import { runMigration } from "./commands/runMigration";
+import { testMigration } from "./commands/testMigration";
 
 async function main() {
   const args = process.argv.slice(2);
@@ -38,6 +40,12 @@ async function main() {
       break;
     case "down":
       down(environment);
+      break;
+    case "migrate":
+      runMigration(environment, args[2]);
+      break;
+    case "test-migration":
+      testMigration(environment, args[2]);
       break;
     default:
       console.log(`Unknown command: ${command}`);
