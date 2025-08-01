@@ -30,7 +30,6 @@ vi.mock("hooks/useDemonstration", () => ({
   })),
 }));
 
-
 // Mock the SelectUSAStates component
 vi.mock("components/input/select/SelectUSAStates", () => ({
   SelectUSAStates: ({
@@ -106,7 +105,11 @@ const renderModal = ({
 
   render(
     <ToastProvider>
-      <DemonstrationModal mode={mode} onClose={onClose} demonstration={demonstration} />
+      <DemonstrationModal
+        mode={mode}
+        onClose={onClose}
+        demonstration={demonstration}
+      />
     </ToastProvider>
   );
 

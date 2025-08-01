@@ -11,7 +11,7 @@ export const demonstrationStatusSchema = gql`
     demonstrations: [Demonstration!]!
   }
 
-  input AddDemonstrationStatusInput {
+  input CreateDemonstrationStatusInput {
     id: String!
     name: String!
     description: String!
@@ -25,8 +25,8 @@ export const demonstrationStatusSchema = gql`
   }
 
   type Mutation {
-    addDemonstrationStatus(
-      input: AddDemonstrationStatusInput!
+    createDemonstrationStatus(
+      input: CreateDemonstrationStatusInput!
     ): DemonstrationStatus
     updateDemonstrationStatus(
       id: String!
@@ -51,7 +51,7 @@ export interface DemonstrationStatus {
   demonstrations: Demonstration[];
 }
 
-export interface AddDemonstrationStatusInput {
+export interface CreateDemonstrationStatusInput {
   id: string;
   name: string;
   description: string;

@@ -4,9 +4,9 @@ import { BundleType } from "../../types.js";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { GraphQLError } from "graphql";
 import {
-  AddDemonstrationDocumentInput,
+  CreateDemonstrationDocumentInput,
   UpdateDemonstrationDocumentInput,
-  AddAmendmentDocumentInput,
+  CreateAmendmentDocumentInput,
   UpdateAmendmentDocumentInput,
 } from "./documentSchema.js";
 
@@ -84,9 +84,9 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    addDemonstrationDocument: async (
+    createDemonstrationDocument: async (
       _: undefined,
-      { input }: { input: AddDemonstrationDocumentInput },
+      { input }: { input: CreateDemonstrationDocumentInput },
     ) => {
       const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
       return await prisma().document.create({
@@ -142,9 +142,9 @@ export const documentResolvers = {
       });
     },
 
-    addAmendmentDocument: async (
+    createAmendmentDocument: async (
       _: undefined,
-      { input }: { input: AddAmendmentDocumentInput },
+      { input }: { input: CreateAmendmentDocumentInput },
     ) => {
       const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
       return await prisma().document.create({

@@ -11,7 +11,7 @@ export const documentTypeSchema = gql`
     documents: [Document!]!
   }
 
-  input AddDocumentTypeInput {
+  input CreateDocumentTypeInput {
     id: String!
     name: String!
     description: String!
@@ -23,7 +23,7 @@ export const documentTypeSchema = gql`
   }
 
   type Mutation {
-    addDocumentType(input: AddDocumentTypeInput!): DocumentType
+    createDocumentType(input: CreateDocumentTypeInput!): DocumentType
     updateDocumentType(
       id: String!
       input: UpdateDocumentTypeInput!
@@ -47,7 +47,7 @@ export interface DocumentType {
   documents: Document[];
 }
 
-export interface AddDocumentTypeInput {
+export interface CreateDocumentTypeInput {
   id: string;
   name: string;
   description: string;

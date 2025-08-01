@@ -1,7 +1,7 @@
 import { DemonstrationStatus } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import {
-  AddDemonstrationStatusInput,
+  CreateDemonstrationStatusInput,
   UpdateDemonstrationStatusInput,
 } from "./demonstrationStatusSchema.js";
 
@@ -18,9 +18,9 @@ export const demonstrationStatusResolvers = {
   },
 
   Mutation: {
-    addDemonstrationStatus: async (
+    createDemonstrationStatus: async (
       _: undefined,
-      { input }: { input: AddDemonstrationStatusInput },
+      { input }: { input: CreateDemonstrationStatusInput },
     ) => {
       return await prisma().demonstrationStatus.create({
         data: input,

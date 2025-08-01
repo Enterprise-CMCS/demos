@@ -1,25 +1,25 @@
 // Export types for use in the client code
 export type {
   User,
-  AddUserInput,
+  CreateUserInput,
   UpdateUserInput,
 } from "./model/user/userSchema.js";
 
 export type {
   Demonstration,
-  AddDemonstrationInput,
+  CreateDemonstrationInput,
   UpdateDemonstrationInput,
 } from "./model/demonstration/demonstrationSchema.js";
 
 export type {
   DemonstrationStatus,
-  AddDemonstrationStatusInput,
+  CreateDemonstrationStatusInput,
   UpdateDemonstrationStatusInput,
 } from "./model/demonstrationStatus/demonstrationStatusSchema.js";
 
 export type {
   AmendmentStatus,
-  AddAmendmentStatusInput,
+  CreateAmendmentStatusInput,
   UpdateAmendmentStatusInput,
 } from "./model/modificationStatus/modificationStatusSchema.js";
 
@@ -27,13 +27,13 @@ export type { State } from "./model/state/stateSchema.js";
 
 export type {
   Role,
-  AddRoleInput,
+  CreateRoleInput,
   UpdateRoleInput,
 } from "./model/role/roleSchema.js";
 
 export type {
   Permission,
-  AddPermissionInput,
+  CreatePermissionInput,
   UpdatePermissionInput,
 } from "./model/permission/permissionSchema.js";
 

@@ -1,7 +1,7 @@
 import { Permission } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import {
-  AddPermissionInput,
+  CreatePermissionInput,
   UpdatePermissionInput,
 } from "./permissionSchema.js";
 
@@ -18,9 +18,9 @@ export const permissionResolvers = {
   },
 
   Mutation: {
-    addPermission: async (
+    createPermission: async (
       _: undefined,
-      { input }: { input: AddPermissionInput },
+      { input }: { input: CreatePermissionInput },
     ) => {
       return await prisma().permission.create({
         data: {

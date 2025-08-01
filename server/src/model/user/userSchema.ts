@@ -22,7 +22,7 @@ export const userSchema = gql`
     ownedDocuments: [Document!]!
   }
 
-  input AddUserInput {
+  input CreateUserInput {
     cognitoSubject: String!
     username: String!
     email: String!
@@ -45,7 +45,7 @@ export const userSchema = gql`
   }
 
   type Mutation {
-    addUser(input: AddUserInput!): User
+    createUser(input: CreateUserInput!): User
     updateUser(id: ID!, input: UpdateUserInput!): User
     deleteUser(id: ID!): User
   }
@@ -73,7 +73,7 @@ export interface User {
   ownedDocuments: Document[];
 }
 
-export interface AddUserInput {
+export interface CreateUserInput {
   cognitoSubject: string;
   username: string;
   email: string;
