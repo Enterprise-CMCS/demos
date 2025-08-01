@@ -9,7 +9,7 @@ import { AddNewIcon } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { gql } from "graphql-tag";
-import { normalizeUserId } from "utils/uuidHelpers";
+import { normalizeUserId } from "hooks/user/uuidHelpers";
 
 import { useQuery } from "@apollo/client";
 
@@ -21,7 +21,7 @@ export const HEADER_LOWER_QUERY = gql`
   }
 `;
 
-export const DefaultHeaderLower: React.FC<{ userId?: number | string }> = ({ userId }) => {
+export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [modalType, setModalType] = useState<"create" | "document" | "amendment" | "extension" | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

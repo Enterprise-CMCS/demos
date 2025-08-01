@@ -90,7 +90,7 @@ export const documentSchema = gql`
       input: UpdateAmendmentDocumentInput!
     ): Document
     deleteAmendmentDocument(id: ID!): Document
-    addExtensionDocument(input: AddExtensionDocumentInput!): Document
+    createExtensionDocument(input: AddExtensionDocumentInput!): Document
     updateExtensionDocument(
       id: ID!
       input: UpdateExtensionDocumentInput!

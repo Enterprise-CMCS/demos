@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { ChevronDownIcon } from "components/icons";
-import { normalizeUserId } from "utils/uuidHelpers";
+import { normalizeUserId } from "hooks/user/uuidHelpers";
 
 import {
   gql,
@@ -18,7 +18,7 @@ export const PROFILE_BLOCK_QUERY = gql`
   }
 `;
 
-export const ProfileBlock: React.FC<{ userId?: number | string }> = ({ userId }) => {
+export const ProfileBlock: React.FC<{ userId?: string }> = ({ userId }) => {
   const [open, setOpen] = useState(false);
 
   if (!userId) {

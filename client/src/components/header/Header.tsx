@@ -4,7 +4,7 @@ import { useHeaderConfig } from "./HeaderConfigContext";
 import { HeaderUpper } from "./HeaderUpper";
 
 export const Header: React.FC<{
-  userId?: number | string;
+  userId?: string;
 }> = ({ userId }) => {
   const { effectiveContent } = useHeaderConfig();
 

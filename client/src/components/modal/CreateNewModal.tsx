@@ -13,7 +13,7 @@ import { useExtension } from "hooks/useExtension";
 import {
   normalizeDemonstrationId,
   normalizeUserId,
-} from "utils/uuidHelpers";
+} from "hooks/user/uuidHelpers";
 
 export type ModalMode = "amendment" | "extension" | "demonstration";
 

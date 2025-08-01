@@ -206,7 +206,7 @@ export const documentResolvers = {
       });
     },
 
-    addExtensionDocument: async (
+    createExtensionDocument: async (
       _: undefined,
       { input }: { input: AddExtensionDocumentInput },
     ) => {
