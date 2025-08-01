@@ -106,7 +106,7 @@ export const modificationStatusResolvers = {
     },
     updateExtensionStatus: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateAmendmentStatusInput },
+      { id, input }: { id: string; input: UpdateExtensionStatusInput },
     ) => {
       return await prisma().modificationStatus.update({
         where: {
