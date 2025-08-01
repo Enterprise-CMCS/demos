@@ -21,6 +21,9 @@ import { useLocation, useParams } from "react-router-dom";
 
 import { isTestMode } from "config/env";
 
+type ModalType = "edit" | "delete" | "amendment" | "extension" | null;
+type TabType = "details" | "amendments" | "extensions";
+
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -47,12 +50,8 @@ export const DemonstrationDetail = () => {
   }, [queryParams]);
 
   const [showButtons, setShowButtons] = useState(false);
-  const [modalType, setModalType] = useState<
-    "edit" | "delete" | "amendment" | "extension" | null
-  >(null);
-  const [tab, setTab] = useState<"details" | "amendments" | "extensions">(
-    "details"
-  );
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [tab, setTab] = useState<TabType>("details");
 
   React.useEffect(() => {
     setTab(initialTab);
