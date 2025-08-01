@@ -19,7 +19,7 @@
   "repositoryHost": "github.com/Enterprise-CMCS",
   "repositoryVisibility": "public",
   "vcs": "git",
-  "laborHours": 9850,
+  "laborHours": 11258,
   "reuseFrequency": {
     "forks": 0,
     "clones": 0
@@ -33,13 +33,24 @@
     "financial-reporting"
   ],
   "softwareType": "standalone/web",
-  "languages": ["TypeScript", "Python", "JavaScript", "PLpgSQL", "CSS", "Groovy", "Shell", "Dockerfile", "HTML"],
+  "languages": [
+    "TypeScript",
+    "Python",
+    "PLpgSQL",
+    "JavaScript",
+    "Mermaid",
+    "Shell",
+    "CSS",
+    "Groovy",
+    "Dockerfile",
+    "HTML"
+  ],
   "maintenance": "contract",
   "contractNumber": "75FCMC24F0232",
   "date": {
     "created": "2025-05-08T12:52:27Z",
-    "lastModified": "2025-06-26T18:00:39Z",
-    "metaDataLastUpdated": "2025-06-27T15:40:53.183Z"
+    "lastModified": "2025-07-31T13:38:34Z",
+    "metaDataLastUpdated": "2025-08-01T00:01:38.002Z"
   },
   "tags": ["PMDA", "DEMOS", "1115 Waivers", "Medicaid", "budget neutrality", "Medicaid demonstration"],
   "contact": {
