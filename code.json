@@ -1,6 +1,6 @@
 {
   "name": "demos",
-  "description": "Demonstration Evaluation and Management Oversight System",
+  "description": "The Demonstration Evaluation and Management Oversight System (DEMOS) supports the administration of the Medicaid Section 1115 demonstration program",
   "longDescription": "The Demonstration Evaluation and Management Oversight System (DEMOS) supports the administration of the demonstration program under Medicaid Section 1115 of the Social Security Act (also known as ‘1115 waivers’). The system collects and produces data and descriptive information about Section 1115 applications submitted by states, and supports CMS’ review and approval of the applications, as well as monitoring and evaluation of approved demonstrations and budget neutrality.",
   "status": "Development",
   "permissions": {
@@ -24,9 +24,7 @@
     "forks": 0,
     "clones": 0
   },
-  "platforms": [
-    "web"
-  ],
+  "platforms": ["web"],
   "categories": [
     "applicant-tracking",
     "business-intelligence",
@@ -54,22 +52,12 @@
     "lastModified": "2025-07-31T13:38:34Z",
     "metaDataLastUpdated": "2025-08-01T00:01:38.002Z"
   },
-  "tags": [
-    "PMDA",
-    "DEMOS",
-    "1115 Waivers",
-    "Medicaid",
-    "budget neutrality",
-    "Medicaid demonstration"
-  ],
+  "tags": ["PMDA", "DEMOS", "1115 Waivers", "Medicaid", "budget neutrality", "Medicaid demonstration"],
   "contact": {
     "email": "dl-pmda@globalalliantinc.com",
     "name": ""
   },
-  "feedbackMechanisms": [
-    "https://github.com/Enterprise-CMCS/demos/issues",
-    "Help Desk"
-  ],
+  "feedbackMechanisms": ["https://github.com/Enterprise-CMCS/demos/issues", "Help Desk"],
   "localisation": false,
   "repositoryType": "website",
   "userInput": true,
@@ -78,11 +66,7 @@
   "projects": [],
   "systems": [],
   "upstream": "https://github.com/Enterprise-CMCS/demos/network/dependencies",
-  "subsetInHealthcare": [
-    "Medicaid"
-  ],
-  "userType": [
-    "Government"
-  ],
+  "subsetInHealthcare": ["Medicaid"],
+  "userType": ["Government"],
   "maturityModelTier": 3
 }
