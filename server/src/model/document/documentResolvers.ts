@@ -9,6 +9,8 @@ import {
   CreateAmendmentDocumentInput,
   UpdateAmendmentDocumentInput,
 } from "./documentSchema.js";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -161,6 +163,41 @@ export const documentResolvers = {
           },
         },
       });
+    },
+
+    uploadAmendmentDocument: async (
+      _: undefined,
+      { input }: { input: CreateAmendmentDocumentInput },
+    ) => {
+      const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
+      const document = await prisma().document.create({
+        data: {
+          ...rest,
+          owner: {
+            connect: { id: ownerUserId },
+          },
+          documentType: {
+            connect: { id: documentTypeId },
+          },
+          bundle: {
+            connect: { id: amendmentId },
+          },
+        },
+      });
+
+      // Generate a presigned S3 upload URL
+      const s3 = new S3Client({});
+      const uploadBucket = process.env.UPLOAD_BUCKET;
+      const key = document.id;
+      const command = new PutObjectCommand({
+        Bucket: uploadBucket,
+        Key: key,
+      });
+      document.s3Path = await getSignedUrl(s3, command, { expiresIn: 3600 });
+       
+      return {
+        ...document       
+      };
     },
 
     updateAmendmentDocument: async (
