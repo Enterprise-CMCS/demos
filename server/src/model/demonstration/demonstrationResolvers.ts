@@ -7,7 +7,7 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import {
-  AddDemonstrationInput,
+  CreateDemonstrationInput,
   UpdateDemonstrationInput,
 } from "./demonstrationSchema.js";
 
@@ -28,9 +28,9 @@ export const demonstrationResolvers = {
   },
 
   Mutation: {
-    addDemonstration: async (
+    createDemonstration: async (
       _: undefined,
-      { input }: { input: AddDemonstrationInput },
+      { input }: { input: CreateDemonstrationInput },
     ) => {
       const {
         demonstrationStatusId,
@@ -99,7 +99,6 @@ export const demonstrationResolvers = {
         ...rest
       } = input;
 
-      // If stateId is not provided, use the demonstration's existing stateId
       let existingStateId = stateId;
       if (!existingStateId) {
         existingStateId = (

@@ -1,4 +1,4 @@
-import { AddDemonstrationInput, Demonstration } from "demos-server";
+import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
@@ -25,7 +25,7 @@ export const testDemonstration: Demonstration = {
   users: [johnDoe],
 };
 
-export const mockAddDemonstrationInput: AddDemonstrationInput = {
+export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
   effectiveDate: new Date("2025-01-01"),

@@ -4,8 +4,10 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import {
-  AddAmendmentStatusInput,
+  CreateAmendmentStatusInput,
   UpdateAmendmentStatusInput,
+  AddExtensionStatusInput,
+  UpdateExtensionStatusInput,
 } from "./modificationStatusSchema.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -50,9 +52,9 @@ export const modificationStatusResolvers = {
   },
 
   Mutation: {
-    addAmendmentStatus: async (
+    createAmendmentStatus: async (
       _: undefined,
-      { input }: { input: AddAmendmentStatusInput },
+      { input }: { input: CreateAmendmentStatusInput },
     ) => {
       return await prisma().modificationStatus.create({
         data: {
@@ -91,7 +93,7 @@ export const modificationStatusResolvers = {
     },
     addExtensionStatus: async (
       _: undefined,
-      { input }: { input: AddAmendmentStatusInput },
+      { input }: { input: AddExtensionStatusInput },
     ) => {
       return await prisma().modificationStatus.create({
         data: {

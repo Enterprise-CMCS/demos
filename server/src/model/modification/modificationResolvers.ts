@@ -4,7 +4,7 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import {
-  AddAmendmentInput,
+  CreateAmendmentInput,
   AddExtensionInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
@@ -48,9 +48,9 @@ export const modificationResolvers = {
   },
 
   Mutation: {
-    addAmendment: async (
+    createAmendment: async (
       _: undefined,
-      { input }: { input: AddAmendmentInput },
+      { input }: { input: CreateAmendmentInput },
     ) => {
       const {
         demonstrationId,

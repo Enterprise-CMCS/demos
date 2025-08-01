@@ -2,27 +2,27 @@ import { BUNDLE_TYPE } from "./constants.js";
 
 // Export types for use in the client code
 export type {
-  AddUserInput,
-  UpdateUserInput,
   User,
+  CreateUserInput,
+  UpdateUserInput,
 } from "./model/user/userSchema.js";
 
 export type {
-  AddDemonstrationInput,
   Demonstration,
+  CreateDemonstrationInput,
   UpdateDemonstrationInput,
 } from "./model/demonstration/demonstrationSchema.js";
 
 export type {
-  AddDemonstrationStatusInput,
   DemonstrationStatus,
+  CreateDemonstrationStatusInput,
   UpdateDemonstrationStatusInput,
 } from "./model/demonstrationStatus/demonstrationStatusSchema.js";
 
 export type {
-  AddAmendmentStatusInput,
-  AddExtensionStatusInput,
   AmendmentStatus,
+  CreateAmendmentStatusInput,
+  AddExtensionStatusInput,
   ExtensionStatus,
   UpdateAmendmentStatusInput,
   UpdateExtensionStatusInput,
@@ -31,14 +31,14 @@ export type {
 export type { State } from "./model/state/stateSchema.js";
 
 export type {
-  AddRoleInput,
   Role,
+  CreateRoleInput,
   UpdateRoleInput,
 } from "./model/role/roleSchema.js";
 
 export type {
-  AddPermissionInput,
   Permission,
+  CreatePermissionInput,
   UpdatePermissionInput,
 } from "./model/permission/permissionSchema.js";
 
@@ -49,7 +49,7 @@ export type {
 } from "./model/event/eventSchema.js";
 
 export type {
-  AddAmendmentInput,
+  CreateAmendmentInput,
   AddExtensionInput,
   Amendment,
   Extension,

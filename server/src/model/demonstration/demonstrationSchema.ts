@@ -24,7 +24,7 @@ export const demonstrationSchema = gql`
     extensions: [Extension!]!
   }
 
-  input AddDemonstrationInput {
+  input CreateDemonstrationInput {
     name: String!
     description: String!
     effectiveDate: Date!
@@ -47,7 +47,7 @@ export const demonstrationSchema = gql`
   }
 
   type Mutation {
-    addDemonstration(input: AddDemonstrationInput!): Demonstration
+    createDemonstration(input: CreateDemonstrationInput!): Demonstration
     updateDemonstration(
       id: ID!
       input: UpdateDemonstrationInput!
@@ -79,7 +79,7 @@ export interface Demonstration {
   extensions: Extension[];
 }
 
-export interface AddDemonstrationInput {
+export interface CreateDemonstrationInput {
   name: string;
   description: string;
   effectiveDate: Date;

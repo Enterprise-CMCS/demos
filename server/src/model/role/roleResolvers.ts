@@ -1,6 +1,6 @@
 import { Role } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { AddRoleInput, UpdateRoleInput } from "./roleSchema.js";
+import { CreateRoleInput, UpdateRoleInput } from "./roleSchema.js";
 
 export const roleResolvers = {
   Query: {
@@ -15,7 +15,7 @@ export const roleResolvers = {
   },
 
   Mutation: {
-    addRole: async (_: undefined, { input }: { input: AddRoleInput }) => {
+    createRole: async (_: undefined, { input }: { input: CreateRoleInput }) => {
       const { userIds, permissionIds, ...rest } = input;
       return await prisma().role.create({
         data: {

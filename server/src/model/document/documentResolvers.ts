@@ -9,8 +9,8 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import {
-  AddAmendmentDocumentInput,
-  AddDemonstrationDocumentInput,
+  CreateAmendmentDocumentInput,
+  CreateDemonstrationDocumentInput,
   CreateExtensionDocumentInput,
   UpdateAmendmentDocumentInput,
   UpdateDemonstrationDocumentInput,
@@ -93,9 +93,9 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    addDemonstrationDocument: async (
+    createDemonstrationDocument: async (
       _: undefined,
-      { input }: { input: AddDemonstrationDocumentInput },
+      { input }: { input: CreateDemonstrationDocumentInput },
     ) => {
       const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
       return await prisma().document.create({
@@ -151,9 +151,9 @@ export const documentResolvers = {
       });
     },
 
-    addAmendmentDocument: async (
+    createAmendmentDocument: async (
       _: undefined,
-      { input }: { input: AddAmendmentDocumentInput },
+      { input }: { input: CreateAmendmentDocumentInput },
     ) => {
       const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
       return await prisma().document.create({
