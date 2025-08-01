@@ -28,9 +28,6 @@ const GQL_TYPE_TO_NORMALIZED_TYPE = {
   Boolean: BOOLEAN,
   ID: STRING,
   JSONObject: OBJECT,
-  // Add custom scalars
-  Date: "Date",
-  DateTime: "DateTime",
 };
 
 const TS_INTERFACE_DECLARATION = "TSInterfaceDeclaration";
@@ -41,15 +38,6 @@ const TS_AST_TYPE_TO_NORMALIZED_TYPE = {
   TSBooleanKeyword: BOOLEAN,
   TSArrayType: LIST,
   TSObjectKeyword: OBJECT,
-  TSUnknownKeyword: OBJECT,
-  TSAnyKeyword: OBJECT,
-  // Handle Date type specifically
-  TSTypeReference: (typeName) => {
-    if (typeName === "Date") return "Date";
-    if (typeName === "DateTime") return "DateTime";
-    // For other type references, return the actual type name for comparison
-    return typeName;
-  },
 };
 
 // Checks if a graphQL schema variable is valid
@@ -91,37 +79,13 @@ const getTypeOfGqlField = (field) => {
 
 // Gets normalized field information from the TypeScript AST
 const getTsFieldInfo = (field) => {
-  const keyName = field.key?.name || field.key?.value || "unknown";
-
-  const typeNode = field.typeAnnotation?.typeAnnotation;
-  let tsType = "unknown";
-
-  if (typeNode) {
-    if (TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type]) {
-      // Handle function-based type mapping (like TSTypeReference)
-      if (typeof TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type] === 'function') {
-        const typeName = typeNode.typeName?.name || "unknown";
-        tsType = TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type](typeName);
-      } else {
-        tsType = TS_AST_TYPE_TO_NORMALIZED_TYPE[typeNode.type];
-      }
-    } else if (typeNode.type === "TSTypeReference") {
-      // Get the actual type name for comparison with GraphQL types
-      tsType = typeNode.typeName?.name || "unknown";
-    } else if (
-      typeNode.type === "TSUnknownKeyword" ||
-      typeNode.type === "TSAnyKeyword"
-    ) {
-      tsType = OBJECT;
-    } else {
-      tsType = typeNode.typeName?.name || "unknown";
-    }
-  }
-
   return {
-    name: keyName,
-    type: tsType,
-    nullable: field.optional ?? true,
+    name: field.key.name,
+    type:
+      TS_AST_TYPE_TO_NORMALIZED_TYPE[
+        field.typeAnnotation.typeAnnotation.type
+      ] ?? field.typeAnnotation.typeAnnotation.typeName.name,
+    nullable: field.optional,
     loc: field.loc,
   };
 };
@@ -262,7 +226,7 @@ export const validateGraphQLTypescriptMatch = createRule({
         const gqlTypes = Object.fromEntries(
           gqlDefinitions.map((definition) => [
             definition.name.value,
-            (definition.fields || []).map(getGqlFieldInfo),
+            definition.fields.map(getGqlFieldInfo),
           ]),
         );
 
