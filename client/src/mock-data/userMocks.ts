@@ -74,7 +74,7 @@ export const userMocks: MockedResponse[] = [
   {
     request: {
       query: HEADER_LOWER_QUERY,
-      variables: { id: 1 },
+      variables: { id: "1" },
     },
     result: {
       data: {
@@ -87,7 +87,7 @@ export const userMocks: MockedResponse[] = [
   {
     request: {
       query: PROFILE_BLOCK_QUERY,
-      variables: { id: 1 },
+      variables: { id: "1" },
     },
     result: {
       data: {
@@ -100,7 +100,7 @@ export const userMocks: MockedResponse[] = [
   {
     request: {
       query: HEADER_LOWER_QUERY,
-      variables: { id: 2 },
+      variables: { id: "2" },
     },
     result: {
       data: {
@@ -113,7 +113,7 @@ export const userMocks: MockedResponse[] = [
   {
     request: {
       query: PROFILE_BLOCK_QUERY,
-      variables: { id: 2 },
+      variables: { id: "2" },
     },
     result: {
       data: {

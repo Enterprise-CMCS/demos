@@ -59,7 +59,7 @@ export const documentSchema = gql`
     amendmentId: ID
   }
 
-  input AddExtensionDocumentInput {
+  input CreateExtensionDocumentInput {
     title: String!
     description: String!
     s3Path: String!
@@ -90,7 +90,7 @@ export const documentSchema = gql`
       input: UpdateAmendmentDocumentInput!
     ): Document
     deleteAmendmentDocument(id: ID!): Document
-    createExtensionDocument(input: AddExtensionDocumentInput!): Document
+    createExtensionDocument(input: CreateExtensionDocumentInput!): Document
     updateExtensionDocument(
       id: ID!
       input: UpdateExtensionDocumentInput!
@@ -155,7 +155,7 @@ export interface UpdateAmendmentDocumentInput {
   amendmentId?: string;
 }
 
-export interface AddExtensionDocumentInput {
+export interface CreateExtensionDocumentInput {
   title: string;
   description: string;
   s3Path: string;

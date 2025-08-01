@@ -11,7 +11,7 @@ import { BundleType } from "../../types.js";
 import {
   AddAmendmentDocumentInput,
   AddDemonstrationDocumentInput,
-  AddExtensionDocumentInput,
+  CreateExtensionDocumentInput,
   UpdateAmendmentDocumentInput,
   UpdateDemonstrationDocumentInput,
   UpdateExtensionDocumentInput,
@@ -208,7 +208,7 @@ export const documentResolvers = {
 
     createExtensionDocument: async (
       _: undefined,
-      { input }: { input: AddExtensionDocumentInput },
+      { input }: { input: CreateExtensionDocumentInput },
     ) => {
       const { ownerUserId, documentTypeId, extensionId, ...rest } = input;
       return await prisma().document.create({
