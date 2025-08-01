@@ -19,7 +19,7 @@ export const modificationSchema = gql`
     documents: [Document!]!
   }
 
-  input AddAmendmentInput {
+  input CreateAmendmentInput {
     demonstrationId: ID!
     name: String!
     description: String!
@@ -40,7 +40,7 @@ export const modificationSchema = gql`
   }
 
   type Mutation {
-    addAmendment(input: AddAmendmentInput!): Amendment
+    createAmendment(input: CreateAmendmentInput!): Amendment
     updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
     deleteAmendment(id: ID!): Amendment
   }
@@ -66,7 +66,7 @@ export interface Amendment {
   documents: Document[];
 }
 
-export interface AddAmendmentInput {
+export interface CreateAmendmentInput {
   demonstrationId: string;
   name: string;
   description: string;

@@ -1,6 +1,6 @@
 import { prisma } from "../../prismaClient.js";
 import {
-  AddAmendmentStatusInput,
+  CreateAmendmentStatusInput,
   UpdateAmendmentStatusInput,
 } from "./modificationStatusSchema.js";
 import { BUNDLE_TYPE } from "../../constants.js";
@@ -31,9 +31,9 @@ export const modificationStatusResolvers = {
   },
 
   Mutation: {
-    addAmendmentStatus: async (
+    createAmendmentStatus: async (
       _: undefined,
-      { input }: { input: AddAmendmentStatusInput },
+      { input }: { input: CreateAmendmentStatusInput },
     ) => {
       return await prisma().modificationStatus.create({
         data: {

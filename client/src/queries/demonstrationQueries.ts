@@ -95,8 +95,8 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
 `;
 
 export const ADD_DEMONSTRATION_QUERY = gql`
-  mutation AddDemonstration($input: AddDemonstrationInput!) {
-    addDemonstration(input: $input) {
+  mutation AddDemonstration($input: CreateDemonstrationInput!) {
+    createDemonstration(input: $input) {
       id
       name
       description
