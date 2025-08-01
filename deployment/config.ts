@@ -16,6 +16,7 @@ export interface DeploymentConfigProperties {
   zScalerIps: string[];
   hostUserPoolId?: string;
   idmMetadataEndpoint?: string;
+  cloudfrontWafHeaderValue?: string;
 }
 
 export const determineDeploymentConfig = async (
