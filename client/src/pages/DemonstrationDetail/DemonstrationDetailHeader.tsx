@@ -2,16 +2,10 @@ import React, { useState, useCallback } from "react";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { ApolloError } from "@apollo/client";
-
-type DemonstrationDetails = {
-  id: string;
-  name: string;
-  state: { id: string };
-  projectOfficer: { fullName: string };
-};
+import { Demonstration } from "demos-server";
 
 interface DemonstrationDetailHeaderProps {
-  data?: DemonstrationDetails;
+  data?: Demonstration;
   loading?: boolean;
   error?: ApolloError;
   onEdit: () => void;
@@ -20,7 +14,7 @@ interface DemonstrationDetailHeaderProps {
 
 export const DemonstrationDetailHeader: React.FC<
   DemonstrationDetailHeaderProps
-> = ({ data, loading, error, onEdit, onDelete }) => {
+> = ({ data: demonstration, loading, error, onEdit, onDelete }) => {
   const [showButtons, setShowButtons] = useState(false);
 
   const handleToggleButtons = useCallback(() => {
@@ -43,7 +37,7 @@ export const DemonstrationDetailHeader: React.FC<
     );
   }
 
-  if (error || !data) {
+  if (error || !demonstration) {
     return (
       <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
         Failed to load demonstration
@@ -51,28 +45,57 @@ export const DemonstrationDetailHeader: React.FC<
     );
   }
 
+  const displayFields = [
+    { label: "State/Territory", value: demonstration.state.id },
+    { label: "Project Officer", value: demonstration.projectOfficer.fullName },
+    { label: "Status", value: demonstration.demonstrationStatus.name },
+    { label: "Effective", value: demonstration.effectiveDate },
+    { label: "Expiration", value: demonstration.expirationDate },
+  ];
+
   return (
-    <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
+    <div
+      className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between"
+      data-testid="demonstration-detail-header"
+    >
       <div>
-        <span className="-ml-2 block text-sm">
+        <span className="-ml-2 block text-sm mb-0.5">
           <a
             className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
             href="/demonstrations"
           >
             Demonstration List
-          </a>{" "}
-          {">"} {data.id}
+          </a>
+          {">"} {demonstration.id}
         </span>
-        <span className="font-bold block">{data.name}</span>
+        <div>
+          <div>
+            <span className="font-bold block">{demonstration.name}</span>
+          </div>
 
-        <div data-testid="demonstration-detail-row" className="block text-sm">
-          <span className="font-semibold">State/Territory:</span>{" "}
-          <span>{data.state.id}</span>
-        </div>
-
-        <div data-testid="demonstration-detail-row" className="block text-sm">
-          <span className="font-semibold">Project Officer:</span>{" "}
-          <span>{data.projectOfficer.fullName}</span>
+          <div>
+            <ul
+              className="inline-flex flex-wrap items-center gap-1"
+              role="list"
+              data-testid="demonstration-attributes-list"
+            >
+              {displayFields.map((field, index) => (
+                <React.Fragment key={field.label}>
+                  <li className="text-sm">
+                    <strong>{field.label}</strong>:{" "}
+                    {field.value instanceof Date
+                      ? field.value.toLocaleDateString()
+                      : field.value}
+                  </li>
+                  {index < displayFields.length - 1 && (
+                    <li className="text-sm mx-1" aria-hidden="true">
+                      |
+                    </li>
+                  )}
+                </React.Fragment>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
       <div className="relative">
