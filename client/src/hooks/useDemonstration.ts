@@ -6,7 +6,7 @@ import {
 } from "@apollo/client";
 import {
   Demonstration as ServerDemonstration,
-  AddDemonstrationInput,
+  CreateDemonstrationInput,
 } from "demos-server";
 import {
   ADD_DEMONSTRATION_QUERY,
@@ -79,7 +79,7 @@ interface GetDemonstrationByIdOperation {
 
 interface AddDemonstrationOperation {
   trigger: (
-    input: AddDemonstrationInput
+    input: CreateDemonstrationInput
   ) => Promise<FetchResult<{ addDemonstration: Demonstration }>>;
   data?: Demonstration;
   loading: boolean;
@@ -89,7 +89,7 @@ interface AddDemonstrationOperation {
 interface UpdateDemonstrationOperation {
   trigger: (
     id: string,
-    input: AddDemonstrationInput // or UpdateDemonstrationInput if defined separately
+    input: CreateDemonstrationInput // or UpdateDemonstrationInput if defined separately
   ) => Promise<FetchResult<{ updateDemonstration: Demonstration }>>;
   data?: Demonstration;
   loading: boolean;
@@ -149,7 +149,7 @@ const createAddDemonstrationHook = (): AddDemonstrationOperation => {
   }>(ADD_DEMONSTRATION_QUERY);
 
   return {
-    trigger: async (input: AddDemonstrationInput) =>
+    trigger: async (input: CreateDemonstrationInput) =>
       await trigger({ variables: { input } }),
     data: data?.addDemonstration,
     loading,
@@ -163,7 +163,7 @@ const createUpdateDemonstrationHook = (): UpdateDemonstrationOperation => {
   }>(UPDATE_DEMONSTRATION_MUTATION);
 
   return {
-    trigger: async (id: string, input: AddDemonstrationInput) =>
+    trigger: async (id: string, input: CreateDemonstrationInput) =>
       await trigger({ variables: { id, input } }),
     data: data?.updateDemonstration,
     loading,

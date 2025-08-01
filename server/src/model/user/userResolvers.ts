@@ -1,6 +1,6 @@
 import { User } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { AddUserInput } from "./userSchema.js";
+import { CreateUserInput } from "./userSchema.js";
 import { requireRole } from "../../auth/auth.util.js";
 
 export const userResolvers = {
@@ -16,7 +16,7 @@ export const userResolvers = {
   },
 
   Mutation: {
-    addUser: async (_: undefined, { input }: { input: AddUserInput }) => {
+    createUser: async (_: undefined, { input }: { input: CreateUserInput }) => {
       const { stateIds, roleIds, demonstrationIds, ...rest } = input;
       return await prisma().user.create({
         data: {
@@ -50,7 +50,7 @@ export const userResolvers = {
 
     updateUser: async (
       _: undefined,
-      { id, input }: { id: string; input: AddUserInput },
+      { id, input }: { id: string; input: CreateUserInput },
     ) => {
       const { stateIds, roleIds, demonstrationIds, ...rest } = input;
       return await prisma().user.update({
