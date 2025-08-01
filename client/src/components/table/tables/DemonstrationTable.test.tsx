@@ -76,33 +76,18 @@ const applyProjectOfficerFilter = async (
 ) => {
   // Select Project Officer filter from column dropdown
   const columnSelect = screen.getByLabelText(/filter by:/i);
-  await user.type(columnSelect, "Project Officer");
-
-  // Wait for dropdown option to appear and click it
-  await waitFor(() => {
-    const dropdownOptions = screen.getAllByText("Project Officer");
-    const dropdownOption = dropdownOptions.find(
-      (el) => el.tagName === "LI" || el.closest("li")
-    );
-    expect(dropdownOption).toBeInTheDocument();
-  });
-
-  const officerDropdownOptions = screen.getAllByText("Project Officer");
-  const officerDropdownOption = officerDropdownOptions.find(
-    (el) => el.tagName === "LI" || el.closest("li")
-  );
-  await user.click(officerDropdownOption!);
+  await user.selectOptions(columnSelect, ["Project Officer"]);
 
   // Wait for the project officer filter input to appear
   await waitFor(() => {
     expect(
-      screen.getByPlaceholderText(/filter project officer/i)
+      screen.getByPlaceholderText(/select project officer/i)
     ).toBeInTheDocument();
   });
 
   // Filter by the specified project officer
   const officerFilterInput = screen.getByPlaceholderText(
-    /filter project officer/i
+    /select project officer/i
   );
   await user.type(officerFilterInput, officerName);
 
@@ -128,33 +113,18 @@ const applyStateFilter = async (
 ) => {
   // Select state filter from column dropdown
   const columnSelect = screen.getByLabelText(/filter by:/i);
-  await user.type(columnSelect, "State/Territory");
-
-  // Wait for dropdown option to appear and click it
-  await waitFor(() => {
-    const dropdownOptions = screen.getAllByText("State/Territory");
-    const dropdownOption = dropdownOptions.find(
-      (el) => el.tagName === "LI" || el.closest("li")
-    );
-    expect(dropdownOption).toBeInTheDocument();
-  });
-
-  const stateDropdownOptions = screen.getAllByText("State/Territory");
-  const stateDropdownOption = stateDropdownOptions.find(
-    (el) => el.tagName === "LI" || el.closest("li")
-  );
-  await user.click(stateDropdownOption!);
+  await user.selectOptions(columnSelect, ["State/Territory"]);
 
   // Wait for the state filter input to appear
   await waitFor(() => {
     expect(
-      screen.getByPlaceholderText(/filter state\/territory/i)
+      screen.getByPlaceholderText(/select state\/territory/i)
     ).toBeInTheDocument();
   });
 
   // Filter by the specified state
   const stateFilterInput = screen.getByPlaceholderText(
-    /filter state\/territory/i
+    /select state\/territory/i
   );
   await user.type(stateFilterInput, stateCode);
 
@@ -402,31 +372,17 @@ describe("Demonstrations", () => {
 
       // Open the column filter dropdown and select "State/Territory"
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "State/Territory");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("State/Territory");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const stateDropdownOptions = screen.getAllByText("State/Territory");
-      const stateDropdownOption = stateDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(stateDropdownOption!);
+      await user.selectOptions(columnSelect, ["State/Territory"]);
 
       // Wait for the state filter input to appear
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter state\/territory/i)
+          screen.getByPlaceholderText(/select state\/territory/i)
         ).toBeInTheDocument();
       });
 
       const stateFilterInput = screen.getByPlaceholderText(
-        /filter state\/territory/i
+        /select state\/territory/i
       );
       await user.click(stateFilterInput);
 
