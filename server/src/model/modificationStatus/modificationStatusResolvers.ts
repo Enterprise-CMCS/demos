@@ -9,6 +9,7 @@ import {
 } from "./modificationStatusSchema.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
+const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 
 export const modificationStatusResolvers = {
   Query: {
@@ -34,7 +35,7 @@ export const modificationStatusResolvers = {
         where: {
           modificationStatusId: {
             id: id,
-            bundleTypeId: BUNDLE_TYPE.EXTENSION,
+            bundleTypeId: extensionBundleTypeId,
           },
         },
       });
@@ -42,7 +43,7 @@ export const modificationStatusResolvers = {
     extensionStatuses: async () => {
       return await prisma().modificationStatus.findMany({
         where: {
-          bundleTypeId: BUNDLE_TYPE.EXTENSION,
+          bundleTypeId: extensionBundleTypeId,
         },
       });
     },
@@ -95,7 +96,7 @@ export const modificationStatusResolvers = {
       return await prisma().modificationStatus.create({
         data: {
           id: input.id,
-          bundleTypeId: BUNDLE_TYPE.EXTENSION,
+          bundleTypeId: extensionBundleTypeId,
           name: input.name,
           description: input.description,
         },
@@ -109,7 +110,7 @@ export const modificationStatusResolvers = {
         where: {
           modificationStatusId: {
             id: id,
-            bundleTypeId: BUNDLE_TYPE.EXTENSION,
+            bundleTypeId: extensionBundleTypeId,
           },
         },
         data: input,
@@ -120,7 +121,7 @@ export const modificationStatusResolvers = {
         where: {
           modificationStatusId: {
             id: id,
-            bundleTypeId: BUNDLE_TYPE.EXTENSION,
+            bundleTypeId: extensionBundleTypeId,
           },
         },
       });
@@ -142,7 +143,7 @@ export const modificationStatusResolvers = {
       return await prisma().modification.findMany({
         where: {
           modificationStatusId: parent.id,
-          bundleTypeId: BUNDLE_TYPE.EXTENSION,
+          bundleTypeId: extensionBundleTypeId,
         },
       });
     },

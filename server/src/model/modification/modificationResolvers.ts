@@ -56,8 +56,15 @@ export const modificationResolvers = {
         demonstrationId,
         amendmentStatusId,
         projectOfficerUserId,
+        effectiveDate,
+        expirationDate,
         ...rest
       } = input;
+
+      // Only include dates if they are provided
+      const dateFields: { effectiveDate?: Date; expirationDate?: Date } = {};
+      if (effectiveDate) dateFields.effectiveDate = effectiveDate;
+      if (expirationDate) dateFields.expirationDate = expirationDate;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -91,6 +98,7 @@ export const modificationResolvers = {
               connect: { id: projectOfficerUserId },
             },
             ...rest,
+            ...dateFields,
           },
         });
       });
