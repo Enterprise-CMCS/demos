@@ -6,9 +6,14 @@ import { CreateUserInput } from "./userSchema.js";
 export const userResolvers = {
   Query: {
     user: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().user.findUnique({
+      console.log("THIS IS IN THE userResolvers user QUERY")
+      const test =  await prisma().user.findUnique({
         where: { id: id },
       });
+      console.log("PRISMA RETURN:", test)
+      return {
+        fullName: "Jesse Toula"
+      }
     },
     users: async () => {
       return await prisma().user.findMany();

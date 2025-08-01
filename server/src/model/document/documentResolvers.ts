@@ -107,10 +107,7 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    uploadDemonstrationDocument: async (
-      _: undefined,
-      { input }: { input: UploadDemonstrationDocumentInput }
-    ) => {
+    uploadDemonstrationDocument: async (_: undefined, { input }: { input: UploadDemonstrationDocumentInput }) => {
       const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
       const document = await prisma().documentPendingUpload.create({
         data: {
@@ -125,7 +122,7 @@ export const documentResolvers = {
 
     updateDemonstrationDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDemonstrationDocumentInput }
+      { id, input }: { id: string; input: UpdateDemonstrationDocumentInput },
     ): Promise<Document> => {
       const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
       return await prisma().document.update({
@@ -157,10 +154,7 @@ export const documentResolvers = {
       });
     },
 
-    uploadAmendmentDocument: async (
-      _: undefined,
-      { input }: { input: UploadAmendmentDocumentInput }
-    ) => {
+    uploadAmendmentDocument: async (_: undefined, { input }: { input: UploadAmendmentDocumentInput }) => {
       const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
       const documentPendingUpload = await prisma().documentPendingUpload.create({
         data: {
@@ -173,9 +167,79 @@ export const documentResolvers = {
       return await attachPresignedUploadUrl(documentPendingUpload as Document);
     },
 
+    uploadAmendmentDocument: async (_: undefined, { input }: { input: UploadAmendmentDocumentInput }) => {
+      const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
+      const documentPendingUpload = await prisma().documentPendingUpload.create({
+        data: {
+          ...rest,
+          owner: {
+            connect: { id: ownerUserId },
+          },
+          documentType: {
+            connect: { id: documentTypeId },
+          },
+          bundle: {
+            connect: { id: amendmentId },
+          },
+        },
+      });
+
+      const uploadResult = documentPendingUpload as Document;
+      // Generate a presigned S3 upload URL
+      const s3 = new S3Client({});
+      const uploadBucket = process.env.UPLOAD_BUCKET;
+      const key = uploadResult.id;
+      const command = new PutObjectCommand({
+        Bucket: uploadBucket,
+        Key: key,
+      });
+      uploadResult.s3Path = await getSignedUrl(s3, command, {
+        expiresIn: 3600,
+      });
+
+      return {
+        ...uploadResult,
+      };
+    },
+
+    uploadAmendmentDocument: async (_: undefined, { input }: { input: UploadAmendmentDocumentInput }) => {
+      const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
+      const documentPendingUpload = await prisma().documentPendingUpload.create({
+        data: {
+          ...rest,
+          owner: {
+            connect: { id: ownerUserId },
+          },
+          documentType: {
+            connect: { id: documentTypeId },
+          },
+          bundle: {
+            connect: { id: amendmentId },
+          },
+        },
+      });
+
+      const uploadResult = documentPendingUpload as Document;
+      // Generate a presigned S3 upload URL
+      const s3 = new S3Client({});
+      const uploadBucket = process.env.UPLOAD_BUCKET;
+      const key = uploadResult.id;
+      const command = new PutObjectCommand({
+        Bucket: uploadBucket,
+        Key: key,
+      });
+      uploadResult.s3Path = await getSignedUrl(s3, command, {
+        expiresIn: 3600,
+      });
+
+      return {
+        ...uploadResult,
+      };
+    },
+
     updateAmendmentDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateAmendmentDocumentInput }
+      { id, input }: { id: string; input: UpdateAmendmentDocumentInput },
     ): Promise<Document> => {
       const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
       return await prisma().document.update({
@@ -209,7 +273,7 @@ export const documentResolvers = {
 
     uploadExtensionDocument: async (
       _: undefined,
-      { input }: { input: UploadExtensionDocumentInput }
+      { input }: { input: UploadExtensionDocumentInput },
     ): Promise<Document> => {
       const { ownerUserId, documentTypeId, extensionId, ...rest } = input;
       const document = await prisma().documentPendingUpload.create({
@@ -225,7 +289,7 @@ export const documentResolvers = {
 
     updateExtensionDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateExtensionDocumentInput }
+      { id, input }: { id: string; input: UpdateExtensionDocumentInput },
     ) => {
       const { ownerUserId, documentTypeId, extensionId, ...rest } = input;
       return await prisma().document.update({
