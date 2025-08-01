@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
-import { prisma } from "./prismaClient.js";
+
 import { BUNDLE_TYPE } from "./constants.js";
+import { prisma } from "./prismaClient.js";
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
@@ -205,6 +206,28 @@ async function seedDatabase() {
     });
   }
 
+  console.log("🌱 Seeding bundle types...");
+  await prisma().bundleType.createMany({
+    data: [
+      {
+        id: "DEMONSTRATION",
+        name: "Demonstration",
+        description: "Demonstration bundle type.",
+      },
+      {
+        id: "AMENDMENT",
+        name: "Amendment",
+        description: "Amendment bundle type.",
+      },
+      {
+        id: "EXTENSION",
+        name: "Extension",
+        description: "Extension bundle type.",
+      },
+    ],
+    skipDuplicates: true,
+  });
+
   console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < demonstrationCount; i++) {
     const bundle = await prisma().bundle.create({
@@ -231,19 +254,27 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding amendment statuses...");
-  const modificationStatuses = [
-    { name: "New", description: "New amendment." },
-    { name: "In Progress", description: "Amendment is in progress." },
-    { name: "On Hold", description: "Amendment is on hold." },
-    { name: "Completed", description: "Completed amendment." },
-  ];
-  for (const status of modificationStatuses) {
+  const baseStatuses = ["New", "In Progress", "On Hold", "Completed"];
+
+  for (const statusName of baseStatuses) {
     await prisma().modificationStatus.create({
       data: {
-        id: makeIdStyleString(status.name),
-        name: status.name,
+        id: makeIdStyleString(`amendment_${statusName}`),
+        name: statusName,
+        description: `${statusName} amendment.`,
         bundleTypeId: BUNDLE_TYPE.AMENDMENT,
-        description: status.description,
+      },
+    });
+  }
+
+  console.log("🌱 Seeding extension statuses...");
+  for (const statusName of baseStatuses) {
+    await prisma().modificationStatus.create({
+      data: {
+        id: makeIdStyleString(`extension_${statusName}`),
+        name: statusName,
+        description: `${statusName} extension.`,
+        bundleTypeId: BUNDLE_TYPE.EXTENSION,
       },
     });
   }
@@ -266,8 +297,37 @@ async function seedDatabase() {
         description: faker.lorem.sentence(),
         effectiveDate: faker.date.future(),
         expirationDate: faker.date.future({ years: 1 }),
-        modificationStatusId: (await prisma().modificationStatus.findRandom())!
-          .id,
+        modificationStatusId: (await prisma().modificationStatus.findRandom({
+          where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
+        }))!.id,
+        projectOfficerUserId: (await prisma().user.findRandom())!.id,
+      },
+    });
+  }
+
+  const extensionCount = 8;
+  console.log("🌱 Seeding extensions...");
+  for (let i = 0; i < extensionCount; i++) {
+    const bundle = await prisma().bundle.create({
+      data: {
+        bundleType: {
+          connect: { id: BUNDLE_TYPE.EXTENSION },
+        },
+      },
+    });
+
+    await prisma().modification.create({
+      data: {
+        id: bundle.id,
+        bundleTypeId: BUNDLE_TYPE.EXTENSION,
+        demonstrationId: (await prisma().demonstration.findRandom())!.id,
+        name: faker.lorem.words(3),
+        description: faker.lorem.sentence(),
+        effectiveDate: faker.date.future(),
+        expirationDate: faker.date.future({ years: 1 }),
+        modificationStatusId: (await prisma().modificationStatus.findRandom({
+          where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
+        }))!.id,
         projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
@@ -355,6 +415,27 @@ async function seedDatabase() {
       },
     });
   }
+
+  console.log("🌱 Seeding extension application documents...");
+  const extensionIds = await prisma().modification.findMany({
+    select: { id: true },
+    where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
+  });
+
+  for (const extensionId of extensionIds) {
+    const fakeTitle = faker.lorem.sentence(2);
+    await prisma().document.create({
+      data: {
+        title: fakeTitle,
+        description: "Application for " + fakeTitle,
+        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
+        ownerUserId: (await prisma().user.findRandom())!.id,
+        documentTypeId: "DEMONSTRATION_APPLICATION",
+        bundleId: extensionId.id,
+      },
+    });
+  }
+
   // Now, the rest can be largely randomized
   for (let i = 0; i < documentCount; i++) {
     const documentTypeId = await prisma().documentType.findRandom({

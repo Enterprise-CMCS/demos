@@ -13,8 +13,38 @@ import { CreateNewModal } from "./CreateNewModal";
 
 // Mocks
 const showSuccess = vi.fn();
+const showError = vi.fn();
 vi.mock("components/toast", () => ({
-  useToast: () => ({ showSuccess }),
+  useToast: () => ({ showSuccess, showError }),
+}));
+
+// Mock useDemonstration hook
+vi.mock("hooks/useDemonstration", () => ({
+  useDemonstration: () => ({
+    getAllDemonstrations: {
+      trigger: vi.fn(),
+      data: [
+        { id: "demo-1", name: "Test Demo 1" },
+        { id: "demo-2", name: "Test Demo 2" },
+      ],
+      loading: false,
+      error: null,
+    },
+  }),
+}));
+
+// Mock useExtension hook
+vi.mock("hooks/useExtension", () => ({
+  useExtension: () => ({
+    addExtension: {
+      trigger: vi.fn().mockResolvedValue({
+        data: { addExtension: { id: "ext-1", name: "Test Extension" } },
+      }),
+      data: undefined,
+      loading: false,
+      error: undefined,
+    },
+  }),
 }));
 
 vi.mock("components/modal/BaseModal", () => ({

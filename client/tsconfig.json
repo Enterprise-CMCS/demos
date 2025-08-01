@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "baseUrl": "src",
     "strict": true,
+    "types": ["vitest/globals"],
     "paths": {
       "components/*": ["components/*"],
       "pages/*": ["pages/*"],

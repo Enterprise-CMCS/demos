@@ -1,14 +1,19 @@
-import { Demonstration, User } from "@prisma/client";
+import {
+  Demonstration,
+  User,
+} from "@prisma/client";
+
+import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
+import { BundleType } from "../../types.js";
 import {
   CreateDemonstrationInput,
   UpdateDemonstrationInput,
 } from "./demonstrationSchema.js";
-import { BUNDLE_TYPE } from "../../constants.js";
-import { BundleType } from "../../types.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
+const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 
 export const demonstrationResolvers = {
   Query: {
@@ -200,6 +205,14 @@ export const demonstrationResolvers = {
         where: {
           demonstrationId: parent.id,
           bundleTypeId: amendmentBundleTypeId,
+        },
+      });
+    },
+    extensions: async (parent: Demonstration) => {
+      return await prisma().modification.findMany({
+        where: {
+          demonstrationId: parent.id,
+          bundleTypeId: extensionBundleTypeId,
         },
       });
     },

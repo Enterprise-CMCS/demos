@@ -10,25 +10,33 @@ export type LogEventArguments = {
 };
 
 export interface EventOperations {
-  logEvent: (input: LogEventArguments) => Promise<FetchResult<{ logEvent: EventLoggedStatus }>>;
+  logEvent: (
+    input: LogEventArguments
+  ) => Promise<FetchResult<{ logEvent: EventLoggedStatus }>>;
   getEvents: () => Promise<FetchResult<{ events: Event[] }>>;
 }
 
 export const useEvent = (): EventOperations => {
   const location = useLocation();
 
-  const [logEventTrigger] = useMutation<{ logEvent: EventLoggedStatus }>(LOG_EVENT_MUTATION);
-  const [getEventsTrigger] = useLazyQuery<{ events: Event[] }>(GET_EVENTS_QUERY);
+  const [logEventTrigger] = useMutation<{ logEvent: EventLoggedStatus }>(
+    LOG_EVENT_MUTATION
+  );
+  const [getEventsTrigger] = useLazyQuery<{ events: Event[] }>(
+    GET_EVENTS_QUERY
+  );
 
   return {
     logEvent: async (input: LogEventArguments) => {
       const logEventInput: LogEventInput = {
         ...input,
+        eventData: input.eventData ?? {},
         route: location.pathname,
         logLevel: getLogLevelForEventType(input.eventType),
       };
       return await logEventTrigger({
-        variables: { input: logEventInput }      });
+        variables: { input: logEventInput },
+      });
     },
     getEvents: async () => await getEventsTrigger(),
   };

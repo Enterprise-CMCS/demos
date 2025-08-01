@@ -1,12 +1,19 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+
+import { userMocks } from "mock-data/userMocks";
+
+import { MockedProvider } from "@apollo/client/testing";
+import {
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
+
+import { Avatar } from "./Avatar";
+import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
 import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
-import { DefaultHeaderLower } from "./DefaultHeaderLower";
-import { Avatar } from "./Avatar";
-import { MockedProvider } from "@apollo/client/testing";
-import { userMocks } from "mock-data/userMocks";
 
 describe("Header", async () => {
   it("renders the logo", () => {
@@ -26,7 +33,7 @@ describe("Header", async () => {
   it("renders the profile block", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <ProfileBlock userId={2} />
+        <ProfileBlock userId="2" />
       </MockedProvider>
     );
     expect(await screen.findByText("John Doe")).toBeInTheDocument();
@@ -40,7 +47,7 @@ describe("Header", async () => {
   it("renders the greeting", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <DefaultHeaderLower userId={2} />
+        <DefaultHeaderLower userId="2" />
       </MockedProvider>
     );
     expect(await screen.findByText("Hello John Doe")).toBeInTheDocument();
@@ -50,7 +57,7 @@ describe("Header", async () => {
   it("renders the Create New button", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <DefaultHeaderLower userId={2} />
+        <DefaultHeaderLower userId="2" />
       </MockedProvider>
     );
     expect(
@@ -61,7 +68,7 @@ describe("Header", async () => {
   it("toggles menu under Profile Block", async () => {
     render(
       <MockedProvider mocks={userMocks} addTypename={false}>
-        <ProfileBlock userId={2} />
+        <ProfileBlock userId="2" />
       </MockedProvider>
     );
 

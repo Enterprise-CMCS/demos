@@ -1,13 +1,14 @@
+import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
+import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 import { User } from "demos-server";
 import {
   GET_ALL_USERS,
   GET_USER_BY_ID,
   UserOption,
 } from "hooks/useUserOperations";
-import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
-import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
-import { MockedResponse } from "@apollo/client/testing";
 import { USER_OPTIONS_QUERY } from "queries/userQueries";
+
+import { MockedResponse } from "@apollo/client/testing";
 
 export const johnDoe: User = {
   id: "1",
@@ -19,6 +20,10 @@ export const johnDoe: User = {
   createdAt: new Date("2025-01-01"),
   updatedAt: new Date("2025-01-01"),
   roles: [],
+  states: [],
+  demonstrations: [],
+  events: [],
+  ownedDocuments: [],
 };
 export const spongebob: Partial<User> = {
   fullName: "spongebob squarepants",
@@ -69,7 +74,7 @@ export const userMocks: MockedResponse[] = [
   {
     request: {
       query: HEADER_LOWER_QUERY,
-      variables: { id: 1 },
+      variables: { id: "1" },
     },
     result: {
       data: {
@@ -82,7 +87,7 @@ export const userMocks: MockedResponse[] = [
   {
     request: {
       query: PROFILE_BLOCK_QUERY,
-      variables: { id: 1 },
+      variables: { id: "1" },
     },
     result: {
       data: {
@@ -95,7 +100,7 @@ export const userMocks: MockedResponse[] = [
   {
     request: {
       query: HEADER_LOWER_QUERY,
-      variables: { id: 2 },
+      variables: { id: "2" },
     },
     result: {
       data: {
@@ -108,7 +113,7 @@ export const userMocks: MockedResponse[] = [
   {
     request: {
       query: PROFILE_BLOCK_QUERY,
-      variables: { id: 2 },
+      variables: { id: "2" },
     },
     result: {
       data: {

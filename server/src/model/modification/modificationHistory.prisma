@@ -7,8 +7,8 @@ model ModificationHistory {
   demonstrationId      String       @map("demonstration_id") @db.Uuid
   name                 String
   description          String
-  effectiveDate        DateTime     @map("effective_date") @db.Date
-  expirationDate       DateTime     @map("expiration_date") @db.Date
+  effectiveDate        DateTime?    @map("effective_date") @db.Date
+  expirationDate       DateTime?    @map("expiration_date") @db.Date
   createdAt            DateTime     @map("created_at") @db.Timestamptz()
   updatedAt            DateTime     @map("updated_at") @db.Timestamptz()
   modificationStatusId String       @map("modification_status_id")
