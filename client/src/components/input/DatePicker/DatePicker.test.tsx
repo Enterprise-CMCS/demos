@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 
+// this assumes the date is in the past.
 export async function pickDateInCalendar({
   datePickerRoot,
   year,
@@ -16,9 +17,9 @@ export async function pickDateInCalendar({
   day,
 }: {
   datePickerRoot: HTMLElement;
-  year: string | number;
-  month: string | number;
-  day: string | number;
+  year: number;
+  month: number;
+  day: number;
 }) {
   // Open the calendar widget by clicking the icon button
   const openPickerButton = within(datePickerRoot).getByRole("button", {
@@ -27,10 +28,10 @@ export async function pickDateInCalendar({
   expect(openPickerButton).toBeInTheDocument();
   await userEvent.click(openPickerButton);
 
-  console.log(openPickerButton); // Should be the calendar icon button
   await waitFor(() => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
+
   // Switch to year view
   const switchViewButton = screen.getByLabelText(/switch to year view/i);
   expect(switchViewButton).toBeInTheDocument();
@@ -45,27 +46,58 @@ export async function pickDateInCalendar({
   expect(yearButton).toBeInTheDocument();
   await userEvent.click(yearButton);
 
-  // Assert correct month is shown
-  const monthName =
-    typeof month === "number"
-      ? dayjs()
-        .month(Number(month) - 1)
-        .format("MMMM")
-      : String(month);
-  const header = screen.getByText(new RegExp(`${monthName} ${year}`));
-  expect(header).toBeInTheDocument();
+  // Navigate to the correct month
+  const targetMonthName = dayjs()
+    .month(Number(month) - 1)
+    .format("MMMM");
 
-  // Select day
-  const dayButton = screen.getByRole("gridcell", { name: String(day) });
-  expect(dayButton).toBeInTheDocument();
-  await userEvent.click(dayButton);
+  // Keep clicking appropriate direction until we reach the target month
+  const calendarDialog = screen.getByRole("dialog");
+  let currentMonthHeader = calendarDialog.querySelector(
+    ".MuiPickersCalendarHeader-label"
+  );
+  let monthNavigationCount = 0;
+  const maxMonthNavigations = 12;
 
-  // Optionally, confirm selection if your widget requires it
-  const okButton = screen.queryByRole("button", { name: /ok|confirm/i });
-  if (okButton) {
-    expect(okButton).toBeInTheDocument();
-    await userEvent.click(okButton);
+  while (
+    !currentMonthHeader?.textContent?.includes(targetMonthName) &&
+    monthNavigationCount < maxMonthNavigations
+  ) {
+    // Parse current month and year from header
+    const currentHeaderText = currentMonthHeader?.textContent || "";
+    const currentDate = dayjs(currentHeaderText, "MMMM YYYY");
+    const targetDate = dayjs()
+      .year(year)
+      .month(Number(month) - 1);
+
+    // Determine if we need to go forward or backward
+    const shouldGoForward = targetDate.isAfter(currentDate, "month");
+
+    const navigationButton = shouldGoForward
+      ? screen.getByRole("button", { name: "Next month" })
+      : screen.getByRole("button", { name: "Previous month" });
+
+    await userEvent.click(navigationButton);
+    monthNavigationCount++;
+
+    // Wait for the month to change
+    await waitFor(() => {
+      currentMonthHeader = calendarDialog.querySelector(
+        ".MuiPickersCalendarHeader-label"
+      );
+    });
   }
+
+  // Select day - find the active day button (not from adjacent months)
+  const dayButtons = screen.getAllByRole("gridcell", { name: String(day) });
+  const activeDayButton = dayButtons.find(
+    (button) =>
+      !button.hasAttribute("disabled") &&
+      !button.classList.contains("MuiPickersDay-dayOutsideMonth")
+  );
+
+  expect(activeDayButton).toBeDefined();
+  await userEvent.click(activeDayButton!);
 }
 
 describe("Input component", () => {
@@ -223,15 +255,15 @@ describe("Input component", () => {
     );
     const input = screen
       .getByRole("group")
-      .querySelector("input[name=\"required-date-picker\"]");
+      .querySelector('input[name="required-date-picker"]');
     expect(input).not.toBeNull();
-    const datePickerRoot = input!.closest("[role=\"group\"]");
+    const datePickerRoot = input!.closest('[role="group"]');
     expect(datePickerRoot).not.toBeNull();
 
     await pickDateInCalendar({
       datePickerRoot: datePickerRoot as HTMLElement,
       year: 2025,
-      month: "July",
+      month: 7,
       day: 4,
     });
 

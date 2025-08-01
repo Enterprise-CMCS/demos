@@ -31,7 +31,6 @@ export interface TableProps<T> {
   pagination?: (table: TanstackTable<T>) => React.ReactNode;
   actionButtons?: (table: TanstackTable<T>) => React.ReactNode;
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
-  rowClickHandler?: (rowId: string) => void;
 }
 export function Table<T>({
   data,
