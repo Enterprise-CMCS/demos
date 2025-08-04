@@ -16,11 +16,11 @@ import { PaginationControls } from "../PaginationControls";
 
 type DisplayedModal = null | "add" | "edit" | "remove";
 
-type DocumentModalsProps = {
+interface DocumentModalsProps {
   displayedModal: DisplayedModal;
   onClose: () => void;
   selectedIds: string[];
-};
+}
 
 function DocumentModals({
   displayedModal,
