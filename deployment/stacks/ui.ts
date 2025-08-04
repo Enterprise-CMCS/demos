@@ -189,9 +189,14 @@ export class UiStack extends Stack {
       ]
     })
 
+    const apiUrl = Fn.importValue(`${commonProps.stage}ApiGWUrl`)
+    const apiDomainName = Fn.parseDomainName(apiUrl)
+    const apiId = Fn.split(".", apiDomainName, 5)[0]
+    
+
     new aws_wafv2.CfnWebACLAssociation(commonProps.scope, "apiWafAssociation", {
-      resourceArn: `arn:aws:apigateway:us-east-1::/restapis/bnwwxiubuh/stages/${commonProps.stage}`,
-      webAclArn: apiAcl.attrArn,
+      resourceArn: `arn:aws:apigateway:us-east-1::/restapis/${apiId}/stages/${commonProps.stage}`,
+      webAclArn: apiAcl.attrArn
     })
 
     const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`)
@@ -270,9 +275,6 @@ export class UiStack extends Stack {
     );
 
     Tags.of(distribution).add("Name", `demos-${commonProps.stage}-cloudfront-dist`)
-
-    const apiUrl = Fn.importValue(`${commonProps.stage}ApiGWUrl`)
-    const apiDomainName = Fn.parseDomainName(apiUrl)
 
     const apiOrigin = new HttpOrigin(
       apiDomainName,
