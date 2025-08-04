@@ -12,7 +12,7 @@ import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
 
-type DocumentModalType = "add" | "edit";
+type DocumentModalType = "add" | "edit" | "remove";
 
 const DOCUMENT_TYPES = [
   { label: "Pre-Submission Concept", value: "preSubmissionConcept" },
@@ -318,3 +318,40 @@ export const EditDocumentModal: React.FC<{
 }> = ({ documentId, onClose }) => (
   <BaseDocumentModal forDocumentId={documentId} onClose={onClose} />
 );
+
+export const RemoveDocumentModal: React.FC<{
+  documentIds: string[];
+  onClose: () => void;
+}> = ({ documentIds, onClose }) => {
+  const onConfirm = (ids: string[]) => {
+    console.log("Removing documents with IDs:", ids);
+    onClose();
+  };
+
+  return (
+    <BaseModal
+      title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
+      onClose={onClose}
+      actions={
+        <>
+          <SecondaryButton size="small" onClick={onClose}>
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton
+            size="small"
+            onClick={() => onConfirm(documentIds)}
+            aria-label="Confirm Remove Document"
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Remove
+          </PrimaryButton>
+        </>
+      }
+    >
+      <div className="mb-2 text-sm text-text-placeholder">
+        Are you sure you want to remove {documentIds.length} document
+        {documentIds.length > 1 ? "s" : ""}? This action cannot be undone.
+      </div>
+    </BaseModal>
+  );
+};

@@ -4,45 +4,51 @@ import { Table } from "../Table";
 import { DocumentColumns } from "../columns/DocumentColumns";
 import { DocumentTableRow, useDocument } from "hooks/useDocument";
 import { CircleButton } from "components/button/CircleButton";
-import { EditIcon, ImportIcon } from "components/icons";
+import { EditIcon, ImportIcon, DeleteIcon } from "components/icons";
 import {
   AddDocumentModal,
   EditDocumentModal,
+  RemoveDocumentModal,
 } from "components/modal/document/DocumentModal";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
 
-type DisplayedModal = null | "add" | "edit";
+type DisplayedModal = null | "add" | "edit" | "remove";
 
-interface DocumentModalsProps {
+type DocumentModalsProps = {
   displayedModal: DisplayedModal;
   onClose: () => void;
-  documentId: string;
-}
+  selectedIds: string[];
+};
+
 function DocumentModals({
   displayedModal,
   onClose,
-  documentId,
+  selectedIds,
 }: DocumentModalsProps) {
-  return (
-    <>
-      {displayedModal === "add" && <AddDocumentModal onClose={onClose} />}
-      {displayedModal === "edit" && (
-        <EditDocumentModal documentId={documentId} onClose={onClose} />
-      )}
-    </>
-  );
+  if (displayedModal === "add") {
+    return <AddDocumentModal onClose={onClose} />;
+  }
+  if (displayedModal === "edit" && selectedIds.length === 1) {
+    return <EditDocumentModal documentId={selectedIds[0]} onClose={onClose} />;
+  }
+  if (displayedModal === "remove" && selectedIds.length > 0) {
+    return <RemoveDocumentModal documentIds={selectedIds} onClose={onClose} />;
+  }
+  return null;
 }
 
 interface DocumentActionButtonsProps {
   onShowModal: (modal: DisplayedModal) => void;
   editDisabled: boolean;
+  removeDisabled: boolean;
 }
 
 function DocumentActionButtons({
   onShowModal,
   editDisabled,
+  removeDisabled,
 }: DocumentActionButtonsProps) {
   return (
     <div className="flex gap-2 ml-4">
@@ -55,6 +61,13 @@ function DocumentActionButtons({
         disabled={editDisabled}
       >
         <EditIcon />
+      </CircleButton>
+      <CircleButton
+        ariaLabel="Remove Document"
+        onClick={() => !removeDisabled && onShowModal("remove")}
+        disabled={removeDisabled}
+      >
+        <DeleteIcon />
       </CircleButton>
     </div>
   );
@@ -109,19 +122,21 @@ export function DocumentTable() {
             <DocumentActionButtons
               onShowModal={setDisplayedModal}
               editDisabled={table.getSelectedRowModel().rows.length !== 1}
+              removeDisabled={table.getSelectedRowModel().rows.length < 1}
             />
           )}
-          actionModals={(table) => (
-            <DocumentModals
-              displayedModal={displayedModal}
-              onClose={() => setDisplayedModal(null)}
-              documentId={
-                table.getSelectedRowModel().rows.length === 1
-                  ? String(table.getSelectedRowModel().rows[0].id)
-                  : ""
-              }
-            />
-          )}
+          actionModals={(table) => {
+            const selectedIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => String(row.id));
+            return (
+              <DocumentModals
+                displayedModal={displayedModal}
+                onClose={() => setDisplayedModal(null)}
+                selectedIds={selectedIds}
+              />
+            );
+          }}
         />
       )}
     </div>
