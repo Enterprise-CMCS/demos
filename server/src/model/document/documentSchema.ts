@@ -38,10 +38,9 @@ export const documentSchema = gql`
     demonstrationId: ID
   }
 
-  input CreateAmendmentDocumentInput {
+  input UploadAmendmentDocumentInput {
     title: String!
     description: String!
-    s3Path: String!
     ownerUserId: ID!
     documentTypeId: String!
     amendmentId: ID!
@@ -65,7 +64,7 @@ export const documentSchema = gql`
       input: UpdateDemonstrationDocumentInput!
     ): Document
     deleteDemonstrationDocument(id: ID!): Document
-    createAmendmentDocument(input: CreateAmendmentDocumentInput!): Document
+    uploadAmendmentDocument(input: UploadAmendmentDocumentInput!): Document
     updateAmendmentDocument(
       id: ID!
       input: UpdateAmendmentDocumentInput!
@@ -112,10 +111,9 @@ export interface UpdateDemonstrationDocumentInput {
   demonstrationId?: string;
 }
 
-export interface CreateAmendmentDocumentInput {
+export interface UploadAmendmentDocumentInput {
   title: string;
   description: string;
-  s3Path: string;
   ownerUserId: string;
   documentTypeId: string;
   amendmentId: string;

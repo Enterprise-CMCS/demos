@@ -6,8 +6,8 @@ import { GraphQLError } from "graphql";
 import {
   CreateDemonstrationDocumentInput,
   UpdateDemonstrationDocumentInput,
-  CreateAmendmentDocumentInput,
   UpdateAmendmentDocumentInput,
+  UploadAmendmentDocumentInput,
 } from "./documentSchema.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -144,59 +144,43 @@ export const documentResolvers = {
       });
     },
 
-    createAmendmentDocument: async (
-      _: undefined,
-      { input }: { input: CreateAmendmentDocumentInput },
-    ) => {
-      const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
-      return await prisma().document.create({
-        data: {
-          ...rest,
-          owner: {
-            connect: { id: ownerUserId },
-          },
-          documentType: {
-            connect: { id: documentTypeId },
-          },
-          bundle: {
-            connect: { id: amendmentId },
-          },
-        },
-      });
-    },
-
     uploadAmendmentDocument: async (
       _: undefined,
-      { input }: { input: CreateAmendmentDocumentInput },
+      { input }: { input: UploadAmendmentDocumentInput },
     ) => {
       const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
-      const document = await prisma().document.create({
-        data: {
-          ...rest,
-          owner: {
-            connect: { id: ownerUserId },
-          },
-          documentType: {
-            connect: { id: documentTypeId },
-          },
-          bundle: {
-            connect: { id: amendmentId },
+      const documentPendingUpload = await prisma().documentPendingUpload.create(
+        {
+          data: {
+            ...rest,
+            owner: {
+              connect: { id: ownerUserId },
+            },
+            documentType: {
+              connect: { id: documentTypeId },
+            },
+            bundle: {
+              connect: { id: amendmentId },
+            },
           },
         },
-      });
+      );
 
+      const uploadResult = documentPendingUpload as Document;
       // Generate a presigned S3 upload URL
       const s3 = new S3Client({});
       const uploadBucket = process.env.UPLOAD_BUCKET;
-      const key = document.id;
+      const key = uploadResult.id;
       const command = new PutObjectCommand({
         Bucket: uploadBucket,
         Key: key,
       });
-      document.s3Path = await getSignedUrl(s3, command, { expiresIn: 3600 });
-       
+      uploadResult.s3Path = await getSignedUrl(s3, command, {
+        expiresIn: 3600,
+      });
+
       return {
-        ...document       
+        ...uploadResult,
       };
     },
 

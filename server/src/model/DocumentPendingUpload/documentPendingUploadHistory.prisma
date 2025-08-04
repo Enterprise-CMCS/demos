@@ -5,7 +5,6 @@ model DocumentPendingUploadHistory {
   id             String       @db.Uuid
   title          String
   description    String
-  s3Path         String       @map("s3_path")
   ownerUserId    String       @map("owner_user_id") @db.Uuid
   documentTypeId String       @map("document_type_id")
   bundleId       String       @map("bundle_id") @db.Uuid
