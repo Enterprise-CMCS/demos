@@ -15,7 +15,7 @@ model User {
   projectOfficerModifications  Modification[]
   events                       Event[]
   ownedDocuments               Document[]
-  ownedDocumentPendingUpload   DocumentPendingUpload[]
+  ownedDocumentsPendingUpload  DocumentPendingUpload[]
 
   @@map("users") // user is a reserved word in PostgreSQL; users is not, which is why this is plural
 }
