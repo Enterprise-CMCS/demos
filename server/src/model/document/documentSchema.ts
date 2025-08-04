@@ -1,3 +1,4 @@
+import { Dayjs } from "dayjs";
 import { gql } from "graphql-tag";
 
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
@@ -7,7 +8,6 @@ import {
   Extension,
 } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
-import { Dayjs } from "dayjs";
 
 export const documentSchema = gql`
   union Bundle = Demonstration | Amendment
