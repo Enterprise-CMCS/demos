@@ -5,6 +5,7 @@ import { SigninButton, SignoutButton } from "./AuthButtons";
 
 const AuthDebug = () => {
   const auth = useAuth();
+  console.log("Auth context in AuthDebug:", auth);
   const user = auth.user;
 
   return (
@@ -61,7 +62,7 @@ export const AuthComponent: React.FC = () => {
   if (!auth) {
     return <div>Auth context is not available!</div>;
   }
-
+  console.log("Auth context:", auth);
   const authenticationButton = auth.isAuthenticated ? (
     <SignoutButton />
   ) : (
