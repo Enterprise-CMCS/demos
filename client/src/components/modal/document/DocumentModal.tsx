@@ -5,12 +5,13 @@ import {
   UploadStatus,
   useFileUpload,
 } from "hooks/file/useFileUpload";
-import { PrimaryButton, SecondaryButton } from "components/button";
+import { ErrorButton, PrimaryButton, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
+import { ErrorIcon } from "components/icons";
 
 type DocumentModalType = "add" | "edit" | "remove";
 
@@ -323,8 +324,13 @@ export const RemoveDocumentModal: React.FC<{
   documentIds: string[];
   onClose: () => void;
 }> = ({ documentIds, onClose }) => {
+  const { showWarning } = useToast();
   const onConfirm = (ids: string[]) => {
+    const multipleDocuments = ids.length > 1;
     console.log("Removing documents with IDs:", ids);
+    showWarning(
+      `Your document${multipleDocuments ? "s" : ""} ${multipleDocuments ? "have been" : "has been"} removed.`
+    );
     onClose();
   };
 
@@ -337,20 +343,24 @@ export const RemoveDocumentModal: React.FC<{
           <SecondaryButton size="small" onClick={onClose}>
             Cancel
           </SecondaryButton>
-          <PrimaryButton
+          <ErrorButton
             size="small"
             onClick={() => onConfirm(documentIds)}
             aria-label="Confirm Remove Document"
-            className="bg-red-600 hover:bg-red-700"
           >
             Remove
-          </PrimaryButton>
+          </ErrorButton>
         </>
       }
     >
-      <div className="mb-2 text-sm text-text-placeholder">
+      <div className="mb-2 text-sm text-text-filled">
         Are you sure you want to remove {documentIds.length} document
-        {documentIds.length > 1 ? "s" : ""}? This action cannot be undone.
+        {documentIds.length > 1 ? "s" : ""}?
+        <br />
+        <span className="text-error flex items-center gap-1 mt-1">
+          <ErrorIcon />
+          This action cannot be undone.
+        </span>
       </div>
     </BaseModal>
   );
