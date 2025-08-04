@@ -98,7 +98,7 @@ export const DemonstrationTable: React.FC = () => {
     return <div className="p-4">Demonstrations not found</div>;
 
   // TODO: Replace with actual current user ID from authentication context
-  const currentUserId = "1";
+  const currentUserId = "14f83478-c0f1-70f7-2c30-ca664b9177e9";
 
   const myDemos: DemonstrationTableItem[] = demonstrationsTableData.filter(
     (demo: DemonstrationTableItem) =>

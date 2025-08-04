@@ -21,9 +21,9 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
 
   return (
     <ToastProvider>
-      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower userId={2} />}>
+      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower userId={"14f83478-c0f1-70f7-2c30-ca664b9177e9"} />}>
         <div className="h-screen flex flex-col">
-          <Header userId={2} />
+          <Header userId={"14f83478-c0f1-70f7-2c30-ca664b9177e9"} />
           <div className="flex flex-1 overflow-hidden bg-gray-100">
             <div className={collapsed ? "w-20" : "w-64"}>
               <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />

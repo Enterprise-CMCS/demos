@@ -17,7 +17,7 @@ export const PROFILE_BLOCK_QUERY = gql`
   }
 `;
 
-export const ProfileBlock: React.FC<{ userId?: number }> = ({ userId }) => {
+export const ProfileBlock: React.FC<{ userId?: string }> = ({ userId }) => {
   const [open, setOpen] = useState(false);
 
   if (!userId) {
