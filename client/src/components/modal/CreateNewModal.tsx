@@ -50,7 +50,7 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
   // Fetch real demonstrations from the database
   React.useEffect(() => {
     getAllDemonstrations.trigger();
-  }, [getAllDemonstrations]);
+  }, [getAllDemonstrations.trigger]);
 
   // Convert demonstrations to options format for the dropdown
   const demoOptions = getAllDemonstrations.data?.map((demo) => ({
