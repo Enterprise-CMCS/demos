@@ -6,6 +6,9 @@ import {
   useDemonstration,
 } from "hooks/useDemonstration";
 import { DemonstrationColumns } from "../columns/DemonstrationColumns";
+import { KeywordSearch } from "../KeywordSearch";
+import { ColumnFilter } from "../ColumnFilter";
+import { PaginationControls } from "../PaginationControls";
 
 // --- Generic TableRow type for both demonstration and application rows ---
 export type TableRow = {
@@ -141,9 +144,15 @@ export const DemonstrationTable: React.FC = () => {
         <Table<TableRow>
           data={tableRows}
           columns={demonstrationColumns}
-          keywordSearch
-          columnFilter
-          pagination
+          keywordSearch={(table) => (
+            <KeywordSearch table={table} />
+          )}
+          columnFilter={(table) => (
+            <ColumnFilter table={table} />
+          )}
+          pagination={(table) => (
+            <PaginationControls table={table} />
+          )}
           emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage={noResultsFoundMessage}
           getSubRows={getSubRows}

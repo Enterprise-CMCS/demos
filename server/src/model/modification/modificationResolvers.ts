@@ -1,7 +1,7 @@
 import { Modification } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import {
-  AddAmendmentInput,
+  CreateAmendmentInput,
   UpdateAmendmentInput,
 } from "./modificationSchema.js";
 import { BUNDLE_TYPE } from "../../constants.js";
@@ -29,9 +29,9 @@ export const modificationResolvers = {
   },
 
   Mutation: {
-    addAmendment: async (
+    createAmendment: async (
       _: undefined,
-      { input }: { input: AddAmendmentInput },
+      { input }: { input: CreateAmendmentInput },
     ) => {
       const {
         demonstrationId,

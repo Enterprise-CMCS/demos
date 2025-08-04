@@ -11,7 +11,7 @@ export const modificationStatusSchema = gql`
     amendments: [Amendment!]!
   }
 
-  input AddAmendmentStatusInput {
+  input CreateAmendmentStatusInput {
     id: String!
     name: String!
     description: String!
@@ -23,7 +23,7 @@ export const modificationStatusSchema = gql`
   }
 
   type Mutation {
-    addAmendmentStatus(input: AddAmendmentStatusInput!): AmendmentStatus
+    createAmendmentStatus(input: CreateAmendmentStatusInput!): AmendmentStatus
     updateAmendmentStatus(
       id: String!
       input: UpdateAmendmentStatusInput!
@@ -47,7 +47,7 @@ export interface AmendmentStatus {
   amendments: Amendment[];
 }
 
-export interface AddAmendmentStatusInput {
+export interface CreateAmendmentStatusInput {
   id: string;
   name: string;
   description: string;

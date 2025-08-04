@@ -2,11 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Checkbox from "@mui/material/Checkbox";
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
-
-export interface Option {
-  label: string;
-  value: string;
-}
+import { Option } from "./Select";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1

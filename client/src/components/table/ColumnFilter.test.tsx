@@ -9,6 +9,8 @@ import { Table } from "./Table";
 import { testTableData, TestType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Dayjs } from "dayjs";
+import { ColumnFilter } from "./ColumnFilter";
 
 const columnHelper = createColumnHelper<TestType>();
 
@@ -38,10 +40,31 @@ export const testColumns = [
   columnHelper.accessor("date", {
     id: "date",
     header: "Date",
+    cell: ({ getValue }) => {
+      return getValue().format("MM/DD/YYYY");
+    },
     meta: {
       filterConfig: {
         filterType: "date",
       },
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const date: Dayjs = row.getValue(columnId);
+      const { start, end } = filterValue || {};
+      if (start && end) {
+        return (
+          date.isSame(start, "day") ||
+          date.isSame(end, "day") ||
+          (date.isAfter(start, "day") && date.isBefore(end, "day"))
+        );
+      }
+      if (start) {
+        return date.isSame(start, "day") || date.isAfter(start, "day");
+      }
+      if (end) {
+        return date.isSame(end, "day") || date.isBefore(end, "day");
+      }
+      return true;
     },
   }),
 ];
@@ -54,7 +77,7 @@ describe("ColumnFilter Component", () => {
         <Table<TestType>
           columns={testColumns}
           data={testTableData}
-          columnFilter
+          columnFilter={(table) => <ColumnFilter table={table} />}
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
         />
       </LocalizationProvider>
@@ -82,7 +105,7 @@ describe("ColumnFilter Component", () => {
         screen.queryByPlaceholderText(/filter name/i)
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByPlaceholderText(/filter option/i)
+        screen.queryByPlaceholderText(/Select Option/i)
       ).not.toBeInTheDocument();
       expect(
         screen.queryByPlaceholderText(/filter date/i)
@@ -96,23 +119,7 @@ describe("ColumnFilter Component", () => {
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
       // Type to filter the options and then click on the option
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        // Look for the Name option in the dropdown list
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      // Click on the Name option in the dropdown
-      const dropdownOptions = screen.getAllByText("Name");
-      const dropdownOption = dropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(dropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -124,70 +131,27 @@ describe("ColumnFilter Component", () => {
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
       // Test text filter (Name column)
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
       });
 
       // Test select filter (Option column)
-      await user.clear(columnSelect);
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/Select Option/i)
         ).toBeInTheDocument();
       });
 
       // Test date filter (Date column)
-      await user.clear(columnSelect);
-      await user.type(columnSelect, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
       await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Date");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const dateDropdownOptions = screen.getAllByText("Date");
-      const dateDropdownOption = dateDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(dateDropdownOption!);
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/filter date/i)).toBeInTheDocument();
+        // Expect two date filter pickers (start and end)
+        expect(screen.getAllByPlaceholderText(/date/i)).toHaveLength(2);
       });
     });
 
@@ -196,21 +160,7 @@ describe("ColumnFilter Component", () => {
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
       // Select name column and enter a filter
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -220,25 +170,10 @@ describe("ColumnFilter Component", () => {
       await user.type(nameFilterInput, "Item One");
 
       // Change to option column
-      await user.clear(columnSelect);
-      await user.type(columnSelect, "Option");
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
-
-      await waitFor(() => {
-        const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+        const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
         expect(optionFilterInput).toHaveValue("");
       });
     });
@@ -249,21 +184,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -288,21 +209,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -321,21 +228,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -360,25 +253,11 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/Select Option/i)
         ).toBeInTheDocument();
       });
     });
@@ -387,29 +266,15 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/Select Option/i)
         ).toBeInTheDocument();
       });
 
-      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
       await user.type(optionFilterInput, "Option Alpha");
 
       await waitFor(() => {
@@ -441,29 +306,15 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/Select Option/i)
         ).toBeInTheDocument();
       });
 
-      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
       await user.click(optionFilterInput);
 
       // Select "Option Alpha"
@@ -503,29 +354,15 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/Select Option/i)
         ).toBeInTheDocument();
       });
 
-      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
       await user.click(optionFilterInput);
 
       // Select "Option Alpha"
@@ -567,138 +404,110 @@ describe("ColumnFilter Component", () => {
   });
 
   describe("Date Filter Type", () => {
-    describe("Date Filter Type", () => {
-      it("renders DatePicker when column has date filter type", async () => {
-        const user = userEvent.setup();
-        const columnSelect = screen.getByLabelText(/filter by:/i);
+    it("renders DatePicker when column has date filter type", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-        await user.type(columnSelect, "Date");
+      await user.selectOptions(columnSelect, "Date");
 
-        await waitFor(() => {
-          const dropdownOptions = screen.getAllByText("Date");
-          const dropdownOption = dropdownOptions.find(
-            (el) => el.tagName === "LI" || el.closest("li")
-          );
-          expect(dropdownOption).toBeInTheDocument();
-        });
+      await waitFor(() => {
+        // Expect two date filter pickers (start and end)
+        expect(screen.getAllByPlaceholderText(/date/i)).toHaveLength(2);
+        // Check for all expected date fields for both pickers
+        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
+      });
+    });
 
-        const dateDropdownOptions = screen.getAllByText("Date");
-        const dateDropdownOption = dateDropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        await user.click(dateDropdownOption!);
+    it("filters rows by date range", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-        await waitFor(() => {
-          expect(
-            screen.getByPlaceholderText(/filter date/i)
-          ).toBeInTheDocument();
-          // Check for all expected date fields
-          expect(screen.getByLabelText("Month")).toBeInTheDocument();
-          expect(screen.getByLabelText("Day")).toBeInTheDocument();
-          expect(screen.getByLabelText("Year")).toBeInTheDocument();
-        });
+      // Select the Date column
+      await user.selectOptions(columnSelect, "Date");
+
+      // Wait for both calendar pickers to appear
+      await waitFor(() => {
+        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
       });
 
-      describe("Date Filter Type", () => {
-        it("filters rows by date", async () => {
-          const user = userEvent.setup();
-          const columnSelect = screen.getByLabelText(/filter by:/i);
+      // Fill in the start date picker (first set of fields)
+      const yearFields = screen.getAllByLabelText("Year");
+      const monthFields = screen.getAllByLabelText("Month");
+      const dayFields = screen.getAllByLabelText("Day");
 
-          await user.type(columnSelect, "Date");
+      // Set start date to 2023-02-01 (Item Two)
+      await user.click(yearFields[0]);
+      await user.keyboard("2023");
+      await user.click(monthFields[0]);
+      await user.keyboard("02");
+      await user.click(dayFields[0]);
+      await user.keyboard("01");
 
-          await waitFor(() => {
-            const dropdownOptions = screen.getAllByText("Date");
-            const dropdownOption = dropdownOptions.find(
-              (el) => el.tagName === "LI" || el.closest("li")
-            );
-            expect(dropdownOption).toBeInTheDocument();
-          });
+      // Set end date to 2023-04-01 (Item Four)
+      await user.click(yearFields[1]);
+      await user.keyboard("2023");
+      await user.click(monthFields[1]);
+      await user.keyboard("04");
+      await user.click(dayFields[1]);
+      await user.keyboard("01");
 
-          const dateDropdownOptions = screen.getAllByText("Date");
-          const dateDropdownOption = dateDropdownOptions.find(
-            (el) => el.tagName === "LI" || el.closest("li")
-          );
-          await user.click(dateDropdownOption!);
+      // Wait for the filtered results
+      await waitFor(() => {
+        // Should show only items with date between 2023-02-01 and 2023-04-01 (inclusive)
+        expect(screen.getByText("Item Two")).toBeInTheDocument(); // 2023-02-01
+        expect(screen.getByText("Item Three")).toBeInTheDocument(); // 2023-03-01
+        expect(screen.getByText("Item Four")).toBeInTheDocument(); // 2023-04-01
 
-          // Wait for the segmented date picker to appear
-          await waitFor(() => {
-            expect(screen.getByLabelText("Month")).toBeInTheDocument();
-            expect(screen.getByLabelText("Day")).toBeInTheDocument();
-            expect(screen.getByLabelText("Year")).toBeInTheDocument();
-          });
+        // Should not show items outside the range
+        expect(screen.queryByText("Item One")).not.toBeInTheDocument(); // 2023-01-01
+        expect(screen.queryByText("Item Five")).not.toBeInTheDocument(); // 2023-05-01
+      });
+    });
 
-          await user.click(screen.getByLabelText("Year"));
-          await user.keyboard("2023");
+    it("shows no results for unmatched MM/DD/YYYY date", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByLabelText(/filter by:/i);
 
-          await user.click(screen.getByLabelText("Month"));
-          await user.keyboard("01");
+      await user.selectOptions(columnSelect, "Date");
 
-          await user.click(screen.getByLabelText("Day"));
-          await user.keyboard("01");
+      // Wait for both calendar pickers to appear
+      await waitFor(() => {
+        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
+        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
+      });
 
-          await waitFor(() => {
-            const hiddenDateInput = screen
-              .getAllByRole("textbox", { hidden: true })
-              .find(
-                (input) =>
-                  input.getAttribute("aria-hidden") === "true" &&
-                  input.getAttribute("name") === "filter-date"
-              );
-            expect(hiddenDateInput).toHaveValue("01/01/2023");
-          });
-          await waitFor(() => {
-            expect(screen.getByText("Item One")).toBeInTheDocument();
-            expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
-            expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
-            expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
-            expect(screen.queryByText("Item Five")).not.toBeInTheDocument();
-          });
-        });
+      // Fill in the start date picker (first set of fields)
+      const yearFields = screen.getAllByLabelText("Year");
+      const monthFields = screen.getAllByLabelText("Month");
+      const dayFields = screen.getAllByLabelText("Day");
 
-        it("shows no results for unmatched MM/DD/YYYY date", async () => {
-          const user = userEvent.setup();
-          const columnSelect = screen.getByLabelText(/filter by:/i);
+      await user.click(yearFields[0]);
+      await user.keyboard("2000");
 
-          await user.type(columnSelect, "Date");
+      await user.click(monthFields[0]);
+      await user.keyboard("01");
 
-          await waitFor(() => {
-            const dropdownOptions = screen.getAllByText("Date");
-            const dropdownOption = dropdownOptions.find(
-              (el) => el.tagName === "LI" || el.closest("li")
-            );
-            expect(dropdownOption).toBeInTheDocument();
-          });
+      await user.click(dayFields[0]);
+      await user.keyboard("01");
 
-          const dateDropdownOptions = screen.getAllByText("Date");
-          const dateDropdownOption = dateDropdownOptions.find(
-            (el) => el.tagName === "LI" || el.closest("li")
-          );
-          await user.click(dateDropdownOption!);
+      await user.click(yearFields[1]);
+      await user.keyboard("2000");
+      await user.click(monthFields[1]);
+      await user.keyboard("01");
+      await user.click(dayFields[1]);
+      await user.keyboard("01");
 
-          // Wait for the segmented date picker to appear
-          await waitFor(() => {
-            expect(screen.getByLabelText("Month")).toBeInTheDocument();
-            expect(screen.getByLabelText("Day")).toBeInTheDocument();
-            expect(screen.getByLabelText("Year")).toBeInTheDocument();
-          });
-
-          await user.click(screen.getByLabelText("Year"));
-          await user.keyboard("2000");
-
-          await user.click(screen.getByLabelText("Month"));
-          await user.keyboard("01");
-
-          await user.click(screen.getByLabelText("Day"));
-          await user.keyboard("01");
-
-          await waitFor(() => {
-            expect(
-              screen.getByText(
-                "No results were returned. Adjust your search and filter criteria."
-              )
-            ).toBeInTheDocument();
-          });
-        });
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
+        ).toBeInTheDocument();
       });
     });
   });
@@ -708,21 +517,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -751,21 +546,7 @@ describe("ColumnFilter Component", () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, ["Name"]);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();

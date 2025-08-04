@@ -4,6 +4,7 @@ import { SelectDemoStatuses } from "./select/SelectDemoStatuses";
 import { SelectUSAStates } from "./select/SelectUSAStates";
 import { SelectUsers } from "./select/SelectUsers";
 import { AutoCompleteMultiselect } from "./select/AutoCompleteMultiselect";
+import { Select } from "./select/Select";
 
 // TODO replace with our button when it's ready
 const BUTTON_CLASS_NAME =
@@ -20,6 +21,8 @@ export const InputSandbox: React.FC = () => {
   const [disabled, setDisabled] = useState(false);
   const [isRequired, setIsRequired] = useState(false);
   const [status, setStatus] = useState<string>("");
+  const [selectValue, setSelectValue] = useState<string>("");
+
   const [multiselectValues, setMultiselectValues] = useState<string[]>([]);
   // We'll wire this up to use the current cache user
   const currentUserId = "14f83478-c0f1-70f7-2c30-ca664b9177e9";
@@ -93,6 +96,23 @@ export const InputSandbox: React.FC = () => {
       {status && (
         <p className="mt-2">
           You most recently selected: <strong>{status}</strong>
+        </p>
+      )}
+      <div className="mt-3">
+        <Select
+          label="Simple Select"
+          options={[
+            { label: "Option 1", value: "1" },
+            { label: "Option 2", value: "2" },
+            { label: "Option 3", value: "3" },
+          ]}
+          value={selectValue}
+          onSelect={setSelectValue}
+        />{" "}
+      </div>
+      {selectValue && (
+        <p className="mt-2">
+          You most recently selected: <strong>{selectValue}</strong>
         </p>
       )}
     </>

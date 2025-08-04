@@ -12,7 +12,6 @@ import { CreateNewModal } from "components/modal/CreateNewModal";
 import { AmendmentTable } from "components/table/tables/AmendmentTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { ExtensionTable } from "components/table/tables/ExtensionTable";
-import DocumentData from "faker_data/documents.json";
 import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
@@ -26,12 +25,8 @@ type ModalType = "edit" | "delete" | "amendment" | "extension" | null;
 type TabType = "details" | "amendments" | "extensions";
 
 export const DemonstrationDetail = () => {
-  const { id: demonstrationId } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
-
-  const [showButtons, setShowButtons] = useState(false);
-  const [modalType, setModalType] = useState<ModalType>(null);
-  const [tab, setTab] = useState<TabType>("details");
 
   // Parse query params
   const queryParams = React.useMemo(
@@ -54,6 +49,10 @@ export const DemonstrationDetail = () => {
     return "details";
   }, [queryParams]);
 
+  const [showButtons, setShowButtons] = useState(false);
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [tab, setTab] = useState<TabType>("details");
+
   React.useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
@@ -62,8 +61,8 @@ export const DemonstrationDetail = () => {
   const { trigger, data, loading, error } = getDemonstrationById;
 
   useEffect(() => {
-    if (demonstrationId) trigger(demonstrationId);
-  }, [demonstrationId]);
+    if (id) trigger(id);
+  }, [id]);
 
   const tabList: TabItem[] = [
     { value: "details", label: "Demonstration Details" },
@@ -110,7 +109,7 @@ export const DemonstrationDetail = () => {
 
           <div data-testid="demonstration-detail-row" className="block text-sm">
             <span className="font-semibold">Project Officer:</span>{" "}
-            <span>{data.description}</span>
+            <span>{data.projectOfficer.fullName}</span>
           </div>
         </div>
         <div className="relative">
@@ -176,7 +175,7 @@ export const DemonstrationDetail = () => {
                 <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">
                   Documents
                 </h1>
-                <DocumentTable data={DocumentData} />
+                <DocumentTable />
               </div>
             )}
 

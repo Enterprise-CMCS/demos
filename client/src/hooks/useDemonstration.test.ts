@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { useDemonstration } from "./useDemonstration";
-import { AddDemonstrationInput } from "demos-server";
+import { CreateDemonstrationInput } from "demos-server";
 import {
   mockAddDemonstrationInput,
   testDemonstration,
@@ -84,9 +84,9 @@ describe("useDemonstration", () => {
 
     it("should handle error when adding demonstration", async () => {
       const { result } = renderUseDemonstrationHook();
-      const badAddDemonstrationInput: AddDemonstrationInput = {
+      const badAddDemonstrationInput: CreateDemonstrationInput = {
         name: "bad add demonstration",
-      } as AddDemonstrationInput;
+      } as CreateDemonstrationInput;
 
       try {
         await result.current.addDemonstration.trigger(badAddDemonstrationInput);
@@ -122,7 +122,10 @@ describe("useDemonstration", () => {
       const demonstrationId = expectedDemonstration.id;
 
       // Trigger update
-      await result.current.updateDemonstration.trigger(demonstrationId, updatedInput);
+      await result.current.updateDemonstration.trigger(
+        demonstrationId,
+        updatedInput
+      );
 
       await waitFor(() => {
         expect(result.current.updateDemonstration.data).toBeDefined();
@@ -136,12 +139,15 @@ describe("useDemonstration", () => {
     it("should handle error when updating demonstration", async () => {
       const { result } = renderUseDemonstrationHook();
 
-      const badInput: Partial<AddDemonstrationInput> = {
+      const badInput: Partial<CreateDemonstrationInput> = {
         name: "",
       };
 
       try {
-        await result.current.updateDemonstration.trigger("invalid-id", badInput as AddDemonstrationInput);
+        await result.current.updateDemonstration.trigger(
+          "invalid-id",
+          badInput as CreateDemonstrationInput
+        );
       } catch {
         // do nothing, error will be handled in state
       }

@@ -15,19 +15,26 @@ function getKey(header, callback) {
   });
 }
 
-export const handler = async (event, context, callback) => {
+export const handler = async (event) => {
   const token = event.authorizationToken.split(" ")[1];
   console.log("received token:", token);
   console.log("starting validation");
 
   if (!token) {
     console.log("no token");
-    return callback("unauthorized");
+    return generatePolicy("unknown", "Deny", event.methodArn, {});
   }
 
   console.log("token found");
 
-  const decoded = await verifyToken(token);
+  let decoded;
+  try {
+    decoded = await verifyToken(token);
+  } catch (decoded) {
+    const sub = decoded?.sub || "unknown";
+    console.log(`user sub [${sub}] rejected with invalid token`);
+    return generatePolicy(sub, "Deny", event.methodArn, {});
+  }
   const roles = decoded["custom:roles"];
 
   if (!roles) {
@@ -58,7 +65,7 @@ const verifyToken = (token) => {
     jwt.verify(token, getKey, {}, (err, decoded) => {
       if (err) {
         console.log("validation error:", err);
-        return reject(new Error("User is not authenticated"));
+        return reject(decoded);
       }
       resolve(decoded);
     });
