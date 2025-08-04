@@ -43,5 +43,11 @@ export type {
   EventLoggedStatus,
 } from "./model/event/eventSchema.js";
 
+export type {
+  Document,
+  AddDemonstrationDocumentInput,
+  UpdateDemonstrationDocumentInput,
+} from "./model/document/documentSchema.js";
+
 import { BUNDLE_TYPE } from "./constants.js";
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];

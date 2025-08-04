@@ -77,7 +77,7 @@ export const documentSchema = gql`
 `;
 
 type Bundle = Demonstration | Amendment;
-export type DateTime = Date;
+type DateTime = Date;
 export interface Document {
   id: string;
   title: string;
