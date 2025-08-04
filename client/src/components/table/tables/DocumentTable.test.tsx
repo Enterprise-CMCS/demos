@@ -1,14 +1,29 @@
 import React from "react";
-import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { DocumentTable } from "./DocumentTable";
-import { MockedProvider } from "@apollo/client/testing";
+
+import {
+  pickDateInCalendar,
+} from "components/input/DatePicker/DatePicker.test";
+import { ToastProvider } from "components/toast";
 import { ALL_MOCKS } from "mock-data/index";
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from "vitest";
+
+import { MockedProvider } from "@apollo/client/testing";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { pickDateInCalendar } from "components/input/DatePicker/DatePicker.test";
-import { ToastProvider } from "components/toast";
+import {
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import { DocumentTable } from "./DocumentTable";
 
 describe("DocumentTable", () => {
   beforeEach(() => {
@@ -97,9 +112,9 @@ describe("DocumentTable", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    // Select the uploadDate filter column
+    // Select the createdAt filter column
     await user.selectOptions(screen.getByLabelText(/filter by:/i), [
-      "uploadDate",
+      "createdAt",
     ]);
 
     const startInput = document.body.querySelector(
@@ -162,7 +177,7 @@ describe("DocumentTable", () => {
     ).toBeInTheDocument();
   });
 
-  it("defaults to sorting by uploadDate descending (newest first)", async () => {
+  it("defaults to sorting by createdAt descending (newest first)", async () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
