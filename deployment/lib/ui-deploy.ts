@@ -2,6 +2,7 @@ import {
   aws_cloudfront,
   aws_iam,
   aws_s3,
+  aws_s3_assets,
   aws_s3_deployment,
   custom_resources,
   Duration,
@@ -72,6 +73,10 @@ export function create(props: UIDeploymentProps) {
       role: deploymentRole,
     }
   );
+  const buildAsset = new aws_s3_assets.Asset(props.scope, "uiBuildAsset", {
+    path: buildOutputPath
+  })
+
 
   const invalidateCloudfront = new custom_resources.AwsCustomResource(
     props.scope,
@@ -89,7 +94,7 @@ export function create(props: UIDeploymentProps) {
               Quantity: 1,
               Items: ["/*"],
             },
-            CallerReference: new Date().toISOString(),
+            CallerReference: `invalidate-${buildAsset.assetHash}`,
           },
         },
         physicalResourceId: custom_resources.PhysicalResourceId.of(
