@@ -1,0 +1,17 @@
+model DocumentPendingUpload {
+  id             String   @id @default(uuid()) @db.Uuid
+  title          String
+  description    String
+  s3Path         String   @map("s3_path")
+  ownerUserId    String   @map("owner_user_id") @db.Uuid
+  documentTypeId String   @map("document_type_id")
+  bundleId       String   @map("bundle_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+  owner        User         @relation(fields: [ownerUserId], references: [id])
+  bundle       Bundle       @relation(fields: [bundleId], references: [id])
+
+  @@map("document_pending_upload")
+}
