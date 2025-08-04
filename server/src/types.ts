@@ -57,4 +57,14 @@ export type {
   UpdateExtensionInput,
 } from "./model/modification/modificationSchema.js";
 
+export type {
+  DocumentType,
+  CreateDocumentTypeInput,
+  UpdateDocumentTypeInput,
+} from "./model/documentType/documentTypeSchema.js";
+
+export type {
+  Document,
+} from "./model/document/documentSchema.js";
+
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];

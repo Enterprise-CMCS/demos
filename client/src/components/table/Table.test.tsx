@@ -8,7 +8,9 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Table } from "./Table";
-import { highlightCell } from "./KeywordSearch";
+import { highlightCell, KeywordSearch } from "./KeywordSearch";
+import dayjs, { Dayjs } from "dayjs";
+import { ColumnFilter } from "./ColumnFilter";
 
 type TestOptionType = {
   name: string;
@@ -18,7 +20,7 @@ export type TestType = {
   name: string;
   description: string;
   option: TestOptionType;
-  date: string;
+  date: Dayjs;
 };
 
 const columnHelper = createColumnHelper<TestType>();
@@ -67,7 +69,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Alpha",
     },
-    date: "2023-01-01",
+    date: dayjs("2023-01-01"),
   },
   {
     name: "Item Two",
@@ -75,7 +77,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Beta",
     },
-    date: "2023-02-01",
+    date: dayjs("2023-02-01"),
   },
   {
     name: "Item Three",
@@ -83,7 +85,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Gamma",
     },
-    date: "2023-03-01",
+    date: dayjs("2023-03-01"),
   },
   {
     name: "Item Four",
@@ -91,7 +93,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Delta",
     },
-    date: "2023-04-01",
+    date: dayjs("2023-04-01"),
   },
   {
     name: "Item Five",
@@ -99,7 +101,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Alpha",
     },
-    date: "2023-05-01",
+    date: dayjs("2023-05-01"),
   },
 ];
 
@@ -139,8 +141,8 @@ describe.sequential("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -150,29 +152,15 @@ describe.sequential("Table Component Interactions", () => {
 
       // First apply a column filter for Option
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/select option/i)
         ).toBeInTheDocument();
       });
 
-      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      const optionFilterInput = screen.getByPlaceholderText(/select option/i);
       await user.type(optionFilterInput, "Option Alpha");
 
       await waitFor(() => {
@@ -223,8 +211,8 @@ describe.sequential("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -252,22 +240,7 @@ describe.sequential("Table Component Interactions", () => {
 
       // Now apply a column filter for Name
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.clear(columnSelect); // Clear any existing content
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -293,8 +266,8 @@ describe.sequential("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -304,25 +277,12 @@ describe.sequential("Table Component Interactions", () => {
 
       // Apply keyword search first
       const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.clear(keywordSearchInput); // Clear any existing content
       await user.type(keywordSearchInput, "Alpha");
 
       // Apply column filter
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
@@ -365,8 +325,8 @@ describe.sequential("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -376,30 +336,18 @@ describe.sequential("Table Component Interactions", () => {
 
       // Apply both filters
       const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      await user.clear(keywordSearchInput);
       await user.type(keywordSearchInput, "Alpha");
 
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
       });
 
       const nameFilterInput = screen.getByPlaceholderText(/filter name/i);
+      await user.clear(nameFilterInput);
       await user.type(nameFilterInput, "Item Four");
 
       // Verify filtered state
@@ -439,8 +387,8 @@ describe.sequential("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => <KeywordSearch table={table} />}
             columns={testColumns}
             data={testTableData}
           />
@@ -449,7 +397,7 @@ describe.sequential("Table Component Interactions", () => {
       const user = userEvent.setup();
 
       // Click on Name column header to sort
-      const nameHeader = screen.getByText("Name");
+      const nameHeader = screen.getByRole("columnheader", { name: "Name" });
       await user.click(nameHeader);
 
       // Apply keyword search that returns multiple results
@@ -479,29 +427,15 @@ describe.sequential("Table Component Interactions", () => {
 
       // Apply column filter and verify sorting is maintained
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Option");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Option");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const optionDropdownOptions = screen.getAllByText("Option");
-      const optionDropdownOption = optionDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(optionDropdownOption!);
+      await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
         expect(
-          screen.getByPlaceholderText(/filter option/i)
+          screen.getByPlaceholderText(/select option/i)
         ).toBeInTheDocument();
       });
 
-      const optionFilterInput = screen.getByPlaceholderText(/filter option/i);
+      const optionFilterInput = screen.getByPlaceholderText(/select option/i);
       await user.type(optionFilterInput, "Option Alpha");
 
       await waitFor(() => {
@@ -541,8 +475,10 @@ describe.sequential("Table Component Interactions", () => {
       render(
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Table<TestType>
-            columnFilter
-            keywordSearch
+            columnFilter={(table) => <ColumnFilter table={table} />}
+            keywordSearch={(table) => (
+              <KeywordSearch table={table} debounceMs={500} />
+            )}
             columns={testColumns}
             data={testTableData}
             noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
@@ -557,21 +493,7 @@ describe.sequential("Table Component Interactions", () => {
 
       // Apply column filter
       const columnSelect = screen.getByLabelText(/filter by:/i);
-      await user.type(columnSelect, "Name");
-
-      await waitFor(() => {
-        const dropdownOptions = screen.getAllByText("Name");
-        const dropdownOption = dropdownOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
-        expect(dropdownOption).toBeInTheDocument();
-      });
-
-      const nameDropdownOptions = screen.getAllByText("Name");
-      const nameDropdownOption = nameDropdownOptions.find(
-        (el) => el.tagName === "LI" || el.closest("li")
-      );
-      await user.click(nameDropdownOption!);
+      await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();

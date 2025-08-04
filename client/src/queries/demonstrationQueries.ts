@@ -96,6 +96,9 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
         id
         fullName
       }
+      projectOfficer {
+        fullName
+      }
     }
   }
 `;
