@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import jwkClient from "jwks-rsa";
 
+// Entry point for lambda
+
 const client = jwkClient({
   jwksUri: process.env.JWKS_URI,
 });
@@ -15,6 +17,7 @@ function getKey(header, callback) {
 
 export const handler = async (event, context, callback) => {
   const token = event.authorizationToken.split(" ")[1];
+  console.log("received token:", token);
   console.log("starting validation");
 
   if (!token) {
