@@ -1,7 +1,8 @@
 import React from "react";
+
 import { Logo } from "./Logo";
-import { QuickLinks } from "./QuickLinks";
 import { ProfileBlock } from "./ProfileBlock";
+import { QuickLinks } from "./QuickLinks";
 
 export const HeaderUpper: React.FC<{ userId?: string }> = ({ userId }) => {
   return (

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import { ChevronDownIcon } from "components/icons";
+import { normalizeUserId } from "hooks/user/uuidHelpers";
 
 import {
   gql,
@@ -29,7 +30,7 @@ export const ProfileBlock: React.FC<{ userId?: string }> = ({ userId }) => {
   }
 
   const { data, error, loading } = useQuery(PROFILE_BLOCK_QUERY, {
-    variables: { id: userId },
+    variables: { id: normalizeUserId(userId) },
   });
 
   if (error) {

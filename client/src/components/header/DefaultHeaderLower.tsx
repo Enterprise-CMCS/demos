@@ -6,9 +6,10 @@ import React, {
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
-import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { CreateNewModal } from "components/modal/CreateNewModal";
+import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { gql } from "graphql-tag";
+import { normalizeUserId } from "hooks/user/uuidHelpers";
 
 import { useQuery } from "@apollo/client";
 
@@ -46,7 +47,7 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
   }
 
   const { data, error, loading } = useQuery(HEADER_LOWER_QUERY, {
-    variables: { id: userId },
+    variables: { id: normalizeUserId(userId) },
   });
 
   if (error) return <div>Error: {error.message}</div>;
