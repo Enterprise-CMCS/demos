@@ -4,9 +4,9 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import {
+  AddExtensionStatusInput,
   CreateAmendmentStatusInput,
   UpdateAmendmentStatusInput,
-  AddExtensionStatusInput,
   UpdateExtensionStatusInput,
 } from "./modificationStatusSchema.js";
 
