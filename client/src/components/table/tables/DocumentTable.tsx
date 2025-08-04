@@ -1,17 +1,25 @@
 // DocumentTable.tsx
 import * as React from "react";
-import { Table } from "../Table";
-import { DocumentColumns } from "../columns/DocumentColumns";
-import { DocumentTableRow, useDocument } from "hooks/useDocument";
+
 import { CircleButton } from "components/button/CircleButton";
-import { EditIcon, ImportIcon } from "components/icons";
+import {
+  EditIcon,
+  ImportIcon,
+} from "components/icons";
 import {
   AddDocumentModal,
   EditDocumentModal,
 } from "components/modal/document/DocumentModal";
-import { KeywordSearch } from "../KeywordSearch";
+import {
+  DocumentTableRow,
+  useDocument,
+} from "hooks/useDocument";
+
 import { ColumnFilter } from "../ColumnFilter";
+import { DocumentColumns } from "../columns/DocumentColumns";
+import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
+import { Table } from "../Table";
 
 type DisplayedModal = null | "add" | "edit";
 
@@ -90,7 +98,7 @@ export function DocumentTable() {
     return <div className="p-4">Documents not found</div>;
 
   const initialState = {
-    sorting: [{ id: "uploadDate", desc: true }],
+    sorting: [{ id: "createdAt", desc: true }],
   };
 
   return (

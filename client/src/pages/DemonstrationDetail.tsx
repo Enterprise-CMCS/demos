@@ -1,4 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { SecondaryButton } from "components/button";
 import { CircleButton } from "components/button/CircleButton";
@@ -12,17 +16,23 @@ import { CreateNewModal } from "components/modal/CreateNewModal";
 import { AmendmentTable } from "components/table/tables/AmendmentTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { ExtensionTable } from "components/table/tables/ExtensionTable";
+import { isTestMode } from "config/env";
 import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
-import { TabItem, Tabs } from "layout/Tabs";
+import {
+  TabItem,
+  Tabs,
+} from "layout/Tabs";
 import { mockAmendments } from "mock-data/amendmentMocks";
 import { mockExtensions } from "mock-data/extensionMocks";
-import { useLocation, useParams } from "react-router-dom";
+import {
+  useLocation,
+  useParams,
+} from "react-router-dom";
 
-import { isTestMode } from "config/env";
-
-type ModalType = "edit" | "delete" | "amendment" | "extension" | null;
+type ModalType = "edit" | "delete" | "amendment" | "extension" | "document" | null;
 type TabType = "details" | "amendments" | "extensions";
+type SubTabType = "summary" | "types" | "documents" | "contacts";
 
 export const DemonstrationDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -49,13 +59,40 @@ export const DemonstrationDetail = () => {
     return "details";
   }, [queryParams]);
 
+  const initialSubtab = React.useMemo(() => {
+    if (
+      queryParams.get("types") === "true" ||
+      queryParams.get("types") === "true"
+    ) {
+      return "types";
+    }
+    if (
+      queryParams.get("documents") === "true" ||
+      queryParams.get("documents") === "true"
+    ) {
+      return "documents";
+    }
+    if (
+      queryParams.get("contacts") === "true" ||
+      queryParams.get("contacts") === "true"
+    ) {
+      return "contacts";
+    }
+    return "summary";
+  }, [queryParams]);
+
   const [showButtons, setShowButtons] = useState(false);
   const [modalType, setModalType] = useState<ModalType>(null);
   const [tab, setTab] = useState<TabType>("details");
+  const [subTab, setSubTab] = useState<SubTabType>("summary");
 
   React.useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
+  React.useEffect(() => {
+    setSubTab(initialSubtab);
+  }, [initialSubtab]);
+
 
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data, loading, error } = getDemonstrationById;
@@ -68,6 +105,13 @@ export const DemonstrationDetail = () => {
     { value: "details", label: "Demonstration Details" },
     { value: "amendments", label: "Amendments", count: mockAmendments.length },
     { value: "extensions", label: "Extensions", count: mockExtensions.length },
+  ];
+
+  const subTabList: TabItem[] = [
+    { value: "summary", label: "Summary" },
+    { value: "types", label: "Types", count: mockAmendments.length },
+    { value: "documents", label: "Documents", count: mockExtensions.length },
+    { value: "contacts", label: "Contacts", count: 0 },
   ];
 
   // Header content setup
@@ -140,8 +184,7 @@ export const DemonstrationDetail = () => {
             onClick={() => setShowButtons((prev) => !prev)}
           >
             <span
-              className={`transform transition-transform duration-200 ease-in-out ${
-                showButtons ? "rotate-90" : "rotate-0"
+              className={`transform transition-transform duration-200 ease-in-out ${showButtons ? "rotate-90" : "rotate-0"
               }`}
             >
               <EllipsisIcon width="24" height="24" />
@@ -225,6 +268,70 @@ export const DemonstrationDetail = () => {
           </div>
         </>
       )}
+      {data && (
+        <>
+          <Tabs
+            tabs={subTabList}
+            selectedValue={subTab}
+            onChange={(newVal) => setSubTab(newVal as typeof subTab)}
+          />
+
+          <div className="mt-4 h-[60vh] overflow-y-auto">
+            {subTab === "summary" && (
+              <div>
+                <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">
+                  Summary
+                </h1>
+                {/* TO DO: Add New button? */}
+                {/* TO DO: Add Table */}
+              </div>
+            )}
+
+            {subTab === "types" && (
+              <div>
+                <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+                  <h1 className="text-xl font-bold text-brand uppercase">
+                    Types
+                  </h1>
+                  {/* TO DO: Add New button? */}
+                </div>
+                {/* TO DO: Add Table */}
+              </div>
+            )}
+
+            {subTab === "documents" && (
+              <div>
+                <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+                  <h1 className="text-xl font-bold text-brand uppercase">
+                    Documents
+                  </h1>
+                  <SecondaryButton
+                    size="small"
+                    className="flex items-center gap-1 px-1 py-1"
+                    onClick={() => setModalType("document")}
+                  >
+                    <span>Add New</span>
+                    <AddNewIcon className="w-2 h-2" />
+                  </SecondaryButton>
+                </div>
+                <DocumentTable />
+              </div>
+            )}
+
+            {subTab === "contacts" && (
+              <div>
+                <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+                  <h1 className="text-xl font-bold text-brand uppercase">
+                    Contacts
+                  </h1>
+                  {/* TO DO: Add New button? */}
+                </div>
+                {/* TO DO: Add Table */}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {modalType === "amendment" && data && (
         <CreateNewModal
@@ -254,6 +361,20 @@ export const DemonstrationDetail = () => {
           onClose={() => setModalType(null)}
         />
       )}
+
+      {modalType === "document" && data && (
+        <CreateNewModal
+          mode="document"
+          data={{
+            demonstration: data.id,
+            state: data.state?.id,
+            projectOfficer: data.description,
+          }}
+          onClose={() => setModalType(null)}
+        />
+      )}
+
+      {/* TO DO: Modal types if needed for subTabs */}
     </div>
   );
 };
