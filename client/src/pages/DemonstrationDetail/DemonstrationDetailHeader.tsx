@@ -5,7 +5,7 @@ import { ApolloError } from "@apollo/client";
 import { Demonstration } from "demos-server";
 
 interface DemonstrationDetailHeaderProps {
-  data?: Demonstration;
+  demonstration?: Demonstration;
   loading?: boolean;
   error?: ApolloError;
   onEdit: () => void;
@@ -14,7 +14,7 @@ interface DemonstrationDetailHeaderProps {
 
 export const DemonstrationDetailHeader: React.FC<
   DemonstrationDetailHeaderProps
-> = ({ data: demonstration, loading, error, onEdit, onDelete }) => {
+> = ({ demonstration, loading, error, onEdit, onDelete }) => {
   const [showButtons, setShowButtons] = useState(false);
 
   const handleToggleButtons = useCallback(() => {

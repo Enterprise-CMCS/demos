@@ -10,9 +10,9 @@ import { useLocation, useParams } from "react-router-dom";
 import { isTestMode } from "config/env";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
-import { DetailsTabContent } from "./DetailsTabContent";
-import { AmendmentsTabContent } from "./AmendmentsTabContent";
-import { ExtensionsTabContent } from "./ExtensionsTabContent";
+import { DemonstrationTab } from "./DemonstrationTab";
+import { AmendmentsTab } from "./AmendmentsTab";
+import { ExtensionsTab } from "./ExtensionsTab";
 
 type ModalType = "edit" | "delete" | "amendment" | "extension" | null;
 type TabType = "details" | "amendments" | "extensions";
@@ -41,7 +41,7 @@ export const DemonstrationDetail: React.FC = () => {
   });
 
   const { getDemonstrationById } = useDemonstration();
-  const { trigger, data, loading, error } = getDemonstrationById;
+  const { trigger, data: demonstration, loading, error } = getDemonstrationById;
 
   useEffect(() => {
     if (id) trigger(id);
@@ -58,14 +58,14 @@ export const DemonstrationDetail: React.FC = () => {
   const headerContent = useMemo(
     () => (
       <DemonstrationDetailHeader
-        data={data}
+        demonstration={demonstration}
         loading={loading}
         error={error}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
     ),
-    [data, loading, error, handleEdit, handleDelete]
+    [demonstration, loading, error, handleEdit, handleDelete]
   );
   usePageHeader(headerContent);
 
@@ -76,7 +76,7 @@ export const DemonstrationDetail: React.FC = () => {
       {loading && <p>Loading...</p>}
       {error && <p>Error loading demonstration</p>}
 
-      {data && (
+      {demonstration && (
         <>
           <Tabs
             tabs={tabList}
@@ -85,18 +85,18 @@ export const DemonstrationDetail: React.FC = () => {
           />
 
           <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && <DetailsTabContent />}
+            {tab === "details" && <DemonstrationTab />}
 
             {tab === "amendments" && (
-              <AmendmentsTabContent
-                data={data}
+              <AmendmentsTab
+                demonstration={demonstration}
                 onClick={() => setModalType("amendment")}
               />
             )}
 
             {tab === "extensions" && (
-              <ExtensionsTabContent
-                data={data}
+              <ExtensionsTab
+                demonstration={demonstration}
                 onClick={() => setModalType("extension")}
               />
             )}
@@ -104,7 +104,7 @@ export const DemonstrationDetail: React.FC = () => {
           {modalType && (
             <DemonstrationDetailModals
               modalType={modalType}
-              data={data}
+              demonstration={demonstration}
               handleOnClose={() => setModalType(null)}
             />
           )}

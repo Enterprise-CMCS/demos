@@ -4,34 +4,34 @@ import { CreateNewModal } from "components/modal/CreateNewModal";
 
 export const DemonstrationDetailModals: React.FC<{
   modalType: string;
-  data: Demonstration;
+  demonstration: Demonstration;
   handleOnClose: () => void;
-}> = ({ modalType, data, handleOnClose }) => (
+}> = ({ modalType, demonstration, handleOnClose }) => (
   <>
-    {modalType === "amendment" && data && (
+    {modalType === "amendment" && demonstration && (
       <CreateNewModal
         mode="amendment"
-        data={{ demonstration: data.id }}
+        data={{ demonstration: demonstration.id }}
         onClose={handleOnClose}
       />
     )}
 
-    {modalType === "extension" && data && (
+    {modalType === "extension" && demonstration && (
       <CreateNewModal
         mode="extension"
-        data={{ demonstration: data.id }}
+        data={{ demonstration: demonstration.id }}
         onClose={handleOnClose}
       />
     )}
 
-    {modalType === "edit" && data && (
+    {modalType === "edit" && demonstration && (
       <CreateNewModal
         mode="demonstration"
         data={{
-          title: data.name,
-          state: data.state?.id,
-          projectOfficer: data.description,
-          description: data.description,
+          title: demonstration.name,
+          state: demonstration.state?.id,
+          projectOfficer: demonstration.description,
+          description: demonstration.description,
         }}
         onClose={handleOnClose}
       />
