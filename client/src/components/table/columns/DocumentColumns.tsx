@@ -1,11 +1,14 @@
 // DocumentColumns.tsx
 import * as React from "react";
+
+import dayjs, { Dayjs } from "dayjs";
+import { DocumentTableRow } from "hooks/useDocument";
+import { useDocumentType } from "hooks/useDocumentType";
+
 import { createColumnHelper } from "@tanstack/react-table";
+
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
-import { useDocumentType } from "hooks/useDocumentType";
-import { DocumentTableRow } from "hooks/useDocument";
-import { Dayjs } from "dayjs";
 
 export function DocumentColumns() {
   const { getDocumentTypeOptions } = useDocumentType();
@@ -80,18 +83,20 @@ export function DocumentColumns() {
         },
       },
     }),
-    columnHelper.accessor("uploadedBy.fullName", {
+    columnHelper.accessor("owner.fullName", {
       header: "Uploaded By",
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("uploadDate", {
+    columnHelper.accessor("createdAt", {
       header: "Date Uploaded",
       cell: ({ getValue }) => {
-        return getValue().format("MM/DD/YYYY");
+        const dateValue = getValue() as string;
+        return dayjs(dateValue).format("MM/DD/YYYY");
       },
       filterFn: (row, columnId, filterValue) => {
-        const date: Dayjs = row.getValue(columnId);
+        const dateValue = row.getValue(columnId) as string;
+        const date: Dayjs = dayjs(dateValue);
         const { start, end } = filterValue || {};
         if (start && end) {
           return (

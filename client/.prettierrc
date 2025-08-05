@@ -7,5 +7,6 @@
   "bracketSpacing": true,
   "bracketSameLine": false,
   "endOfLine": "lf",
-  "quoteProps": "as-needed"
+  "quoteProps": "as-needed",
+  "printWidth": 100
 }
