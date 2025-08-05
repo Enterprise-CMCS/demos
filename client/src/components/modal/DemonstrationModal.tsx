@@ -63,6 +63,7 @@ export const DemonstrationModal: React.FC<Props> = ({
     demonstrationStatusId: "1",
     stateId: state,
     userIds: [projectOfficer],
+    projectOfficerUserId: "",
   });
 
   const handleSubmit = async () => {
