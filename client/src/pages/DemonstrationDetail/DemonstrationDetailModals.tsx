@@ -3,29 +3,43 @@ import React from "react";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { Demonstration } from "demos-server";
 
-export const DemonstrationDetailModals: React.FC<{
-  modalType: string;
+type EntityCreationModal = "amendment" | "extension" | "document" | null;
+type DemonstrationActionModal = "edit" | "delete" | null;
+
+interface DemonstrationDetailModalsProps {
+  entityCreationModal: EntityCreationModal;
+  demonstrationActionModal: DemonstrationActionModal;
   demonstration: Demonstration;
-  handleOnClose: () => void;
-}> = ({ modalType, demonstration, handleOnClose }) => (
+  onCloseEntityModal: () => void;
+  onCloseDemonstrationModal: () => void;
+}
+
+export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps> = ({
+  entityCreationModal,
+  demonstrationActionModal,
+  demonstration,
+  onCloseEntityModal,
+  onCloseDemonstrationModal,
+}) => (
   <>
-    {modalType === "amendment" && demonstration && (
+    {/* Entity Creation Modals */}
+    {entityCreationModal === "amendment" && (
       <CreateNewModal
         mode="amendment"
         data={{ demonstration: demonstration.id }}
-        onClose={handleOnClose}
+        onClose={onCloseEntityModal}
       />
     )}
 
-    {modalType === "extension" && demonstration && (
+    {entityCreationModal === "extension" && (
       <CreateNewModal
         mode="extension"
         data={{ demonstration: demonstration.id }}
-        onClose={handleOnClose}
+        onClose={onCloseEntityModal}
       />
     )}
 
-    {modalType === "document" && demonstration && (
+    {entityCreationModal === "document" && (
       <CreateNewModal
         mode="document"
         data={{
@@ -33,11 +47,12 @@ export const DemonstrationDetailModals: React.FC<{
           state: demonstration.state?.id,
           projectOfficer: demonstration.description,
         }}
-        onClose={handleOnClose}
+        onClose={onCloseEntityModal}
       />
     )}
 
-    {modalType === "edit" && demonstration && (
+    {/* Demonstration Action Modals */}
+    {demonstrationActionModal === "edit" && (
       <CreateNewModal
         mode="demonstration"
         data={{
@@ -46,8 +61,15 @@ export const DemonstrationDetailModals: React.FC<{
           projectOfficer: demonstration.description,
           description: demonstration.description,
         }}
-        onClose={handleOnClose}
+        onClose={onCloseDemonstrationModal}
       />
+    )}
+
+    {/* TODO: Add delete confirmation modal when available */}
+    {demonstrationActionModal === "delete" && (
+      <div>
+        <p>Delete functionality not yet implemented</p>
+      </div>
     )}
   </>
 );

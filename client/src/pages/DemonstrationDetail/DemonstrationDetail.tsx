@@ -25,17 +25,17 @@ import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 
-type ModalType = "edit" | "delete" | "amendment" | "extension" | "document" | null;
 type TabType = "details" | "amendments" | "extensions";
 
-// Create tab list with dynamic counts
+type EntityCreationModal = "amendment" | "extension" | "document" | null;
+type DemonstrationActionModal = "edit" | "delete" | null;
+
 const createTabList = (amendmentCount: number, extensionCount: number): TabItem[] => [
   { value: "details", label: "Demonstration Details" },
   { value: "amendments", label: "Amendments", count: amendmentCount },
   { value: "extensions", label: "Extensions", count: extensionCount },
 ];
 
-// Helper function to check query parameters for both singular and plural forms
 const getQueryParamValue = (
   searchParams: URLSearchParams,
   singular: string,
@@ -45,7 +45,10 @@ const getQueryParamValue = (
 };
 
 export const DemonstrationDetail: React.FC = () => {
-  const [modalType, setModalType] = useState<ModalType>(null);
+  const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
+  const [demonstrationActionModal, setDemonstrationActionModal] =
+    useState<DemonstrationActionModal>(null);
+
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
 
@@ -62,7 +65,6 @@ export const DemonstrationDetail: React.FC = () => {
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data: demonstration, loading, error } = getDemonstrationById;
 
-  // Memoize tab list to avoid recreation on every render
   const tabList = useMemo(() => createTabList(mockAmendments.length, mockExtensions.length), []);
 
   useEffect(() => {
@@ -70,11 +72,11 @@ export const DemonstrationDetail: React.FC = () => {
   }, [id]);
 
   const handleEdit = useCallback(() => {
-    setModalType("edit");
+    setDemonstrationActionModal("edit");
   }, []);
 
   const handleDelete = useCallback(() => {
-    setModalType("delete");
+    setDemonstrationActionModal("delete");
   }, []);
 
   const headerContent = useMemo(
@@ -112,22 +114,24 @@ export const DemonstrationDetail: React.FC = () => {
             {tab === "amendments" && (
               <AmendmentsTab
                 demonstration={demonstration}
-                onClick={() => setModalType("amendment")}
+                onClick={() => setEntityCreationModal("amendment")}
               />
             )}
 
             {tab === "extensions" && (
               <ExtensionsTab
                 demonstration={demonstration}
-                onClick={() => setModalType("extension")}
+                onClick={() => setEntityCreationModal("extension")}
               />
             )}
           </div>
-          {modalType && (
+          {(entityCreationModal || demonstrationActionModal) && (
             <DemonstrationDetailModals
-              modalType={modalType}
+              entityCreationModal={entityCreationModal}
+              demonstrationActionModal={demonstrationActionModal}
               demonstration={demonstration}
-              handleOnClose={() => setModalType(null)}
+              onCloseEntityModal={() => setEntityCreationModal(null)}
+              onCloseDemonstrationModal={() => setDemonstrationActionModal(null)}
             />
           )}
         </>
