@@ -1,12 +1,19 @@
-import { prisma } from "../../prismaClient.js";
-import { Bundle, Document } from "@prisma/client";
-import { BundleType } from "../../types.js";
-import { BUNDLE_TYPE } from "../../constants.js";
 import { GraphQLError } from "graphql";
+
+import {
+  Bundle,
+  Document,
+} from "@prisma/client";
+
+import { BUNDLE_TYPE } from "../../constants.js";
+import { prisma } from "../../prismaClient.js";
+import { BundleType } from "../../types.js";
 import {
   CreateDemonstrationDocumentInput,
-  UpdateDemonstrationDocumentInput,
+  CreateExtensionDocumentInput,
   UpdateAmendmentDocumentInput,
+  UpdateDemonstrationDocumentInput,
+  UpdateExtensionDocumentInput,
   UploadAmendmentDocumentInput,
 } from "./documentSchema.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
@@ -14,6 +21,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
+const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 
 // TODO: We should look into caching this
 // Otherwise, there are duplicative DB calls if requesting bundle and bundleType
@@ -49,6 +57,7 @@ export const documentResolvers = {
         const implementedBundleTypes: BundleType[] = [
           demonstrationBundleTypeId,
           amendmentBundleTypeId,
+          extensionBundleTypeId,
         ];
         const isImplementedBundleType = implementedBundleTypes.includes(
           bundleTypeId as BundleType,
@@ -225,6 +234,61 @@ export const documentResolvers = {
         where: { id: id },
       });
     },
+
+    createExtensionDocument: async (
+      _: undefined,
+      { input }: { input: CreateExtensionDocumentInput },
+    ) => {
+      const { ownerUserId, documentTypeId, extensionId, ...rest } = input;
+      return await prisma().document.create({
+        data: {
+          ...rest,
+          owner: {
+            connect: { id: ownerUserId },
+          },
+          documentType: {
+            connect: { id: documentTypeId },
+          },
+          bundle: {
+            connect: { id: extensionId },
+          },
+        },
+      });
+    },
+
+    updateExtensionDocument: async (
+      _: undefined,
+      { id, input }: { id: string; input: UpdateExtensionDocumentInput },
+    ) => {
+      const { ownerUserId, documentTypeId, extensionId, ...rest } = input;
+      return await prisma().document.update({
+        where: { id: id },
+        data: {
+          ...rest,
+          ...(ownerUserId && {
+            owner: {
+              connect: { id: ownerUserId },
+            },
+          }),
+          ...(documentTypeId && {
+            documentType: {
+              connect: { id: documentTypeId },
+            },
+          }),
+          ...(extensionId && {
+            bundle: {
+              connect: { id: extensionId },
+            },
+          }),
+        },
+      });
+    },
+
+    deleteExtensionDocument: async (_: undefined, { id }: { id: string }) => {
+      return await prisma().document.delete({
+        where: { id: id },
+      });
+    },
   },
 
   Document: {
@@ -256,6 +320,13 @@ export const documentResolvers = {
             bundleTypeId: amendmentBundleTypeId,
           },
         });
+      } else if (bundleTypeId === extensionBundleTypeId) {
+        return await prisma().modification.findUnique({
+          where: {
+            id: parent.bundleId,
+            bundleTypeId: extensionBundleTypeId,
+          },
+        });
       } else {
         return null;
       }
@@ -273,6 +344,8 @@ export const documentResolvers = {
         return "Demonstration";
       } else if (obj.bundleTypeId === amendmentBundleTypeId) {
         return "Amendment";
+      } else if (obj.bundleTypeId === extensionBundleTypeId) {
+        return "Extension";
       }
     },
   },
