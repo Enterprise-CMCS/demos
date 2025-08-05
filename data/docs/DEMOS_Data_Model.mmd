@@ -4,50 +4,52 @@ title: DEMOS Data Model
 
 erDiagram
 
-  users ||--|{ document : "FK25"
-  document }|--|| bundle : "FK27"
-  document }|--|| document_type : "FK26"
-  permission ||--|{ role_permission : "FK29"
-  role_permission }|--|| role : "FK28"
-  grant_level ||--|{ permission : "FK30"
-  grant_level ||--|{ demonstration_grant_level_limit : "FK8"
-  grant_level ||--|{ role : "FK9"
-  person_system_role }|--|| role_person_type : ""
-  person_type ||--|{ role_person_type : "FK11"
-  person ||--|{ person_state : "FK13"
-  person_state }|--|| state : "FK14"
-  state ||--|{ demonstration : "FK15"
-  demonstration_grant_level_limit ||--|{ person_demonstration_role : "FK1"
-  role ||--|{ person_demonstration_role : "FK2"
-  role_person_type ||--|{ person_demonstration_role : "FK3"
-  person ||--|{ person_demonstration_role : "FK4"
-  person_state ||--|{ person_demonstration_role : "FK5"
-  demonstration ||--|{ person_demonstration_role : "FK6"
-  person_demonstration_role ||--|| primary_person_demonstration_role : "FK7"
-  user_person_type_limit ||--|| person_type : "FK22"
-  users }|--|| user_person_type_limit : "FK21"
-  users ||--|| person : "FK20"
-  users ||--|{ demonstration : "FK19"
-  bundle ||--|{ demonstration : "FK16"
-  bundle }|--|| bundle_type : "FK23"
-  bundle_type ||--|{ demonstration_bundle_type_limit : "FK24"
-  modification_bundle_type_limit ||--|{ modification_status: ""
-  modification_status ||--|{ modification : ""
-  modification_bundle_type_limit ||--|{ modification : ""
-  demonstration_bundle_type_limit ||--|{ demonstration : "FK17"
-  demonstration_status ||--|{ demonstration : "FK18"
-  person ||--|{ person_system_role : ""
-  person_system_role }|--|| role : ""
-  person_system_role }|--|| system_grant_level_limit : ""
-  system_grant_level_limit ||--|| grant_level : ""
+  users ||--|{ document : "FK25: owner_user_id ∈ users.id"
+  document }|--|| bundle : "FK27: bundle_id ∈ bundle.id"
+  document }|--|| document_type : "FK26: document_type_id ∈ document_type.id"
+  permission ||--|{ role_permission : "FK29: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
+  event }|--|| role : "FK39: with_role_id ∈ role.id"
+  role_permission }|--|| role : "FK28: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+  grant_level ||--|{ permission : "FK30: grant_level_id ∈ grant_level.id"
+  grant_level ||--|{ demonstration_grant_level_limit : "FK8: id ∈ grant_level.id"
+  grant_level ||--|{ role : "FK9: grant_level_id ∈ grant_level.id"
+  person_system_role }|--|| role_person_type : "FK31: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)"
+  person_type ||--|{ role_person_type : "FK11: person_type_id ∈ person_type.id"
+  person ||--|{ person_state : "FK13: person_id ∈ person.id"
+  person_state }|--|| state : "FK14: state_id ∈ state.id"
+  state ||--|{ demonstration : "FK15: state_id ∈ state.id"
+  demonstration_grant_level_limit ||--|{ person_demonstration_role : "FK1: grant_level_id ∈ demonstration_grant_level_limit.id"
+  role ||--|{ person_demonstration_role : "FK2: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+  role_person_type ||--|{ person_demonstration_role : "FK3: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)"
+  person ||--|{ person_demonstration_role : "FK4: (person_id, person_type_id) ∈ person.(id, person_type_id)"
+  person_state ||--|{ person_demonstration_role : "FK5: (person_id, state_id) ∈ person_state.(person_id, state_id)"
+  demonstration ||--|{ person_demonstration_role : "FK6: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
+  person_demonstration_role ||--|| primary_person_demonstration_role : "FK7: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
+  user_person_type_limit ||--|| person_type : "FK22: id ∈ person_type.id"
+  users }|--|| user_person_type_limit : "FK21: person_type_id ∈ user_person_type_limit.id"
+  users ||--|| person : "FK20: (id, person_type_id) ∈ person.(id, person_type_id)"
+  bundle_status_type }|--|| bundle_status : "FK32: bundle_status_id ∈ bundle_status.id"
+  users ||--|{ demonstration : "FK19: project_officer_user_id ∈ users.id"
+  bundle ||--|| demonstration : "FK16: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
+  bundle }|--|| bundle_type : "FK23: bundle_type_id ∈ bundle_type.id"
+  bundle_type ||--|{ demonstration_bundle_type_limit : "FK24: id ∈ bundle_type.id"
+  bundle_status_type ||--|{ modification : "FK33: (modification_bundle_status_id, bundle_type_id) ∈ bundle_status_type.(bundle_status_id, bundle_type_id)"
+  modification_bundle_type_limit ||--|{ modification : "FK34: bundle_type_id ∈ modification_bundle_type_limit.id"
+  demonstration_bundle_type_limit ||--|{ demonstration : "FK17: bundle_type_id ∈ demonstration_bundle_type_limit.id"
+  bundle_status_type ||--|{ demonstration : "FK18: (demonstration_bundle_status_id, bundle_type_id) ∈ bundle_status_type.(bundle_status_id, bundle_type_id)"
+  person ||--|{ person_system_role : "FK35: (person_id, person_type_id) ∈ person.(id, person_type_id)"
+  person_system_role }|--|| role : "FK36: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+  person_system_role }|--|| system_grant_level_limit : "FK37: grant_level_id ∈ system_grant_level_limit.id"
+  system_grant_level_limit ||--|| grant_level : "FK38: id ∈ grant_level.id"
   reportable_event_type ||..O{ event : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
-  event }|--|| role : ""
-  users ||--|{ event : ""
-  modification }|--|| demonstration : ""
-  bundle_type ||--|{ modification_bundle_type_limit : ""
-  users ||--|{ modification : ""
-  person }|--|| person_type : "FK12"
-  role_person_type }|--|| role : "FK10"
+  users ||--|{ event : "FK40: user_id ∈ users.id"
+  modification }|--|| demonstration : "FK41: demonstration_id ∈ demonstration.id"
+  bundle_type ||--|{ modification_bundle_type_limit : "FK42: id ∈ bundle_type.id"
+  bundle ||--|| modification : "FK44: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
+  users ||--|{ modification : "FK43: project_officer_user_id ∈ users.id"
+  person }|--|| person_type : "FK12: person_type_id ∈ person_type.id"
+  role_person_type }|--|| role : "FK10: role_id ∈ role.id"
+  bundle_type ||--|{ bundle_status_type : "FK45: bundle_type_id ∈ bundle_type.id"
 
   grant_level {
     text id PK
@@ -57,7 +59,7 @@ erDiagram
 
   role {
     text id PK, UK "UK: (id, grant_level_id)"
-    text grant_level_id FK, UK "FK9: grant_level_id ∈ grant_level.id<br>UK: (id, grant_level_id)"
+    text grant_level_id FK, UK "FK9, UK: (id, grant_level_id)"
     text name
     text description
     timestamptz created_at
@@ -65,7 +67,7 @@ erDiagram
   }
 
   demonstration_grant_level_limit {
-    text id PK, FK "FK8: id ∈ grant_level.id"
+    text id PK, FK "FK8"
   }
 
   person_type {
@@ -75,8 +77,8 @@ erDiagram
   }
 
   person {
-    id uuid PK
-    text person_type_id FK "FK12: person_type_id ∈ person_type.id"
+    id uuid PK, UK "UK: (id, person_type_id)"
+    text person_type_id FK "FK12, UK: (id, person_type_id)"
     text email
     text full_name
     text display_name
@@ -85,13 +87,13 @@ erDiagram
   }
 
   role_person_type {
-    text role_id PK, FK "FK10: role_id ∈ role.id"
-    text person_type_id PK, FK "FK11: person_type_id ∈ person_type.id"
+    text role_id PK, FK "FK10"
+    text person_type_id PK, FK "FK11"
   }
 
   person_state {
-    uuid person_id PK, FK "FK13: person_id ∈ person.id"
-    text state_id PK, FK "FK14: state_id ∈ state.id"
+    uuid person_id PK, FK "FK13"
+    text state_id PK, FK "FK14"
   }
 
   state {
@@ -100,22 +102,22 @@ erDiagram
   }
 
   demonstration {
-    uuid id PK, FK, UK "FK16: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)<br>UK: (id, bundle_type_id)<br>UK: (id, state_id)"
-    text bundle_type_id FK "FK16: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)<br>FK17: bundle_type_id ∈ demonstration_bundle_type_limit.id"
+    uuid id PK, FK, UK "FK16, UK: (id, state_id)"
+    text bundle_type_id FK "FK16, FK17, FK18"
     text name
     text description
     date effective_date
     date expiration_date
     timestamptz created_at
     timestamptz updated_at
-    text demonstration_status_id FK "FK18: demonstration_status_id ∈ demonstration_status.id"
-    text state_id FK, UK "FK15: state_id ∈ state.id<br>UK: (id, state_id)"
-    uuid project_officer_user_id FK "FK19: project_officer_user_id ∈ users.id"
+    text demonstration_bundle_status_id FK "FK18"
+    text state_id FK, UK "FK15, UK: (id, state_id)"
+    uuid project_officer_user_id FK "FK19"
   }
 
   bundle {
     uuid id PK, UK "UK: (id, bundle_type_id)"
-    text bundle_type_id FK, UK "FK23: bundle_type_id ∈ bundle_type.id<br>UK: (id, bundle_type_id)"
+    text bundle_type_id FK, UK "FK23, UK: (id, bundle_type_id)"
   }
 
   bundle_type {
@@ -125,8 +127,8 @@ erDiagram
   }
 
   users {
-    uuid id PK, FK "FK20: (id, person_type_id) ∈ person.(id, person_type_id)"
-    text person_type_id FK "FK20: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK21: person_type_id ∈ user_person_type_limit.id"
+    uuid id PK, FK "FK20"
+    text person_type_id FK "FK20, FK21"
     uuid cognito_subject
     text username
     timestamptz created_at
@@ -134,50 +136,42 @@ erDiagram
   }
 
   user_person_type_limit {
-    text id PK, FK "FK22: person_type_id ∈ person_type.id"
+    text id PK, FK "FK22"
   }
 
   demonstration_bundle_type_limit {
-    text id PK, FK "FK24: id ∈ bundle_type.id"
-  }
-
-  demonstration_status {
-    text id PK
-    text name
-    text description
-    timestamptz created_at
-    timestamptz updated_at
+    text id PK, FK "FK24"
   }
 
   person_demonstration_role {
-    uuid person_id PK, FK "FK4: (person_id, person_type_id) ∈ person.(id, person_type_id)<br>FK5: (person_id, state_id) ∈ person_state.(person_id, state_id)"
-    uuid demonstration_id PK, FK "FK6: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
-    text role_id PK, FK "FK2: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK3: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)"
-    text state_id FK "FK5: (person_id, state_id) ∈ person_state.(person_id, state_id)<br>FK6: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
-    text person_type_id FK "FK3: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK4: (person_id, person_type_id) ∈ person.(id, person_type_id)"
-    text grant_level_id FK "FK1: grant_level_id ∈ demonstration_grant_level_limit.id<br>FK2: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+    uuid person_id PK, FK "FK4, FK5"
+    uuid demonstration_id PK, FK "FK6"
+    text role_id PK, FK "FK2, FK3"
+    text state_id FK "FK5, FK6"
+    text person_type_id FK "FK3, FK4"
+    text grant_level_id FK "FK1, FK2"
   }
 
   primary_person_demonstration_role {
-    uuid person_id FK "FK7: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
-    uuid demonstration_id PK, FK "FK7: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
-    text role_id PK, FK "FK7: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
+    uuid person_id FK "FK7"
+    uuid demonstration_id PK, FK "FK7"
+    text role_id PK, FK "FK7"
   }
 
   system_grant_level_limit {
-    text id PK, FK
+    text id PK, FK "FK38"
   }
 
   person_system_role {
-    uuid person_id PK, FK
-    text role_id PK, FK
-    text person_type_id FK
-    text grant_level_id FK
+    uuid person_id PK, FK "FK35"
+    text role_id PK, FK "FK31, FK36"
+    text person_type_id FK "FK31, FK35"
+    text grant_level_id FK "FK36, FK37"
   }
 
   permission {
     text id PK, UK "UK: (id, grant_level_id)"
-    text grant_level_id FK, UK "FK30: grant_level_id ∈ grant_level.id<br>UK: (id, grant_level_id)"
+    text grant_level_id FK, UK "FK30, UK: (id, grant_level_id)"
     text name
     text description
     timestamptz created_at
@@ -185,15 +179,15 @@ erDiagram
   }
 
   role_permission {
-    text role_id PK, FK "FK28: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
-    text grant_level_id PK, FK "FK28: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK29: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
-    text permission_id PK, FK "FK29: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
+    text role_id PK, FK "FK28"
+    text grant_level_id PK, FK "FK28, FK29"
+    text permission_id PK, FK "FK29"
   }
 
   event {
     uuid id PK
-    uuid user_id FK "NULLABLE"
-    text with_role_id FK "NULLABLE"
+    uuid user_id FK "FK40, NULLABLE"
+    text with_role_id FK "FK39, NULLABLE"
     text event_type
     text log_level
     text route
@@ -212,9 +206,9 @@ erDiagram
     text title
     text description
     text s3_path
-    uuid owner_user_id FK "FK25: owner_user_id ∈ users.id"
-    text document_type_id FK "FK26: document_type_id ∈ document_type.id"
-    uuid bundle_id FK "FK27: bundle_id ∈ bundle.id"
+    uuid owner_user_id FK "FK25"
+    text document_type_id FK "FK26"
+    uuid bundle_id FK "FK27"
     timestamptz created_at
     timestamptz updated_at
   }
@@ -228,28 +222,32 @@ erDiagram
   }
 
   modification {
-    uuid id PK, FK ""
-    text bundle_type_id FK ""
-    uuid demonstration_id FK ""
+    uuid id PK, FK "FK44"
+    text bundle_type_id FK "FK33, FK34, FK44"
+    uuid demonstration_id FK "FK41"
     text name
     text description
     date effective_date
     date expiration_date
     timestamptz created_at
     timestamptz updated_at
-    text modification_status_id FK ""
-    uuid project_officer_user_id FK ""
+    text modification_bundle_status_id FK "FK33"
+    uuid project_officer_user_id FK "FK43"
   }
 
   modification_bundle_type_limit {
-    text id PK, FK ""
+    text id PK, FK "FK42"
   }
 
-  modification_status {
+  bundle_status {
     text id PK
-    text bundle_type_id PK, FK ""
     text name
     text description
     timestamptz created_at
     timestamptz updated_at
+  }
+
+  bundle_status_type {
+    text bundle_status_id PK, FK "FK32"
+    text bundle_type_id PK, FK "FK45"
   }
