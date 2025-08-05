@@ -31,7 +31,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
   return (
     <div className="border border-gray-300 bg-white p-2 shadow-sm">
-      <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
+      <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
         <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
         <SecondaryButton size="small" onClick={handleEditClick} className="flex items-center gap-1">
           <EditIcon className="w-2 h-2" />

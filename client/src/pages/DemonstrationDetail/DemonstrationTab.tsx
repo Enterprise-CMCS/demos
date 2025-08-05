@@ -46,7 +46,7 @@ export const DemonstrationTab: React.FC = () => {
         onChange={(newVal) => setSubTab(newVal as typeof subTab)}
       />
 
-      <div className="mt-4">
+      <div className="mt-2">
         {subTab === "summary" && (
           <div>
             <SummaryDetailsTable
