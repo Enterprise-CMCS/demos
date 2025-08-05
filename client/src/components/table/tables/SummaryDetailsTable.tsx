@@ -19,9 +19,9 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
   const handleEditClick = () => {
     if (onEdit) {
-      onEdit(); // Call the passed onEdit function if provided
+      onEdit();
     } else {
-      setIsEditModalOpen(true); // Otherwise, open the modal
+      setIsEditModalOpen(true);
     }
   };
 
@@ -82,7 +82,6 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
         </div>
       </div>
 
-      {/* Edit Modal */}
       {isEditModalOpen && (
         <DemonstrationModal
           mode="edit"

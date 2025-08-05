@@ -5,11 +5,11 @@ import { AddNewIcon } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import { Demonstration } from "demos-server";
 import {
   TabItem,
   Tabs,
 } from "layout/Tabs";
+import { summaryDemonstration } from "mock-data/summaryDetailMock";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -17,19 +17,6 @@ type DocumentModalType = "document" | null;
 export const DemonstrationTab: React.FC = () => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
-
-  // Mock demonstration data for development
-  const summaryDemonstration = {
-    id: "demo-1",
-    name: "Sample Demonstration",
-    state: { id: "CA", name: "California" },
-    projectOfficer: { fullName: "Admiral Gial Ackbar" },
-    users: [{ id: "1", fullName: "Admiral Gial Ackbar" }], // Use numeric ID that exists in users.json
-    demonstrationStatus: { name: "Active" },
-    effectiveDate: new Date(),
-    expirationDate: new Date(),
-    description: "Sample description",
-  } as Demonstration;
 
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
@@ -50,7 +37,7 @@ export const DemonstrationTab: React.FC = () => {
         {subTab === "summary" && (
           <div>
             <SummaryDetailsTable
-              demonstration={summaryDemonstration} // Pass the actual demonstration object
+              demonstration={summaryDemonstration}
             />
           </div>
         )}
@@ -103,9 +90,9 @@ export const DemonstrationTab: React.FC = () => {
         <CreateNewModal
           mode="document"
           data={{
-            demonstration: "demo-id", // TO DO: Get actual demonstration ID
-            state: "state-id", // TO DO: Get actual state ID
-            projectOfficer: "description", // TO DO: Get actual description
+            demonstration: "demo-id",
+            state: "state-id",
+            projectOfficer: "description",
           }}
           onClose={() => setModalType(null)}
         />
