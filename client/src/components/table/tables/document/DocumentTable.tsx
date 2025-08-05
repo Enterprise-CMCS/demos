@@ -4,7 +4,11 @@ import { Table } from "../../Table";
 import { DocumentColumns } from "./DocumentColumns";
 import { useDocument } from "hooks/document/useDocument";
 import { CircleButton } from "components/button/CircleButton";
-import { EditIcon, ImportIcon, DeleteIcon } from "components/icons";
+import {
+  DeleteIcon,
+  EditIcon,
+  ImportIcon,
+} from "components/icons";
 import {
   AddDocumentModal,
   EditDocumentModal,
@@ -117,7 +121,7 @@ export function DocumentTable() {
   if (!documents || documents.length === 0) return <div className="p-4">Documents not found</div>;
 
   const initialState = {
-    sorting: [{ id: "uploadDate", desc: true }],
+    sorting: [{ id: "createdAt", desc: true }],
   };
 
   return (

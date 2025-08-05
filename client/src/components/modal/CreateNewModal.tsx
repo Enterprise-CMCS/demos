@@ -15,7 +15,7 @@ import {
   normalizeUserId,
 } from "hooks/user/uuidHelpers";
 
-export type ModalMode = "amendment" | "extension" | "demonstration";
+export type ModalMode = "amendment" | "extension" | "demonstration" | "document";
 
 type Props = {
   onClose: () => void;

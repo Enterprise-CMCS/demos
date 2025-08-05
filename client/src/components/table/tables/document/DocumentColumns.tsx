@@ -98,10 +98,12 @@ export function DocumentColumns() {
     columnHelper.accessor("createdAt", {
       header: "Date Uploaded",
       cell: ({ getValue }) => {
-        return getValue().format("MM/DD/YYYY");
+        const dateValue = getValue() as string;
+        return dayjs(dateValue).format("MM/DD/YYYY");
       },
       filterFn: (row, columnId, filterValue) => {
-        const date: Dayjs = row.getValue(columnId);
+        const dateValue = row.getValue(columnId) as string;
+        const date: Dayjs = dayjs(dateValue);
         const { start, end } = filterValue || {};
         if (start && end) {
           return (

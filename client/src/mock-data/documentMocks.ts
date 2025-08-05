@@ -1,7 +1,8 @@
-import { MockedResponse } from "@apollo/client/testing";
 import dayjs from "dayjs";
 import { DocumentTableRow } from "hooks/useDocument";
 import { GET_ALL_DOCUMENTS_QUERY } from "queries/document/documentQueries";
+
+import { MockedResponse } from "@apollo/client/testing";
 
 export const documentMocks: MockedResponse[] = [
   {
@@ -18,10 +19,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "Pre-Submission Concept",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Alice",
             },
-            uploadDate: dayjs("2025-07-01"),
+            createdAt: dayjs("2025-07-01").toISOString(),
           },
           {
             id: "2",
@@ -30,10 +31,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "General File",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Bob",
             },
-            uploadDate: dayjs("2025-07-10"),
+            createdAt: dayjs("2025-07-10").toISOString(),
           },
           {
             id: "3",
@@ -42,10 +43,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "General File",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Cara",
             },
-            uploadDate: dayjs("2025-07-05"),
+            createdAt: dayjs("2025-07-05").toISOString(),
           },
           {
             id: "4",
@@ -54,10 +55,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "Pre-Submission Concept",
             },
-            uploadedBy: {
+            owner: {
               fullName: "David",
             },
-            uploadDate: dayjs("2025-07-07"),
+            createdAt: dayjs("2025-07-07").toISOString(),
           },
           {
             id: "5",
@@ -66,10 +67,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "General File",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Ella",
             },
-            uploadDate: dayjs("2025-07-03"),
+            createdAt: dayjs("2025-07-03").toISOString(),
           },
           {
             id: "6",
@@ -78,10 +79,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "Pre-Submission Concept",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Frank",
             },
-            uploadDate: dayjs("2025-07-02"),
+            createdAt: dayjs("2025-07-02").toISOString(),
           },
           {
             id: "7",
@@ -90,10 +91,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "General File",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Grace",
             },
-            uploadDate: dayjs("2025-07-08"),
+            createdAt: dayjs("2025-07-08").toISOString(),
           },
           {
             id: "8",
@@ -102,10 +103,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "Pre-Submission Concept",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Henry",
             },
-            uploadDate: dayjs("2025-07-04"),
+            createdAt: dayjs("2025-07-04").toISOString(),
           },
           {
             id: "9",
@@ -114,10 +115,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "General File",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Ivy",
             },
-            uploadDate: dayjs("2025-07-06"),
+            createdAt: dayjs("2025-07-06").toISOString(),
           },
           {
             id: "10",
@@ -126,10 +127,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "Pre-Submission Concept",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Jack",
             },
-            uploadDate: dayjs("2025-07-09"),
+            createdAt: dayjs("2025-07-09").toISOString(),
           },
           {
             id: "11",
@@ -138,10 +139,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "General File",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Karen",
             },
-            uploadDate: dayjs("2025-07-11"),
+            createdAt: dayjs("2025-07-11").toISOString(),
           },
           {
             id: "12",
@@ -150,10 +151,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "Pre-Submission Concept",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Leo",
             },
-            uploadDate: dayjs("2025-07-12"),
+            createdAt: dayjs("2025-07-12").toISOString(),
           },
           {
             id: "13",
@@ -162,10 +163,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "General File",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Maya",
             },
-            uploadDate: dayjs("2025-07-13"),
+            createdAt: dayjs("2025-07-13").toISOString(),
           },
           {
             id: "14",
@@ -174,10 +175,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "Pre-Submission Concept",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Nina",
             },
-            uploadDate: dayjs("2025-07-14"),
+            createdAt: dayjs("2025-07-14").toISOString(),
           },
           {
             id: "15",
@@ -186,10 +187,10 @@ export const documentMocks: MockedResponse[] = [
             documentType: {
               name: "General File",
             },
-            uploadedBy: {
+            owner: {
               fullName: "Owen",
             },
-            uploadDate: dayjs("2025-07-15"),
+            createdAt: dayjs("2025-07-15").toISOString(),
           },
         ] satisfies DocumentTableRow[],
       },
