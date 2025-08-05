@@ -33,7 +33,27 @@ aws --endpoint-url=http://localstack:4566 s3 ls
 ## 5. Test File Upload Flow
 
 ### 5.1 Get Presigned URL from GraphQL
+#### make a graphql request to the upload endpoint 
 
+```gql
+query Query($userId: ID!) {
+  amendments {
+    id
+  }
+  users {
+    id
+  }
+  documentTypes {
+    id
+  }
+}
+
+UploadAmendmentDocumentInput!) {
+  uploadAmendmentDocument(input: $input) {
+    s3Path
+  }
+}
+```
 
 ### 5.2 Upload File Using Presigned URL
 ```bash
@@ -135,7 +155,7 @@ aws --endpoint-url=http://localstack:4566 s3api get-object-tagging \
   --key YOUR_FILE_ID
 ```
 
-### 7.2 Create and Execute Lambda Test
+### 7.2 Create and Execute Lambda Test (simulate SQS queue)
 ```bash
 # Create test event
 cat > test-event.json << 'EOF'
