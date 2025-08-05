@@ -7,7 +7,7 @@ export const summaryDemonstration: Demonstration = {
   projectOfficer: { fullName: "Admiral Gial Ackbar" },
   users: [{ id: "1", fullName: "Admiral Gial Ackbar" }],
   demonstrationStatus: { name: "Active" },
-  effectiveDate: new Date(),
-  expirationDate: new Date(),
+  effectiveDate: new Date("2024-01-15"),
+  expirationDate: new Date("2025-12-31"),
   description: "Sample description",
 } as Demonstration;
