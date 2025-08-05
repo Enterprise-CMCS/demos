@@ -1,11 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { PrimaryButton, SecondaryButton } from "components/button";
+import React, {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  PrimaryButton,
+  SecondaryButton,
+} from "components/button";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
-import { CreateDemonstrationInput, Demonstration } from "demos-server";
+import {
+  CreateDemonstrationInput,
+  Demonstration,
+} from "demos-server";
 import { useDemonstration } from "hooks/useDemonstration";
 import { tw } from "tags/tw";
 
@@ -63,7 +73,7 @@ export const DemonstrationModal: React.FC<Props> = ({
     demonstrationStatusId: "1",
     stateId: state,
     userIds: [projectOfficer],
-    projectOfficerUserId: "",
+    projectOfficerUserId: projectOfficer,
   });
 
   const handleSubmit = async () => {
@@ -209,10 +219,9 @@ export const DemonstrationModal: React.FC<Props> = ({
           <input
             id="expiration-date"
             type="date"
-            className={`${DATE_INPUT_CLASSES} ${
-              expirationError
-                ? "border-border-warn focus:ring-border-warn"
-                : "border-border-fields focus:ring-border-focus"
+            className={`${DATE_INPUT_CLASSES} ${expirationError
+              ? "border-border-warn focus:ring-border-warn"
+              : "border-border-fields focus:ring-border-focus"
             }`}
             value={expirationDate}
             min={effectiveDate || undefined}

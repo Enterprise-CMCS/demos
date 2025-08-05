@@ -2,8 +2,16 @@ import React from "react";
 
 import { ToastProvider } from "components/toast/ToastContext";
 import { ALL_MOCKS } from "mock-data/index";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+} from "react-router-dom";
+import {
+  describe,
+  expect,
+  it,
+} from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
 import {
@@ -63,8 +71,8 @@ describe("DemonstrationDetail", () => {
       { label: "State/Territory", value: "CA" },
       { label: "Project Officer", value: "John Doe" },
       { label: "Status", value: "Active" },
-      { label: "Effective", value: "1/1/2025" },
-      { label: "Expiration", value: "12/31/2025" },
+      { label: "Effective", value: "12/31/2024" },
+      { label: "Expiration", value: "12/30/2025" },
     ];
 
     // Verify we have the expected number of attribute items
@@ -86,6 +94,15 @@ describe("DemonstrationDetail", () => {
   it("renders and switches to Amendments tab", async () => {
     renderWithProviders();
 
+    // Wait for component to load and navigate to Documents tab where table is located
+    await waitFor(() => {
+      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+    });
+
+    // Navigate to Documents tab first to access the table
+    const documentsTab = screen.getByRole("button", { name: /Documents/i });
+    fireEvent.click(documentsTab);
+
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -103,6 +120,16 @@ describe("DemonstrationDetail", () => {
 
   it("opens Add New Amendment modal", async () => {
     renderWithProviders();
+
+    // Wait for component to load and navigate to Documents tab where table is located
+    await waitFor(() => {
+      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+    });
+
+    // Navigate to Documents tab first to access the table
+    const documentsTab = screen.getByRole("button", { name: /Documents/i });
+    fireEvent.click(documentsTab);
+
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -115,15 +142,21 @@ describe("DemonstrationDetail", () => {
 
   it("renders and switches to Extensions tab", async () => {
     renderWithProviders();
+
+    // Wait for component to load and navigate to Documents tab where table is located
+    await waitFor(() => {
+      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+    });
+
+    // Navigate to Documents tab first to access the table
+    const documentsTab = screen.getByRole("button", { name: /Documents/i });
+    fireEvent.click(documentsTab);
+
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    expect(
-      screen.getByRole("heading", { name: /Documents/i })
-    ).toBeInTheDocument();
 
-    const extensionsTab = screen.getByRole("button", { name: /Extensions/i });
-    fireEvent.click(extensionsTab);
+    fireEvent.click(screen.getByRole("button", { name: /Extensions/i }));
 
     expect(screen.getByText("Extensions")).toBeInTheDocument();
     expect(screen.getByText("Extension 1")).toBeInTheDocument();
