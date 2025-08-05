@@ -32,7 +32,8 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "tomoyukim.vscode-mermaid-editor"
+                "tomoyukim.vscode-mermaid-editor",
+                "apollographql.vscode-apollo"
             ]
         }
     }

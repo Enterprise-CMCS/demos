@@ -1,47 +1,68 @@
+import { BUNDLE_TYPE } from "./constants.js";
+
 // Export types for use in the client code
 export type {
-  User,
-  AddUserInput,
+  CreateUserInput,
   UpdateUserInput,
+  User,
 } from "./model/user/userSchema.js";
 
 export type {
+  CreateDemonstrationInput,
   Demonstration,
-  AddDemonstrationInput,
   UpdateDemonstrationInput,
 } from "./model/demonstration/demonstrationSchema.js";
 
 export type {
+  CreateDemonstrationStatusInput,
   DemonstrationStatus,
-  AddDemonstrationStatusInput,
   UpdateDemonstrationStatusInput,
 } from "./model/demonstrationStatus/demonstrationStatusSchema.js";
 
 export type {
+  AddExtensionStatusInput,
   AmendmentStatus,
-  AddAmendmentStatusInput,
+  CreateAmendmentStatusInput,
+  ExtensionStatus,
   UpdateAmendmentStatusInput,
+  UpdateExtensionStatusInput,
 } from "./model/modificationStatus/modificationStatusSchema.js";
 
 export type { State } from "./model/state/stateSchema.js";
 
 export type {
+  CreateRoleInput,
   Role,
-  AddRoleInput,
   UpdateRoleInput,
 } from "./model/role/roleSchema.js";
 
 export type {
+  CreatePermissionInput,
   Permission,
-  AddPermissionInput,
   UpdatePermissionInput,
 } from "./model/permission/permissionSchema.js";
 
 export type {
   Event,
-  LogEventInput,
   EventLoggedStatus,
+  LogEventInput,
 } from "./model/event/eventSchema.js";
 
-import { BUNDLE_TYPE } from "./constants.js";
+export type {
+  AddExtensionInput,
+  Amendment,
+  CreateAmendmentInput,
+  Extension,
+  UpdateAmendmentInput,
+  UpdateExtensionInput,
+} from "./model/modification/modificationSchema.js";
+
+export type {
+  CreateDocumentTypeInput,
+  DocumentType,
+  UpdateDocumentTypeInput,
+} from "./model/documentType/documentTypeSchema.js";
+
+export type { Document } from "./model/document/documentSchema.js";
+
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];

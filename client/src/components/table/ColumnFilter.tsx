@@ -1,13 +1,10 @@
 import React from "react";
 import { Table } from "@tanstack/react-table";
-import {
-  AutoCompleteSelect,
-  Option,
-} from "components/input/select/AutoCompleteSelect";
 import { TextInput } from "components/input";
 import { Dayjs } from "dayjs";
 import { DatePicker } from "components/input/DatePicker/DatePicker";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
+import { Option, Select } from "components/input/select/Select";
 
 export interface ColumnFilterByDropdownProps<T> {
   table: Table<T>;
@@ -37,8 +34,13 @@ export function ColumnFilter<T>({
 }: ColumnFilterByDropdownProps<T>) {
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
   const [filterValue, setFilterValue] = React.useState<
-    string | string[] | Dayjs | null
+    string | string[] | null
   >("");
+
+  const [filterRangeValue, setFilterRangeValue] = React.useState<{
+    start: Dayjs | null;
+    end: Dayjs | null;
+  }>({ start: null, end: null });
 
   const availableColumns = table
     .getAllColumns()
@@ -62,7 +64,7 @@ export function ColumnFilter<T>({
   }, [selectedColumn, table]);
 
   // Update the filter: if `val` is nonempty and there's a column selected, apply that filter
-  const onValueChange = (val: string | string[] | Dayjs | null) => {
+  const onValueChange = (val: string | string[] | null) => {
     setFilterValue(val);
     if (val && selectedColumn) {
       table.setColumnFilters([{ id: selectedColumn, value: val }]);
@@ -71,6 +73,14 @@ export function ColumnFilter<T>({
     }
   };
 
+  const onRangeChange = (start: Dayjs | null, end: Dayjs | null) => {
+    setFilterRangeValue({ start, end });
+    if (selectedColumn && (start || end)) {
+      table.setColumnFilters([{ id: selectedColumn, value: { start, end } }]);
+    } else {
+      table.setColumnFilters([]);
+    }
+  };
   // Get the selected column's filter configuration
   const selectedColumnObj = availableColumns.find(
     (col) => col.id === selectedColumn
@@ -95,7 +105,7 @@ export function ColumnFilter<T>({
           <AutoCompleteMultiselect
             label={`${columnDisplayName} Filter`}
             options={filterConfig?.options || []}
-            placeholder={`Filter ${columnDisplayName}`}
+            placeholder={`Select ${columnDisplayName}`}
             onSelect={(val) => onValueChange(val)}
             id={`filter-${selectedColumn}`}
           />
@@ -103,20 +113,32 @@ export function ColumnFilter<T>({
 
       case "date":
         return (
-          <DatePicker
-            onChange={(date) => {
-              onValueChange(date?.format("YYYY-MM-DD") || null);
-            }}
-            slotProps={{
-              textField: {
-                placeholder: `Filter ${columnDisplayName.toLowerCase()}...`,
-                name: `filter-${selectedColumn}`,
-              },
-            }}
-            name="date-filter"
-          >
-            {`${columnDisplayName} Filter`}
-          </DatePicker>
+          <div className="flex gap-2">
+            <DatePicker
+              onChange={(date) => onRangeChange(date, filterRangeValue.end)}
+              slotProps={{
+                textField: {
+                  placeholder: "Start date",
+                  name: "date-filter-start",
+                },
+              }}
+              name="date-filter-start"
+            >
+              {`${columnDisplayName} Start`}
+            </DatePicker>
+            <DatePicker
+              onChange={(date) => onRangeChange(filterRangeValue.start, date)}
+              slotProps={{
+                textField: {
+                  placeholder: "End date",
+                  name: "date-filter-end",
+                },
+              }}
+              name="date-filter-end"
+            >
+              {`${columnDisplayName} End`}
+            </DatePicker>
+          </div>
         );
 
       case "text":
@@ -140,7 +162,7 @@ export function ColumnFilter<T>({
   return (
     <div className={className}>
       <div className="ml-2 mb-2 mr-2 flex items-center gap-2 text-sm">
-        <AutoCompleteSelect
+        <Select
           label="Filter by:"
           options={columnOptions}
           placeholder="Select a Column..."

@@ -1,13 +1,17 @@
-import { prisma } from "../../prismaClient.js";
-import {
-  AddAmendmentStatusInput,
-  UpdateAmendmentStatusInput,
-} from "./modificationStatusSchema.js";
-import { BUNDLE_TYPE } from "../../constants.js";
-import { BundleType } from "../../types.js";
 import { ModificationStatus } from "@prisma/client";
 
+import { BUNDLE_TYPE } from "../../constants.js";
+import { prisma } from "../../prismaClient.js";
+import { BundleType } from "../../types.js";
+import {
+  AddExtensionStatusInput,
+  CreateAmendmentStatusInput,
+  UpdateAmendmentStatusInput,
+  UpdateExtensionStatusInput,
+} from "./modificationStatusSchema.js";
+
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
+const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 
 export const modificationStatusResolvers = {
   Query: {
@@ -28,12 +32,29 @@ export const modificationStatusResolvers = {
         },
       });
     },
+    extensionStatus: async (_: undefined, { id }: { id: string }) => {
+      return await prisma().modificationStatus.findUnique({
+        where: {
+          modificationStatusId: {
+            id: id,
+            bundleTypeId: extensionBundleTypeId,
+          },
+        },
+      });
+    },
+    extensionStatuses: async () => {
+      return await prisma().modificationStatus.findMany({
+        where: {
+          bundleTypeId: extensionBundleTypeId,
+        },
+      });
+    },
   },
 
   Mutation: {
-    addAmendmentStatus: async (
+    createAmendmentStatus: async (
       _: undefined,
-      { input }: { input: AddAmendmentStatusInput },
+      { input }: { input: CreateAmendmentStatusInput },
     ) => {
       return await prisma().modificationStatus.create({
         data: {
@@ -70,6 +91,43 @@ export const modificationStatusResolvers = {
         },
       });
     },
+    addExtensionStatus: async (
+      _: undefined,
+      { input }: { input: AddExtensionStatusInput },
+    ) => {
+      return await prisma().modificationStatus.create({
+        data: {
+          id: input.id,
+          bundleTypeId: extensionBundleTypeId,
+          name: input.name,
+          description: input.description,
+        },
+      });
+    },
+    updateExtensionStatus: async (
+      _: undefined,
+      { id, input }: { id: string; input: UpdateExtensionStatusInput },
+    ) => {
+      return await prisma().modificationStatus.update({
+        where: {
+          modificationStatusId: {
+            id: id,
+            bundleTypeId: extensionBundleTypeId,
+          },
+        },
+        data: input,
+      });
+    },
+    deleteExtensionStatus: async (_: undefined, { id }: { id: string }) => {
+      return await prisma().modificationStatus.delete({
+        where: {
+          modificationStatusId: {
+            id: id,
+            bundleTypeId: extensionBundleTypeId,
+          },
+        },
+      });
+    },
   },
 
   AmendmentStatus: {
@@ -78,6 +136,16 @@ export const modificationStatusResolvers = {
         where: {
           modificationStatusId: parent.id,
           bundleTypeId: amendmentBundleTypeId,
+        },
+      });
+    },
+  },
+  ExtensionStatus: {
+    extensions: async (parent: ModificationStatus) => {
+      return await prisma().modification.findMany({
+        where: {
+          modificationStatusId: parent.id,
+          bundleTypeId: extensionBundleTypeId,
         },
       });
     },
