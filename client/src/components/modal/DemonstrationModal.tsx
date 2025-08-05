@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "components/button";
+import { PrimaryButton, SecondaryButton } from "components/button";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
-import { AddDemonstrationInput, Demonstration } from "demos-server";
+import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { useDemonstration } from "hooks/useDemonstration";
 import { tw } from "tags/tw";
 
@@ -48,13 +45,17 @@ export const DemonstrationModal: React.FC<Props> = ({
       setState(demonstration.state?.id || "");
       setTitle(demonstration.name || "");
       setProjectOfficer(demonstration.users?.[0]?.id || "");
-      setEffectiveDate(new Date(demonstration.effectiveDate).toISOString().slice(0, 10));
-      setExpirationDate(new Date(demonstration.expirationDate).toISOString().slice(0, 10));
+      setEffectiveDate(
+        new Date(demonstration.effectiveDate).toISOString().slice(0, 10)
+      );
+      setExpirationDate(
+        new Date(demonstration.expirationDate).toISOString().slice(0, 10)
+      );
       setDescription(demonstration.description || "");
     }
   }, [demonstration]);
 
-  const getInput = (): AddDemonstrationInput => ({
+  const getInput = (): CreateDemonstrationInput => ({
     name: title,
     description,
     effectiveDate: new Date(effectiveDate),
@@ -84,7 +85,8 @@ export const DemonstrationModal: React.FC<Props> = ({
 
       if (
         result.data &&
-        ("addDemonstration" in result.data || "updateDemonstration" in result.data)
+        ("addDemonstration" in result.data ||
+          "updateDemonstration" in result.data)
       ) {
         showSuccess(
           mode === "edit"
@@ -112,7 +114,10 @@ export const DemonstrationModal: React.FC<Props> = ({
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton
+            size="small"
+            onClick={() => setShowCancelConfirm(true)}
+          >
             Cancel
           </SecondaryButton>
           <PrimaryButton
@@ -213,7 +218,9 @@ export const DemonstrationModal: React.FC<Props> = ({
             onChange={(e) => {
               const val = e.target.value;
               if (effectiveDate && val < effectiveDate) {
-                setExpirationError("Expiration Date cannot be before Effective Date.");
+                setExpirationError(
+                  "Expiration Date cannot be before Effective Date."
+                );
               } else {
                 setExpirationError("");
                 setExpirationDate(val);

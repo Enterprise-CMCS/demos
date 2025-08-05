@@ -6,7 +6,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
 import { TestType, testTableData } from "./Table.test";
-import { highlightCell } from "./KeywordSearch";
+import { highlightCell, KeywordSearch } from "./KeywordSearch";
 import { createColumnHelper } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper<TestType>();
@@ -37,7 +37,7 @@ describe.sequential("KeywordSearch Component", () => {
     localStorage.clear();
     render(
       <Table<TestType>
-        keywordSearch
+        keywordSearch={(table) => <KeywordSearch table={table} />}
         columns={testColumns}
         data={testTableData}
         noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."

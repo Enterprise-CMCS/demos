@@ -12,6 +12,7 @@ import {
   aws_wafv2,
   Fn,
   Aws,
+  Tags,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -98,13 +99,29 @@ export class UiStack extends Stack {
       addresses: commonProps.zScalerIps,
     });
 
+    const accessDeniedBodyName = "accessDenied"
+
+    const customResponseBodies = {
+      [accessDeniedBodyName]: {
+        content: JSON.stringify({error: "access denied outside vpn"}),
+        contentType: "APPLICATION_JSON"
+      }
+    }
+
+
+
     const webAcl = new aws_wafv2.CfnWebACL(
       commonProps.scope,
       "cloudfrontWafAcl",
       {
         scope: "CLOUDFRONT",
         defaultAction: {
-          block: {},
+          block: {
+            customResponse: {
+              responseCode: 403,
+              customResponseBodyKey: accessDeniedBodyName
+            }
+          },
         },
         visibilityConfig: {
           cloudWatchMetricsEnabled: true,
@@ -129,8 +146,58 @@ export class UiStack extends Stack {
             },
           },
         ],
+        customResponseBodies
       }
     );
+
+    const apiAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "apiWaf", {
+      scope: "REGIONAL",
+      defaultAction: {block: {}},
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: `${commonProps.stage}ApiWafMetric`,
+        sampledRequestsEnabled: true,
+      },
+      rules: [
+        {
+          name: "AllowFromCloudfrontHeader",
+          priority: 0,
+          action: {allow: {}},
+          statement: {
+            byteMatchStatement: {
+              fieldToMatch: {
+                singleHeader: {
+                  name: "x-allow-through"
+                }
+              },
+              positionalConstraint: "EXACTLY",
+              searchString: commonProps.cloudfrontWafHeaderValue,
+              textTransformations: [
+                {
+                  priority: 0,
+                  type: "NONE"
+                }
+              ]
+            }
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: `${commonProps.stage}AllowFromCFHeader`,
+            sampledRequestsEnabled: true
+          }
+        }
+      ]
+    })
+
+    const apiUrl = Fn.importValue(`${commonProps.stage}ApiGWUrl`)
+    const apiDomainName = Fn.parseDomainName(apiUrl)
+    const apiId = Fn.split(".", apiDomainName, 5)[0]
+    
+
+    new aws_wafv2.CfnWebACLAssociation(commonProps.scope, "apiWafAssociation", {
+      resourceArn: `arn:aws:apigateway:us-east-1::/restapis/${apiId}/stages/${commonProps.stage}`,
+      webAclArn: apiAcl.attrArn
+    })
 
     const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`)
     const securityHeadersPolicy = new aws_cloudfront.ResponseHeadersPolicy(
@@ -200,19 +267,22 @@ export class UiStack extends Stack {
         ],
         webAclId: webAcl.attrArn,
         enableIpv6: false, //TODO: only in lower environments
+        comment: `Env Name: ${commonProps.stage}`
       }
     );
     distribution.applyRemovalPolicy(
       commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
     );
 
-    const apiUrl = Fn.importValue(`${commonProps.stage}ApiGWUrl`)
-    const apiDomainName = Fn.parseDomainName(apiUrl)
+    Tags.of(distribution).add("Name", `demos-${commonProps.stage}-cloudfront-dist`)
 
     const apiOrigin = new HttpOrigin(
       apiDomainName,
       {
         originPath: `/${commonProps.stage}`,
+        customHeaders: {
+          "x-allow-through": commonProps.cloudfrontWafHeaderValue!
+        }
       }
     );
 

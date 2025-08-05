@@ -6,11 +6,7 @@ import React, {
 
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
-
-export interface Option {
-  label: string;
-  value: string;
-}
+import { Option } from "./Select";
 
 export interface AutoCompleteSelectProps {
   options: Option[];

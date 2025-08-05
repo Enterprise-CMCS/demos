@@ -1,7 +1,8 @@
-import { AddDemonstrationInput, Demonstration } from "demos-server";
-import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
-import { california } from "./stateMocks";
-import { johnDoe } from "./userMocks";
+import {
+  CreateDemonstrationInput,
+  Demonstration,
+} from "demos-server";
+import { DemonstrationTableItem } from "hooks/useDemonstration";
 import {
   ADD_DEMONSTRATION_QUERY,
   DEMONSTRATION_TABLE_QUERY,
@@ -9,8 +10,12 @@ import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
+
 import { MockedResponse } from "@apollo/client/testing";
-import { DemonstrationTableItem } from "hooks/useDemonstration";
+
+import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
+import { california } from "./stateMocks";
+import { johnDoe } from "./userMocks";
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -23,9 +28,13 @@ export const testDemonstration: Demonstration = {
   demonstrationStatus: activeDemonstrationStatus,
   state: california,
   users: [johnDoe],
+  projectOfficer: johnDoe,
+  documents: [],
+  amendments: [],
+  extensions: [],
 };
 
-export const mockAddDemonstrationInput: AddDemonstrationInput = {
+export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
   effectiveDate: new Date("2025-01-01"),
@@ -33,6 +42,7 @@ export const mockAddDemonstrationInput: AddDemonstrationInput = {
   demonstrationStatusId: activeDemonstrationStatus.id,
   stateId: california.id,
   userIds: [johnDoe.id],
+  projectOfficerUserId: johnDoe.id,
 };
 
 export const demonstrationMocks: MockedResponse[] = [

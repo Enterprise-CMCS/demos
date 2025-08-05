@@ -1,7 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import { DocumentType } from "@prisma/client";
 import {
-  AddDocumentTypeInput,
+  CreateDocumentTypeInput,
   UpdateDocumentTypeInput,
 } from "./documentTypeSchema.js";
 
@@ -18,9 +18,9 @@ export const documentTypeResolvers = {
   },
 
   Mutation: {
-    addDocumentType: async (
+    createDocumentType: async (
       _: undefined,
-      { input }: { input: AddDocumentTypeInput },
+      { input }: { input: CreateDocumentTypeInput },
     ) => {
       return await prisma().documentType.create({
         data: {

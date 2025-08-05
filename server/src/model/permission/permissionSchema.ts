@@ -11,7 +11,7 @@ export const permissionSchema = gql`
     roles: [Role!]!
   }
 
-  input AddPermissionInput {
+  input CreatePermissionInput {
     id: String!
     name: String!
     description: String!
@@ -25,7 +25,7 @@ export const permissionSchema = gql`
   }
 
   type Mutation {
-    addPermission(input: AddPermissionInput!): Permission
+    createPermission(input: CreatePermissionInput!): Permission
     updatePermission(id: String!, input: UpdatePermissionInput!): Permission
     deletePermission(id: String!): Permission
   }
@@ -46,7 +46,7 @@ export interface Permission {
   roles: Role[];
 }
 
-export interface AddPermissionInput {
+export interface CreatePermissionInput {
   id: string;
   name: string;
   description: string;

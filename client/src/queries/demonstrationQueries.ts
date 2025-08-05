@@ -1,5 +1,14 @@
 import { gql } from "@apollo/client";
 
+export const DEMONSTRATION_OPTIONS_QUERY = gql`
+  query GetDemonstrationOptions {
+    demonstrations {
+      id
+      name
+    }
+  }
+`;
+
 export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
   query GetDemonstrations {
     demonstrations {
@@ -87,13 +96,16 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
         id
         fullName
       }
+      projectOfficer {
+        fullName
+      }
     }
   }
 `;
 
 export const ADD_DEMONSTRATION_QUERY = gql`
-  mutation AddDemonstration($input: AddDemonstrationInput!) {
-    addDemonstration(input: $input) {
+  mutation AddDemonstration($input: CreateDemonstrationInput!) {
+    createDemonstration(input: $input) {
       id
       name
       description
