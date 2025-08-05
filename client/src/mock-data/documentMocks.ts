@@ -1,12 +1,12 @@
 import { MockedResponse } from "@apollo/client/testing";
 import dayjs from "dayjs";
 import { DocumentTableRow } from "hooks/useDocument";
-import { DOCUMENT_TABLE_QUERY } from "queries/documentQueries";
+import { GET_ALL_DOCUMENTS_QUERY } from "queries/document/documentQueries";
 
 export const documentMocks: MockedResponse[] = [
   {
     request: {
-      query: DOCUMENT_TABLE_QUERY,
+      query: GET_ALL_DOCUMENTS_QUERY,
     },
     result: {
       data: {

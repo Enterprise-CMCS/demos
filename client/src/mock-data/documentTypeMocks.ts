@@ -1,11 +1,11 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { DocumentTypeOption } from "hooks/useDocumentType";
-import { DOCUMENT_TYPE_OPTIONS_QUERY } from "queries/documentTypeQueries";
+import { GET_ALL_DOCUMENT_TYPES } from "queries/document/documentTypeQueries";
 
 export const documentTypeMocks: MockedResponse[] = [
   {
     request: {
-      query: DOCUMENT_TYPE_OPTIONS_QUERY,
+      query: GET_ALL_DOCUMENT_TYPES,
     },
     result: {
       data: {

@@ -1,6 +1,6 @@
 import { useLazyQuery, ApolloError } from "@apollo/client";
 import { DocumentType } from "demos-server";
-import { DOCUMENT_TYPE_OPTIONS_QUERY } from "queries/documentTypeQueries";
+import { GET_ALL_DOCUMENT_TYPES } from "queries/document/documentTypeQueries";
 
 export type DocumentTypeOption = Pick<DocumentType, "name">;
 
@@ -19,7 +19,7 @@ const createGetDocumentTypeOptionsHook =
   (): GetDocumentTypeOptionsOperation => {
     const [trigger, { data, loading, error }] = useLazyQuery<{
       documentTypes: DocumentTypeOption[];
-    }>(DOCUMENT_TYPE_OPTIONS_QUERY);
+    }>(GET_ALL_DOCUMENT_TYPES);
 
     return {
       trigger,

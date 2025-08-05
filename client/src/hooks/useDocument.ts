@@ -1,7 +1,7 @@
 import { useLazyQuery, ApolloError } from "@apollo/client";
 import { Dayjs } from "dayjs";
 import { Document, User } from "demos-server";
-import { DOCUMENT_TABLE_QUERY } from "queries/documentQueries";
+import { GET_ALL_DOCUMENTS_QUERY } from "queries/document/documentQueries";
 
 export type DocumentTableRow = {
   id: Document["id"];
@@ -26,7 +26,7 @@ export interface DocumentOperations {
 const createGetDocumentTableHook = (): GetDocumentTableOperation => {
   const [trigger, { data, loading, error }] = useLazyQuery<{
     documents: DocumentTableRow[];
-  }>(DOCUMENT_TABLE_QUERY);
+  }>(GET_ALL_DOCUMENTS_QUERY);
 
   return {
     trigger,
