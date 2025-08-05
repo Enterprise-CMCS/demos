@@ -1,17 +1,30 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-
-import { useDemonstration } from "hooks/useDemonstration";
-import { usePageHeader } from "hooks/usePageHeader";
-import { TabItem, Tabs } from "layout/Tabs";
-import { mockAmendments } from "mock-data/amendmentMocks";
-import { mockExtensions } from "mock-data/extensionMocks";
-import { useLocation, useParams } from "react-router-dom";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { isTestMode } from "config/env";
-import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { useDemonstration } from "hooks/useDemonstration";
+import { usePageHeader } from "hooks/usePageHeader";
+import {
+  TabItem,
+  Tabs,
+} from "layout/Tabs";
+import { mockAmendments } from "mock-data/amendmentMocks";
+import { mockExtensions } from "mock-data/extensionMocks";
+import {
+  DemonstrationDetailHeader,
+} from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import {
+  useLocation,
+  useParams,
+} from "react-router-dom";
+
+import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
 import { DemonstrationTab } from "./DemonstrationTab";
-import { AmendmentsTab } from "./AmendmentsTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 
 type ModalType = "edit" | "delete" | "amendment" | "extension" | "document" | null;

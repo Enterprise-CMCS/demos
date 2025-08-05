@@ -1,6 +1,7 @@
 import React from "react";
-import { Demonstration } from "demos-server";
+
 import { CreateNewModal } from "components/modal/CreateNewModal";
+import { Demonstration } from "demos-server";
 
 export const DemonstrationDetailModals: React.FC<{
   modalType: string;
