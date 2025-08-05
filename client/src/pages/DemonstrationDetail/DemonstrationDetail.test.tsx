@@ -2,16 +2,8 @@ import React from "react";
 
 import { ToastProvider } from "components/toast/ToastContext";
 import { ALL_MOCKS } from "mock-data/index";
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-} from "react-router-dom";
-import {
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { describe, expect, it } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
 import {
@@ -19,6 +11,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 
 import { DemonstrationDetail } from "./DemonstrationDetail";
@@ -44,25 +37,50 @@ describe("DemonstrationDetail", () => {
   it("renders demonstration header info", async () => {
     renderWithProviders();
 
+    // Wait for component to load
     await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
     });
 
-    const rows = screen.getAllByTestId("demonstration-detail-row");
+    // Check breadcrumb navigation
+    expect(
+      screen.getByRole("link", { name: /demonstration list/i })
+    ).toBeInTheDocument();
 
-    const stateRow = rows.find(
-      (row) =>
-        row.textContent?.includes("State/Territory:") &&
-        row.textContent?.includes("CA")
-    );
-    const officerRow = rows.find(
-      (row) =>
-        row.textContent?.includes("Project Officer:") &&
-        row.textContent?.includes("John Doe")
+    // Get the attributes list and verify its structure
+    const attributesList = screen.getByTestId("demonstration-attributes-list");
+    expect(attributesList).toBeInTheDocument();
+    expect(attributesList).toHaveAttribute("role", "list");
+
+    // Get all list items (excluding pipe separators)
+    const listItems = within(attributesList).getAllByRole("listitem");
+    const attributeItems = listItems.filter(
+      (item) => !item.textContent?.includes("|")
     );
 
-    expect(stateRow).toBeDefined();
-    expect(officerRow).toBeDefined();
+    // Expected attributes in order
+    const expectedAttributes = [
+      { label: "State/Territory", value: "CA" },
+      { label: "Project Officer", value: "John Doe" },
+      { label: "Status", value: "Active" },
+      { label: "Effective", value: "1/1/2025" },
+      { label: "Expiration", value: "12/31/2025" },
+    ];
+
+    // Verify we have the expected number of attribute items
+    expect(attributeItems).toHaveLength(expectedAttributes.length);
+
+    // Loop through and verify each attribute
+    expectedAttributes.forEach((expected, index) => {
+      const item = attributeItems[index];
+      expect(item).toHaveTextContent(expected.label);
+      expect(item).toHaveTextContent(expected.value);
+
+      // Verify the structure: should contain both label and value
+      expect(item.textContent).toMatch(
+        new RegExp(`${expected.label}.*${expected.value}`)
+      );
+    });
   });
 
   it("renders and switches to Amendments tab", async () => {
