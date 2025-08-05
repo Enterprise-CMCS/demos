@@ -71,8 +71,8 @@ describe("DemonstrationDetail", () => {
       { label: "State/Territory", value: "CA" },
       { label: "Project Officer", value: "John Doe" },
       { label: "Status", value: "Active" },
-      { label: "Effective", value: "12/31/2024" },
-      { label: "Expiration", value: "12/30/2025" },
+      { label: "Effective", value: "1/1/2025" },
+      { label: "Expiration", value: "12/31/2025" },
     ];
 
     // Verify we have the expected number of attribute items
