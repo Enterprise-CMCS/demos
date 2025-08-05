@@ -2,7 +2,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { highlightCell } from "../KeywordSearch";
 import { SecondaryButton } from "components/button";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
-import { useUserOperations } from "hooks/useUserOperations";
+import { useUserOperations } from "hooks/user/useUserOperations";
 import { useState } from "hooks/useState";
 import { useDemonstrationStatus } from "hooks/useDemonstrationStatus";
 import React from "react";

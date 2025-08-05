@@ -1,4 +1,4 @@
-import { DocumentTable } from "components/table/tables/DocumentTable";
+import { DocumentTable } from "components/table/tables/document/DocumentTable";
 import React from "react";
 export const DemonstrationTab: React.FC = () => (
   <div>

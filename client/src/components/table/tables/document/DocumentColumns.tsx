@@ -1,30 +1,41 @@
-// DocumentColumns.tsx
-import * as React from "react";
+import React, { useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
-import { SecondaryButton } from "../../button/SecondaryButton";
-import { highlightCell } from "../KeywordSearch";
-import { useDocumentType } from "hooks/useDocumentType";
-import { DocumentTableRow } from "hooks/useDocument";
+import { SecondaryButton } from "../../../button/SecondaryButton";
+import { highlightCell } from "../../KeywordSearch";
+import { useDocumentType } from "hooks/document/useDocumentType";
 import { Dayjs } from "dayjs";
+import { DocumentTableRow } from "./DocumentTable";
 
 export function DocumentColumns() {
-  const { getDocumentTypeOptions } = useDocumentType();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
 
-  // Trigger queries on mount
+  const { getAllDocumentTypes } = useDocumentType();
+
   React.useEffect(() => {
-    getDocumentTypeOptions.trigger();
-  }, []);
+    const fetchDocumentTypes = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const result = await getAllDocumentTypes();
+        setDocumentTypes(result.data?.documentTypes ?? []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDocumentTypes();
+  }, [getAllDocumentTypes]);
 
-  // Loading and error handling
-  if (getDocumentTypeOptions.loading) {
+  if (isLoading) {
     return { loading: true };
   }
-  if (getDocumentTypeOptions.error) {
-    return {
-      error: getDocumentTypeOptions.error?.message,
-    };
+  if (error) {
+    return { error };
   }
-  if (!getDocumentTypeOptions.data) {
+  if (!documentTypes || documentTypes.length === 0) {
     return { error: "Data not found" };
   }
   const columnHelper = createColumnHelper<DocumentTableRow>();
@@ -72,20 +83,19 @@ export function DocumentColumns() {
       meta: {
         filterConfig: {
           filterType: "select",
-          options:
-            getDocumentTypeOptions.data?.map((documentType) => ({
-              label: documentType.name,
-              value: documentType.name,
-            })) ?? [],
+          options: documentTypes.map((documentType) => ({
+            label: documentType.name,
+            value: documentType.name,
+          })),
         },
       },
     }),
-    columnHelper.accessor("uploadedBy.fullName", {
+    columnHelper.accessor("owner.fullName", {
       header: "Uploaded By",
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("uploadDate", {
+    columnHelper.accessor("createdAt", {
       header: "Date Uploaded",
       cell: ({ getValue }) => {
         return getValue().format("MM/DD/YYYY");

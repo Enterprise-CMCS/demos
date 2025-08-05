@@ -1,5 +1,5 @@
 import React from "react";
-import { useUserOperations } from "hooks/useUserOperations";
+import { useUserOperations } from "hooks/user/useUserOperations";
 import { PrimaryButton } from "components/button/PrimaryButton";
 import { TextInput } from "components";
 import { Collapsible } from "components/collapsible/Collapsible";
