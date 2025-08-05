@@ -3,21 +3,11 @@ import "@testing-library/jest-dom";
 import React from "react";
 
 import { ToastProvider } from "components/toast/ToastContext";
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { AddDocumentModal } from "./DocumentModal";
+import { AddDocumentModal, RemoveDocumentModal } from "./DocumentModal";
 
 describe("AddDocumentModal", () => {
   const setup = () => {
@@ -40,7 +30,9 @@ describe("AddDocumentModal", () => {
   it("shows cancel confirmation modal when cancel is clicked", () => {
     setup();
     fireEvent.click(screen.getByText("Cancel"));
-    expect(screen.getByText("Are you sure you want to cancel?")).toBeInTheDocument();
+    expect(
+      screen.getByText("Are you sure you want to cancel?")
+    ).toBeInTheDocument();
   });
 
   it("disables Upload button when description is missing", () => {
@@ -106,7 +98,8 @@ describe("AddDocumentModal", () => {
   it("truncates and displays file name with title after upload", async () => {
     setup();
 
-    const longName = "this_is_a_very_long_file_name_that_should_be_truncated_in_the_button_display_but_visible_on_hover.pdf";
+    const longName =
+      "this_is_a_very_long_file_name_that_should_be_truncated_in_the_button_display_but_visible_on_hover.pdf";
     const file = new File(["content"], longName, { type: "application/pdf" });
 
     fireEvent.change(screen.getByTestId("file-input"), {
@@ -118,5 +111,48 @@ describe("AddDocumentModal", () => {
 
     expect(titleSpan.textContent).toContain("...");
   });
+});
 
+describe("RemoveDocumentModal", () => {
+  const setup = (ids: string[] = ["1"], onClose = vi.fn()) => {
+    render(
+      <ToastProvider>
+        <RemoveDocumentModal documentIds={ids} onClose={onClose} />
+      </ToastProvider>
+    );
+    return { onClose };
+  };
+
+  it("renders with single document", () => {
+    setup(["1"]);
+    expect(screen.getByText(/Remove Document/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Are you sure you want to remove 1 document/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/This action cannot be undone/)
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Remove/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cancel/ })).toBeInTheDocument();
+  });
+
+  it("renders with multiple documents", () => {
+    setup(["1", "2", "3"]);
+    expect(
+      screen.getByText(/Are you sure you want to remove 3 documents/)
+    ).toBeInTheDocument();
+  });
+
+  it("calls onClose when Cancel is clicked", () => {
+    const { onClose } = setup(["1"]);
+    fireEvent.click(screen.getByRole("button", { name: /Cancel/ }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("shows warning and closes when Remove is clicked", () => {
+    const { onClose } = setup(["1", "2"]);
+    fireEvent.click(screen.getByRole("button", { name: /Remove/ }));
+    expect(onClose).toHaveBeenCalled();
+    // The warning toast is shown via useToast, which would be tested in integration
+  });
 });
