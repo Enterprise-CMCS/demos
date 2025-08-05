@@ -168,7 +168,15 @@ export const documentResolvers = {
 
       const uploadResult = documentPendingUpload as Document;
       // Generate a presigned S3 upload URL
-      const s3 = new S3Client({});
+      const s3 = new S3Client({
+        region: "us-east-1",
+        endpoint: "http://localstack:4566",
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: "",
+          secretAccessKey: "",
+        },
+      });
       const uploadBucket = process.env.UPLOAD_BUCKET;
       const key = uploadResult.id;
       const command = new PutObjectCommand({
