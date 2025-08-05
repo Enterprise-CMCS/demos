@@ -1,26 +1,14 @@
 import React from "react";
 
-import {
-  pickDateInCalendar,
-} from "components/input/DatePicker/DatePicker.test";
+import { pickDateInCalendar } from "components/input/DatePicker/DatePicker.test";
 import { ToastProvider } from "components/toast";
 import { ALL_MOCKS } from "mock-data/index";
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import {
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DocumentTable } from "./DocumentTable";
@@ -113,16 +101,10 @@ describe("DocumentTable", () => {
     });
 
     // Select the createdAt filter column
-    await user.selectOptions(screen.getByLabelText(/filter by:/i), [
-      "createdAt",
-    ]);
+    await user.selectOptions(screen.getByLabelText(/filter by:/i), ["createdAt"]);
 
-    const startInput = document.body.querySelector(
-      'input[name="date-filter-start"]'
-    );
-    const endInput = document.body.querySelector(
-      'input[name="date-filter-end"]'
-    );
+    const startInput = document.body.querySelector('input[name="date-filter-start"]');
+    const endInput = document.body.querySelector('input[name="date-filter-end"]');
     // Open the start date picker calendar popup by clicking the calendar button
     await pickDateInCalendar({
       datePickerRoot: startInput!.closest("[role='group']")!,
@@ -171,9 +153,7 @@ describe("DocumentTable", () => {
 
     // No documents should appear
     expect(
-      within(table).getByText(
-        "No results were returned. Adjust your search and filter criteria."
-      )
+      within(table).getByText("No results were returned. Adjust your search and filter criteria.")
     ).toBeInTheDocument();
   });
 
@@ -224,8 +204,7 @@ describe("DocumentTable", () => {
         // Find all <mark> elements containing "Risk"
         const highlightedMarks = screen.getAllByText(
           (content, element) =>
-            element!.tagName.toLowerCase() === "mark" &&
-            content.toLowerCase().includes("risk")
+            element!.tagName.toLowerCase() === "mark" && content.toLowerCase().includes("risk")
         );
         expect(highlightedMarks.length).toBeGreaterThan(0);
 
@@ -254,9 +233,7 @@ describe("DocumentTable", () => {
       await user.clear(searchInput);
       await user.type(searchInput, "Specification");
       await waitFor(() => {
-        expect(
-          screen.getByText(/Technical Specification/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Technical Specification/i)).toBeInTheDocument();
       });
 
       // Try a keyword that matches Uploaded By
@@ -303,9 +280,7 @@ describe("DocumentTable", () => {
       await user.type(searchInput, "notarealkeyword");
       await waitFor(() => {
         expect(
-          screen.getByText(
-            /No results were returned. Adjust your search and filter criteria./i
-          )
+          screen.getByText(/No results were returned. Adjust your search and filter criteria./i)
         ).toBeInTheDocument();
       });
     });
@@ -386,9 +361,7 @@ describe("DocumentTable", () => {
 
       // Table should be sorted by Date Uploaded descending
       const rows = screen.getAllByRole("row").slice(1);
-      const titles = rows.map(
-        (row) => row.querySelectorAll("td")[1]?.textContent?.trim() || ""
-      );
+      const titles = rows.map((row) => row.querySelectorAll("td")[1]?.textContent?.trim() || "");
       expect(titles).toEqual([
         "Feedback Summary",
         "Presentation Slides",

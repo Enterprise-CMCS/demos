@@ -14,9 +14,7 @@ import {
 } from "layout/Tabs";
 import { mockAmendments } from "mock-data/amendmentMocks";
 import { mockExtensions } from "mock-data/extensionMocks";
-import {
-  DemonstrationDetailHeader,
-} from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import {
   useLocation,
   useParams,
@@ -30,11 +28,21 @@ import { ExtensionsTab } from "./ExtensionsTab";
 type ModalType = "edit" | "delete" | "amendment" | "extension" | "document" | null;
 type TabType = "details" | "amendments" | "extensions";
 
-const tabList: TabItem[] = [
+// Create tab list with dynamic counts
+const createTabList = (amendmentCount: number, extensionCount: number): TabItem[] => [
   { value: "details", label: "Demonstration Details" },
-  { value: "amendments", label: "Amendments", count: mockAmendments.length },
-  { value: "extensions", label: "Extensions", count: mockExtensions.length },
+  { value: "amendments", label: "Amendments", count: amendmentCount },
+  { value: "extensions", label: "Extensions", count: extensionCount },
 ];
+
+// Helper function to check query parameters for both singular and plural forms
+const getQueryParamValue = (
+  searchParams: URLSearchParams,
+  singular: string,
+  plural: string
+): string | null => {
+  return searchParams.get(plural) || searchParams.get(singular);
+};
 
 export const DemonstrationDetail: React.FC = () => {
   const [modalType, setModalType] = useState<ModalType>(null);
@@ -43,10 +51,8 @@ export const DemonstrationDetail: React.FC = () => {
 
   const queryParams = new URLSearchParams(location.search);
   const [tab, setTab] = useState<TabType>(() => {
-    const amendmentParam =
-      queryParams.get("amendments") || queryParams.get("amendment");
-    const extensionParam =
-      queryParams.get("extensions") || queryParams.get("extension");
+    const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
+    const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
     if (amendmentParam === "true") return "amendments";
     if (extensionParam === "true") return "extensions";
@@ -55,6 +61,9 @@ export const DemonstrationDetail: React.FC = () => {
 
   const { getDemonstrationById } = useDemonstration();
   const { trigger, data: demonstration, loading, error } = getDemonstrationById;
+
+  // Memoize tab list to avoid recreation on every render
+  const tabList = useMemo(() => createTabList(mockAmendments.length, mockExtensions.length), []);
 
   useEffect(() => {
     if (id) trigger(id);
