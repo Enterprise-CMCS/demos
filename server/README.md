@@ -40,7 +40,7 @@ Below is a generic version of the structure of the back-end.
 |   |   |-- graphql.ts
 |   |   |-- schema.prisma
 |   |-- constants.ts
-|   |-- index.ts
+|   |-- local-server.ts
 |   |-- prismaClient.ts
 |   |-- seeder.ts
 |   |-- server.ts
@@ -50,10 +50,10 @@ Below is a generic version of the structure of the back-end.
 * The `auth/` folder contains the authorization module.
 * The `model/` folder contains Prisma models and related GraphQL resolvers and schema. It also contains Prisma migrations within the `migrations` folder. Models will be discussed more below.
 * `constants.ts` stores constants for use throughout the codebase. Magic strings that are used repeatedly should be made into constants with a consistent definition found here.
-* `index.ts` runs Apollo Server and hosts the API. This version is strictly for local / development use, as the actual deployed version is found in `server.ts`. They are different files due to the launch configuration requirements for AWS Lambda.
+* `local-server.ts` runs Apollo Server and hosts the API. This version is strictly for local / development use, as the actual deployed version is found in `server.ts`. They are different files due to the launch configuration requirements for AWS Lambda.
 * `prismaClient.ts` is where the Prisma client instantiation is defined. You will import and use this in all your resolvers to access the Prisma models.
 * `seeder.ts` is a script for seeding synthetic data into local / development databases. It also serves as a confirmation that your models are working as expected. You should add to or update the seeder for any model changes, to ensure that the data inserts as expected.
-* `server.ts` is the deployment version of `index.ts`, suitable for using within AWS Lambda.
+* `server.ts` is the deployment version of `local-server.ts`, suitable for using within AWS Lambda.
 * `types.ts` allows for exporting the types used on the server so that the client can also use them. It is also where types used within the server code (for example, derived from constants) can be defined.
 
 ## Models and Resolvers
@@ -270,7 +270,7 @@ A few notes:
 * Human-readable ID fields should be given the GraphQL type of `String`, while synthetic / meaningless keys (i.e. UUIDs) should be given the type of `ID`. This is consistent with [GraphQL documentation](https://graphql.org/learn/schema/):
 
   > ID: A unique identifier, often used to refetch an object or as the key for a cache. The ID type is serialized in the same way as a String; however, defining it as an ID signifies that it is not intended to be human‐readable.
-  
+
   Within TypeScript, both are `string` types, since GraphQL treats the `ID` type as a string under the hood.
 
 ## Resolver Standards and Conventions
