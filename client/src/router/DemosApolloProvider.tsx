@@ -12,6 +12,7 @@ import { ALL_MOCKS } from "mock-data";
 import { shouldUseMocks } from "config/env";
 import { AuthState, useAuth } from "react-oidc-context";
 
+// Dustin you are here
 const GRAPHQL_ENDPOINT = import.meta.env.VITE_API_URL_PREFIX ?? "/graphql";
 
 const createApolloClient = (auth: AuthState) => {
@@ -20,14 +21,12 @@ const createApolloClient = (auth: AuthState) => {
     (_, { headers: previousHeaders }) => {
       const token = auth.user?.id_token;
       const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
-
       const newHeaders = {
         headers: {
           ...previousHeaders,
           ...authHeader,
         },
       };
-
       return newHeaders;
     }
   );

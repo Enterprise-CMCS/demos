@@ -25,7 +25,7 @@ export const InputSandbox: React.FC = () => {
 
   const [multiselectValues, setMultiselectValues] = useState<string[]>([]);
   // We'll wire this up to use the current cache user
-  const currentUserId = 123;
+  const currentUserId = "cb88fd69-9509-40ed-9029-610231fe9e18";
 
   return (
     <>

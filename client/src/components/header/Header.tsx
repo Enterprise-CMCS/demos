@@ -8,6 +8,8 @@ export const Header: React.FC<{
 }> = ({ userId }) => {
   const { effectiveContent } = useHeaderConfig();
 
+  console.log("userId in Header: " + userId);
+
   return (
     <div id="header-container" className="top-0 left-0 w-full z-11">
       <HeaderUpper userId={userId} />

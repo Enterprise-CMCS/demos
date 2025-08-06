@@ -21,7 +21,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   // Use different user ID based on environment - always string now
-  const userId = shouldUseMocks() ? "2" : "00000000-1111-2222-3333-123abc123abc";
+  const userId = shouldUseMocks() ? "2" : "cb88fd69-9509-40ed-9029-610231fe9e18";
 
   return (
     <ToastProvider>
