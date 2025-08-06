@@ -46,7 +46,7 @@ export const useDocument = (): DocumentOperations => {
       createDemonstrationDocumentTrigger({ variables: { input } }),
     updateDemonstrationDocument: (input) =>
       updateDemonstrationDocumentTrigger({ variables: { input } }),
-    deleteDemonstrationDocuments: (documentIds) =>
+    deleteDemonstrationDocuments: (documentIds: string[]) =>
       deleteDemonstrationDocumentsTrigger({ variables: { documentIds } }),
     getDemonstrationDocument: (id) => getDocumentTrigger({ variables: { id } }),
     getDemonstrationDocuments: (demonstrationId) =>

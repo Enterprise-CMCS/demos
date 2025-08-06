@@ -219,6 +219,7 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   const [documentTitle, setDocumentTitle] = useState<string>("Document title");
   const [description, setDescription] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Fetch document data if editing
@@ -252,6 +253,7 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   });
 
   const handleUpload = () => {
+    setError("");
     if (!description) {
       setError(ERROR_MESSAGES.descriptionRequired);
       return;
@@ -260,8 +262,29 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
       setError(ERROR_MESSAGES.noFileSelected);
       return;
     }
-    showSuccess("File uploaded successfully!");
-    onClose();
+    setLoading(true);
+    const input = {
+      title: documentTitle,
+      description,
+      // Add other required fields here, e.g. file, documentType, etc.
+    };
+    const handleMutation = async () => {
+      try {
+        if (documentModalType === "edit" && forDocumentId) {
+          await updateDemonstrationDocument({ id: forDocumentId, input });
+          showSuccess("Document updated successfully!");
+        } else {
+          await createDemonstrationDocument(input);
+          showSuccess("Document created successfully!");
+        }
+        onClose();
+      } catch (err: unknown) {
+        setError("Failed to save document. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    handleMutation();
   };
 
   return (
@@ -278,10 +301,16 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
           <PrimaryButton
             size="small"
             onClick={handleUpload}
-            disabled={!description || !file || uploadStatus === "uploading"}
-            aria-label="Upload Document"
+            disabled={loading || !description || !file || uploadStatus === "uploading"}
+            aria-label={documentModalType === "edit" ? "Update Document" : "Upload Document"}
           >
-            Upload
+            {loading
+              ? documentModalType === "edit"
+                ? "Updating..."
+                : "Uploading..."
+              : documentModalType === "edit"
+                ? "Update"
+                : "Upload"}
           </PrimaryButton>
         </>
       }
