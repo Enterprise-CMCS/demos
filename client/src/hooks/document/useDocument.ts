@@ -1,8 +1,8 @@
 import { useLazyQuery, useMutation, FetchResult } from "@apollo/client";
 import {
-  ADD_DEMONSTRATION_DOCUMENT_MUTATION,
+  CREATE_DEMONSTRATION_DOCUMENT_MUTATION,
   UPDATE_DEMONSTRATION_DOCUMENT_MUTATION,
-  DELETE_DEMONSTRATION_DOCUMENT_MUTATION,
+  DELETE_DEMONSTRATION_DOCUMENTS_MUTATION,
   GET_DOCUMENT_QUERY,
   GET_ALL_DOCUMENTS_QUERY,
 } from "queries/document/documentQueries";
@@ -19,9 +19,9 @@ export interface DocumentOperations {
   updateDemonstrationDocument: (
     input: UpdateDemonstrationDocumentInput
   ) => Promise<FetchResult<{ updateDemonstrationDocument?: Document }>>;
-  deleteDemonstrationDocument: (
-    documentId: string
-  ) => Promise<FetchResult<{ deleteDemonstrationDocument?: Document }>>;
+  deleteDemonstrationDocuments: (
+    documentIds: string[]
+  ) => Promise<FetchResult<{ deleteDemonstrationDocuments?: string[] }>>;
   getDemonstrationDocument: (id: string) => Promise<FetchResult<{ document: Document }>>;
   getDemonstrationDocuments: (
     demonstrationId: string
@@ -31,13 +31,13 @@ export interface DocumentOperations {
 export const useDocument = (): DocumentOperations => {
   const [createDemonstrationDocumentTrigger] = useMutation<{
     addDemonstrationDocument: Document;
-  }>(ADD_DEMONSTRATION_DOCUMENT_MUTATION);
+  }>(CREATE_DEMONSTRATION_DOCUMENT_MUTATION);
   const [updateDemonstrationDocumentTrigger] = useMutation<{
     updateDemonstrationDocument: Document;
   }>(UPDATE_DEMONSTRATION_DOCUMENT_MUTATION);
-  const [deleteDemonstrationDocumentTrigger] = useMutation<{
-    deleteDemonstrationDocument: Document;
-  }>(DELETE_DEMONSTRATION_DOCUMENT_MUTATION);
+  const [deleteDemonstrationDocumentsTrigger] = useMutation<{
+    deleteDemonstrationDocument: string[];
+  }>(DELETE_DEMONSTRATION_DOCUMENTS_MUTATION);
   const [getDocumentTrigger] = useLazyQuery<{ document: Document }>(GET_DOCUMENT_QUERY);
   const [getDocumentsTrigger] = useLazyQuery<{ documents: Document[] }>(GET_ALL_DOCUMENTS_QUERY);
 
@@ -46,8 +46,8 @@ export const useDocument = (): DocumentOperations => {
       createDemonstrationDocumentTrigger({ variables: { input } }),
     updateDemonstrationDocument: (input) =>
       updateDemonstrationDocumentTrigger({ variables: { input } }),
-    deleteDemonstrationDocument: (documentId) =>
-      deleteDemonstrationDocumentTrigger({ variables: { documentId } }),
+    deleteDemonstrationDocuments: (documentIds) =>
+      deleteDemonstrationDocumentsTrigger({ variables: { documentIds } }),
     getDemonstrationDocument: (id) => getDocumentTrigger({ variables: { id } }),
     getDemonstrationDocuments: (demonstrationId) =>
       getDocumentsTrigger({ variables: { demonstrationId } }),

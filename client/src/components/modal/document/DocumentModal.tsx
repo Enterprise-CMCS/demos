@@ -1,10 +1,6 @@
 import React, { useRef, useState, useCallback } from "react";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import {
-  ErrorMessage,
-  UploadStatus,
-  useFileUpload,
-} from "hooks/file/useFileUpload";
+import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { ErrorButton, PrimaryButton, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { BaseModal } from "components/modal/BaseModal";
@@ -12,6 +8,8 @@ import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
 import { ErrorIcon } from "components/icons";
+import { useDocument } from "hooks/document/useDocument";
+import { ApolloError } from "@apollo/client";
 
 type DocumentModalType = "add" | "edit" | "remove";
 
@@ -137,13 +135,7 @@ const DropTarget: React.FC<{
   uploadProgress: number;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
-}> = ({
-  file,
-  fileInputRef,
-  uploadStatus,
-  uploadProgress,
-  handleFileChange,
-}) => {
+}> = ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
   const handleFiles = useCallback(
     (files: FileList) => {
       if (!files || files.length === 0) return;
@@ -159,11 +151,7 @@ const DropTarget: React.FC<{
   );
   const { handleDragOver, handleDrop } = useFileDrop(handleFiles);
   return (
-    <div
-      className={STYLES.dropzone}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
+    <div className={STYLES.dropzone} onDragOver={handleDragOver} onDrop={handleDrop}>
       <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
       <p className={STYLES.dropzoneOr}>or</p>
       <input
@@ -183,10 +171,7 @@ const DropTarget: React.FC<{
         className="w-full max-w-full overflow-hidden text-ellipsis"
       >
         {file ? (
-          <span
-            className="inline-block max-w-full truncate text-left"
-            title={file.name}
-          >
+          <span className="inline-block max-w-full truncate text-left" title={file.name}>
             {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
           </span>
         ) : (
@@ -225,26 +210,46 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   forDocumentId,
 }) => {
   const { showSuccess } = useToast();
+  const { createDemonstrationDocument, updateDemonstrationDocument, getDemonstrationDocument } =
+    useDocument();
 
   const documentModalType: DocumentModalType = forDocumentId ? "edit" : "add";
-  const modalTitle =
-    documentModalType === "edit" ? "Edit Document" : "Add New Document";
+  const modalTitle = documentModalType === "edit" ? "Edit Document" : "Add New Document";
 
-  // TODO: get this from GQL hook
-  const [documentTitle, setDocumentTitle] = useState("Document title");
-  const [description, setDescription] = useState("");
+  const [documentTitle, setDocumentTitle] = useState<string>("Document title");
+  const [description, setDescription] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+  // Fetch document data if editing
+  React.useEffect(() => {
+    if (forDocumentId) {
+      const fetchDocument = async () => {
+        try {
+          const documentFetchResult = await getDemonstrationDocument(forDocumentId);
+
+          if (documentFetchResult.data) {
+            setDocumentTitle(documentFetchResult.data.document.title);
+            setDescription(documentFetchResult.data.document.description || "");
+          }
+        } catch (err: unknown) {
+          if (err instanceof ApolloError) {
+            setError("Failed to fetch document data.");
+          }
+        }
+      };
+      fetchDocument();
+    }
+  }, [forDocumentId]);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { file, uploadProgress, uploadStatus, handleFileChange } =
-    useFileUpload({
-      allowedMimeTypes: ALLOWED_MIME_TYPES,
-      maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
-      onErrorCallback: (errorMessage: ErrorMessage) => {
-        setError(errorMessage);
-      },
-    });
+  const { file, uploadProgress, uploadStatus, handleFileChange } = useFileUpload({
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
+    maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
+    onErrorCallback: (errorMessage: ErrorMessage) => {
+      setError(errorMessage);
+    },
+  });
 
   const handleUpload = () => {
     if (!description) {
@@ -267,10 +272,7 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
       setShowCancelConfirm={setShowCancelConfirm}
       actions={
         <>
-          <SecondaryButton
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-          >
+          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
           <PrimaryButton
@@ -285,16 +287,9 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
       }
     >
       {documentModalType === "edit" && (
-        <TitleInput
-          value={documentTitle}
-          onChange={(newTitle) => setDocumentTitle(newTitle)}
-        />
+        <TitleInput value={documentTitle} onChange={(newTitle) => setDocumentTitle(newTitle)} />
       )}
-      <DescriptionInput
-        value={description}
-        onChange={setDescription}
-        error={error}
-      />
+      <DescriptionInput value={description} onChange={setDescription} error={error} />
       <DocumentTypeInput error={error} />
       <DropTarget
         file={file}
@@ -309,9 +304,9 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   );
 };
 
-export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({
-  onClose,
-}) => <BaseDocumentModal onClose={onClose} />;
+export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <BaseDocumentModal onClose={onClose} />
+);
 
 export const EditDocumentModal: React.FC<{
   documentId: string;
@@ -324,14 +319,20 @@ export const RemoveDocumentModal: React.FC<{
   documentIds: string[];
   onClose: () => void;
 }> = ({ documentIds, onClose }) => {
-  const { showWarning } = useToast();
-  const onConfirm = (ids: string[]) => {
-    const multipleDocuments = ids.length > 1;
-    console.log("Removing documents with IDs:", ids);
-    showWarning(
-      `Your document${multipleDocuments ? "s" : ""} ${multipleDocuments ? "have been" : "has been"} removed.`
-    );
-    onClose();
+  const { showWarning, showError } = useToast();
+  const { deleteDemonstrationDocuments } = useDocument();
+
+  const onConfirmClick = async (ids: string[]) => {
+    try {
+      await deleteDemonstrationDocuments(ids);
+      const multipleDocuments = ids.length > 1;
+      showWarning(
+        `Your document${multipleDocuments ? "s" : ""} ${multipleDocuments ? "have been" : "has been"} removed.`
+      );
+      onClose();
+    } catch {
+      showError("Failed to remove document(s). Please try again.");
+    }
   };
 
   return (
@@ -345,7 +346,7 @@ export const RemoveDocumentModal: React.FC<{
           </SecondaryButton>
           <ErrorButton
             size="small"
-            onClick={() => onConfirm(documentIds)}
+            onClick={() => onConfirmClick(documentIds)}
             aria-label="Confirm Remove Document"
           >
             Remove

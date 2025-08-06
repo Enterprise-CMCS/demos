@@ -40,9 +40,9 @@ export const GET_DOCUMENT_QUERY = gql`
   ${DOCUMENT_FIELDS_FRAGMENT}
 `;
 
-export const ADD_DEMONSTRATION_DOCUMENT_MUTATION = gql`
-  mutation AddDemonstrationDocument($input: AddDocumentInput!) {
-    addDemonstrationDocument(input: $input) {
+export const CREATE_DEMONSTRATION_DOCUMENT_MUTATION = gql`
+  mutation CreateDemonstrationDocument($input: CreateDemonstrationDocumentInput!) {
+    createDemonstrationDocument(input: $input) {
       ...DocumentFields
     }
   }
@@ -50,7 +50,7 @@ export const ADD_DEMONSTRATION_DOCUMENT_MUTATION = gql`
 `;
 
 export const UPDATE_DEMONSTRATION_DOCUMENT_MUTATION = gql`
-  mutation UpdateDemonstrationDocument($id: ID!, $input: UpdateDocumentInput!) {
+  mutation UpdateDemonstrationDocument($id: ID!, $input: UpdateDemonstrationDocumentInput!) {
     updateDemonstrationDocument(id: $id, input: $input) {
       ...DocumentFields
     }
@@ -58,36 +58,10 @@ export const UPDATE_DEMONSTRATION_DOCUMENT_MUTATION = gql`
   ${DOCUMENT_FIELDS_FRAGMENT}
 `;
 
-export const DELETE_DEMONSTRATION_DOCUMENT_MUTATION = gql`
-  mutation DeleteDemonstrationDocument($id: ID!) {
-    deleteDemonstrationDocument(id: $id) {
-      id
-    }
-  }
-`;
-
-export const ADD_AMENDMENT_DOCUMENT_MUTATION = gql`
-  mutation AddAmendmentDocument($input: AddDocumentInput!) {
-    addAmendmentDocument(input: $input) {
-      ...DocumentFields
-    }
-  }
-  ${DOCUMENT_FIELDS_FRAGMENT}
-`;
-
-export const UPDATE_AMENDMENT_DOCUMENT_MUTATION = gql`
-  mutation UpdateAmendmentDocument($id: ID!, $input: UpdateDocumentInput!) {
-    updateAmendmentDocument(id: $id, input: $input) {
-      ...DocumentFields
-    }
-  }
-  ${DOCUMENT_FIELDS_FRAGMENT}
-`;
-
-export const DELETE_AMENDMENT_DOCUMENT_MUTATION = gql`
-  mutation DeleteAmendmentDocument($id: ID!) {
-    deleteAmendmentDocument(id: $id) {
-      id
+export const DELETE_DEMONSTRATION_DOCUMENTS_MUTATION = gql`
+  mutation DeleteDemonstrationDocuments($ids: [ID!]!) {
+    deleteDemonstrationDocuments(ids: $ids) {
+      ids
     }
   }
 `;
