@@ -36,6 +36,7 @@ export const DemosRouter = () => {
               >
                 {/* Real Pages the user should be able to access */}
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<AuthComponent />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
                 <Route
                   path="demonstrations/:id"
@@ -46,7 +47,6 @@ export const DemosRouter = () => {
                   <>
                     <Route path="/components" element={<ComponentLibrary />} />
                     <Route path="/hooks" element={<TestHooks />} />
-                    <Route path="/auth" element={<AuthComponent />} />
                     <Route path="/icons" element={<IconLibrary />} />
                     <Route path="/events" element={<EventSandbox />} />
                   </>
