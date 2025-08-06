@@ -30,11 +30,12 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
         context: async ({ event, context }) => {
             // Add any shared context here, e.g., user authentication
             await databaseUrlPromise;
-            
+
             // Values from the user's id_token are set in /lambda_authorizer/index.mjs
             // and available here from event.requestContext.authorizer.<key>
 
             const { sub, email } = await getCognitoUserInfoForLambda(event.headers);
+            console.log(sub, email);
             const roles = await getUserRoles(sub);
             return {
                 user: { id: sub, name: email, roles },

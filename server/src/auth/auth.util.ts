@@ -77,35 +77,30 @@ const decodeToken = (token: string): Promise<DecodedJWT> => {
   });
 }
 
-const checkAuthBypass = (): DecodedJWT | undefined => {
+const getLocalUser = (): DecodedJWT | undefined => {
   // Bypass authentication for testing purposes
-  if (process.env.BYPASS_AUTH === "true") {
     return {
-      sub: "1234abcd-0000-1111-2222-333333333333",
-      email: "bypassedUser@email.com"
+      sub: process.env.USER_SUB,
+      email: process.env.USER_EMAIL
     };
-  }
 }
 
-export const getCognitoUserInfo = (
-  req: IncomingMessage,
-): Promise<DecodedJWT> => {
-
-  const bypassResult = checkAuthBypass();
-  if (bypassResult) {
-    return Promise.resolve(bypassResult);
-  }
-
-  const token: string = req.headers.authorization?.split(" ")[1] || "";
-  return decodeToken(token);
-
-};
+// export const getCognitoUserInfo = (
+//   req: IncomingMessage,
+// ): Promise<DecodedJWT> => {
+//   const bypassResult = getLocalUser();
+//   if (bypassResult) {
+//     return Promise.resolve(bypassResult);
+//   }
+//   const token: string = req.headers.authorization?.split(" ")[1] || "";
+//   return decodeToken(token);
+// };
 
 export const getCognitoUserInfoForLambda = (
   headers: APIGatewayProxyEventHeaders,
 ): Promise<DecodedJWT> => {
 
-  const bypassResult = checkAuthBypass();
+  const bypassResult = getLocalUser();
   if (bypassResult) {
     return Promise.resolve(bypassResult);
   }
@@ -118,26 +113,26 @@ export const getCognitoUserInfoForLambda = (
 /**
  * Fetches a user's role from the DB using their Cognito sub.
  */
-export const getUserRoles = async (
-  cognitoSubject: string,
-): Promise<string[] | null> => {
+// export const getUserRoles = async (
+//   cognitoSubject: string,
+// ): Promise<string[] | null> => {
 
-  if (process.env.BYPASS_AUTH === "true") {
-    return ["ADMIN"];
-  }
+//   if (process.env.BYPASS_AUTH === "true") {
+//     return ["ADMIN"];
+//   }
 
-  const user = await prisma.user.findUnique({
-    include: {
-      userRoles: {
-        include: {
-          role: true,
-        },
-      },
-    },
-    where: { cognitoSubject },
-  });
-  return user?.userRoles.map(userRole => userRole.role.name) || null;
-};
+//   const user = await prisma.user.findUnique({
+//     include: {
+//       userRoles: {
+//         include: {
+//           role: true,
+//         },
+//       },
+//     },
+//     where: { cognitoSubject },
+//   });
+//   return user?.userRoles.map(userRole => userRole.role.name) || null;
+// };
 
 function assertContextUserExists(context: GraphQLContext)
 : asserts context is GraphQLContext & { user: NonNullable<GraphQLContext['user']> } {
@@ -251,13 +246,13 @@ export async function getDatabaseUrl(): Promise<string> {
   const secretArn = process.env.DATABASE_SECRET_ARN;
   const command = new GetSecretValueCommand({ SecretId: secretArn });
   const response = await secretsManager.send(command);
-    
+
   if (!response.SecretString) {
     throw new Error("The SecretString value is undefined!")
   }
   const secretData = JSON.parse(response.SecretString);
   databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=demos_app`;
   cacheExpiration = now + 60 * 60 * 1000; // Cache for 1 hour
-    
+
   return databaseUrlCache;
 }
