@@ -245,6 +245,15 @@ async function seedDatabase() {
         description: faker.lorem.sentence(),
         effectiveDate: faker.date.future(),
         expirationDate: faker.date.future({ years: 1 }),
+        cmcsDivision: sampleFromArray(
+          [
+            "Division of System Reform Demonstrations",
+            "Division of Eligibility and Coverage Demonstrations",
+            null,
+          ],
+          1,
+        )[0],
+        signatureLevel: sampleFromArray(["OA", "OCD", "OGD", null], 1)[0],
         demonstrationStatusId:
           (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,

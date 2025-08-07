@@ -5,6 +5,8 @@ model Demonstration {
   description           String
   effectiveDate         DateTime @map("effective_date") @db.Date
   expirationDate        DateTime @map("expiration_date") @db.Date
+  cmcsDivision          String?  @map("cmcs_division")
+  signatureLevel        String?  @map("signature_level")
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz()
   demonstrationStatusId String   @map("demonstration_status_id")
