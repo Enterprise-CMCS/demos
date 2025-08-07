@@ -4,13 +4,21 @@ import { isTestMode } from "config/env";
 import { useDemonstrationDetail } from "hooks/demonstration/useDemonstrationDetail";
 import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
-import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DemonstrationDetailHeader, DemonstrationHeaderDetails } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
 
 import { AmendmentsTab } from "./AmendmentsTab";
-import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
+import { DemonstrationDetailModals, DemonstrationModalDetails } from "./DemonstrationDetailModals";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
+import { AmendmentTableRow } from "components/table/tables/AmendmentTable";
+import { ExtensionTableRow } from "components/table/tables/ExtensionTable";
+
+export type DemonstrationDetail = DemonstrationHeaderDetails &
+  DemonstrationModalDetails & {
+    amendments: AmendmentTableRow[];
+    extensions: ExtensionTableRow[];
+  };
 
 type TabType = "details" | "amendments" | "extensions";
 

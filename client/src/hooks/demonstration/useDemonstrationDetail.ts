@@ -1,9 +1,6 @@
 import { useEffect } from "react";
 import { gql, useLazyQuery } from "@apollo/client";
-import { DemonstrationHeaderDetails } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
-import { DemonstrationModalDetails } from "pages/DemonstrationDetail/DemonstrationDetailModals";
-import { AmendmentTableRow } from "components/table/tables/AmendmentTable";
-import { ExtensionTableRow } from "components/table/tables/ExtensionTable";
+import { DemonstrationDetail } from "pages/DemonstrationDetail";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
@@ -39,12 +36,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
     }
   }
 `;
-
-export type DemonstrationDetail = DemonstrationHeaderDetails &
-  DemonstrationModalDetails & {
-    amendments: AmendmentTableRow[];
-    extensions: ExtensionTableRow[];
-  };
 
 export const useDemonstrationDetail = (id?: string) => {
   const [getDemonstration, { data, loading, error }] = useLazyQuery<{
