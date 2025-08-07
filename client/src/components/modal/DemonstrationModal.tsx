@@ -20,7 +20,11 @@ type Props = {
   mode: DemonstrationModalMode;
 };
 
-export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mode }) => {
+export const DemonstrationModal: React.FC<Props> = ({
+  onClose,
+  demonstration,
+  mode,
+}) => {
   const [state, setState] = useState("");
   const [title, setTitle] = useState("");
   const [projectOfficer, setProjectOfficer] = useState("");
@@ -41,8 +45,12 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
       setState(demonstration.state?.id || "");
       setTitle(demonstration.name || "");
       setProjectOfficer(demonstration.users?.[0]?.id || "");
-      setEffectiveDate(new Date(demonstration.effectiveDate).toISOString().slice(0, 10));
-      setExpirationDate(new Date(demonstration.expirationDate).toISOString().slice(0, 10));
+      setEffectiveDate(
+        new Date(demonstration.effectiveDate).toISOString().slice(0, 10)
+      );
+      setExpirationDate(
+        new Date(demonstration.expirationDate).toISOString().slice(0, 10)
+      );
       setDescription(demonstration.description || "");
     }
   }, [demonstration]);
@@ -77,7 +85,8 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
 
       if (
         result.data &&
-        ("addDemonstration" in result.data || "updateDemonstration" in result.data)
+        ("addDemonstration" in result.data ||
+          "updateDemonstration" in result.data)
       ) {
         showSuccess(
           mode === "edit"
@@ -105,7 +114,10 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton
+            size="small"
+            onClick={() => setShowCancelConfirm(true)}
+          >
             Cancel
           </SecondaryButton>
           <PrimaryButton
@@ -206,14 +218,18 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
             onChange={(e) => {
               const val = e.target.value;
               if (effectiveDate && val < effectiveDate) {
-                setExpirationError("Expiration Date cannot be before Effective Date.");
+                setExpirationError(
+                  "Expiration Date cannot be before Effective Date."
+                );
               } else {
                 setExpirationError("");
                 setExpirationDate(val);
               }
             }}
           />
-          {expirationError && <div className="text-text-warn text-sm mt-1">{expirationError}</div>}
+          {expirationError && (
+            <div className="text-text-warn text-sm mt-1">{expirationError}</div>
+          )}
         </div>
       </div>
 

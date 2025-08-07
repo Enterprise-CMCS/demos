@@ -30,6 +30,7 @@ vi.mock("hooks/useDemonstration", () => ({
   })),
 }));
 
+
 // Mock the SelectUSAStates component
 vi.mock("components/input/select/SelectUSAStates", () => ({
   SelectUSAStates: ({
@@ -41,7 +42,10 @@ vi.mock("components/input/select/SelectUSAStates", () => ({
   }) => (
     <div>
       <label>{label}</label>
-      <select data-testid="state-select" onChange={(e) => onStateChange(e.target.value)}>
+      <select
+        data-testid="state-select"
+        onChange={(e) => onStateChange(e.target.value)}
+      >
         <option value="">Select a state</option>
         <option value="1">California</option>
         <option value="2">Texas</option>
@@ -61,7 +65,10 @@ vi.mock("components/input/select/SelectUsers", () => ({
   }) => (
     <div>
       <label>{label}</label>
-      <select data-testid="user-select" onChange={(e) => onStateChange(e.target.value)}>
+      <select
+        data-testid="user-select"
+        onChange={(e) => onStateChange(e.target.value)}
+      >
         <option value="">Select a user</option>
         <option value="1">John Doe</option>
         <option value="2">Jane Smith</option>
@@ -82,7 +89,9 @@ if (!HTMLFormElement.prototype.requestSubmit) {
       return;
     }
 
-    this.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
+    this.dispatchEvent(
+      new SubmitEvent("submit", { bubbles: true, cancelable: true })
+    );
   };
 }
 
@@ -113,7 +122,9 @@ describe("DemonstrationModal", () => {
   it("opens cancel confirmation when clicking Cancel button", () => {
     renderModal();
     fireEvent.click(screen.getByText("Cancel"));
-    expect(screen.getByText("Are you sure you want to cancel?")).toBeInTheDocument();
+    expect(
+      screen.getByText("Are you sure you want to cancel?")
+    ).toBeInTheDocument();
   });
 
   it("closes modal when clicking Yes in cancel confirmation", () => {
@@ -127,7 +138,9 @@ describe("DemonstrationModal", () => {
     renderModal();
     fireEvent.click(screen.getByText("Cancel"));
     fireEvent.click(screen.getByText("No"));
-    expect(screen.queryByText("Are you sure you want to cancel?")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Are you sure you want to cancel?")
+    ).not.toBeInTheDocument();
   });
 
   it("validates expiration date cannot be before effective date", async () => {
