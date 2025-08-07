@@ -21,11 +21,12 @@ export interface DocumentOperations {
   ) => Promise<FetchResult<{ updateDemonstrationDocument?: Document }>>;
   deleteDemonstrationDocuments: (
     documentIds: string[]
-  ) => Promise<FetchResult<{ deleteDemonstrationDocuments?: string[] }>>;
+  ) => Promise<FetchResult<{ deletedDocumentIds?: string[] }>>;
   getDemonstrationDocument: (id: string) => Promise<FetchResult<{ document: Document }>>;
   getDemonstrationDocuments: (
     demonstrationId: string
   ) => Promise<FetchResult<{ documents: Document[] }>>;
+  getAllDocuments: () => Promise<FetchResult<{ documents: Document[] }>>;
 }
 
 export const useDocument = (): DocumentOperations => {
@@ -36,10 +37,10 @@ export const useDocument = (): DocumentOperations => {
     updateDemonstrationDocument: Document;
   }>(UPDATE_DEMONSTRATION_DOCUMENT_MUTATION);
   const [deleteDemonstrationDocumentsTrigger] = useMutation<{
-    deleteDemonstrationDocument: string[];
+    deletedDocumentIds: string[];
   }>(DELETE_DEMONSTRATION_DOCUMENTS_MUTATION);
   const [getDocumentTrigger] = useLazyQuery<{ document: Document }>(GET_DOCUMENT_QUERY);
-  const [getDocumentsTrigger] = useLazyQuery<{ documents: Document[] }>(GET_ALL_DOCUMENTS_QUERY);
+  const [getAllDocumentsTrigger] = useLazyQuery<{ documents: Document[] }>(GET_ALL_DOCUMENTS_QUERY);
 
   return {
     createDemonstrationDocument: (input) =>
@@ -50,6 +51,7 @@ export const useDocument = (): DocumentOperations => {
       deleteDemonstrationDocumentsTrigger({ variables: { documentIds } }),
     getDemonstrationDocument: (id) => getDocumentTrigger({ variables: { id } }),
     getDemonstrationDocuments: (demonstrationId) =>
-      getDocumentsTrigger({ variables: { demonstrationId } }),
+      getAllDocumentsTrigger({ variables: { demonstrationId } }),
+    getAllDocuments: () => getAllDocumentsTrigger(),
   };
 };

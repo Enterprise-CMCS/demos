@@ -4,11 +4,7 @@ import { Table } from "../../Table";
 import { DocumentColumns } from "./DocumentColumns";
 import { useDocument } from "hooks/document/useDocument";
 import { CircleButton } from "components/button/CircleButton";
-import {
-  DeleteIcon,
-  EditIcon,
-  ImportIcon,
-} from "components/icons";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 import {
   AddDocumentModal,
   EditDocumentModal,
@@ -87,7 +83,7 @@ export function DocumentTable() {
   const [documents, setDocuments] = React.useState<DocumentTableRow[]>([]);
   const { documentColumns, documentColumnsLoading, documentColumnsError } = DocumentColumns();
 
-  const { getDemonstrationDocuments } = useDocument();
+  const { getAllDocuments } = useDocument();
 
   // Fetch Documents
   React.useEffect(() => {
@@ -95,9 +91,7 @@ export function DocumentTable() {
       setIsLoading(true);
       setError(null);
       try {
-        // Replace 'demonstrationId' with the actual id you want to fetch
-        const demonstrationId = "demo-id";
-        const result = await getDemonstrationDocuments(demonstrationId);
+        const result = await getAllDocuments();
         setDocuments(result.data?.documents ?? []);
       } catch (err: unknown) {
         if (err instanceof ApolloError) {

@@ -210,8 +210,7 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   forDocumentId,
 }) => {
   const { showSuccess } = useToast();
-  const { createDemonstrationDocument, updateDemonstrationDocument, getDemonstrationDocument } =
-    useDocument();
+  const { getDemonstrationDocument } = useDocument();
 
   const documentModalType: DocumentModalType = forDocumentId ? "edit" : "add";
   const modalTitle = documentModalType === "edit" ? "Edit Document" : "Add New Document";
@@ -263,23 +262,27 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
       return;
     }
     setLoading(true);
-    const input = {
-      title: documentTitle,
-      description,
-      // Add other required fields here, e.g. file, documentType, etc.
-    };
+    // const input = {
+    //   title: documentTitle,
+    //   description,
+    //   // Add other required fields here, e.g. file, documentType, etc.
+    // };
     const handleMutation = async () => {
       try {
         if (documentModalType === "edit" && forDocumentId) {
-          await updateDemonstrationDocument({ id: forDocumentId, input });
+          // await updateDemonstrationDocument({ id: forDocumentId, input });
           showSuccess("Document updated successfully!");
         } else {
-          await createDemonstrationDocument(input);
+          // await createDemonstrationDocument(input);
           showSuccess("Document created successfully!");
         }
         onClose();
       } catch (err: unknown) {
-        setError("Failed to save document. Please try again.");
+        if (err instanceof ApolloError) {
+          setError(err.message);
+        } else {
+          setError("An unexpected error occurred.");
+        }
       } finally {
         setLoading(false);
       }

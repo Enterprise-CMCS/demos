@@ -1,5 +1,4 @@
 import dayjs from "dayjs";
-import { DocumentTableRow } from "hooks/useDocument";
 import { GET_ALL_DOCUMENTS_QUERY } from "queries/document/documentQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
@@ -192,7 +191,7 @@ export const documentMocks: MockedResponse[] = [
             },
             createdAt: dayjs("2025-07-15").toISOString(),
           },
-        ] satisfies DocumentTableRow[],
+        ],
       },
     },
   },

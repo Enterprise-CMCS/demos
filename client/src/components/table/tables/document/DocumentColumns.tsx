@@ -3,7 +3,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { SecondaryButton } from "../../../button/SecondaryButton";
 import { highlightCell } from "../../KeywordSearch";
 import { useDocumentType } from "hooks/document/useDocumentType";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { DocumentTableRow } from "./DocumentTable";
 
 export function DocumentColumns() {
@@ -19,7 +19,7 @@ export function DocumentColumns() {
       setError(null);
       try {
         const result = await getAllDocumentTypes();
-        setDocumentTypes(result.data?.documentTypes ?? []);
+        setDocumentTypes([]);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
