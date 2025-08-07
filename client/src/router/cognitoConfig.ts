@@ -30,14 +30,15 @@ const BASE_COGNITO_CONFIG: BaseCognitoConfig = {
   userStore: new WebStorageStateStore({ store: window.localStorage }),
 };
 
+// old config
 export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   ...BASE_COGNITO_CONFIG,
-  authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_A7CaR2Wo3",
-  domain: "https://us-east-1a7car2wo3.auth.us-east-1.amazoncognito.com",
-  client_id: "5km9thunj8g6qd32s5et2i8pga",
+  authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_FCc2lmZDJ",
+  client_id: "5p61qososiui75cmclcift45oi",
+  domain: "https://demos-dev-login-user-pool-client.auth.us-east-1.amazoncognito.com",
   post_logout_redirect_uri: "http://localhost:3000",
-  redirect_uri: "http://localhost:3000",
-  scope: "openid email phone",
+  redirect_uri: "http://localhost:3000/",
+  scope: "email openid profile",
 };
 
 // TODO: Revisit this when we know more about the deployment setup
@@ -64,6 +65,9 @@ export const logout = () => {
 
 export const getCognitoConfig = (): CognitoConfig => {
   const appMode = getAppMode();
+
+  console.log("Cognito config for app mode:", appMode);
+  console.log("config:", PRODUCTION_COGNITO_CONFIG);
 
   switch (appMode) {
     case "development":

@@ -16,21 +16,15 @@ const GRAPHQL_ENDPOINT = import.meta.env.VITE_API_URL_PREFIX ?? "/graphql";
 
 const createApolloClient = (auth: AuthState) => {
   // Add the authorization header to each request sent by Apollo Client
-  const setAuthHeaders: ApolloLink = setContext(
-    (_, { headers: previousHeaders }) => {
-      const token = auth.user?.id_token;
-      const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+  const setAuthHeaders: ApolloLink = setContext((_, { headers }) => {
+    const token = auth.user?.id_token;
+    return {
+      ...headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  });
 
-      const newHeaders = {
-        headers: {
-          ...previousHeaders,
-          ...authHeader,
-        },
-      };
-
-      return newHeaders;
-    }
-  );
+  console.log("in the createApolloClient function");
 
   // Create the HTTP Link for Apollo Client, pointing to the GraphQL endpoint
   const httpLink: ApolloLink = createHttpLink({
@@ -43,11 +37,7 @@ const createApolloClient = (auth: AuthState) => {
   });
 };
 
-export const DemosApolloProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const DemosApolloProvider = ({ children }: { children: React.ReactNode }) => {
   const auth: AuthState = useAuth();
 
   if (shouldUseMocks()) {

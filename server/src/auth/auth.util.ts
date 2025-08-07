@@ -105,6 +105,8 @@ export const getCognitoUserInfoForLambda = (
   headers: APIGatewayProxyEventHeaders,
 ): Promise<DecodedJWT> => {
 
+  console.log('getCognitoUserInfoForLambda!');
+
   const bypassResult = checkAuthBypass();
   if (bypassResult) {
     return Promise.resolve(bypassResult);
@@ -197,43 +199,6 @@ export const getCurrentUserId = async (context: GraphQLContext): Promise<string>
   return user.id;
 };
 
-/**
- * Resolver middleware to enforce role-based access control.
- */
-export const requireRole = (requiredRoles: string[] = []) => {
-  return <
-    Parent,
-    Args extends Record<string, unknown>,
-    Context extends GraphQLContext,
-    Result,
-  >(
-    resolver: ResolverFn<Parent, Args, Context, Result>,
-  ): ResolverFn<Parent, Args, Context, Result> => {
-    return async (parent, args, context, info) => {
-      const user = context.user;
-      console.log('user', user)
-      if (!user) {
-        throw new GraphQLError("Not authenticated", {
-          extensions: { code: "UNAUTHENTICATED" },
-        });
-      }
-
-      const userRoles = user.roles ?? [];
-      console.log('userRoles', userRoles)
-      const hasRequiredRole = userRoles.some((userRole) =>
-        requiredRoles.includes(userRole),
-      );
-
-      if (!hasRequiredRole) {
-        throw new GraphQLError("Not authorized", {
-          extensions: { code: "FORBIDDEN" },
-        });
-      }
-
-      return resolver(parent, args, context, info);
-    };
-  };
-};
 
 /**
  * Obtaining (with caching) secrets from SecretsManager.
@@ -251,13 +216,13 @@ export async function getDatabaseUrl(): Promise<string> {
   const secretArn = process.env.DATABASE_SECRET_ARN;
   const command = new GetSecretValueCommand({ SecretId: secretArn });
   const response = await secretsManager.send(command);
-    
+
   if (!response.SecretString) {
     throw new Error("The SecretString value is undefined!")
   }
   const secretData = JSON.parse(response.SecretString);
   databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=demos_app`;
   cacheExpiration = now + 60 * 60 * 1000; // Cache for 1 hour
-    
+
   return databaseUrlCache;
 }

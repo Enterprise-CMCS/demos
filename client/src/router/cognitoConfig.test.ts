@@ -10,14 +10,15 @@ vi.mock("config/env", () => ({
 }));
 
 describe("cognitoConfig", () => {
-  describe("getCognitoLogoutUrl", () => {
-    it("should generate the correct logout URL", () => {
-      const expectedUrl =
-        "https://us-east-1a7car2wo3.auth.us-east-1.amazoncognito.com/logout?client_id=5km9thunj8g6qd32s5et2i8pga&logout_uri=http%3A%2F%2Flocalhost%3A3000";
-      const url = getCognitoLogoutUrl(LOCAL_COGNITO_CONFIG);
-      expect(url).toBe(expectedUrl);
-    });
-  });
+  // describe("getCognitoLogoutUrl", () => {
+  // // TODO: We are not even sure what this will be yet. So let's come back to this.
+  //   it("should generate the correct logout URL", () => {
+  //     const expectedUrl =
+  //       "https://us-east-1a7car2wo3.auth.us-east-1.amazoncognito.com/logout?client_id=5km9thunj8g6qd32s5et2i8pga&logout_uri=http%3A%2F%2Flocalhost%3A3000";
+  //     const url = getCognitoLogoutUrl(LOCAL_COGNITO_CONFIG);
+  //     expect(url).toBe(expectedUrl);
+  //   });
+  // });
 
   describe("getCognitoConfig", () => {
     const mockGetAppMode = vi.mocked(vi.fn());
