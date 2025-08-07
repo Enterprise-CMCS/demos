@@ -5,7 +5,7 @@ import { useDemonstrationDetail } from "hooks/demonstration/useDemonstrationDeta
 import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
@@ -32,15 +32,8 @@ const getQueryParamValue = (
 };
 
 export const DemonstrationDetail: React.FC = () => {
-  const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
-  const [demonstrationActionModal, setDemonstrationActionModal] =
-    useState<DemonstrationActionModal>(null);
-
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
-
-  // Use the new independent hook
-  const { demonstration, loading, error } = useDemonstrationDetail();
-
   const queryParams = new URLSearchParams(location.search);
   const [tab, setTab] = useState<TabType>(() => {
     const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
@@ -50,20 +43,23 @@ export const DemonstrationDetail: React.FC = () => {
     if (extensionParam === "true") return "extensions";
     return "details";
   });
+  const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
+  const [demonstrationActionModal, setDemonstrationActionModal] =
+    useState<DemonstrationActionModal>(null);
 
+  const handleEdit = useCallback(() => {
+    setDemonstrationActionModal("edit");
+  }, []);
+  const handleDelete = useCallback(() => {
+    setDemonstrationActionModal("delete");
+  }, []);
+
+  const { demonstration, loading, error } = useDemonstrationDetail(id);
   const tabList = useMemo(
     () =>
       createTabList(demonstration?.amendments.length ?? 0, demonstration?.extensions.length ?? 0),
     [demonstration]
   );
-
-  const handleEdit = useCallback(() => {
-    setDemonstrationActionModal("edit");
-  }, []);
-
-  const handleDelete = useCallback(() => {
-    setDemonstrationActionModal("delete");
-  }, []);
 
   const headerContent = useMemo(
     () => (

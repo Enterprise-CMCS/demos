@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { gql, useLazyQuery } from "@apollo/client";
-import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { DemonstrationHeaderDetails } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { DemonstrationModalDetails } from "pages/DemonstrationDetail/DemonstrationDetailModals";
 import { AmendmentTableRow } from "components/table/tables/AmendmentTable";
@@ -48,9 +46,7 @@ export type DemonstrationDetail = DemonstrationHeaderDetails &
     extensions: ExtensionTableRow[];
   };
 
-export const useDemonstrationDetail = () => {
-  const { id } = useParams<{ id: string }>();
-
+export const useDemonstrationDetail = (id?: string) => {
   const [getDemonstration, { data, loading, error }] = useLazyQuery<{
     demonstration: DemonstrationDetail;
   }>(DEMONSTRATION_DETAIL_QUERY);
@@ -65,6 +61,5 @@ export const useDemonstrationDetail = () => {
     demonstration: data?.demonstration,
     loading,
     error,
-    demonstrationId: id,
   };
 };
