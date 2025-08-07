@@ -6,9 +6,13 @@ export const DOCUMENT_TABLE_QUERY = gql`
       id
       title
       description
-      documentType
-      uploadedBy
-      uploadDate
+      documentType {
+        name
+      }
+      owner {
+        fullName
+      }
+      createdAt
     }
   }
 `;
