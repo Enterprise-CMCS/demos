@@ -9,7 +9,6 @@ import {
   TabItem,
   Tabs,
 } from "layout/Tabs";
-import { summaryDemonstration } from "mock-data/summaryDetailMock";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -36,9 +35,7 @@ export const DemonstrationTab: React.FC = () => {
       <div className="mt-2">
         {subTab === "summary" && (
           <div>
-            <SummaryDetailsTable
-              demonstration={summaryDemonstration}
-            />
+            <SummaryDetailsTable />
           </div>
         )}
 
