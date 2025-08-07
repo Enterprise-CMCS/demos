@@ -66,6 +66,7 @@ export function ExtensionTable({ extensions }: { extensions: ExtensionTableRow[]
   );
 }
 
+// TODO: this utility function will likely be replaced by a Date js library in the future.
 const formatDate = (date: Date | undefined) => {
   if (!date) return "N/A";
   return date.toLocaleDateString("en-US", {
