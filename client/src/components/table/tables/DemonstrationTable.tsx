@@ -1,10 +1,7 @@
 import React from "react";
 import { Table } from "../Table";
 import { TabItem, Tabs } from "layout/Tabs";
-import {
-  DemonstrationTableItem,
-  useDemonstration,
-} from "hooks/useDemonstration";
+import { DemonstrationTableItem, useDemonstration } from "hooks/useDemonstration";
 import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
@@ -72,11 +69,8 @@ const getSubRows = (row: TableRow) => row.applications;
 export const DemonstrationTable: React.FC = () => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  const {
-    demonstrationColumns,
-    demonstrationColumnsLoading,
-    demonstrationColumnsError,
-  } = DemonstrationColumns();
+  const { demonstrationColumns, demonstrationColumnsLoading, demonstrationColumnsError } =
+    DemonstrationColumns();
 
   const { getDemonstrationTable } = useDemonstration();
   const {
@@ -91,21 +85,16 @@ export const DemonstrationTable: React.FC = () => {
 
   if (demonstrationColumnsLoading) return <div className="p-4">Loading...</div>;
   if (demonstrationColumnsError)
-    return (
-      <div className="p-4">Error loading data: {demonstrationColumnsError}</div>
-    );
+    return <div className="p-4">Error loading data: {demonstrationColumnsError}</div>;
   if (demonstrationsTableLoading) return <div className="p-4">Loading...</div>;
-  if (demonstrationsTableError)
-    return <div className="p-4">Error loading demonstrations</div>;
-  if (!demonstrationsTableData)
-    return <div className="p-4">Demonstrations not found</div>;
+  if (demonstrationsTableError) return <div className="p-4">Error loading demonstrations</div>;
+  if (!demonstrationsTableData) return <div className="p-4">Demonstrations not found</div>;
 
   // TODO: Replace with actual current user ID from authentication context
   const currentUserId = "1";
 
   const myDemos: DemonstrationTableItem[] = demonstrationsTableData.filter(
-    (demo: DemonstrationTableItem) =>
-      demo.users.some((user) => user.id === currentUserId)
+    (demo: DemonstrationTableItem) => demo.users.some((user) => user.id === currentUserId)
   );
 
   const allDemos: DemonstrationTableItem[] = demonstrationsTableData;
@@ -128,8 +117,7 @@ export const DemonstrationTable: React.FC = () => {
     tab === "my"
       ? "You have no assigned demonstrations at this time."
       : "No demonstrations are tracked.";
-  const noResultsFoundMessage =
-    "No results were returned. Adjust your search and filter criteria.";
+  const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
 
   const tableRows: TableRow[] = dataToShow.map(mapToTableRow);
 
@@ -144,15 +132,9 @@ export const DemonstrationTable: React.FC = () => {
         <Table<TableRow>
           data={tableRows}
           columns={demonstrationColumns}
-          keywordSearch={(table) => (
-            <KeywordSearch table={table} />
-          )}
-          columnFilter={(table) => (
-            <ColumnFilter table={table} />
-          )}
-          pagination={(table) => (
-            <PaginationControls table={table} />
-          )}
+          keywordSearch={(table) => <KeywordSearch table={table} />}
+          columnFilter={(table) => <ColumnFilter table={table} />}
+          pagination={(table) => <PaginationControls table={table} />}
           emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage={noResultsFoundMessage}
           getSubRows={getSubRows}

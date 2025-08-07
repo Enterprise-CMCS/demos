@@ -1,21 +1,15 @@
 // components/table/columns/AmendmentColumns.ts
 import { ColumnDef } from "@tanstack/react-table";
+import { AmendmentTableRow } from "../tables/AmendmentTable";
 
-export type RawAmendment = {
-  id: string;
-  title: string;
-  status: string;
-  effectiveDate: string; // ISO string (e.g., "2025-07-21")
-};
-
-export const AmendmentColumns: ColumnDef<RawAmendment>[] = [
+export const AmendmentColumns: ColumnDef<AmendmentTableRow>[] = [
   {
     header: "Title",
-    accessorKey: "title",
+    accessorKey: "name",
   },
   {
     header: "Status",
-    accessorKey: "status",
+    accessorKey: "amendmentStatus.name",
   },
   {
     header: "Effective Date",

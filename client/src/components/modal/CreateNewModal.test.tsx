@@ -2,12 +2,7 @@ import React, { ReactNode } from "react";
 
 import { vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { CreateNewModal } from "./CreateNewModal";
 
@@ -48,7 +43,15 @@ vi.mock("hooks/useExtension", () => ({
 }));
 
 vi.mock("components/modal/BaseModal", () => ({
-  BaseModal: ({ title, children, actions }: { title?: string; children: ReactNode; actions?: ReactNode }) => (
+  BaseModal: ({
+    title,
+    children,
+    actions,
+  }: {
+    title?: string;
+    children: ReactNode;
+    actions?: ReactNode;
+  }) => (
     <div>
       {title && <h2>{title}</h2>}
       <div data-testid="modal-content">{children}</div>
@@ -59,12 +62,16 @@ vi.mock("components/modal/BaseModal", () => ({
 
 vi.mock("components/button/PrimaryButton", () => ({
   PrimaryButton: (props: React.ComponentPropsWithoutRef<"button">) => (
-    <button {...props} data-testid="primary-btn">{props.children}</button>
+    <button {...props} data-testid="primary-btn">
+      {props.children}
+    </button>
   ),
 }));
 vi.mock("components/button/SecondaryButton", () => ({
   SecondaryButton: (props: React.ComponentPropsWithoutRef<"button">) => (
-    <button {...props} data-testid="secondary-btn">{props.children}</button>
+    <button {...props} data-testid="secondary-btn">
+      {props.children}
+    </button>
   ),
 }));
 
@@ -81,7 +88,13 @@ vi.mock("components/input/select/AutoCompleteSelect", () => ({
 }));
 
 vi.mock("components/input/select/SelectUSAStates", () => ({
-  SelectUSAStates: ({ label, onStateChange }: { label: string; onStateChange: (val: string) => void }) => (
+  SelectUSAStates: ({
+    label,
+    onStateChange,
+  }: {
+    label: string;
+    onStateChange: (val: string) => void;
+  }) => (
     <div>
       <label>{label}</label>
       <select data-testid="state-select" onChange={(e) => onStateChange(e.target.value)}>
@@ -93,7 +106,13 @@ vi.mock("components/input/select/SelectUSAStates", () => ({
 }));
 
 vi.mock("components/input/select/SelectUsers", () => ({
-  SelectUsers: ({ label, onStateChange }: { label: string; onStateChange: (val: string) => void }) => (
+  SelectUsers: ({
+    label,
+    onStateChange,
+  }: {
+    label: string;
+    onStateChange: (val: string) => void;
+  }) => (
     <div>
       <label>{label}</label>
       <select data-testid="user-select" onChange={(e) => onStateChange(e.target.value)}>
@@ -105,7 +124,15 @@ vi.mock("components/input/select/SelectUsers", () => ({
 }));
 
 vi.mock("components/input/TextInput", () => ({
-  TextInput: ({ label, onChange, value }: { label: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; value: string }) => (
+  TextInput: ({
+    label,
+    onChange,
+    value,
+  }: {
+    label: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    value: string;
+  }) => (
     <div>
       <label>{label}</label>
       <input data-testid="title-input" value={value} onChange={onChange} />
@@ -113,51 +140,62 @@ vi.mock("components/input/TextInput", () => ({
   ),
 }));
 
-describe.each(["amendment", "extension", "demonstration"] as const)("CreateNewModal (%s)", (mode) => {
-  const onClose = vi.fn();
+describe.each(["amendment", "extension", "demonstration"] as const)(
+  "CreateNewModal (%s)",
+  (mode) => {
+    const onClose = vi.fn();
 
-  const fillForm = (mode: string) => {
-    if (mode !== "demonstration") {
-      fireEvent.change(screen.getByTestId("demo-select"), { target: { value: "demo" } });
-    }
-    fireEvent.change(screen.getByTestId("title-input"), { target: { value: "Test Title" } });
-    fireEvent.change(screen.getByTestId("state-select"), { target: { value: "CA" } });
-    fireEvent.change(screen.getByTestId("user-select"), { target: { value: "user1" } });
-  };
+    const fillForm = (mode: string) => {
+      if (mode !== "demonstration") {
+        fireEvent.change(screen.getByTestId("demo-select"), { target: { value: "demo" } });
+      }
+      fireEvent.change(screen.getByTestId("title-input"), { target: { value: "Test Title" } });
+      fireEvent.change(screen.getByTestId("state-select"), { target: { value: "CA" } });
+      fireEvent.change(screen.getByTestId("user-select"), { target: { value: "user1" } });
+    };
 
-  it("renders and submits successfully", async () => {
-    render(<CreateNewModal mode={mode} onClose={onClose} />);
-
-    expect(screen.getByText(`New ${mode.charAt(0).toUpperCase() + mode.slice(1)}`)).toBeInTheDocument();
-
-    fillForm(mode);
-
-    fireEvent.submit(screen.getByTestId("modal-content").querySelector("form")!);
-
-    await waitFor(() => {
-      expect(showSuccess).toHaveBeenCalledWith(`${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully!`);
-      expect(onClose).toHaveBeenCalled();
-    });
-  });
-
-  if (mode !== "demonstration") {
-    it("shows validation warning if demonstration is empty", () => {
+    it("renders and submits successfully", async () => {
       render(<CreateNewModal mode={mode} onClose={onClose} />);
+
+      expect(
+        screen.getByText(`New ${mode.charAt(0).toUpperCase() + mode.slice(1)}`)
+      ).toBeInTheDocument();
+
+      fillForm(mode);
+
       fireEvent.submit(screen.getByTestId("modal-content").querySelector("form")!);
-      expect(screen.getByText(/must be linked to an existing demonstration/)).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(showSuccess).toHaveBeenCalledWith(
+          `${mode.charAt(0).toUpperCase() + mode.slice(1)} created successfully!`
+        );
+        expect(onClose).toHaveBeenCalled();
+      });
+    });
+
+    if (mode !== "demonstration") {
+      it("shows validation warning if demonstration is empty", () => {
+        render(<CreateNewModal mode={mode} onClose={onClose} />);
+        fireEvent.submit(screen.getByTestId("modal-content").querySelector("form")!);
+        expect(screen.getByText(/must be linked to an existing demonstration/)).toBeInTheDocument();
+      });
+    }
+
+    it("disables submit button if required fields are missing", () => {
+      render(<CreateNewModal mode={mode} onClose={onClose} />);
+      expect(screen.getByTestId("primary-btn")).toBeDisabled();
+      fillForm(mode);
+      expect(screen.getByTestId("primary-btn")).not.toBeDisabled();
+    });
+
+    it("renders correct dynamic labels", () => {
+      render(<CreateNewModal mode={mode} onClose={onClose} />);
+      expect(
+        screen.getByText(`${mode.charAt(0).toUpperCase() + mode.slice(1)} Title`)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(`${mode.charAt(0).toUpperCase() + mode.slice(1)} Description`)
+      ).toBeInTheDocument();
     });
   }
-
-  it("disables submit button if required fields are missing", () => {
-    render(<CreateNewModal mode={mode} onClose={onClose} />);
-    expect(screen.getByTestId("primary-btn")).toBeDisabled();
-    fillForm(mode);
-    expect(screen.getByTestId("primary-btn")).not.toBeDisabled();
-  });
-
-  it("renders correct dynamic labels", () => {
-    render(<CreateNewModal mode={mode} onClose={onClose} />);
-    expect(screen.getByText(`${mode.charAt(0).toUpperCase() + mode.slice(1)} Title`)).toBeInTheDocument();
-    expect(screen.getByText(`${mode.charAt(0).toUpperCase() + mode.slice(1)} Description`)).toBeInTheDocument();
-  });
-});
+);

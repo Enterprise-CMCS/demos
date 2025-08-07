@@ -1,24 +1,11 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import { isTestMode } from "config/env";
-import { useDemonstration } from "hooks/useDemonstration";
+import { useDemonstrationDetail } from "hooks/demonstration/useDemonstrationDetail";
 import { usePageHeader } from "hooks/usePageHeader";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
-import { mockAmendments } from "mock-data/amendmentMocks";
-import { mockExtensions } from "mock-data/extensionMocks";
+import { TabItem, Tabs } from "layout/Tabs";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
-import {
-  useLocation,
-  useParams,
-} from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
@@ -49,8 +36,10 @@ export const DemonstrationDetail: React.FC = () => {
   const [demonstrationActionModal, setDemonstrationActionModal] =
     useState<DemonstrationActionModal>(null);
 
-  const { id } = useParams<{ id: string }>();
   const location = useLocation();
+
+  // Use the new independent hook
+  const { demonstration, loading, error } = useDemonstrationDetail();
 
   const queryParams = new URLSearchParams(location.search);
   const [tab, setTab] = useState<TabType>(() => {
@@ -62,14 +51,11 @@ export const DemonstrationDetail: React.FC = () => {
     return "details";
   });
 
-  const { getDemonstrationById } = useDemonstration();
-  const { trigger, data: demonstration, loading, error } = getDemonstrationById;
-
-  const tabList = useMemo(() => createTabList(mockAmendments.length, mockExtensions.length), []);
-
-  useEffect(() => {
-    if (id) trigger(id);
-  }, [id]);
+  const tabList = useMemo(
+    () =>
+      createTabList(demonstration?.amendments.length ?? 0, demonstration?.extensions.length ?? 0),
+    [demonstration]
+  );
 
   const handleEdit = useCallback(() => {
     setDemonstrationActionModal("edit");
@@ -113,14 +99,14 @@ export const DemonstrationDetail: React.FC = () => {
 
             {tab === "amendments" && (
               <AmendmentsTab
-                demonstration={demonstration}
+                amendments={demonstration.amendments || []}
                 onClick={() => setEntityCreationModal("amendment")}
               />
             )}
 
             {tab === "extensions" && (
               <ExtensionsTab
-                demonstration={demonstration}
+                extensions={demonstration.extensions || []}
                 onClick={() => setEntityCreationModal("extension")}
               />
             )}

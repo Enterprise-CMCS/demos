@@ -1,37 +1,31 @@
 import React from "react";
 
-import {
-  describe,
-  expect,
-  it,
-} from "vitest"; // or use `jest` if you're using Jest
+import { describe, expect, it } from "vitest"; // or use `jest` if you're using Jest
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
-import { AmendmentTable } from "./AmendmentTable";
+import { AmendmentTable, AmendmentTableRow } from "./AmendmentTable";
 
 const mockData = [
   {
-    id: "1",
-    title: "Amendment 1",
-    status: "Under Review",
-    effectiveDate: "2025-07-21",
+    name: "Amendment 1",
+    amendmentStatus: {
+      name: "Under Review",
+    },
+    effectiveDate: new Date("2025-07-21"),
   },
   {
-    id: "2",
-    title: "Amendment 2",
-    status: "Approved",
-    effectiveDate: "2024-09-14",
+    name: "Amendment 2",
+    amendmentStatus: {
+      name: "Approved",
+    },
+    effectiveDate: new Date("2024-09-14"),
   },
-];
+] satisfies AmendmentTableRow[];
 
 describe("AmendmentTable", () => {
   it("renders amendment rows with correct title, status, and date", () => {
-    render(<AmendmentTable data={mockData} demonstrationId="demo-123" />);
+    render(<AmendmentTable amendments={mockData} />);
 
     expect(screen.getByText("Amendment 1")).toBeInTheDocument();
     expect(screen.getByText("Amendment 2")).toBeInTheDocument();
@@ -42,7 +36,7 @@ describe("AmendmentTable", () => {
   });
 
   it("toggles expand section when a row is clicked", () => {
-    render(<AmendmentTable data={mockData} demonstrationId="demo-123" />);
+    render(<AmendmentTable amendments={mockData} />);
 
     // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();

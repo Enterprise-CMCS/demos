@@ -6,10 +6,17 @@ import { Demonstration } from "demos-server";
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
 type DemonstrationActionModal = "edit" | "delete" | null;
 
+export type DemonstrationModalDetails = {
+  id: Demonstration["id"];
+  state: Pick<Demonstration["state"], "id">;
+  description: Demonstration["description"];
+  name: Demonstration["name"];
+};
+
 interface DemonstrationDetailModalsProps {
   entityCreationModal: EntityCreationModal;
   demonstrationActionModal: DemonstrationActionModal;
-  demonstration: Demonstration;
+  demonstration: DemonstrationModalDetails;
   onCloseEntityModal: () => void;
   onCloseDemonstrationModal: () => void;
 }

@@ -1,7 +1,4 @@
-import {
-  CreateDemonstrationInput,
-  Demonstration,
-} from "demos-server";
+import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { DemonstrationTableItem } from "hooks/useDemonstration";
 import {
   ADD_DEMONSTRATION_QUERY,
@@ -16,6 +13,10 @@ import { MockedResponse } from "@apollo/client/testing";
 import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
+import {
+  DEMONSTRATION_DETAIL_QUERY,
+  DemonstrationDetail,
+} from "hooks/demonstration/useDemonstrationDetail";
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -45,7 +46,94 @@ export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   projectOfficerUserId: johnDoe.id,
 };
 
-export const demonstrationMocks: MockedResponse[] = [
+const demonstrationDetailMock: MockedResponse = {
+  request: {
+    query: DEMONSTRATION_DETAIL_QUERY,
+    variables: { id: "1" },
+  },
+  result: {
+    data: {
+      demonstration: {
+        id: "1",
+        name: "Test Demonstration",
+        description: "Test Description",
+        effectiveDate: new Date("2025-01-01"),
+        expirationDate: new Date("2025-12-31"),
+        state: {
+          id: "CA",
+        },
+        demonstrationStatus: {
+          name: "Active",
+        },
+        projectOfficer: {
+          fullName: "John Doe",
+        },
+        amendments: [
+          {
+            name: "Amendment 3",
+            effectiveDate: new Date("2025-07-21"),
+            amendmentStatus: {
+              name: "Under Review",
+            },
+          },
+          {
+            name: "Amendment 2",
+            effectiveDate: new Date("2024-09-14"),
+            amendmentStatus: {
+              name: "Approved",
+            },
+          },
+          {
+            name: "Amendment 1",
+            effectiveDate: new Date("2023-01-03"),
+            amendmentStatus: {
+              name: "Draft",
+            },
+          },
+        ],
+        extensions: [
+          {
+            name: "Extension 1",
+            effectiveDate: new Date("2025-01-01"),
+            extensionStatus: {
+              name: "Approved",
+            },
+          },
+          {
+            name: "Extension 2",
+            effectiveDate: new Date("2025-06-01"),
+            extensionStatus: {
+              name: "Under Review",
+            },
+          },
+          {
+            name: "Extension 3",
+            effectiveDate: new Date("2023-01-03"),
+            extensionStatus: {
+              name: "Draft",
+            },
+          },
+          {
+            name: "Extension 4",
+            effectiveDate: new Date("2025-01-01"),
+            extensionStatus: {
+              name: "Under Review",
+            },
+          },
+          {
+            name: "Extension 5",
+            effectiveDate: new Date("2025-06-01"),
+            extensionStatus: {
+              name: "Approved",
+            },
+          },
+        ],
+      } satisfies DemonstrationDetail,
+    },
+  },
+};
+
+const demonstrationMocksGeneral: MockedResponse[] = [
   {
     request: {
       query: GET_ALL_DEMONSTRATIONS_QUERY,
@@ -54,7 +142,6 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { demonstrations: [testDemonstration] },
     },
   },
-
   {
     request: {
       query: GET_DEMONSTRATION_BY_ID_QUERY,
@@ -419,4 +506,9 @@ export const demonstrationMocks: MockedResponse[] = [
       },
     },
   },
+];
+
+export const demonstrationMocks: MockedResponse[] = [
+  ...demonstrationMocksGeneral,
+  demonstrationDetailMock,
 ];

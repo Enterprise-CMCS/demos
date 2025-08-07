@@ -1,13 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
+import { ExtensionTableRow } from "../tables/ExtensionTable";
 
-export type RawExtension = {
-  id: string;
-  title: string;
-  status: string;
-  effectiveDate: string; // ISO string (e.g., "2025-07-21")
-};
-
-export const ExtensionColumns: ColumnDef<RawExtension>[] = [
+export const ExtensionColumns: ColumnDef<ExtensionTableRow>[] = [
   {
     header: "Title",
     accessorKey: "title",

@@ -1,37 +1,30 @@
 import React from "react";
 
-import {
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { describe, expect, it } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
-import { ExtensionTable } from "./ExtensionTable";
+import { ExtensionTable, ExtensionTableRow } from "./ExtensionTable";
 
 const mockData = [
   {
-    id: "1",
-    title: "Extension 1",
-    status: "Pending Review",
-    effectiveDate: "2025-08-15",
+    name: "Extension 1",
+    extensionStatus: {
+      name: "Pending Review",
+    },
+    effectiveDate: new Date("2025-08-15"),
   },
   {
-    id: "2",
-    title: "Extension 2",
-    status: "Approved",
-    effectiveDate: "2024-10-01",
+    name: "Extension 2",
+    extensionStatus: {
+      name: "Approved",
+    },
+    effectiveDate: new Date("2024-10-01"),
   },
-];
-
+] satisfies ExtensionTableRow[];
 describe("ExtensionTable", () => {
   it("renders extension rows with correct title, status, and date", () => {
-    render(<ExtensionTable data={mockData} demonstrationId="demo-123" />);
+    render(<ExtensionTable extensions={mockData} />);
 
     expect(screen.getByText("Extension 1")).toBeInTheDocument();
     expect(screen.getByText("Extension 2")).toBeInTheDocument();
@@ -42,7 +35,7 @@ describe("ExtensionTable", () => {
   });
 
   it("toggles expand section when a row is clicked", () => {
-    render(<ExtensionTable data={mockData} demonstrationId="demo-123" />);
+    render(<ExtensionTable extensions={mockData} />);
 
     // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();

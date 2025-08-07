@@ -1,32 +1,24 @@
 import * as React from "react";
 
-import {
-  ChevronRightIcon,
-  SuccessIcon,
-} from "components/icons";
+import { ChevronRightIcon, SuccessIcon } from "components/icons";
 import { ReviewIcon } from "components/icons/Action/ReviewIcon";
 
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { getCoreRowModel, getExpandedRowModel, useReactTable } from "@tanstack/react-table";
 
-import {
-  ExtensionColumns,
-  RawExtension,
-} from "../columns/ExtensionColumns";
+import { ExtensionColumns } from "../columns/ExtensionColumns";
+import { Extension } from "demos-server";
 
-interface ExtensionTableProps {
-  data: RawExtension[];
-  demonstrationId: string;
-}
+export type ExtensionTableRow = {
+  name: Extension["name"];
+  effectiveDate: Extension["effectiveDate"];
+  extensionStatus: Pick<Extension["extensionStatus"], "name">;
+};
 
-export function ExtensionTable({ data }: ExtensionTableProps) {
+export function ExtensionTable({ extensions }: { extensions: ExtensionTableRow[] }) {
   const [expanded, setExpanded] = React.useState({});
 
-  const table = useReactTable({
-    data,
+  const table = useReactTable<ExtensionTableRow>({
+    data: extensions,
     columns: ExtensionColumns,
     state: { expanded },
     onExpandedChange: setExpanded,
@@ -39,7 +31,7 @@ export function ExtensionTable({ data }: ExtensionTableProps) {
     <div className="w-full">
       <div className="flex flex-col gap-2">
         {table.getRowModel().rows.map((row) => {
-          const { title, effectiveDate, status } = row.original;
+          const { name, effectiveDate, extensionStatus } = row.original;
           const isExpanded = row.getIsExpanded();
 
           return (
@@ -48,11 +40,11 @@ export function ExtensionTable({ data }: ExtensionTableProps) {
                 onClick={() => row.toggleExpanded()}
                 className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 cursor-pointer"
               >
-                <div className="text-sm font-bold text-blue-900">{title}</div>
+                <div className="text-sm font-bold text-blue-900">{name}</div>
 
                 <div className="h-1" />
 
-                <div>{renderStatus(status)}</div>
+                <div>{renderStatus(extensionStatus.name)}</div>
 
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
@@ -74,9 +66,13 @@ export function ExtensionTable({ data }: ExtensionTableProps) {
   );
 }
 
-const formatDate = (iso: string) => {
-  const [yyyy, mm, dd] = iso.split("-");
-  return `${mm}/${dd}/${yyyy}`;
+const formatDate = (date: Date | undefined) => {
+  if (!date) return "N/A";
+  return date.toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
 };
 
 const renderStatus = (status: string) => {
@@ -104,8 +100,6 @@ const renderStatus = (status: string) => {
         </div>
       );
     default:
-      return (
-        <span className="text-sm text-gray-700">{status}</span>
-      );
+      return <span className="text-sm text-gray-700">{status}</span>;
   }
 };
