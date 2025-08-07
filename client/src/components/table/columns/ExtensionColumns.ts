@@ -7,11 +7,11 @@ import { ExtensionTableRow } from "../tables/ExtensionTable";
 export const ExtensionColumns: ColumnDef<ExtensionTableRow>[] = [
   {
     header: "Title",
-    accessorKey: "title",
+    accessorKey: "name",
   },
   {
     header: "Status",
-    accessorKey: "status",
+    accessorKey: "extensionsStatus.name",
   },
   {
     header: "Effective Date",
