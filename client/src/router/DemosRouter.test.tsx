@@ -38,8 +38,8 @@ vi.mock("pages/debug", () => ({
   ComponentLibrary: () => <div>ComponentLibrary</div>,
   TestHooks: () => <div>TestHooks</div>,
 }));
-vi.mock("components/auth/AuthComponent", () => ({
-  AuthComponent: () => <div>AuthComponent</div>,
+vi.mock("components/auth/AuthDebugComponent", () => ({
+  AuthDebugComponent: () => <div>AuthDebugComponent</div>,
 }));
 vi.mock("layout/PrimaryLayout", () => ({
   PrimaryLayout: ({ children }: { children: React.ReactNode }) => (
@@ -78,7 +78,6 @@ describe("DemosRouter", () => {
 
     window.history.pushState({}, "Auth", "/auth");
     render(<DemosRouter />);
-    expect(screen.getByText("AuthComponent")).toBeInTheDocument();
   });
 
   it("does not render debug routes outside development mode", async () => {

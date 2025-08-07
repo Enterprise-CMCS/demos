@@ -55,7 +55,7 @@ const AuthDebug = () => {
   );
 };
 
-export const AuthComponent: React.FC = () => {
+export const AuthDebugComponent: React.FC = () => {
   const auth = useAuth();
 
   if (!auth) {

@@ -4,7 +4,7 @@ import { AuthProvider } from "react-oidc-context";
 import { getCognitoConfig } from "./cognitoConfig";
 import { LandingPage } from "pages";
 import { ComponentLibrary, TestHooks } from "pages/debug";
-import { AuthComponent } from "components/auth/AuthComponent";
+import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
 import { PrimaryLayout } from "layout/PrimaryLayout";
 import { Demonstrations } from "pages/Demonstrations";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
@@ -37,6 +37,8 @@ export const DemosRouter = () => {
                 {/* Real Pages the user should be able to access */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
+                {/* THIS SHOULD BE REMOVED AS SOON AS WE ARE SURE THIS IS WORKING */}
+                <Route path="/auth" element={<AuthDebugComponent />} />
                 <Route
                   path="demonstrations/:id"
                   element={<DemonstrationDetail />}
@@ -46,7 +48,6 @@ export const DemosRouter = () => {
                   <>
                     <Route path="/components" element={<ComponentLibrary />} />
                     <Route path="/hooks" element={<TestHooks />} />
-                    <Route path="/auth" element={<AuthComponent />} />
                     <Route path="/icons" element={<IconLibrary />} />
                     <Route path="/events" element={<EventSandbox />} />
                   </>
