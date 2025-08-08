@@ -1,7 +1,6 @@
 import { User } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { CreateUserInput } from "./userSchema.js";
-import { requireRole } from "../../auth/auth.util.js";
 
 export const userResolvers = {
   Query: {
@@ -10,9 +9,6 @@ export const userResolvers = {
         where: { id: id },
       });
     },
-    users: requireRole(["ADMIN"])(async () => {
-      return await prisma().user.findMany();
-    }),
   },
 
   Mutation: {
