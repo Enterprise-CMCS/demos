@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
-    "@faker-js/faker": "^9.8.0",
+    "@faker-js/faker": "github:faker-js/faker",
     "@graphql-tools/merge": "^9.0.24",
     "@parcel/watcher": "^2.5.1",
     "@types/jest": "^29.5.14",
