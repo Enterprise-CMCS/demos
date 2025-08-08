@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 
+<<<<<<< HEAD
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal();
   return {
@@ -11,20 +12,22 @@ vi.mock("config/env", async (importOriginal) => {
     isProductionMode: vi.fn(() => false),
   };
 });
+=======
+vi.mock("config/env", () => ({
+  isLocalDevelopment: vi.fn(),
+  shouldUseMocks: vi.fn(() => true),
+}));
+>>>>>>> main
 
 // Mock react-oidc-context AuthProvider to just render children
 vi.mock("react-oidc-context", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: vi.fn(() => ({})),
 }));
 
 // Mock Apollo MockedProvider to just render children
 vi.mock("@apollo/client/testing", () => ({
-  MockedProvider: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  MockedProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock getCognitoConfig to return an empty object
