@@ -13,8 +13,7 @@ import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationModalDetails } from "./DemonstrationDetailModals";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
-import { AmendmentTableRow } from "components/table/tables/AmendmentTable";
-import { ExtensionTableRow } from "components/table/tables/ExtensionTable";
+import { ModificationTableRow } from "components/table/tables/ModificationTable";
 import { gql, useQuery } from "@apollo/client";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
@@ -37,14 +36,14 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       amendments {
         name
         effectiveDate
-        amendmentStatus {
+        status: amendmentStatus {
           name
         }
       }
       extensions {
         name
         effectiveDate
-        extensionStatus {
+        status: extensionStatus {
           name
         }
       }
@@ -54,8 +53,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationModalDetails & {
-    amendments: AmendmentTableRow[];
-    extensions: ExtensionTableRow[];
+    amendments: ModificationTableRow[];
+    extensions: ModificationTableRow[];
   };
 
 type TabType = "details" | "amendments" | "extensions";

@@ -5,21 +5,27 @@ import { ReviewIcon } from "components/icons/Action/ReviewIcon";
 
 import { getCoreRowModel, getExpandedRowModel, useReactTable } from "@tanstack/react-table";
 
-import { ExtensionColumns } from "../columns/ExtensionColumns";
-import { Extension } from "demos-server";
+import { ModificationColumns } from "../columns/ModificationColumns";
+import { Amendment, Extension } from "demos-server";
 
-export type ExtensionTableRow = {
-  name: Extension["name"];
-  effectiveDate: Extension["effectiveDate"];
-  extensionStatus: Pick<Extension["extensionStatus"], "name">;
-};
+export type ModificationTableRow =
+  | {
+      name: Amendment["name"];
+      effectiveDate: Amendment["effectiveDate"];
+      status: Pick<Amendment["amendmentStatus"], "name">;
+    }
+  | {
+      name: Extension["name"];
+      effectiveDate: Extension["effectiveDate"];
+      status: Pick<Extension["extensionStatus"], "name">;
+    };
 
-export function ExtensionTable({ extensions }: { extensions: ExtensionTableRow[] }) {
+export function ModificationTable({ modifications }: { modifications: ModificationTableRow[] }) {
   const [expanded, setExpanded] = React.useState({});
 
-  const table = useReactTable<ExtensionTableRow>({
-    data: extensions,
-    columns: ExtensionColumns,
+  const table = useReactTable<ModificationTableRow>({
+    data: modifications,
+    columns: ModificationColumns,
     state: { expanded },
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
@@ -31,7 +37,7 @@ export function ExtensionTable({ extensions }: { extensions: ExtensionTableRow[]
     <div className="w-full">
       <div className="flex flex-col gap-2">
         {table.getRowModel().rows.map((row) => {
-          const { name, effectiveDate, extensionStatus } = row.original;
+          const { name, effectiveDate, status } = row.original;
           const isExpanded = row.getIsExpanded();
 
           return (
@@ -44,12 +50,12 @@ export function ExtensionTable({ extensions }: { extensions: ExtensionTableRow[]
 
                 <div className="h-1" />
 
-                <div>{renderStatus(extensionStatus.name)}</div>
+                <div>{renderStatus(status.name)}</div>
 
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
                   <ChevronRightIcon
-                    className={`w-[18px] h-[18px] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
+                    className={`w-[1.4rem] h-[1.4rem] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
                   />
                 </div>
               </div>
@@ -82,21 +88,21 @@ const renderStatus = (status: string) => {
     case "Under Review":
       return (
         <div className={`${baseStyle} text-left`}>
-          <ReviewIcon className="w-[18px] h-[18px] text-yellow-500" />
+          <ReviewIcon className="w-[1.4rem] h-[1.4rem] text-yellow-500" />
           {status}
         </div>
       );
     case "Approved":
       return (
         <div className={`${baseStyle} text-left`}>
-          <SuccessIcon className="w-[18px] h-[18px]" />
+          <SuccessIcon className="w-[1.4rem] h-[1.4rem]" />
           {status}
         </div>
       );
     case "Draft":
       return (
         <div className={`${baseStyle} text-left`}>
-          <SuccessIcon className="w-[18px] h-[18px]" />
+          <SuccessIcon className="w-[1.4rem] h-[1.4rem]" />
           {status}
         </div>
       );

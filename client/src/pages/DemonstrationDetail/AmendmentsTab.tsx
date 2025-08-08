@@ -1,10 +1,10 @@
 import React from "react";
 import { SecondaryButton } from "components/button";
 import { AddNewIcon } from "components/icons";
-import { AmendmentTable, AmendmentTableRow } from "components/table/tables/AmendmentTable";
+import { ModificationTable, ModificationTableRow } from "components/table/tables/ModificationTable";
 
 export const AmendmentsTab: React.FC<{
-  amendments: AmendmentTableRow[];
+  amendments: ModificationTableRow[];
   onClick: () => void;
 }> = ({ amendments, onClick }) => (
   <div>
@@ -15,6 +15,6 @@ export const AmendmentsTab: React.FC<{
         <AddNewIcon className="w-2 h-2" />
       </SecondaryButton>
     </div>
-    <AmendmentTable amendments={amendments} />
+    <ModificationTable modifications={amendments} />
   </div>
 );

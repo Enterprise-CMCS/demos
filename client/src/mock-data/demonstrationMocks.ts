@@ -88,21 +88,21 @@ export const demonstrationMocks: MockedResponse[] = [
             {
               name: "Amendment 3",
               effectiveDate: new Date("2025-07-21"),
-              amendmentStatus: {
+              status: {
                 name: "Under Review",
               },
             },
             {
               name: "Amendment 2",
               effectiveDate: new Date("2024-09-14"),
-              amendmentStatus: {
+              status: {
                 name: "Approved",
               },
             },
             {
               name: "Amendment 1",
               effectiveDate: new Date("2023-01-03"),
-              amendmentStatus: {
+              status: {
                 name: "Draft",
               },
             },
@@ -111,36 +111,43 @@ export const demonstrationMocks: MockedResponse[] = [
             {
               name: "Extension 1",
               effectiveDate: new Date("2025-01-01"),
-              extensionStatus: {
+              status: {
                 name: "Approved",
               },
             },
             {
               name: "Extension 2",
               effectiveDate: new Date("2025-06-01"),
-              extensionStatus: {
+              status: {
                 name: "Under Review",
               },
             },
             {
               name: "Extension 3",
               effectiveDate: new Date("2023-01-03"),
-              extensionStatus: {
+              status: {
                 name: "Draft",
               },
             },
             {
               name: "Extension 4",
               effectiveDate: new Date("2025-01-01"),
-              extensionStatus: {
+              status: {
                 name: "Under Review",
               },
             },
             {
               name: "Extension 5",
               effectiveDate: new Date("2025-06-01"),
-              extensionStatus: {
+              status: {
                 name: "Approved",
+              },
+            },
+            {
+              name: "Extension 6",
+              effectiveDate: new Date("2025-06-01"),
+              status: {
+                name: "On Hold",
               },
             },
           ],

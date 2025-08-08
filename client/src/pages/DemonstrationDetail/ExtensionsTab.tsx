@@ -1,10 +1,10 @@
 import React from "react";
 import { SecondaryButton } from "components/button";
 import { AddNewIcon } from "components/icons";
-import { ExtensionTable, ExtensionTableRow } from "components/table/tables/ExtensionTable";
+import { ModificationTable, ModificationTableRow } from "components/table/tables/ModificationTable";
 
 export const ExtensionsTab: React.FC<{
-  extensions: ExtensionTableRow[];
+  extensions: ModificationTableRow[];
   onClick: () => void;
 }> = ({ extensions, onClick }) => (
   <div>
@@ -15,6 +15,6 @@ export const ExtensionsTab: React.FC<{
         <AddNewIcon className="w-2 h-2" />
       </SecondaryButton>
     </div>
-    <ExtensionTable extensions={extensions} />
+    <ModificationTable modifications={extensions} />
   </div>
 );
