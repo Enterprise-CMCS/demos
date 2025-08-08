@@ -1,4 +1,4 @@
-import { isDevelopmentMode } from "config/env";
+import { isLocalDevelopment } from "config/env";
 import React from "react";
 
 interface DebugOnlyProps {
@@ -6,7 +6,7 @@ interface DebugOnlyProps {
 }
 
 export const DebugOnly: React.FC<DebugOnlyProps> = ({ children }) => {
-  if (isDevelopmentMode()) {
+  if (isLocalDevelopment()) {
     return <>{children}</>;
   } else {
     return null;
