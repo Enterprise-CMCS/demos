@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 
 vi.mock("config/env", () => ({
-  isDevelopmentMode: vi.fn(),
+  isLocalDevelopment: vi.fn(),
   shouldUseMocks: vi.fn(() => true),
 }));
 

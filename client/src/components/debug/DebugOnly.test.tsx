@@ -4,7 +4,7 @@ import { describe, beforeEach, expect, it, vi } from "vitest";
 import { DebugOnly } from "./DebugOnly";
 
 vi.mock("config/env", () => ({
-  isDevelopmentMode: vi.fn(),
+  isLocalDevelopment: vi.fn(),
 }));
 
 describe("DebugOnly", () => {
