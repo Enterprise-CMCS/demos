@@ -3,21 +3,10 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 
-<<<<<<< HEAD
-vi.mock("config/env", async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    shouldUseMocks: vi.fn(() => false),
-    isProductionMode: vi.fn(() => false),
-  };
-});
-=======
 vi.mock("config/env", () => ({
   isLocalDevelopment: vi.fn(),
   shouldUseMocks: vi.fn(() => true),
 }));
->>>>>>> main
 
 // Mock react-oidc-context AuthProvider to just render children
 vi.mock("react-oidc-context", () => ({

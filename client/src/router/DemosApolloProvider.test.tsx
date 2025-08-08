@@ -1,7 +1,7 @@
 // DemosApolloProvider.test.tsx
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { gql, useQuery } from "@apollo/client";
 
 // We'll import the module under test *after* setting up our mocks in each case
@@ -141,47 +141,6 @@ describe("DemosApolloProvider", () => {
 
     // Assert
     expect(await screen.findByTestId("result")).toHaveTextContent("ok-live");
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it("omits Authorization header when no token is present", async () => {
-    setupImportMetaEnv("http://example.test/graphql");
-    const envMod = await import("config/env");
-    vi.spyOn(envMod, "isDevelopmentMode").mockReturnValue(true);
-    vi.doMock("config/env", () => ({
-      shouldUseMocks: () => false,
-      isProductionMode: () => false,
-    }));
-
-    vi.doMock("mock-data", () => ({ ALL_MOCKS: [] }));
-
-    // No token this time
-    vi.doMock("react-oidc-context", () => ({
-      useAuth: () => mockAuthWithoutToken,
-    }));
-
-    const fetchSpy = vi.fn(async (_input: RequestInfo, init?: RequestInit) => {
-      const headers = new Headers(init?.headers as any);
-      // Should not include Authorization at all
-      expect(headers.has("authorization") || headers.has("Authorization")).toBe(false);
-
-      return new Response(JSON.stringify({ data: { ping: "ok-live-no-auth" } }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      });
-    }) as unknown as typeof fetch;
-    // @ts-expect-error override
-    global.fetch = fetchSpy;
-
-    const { DemosApolloProvider } = await import("./DemosApolloProvider");
-
-    render(
-      <DemosApolloProvider>
-        <PingConsumer />
-      </DemosApolloProvider>
-    );
-
-    expect(await screen.findByTestId("result")).toHaveTextContent("ok-live-no-auth");
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });

@@ -21,18 +21,6 @@ export interface GraphQLContext {
   };
 }
 
-type ResolverFn<
-  Parent = unknown,
-  Args = Record<string, unknown>,
-  Context = GraphQLContext,
-  Result = unknown,
-> = (
-  parent: Parent,
-  args: Args,
-  context: Context,
-  info: GraphQLResolveInfo,
-) => Promise<Result> | Result;
-
 type DecodedJWT = {
   sub: string;
   email: string;
