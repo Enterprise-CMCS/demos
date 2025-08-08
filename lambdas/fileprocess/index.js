@@ -6,7 +6,6 @@ const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
 
-// Only add config if explicitly running in LocalStack
 const s3Config = process.env.AWS_ENDPOINT_URL
   ? {
       region: process.env.AWS_REGION,
@@ -48,7 +47,7 @@ export async function getDatabaseUrl() {
   }
   const secretData = JSON.parse(response.SecretString);
   databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${dbSchema}`;
-  cacheExpiration = now + 60 * 60 * 1000; // Cache for 1 hour
+  cacheExpiration = now + 60 * 60 * 1000;
 
   return databaseUrlCache;
 }
@@ -145,13 +144,7 @@ async function processGuardDutyResult(client, guardDutyEvent) {
   const s3Info = extractS3InfoFromGuardDuty(guardDutyEvent);
   const { bucket, key } = s3Info;
 
-  console.log(`Processing GuardDuty result for file: ${bucket}/${key}`);
-
-  const isClean = isGuardDutyScanClean(guardDutyEvent);
-  if (!isClean) {
-    console.log(`File ${key} is not clean. Skipping processing.`);
-    return;
-  }
+  console.log(`Processing clean file: ${bucket}/${key}`);
 
   try {
     const bundleId = await getBundleId(client, key);
@@ -163,9 +156,9 @@ async function processGuardDutyResult(client, guardDutyEvent) {
     const s3Path = `s3://${cleanBucket}/${destinationKey}`;
     await updateDatabase(client, key, s3Path);
 
-    console.log(`Successfully processed file ${key}`);
+    console.log(`Successfully processed clean file ${key}`);
   } catch (error) {
-    console.error(`Failed to process file ${key}:`, error.message);
+    console.error(`Failed to process clean file ${key}:`, error.message);
     throw error;
   }
 }
@@ -179,31 +172,72 @@ export const handler = async (event) => {
     DB_SCHEMA: dbSchema,
   });
 
-  const client = new Client({ connectionString: await getDatabaseUrl() });
+  let client;
+  const results = {
+    processedRecords: 0,
+    cleanFiles: [],
+    infectedFiles: [],
+    errors: []
+  };
 
   try {
+    client = new Client({ connectionString: await getDatabaseUrl() });
     await client.connect();
     const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
     await client.query(setSearchPathQuery);
 
+    // Process each record - if any fails, the entire Lambda should fail
     for (const record of event.Records) {
       try {
         const guardDutyEvent = JSON.parse(record.body);
         console.log("Received GuardDuty event:", JSON.stringify(guardDutyEvent, null, 2));
-        await processGuardDutyResult(client, guardDutyEvent);
+        
+        const s3Info = extractS3InfoFromGuardDuty(guardDutyEvent);
+        const { bucket, key } = s3Info;
+        const isClean = isGuardDutyScanClean(guardDutyEvent);
+
+        if (isClean) {
+          await processGuardDutyResult(client, guardDutyEvent);
+          results.cleanFiles.push({
+            bucket,
+            key,
+            status: 'processed'
+          });
+        } else {
+          console.log(`File ${key} is not clean. Skipping processing.`);
+          results.infectedFiles.push({
+            bucket,
+            key,
+            status: 'skipped'
+          });
+        }
+
+        results.processedRecords++;
       } catch (error) {
         console.error("Error processing record:", error);
-        continue;
+        results.errors.push(error.message);
+        throw error;
       }
     }
 
-    return { statusCode: 200, body: "Success" };
-  } catch (err) {
-    console.error("Lambda execution failed:", err);
-    return { statusCode: 500, body: "Internal Server Error" };
+    console.log("All records processed successfully");
+    console.log("Processing summary:", results);
+
+    return { 
+      statusCode: 200, 
+      body: `Processed ${results.processedRecords} records: ${results.cleanFiles.length} clean files processed, ${results.infectedFiles.length} infected files skipped`
+    };
+
+  } catch (error) {
+    console.error("Lambda execution failed:", error);
+    throw new Error(`Lambda failed: ${error.message}`);
   } finally {
     if (client) {
-      await client.end();
+      try {
+        await client.end();
+      } catch (closeError) {
+        console.error("Error closing database connection:", closeError);
+      }
     }
   }
 };

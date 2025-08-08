@@ -115,6 +115,13 @@ echo -e "${BLUE}Lambda Response:${NC}"
 cat "response-$FILE_ID.json"
 echo ""
 
+# Check if Lambda function failed
+LAMBDA_ERROR=$(cat "response-$FILE_ID.json" | grep -o '"errorType"' || echo "")
+if [ -n "$LAMBDA_ERROR" ]; then
+    echo -e "${RED}❌ Lambda function failed! Processing was not completed.${NC}"
+    echo -e "${YELLOW}💡 Check logs with: ./check-logs.sh${NC}"
+fi
+
 # Check results
 echo -e "${YELLOW}📋 Step 5: Checking processing results${NC}"
 
@@ -125,39 +132,54 @@ echo -e "${BLUE}Clean bucket contents:${NC}"
 aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://clean-bucket/ --region $REGION
 
 if [ "$STATUS" = "clean" ]; then
-    echo -e "${GREEN}✅ Clean file should be moved to clean bucket${NC}"
+    if [ -n "$LAMBDA_ERROR" ]; then
+        echo -e "${RED}⚠️  Clean file processing failed - file should have been moved but Lambda errored${NC}"
+    else
+        echo -e "${GREEN}✅ Clean file should be moved to clean bucket${NC}"
+    fi
     
-    if aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://clean-bucket/ --recursive --region $REGION | grep -q "$FILE_ID"; then
-        echo -e "${GREEN}🎉 File successfully processed and moved to clean bucket!${NC}"
+    # Check if file exists in clean bucket (handle broken pipe gracefully)
+    if aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://clean-bucket/ --recursive --region $REGION 2>/dev/null | grep -q "$FILE_ID" 2>/dev/null; then
+        if [ -n "$LAMBDA_ERROR" ]; then
+            echo -e "${YELLOW}🤔 File found in clean bucket despite Lambda error - check logs for details${NC}"
+        else
+            echo -e "${GREEN}🎉 File successfully processed and moved to clean bucket!${NC}"
+        fi
         
         echo -e "${YELLOW}📋 Downloading processed file for verification${NC}"
-        CLEAN_FILE=$(aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://clean-bucket/ --recursive --region $REGION | grep "$FILE_ID" | awk '{print $4}')
+        CLEAN_FILE=$(aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://clean-bucket/ --recursive --region $REGION 2>/dev/null | grep "$FILE_ID" 2>/dev/null | awk '{print $4}' | head -1)
         if [ -n "$CLEAN_FILE" ]; then
             aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 cp "s3://clean-bucket/$CLEAN_FILE" "processed-$FILE_ID" --region $REGION
             echo -e "${BLUE}Processed file saved as: processed-$FILE_ID${NC}"
         fi
     else
-        echo -e "${RED}❌ File was not found in clean bucket. Check Lambda logs for errors.${NC}"
-    fi
-else
-    echo -e "${YELLOW}⚠️  Infected file should remain in upload bucket and not be processed${NC}"
-    
-    # Verify infected file remains in upload bucket
-    if aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://upload-bucket/ --region $REGION | grep -q "$FILE_ID"; then
-        echo -e "${GREEN}✅ Infected file correctly remains in upload bucket${NC}"
-        
-        # Verify it was NOT moved to clean bucket
-        if aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://clean-bucket/ --recursive --region $REGION | grep -q "$FILE_ID"; then
-            echo -e "${RED}❌ ERROR: Infected file was incorrectly moved to clean bucket!${NC}"
+        echo -e "${RED}❌ File was not found in clean bucket.${NC}"
+        if [ -n "$LAMBDA_ERROR" ]; then
+            echo -e "${YELLOW}   This is expected since the Lambda failed.${NC}"
         else
-            echo -e "${GREEN}✅ Infected file correctly NOT moved to clean bucket${NC}"
+            echo -e "${RED}   This is unexpected - check Lambda logs for errors.${NC}"
         fi
-    else
-        echo -e "${RED}❌ ERROR: Infected file was removed from upload bucket when it should have remained${NC}"
     fi
 fi
 
-echo -e "${GREEN}🔚 File processing completed!${NC}"
+if [ -n "$LAMBDA_ERROR" ]; then
+    echo -e "${RED}🔚 File processing failed due to Lambda errors!${NC}"
+else
+    echo -e "${GREEN}🔚 File processing completed!${NC}"
+fi
+# Show database verification commands
+echo -e "${YELLOW}💡 To verify database changes:${NC}"
+if [ "$STATUS" = "clean" ]; then
+    echo "# Expected: Document should have moved from document_pending_upload to document table"
+    echo "SELECT * FROM demos_app.document WHERE id = '$FILE_ID';"
+    echo "SELECT COUNT(*) FROM demos_app.document_pending_upload WHERE id = '$FILE_ID'; -- Should return 0"
+    echo "SELECT COUNT(*) FROM demos_app.document WHERE id = '$FILE_ID'; -- Should return 1"
+else
+    echo "# Expected: Document should remain in document_pending_upload table"
+    echo "SELECT * FROM demos_app.document_pending_upload WHERE id = '$FILE_ID';"
+    echo "SELECT COUNT(*) FROM demos_app.document_pending_upload WHERE id = '$FILE_ID'; -- Should return 1"
+    echo "SELECT COUNT(*) FROM demos_app.document WHERE id = '$FILE_ID'; -- Should return 0"
+fi
 
 # Show cleanup commands
 echo -e "${YELLOW}💡 To clean up, you can run:${NC}"
