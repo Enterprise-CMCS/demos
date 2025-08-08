@@ -4,6 +4,7 @@ import { SecondaryButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { DocumentTable } from "components/table/tables/DocumentTable";
+import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import {
   TabItem,
   Tabs,
@@ -13,7 +14,7 @@ type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
 export const DemonstrationTab: React.FC = () => {
-  const [subTab, setSubTab] = useState<SubTabType>("documents");
+  const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
   const subTabList: TabItem[] = [
@@ -31,14 +32,10 @@ export const DemonstrationTab: React.FC = () => {
         onChange={(newVal) => setSubTab(newVal as typeof subTab)}
       />
 
-      <div className="mt-4">
+      <div className="mt-2">
         {subTab === "summary" && (
           <div>
-            <h1 className="text-xl font-bold mb-4 text-brand uppercase border-b-1">
-              Summary
-            </h1>
-            {/* TO DO: Add New button? */}
-            {/* TO DO: Add Table */}
+            <SummaryDetailsTable />
           </div>
         )}
 
@@ -90,9 +87,9 @@ export const DemonstrationTab: React.FC = () => {
         <CreateNewModal
           mode="document"
           data={{
-            demonstration: "demo-id", // TO DO: Get actual demonstration ID
-            state: "state-id", // TO DO: Get actual state ID
-            projectOfficer: "description", // TO DO: Get actual description
+            demonstration: "demo-id",
+            state: "state-id",
+            projectOfficer: "description",
           }}
           onClose={() => setModalType(null)}
         />
