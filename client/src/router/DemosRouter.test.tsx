@@ -59,4 +59,29 @@ describe("DemosRouter", () => {
     render(<DemosRouter />);
     expect(screen.getByText("Demonstrations")).toBeInTheDocument();
   });
+
+  it("renders debug routes in development mode", async () => {
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(true);
+
+    window.history.pushState({}, "Components", "/components");
+    render(<DemosRouter />);
+    expect(screen.getByText("ComponentLibrary")).toBeInTheDocument();
+
+    window.history.pushState({}, "Hooks", "/hooks");
+    render(<DemosRouter />);
+    expect(screen.getByText("TestHooks")).toBeInTheDocument();
+
+    window.history.pushState({}, "Auth", "/auth");
+    render(<DemosRouter />);
+  });
+
+  it("does not render debug routes outside development mode", async () => {
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(false);
+
+    window.history.pushState({}, "Components", "/components");
+    render(<DemosRouter />);
+    expect(screen.queryByText("ComponentLibrary")).not.toBeInTheDocument();
+  });
 });

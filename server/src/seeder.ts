@@ -89,7 +89,6 @@ async function seedDatabase() {
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
   const bypassRoleId = "BYPASSED_ADMIN_ROLE";
   const bypassPermissionId = "BYPASSED_ADMIN_PERMISSION";
-
   await prisma().user.create({
     data: {
       id: bypassUserId,
@@ -100,19 +99,6 @@ async function seedDatabase() {
       displayName: "Bypass",
     },
   });
-
-  // Add Login guys user
-  await prisma().user.create({
-    data: {
-      id: "cb88fd69-9509-40ed-9029-610231fe9e18",
-      cognitoSubject: "14f83478-c0f1-70f7-2c30-ca664b9177e9",
-      username: "dustbuster",
-      email: "dustin.h@globalalliantinc.com",
-      fullName: "Dustin H",
-      displayName: "dj_dusty",
-    },
-  });
-
   await prisma().role.create({
     data: {
       id: bypassRoleId,
