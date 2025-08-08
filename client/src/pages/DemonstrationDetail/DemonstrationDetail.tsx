@@ -1,10 +1,12 @@
 import React, { useCallback, useMemo, useState } from "react";
 
 import { isTestMode } from "config/env";
-import { useDemonstrationDetail } from "hooks/demonstration/useDemonstrationDetail";
 import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
-import { DemonstrationDetailHeader, DemonstrationHeaderDetails } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import {
+  DemonstrationDetailHeader,
+  DemonstrationHeaderDetails,
+} from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
 
 import { AmendmentsTab } from "./AmendmentsTab";
@@ -13,6 +15,42 @@ import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { AmendmentTableRow } from "components/table/tables/AmendmentTable";
 import { ExtensionTableRow } from "components/table/tables/ExtensionTable";
+import { gql, useQuery } from "@apollo/client";
+
+export const DEMONSTRATION_DETAIL_QUERY = gql`
+  query DemonstrationDetailQuery($id: ID!) {
+    demonstration(id: $id) {
+      id
+      name
+      description
+      effectiveDate
+      expirationDate
+      state {
+        id
+      }
+      demonstrationStatus {
+        name
+      }
+      projectOfficer {
+        fullName
+      }
+      amendments {
+        name
+        effectiveDate
+        amendmentStatus {
+          name
+        }
+      }
+      extensions {
+        name
+        effectiveDate
+        extensionStatus {
+          name
+        }
+      }
+    }
+  }
+`;
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationModalDetails & {
@@ -62,7 +100,13 @@ export const DemonstrationDetail: React.FC = () => {
     setDemonstrationActionModal("delete");
   }, []);
 
-  const { demonstration, loading, error } = useDemonstrationDetail(id);
+  const { data, loading, error } = useQuery(DEMONSTRATION_DETAIL_QUERY, {
+    variables: { id: id! },
+    skip: !id,
+  });
+
+  const demonstration = data?.demonstration;
+
   const tabList = useMemo(
     () =>
       createTabList(demonstration?.amendments.length ?? 0, demonstration?.extensions.length ?? 0),

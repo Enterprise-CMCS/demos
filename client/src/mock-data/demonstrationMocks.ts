@@ -13,10 +13,8 @@ import { MockedResponse } from "@apollo/client/testing";
 import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
-import {
-  DEMONSTRATION_DETAIL_QUERY,
-} from "hooks/demonstration/useDemonstrationDetail";
 import { DemonstrationDetail } from "pages/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 export const testDemonstration: Demonstration = {
   id: "1",
