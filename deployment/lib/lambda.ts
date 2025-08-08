@@ -16,6 +16,7 @@ import {
   ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { DemosLogGroup } from "./logGroup";
 
 interface LambdaProps extends CommonProps {
   additionalPolicies?: PolicyStatement[];
@@ -61,6 +62,12 @@ export class Lambda extends Construct {
       memorySize = 1024,
       asCode = false,
     } = props;
+
+    const logGroup = new DemosLogGroup(this, "LogGroup", {
+      name: `lambda/${id}`,
+      isEphemeral: props.isEphemeral,
+      stage: props.stage
+    })
 
     const role = new Role(this, `${id}LambdaExecutionRole`, {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
@@ -123,6 +130,7 @@ export class Lambda extends Construct {
       environment: props.environment,
       vpc: props.vpc,
       vpcSubnets: props.vpc ? { subnets: props.vpc.privateSubnets } : undefined,
+      logGroup: logGroup.logGroup
     });
 
     let alias;
