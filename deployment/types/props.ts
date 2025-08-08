@@ -10,6 +10,7 @@ export interface CommonProps {
   iamPath?: string;
   iamPermissionsBoundary?: IManagedPolicy;
   isLocalstack: boolean;
+  isEphemeral: boolean;
   zScalerIps: string[];
   idmMetadataEndpoint?: string;
 }
