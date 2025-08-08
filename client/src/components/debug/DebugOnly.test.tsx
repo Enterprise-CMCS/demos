@@ -4,7 +4,7 @@ import { describe, beforeEach, expect, it, vi } from "vitest";
 import { DebugOnly } from "./DebugOnly";
 
 vi.mock("config/env", () => ({
-  isDevelopmentMode: vi.fn(),
+  isLocalDevelopment: vi.fn(),
 }));
 
 describe("DebugOnly", () => {
@@ -13,8 +13,8 @@ describe("DebugOnly", () => {
   });
 
   it("renders children when in development mode", async () => {
-    const { isDevelopmentMode } = await import("config/env");
-    vi.mocked(isDevelopmentMode).mockReturnValue(true);
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(true);
 
     render(
       <DebugOnly>
@@ -25,8 +25,8 @@ describe("DebugOnly", () => {
   });
 
   it("renders nothing when not in development mode", async () => {
-    const { isDevelopmentMode } = await import("config/env");
-    vi.mocked(isDevelopmentMode).mockReturnValue(false);
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(false);
 
     const { container } = render(
       <DebugOnly>
