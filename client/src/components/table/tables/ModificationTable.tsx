@@ -1,33 +1,31 @@
 import * as React from "react";
 
-import {
-  ChevronRightIcon,
-  SuccessIcon,
-} from "components/icons";
+import { ChevronRightIcon, SuccessIcon } from "components/icons";
 import { ReviewIcon } from "components/icons/Action/ReviewIcon";
 
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { getCoreRowModel, getExpandedRowModel, useReactTable } from "@tanstack/react-table";
 
-import {
-  AmendmentColumns,
-  RawAmendment,
-} from "../columns/AmendmentColumns";
+import { ModificationColumns } from "../columns/ModificationColumns";
+import { Amendment, Extension } from "demos-server";
 
-interface AmendmentTableProps {
-  data: RawAmendment[];
-  demonstrationId: string;
-}
+export type ModificationTableRow =
+  | {
+      name: Amendment["name"];
+      effectiveDate: Amendment["effectiveDate"];
+      status: Pick<Amendment["amendmentStatus"], "name">;
+    }
+  | {
+      name: Extension["name"];
+      effectiveDate: Extension["effectiveDate"];
+      status: Pick<Extension["extensionStatus"], "name">;
+    };
 
-export function AmendmentTable({ data }: AmendmentTableProps) {
+export function ModificationTable({ modifications }: { modifications: ModificationTableRow[] }) {
   const [expanded, setExpanded] = React.useState({});
 
-  const table = useReactTable({
-    data,
-    columns: AmendmentColumns,
+  const table = useReactTable<ModificationTableRow>({
+    data: modifications,
+    columns: ModificationColumns,
     state: { expanded },
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
@@ -39,7 +37,7 @@ export function AmendmentTable({ data }: AmendmentTableProps) {
     <div className="w-full">
       <div className="flex flex-col gap-2">
         {table.getRowModel().rows.map((row) => {
-          const { title, effectiveDate, status } = row.original;
+          const { name, effectiveDate, status } = row.original;
           const isExpanded = row.getIsExpanded();
 
           return (
@@ -48,11 +46,11 @@ export function AmendmentTable({ data }: AmendmentTableProps) {
                 onClick={() => row.toggleExpanded()}
                 className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 cursor-pointer"
               >
-                <div className="text-sm font-bold text-blue-900">{title}</div>
+                <div className="text-sm font-bold text-blue-900">{name}</div>
 
                 <div className="h-1" />
 
-                <div>{renderStatus(status)}</div>
+                <div>{renderStatus(status.name)}</div>
 
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
@@ -74,9 +72,14 @@ export function AmendmentTable({ data }: AmendmentTableProps) {
   );
 }
 
-const formatDate = (iso: string) => {
-  const [yyyy, mm, dd] = iso.split("-");
-  return `${mm}/${dd}/${yyyy}`;
+// TODO: this utility function will likely be replaced by a Date js library in the future.
+const formatDate = (date: Date | undefined) => {
+  if (!date) return "N/A";
+  return date.toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
 };
 
 const renderStatus = (status: string) => {
@@ -104,8 +107,6 @@ const renderStatus = (status: string) => {
         </div>
       );
     default:
-      return (
-        <span className="text-sm text-gray-700">{status}</span>
-      );
+      return <span className="text-sm text-gray-700">{status}</span>;
   }
 };

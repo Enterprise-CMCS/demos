@@ -1,6 +1,6 @@
 import jwt, { JwtHeader } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import { GraphQLResolveInfo, GraphQLError } from "graphql";
+import { GraphQLError } from "graphql";
 import { IncomingMessage } from "http";
 import { PrismaClient, } from "@prisma/client";
 import { getAuthConfig } from "./auth.config.js";
