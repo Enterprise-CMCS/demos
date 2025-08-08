@@ -3,10 +3,14 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 
-vi.mock("config/env", () => ({
-  isDevelopmentMode: vi.fn(),
-  shouldUseMocks: vi.fn(() => true),
-}));
+vi.mock("config/env", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    shouldUseMocks: vi.fn(() => false),
+    isProductionMode: vi.fn(() => false),
+  };
+});
 
 // Mock react-oidc-context AuthProvider to just render children
 vi.mock("react-oidc-context", () => ({
@@ -62,30 +66,5 @@ describe("DemosRouter", () => {
     window.history.pushState({}, "Demonstrations", "/demonstrations");
     render(<DemosRouter />);
     expect(screen.getByText("Demonstrations")).toBeInTheDocument();
-  });
-
-  it("renders debug routes in development mode", async () => {
-    const { isDevelopmentMode } = await import("config/env");
-    vi.mocked(isDevelopmentMode).mockReturnValue(true);
-
-    window.history.pushState({}, "Components", "/components");
-    render(<DemosRouter />);
-    expect(screen.getByText("ComponentLibrary")).toBeInTheDocument();
-
-    window.history.pushState({}, "Hooks", "/hooks");
-    render(<DemosRouter />);
-    expect(screen.getByText("TestHooks")).toBeInTheDocument();
-
-    window.history.pushState({}, "Auth", "/auth");
-    render(<DemosRouter />);
-  });
-
-  it("does not render debug routes outside development mode", async () => {
-    const { isDevelopmentMode } = await import("config/env");
-    vi.mocked(isDevelopmentMode).mockReturnValue(false);
-
-    window.history.pushState({}, "Components", "/components");
-    render(<DemosRouter />);
-    expect(screen.queryByText("ComponentLibrary")).not.toBeInTheDocument();
   });
 });

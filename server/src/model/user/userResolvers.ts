@@ -2,12 +2,16 @@ import { User } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { CreateUserInput } from "./userSchema.js";
 
+
 export const userResolvers = {
   Query: {
     user: async (_: undefined, { id }: { id: string }) => {
       return await prisma().user.findUnique({
         where: { id: id },
       });
+    },
+    users: async () => {
+      return await prisma().user.findMany();
     },
   },
 
