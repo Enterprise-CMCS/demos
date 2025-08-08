@@ -5,7 +5,7 @@ import {
   GET_ALL_USERS,
   GET_USER_BY_ID,
   UserOption,
-} from "hooks/useUserOperations";
+} from "hooks/user/useUserOperations";
 import { USER_OPTIONS_QUERY } from "queries/userQueries";
 
 import { MockedResponse } from "@apollo/client/testing";

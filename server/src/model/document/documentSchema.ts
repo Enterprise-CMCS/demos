@@ -1,16 +1,12 @@
-import { Dayjs } from "dayjs";
 import { gql } from "graphql-tag";
 
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
 import { DocumentType } from "../documentType/documentTypeSchema.js";
-import {
-  Amendment,
-  Extension,
-} from "../modification/modificationSchema.js";
+import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
 
 export const documentSchema = gql`
-  union Bundle = Demonstration | Amendment
+  union Bundle = Demonstration | Amendment | Extension
   type Document {
     id: ID!
     title: String!
@@ -86,19 +82,19 @@ export const documentSchema = gql`
       id: ID!
       input: UpdateDemonstrationDocumentInput!
     ): Document
-    deleteDemonstrationDocument(id: ID!): Document
+    deleteDemonstrationDocuments(ids: [ID!]!): [ID!]!
     createAmendmentDocument(input: CreateAmendmentDocumentInput!): Document
     updateAmendmentDocument(
       id: ID!
       input: UpdateAmendmentDocumentInput!
     ): Document
-    deleteAmendmentDocument(id: ID!): Document
+    deleteAmendmentDocuments(ids: [ID!]!): [ID!]!
     createExtensionDocument(input: CreateExtensionDocumentInput!): Document
     updateExtensionDocument(
       id: ID!
       input: UpdateExtensionDocumentInput!
     ): Document
-    deleteExtensionDocument(id: ID!): Document
+    deleteExtensionDocuments(ids: [ID!]!): [ID!]!
   }
 
   type Query {
@@ -108,7 +104,7 @@ export const documentSchema = gql`
 `;
 
 type Bundle = Demonstration | Amendment | Extension;
-export type DateTime = Dayjs;
+type DateTime = Date;
 export interface Document {
   id: string;
   title: string;

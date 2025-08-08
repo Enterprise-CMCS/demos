@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { SecondaryButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
-import { DocumentTable } from "components/table/tables/DocumentTable";
+import { DocumentTable } from "components/table/tables/document/DocumentTable";
 import {
   TabItem,
   Tabs,

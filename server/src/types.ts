@@ -1,5 +1,3 @@
-import { BUNDLE_TYPE } from "./constants.js";
-
 // Export types for use in the client code
 export type {
   CreateUserInput,
@@ -48,6 +46,7 @@ export type {
   LogEventInput,
 } from "./model/event/eventSchema.js";
 
+
 export type {
   AddExtensionInput,
   Amendment,
@@ -63,6 +62,11 @@ export type {
   UpdateDocumentTypeInput,
 } from "./model/documentType/documentTypeSchema.js";
 
-export type { Document } from "./model/document/documentSchema.js";
+export type {
+  Document,
+  CreateDemonstrationDocumentInput,
+  UpdateDemonstrationDocumentInput,
+} from "./model/document/documentSchema.js";
 
+import { BUNDLE_TYPE } from "./constants.js";
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];

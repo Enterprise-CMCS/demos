@@ -1,21 +1,23 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { DocumentTypeOption } from "hooks/useDocumentType";
-import { DOCUMENT_TYPE_OPTIONS_QUERY } from "queries/documentTypeQueries";
+import { DocumentType } from "demos-server";
+import { GET_ALL_DOCUMENT_TYPES } from "queries/document/documentTypeQueries";
+
+const MOCK_DOCUMENT_TYPES: DocumentType[] = [
+  { name: "Pre-Submission Concept" },
+  { name: "General File" },
+  { name: "Budget Neutrality Workbook" },
+  { name: "Annual Report" },
+  { name: "Other" },
+] as DocumentType[];
 
 export const documentTypeMocks: MockedResponse[] = [
   {
     request: {
-      query: DOCUMENT_TYPE_OPTIONS_QUERY,
+      query: GET_ALL_DOCUMENT_TYPES,
     },
     result: {
       data: {
-        documentTypes: [
-          { name: "Pre-Submission Concept" },
-          { name: "General File" },
-          { name: "Budget Neutrality Workbook" },
-          { name: "Annual Report" },
-          { name: "Other" },
-        ] satisfies DocumentTypeOption[],
+        documentTypes: MOCK_DOCUMENT_TYPES,
       },
     },
   },

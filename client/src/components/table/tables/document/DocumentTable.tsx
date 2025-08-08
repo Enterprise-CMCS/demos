@@ -1,29 +1,27 @@
 // DocumentTable.tsx
-import * as React from "react";
-
+import React from "react";
+import { Table } from "../../Table";
+import { DocumentColumns } from "./DocumentColumns";
+import { useDocument } from "hooks/document/useDocument";
 import { CircleButton } from "components/button/CircleButton";
-import {
-  DeleteIcon,
-  EditIcon,
-  ImportIcon,
-} from "components/icons";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 import {
   AddDocumentModal,
   EditDocumentModal,
   RemoveDocumentModal,
 } from "components/modal/document/DocumentModal";
-import {
-  DocumentTableRow,
-  useDocument,
-} from "hooks/useDocument";
-
-import { ColumnFilter } from "../ColumnFilter";
-import { DocumentColumns } from "../columns/DocumentColumns";
-import { KeywordSearch } from "../KeywordSearch";
-import { PaginationControls } from "../PaginationControls";
-import { Table } from "../Table";
+import { KeywordSearch } from "../../KeywordSearch";
+import { ColumnFilter } from "../../ColumnFilter";
+import { PaginationControls } from "../../PaginationControls";
+import { Document } from "demos-server";
+import { ApolloError } from "@apollo/client";
 
 type DisplayedModal = null | "add" | "edit" | "remove";
+
+export type DocumentTableRow = Pick<
+  Document,
+  "id" | "title" | "description" | "documentType" | "owner" | "createdAt"
+>;
 
 interface DocumentModalsProps {
   displayedModal: DisplayedModal;
@@ -31,11 +29,7 @@ interface DocumentModalsProps {
   selectedIds: string[];
 }
 
-function DocumentModals({
-  displayedModal,
-  onClose,
-  selectedIds,
-}: DocumentModalsProps) {
+function DocumentModals({ displayedModal, onClose, selectedIds }: DocumentModalsProps) {
   if (displayedModal === "add") {
     return <AddDocumentModal onClose={onClose} />;
   }
@@ -83,33 +77,42 @@ function DocumentActionButtons({
 }
 
 export function DocumentTable() {
-  const [displayedModal, setDisplayedModal] =
-    React.useState<DisplayedModal>(null);
-  const { documentColumns, documentColumnsLoading, documentColumnsError } =
-    DocumentColumns();
+  const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [documents, setDocuments] = React.useState<DocumentTableRow[]>([]);
+  const { documentColumns, documentColumnsLoading, documentColumnsError } = DocumentColumns();
 
-  const { getDocumentTable } = useDocument();
-  const {
-    data: documentsTableData,
-    loading: documentTableLoading,
-    error: documentsTableError,
-  } = getDocumentTable;
+  const { getAllDocuments } = useDocument();
 
+  // Fetch Documents
   React.useEffect(() => {
-    getDocumentTable.trigger();
+    const fetchDocuments = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const result = await getAllDocuments();
+        setDocuments(result.data?.documents ?? []);
+      } catch (err: unknown) {
+        if (err instanceof ApolloError) {
+          setError(err.message || "Error loading demonstrations");
+        } else {
+          setError("Unknown error");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDocuments();
   }, []);
 
   if (documentColumnsLoading) return <div className="p-4">Loading...</div>;
   if (documentColumnsError)
-    return (
-      <div className="p-4">Error loading data: {documentColumnsError}</div>
-    );
+    return <div className="p-4">Error loading data: {documentColumnsError}</div>;
 
-  if (documentTableLoading) return <div className="p-4">Loading...</div>;
-  if (documentsTableError)
-    return <div className="p-4">Error loading demonstrations</div>;
-  if (!documentsTableData)
-    return <div className="p-4">Documents not found</div>;
+  if (isLoading) return <div className="p-4">Loading...</div>;
+  if (error) return <div className="p-4">Error loading demonstrations: {error}</div>;
+  if (!documents || documents.length === 0) return <div className="p-4">Documents not found</div>;
 
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
@@ -119,7 +122,7 @@ export function DocumentTable() {
     <div className="overflow-x-auto w-full mb-2">
       {documentColumns && (
         <Table<DocumentTableRow>
-          data={documentsTableData}
+          data={documents}
           columns={documentColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columnFilter={(table) => <ColumnFilter table={table} />}
@@ -135,9 +138,7 @@ export function DocumentTable() {
             />
           )}
           actionModals={(table) => {
-            const selectedIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => String(row.id));
+            const selectedIds = table.getSelectedRowModel().rows.map((row) => String(row.id));
             return (
               <DocumentModals
                 displayedModal={displayedModal}
