@@ -164,10 +164,10 @@ export function DemonstrationColumns() {
         let queryParam = "";
         if (row.original.type === "amendment" && row.original.parentId) {
           demoId = row.original.parentId;
-          queryParam = "amendments=true";
+          queryParam = `amendments=${row.original.id}`;
         } else if (row.original.type === "extension" && row.original.parentId) {
           demoId = row.original.parentId;
-          queryParam = "extensions=true";
+          queryParam = `extensions=${row.original.id}`;
         }
         const href = queryParam
           ? `/demonstrations/${demoId}?${queryParam}`

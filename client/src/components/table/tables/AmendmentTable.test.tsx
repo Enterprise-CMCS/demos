@@ -1,17 +1,6 @@
 import React from "react";
-
-import {
-  describe,
-  expect,
-  it,
-} from "vitest"; // or use `jest` if you're using Jest
-
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
-
+import { describe, expect, it } from "vitest"; // or use `jest` if you're using Jest
+import { fireEvent, render, screen } from "@testing-library/react";
 import { AmendmentTable } from "./AmendmentTable";
 
 const mockData = [
@@ -54,5 +43,17 @@ describe("AmendmentTable", () => {
 
     fireEvent.click(row);
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
+  });
+
+  it("automatically expands the row if initiallyExpandedId is provided", () => {
+    render(
+      <AmendmentTable
+        data={mockData}
+        demonstrationId="demo-123"
+        initiallyExpandedId="1"
+      />
+    );
+
+    expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
   });
 });
