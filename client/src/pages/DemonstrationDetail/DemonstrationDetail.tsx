@@ -123,6 +123,7 @@ export const DemonstrationDetail: React.FC = () => {
               <ExtensionsTab
                 demonstration={demonstration}
                 onClick={() => setEntityCreationModal("extension")}
+                initiallyExpandedId={extensionParam ?? undefined}
               />
             )}
           </div>

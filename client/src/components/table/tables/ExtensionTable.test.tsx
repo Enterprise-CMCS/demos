@@ -1,16 +1,6 @@
 import React from "react";
-
-import {
-  describe,
-  expect,
-  it,
-} from "vitest";
-
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { ExtensionTable } from "./ExtensionTable";
 
@@ -44,7 +34,6 @@ describe("ExtensionTable", () => {
   it("toggles expand section when a row is clicked", () => {
     render(<ExtensionTable data={mockData} demonstrationId="demo-123" />);
 
-    // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
 
     const row = screen.getByText("Extension 1").closest("div")!;
@@ -54,5 +43,17 @@ describe("ExtensionTable", () => {
 
     fireEvent.click(row);
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
+  });
+
+  it("automatically expands the row if initiallyExpandedId is provided", () => {
+    render(
+      <ExtensionTable
+        data={mockData}
+        demonstrationId="demo-123"
+        initiallyExpandedId="1"
+      />
+    );
+
+    expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
   });
 });

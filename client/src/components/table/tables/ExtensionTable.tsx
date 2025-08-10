@@ -7,6 +7,7 @@ import {
 import { ReviewIcon } from "components/icons/Action/ReviewIcon";
 
 import {
+  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
   useReactTable,
@@ -20,19 +21,32 @@ import {
 interface ExtensionTableProps {
   data: RawExtension[];
   demonstrationId: string;
+  initiallyExpandedId?: string;
 }
 
-export function ExtensionTable({ data }: ExtensionTableProps) {
-  const [expanded, setExpanded] = React.useState({});
+export function ExtensionTable({ data, initiallyExpandedId }: ExtensionTableProps) {
+  const [expanded, setExpanded] = React.useState<ExpandedState>(() => {
+    return initiallyExpandedId ? { [initiallyExpandedId]: true } : {};
+  });
+
+  const handleExpandedChange = React.useCallback(
+    (updater: ExpandedState | ((prev: ExpandedState) => ExpandedState)) => {
+      setExpanded((prev) => {
+        return typeof updater === "function" ? updater(prev) : updater;
+      });
+    },
+    []
+  );
 
   const table = useReactTable({
     data,
     columns: ExtensionColumns,
     state: { expanded },
-    onExpandedChange: setExpanded,
+    onExpandedChange: handleExpandedChange,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand: () => true,
+    getRowId: (row) => row.id,
   });
 
   return (
