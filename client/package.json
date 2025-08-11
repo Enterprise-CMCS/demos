@@ -72,7 +72,7 @@
     "@mui/x-date-pickers": "^8.5.0",
     "@tanstack/react-table": "^8.21.3",
     "@testing-library/user-event": "^14.6.1",
-    "dayjs": "^1.11.13",
+    "date-fns": "^4.1.0",
     "react-oidc-context": "^3.3.0",
     "react-router-dom": "^7.5.2"
   },

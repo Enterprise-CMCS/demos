@@ -6,11 +6,10 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createColumnHelper } from "@tanstack/react-table";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Table } from "./Table";
 import { highlightCell, KeywordSearch } from "./KeywordSearch";
-import dayjs, { Dayjs } from "dayjs";
 import { ColumnFilter } from "./ColumnFilter";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 type TestOptionType = {
   name: string;
@@ -20,7 +19,7 @@ export type TestType = {
   name: string;
   description: string;
   option: TestOptionType;
-  date: Dayjs;
+  date: Date;
 };
 
 const columnHelper = createColumnHelper<TestType>();
@@ -69,7 +68,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Alpha",
     },
-    date: dayjs("2023-01-01"),
+    date: new Date("2023-01-01"),
   },
   {
     name: "Item Two",
@@ -77,7 +76,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Beta",
     },
-    date: dayjs("2023-02-01"),
+    date: new Date("2023-02-01"),
   },
   {
     name: "Item Three",
@@ -85,7 +84,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Gamma",
     },
-    date: dayjs("2023-03-01"),
+    date: new Date("2023-03-01"),
   },
   {
     name: "Item Four",
@@ -93,7 +92,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Delta",
     },
-    date: dayjs("2023-04-01"),
+    date: new Date("2023-04-01"),
   },
   {
     name: "Item Five",
@@ -101,7 +100,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Alpha",
     },
-    date: dayjs("2023-05-01"),
+    date: new Date("2023-05-01"),
   },
 ];
 
@@ -109,7 +108,7 @@ describe.sequential("Table Component Interactions", () => {
   describe("Basic Rendering", () => {
     it("renders all test items initially", () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Table<TestType> columns={testColumns} data={testTableData} />
         </LocalizationProvider>
       );
@@ -123,7 +122,7 @@ describe.sequential("Table Component Interactions", () => {
 
     it("renders the empty state message when there is no data", () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Table<TestType>
             columns={testColumns}
             data={[]}
@@ -139,7 +138,7 @@ describe.sequential("Table Component Interactions", () => {
   describe("Filter and Search Interactions", () => {
     it("preserves existing column filters when keyword searching", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Table<TestType>
             columnFilter={(table) => <ColumnFilter table={table} />}
             keywordSearch={(table) => <KeywordSearch table={table} />}
@@ -209,7 +208,7 @@ describe.sequential("Table Component Interactions", () => {
 
     it("preserves existing keyword search when applying column filters", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Table<TestType>
             columnFilter={(table) => <ColumnFilter table={table} />}
             keywordSearch={(table) => <KeywordSearch table={table} />}
@@ -264,7 +263,7 @@ describe.sequential("Table Component Interactions", () => {
 
     it("clears keyword search but preserves column filters when clearing keyword search", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Table<TestType>
             columnFilter={(table) => <ColumnFilter table={table} />}
             keywordSearch={(table) => <KeywordSearch table={table} />}
@@ -323,7 +322,7 @@ describe.sequential("Table Component Interactions", () => {
 
     it("clears column filter but preserves keyword search when column filter is manually cleared", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Table<TestType>
             columnFilter={(table) => <ColumnFilter table={table} />}
             keywordSearch={(table) => <KeywordSearch table={table} />}
@@ -385,7 +384,7 @@ describe.sequential("Table Component Interactions", () => {
   describe("Sorting Interactions", () => {
     it("maintains sorting when applying filters and search", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Table<TestType>
             columnFilter={(table) => <ColumnFilter table={table} />}
             keywordSearch={(table) => <KeywordSearch table={table} />}
@@ -473,7 +472,7 @@ describe.sequential("Table Component Interactions", () => {
   describe("No Results State Interactions", () => {
     it("shows no results message when both filters yield no matches", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Table<TestType>
             columnFilter={(table) => <ColumnFilter table={table} />}
             keywordSearch={(table) => (

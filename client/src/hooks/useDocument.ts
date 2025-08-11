@@ -15,7 +15,7 @@ export type DocumentTableRow = {
   description: Document["description"];
   documentType: Pick<Document["documentType"], "name">;
   owner: Pick<User, "fullName">;
-  createdAt: string; // GraphQL returns ISO string, we'll convert to Dayjs in components
+  createdAt: Date;
 };
 
 interface GetDocumentTableOperation {

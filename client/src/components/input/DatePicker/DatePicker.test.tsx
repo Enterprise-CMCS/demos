@@ -5,9 +5,9 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DatePicker } from "./DatePicker";
-import dayjs from "dayjs";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers";
+import { format, isAfter, parse } from "date-fns";
 
 // this assumes the date is in the past.
 export async function pickDateInCalendar({
@@ -47,15 +47,12 @@ export async function pickDateInCalendar({
   await userEvent.click(yearButton);
 
   // Navigate to the correct month
-  const targetMonthName = dayjs()
-    .month(Number(month) - 1)
-    .format("MMMM");
+  const targetDate = new Date(year, month - 1);
+  const targetMonthName = format(targetDate, "MMMM");
 
   // Keep clicking appropriate direction until we reach the target month
   const calendarDialog = screen.getByRole("dialog");
-  let currentMonthHeader = calendarDialog.querySelector(
-    ".MuiPickersCalendarHeader-label"
-  );
+  let currentMonthHeader = calendarDialog.querySelector(".MuiPickersCalendarHeader-label");
   let monthNavigationCount = 0;
   const maxMonthNavigations = 12;
 
@@ -65,13 +62,10 @@ export async function pickDateInCalendar({
   ) {
     // Parse current month and year from header
     const currentHeaderText = currentMonthHeader?.textContent || "";
-    const currentDate = dayjs(currentHeaderText, "MMMM YYYY");
-    const targetDate = dayjs()
-      .year(year)
-      .month(Number(month) - 1);
+    const currentDate = parse(currentHeaderText, "MMMM yyyy", new Date());
 
     // Determine if we need to go forward or backward
-    const shouldGoForward = targetDate.isAfter(currentDate, "month");
+    const shouldGoForward = isAfter(currentDate, "month");
 
     const navigationButton = shouldGoForward
       ? screen.getByRole("button", { name: "Next month" })
@@ -82,9 +76,7 @@ export async function pickDateInCalendar({
 
     // Wait for the month to change
     await waitFor(() => {
-      currentMonthHeader = calendarDialog.querySelector(
-        ".MuiPickersCalendarHeader-label"
-      );
+      currentMonthHeader = calendarDialog.querySelector(".MuiPickersCalendarHeader-label");
     });
   }
 
@@ -103,7 +95,7 @@ export async function pickDateInCalendar({
 describe("Input component", () => {
   it("renders label and input", () => {
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker>Date Picker</DatePicker>
       </LocalizationProvider>
     );
@@ -118,7 +110,7 @@ describe("Input component", () => {
 
   it("renders required asterisk when required is true", () => {
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker required>Required Date Picker</DatePicker>
       </LocalizationProvider>
     );
@@ -134,7 +126,7 @@ describe("Input component", () => {
 
   it("does not render required asterisk when required is false", () => {
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker>Not-Required Date Picker</DatePicker>
       </LocalizationProvider>
     );
@@ -150,13 +142,11 @@ describe("Input component", () => {
 
   it("renders with label", () => {
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker label="this is the label">Test Date Picker</DatePicker>
       </LocalizationProvider>
     );
-    expect(
-      screen.getByText("this is the label", { selector: "label" })
-    ).toBeInTheDocument();
+    expect(screen.getByText("this is the label", { selector: "label" })).toBeInTheDocument();
 
     expect(screen.getByRole("group")).toBeInTheDocument();
 
@@ -166,23 +156,21 @@ describe("Input component", () => {
   });
 
   it("renders with defaultValue", () => {
-    const now = dayjs();
+    const now = new Date();
     const Component = () => {
       return (
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <DatePicker value={now} />
         </LocalizationProvider>
       );
     };
     render(<Component />);
-    expect(
-      screen.getByDisplayValue(now.format("MM/DD/YYYY"))
-    ).toBeInTheDocument();
+    expect(screen.getByDisplayValue(format(now, "MM/dd/yyyy"))).toBeInTheDocument();
   });
 
   it("renders as disabled when isDisabled is true", () => {
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker disabled>Disabled Date Picker</DatePicker>
       </LocalizationProvider>
     );
@@ -198,7 +186,7 @@ describe("Input component", () => {
   it("calls onChange when value changes", async () => {
     const handleChange = vi.fn();
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker onChange={handleChange} />
       </LocalizationProvider>
     );
@@ -217,7 +205,7 @@ describe("Input component", () => {
 
   it("renders time picker sections", () => {
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker type="time">Test Time Picker</DatePicker>
       </LocalizationProvider>
     );
@@ -229,7 +217,7 @@ describe("Input component", () => {
 
   it("renders datetime picker", () => {
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker type="datetime">Test Time Picker</DatePicker>
       </LocalizationProvider>
     );
@@ -244,18 +232,16 @@ describe("Input component", () => {
   it("updates value correctly", async () => {
     let pickedValue: string | undefined;
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DatePicker
           name="required-date-picker"
           onChange={(value) => {
-            pickedValue = value ? value.format("MM/DD/YYYY") : undefined;
+            pickedValue = value ? format(value, "MM/dd/yyyy") : undefined;
           }}
         />
       </LocalizationProvider>
     );
-    const input = screen
-      .getByRole("group")
-      .querySelector('input[name="required-date-picker"]');
+    const input = screen.getByRole("group").querySelector('input[name="required-date-picker"]');
     expect(input).not.toBeNull();
     const datePickerRoot = input!.closest('[role="group"]');
     expect(datePickerRoot).not.toBeNull();

@@ -12,8 +12,8 @@ import { IconLibrary } from "pages/debug/IconLibrary";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import { isLocalDevelopment } from "config/env";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { EventSandbox } from "pages/debug/EventSandbox";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 export const DemosRouter = () => {
   // TODO: When we know what IDM integration looks like
@@ -24,7 +24,7 @@ export const DemosRouter = () => {
   return (
     <AuthProvider {...cognitoConfig}>
       <DemosApolloProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <BrowserRouter>
             <Routes>
               <Route
