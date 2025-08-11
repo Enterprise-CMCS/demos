@@ -9,7 +9,7 @@ export type DocumentTableRow = {
   description: Document["description"];
   documentType: Pick<Document["documentType"], "name">;
   owner: Pick<Document["owner"], "fullName">;
-  createdAt: Pick<Document, "createdAt">;
+  createdAt: Document["createdAt"];
 };
 
 interface GetDocumentTableOperation {
