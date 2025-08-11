@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { DatePicker, TYPE_DATETIME, TYPE_TIME } from "./DatePicker";
-import dayjs, { Dayjs } from "dayjs";
+import { isAfter, subDays, addDays } from "date-fns";
 
 export const DatePickerSandbox: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-  const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
-  const isInvalidRange = startDate && endDate && startDate.isAfter(endDate);
+  const isInvalidRange = startDate && endDate && isAfter(startDate, endDate);
 
   return (
     <>
@@ -28,30 +28,23 @@ export const DatePickerSandbox: React.FC = () => {
         <DatePicker disabled>Disabled Date Picker</DatePicker>
         <DatePicker type={TYPE_TIME}>Time Picker</DatePicker>
         <DatePicker type={TYPE_DATETIME}>DateTime Picker</DatePicker>
-        <DatePicker
-          type={TYPE_DATETIME}
-          value={startDate}
-          onChange={setStartDate}
-        >
+        <DatePicker type={TYPE_DATETIME} value={startDate} onChange={setStartDate}>
           Basic Linked DateTime Picker - Start
         </DatePicker>
         <DatePicker type={TYPE_DATETIME} value={endDate} onChange={setEndDate}>
           Basic Linked DateTime Picker - End
         </DatePicker>
         {isInvalidRange && (
-          <div style={{ color: "red", marginTop: 4 }}>
-            Start date cannot be after end date.
-          </div>
+          <div style={{ color: "red", marginTop: 4 }}>Start date cannot be after end date.</div>
         )}
         <DatePicker
           data-testid="my-picker"
           value={endDate}
           onChange={setEndDate}
-          minDate={dayjs().subtract(3, "day")}
-          maxDate={dayjs().add(3, "day")}
+          minDate={subDays(new Date(), 3)}
+          maxDate={addDays(new Date(), 3)}
         >
-          Required Date Picker with validation (three days before and after
-          today)
+          Required Date Picker with validation (three days before and after today)
         </DatePicker>
       </div>
     </>
