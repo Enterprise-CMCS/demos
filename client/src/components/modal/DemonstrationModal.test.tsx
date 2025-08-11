@@ -1,12 +1,17 @@
 import React from "react";
 
 import { ToastProvider } from "components/toast/ToastContext";
+import { Demonstration } from "demos-server";
 import { vi } from "vitest";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 
 import { DemonstrationModal } from "./DemonstrationModal";
-import { Demonstration } from "demos-server";
 
 // Mock the useDemonstration hook
 vi.mock("hooks/useDemonstration", () => ({
@@ -211,6 +216,7 @@ describe("DemonstrationModal", () => {
         demonstrationStatusId: "1",
         stateId: "1",
         userIds: ["1"],
+        projectOfficerUserId: "1",
       });
     });
   });
@@ -233,7 +239,12 @@ describe("DemonstrationModal", () => {
     const demonstration: Demonstration = {
       id: "1",
       name: "Original Demo",
-      state: { id: "CA", name: "California" },
+      state: {
+        id: "CA",
+        name: "California",
+        users: [],
+        demonstrations: [],
+      },
       effectiveDate: new Date("2024-06-20T00:00:00.000Z"),
       expirationDate: new Date("2024-07-20T00:00:00.000Z"),
       description: "Original description",
@@ -245,7 +256,26 @@ describe("DemonstrationModal", () => {
         description: "Active Description",
         createdAt: new Date("2024-06-01T00:00:00.000Z"),
         updatedAt: new Date("2024-06-10T00:00:00.000Z"),
+        demonstrations: [],
       },
+      projectOfficer: {
+        id: "1",
+        cognitoSubject: "xyz",
+        username: "johndoe",
+        fullName: "John Doe",
+        email: "johndoe@john.com",
+        displayName: "John",
+        createdAt: new Date("2024-06-01T00:00:00.000Z"),
+        updatedAt: new Date("2024-06-10T00:00:00.000Z"),
+        roles: [],
+        states: [],
+        demonstrations: [],
+        events: [],
+        ownedDocuments: [],
+      },
+      documents: [],
+      amendments: [],
+      extensions: [],
       users: [
         {
           id: "1",
@@ -257,6 +287,10 @@ describe("DemonstrationModal", () => {
           createdAt: new Date("2024-06-01T00:00:00.000Z"),
           updatedAt: new Date("2024-06-10T00:00:00.000Z"),
           roles: [],
+          states: [],
+          demonstrations: [],
+          events: [],
+          ownedDocuments: [],
         },
       ],
     };
@@ -284,6 +318,7 @@ describe("DemonstrationModal", () => {
         demonstrationStatusId: "1",
         stateId: "1",
         userIds: ["1"],
+        projectOfficerUserId: "1",
       });
     });
   });

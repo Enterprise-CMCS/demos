@@ -1,8 +1,17 @@
-import React, { useState, useCallback } from "react";
+import React, {
+  useCallback,
+  useState,
+} from "react";
+
 import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
-import { ApolloError } from "@apollo/client";
+import {
+  DeleteIcon,
+  EditIcon,
+  EllipsisIcon,
+} from "components/icons";
 import { Demonstration } from "demos-server";
+
+import { ApolloError } from "@apollo/client";
 
 interface DemonstrationDetailHeaderProps {
   demonstration?: Demonstration;
@@ -84,7 +93,12 @@ export const DemonstrationDetailHeader: React.FC<
                   <li className="text-sm">
                     <strong>{field.label}</strong>:{" "}
                     {field.value instanceof Date
-                      ? field.value.toLocaleDateString()
+                      ? field.value.toLocaleDateString("en-US", {
+                        timeZone: "UTC",
+                        month: "numeric",
+                        day: "numeric",
+                        year: "numeric",
+                      })
                       : field.value}
                   </li>
                   {index < displayFields.length - 1 && (
@@ -126,8 +140,7 @@ export const DemonstrationDetailHeader: React.FC<
           onClick={handleToggleButtons}
         >
           <span
-            className={`transform transition-transform duration-200 ease-in-out ${
-              showButtons ? "rotate-90" : "rotate-0"
+            className={`transform transition-transform duration-200 ease-in-out ${showButtons ? "rotate-90" : "rotate-0"
             }`}
           >
             <EllipsisIcon width="24" height="24" />
