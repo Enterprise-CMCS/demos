@@ -9,24 +9,11 @@ export const DatePickerSandbox: React.FC = () => {
 
   const isInvalidRange = startDate && endDate && isAfter(startDate, endDate);
 
-  // Create wrapper functions to handle the onChange conversion
-  const handleSelectedDateChange = (value: Date | null) => {
-    setSelectedDate(value);
-  };
-
-  const handleStartDateChange = (value: Date | null) => {
-    setStartDate(value);
-  };
-
-  const handleEndDateChange = (value: Date | null) => {
-    setEndDate(value);
-  };
-
   return (
     <>
       <div>
         <DatePicker>Default Date Picker</DatePicker>
-        <DatePicker value={selectedDate} onChange={handleSelectedDateChange}>
+        <DatePicker value={selectedDate} onChange={setSelectedDate}>
           Date Picker with onChange behavior
         </DatePicker>
         {selectedDate && (
@@ -41,10 +28,10 @@ export const DatePickerSandbox: React.FC = () => {
         <DatePicker disabled>Disabled Date Picker</DatePicker>
         <DatePicker type={TYPE_TIME}>Time Picker</DatePicker>
         <DatePicker type={TYPE_DATETIME}>DateTime Picker</DatePicker>
-        <DatePicker type={TYPE_DATETIME} value={startDate} onChange={handleStartDateChange}>
+        <DatePicker type={TYPE_DATETIME} value={startDate} onChange={setStartDate}>
           Basic Linked DateTime Picker - Start
         </DatePicker>
-        <DatePicker type={TYPE_DATETIME} value={endDate} onChange={handleEndDateChange}>
+        <DatePicker type={TYPE_DATETIME} value={endDate} onChange={setEndDate}>
           Basic Linked DateTime Picker - End
         </DatePicker>
         {isInvalidRange && (
@@ -53,7 +40,7 @@ export const DatePickerSandbox: React.FC = () => {
         <DatePicker
           data-testid="my-picker"
           value={endDate}
-          onChange={handleEndDateChange}
+          onChange={setEndDate}
           minDate={subDays(new Date(), 3)}
           maxDate={addDays(new Date(), 3)}
         >
