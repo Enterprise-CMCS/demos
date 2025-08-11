@@ -1,10 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import { BUNDLE_TYPE } from "./constants.js";
-import {
-  CMCS_DIVISION,
-  SIGNATURE_LEVEL,
-} from "./model/demonstration/demonstrationSchema.js";
+import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL } from "./constants.js";
 import { prisma } from "./prismaClient.js";
 
 function checkIfAllowed() {
