@@ -4,12 +4,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { Table } from "./Table";
 import { testTableData, TestType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
 import { ColumnFilter } from "./ColumnFilter";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { format, isAfter, isBefore, isSameDay } from "date-fns";
 
 const columnHelper = createColumnHelper<TestType>();
@@ -73,14 +71,12 @@ describe("ColumnFilter Component", () => {
   beforeEach(() => {
     localStorage.clear();
     render(
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <Table<TestType>
-          columns={testColumns}
-          data={testTableData}
-          columnFilter={(table) => <ColumnFilter table={table} />}
-          noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-        />
-      </LocalizationProvider>
+      <Table<TestType>
+        columns={testColumns}
+        data={testTableData}
+        columnFilter={(table) => <ColumnFilter table={table} />}
+        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+      />
     );
   });
 

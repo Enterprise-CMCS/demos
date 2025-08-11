@@ -5,11 +5,9 @@ import { describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createColumnHelper } from "@tanstack/react-table";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { Table } from "./Table";
 import { highlightCell, KeywordSearch } from "./KeywordSearch";
 import { ColumnFilter } from "./ColumnFilter";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 type TestOptionType = {
   name: string;
@@ -107,11 +105,7 @@ export const testTableData: TestType[] = [
 describe.sequential("Table Component Interactions", () => {
   describe("Basic Rendering", () => {
     it("renders all test items initially", () => {
-      render(
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Table<TestType> columns={testColumns} data={testTableData} />
-        </LocalizationProvider>
-      );
+      render(<Table<TestType> columns={testColumns} data={testTableData} />);
 
       expect(screen.getByText("Item One")).toBeInTheDocument();
       expect(screen.getByText("Item Two")).toBeInTheDocument();
@@ -122,13 +116,11 @@ describe.sequential("Table Component Interactions", () => {
 
     it("renders the empty state message when there is no data", () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Table<TestType>
-            columns={testColumns}
-            data={[]}
-            emptyRowsMessage="No items are available"
-          />
-        </LocalizationProvider>
+        <Table<TestType>
+          columns={testColumns}
+          data={[]}
+          emptyRowsMessage="No items are available"
+        />
       );
 
       expect(screen.getByText(/no items are available/i)).toBeInTheDocument();
@@ -138,14 +130,12 @@ describe.sequential("Table Component Interactions", () => {
   describe("Filter and Search Interactions", () => {
     it("preserves existing column filters when keyword searching", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Table<TestType>
-            columnFilter={(table) => <ColumnFilter table={table} />}
-            keywordSearch={(table) => <KeywordSearch table={table} />}
-            columns={testColumns}
-            data={testTableData}
-          />
-        </LocalizationProvider>
+        <Table<TestType>
+          columnFilter={(table) => <ColumnFilter table={table} />}
+          keywordSearch={(table) => <KeywordSearch table={table} />}
+          columns={testColumns}
+          data={testTableData}
+        />
       );
       const user = userEvent.setup();
 
@@ -154,9 +144,7 @@ describe.sequential("Table Component Interactions", () => {
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText(/select option/i)
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/select option/i)).toBeInTheDocument();
       });
 
       const optionFilterInput = screen.getByPlaceholderText(/select option/i);
@@ -208,14 +196,12 @@ describe.sequential("Table Component Interactions", () => {
 
     it("preserves existing keyword search when applying column filters", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Table<TestType>
-            columnFilter={(table) => <ColumnFilter table={table} />}
-            keywordSearch={(table) => <KeywordSearch table={table} />}
-            columns={testColumns}
-            data={testTableData}
-          />
-        </LocalizationProvider>
+        <Table<TestType>
+          columnFilter={(table) => <ColumnFilter table={table} />}
+          keywordSearch={(table) => <KeywordSearch table={table} />}
+          columns={testColumns}
+          data={testTableData}
+        />
       );
       const user = userEvent.setup();
 
@@ -263,14 +249,12 @@ describe.sequential("Table Component Interactions", () => {
 
     it("clears keyword search but preserves column filters when clearing keyword search", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Table<TestType>
-            columnFilter={(table) => <ColumnFilter table={table} />}
-            keywordSearch={(table) => <KeywordSearch table={table} />}
-            columns={testColumns}
-            data={testTableData}
-          />
-        </LocalizationProvider>
+        <Table<TestType>
+          columnFilter={(table) => <ColumnFilter table={table} />}
+          keywordSearch={(table) => <KeywordSearch table={table} />}
+          columns={testColumns}
+          data={testTableData}
+        />
       );
       const user = userEvent.setup();
 
@@ -322,14 +306,12 @@ describe.sequential("Table Component Interactions", () => {
 
     it("clears column filter but preserves keyword search when column filter is manually cleared", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Table<TestType>
-            columnFilter={(table) => <ColumnFilter table={table} />}
-            keywordSearch={(table) => <KeywordSearch table={table} />}
-            columns={testColumns}
-            data={testTableData}
-          />
-        </LocalizationProvider>
+        <Table<TestType>
+          columnFilter={(table) => <ColumnFilter table={table} />}
+          keywordSearch={(table) => <KeywordSearch table={table} />}
+          columns={testColumns}
+          data={testTableData}
+        />
       );
       const user = userEvent.setup();
 
@@ -384,14 +366,12 @@ describe.sequential("Table Component Interactions", () => {
   describe("Sorting Interactions", () => {
     it("maintains sorting when applying filters and search", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Table<TestType>
-            columnFilter={(table) => <ColumnFilter table={table} />}
-            keywordSearch={(table) => <KeywordSearch table={table} />}
-            columns={testColumns}
-            data={testTableData}
-          />
-        </LocalizationProvider>
+        <Table<TestType>
+          columnFilter={(table) => <ColumnFilter table={table} />}
+          keywordSearch={(table) => <KeywordSearch table={table} />}
+          columns={testColumns}
+          data={testTableData}
+        />
       );
       const user = userEvent.setup();
 
@@ -429,9 +409,7 @@ describe.sequential("Table Component Interactions", () => {
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText(/select option/i)
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/select option/i)).toBeInTheDocument();
       });
 
       const optionFilterInput = screen.getByPlaceholderText(/select option/i);
@@ -472,17 +450,13 @@ describe.sequential("Table Component Interactions", () => {
   describe("No Results State Interactions", () => {
     it("shows no results message when both filters yield no matches", async () => {
       render(
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Table<TestType>
-            columnFilter={(table) => <ColumnFilter table={table} />}
-            keywordSearch={(table) => (
-              <KeywordSearch table={table} debounceMs={500} />
-            )}
-            columns={testColumns}
-            data={testTableData}
-            noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-          />
-        </LocalizationProvider>
+        <Table<TestType>
+          columnFilter={(table) => <ColumnFilter table={table} />}
+          keywordSearch={(table) => <KeywordSearch table={table} debounceMs={500} />}
+          columns={testColumns}
+          data={testTableData}
+          noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+        />
       );
       const user = userEvent.setup();
 
@@ -503,9 +477,7 @@ describe.sequential("Table Component Interactions", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(
-            "No results were returned. Adjust your search and filter criteria."
-          )
+          screen.getByText("No results were returned. Adjust your search and filter criteria.")
         ).toBeInTheDocument();
 
         // No table rows should be visible
