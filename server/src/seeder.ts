@@ -1,6 +1,10 @@
 import { faker } from "@faker-js/faker";
 
 import { BUNDLE_TYPE } from "./constants.js";
+import {
+  CMCS_DIVISION,
+  SIGNATURE_LEVEL,
+} from "./model/demonstration/demonstrationSchema.js";
 import { prisma } from "./prismaClient.js";
 
 function checkIfAllowed() {
@@ -245,15 +249,8 @@ async function seedDatabase() {
         description: faker.lorem.sentence(),
         effectiveDate: faker.date.future(),
         expirationDate: faker.date.future({ years: 1 }),
-        cmcsDivision: sampleFromArray(
-          [
-            "Division of System Reform Demonstrations",
-            "Division of Eligibility and Coverage Demonstrations",
-            null,
-          ],
-          1,
-        )[0],
-        signatureLevel: sampleFromArray(["OA", "OCD", "OGD", null], 1)[0],
+        cmcsDivisionId: sampleFromArray([...CMCS_DIVISION, null], 1)[0],
+        signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
         demonstrationStatusId:
           (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
