@@ -20,6 +20,7 @@ import { DeploymentConfigProperties } from "../config";
 
 import * as uiDeploy from "../lib/ui-deploy";
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
+import { DemosLogGroup } from "../lib/logGroup";
 
 interface UIStackProps {
   cognitoParamNames: {
@@ -53,7 +54,7 @@ export class UiStack extends Stack {
           : undefined,
     };
 
-    const logBucket = new aws_s3.Bucket(
+    const serverAccessLogBucket = new aws_s3.Bucket(
       commonProps.scope,
       "CloudfrontLogBucket",
       {
@@ -66,16 +67,19 @@ export class UiStack extends Stack {
           : RemovalPolicy.RETAIN,
         autoDeleteObjects: commonProps.isDev,
         enforceSSL: true,
+        bucketName: `demos-${commonProps.stage}-ui-server-access`
       }
     );
 
+    const cmsCloudLogBucket = aws_s3.Bucket.fromBucketName(commonProps.scope, "cmsCloudLogsBucket", `cms-cloud-${Aws.ACCOUNT_ID}-us-east-1`)
+
     // Add bucket policy to allow CloudFront to write logs
-    logBucket.addToResourcePolicy(
+    serverAccessLogBucket.addToResourcePolicy(
       new aws_iam.PolicyStatement({
         effect: aws_iam.Effect.ALLOW,
         principals: [new aws_iam.ServicePrincipal("cloudfront.amazonaws.com")],
         actions: ["s3:PutObject"],
-        resources: [`${logBucket.bucketArn}/*`],
+        resources: [`${serverAccessLogBucket.bucketArn}/*`],
       })
     );
 
@@ -84,7 +88,7 @@ export class UiStack extends Stack {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      serverAccessLogsBucket: logBucket,
+      serverAccessLogsBucket: serverAccessLogBucket,
       enforceSSL: true,
     });
 
@@ -108,7 +112,12 @@ export class UiStack extends Stack {
       }
     }
 
-
+    const wafLogs = new DemosLogGroup(commonProps.scope, "wafLogs", {
+      // AWS WAF has a restriction that log groups used must begin with `aws-waf-logs-`
+      overrideFullName: `aws-waf-logs-demos-${commonProps.stage}`,
+      isEphemeral: commonProps.isEphemeral,
+      stage: commonProps.stage
+    })
 
     const webAcl = new aws_wafv2.CfnWebACL(
       commonProps.scope,
@@ -150,9 +159,15 @@ export class UiStack extends Stack {
       }
     );
 
+    new aws_wafv2.CfnLoggingConfiguration(commonProps.scope, "cloudfrontWafAclLogConf", {
+      logDestinationConfigs: [wafLogs.logGroup.logGroupArn],
+      resourceArn: webAcl.attrArn
+    })
+
     const apiAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "apiWaf", {
       scope: "REGIONAL",
       defaultAction: {block: {}},
+      name: `demos-${commonProps.stage}-api`,
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
         metricName: `${commonProps.stage}ApiWafMetric`,
@@ -189,6 +204,7 @@ export class UiStack extends Stack {
       ]
     })
 
+
     const apiUrl = Fn.importValue(`${commonProps.stage}ApiGWUrl`)
     const apiDomainName = Fn.parseDomainName(apiUrl)
     const apiId = Fn.split(".", apiDomainName, 5)[0]
@@ -197,6 +213,11 @@ export class UiStack extends Stack {
     new aws_wafv2.CfnWebACLAssociation(commonProps.scope, "apiWafAssociation", {
       resourceArn: `arn:aws:apigateway:us-east-1::/restapis/${apiId}/stages/${commonProps.stage}`,
       webAclArn: apiAcl.attrArn
+    })
+
+    new aws_wafv2.CfnLoggingConfiguration(commonProps.scope, "apiWafAclLogConf", {
+      logDestinationConfigs: [wafLogs.logGroup.logGroupArn],
+      resourceArn: apiAcl.attrArn
     })
 
     const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`)
@@ -256,7 +277,8 @@ export class UiStack extends Stack {
         },
         defaultRootObject: "index.html",
         enableLogging: true,
-        logBucket,
+        logBucket: cmsCloudLogBucket,
+        logFilePrefix: `AWSLogs/${Aws.ACCOUNT_ID}/Cloudfront/demos-${commonProps.stage}/`,
         httpVersion: aws_cloudfront.HttpVersion.HTTP2,
         errorResponses: [
           {

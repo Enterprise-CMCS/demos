@@ -4,23 +4,19 @@ import { describe, it, expect, vi } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 
 vi.mock("config/env", () => ({
-  isDevelopmentMode: vi.fn(),
+  isLocalDevelopment: vi.fn(),
   shouldUseMocks: vi.fn(() => true),
 }));
 
 // Mock react-oidc-context AuthProvider to just render children
 vi.mock("react-oidc-context", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: vi.fn(() => ({})),
 }));
 
 // Mock Apollo MockedProvider to just render children
 vi.mock("@apollo/client/testing", () => ({
-  MockedProvider: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  MockedProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock getCognitoConfig to return an empty object
@@ -65,8 +61,8 @@ describe("DemosRouter", () => {
   });
 
   it("renders debug routes in development mode", async () => {
-    const { isDevelopmentMode } = await import("config/env");
-    vi.mocked(isDevelopmentMode).mockReturnValue(true);
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(true);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
@@ -81,8 +77,8 @@ describe("DemosRouter", () => {
   });
 
   it("does not render debug routes outside development mode", async () => {
-    const { isDevelopmentMode } = await import("config/env");
-    vi.mocked(isDevelopmentMode).mockReturnValue(false);
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(false);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);

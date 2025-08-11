@@ -1,8 +1,6 @@
 import {
   aws_apigateway,
   Duration,
-  RemovalPolicy,
-  aws_logs,
   aws_cognito,
 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
@@ -12,15 +10,19 @@ import {
   Model,
   PassthroughBehavior,
 } from "aws-cdk-lib/aws-apigateway";
+import { DemosLogGroup } from "./logGroup";
 
 interface ApiGatewayProps extends CommonProps {
   userPool: aws_cognito.IUserPool;
 }
 
 export function create(props: ApiGatewayProps) {
-  const logGroup = new aws_logs.LogGroup(props.scope, "ApiAccessLogs", {
-    removalPolicy: props.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
-  });
+
+  const apiAccessLogGroup = new DemosLogGroup(props.scope, "ApiAccessLogs", {
+    name: "apigateway/access",
+    isEphemeral: props.isEphemeral,
+    stage: props.stage
+  })
 
   const api = new aws_apigateway.RestApi(props.scope, "ApiGatewayRestApi", {
     restApiName: `${props.project}-${props.stage}-api`,
@@ -37,7 +39,7 @@ export function create(props: ApiGatewayProps) {
       cachingEnabled: false,
       cacheTtl: Duration.seconds(300),
       cacheDataEncrypted: false,
-      accessLogDestination: new aws_apigateway.LogGroupLogDestination(logGroup),
+      accessLogDestination: new aws_apigateway.LogGroupLogDestination(apiAccessLogGroup.logGroup),
       accessLogFormat: aws_apigateway.AccessLogFormat.custom(
         "requestId: $context.requestId, ip: $context.identity.sourceIp, " +
           "caller: $context.identity.caller, user: $context.identity.user, " +
