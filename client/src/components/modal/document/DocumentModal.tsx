@@ -105,7 +105,8 @@ const DocumentTypeInput: React.FC<{
       options={DOCUMENT_TYPES}
       value={selectedOption}
       onSelect={(val) => {
-        if (onSelect) onSelect(val);
+        if (error && onSelect) onSelect("");
+        else if (onSelect) onSelect(val);
       }}
     />
   );
