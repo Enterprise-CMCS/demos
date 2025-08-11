@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { AddDocumentModal, RemoveDocumentModal } from "./DocumentModal";
+import { AddDocumentModal, RemoveDocumentModal, EditDocumentModal } from "./DocumentModal";
 
 describe("AddDocumentModal", () => {
   const setup = () => {
@@ -154,5 +154,68 @@ describe("RemoveDocumentModal", () => {
     fireEvent.click(screen.getByRole("button", { name: /Remove/ }));
     expect(onClose).toHaveBeenCalled();
     // The warning toast is shown via useToast, which would be tested in integration
+  });
+});
+
+describe("EditDocumentModal", () => {
+  const setup = () => {
+    const onClose = vi.fn();
+    render(
+      <ToastProvider>
+        <EditDocumentModal
+          documentId="123"
+          documentTitle="Existing Document"
+          description="This is an existing document"
+          documentType="General File"
+          onClose={onClose}
+        />
+      </ToastProvider>
+    );
+    return { onClose };
+  };
+
+  it("renders modal with correct title and fields", () => {
+    setup();
+
+    expect(screen.getByText("Edit Document")).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue("Existing Document")
+    ).toBeInTheDocument(); // Title
+    expect(
+      screen.getByDisplayValue("This is an existing document")
+    ).toBeInTheDocument(); // Description
+    expect(screen.getByDisplayValue("General File")).toBeInTheDocument(); // Document Type
+  });
+
+  it("disables Upload button when no file is selected", () => {
+    setup();
+    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
+    expect(uploadBtn.disabled).toBe(true);
+  });
+
+  it("enables Upload when all fields including file are set", async () => {
+    setup();
+
+    const file = new File(["doc"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId("file-input"), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
+
+    await waitFor(() => {
+      expect(uploadBtn.disabled).toBe(false);
+    });
+  });
+
+  it("calls onClose when cancel is confirmed", async () => {
+    const { onClose } = setup();
+
+    fireEvent.click(screen.getByText("Cancel"));
+    fireEvent.click(screen.getByText("Yes"));
+
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalled();
+    });
   });
 });

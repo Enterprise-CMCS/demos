@@ -93,19 +93,23 @@ const DescriptionInput: React.FC<{
 );
 
 const DocumentTypeInput: React.FC<{
+  value?: string;
   error?: string;
   onSelect?: (v: string) => void;
-}> = ({ error, onSelect }) => (
-  <AutoCompleteSelect
-    id="document-type"
-    label="Document Type"
-    options={DOCUMENT_TYPES}
-    onSelect={(value) => {
-      if (error && onSelect) onSelect("");
-      else if (onSelect) onSelect(value);
-    }}
-  />
-);
+}> = ({ value, error, onSelect }) => {
+  const selectedOption = DOCUMENT_TYPES.find((option) => option.label === value)?.value;
+  return (
+    <AutoCompleteSelect
+      id="document-type"
+      label="Document Type"
+      options={DOCUMENT_TYPES}
+      value={selectedOption}
+      onSelect={(val) => {
+        if (onSelect) onSelect(val);
+      }}
+    />
+  );
+};
 
 const ProgressBar: React.FC<{
   progress: number;
@@ -218,11 +222,17 @@ const DropTarget: React.FC<{
 type BaseDocumentModalProps = {
   onClose?: () => void;
   forDocumentId?: string;
+  initialTitle?: string;
+  initialDescription?: string;
+  initialType?: string;
 };
 
 const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   onClose = () => {},
   forDocumentId,
+  initialTitle = "",
+  initialDescription = "",
+  initialType = "",
 }) => {
   const { showSuccess } = useToast();
 
@@ -231,8 +241,9 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
     documentModalType === "edit" ? "Edit Document" : "Add New Document";
 
   // TODO: get this from GQL hook
-  const [documentTitle, setDocumentTitle] = useState("Document title");
-  const [description, setDescription] = useState("");
+  const [documentTitle, setDocumentTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription);
+  const [selectedType, setSelectedType] = useState(initialType);
   const [error, setError] = useState<string>("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
@@ -295,7 +306,11 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
         onChange={setDescription}
         error={error}
       />
-      <DocumentTypeInput error={error} />
+      <DocumentTypeInput
+        value={selectedType}
+        error={error}
+        onSelect={(value) => setSelectedType(value)}
+      />
       <DropTarget
         file={file}
         fileInputRef={fileInputRef}
@@ -315,9 +330,18 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({
 
 export const EditDocumentModal: React.FC<{
   documentId: string;
+  documentTitle: string;
+  description: string;
+  documentType: string;
   onClose: () => void;
-}> = ({ documentId, onClose }) => (
-  <BaseDocumentModal forDocumentId={documentId} onClose={onClose} />
+}> = ({ documentId, documentTitle, description, documentType, onClose }) => (
+  <BaseDocumentModal
+    forDocumentId={documentId}
+    initialTitle={documentTitle}
+    initialDescription={description}
+    initialType={documentType}
+    onClose={onClose}
+  />
 );
 
 export const RemoveDocumentModal: React.FC<{
