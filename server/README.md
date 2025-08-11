@@ -306,6 +306,8 @@ In cases where a field is constrained by a static constraint table, you should c
 
 In GraphQL, we are accomplishing this by declaring custom scalars, without implementing any actual restrictions. This is effectively denoting them as special strings. The main value of this is that they will be specially noted in the Apollo interface, and you can include information about the expected values in the documentation.
 
+The below would be done in your `Schema.ts` file.
+
 ```typescript
 import { gql } from "graphql-tag";
 export const reviewSchema = gql`
@@ -320,15 +322,18 @@ export const reviewSchema = gql`
 `
 ```
 
-Later, when exporting the corresponding TypeScript types, you will want to export two items: an array of the acceptable values, and a type derived from that (and having the same name as the scalar you added to the GQL). You should also add a comment reminding future developers that changes here will also need to be reflected by inserts or deletes from the corresponding database table.
+Later, you will want to add corresponding TypeScript types. You'll add two items: an array of the acceptable values, and a type derived from that (and having the same name as the scalar you added to the GQL). Put the array into `src/constants.ts` and the type into `src/types.ts`. Remember that any changes made here will need to be reflected in the database, and vice versa!
 
 ```typescript
-// Note: If changing either of these, be sure to update the related DB table as well!
+// constants.ts
 export const REVIEW_STATUS = ["New", "In Progress", "Complete"] as const;
+
+// types.ts
+import { REVIEW_STATUS } from "./constants.js";
 export type ReviewStats = (typeof REVIEW_STATUS)[number];
 ```
 
-You then use your new type on the interfaces your schema file is exporting. The advantage of this approach is that now, the front-end can make use of the exported type during type checking, and can use the exported constant to populate menus, etc, without hitting the database to retrieve a list of values.
+Import your new type into the `Schema.ts` file you are working on, and use it throughout as appropriate. The advantage of this approach is that now, the front-end can make use of the exported type during type checking, and can use the exported constant to populate menus, etc, without hitting the database to retrieve a list of values.
 
 As a reminder, this approach is intended for cases where the constraint is rarely changing, and where it has a tractable number of levels (10 or fewer, generally).
 

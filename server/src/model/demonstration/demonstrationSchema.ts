@@ -1,10 +1,10 @@
 import { gql } from "graphql-tag";
-
 import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusSchema.js";
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
+import { CmcsDivision, SignatureLevel } from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
@@ -81,17 +81,6 @@ export const demonstrationSchema = gql`
 `;
 
 export type DateTime = Date;
-
-// Note: If changing either of these, be sure to update the related DB table as well!
-export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
-export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
-
-export const CMCS_DIVISION = [
-  "Division of System Reform Demonstrations",
-  "Division of Eligibility and Coverage Demonstrations",
-] as const;
-export type CmcsDivision = (typeof CMCS_DIVISION)[number];
-
 export interface Demonstration {
   id: string;
   name: string;
