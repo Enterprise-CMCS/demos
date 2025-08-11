@@ -1,21 +1,15 @@
-import {
-  Document,
-  User,
-} from "demos-server";
+import { Document } from "demos-server";
 import { DOCUMENT_TABLE_QUERY } from "queries/documentQueries";
 
-import {
-  ApolloError,
-  useLazyQuery,
-} from "@apollo/client";
+import { ApolloError, useLazyQuery } from "@apollo/client";
 
 export type DocumentTableRow = {
   id: Document["id"];
   title: Document["title"];
   description: Document["description"];
   documentType: Pick<Document["documentType"], "name">;
-  owner: Pick<User, "fullName">;
-  createdAt: Date;
+  owner: Pick<Document["owner"], "fullName">;
+  createdAt: Pick<Document, "createdAt">;
 };
 
 interface GetDocumentTableOperation {
