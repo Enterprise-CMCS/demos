@@ -1,5 +1,4 @@
-// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY, NATURAL_KEY
-// Table is a static constraint and is updated entirely via migrations
+// Flags: STATIC_CONSTRAINT
 model SignatureLevel {
   id String
 
