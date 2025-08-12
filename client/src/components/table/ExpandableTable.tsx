@@ -17,7 +17,7 @@ import {
 
 interface ExpandableTableProps<T extends { id: string; title: string; effectiveDate: string; status: string }> {
   data: T[];
-  columns: ColumnDef<T, any>[];
+  columns: ColumnDef<T, unknown>[];
   initiallyExpandedId?: string;
 }
 
