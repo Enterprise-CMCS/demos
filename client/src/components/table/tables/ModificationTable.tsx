@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
 import { Amendment, Extension } from "demos-server";
+import { format } from "date-fns";
 
 export type ModificationTableRow =
   | {
@@ -76,9 +77,11 @@ export function ModificationTable({
                 <div>{renderStatus(status.name)}</div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
+                  <span className="text-sm text-gray-800">
+                    {effectiveDate ? format(effectiveDate, "MM/dd/yyyy") : "N/A"}
+                  </span>
                   <ChevronRightIcon
-                    className={`w-[1.4rem] h-[1.4rem] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
+                    className={`w-[1.25rem] h-[1.25rem] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
                   />
                 </div>
               </div>
@@ -94,16 +97,6 @@ export function ModificationTable({
     </div>
   );
 }
-
-// TODO: this utility function will likely be replaced by a Date js library in the future.
-const formatDate = (date: Date | undefined) => {
-  if (!date) return "N/A";
-  return date.toLocaleDateString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  });
-};
 
 const renderStatus = (status: string) => {
   const baseStyle = "flex items-center gap-1 text-sm";
