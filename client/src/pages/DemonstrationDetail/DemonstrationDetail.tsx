@@ -53,12 +53,12 @@ export const DemonstrationDetail: React.FC = () => {
   const location = useLocation();
 
   const queryParams = new URLSearchParams(location.search);
-  const [tab, setTab] = useState<TabType>(() => {
-    const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
-    const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
+  const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
+  const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
-    if (amendmentParam === "true") return "amendments";
-    if (extensionParam === "true") return "extensions";
+  const [tab, setTab] = useState<TabType>(() => {
+    if (amendmentParam) return "amendments";
+    if (extensionParam) return "extensions";
     return "details";
   });
 
@@ -115,6 +115,7 @@ export const DemonstrationDetail: React.FC = () => {
               <AmendmentsTab
                 demonstration={demonstration}
                 onClick={() => setEntityCreationModal("amendment")}
+                initiallyExpandedId={amendmentParam ?? undefined}
               />
             )}
 
@@ -122,6 +123,7 @@ export const DemonstrationDetail: React.FC = () => {
               <ExtensionsTab
                 demonstration={demonstration}
                 onClick={() => setEntityCreationModal("extension")}
+                initiallyExpandedId={extensionParam ?? undefined}
               />
             )}
           </div>

@@ -8,7 +8,8 @@ import { ExtensionTable } from "components/table/tables/ExtensionTable";
 export const ExtensionsTab: React.FC<{
   demonstration: Demonstration;
   onClick: () => void;
-}> = ({ demonstration, onClick }) => (
+  initiallyExpandedId?: string;
+}> = ({ demonstration, onClick, initiallyExpandedId }) => (
   <div>
     <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
       <h1 className="text-xl font-bold text-brand uppercase">Extensions</h1>
@@ -21,6 +22,10 @@ export const ExtensionsTab: React.FC<{
         <AddNewIcon className="w-2 h-2" />
       </SecondaryButton>
     </div>
-    <ExtensionTable data={mockExtensions} demonstrationId={demonstration.id} />
+    <ExtensionTable
+      data={mockExtensions}
+      demonstrationId={demonstration.id}
+      initiallyExpandedId={initiallyExpandedId}
+    />
   </div>
 );
