@@ -8,7 +8,8 @@ import { mockAmendments } from "mock-data/amendmentMocks";
 export const AmendmentsTab: React.FC<{
   demonstration: Demonstration;
   onClick: () => void;
-}> = ({ demonstration, onClick }) => (
+  initiallyExpandedId?: string;
+}> = ({ demonstration, onClick, initiallyExpandedId }) => (
   <div>
     <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
       <h1 className="text-xl font-bold text-brand uppercase">Amendments</h1>
@@ -21,6 +22,10 @@ export const AmendmentsTab: React.FC<{
         <AddNewIcon className="w-2 h-2" />
       </SecondaryButton>
     </div>
-    <AmendmentTable data={mockAmendments} demonstrationId={demonstration.id} />
+    <AmendmentTable
+      data={mockAmendments}
+      demonstrationId={demonstration.id}
+      initiallyExpandedId={initiallyExpandedId}
+    />
   </div>
 );
