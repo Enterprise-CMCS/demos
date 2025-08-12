@@ -28,21 +28,34 @@ type DisplayedModal = null | "add" | "edit" | "remove";
 interface DocumentModalsProps {
   displayedModal: DisplayedModal;
   onClose: () => void;
-  selectedIds: string[];
+  selectedDocs: DocumentTableRow[];
 }
 
 function DocumentModals({
   displayedModal,
   onClose,
-  selectedIds,
+  selectedDocs,
 }: DocumentModalsProps) {
   if (displayedModal === "add") {
     return <AddDocumentModal onClose={onClose} />;
   }
-  if (displayedModal === "edit" && selectedIds.length === 1) {
-    return <EditDocumentModal documentId={selectedIds[0]} onClose={onClose} />;
+  if (displayedModal === "edit" && selectedDocs.length === 1) {
+    const selectedDoc = selectedDocs[0];
+
+    if (!selectedDoc) return null;
+
+    return (
+      <EditDocumentModal
+        documentId={selectedDoc.id}
+        documentTitle={selectedDoc.title}
+        description={selectedDoc.description}
+        documentType={selectedDoc.documentType?.name ?? ""}
+        onClose={onClose}
+      />
+    );
   }
-  if (displayedModal === "remove" && selectedIds.length > 0) {
+  if (displayedModal === "remove" && selectedDocs.length > 0) {
+    const selectedIds = selectedDocs.map((doc) => doc.id);
     return <RemoveDocumentModal documentIds={selectedIds} onClose={onClose} />;
   }
   return null;
@@ -107,7 +120,7 @@ export function DocumentTable() {
 
   if (documentTableLoading) return <div className="p-4">Loading...</div>;
   if (documentsTableError)
-    return <div className="p-4">Error loading demonstrations</div>;
+    return <div className="p-4">Error loading documents</div>;
   if (!documentsTableData)
     return <div className="p-4">Documents not found</div>;
 
@@ -135,14 +148,15 @@ export function DocumentTable() {
             />
           )}
           actionModals={(table) => {
-            const selectedIds = table
+            const selectedDocs = table
               .getSelectedRowModel()
-              .rows.map((row) => String(row.id));
+              .rows.map((row) => row.original);
+
             return (
               <DocumentModals
                 displayedModal={displayedModal}
                 onClose={() => setDisplayedModal(null)}
-                selectedIds={selectedIds}
+                selectedDocs={selectedDocs}
               />
             );
           }}
