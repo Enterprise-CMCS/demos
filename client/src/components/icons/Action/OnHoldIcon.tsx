@@ -2,7 +2,7 @@ import React from "react";
 
 import { IconInput } from "../Icon";
 export const OnHoldIcon: React.FC<IconInput> = ({
-  label = "On Hold Icon",
+  label = "On Hold",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",
@@ -14,6 +14,8 @@ export const OnHoldIcon: React.FC<IconInput> = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path d="M6.5 4H5.5V10H6.5V4ZM9.5 4H8.5V10H9.5V4Z" fill="currentColor" />
     <path

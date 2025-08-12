@@ -2,7 +2,7 @@ import React from "react";
 
 import { IconInput } from "../Icon";
 export const EditIcon: React.FC<IconInput> = ({
-  label = "Edit Icon",
+  label = "Edit",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",
@@ -14,6 +14,8 @@ export const EditIcon: React.FC<IconInput> = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       d="M11.6993 13.0667H1.43327V2.80073H7.6022L8.53548 1.86745H1.43327C1.18575 1.86745 0.948372 1.96578 0.773349 2.1408C0.598327 2.31582 0.5 2.55321 0.5 2.80073V13.0667C0.5 13.3142 0.598327 13.5516 0.773349 13.7266C0.948372 13.9017 1.18575 14 1.43327 14H11.6993C11.9468 14 12.1842 13.9017 12.3592 13.7266C12.5342 13.5516 12.6325 13.3142 12.6325 13.0667V6.06718L11.6993 7.00045V13.0667Z"

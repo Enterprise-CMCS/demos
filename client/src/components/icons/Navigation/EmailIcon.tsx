@@ -2,7 +2,7 @@ import React from "react";
 
 import { IconInput } from "../Icon";
 export const EmailIcon: React.FC<IconInput> = ({
-  label = "Email Icon",
+  label = "Email",
   width = "17",
   height = "17",
   viewBox = "0 0 17 17",
@@ -14,6 +14,8 @@ export const EmailIcon: React.FC<IconInput> = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       d="M15 16H2C1.17 16 0.5 15.1067 0.5 14V2C0.5 0.893333 1.17 0 2 0H15C15.83 0 16.5 0.893333 16.5 2V14C16.5 15.1067 15.83 16 15 16ZM2 1.33333C1.72 1.33333 1.5 1.62667 1.5 2V14C1.5 14.3733 1.72 14.6667 2 14.6667H15C15.28 14.6667 15.5 14.3733 15.5 14V2C15.5 1.62667 15.28 1.33333 15 1.33333H2Z"

@@ -2,7 +2,7 @@ import React from "react";
 
 import { IconInput } from "../Icon";
 export const ZoomInIcon: React.FC<IconInput> = ({
-  label = "Zoom In Icon",
+  label = "Zoom In",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",
@@ -14,6 +14,8 @@ export const ZoomInIcon: React.FC<IconInput> = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       d="M8.1349 7.30178e-08L8.1349 14H6.46444L6.46444 0L8.1349 7.30178e-08Z"

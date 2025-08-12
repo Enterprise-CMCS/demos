@@ -2,7 +2,7 @@ import React from "react";
 
 import { IconInput } from "../Icon";
 export const FlaggedForSeverityIcon: React.FC<IconInput> = ({
-  label = "Flagged For Severity Icon",
+  label = "Flagged For Severity",
   width = "18",
   height = "17",
   viewBox = "0 0 18 16",
@@ -14,6 +14,8 @@ export const FlaggedForSeverityIcon: React.FC<IconInput> = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

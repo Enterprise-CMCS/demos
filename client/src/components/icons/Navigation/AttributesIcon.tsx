@@ -2,7 +2,7 @@ import React from "react";
 
 import { IconInput } from "../Icon";
 export const AttributesIcon: React.FC<IconInput> = ({
-  label = "Attributes Icon",
+  label = "Attributes",
   width = "17",
   height = "17",
   viewBox = "0 0 17 17",
@@ -14,6 +14,8 @@ export const AttributesIcon: React.FC<IconInput> = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

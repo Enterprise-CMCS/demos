@@ -2,7 +2,7 @@ import React from "react";
 
 import { IconInput } from "../Icon";
 export const WarningIcon: React.FC<IconInput> = ({
-  label = "Warning Icon",
+  label = "Warning",
   width = "21",
   height = "21",
   viewBox = "0 0 21 21",
@@ -14,6 +14,8 @@ export const WarningIcon: React.FC<IconInput> = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path d="M10.5 0L20.5 20H0.5L10.5 0Z" fill="#FFC737" />
     <path
