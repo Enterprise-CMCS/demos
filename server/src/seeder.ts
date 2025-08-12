@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import { BUNDLE_TYPE } from "./constants.js";
+import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL } from "./constants.js";
 import { prisma } from "./prismaClient.js";
 
 function checkIfAllowed() {
@@ -245,6 +245,8 @@ async function seedDatabase() {
         description: faker.lorem.sentence(),
         effectiveDate: faker.date.future(),
         expirationDate: faker.date.future({ years: 1 }),
+        cmcsDivisionId: sampleFromArray([...CMCS_DIVISION, null], 1)[0],
+        signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
         demonstrationStatusId:
           (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
