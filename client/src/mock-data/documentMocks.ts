@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { DocumentTableRow } from "hooks/useDocument";
 import { DOCUMENT_TABLE_QUERY } from "queries/documentQueries";
 
@@ -22,7 +21,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Alice",
             },
-            createdAt: dayjs("2025-07-01").toISOString(),
+            createdAt: new Date("2025-07-01"),
           },
           {
             id: "2",
@@ -34,7 +33,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Bob",
             },
-            createdAt: dayjs("2025-07-10").toISOString(),
+            createdAt: new Date("2025-07-10"),
           },
           {
             id: "3",
@@ -46,7 +45,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Cara",
             },
-            createdAt: dayjs("2025-07-05").toISOString(),
+            createdAt: new Date("2025-07-05"),
           },
           {
             id: "4",
@@ -58,7 +57,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "David",
             },
-            createdAt: dayjs("2025-07-07").toISOString(),
+            createdAt: new Date("2025-07-07"),
           },
           {
             id: "5",
@@ -70,7 +69,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Ella",
             },
-            createdAt: dayjs("2025-07-03").toISOString(),
+            createdAt: new Date("2025-07-03"),
           },
           {
             id: "6",
@@ -82,7 +81,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Frank",
             },
-            createdAt: dayjs("2025-07-02").toISOString(),
+            createdAt: new Date("2025-07-02"),
           },
           {
             id: "7",
@@ -94,7 +93,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Grace",
             },
-            createdAt: dayjs("2025-07-08").toISOString(),
+            createdAt: new Date("2025-07-08"),
           },
           {
             id: "8",
@@ -106,7 +105,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Henry",
             },
-            createdAt: dayjs("2025-07-04").toISOString(),
+            createdAt: new Date("2025-07-04"),
           },
           {
             id: "9",
@@ -118,7 +117,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Ivy",
             },
-            createdAt: dayjs("2025-07-06").toISOString(),
+            createdAt: new Date("2025-07-06"),
           },
           {
             id: "10",
@@ -130,7 +129,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Jack",
             },
-            createdAt: dayjs("2025-07-09").toISOString(),
+            createdAt: new Date("2025-07-09"),
           },
           {
             id: "11",
@@ -142,7 +141,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Karen",
             },
-            createdAt: dayjs("2025-07-11").toISOString(),
+            createdAt: new Date("2025-07-11"),
           },
           {
             id: "12",
@@ -154,7 +153,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Leo",
             },
-            createdAt: dayjs("2025-07-12").toISOString(),
+            createdAt: new Date("2025-07-12"),
           },
           {
             id: "13",
@@ -166,7 +165,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Maya",
             },
-            createdAt: dayjs("2025-07-13").toISOString(),
+            createdAt: new Date("2025-07-13"),
           },
           {
             id: "14",
@@ -178,7 +177,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Nina",
             },
-            createdAt: dayjs("2025-07-14").toISOString(),
+            createdAt: new Date("2025-07-14"),
           },
           {
             id: "15",
@@ -190,7 +189,7 @@ export const documentMocks: MockedResponse[] = [
             owner: {
               fullName: "Owen",
             },
-            createdAt: dayjs("2025-07-15").toISOString(),
+            createdAt: new Date("2025-07-15"),
           },
         ] satisfies DocumentTableRow[],
       },

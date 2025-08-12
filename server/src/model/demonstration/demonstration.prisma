@@ -5,6 +5,8 @@ model Demonstration {
   description           String
   effectiveDate         DateTime @map("effective_date") @db.Date
   expirationDate        DateTime @map("expiration_date") @db.Date
+  cmcsDivisionId        String?  @map("cmcs_division_id")
+  signatureLevelId      String?  @map("signature_level_id")
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz()
   demonstrationStatusId String   @map("demonstration_status_id")
@@ -18,6 +20,8 @@ model Demonstration {
   projectOfficer          User                     @relation(fields: [projectOfficerUserId], references: [id])
   userStateDemonstrations UserStateDemonstration[]
   modification            Modification[]
+  cmcsDivision            CmcsDivision?            @relation(fields: [cmcsDivisionId], references: [id])
+  signatureLevel          SignatureLevel?          @relation(fields: [signatureLevelId], references: [id])
 
   @@id([id])
   @@unique([id, stateId])

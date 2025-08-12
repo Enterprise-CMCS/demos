@@ -17,7 +17,6 @@
     "@aws-sdk/client-secrets-manager": "^3.840.0",
     "@aws-sdk/s3-request-presigner": "^3.859.0",
     "@prisma/client": "^6.7.0",
-    "dayjs": "^1.11.13",
     "graphql-scalars": "^1.24.2",
     "graphql-tools": "^9.0.18",
     "jsonwebtoken": "^9.0.2",

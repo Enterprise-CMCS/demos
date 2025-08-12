@@ -1,7 +1,6 @@
 // DocumentColumns.tsx
 import * as React from "react";
 
-import dayjs, { Dayjs } from "dayjs";
 import { DocumentTableRow } from "hooks/useDocument";
 import { useDocumentType } from "hooks/useDocumentType";
 
@@ -9,6 +8,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
+import { format, isAfter, isBefore, isSameDay } from "date-fns";
 
 export function DocumentColumns() {
   const { getDocumentTypeOptions } = useDocumentType();
@@ -91,25 +91,25 @@ export function DocumentColumns() {
     columnHelper.accessor("createdAt", {
       header: "Date Uploaded",
       cell: ({ getValue }) => {
-        const dateValue = getValue() as string;
-        return dayjs(dateValue).format("MM/DD/YYYY");
+        const dateValue = getValue();
+        return format(dateValue, "MM/dd/yyyy");
       },
       filterFn: (row, columnId, filterValue) => {
         const dateValue = row.getValue(columnId) as string;
-        const date: Dayjs = dayjs(dateValue);
+        const date: Date = new Date(dateValue);
         const { start, end } = filterValue || {};
         if (start && end) {
           return (
-            date.isSame(start, "day") ||
-            date.isSame(end, "day") ||
-            (date.isAfter(start, "day") && date.isBefore(end, "day"))
+            isSameDay(date, start) ||
+            isSameDay(date, end) ||
+            (isAfter(date, start) && isBefore(date, end))
           );
         }
         if (start) {
-          return date.isSame(start, "day") || date.isAfter(start, "day");
+          return isSameDay(date, start) || isAfter(date, start);
         }
         if (end) {
-          return date.isSame(end, "day") || date.isBefore(end, "day");
+          return isSameDay(date, end) || isBefore(date, end);
         }
         return true;
       },
