@@ -84,6 +84,28 @@ If a model has a `Resolvers.ts` file, it should also have a `Schema.ts` file.
 
 This section covers coding / design standards and conventions. These are not intended to be iron-clad rules, but instead, to give general guidance about expectations. If you have questions or think something should deviate from these standards, bring it up! The goal is to provide a set of guidance that covers 80-90% of the day-to-day scenarios encountered, not to completely limit flexibility in favor of standardization.
 
+## Constraints and Business Logic
+
+The data model, and in turn, the DEMOS database, is designed to try and reflect the business logic of the DEMOS program as much as possible. Constraints are implemented in the database whenever possible because this ensures that even if the data is updated via a manual process, core logic is enforced.
+
+However, when possible, the server will also expose this information to the front-end via exports from the server codebase. Doing this adds a small overhead in maintenance because the constraint information must be maintained in both the database and the codebase; however, the overhead is generally minimal for the benefit, which is consistent enforcement of constraints at the database level.
+
+Conceptually, constraints can be considered to either be "dynamic" or "static". A dynamic constraint is one that may change over time as users interact with the application. For instance, a dropdown menu of all the amendments of a demonstration will change as more amendments are added. The values in this type of constraint change so frequently that it is impossible to include them in the code.
+
+In contrast, a static constraint is one that is generally unchanging. While it may change, such changes would be significant changes to the application, and would require planning and implementation. An example of this would be a dropdown to assign a demonstration to a state; the list of states is generally unchanging. While it is impossible to add dynamic constraints to the code base, it would be possible to do this for static constraints.
+
+In the case of static constraints where there are a small number of values (generally less than 10), the constraint values should be exported from the server codebase as an object which provides the acceptable values, and a TypeScript type derived from that object.
+
+### Static Constraints: Tables vs. Enums
+
+In general, static constraints should be implemented via a constraint table, not as database enums. The reason for this is to decrease maintenance overhead if, in the future, additional levels must be added to the acceptable options. With enums, this generally requires dropping and recreating the enum, which in turn causes challenges with casting existing values that may be in the database. Instead of an enum, static constraints should be implemented using constraint tables in the database.
+
+In almost all cases, such static constraints do not require a distinction between the display value and the internal database ID, unless it is relevant for other development reasons. For instance, there is minimal value in having a table where the `id` field is `[NEW, IN_PROGRESS, COMPLETE]` and the `name` field is `[New, In Progress, Complete]`. Such a constraint can just use the display value.
+
+There may be exceptions to this. For instance, it is useful in the `state` table to store both the state code as the `id` and the state name as the `name`. This lets you display either `OH`, or `Ohio` as needed. However, for most cases, a constraint table does not need to have more than a single column, since it is trying to replicate the behavior of an enum.
+
+Tables of this type - serving as constraints, and with a single column - are called "static constraint tables" in this document.
+
 ## Model File Standards and Conventions
 
 We break our Prisma model files into four sections.
@@ -137,7 +159,9 @@ The flags we've identified as useful are:
 * `NO_UPDATED_TS`:
   * Meaning: This table does not have an `updatedAt` / `updated_at` field.
   * Explanation Comment: Required; include reason in your comment.
-
+* `STATIC_CONSTRAINT`:
+  * Meaning: This table exists entirely as a static constraint table as discussed [above](#static-constraints-tables-vs-enums). If this is present, no other flags should be used.
+  * Explanation Comment: Not required.
 
 ### Scalar Fields
 
@@ -154,7 +178,7 @@ In Prisma, fields that exist on the model and in the database are known as "scal
 
 Putting these here, and then adding an empty line, means that they will be formatted as a single block when you run `prisma format`. It also helps to distinguish between the part of the Prisma file that contains strictly column definitions, from the section containing the relation fields.
 
-Table and column naming standards are described [below](#database-guidelines-and-conventions).
+Table and column naming standards are described [below](#database-guidelines-and-conventions). Note that, in Prisma, you ___cannot___ have a relation field and a scalar field with the same name. This means that, barring rare exceptions, every scalar field that is constrained by a foreign key will have an `_id` suffix to avoid name collisions.
 
 Fields are named using camelCase. By default, Prisma will quote the names you give in the model and put them as-written into the database. However, we use snake_case when in the database. As a result, any field which contains more than one word must have an `@map` statement, which maps the Prisma name to some alternative. So, for instance, above, `primaryReviewerUserId` has `@map("primary_reviewer_user_id")` to ensure that the database name is consistent with our naming schema.
 
@@ -179,7 +203,7 @@ The `primaryReviwer` has type `User` and is related to the `User` model via the 
 
 The `authors` relation field tells us that there is a list of `User` objects associated with this. You'll note that there's no connection information here. In Prisma, a relation field must be present on _both ends_ of the relationship. In this context, this probably means that there's a constraint elsewhere in the database to a join table. Fortunately, `prisma format` automatically adds in the other end of relationships in case you forget to do so. Just be sure to fix the names, as by default, `prisma format` adds them in using PascalCase and not camelCase.
 
-You can denote an optional connection by using `?` after the type (e.g. `User?`). If you do this, be sure to also mark the scalar field as optional in the same way. When you do this, Prisma will automatically generate the SQL with a constraint where on delete, the values are set to `NULL`.
+You can denote an optional connection by using `?` after the type (e.g. `User?`). If you do this, be sure to also mark the scalar field as optional in the same way. When you do this, Prisma will automatically generate the SQL with a constraint where on delete, the values are set to `NULL`. This may not be desired functionality - if so, edit the generated SQL accordingly.
 
 ### Table Constraints / Parameters
 
@@ -231,6 +255,7 @@ export const proposalSchema = gql`
     proposals: [Proposal!]!
     proposal(id: ID!): Proposal
   }
+`
 ```
 
 Every set of GraphQL types needs a corresponding set of TypeScript types. In your `schema.ts` file, after the GQL section, you would define them as follows.
@@ -267,11 +292,50 @@ A few notes:
 * GQL doesn't have a native DateTime type, but we are using the [GraphQL Scalars](https://the-guild.dev/graphql/scalars) package for these. The DateTime type from this package is equivalent to the Date type in TypeScript. To ensure that our custom linting works correctly and does not identify a mismatch in the types between GraphQL and TypeScript, we create the `DateTime` type as being the same as the `Date` one.
 * Note that for inputs, we accept a specific `primaryReviewerUserId`; however, for the actual `Proposal` type, the field is `primaryReviewer` and has the type `User`. This is expected; the type shows the nested nature of the object, while the inputs accept specific IDs for use in the resolver code.
   * In general, you will use the "relational field" names and types from Prisma on the object type, and the "scalar field" names and types on the inputs.
+  * The exception for this is cases where a relational field exists to a static constraint table. In those cases, you can use the relational field name throughout, since the intent of the static constraint table is to simply constrain the display value.
 * Human-readable ID fields should be given the GraphQL type of `String`, while synthetic / meaningless keys (i.e. UUIDs) should be given the type of `ID`. This is consistent with [GraphQL documentation](https://graphql.org/learn/schema/):
 
   > ID: A unique identifier, often used to refetch an object or as the key for a cache. The ID type is serialized in the same way as a String; however, defining it as an ID signifies that it is not intended to be human‐readable.
 
   Within TypeScript, both are `string` types, since GraphQL treats the `ID` type as a string under the hood.
+* As described [below](#static-constraint-types), use custom types for static constraint tables.
+
+### Static Constraint Types
+
+In cases where a field is constrained by a static constraint table, you should create a type to denote this in both GraphQL and TypeScript.
+
+In GraphQL, we are accomplishing this by declaring custom scalars, without implementing any actual restrictions. This is effectively denoting them as special strings. The main value of this is that they will be specially noted in the Apollo interface, and you can include information about the expected values in the documentation.
+
+The below would be done in your `Schema.ts` file.
+
+```typescript
+import { gql } from "graphql-tag";
+export const reviewSchema = gql`
+  """
+  A string representing a review status. Expected values are:
+  - New
+  - In Progress
+  - Complete
+  """
+  scalar ReviewStatus
+  ...
+`
+```
+
+Later, you will want to add corresponding TypeScript types. You'll add two items: an array of the acceptable values, and a type derived from that (and having the same name as the scalar you added to the GQL). Put the array into `src/constants.ts` and the type into `src/types.ts`. Remember that any changes made here will need to be reflected in the database, and vice versa!
+
+```typescript
+// constants.ts
+export const REVIEW_STATUS = ["New", "In Progress", "Complete"] as const;
+
+// types.ts
+import { REVIEW_STATUS } from "./constants.js";
+export type ReviewStats = (typeof REVIEW_STATUS)[number];
+```
+
+Import your new type into the `Schema.ts` file you are working on, and use it throughout as appropriate. The advantage of this approach is that now, the front-end can make use of the exported type during type checking, and can use the exported constant to populate menus, etc, without hitting the database to retrieve a list of values.
+
+As a reminder, this approach is intended for cases where the constraint is rarely changing, and where it has a tractable number of levels (10 or fewer, generally).
 
 ## Resolver Standards and Conventions
 
@@ -412,6 +476,7 @@ This is implemented using the `__resolveType` resolver function.
 2. __Table Naming__: Tables should be named using the singular if possible (e.g. `author`, not `authors`). Exceptions to this are allowable for good reason. For instance, the word `USER` is reserved in SQL, so the table with users is called `users`. This is documented in the Prisma model. In contexts where the table name is made plural in this manner, do not make other references plural; having `user_id` in one table be constrained by `users.id` in the `users` table is correct.
 3. __ID Columns__: Most tables will have a column named `id` which represents the identifier for that table. Do not prefix the ID with the name of the table (i.e. use `state.id`, not `state.state_id`).
 4. __Foreign Keys__: When using a column in a table that references the ID column of another table, refer to it with a prefix. Ideally, you should simply use `table_name_id`. In some contexts, it is necessary to add additional context about the meaning of a column. For instance, the primary reviewer of a proposal is a user, but naming the column `user_id` is ambiguous. In those contexts, you can use the format of `meaningful_name_type_id`. So, `primary_reviewer_user_id` indicates the the column is the primary reviewer and that it is a user ID, meaning it can be looked up in `users.id`.
+5. __Static Constraint Tables__: As described [above](#static-constraints-tables-vs-enums), a static constraint table should be used in favor of an `enum` in most cases. Such contraint tables will have a single column, `id`, which contains the valid values. Denote these tables with the `STATIC_CONSTRAINT` flag on their Prisma models. Static constraint tables should not have history tables, nor will they have resolvers; they are intended to implement an `enum`-like functionality.
 5. __History Table Specifics__: Every history table should begein with three columns: `revision_id`, `revision_type`, and `modified_at`. These are expected by the Python tool which generates the triggers. Every other column should be reproduced from the source table, but no constraints or checks should be duplicated.
 
 # How To Guides

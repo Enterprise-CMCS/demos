@@ -4,6 +4,8 @@ title: DEMOS Current Data Model
 
 erDiagram
 
+  cmcs_division ||--|{ demonstration : "demonstration.cmcs_division_id ∈ cmcs_division.id"
+  signature_level ||--|{ demonstration : "demonstration.signature_level_id ∈ signature_level.id"
   document_type ||--|{ document : "document.document_type_id ∈ document_type.id"
   bundle ||--|| modification : "modificaton.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
   document }|--|| bundle : "document.bundle_id ∈ bundle.id"
@@ -44,6 +46,14 @@ erDiagram
     text description
   }
 
+  cmcs_division {
+    text id PK
+  }
+
+  signature_level {
+    text id PK
+  }
+
   demonstration {
     uuid id PK, FK, UK, UK "FK1: bundle.(id, bundle_type_id) UK1: (id, bundle_type_id), UK2: (id, state_id)"
     text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id), FK: demonstration_bundle_type.id"
@@ -51,6 +61,8 @@ erDiagram
     text description
     date effective_date
     date expiration_date
+    text cmcs_division_id FK "FK: cmcs_division.id"
+    text signature_level_id FK "FK: signature_level.id"
     timestamptz created_at
     timestamptz updated_at
     text demonstration_status_id FK "FK: demonstration_status.id"
