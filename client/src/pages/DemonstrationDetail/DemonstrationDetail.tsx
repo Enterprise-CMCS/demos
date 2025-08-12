@@ -80,12 +80,12 @@ export const DemonstrationDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const [tab, setTab] = useState<TabType>(() => {
-    const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
-    const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
+  const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
+  const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
-    if (amendmentParam === "true") return "amendments";
-    if (extensionParam === "true") return "extensions";
+  const [tab, setTab] = useState<TabType>(() => {
+    if (amendmentParam) return "amendments";
+    if (extensionParam) return "extensions";
     return "details";
   });
   const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
@@ -148,6 +148,7 @@ export const DemonstrationDetail: React.FC = () => {
               <AmendmentsTab
                 amendments={demonstration.amendments || []}
                 onClick={() => setEntityCreationModal("amendment")}
+                initiallyExpandedId={amendmentParam ?? undefined}
               />
             )}
 
@@ -155,6 +156,7 @@ export const DemonstrationDetail: React.FC = () => {
               <ExtensionsTab
                 extensions={demonstration.extensions || []}
                 onClick={() => setEntityCreationModal("extension")}
+                initiallyExpandedId={extensionParam ?? undefined}
               />
             )}
           </div>
