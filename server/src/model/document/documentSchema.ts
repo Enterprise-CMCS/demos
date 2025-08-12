@@ -1,4 +1,3 @@
-import { Dayjs } from "dayjs";
 import { gql } from "graphql-tag";
 
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
@@ -108,7 +107,7 @@ export const documentSchema = gql`
 `;
 
 type Bundle = Demonstration | Amendment | Extension;
-export type DateTime = Dayjs;
+export type DateTime = Date;
 export interface Document {
   id: string;
   title: string;

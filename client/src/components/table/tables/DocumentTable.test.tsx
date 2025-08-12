@@ -6,8 +6,6 @@ import { ALL_MOCKS } from "mock-data/index";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -17,11 +15,9 @@ describe("DocumentTable", () => {
   beforeEach(() => {
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <ToastProvider>
-            <DocumentTable />
-          </ToastProvider>
-        </LocalizationProvider>
+        <ToastProvider>
+          <DocumentTable />
+        </ToastProvider>
       </MockedProvider>
     );
   });
