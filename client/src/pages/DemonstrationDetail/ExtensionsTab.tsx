@@ -6,7 +6,8 @@ import { ModificationTable, ModificationTableRow } from "components/table/tables
 export const ExtensionsTab: React.FC<{
   extensions: ModificationTableRow[];
   onClick: () => void;
-}> = ({ extensions, onClick }) => (
+  initiallyExpandedId?: string;
+}> = ({ extensions, onClick, initiallyExpandedId }) => (
   <div>
     <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
       <h1 className="text-xl font-bold text-brand uppercase">Extensions</h1>
@@ -15,6 +16,6 @@ export const ExtensionsTab: React.FC<{
         <AddNewIcon className="w-2 h-2" />
       </SecondaryButton>
     </div>
-    <ModificationTable modifications={extensions} />
+    <ModificationTable modifications={extensions} initiallyExpandedId={initiallyExpandedId} />
   </div>
 );

@@ -8,6 +8,7 @@ import { ModificationTable, ModificationTableRow } from "./ModificationTable";
 
 const mockExtensions = [
   {
+    id: "1",
     name: "Extension 1",
     status: {
       name: "Pending Review",
@@ -15,6 +16,7 @@ const mockExtensions = [
     effectiveDate: new Date("2025-08-15"),
   },
   {
+    id: "2",
     name: "Extension 2",
     status: {
       name: "Approved",
@@ -25,6 +27,7 @@ const mockExtensions = [
 
 const mockAmendments = [
   {
+    id: "1",
     name: "Amendment 1",
     status: {
       name: "Under Review",
@@ -32,6 +35,7 @@ const mockAmendments = [
     effectiveDate: new Date("2025-07-21"),
   },
   {
+    id: "2",
     name: "Amendment 2",
     status: {
       name: "Approved",
@@ -42,6 +46,7 @@ const mockAmendments = [
 
 const mockUnknownStatus = [
   {
+    id: "3",
     name: "Test Item",
     status: {
       name: "Unknown Status",
@@ -119,5 +124,13 @@ describe("Status rendering", () => {
 
     // Ensure no SVG icons are present in the status element
     expect(statusElement.querySelector("svg")).toBeNull();
+  });
+});
+
+describe("Initially expanded row", () => {
+  it("automatically expands a row if initiallyExpandedId is provided", () => {
+    render(<ModificationTable modifications={mockExtensions} initiallyExpandedId="1" />);
+
+    expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
   });
 });

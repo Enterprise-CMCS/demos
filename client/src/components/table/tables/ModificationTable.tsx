@@ -2,35 +2,58 @@ import * as React from "react";
 
 import { ChevronRightIcon, SuccessIcon } from "components/icons";
 import { ReviewIcon } from "components/icons/Action/ReviewIcon";
-
-import { getCoreRowModel, getExpandedRowModel, useReactTable } from "@tanstack/react-table";
-
+import {
+  ExpandedState,
+  getCoreRowModel,
+  getExpandedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
 import { Amendment, Extension } from "demos-server";
 
 export type ModificationTableRow =
   | {
+      id: Amendment["id"];
       name: Amendment["name"];
       effectiveDate: Amendment["effectiveDate"];
       status: Pick<Amendment["amendmentStatus"], "name">;
     }
   | {
+      id: Extension["id"];
       name: Extension["name"];
       effectiveDate: Extension["effectiveDate"];
       status: Pick<Extension["extensionStatus"], "name">;
     };
 
-export function ModificationTable({ modifications }: { modifications: ModificationTableRow[] }) {
-  const [expanded, setExpanded] = React.useState({});
+export function ModificationTable({
+  modifications,
+  initiallyExpandedId,
+}: {
+  modifications: ModificationTableRow[];
+  initiallyExpandedId?: string;
+}) {
+  const [expanded, setExpanded] = React.useState<ExpandedState>(() =>
+    initiallyExpandedId ? { [initiallyExpandedId]: true } : {}
+  );
+
+  const handleExpandedChange = React.useCallback(
+    (updater: ExpandedState | ((prev: ExpandedState) => ExpandedState)) => {
+      setExpanded((prev) => {
+        return typeof updater === "function" ? updater(prev) : updater;
+      });
+    },
+    []
+  );
 
   const table = useReactTable<ModificationTableRow>({
     data: modifications,
     columns: ModificationColumns,
     state: { expanded },
-    onExpandedChange: setExpanded,
+    onExpandedChange: handleExpandedChange,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand: () => true,
+    getRowId: (row) => row.id,
   });
 
   return (

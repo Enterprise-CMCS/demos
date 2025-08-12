@@ -86,6 +86,7 @@ export const demonstrationMocks: MockedResponse[] = [
           },
           amendments: [
             {
+              id: "3",
               name: "Amendment 3",
               effectiveDate: new Date("2025-07-21"),
               status: {
@@ -93,6 +94,7 @@ export const demonstrationMocks: MockedResponse[] = [
               },
             },
             {
+              id: "2",
               name: "Amendment 2",
               effectiveDate: new Date("2024-09-14"),
               status: {
@@ -100,6 +102,7 @@ export const demonstrationMocks: MockedResponse[] = [
               },
             },
             {
+              id: "1",
               name: "Amendment 1",
               effectiveDate: new Date("2023-01-03"),
               status: {
@@ -109,6 +112,7 @@ export const demonstrationMocks: MockedResponse[] = [
           ],
           extensions: [
             {
+              id: "1",
               name: "Extension 1",
               effectiveDate: new Date("2025-01-01"),
               status: {
@@ -116,6 +120,7 @@ export const demonstrationMocks: MockedResponse[] = [
               },
             },
             {
+              id: "2",
               name: "Extension 2",
               effectiveDate: new Date("2025-06-01"),
               status: {
@@ -123,6 +128,7 @@ export const demonstrationMocks: MockedResponse[] = [
               },
             },
             {
+              id: "3",
               name: "Extension 3",
               effectiveDate: new Date("2023-01-03"),
               status: {
@@ -130,6 +136,7 @@ export const demonstrationMocks: MockedResponse[] = [
               },
             },
             {
+              id: "4",
               name: "Extension 4",
               effectiveDate: new Date("2025-01-01"),
               status: {
@@ -137,6 +144,7 @@ export const demonstrationMocks: MockedResponse[] = [
               },
             },
             {
+              id: "5",
               name: "Extension 5",
               effectiveDate: new Date("2025-06-01"),
               status: {
@@ -144,6 +152,7 @@ export const demonstrationMocks: MockedResponse[] = [
               },
             },
             {
+              id: "6",
               name: "Extension 6",
               effectiveDate: new Date("2025-06-01"),
               status: {
