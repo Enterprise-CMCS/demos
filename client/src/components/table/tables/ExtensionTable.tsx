@@ -1,17 +1,5 @@
 import * as React from "react";
-
-import {
-  ChevronRightIcon,
-  SuccessIcon,
-} from "components/icons";
-import { ReviewIcon } from "components/icons/Action/ReviewIcon";
-
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-
+import { ExpandableTable } from "components/table/ExpandableTable";
 import {
   ExtensionColumns,
   RawExtension,
@@ -20,92 +8,15 @@ import {
 interface ExtensionTableProps {
   data: RawExtension[];
   demonstrationId: string;
+  initiallyExpandedId?: string;
 }
 
-export function ExtensionTable({ data }: ExtensionTableProps) {
-  const [expanded, setExpanded] = React.useState({});
-
-  const table = useReactTable({
-    data,
-    columns: ExtensionColumns,
-    state: { expanded },
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-  });
-
+export function ExtensionTable({ data, initiallyExpandedId }: ExtensionTableProps) {
   return (
-    <div className="w-full">
-      <div className="flex flex-col gap-2">
-        {table.getRowModel().rows.map((row) => {
-          const { title, effectiveDate, status } = row.original;
-          const isExpanded = row.getIsExpanded();
-
-          return (
-            <div key={row.id} className="border rounded px-4 py-2 bg-white">
-              <div
-                onClick={() => row.toggleExpanded()}
-                className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 cursor-pointer"
-              >
-                <div className="text-sm font-bold text-blue-900">{title}</div>
-
-                <div className="h-1" />
-
-                <div>{renderStatus(status)}</div>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
-                  <ChevronRightIcon
-                    className={`w-[18px] h-[18px] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
-                  />
-                </div>
-              </div>
-              {isExpanded && (
-                <div className="mt-2 px-2 py-2 bg-gray-100 text-sm italic text-gray-600 rounded-sm">
-                  Expanded details coming soon.
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <ExpandableTable
+      data={data}
+      columns={ExtensionColumns}
+      initiallyExpandedId={initiallyExpandedId}
+    />
   );
 }
-
-const formatDate = (iso: string) => {
-  const [yyyy, mm, dd] = iso.split("-");
-  return `${mm}/${dd}/${yyyy}`;
-};
-
-const renderStatus = (status: string) => {
-  const baseStyle = "flex items-center gap-1 text-sm";
-  switch (status) {
-    case "Under Review":
-      return (
-        <div className={`${baseStyle} text-left`}>
-          <ReviewIcon className="w-[18px] h-[18px] text-yellow-500" />
-          {status}
-        </div>
-      );
-    case "Approved":
-      return (
-        <div className={`${baseStyle} text-left`}>
-          <SuccessIcon className="w-[18px] h-[18px]" />
-          {status}
-        </div>
-      );
-    case "Draft":
-      return (
-        <div className={`${baseStyle} text-left`}>
-          <SuccessIcon className="w-[18px] h-[18px]" />
-          {status}
-        </div>
-      );
-    default:
-      return (
-        <span className="text-sm text-gray-700">{status}</span>
-      );
-  }
-};
