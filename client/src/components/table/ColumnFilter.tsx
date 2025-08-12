@@ -1,7 +1,6 @@
 import React from "react";
 import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
-import { Dayjs } from "dayjs";
 import { DatePicker } from "components/input/DatePicker/DatePicker";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
 import { Option, Select } from "components/input/select/Select";
@@ -38,8 +37,8 @@ export function ColumnFilter<T>({
   >("");
 
   const [filterRangeValue, setFilterRangeValue] = React.useState<{
-    start: Dayjs | null;
-    end: Dayjs | null;
+    start: Date | null;
+    end: Date | null;
   }>({ start: null, end: null });
 
   const availableColumns = table
@@ -73,7 +72,7 @@ export function ColumnFilter<T>({
     }
   };
 
-  const onRangeChange = (start: Dayjs | null, end: Dayjs | null) => {
+  const onRangeChange = (start: Date | null, end: Date | null) => {
     setFilterRangeValue({ start, end });
     if (selectedColumn && (start || end)) {
       table.setColumnFilters([{ id: selectedColumn, value: { start, end } }]);
