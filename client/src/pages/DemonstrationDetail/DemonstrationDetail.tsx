@@ -34,6 +34,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         fullName
       }
       amendments {
+        id
         name
         effectiveDate
         status: amendmentStatus {
@@ -41,6 +42,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         }
       }
       extensions {
+        id
         name
         effectiveDate
         status: extensionStatus {
