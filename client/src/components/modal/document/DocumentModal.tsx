@@ -241,7 +241,6 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   const modalTitle =
     documentModalType === "edit" ? "Edit Document" : "Add New Document";
 
-  // TODO: get this from GQL hook
   const [documentTitle, setDocumentTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [selectedType, setSelectedType] = useState(initialType);
