@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const Refresh2Icon = ({
+export const Refresh2Icon: React.FC<IconInput> = ({
+  label = "Refresh Icon",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",

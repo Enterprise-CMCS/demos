@@ -2,7 +2,8 @@ import React from "react";
 
 import { IconInput } from "../Icon";
 
-export const MenuCollapseLeftIcon = ({
+export const MenuCollapseLeftIcon: React.FC<IconInput> = ({
+  label = "Menu Collapse Left Icon",
   width = "20",
   height = "20",
   viewBox = "0 1 12 12",

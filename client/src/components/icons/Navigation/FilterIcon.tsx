@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const FilterIcon = ({
+export const FilterIcon: React.FC<IconInput> = ({
+  label = "Filter Icon",
   width = "17",
   height = "17",
   viewBox = "0 0 17 17",

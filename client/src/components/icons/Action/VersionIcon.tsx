@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const VersionIcon = ({
+export const VersionIcon: React.FC<IconInput> = ({
+  label = "Version Icon",
   width = "13",
   height = "15",
   viewBox = "0 0 13 14",

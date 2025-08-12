@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const LogoutIcon = ({
+export const LogoutIcon: React.FC<IconInput> = ({
+  label = "Logout Icon",
   width = "19",
   height = "19",
   viewBox = "0 0 19 19",

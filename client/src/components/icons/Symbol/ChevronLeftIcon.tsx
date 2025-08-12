@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ChevronLeftIcon = ({
+export const ChevronLeftIcon: React.FC<IconInput> = ({
+  label = "Chevron Left Icon",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",

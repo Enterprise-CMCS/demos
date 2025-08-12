@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const HintFilledIcon = ({
+export const HintFilledIcon: React.FC<IconInput> = ({
+  label = "Hint Filled Icon",
   width = "19",
   height = "19",
   viewBox = "0 0 19 19",

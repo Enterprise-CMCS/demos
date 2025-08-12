@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ActionsIcon = ({
+export const ActionsIcon: React.FC<IconInput> = ({
+  label = "Actions Icon",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",

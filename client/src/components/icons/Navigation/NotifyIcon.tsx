@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const NotifyIcon = ({
+export const NotifyIcon: React.FC<IconInput> = ({
+  label = "Notify Icon",
   width = "17",
   height = "17",
   viewBox = "0 0 17 17",

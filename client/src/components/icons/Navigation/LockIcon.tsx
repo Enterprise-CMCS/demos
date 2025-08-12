@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const LockIcon = ({
+export const LockIcon: React.FC<IconInput> = ({
+  label = "Lock Icon",
   width = "12",
   height = "15",
   viewBox = "0 0 12 14",

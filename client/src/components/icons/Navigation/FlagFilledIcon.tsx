@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const FlagFilledIcon = ({
+export const FlagFilledIcon: React.FC<IconInput> = ({
+  label = "Flag Filled Icon",
   width = "15",
   height = "17",
   viewBox = "0 0 15 16",

@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ArchiveIcon = ({
+export const ArchiveIcon: React.FC<IconInput> = ({
+  label = "Archive Icon",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",

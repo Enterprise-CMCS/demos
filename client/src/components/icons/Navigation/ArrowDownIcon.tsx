@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ArrowDownIcon = ({
+export const ArrowDownIcon: React.FC<IconInput> = ({
+  label = "Arrow Down Icon",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",

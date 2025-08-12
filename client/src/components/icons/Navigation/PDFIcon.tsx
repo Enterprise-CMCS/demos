@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const PDFIcon = ({
+export const PDFIcon: React.FC<IconInput> = ({
+  label = "PDF Icon",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",

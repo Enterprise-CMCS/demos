@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const PinFilledIcon = ({
+export const PinFilledIcon: React.FC<IconInput> = ({
+  label = "Pin Filled Icon",
   width = "19",
   height = "19",
   viewBox = "0 0 19 19",

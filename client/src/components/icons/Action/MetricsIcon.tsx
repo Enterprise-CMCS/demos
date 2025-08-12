@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const MetricsIcon = ({
+export const MetricsIcon: React.FC<IconInput> = ({
+  label = "Metrics Icon",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",

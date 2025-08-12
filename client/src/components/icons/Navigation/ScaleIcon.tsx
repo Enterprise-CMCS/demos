@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ScaleIcon = ({
+export const ScaleIcon: React.FC<IconInput> = ({
+  label = "Scale Icon",
   width = "17",
   height = "17",
   viewBox = "0 0 17 17",

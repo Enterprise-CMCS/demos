@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const WarningIcon = ({
+export const WarningIcon: React.FC<IconInput> = ({
+  label = "Warning Icon",
   width = "21",
   height = "21",
   viewBox = "0 0 21 21",

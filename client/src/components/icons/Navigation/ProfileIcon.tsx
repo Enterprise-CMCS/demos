@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ProfileIcon = ({
+export const ProfileIcon: React.FC<IconInput> = ({
+  label = "Profile Icon",
   width = "19",
   height = "19",
   viewBox = "0 0 19 19",

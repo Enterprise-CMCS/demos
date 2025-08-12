@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const HomeIcon = ({
+export const HomeIcon: React.FC<IconInput> = ({
+  label = "Home Icon",
   width = "17",
   height = "17",
   viewBox = "0 0 17 17",

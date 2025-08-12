@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const SuccessIcon = ({
+export const SuccessIcon: React.FC<IconInput> = ({
+  label = "Success Icon",
   width = "21",
   height = "21",
   viewBox = "0 0 21 21",

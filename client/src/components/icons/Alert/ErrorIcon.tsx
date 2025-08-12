@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ErrorIcon = ({
+export const ErrorIcon: React.FC<IconInput> = ({
+  label = "Error Icon",
   width = "21",
   height = "21",
   viewBox = "0 0 21 21",

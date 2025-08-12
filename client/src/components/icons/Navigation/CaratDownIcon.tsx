@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const CaratDownIcon = ({
+export const CaratDownIcon: React.FC<IconInput> = ({
+  label = "Carat Down Icon",
   width = "15",
   height = "8",
   viewBox = "0 0 15 8",

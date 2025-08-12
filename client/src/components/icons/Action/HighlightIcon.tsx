@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const HighlightIcon = ({
+export const HighlightIcon: React.FC<IconInput> = ({
+  label = "Highlight Icon",
   width = "17",
   height = "15",
   viewBox = "0 0 17 14",

@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const UnreadIcon = ({
+export const UnreadIcon: React.FC<IconInput> = ({
+  label = "Unread Icon",
   width = "5",
   height = "4",
   viewBox = "0 0 5 4",

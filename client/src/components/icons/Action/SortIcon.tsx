@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const SortIcon = ({
+export const SortIcon: React.FC<IconInput> = ({
+  label = "Sort Icon",
   width = "9",
   height = "17",
   viewBox = "0 0 9 16",
