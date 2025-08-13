@@ -9,3 +9,6 @@ fileprocess.zip
 lambda-env.json
 node_modules/
 package-lock.json
+
+# other
+.DS_Store
