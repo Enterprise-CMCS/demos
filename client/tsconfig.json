@@ -15,7 +15,9 @@
       "pages/*": ["pages/*"],
       "hooks/*": ["hooks/*"],
       "mock-data/*": ["mock-data/*"],
-      "queries/*": ["queries/*"]
+      "queries/*": ["queries/*"],
+      "demos-server": ["../../server/src/types.ts"],
+      "demos-server-constants": ["../../server/src/constants.ts"]
     }
   },
   "exclude": ["node_modules"],
