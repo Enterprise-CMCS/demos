@@ -53,11 +53,18 @@ BEGIN
             demos_app.document_pending_upload 
         WHERE id = p_id;
         
+        IF NOT FOUND THEN
+            ROLLBACK;
+            RAISE EXCEPTION 'No document_pending_upload found for id: %', p_id;
+        END IF;
+
         DELETE FROM demos_app.document_pending_upload
         WHERE id = p_id;
-    COMMIT;
+
     EXCEPTION WHEN OTHERS THEN
         ROLLBACK;
+        RAISE EXCEPTION 'Failed to move document from processing to clean. Details: %', SQLERRM;
+    COMMIT;
     END;
 END;
 $$;

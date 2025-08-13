@@ -74,13 +74,13 @@ export const documentSchema = gql`
   }
 
   type Mutation {
-    createDemonstrationDocument(input: CreateDemonstrationDocumentInput!): Document
+    uploadDemonstrationDocument(input: CreateDemonstrationDocumentInput!): Document
     updateDemonstrationDocument(id: ID!, input: UpdateDemonstrationDocumentInput!): Document
     deleteDemonstrationDocument(id: ID!): Document
     uploadAmendmentDocument(input: UploadAmendmentDocumentInput!): Document
     updateAmendmentDocument(id: ID!, input: UpdateAmendmentDocumentInput!): Document
     deleteAmendmentDocument(id: ID!): Document
-    createExtensionDocument(input: CreateExtensionDocumentInput!): Document
+    uploadExtensionDocument(input: CreateExtensionDocumentInput!): Document
     updateExtensionDocument(id: ID!, input: UpdateExtensionDocumentInput!): Document
     deleteExtensionDocument(id: ID!): Document
   }

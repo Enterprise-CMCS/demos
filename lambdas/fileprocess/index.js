@@ -26,7 +26,6 @@ const secretsManagerConfig = process.env.AWS_ENDPOINT_URL
 const secretsManager = new SecretsManagerClient(secretsManagerConfig);
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
-const GET_BUNDLE_ID_FUNCTION = "get_bundle_id_for_document";
 const MOVE_DOCUMENT_PROCEDURE = "move_document_from_processing_to_clean";
 
 let databaseUrlCache = "";
@@ -90,7 +89,7 @@ function extractS3InfoFromGuardDuty(guardDutyEvent) {
 }
 
 async function getBundleId(client, fileKey) {
-  const getBundleIdQuery = `SELECT bundle_id FROM demos_app.document_pending_upload WHERE id = $documentId;`;
+  const getBundleIdQuery = `SELECT bundle_id FROM ${dbSchema}.document_pending_upload WHERE id = $1;`;
 
   try {
     const result = await client.query(getBundleIdQuery, [fileKey]);
