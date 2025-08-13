@@ -90,7 +90,7 @@ function extractS3InfoFromGuardDuty(guardDutyEvent) {
 }
 
 async function getBundleId(client, fileKey) {
-  const getBundleIdQuery = `SELECT ${dbSchema}.${GET_BUNDLE_ID_FUNCTION}($1::UUID) AS bundle_id;`;
+  const getBundleIdQuery = `SELECT bundle_id FROM demos_app.document_pending_upload WHERE id = $documentId;`;
 
   try {
     const result = await client.query(getBundleIdQuery, [fileKey]);
@@ -177,7 +177,7 @@ export const handler = async (event) => {
     processedRecords: 0,
     cleanFiles: [],
     infectedFiles: [],
-    errors: []
+    errors: [],
   };
 
   try {
@@ -191,7 +191,7 @@ export const handler = async (event) => {
       try {
         const guardDutyEvent = JSON.parse(record.body);
         console.log("Received GuardDuty event:", JSON.stringify(guardDutyEvent, null, 2));
-        
+
         const s3Info = extractS3InfoFromGuardDuty(guardDutyEvent);
         const { bucket, key } = s3Info;
         const isClean = isGuardDutyScanClean(guardDutyEvent);
@@ -201,14 +201,14 @@ export const handler = async (event) => {
           results.cleanFiles.push({
             bucket,
             key,
-            status: 'processed'
+            status: "processed",
           });
         } else {
           console.log(`File ${key} is not clean. Skipping processing.`);
           results.infectedFiles.push({
             bucket,
             key,
-            status: 'skipped'
+            status: "skipped",
           });
         }
 
@@ -223,11 +223,10 @@ export const handler = async (event) => {
     console.log("All records processed successfully");
     console.log("Processing summary:", results);
 
-    return { 
-      statusCode: 200, 
-      body: `Processed ${results.processedRecords} records: ${results.cleanFiles.length} clean files processed, ${results.infectedFiles.length} infected files skipped`
+    return {
+      statusCode: 200,
+      body: `Processed ${results.processedRecords} records: ${results.cleanFiles.length} clean files processed, ${results.infectedFiles.length} infected files skipped`,
     };
-
   } catch (error) {
     console.error("Lambda execution failed:", error);
     throw new Error(`Lambda failed: ${error.message}`);

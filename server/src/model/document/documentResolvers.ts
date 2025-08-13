@@ -1,13 +1,13 @@
 import { GraphQLError } from "graphql";
 
-import { Bundle, Document } from "@prisma/client";
+import { Bundle, Document, DocumentPendingUpload } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import {
-  CreateDemonstrationDocumentInput,
-  CreateExtensionDocumentInput,
+  UploadDemonstrationDocumentInput,
+  UploadExtensionDocumentInput,
   UpdateAmendmentDocumentInput,
   UpdateDemonstrationDocumentInput,
   UpdateExtensionDocumentInput,
@@ -34,6 +34,31 @@ async function getBundleTypeId(bundleId: string) {
     },
   });
   return result!.bundleType.id;
+}
+
+async function attachPresignedUploadUrl(document: DocumentPendingUpload) {
+  const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
+    ? {
+        region: "us-east-1",
+        endpoint: process.env.S3_ENDPOINT_LOCAL,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: "",
+          secretAccessKey: "",
+        },
+      }
+    : {};
+  const s3 = new S3Client(s3ClientConfig);
+  const uploadBucket = process.env.UPLOAD_BUCKET;
+  const key = document.id;
+  const command = new PutObjectCommand({
+    Bucket: uploadBucket,
+    Key: key,
+  });
+  const s3Path = await getSignedUrl(s3, command, {
+    expiresIn: 3600,
+  });
+  return { ...document, s3Path };
 }
 
 export const documentResolvers = {
@@ -82,31 +107,26 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    createDemonstrationDocument: async (
+    uploadDemonstrationDocument: async (
       _: undefined,
-      { input }: { input: CreateDemonstrationDocumentInput }
+      { input }: { input: UploadDemonstrationDocumentInput }
     ) => {
       const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
-      return await prisma().document.create({
+      const document = await prisma().documentPendingUpload.create({
         data: {
           ...rest,
-          owner: {
-            connect: { id: ownerUserId },
-          },
-          documentType: {
-            connect: { id: documentTypeId },
-          },
-          bundle: {
-            connect: { id: demonstrationId },
-          },
+          owner: { connect: { id: ownerUserId } },
+          documentType: { connect: { id: documentTypeId } },
+          bundle: { connect: { id: demonstrationId } },
         },
       });
+      return await attachPresignedUploadUrl(document);
     },
 
     updateDemonstrationDocument: async (
       _: undefined,
       { id, input }: { id: string; input: UpdateDemonstrationDocumentInput }
-    ) => {
+    ): Promise<Document> => {
       const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
       return await prisma().document.update({
         where: { id: id },
@@ -145,51 +165,18 @@ export const documentResolvers = {
       const documentPendingUpload = await prisma().documentPendingUpload.create({
         data: {
           ...rest,
-          owner: {
-            connect: { id: ownerUserId },
-          },
-          documentType: {
-            connect: { id: documentTypeId },
-          },
-          bundle: {
-            connect: { id: amendmentId },
-          },
+          owner: { connect: { id: ownerUserId } },
+          documentType: { connect: { id: documentTypeId } },
+          bundle: { connect: { id: amendmentId } },
         },
       });
-
-      const uploadResult = documentPendingUpload as Document;
-      // Generate a presigned S3 upload URL
-      const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
-        ? {
-            region: "us-east-1",
-            endpoint: process.env.S3_ENDPOINT_LOCAL,
-            forcePathStyle: true,
-            credentials: {
-              accessKeyId: "",
-              secretAccessKey: "",
-            },
-          }
-        : {};
-      const s3 = new S3Client(s3ClientConfig);
-      const uploadBucket = process.env.UPLOAD_BUCKET;
-      const key = uploadResult.id;
-      const command = new PutObjectCommand({
-        Bucket: uploadBucket,
-        Key: key,
-      });
-      uploadResult.s3Path = await getSignedUrl(s3, command, {
-        expiresIn: 3600,
-      });
-
-      return {
-        ...uploadResult,
-      };
+      return await attachPresignedUploadUrl(documentPendingUpload as Document);
     },
 
     updateAmendmentDocument: async (
       _: undefined,
       { id, input }: { id: string; input: UpdateAmendmentDocumentInput }
-    ) => {
+    ): Promise<Document> => {
       const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
       return await prisma().document.update({
         where: { id: id },
@@ -220,25 +207,20 @@ export const documentResolvers = {
       });
     },
 
-    createExtensionDocument: async (
+    uploadExtensionDocument: async (
       _: undefined,
-      { input }: { input: CreateExtensionDocumentInput }
-    ) => {
+      { input }: { input: UploadExtensionDocumentInput }
+    ): Promise<Document> => {
       const { ownerUserId, documentTypeId, extensionId, ...rest } = input;
-      return await prisma().document.create({
+      const document = await prisma().documentPendingUpload.create({
         data: {
           ...rest,
-          owner: {
-            connect: { id: ownerUserId },
-          },
-          documentType: {
-            connect: { id: documentTypeId },
-          },
-          bundle: {
-            connect: { id: extensionId },
-          },
+          owner: { connect: { id: ownerUserId } },
+          documentType: { connect: { id: documentTypeId } },
+          bundle: { connect: { id: extensionId } },
         },
       });
+      return await attachPresignedUploadUrl(document);
     },
 
     updateExtensionDocument: async (

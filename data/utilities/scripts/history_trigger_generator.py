@@ -14,6 +14,7 @@ TBL_FOLDERS = [
     "demonstration",
     "demonstrationStatus",
     "document",
+    "documentPendingUpload",
     "documentType",
     "modification",
     "modificationStatus",

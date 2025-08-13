@@ -38,36 +38,135 @@ ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_ow
 -- AddForeignKey
 ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_bundle_id_fkey" FOREIGN KEY ("bundle_id") REFERENCES "bundle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
-CREATE OR REPLACE PROCEDURE move_document_from_processing_to_clean(
+CREATE OR REPLACE PROCEDURE demos_app.move_document_from_processing_to_clean(
     p_id UUID,
     p_s3_path TEXT
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    INSERT INTO demos_app.document (id, title, description, s3_path, owner_user_id, document_type_id, bundle_id, created_at, updated_at) 
-    SELECT 
-        id, title, description, p_s3_path, owner_user_id, document_type_id, bundle_id, created_at, updated_at
-    FROM 
-        demos_app.document_pending_upload 
-    WHERE id = p_id;
-    
-    DELETE FROM demos_app.document_pending_upload
-    WHERE id = p_id;
+    BEGIN
+        INSERT INTO demos_app.document (id, title, description, s3_path, owner_user_id, document_type_id, bundle_id, created_at, updated_at) 
+        SELECT 
+            id, title, description, p_s3_path, owner_user_id, document_type_id, bundle_id, created_at, updated_at
+        FROM 
+            demos_app.document_pending_upload 
+        WHERE id = p_id;
+        
+        DELETE FROM demos_app.document_pending_upload
+        WHERE id = p_id;
+    COMMIT;
+    EXCEPTION WHEN OTHERS THEN
+        ROLLBACK;
+    END;
 END;
 $$;
-
-CREATE FUNCTION demos_app.get_bundle_id_for_document(p_document_id UUID)
-RETURNS UUID
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_bundle_id UUID;
+CREATE OR REPLACE FUNCTION demos_app.log_changes_document_pending_upload()
+RETURNS TRIGGER AS $$
 BEGIN
-    SELECT bundle_id INTO v_bundle_id
-    FROM demos_app.document_pending_upload 
-    WHERE id = p_document_id;
-    
-    RETURN v_bundle_id;
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.document_pending_upload_history (
+            revision_type,
+            id,
+            title,
+            description,
+            owner_user_id,
+            document_type_id,
+            bundle_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.title,
+            NEW.description,
+            NEW.owner_user_id,
+            NEW.document_type_id,
+            NEW.bundle_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.document_pending_upload_history (
+            revision_type,
+            id,
+            title,
+            description,
+            owner_user_id,
+            document_type_id,
+            bundle_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.title,
+            OLD.description,
+            OLD.owner_user_id,
+            OLD.document_type_id,
+            OLD.bundle_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
 END;
-$$;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_document_pending_upload_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_pending_upload
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_pending_upload();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_document_type()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.document_type_history (
+            revision_type,
+            id,
+            name,
+            description,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.name,
+            NEW.description,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.document_type_history (
+            revision_type,
+            id,
+            name,
+            description,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.name,
+            OLD.description,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;

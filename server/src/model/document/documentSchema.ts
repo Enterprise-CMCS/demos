@@ -2,10 +2,7 @@ import { gql } from "graphql-tag";
 
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
 import { DocumentType } from "../documentType/documentTypeSchema.js";
-import {
-  Amendment,
-  Extension,
-} from "../modification/modificationSchema.js";
+import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
 
 export const documentSchema = gql`
@@ -77,25 +74,14 @@ export const documentSchema = gql`
   }
 
   type Mutation {
-    createDemonstrationDocument(
-      input: CreateDemonstrationDocumentInput!
-    ): Document
-    updateDemonstrationDocument(
-      id: ID!
-      input: UpdateDemonstrationDocumentInput!
-    ): Document
+    createDemonstrationDocument(input: CreateDemonstrationDocumentInput!): Document
+    updateDemonstrationDocument(id: ID!, input: UpdateDemonstrationDocumentInput!): Document
     deleteDemonstrationDocument(id: ID!): Document
     uploadAmendmentDocument(input: UploadAmendmentDocumentInput!): Document
-    updateAmendmentDocument(
-      id: ID!
-      input: UpdateAmendmentDocumentInput!
-    ): Document
+    updateAmendmentDocument(id: ID!, input: UpdateAmendmentDocumentInput!): Document
     deleteAmendmentDocument(id: ID!): Document
     createExtensionDocument(input: CreateExtensionDocumentInput!): Document
-    updateExtensionDocument(
-      id: ID!
-      input: UpdateExtensionDocumentInput!
-    ): Document
+    updateExtensionDocument(id: ID!, input: UpdateExtensionDocumentInput!): Document
     deleteExtensionDocument(id: ID!): Document
   }
 
@@ -120,10 +106,9 @@ export interface Document {
   updatedAt: DateTime;
 }
 
-export interface CreateDemonstrationDocumentInput {
+export interface UploadDemonstrationDocumentInput {
   title: string;
   description: string;
-  s3Path: string;
   ownerUserId: string;
   documentTypeId: string;
   demonstrationId: string;
@@ -155,10 +140,9 @@ export interface UpdateAmendmentDocumentInput {
   amendmentId?: string;
 }
 
-export interface CreateExtensionDocumentInput {
+export interface UploadExtensionDocumentInput {
   title: string;
   description: string;
-  s3Path: string;
   ownerUserId: string;
   documentTypeId: string;
   extensionId: string;
