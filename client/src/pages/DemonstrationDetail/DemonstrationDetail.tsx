@@ -1,29 +1,63 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import { isTestMode } from "config/env";
-import { useDemonstration } from "hooks/useDemonstration";
 import { usePageHeader } from "hooks/usePageHeader";
+import { TabItem, Tabs } from "layout/Tabs";
 import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
-import { mockAmendments } from "mock-data/amendmentMocks";
-import { mockExtensions } from "mock-data/extensionMocks";
-import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
-import {
-  useLocation,
-  useParams,
-} from "react-router-dom";
+  DemonstrationDetailHeader,
+  DemonstrationHeaderDetails,
+} from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { useLocation, useParams } from "react-router-dom";
 
 import { AmendmentsTab } from "./AmendmentsTab";
-import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
+import { DemonstrationDetailModals, DemonstrationModalDetails } from "./DemonstrationDetailModals";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
+import { ModificationTableRow } from "components/table/tables/ModificationTable";
+import { gql, useQuery } from "@apollo/client";
+
+export const DEMONSTRATION_DETAIL_QUERY = gql`
+  query DemonstrationDetailQuery($id: ID!) {
+    demonstration(id: $id) {
+      id
+      name
+      description
+      effectiveDate
+      expirationDate
+      state {
+        id
+      }
+      demonstrationStatus {
+        name
+      }
+      projectOfficer {
+        fullName
+      }
+      amendments {
+        id
+        name
+        effectiveDate
+        status: amendmentStatus {
+          name
+        }
+      }
+      extensions {
+        id
+        name
+        effectiveDate
+        status: extensionStatus {
+          name
+        }
+      }
+    }
+  }
+`;
+
+export type DemonstrationDetail = DemonstrationHeaderDetails &
+  DemonstrationModalDetails & {
+    amendments: ModificationTableRow[];
+    extensions: ModificationTableRow[];
+  };
 
 type TabType = "details" | "amendments" | "extensions";
 
@@ -45,13 +79,8 @@ const getQueryParamValue = (
 };
 
 export const DemonstrationDetail: React.FC = () => {
-  const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
-  const [demonstrationActionModal, setDemonstrationActionModal] =
-    useState<DemonstrationActionModal>(null);
-
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-
   const queryParams = new URLSearchParams(location.search);
   const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
   const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
@@ -61,23 +90,29 @@ export const DemonstrationDetail: React.FC = () => {
     if (extensionParam) return "extensions";
     return "details";
   });
-
-  const { getDemonstrationById } = useDemonstration();
-  const { trigger, data: demonstration, loading, error } = getDemonstrationById;
-
-  const tabList = useMemo(() => createTabList(mockAmendments.length, mockExtensions.length), []);
-
-  useEffect(() => {
-    if (id) trigger(id);
-  }, [id]);
+  const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
+  const [demonstrationActionModal, setDemonstrationActionModal] =
+    useState<DemonstrationActionModal>(null);
 
   const handleEdit = useCallback(() => {
     setDemonstrationActionModal("edit");
   }, []);
-
   const handleDelete = useCallback(() => {
     setDemonstrationActionModal("delete");
   }, []);
+
+  const { data, loading, error } = useQuery(DEMONSTRATION_DETAIL_QUERY, {
+    variables: { id: id! },
+    skip: !id,
+  });
+
+  const demonstration = data?.demonstration;
+
+  const tabList = useMemo(
+    () =>
+      createTabList(demonstration?.amendments.length ?? 0, demonstration?.extensions.length ?? 0),
+    [demonstration]
+  );
 
   const headerContent = useMemo(
     () => (
@@ -113,7 +148,7 @@ export const DemonstrationDetail: React.FC = () => {
 
             {tab === "amendments" && (
               <AmendmentsTab
-                demonstration={demonstration}
+                amendments={demonstration.amendments || []}
                 onClick={() => setEntityCreationModal("amendment")}
                 initiallyExpandedId={amendmentParam ?? undefined}
               />
@@ -121,7 +156,7 @@ export const DemonstrationDetail: React.FC = () => {
 
             {tab === "extensions" && (
               <ExtensionsTab
-                demonstration={demonstration}
+                extensions={demonstration.extensions || []}
                 onClick={() => setEntityCreationModal("extension")}
                 initiallyExpandedId={extensionParam ?? undefined}
               />

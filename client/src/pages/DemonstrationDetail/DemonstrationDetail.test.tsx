@@ -71,7 +71,7 @@ describe("DemonstrationDetail", () => {
       { label: "State/Territory", value: "CA" },
       { label: "Project Officer", value: "John Doe" },
       { label: "Status", value: "Active" },
-      { label: "Effective", value: "1/1/2025" },
+      { label: "Effective", value: "01/01/2025" },
       { label: "Expiration", value: "12/31/2025" },
     ];
 

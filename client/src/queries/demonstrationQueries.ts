@@ -53,6 +53,7 @@ export const DEMONSTRATION_TABLE_QUERY = gql`
         fullName
       }
       amendments {
+        id
         name
         projectOfficer {
           fullName
@@ -62,6 +63,7 @@ export const DEMONSTRATION_TABLE_QUERY = gql`
         }
       }
       extensions {
+        id
         name
         projectOfficer {
           fullName

@@ -1,13 +1,5 @@
-import {
-  useLazyQuery,
-  useMutation,
-  ApolloError,
-  FetchResult,
-} from "@apollo/client";
-import {
-  Demonstration as ServerDemonstration,
-  CreateDemonstrationInput,
-} from "demos-server";
+import { useLazyQuery, useMutation, ApolloError, FetchResult } from "@apollo/client";
+import { Demonstration as ServerDemonstration, CreateDemonstrationInput } from "demos-server";
 import {
   ADD_DEMONSTRATION_QUERY,
   DEMONSTRATION_TABLE_QUERY,
@@ -40,26 +32,16 @@ export type DemonstrationTableItem = {
   users: Pick<Demonstration["users"][number], "id">[];
   demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;
   amendments: {
+    id: Demonstration["amendments"][number]["id"];
     name: Demonstration["amendments"][number]["name"];
-    projectOfficer: Pick<
-      Demonstration["amendments"][number]["projectOfficer"],
-      "fullName"
-    >;
-    amendmentStatus: Pick<
-      Demonstration["amendments"][number]["amendmentStatus"],
-      "name"
-    >;
+    projectOfficer: Pick<Demonstration["amendments"][number]["projectOfficer"], "fullName">;
+    amendmentStatus: Pick<Demonstration["amendments"][number]["amendmentStatus"], "name">;
   }[];
   extensions: {
+    id: Demonstration["extensions"][number]["id"];
     name: Demonstration["extensions"][number]["name"];
-    projectOfficer: Pick<
-      Demonstration["extensions"][number]["projectOfficer"],
-      "fullName"
-    >;
-    extensionStatus: Pick<
-      Demonstration["extensions"][number]["extensionStatus"],
-      "name"
-    >;
+    projectOfficer: Pick<Demonstration["extensions"][number]["projectOfficer"], "fullName">;
+    extensionStatus: Pick<Demonstration["extensions"][number]["extensionStatus"], "name">;
   }[];
 };
 
@@ -149,8 +131,7 @@ const createAddDemonstrationHook = (): AddDemonstrationOperation => {
   }>(ADD_DEMONSTRATION_QUERY);
 
   return {
-    trigger: async (input: CreateDemonstrationInput) =>
-      await trigger({ variables: { input } }),
+    trigger: async (input: CreateDemonstrationInput) => await trigger({ variables: { input } }),
     data: data?.addDemonstration,
     loading,
     error,
