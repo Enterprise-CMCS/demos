@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const WalletIcon = ({
+export const WalletIcon: React.FC<IconInput> = ({
+  label = "Wallet",
   width = "17",
   height = "17",
   viewBox = "0 0 17 17",
@@ -13,6 +14,8 @@ export const WalletIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

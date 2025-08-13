@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ScaleIcon = ({
+export const ScaleIcon: React.FC<IconInput> = ({
+  label = "Scale",
   width = "17",
   height = "17",
   viewBox = "0 0 17 17",
@@ -13,6 +14,8 @@ export const ScaleIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

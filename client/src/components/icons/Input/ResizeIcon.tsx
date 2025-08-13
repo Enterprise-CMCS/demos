@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ResizeIcon = ({
+export const ResizeIcon: React.FC<IconInput> = ({
+  label = "Resize",
   width = "17",
   height = "24",
   viewBox = "0 0 17 24",
@@ -13,6 +14,8 @@ export const ResizeIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"
