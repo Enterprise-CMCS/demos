@@ -19,8 +19,7 @@ export const handler = async (event) => {
 
   if (!token) {
     console.log("no token");
-    return Error("Unauthorized");
-    // return generatePolicy("unknown", "Deny", event.methodArn, {});
+    return generatePolicy("unknown", "Deny", event.methodArn, {});
   }
 
   console.log("token found");

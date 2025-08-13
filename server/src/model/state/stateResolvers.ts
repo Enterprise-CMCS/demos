@@ -9,13 +9,7 @@ export const stateResolvers = {
       });
     },
     states: async () => {
-      console.log("Before find many states")
-      const test = await prisma().state.findMany();
-      console.log("after find many states", test)
-      return [{
-        id: "123",
-        name: "Test"
-      }];
+      return await prisma().state.findMany();
     },
   },
 

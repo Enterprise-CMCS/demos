@@ -107,7 +107,9 @@ async function getBundleId(client, fileKey) {
 async function moveFileToCleanBucket(fileKey, bundleId, sourceBucket = uploadBucket) {
   const destinationKey = `${bundleId}/${fileKey}`;
 
-  console.log(`Moving file from s3://${sourceBucket}/${fileKey} to s3://${cleanBucket}/${destinationKey}`);
+  console.log(
+    `Moving file from s3://${sourceBucket}/${fileKey} to s3://${cleanBucket}/${destinationKey}`
+  );
 
   await s3.send(
     new CopyObjectCommand({
@@ -178,12 +180,7 @@ export const handler = async (event) => {
   };
 
   try {
-    client = new Client({
-      connectionString: await getDatabaseUrl(),
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    });
+    client = new Client({ connectionString: await getDatabaseUrl() });
     await client.connect();
     const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
     await client.query(setSearchPathQuery);
