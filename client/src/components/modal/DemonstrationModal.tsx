@@ -1,23 +1,21 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "components/button";
+import { PrimaryButton, SecondaryButton } from "components/button";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import {
+  CmcsDivision,
   CreateDemonstrationInput,
   Demonstration,
+  SignatureLevel,
 } from "demos-server";
 import { useDemonstration } from "hooks/useDemonstration";
 import { tw } from "tags/tw";
+import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
+import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
@@ -37,6 +35,8 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
   const [effectiveDate, setEffectiveDate] = useState("");
   const [expirationDate, setExpirationDate] = useState("");
   const [description, setDescription] = useState("");
+  const [cmcsDivision, setCmcsDivision] = useState("");
+  const [signatureLevel, setSignatureLevel] = useState("");
   const [expirationError, setExpirationError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [formStatus, setFormStatus] = useState<"idle" | "pending">("idle");
@@ -54,6 +54,8 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
       setEffectiveDate(new Date(demonstration.effectiveDate).toISOString().slice(0, 10));
       setExpirationDate(new Date(demonstration.expirationDate).toISOString().slice(0, 10));
       setDescription(demonstration.description || "");
+      setCmcsDivision(demonstration.cmcsDivision || "");
+      setSignatureLevel(demonstration.signatureLevel || "");
     }
   }, [demonstration]);
 
@@ -66,6 +68,8 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
     stateId: state,
     userIds: [projectOfficer],
     projectOfficerUserId: projectOfficer,
+    cmcsDivision: cmcsDivision as CmcsDivision,
+    signatureLevel: signatureLevel as SignatureLevel,
   });
 
   const handleSubmit = async () => {
@@ -207,9 +211,10 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
           <input
             id="expiration-date"
             type="date"
-            className={`${DATE_INPUT_CLASSES} ${expirationError
-              ? "border-border-warn focus:ring-border-warn"
-              : "border-border-fields focus:ring-border-focus"
+            className={`${DATE_INPUT_CLASSES} ${
+              expirationError
+                ? "border-border-warn focus:ring-border-warn"
+                : "border-border-fields focus:ring-border-focus"
             }`}
             value={expirationDate}
             min={effectiveDate || undefined}
@@ -238,6 +243,11 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <SelectCMCSDivision onSelect={setCmcsDivision} />
+        <SelectSignatureLevel onSelect={setSignatureLevel} />
       </div>
     </BaseModal>
   );
