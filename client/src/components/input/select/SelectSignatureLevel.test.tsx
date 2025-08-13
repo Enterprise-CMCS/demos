@@ -20,6 +20,7 @@ describe("SelectSignatureLevel", () => {
     render(<SelectSignatureLevel onSelect={onSelect} />);
     const select = screen.getByLabelText("Signature Level");
     fireEvent.change(select, { target: { value: SIGNATURE_LEVEL[0] } });
+    expect(select).toHaveValue(SIGNATURE_LEVEL[0]);
     expect(onSelect).toHaveBeenCalledWith(SIGNATURE_LEVEL[0]);
   });
 });

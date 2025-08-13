@@ -8,11 +8,16 @@ const options: Option[] = CMCS_DIVISION.map((division) => ({
 }));
 
 export const SelectCMCSDivision = ({ onSelect }: { onSelect: (value: string) => void }) => {
+  const [cmcsDivision, setCmcsDivision] = React.useState("");
   return (
     <Select
+      value={cmcsDivision}
       options={options}
       placeholder="Select CMCS Division"
-      onSelect={onSelect}
+      onSelect={(value) => {
+        setCmcsDivision(value);
+        onSelect(value);
+      }}
       id="cmcs-division-select"
       label="CMCS Division"
     />

@@ -21,6 +21,7 @@ describe("SelectCMCSDivision", () => {
     const select = screen.getByLabelText("CMCS Division");
     fireEvent.mouseDown(select);
     fireEvent.change(select, { target: { value: CMCS_DIVISION[0] } });
+    expect(select).toHaveValue(CMCS_DIVISION[0]);
     expect(onSelect).toHaveBeenCalledWith(CMCS_DIVISION[0]);
   });
 });

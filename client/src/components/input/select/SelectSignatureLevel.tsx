@@ -15,11 +15,16 @@ const options: Option[] = SIGNATURE_LEVEL.map((level) => ({
 }));
 
 export const SelectSignatureLevel = ({ onSelect }: { onSelect: (value: string) => void }) => {
+  const [signatureLevel, setSignatureLevel] = React.useState("");
   return (
     <Select
+      value={signatureLevel}
       options={options}
       placeholder="Select Signature Level"
-      onSelect={onSelect}
+      onSelect={(value) => {
+        setSignatureLevel(value);
+        onSelect(value);
+      }}
       id="signature-level-select"
       label="Signature Level"
     />
