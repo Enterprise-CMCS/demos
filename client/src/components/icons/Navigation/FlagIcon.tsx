@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const FlagIcon = ({
+export const FlagIcon: React.FC<IconInput> = ({
+  label = "Flag",
   width = "15",
   height = "17",
   viewBox = "0 0 15 16",
@@ -13,6 +14,8 @@ export const FlagIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

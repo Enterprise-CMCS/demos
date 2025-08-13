@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const LocationIcon = ({
+export const LocationIcon: React.FC<IconInput> = ({
+  label = "Location",
   width = "15",
   height = "17",
   viewBox = "0 0 15 16",
@@ -13,6 +14,8 @@ export const LocationIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

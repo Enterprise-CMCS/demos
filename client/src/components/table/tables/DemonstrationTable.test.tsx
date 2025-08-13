@@ -323,7 +323,7 @@ describe("Demonstrations", () => {
     });
 
     it("includes table features (search, filter, pagination)", () => {
-      expect(screen.getByLabelText(/search/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/search:/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/filter by:/i)).toBeInTheDocument();
       expect(screen.getByText("Items per page:")).toBeInTheDocument();
     });
