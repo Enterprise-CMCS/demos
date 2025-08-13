@@ -1,45 +1,54 @@
-// components/common/ExpandableTable.tsx
 import * as React from "react";
 
-import {
-  ChevronRightIcon,
-  SuccessIcon,
-} from "components/icons";
+import { ChevronRightIcon, SuccessIcon } from "components/icons";
 import { ReviewIcon } from "components/icons/Action/ReviewIcon";
-
 import {
   ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
   useReactTable,
-  ColumnDef,
 } from "@tanstack/react-table";
+import { ModificationColumns } from "../columns/ModificationColumns";
+import { Amendment, Extension } from "demos-server";
+import { format } from "date-fns";
 
-interface ExpandableTableProps<T extends { id: string; title: string; effectiveDate: string; status: string }> {
-  data: T[];
-  columns: ColumnDef<T, unknown>[];
-  initiallyExpandedId?: string;
-}
+export type ModificationTableRow =
+  | {
+      id: Amendment["id"];
+      name: Amendment["name"];
+      effectiveDate: Amendment["effectiveDate"];
+      status: Pick<Amendment["amendmentStatus"], "name">;
+    }
+  | {
+      id: Extension["id"];
+      name: Extension["name"];
+      effectiveDate: Extension["effectiveDate"];
+      status: Pick<Extension["extensionStatus"], "name">;
+    };
 
-export function ExpandableTable<T extends { id: string; title: string; effectiveDate: string; status: string }>({
-  data,
-  columns,
+export function ModificationTable({
+  modifications,
   initiallyExpandedId,
-}: ExpandableTableProps<T>) {
+}: {
+  modifications: ModificationTableRow[];
+  initiallyExpandedId?: string;
+}) {
   const [expanded, setExpanded] = React.useState<ExpandedState>(() =>
     initiallyExpandedId ? { [initiallyExpandedId]: true } : {}
   );
 
   const handleExpandedChange = React.useCallback(
     (updater: ExpandedState | ((prev: ExpandedState) => ExpandedState)) => {
-      setExpanded((prev) => (typeof updater === "function" ? updater(prev) : updater));
+      setExpanded((prev) => {
+        return typeof updater === "function" ? updater(prev) : updater;
+      });
     },
     []
   );
 
-  const table = useReactTable({
-    data,
-    columns,
+  const table = useReactTable<ModificationTableRow>({
+    data: modifications,
+    columns: ModificationColumns,
     state: { expanded },
     onExpandedChange: handleExpandedChange,
     getCoreRowModel: getCoreRowModel(),
@@ -52,7 +61,7 @@ export function ExpandableTable<T extends { id: string; title: string; effective
     <div className="w-full">
       <div className="flex flex-col gap-2">
         {table.getRowModel().rows.map((row) => {
-          const { title, effectiveDate, status } = row.original;
+          const { name, effectiveDate, status } = row.original;
           const isExpanded = row.getIsExpanded();
 
           return (
@@ -61,14 +70,16 @@ export function ExpandableTable<T extends { id: string; title: string; effective
                 onClick={() => row.toggleExpanded()}
                 className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 cursor-pointer"
               >
-                <div className="text-sm font-bold text-blue-900">{title}</div>
+                <div className="text-sm font-bold text-blue-900">{name}</div>
 
                 <div className="h-1" />
 
-                <div>{renderStatus(status)}</div>
+                <div>{renderStatus(status.name)}</div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
+                  <span className="text-sm text-gray-800">
+                    {effectiveDate ? format(effectiveDate, "MM/dd/yyyy") : "N/A"}
+                  </span>
                   <ChevronRightIcon
                     className={`w-[1.25rem] h-[1.25rem] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
                   />
@@ -87,28 +98,27 @@ export function ExpandableTable<T extends { id: string; title: string; effective
   );
 }
 
-const formatDate = (iso: string) => {
-  const [yyyy, mm, dd] = iso.split("-");
-  return `${mm}/${dd}/${yyyy}`;
-};
-
 const renderStatus = (status: string) => {
   const baseStyle = "flex items-center gap-1 text-sm";
-  const iconClass = "w-[1.25rem] h-[1.25rem]"; // fixed icon size
-
   switch (status) {
     case "Under Review":
       return (
         <div className={`${baseStyle} text-left`}>
-          <ReviewIcon className={`${iconClass} text-yellow-500`} />
+          <ReviewIcon className="w-[1.4rem] h-[1.4rem] text-yellow-500" />
           {status}
         </div>
       );
     case "Approved":
+      return (
+        <div className={`${baseStyle} text-left`}>
+          <SuccessIcon className="w-[1.4rem] h-[1.4rem]" />
+          {status}
+        </div>
+      );
     case "Draft":
       return (
         <div className={`${baseStyle} text-left`}>
-          <SuccessIcon className={iconClass} />
+          <SuccessIcon className="w-[1.4rem] h-[1.4rem]" />
           {status}
         </div>
       );

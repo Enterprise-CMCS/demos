@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ErrorIcon = ({
+export const ErrorIcon: React.FC<IconInput> = ({
+  label = "Error",
   width = "21",
   height = "21",
   viewBox = "0 0 21 21",
@@ -13,6 +14,8 @@ export const ErrorIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <circle cx="10.5" cy="10" r="10" fill="#E31C3D" />
     <path

@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const SubmitIcon = ({
+export const SubmitIcon: React.FC<IconInput> = ({
+  label = "Submit",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",
@@ -13,6 +14,8 @@ export const SubmitIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

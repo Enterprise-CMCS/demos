@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const EllipsisIcon = ({
+export const EllipsisIcon: React.FC<IconInput> = ({
+  label = "Ellipsis",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",
@@ -13,6 +14,8 @@ export const EllipsisIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <circle cx="2.0127" cy="7" r="1.5" fill="currentColor" />
     <circle cx="7.5127" cy="7" r="1.5" fill="currentColor" />

@@ -1,7 +1,4 @@
-import {
-  CreateDemonstrationInput,
-  Demonstration,
-} from "demos-server";
+import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { DemonstrationTableItem } from "hooks/useDemonstration";
 import {
   ADD_DEMONSTRATION_QUERY,
@@ -16,6 +13,8 @@ import { MockedResponse } from "@apollo/client/testing";
 import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
+import { DemonstrationDetail } from "pages/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -54,7 +53,6 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { demonstrations: [testDemonstration] },
     },
   },
-
   {
     request: {
       query: GET_DEMONSTRATION_BY_ID_QUERY,
@@ -64,7 +62,108 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { demonstration: testDemonstration },
     },
   },
-
+  {
+    request: {
+      query: DEMONSTRATION_DETAIL_QUERY,
+      variables: { id: "1" },
+    },
+    result: {
+      data: {
+        demonstration: {
+          id: "1",
+          name: "Test Demonstration",
+          description: "Test Description",
+          effectiveDate: new Date("2025-01-01"),
+          expirationDate: new Date("2025-12-31"),
+          state: {
+            id: "CA",
+          },
+          demonstrationStatus: {
+            name: "Active",
+          },
+          projectOfficer: {
+            fullName: "John Doe",
+          },
+          amendments: [
+            {
+              id: "3",
+              name: "Amendment 3",
+              effectiveDate: new Date("2025-07-21"),
+              status: {
+                name: "Under Review",
+              },
+            },
+            {
+              id: "2",
+              name: "Amendment 2",
+              effectiveDate: new Date("2024-09-14"),
+              status: {
+                name: "Approved",
+              },
+            },
+            {
+              id: "1",
+              name: "Amendment 1",
+              effectiveDate: new Date("2023-01-03"),
+              status: {
+                name: "Draft",
+              },
+            },
+          ],
+          extensions: [
+            {
+              id: "1",
+              name: "Extension 1",
+              effectiveDate: new Date("2025-01-01"),
+              status: {
+                name: "Approved",
+              },
+            },
+            {
+              id: "2",
+              name: "Extension 2",
+              effectiveDate: new Date("2025-06-01"),
+              status: {
+                name: "Under Review",
+              },
+            },
+            {
+              id: "3",
+              name: "Extension 3",
+              effectiveDate: new Date("2023-01-03"),
+              status: {
+                name: "Draft",
+              },
+            },
+            {
+              id: "4",
+              name: "Extension 4",
+              effectiveDate: new Date("2025-01-01"),
+              status: {
+                name: "Under Review",
+              },
+            },
+            {
+              id: "5",
+              name: "Extension 5",
+              effectiveDate: new Date("2025-06-01"),
+              status: {
+                name: "Approved",
+              },
+            },
+            {
+              id: "6",
+              name: "Extension 6",
+              effectiveDate: new Date("2025-06-01"),
+              status: {
+                name: "On Hold",
+              },
+            },
+          ],
+        } satisfies DemonstrationDetail,
+      },
+    },
+  },
   {
     request: {
       query: ADD_DEMONSTRATION_QUERY,
@@ -132,11 +231,13 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "1" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Montana Medicaid Waiver",
                 projectOfficer: { fullName: "John Doe" },
                 amendmentStatus: { name: "Pending" },
               },
               {
+                id: "2",
                 name: "Amendment 2 - Montana Medicaid Waiver",
                 projectOfficer: { fullName: "John Doe" },
                 amendmentStatus: { name: "Approved" },
@@ -144,6 +245,7 @@ export const demonstrationMocks: MockedResponse[] = [
             ],
             extensions: [
               {
+                id: "1",
                 name: "Extension 1 - Montana Medicaid Waiver",
                 projectOfficer: { fullName: "John Doe" },
                 extensionStatus: { name: "Active" },
@@ -159,16 +261,19 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "2" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Florida Health Innovation",
                 projectOfficer: { fullName: "Jane Smith" },
                 amendmentStatus: { name: "Approved" },
               },
               {
+                id: "2",
                 name: "Amendment 2 - Florida Health Innovation",
                 projectOfficer: { fullName: "Jim Smith" },
                 amendmentStatus: { name: "Pending" },
               },
               {
+                id: "3",
                 name: "Amendment 3 - Florida Health Innovation",
                 projectOfficer: { fullName: "Darth Smith" },
                 amendmentStatus: { name: "Rejected" },
@@ -195,16 +300,19 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "4" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - New York Medicaid Expansion",
                 projectOfficer: { fullName: "Alice Brown" },
                 amendmentStatus: { name: "Pending" },
               },
               {
+                id: "2",
                 name: "Amendment 2 - New York Medicaid Expansion",
                 projectOfficer: { fullName: "Alice Brown" },
                 amendmentStatus: { name: "Approved" },
               },
               {
+                id: "3",
                 name: "Amendment 3 - New York Medicaid Expansion",
                 projectOfficer: { fullName: "Alice Brown" },
                 amendmentStatus: { name: "Rejected" },
@@ -212,11 +320,13 @@ export const demonstrationMocks: MockedResponse[] = [
             ],
             extensions: [
               {
+                id: "1",
                 name: "Extension 1 - New York Medicaid Expansion",
                 projectOfficer: { fullName: "Alice Brown" },
                 extensionStatus: { name: "Active" },
               },
               {
+                id: "2",
                 name: "Extension 2 - New York Medicaid Expansion",
                 projectOfficer: { fullName: "Alice Brown" },
                 extensionStatus: { name: "Inactive" },
@@ -232,6 +342,7 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "5" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Illinois Care Coordination",
                 projectOfficer: { fullName: "Carlos Rivera" },
                 amendmentStatus: { name: "Approved" },
@@ -249,6 +360,7 @@ export const demonstrationMocks: MockedResponse[] = [
             amendments: [],
             extensions: [
               {
+                id: "1",
                 name: "Extension 1 - Georgia Wellness Project",
                 projectOfficer: { fullName: "Emily Clark" },
                 extensionStatus: { name: "Active" },
@@ -264,11 +376,13 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "7" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Arizona Access Program",
                 projectOfficer: { fullName: "Samantha Lee" },
                 amendmentStatus: { name: "Approved" },
               },
               {
+                id: "2",
                 name: "Amendment 2 - Arizona Access Program",
                 projectOfficer: { fullName: "Samantha Lee" },
                 amendmentStatus: { name: "Pending" },
@@ -276,6 +390,7 @@ export const demonstrationMocks: MockedResponse[] = [
             ],
             extensions: [
               {
+                id: "1",
                 name: "Extension 1 - Arizona Access Program",
                 projectOfficer: { fullName: "Samantha Lee" },
                 extensionStatus: { name: "Active" },
@@ -291,6 +406,7 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "8" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Ohio Health Forward",
                 projectOfficer: { fullName: "Michael Chen" },
                 amendmentStatus: { name: "Pending" },
@@ -308,6 +424,7 @@ export const demonstrationMocks: MockedResponse[] = [
             amendments: [],
             extensions: [
               {
+                id: "1",
                 name: "Extension 1 - Washington Wellness Initiative",
                 projectOfficer: { fullName: "Linda Park" },
                 extensionStatus: { name: "Inactive" },
@@ -323,11 +440,13 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "10" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Colorado Coverage Expansion",
                 projectOfficer: { fullName: "David Kim" },
                 amendmentStatus: { name: "Rejected" },
               },
               {
+                id: "2",
                 name: "Amendment 2 - Colorado Coverage Expansion",
                 projectOfficer: { fullName: "David Kim" },
                 amendmentStatus: { name: "Pending" },
@@ -344,11 +463,13 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "11" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Michigan Healthy Families",
                 projectOfficer: { fullName: "Olivia Turner" },
                 amendmentStatus: { name: "Approved" },
               },
               {
+                id: "2",
                 name: "Amendment 2 - Michigan Healthy Families",
                 projectOfficer: { fullName: "Olivia Turner" },
                 amendmentStatus: { name: "Pending" },
@@ -356,6 +477,7 @@ export const demonstrationMocks: MockedResponse[] = [
             ],
             extensions: [
               {
+                id: "1",
                 name: "Extension 1 - Michigan Healthy Families",
                 projectOfficer: { fullName: "Olivia Turner" },
                 extensionStatus: { name: "Active" },
@@ -371,6 +493,7 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "12" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Pennsylvania Access Plus",
                 projectOfficer: { fullName: "Henry Adams" },
                 amendmentStatus: { name: "Pending" },
@@ -387,11 +510,13 @@ export const demonstrationMocks: MockedResponse[] = [
             users: [{ id: "13" }],
             amendments: [
               {
+                id: "1",
                 name: "Amendment 1 - Oregon Health Plan",
                 projectOfficer: { fullName: "Sophia Martinez" },
                 amendmentStatus: { name: "Rejected" },
               },
               {
+                id: "2",
                 name: "Amendment 2 - Oregon Health Plan",
                 projectOfficer: { fullName: "Sophia Martinez" },
                 amendmentStatus: { name: "Approved" },
@@ -399,6 +524,7 @@ export const demonstrationMocks: MockedResponse[] = [
             ],
             extensions: [
               {
+                id: "1",
                 name: "Extension 1 - Oregon Health Plan",
                 projectOfficer: { fullName: "Sophia Martinez" },
                 extensionStatus: { name: "Inactive" },
