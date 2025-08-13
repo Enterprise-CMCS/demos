@@ -4,4 +4,5 @@ export interface IconInput {
   viewBox?: string;
   fill?: string;
   className?: string;
+  label?: string;
 }

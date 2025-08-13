@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const VersionIcon = ({
+export const VersionIcon: React.FC<IconInput> = ({
+  label = "Version",
   width = "13",
   height = "15",
   viewBox = "0 0 13 14",
@@ -13,6 +14,8 @@ export const VersionIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

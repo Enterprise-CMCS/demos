@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const UnreadIcon = ({
+export const UnreadIcon: React.FC<IconInput> = ({
+  label = "Unread",
   width = "5",
   height = "4",
   viewBox = "0 0 5 4",
@@ -13,6 +14,8 @@ export const UnreadIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <circle cx="2.5" cy="2" r="2" fill="currentColor" />
   </svg>
