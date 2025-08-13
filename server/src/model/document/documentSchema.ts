@@ -20,10 +20,9 @@ export const documentSchema = gql`
     updatedAt: DateTime!
   }
 
-  input CreateDemonstrationDocumentInput {
+  input UploadDemonstrationDocumentInput {
     title: String!
     description: String!
-    s3Path: String!
     ownerUserId: ID!
     documentTypeId: String!
     demonstrationId: ID!
@@ -55,10 +54,9 @@ export const documentSchema = gql`
     amendmentId: ID
   }
 
-  input CreateExtensionDocumentInput {
+  input UploadExtensionDocumentInput {
     title: String!
     description: String!
-    s3Path: String!
     ownerUserId: ID!
     documentTypeId: String!
     extensionId: ID!
@@ -74,13 +72,13 @@ export const documentSchema = gql`
   }
 
   type Mutation {
-    uploadDemonstrationDocument(input: CreateDemonstrationDocumentInput!): Document
+    uploadDemonstrationDocument(input: UploadDemonstrationDocumentInput!): Document
     updateDemonstrationDocument(id: ID!, input: UpdateDemonstrationDocumentInput!): Document
     deleteDemonstrationDocument(id: ID!): Document
     uploadAmendmentDocument(input: UploadAmendmentDocumentInput!): Document
     updateAmendmentDocument(id: ID!, input: UpdateAmendmentDocumentInput!): Document
     deleteAmendmentDocument(id: ID!): Document
-    uploadExtensionDocument(input: CreateExtensionDocumentInput!): Document
+    uploadExtensionDocument(input: UploadExtensionDocumentInput!): Document
     updateExtensionDocument(id: ID!, input: UpdateExtensionDocumentInput!): Document
     deleteExtensionDocument(id: ID!): Document
   }
