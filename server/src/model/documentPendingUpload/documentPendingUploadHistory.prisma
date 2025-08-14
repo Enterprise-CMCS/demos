@@ -1,0 +1,15 @@
+model DocumentPendingUploadHistory {
+  revisionId     Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType   RevisionType @map("revision_type")
+  modifiedAt     DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  id             String       @db.Uuid
+  title          String
+  description    String
+  ownerUserId    String       @map("owner_user_id") @db.Uuid
+  documentTypeId String       @map("document_type_id")
+  bundleId       String       @map("bundle_id") @db.Uuid
+  createdAt      DateTime     @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime     @map("updated_at") @db.Timestamptz()
+
+  @@map("document_pending_upload_history")
+}
