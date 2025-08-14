@@ -49,6 +49,11 @@ export const SUCCESS_MESSAGES = {
   fileUpdated: "Your document has been updated.",
   fileDeleted: "Your document has been removed.",
 };
+// helper to choose the unknown-error copy by mode
+const unknownErrorText = (m: DocumentModalType) =>
+  m === "edit"
+    ? "Your changes could not be saved because of an unknown problem."
+    : "Your document could not be added because of an unknown problem.";
 
 // Accepts value or label; always returns option.value (or "")
 const normalizeType = (t?: string) => {
@@ -224,7 +229,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
   const [description, setDescription] = useState(initialDescription);
   const [selectedType, setSelectedType] = useState(() => normalizeType(initialType));
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-
+  const [submitting, setSubmitting] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -253,6 +258,16 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
     !file ||
     (requiresType && !selectedType);
 
+  const onUploadClick = async () => {
+    if (isUploading || submitting) return;
+    if (isMissing) {
+      showError(ERROR_MESSAGES.missingField);
+      focusFirstMissing();
+      return;
+    }
+    await handleUpload();
+  };
+
   const focusFirstMissing = () => {
     if (!description.trim()) {
       descriptionRef.current?.focus();
@@ -265,7 +280,8 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
     fileInputRef.current?.focus();
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
+  // field-level validation first
     if (!description.trim() || (requiresType && !selectedType)) {
       showError(ERROR_MESSAGES.missingField);
       focusFirstMissing();
@@ -276,18 +292,36 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
       focusFirstMissing();
       return;
     }
-    showSuccess(documentModalType === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
-    onClose();
-  };
 
-  const onUploadClick = () => {
-    if (isUploading) return; // only truly disabled while uploading
-    if (isMissing) {
-      showError(ERROR_MESSAGES.missingField);
-      focusFirstMissing();
-      return;
+    try {
+      setSubmitting(true);
+      showError("");
+
+      // ⬇️ your real API/mutation goes here
+      // Example:
+      // await api.uploadDocument({ title: documentTitle, description, type: selectedType, file });
+
+      showSuccess(
+        documentModalType === "edit"
+          ? SUCCESS_MESSAGES.fileUpdated
+          : SUCCESS_MESSAGES.fileUploaded
+      );
+      onClose();
+    } catch (e: unknown) {
+    // Known server-side cases first (adapt to your backend’s shape)
+      const hasCode = typeof e === "object" && e !== null && "code" in e;
+      const hasMessage = typeof e === "object" && e !== null && "message" in e;
+      const msg =
+      (hasCode && (e as { code?: string }).code === "MALWARE_DETECTED") ||
+      (hasMessage && /malware/i.test((e as { message?: string }).message || ""))
+        ? "Your document was not uploaded because malicious content was detected in the file."
+        : unknownErrorText(documentModalType);
+
+      showError(msg);
+      console.error("Document upload failed:", e);
+    } finally {
+      setSubmitting(false);
     }
-    handleUpload();
   };
 
   return (
@@ -357,12 +391,26 @@ export const EditDocumentModal: React.FC<{
 );
 
 export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () => void }> = ({ documentIds, onClose }) => {
-  const { showWarning } = useToast();
-  const onConfirm = (ids: string[]) => {
-    const multiple = ids.length > 1;
-    // TODO: call your delete mutation here
-    showWarning(`Your document${multiple ? "s" : ""} ${multiple ? "have been" : "has been"} removed.`);
-    onClose();
+  const { showWarning, showError } = useToast();
+  const [submitting, setSubmitting] = useState(false);
+
+  const onConfirm = async (ids: string[]) => {
+    try {
+      setSubmitting(true);
+      // TODO: await api.deleteDocuments(ids);
+
+      const multiple = ids.length > 1;
+      showWarning(
+        `Your document${multiple ? "s" : ""} ${multiple ? "have been" : "has been"} removed.`
+      );
+      onClose();
+    } catch (e) {
+      showError("Your changes could not be saved due to an unknown problem.");
+
+      console.error("Remove documents failed:", e);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -371,22 +419,22 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
       onClose={onClose}
       actions={
         <>
-          <SecondaryButton size="small" onClick={onClose}>
+          <SecondaryButton size="small" onClick={onClose} disabled={submitting}>
             Cancel
           </SecondaryButton>
-          <ErrorButton size="small" onClick={() => onConfirm(documentIds)} aria-label="Confirm Remove Document">
-            Remove
+          <ErrorButton
+            size="small"
+            onClick={() => onConfirm(documentIds)}
+            aria-label="Confirm Remove Document"
+            disabled={submitting}
+          >
+            {submitting ? "Removing..." : "Remove"}
           </ErrorButton>
         </>
       }
     >
-      <div className="mb-2 text-sm text-text-filled">
-        Are you sure you want to remove {documentIds.length} document{documentIds.length > 1 ? "s" : ""}?
-        <br />
-        <span className="text-error flex items-center gap-1 mt-1">
-          <ErrorIcon />
-          This action cannot be undone.
-        </span>
+      <div>
+        Are you sure you want to remove {documentIds.length > 1 ? "these documents" : "this document"}?
       </div>
     </BaseModal>
   );
