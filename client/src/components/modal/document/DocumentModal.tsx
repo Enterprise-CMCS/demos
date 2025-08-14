@@ -1,10 +1,6 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState, useCallback, forwardRef } from "react";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import {
-  ErrorMessage,
-  UploadStatus,
-  useFileUpload,
-} from "hooks/file/useFileUpload";
+import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { ErrorButton, PrimaryButton, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { BaseModal } from "components/modal/BaseModal";
@@ -29,11 +25,6 @@ const STYLES = {
   fileNote: tw`text-[11px] text-text-placeholder mt-xs leading-tight`,
 };
 
-const ERROR_MESSAGES = {
-  noFileSelected: "Please select a file to upload.",
-  descriptionRequired: "Document description is required.",
-};
-
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -45,10 +36,26 @@ const ALLOWED_MIME_TYPES = [
 ];
 
 const ACCEPTED_EXTENSIONS = ".pdf,.doc,.docx,.xls,.xlsx,.zip";
-
 const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILENAME_DISPLAY_LENGTH = 60;
+
+export const ERROR_MESSAGES = {
+  noFileSelected: "Please select a file to upload.",
+  missingField: "A required field is missing.",
+};
+export const SUCCESS_MESSAGES = {
+  fileUploaded: "Your document has been added.",
+  fileUpdated: "Your document has been updated.",
+  fileDeleted: "Your document has been removed.",
+};
+
+// Accepts value or label; always returns option.value (or "")
+const normalizeType = (t?: string) => {
+  if (!t) return "";
+  if (DOCUMENT_TYPES.some((o) => o.value === t)) return t;
+  return DOCUMENT_TYPES.find((o) => o.label === t)?.value ?? "";
+};
 
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
@@ -56,10 +63,7 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
 
-const TitleInput: React.FC<{
-  value: string;
-  onChange: (v: string) => void;
-}> = ({ value, onChange }) => (
+const TitleInput: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
   <TextInput
     name="title"
     label="Document Title"
@@ -70,67 +74,56 @@ const TitleInput: React.FC<{
   />
 );
 
-const DescriptionInput: React.FC<{
-  value: string;
-  onChange: (v: string) => void;
-  error?: string;
-}> = ({ value, onChange, error }) => (
+// Forward ref so we can focus() the textarea when a field is missing
+type DescriptionInputProps = { value: string; onChange: (v: string) => void; error?: string };
+const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(({ value, onChange, error }, ref) => (
   <div>
     <label className={STYLES.label}>
       <span className="text-text-warn mr-1">*</span>Document Description
     </label>
     <textarea
+      ref={ref}
       rows={2}
       placeholder="Enter"
       className={STYLES.textarea}
       value={value}
-      onChange={(e) => {
-        onChange(e.target.value);
-        if (error) onChange("");
-      }}
+      onChange={(e) => onChange(e.target.value)}
+      aria-invalid={!!error}
+      aria-describedby={error ? "description-error" : undefined}
     />
   </div>
-);
+));
+DescriptionInput.displayName = "DescriptionInput";
 
 const DocumentTypeInput: React.FC<{
   value?: string;
-  error?: string;
   onSelect?: (v: string) => void;
-}> = ({ value, error, onSelect }) => {
-  const selectedOption = DOCUMENT_TYPES.find((option) => option.label === value)?.value;
+}> = ({ value, onSelect }) => {
   return (
     <AutoCompleteSelect
       id="document-type"
       label="Document Type"
       options={DOCUMENT_TYPES}
-      value={selectedOption}
-      onSelect={(val) => {
-        if (error && onSelect) onSelect("");
-        else if (onSelect) onSelect(val);
-      }}
+      value={value}
+      onSelect={(val) => onSelect?.(val)}
     />
   );
 };
 
-const ProgressBar: React.FC<{
-  progress: number;
-  uploadStatus: UploadStatus;
-}> = ({ progress, uploadStatus }) => {
+const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({ progress, uploadStatus }) => {
   const progressBarColor =
-    {
-      error: "bg-red-500",
-      success: "bg-green-500",
-      uploading: "bg-primary",
-      idle: "bg-primary",
-    }[uploadStatus] || "bg-primary";
+    (
+      {
+        error: "bg-red-500",
+        success: "bg-green-500",
+        uploading: "bg-primary",
+        idle: "bg-primary",
+      } as const
+    )[uploadStatus] || "bg-primary";
 
   return (
     <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
-      <div
-        role="progressbar"
-        className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`}
-        style={{ width: `${progress}%` }}
-      />
+      <div role="progressbar" className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`} style={{ width: `${progress}%` }} />
     </div>
   );
 };
@@ -141,14 +134,7 @@ const DropTarget: React.FC<{
   uploadStatus: UploadStatus;
   uploadProgress: number;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: string;
-}> = ({
-  file,
-  fileInputRef,
-  uploadStatus,
-  uploadProgress,
-  handleFileChange,
-}) => {
+}> = ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
   const handleFiles = useCallback(
     (files: FileList) => {
       if (!files || files.length === 0) return;
@@ -157,20 +143,19 @@ const DropTarget: React.FC<{
       const dt = new DataTransfer();
       Array.from(files).forEach((f) => dt.items.add(f));
       input.files = dt.files;
-      // @ts-expect-error for React synthetic event compatibility
+      // @ts-expect-error: shape it like a synthetic event for our handler
       handleFileChange({ target: input });
     },
     [handleFileChange]
   );
+
   const { handleDragOver, handleDrop } = useFileDrop(handleFiles);
+
   return (
-    <div
-      className={STYLES.dropzone}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
+    <div className={STYLES.dropzone} onDragOver={handleDragOver} onDrop={handleDrop}>
       <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
       <p className={STYLES.dropzoneOr}>or</p>
+
       <input
         type="file"
         ref={fileInputRef}
@@ -179,6 +164,7 @@ const DropTarget: React.FC<{
         onChange={handleFileChange}
         data-testid="file-input"
       />
+
       <SecondaryButton
         type="button"
         aria-label="Select File"
@@ -188,10 +174,7 @@ const DropTarget: React.FC<{
         className="w-full max-w-full overflow-hidden text-ellipsis"
       >
         {file ? (
-          <span
-            className="inline-block max-w-full truncate text-left"
-            title={file.name}
-          >
+          <span className="inline-block max-w-full truncate text-left" title={file.name}>
             {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
           </span>
         ) : (
@@ -220,54 +203,91 @@ const DropTarget: React.FC<{
   );
 };
 
-type BaseDocumentModalProps = {
+export type DocumentModalProps = {
   onClose?: () => void;
-  forDocumentId?: string;
+  mode: "add" | "edit" | "remove";
+  forDocumentId?: string;            // allowed (used by callers); not required here
   initialTitle?: string;
   initialDescription?: string;
-  initialType?: string;
+  initialType?: string;              // label or value; normalized internally
 };
 
-const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
+export const DocumentModal: React.FC<DocumentModalProps> = ({
   onClose = () => {},
-  forDocumentId,
+  mode,
   initialTitle = "",
   initialDescription = "",
   initialType = "",
 }) => {
-  const { showSuccess } = useToast();
-
-  const documentModalType: DocumentModalType = forDocumentId ? "edit" : "add";
-  const modalTitle =
-    documentModalType === "edit" ? "Edit Document" : "Add New Document";
-
+  // STATE FIRST
   const [documentTitle, setDocumentTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
-  const [selectedType, setSelectedType] = useState(initialType);
-  const [error, setError] = useState<string>("");
+  const [selectedType, setSelectedType] = useState(() => normalizeType(initialType));
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { file, uploadProgress, uploadStatus, handleFileChange } =
-    useFileUpload({
-      allowedMimeTypes: ALLOWED_MIME_TYPES,
-      maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
-      onErrorCallback: (errorMessage: ErrorMessage) => {
-        setError(errorMessage);
-      },
-    });
+
+  const { showSuccess, showError } = useToast();
+
+  const { file, uploadProgress, uploadStatus, handleFileChange } = useFileUpload({
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
+    maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
+    onErrorCallback: (errorMessage: ErrorMessage) => showError(errorMessage),
+  });
+
+  // keep type in sync if prop changes
+  useEffect(() => {
+    setSelectedType(normalizeType(initialType));
+  }, [initialType]);
+
+  const documentModalType: DocumentModalType = mode;
+  const modalTitle = documentModalType === "edit" ? "Edit Document" : "Add New Document";
+  const isUploading = uploadStatus === "uploading";
+
+  // Require type on add & edit (change to `documentModalType === "add"` if add-only)
+  const requiresType = documentModalType === "add" || documentModalType === "edit";
+
+  const isMissing =
+    !description.trim() ||
+    !file ||
+    (requiresType && !selectedType);
+
+  const focusFirstMissing = () => {
+    if (!description.trim()) {
+      descriptionRef.current?.focus();
+      return;
+    }
+    if (requiresType && !selectedType) {
+      document.getElementById("document-type")?.focus();
+      return;
+    }
+    fileInputRef.current?.focus();
+  };
 
   const handleUpload = () => {
-    if (!description) {
-      setError(ERROR_MESSAGES.descriptionRequired);
+    if (!description.trim() || (requiresType && !selectedType)) {
+      showError(ERROR_MESSAGES.missingField);
+      focusFirstMissing();
       return;
     }
     if (!file) {
-      setError(ERROR_MESSAGES.noFileSelected);
+      showError(ERROR_MESSAGES.noFileSelected);
+      focusFirstMissing();
       return;
     }
-    showSuccess("File uploaded successfully!");
+    showSuccess(documentModalType === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
     onClose();
+  };
+
+  const onUploadClick = () => {
+    if (isUploading) return; // only truly disabled while uploading
+    if (isMissing) {
+      showError(ERROR_MESSAGES.missingField);
+      focusFirstMissing();
+      return;
+    }
+    handleUpload();
   };
 
   return (
@@ -278,64 +298,56 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
       setShowCancelConfirm={setShowCancelConfirm}
       actions={
         <>
-          <SecondaryButton
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-          >
+          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
           <PrimaryButton
             size="small"
-            onClick={handleUpload}
-            disabled={!description || !file || uploadStatus === "uploading"}
+            onClick={onUploadClick}
+            aria-disabled={isMissing} // shows disabled style, but remains clickable
+            disabled={isUploading}     // only truly disabled during upload
             aria-label="Upload Document"
+            className="[&[aria-disabled='true']]:opacity-50 [&[aria-disabled='true']]:cursor-not-allowed"
           >
             Upload
           </PrimaryButton>
         </>
       }
     >
-      {documentModalType === "edit" && (
-        <TitleInput
-          value={documentTitle}
-          onChange={(newTitle) => setDocumentTitle(newTitle)}
-        />
-      )}
+      {documentModalType === "edit" && <TitleInput value={documentTitle} onChange={setDocumentTitle} />}
+
       <DescriptionInput
+        ref={descriptionRef}
         value={description}
         onChange={setDescription}
-        error={error}
       />
-      <DocumentTypeInput
-        value={selectedType}
-        error={error}
-        onSelect={(value) => setSelectedType(value)}
-      />
+
+      <DocumentTypeInput value={selectedType} onSelect={setSelectedType} />
+
       <DropTarget
         file={file}
         fileInputRef={fileInputRef}
         uploadStatus={uploadStatus}
         uploadProgress={uploadProgress}
         handleFileChange={handleFileChange}
-        error={error}
       />
-      {error && <div className="text-[11px] text-red-600 mt-xs">{error}</div>}
     </BaseModal>
   );
 };
 
-export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({
-  onClose,
-}) => <BaseDocumentModal onClose={onClose} />;
+export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <DocumentModal onClose={onClose} mode="add" />
+);
 
 export const EditDocumentModal: React.FC<{
   documentId: string;
   documentTitle: string;
   description: string;
-  documentType: string;
+  documentType: string; // label or value
   onClose: () => void;
 }> = ({ documentId, documentTitle, description, documentType, onClose }) => (
-  <BaseDocumentModal
+  <DocumentModal
+    mode="edit"
     forDocumentId={documentId}
     initialTitle={documentTitle}
     initialDescription={description}
@@ -344,17 +356,12 @@ export const EditDocumentModal: React.FC<{
   />
 );
 
-export const RemoveDocumentModal: React.FC<{
-  documentIds: string[];
-  onClose: () => void;
-}> = ({ documentIds, onClose }) => {
+export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () => void }> = ({ documentIds, onClose }) => {
   const { showWarning } = useToast();
   const onConfirm = (ids: string[]) => {
-    const multipleDocuments = ids.length > 1;
-    console.log("Removing documents with IDs:", ids);
-    showWarning(
-      `Your document${multipleDocuments ? "s" : ""} ${multipleDocuments ? "have been" : "has been"} removed.`
-    );
+    const multiple = ids.length > 1;
+    // TODO: call your delete mutation here
+    showWarning(`Your document${multiple ? "s" : ""} ${multiple ? "have been" : "has been"} removed.`);
     onClose();
   };
 
@@ -367,19 +374,14 @@ export const RemoveDocumentModal: React.FC<{
           <SecondaryButton size="small" onClick={onClose}>
             Cancel
           </SecondaryButton>
-          <ErrorButton
-            size="small"
-            onClick={() => onConfirm(documentIds)}
-            aria-label="Confirm Remove Document"
-          >
+          <ErrorButton size="small" onClick={() => onConfirm(documentIds)} aria-label="Confirm Remove Document">
             Remove
           </ErrorButton>
         </>
       }
     >
       <div className="mb-2 text-sm text-text-filled">
-        Are you sure you want to remove {documentIds.length} document
-        {documentIds.length > 1 ? "s" : ""}?
+        Are you sure you want to remove {documentIds.length} document{documentIds.length > 1 ? "s" : ""}?
         <br />
         <span className="text-error flex items-center gap-1 mt-1">
           <ErrorIcon />

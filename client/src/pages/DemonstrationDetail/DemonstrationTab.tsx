@@ -2,9 +2,10 @@ import React, { useState } from "react";
 
 import { SecondaryButton } from "components/button";
 import { AddNewIcon } from "components/icons";
-import { CreateNewModal } from "components/modal/CreateNewModal";
+// import { CreateNewModal } from "components/modal/CreateNewModal";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
+import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import {
   TabItem,
   Tabs,
@@ -83,16 +84,9 @@ export const DemonstrationTab: React.FC = () => {
         )}
       </div>
 
+      {/* Replaced the CreateNewModal */}
       {modalType === "document" && (
-        <CreateNewModal
-          mode="document"
-          data={{
-            demonstration: "demo-id",
-            state: "state-id",
-            projectOfficer: "description",
-          }}
-          onClose={() => setModalType(null)}
-        />
+        <AddDocumentModal mode="add" onClose={() => setModalType(null)} />
       )}
     </div>
   );

@@ -37,7 +37,7 @@ function DocumentModals({
   selectedDocs,
 }: DocumentModalsProps) {
   if (displayedModal === "add") {
-    return <AddDocumentModal onClose={onClose} />;
+    return <AddDocumentModal mode="add" onClose={onClose} />;
   }
   if (displayedModal === "edit" && selectedDocs.length === 1) {
     const selectedDoc = selectedDocs[0];
