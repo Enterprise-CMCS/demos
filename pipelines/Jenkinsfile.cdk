@@ -31,18 +31,28 @@ pipeline {
 
     stage('CDK - Synth') {
       steps {
-        assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+        // assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
         dirCon('deployment', 'node') {
           sh '''
+          echo done
+
+          '''
+        }
+      }
+    }
+
+    stage('CDK - Testing') {
+      steps {
+        assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+        dirCon('deployment', 'node') {
+          sh """
           mkdir ../client/dist
           mkdir ../server/dist
-          
-          # These are needed for the built-in CDK bundling
           apk add bash
           npm i -g esbuild
-
-          npm run synth:dev
-          '''
+          npm i -g tsx
+          npx tsx demosctl/index up jesse
+          """
         }
       }
     }

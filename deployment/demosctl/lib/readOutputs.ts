@@ -1,7 +1,12 @@
 import fs from "fs";
 
 export function readOutputs(fileName: string) {
-  const coreOutputs = fs.readFileSync(fileName, "utf8");
-  const coreOutputData = JSON.parse(coreOutputs);
-  return coreOutputData;
+  try {
+    const coreOutputs = fs.readFileSync(fileName, "utf8");
+    const coreOutputData = JSON.parse(coreOutputs);
+    return coreOutputData;
+  } catch (err) {
+    console.log(err);
+    process.exit(60);
+  }
 }

@@ -4,7 +4,11 @@ import { runShell } from "../lib/runCommand";
 
 export async function buildServer() {
   const serverPath = path.join("..", "server");
-  await runShell("server-build", "npm run build:ci", {
+  const out = await runShell("server-build", "npm run build:ci", {
     cwd: serverPath,
   });
+
+  if (out != 0) {
+    process.exit(30);
+  }
 }

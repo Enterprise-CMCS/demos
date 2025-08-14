@@ -14,7 +14,7 @@ export async function getCoreOutputs(environment: string) {
 
   if (coreOutputCmd != 0) {
     process.stderr.write(`core output command failed with code ${coreOutputCmd}`);
-    process.exit(coreOutputCmd);
+    process.exit("something went wrong");
   }
   return readOutputs("core-outputs.json");
 }
