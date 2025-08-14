@@ -41,13 +41,12 @@ export const demonstrationStatusSchema = gql`
   }
 `;
 
-export type DateTime = Date;
 export interface DemonstrationStatus {
   id: string;
   name: string;
   description: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   demonstrations: Demonstration[];
 }
 

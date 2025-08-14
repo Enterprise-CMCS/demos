@@ -80,7 +80,6 @@ export const demonstrationSchema = gql`
   }
 `;
 
-export type DateTime = Date;
 export interface Demonstration {
   id: string;
   name: string;
@@ -89,8 +88,8 @@ export interface Demonstration {
   expirationDate: Date;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   demonstrationStatus: DemonstrationStatus;
   state: State;
   users: User[];
