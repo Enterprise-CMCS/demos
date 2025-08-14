@@ -10,26 +10,26 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
 
   if (refreshOutputs) {
     const cmd = await runCommand("deploy-core-no-execute", "npx", [
-        "cdk",
-        "deploy",
-        "--context",
-        `stage=${environment}`,
-        `demos-${environment}-core`,
-        "--no-change-set",
-        "--require-approval=never",
-        "--outputs-file=core-outputs.json",
-        "--execute=false"
-      ])
-    
-      if (cmd != 0) {
-        process.stderr.write(`deploy-no-execute command failed with code ${cmd}`);
-        process.exit(cmd);
-      }
+      "cdk",
+      "deploy",
+      "--context",
+      `stage=${environment}`,
+      `demos-${environment}-core`,
+      "--no-change-set",
+      "--require-approval=never",
+      "--outputs-file=core-outputs.json",
+      "--execute=false",
+    ]);
+
+    if (cmd != 0) {
+      process.stderr.write(`deploy-no-execute command failed with code ${cmd}`);
+      process.exit(cmd);
+    }
   }
 
   const coreOutputData = readOutputs("core-outputs.json");
 
-  await runShell("client-build", "npm ci && npm run build", {
+  const out = await runShell("client-build", "npm ci && npm run build", {
     cwd: clientPath,
     env: {
       ...process.env,
@@ -40,4 +40,8 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
       VITE_API_URL_PREFIX: "/api/graphql",
     },
   });
+
+  if (out != 0) {
+    process.exit(30);
+  }
 }
