@@ -111,6 +111,10 @@ export class CoreStack extends Stack {
         securityGroups: [secretsManagerEndpointSG],
       });
 
+      vpc.addGatewayEndpoint("s3GatewayEndpoint", {
+        service: aws_ec2.GatewayVpcEndpointAwsService.S3
+      })
+
     } else {
 
       // Ephemeral Environments

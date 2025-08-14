@@ -8,6 +8,7 @@ import {
   aws_secretsmanager,
   aws_cognito,
   aws_apigateway,
+  aws_s3,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -134,6 +135,9 @@ export class ApiStack extends Stack {
       authorizerName: "cognitoTokenAuth"
     })
 
+    const uploadBucketName = Fn.importValue(`${props.stage}UploadBucketName`)
+    const uploadBucket = aws_s3.Bucket.fromBucketName(this, "uploadBucket", uploadBucketName)
+
     const graphqlLambda = lambda.create(
       {
         ...commonProps,
@@ -156,12 +160,14 @@ export class ApiStack extends Stack {
         environment: {
           BYPASS_AUTH: commonProps.hostEnvironment == "dev" ? "true" : "",
           DATABASE_URL: "postgres://placeholder",
-          DATABASE_SECRET_ARN: dbSecret.secretName // This needs to be the name rather than the arn, otherwise the request from the lambda fails since no secret suffix is available
+          DATABASE_SECRET_ARN: dbSecret.secretName, // This needs to be the name rather than the arn, otherwise the request from the lambda fails since no secret suffix is available
+          UPLOAD_BUCKET: uploadBucket.bucketName
         }
       },
       "graphql"
     );
     dbSecret.grantRead(graphqlLambda.lambda.role)
+    uploadBucket.grantPut(graphqlLambda.lambda.role)
 
     // Outputs
 
