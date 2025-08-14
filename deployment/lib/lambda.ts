@@ -52,9 +52,12 @@ export function create(props: LambdaProps, id: string) {
 export class Lambda extends Construct {
   public readonly lambda: NodejsFunction;
   public readonly role: Role;
+  private readonly isLocalStack: boolean;
 
   constructor(scope: Construct, id: string, props: LambdaProps) {
     super(scope, id);
+
+    this.isLocalStack = props.isLocalstack;
 
     const {
       additionalPolicies = [],
@@ -76,11 +79,11 @@ export class Lambda extends Construct {
       inlinePolicies: {
         LambdaPolicy: new PolicyDocument({
           statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
-              actions: ["ssm:GetParameter"],
-              resources: ["*"],
-            }),
+            // new PolicyStatement({
+            //   effect: Effect.ALLOW,
+            //   actions: ["ssm:GetParameter"],
+            //   resources: ["*"],
+            // }),
             new PolicyStatement({
               effect: Effect.ALLOW,
               actions: [
@@ -155,15 +158,18 @@ export class Lambda extends Construct {
         props.method,
         new aws_apigateway.LambdaIntegration(alias ? alias : this.lambda),
         {
-          authorizationType: props.isLocalstack
-            ? undefined
-            : props.authorizationType,
-          authorizer: props.isLocalstack ? undefined : props.authorizer,
+          authorizationType: this.onAws(props.authorizationType),
+          authorizer: this.onAws(props.authorizer),
           // authorizationScopes: props.isLocalstack
           //   ? undefined
           //   : ["demosApi/read", "demosApi/write"],
         }
       );
     }
+  }
+
+
+  private onAws<T>(value: T) {
+    return this.isLocalStack ? undefined : value
   }
 }

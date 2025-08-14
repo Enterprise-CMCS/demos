@@ -6,7 +6,8 @@ model DocumentType {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  document Document[]
+  document              Document[]
+  documentPendingUpload DocumentPendingUpload[]
 
   @@map("document_type")
 }

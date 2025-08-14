@@ -111,6 +111,16 @@ export function applyApiSuppressions(api: Stack, stage: string) {
       },
     ]
   );
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/graphql/graphqlLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
 
   NagSuppressions.addResourceSuppressionsByPath(
     api,
@@ -152,6 +162,86 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
       {
         id: "AwsSolutions-IAM5",
         reason: "CDK default policy that can't be modified",
+      },
+    ]
+  );
+}
+
+
+export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
+  // NagSuppressions.addResourceSuppressionsByPath(
+  //   fileUpload,
+  //   `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role`,
+  //   [
+  //     {
+  //       id: "AwsSolutions-IAM4",
+  //       reason:
+  //         "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
+  //     }
+  //   ]
+  // );
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM4",
+        reason:
+          "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
+      }
+    ]
+  );
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason:
+          "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
+      }
+    ]
+  );
+  // NagSuppressions.addResourceSuppressionsByPath(
+  //   fileUpload,
+  //   `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource`,
+  //   [
+  //     {
+  //       id: "AwsSolutions-IAM5",
+  //       reason:
+  //         "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
+  //     },
+  //   ]
+  // );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/fileProcess/fileProcessLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role. Some wildcards are unavoidable",
+      },
+    ]
+  );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/fileProcess/fileProcessLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped specifically to the file upload bucket",
+      },
+    ]
+  );
+    NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/uploadBucketScan/GuardDutyMalwareProtectionRolePolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are validated and required",
       },
     ]
   );
