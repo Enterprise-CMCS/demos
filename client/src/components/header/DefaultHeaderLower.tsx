@@ -1,11 +1,8 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
+import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { gql } from "graphql-tag";
@@ -23,16 +20,15 @@ export const HEADER_LOWER_QUERY = gql`
 
 export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"create" | "document" | "amendment" | "extension" | null>(null);
+  const [modalType, setModalType] = useState<
+    "create" | "document" | "amendment" | "extension" | null
+  >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
     };
@@ -112,18 +108,15 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
       </div>
 
       {modalType === "create" && (
-        <CreateNewModal mode="demonstration" onClose={() => setModalType(null)} />
+        <DemonstrationModal mode="add" onClose={() => setModalType(null)} />
       )}
-      {modalType === "document" && (
-        <AddDocumentModal onClose={() => setModalType(null)} />
-      )}
+      {modalType === "document" && <AddDocumentModal onClose={() => setModalType(null)} />}
       {modalType === "amendment" && (
         <CreateNewModal mode="amendment" onClose={() => setModalType(null)} />
       )}
       {modalType === "extension" && (
         <CreateNewModal mode="extension" onClose={() => setModalType(null)} />
       )}
-
     </div>
   );
 };
