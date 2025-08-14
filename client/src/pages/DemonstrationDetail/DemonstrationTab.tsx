@@ -10,25 +10,23 @@ import { TabItem, Tabs } from "layout/Tabs";
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
-type demonstrationTabProps = {
-  typesCount?: number;
-  documentsCount?: number;
-  contactsCount?: number;
-};
+export type DemonstrationTabDetails = {
+  demonstrationTypes: object[];
+  documents: object[];
+  contacts: object[];
+}
 
-export const DemonstrationTab: React.FC<demonstrationTabProps> = ({
-  typesCount = 0,
-  documentsCount = 0,
-  contactsCount = 0,
+export const DemonstrationTab: React.FC<{demonstration: DemonstrationTabDetails}> = ({
+  demonstration,
 }) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
-    { value: "types", label: "Types", count: typesCount },
-    { value: "documents", label: "Documents", count: documentsCount },
-    { value: "contacts", label: "Contacts", count: contactsCount },
+    { value: "types", label: "Types", count: demonstration.demonstrationTypes.length },
+    { value: "documents", label: "Documents", count: demonstration.documents.length },
+    { value: "contacts", label: "Contacts", count: demonstration.contacts.length },
   ];
 
   return (

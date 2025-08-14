@@ -11,7 +11,7 @@ import { useLocation, useParams } from "react-router-dom";
 
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationModalDetails } from "./DemonstrationDetailModals";
-import { DemonstrationTab } from "./DemonstrationTab";
+import { DemonstrationTab, DemonstrationTabDetails } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { ModificationTableRow } from "components/table/tables/ModificationTable";
 import { gql, useQuery } from "@apollo/client";
@@ -49,7 +49,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           name
         }
       }
-      types {
+      demonstrationTypes {
         id
       }
       documents {
@@ -63,12 +63,10 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 `;
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
-  DemonstrationModalDetails & {
+  DemonstrationModalDetails &
+  DemonstrationTabDetails & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
-    types: { id: string }[];
-    documents: { id: string }[];
-    contacts: { id: string }[];
   };
 
 type TabType = "details" | "amendments" | "extensions";
@@ -161,9 +159,7 @@ export const DemonstrationDetail: React.FC = () => {
           <div className="mt-4 h-[60vh] overflow-y-auto">
             {tab === "details" && (
               <DemonstrationTab
-                typesCount={demonstration?.types.length}
-                documentsCount={demonstration?.documents.length}
-                contactsCount={demonstration?.contacts.length}
+                demonstration={demonstration}
               />
             )}
 
