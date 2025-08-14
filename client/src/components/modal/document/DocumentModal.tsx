@@ -7,7 +7,6 @@ import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
-import { ErrorIcon } from "components/icons";
 
 type DocumentModalType = "add" | "edit" | "remove";
 
@@ -49,13 +48,22 @@ export const SUCCESS_MESSAGES = {
   fileUpdated: "Your document has been updated.",
   fileDeleted: "Your document has been removed.",
 };
+
+// Simple error message retreiver.
+// Maybe we "third location" this as we standardize error messages
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "An unknown error occurred.";
+};
+
 // helper to choose the unknown-error copy by mode
 const unknownErrorText = (m: DocumentModalType) =>
   m === "edit"
     ? "Your changes could not be saved because of an unknown problem."
     : "Your document could not be added because of an unknown problem.";
 
-// Accepts value or label; always returns option.value (or "")
 const normalizeType = (t?: string) => {
   if (!t) return "";
   if (DOCUMENT_TYPES.some((o) => o.value === t)) return t;
@@ -211,10 +219,10 @@ const DropTarget: React.FC<{
 export type DocumentModalProps = {
   onClose?: () => void;
   mode: "add" | "edit" | "remove";
-  forDocumentId?: string;            // allowed (used by callers); not required here
+  forDocumentId?: string;
   initialTitle?: string;
   initialDescription?: string;
-  initialType?: string;              // label or value; normalized internally
+  initialType?: string;
 };
 
 export const DocumentModal: React.FC<DocumentModalProps> = ({
@@ -224,7 +232,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
   initialDescription = "",
   initialType = "",
 }) => {
-  // STATE FIRST
+  const { showSuccess, showError } = useToast();
   const [documentTitle, setDocumentTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [selectedType, setSelectedType] = useState(() => normalizeType(initialType));
@@ -232,8 +240,6 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const { showSuccess, showError } = useToast();
 
   const { file, uploadProgress, uploadStatus, handleFileChange } = useFileUpload({
     allowedMimeTypes: ALLOWED_MIME_TYPES,
@@ -249,8 +255,6 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
   const documentModalType: DocumentModalType = mode;
   const modalTitle = documentModalType === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
-
-  // Require type on add & edit (change to `documentModalType === "add"` if add-only)
   const requiresType = documentModalType === "add" || documentModalType === "edit";
 
   const isMissing =
@@ -260,11 +264,6 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
 
   const onUploadClick = async () => {
     if (isUploading || submitting) return;
-    if (isMissing) {
-      showError(ERROR_MESSAGES.missingField);
-      focusFirstMissing();
-      return;
-    }
     await handleUpload();
   };
 
@@ -281,7 +280,6 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
   };
 
   const handleUpload = async () => {
-  // field-level validation first
     if (!description.trim() || (requiresType && !selectedType)) {
       showError(ERROR_MESSAGES.missingField);
       focusFirstMissing();
@@ -292,34 +290,29 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
       focusFirstMissing();
       return;
     }
-
+    // This is just for testing purposes. Fill it in as needed
+    const success = false;
     try {
       setSubmitting(true);
-      showError("");
-
-      // ⬇️ your real API/mutation goes here
-      // Example:
-      // await api.uploadDocument({ title: documentTitle, description, type: selectedType, file });
-
-      showSuccess(
-        documentModalType === "edit"
-          ? SUCCESS_MESSAGES.fileUpdated
-          : SUCCESS_MESSAGES.fileUploaded
-      );
+      // your api/mutator call goes here
+      if (!success) {
+        // Throw error to see message.
+        // Still need to break down specifc file size vs fail virus check messages
+        throw new Error("Upload failed");
+      }
       onClose();
-    } catch (e: unknown) {
-    // Known server-side cases first (adapt to your backend’s shape)
-      const hasCode = typeof e === "object" && e !== null && "code" in e;
-      const hasMessage = typeof e === "object" && e !== null && "message" in e;
-      const msg =
-      (hasCode && (e as { code?: string }).code === "MALWARE_DETECTED") ||
-      (hasMessage && /malware/i.test((e as { message?: string }).message || ""))
-        ? "Your document was not uploaded because malicious content was detected in the file."
-        : unknownErrorText(documentModalType);
-
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? getErrorMessage(error) : unknownErrorText(documentModalType);
       showError(msg);
-      console.error("Document upload failed:", e);
     } finally {
+      onClose();
+      if (success) {
+        showSuccess(
+          documentModalType === "edit"
+            ? SUCCESS_MESSAGES.fileUpdated
+            : SUCCESS_MESSAGES.fileUploaded
+        );
+      }
       setSubmitting(false);
     }
   };
@@ -338,9 +331,9 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
           <PrimaryButton
             size="small"
             onClick={onUploadClick}
-            aria-disabled={isMissing} // shows disabled style, but remains clickable
-            disabled={isUploading}     // only truly disabled during upload
             aria-label="Upload Document"
+            aria-disabled={isMissing || submitting}
+            disabled={isUploading || submitting}
             className="[&[aria-disabled='true']]:opacity-50 [&[aria-disabled='true']]:cursor-not-allowed"
           >
             Upload
@@ -377,7 +370,7 @@ export const EditDocumentModal: React.FC<{
   documentId: string;
   documentTitle: string;
   description: string;
-  documentType: string; // label or value
+  documentType: string;
   onClose: () => void;
 }> = ({ documentId, documentTitle, description, documentType, onClose }) => (
   <DocumentModal
@@ -398,7 +391,6 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
     try {
       setSubmitting(true);
       // TODO: await api.deleteDocuments(ids);
-
       const multiple = ids.length > 1;
       showWarning(
         `Your document${multiple ? "s" : ""} ${multiple ? "have been" : "has been"} removed.`
@@ -406,7 +398,6 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
       onClose();
     } catch (e) {
       showError("Your changes could not be saved due to an unknown problem.");
-
       console.error("Remove documents failed:", e);
     } finally {
       setSubmitting(false);

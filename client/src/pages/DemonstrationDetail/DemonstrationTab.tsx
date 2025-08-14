@@ -86,7 +86,7 @@ export const DemonstrationTab: React.FC = () => {
 
       {/* Replaced the CreateNewModal */}
       {modalType === "document" && (
-        <AddDocumentModal mode="add" onClose={() => setModalType(null)} />
+        <AddDocumentModal onClose={() => setModalType(null)} />
       )}
     </div>
   );
