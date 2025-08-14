@@ -85,20 +85,43 @@ async function seedDatabase() {
   const documentCount = 130;
 
   console.log("🌱 Generating bypassed user and accompanying records...");
-  const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
-  const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
-  const bypassRoleId = "BYPASSED_ADMIN_ROLE";
+  const bypassUserId = "cb88fd69-9509-40ed-9029-610231fe9e18";
+  const bypassUserSub = "14f83478-c0f1-70f7-2c30-ca664b9177e9";
+  const bypassRoleId = "ADMIN_ROLE";
   const bypassPermissionId = "BYPASSED_ADMIN_PERMISSION";
   await prisma().user.create({
     data: {
       id: bypassUserId,
       cognitoSubject: bypassUserSub,
-      username: "BYPASSED_USER",
-      email: "bypassedUser@email.com",
-      fullName: "Bypassed J. User",
-      displayName: "Bypass",
+      username: "dustbuster",
+      email: "dustin.h@globalalliantinc.com",
+      fullName: "Dustin H",
+      displayName: "dj_dusty",
     },
   });
+  // Add Local User for seedering and display to set up login
+  if (
+    process.env.VITE_LOCAL_USER_ID &&
+    process.env.VITE_LOCAL_USER_SUB &&
+    process.env.VITE_LOCAL_USER_USERNAME &&
+    process.env.VITE_LOCAL_USER_EMAIL &&
+    process.env.VITE_LOCAL_USER_FULLNAME &&
+    process.env.VITE_LOCAL_USER_DISPLAYNAME
+  ) {
+    console.log("🌱 Adding Local User from env vars...");
+    await prisma().user.create({
+      data: {
+        id: process.env.VITE_LOCAL_USER_ID,
+        cognitoSubject: process.env.VITE_LOCAL_USER_SUB,
+        username: process.env.VITE_LOCAL_USER_USERNAME,
+        email: process.env.VITE_LOCAL_USER_EMAIL,
+        fullName: process.env.VITE_LOCAL_USER_FULLNAME,
+        displayName: process.env.VITE_LOCAL_USER_DISPLAYNAME,
+      },
+    });
+  } else {
+    console.log("⚠️ Skipping Local User — required env vars not found.");
+  }
   await prisma().role.create({
     data: {
       id: bypassRoleId,
