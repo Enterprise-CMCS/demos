@@ -298,7 +298,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
       if (!success) {
         // Throw error to see message.
         // Still need to break down specifc file size vs fail virus check messages
-        throw new Error("Upload failed");
+        throw new Error("Your document could not be added because of an unknown problem.");
       }
       onClose();
     } catch (error: unknown) {
