@@ -49,6 +49,15 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           name
         }
       }
+      types {
+        id
+      }
+      documents {
+        id
+      }
+      contacts {
+        id
+      }
     }
   }
 `;
@@ -57,6 +66,9 @@ export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationModalDetails & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
+    types: { id: string }[];
+    documents: { id: string }[];
+    contacts: { id: string }[];
   };
 
 type TabType = "details" | "amendments" | "extensions";
@@ -101,10 +113,13 @@ export const DemonstrationDetail: React.FC = () => {
     setDemonstrationActionModal("delete");
   }, []);
 
-  const { data, loading, error } = useQuery(DEMONSTRATION_DETAIL_QUERY, {
-    variables: { id: id! },
-    skip: !id,
-  });
+  const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
+    DEMONSTRATION_DETAIL_QUERY,
+    {
+      variables: { id: id! },
+      skip: !id,
+    }
+  );
 
   const demonstration = data?.demonstration;
 
@@ -144,7 +159,13 @@ export const DemonstrationDetail: React.FC = () => {
           />
 
           <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && <DemonstrationTab />}
+            {tab === "details" && (
+              <DemonstrationTab
+                typesCount={demonstration?.types.length}
+                documentsCount={demonstration?.documents.length}
+                contactsCount={demonstration?.contacts.length}
+              />
+            )}
 
             {tab === "amendments" && (
               <AmendmentsTab

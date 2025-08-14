@@ -5,23 +5,30 @@ import { AddNewIcon } from "components/icons";
 import { CreateNewModal } from "components/modal/CreateNewModal";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
-export const DemonstrationTab: React.FC = () => {
+type demonstrationTabProps = {
+  typesCount?: number;
+  documentsCount?: number;
+  contactsCount?: number;
+};
+
+export const DemonstrationTab: React.FC<demonstrationTabProps> = ({
+  typesCount = 0,
+  documentsCount = 0,
+  contactsCount = 0,
+}) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
-    { value: "types", label: "Types", count: 0 },
-    { value: "documents", label: "Documents", count: 0 },
-    { value: "contacts", label: "Contacts", count: 0 },
+    { value: "types", label: "Types", count: typesCount },
+    { value: "documents", label: "Documents", count: documentsCount },
+    { value: "contacts", label: "Contacts", count: contactsCount },
   ];
 
   return (
@@ -42,9 +49,7 @@ export const DemonstrationTab: React.FC = () => {
         {subTab === "types" && (
           <div>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">
-                Types
-              </h1>
+              <h1 className="text-xl font-bold text-brand uppercase">Types</h1>
               {/* TO DO: Add New button? */}
             </div>
             {/* TO DO: Add Table */}
@@ -54,9 +59,7 @@ export const DemonstrationTab: React.FC = () => {
         {subTab === "documents" && (
           <div>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">
-                Documents
-              </h1>
+              <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
               <SecondaryButton
                 size="small"
                 className="flex items-center gap-1 px-1 py-1"
@@ -73,9 +76,7 @@ export const DemonstrationTab: React.FC = () => {
         {subTab === "contacts" && (
           <div>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">
-                Contacts
-              </h1>
+              <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
               {/* TO DO: Add New button? */}
             </div>
             {/* TO DO: Add Table */}
