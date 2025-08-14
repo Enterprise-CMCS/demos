@@ -7,11 +7,11 @@ import { useQuery } from "@apollo/client";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 // Mock Apollo
 vi.mock("@apollo/client", async () => {
-  const actual =
-    await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
+  const actual = await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
   return {
     ...actual,
     useQuery: vi.fn(),
@@ -28,14 +28,12 @@ vi.mock("components/modal/document/DocumentModal", () => ({
   ),
 }));
 
+vi.mock("components/modal/DemonstrationModal", () => ({
+  DemonstrationModal: () => <div>DemonstrationModal</div>,
+}));
+
 vi.mock("components/modal/CreateNewModal", () => ({
-  CreateNewModal: ({
-    mode,
-    onClose,
-  }: {
-    mode: string;
-    onClose: () => void;
-  }) => (
+  CreateNewModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
     <div data-testid={`modal-${mode}`}>
       CreateNewModal ({mode})<button onClick={onClose}>Close</button>
     </div>
@@ -112,18 +110,21 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByText("Demonstration")).not.toBeInTheDocument();
   });
 
-  it("opens CreateNewModal for demonstration", () => {
+  it("opens DemonstrationModal when demonstration modal is clicked", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={6} />);
+
+    render(
+      <DemosApolloProvider>
+        <DefaultHeaderLower userId={"6"} />
+      </DemosApolloProvider>
+    );
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
-    expect(screen.getByTestId("modal-demonstration")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Close"));
-    expect(screen.queryByTestId("modal-demonstration")).not.toBeInTheDocument();
+    expect(screen.queryByText("DemonstrationModal")).toBeInTheDocument();
   });
 
   it("opens AddDocumentModal", () => {
