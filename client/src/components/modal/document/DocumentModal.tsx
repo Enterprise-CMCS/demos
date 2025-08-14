@@ -1,4 +1,9 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  forwardRef,
+} from "react";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import {
   ErrorMessage,
@@ -12,6 +17,7 @@ import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
 import { ErrorIcon } from "components/icons";
+
 
 type DocumentModalType = "add" | "edit" | "remove";
 
@@ -29,9 +35,14 @@ const STYLES = {
   fileNote: tw`text-[11px] text-text-placeholder mt-xs leading-tight`,
 };
 
-const ERROR_MESSAGES = {
+export const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
-  descriptionRequired: "Document description is required.",
+  missingField: "A required field is missing.",
+};
+export const SUCCESS_MESSAGES = {
+  fileUploaded: "Your document has been added.",
+  fileUpdated: "Your document has been updated.",
+  fileDeleted: "Your document has been removed.",
 };
 
 const ALLOWED_MIME_TYPES = [
@@ -45,68 +56,77 @@ const ALLOWED_MIME_TYPES = [
 ];
 
 const ACCEPTED_EXTENSIONS = ".pdf,.doc,.docx,.xls,.xlsx,.zip";
-
 const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILENAME_DISPLAY_LENGTH = 60;
 
+// ---------- small helpers ----------
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
   const half = Math.floor((maxLength - 3) / 2);
   return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
 
-const TitleInput: React.FC<{
+const TitleInput = forwardRef<HTMLInputElement, {
   value: string;
   onChange: (v: string) => void;
-}> = ({ value, onChange }) => (
-  <TextInput
-    name="title"
-    label="Document Title"
-    isRequired
-    placeholder="Enter document title"
-    onChange={(e) => onChange(e.target.value)}
-    value={value}
-  />
-);
+    }>(({ value, onChange }, ref) => (
+      <TextInput
+        ref={ref}
+        name="title"
+        label="Document Title"
+        isRequired
+        placeholder="Enter document title"
+        onChange={(e) => onChange(e.target.value)}
+        value={value}
+      />
+    ));
+TitleInput.displayName = "TitleInput";
 
-const DescriptionInput: React.FC<{
+const DescriptionInput = forwardRef<HTMLTextAreaElement, {
   value: string;
   onChange: (v: string) => void;
   error?: string;
-}> = ({ value, onChange, error }) => (
-  <div>
-    <label className={STYLES.label}>
-      <span className="text-text-warn mr-1">*</span>Document Description
-    </label>
-    <textarea
-      rows={2}
-      placeholder="Enter"
-      className={STYLES.textarea}
-      value={value}
-      onChange={(e) => {
-        onChange(e.target.value);
-        if (error) onChange("");
-      }}
-    />
-  </div>
-);
+    }>(({ value, onChange, error }, ref) => (
+      <div>
+        <label className={STYLES.label}>
+          <span className="text-text-warn mr-1">*</span>Document Description
+        </label>
+        <textarea
+          ref={ref}
+          rows={2}
+          placeholder="Enter"
+          className={STYLES.textarea}
+          value={value}
+          aria-invalid={!!error}
+          aria-describedby={error ? "doc-desc-error" : undefined}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {error && (
+          <div id="doc-desc-error" role="alert" className="mt-1 text-[11px] text-red-600">
+            {error}
+          </div>
+        )}
+      </div>
+    ));
+DescriptionInput.displayName = "DescriptionInput";
 
 const DocumentTypeInput: React.FC<{
-  error?: string;
+  value?: string;
   onSelect?: (v: string) => void;
-}> = ({ error, onSelect }) => (
+  error?: string;
+}> = ({ value, onSelect }) => (
   <AutoCompleteSelect
     id="document-type"
     label="Document Type"
     options={DOCUMENT_TYPES}
-    onSelect={(value) => {
-      if (error && onSelect) onSelect("");
-      else if (onSelect) onSelect(value);
-    }}
+    // If your component supports controlled values, pass `value={value}`
+    // value={value}
+    onSelect={(v) => onSelect?.(v)}
   />
 );
 
+// ---------- Progress ----------
 const ProgressBar: React.FC<{
   progress: number;
   uploadStatus: UploadStatus;
@@ -125,137 +145,199 @@ const ProgressBar: React.FC<{
         role="progressbar"
         className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`}
         style={{ width: `${progress}%` }}
+        aria-valuenow={progress}
+        aria-valuemin={0}
+        aria-valuemax={100}
       />
     </div>
   );
 };
 
-const DropTarget: React.FC<{
+// ---------- DropTarget (forward ref to “Select File” button) ----------
+type DropTargetProps = {
   file: File | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   uploadStatus: UploadStatus;
   uploadProgress: number;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
-}> = ({
-  file,
-  fileInputRef,
-  uploadStatus,
-  uploadProgress,
-  handleFileChange,
-}) => {
-  const handleFiles = useCallback(
-    (files: FileList) => {
-      if (!files || files.length === 0) return;
-      const input = document.createElement("input");
-      input.type = "file";
-      const dt = new DataTransfer();
-      Array.from(files).forEach((f) => dt.items.add(f));
-      input.files = dt.files;
-      // @ts-expect-error for React synthetic event compatibility
-      handleFileChange({ target: input });
-    },
-    [handleFileChange]
-  );
-  const { handleDragOver, handleDrop } = useFileDrop(handleFiles);
-  return (
-    <div
-      className={STYLES.dropzone}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
-      <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
-      <p className={STYLES.dropzoneOr}>or</p>
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept={ACCEPTED_EXTENSIONS}
-        onChange={handleFileChange}
-        data-testid="file-input"
-      />
-      <SecondaryButton
-        type="button"
-        aria-label="Select File"
-        size="small"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={uploadStatus === "uploading"}
-        className="w-full max-w-full overflow-hidden text-ellipsis"
+};
+const DropTarget = forwardRef<HTMLButtonElement, DropTargetProps>(
+  ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange }, ref) => {
+    const handleFiles = useCallback(
+      (files: FileList) => {
+        if (!files || files.length === 0) return;
+        const input = document.createElement("input");
+        input.type = "file";
+        const dt = new DataTransfer();
+        Array.from(files).forEach((f) => dt.items.add(f));
+        input.files = dt.files;
+        // @ts-expect-error synthesize event target for our handler
+        handleFileChange({ target: input });
+      },
+      [handleFileChange]
+    );
+    const { handleDragOver, handleDrop } = useFileDrop(handleFiles);
+
+    return (
+      <div
+        className={STYLES.dropzone}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
-        {file ? (
-          <span
-            className="inline-block max-w-full truncate text-left"
-            title={file.name}
-          >
-            {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
-          </span>
-        ) : (
-          "Select File(s)"
-        )}
-      </SecondaryButton>
-
-      {file && (
-        <div className="w-full">
-          <ProgressBar progress={uploadProgress} uploadStatus={uploadStatus} />
-          {uploadProgress > 0 && (
-            <div className="flex justify-between mt-1 text-[12px] text-text-placeholder font-medium">
-              <span>{(file.size / 1_000_000).toFixed(1)} MB</span>
-              <span>{uploadProgress}%</span>
-            </div>
+        <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
+        <p className={STYLES.dropzoneOr}>or</p>
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept={ACCEPTED_EXTENSIONS}
+          onChange={handleFileChange}
+          data-testid="file-input"
+        />
+        <SecondaryButton
+          ref={ref}
+          type="button"
+          aria-label="Select File"
+          size="small"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadStatus === "uploading"}
+          className="w-full max-w-full overflow-hidden text-ellipsis"
+        >
+          {file ? (
+            <span
+              className="inline-block max-w-full truncate text-left"
+              title={file.name}
+            >
+              {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
+            </span>
+          ) : (
+            "Select File(s)"
           )}
-        </div>
-      )}
+        </SecondaryButton>
 
-      <p className={STYLES.fileNote}>
-        (Note: Files must be less than {MAX_FILE_SIZE_MB}MB)
-        <br />
-        Allowed file types: {ACCEPTED_EXTENSIONS.split(",").join(", ")}
-      </p>
-    </div>
-  );
-};
+        {file && (
+          <div className="w-full">
+            <ProgressBar progress={uploadProgress} uploadStatus={uploadStatus} />
+            {uploadProgress > 0 && (
+              <div className="flex justify-between mt-1 text-[12px] text-text-placeholder font-medium">
+                <span>{(file.size / 1_000_000).toFixed(1)} MB</span>
+                <span>{uploadProgress}%</span>
+              </div>
+            )}
+          </div>
+        )}
+        <p className={STYLES.fileNote}>
+          (Note: Files must be less than {MAX_FILE_SIZE_MB}MB)
+          <br />
+          Allowed file types: {ACCEPTED_EXTENSIONS.split(",").join(", ")}
+        </p>
+      </div>
+    );
+  }
+);
+DropTarget.displayName = "DropTarget";
 
-type BaseDocumentModalProps = {
+// ---------- Base Modal ----------
+type DocumentModalProps = {
   onClose?: () => void;
-  forDocumentId?: string;
+  forDocumentId?: string | null;
 };
 
-const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
+type SimpleDocumentType = {
+  onClose?: () => void;
+  id: string;
+  title: string;
+  description: string;
+  file: File | null;
+};
+
+export const DocumentModal: React.FC<SimpleDocumentType> = ({
   onClose = () => {},
-  forDocumentId,
+  forDocumentId = null,
 }) => {
-  const { showSuccess } = useToast();
+
+  console.log("YOU ARE IN DocumentModal");
+
+  const { showSuccess, showError } = useToast();
 
   const documentModalType: DocumentModalType = forDocumentId ? "edit" : "add";
-  const modalTitle =
-    documentModalType === "edit" ? "Edit Document" : "Add New Document";
 
-  // TODO: get this from GQL hook
+  const modalTitle =
+    documentModalType === "edit" ? "Edit Document" : "Add New Document (N/A)";
+
+  const successMessage =
+    documentModalType === "edit"
+      ? SUCCESS_MESSAGES.fileUpdated
+      : SUCCESS_MESSAGES.fileUploaded;
+
+  console.log("Success", successMessage);
+  // TODO: get these from GQL hook if needed
   const [documentTitle, setDocumentTitle] = useState("Document title");
   const [description, setDescription] = useState("");
+  const [docType, setDocType] = useState<string>(""); // set requiredness below if needed
   const [error, setError] = useState<string>("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+  // refs to focus invalid fields
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const fileButtonRef = useRef<HTMLButtonElement>(null);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { file, uploadProgress, uploadStatus, handleFileChange } =
-    useFileUpload({
-      allowedMimeTypes: ALLOWED_MIME_TYPES,
-      maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
-      onErrorCallback: (errorMessage: ErrorMessage) => {
-        setError(errorMessage);
-      },
-    });
+  const { file, uploadProgress, uploadStatus, handleFileChange } = useFileUpload({
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
+    maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
+    onErrorCallback: (errorMessage: ErrorMessage) => {
+      setError(errorMessage);
+    },
+  });
+
+  // If Document Type is required for Add, include `!docType` below.
+  const isMissing =
+    documentModalType === "edit"
+      ? !description.trim() || !file
+      : !description.trim() || !file /* || !docType */;
+
+  const isUploading = uploadStatus === "uploading";
+
+  const focusFirstMissing = () => {
+    if (!description.trim()) {
+      descriptionRef.current?.focus();
+      return;
+    }
+    if (documentModalType === "add" && !docType) {
+      document.getElementById("document-type")?.focus();
+      return;
+    }
+    fileButtonRef.current?.focus();
+  };
+
+  const onUploadClick = () => {
+    if (isUploading) return; // only truly disabled while uploading
+    if (isMissing) {
+      showError(ERROR_MESSAGES.missingField);
+      focusFirstMissing();
+      return;
+    }
+    handleUpload();
+  };
 
   const handleUpload = () => {
-    if (!description) {
-      setError(ERROR_MESSAGES.descriptionRequired);
+    // If you still want granular inline errors, keep these:
+    if (!description.trim()) {
+      setError(ERROR_MESSAGES.missingField);
+      descriptionRef.current?.focus();
       return;
     }
     if (!file) {
       setError(ERROR_MESSAGES.noFileSelected);
+      fileButtonRef.current?.focus();
       return;
     }
-    showSuccess("File uploaded successfully!");
+    // if (documentModalType === "add" && !docType) { /* handle */ }
+
+    showSuccess(successMessage);
     onClose();
   };
 
@@ -271,13 +353,15 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
             size="small"
             onClick={() => setShowCancelConfirm(true)}
           >
-            Cancel
+            Cancellllxxx
           </SecondaryButton>
           <PrimaryButton
             size="small"
-            onClick={handleUpload}
-            disabled={!description || !file || uploadStatus === "uploading"}
+            onClick={onUploadClick}
+            aria-disabled={isMissing}   // shows disabled style, but remains clickable
+            disabled={isUploading}      // only truly disabled during upload
             aria-label="Upload Document"
+            className="[&[aria-disabled='true']]:opacity-50 [&[aria-disabled='true']]:cursor-not-allowed"
           >
             Upload
           </PrimaryButton>
@@ -286,17 +370,23 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
     >
       {documentModalType === "edit" && (
         <TitleInput
+          ref={titleRef}
           value={documentTitle}
-          onChange={(newTitle) => setDocumentTitle(newTitle)}
+          onChange={setDocumentTitle}
         />
       )}
+
       <DescriptionInput
+        ref={descriptionRef}
         value={description}
         onChange={setDescription}
         error={error}
       />
-      <DocumentTypeInput error={error} />
+
+      <DocumentTypeInput value={docType} onSelect={setDocType} />
+
       <DropTarget
+        ref={fileButtonRef}
         file={file}
         fileInputRef={fileInputRef}
         uploadStatus={uploadStatus}
@@ -304,31 +394,37 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
         handleFileChange={handleFileChange}
         error={error}
       />
-      {error && <div className="text-[11px] text-red-600 mt-xs">{error}</div>}
+      {error && (
+        <div className="text-[11px] text-red-600 mt-xs" role="alert">
+          {error}
+        </div>
+      )}
     </BaseModal>
   );
 };
 
-export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({
-  onClose,
-}) => <BaseDocumentModal onClose={onClose} />;
+// ---------- Exported modals ----------
+export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <DocumentModal onClose={onClose} />
+);
 
 export const EditDocumentModal: React.FC<{
   documentId: string;
   onClose: () => void;
 }> = ({ documentId, onClose }) => (
-  <BaseDocumentModal forDocumentId={documentId} onClose={onClose} />
+  <DocumentModal forDocumentId={documentId} onClose={onClose} />
 );
 
 export const RemoveDocumentModal: React.FC<{
   documentIds: string[];
   onClose: () => void;
 }> = ({ documentIds, onClose }) => {
-  const { showWarning } = useToast();
+  const { showSuccess } = useToast();
+
   const onConfirm = (ids: string[]) => {
     const multipleDocuments = ids.length > 1;
-    console.log("Removing documents with IDs:", ids);
-    showWarning(
+    // TODO: perform delete...
+    showSuccess(
       `Your document${multipleDocuments ? "s" : ""} ${multipleDocuments ? "have been" : "has been"} removed.`
     );
     onClose();

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import { SecondaryButton } from "components/button";
 import { AddNewIcon } from "components/icons";
-import { CreateNewModal } from "components/modal/CreateNewModal";
+import { DocumentModal } from "components/modal/document/DocumentModal";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import {
@@ -84,8 +84,7 @@ export const DemonstrationTab: React.FC = () => {
       </div>
 
       {modalType === "document" && (
-        <CreateNewModal
-          mode="document"
+        <DocumentModal
           data={{
             demonstration: "demo-id",
             state: "state-id",

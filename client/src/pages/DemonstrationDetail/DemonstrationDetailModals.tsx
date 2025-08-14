@@ -1,6 +1,7 @@
 import React from "react";
 
 import { CreateNewModal } from "components/modal/CreateNewModal";
+import { DocumentModal } from "components/modal/document/DocumentModal";
 import { Demonstration } from "demos-server";
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
@@ -40,8 +41,8 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
     )}
 
     {entityCreationModal === "document" && (
-      <CreateNewModal
-        mode="document"
+      <DocumentModal
+        mode="add document"
         data={{
           demonstration: demonstration.id,
           state: demonstration.state?.id,
