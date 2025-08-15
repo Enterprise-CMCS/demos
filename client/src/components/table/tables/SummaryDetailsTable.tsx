@@ -5,6 +5,7 @@ import { EditIcon } from "components/icons";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { Demonstration } from "demos-server";
 import { tw } from "tags/tw";
+import { renderDate } from "util/USDate";
 
 type Props = {
   demonstration?: Demonstration;
@@ -76,9 +77,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
         <div>
           <div className={LABEL_CLASSES}>Project Officer</div>
-          <div className={VALUE_CLASSES}>
-            {demonstration.projectOfficer?.fullName || "-"}
-          </div>
+          <div className={VALUE_CLASSES}>{demonstration.projectOfficer?.fullName || "-"}</div>
         </div>
 
         <div>
@@ -89,35 +88,27 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
         <div>
           <div className={LABEL_CLASSES}>Effective Date</div>
           <div className={VALUE_CLASSES}>
-            {demonstration.effectiveDate
-              ? new Date(demonstration.effectiveDate).toLocaleDateString()
-              : "-"
-            }
+            {demonstration.effectiveDate ? renderDate(demonstration.effectiveDate) : "-"}
           </div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Expiration Date</div>
           <div className={VALUE_CLASSES}>
-            {demonstration.expirationDate
-              ? new Date(demonstration.expirationDate).toLocaleDateString()
-              : "-"
-            }
+            {demonstration.expirationDate ? renderDate(demonstration.expirationDate) : "-"}
           </div>
         </div>
 
         <div className="col-span-2">
-          <div className={LABEL_CLASSES}>Demonstration Description (Max Limit - 2048 Characters)</div>
+          <div className={LABEL_CLASSES}>
+            Demonstration Description (Max Limit - 2048 Characters)
+          </div>
           <div className={VALUE_CLASSES}>{demonstration.description || "-"}</div>
         </div>
       </div>
 
       {isEditModalOpen && demonstration && (
-        <DemonstrationModal
-          mode="edit"
-          demonstration={demonstration}
-          onClose={handleCloseModal}
-        />
+        <DemonstrationModal mode="edit" demonstration={demonstration} onClose={handleCloseModal} />
       )}
     </div>
   );

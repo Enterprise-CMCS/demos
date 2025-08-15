@@ -2,22 +2,13 @@ import React from "react";
 
 import { Demonstration } from "demos-server";
 import { testDemonstration } from "mock-data/demonstrationMocks";
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";
+import { renderDate } from "util/USDate";
 
 // Mock the DemonstrationModal component
 vi.mock("components/modal/DemonstrationModal", () => ({
@@ -95,7 +86,9 @@ describe("SummaryDetailsTable", () => {
       expect(screen.getByText("Status")).toBeInTheDocument();
       expect(screen.getByText("Effective Date")).toBeInTheDocument();
       expect(screen.getByText("Expiration Date")).toBeInTheDocument();
-      expect(screen.getByText("Demonstration Description (Max Limit - 2048 Characters)")).toBeInTheDocument();
+      expect(
+        screen.getByText("Demonstration Description (Max Limit - 2048 Characters)")
+      ).toBeInTheDocument();
     });
 
     it("renders the edit button with correct styling", () => {
@@ -139,8 +132,8 @@ describe("SummaryDetailsTable", () => {
       render(<SummaryDetailsTable demonstration={testDemonstration} />);
 
       // Check that dates are rendered (format will depend on locale)
-      const effectiveDate = testDemonstration.effectiveDate.toLocaleDateString();
-      const expirationDate = testDemonstration.expirationDate.toLocaleDateString();
+      const effectiveDate = renderDate(testDemonstration.effectiveDate);
+      const expirationDate = renderDate(testDemonstration.expirationDate);
 
       expect(screen.getByText(effectiveDate)).toBeInTheDocument();
       expect(screen.getByText(expirationDate)).toBeInTheDocument();
@@ -150,12 +143,7 @@ describe("SummaryDetailsTable", () => {
   describe("Edit Functionality", () => {
     it("calls onEdit prop when provided and edit button is clicked", async () => {
       const user = userEvent.setup();
-      render(
-        <SummaryDetailsTable
-          demonstration={testDemonstration}
-          onEdit={mockOnEdit}
-        />
-      );
+      render(<SummaryDetailsTable demonstration={testDemonstration} onEdit={mockOnEdit} />);
 
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
@@ -194,12 +182,7 @@ describe("SummaryDetailsTable", () => {
 
     it("does not open modal when onEdit prop is provided", async () => {
       const user = userEvent.setup();
-      render(
-        <SummaryDetailsTable
-          demonstration={testDemonstration}
-          onEdit={mockOnEdit}
-        />
-      );
+      render(<SummaryDetailsTable demonstration={testDemonstration} onEdit={mockOnEdit} />);
 
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
@@ -248,12 +231,7 @@ describe("SummaryDetailsTable", () => {
 
     it("renders with onEdit prop", () => {
       expect(() => {
-        render(
-          <SummaryDetailsTable
-            demonstration={testDemonstration}
-            onEdit={mockOnEdit}
-          />
-        );
+        render(<SummaryDetailsTable demonstration={testDemonstration} onEdit={mockOnEdit} />);
       }).not.toThrow();
     });
   });

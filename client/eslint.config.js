@@ -7,6 +7,10 @@ import js from "@eslint/js";
 import {
   noRelativeComponentImports,
 } from "./eslint-rules/no-relative-component-imports.js";
+import {
+  noNonstandardDateRendering,
+} from "./eslint-rules/no-nonstandard-date-rendering.js";
+
 
 export default [
   js.configs.recommended,
@@ -25,6 +29,11 @@ export default [
       "no-relative-component-imports": {
         rules: {
           "no-relative-component-imports": noRelativeComponentImports,
+        },
+      },
+      "no-nonstandard-date-rendering": {
+        rules: {
+          "no-nonstandard-date-rendering": noNonstandardDateRendering,
         },
       },
     },
@@ -49,9 +58,9 @@ export default [
         { restrictDefaultExports: { direct: true } },
       ],
       "no-relative-component-imports/no-relative-component-imports": "error",
+      "no-nonstandard-date-rendering/no-nonstandard-date-rendering": "error",
     },
   },
-
   {
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
