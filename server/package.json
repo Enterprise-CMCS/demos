@@ -8,9 +8,6 @@
   "dependencies": {
     "@apollo/server": "^4.12.2",
     "@as-integrations/aws-lambda": "^3.1.0",
-    "@aws-sdk/client-s3": "^3.859.0",
-    "@aws-sdk/client-secrets-manager": "^3.840.0",
-    "@aws-sdk/s3-request-presigner": "^3.859.0",
     "@prisma/client": "^6.7.0",
     "graphql-scalars": "^1.24.2",
     "graphql-tools": "^9.0.18",
@@ -22,7 +19,7 @@
   "scripts": {
     "clean": "rm -rf dist; npm ci",
     "build": "prisma generate; tsc; esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify",
-    "build:ci": "npm ci; prisma generate; rm -rf dist; tsc -p ./tsconfig-ci.json; npm ci --omit=dev; cp -R node_modules dist",
+    "build:ci": "prisma generate; tsc; esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify; mkdir -p build/node_modules/.prisma/client/ && cp node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node build/node_modules/.prisma/client/",
     "depcheck": "depcheck",
     "dev": "node ./dist/index.js",
     "local": "tsx watch --inspect=9229 --clear-screen=false src/local-server.ts",
@@ -37,6 +34,9 @@
     "migrate:deploy": "prisma migrate deploy"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.859.0",
+    "@aws-sdk/client-secrets-manager": "^3.840.0",
+    "@aws-sdk/s3-request-presigner": "^3.859.0",
     "@eslint/js": "^9.27.0",
     "@faker-js/faker": "^9.8.0",
     "@graphql-tools/merge": "^9.0.24",
