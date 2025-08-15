@@ -3,12 +3,13 @@ import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { ErrorButton, PrimaryButton, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
+import { ErrorIcon } from "components/icons";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
 
-type DocumentModalType = "add" | "edit" | "remove";
+type DocumentModalType = "add" | "edit";
 
 const DOCUMENT_TYPES = [
   { label: "Pre-Submission Concept", value: "preSubmissionConcept" },
@@ -216,7 +217,7 @@ const DropTarget: React.FC<{
   );
 };
 
-export type DocumentModalProps = {
+type DocumentModalProps = {
   onClose?: () => void;
   mode: "add" | "edit" | "remove";
   forDocumentId?: string;
@@ -252,7 +253,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
     setSelectedType(normalizeType(initialType));
   }, [initialType]);
 
-  const documentModalType: DocumentModalType = mode;
+  const documentModalType: DocumentModalType = mode === "remove" ? "add" : mode;
   const modalTitle = documentModalType === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
   const requiresType = documentModalType === "add" || documentModalType === "edit";
@@ -334,7 +335,6 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
             aria-label="Upload Document"
             aria-disabled={isMissing || submitting}
             disabled={isUploading || submitting}
-            className="[&[aria-disabled='true']]:opacity-50 [&[aria-disabled='true']]:cursor-not-allowed"
           >
             Upload
           </PrimaryButton>
@@ -424,8 +424,14 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
         </>
       }
     >
-      <div>
-        Are you sure you want to remove {documentIds.length > 1 ? "these documents" : "this document"}?
+      <div className="mb-2 text-sm text-text-filled">
+        Are you sure you want to remove {documentIds.length} document
+        {documentIds.length > 1 ? "s" : ""}?
+        <br />
+        <span className="text-error flex items-center gap-1 mt-1">
+          <ErrorIcon />
+          This action cannot be undone.
+        </span>
       </div>
     </BaseModal>
   );
