@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 
 import { DatePicker } from "./DatePicker";
 import { format, isAfter, parse } from "date-fns";
-import { renderDate } from "util/RenderDate";
+import { formatDate } from "util/formatDate";
 
 // this assumes the date is in the past.
 export async function pickDateInCalendar({
@@ -47,7 +47,7 @@ export async function pickDateInCalendar({
 
   // Navigate to the correct month
   const targetDate = new Date(year, month - 1);
-  // eslint-disable-next-line no-nonstandard-date-rendering/no-nonstandard-date-rendering
+  // eslint-disable-next-line no-nonstandard-date-formatting/no-nonstandard-date-formatting
   const targetMonthName = format(targetDate, "MMMM");
 
   // Keep clicking appropriate direction until we reach the target month
@@ -145,7 +145,7 @@ describe("Input component", () => {
       return <DatePicker value={now} />;
     };
     render(<Component />);
-    expect(screen.getByDisplayValue(renderDate(now))).toBeInTheDocument();
+    expect(screen.getByDisplayValue(formatDate(now))).toBeInTheDocument();
   });
 
   it("renders as disabled when isDisabled is true", () => {
@@ -199,7 +199,7 @@ describe("Input component", () => {
       <DatePicker
         name="required-date-picker"
         onChange={(value) => {
-          pickedValue = value ? renderDate(value) : undefined;
+          pickedValue = value ? formatDate(value) : undefined;
         }}
       />
     );

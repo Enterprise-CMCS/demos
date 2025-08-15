@@ -12,11 +12,11 @@ const DATE_METHODS = [
   "toJSON",
 ];
 
-export const noNonstandardDateRendering = createRule({
-  name: "no-nonstandard-date-rendering",
+export const noNonstandardDateFormatting = createRule({
+  name: "no-nonstandard-date-formatting",
   meta: {
     docs: {
-      description: "Enforce usage of renderDate for rendering dates",
+      description: "Enforce usage of formatDate for formatting dates",
       category: "Best Practices",
     },
     messages: {
@@ -33,7 +33,7 @@ export const noNonstandardDateRendering = createRule({
         if (
           parent.type === "CallExpression" &&
           parent.callee.type === "Identifier" &&
-          parent.callee.name === "renderDate"
+          parent.callee.name === "formatDate"
         ) {
           return true;
         }

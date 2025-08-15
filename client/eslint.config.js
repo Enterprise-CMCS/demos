@@ -4,13 +4,8 @@ import tseslint from "typescript-eslint";
 
 import js from "@eslint/js";
 
-import {
-  noRelativeComponentImports,
-} from "./eslint-rules/no-relative-component-imports.js";
-import {
-  noNonstandardDateRendering,
-} from "./eslint-rules/no-nonstandard-date-rendering.js";
-
+import { noRelativeComponentImports } from "./eslint-rules/no-relative-component-imports.js";
+import { noNonstandardDateFormatting } from "./eslint-rules/no-nonstandard-date-formatting.js";
 
 export default [
   js.configs.recommended,
@@ -31,9 +26,9 @@ export default [
           "no-relative-component-imports": noRelativeComponentImports,
         },
       },
-      "no-nonstandard-date-rendering": {
+      "no-nonstandard-date-formatting": {
         rules: {
-          "no-nonstandard-date-rendering": noNonstandardDateRendering,
+          "no-nonstandard-date-formatting": noNonstandardDateFormatting,
         },
       },
     },
@@ -53,12 +48,9 @@ export default [
           exports: "always-multiline",
         },
       ],
-      "no-restricted-exports": [
-        "error",
-        { restrictDefaultExports: { direct: true } },
-      ],
+      "no-restricted-exports": ["error", { restrictDefaultExports: { direct: true } }],
       "no-relative-component-imports/no-relative-component-imports": "error",
-      "no-nonstandard-date-rendering/no-nonstandard-date-rendering": "error",
+      "no-nonstandard-date-formatting/no-nonstandard-date-formatting": "error",
     },
   },
   {

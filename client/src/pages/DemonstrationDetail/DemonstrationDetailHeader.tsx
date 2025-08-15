@@ -4,7 +4,7 @@ import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration } from "demos-server";
 import { ApolloError } from "@apollo/client";
-import { renderDate } from "util/RenderDate";
+import { formatDate } from "util/formatDate";
 
 export type DemonstrationHeaderDetails = {
   state: Pick<Demonstration["state"], "id">;
@@ -99,7 +99,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 <React.Fragment key={field.label}>
                   <li className="text-sm">
                     <strong>{field.label}</strong>:{" "}
-                    {field.value instanceof Date ? renderDate(field.value) : field.value}
+                    {field.value instanceof Date ? formatDate(field.value) : field.value}
                   </li>
                   {index < displayFields.length - 1 && (
                     <li className="text-sm mx-1" aria-hidden="true">

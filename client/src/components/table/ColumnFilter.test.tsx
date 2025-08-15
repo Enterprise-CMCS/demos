@@ -9,7 +9,7 @@ import { testTableData, TestType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
 import { ColumnFilter } from "./ColumnFilter";
 import { isAfter, isBefore, isSameDay } from "date-fns";
-import { renderDate } from "util/RenderDate";
+import { formatDate } from "util/formatDate";
 
 const columnHelper = createColumnHelper<TestType>();
 
@@ -40,7 +40,7 @@ export const testColumns = [
     id: "date",
     header: "Date",
     cell: ({ getValue }) => {
-      return renderDate(getValue());
+      return formatDate(getValue());
     },
     meta: {
       filterConfig: {

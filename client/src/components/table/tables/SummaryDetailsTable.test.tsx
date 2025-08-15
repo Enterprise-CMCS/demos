@@ -8,7 +8,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";
-import { renderDate } from "util/RenderDate";
+import { formatDate } from "util/formatDate";
 
 // Mock the DemonstrationModal component
 vi.mock("components/modal/DemonstrationModal", () => ({
@@ -132,8 +132,8 @@ describe("SummaryDetailsTable", () => {
       render(<SummaryDetailsTable demonstration={testDemonstration} />);
 
       // Check that dates are rendered (format will depend on locale)
-      const effectiveDate = renderDate(testDemonstration.effectiveDate);
-      const expirationDate = renderDate(testDemonstration.expirationDate);
+      const effectiveDate = formatDate(testDemonstration.effectiveDate);
+      const expirationDate = formatDate(testDemonstration.expirationDate);
 
       expect(screen.getByText(effectiveDate)).toBeInTheDocument();
       expect(screen.getByText(expirationDate)).toBeInTheDocument();

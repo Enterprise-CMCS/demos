@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { LogEventArguments, useEvent } from "./useEvent";
-import { renderTimestamp } from "util/RenderDate";
+import { formatTimestamp } from "util/formatDate";
 
 /**
  * MOCKS
@@ -58,7 +58,7 @@ describe("useEvent", () => {
       eventType: "LOGIN_SUCCEEDED",
       eventData: {
         userId: "123",
-        timestamp: renderTimestamp(new Date()),
+        timestamp: formatTimestamp(new Date()),
         metadata: { source: "navigation" },
       },
     };

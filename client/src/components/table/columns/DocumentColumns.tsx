@@ -9,7 +9,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
 import { isAfter, isBefore, isSameDay } from "date-fns";
-import { renderDate } from "util/RenderDate";
+import { formatDate } from "util/formatDate";
 
 export function DocumentColumns() {
   const { getDocumentTypeOptions } = useDocumentType();
@@ -93,7 +93,7 @@ export function DocumentColumns() {
       header: "Date Uploaded",
       cell: ({ getValue }) => {
         const dateValue = getValue();
-        return renderDate(dateValue);
+        return formatDate(dateValue);
       },
       filterFn: (row, columnId, filterValue) => {
         const dateValue = row.getValue(columnId) as string;

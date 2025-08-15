@@ -16,7 +16,7 @@ import { useDemonstration } from "hooks/useDemonstration";
 import { tw } from "tags/tw";
 import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
-import { renderDate } from "util/RenderDate";
+import { formatDate } from "util/formatDate";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
@@ -52,8 +52,8 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
       setState(demonstration.state?.id || "");
       setTitle(demonstration.name || "");
       setProjectOfficer(demonstration.users?.[0]?.id || "");
-      setEffectiveDate(renderDate(demonstration.effectiveDate));
-      setExpirationDate(renderDate(demonstration.expirationDate));
+      setEffectiveDate(formatDate(demonstration.effectiveDate));
+      setExpirationDate(formatDate(demonstration.expirationDate));
       setDescription(demonstration.description || "");
       setCmcsDivision(demonstration.cmcsDivision || "");
       setSignatureLevel(demonstration.signatureLevel || "");

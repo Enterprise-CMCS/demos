@@ -5,7 +5,7 @@ import { EditIcon } from "components/icons";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { Demonstration } from "demos-server";
 import { tw } from "tags/tw";
-import { renderDate } from "util/RenderDate";
+import { formatDate } from "util/formatDate";
 
 type Props = {
   demonstration?: Demonstration;
@@ -88,14 +88,14 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
         <div>
           <div className={LABEL_CLASSES}>Effective Date</div>
           <div className={VALUE_CLASSES}>
-            {demonstration.effectiveDate ? renderDate(demonstration.effectiveDate) : "-"}
+            {demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "-"}
           </div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Expiration Date</div>
           <div className={VALUE_CLASSES}>
-            {demonstration.expirationDate ? renderDate(demonstration.expirationDate) : "-"}
+            {demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "-"}
           </div>
         </div>
 
