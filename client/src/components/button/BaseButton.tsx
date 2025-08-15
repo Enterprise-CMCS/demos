@@ -9,6 +9,8 @@ inline-flex
 items-center
 justify-center
 
+font-semibold
+
 focus:outline-none
 transition-all
 cursor-pointer

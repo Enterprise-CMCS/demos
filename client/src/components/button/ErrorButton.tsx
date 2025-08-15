@@ -8,6 +8,8 @@ hover:bg-error-dark
 
 focus:ring-2
 focus:ring-error-lightest
+
+disabled:border-none
 `;
 
 const getColorClasses = (isOutlined: boolean) => {

@@ -4,8 +4,11 @@ import { tw } from "tags/tw";
 
 const CLASSES = tw`
 text-text-font
+
 focus:ring-2
 focus:ring-warn-lightest
+
+disabled: border-none
 `;
 
 const getColorClasses = (isOutlined: boolean) => {

@@ -12,15 +12,8 @@ focus:ring-2
 focus:ring-action-focus`;
 
 type Props = Omit<ButtonProps, "className" | "isCircle">;
-export const CircleButton: React.FC<Props> = ({ name, children, size, disabled, onClick }) => (
-  <BaseButton
-    name={name}
-    size={size}
-    disabled={disabled}
-    onClick={onClick}
-    isCircle={true}
-    className={CLASSES}
-  >
-    {children}
+export const CircleButton: React.FC<Props> = (props) => (
+  <BaseButton {...props} isCircle={true} className={CLASSES}>
+    {props.children}
   </BaseButton>
 );
