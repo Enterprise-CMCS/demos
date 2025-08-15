@@ -37,13 +37,12 @@ export const documentTypeSchema = gql`
   }
 `;
 
-export type DateTime = Date;
 export interface DocumentType {
   id: string;
   name: string;
   description: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   documents: Document[];
 }
 

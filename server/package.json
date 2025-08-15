@@ -34,7 +34,9 @@
     "seed": "prisma migrate reset --force && tsx --inspect ./src/seeder.ts",
     "migrate:empty": "prisma migrate dev --create-only",
     "migrate:reset": "prisma migrate reset --force",
-    "migrate:deploy": "prisma migrate deploy"
+    "migrate:deploy": "prisma migrate deploy",
+    "lint:debug": "node --inspect-brk $(which eslint) ."
+
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",

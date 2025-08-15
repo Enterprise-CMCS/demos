@@ -56,7 +56,6 @@ export const userSchema = gql`
   }
 `;
 
-export type DateTime = Date;
 export interface User {
   id: string;
   cognitoSubject: string;
@@ -64,8 +63,8 @@ export interface User {
   email: string;
   fullName: string;
   displayName: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   states: State[];
   roles: Role[];
   demonstrations: Demonstration[];

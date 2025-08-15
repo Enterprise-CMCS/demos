@@ -36,13 +36,12 @@ export const permissionSchema = gql`
   }
 `;
 
-export type DateTime = Date;
 export interface Permission {
   id: string;
   name: string;
   description: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   roles: Role[];
 }
 

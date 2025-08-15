@@ -65,13 +65,12 @@ export const modificationStatusSchema = gql`
   }
 `;
 
-export type DateTime = Date;
 export interface AmendmentStatus {
   id: string;
   name: string;
   description: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   amendments: Amendment[];
 }
 
@@ -90,8 +89,8 @@ export interface ExtensionStatus {
   id: string;
   name: string;
   description: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   extensions: Extension[];
 }
 export interface AddExtensionStatusInput {

@@ -43,7 +43,6 @@ export const eventSchema = gql`
   }
 `;
 
-type DateTime = Date;
 export interface Event {
   id: string;
   user?: User;
@@ -51,7 +50,7 @@ export interface Event {
   logLevel: string;
   withRole?: Role;
   route: string;
-  createdAt: DateTime;
+  createdAt: Date;
   eventData: object;
 }
 

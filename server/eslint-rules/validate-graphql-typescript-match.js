@@ -16,6 +16,7 @@ const NUMBER = "number";
 const BOOLEAN = "boolean";
 const LIST = "list";
 const OBJECT = "object";
+const DATE = "Date";
 
 const GQL_NAMED_TYPE = "NamedType";
 const GQL_LIST_TYPE = "ListType";
@@ -28,6 +29,7 @@ const GQL_TYPE_TO_NORMALIZED_TYPE = {
   Boolean: BOOLEAN,
   ID: STRING,
   JSONObject: OBJECT,
+  DateTime: DATE,
 };
 
 const TS_INTERFACE_DECLARATION = "TSInterfaceDeclaration";

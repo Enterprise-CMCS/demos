@@ -90,7 +90,6 @@ export const documentSchema = gql`
 `;
 
 type Bundle = Demonstration | Amendment | Extension;
-export type DateTime = Date;
 export interface Document {
   id: string;
   title: string;
@@ -100,8 +99,8 @@ export interface Document {
   documentType: DocumentType;
   bundle: Bundle;
   bundleType: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface UploadDemonstrationDocumentInput {
