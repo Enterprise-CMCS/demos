@@ -110,6 +110,8 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
             Cancel
           </SecondaryButton>
           <Button
+            name="submit-button"
+            onClick={() => {}}
             size="small"
             type="submit"
             form={`create-${mode}-form`}
