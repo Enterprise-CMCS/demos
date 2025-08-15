@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { PrimaryButton, SecondaryButton } from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
@@ -123,7 +123,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
           <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
-          <PrimaryButton
+          <Button
             size="small"
             disabled={!isFormValid || formStatus === "pending"}
             onClick={handleSubmit}
@@ -152,7 +152,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
             ) : (
               "Submit"
             )}
-          </PrimaryButton>
+          </Button>
         </>
       }
     >

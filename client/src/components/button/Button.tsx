@@ -4,24 +4,15 @@ import { BaseButton, ButtonProps } from "./BaseButton";
 import { tw } from "tags/tw";
 
 const CLASSES = tw`
-bg-white
-text-action
-border
-border-action
+bg-action 
+text-white 
+hover:bg-brand
 
-hover:bg-action
-hover:text-white
-
-focus:ring-2
 focus:ring-action-focus
-
-disabled:bg-white
-disabled:border-border-rules
-disabled:text-text-placeholder
-`;
+focus:ring-2`;
 
 type Props = Omit<ButtonProps, "className" | "isCircle">;
-export const SecondaryButton: React.FC<Props> = (props) => (
+export const Button: React.FC<Props> = (props) => (
   <BaseButton {...props} className={CLASSES}>
     {props.children}
   </BaseButton>

@@ -1,11 +1,7 @@
 import React, { useRef, useState, useCallback } from "react";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import {
-  ErrorMessage,
-  UploadStatus,
-  useFileUpload,
-} from "hooks/file/useFileUpload";
-import { ErrorButton, PrimaryButton, SecondaryButton } from "components/button";
+import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
+import { ErrorButton, Button, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
@@ -142,13 +138,7 @@ const DropTarget: React.FC<{
   uploadProgress: number;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
-}> = ({
-  file,
-  fileInputRef,
-  uploadStatus,
-  uploadProgress,
-  handleFileChange,
-}) => {
+}> = ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
   const handleFiles = useCallback(
     (files: FileList) => {
       if (!files || files.length === 0) return;
@@ -164,11 +154,7 @@ const DropTarget: React.FC<{
   );
   const { handleDragOver, handleDrop } = useFileDrop(handleFiles);
   return (
-    <div
-      className={STYLES.dropzone}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
+    <div className={STYLES.dropzone} onDragOver={handleDragOver} onDrop={handleDrop}>
       <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
       <p className={STYLES.dropzoneOr}>or</p>
       <input
@@ -188,10 +174,7 @@ const DropTarget: React.FC<{
         className="w-full max-w-full overflow-hidden text-ellipsis"
       >
         {file ? (
-          <span
-            className="inline-block max-w-full truncate text-left"
-            title={file.name}
-          >
+          <span className="inline-block max-w-full truncate text-left" title={file.name}>
             {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
           </span>
         ) : (
@@ -238,8 +221,7 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   const { showSuccess } = useToast();
 
   const documentModalType: DocumentModalType = forDocumentId ? "edit" : "add";
-  const modalTitle =
-    documentModalType === "edit" ? "Edit Document" : "Add New Document";
+  const modalTitle = documentModalType === "edit" ? "Edit Document" : "Add New Document";
 
   const [documentTitle, setDocumentTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
@@ -248,14 +230,13 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { file, uploadProgress, uploadStatus, handleFileChange } =
-    useFileUpload({
-      allowedMimeTypes: ALLOWED_MIME_TYPES,
-      maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
-      onErrorCallback: (errorMessage: ErrorMessage) => {
-        setError(errorMessage);
-      },
-    });
+  const { file, uploadProgress, uploadStatus, handleFileChange } = useFileUpload({
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
+    maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
+    onErrorCallback: (errorMessage: ErrorMessage) => {
+      setError(errorMessage);
+    },
+  });
 
   const handleUpload = () => {
     if (!description) {
@@ -278,34 +259,24 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
       setShowCancelConfirm={setShowCancelConfirm}
       actions={
         <>
-          <SecondaryButton
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-          >
+          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
-          <PrimaryButton
+          <Button
             size="small"
             onClick={handleUpload}
             disabled={!description || !file || uploadStatus === "uploading"}
             aria-label="Upload Document"
           >
             Upload
-          </PrimaryButton>
+          </Button>
         </>
       }
     >
       {documentModalType === "edit" && (
-        <TitleInput
-          value={documentTitle}
-          onChange={(newTitle) => setDocumentTitle(newTitle)}
-        />
+        <TitleInput value={documentTitle} onChange={(newTitle) => setDocumentTitle(newTitle)} />
       )}
-      <DescriptionInput
-        value={description}
-        onChange={setDescription}
-        error={error}
-      />
+      <DescriptionInput value={description} onChange={setDescription} error={error} />
       <DocumentTypeInput
         value={selectedType}
         error={error}
@@ -324,9 +295,9 @@ const BaseDocumentModal: React.FC<BaseDocumentModalProps> = ({
   );
 };
 
-export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({
-  onClose,
-}) => <BaseDocumentModal onClose={onClose} />;
+export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <BaseDocumentModal onClose={onClose} />
+);
 
 export const EditDocumentModal: React.FC<{
   documentId: string;

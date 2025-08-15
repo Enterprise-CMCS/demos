@@ -1,29 +1,25 @@
 import React from "react";
-import { BaseButton, ButtonSize } from "./BaseButton";
+import { BaseButton, ButtonProps } from "./BaseButton";
+import { tw } from "tags/tw";
 
-interface Props {
-  children: React.ReactNode;
-  size?: ButtonSize;
-  disabled?: boolean;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  ariaLabel?: string;
-  className?: string;
-}
+const CLASSES = tw`
+bg-white
+text-action
+border
+border-action
+hover:bg-action-hover
+focus:ring-2
+focus:ring-action-focus`;
 
-export const CircleButton: React.FC<Props> = ({
-  children,
-  size = "standard",
-  disabled = false,
-  onClick,
-  ariaLabel,
-  className = "",
-}) => (
+type Props = Omit<ButtonProps, "className" | "isCircle">;
+export const CircleButton: React.FC<Props> = ({ name, children, size, disabled, onClick }) => (
   <BaseButton
+    name={name}
     size={size}
     disabled={disabled}
     onClick={onClick}
-    ariaLabel={ariaLabel}
-    className={`bg-white text-[var(--color-action)] border border-[var(--color-action)] hover:bg-[var(--color-action-hover)] focus:ring-2 focus:ring-[var(--color-action-focus)] rounded-full ${className}`}
+    isCircle={true}
+    className={CLASSES}
   >
     {children}
   </BaseButton>

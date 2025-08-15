@@ -1,56 +1,77 @@
 import React from "react";
+import { tw } from "tags/tw";
 
 export type ButtonSize = "small" | "standard" | "large";
+export type ButtonType = "button" | "submit" | "reset";
 
-interface BaseButtonProps {
-  type?: "button" | "submit" | "reset";
-  form?: string;
-  size?: ButtonSize;
-  disabled?: boolean;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  className?: string;
-  ariaLabel?: string;
-  children: React.ReactNode;
-}
+const BASE_BUTTON_STYLES = tw`
+inline-flex
+items-center
+justify-center
 
-export const BaseButton: React.FC<BaseButtonProps> = ({
-  type = "button",
-  form,
-  size = "standard",
-  disabled = false,
-  onClick,
-  className = "",
-  ariaLabel,
-  children,
-}) => {
-  const isCircle = className?.includes("rounded-full");
+focus:outline-none
+transition-all
+cursor-pointer
 
-  const sizeClass = isCircle
-    ? {
+disabled:bg-surface-disabled
+disabled:text-text-placeholder
+disabled:cursor-not-allowed`;
+
+const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
+  if (isCircle) {
+    return {
       large: "w-14 h-14 text-[1.4rem] font-semibold leading-none",
       small: "w-8 h-8 text-[1rem] font-medium leading-none",
       standard: "w-12 h-12 text-[1.2rem] font-semibold leading-none",
-    }[size]
-    : {
-      large:
-          "text-[1.6rem] font-semibold px-6 py-3 leading-tight tracking-wide",
-      small:
-          "text-[1.2rem] font-medium px-1 py-1 leading-tight tracking-wide",
-      standard:
-          "text-[1.4rem] font-medium px-4 py-2 leading-tight tracking-wide",
-    }[size];
+    }[buttonSize];
+  }
+  return {
+    large: "text-[1.6rem] font-semibold px-6 py-3 leading-tight tracking-wide",
+    small: "text-[1.2rem] font-medium px-1 py-1 leading-tight tracking-wide",
+    standard: "text-[1.4rem] font-medium px-4 py-2 leading-tight tracking-wide",
+  }[buttonSize];
+};
 
-  const base =
-    "inline-flex items-center justify-center focus:outline-none transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed";
+const getCircleClasses = (isCircle: boolean) => {
+  return isCircle ? "rounded-full" : "rounded-md";
+};
+
+export interface ButtonProps {
+  name?: string;
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  children: React.ReactNode;
+  className: string;
+  type?: ButtonType;
+  form?: string;
+  size?: ButtonSize;
+  disabled?: boolean;
+  isCircle?: boolean;
+}
+
+export const BaseButton: React.FC<ButtonProps> = ({
+  name,
+  onClick,
+  children,
+  form,
+  className,
+  type = "button",
+  size = "standard",
+  disabled = false,
+  isCircle = false,
+}) => {
+  const sizeClasses = getSizeClasses(isCircle, size);
+  const circleClasses = getCircleClasses(isCircle);
 
   return (
     <button
+      name={name}
+      data-testid={name}
+      aria-label={`button-${name}`}
       type={type}
-      form={form}
-      className={`${base} ${sizeClass} ${className}`}
-      disabled={disabled}
       onClick={onClick}
-      aria-label={ariaLabel}
+      {...(form ? { form } : {})}
+      className={`${BASE_BUTTON_STYLES} ${sizeClasses} ${circleClasses} ${className}`}
+      disabled={disabled}
     >
       {children}
     </button>

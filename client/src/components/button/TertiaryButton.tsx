@@ -1,33 +1,34 @@
 import React from "react";
 
-import {
-  BaseButton,
-  ButtonSize,
-} from "./BaseButton";
+import { BaseButton, ButtonProps } from "./BaseButton";
+import { tw } from "tags/tw";
 
-interface Props {
-  type?: "button" | "submit" | "reset";
-  size?: ButtonSize;
-  disabled?: boolean;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  children: React.ReactNode;
-  className?: string;
-}
+const CLASSES = tw`
+bg-transparent
+text-action
+border
+border-action
+hover:bg-action
+hover:text-white
+focus:ring-2
+focus:ring-action-focus`;
 
+type Props = Omit<ButtonProps, "className" | "isCircle">;
 export const TertiaryButton: React.FC<Props> = ({
-  type = "button", // default it to "button" for safety
-  size = "standard",
-  disabled = false,
+  name,
+  type,
+  size,
+  disabled,
   onClick,
   children,
-  className = "",
 }) => (
   <BaseButton
+    name={name}
     type={type}
     size={size}
     disabled={disabled}
     onClick={onClick}
-    className={`bg-transparent text-[var(--color-action)] border border-[var(--color-action)] hover:bg-[var(--color-action)] hover:text-white focus:ring-2 focus:ring-[var(--color-action-focus)] rounded-md ${className}`}
+    className={CLASSES}
   >
     {children}
   </BaseButton>

@@ -2,21 +2,20 @@ import React from "react";
 
 import { CircleButton } from "./CircleButton";
 import { ErrorButton } from "./ErrorButton";
-import { ErrorOutlinedButton } from "./ErrorOutlinedButton";
-import { PrimaryButton } from "./PrimaryButton";
+import { Button } from "./Button";
 import { SecondaryButton } from "./SecondaryButton";
 import { TertiaryButton } from "./TertiaryButton";
 import { WarningButton } from "./WarningButton";
-import { WarningOutlinedButton } from "./WarningOutlinedButton";
+import { ButtonProps } from "./BaseButton";
 
 const variants = {
-  primary: PrimaryButton,
+  primary: Button,
   secondary: SecondaryButton,
   tertiary: TertiaryButton,
   error: ErrorButton,
-  "error-outlined": ErrorOutlinedButton,
+  "error-outlined": (props: ButtonProps) => <ErrorButton {...props} isOutlined={true} />,
   warning: WarningButton,
-  "warning-outlined": WarningOutlinedButton,
+  "warning-outlined": (props: ButtonProps) => <WarningButton {...props} isOutlined={true} />,
 };
 
 const sizes = ["standard", "large"] as const;
@@ -31,9 +30,7 @@ export const ButtonGrid: React.FC = () => {
             <th className="p-2"></th>
             {sizes.map((size) => (
               <th key={size} colSpan={4} className="text-center text-black p-2">
-                {size === "standard"
-                  ? "Standard Button Size"
-                  : "Large Button Size"}
+                {size === "standard" ? "Standard Button Size" : "Large Button Size"}
               </th>
             ))}
             <th colSpan={4} className="text-center text-black p-2">
@@ -50,10 +47,7 @@ export const ButtonGrid: React.FC = () => {
               ))
             )}
             {states.map((state) => (
-              <th
-                key={`circle-${state}`}
-                className="p-2 text-center text-black"
-              >
+              <th key={`circle-${state}`} className="p-2 text-center text-black">
                 {state}
               </th>
             ))}
@@ -65,11 +59,10 @@ export const ButtonGrid: React.FC = () => {
               <td className="p-2 font-medium text-black">{variantName}</td>
               {sizes.flatMap((size) =>
                 states.map((state) => (
-                  <td
-                    key={`${variantName}-${size}-${state}`}
-                    className="p-2 text-center"
-                  >
+                  <td key={`${variantName}-${size}-${state}`} className="p-2 text-center">
                     <VariantButton
+                      name={"test-button"}
+                      onClick={() => {}}
                       size={size}
                       disabled={state === "Disabled"}
                       className={
@@ -88,15 +81,10 @@ export const ButtonGrid: React.FC = () => {
               {states.map((state) => (
                 <td key={`circle-${state}`} className="p-2 text-center">
                   <CircleButton
+                    name="test-circle-button"
+                    onClick={() => {}}
                     size="standard"
                     disabled={state === "Disabled"}
-                    className={
-                      state === "Hover"
-                        ? "hover:scale-105"
-                        : state === "Focus"
-                          ? "ring-2 ring-offset-2 ring-blue-500"
-                          : ""
-                    }
                   >
                     Save
                   </CircleButton>
