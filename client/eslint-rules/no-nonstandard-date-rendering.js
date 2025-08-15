@@ -1,6 +1,6 @@
 import { ESLintUtils } from "@typescript-eslint/utils";
 
-const createRule = ESLintUtils.RuleCreator(name => name);
+const createRule = ESLintUtils.RuleCreator((name) => name);
 
 const DATE_METHODS = [
   "toLocaleDateString",
@@ -20,7 +20,7 @@ export const noNonstandardDateRendering = createRule({
       category: "Best Practices",
     },
     messages: {
-      useRenderDate: "Render dates using the renderDate utility.",
+      useRenderDate: "Render dates using the RenderDate utility.",
     },
     type: "problem",
     schema: [],

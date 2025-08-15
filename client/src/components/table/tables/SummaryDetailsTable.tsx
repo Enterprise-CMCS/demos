@@ -5,7 +5,7 @@ import { EditIcon } from "components/icons";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { Demonstration } from "demos-server";
 import { tw } from "tags/tw";
-import { renderDate } from "util/USDate";
+import { renderDate } from "util/RenderDate";
 
 type Props = {
   demonstration?: Demonstration;

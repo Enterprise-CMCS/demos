@@ -4,7 +4,7 @@ import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration } from "demos-server";
 import { ApolloError } from "@apollo/client";
-import { renderDate } from "util/USDate";
+import { renderDate } from "util/RenderDate";
 
 export type DemonstrationHeaderDetails = {
   state: Pick<Demonstration["state"], "id">;

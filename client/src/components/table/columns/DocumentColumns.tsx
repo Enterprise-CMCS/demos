@@ -9,7 +9,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
 import { isAfter, isBefore, isSameDay } from "date-fns";
-import { renderDate } from "util/USDate";
+import { renderDate } from "util/RenderDate";
 
 export function DocumentColumns() {
   const { getDocumentTypeOptions } = useDocumentType();

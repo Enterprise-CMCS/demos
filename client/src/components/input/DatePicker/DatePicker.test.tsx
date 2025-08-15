@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 
 import { DatePicker } from "./DatePicker";
 import { format, isAfter, parse } from "date-fns";
-import { renderDate } from "util/USDate";
+import { renderDate } from "util/RenderDate";
 
 // this assumes the date is in the past.
 export async function pickDateInCalendar({

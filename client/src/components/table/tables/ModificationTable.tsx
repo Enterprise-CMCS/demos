@@ -10,7 +10,7 @@ import {
 } from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
 import { Amendment, Extension } from "demos-server";
-import { renderDate } from "util/USDate";
+import { renderDate } from "util/RenderDate";
 
 export type ModificationTableRow =
   | {

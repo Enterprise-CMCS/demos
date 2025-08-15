@@ -16,7 +16,7 @@ import { useDemonstration } from "hooks/useDemonstration";
 import { tw } from "tags/tw";
 import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
-import { renderDate } from "util/USDate";
+import { renderDate } from "util/RenderDate";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;

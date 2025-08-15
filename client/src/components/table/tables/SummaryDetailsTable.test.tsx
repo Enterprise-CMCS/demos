@@ -8,7 +8,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";
-import { renderDate } from "util/USDate";
+import { renderDate } from "util/RenderDate";
 
 // Mock the DemonstrationModal component
 vi.mock("components/modal/DemonstrationModal", () => ({
