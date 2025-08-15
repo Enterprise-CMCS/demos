@@ -90,24 +90,27 @@ const TitleInput: React.FC<{ value: string; onChange: (v: string) => void }> = (
 
 // Forward ref so we can focus() the textarea when a field is missing
 type DescriptionInputProps = { value: string; onChange: (v: string) => void; error?: string };
-const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(({ value, onChange, error }, ref) => (
-  <div>
-    <label className={STYLES.label}>
-      <span className="text-text-warn mr-1">*</span>Document Description
-    </label>
-    <textarea
-      ref={ref}
-      rows={2}
-      placeholder="Enter"
-      className={STYLES.textarea}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-invalid={!!error}
-      aria-describedby={error ? "description-error" : undefined}
-    />
-  </div>
-));
-DescriptionInput.displayName = "DescriptionInput";
+const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
+  function DescriptionInput({ value, onChange, error }, ref) {
+    return (
+      <div>
+        <label className={STYLES.label}>
+          <span className="text-text-warn mr-1">*</span>Document Description
+        </label>
+        <textarea
+          ref={ref}
+          rows={2}
+          placeholder="Enter"
+          className={STYLES.textarea}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-invalid={!!error}
+          aria-describedby={error ? "description-error" : undefined}
+        />
+      </div>
+    );
+  }
+);
 
 const DocumentTypeInput: React.FC<{
   value?: string;
@@ -292,7 +295,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
       return;
     }
     // This is just for testing purposes. Fill it in as needed
-    const success = false;
+    const success = true;
     try {
       setSubmitting(true);
       // your api/mutator call goes here
