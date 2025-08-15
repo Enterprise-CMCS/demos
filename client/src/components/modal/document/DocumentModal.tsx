@@ -256,7 +256,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
     setSelectedType(normalizeType(initialType));
   }, [initialType]);
 
-  const documentModalType: DocumentModalType = mode === "remove" ? "add" : mode;
+  const documentModalType: DocumentModalType = mode;
   const modalTitle = documentModalType === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
   const requiresType = documentModalType === "add" || documentModalType === "edit";
