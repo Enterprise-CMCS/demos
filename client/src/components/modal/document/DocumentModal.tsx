@@ -160,7 +160,7 @@ const DropTarget: React.FC<{
       const dataTransfer = new DataTransfer();
       Array.from(fileList).forEach((fileItem) => dataTransfer.items.add(fileItem));
       inputElement.files = dataTransfer.files;
-      // @ts-expect-error: shape it like a synthetic event for our handler
+      // @ts-expect-error: for React synthetic event compatibility
       handleFileChange({ target: inputElement });
     },
     [handleFileChange]
