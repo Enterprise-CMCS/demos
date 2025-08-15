@@ -60,15 +60,15 @@ const getErrorMessage = (error: unknown): string => {
 };
 
 // helper to choose the unknown-error copy by mode
-const unknownErrorText = (m: DocumentModalType) =>
-  m === "edit"
+const unknownErrorText = (mode: DocumentModalType) =>
+  mode === "edit"
     ? "Your changes could not be saved because of an unknown problem."
     : "Your document could not be added because of an unknown problem.";
 
-const normalizeType = (t?: string) => {
-  if (!t) return "";
-  if (DOCUMENT_TYPES.some((o) => o.value === t)) return t;
-  return DOCUMENT_TYPES.find((o) => o.label === t)?.value ?? "";
+const normalizeType = (doctype?: string) => {
+  if (!doctype) return "";
+  if (DOCUMENT_TYPES.some((o) => o.value === doctype)) return doctype;
+  return DOCUMENT_TYPES.find((o) => o.label === doctype)?.value ?? "";
 };
 
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
@@ -77,19 +77,19 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
 
-const TitleInput: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
+const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({ value, onChange }) => (
   <TextInput
     name="title"
     label="Document Title"
     isRequired
     placeholder="Enter document title"
-    onChange={(e) => onChange(e.target.value)}
+    onChange={(event) => onChange(event.target.value)}
     value={value}
   />
 );
 
 // Forward ref so we can focus() the textarea when a field is missing
-type DescriptionInputProps = { value: string; onChange: (v: string) => void; error?: string };
+type DescriptionInputProps = { value: string; onChange: (value: string) => void; error?: string };
 const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
   function DescriptionInput({ value, onChange, error }, ref) {
     return (
@@ -103,7 +103,7 @@ const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
           placeholder="Enter"
           className={STYLES.textarea}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(event) => onChange(event.target.value)}
           aria-invalid={!!error}
           aria-describedby={error ? "description-error" : undefined}
         />
@@ -114,7 +114,7 @@ const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
 
 const DocumentTypeInput: React.FC<{
   value?: string;
-  onSelect?: (v: string) => void;
+  onSelect?: (value: string) => void;
 }> = ({ value, onSelect }) => {
   return (
     <AutoCompleteSelect
@@ -122,7 +122,7 @@ const DocumentTypeInput: React.FC<{
       label="Document Type"
       options={DOCUMENT_TYPES}
       value={value}
-      onSelect={(val) => onSelect?.(val)}
+      onSelect={(selectedValue) => onSelect?.(selectedValue)}
     />
   );
 };
@@ -150,18 +150,18 @@ const DropTarget: React.FC<{
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   uploadStatus: UploadStatus;
   uploadProgress: number;
-  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }> = ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
   const handleFiles = useCallback(
-    (files: FileList) => {
-      if (!files || files.length === 0) return;
-      const input = document.createElement("input");
-      input.type = "file";
-      const dt = new DataTransfer();
-      Array.from(files).forEach((f) => dt.items.add(f));
-      input.files = dt.files;
+    (fileList: FileList) => {
+      if (!fileList || fileList.length === 0) return;
+      const inputElement = document.createElement("input");
+      inputElement.type = "file";
+      const dataTransfer = new DataTransfer();
+      Array.from(fileList).forEach((fileItem) => dataTransfer.items.add(fileItem));
+      inputElement.files = dataTransfer.files;
       // @ts-expect-error: shape it like a synthetic event for our handler
-      handleFileChange({ target: input });
+      handleFileChange({ target: inputElement });
     },
     [handleFileChange]
   );
@@ -256,10 +256,9 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
     setSelectedType(normalizeType(initialType));
   }, [initialType]);
 
-  const documentModalType: DocumentModalType = mode;
-  const modalTitle = documentModalType === "edit" ? "Edit Document" : "Add New Document";
+  const modalTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
-  const requiresType = documentModalType === "add" || documentModalType === "edit";
+  const requiresType = mode === "add" || mode === "edit";
 
   const isMissing =
     !description.trim() ||
@@ -306,13 +305,13 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
       }
       onClose();
     } catch (error: unknown) {
-      const msg = error instanceof Error ? getErrorMessage(error) : unknownErrorText(documentModalType);
+      const msg = error instanceof Error ? getErrorMessage(error) : unknownErrorText(mode);
       showError(msg);
     } finally {
       onClose();
       if (success) {
         showSuccess(
-          documentModalType === "edit"
+          mode === "edit"
             ? SUCCESS_MESSAGES.fileUpdated
             : SUCCESS_MESSAGES.fileUploaded
         );
@@ -344,7 +343,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
         </>
       }
     >
-      {documentModalType === "edit" && <TitleInput value={documentTitle} onChange={setDocumentTitle} />}
+      {mode === "edit" && <TitleInput value={documentTitle} onChange={setDocumentTitle} />}
 
       <DescriptionInput
         ref={descriptionRef}
@@ -390,18 +389,18 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
   const { showWarning, showError } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
-  const onConfirm = async (ids: string[]) => {
+  const onConfirm = async (documentIdList: string[]) => {
     try {
       setSubmitting(true);
-      // TODO: await api.deleteDocuments(ids);
-      const multiple = ids.length > 1;
+      // TODO: await api.deleteDocuments(documentIdList);
+      const isMultiple = documentIdList.length > 1;
       showWarning(
-        `Your document${multiple ? "s" : ""} ${multiple ? "have been" : "has been"} removed.`
+        `Your document${isMultiple ? "s" : ""} ${isMultiple ? "have been" : "has been"} removed.`
       );
       onClose();
-    } catch (e) {
+    } catch (error) {
       showError("Your changes could not be saved due to an unknown problem.");
-      console.error("Remove documents failed:", e);
+      console.error("Remove documents failed:", error);
     } finally {
       setSubmitting(false);
     }
