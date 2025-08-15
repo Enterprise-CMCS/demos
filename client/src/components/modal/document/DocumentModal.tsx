@@ -222,7 +222,7 @@ const DropTarget: React.FC<{
 
 type DocumentModalProps = {
   onClose?: () => void;
-  mode: "add" | "edit" | "remove";
+  mode: "add" | "edit";
   forDocumentId?: string;
   initialTitle?: string;
   initialDescription?: string;
