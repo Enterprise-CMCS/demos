@@ -51,9 +51,7 @@ export const Input: React.FC<InputProps> = ({
 
   const currentValue = isControlled ? value : internalValue;
 
-  const validationMessage = getValidationMessage
-    ? getValidationMessage(currentValue)
-    : "";
+  const validationMessage = getValidationMessage ? getValidationMessage(currentValue) : "";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isControlled) setInternalValue(e.target.value);
@@ -69,6 +67,7 @@ export const Input: React.FC<InputProps> = ({
       <input
         id={name}
         name={name}
+        data-testid={name}
         type={type}
         className={`${INPUT_BASE_CLASSES} ${getInputColors(currentValue, validationMessage ?? "")}`}
         placeholder={placeholder ?? ""}
@@ -77,11 +76,7 @@ export const Input: React.FC<InputProps> = ({
         value={currentValue}
         onChange={handleChange}
       />
-      {validationMessage && (
-        <span className={VALIDATION_MESSAGE_CLASSES}>
-          {validationMessage}
-        </span>
-      )}
+      {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
   );
 };

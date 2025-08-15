@@ -13,10 +13,7 @@ import {
   MenuCollapseRightIcon,
   ScaleIcon,
 } from "components/icons";
-import {
-  Link,
-  useLocation,
-} from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 type SVGIconElement = React.ReactElement<React.SVGProps<SVGSVGElement>>;
 
@@ -76,7 +73,8 @@ const NavLinks = (props: NavLinkProps) => {
 
                 {/* Icon */}
                 <span
-                  className={`shrink-0 ${isActive ? "text-[var(--color-text-active)]" : "text-black"
+                  className={`shrink-0 ${
+                    isActive ? "text-[var(--color-text-active)]" : "text-black"
                   }`}
                 >
                   {React.cloneElement(link.icon, {
@@ -86,10 +84,7 @@ const NavLinks = (props: NavLinkProps) => {
 
                 {/* Label */}
                 {!props.collapsed && (
-                  <span
-                    className={`${isActive ? "font-semibold text-black" : "text-black"
-                    }`}
-                  >
+                  <span className={`${isActive ? "font-semibold text-black" : "text-black"}`}>
                     {link.label}
                   </span>
                 )}
@@ -107,13 +102,11 @@ interface SideNavProps {
   setCollapsed: (val: boolean) => void;
 }
 
-export const SideNav: React.FC<SideNavProps> = ({
-  collapsed,
-  setCollapsed,
-}) => {
+export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => {
   return (
     <nav
-      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${collapsed ? "w-20" : "w-64"
+      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${
+        collapsed ? "w-20" : "w-64"
       } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
     >
       {/* Collapse Toggle */}
@@ -124,6 +117,7 @@ export const SideNav: React.FC<SideNavProps> = ({
               onClick={() => setCollapsed(true)}
               className="text-[var(--color-text-active)] hover:opacity-80"
               aria-label="Collapse Menu"
+              data-testid="collapse-sidenav"
             >
               <div className="w-1 h-1">
                 <MenuCollapseLeftIcon />
@@ -136,6 +130,7 @@ export const SideNav: React.FC<SideNavProps> = ({
               onClick={() => setCollapsed(false)}
               className="text-black hover:opacity-80"
               aria-label="Expand Menu"
+              data-testid="expand-sidenav"
             >
               <div className="w-[14px] h-[14px]">
                 <MenuCollapseRightIcon />

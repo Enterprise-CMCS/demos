@@ -52,7 +52,9 @@ export const CheckboxGroup = ({
   const [validationMessage, setValidationMessage] = useState("");
   let checkboxColorClasses = getCheckboxColors("");
 
-  const checkboxContainerClasses = isInline ? CHECKBOX_CONTAINER_BASE_CLASSES :`${CHECKBOX_CONTAINER_BASE_CLASSES} flex-col`;
+  const checkboxContainerClasses = isInline
+    ? CHECKBOX_CONTAINER_BASE_CLASSES
+    : `${CHECKBOX_CONTAINER_BASE_CLASSES} flex-col`;
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const changedValue = event.target.value;
@@ -92,7 +94,14 @@ export const CheckboxGroup = ({
             />
             <div>
               <p>{option.label}</p>
-              {option.helperText && <p id="helper-checkbox-text" className="text-xs break-before font-normal text-gray-500 dark:text-gray-300">{option.helperText}</p>}
+              {option.helperText && (
+                <p
+                  id="helper-checkbox-text"
+                  className="text-xs break-before font-normal text-gray-500 dark:text-gray-300"
+                >
+                  {option.helperText}
+                </p>
+              )}
             </div>
           </label>
         ))}
