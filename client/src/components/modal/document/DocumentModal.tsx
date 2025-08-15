@@ -229,7 +229,7 @@ type DocumentModalProps = {
   initialType?: string;
 };
 
-export const DocumentModal: React.FC<DocumentModalProps> = ({
+const DocumentModal: React.FC<DocumentModalProps> = ({
   onClose = () => {},
   mode,
   initialTitle = "",
