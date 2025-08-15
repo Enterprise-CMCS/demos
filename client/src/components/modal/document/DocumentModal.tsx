@@ -261,6 +261,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 
   const requiresType = mode === "add" || mode === "edit";
 
+  // Edit has a title, but create does not. (maybe HCD convo)
   const isMissing =
     (mode === "edit" && !documentTitle.trim()) ||
     !description.trim() ||
