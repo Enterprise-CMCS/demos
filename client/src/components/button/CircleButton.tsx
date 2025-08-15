@@ -7,9 +7,13 @@ bg-white
 text-action
 border
 border-action
+
 hover:bg-action-hover
+
 focus:ring-2
-focus:ring-action-focus`;
+focus:ring-action-focus
+
+disabled:border-none`;
 
 type Props = Omit<ButtonProps, "className" | "isCircle">;
 export const CircleButton: React.FC<Props> = (props) => (
