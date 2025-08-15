@@ -258,9 +258,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 
   const modalTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
+
   const requiresType = mode === "add" || mode === "edit";
 
   const isMissing =
+    (mode === "edit" && !documentTitle.trim()) ||
     !description.trim() ||
     !file ||
     (requiresType && !selectedType);
@@ -335,8 +337,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
-            aria-disabled={isMissing || submitting}
-            disabled={isUploading || submitting}
+            aria-disabled={isMissing || isUploading || submitting ? "true" : "false"}
+            disabled={isMissing || isUploading || submitting}
           >
             Upload
           </PrimaryButton>
@@ -420,6 +422,7 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
             onClick={() => onConfirm(documentIds)}
             aria-label="Confirm Remove Document"
             disabled={submitting}
+            aria-disabled={submitting}
           >
             {submitting ? "Removing..." : "Remove"}
           </ErrorButton>
