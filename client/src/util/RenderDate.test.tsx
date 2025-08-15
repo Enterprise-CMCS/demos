@@ -45,4 +45,21 @@ describe("RenderDate utilities", () => {
     expect(renderDate(singleDigitMonthDay)).toMatch(/^03\/05\/2023$/);
     expect(renderDateTime(singleDigitMonthDay)).toMatch(/^03\/05\/2023 07:08$/);
   });
+
+  it("displays UTC dates in local time", () => {
+    const utcDate = new Date(Date.UTC(2023, 0, 2, 0, 0, 0)); // Jan 2, 2023, 00:00:00 UTC
+
+    // The rendered date should match the local date for that UTC instant
+    // (e.g., if your local timezone is GMT-5, this will be Jan 1, 2023, 19:00:00 local)
+    const localDateString = utcDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    expect(renderDate(utcDate)).toBe(localDateString);
+
+    // The rendered datetime should match the local time for that UTC instant
+    const localDateTimeString = `${localDateString} ${utcDate.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}`;
+    expect(renderDateTime(utcDate)).toBe(localDateTimeString);
+  });
 });
