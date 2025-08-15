@@ -2,110 +2,101 @@ import React from "react";
 
 import { CircleButton } from "./CircleButton";
 import { ErrorButton } from "./ErrorButton";
-import { ErrorOutlinedButton } from "./ErrorOutlinedButton";
-import { PrimaryButton } from "./PrimaryButton";
+import { Button } from "./Button";
 import { SecondaryButton } from "./SecondaryButton";
 import { TertiaryButton } from "./TertiaryButton";
 import { WarningButton } from "./WarningButton";
-import { WarningOutlinedButton } from "./WarningOutlinedButton";
+import { ButtonProps } from "./BaseButton";
+import { SaveIcon, DeleteIcon } from "icons";
 
 const variants = {
-  primary: PrimaryButton,
+  primary: Button,
   secondary: SecondaryButton,
   tertiary: TertiaryButton,
   error: ErrorButton,
-  "error-outlined": ErrorOutlinedButton,
+  "error-outlined": (props: ButtonProps) => <ErrorButton {...props} isOutlined={true} />,
   warning: WarningButton,
-  "warning-outlined": WarningOutlinedButton,
+  "warning-outlined": (props: ButtonProps) => <WarningButton {...props} isOutlined={true} />,
 };
 
-const sizes = ["standard", "large"] as const;
-const states = ["Default", "Hover", "Focus", "Disabled"] as const;
-
 export const ButtonGrid: React.FC = () => {
+  const [allDisabled, setAllDisabled] = React.useState(false);
+
+  const sizes = ["standard", "large"] as const;
+
   return (
-    <div className="overflow-auto text-sm text-black">
-      <table className="border-collapse w-full">
-        <thead>
-          <tr>
-            <th className="p-2"></th>
-            {sizes.map((size) => (
-              <th key={size} colSpan={4} className="text-center text-black p-2">
-                {size === "standard"
-                  ? "Standard Button Size"
-                  : "Large Button Size"}
-              </th>
-            ))}
-            <th colSpan={4} className="text-center text-black p-2">
-              Circular Buttons
-            </th>
-          </tr>
-          <tr>
-            <th className="p-2 text-left">Variant</th>
-            {sizes.flatMap(() =>
-              states.map((state) => (
-                <th key={state} className="p-2 text-center text-black">
-                  {state}
-                </th>
-              ))
-            )}
-            {states.map((state) => (
-              <th
-                key={`circle-${state}`}
-                className="p-2 text-center text-black"
+    <div className="overflow-auto text-black">
+      <div className="mb-2 flex gap-1">
+        <button
+          type="button"
+          onClick={() => setAllDisabled((d) => !d)}
+          className="px-2 py-1 border rounded bg-gray-100"
+        >
+          {allDisabled ? "Enable All" : "Disable All"}
+        </button>
+      </div>
+      <div className="mb-2 text-lg font-bold text-gray-700">
+        <strong>Focus Testing:</strong> Click on a button and use Tab/Shift+Tab to move through the
+        elements.
+      </div>
+      <div className="mb-4">
+        <div className="font-bold text-left px-1 py-0.5" tabIndex={-1}>
+          Circle Buttons
+        </div>
+        <div className="flex gap-2 flex-wrap" tabIndex={-1}>
+          <CircleButton
+            key="circle-save"
+            name="test-circle-button-save"
+            onClick={() => {}}
+            disabled={allDisabled}
+          >
+            <SaveIcon />
+          </CircleButton>
+          <CircleButton
+            key="circle-trash"
+            size="large"
+            name="test-circle-button-trash"
+            onClick={() => {}}
+            disabled={allDisabled}
+          >
+            <DeleteIcon />
+          </CircleButton>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-x-2 gap-y-1 items-center max-w-[720px]">
+        {/* Header Row */}
+        <div className="font-bold text-left px-1 py-0.5" tabIndex={-1}>
+          Variant
+        </div>
+        {sizes.map((size) => (
+          <div key={size} className="font-bold text-center px-1 py-0.5" tabIndex={-1}>
+            {size.charAt(0).toUpperCase() + size.slice(1)} Button
+          </div>
+        ))}
+        {/* Button Rows */}
+        {Object.entries(variants).map(([variantName, VariantButton]) => [
+          <div
+            key={variantName}
+            className="px-1 py-0.5 font-medium text-black text-left"
+            tabIndex={-1}
+          >
+            {variantName}
+          </div>,
+          ...sizes.map((size) => (
+            <div key={`${variantName}-${size}`} className="px-1 py-0.5 text-center" tabIndex={-1}>
+              <VariantButton
+                className=""
+                name={`test-button-${variantName}-${size}`}
+                onClick={() => {}}
+                size={size}
+                disabled={allDisabled}
               >
-                {state}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(variants).map(([variantName, VariantButton]) => (
-            <tr key={variantName}>
-              <td className="p-2 font-medium text-black">{variantName}</td>
-              {sizes.flatMap((size) =>
-                states.map((state) => (
-                  <td
-                    key={`${variantName}-${size}-${state}`}
-                    className="p-2 text-center"
-                  >
-                    <VariantButton
-                      size={size}
-                      disabled={state === "Disabled"}
-                      className={
-                        state === "Hover"
-                          ? "hover:scale-105"
-                          : state === "Focus"
-                            ? "ring-2 ring-offset-2 ring-blue-500"
-                            : ""
-                      }
-                    >
-                      Save
-                    </VariantButton>
-                  </td>
-                ))
-              )}
-              {states.map((state) => (
-                <td key={`circle-${state}`} className="p-2 text-center">
-                  <CircleButton
-                    size="standard"
-                    disabled={state === "Disabled"}
-                    className={
-                      state === "Hover"
-                        ? "hover:scale-105"
-                        : state === "Focus"
-                          ? "ring-2 ring-offset-2 ring-blue-500"
-                          : ""
-                    }
-                  >
-                    Save
-                  </CircleButton>
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                Save
+              </VariantButton>
+            </div>
+          )),
+        ])}
+      </div>
     </div>
   );
 };

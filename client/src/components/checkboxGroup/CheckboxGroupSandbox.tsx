@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { CheckboxGroup } from "./CheckboxGroup";
-import { PrimaryButton } from "components/button";
+import { Button } from "components/button";
 
 export const CheckboxGroupSandbox: React.FC = () => {
   const [disabled, setDisabled] = useState(false);
@@ -10,21 +10,13 @@ export const CheckboxGroupSandbox: React.FC = () => {
   return (
     <div>
       <div className="flex gap-sm mb-sm">
-        <PrimaryButton
-          onClick={() => setDisabled((d) => !d)}
-        >
-          {disabled ? "Enable" : "Disable"}
-        </PrimaryButton>
-        <PrimaryButton
-          onClick={() => setIsRequired((r) => !r)}
-        >
+        <Button onClick={() => setDisabled((d) => !d)}>{disabled ? "Enable" : "Disable"}</Button>
+        <Button onClick={() => setIsRequired((r) => !r)}>
           {isRequired ? "Set Not Required" : "Set Required"}
-        </PrimaryButton>
-        <PrimaryButton
-          onClick={() => setIsInline((r) => !r)}
-        >
+        </Button>
+        <Button onClick={() => setIsInline((r) => !r)}>
           {isInline ? "Set Not Inline" : "Set Inline"}
-        </PrimaryButton>
+        </Button>
       </div>
       <CheckboxGroup
         name="toppings"
