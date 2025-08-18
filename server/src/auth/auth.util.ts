@@ -108,20 +108,20 @@ export const getCognitoUserInfoForLambda = (
   return decodeToken(token);
 };
 
-const createUserIfNotExists = async (sub: string, email: string, given_name?: string, family_name?: string): Promise<void> => {
-  const user = await prisma.user.findUnique({ where: { cognitoSubject: sub } });
-  if (!user) {
-    await prisma.user.create({
-      data: {
-        cognitoSubject: sub,
-        email,
-        fullName: `${given_name ?? ""} ${family_name ?? ""}`.trim(),
-        username: email, // or another field if available
-        displayName: given_name ?? email,
-      },
-    });
-  }
-};
+// const createUserIfNotExists = async (sub: string, email: string, given_name?: string, family_name?: string): Promise<void> => {
+//   const user = await prisma.user.findUnique({ where: { cognitoSubject: sub } });
+//   if (!user) {
+//     await prisma.user.create({
+//       data: {
+//         cognitoSubject: sub,
+//         email,
+//         fullName: `${given_name ?? ""} ${family_name ?? ""}`.trim(),
+//         username: email, // or another field if available
+//         displayName: given_name ?? email,
+//       },
+//     });
+//   }
+// };
 
 /**
  * Fetches a user's role from the DB using their Cognito sub.
