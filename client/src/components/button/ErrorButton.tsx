@@ -1,31 +1,32 @@
 import React from "react";
 
-import {
-  BaseButton,
-  ButtonSize,
-} from "./BaseButton";
+import { BaseButton, ButtonProps } from "./BaseButton";
+import { tw } from "tags/tw";
 
-interface Props {
-  size?: ButtonSize;
-  disabled?: boolean;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  children: React.ReactNode;
-  className?: string;
-}
+const CLASSES = tw`
+hover:bg-error-dark
 
-export const ErrorButton: React.FC<Props> = ({
-  size = "standard",
-  disabled = false,
-  onClick,
-  children,
-  className = "",
-}) => (
-  <BaseButton
-    size={size}
-    disabled={disabled}
-    onClick={onClick}
-    className={`bg-[var(--color-error)] text-white hover:bg-[var(--color-error-dark)] focus:ring-2 focus:ring-[var(--color-error-lightest)] rounded-md ${className}`}
-  >
-    {children}
-  </BaseButton>
-);
+focus:ring-2
+focus:ring-error-lightest
+
+disabled:border-none
+`;
+
+const getColorClasses = (isOutlined: boolean) => {
+  if (isOutlined) {
+    return tw`bg-surface-white text-error border border-error hover:text-surface-white`;
+  } else {
+    return tw`bg-error text-surface-white`;
+  }
+};
+
+type Props = Omit<ButtonProps, "className" | "isCircle"> & { isOutlined?: boolean };
+export const ErrorButton: React.FC<Props> = (props) => {
+  const colorClasses = getColorClasses(props.isOutlined || false);
+
+  return (
+    <BaseButton {...props} className={`${CLASSES} ${colorClasses}`}>
+      {props.children}
+    </BaseButton>
+  );
+};

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { PrimaryButton, SecondaryButton } from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
@@ -65,10 +65,11 @@ export const ExtensionModal: React.FC<Props> = ({
   }, [getAllDemonstrations.trigger]);
 
   // Convert demonstrations to options format for the dropdown
-  const demoOptions = getAllDemonstrations.data?.map((demo) => ({
-    label: demo.name,
-    value: demo.id,
-  })) || [];
+  const demoOptions =
+    getAllDemonstrations.data?.map((demo) => ({
+      label: demo.name,
+      value: demo.id,
+    })) || [];
 
   const isFormValid = demonstration && title && state && projectOfficer;
 
@@ -131,14 +132,16 @@ export const ExtensionModal: React.FC<Props> = ({
           <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
-          <PrimaryButton
+          <Button
+            name="submit-button"
+            onClick={() => {}}
             size="small"
             type="submit"
             form="extension-form"
             disabled={!isFormValid || formStatus === "pending"}
           >
             {formStatus === "pending" ? "Saving..." : "Submit"}
-          </PrimaryButton>
+          </Button>
         </>
       }
     >
