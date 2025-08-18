@@ -1,6 +1,14 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+
 import { vi } from "vitest";
+
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+
 import { AmendmentModal } from "./AmendmentModal";
 
 // Mock dependencies
@@ -36,7 +44,7 @@ vi.mock("components/modal/BaseModal", () => ({
 }));
 
 vi.mock("components/button", () => ({
-  PrimaryButton: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button {...props} data-testid="primary-button">{children}</button>
   ),
   SecondaryButton: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (

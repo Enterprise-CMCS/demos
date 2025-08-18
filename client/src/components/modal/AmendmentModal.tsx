@@ -1,6 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, {
+  useEffect,
+  useState,
+} from "react";
 
-import { PrimaryButton, SecondaryButton } from "components/button";
+import {
+  Button,
+  SecondaryButton,
+} from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
@@ -8,11 +14,11 @@ import { TextInput } from "components/input/TextInput";
 import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { useDemonstration } from "hooks/useDemonstration";
-import { tw } from "tags/tw";
 import {
   normalizeDemonstrationId,
   normalizeUserId,
 } from "hooks/user/uuidHelpers";
+import { tw } from "tags/tw";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
@@ -125,14 +131,15 @@ export const AmendmentModal: React.FC<Props> = ({
           <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
-          <PrimaryButton
+          <Button
             size="small"
             type="submit"
             form="amendment-form"
+            onClick={() => { }}
             disabled={!isFormValid || formStatus === "pending"}
           >
             {formStatus === "pending" ? "Saving..." : "Submit"}
-          </PrimaryButton>
+          </Button>
         </>
       }
     >
