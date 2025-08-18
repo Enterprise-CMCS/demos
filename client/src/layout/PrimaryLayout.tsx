@@ -1,5 +1,7 @@
 // src/layout/PrimaryLayout.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "react-oidc-context";
+import { useUpsertUser } from "mutations/useUpsertUser";
 
 import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
 import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
@@ -19,9 +21,29 @@ interface PrimaryLayoutProps {
 
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const auth = useAuth();
+  const [upsertUser] = useUpsertUser();
 
   // Use different user ID based on environment - always string now
-  const userId = shouldUseMocks() ? "2" : "00000000-1111-2222-3333-123abc123abc";
+  const userId = shouldUseMocks() ? "2" : "cb88fd69-9509-40ed-9029-610231fe9e18";
+  // userId = "cb88fd69-9509-40ed-9029-610231fe9e18";
+
+  useEffect(() => {
+    if (auth.isAuthenticated && auth.user) {
+      const profile = auth.user.profile;
+      upsertUser({
+        variables: {
+          input: {
+            cognito_subject: profile.sub, // OIDC subject
+            username: profile.preferred_username || profile.username || profile.email,
+            email: profile.email,
+            full_name: profile.name || `${profile.given_name ?? ""} ${profile.family_name ?? ""}`.trim(),
+            display_name: profile.nickname || profile.name || profile.preferred_username || profile.email,
+          },
+        },
+      });
+    }
+  }, [auth.isAuthenticated, auth.user, upsertUser]);
 
   return (
     <ToastProvider>

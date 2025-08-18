@@ -6,6 +6,7 @@ import {
   getCognitoUserInfo,
   getUserRoles,
 } from "./auth/auth.util.js";
+import { prisma } from "./prismaClient.js"; // Add this import
 
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
@@ -18,8 +19,16 @@ const { url } = await startStandaloneServer(server, {
   context: async ({ req }) => {
     // Add any shared context here, e.g., user authentication
     const { sub, email } = await getCognitoUserInfo(req);
+
+    // Look up user by cognitoSubject
+    const user = await prisma().user.findUnique({
+      where: { cognitoSubject: sub },
+    });
+
     const roles = await getUserRoles(sub);
-    return { user: { id: sub, name: email, roles } };
+    return {
+      user: user ? { ...user, roles } : null,
+    };
   },
 });
 

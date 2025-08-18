@@ -27,6 +27,7 @@ type DecodedJWT = {
 };
 
 const decodeToken = (token: string): Promise<DecodedJWT> => {
+  console.log(token, 'token');
   const client = jwksClient({
     jwksUri: config.jwksUri,
   });
@@ -52,6 +53,9 @@ const decodeToken = (token: string): Promise<DecodedJWT> => {
         issuer: config.issuer,
       },
       (err, decoded) => {
+        console.log("------------------------------------------------------------");
+        console.log("err:", err);
+        // console.log("Decoded JWT:", decoded);
         if (err) {
           return reject(
             new GraphQLError("User is not authenticated", {
@@ -69,8 +73,8 @@ const checkAuthBypass = (): DecodedJWT | undefined => {
   // Bypass authentication for testing purposes
   if (process.env.BYPASS_AUTH === "true") {
     return {
-      sub: "1234abcd-0000-1111-2222-333333333333",
-      email: "bypassedUser@email.com"
+      sub: "14f83478-c0f1-70f7-2c30-ca664b9177e9",
+      email: "dustin.h@globalalliantinc.com"
     };
   }
 }
@@ -99,8 +103,24 @@ export const getCognitoUserInfoForLambda = (
   }
 
   const token: string = headers.authorization?.split(" ")[1] || "";
+  console.log("Lambda token:", token);
+  // createUserIfNotExists()
   return decodeToken(token);
+};
 
+const createUserIfNotExists = async (sub: string, email: string, given_name?: string, family_name?: string): Promise<void> => {
+  const user = await prisma.user.findUnique({ where: { cognitoSubject: sub } });
+  if (!user) {
+    await prisma.user.create({
+      data: {
+        cognitoSubject: sub,
+        email,
+        fullName: `${given_name ?? ""} ${family_name ?? ""}`.trim(),
+        username: email, // or another field if available
+        displayName: given_name ?? email,
+      },
+    });
+  }
 };
 
 /**
