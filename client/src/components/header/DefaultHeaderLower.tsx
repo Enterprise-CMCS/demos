@@ -68,13 +68,11 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
         <span className="block text-sm">Welcome to DEMOS!</span>
       </div>
       <div className="relative" ref={dropdownRef}>
-        <SecondaryButton
-          size="small"
-          className="cursor-pointer flex items-center gap-1 px-1 py-1"
-          onClick={() => setShowDropdown((prev) => !prev)}
-        >
-          <span>Create New</span>
-          <AddNewIcon />
+        <SecondaryButton size="small" onClick={() => setShowDropdown((prev) => !prev)}>
+          <div className="flex items-center gap-1">
+            <span>Create New</span>
+            <AddNewIcon />
+          </div>
         </SecondaryButton>
 
         {showDropdown && (

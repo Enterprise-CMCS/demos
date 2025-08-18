@@ -1,6 +1,6 @@
 import React from "react";
 import { useUserOperations } from "hooks/useUserOperations";
-import { PrimaryButton } from "components/button/PrimaryButton";
+import { Button } from "components/button/Button";
 import { TextInput } from "components";
 import { Collapsible } from "components/collapsible/Collapsible";
 
@@ -9,11 +9,8 @@ const TestUserOperationsHook: React.FC = () => {
 
   return (
     <div className="p-md flex gap-sm">
-      <TextInput
-        label="ID (try initials of spongebob characters)"
-        name="userId"
-      />
-      <PrimaryButton
+      <TextInput label="ID (try initials of spongebob characters)" name="userId" />
+      <Button
         onClick={() =>
           userOperations.getUserById.trigger(
             (document.getElementsByName("userId")[0] as HTMLInputElement).value
@@ -21,23 +18,18 @@ const TestUserOperationsHook: React.FC = () => {
         }
       >
         Get User By ID
-      </PrimaryButton>
-      <PrimaryButton onClick={() => userOperations.getAllUsers.trigger()}>
-        Get All Users
-      </PrimaryButton>
+      </Button>
+      <Button onClick={() => userOperations.getAllUsers.trigger()}>Get All Users</Button>
       <div>
         Get User By ID Response:
         {userOperations.getUserById.data ? (
           <div>
-            <pre>
-              {JSON.stringify(userOperations.getUserById.data, null, 2)}
-            </pre>
+            <pre>{JSON.stringify(userOperations.getUserById.data, null, 2)}</pre>
           </div>
         ) : (
           <div>
             No user found with ID{" "}
-            {(document.getElementsByName("userId")[0] as HTMLInputElement)
-              ?.value || ""}
+            {(document.getElementsByName("userId")[0] as HTMLInputElement)?.value || ""}
           </div>
         )}
       </div>
@@ -45,9 +37,7 @@ const TestUserOperationsHook: React.FC = () => {
         Get All Users Response:
         {userOperations.getAllUsers.data ? (
           <div>
-            <pre>
-              {JSON.stringify(userOperations.getAllUsers.data, null, 2)}
-            </pre>
+            <pre>{JSON.stringify(userOperations.getAllUsers.data, null, 2)}</pre>
           </div>
         ) : (
           <div>No users found!</div>

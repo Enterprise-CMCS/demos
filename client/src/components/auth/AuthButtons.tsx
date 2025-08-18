@@ -1,5 +1,5 @@
 import React from "react";
-import { PrimaryButton } from "components/button/PrimaryButton";
+import { Button } from "components/button/Button";
 import { useAuth } from "react-oidc-context";
 import { logout } from "router/cognitoConfig";
 
@@ -10,7 +10,7 @@ export const SignoutButton = () => {
     logout();
   };
 
-  return <PrimaryButton onClick={handleLogout}>Sign Out</PrimaryButton>;
+  return <Button onClick={handleLogout}>Sign Out</Button>;
 };
 
 export const SigninButton = () => {
@@ -19,5 +19,5 @@ export const SigninButton = () => {
     auth.signinRedirect();
   };
 
-  return <PrimaryButton onClick={handleSignin}>Sign In</PrimaryButton>;
+  return <Button onClick={handleSignin}>Sign In</Button>;
 };
