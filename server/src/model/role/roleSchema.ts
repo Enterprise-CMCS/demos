@@ -40,13 +40,12 @@ export const roleSchema = gql`
   }
 `;
 
-export type DateTime = Date;
 export interface Role {
   id: string;
   name: string;
   description: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   users: User[];
   permissions: Permission[];
 }

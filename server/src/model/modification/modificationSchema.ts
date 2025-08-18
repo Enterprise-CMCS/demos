@@ -94,7 +94,6 @@ export const modificationSchema = gql`
   }
 `;
 
-export type DateTime = Date;
 export interface Amendment {
   id: string;
   demonstration: Demonstration;
@@ -102,8 +101,8 @@ export interface Amendment {
   description: string;
   effectiveDate?: Date;
   expirationDate?: Date;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   amendmentStatus: AmendmentStatus;
   projectOfficer: User;
   documents: Document[];
@@ -136,8 +135,8 @@ export interface Extension {
   description: string;
   effectiveDate?: Date;
   expirationDate?: Date;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   extensionStatus: ExtensionStatus;
   projectOfficer: User;
   documents: Document[];
