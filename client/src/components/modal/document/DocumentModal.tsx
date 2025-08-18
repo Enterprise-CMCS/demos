@@ -101,6 +101,7 @@ const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
           <span className="text-text-warn mr-1">*</span>Document Description
         </label>
         <textarea
+          data-testid="textarea-description-input"
           ref={ref}
           rows={2}
           placeholder="Enter"

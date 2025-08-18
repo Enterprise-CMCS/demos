@@ -82,6 +82,7 @@ export const CheckboxGroup = ({
         {options.map((option) => (
           <label key={option.value} className={CHECKBOX_OPTION_CLASSES}>
             <input
+              data-testid={`checkbox-${option.value}`}
               type="checkbox"
               name={name}
               value={option.value}

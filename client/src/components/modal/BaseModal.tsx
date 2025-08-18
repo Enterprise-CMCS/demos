@@ -40,6 +40,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
           {!hideHeader && (
             <>
               <button
+                data-testid="button-close-modal"
                 onClick={() => (setShowCancelConfirm ? setShowCancelConfirm(true) : onClose())}
                 className={CLOSE_BUTTON}
                 aria-label="Close modal"

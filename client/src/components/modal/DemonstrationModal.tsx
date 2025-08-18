@@ -194,6 +194,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
             Effective Date
           </label>
           <input
+            data-testid="effective-date-input"
             id="effective-date"
             type="date"
             className={DATE_INPUT_CLASSES}
@@ -211,6 +212,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
             Expiration Date
           </label>
           <input
+            data-testid="input-expiration-date"
             id="expiration-date"
             type="date"
             className={`${DATE_INPUT_CLASSES} ${
@@ -239,6 +241,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
           Demonstration Description
         </label>
         <textarea
+          data-testid="textarea-description"
           id="description"
           placeholder="Enter description"
           className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"

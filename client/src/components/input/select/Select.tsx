@@ -39,15 +39,17 @@ export const Select: React.FC<SelectProps> = ({
       )}
       <div className="relative w-full">
         <select
-          id={id}
           data-testid={id}
+          id={id}
           required={isRequired}
           disabled={isDisabled}
           value={value ?? ""}
           onChange={(e) => onSelect(e.target.value)}
           className="w-full border border-border-fields rounded px-1 py-1 text-text-font bg-surface-white disabled:bg-surface-disabled disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none focus:border-border-focus focus:ring-1 focus:ring-border-focus appearance-none text-sm"
         >
-          <option value="">{placeholder}</option>
+          <option data-testid={`${id}-option-empty`} value="">
+            {placeholder}
+          </option>
           {options.map((opt) => (
             <option key={opt.value} value={opt.value} data-testid={`${id}-option-${opt.value}`}>
               {opt.label}

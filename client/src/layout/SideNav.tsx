@@ -114,10 +114,10 @@ export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => 
         {!collapsed ? (
           <div className="absolute right-2 top-1/2 -translate-y-1/2">
             <button
+              data-testid="collapse-sidenav"
               onClick={() => setCollapsed(true)}
               className="text-text-active hover:opacity-80"
               aria-label="Collapse Menu"
-              data-testid="collapse-sidenav"
             >
               <div className="w-1 h-1">
                 <MenuCollapseLeftIcon />
@@ -127,10 +127,10 @@ export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => 
         ) : (
           <div className="h-12 flex items-center justify-center relative">
             <button
+              data-testid="expand-sidenav"
               onClick={() => setCollapsed(false)}
               className="text-black hover:opacity-80"
               aria-label="Expand Menu"
-              data-testid="expand-sidenav"
             >
               <div className="w-[14px] h-[14px]">
                 <MenuCollapseRightIcon />

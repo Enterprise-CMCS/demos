@@ -22,13 +22,13 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, selectedValue, onChange }) => 
           return (
             <li key={tab.value}>
               <button
+                data-testid={`button-${tab.value}`}
                 onClick={() => onChange(tab.value)}
                 className={
                   "inline-block px-2 py-2 font-medium cursor-pointer " +
                   (isSelected ? "border-b-5 text-brand" : "text-gray-600 hover:text-gray-800")
                 }
                 aria-selected={isSelected}
-                data-testid={`button-${tab.value}`}
               >
                 {tab.label}
                 {tab.count != null && ` (${tab.count})`}

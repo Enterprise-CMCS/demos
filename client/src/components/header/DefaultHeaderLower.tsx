@@ -82,24 +82,28 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
         {showDropdown && (
           <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
             <button
+              data-testid="button-create-new-demonstration"
               onClick={() => handleSelect("Demonstration")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Demonstration
             </button>
             <button
+              data-testid="button-create-new-document"
               onClick={() => handleSelect("AddDocument")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Add New Document
             </button>
             <button
+              data-testid="button-create-new-amendment"
               onClick={() => handleSelect("Amendment")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Amendment
             </button>
             <button
+              data-testid="button-create-new-extension"
               onClick={() => handleSelect("Extension")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
