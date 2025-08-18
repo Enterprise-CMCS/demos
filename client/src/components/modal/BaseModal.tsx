@@ -1,8 +1,8 @@
 import React from "react";
 
-import { ErrorOutlinedButton } from "components/button/ErrorOutlinedButton";
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { tw } from "tags/tw";
+import { ErrorButton } from "components/button";
 
 interface BaseModalProps {
   title: string;
@@ -15,12 +15,12 @@ interface BaseModalProps {
   hideHeader?: boolean;
 }
 
-const OVERLAY = tw`fixed inset-0 z-[999] flex items-center justify-center bg-black/40`;
+const OVERLAY = tw`fixed inset-0 z-[11] flex items-center justify-center bg-black/40`;
 const CONTAINER = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative max-h-[85vh] overflow-y-auto space-y-sm`;
 const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font`;
 const TITLE = tw`text-[18px] font-bold mb-xs`;
 const HR = tw`border-border-rules my-sm`;
-const CONFIRMATION_OVERLAY = tw`fixed inset-0 z-[1000] flex items-center justify-center bg-black/40`;
+const CONFIRMATION_OVERLAY = tw`fixed inset-0 z-[12] flex items-center justify-center bg-black/40`;
 const CONFIRMATION_BOX = tw`bg-surface-white border border-border-rules rounded p-2 w-[400px] shadow-md text-center`;
 
 export const BaseModal: React.FC<BaseModalProps> = ({
@@ -72,9 +72,9 @@ export const BaseModal: React.FC<BaseModalProps> = ({
               <SecondaryButton size="small" onClick={() => setShowCancelConfirm(false)}>
                 No
               </SecondaryButton>
-              <ErrorOutlinedButton size="small" onClick={onClose}>
+              <ErrorButton isOutlined={true} size="small" onClick={onClose}>
                 Yes
-              </ErrorOutlinedButton>
+              </ErrorButton>
             </div>
           </div>
         </div>

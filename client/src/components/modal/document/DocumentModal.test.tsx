@@ -35,28 +35,36 @@ describe("AddDocumentModal", () => {
     ).toBeInTheDocument();
   });
 
-  it("disables Upload button when description is missing", () => {
+  it("has disabled button in edit when file is missing", () => {
     setup();
-    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
-    expect(uploadBtn.disabled).toBe(true);
+    const uploadBtn = screen.getByRole("button", { name: /upload/i });
+    expect(uploadBtn).toBeDisabled(); // pulls from the native disabled prop
   });
 
-  it("enables Upload button when description and file are set", async () => {
+  it("enables Upload button when description, type, and file are set", async () => {
     setup();
 
+    // file
     const file = new File(["sample"], "test.pdf", { type: "application/pdf" });
-    const fileInput = screen.getByTestId("file-input");
-    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.change(screen.getByTestId("file-input"), {
+      target: { files: [file] },
+    });
 
+    // description
     fireEvent.change(screen.getByPlaceholderText("Enter"), {
       target: { value: "Test document" },
     });
 
-    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
+    // type (AutoCompleteSelect)
+    const typeInput = screen.getByRole("textbox", { name: "Document Type" });
+    fireEvent.focus(typeInput);
+    fireEvent.change(typeInput, { target: { value: "General" } });
+    const option = await screen.findByText("General File");
+    fireEvent.mouseDown(option);
 
-    await waitFor(() => {
-      expect(uploadBtn.disabled).toBe(false);
-    });
+    // assert using the actual button node
+    const uploadBtn = screen.getByRole("button", { name: /upload/i });
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
   });
 
   it("calls onClose when confirming cancel", async () => {
@@ -189,24 +197,35 @@ describe("EditDocumentModal", () => {
 
   it("disables Upload button when no file is selected", () => {
     setup();
-    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
-    expect(uploadBtn.disabled).toBe(true);
+    const uploadBtn = screen.getByRole("button", { name: /upload/i });
+    expect(uploadBtn).toBeDisabled();
   });
 
-  it("enables Upload when all fields including file are set", async () => {
+  it("enables Upload button when description, type, and file are set", async () => {
     setup();
 
-    const file = new File(["doc"], "test.pdf", { type: "application/pdf" });
+    // file
+    const file = new File(["sample"], "test.pdf", { type: "application/pdf" });
     fireEvent.change(screen.getByTestId("file-input"), {
       target: { files: [file] },
     });
 
-    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
-
-    await waitFor(() => {
-      expect(uploadBtn.disabled).toBe(false);
+    // description
+    fireEvent.change(screen.getByPlaceholderText("Enter"), {
+      target: { value: "Test document" },
     });
+
+    // document type (your component requires it)
+    const typeInput = screen.getByRole("textbox", { name: "Document Type" });
+    fireEvent.focus(typeInput);
+    fireEvent.change(typeInput, { target: { value: "General" } });
+    const option = await screen.findByText("General File");
+    fireEvent.mouseDown(option);
+
+    const uploadBtn = screen.getByRole("button", { name: /upload/i });
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
   });
+
 
   it("calls onClose when cancel is confirmed", async () => {
     const { onClose } = setup();

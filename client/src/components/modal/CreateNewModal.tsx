@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { PrimaryButton } from "components/button/PrimaryButton";
+import { Button } from "components/button/Button";
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
@@ -10,10 +10,7 @@ import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { useDemonstration } from "hooks/useDemonstration";
 import { useExtension } from "hooks/useExtension";
-import {
-  normalizeDemonstrationId,
-  normalizeUserId,
-} from "hooks/user/uuidHelpers";
+import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
 
 export type ModalMode = "amendment" | "extension" | "demonstration" | "document";
 
@@ -53,20 +50,17 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
   }, [getAllDemonstrations.trigger]);
 
   // Convert demonstrations to options format for the dropdown
-  const demoOptions = getAllDemonstrations.data?.map((demo) => ({
-    label: demo.name,
-    value: demo.id,
-  })) || [];
+  const demoOptions =
+    getAllDemonstrations.data?.map((demo) => ({
+      label: demo.name,
+      value: demo.id,
+    })) || [];
 
   const capitalized = mode.charAt(0).toUpperCase() + mode.slice(1);
   const showDemoSelect = mode !== "demonstration";
 
   const isSubmitDisabled =
-    (showDemoSelect && !demonstration) ||
-    !title ||
-    !state ||
-    !projectOfficer ||
-    isSubmitting;
+    (showDemoSelect && !demonstration) || !title || !state || !projectOfficer || isSubmitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,22 +109,20 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
           <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
-          <PrimaryButton
+          <Button
+            name="submit-button"
+            onClick={() => {}}
             size="small"
             type="submit"
             form={`create-${mode}-form`}
             disabled={isSubmitDisabled}
           >
             {isSubmitting ? "Creating..." : "Submit"}
-          </PrimaryButton>
+          </Button>
         </>
       }
     >
-      <form
-        id={`create-${mode}-form`}
-        className="space-y-1"
-        onSubmit={handleSubmit}
-      >
+      <form id={`create-${mode}-form`} className="space-y-1" onSubmit={handleSubmit}>
         {showDemoSelect && (
           <div>
             <AutoCompleteSelect
@@ -179,7 +171,10 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
             />
           </div>
           <div className="flex flex-col gap-sm">
-            <label className="text-text-font font-bold text-field-label flex gap-0-5" htmlFor="effective-date">
+            <label
+              className="text-text-font font-bold text-field-label flex gap-0-5"
+              htmlFor="effective-date"
+            >
               Effective Date
             </label>
             <input
@@ -196,7 +191,10 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
             />
           </div>
           <div className="flex flex-col gap-sm">
-            <label className={"text-text-font font-bold text-field-label flex gap-0-5"} htmlFor="expiration-date">
+            <label
+              className={"text-text-font font-bold text-field-label flex gap-0-5"}
+              htmlFor="expiration-date"
+            >
               Expiration Date
             </label>
             <input
@@ -222,7 +220,10 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
         </div>
 
         <div className="flex flex-col gap-sm">
-          <label htmlFor="description" className="text-text-font font-bold text-field-label flex gap-0-5">
+          <label
+            htmlFor="description"
+            className="text-text-font font-bold text-field-label flex gap-0-5"
+          >
             {capitalized} Description
           </label>
           <textarea
