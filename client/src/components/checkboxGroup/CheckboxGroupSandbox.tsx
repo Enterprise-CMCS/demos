@@ -10,13 +10,13 @@ export const CheckboxGroupSandbox: React.FC = () => {
   return (
     <div>
       <div className="flex gap-sm mb-sm">
-        <Button name="set-enabled" onClick={() => setDisabled((d) => !d)}>
+        <Button name="cg-set-enabled" onClick={() => setDisabled((d) => !d)}>
           {disabled ? "Enable" : "Disable"}
         </Button>
-        <Button name="set-required" onClick={() => setIsRequired((r) => !r)}>
+        <Button name="cg-set-required" onClick={() => setIsRequired((r) => !r)}>
           {isRequired ? "Set Not Required" : "Set Required"}
         </Button>
-        <Button name="set-inline" onClick={() => setIsInline((r) => !r)}>
+        <Button name="cg-set-inline" onClick={() => setIsInline((r) => !r)}>
           {isInline ? "Set Not Inline" : "Set Inline"}
         </Button>
       </div>

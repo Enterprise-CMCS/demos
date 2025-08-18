@@ -106,7 +106,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
       <div className="relative w-full">
         <input
-          data-testid="input-autocomplete"
+          data-testid="input-autocomplete-select"
           id={id}
           type="text"
           placeholder={placeholder}
