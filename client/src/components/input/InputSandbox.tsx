@@ -5,7 +5,7 @@ import { SelectUSAStates } from "./select/SelectUSAStates";
 import { SelectUsers } from "./select/SelectUsers";
 import { AutoCompleteMultiselect } from "./select/AutoCompleteMultiselect";
 import { Select } from "./select/Select";
-import { PrimaryButton } from "components/button";
+import { Button } from "components/button";
 
 const getValidationMessage = (value: string) => {
   if (value.includes("z")) {
@@ -27,12 +27,12 @@ export const InputSandbox: React.FC = () => {
   return (
     <>
       <div className="flex gap-sm">
-        <PrimaryButton onClick={() => setDisabled((d) => !d)}>
+        <Button name="set-enabled" onClick={() => setDisabled((d) => !d)}>
           {disabled ? "Enable" : "Disable"}
-        </PrimaryButton>
-        <PrimaryButton onClick={() => setIsRequired((r) => !r)}>
+        </Button>
+        <Button name="set-required" onClick={() => setIsRequired((r) => !r)}>
           {isRequired ? "Set Not Required" : "Set Required"}
-        </PrimaryButton>
+        </Button>
       </div>
       <TextInput
         name="test"

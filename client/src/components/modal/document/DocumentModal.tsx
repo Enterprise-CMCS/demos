@@ -193,6 +193,7 @@ const DropTarget: React.FC<{
       />
 
       <SecondaryButton
+        name="select-files"
         type="button"
         aria-label="Select File"
         size="small"
@@ -336,10 +337,15 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       setShowCancelConfirm={setShowCancelConfirm}
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton
+            name="cancel-upload"
+            size="small"
+            onClick={() => setShowCancelConfirm(true)}
+          >
             Cancel
           </SecondaryButton>
           <Button
+            name="upload-document"
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
@@ -419,10 +425,16 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
       onClose={onClose}
       actions={
         <>
-          <SecondaryButton size="small" onClick={onClose} disabled={submitting}>
+          <SecondaryButton
+            name="cancel-remove"
+            size="small"
+            onClick={onClose}
+            disabled={submitting}
+          >
             Cancel
           </SecondaryButton>
           <ErrorButton
+            name="confirm-remove"
             size="small"
             onClick={() => onConfirm(documentIds)}
             aria-label="Confirm Remove Document"

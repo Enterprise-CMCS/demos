@@ -69,10 +69,19 @@ export const BaseModal: React.FC<BaseModalProps> = ({
               Are you sure you want to cancel?
             </p>
             <div className="flex justify-center gap-sm">
-              <SecondaryButton size="small" onClick={() => setShowCancelConfirm(false)}>
+              <SecondaryButton
+                name="cancel-confirm-no"
+                size="small"
+                onClick={() => setShowCancelConfirm(false)}
+              >
                 No
               </SecondaryButton>
-              <ErrorButton isOutlined={true} size="small" onClick={onClose}>
+              <ErrorButton
+                name="cancel-confirm-yes"
+                isOutlined={true}
+                size="small"
+                onClick={onClose}
+              >
                 Yes
               </ErrorButton>
             </div>

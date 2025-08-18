@@ -11,7 +11,7 @@ export const ExtensionsTab: React.FC<{
   <div>
     <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
       <h1 className="text-xl font-bold text-brand uppercase">Extensions</h1>
-      <SecondaryButton size="small" onClick={onClick}>
+      <SecondaryButton name="add-new-extension" size="small" onClick={onClick}>
         <div className="flex items-center gap-1">
           Add New
           <AddNewIcon className="w-2 h-2" />

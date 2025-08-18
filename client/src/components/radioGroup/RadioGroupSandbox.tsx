@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { RadioGroup } from "./RadioGroup";
 import { Button } from "components/button";
 
-const BUTTON_CLASS_NAME = "bg-brand text-white my-sm p-sm rounded-normal hover:bg-brand-dark";
-
 const getValidationMessage = (value: string) => {
   if (value === "pineapple") {
     return "Pineapple is a controversial pizza topping!";
@@ -19,13 +17,13 @@ export const RadioGroupSandbox: React.FC = () => {
   return (
     <div>
       <div className="flex gap-sm mb-sm">
-        <Button className={BUTTON_CLASS_NAME} onClick={() => setDisabled((d) => !d)}>
+        <Button name="set-enabled" onClick={() => setDisabled((d) => !d)}>
           {disabled ? "Enable" : "Disable"}
         </Button>
-        <Button className={BUTTON_CLASS_NAME} onClick={() => setIsRequired((r) => !r)}>
+        <Button name="set-required" onClick={() => setIsRequired((r) => !r)}>
           {isRequired ? "Set Not Required" : "Set Required"}
         </Button>
-        <Button className={BUTTON_CLASS_NAME} onClick={() => setIsInline((r) => !r)}>
+        <Button name="set-inline" onClick={() => setIsInline((r) => !r)}>
           {isInline ? "Set Not Inline" : "Set Inline"}
         </Button>
       </div>

@@ -121,10 +121,11 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton name="cancel" size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
           <Button
+            name="submit"
             size="small"
             disabled={!isFormValid || formStatus === "pending"}
             onClick={handleSubmit}

@@ -115,7 +115,7 @@ export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => 
           <div className="absolute right-2 top-1/2 -translate-y-1/2">
             <button
               onClick={() => setCollapsed(true)}
-              className="text-[var(--color-text-active)] hover:opacity-80"
+              className="text-text-active hover:opacity-80"
               aria-label="Collapse Menu"
               data-testid="collapse-sidenav"
             >

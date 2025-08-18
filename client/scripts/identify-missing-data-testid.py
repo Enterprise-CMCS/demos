@@ -3,13 +3,12 @@ import os
 import re
 import argparse
 
+
 TAGS_TO_SCAN = ["button", "input", "select", "option", "textarea"]
 JSX_TAG_REGEX = re.compile(
-    r'<(' + '|'.join(TAGS_TO_SCAN) + r')\b[^>]*?>'
+    r'<(' + '|'.join(TAGS_TO_SCAN) + r')\b[\s\S]*?>', re.DOTALL
 )
-
 DATA_TESTID_REGEX = re.compile(r'data-testid\s*=')
-
 
 
 def scan_file(filepath):
@@ -19,6 +18,7 @@ def scan_file(filepath):
     # Find all opening tags (including multi-line)
     for match in JSX_TAG_REGEX.finditer(content):
         tag = match.group(0)
+        # Check for data-testid in the full tag (multi-line supported)
         if not DATA_TESTID_REGEX.search(tag):
             # Find line number for the start of the tag
             line_num = content[:match.start()].count('\n') + 1

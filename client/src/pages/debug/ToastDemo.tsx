@@ -30,13 +30,21 @@ export const ToastDemo: React.FC = () => {
   return (
     <>
       <div className="flex gap-sm">
-        <Button onClick={handleInfoToast}>Show Info Toast</Button>
+        <Button name="show-info-toast" onClick={handleInfoToast}>
+          Show Info Toast
+        </Button>
 
-        <Button onClick={handleSuccessToast}>Show Success Toast</Button>
+        <Button name="show-success-toast" onClick={handleSuccessToast}>
+          Show Success Toast
+        </Button>
 
-        <WarningButton onClick={handleWarningToast}>Show Warning Toast</WarningButton>
+        <WarningButton name="show-warning-toast" onClick={handleWarningToast}>
+          Show Warning Toast
+        </WarningButton>
 
-        <ErrorButton onClick={handleErrorToast}>Show Error Toast</ErrorButton>
+        <ErrorButton name="show-error-toast" onClick={handleErrorToast}>
+          Show Error Toast
+        </ErrorButton>
       </div>
     </>
   );
