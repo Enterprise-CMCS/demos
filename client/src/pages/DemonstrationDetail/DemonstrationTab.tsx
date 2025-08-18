@@ -5,23 +5,28 @@ import { AddNewIcon } from "components/icons";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { AddDocumentModal } from "components/modal/document/DocumentModal";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
-export const DemonstrationTab: React.FC = () => {
+export type DemonstrationTabDetails = {
+  demonstrationTypes: object[];
+  documents: object[];
+  contacts: object[];
+};
+
+export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails }> = ({
+  demonstration,
+}) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
-    { value: "types", label: "Types", count: 0 },
-    { value: "documents", label: "Documents", count: 0 },
-    { value: "contacts", label: "Contacts", count: 0 },
+    { value: "types", label: "Types", count: demonstration.demonstrationTypes.length },
+    { value: "documents", label: "Documents", count: demonstration.documents.length },
+    { value: "contacts", label: "Contacts", count: demonstration.contacts.length },
   ];
 
   return (
@@ -42,9 +47,7 @@ export const DemonstrationTab: React.FC = () => {
         {subTab === "types" && (
           <div>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">
-                Types
-              </h1>
+              <h1 className="text-xl font-bold text-brand uppercase">Types</h1>
               {/* TO DO: Add New button? */}
             </div>
             {/* TO DO: Add Table */}
@@ -54,14 +57,8 @@ export const DemonstrationTab: React.FC = () => {
         {subTab === "documents" && (
           <div>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">
-                Documents
-              </h1>
-              <SecondaryButton
-                size="small"
-                className="flex items-center gap-1 px-1 py-1"
-                onClick={() => setModalType("document")}
-              >
+              <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
+              <SecondaryButton size="small" onClick={() => setModalType("document")}>
                 <span>Add New</span>
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
@@ -73,9 +70,7 @@ export const DemonstrationTab: React.FC = () => {
         {subTab === "contacts" && (
           <div>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">
-                Contacts
-              </h1>
+              <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
               {/* TO DO: Add New button? */}
             </div>
             {/* TO DO: Add Table */}
@@ -84,9 +79,7 @@ export const DemonstrationTab: React.FC = () => {
       </div>
 
       {/* Replaced the CreateNewModal */}
-      {modalType === "document" && (
-        <AddDocumentModal onClose={() => setModalType(null)} />
-      )}
+      {modalType === "document" && <AddDocumentModal onClose={() => setModalType(null)} />}
     </div>
   );
 };
