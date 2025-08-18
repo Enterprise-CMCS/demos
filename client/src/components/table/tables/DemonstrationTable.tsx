@@ -1,11 +1,32 @@
 import React from "react";
 import { Table } from "../Table";
 import { TabItem, Tabs } from "layout/Tabs";
-import { DemonstrationTableItem, useDemonstration } from "hooks/useDemonstration";
 import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
+import { Demonstration } from "demos-server";
+
+export type DemonstrationTableItem = {
+  id: Demonstration["id"];
+  name: Demonstration["name"];
+  state: Pick<Demonstration["state"], "name">;
+  projectOfficer: Pick<Demonstration["projectOfficer"], "fullName">;
+  users: Pick<Demonstration["users"][number], "id">[];
+  demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;
+  amendments: {
+    id: Demonstration["amendments"][number]["id"];
+    name: Demonstration["amendments"][number]["name"];
+    projectOfficer: Pick<Demonstration["amendments"][number]["projectOfficer"], "fullName">;
+    amendmentStatus: Pick<Demonstration["amendments"][number]["amendmentStatus"], "name">;
+  }[];
+  extensions: {
+    id: Demonstration["extensions"][number]["id"];
+    name: Demonstration["extensions"][number]["name"];
+    projectOfficer: Pick<Demonstration["extensions"][number]["projectOfficer"], "fullName">;
+    extensionStatus: Pick<Demonstration["extensions"][number]["extensionStatus"], "name">;
+  }[];
+};
 
 // --- Generic TableRow type for both demonstration and application rows ---
 export type TableRow = {
@@ -66,38 +87,28 @@ function mapToTableRow(item: DemonstrationTableItem): TableRow {
 
 const getSubRows = (row: TableRow) => row.applications;
 
-export const DemonstrationTable: React.FC = () => {
+type DemonstrationTableProps = {
+  demonstrations: DemonstrationTableItem[];
+};
+
+export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({ demonstrations }) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
   const { demonstrationColumns, demonstrationColumnsLoading, demonstrationColumnsError } =
     DemonstrationColumns();
 
-  const { getDemonstrationTable } = useDemonstration();
-  const {
-    data: demonstrationsTableData,
-    loading: demonstrationsTableLoading,
-    error: demonstrationsTableError,
-  } = getDemonstrationTable;
-
-  React.useEffect(() => {
-    getDemonstrationTable.trigger();
-  }, []);
-
   if (demonstrationColumnsLoading) return <div className="p-4">Loading...</div>;
   if (demonstrationColumnsError)
-    return <div className="p-4">Error loading data: {demonstrationColumnsError}</div>;
-  if (demonstrationsTableLoading) return <div className="p-4">Loading...</div>;
-  if (demonstrationsTableError) return <div className="p-4">Error loading demonstrations</div>;
-  if (!demonstrationsTableData) return <div className="p-4">Demonstrations not found</div>;
+    return <div className="p-4">Error loading column data: {demonstrationColumnsError}</div>;
 
   // TODO: Replace with actual current user ID from authentication context
   const currentUserId = "1";
 
-  const myDemos: DemonstrationTableItem[] = demonstrationsTableData.filter(
-    (demo: DemonstrationTableItem) => demo.users.some((user) => user.id === currentUserId)
+  const myDemos: DemonstrationTableItem[] = demonstrations.filter((demo: DemonstrationTableItem) =>
+    demo.users.some((user) => user.id === currentUserId)
   );
 
-  const allDemos: DemonstrationTableItem[] = demonstrationsTableData;
+  const allDemos: DemonstrationTableItem[] = demonstrations;
 
   const tabList: TabItem[] = [
     {
