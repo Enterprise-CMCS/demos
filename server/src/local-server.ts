@@ -6,7 +6,7 @@ import {
   getCognitoUserInfo,
   getUserRoles,
 } from "./auth/auth.util.js";
-import { prisma } from "./prismaClient.js"; // Add this import
+import { prisma } from "./prismaClient.js";
 
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
@@ -14,22 +14,52 @@ const server = new ApolloServer<GraphQLContext>({
   introspection: process.env.ALLOW_INTROSPECTION === "true",
 });
 
-const { url } = await startStandaloneServer(server, {
+// local-server.ts
+const { url } = await startStandaloneServer<GraphQLContext>(server, {
   listen: { port: 4000 },
-  context: async ({ req }) => {
-    // Add any shared context here, e.g., user authentication
+  context: async ({ req }): Promise<GraphQLContext> => {
     const { sub, email } = await getCognitoUserInfo(req);
 
-    // Look up user by cognitoSubject
-    const user = await prisma().user.findUnique({
+    // 1) check first (so we can log a clear "matched")
+    const existing = await prisma().user.findUnique({
       where: { cognitoSubject: sub },
+      select: { id: true, email: true, username: true },
     });
 
+    let dbUser;
+    // Debugging
+    if (existing) {
+      console.info("[auth] Matched existing user", {
+        where: "cognitoSubject",
+        cognitoSubject: sub,
+        userId: existing.id,
+      });
+      dbUser = await prisma().user.update({
+        where: { id: existing.id },
+        data: { email }, // keep fresh if changed
+      });
+    } else {
+      console.info("[auth] No existing user — creating", {
+        where: "cognitoSubject",
+        cognitoSubject: sub,
+      });
+      dbUser = await prisma().user.create({
+        data: {
+          cognitoSubject: sub,
+          email,
+          username: email.split("@")[0],
+          fullName: email,
+          displayName: email.split("@")[0],
+        },
+      });
+      console.info("[auth] Created user", { userId: dbUser.id });
+    }
+    // END Debugging
+
     const roles = await getUserRoles(sub);
-    return {
-      user: user ? { ...user, roles } : null,
-    };
+
+    // map to your context shape
+    return { user: { id: dbUser.id, name: dbUser.email, roles } };
   },
 });
-
 console.log(`🚀 Server listening at: ${url}`);
