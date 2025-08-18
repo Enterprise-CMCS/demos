@@ -2,9 +2,9 @@ import React, { useState } from "react";
 
 import { SecondaryButton } from "components/button";
 import { AddNewIcon } from "components/icons";
-import { CreateNewModal } from "components/modal/CreateNewModal";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
+import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { TabItem, Tabs } from "layout/Tabs";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
@@ -14,9 +14,9 @@ export type DemonstrationTabDetails = {
   demonstrationTypes: object[];
   documents: object[];
   contacts: object[];
-}
+};
 
-export const DemonstrationTab: React.FC<{demonstration: DemonstrationTabDetails}> = ({
+export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails }> = ({
   demonstration,
 }) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
@@ -58,11 +58,7 @@ export const DemonstrationTab: React.FC<{demonstration: DemonstrationTabDetails}
           <div>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
-              <SecondaryButton
-                size="small"
-                className="flex items-center gap-1 px-1 py-1"
-                onClick={() => setModalType("document")}
-              >
+              <SecondaryButton size="small" onClick={() => setModalType("document")}>
                 <span>Add New</span>
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
@@ -82,17 +78,8 @@ export const DemonstrationTab: React.FC<{demonstration: DemonstrationTabDetails}
         )}
       </div>
 
-      {modalType === "document" && (
-        <CreateNewModal
-          mode="document"
-          data={{
-            demonstration: "demo-id",
-            state: "state-id",
-            projectOfficer: "description",
-          }}
-          onClose={() => setModalType(null)}
-        />
-      )}
+      {/* Replaced the CreateNewModal */}
+      {modalType === "document" && <AddDocumentModal onClose={() => setModalType(null)} />}
     </div>
   );
 };
