@@ -1,8 +1,8 @@
 import React from "react";
 
-import { ErrorOutlinedButton } from "components/button/ErrorOutlinedButton";
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { tw } from "tags/tw";
+import { ErrorButton } from "components/button";
 
 interface BaseModalProps {
   title: string;
@@ -72,9 +72,9 @@ export const BaseModal: React.FC<BaseModalProps> = ({
               <SecondaryButton size="small" onClick={() => setShowCancelConfirm(false)}>
                 No
               </SecondaryButton>
-              <ErrorOutlinedButton size="small" onClick={onClose}>
+              <ErrorButton isOutlined={true} size="small" onClick={onClose}>
                 Yes
-              </ErrorOutlinedButton>
+              </ErrorButton>
             </div>
           </div>
         </div>
