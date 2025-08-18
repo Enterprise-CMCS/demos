@@ -109,7 +109,7 @@ export class GuardDutyS3 extends Construct {
       this,
       "GuardDutyMalwareProtectionPassRole",
       {
-        roleName: `GuardDutyMalwareProtectionPassRole-${props.account}`,
+        roleName: `GuardDutyMalwareProtectionPassRole-${props.stage}`,
         assumedBy: new aws_iam.ServicePrincipal(
           "malware-protection-plan.guardduty.amazonaws.com"
         ),
