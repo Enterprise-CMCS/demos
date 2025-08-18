@@ -2,25 +2,11 @@ import React from "react";
 
 import { ToastProvider } from "components/toast/ToastContext";
 import { ALL_MOCKS } from "mock-data/index";
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-} from "react-router-dom";
-import {
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { describe, expect, it } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 import { DemonstrationDetail } from "./DemonstrationDetail";
 
@@ -31,10 +17,7 @@ describe("DemonstrationDetail", () => {
         <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
           <MemoryRouter initialEntries={["/demonstrations/1"]}>
             <Routes>
-              <Route
-                path="/demonstrations/:id"
-                element={<DemonstrationDetail />}
-              />
+              <Route path="/demonstrations/:id" element={<DemonstrationDetail />} />
             </Routes>
           </MemoryRouter>
         </MockedProvider>
@@ -51,9 +34,7 @@ describe("DemonstrationDetail", () => {
     });
 
     // Check breadcrumb navigation
-    expect(
-      screen.getByRole("link", { name: /demonstration list/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /demonstration list/i })).toBeInTheDocument();
 
     // Get the attributes list and verify its structure
     const attributesList = screen.getByTestId("demonstration-attributes-list");
@@ -62,9 +43,7 @@ describe("DemonstrationDetail", () => {
 
     // Get all list items (excluding pipe separators)
     const listItems = within(attributesList).getAllByRole("listitem");
-    const attributeItems = listItems.filter(
-      (item) => !item.textContent?.includes("|")
-    );
+    const attributeItems = listItems.filter((item) => !item.textContent?.includes("|"));
 
     // Expected attributes in order
     const expectedAttributes = [
@@ -85,9 +64,7 @@ describe("DemonstrationDetail", () => {
       expect(item).toHaveTextContent(expected.value);
 
       // Verify the structure: should contain both label and value
-      expect(item.textContent).toMatch(
-        new RegExp(`${expected.label}.*${expected.value}`)
-      );
+      expect(item.textContent).toMatch(new RegExp(`${expected.label}.*${expected.value}`));
     });
   });
 
@@ -107,9 +84,7 @@ describe("DemonstrationDetail", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    expect(
-      screen.getByRole("heading", { name: /Documents/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Documents/i })).toBeInTheDocument();
 
     const amendmentsTab = screen.getByRole("button", { name: /Amendments/i });
     fireEvent.click(amendmentsTab);
@@ -135,7 +110,7 @@ describe("DemonstrationDetail", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /Amendments/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Add New/i }));
+    fireEvent.click(screen.getByTestId("add-new-amendment"));
 
     expect(screen.getByText(/New Amendment/i)).toBeInTheDocument();
   });
