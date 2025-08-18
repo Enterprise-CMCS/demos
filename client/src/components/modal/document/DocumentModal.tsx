@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback, forwardRef } from "react";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
-import { ErrorButton, PrimaryButton, SecondaryButton } from "components/button";
+import { ErrorButton, Button, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { ErrorIcon } from "components/icons";
 import { BaseModal } from "components/modal/BaseModal";
@@ -77,7 +77,10 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
 
-const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({ value, onChange }) => (
+const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
+  value,
+  onChange,
+}) => (
   <TextInput
     name="title"
     label="Document Title"
@@ -127,7 +130,10 @@ const DocumentTypeInput: React.FC<{
   );
 };
 
-const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({ progress, uploadStatus }) => {
+const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({
+  progress,
+  uploadStatus,
+}) => {
   const progressBarColor =
     (
       {
@@ -140,7 +146,11 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
 
   return (
     <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
-      <div role="progressbar" className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`} style={{ width: `${progress}%` }} />
+      <div
+        role="progressbar"
+        className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`}
+        style={{ width: `${progress}%` }}
+      />
     </div>
   );
 };
@@ -188,7 +198,6 @@ const DropTarget: React.FC<{
         size="small"
         onClick={() => fileInputRef.current?.click()}
         disabled={uploadStatus === "uploading"}
-        className="w-full max-w-full overflow-hidden text-ellipsis"
       >
         {file ? (
           <span className="inline-block max-w-full truncate text-left" title={file.name}>
@@ -313,11 +322,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     } finally {
       onClose();
       if (success) {
-        showSuccess(
-          mode === "edit"
-            ? SUCCESS_MESSAGES.fileUpdated
-            : SUCCESS_MESSAGES.fileUploaded
-        );
+        showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
       }
       setSubmitting(false);
     }
@@ -334,7 +339,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
-          <PrimaryButton
+          <Button
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
@@ -342,17 +347,13 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
             disabled={isMissing || isUploading || submitting}
           >
             Upload
-          </PrimaryButton>
+          </Button>
         </>
       }
     >
       {mode === "edit" && <TitleInput value={documentTitle} onChange={setDocumentTitle} />}
 
-      <DescriptionInput
-        ref={descriptionRef}
-        value={description}
-        onChange={setDescription}
-      />
+      <DescriptionInput ref={descriptionRef} value={description} onChange={setDescription} />
 
       <DocumentTypeInput value={selectedType} onSelect={setSelectedType} />
 
@@ -388,7 +389,10 @@ export const EditDocumentModal: React.FC<{
   />
 );
 
-export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () => void }> = ({ documentIds, onClose }) => {
+export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () => void }> = ({
+  documentIds,
+  onClose,
+}) => {
   const { showWarning, showError } = useToast();
   const [submitting, setSubmitting] = useState(false);
 
