@@ -32,10 +32,18 @@ vi.mock("components/modal/DemonstrationModal", () => ({
   DemonstrationModal: () => <div>DemonstrationModal</div>,
 }));
 
-vi.mock("components/modal/CreateNewModal", () => ({
-  CreateNewModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
-    <div data-testid={`modal-${mode}`}>
-      CreateNewModal ({mode})<button onClick={onClose}>Close</button>
+vi.mock("components/modal/AmendmentModal", () => ({
+  AmendmentModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div data-testid="modal-amendment">
+      AmendmentModal ({mode})<button onClick={onClose}>Close</button>
+    </div>
+  ),
+}));
+
+vi.mock("components/modal/ExtensionModal", () => ({
+  ExtensionModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div data-testid="modal-extension">
+      ExtensionModal ({mode})<button onClick={onClose}>Close</button>
     </div>
   ),
 }));
@@ -62,7 +70,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: null,
     });
-    render(<DefaultHeaderLower userId={1} />);
+    render(<DefaultHeaderLower userId="1" />);
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
@@ -72,7 +80,7 @@ describe("DefaultHeaderLower", () => {
       error: { message: "fail" },
       data: null,
     });
-    render(<DefaultHeaderLower userId={2} />);
+    render(<DefaultHeaderLower userId="2" />);
     expect(screen.getByText("Error: fail")).toBeInTheDocument();
   });
 
@@ -82,7 +90,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: { user: null },
     });
-    const { container } = render(<DefaultHeaderLower userId={3} />);
+    const { container } = render(<DefaultHeaderLower userId="3" />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -92,7 +100,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: { user: { fullName: "John Test" } },
     });
-    render(<DefaultHeaderLower userId={4} />);
+    render(<DefaultHeaderLower userId="4" />);
     expect(screen.getByText("Hello John Test")).toBeInTheDocument();
   });
 
@@ -102,7 +110,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={5} />);
+    render(<DefaultHeaderLower userId="5" />);
     const button = screen.getByText("Create New");
     fireEvent.click(button);
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
@@ -119,7 +127,7 @@ describe("DefaultHeaderLower", () => {
 
     render(
       <DemosApolloProvider>
-        <DefaultHeaderLower userId={"6"} />
+        <DefaultHeaderLower userId="6" />
       </DemosApolloProvider>
     );
     fireEvent.click(screen.getByText("Create New"));
@@ -133,7 +141,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={7} />);
+    render(<DefaultHeaderLower userId="7" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Add New Document"));
     expect(screen.getByTestId("add-document-modal")).toBeInTheDocument();
@@ -141,25 +149,25 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByTestId("add-document-modal")).not.toBeInTheDocument();
   });
 
-  it("opens CreateNewModal for amendment", () => {
+  it("opens AmendmentModal for amendment", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={8} />);
+    render(<DefaultHeaderLower userId="8" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
     expect(screen.getByTestId("modal-amendment")).toBeInTheDocument();
   });
 
-  it("opens CreateNewModal for extension", () => {
+  it("opens ExtensionModal for extension", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={9} />);
+    render(<DefaultHeaderLower userId="9" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
     expect(screen.getByTestId("modal-extension")).toBeInTheDocument();

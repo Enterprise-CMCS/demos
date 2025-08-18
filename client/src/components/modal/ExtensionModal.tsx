@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import { PrimaryButton } from "components/button/PrimaryButton";
-import { SecondaryButton } from "components/button/SecondaryButton";
+import { PrimaryButton, SecondaryButton } from "components/button";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
@@ -10,16 +9,22 @@ import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { useDemonstration } from "hooks/useDemonstration";
 import { useExtension } from "hooks/useExtension";
+import { tw } from "tags/tw";
 import {
   normalizeDemonstrationId,
   normalizeUserId,
 } from "hooks/user/uuidHelpers";
 
-export type ModalMode = "amendment" | "extension" | "demonstration" | "document";
+const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
+const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
+
+type ExtensionModalMode = "add" | "edit";
 
 type Props = {
   onClose: () => void;
-  mode: ModalMode;
+  mode: ExtensionModalMode;
+  extensionId?: string;
+  demonstrationId?: string;
   data?: {
     title?: string;
     state?: string;
@@ -31,24 +36,31 @@ type Props = {
   };
 };
 
-export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
-  const { showSuccess, showError } = useToast();
-  const { addExtension } = useExtension();
-  const { getAllDemonstrations } = useDemonstration();
-  const [title, setTitle] = useState(data?.title || "");
+export const ExtensionModal: React.FC<Props> = ({
+  onClose,
+  mode,
+  extensionId,
+  demonstrationId,
+  data,
+}) => {
   const [state, setState] = useState(data?.state || "");
+  const [title, setTitle] = useState(data?.title || "");
   const [projectOfficer, setProjectOfficer] = useState(data?.projectOfficer || "");
   const [effectiveDate, setEffectiveDate] = useState(data?.effectiveDate || "");
   const [expirationDate, setExpirationDate] = useState(data?.expirationDate || "");
   const [description, setDescription] = useState(data?.description || "");
-  const [demonstration, setDemonstration] = useState(data?.demonstration || "");
-  const [showWarning, setShowWarning] = useState(false);
+  const [demonstration, setDemonstration] = useState(data?.demonstration || demonstrationId || "");
   const [expirationError, setExpirationError] = useState("");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formStatus, setFormStatus] = useState<"idle" | "pending">("idle");
+  const [showWarning, setShowWarning] = useState(false);
 
-  // Fetch real demonstrations from the database
-  React.useEffect(() => {
+  const { showSuccess, showError } = useToast();
+  const { getAllDemonstrations } = useDemonstration();
+  const { addExtension } = useExtension();
+
+  // Fetch demonstrations for dropdown
+  useEffect(() => {
     getAllDemonstrations.trigger();
   }, [getAllDemonstrations.trigger]);
 
@@ -58,28 +70,26 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
     value: demo.id,
   })) || [];
 
-  const capitalized = mode.charAt(0).toUpperCase() + mode.slice(1);
-  const showDemoSelect = mode !== "demonstration";
-
-  const isSubmitDisabled =
-    (showDemoSelect && !demonstration) ||
-    !title ||
-    !state ||
-    !projectOfficer ||
-    isSubmitting;
+  const isFormValid = demonstration && title && state && projectOfficer;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (showDemoSelect && !demonstration) {
+
+    if (!demonstration) {
       setShowWarning(true);
       return;
     }
+
+    if (!isFormValid) {
+      showError("Please complete all required fields.");
+      return;
+    }
+
     setShowWarning(false);
-    setIsSubmitting(true);
+    setFormStatus("pending");
 
     try {
-      if (mode === "extension") {
-        // For extensions, we need to create the extension using the addExtension API
+      if (mode === "add") {
         const extensionData = {
           demonstrationId: normalizeDemonstrationId(demonstration),
           name: title,
@@ -90,22 +100,28 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
           ...(expirationDate && { expirationDate: new Date(expirationDate) }),
         };
         await addExtension.trigger(extensionData);
+      } else {
+        // TODO: Implement extension update logic when available
+        console.log("Extension update not yet implemented for ID:", extensionId);
       }
-      // TODO: Add similar logic for amendments when needed
 
-      showSuccess(`${capitalized} created successfully!`);
+      showSuccess(
+        mode === "edit"
+          ? "Extension updated successfully!"
+          : "Extension created successfully!"
+      );
       onClose();
     } catch (error) {
-      console.error(`Error creating ${mode}:`, error);
-      showError(`Failed to create ${mode}. Please try again.`);
+      console.error("Error saving extension:", error);
+      showError("Failed to save extension. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setFormStatus("idle");
     }
   };
 
   return (
     <BaseModal
-      title={`New ${capitalized}`}
+      title={mode === "edit" ? "Edit Extension" : "New Extension"}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -118,41 +134,40 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
           <PrimaryButton
             size="small"
             type="submit"
-            form={`create-${mode}-form`}
-            disabled={isSubmitDisabled}
+            form="extension-form"
+            disabled={!isFormValid || formStatus === "pending"}
           >
-            {isSubmitting ? "Creating..." : "Submit"}
+            {formStatus === "pending" ? "Saving..." : "Submit"}
           </PrimaryButton>
         </>
       }
     >
       <form
-        id={`create-${mode}-form`}
-        className="space-y-1"
+        id="extension-form"
+        className="space-y-4"
         onSubmit={handleSubmit}
       >
-        {showDemoSelect && (
-          <div>
-            <AutoCompleteSelect
-              label="Demonstration"
-              placeholder="Select demonstration"
-              isRequired
-              options={demoOptions}
-              onSelect={setDemonstration}
-            />
-            {showWarning && !demonstration && (
-              <p className="text-sm text-text-warn mt-0.5">
-                Each {mode} record must be linked to an existing demonstration.
-              </p>
-            )}
-          </div>
-        )}
+        <div>
+          <AutoCompleteSelect
+            label="Demonstration"
+            placeholder="Select demonstration"
+            isRequired
+            options={demoOptions}
+            value={demonstration}
+            onSelect={setDemonstration}
+          />
+          {showWarning && !demonstration && (
+            <p className="text-sm text-text-warn mt-0.5">
+              Each extension record must be linked to an existing demonstration.
+            </p>
+          )}
+        </div>
 
         <div className="grid grid-cols-3 gap-3">
           <div className="col-span-2">
             <TextInput
               name="title"
-              label={`${capitalized} Title`}
+              label="Extension Title"
               placeholder="Enter title"
               isRequired
               value={title}
@@ -179,13 +194,13 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
             />
           </div>
           <div className="flex flex-col gap-sm">
-            <label className="text-text-font font-bold text-field-label flex gap-0-5" htmlFor="effective-date">
+            <label className={LABEL_CLASSES} htmlFor="effective-date">
               Effective Date
             </label>
             <input
               id="effective-date"
               type="date"
-              className="w-full border rounded px-1 py-1 text-sm"
+              className={DATE_INPUT_CLASSES}
               value={effectiveDate}
               onChange={(e) => {
                 setEffectiveDate(e.target.value);
@@ -196,13 +211,16 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
             />
           </div>
           <div className="flex flex-col gap-sm">
-            <label className={"text-text-font font-bold text-field-label flex gap-0-5"} htmlFor="expiration-date">
+            <label className={LABEL_CLASSES} htmlFor="expiration-date">
               Expiration Date
             </label>
             <input
               id="expiration-date"
               type="date"
-              className={`w-full border rounded px-1 py-1 text-sm ${expirationError ? "border-border-warn focus:ring-border-warn" : "border-border-fields focus:ring-border-focus"}`}
+              className={`${DATE_INPUT_CLASSES} ${expirationError
+                ? "border-border-warn focus:ring-border-warn"
+                : "border-border-fields focus:ring-border-focus"
+              }`}
               value={expirationDate}
               min={effectiveDate || undefined}
               onChange={(e) => {
@@ -222,12 +240,12 @@ export const CreateNewModal: React.FC<Props> = ({ onClose, mode, data }) => {
         </div>
 
         <div className="flex flex-col gap-sm">
-          <label htmlFor="description" className="text-text-font font-bold text-field-label flex gap-0-5">
-            {capitalized} Description
+          <label className={LABEL_CLASSES} htmlFor="description">
+            Extension Description
           </label>
           <textarea
             id="description"
-            placeholder="Enter"
+            placeholder="Enter description"
             className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
             value={description}
             onChange={(e) => setDescription(e.target.value)}

@@ -3,7 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
 import { DemonstrationModal } from "components/modal/DemonstrationModal";
-import { CreateNewModal } from "components/modal/CreateNewModal";
+import { AmendmentModal } from "components/modal/AmendmentModal";
+import { ExtensionModal } from "components/modal/ExtensionModal";
 import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { gql } from "graphql-tag";
 import { normalizeUserId } from "hooks/user/uuidHelpers";
@@ -112,10 +113,10 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
       )}
       {modalType === "document" && <AddDocumentModal onClose={() => setModalType(null)} />}
       {modalType === "amendment" && (
-        <CreateNewModal mode="amendment" onClose={() => setModalType(null)} />
+        <AmendmentModal mode="add" onClose={() => setModalType(null)} />
       )}
       {modalType === "extension" && (
-        <CreateNewModal mode="extension" onClose={() => setModalType(null)} />
+        <ExtensionModal mode="add" onClose={() => setModalType(null)} />
       )}
     </div>
   );

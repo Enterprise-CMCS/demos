@@ -1,6 +1,9 @@
 import React from "react";
 
-import { CreateNewModal } from "components/modal/CreateNewModal";
+import { DemonstrationModal } from "components/modal/DemonstrationModal";
+import { AmendmentModal } from "components/modal/AmendmentModal";
+import { ExtensionModal } from "components/modal/ExtensionModal";
+import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { Demonstration } from "demos-server";
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
@@ -31,43 +34,29 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
   <>
     {/* Entity Creation Modals */}
     {entityCreationModal === "amendment" && (
-      <CreateNewModal
-        mode="amendment"
-        data={{ demonstration: demonstration.id }}
+      <AmendmentModal
+        mode="add"
+        demonstrationId={demonstration.id}
         onClose={onCloseEntityModal}
       />
     )}
 
     {entityCreationModal === "extension" && (
-      <CreateNewModal
-        mode="extension"
-        data={{ demonstration: demonstration.id }}
+      <ExtensionModal
+        mode="add"
+        demonstrationId={demonstration.id}
         onClose={onCloseEntityModal}
       />
     )}
 
     {entityCreationModal === "document" && (
-      <CreateNewModal
-        mode="document"
-        data={{
-          demonstration: demonstration.id,
-          state: demonstration.state?.id,
-          projectOfficer: demonstration.description,
-        }}
-        onClose={onCloseEntityModal}
-      />
+      <AddDocumentModal onClose={onCloseEntityModal} />
     )}
 
     {/* Demonstration Action Modals */}
     {demonstrationActionModal === "edit" && (
-      <CreateNewModal
-        mode="demonstration"
-        data={{
-          title: demonstration.name,
-          state: demonstration.state?.id,
-          projectOfficer: demonstration.description,
-          description: demonstration.description,
-        }}
+      <DemonstrationModal
+        mode="edit"
         onClose={onCloseDemonstrationModal}
       />
     )}
