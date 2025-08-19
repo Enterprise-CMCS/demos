@@ -9,6 +9,7 @@ import {
   SecretsManagerClient,
   GetSecretValueCommand
 } from "@aws-sdk/client-secrets-manager";
+import fetch from "node-fetch";
 
 const prisma = new PrismaClient();
 const config = getAuthConfig();
@@ -24,14 +25,37 @@ export interface GraphQLContext {
 
 type DecodedJWT = {
   sub: string;
-  email: string;
+email: string;
 };
 
 const decodeToken = (token: string): Promise<DecodedJWT> => {
-  console.log(token, 'token');
+  // DEBUG
+  const decoded = jwt.decode(token, { complete: true }) as { header: any; payload: any } | null;
+  if (!decoded) {
+    console.error("[jwt] failed to decode token");
+    throw new GraphQLError("User is not authenticated", { extensions: { code: "UNAUTHENTICATED" } });
+  }
+  const { header, payload } = decoded;
+  console.log("[jwt] kid:", header?.kid);
+  console.log("[jwt] token_use:", payload?.token_use);   // "id" or "access"
+  console.log("[jwt] iss:", payload?.iss);
+  console.log("[jwt] aud:", payload?.aud, "client_id:", payload?.client_id);
+  console.log("[jwt] expected issuer:", config.issuer);
+  console.log("[jwt] expected audience:", config.audience);
+  console.log("[jwt] jwksUri:", config.jwksUri);
+  // END DEBUG
   const client = jwksClient({
     jwksUri: config.jwksUri,
   });
+
+  (async () => {
+    try {
+      const jwks = await (await fetch(config.jwksUri)).json();
+      console.log("[jwks] kids:", jwks.keys.map((k: any) => k.kid));
+    } catch (e) {
+      console.error("[jwks] fetch error", e);
+    }
+  })();
 
   function getKey(
     header: JwtHeader,
@@ -74,8 +98,8 @@ const checkAuthBypass = (): DecodedJWT | undefined => {
   // Bypass authentication for testing purposes
   if (process.env.BYPASS_AUTH === "true") {
     return {
-      sub: "14f83478-c0f1-70f7-2c30-ca664b9177e9",
-      email: "dustin.h@globalalliantinc.com"
+      sub: "1234abcd-0000-1111-2222-333333333333",
+      email: "bypassedUser@email.com"
     };
   }
 }
@@ -104,25 +128,8 @@ export const getCognitoUserInfoForLambda = (
   }
 
   const token: string = headers.authorization?.split(" ")[1] || "";
-  console.log("Lambda token:", token);
-  // createUserIfNotExists()
   return decodeToken(token);
 };
-
-// const createUserIfNotExists = async (sub: string, email: string, given_name?: string, family_name?: string): Promise<void> => {
-//   const user = await prisma.user.findUnique({ where: { cognitoSubject: sub } });
-//   if (!user) {
-//     await prisma.user.create({
-//       data: {
-//         cognitoSubject: sub,
-//         email,
-//         fullName: `${given_name ?? ""} ${family_name ?? ""}`.trim(),
-//         username: email, // or another field if available
-//         displayName: given_name ?? email,
-//       },
-//     });
-//   }
-// };
 
 /**
  * Fetches a user's role from the DB using their Cognito sub.

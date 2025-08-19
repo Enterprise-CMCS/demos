@@ -13,6 +13,7 @@ interface PrimaryLayoutProps {
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const { currentUser, loading, error } = useCurrentUser();
+  console.log("PrimaryLayout currentUser:", currentUser);
 
   // You now have the *real* user id from the server
   const userId = currentUser?.id ?? "";

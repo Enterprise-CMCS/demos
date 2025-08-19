@@ -1,7 +1,9 @@
 import { User } from "@prisma/client";
+import type { User as PrismaUser } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { CreateUserInput } from "./userSchema.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import type { GraphQLResolveInfo } from "graphql";
+import type { GraphQLContext } from "../../auth/auth.util.js";
 
 export const userResolvers = {
   Query: {
@@ -13,7 +15,12 @@ export const userResolvers = {
     users: async () => {
       return await prisma().user.findMany();
     },
-    currentUser: async (_p, _a, ctx) => {
+    currentUser: async (
+      _parent: unknown,
+      _args: Record<string, never>,
+      ctx: GraphQLContext,
+      _info?: GraphQLResolveInfo
+    ): Promise<PrismaUser | null> => {
       if (!ctx.user) return null;
       try {
         return await prisma().user.findUnique({ where: { id: ctx.user.id } });
