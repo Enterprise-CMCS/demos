@@ -1,10 +1,21 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import {
+  render,
+  screen,
+} from "@testing-library/react";
+
+import { ErrorToast } from "./ErrorToast";
 import { InfoToast } from "./InfoToast";
 import { SuccessToast } from "./SuccessToast";
 import { WarningToast } from "./WarningToast";
-import { ErrorToast } from "./ErrorToast";
 
 describe("Toast Components", () => {
   const defaultMessage = "Test toast message";
@@ -16,7 +27,7 @@ describe("Toast Components", () => {
 
   describe("InfoToast", () => {
     it("renders as info type with correct styling", () => {
-      render(<InfoToast message={defaultMessage} />);
+      render(<InfoToast message={defaultMessage} onDismiss={() => { }} />);
       const alert = screen.getByRole("alert");
       expect(alert).toHaveClass("border-brand");
     });
@@ -24,7 +35,7 @@ describe("Toast Components", () => {
 
   describe("SuccessToast", () => {
     it("renders as success type with correct styling", () => {
-      render(<SuccessToast message={defaultMessage} />);
+      render(<SuccessToast message={defaultMessage} onDismiss={() => { }} />);
       const alert = screen.getByRole("alert");
       expect(alert).toHaveClass("border-border-success");
     });
@@ -32,7 +43,7 @@ describe("Toast Components", () => {
 
   describe("WarningToast", () => {
     it("renders as warning type with correct styling", () => {
-      render(<WarningToast message={defaultMessage} />);
+      render(<WarningToast message={defaultMessage} onDismiss={() => { }} />);
       const alert = screen.getByRole("alert");
       expect(alert).toHaveClass("border-border-alert");
     });
@@ -40,7 +51,7 @@ describe("Toast Components", () => {
 
   describe("ErrorToast", () => {
     it("renders as error type with correct styling", () => {
-      render(<ErrorToast message={defaultMessage} />);
+      render(<ErrorToast message={defaultMessage} onDismiss={() => { }} />);
       const alert = screen.getByRole("alert");
       expect(alert).toHaveClass("border-border-warn");
     });
@@ -57,13 +68,13 @@ describe("Toast Components", () => {
     toastComponents.forEach(({ Component, name }) => {
       describe(name, () => {
         it("has proper accessibility attributes", () => {
-          render(<Component message={defaultMessage} />);
+          render(<Component message={defaultMessage} onDismiss={() => { }} />);
           const alert = screen.getByRole("alert");
           expect(alert).toBeInTheDocument();
         });
 
         it("renders dismiss button with proper aria-label", () => {
-          render(<Component message={defaultMessage} />);
+          render(<Component message={defaultMessage} onDismiss={() => { }} />);
           const dismissButton = screen.getByLabelText("Dismiss notification");
           expect(dismissButton).toBeInTheDocument();
         });
