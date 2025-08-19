@@ -1,4 +1,6 @@
-import jwt, { JwtHeader } from "jsonwebtoken";
+import jwt, {
+  JwtHeader, VerifyOptions
+} from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { GraphQLError } from "graphql";
 import { IncomingMessage } from "http";
@@ -9,10 +11,11 @@ import {
   SecretsManagerClient,
   GetSecretValueCommand
 } from "@aws-sdk/client-secrets-manager";
-import fetch from "node-fetch";
 
 const prisma = new PrismaClient();
 const config = getAuthConfig();
+
+const AUTH_DEBUG = process.env.AUTH_DEBUG === "true";
 
 export interface GraphQLContext {
   user: null | {
@@ -22,77 +25,67 @@ export interface GraphQLContext {
   };
 }
 
-
 type DecodedJWT = {
   sub: string;
-email: string;
+  email?: string;
+  token_use?: "id" | "access";
 };
 
-const decodeToken = (token: string): Promise<DecodedJWT> => {
-  // DEBUG
-  const decoded = jwt.decode(token, { complete: true }) as { header: any; payload: any } | null;
-  if (!decoded) {
-    console.error("[jwt] failed to decode token");
-    throw new GraphQLError("User is not authenticated", { extensions: { code: "UNAUTHENTICATED" } });
-  }
-  const { header, payload } = decoded;
-  console.log("[jwt] kid:", header?.kid);
-  console.log("[jwt] token_use:", payload?.token_use);   // "id" or "access"
-  console.log("[jwt] iss:", payload?.iss);
-  console.log("[jwt] aud:", payload?.aud, "client_id:", payload?.client_id);
-  console.log("[jwt] expected issuer:", config.issuer);
-  console.log("[jwt] expected audience:", config.audience);
-  console.log("[jwt] jwksUri:", config.jwksUri);
-  // END DEBUG
-  const client = jwksClient({
-    jwksUri: config.jwksUri,
-  });
+const client = jwksClient({
+  jwksUri: config.jwksUri,
+  cache: true,
+  cacheMaxEntries: 5,
+  cacheMaxAge: 10 * 60 * 1000,
+  rateLimit: true,
+  jwksRequestsPerMinute: 5,
+});
 
-  (async () => {
-    try {
-      const jwks = await (await fetch(config.jwksUri)).json();
-      console.log("[jwks] kids:", jwks.keys.map((k: any) => k.kid));
-    } catch (e) {
-      console.error("[jwks] fetch error", e);
-    }
-  })();
-
-  function getKey(
-    header: JwtHeader,
-    callback: (err: Error | null, signingKey?: string) => void,
-  ): void {
-    client.getSigningKey(header.kid, (err, key) => {
-      if (err || !key)
-        return callback(err || new Error("Signing key not found"));
-      const signingKey = key.getPublicKey();
-      callback(null, signingKey);
-    });
-  }
-
-  return new Promise((resolve, reject) => {
-    jwt.verify(
-      token,
-      getKey,
-      {
-        audience: config.audience,
-        issuer: config.issuer,
-      },
-      (err, decoded) => {
-        console.log("------------------------------------------------------------");
-        console.log("err:", err);
-        // console.log("Decoded JWT:", decoded);
-        if (err) {
-          return reject(
-            new GraphQLError("User is not authenticated", {
-              extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
-            }),
-          );
-        }
-        resolve(decoded as DecodedJWT);
-      },
-    );
+function getKey(
+  header: JwtHeader,
+  callback: (err: Error | null, signingKey?: string) => void
+) {
+  if (!header.kid) return callback(new Error("JWT header missing kid"));
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err || !key) return callback(err || new Error(`Signing key not found for kid ${header.kid}`));
+    callback(null, key.getPublicKey());
   });
 }
+
+export const decodeToken = (token: string): Promise<DecodedJWT> =>
+  new Promise((resolve, reject) => {
+    // (Optional) peek to decide verify options based on token_use
+    const peek = jwt.decode(token, { json: true }) as (DecodedJWT & { iss?: string; aud?: string }) | null;
+
+    if (AUTH_DEBUG && peek) {
+      // Lightweight, structured debug (no full token)
+      console.log("[jwt]", {
+        kid: (jwt.decode(token, { complete: true }) as any)?.header?.kid,
+        token_use: peek.token_use,
+        iss: (peek as { iss?: string })?.iss,
+        aud: (peek as { aud?: string })?.aud,
+        expectedIssuer: config.issuer,
+        expectedAudience: config.audience,
+      });
+    }
+
+    // If you always use id_token, you can skip this branch and keep audience.
+    const verifyOpts: VerifyOptions =
+      peek?.token_use === "access"
+        ? { issuer: config.issuer } // access tokens don't have aud
+        : { issuer: config.issuer, audience: config.audience }; // id tokens require aud
+
+    jwt.verify(token, getKey, verifyOpts, (err, verified) => {
+      if (err) {
+        if (AUTH_DEBUG) console.error("[jwt] verify error:", err);
+        return reject(
+          new GraphQLError("User is not authenticated", {
+            extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+          })
+        );
+      }
+      resolve(verified as DecodedJWT);
+  });
+});
 
 const checkAuthBypass = (): DecodedJWT | undefined => {
   // Bypass authentication for testing purposes

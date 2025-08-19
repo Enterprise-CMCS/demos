@@ -14,43 +14,48 @@ const server = new ApolloServer<GraphQLContext>({
   introspection: process.env.ALLOW_INTROSPECTION === "true",
 });
 
-// local-server.ts
 const { url } = await startStandaloneServer<GraphQLContext>(server, {
   listen: { port: 4000 },
   context: async ({ req }): Promise<GraphQLContext> => {
     const authHeader = req.headers.authorization ?? "";
     const hasBearer = authHeader.startsWith("Bearer ");
     console.log("[auth] header present:", !!authHeader, "bearer:", hasBearer);
-
     if (!hasBearer) {
-      // anonymous context
       return { user: null };
     }
-
     try {
-      const { sub, email } = await getCognitoUserInfo(req);
+      const { sub, email: jwtEmail } = await getCognitoUserInfo(req);
+      // Provide safe values when email is missing in the token
+      const username =
+        (jwtEmail && jwtEmail.includes("@"))
+          ? jwtEmail.split("@")[0]
+          : sub; // fall back to sub
 
+      const displayName = username;
+      const emailForCreate = jwtEmail ?? `${sub}@no-email.local`; // any deterministic placeholder
+      const fullName = jwtEmail ?? username;
       const dbUser = await prisma().user.upsert({
         where: { cognitoSubject: sub },
-        update: { email },
+        update: {
+          ...(jwtEmail ? { email: jwtEmail } : {}),
+        },
         create: {
           cognitoSubject: sub,
-          username: email.split("@")[0],
-          email,
-          fullName: email,
-          displayName: email.split("@")[0],
+          username,
+          email: emailForCreate,
+          fullName,
+          displayName,
         },
       });
 
       const roles = await getUserRoles(sub);
-
       return { user: { id: dbUser.id, roles } };
     } catch (err) {
       console.error("[auth] context error:", err);
-      // fail closed for protected resolvers, but don't 500 the whole request
       return { user: null };
     }
   },
 });
+
 
 console.log(`🚀 Server listening at: ${url}`);

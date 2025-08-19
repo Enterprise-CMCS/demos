@@ -25,7 +25,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const { data, loading, error, refetch } = useQuery(GET_CURRENT_USER_QUERY, {
     fetchPolicy: "cache-first",
   });
-  console.log("This is working");
   const auth = useAuth();
 
   useEffect(() => {
@@ -33,9 +32,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       refetch().catch(() => {});
     }
   }, [auth.isLoading, auth.isAuthenticated, auth.user, refetch]);
-
   const currentUser = (data?.currentUser as CurrentUser | undefined) ?? null;
-
   const value = useMemo<UserContextValue>(
     () => ({
       currentUser,
@@ -46,7 +43,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }),
     [currentUser, loading, error, refetch]
   );
-
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
