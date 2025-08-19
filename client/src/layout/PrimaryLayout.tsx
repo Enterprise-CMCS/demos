@@ -1,19 +1,10 @@
 // src/layout/PrimaryLayout.tsx
-import React, { useEffect, useState } from "react";
-import { useAuth } from "react-oidc-context";
-import { useUpsertUser } from "mutations/useUpsertUser";
-
+import React, { useState } from "react";
 import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
 import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
-import {
-  Footer,
-  Header,
-  ToastContainer,
-  ToastProvider,
-} from "components/index";
-import { shouldUseMocks } from "config/env";
-
+import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
+import { useCurrentUser } from "components/user/UserContext";
 
 interface PrimaryLayoutProps {
   children: React.ReactNode;
@@ -21,33 +12,35 @@ interface PrimaryLayoutProps {
 
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const auth = useAuth();
-  const [upsertUser] = useUpsertUser();
+  const { currentUser, loading, error } = useCurrentUser();
 
-  // Use different user ID based on environment - always string now
-  const userId = shouldUseMocks() ? "2" : "cb88fd69-9509-40ed-9029-610231fe9e18";
-  // userId = "cb88fd69-9509-40ed-9029-610231fe9e18";
+  // You now have the *real* user id from the server
+  const userId = currentUser?.id ?? "";
 
-  useEffect(() => {
-    if (auth.isAuthenticated && auth.user) {
-      const profile = auth.user.profile;
-      upsertUser({
-        variables: {
-          input: {
-            cognito_subject: profile.sub, // OIDC subject
-            username: profile.preferred_username || profile.username || profile.email,
-            email: profile.email,
-            full_name: profile.name || `${profile.given_name ?? ""} ${profile.family_name ?? ""}`.trim(),
-            display_name: profile.nickname || profile.name || profile.preferred_username || profile.email,
-          },
-        },
-      });
-    }
-  }, [auth.isAuthenticated, auth.user, upsertUser]);
+  // Optional: lightweight loading fence so Header doesn't flicker
+  if (loading) {
+    return (
+      <ToastProvider>
+        <div className="h-screen flex flex-col">
+          <header className="p-3 shadow">Loading…</header>
+          <div className="flex-1 bg-gray-100" />
+          <ToastContainer />
+        </div>
+      </ToastProvider>
+    );
+  }
+
+  // Optional: surface auth/data errors
+  if (error) {
+    // You can render something nicer or trigger a sign-out here
+    console.error("[PrimaryLayout] currentUser error:", error);
+  }
 
   return (
     <ToastProvider>
-      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower userId={userId} />}>
+      <HeaderConfigProvider
+        defaultLowerContent={<DefaultHeaderLower userId={userId} />}
+      >
         <div className="h-screen flex flex-col">
           <Header userId={userId} />
           <div className="flex flex-1 overflow-hidden bg-gray-100">

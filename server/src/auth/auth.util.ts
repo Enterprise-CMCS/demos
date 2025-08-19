@@ -16,10 +16,11 @@ const config = getAuthConfig();
 export interface GraphQLContext {
   user: null | {
     id: string;
-    name: string;
     roles: string[] | null;
+    displayName?: string;
   };
 }
+
 
 type DecodedJWT = {
   sub: string;

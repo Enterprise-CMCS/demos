@@ -18,48 +18,39 @@ const server = new ApolloServer<GraphQLContext>({
 const { url } = await startStandaloneServer<GraphQLContext>(server, {
   listen: { port: 4000 },
   context: async ({ req }): Promise<GraphQLContext> => {
-    const { sub, email } = await getCognitoUserInfo(req);
+    const authHeader = req.headers.authorization ?? "";
+    const hasBearer = authHeader.startsWith("Bearer ");
+    console.log("[auth] header present:", !!authHeader, "bearer:", hasBearer);
 
-    // 1) check first (so we can log a clear "matched")
-    const existing = await prisma().user.findUnique({
-      where: { cognitoSubject: sub },
-      select: { id: true, email: true, username: true },
-    });
+    if (!hasBearer) {
+      // anonymous context
+      return { user: null };
+    }
 
-    let dbUser;
-    // Debugging
-    if (existing) {
-      console.info("[auth] Matched existing user", {
-        where: "cognitoSubject",
-        cognitoSubject: sub,
-        userId: existing.id,
-      });
-      dbUser = await prisma().user.update({
-        where: { id: existing.id },
-        data: { email }, // keep fresh if changed
-      });
-    } else {
-      console.info("[auth] No existing user — creating", {
-        where: "cognitoSubject",
-        cognitoSubject: sub,
-      });
-      dbUser = await prisma().user.create({
-        data: {
+    try {
+      const { sub, email } = await getCognitoUserInfo(req);
+
+      const dbUser = await prisma().user.upsert({
+        where: { cognitoSubject: sub },
+        update: { email },
+        create: {
           cognitoSubject: sub,
-          email,
           username: email.split("@")[0],
+          email,
           fullName: email,
           displayName: email.split("@")[0],
         },
       });
-      console.info("[auth] Created user", { userId: dbUser.id });
+
+      const roles = await getUserRoles(sub);
+
+      return { user: { id: dbUser.id, roles } };
+    } catch (err) {
+      console.error("[auth] context error:", err);
+      // fail closed for protected resolvers, but don't 500 the whole request
+      return { user: null };
     }
-    // END Debugging
-
-    const roles = await getUserRoles(sub);
-
-    // map to your context shape
-    return { user: { id: dbUser.id, name: dbUser.email, roles } };
   },
 });
+
 console.log(`🚀 Server listening at: ${url}`);

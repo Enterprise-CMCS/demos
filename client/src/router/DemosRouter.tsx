@@ -12,6 +12,7 @@ import { IconLibrary } from "pages/debug/IconLibrary";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import { isLocalDevelopment } from "config/env";
 import { EventSandbox } from "pages/debug/EventSandbox";
+import { UserProvider } from "components/user/UserContext";
 
 export const DemosRouter = () => {
   // TODO: When we know what IDM integration looks like
@@ -22,6 +23,7 @@ export const DemosRouter = () => {
   return (
     <AuthProvider {...cognitoConfig}>
       <DemosApolloProvider>
+        <UserProvider>
         <BrowserRouter>
           <Routes>
             <Route
@@ -51,6 +53,7 @@ export const DemosRouter = () => {
             </Route>
           </Routes>
         </BrowserRouter>
+        </UserProvider>
       </DemosApolloProvider>
     </AuthProvider>
   );
