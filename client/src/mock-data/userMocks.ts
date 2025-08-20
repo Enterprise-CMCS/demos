@@ -41,6 +41,8 @@ export const userMocks: MockedResponse[] = [
           displayName: "John",
           fullName: "John Doe",
           roles: [],
+          cognitoSubject: "1234567890",
+          username: "johndoe",
         },
       },
     },
