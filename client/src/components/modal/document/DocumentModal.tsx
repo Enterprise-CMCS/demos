@@ -8,6 +8,7 @@ import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
+import { Document } from "demos-server";
 
 type DocumentModalType = "add" | "edit";
 
@@ -232,23 +233,17 @@ const DropTarget: React.FC<{
 type DocumentModalProps = {
   onClose?: () => void;
   mode: "add" | "edit";
-  forDocumentId?: string;
-  initialTitle?: string;
-  initialDescription?: string;
-  initialType?: string;
+  initialDocument?: DocumentFields;
 };
 
+type DocumentFields = Pick<Document, "id" | "title" | "description" | "documentType">;
 const DocumentModal: React.FC<DocumentModalProps> = ({
   onClose = () => {},
   mode,
-  initialTitle = "",
-  initialDescription = "",
-  initialType = "",
+  initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
-  const [documentTitle, setDocumentTitle] = useState(initialTitle);
-  const [description, setDescription] = useState(initialDescription);
-  const [selectedType, setSelectedType] = useState(() => normalizeType(initialType));
+  const [activeDocument, setActiveDocument] = useState<DocumentFields>(initialDocument || null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
@@ -262,8 +257,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 
   // keep type in sync if prop changes
   useEffect(() => {
-    setSelectedType(normalizeType(initialType));
-  }, [initialType]);
+    setActiveDocument((prev) => ({
+      ...prev,
+      documentType: normalizeType(activeDocument.documentType),
+    }));
+  }, [activeDocument.documentType]);
 
   const modalTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
@@ -272,10 +270,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 
   // Edit has a title, but create does not. (maybe HCD convo)
   const isMissing =
-    (mode === "edit" && !documentTitle.trim()) ||
-    !description.trim() ||
+    (mode === "edit" && !activeDocument.title.trim()) ||
+    !activeDocument.description.trim() ||
     !file ||
-    (requiresType && !selectedType);
+    (requiresType && !activeDocument.documentType);
 
   const onUploadClick = async () => {
     if (isUploading || submitting) return;
@@ -283,11 +281,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   };
 
   const focusFirstMissing = () => {
-    if (!description.trim()) {
+    if (!activeDocument.description.trim()) {
       descriptionRef.current?.focus();
       return;
     }
-    if (requiresType && !selectedType) {
+    if (requiresType && !activeDocument.documentType) {
       document.getElementById("document-type")?.focus();
       return;
     }
@@ -295,7 +293,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   };
 
   const handleUpload = async () => {
-    if (!description.trim() || (requiresType && !selectedType)) {
+    if (!activeDocument.description.trim() || (requiresType && !activeDocument.documentType)) {
       showError(ERROR_MESSAGES.missingField);
       focusFirstMissing();
       return;
@@ -351,11 +349,15 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
         </>
       }
     >
-      {mode === "edit" && <TitleInput value={documentTitle} onChange={setDocumentTitle} />}
+      {mode === "edit" && <TitleInput value={activeDocument.title} onChange={setDocumentTitle} />}
 
-      <DescriptionInput ref={descriptionRef} value={description} onChange={setDescription} />
+      <DescriptionInput
+        ref={descriptionRef}
+        value={activeDocument.description}
+        onChange={setDescription}
+      />
 
-      <DocumentTypeInput value={selectedType} onSelect={setSelectedType} />
+      <DocumentTypeInput value={activeDocument.documentType} onSelect={setSelectedType} />
 
       <DropTarget
         file={file}
