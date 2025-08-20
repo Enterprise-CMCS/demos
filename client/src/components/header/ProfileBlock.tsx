@@ -3,12 +3,10 @@ import React, { useState } from "react";
 import { ChevronDownIcon } from "components/icons";
 import { normalizeUserId } from "hooks/user/uuidHelpers";
 
-import {
-  gql,
-  useQuery,
-} from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 
 import { Avatar } from "./Avatar";
+import { Button } from "components/button";
 
 export const PROFILE_BLOCK_QUERY = gql`
   query ProfileBlockQuery($id: ID!) {
@@ -24,7 +22,9 @@ export const ProfileBlock: React.FC<{ userId?: string }> = ({ userId }) => {
   if (!userId) {
     return (
       <div>
-        <button>Log In</button>
+        <Button name="button-log-in" onClick={() => {}}>
+          Log In
+        </Button>
       </div>
     );
   }

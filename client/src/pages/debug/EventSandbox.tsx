@@ -3,10 +3,10 @@ import { LogEventArguments, useEvent } from "hooks/event/useEvent";
 import { Event } from "demos-server";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { useToast } from "components/toast";
-import { PrimaryButton } from "components/button";
+import { Button } from "components/button";
 import { ALL_EVENT_TYPES, EventType } from "hooks/event/eventTypes";
 
-const EventList = ({events}: {events: Event[]}) => {
+const EventList = ({ events }: { events: Event[] }) => {
   return (
     <div className="border boder-brand p-2">
       <h3 className="text-lg font-semibold mb-4">Recent Events</h3>
@@ -22,7 +22,7 @@ const EventList = ({events}: {events: Event[]}) => {
             </div>
             {event.eventData && (
               <div className="mt-2 text-sm text-gray-600">
-                  Data: {JSON.stringify(event.eventData)}
+                Data: {JSON.stringify(event.eventData)}
               </div>
             )}
           </li>
@@ -38,9 +38,7 @@ const LogNewEventForm = () => {
 
   const [eventType, setEventType] = React.useState<EventType>("LOGIN_SUCCEEDED");
 
-  const handleLogEvent = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleLogEvent = async () => {
     const logEventInput: LogEventArguments = {
       eventType,
     };
@@ -50,13 +48,12 @@ const LogNewEventForm = () => {
     if (result.data?.logEvent.success) {
       showSuccess("Event logged successfully");
     } else {
-      showError("Failed to log event: " +  result.data?.logEvent.message || "Unknown error");
+      showError("Failed to log event: " + result.data?.logEvent.message || "Unknown error");
     }
-
   };
 
   return (
-    <form onSubmit={handleLogEvent} className="flex flex-row gap-2 border border-brand p-2">
+    <div>
       <AutoCompleteSelect
         options={ALL_EVENT_TYPES.map((type) => ({
           label: type,
@@ -67,12 +64,10 @@ const LogNewEventForm = () => {
         onSelect={(eventType) => setEventType(eventType as EventType)}
       />
 
-      <PrimaryButton
-        type="submit"
-      >
-          Log Event
-      </PrimaryButton>
-    </form>
+      <Button name="log-event" onClick={handleLogEvent} type="submit">
+        Log Event
+      </Button>
+    </div>
   );
 };
 

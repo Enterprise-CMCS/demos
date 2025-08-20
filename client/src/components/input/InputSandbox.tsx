@@ -5,10 +5,7 @@ import { SelectUSAStates } from "./select/SelectUSAStates";
 import { SelectUsers } from "./select/SelectUsers";
 import { AutoCompleteMultiselect } from "./select/AutoCompleteMultiselect";
 import { Select } from "./select/Select";
-
-// TODO replace with our button when it's ready
-const BUTTON_CLASS_NAME =
-  "bg-brand text-white my-sm p-sm rounded-normal hover:bg-brand-dark";
+import { Button } from "components/button";
 
 const getValidationMessage = (value: string) => {
   if (value.includes("z")) {
@@ -30,18 +27,12 @@ export const InputSandbox: React.FC = () => {
   return (
     <>
       <div className="flex gap-sm">
-        <button
-          className={BUTTON_CLASS_NAME}
-          onClick={() => setDisabled((d) => !d)}
-        >
+        <Button name="set-enabled" onClick={() => setDisabled((d) => !d)}>
           {disabled ? "Enable" : "Disable"}
-        </button>
-        <button
-          className={BUTTON_CLASS_NAME}
-          onClick={() => setIsRequired((r) => !r)}
-        >
+        </Button>
+        <Button name="set-required" onClick={() => setIsRequired((r) => !r)}>
           {isRequired ? "Set Not Required" : "Set Required"}
-        </button>
+        </Button>
       </div>
       <TextInput
         name="test"
@@ -60,9 +51,7 @@ export const InputSandbox: React.FC = () => {
       </div>
       <div className="mt-3">
         {multiselectValues && (
-          <p className="mt-2">
-            You have selected:{multiselectValues.join(", ")}
-          </p>
+          <p className="mt-2">You have selected:{multiselectValues.join(", ")}</p>
         )}
         <AutoCompleteMultiselect
           options={[
@@ -78,11 +67,7 @@ export const InputSandbox: React.FC = () => {
         />
       </div>
       <div className="mt-3">
-        <SelectUSAStates
-          isRequired={isRequired}
-          isDisabled={disabled}
-          onStateChange={setStatus}
-        />
+        <SelectUSAStates isRequired={isRequired} isDisabled={disabled} onStateChange={setStatus} />
       </div>
       <div className="mt-3">
         <SelectUsers

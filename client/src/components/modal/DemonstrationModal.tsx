@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { PrimaryButton, SecondaryButton } from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
@@ -16,6 +16,7 @@ import { useDemonstration } from "hooks/useDemonstration";
 import { tw } from "tags/tw";
 import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
+import { formatDate } from "util/formatDate";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
@@ -51,8 +52,8 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
       setState(demonstration.state?.id || "");
       setTitle(demonstration.name || "");
       setProjectOfficer(demonstration.users?.[0]?.id || "");
-      setEffectiveDate(new Date(demonstration.effectiveDate).toISOString().slice(0, 10));
-      setExpirationDate(new Date(demonstration.expirationDate).toISOString().slice(0, 10));
+      setEffectiveDate(formatDate(demonstration.effectiveDate));
+      setExpirationDate(formatDate(demonstration.expirationDate));
       setDescription(demonstration.description || "");
       setCmcsDivision(demonstration.cmcsDivision || "");
       setSignatureLevel(demonstration.signatureLevel || "");
@@ -120,10 +121,11 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton name="cancel" size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
-          <PrimaryButton
+          <Button
+            name="submit"
             size="small"
             disabled={!isFormValid || formStatus === "pending"}
             onClick={handleSubmit}
@@ -152,7 +154,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
             ) : (
               "Submit"
             )}
-          </PrimaryButton>
+          </Button>
         </>
       }
     >
@@ -192,6 +194,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
             Effective Date
           </label>
           <input
+            data-testid="effective-date-input"
             id="effective-date"
             type="date"
             className={DATE_INPUT_CLASSES}
@@ -209,6 +212,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
             Expiration Date
           </label>
           <input
+            data-testid="input-expiration-date"
             id="expiration-date"
             type="date"
             className={`${DATE_INPUT_CLASSES} ${
@@ -237,6 +241,7 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
           Demonstration Description
         </label>
         <textarea
+          data-testid="textarea-description"
           id="description"
           placeholder="Enter description"
           className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
