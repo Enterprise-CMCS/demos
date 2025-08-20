@@ -1,8 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
@@ -63,19 +59,14 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   // Filter by label
   useEffect(() => {
     const low = inputValue.toLowerCase();
-    setFiltered(
-      options.filter((opt) => opt.label.toLowerCase().includes(low))
-    );
+    setFiltered(options.filter((opt) => opt.label.toLowerCase().includes(low)));
     setActiveIndex(-1);
   }, [inputValue, options]);
 
   // Close on outside click
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -119,6 +110,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
       <div className="relative w-full">
         <input
+          data-testid="input-autocomplete-select"
           id={id}
           type="text"
           placeholder={placeholder}

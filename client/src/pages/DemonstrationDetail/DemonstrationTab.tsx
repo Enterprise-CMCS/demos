@@ -61,7 +61,11 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
           <div>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
-              <SecondaryButton size="small" onClick={() => setModalType("document")}>
+              <SecondaryButton
+                name="add-new-document"
+                size="small"
+                onClick={() => setModalType("document")}
+              >
                 <span>Add New</span>
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>

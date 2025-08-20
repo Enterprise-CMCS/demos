@@ -35,7 +35,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
       <div className="border border-gray-300 bg-white p-2 shadow-sm">
         <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
           <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
-          <SecondaryButton size="small" onClick={handleEditClick} disabled>
+          <SecondaryButton name="edit-details" size="small" onClick={handleEditClick} disabled>
             <div className="flex items-center gap-1">
               <EditIcon className="w-2 h-2" />
               Edit Details
@@ -55,7 +55,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
     <div className="border border-gray-300 bg-white p-2 shadow-sm">
       <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
         <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
-        <SecondaryButton size="small" onClick={handleEditClick}>
+        <SecondaryButton name="edit-details" size="small" onClick={handleEditClick}>
           <div className="flex items-center gap-1">
             <EditIcon className="w-2 h-2" />
             Edit Details

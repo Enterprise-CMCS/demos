@@ -129,10 +129,11 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton name="cancel" size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
           <Button
+            name="submit"
             size="small"
             disabled={!isFormValid || formStatus === "pending"}
             onClick={handleSubmit}
@@ -201,6 +202,7 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
             Effective Date
           </label>
           <input
+            data-testid="effective-date-input"
             id="effective-date"
             type="date"
             className={DATE_INPUT_CLASSES}
@@ -218,6 +220,7 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
             Expiration Date
           </label>
           <input
+            data-testid="input-expiration-date"
             id="expiration-date"
             type="date"
             className={`${DATE_INPUT_CLASSES} ${expirationError
@@ -245,6 +248,7 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
           Demonstration Description
         </label>
         <textarea
+          data-testid="textarea-description"
           id="description"
           placeholder="Enter description"
           className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"

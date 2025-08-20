@@ -138,7 +138,7 @@ export const ExtensionDialog: React.FC<Props> = ({
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton name="cancel" size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
           <Button

@@ -10,7 +10,11 @@ export const SignoutButton = () => {
     logout();
   };
 
-  return <Button onClick={handleLogout}>Sign Out</Button>;
+  return (
+    <Button name="sign-out" onClick={handleLogout}>
+      Sign Out
+    </Button>
+  );
 };
 
 export const SigninButton = () => {
@@ -19,5 +23,9 @@ export const SigninButton = () => {
     auth.signinRedirect();
   };
 
-  return <Button onClick={handleSignin}>Sign In</Button>;
+  return (
+    <Button name="sign-in" onClick={handleSignin}>
+      Sign In
+    </Button>
+  );
 };
