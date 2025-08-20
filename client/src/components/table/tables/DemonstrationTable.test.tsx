@@ -13,8 +13,8 @@ import { DemonstrationTable } from "./DemonstrationTable";
 const renderDemonstrations = () => {
   return render(
     <DemonstrationTable
-      userOptions={userOptions}
-      demonstrationStatusOptions={demonstrationStatusOptions}
+      projectOfficerOptions={userOptions}
+      statusOptions={demonstrationStatusOptions}
       stateOptions={stateOptions}
       demonstrations={demonstrationsPageMockData.demonstrations}
     />
@@ -166,8 +166,8 @@ describe("Demonstrations", () => {
     it("passes correct empty message for My Demonstrations tab", async () => {
       render(
         <DemonstrationTable
-          userOptions={userOptions}
-          demonstrationStatusOptions={demonstrationStatusOptions}
+          projectOfficerOptions={userOptions}
+          statusOptions={demonstrationStatusOptions}
           stateOptions={stateOptions}
           demonstrations={[]}
         />
@@ -182,8 +182,8 @@ describe("Demonstrations", () => {
     it("passes correct empty message for All Demonstrations tab", async () => {
       render(
         <DemonstrationTable
-          userOptions={userOptions}
-          demonstrationStatusOptions={demonstrationStatusOptions}
+          projectOfficerOptions={userOptions}
+          statusOptions={demonstrationStatusOptions}
           stateOptions={stateOptions}
           demonstrations={[]}
         />

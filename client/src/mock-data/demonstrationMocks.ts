@@ -13,12 +13,12 @@ import { california, stateOptions } from "./stateMocks";
 import { johnDoe, userOptions } from "./userMocks";
 import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { DEMONSTRATIONS_PAGE_QUERY, DemonstrationsPage } from "pages/Demonstrations";
+import { DEMONSTRATIONS_PAGE_QUERY, DemonstrationsPageQueryResult } from "pages/Demonstrations";
 
-export const demonstrationsPageMockData: DemonstrationsPage = {
+export const demonstrationsPageMockData: DemonstrationsPageQueryResult = {
   stateOptions: stateOptions,
-  userOptions: userOptions,
-  demonstrationStatusOptions: demonstrationStatusOptions,
+  projectOfficerOptions: userOptions,
+  statusOptions: demonstrationStatusOptions,
   demonstrations: [
     {
       id: "1",

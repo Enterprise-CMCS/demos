@@ -3,31 +3,22 @@ import { highlightCell } from "../KeywordSearch";
 import { SecondaryButton } from "components/button";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import React from "react";
-import { TableRow } from "../tables/DemonstrationTable";
+import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
 import { DemonstrationStatus, State, User } from "demos-server";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
 
-export type DemonstrationColumnsProps = {
-  stateOptions: {
-    name: State["name"];
-    id: State["id"];
-  }[];
-  userOptions: {
-    fullName: User["fullName"];
-  }[];
-  demonstrationStatusOptions: {
-    name: DemonstrationStatus["name"];
-  }[];
-};
+export type StateOption = Pick<State, "name" | "id">;
+export type UserOption = Pick<User, "fullName">;
+export type StatusOption = Pick<DemonstrationStatus, "name">;
 
-export function DemonstrationColumns({
-  stateOptions,
-  userOptions,
-  demonstrationStatusOptions,
-}: DemonstrationColumnsProps) {
-  const columnHelper = createColumnHelper<TableRow>();
+export function DemonstrationColumns(
+  stateOptions: StateOption[],
+  userOptions: UserOption[],
+  statusOptions: StatusOption[]
+) {
+  const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
 
   return [
     columnHelper.display({
@@ -117,7 +108,7 @@ export function DemonstrationColumns({
         filterConfig: {
           filterType: "select",
           options:
-            demonstrationStatusOptions.map((status) => ({
+            statusOptions.map((status) => ({
               label: status.name,
               value: status.name,
             })) ?? [],
