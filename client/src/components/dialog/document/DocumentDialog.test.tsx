@@ -1,10 +1,28 @@
 import "@testing-library/jest-dom";
 
 import React from "react";
+
 import { ToastProvider } from "components/toast/ToastContext";
-import { describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { RemoveDocumentModal, AddDocumentModal, EditDocumentModal } from "./DocumentModal";
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+
+import {
+  AddDocumentDialog,
+  EditDocumentDialog,
+  RemoveDocumentDialog,
+} from "./DocumentDialog";
 
 let mockDelete: () => Promise<{ data: { removedDocumentIds: string[] } }>;
 
@@ -28,25 +46,25 @@ const CONFIRM_REMOVE_BUTTON_TEST_ID = "confirm-remove";
 const CANCEL_REMOVE_BUTTON_TEST_ID = "cancel-remove";
 const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "upload-document";
 
-describe("AddDocumentModal", () => {
+describe("AddDocumentDialog", () => {
   const setup = () => {
     const onClose = vi.fn();
     render(
       <ToastProvider>
-        <AddDocumentModal onClose={onClose} />
+        <AddDocumentDialog onClose={onClose} />
       </ToastProvider>
     );
     return { onClose };
   };
 
-  it("renders modal with title and required fields", () => {
+  it("renders dialog with title and required fields", () => {
     setup();
     expect(screen.getByText("Add New Document")).toBeInTheDocument();
     expect(screen.getByText("Document Description")).toBeInTheDocument();
     expect(screen.getByText("Select File(s)")).toBeInTheDocument();
   });
 
-  it("shows cancel confirmation modal when cancel is clicked", () => {
+  it("shows cancel confirmation dialog when cancel is clicked", () => {
     setup();
     fireEvent.click(screen.getByText("Cancel"));
     expect(screen.getByText("Are you sure you want to cancel?")).toBeInTheDocument();
@@ -73,7 +91,7 @@ describe("AddDocumentModal", () => {
     });
 
     // type (AutoCompleteSelect)
-    const typeInput = screen.getByRole("textbox", { name: "Document Type" });
+    const typeInput = screen.getByTestId("input-autocomplete-select");
     fireEvent.focus(typeInput);
     fireEvent.change(typeInput, { target: { value: "General" } });
     const option = await screen.findByText("General File");
@@ -96,7 +114,7 @@ describe("AddDocumentModal", () => {
 
   it("renders and allows selecting a document type", async () => {
     setup();
-    const input = screen.getByRole("textbox", { name: "Document Type" });
+    const input = screen.getByTestId("input-autocomplete-select");
     fireEvent.focus(input);
     fireEvent.change(input, { target: { value: "General" } });
 
@@ -115,7 +133,7 @@ describe("AddDocumentModal", () => {
     });
 
     await waitFor(() => {
-      const progressBar = screen.getByRole("progressbar");
+      const progressBar = screen.getByTestId("upload-progress-bar");
       expect(progressBar).toBeInTheDocument();
     });
   });
@@ -138,11 +156,11 @@ describe("AddDocumentModal", () => {
   });
 });
 
-describe("RemoveDocumentModal", () => {
+describe("RemoveDocumentDialog", () => {
   const setup = (ids: string[] = ["1"], onClose = vi.fn()) => {
     render(
       <ToastProvider>
-        <RemoveDocumentModal documentIds={ids} onClose={onClose} />
+        <RemoveDocumentDialog documentIds={ids} onClose={onClose} />
       </ToastProvider>
     );
     return { onClose };
@@ -187,12 +205,12 @@ describe("RemoveDocumentModal", () => {
   });
 });
 
-describe("EditDocumentModal", () => {
+describe("EditDocumentDialog", () => {
   const setup = () => {
     const onClose = vi.fn();
     render(
       <ToastProvider>
-        <EditDocumentModal
+        <EditDocumentDialog
           documentId="123"
           documentTitle="Existing Document"
           description="This is an existing document"
@@ -204,7 +222,7 @@ describe("EditDocumentModal", () => {
     return { onClose };
   };
 
-  it("renders modal with correct title and fields", () => {
+  it("renders dialog with correct title and fields", () => {
     setup();
 
     expect(screen.getByText("Edit Document")).toBeInTheDocument();
@@ -234,7 +252,7 @@ describe("EditDocumentModal", () => {
     });
 
     // document type (your component requires it)
-    const typeInput = screen.getByRole("textbox", { name: "Document Type" });
+    const typeInput = screen.getByTestId("input-autocomplete-select");
     fireEvent.focus(typeInput);
     fireEvent.change(typeInput, { target: { value: "General" } });
     const option = await screen.findByText("General File");

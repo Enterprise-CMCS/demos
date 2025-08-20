@@ -131,10 +131,11 @@ export const AmendmentDialog: React.FC<Props> = ({
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton name="cancel" size="small" onClick={() => setShowCancelConfirm(true)}>
             Cancel
           </SecondaryButton>
           <Button
+            name="submit"
             size="small"
             type="submit"
             form="amendment-form"
@@ -205,6 +206,7 @@ export const AmendmentDialog: React.FC<Props> = ({
               id="effective-date"
               type="date"
               className={DATE_INPUT_CLASSES}
+              data-testid="effective-date-input"
               value={effectiveDate}
               onChange={(e) => {
                 setEffectiveDate(e.target.value);
@@ -225,6 +227,7 @@ export const AmendmentDialog: React.FC<Props> = ({
                 ? "border-border-warn focus:ring-border-warn"
                 : "border-border-fields focus:ring-border-focus"
               }`}
+              data-testid="input-expiration-date"
               value={expirationDate}
               min={effectiveDate || undefined}
               onChange={(e) => {
@@ -251,6 +254,7 @@ export const AmendmentDialog: React.FC<Props> = ({
             id="description"
             placeholder="Enter description"
             className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
+            data-testid="textarea-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />

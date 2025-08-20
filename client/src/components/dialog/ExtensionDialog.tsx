@@ -142,6 +142,7 @@ export const ExtensionDialog: React.FC<Props> = ({
             Cancel
           </SecondaryButton>
           <Button
+            name="submit"
             onClick={() => { }}
             size="small"
             type="submit"
@@ -212,6 +213,7 @@ export const ExtensionDialog: React.FC<Props> = ({
               id="effective-date"
               type="date"
               className={DATE_INPUT_CLASSES}
+              data-testid="effective-date-input"
               value={effectiveDate}
               onChange={(e) => {
                 setEffectiveDate(e.target.value);
@@ -232,6 +234,7 @@ export const ExtensionDialog: React.FC<Props> = ({
                 ? "border-border-warn focus:ring-border-warn"
                 : "border-border-fields focus:ring-border-focus"
               }`}
+              data-testid="input-expiration-date"
               value={expirationDate}
               min={effectiveDate || undefined}
               onChange={(e) => {
@@ -258,6 +261,7 @@ export const ExtensionDialog: React.FC<Props> = ({
             id="description"
             placeholder="Enter description"
             className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
+            data-testid="textarea-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />

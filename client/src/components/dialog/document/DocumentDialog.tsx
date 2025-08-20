@@ -167,6 +167,7 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
     <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
       <div
         role="progressbar"
+        data-testid="upload-progress-bar"
         className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`}
         style={{ width: `${progress}%` }}
       />
@@ -428,67 +429,67 @@ export const RemoveDocumentDialog: React.FC<{
   documentIds,
   onClose,
 }) => {
-    const { showWarning, showError } = useToast();
-    const [isDeleting, setIsDeleting] = useState(false);
+  const { showWarning, showError } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-    const [deleteDocumentsTrigger] = useMutation<{ removedDocumentIds: string[] }>(
-      DELETE_DOCUMENTS_QUERY
-    );
+  const [deleteDocumentsTrigger] = useMutation<{ removedDocumentIds: string[] }>(
+    DELETE_DOCUMENTS_QUERY
+  );
 
-    const onConfirm = async (documentIdList: string[]) => {
-      try {
-        setIsDeleting(true);
-        await deleteDocumentsTrigger({ variables: { ids: documentIdList } });
+  const onConfirm = async (documentIdList: string[]) => {
+    try {
+      setIsDeleting(true);
+      await deleteDocumentsTrigger({ variables: { ids: documentIdList } });
 
-        const isMultipleDocuments = documentIdList.length > 1;
-        showWarning(
-          `Your document${isMultipleDocuments ? "s" : ""} ${isMultipleDocuments ? "have been" : "has been"} removed.`
-        );
-        onClose();
-      } catch {
-        showError("Your changes could not be saved due to an unknown problem.");
-      } finally {
-        setIsDeleting(false);
-      }
-    };
-
-    return (
-      <BaseDialog
-        title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
-        isOpen={isOpen}
-        onClose={onClose}
-        actions={
-          <>
-            <SecondaryButton
-              name="cancel-remove"
-              size="small"
-              onClick={onClose}
-              disabled={isDeleting}
-            >
-              Cancel
-            </SecondaryButton>
-            <ErrorButton
-              name="confirm-remove"
-              size="small"
-              onClick={() => onConfirm(documentIds)}
-              aria-label="Confirm Remove Document"
-              disabled={isDeleting}
-              aria-disabled={isDeleting}
-            >
-              {isDeleting ? "Removing..." : "Remove"}
-            </ErrorButton>
-          </>
-        }
-      >
-        <div className="mb-2 text-sm text-text-filled">
-          Are you sure you want to remove {documentIds.length} document
-          {documentIds.length > 1 ? "s" : ""}?
-          <br />
-          <span className="text-error flex items-center gap-1 mt-1">
-            <ErrorIcon />
-            This action cannot be undone.
-          </span>
-        </div>
-      </BaseDialog>
-    );
+      const isMultipleDocuments = documentIdList.length > 1;
+      showWarning(
+        `Your document${isMultipleDocuments ? "s" : ""} ${isMultipleDocuments ? "have been" : "has been"} removed.`
+      );
+      onClose();
+    } catch {
+      showError("Your changes could not be saved due to an unknown problem.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
+
+  return (
+    <BaseDialog
+      title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
+      isOpen={isOpen}
+      onClose={onClose}
+      actions={
+        <>
+          <SecondaryButton
+            name="cancel-remove"
+            size="small"
+            onClick={onClose}
+            disabled={isDeleting}
+          >
+              Cancel
+          </SecondaryButton>
+          <ErrorButton
+            name="confirm-remove"
+            size="small"
+            onClick={() => onConfirm(documentIds)}
+            aria-label="Confirm Remove Document"
+            disabled={isDeleting}
+            aria-disabled={isDeleting}
+          >
+            {isDeleting ? "Removing..." : "Remove"}
+          </ErrorButton>
+        </>
+      }
+    >
+      <div className="mb-2 text-sm text-text-filled">
+          Are you sure you want to remove {documentIds.length} document
+        {documentIds.length > 1 ? "s" : ""}?
+        <br />
+        <span className="text-error flex items-center gap-1 mt-1">
+          <ErrorIcon />
+            This action cannot be undone.
+        </span>
+      </div>
+    </BaseDialog>
+  );
+};
