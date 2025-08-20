@@ -2,57 +2,34 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { highlightCell } from "../KeywordSearch";
 import { SecondaryButton } from "components/button";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
-import { useUserOperations } from "hooks/useUserOperations";
-import { useState } from "hooks/useState";
-import { useDemonstrationStatus } from "hooks/useDemonstrationStatus";
 import React from "react";
 import { TableRow } from "../tables/DemonstrationTable";
+import { DemonstrationStatus, State, User } from "demos-server";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
-export function DemonstrationColumns() {
-  const { getUserOptions } = useUserOperations();
-  const { getStateOptions } = useState();
-  const { getDemonstrationStatusOptions } = useDemonstrationStatus();
 
-  // Trigger queries on mount
-  React.useEffect(() => {
-    getUserOptions.trigger();
-    getStateOptions.trigger();
-    getDemonstrationStatusOptions.trigger();
-  }, []);
+export type DemonstrationColumnsProps = {
+  stateOptions: {
+    name: State["name"];
+    id: State["id"];
+  }[];
+  userOptions: {
+    fullName: User["fullName"];
+  }[];
+  demonstrationStatusOptions: {
+    name: DemonstrationStatus["name"];
+  }[];
+};
 
-  // Loading and error handling
-  if (
-    getUserOptions.loading ||
-    getStateOptions.loading ||
-    getDemonstrationStatusOptions.loading
-  ) {
-    return { loading: true };
-  }
-  if (
-    getUserOptions.error ||
-    getStateOptions.error ||
-    getDemonstrationStatusOptions.error
-  ) {
-    return {
-      error:
-        getUserOptions.error?.message ||
-        getStateOptions.error?.message ||
-        getDemonstrationStatusOptions.error?.message,
-    };
-  }
-  if (
-    !getUserOptions.data ||
-    !getStateOptions.data ||
-    !getDemonstrationStatusOptions.data
-  ) {
-    return { error: "Data not found" };
-  }
-
+export function DemonstrationColumns({
+  stateOptions,
+  userOptions,
+  demonstrationStatusOptions,
+}: DemonstrationColumnsProps) {
   const columnHelper = createColumnHelper<TableRow>();
 
-  const demonstrationColumns = [
+  return [
     columnHelper.display({
       id: "select",
       header: ({ table }) => (
@@ -86,7 +63,7 @@ export function DemonstrationColumns() {
         filterConfig: {
           filterType: "select",
           options:
-            getStateOptions.data?.map((state) => ({
+            stateOptions.map((state) => ({
               label: state.id,
               value: state.name,
             })) ?? [],
@@ -107,7 +84,7 @@ export function DemonstrationColumns() {
         filterConfig: {
           filterType: "select",
           options:
-            getUserOptions.data?.map((officer) => ({
+            userOptions.map((officer) => ({
               label: officer.fullName,
               value: officer.fullName,
             })) ?? [],
@@ -118,15 +95,8 @@ export function DemonstrationColumns() {
       id: "applications",
       header: "Applications",
       cell: ({ row }) => {
-        if (
-          row.original.type === "amendment" ||
-          row.original.type === "extension"
-        ) {
-          return (
-            <span>
-              {row.original.type === "amendment" ? "Amendment" : "Extension"}
-            </span>
-          );
+        if (row.original.type === "amendment" || row.original.type === "extension") {
+          return <span>{row.original.type === "amendment" ? "Amendment" : "Extension"}</span>;
         }
         const amendmentsCount = row.original.amendments?.length ?? 0;
         const extensionsCount = row.original.extensions?.length ?? 0;
@@ -146,12 +116,11 @@ export function DemonstrationColumns() {
       meta: {
         filterConfig: {
           filterType: "select",
-          options: [
-            ...(getDemonstrationStatusOptions.data?.map((s) => ({
-              label: s.name,
-              value: s.name,
-            })) ?? []),
-          ],
+          options:
+            demonstrationStatusOptions.map((status) => ({
+              label: status.name,
+              value: status.name,
+            })) ?? [],
         },
       },
     }),
@@ -203,10 +172,4 @@ export function DemonstrationColumns() {
         ),
     }),
   ];
-
-  return {
-    demonstrationColumns,
-    demonstrationColumnsLoading: false,
-    demonstrationColumnsError: null,
-  };
 }

@@ -9,6 +9,11 @@ export const california: State = {
   name: "California",
 };
 
+export const stateOptions: Pick<State, "name" | "id">[] = states.map((state) => ({
+  name: state.name,
+  id: state.abbrev,
+}));
+
 export const stateMocks: MockedResponse[] = [
   {
     request: {

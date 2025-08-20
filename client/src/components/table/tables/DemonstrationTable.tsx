@@ -1,7 +1,7 @@
 import React from "react";
 import { Table } from "../Table";
 import { TabItem, Tabs } from "layout/Tabs";
-import { DemonstrationColumns } from "../columns/DemonstrationColumns";
+import { DemonstrationColumns, DemonstrationColumnsProps } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
@@ -89,17 +89,21 @@ const getSubRows = (row: TableRow) => row.applications;
 
 type DemonstrationTableProps = {
   demonstrations: DemonstrationTableItem[];
-};
+} & DemonstrationColumnsProps;
 
-export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({ demonstrations }) => {
+export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({
+  demonstrations,
+  stateOptions,
+  userOptions,
+  demonstrationStatusOptions,
+}) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  const { demonstrationColumns, demonstrationColumnsLoading, demonstrationColumnsError } =
-    DemonstrationColumns();
-
-  if (demonstrationColumnsLoading) return <div className="p-4">Loading...</div>;
-  if (demonstrationColumnsError)
-    return <div className="p-4">Error loading column data: {demonstrationColumnsError}</div>;
+  const demonstrationColumns = DemonstrationColumns({
+    stateOptions,
+    userOptions,
+    demonstrationStatusOptions,
+  });
 
   // TODO: Replace with actual current user ID from authentication context
   const currentUserId = "1";

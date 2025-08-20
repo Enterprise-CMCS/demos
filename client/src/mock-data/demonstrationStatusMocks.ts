@@ -1,6 +1,5 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { DemonstrationStatus } from "demos-server";
-import { DemonstrationStatusOption } from "hooks/useDemonstrationStatus";
 import { DEMONSTRATION_STATUS_OPTIONS_QUERY } from "queries/demonstrationStatusQueries";
 
 export const activeDemonstrationStatus: DemonstrationStatus = {
@@ -11,6 +10,16 @@ export const activeDemonstrationStatus: DemonstrationStatus = {
   description: "Active Demonstration Status",
 };
 
+export const demonstrationStatusOptions: Pick<DemonstrationStatus, "name">[] = [
+  { name: "Approved" },
+  { name: "Pending" },
+  { name: "Expired" },
+  { name: "Withdrawn" },
+  { name: "Rejected" },
+  { name: "Active" },
+  { name: "Inactive" },
+];
+
 export const demonstrationStatusMocks: MockedResponse[] = [
   {
     request: {
@@ -18,23 +27,7 @@ export const demonstrationStatusMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstrationStatuses: [
-          {
-            name: "Approved",
-          },
-          {
-            name: "Expired",
-          },
-          {
-            name: "Withdrawn",
-          },
-          {
-            name: "Active",
-          },
-          {
-            name: "Draft",
-          },
-        ] satisfies DemonstrationStatusOption[],
+        demonstrationStatuses: demonstrationStatusOptions,
       },
     },
   },

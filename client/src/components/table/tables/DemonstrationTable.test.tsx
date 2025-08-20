@@ -1,23 +1,23 @@
 import React from "react";
-import { MockedProvider } from "@apollo/client/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { demonstrationsPageMockData } from "mock-data/demonstrationMocks";
-import { userMocks } from "mock-data/userMocks";
-import { stateMocks } from "mock-data/stateMocks";
-import { demonstrationStatusMocks } from "mock-data/demonstrationStatusMocks";
+import { userOptions } from "mock-data/userMocks";
+import { stateOptions } from "mock-data/stateMocks";
+import { demonstrationStatusOptions } from "mock-data/demonstrationStatusMocks";
 import { DemonstrationTable } from "./DemonstrationTable";
 
-const standardMocks = [...userMocks, ...stateMocks, ...demonstrationStatusMocks];
-
 // Helper functions
-const renderDemonstrations = (mocks = standardMocks) => {
+const renderDemonstrations = () => {
   return render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <DemonstrationTable demonstrations={demonstrationsPageMockData.demonstrations} />
-    </MockedProvider>
+    <DemonstrationTable
+      userOptions={userOptions}
+      demonstrationStatusOptions={demonstrationStatusOptions}
+      stateOptions={stateOptions}
+      demonstrations={demonstrationsPageMockData.demonstrations}
+    />
   );
 };
 
@@ -164,10 +164,13 @@ describe("Demonstrations", () => {
 
   describe("Empty states", () => {
     it("passes correct empty message for My Demonstrations tab", async () => {
-      return render(
-        <MockedProvider mocks={standardMocks} addTypename={false}>
-          <DemonstrationTable demonstrations={demonstrationsPageMockData.demonstrations} />
-        </MockedProvider>
+      render(
+        <DemonstrationTable
+          userOptions={userOptions}
+          demonstrationStatusOptions={demonstrationStatusOptions}
+          stateOptions={stateOptions}
+          demonstrations={[]}
+        />
       );
       await waitFor(() => {
         expect(
@@ -177,10 +180,13 @@ describe("Demonstrations", () => {
     });
 
     it("passes correct empty message for All Demonstrations tab", async () => {
-      return render(
-        <MockedProvider mocks={standardMocks} addTypename={false}>
-          <DemonstrationTable demonstrations={demonstrationsPageMockData.demonstrations} />
-        </MockedProvider>
+      render(
+        <DemonstrationTable
+          userOptions={userOptions}
+          demonstrationStatusOptions={demonstrationStatusOptions}
+          stateOptions={stateOptions}
+          demonstrations={[]}
+        />
       );
       await waitFor(() => {
         expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();

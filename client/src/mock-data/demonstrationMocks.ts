@@ -8,14 +8,17 @@ import {
 
 import { MockedResponse } from "@apollo/client/testing";
 
-import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
-import { california } from "./stateMocks";
-import { johnDoe } from "./userMocks";
+import { activeDemonstrationStatus, demonstrationStatusOptions } from "./demonstrationStatusMocks";
+import { california, stateOptions } from "./stateMocks";
+import { johnDoe, userOptions } from "./userMocks";
 import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY, DemonstrationsPage } from "pages/Demonstrations";
 
 export const demonstrationsPageMockData: DemonstrationsPage = {
+  stateOptions: stateOptions,
+  userOptions: userOptions,
+  demonstrationStatusOptions: demonstrationStatusOptions,
   demonstrations: [
     {
       id: "1",

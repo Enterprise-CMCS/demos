@@ -1,15 +1,29 @@
 import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
 import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 import { User } from "demos-server";
-import {
-  GET_ALL_USERS,
-  GET_USER_BY_ID,
-  UserOption,
-} from "hooks/useUserOperations";
+import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 import { USER_OPTIONS_QUERY } from "queries/userQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
 
+export const userOptions: Pick<User, "fullName">[] = [
+  { fullName: "John Doe" },
+  { fullName: "Jane Smith" },
+  { fullName: "Jim Smith" },
+  { fullName: "Darth Smith" },
+  { fullName: "Bob Johnson" },
+  { fullName: "Alice Brown" },
+  { fullName: "Carlos Rivera" },
+  { fullName: "Emily Clark" },
+  { fullName: "Samantha Lee" },
+  { fullName: "Michael Chen" },
+  { fullName: "Linda Park" },
+  { fullName: "David Kim" },
+  { fullName: "Olivia Turner" },
+  { fullName: "Henry Adams" },
+  { fullName: "Sophia Martinez" },
+  { fullName: "James Lee" },
+];
 export const johnDoe: User = {
   id: "1",
   fullName: "John Doe",
@@ -129,50 +143,7 @@ export const userMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        users: [
-          {
-            fullName: "Yoda",
-          },
-          {
-            fullName: "Leia Organa",
-          },
-          {
-            fullName: "Han Solo",
-          },
-          {
-            fullName: "Luke Skywalker",
-          },
-          {
-            fullName: "Darth Vader",
-          },
-          {
-            fullName: "John Doe",
-          },
-          {
-            fullName: "spongebob squarepants",
-          },
-          {
-            fullName: " squidward tentacles",
-          },
-          {
-            fullName: "patrick star",
-          },
-          {
-            fullName: "User Testerson",
-          },
-          {
-            fullName: "Jane Smith",
-          },
-          {
-            fullName: "Jim Smith",
-          },
-          {
-            fullName: "Darth Smith",
-          },
-          {
-            fullName: "Bob Johnson",
-          },
-        ] satisfies UserOption[],
+        users: userOptions,
       },
     },
   },
