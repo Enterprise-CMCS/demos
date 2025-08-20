@@ -151,9 +151,9 @@ export const documentResolvers = {
       });
     },
 
-    deleteDemonstrationDocument: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().document.delete({
-        where: { id: id },
+    deleteDocuments: async (_: undefined, { ids }: { ids: string[] }) => {
+      return await prisma().document.deleteMany({
+        where: { id: { in: ids } },
       });
     },
 
@@ -201,12 +201,6 @@ export const documentResolvers = {
       });
     },
 
-    deleteAmendmentDocument: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().document.delete({
-        where: { id: id },
-      });
-    },
-
     uploadExtensionDocument: async (
       _: undefined,
       { input }: { input: UploadExtensionDocumentInput }
@@ -248,12 +242,6 @@ export const documentResolvers = {
             },
           }),
         },
-      });
-    },
-
-    deleteExtensionDocument: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().document.delete({
-        where: { id: id },
       });
     },
   },
