@@ -28,7 +28,7 @@ pipeline {
               dirCon('deployment', 'node') {
                 sh """
                 mkdir ../client/dist
-                mkdir ../server/dist
+                mkdir ../server/build
 
                 # These are needed for the built-in CDK bundling
                 apk add bash

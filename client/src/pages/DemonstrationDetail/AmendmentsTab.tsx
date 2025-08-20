@@ -11,9 +11,11 @@ export const AmendmentsTab: React.FC<{
   <div>
     <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
       <h1 className="text-xl font-bold text-brand uppercase">Amendments</h1>
-      <SecondaryButton size="small" className="flex items-center gap-1 px-1 py-1" onClick={onClick}>
-        <span>Add New</span>
-        <AddNewIcon className="w-2 h-2" />
+      <SecondaryButton name="add-new-amendment" size="small" onClick={onClick}>
+        <div className="flex items-center gap-1">
+          Add New
+          <AddNewIcon className="w-2 h-2" />
+        </div>
       </SecondaryButton>
     </div>
     <ModificationTable modifications={amendments} initiallyExpandedId={initiallyExpandedId} />
