@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback, forwardRef } from "react";
+import React, { useRef, useState, useCallback, forwardRef } from "react";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { ErrorButton, Button, SecondaryButton } from "components/button";
@@ -8,16 +8,20 @@ import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
-import { Document } from "demos-server";
+import { Document, DocumentType } from "demos-server";
 import { useMutation } from "@apollo/client";
 import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
+import { Option } from "components/input/select/Select";
 
 type DocumentModalType = "add" | "edit";
 
-const DOCUMENT_TYPES = [
-  { label: "Pre-Submission Concept", value: "preSubmissionConcept" },
-  { label: "General File", value: "generalFile" },
-];
+const DOCUMENT_TYPE_LOOKUP: Record<DocumentType, string> = {
+  preSubmissionConcept: "Pre-Submission Concept",
+  generalFile: "General File",
+};
+
+const DOCUMENT_TYPE_OPTIONS: Option[] = Object.entries(DOCUMENT_TYPE_LOOKUP)
+.map(([value, label]) => ({value,label,}));
 
 const STYLES = {
   label: tw`block text-sm font-bold text-text-font mb-xs`,
@@ -43,11 +47,12 @@ const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILENAME_DISPLAY_LENGTH = 60;
 
-export const ERROR_MESSAGES = {
+const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
   missingField: "A required field is missing.",
 };
-export const SUCCESS_MESSAGES = {
+
+const SUCCESS_MESSAGES = {
   fileUploaded: "Your document has been added.",
   fileUpdated: "Your document has been updated.",
   fileDeleted: "Your document has been removed.",
@@ -55,23 +60,13 @@ export const SUCCESS_MESSAGES = {
 
 // Simple error message retreiver.
 // Maybe we "third location" this as we standardize error messages
-const getErrorMessage = (error: unknown): string => {
+const getErrorMessage = (error: unknown, mode: DocumentModalType): string => {
   if (error instanceof Error) {
     return error.message;
   }
-  return "An unknown error occurred.";
-};
-
-// helper to choose the unknown-error copy by mode
-const unknownErrorText = (mode: DocumentModalType) =>
-  mode === "edit"
+  return mode === "edit"
     ? "Your changes could not be saved because of an unknown problem."
     : "Your document could not be added because of an unknown problem.";
-
-const normalizeType = (doctype?: string) => {
-  if (!doctype) return "";
-  if (DOCUMENT_TYPES.some((o) => o.value === doctype)) return doctype;
-  return DOCUMENT_TYPES.find((o) => o.label === doctype)?.value ?? "";
 };
 
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
@@ -126,7 +121,7 @@ const DocumentTypeInput: React.FC<{
     <AutoCompleteSelect
       id="document-type"
       label="Document Type"
-      options={DOCUMENT_TYPES}
+      options={DOCUMENT_TYPE_OPTIONS}
       value={value}
       onSelect={(selectedValue) => onSelect?.(selectedValue)}
     />
@@ -230,24 +225,30 @@ const DropTarget: React.FC<{
       </p>
     </div>
   );
-};
+
+// Currently the Document object has the old documentType on it so this is
+// a simplification until the new documentType field is on document as a string
+type DocumentFields = Pick<Document, "id" | "title" | "description">;
+
+// const EMPTY_DOCUMENT_FIELDS: Partial<DocumentFields> = {
+//   id: undefined, title: undefined, description: undefined, documentType: undefined,
+// };
 
 type DocumentModalProps = {
   onClose?: () => void;
-  mode: "add" | "edit";
+  mode: DocumentModalType;
   initialDocument?: DocumentFields;
 };
 
-type DocumentFields = Pick<Document, "id" | "title" | "description" | "documentType">;
 const DocumentModal: React.FC<DocumentModalProps> = ({
   onClose = () => {},
   mode,
   initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
-  const [activeDocument, setActiveDocument] = useState<DocumentFields>(initialDocument || null);
+  const [activeDocument, setActiveDocument] = useState<Partial<DocumentFields>>(initialDocument || EMPTY_DOCUMENT_FIELDS);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setSubmitting] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -257,17 +258,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     onErrorCallback: (errorMessage: ErrorMessage) => showError(errorMessage),
   });
 
-  // keep type in sync if prop changes
-  useEffect(() => {
-    setActiveDocument((prev) => ({
-      ...prev,
-      documentType: normalizeType(activeDocument.documentType),
-    }));
-  }, [activeDocument.documentType]);
-
   const modalTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
-
   const requiresType = mode === "add" || mode === "edit";
 
   // Edit has a title, but create does not. (maybe HCD convo)
@@ -278,7 +270,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     (requiresType && !activeDocument.documentType);
 
   const onUploadClick = async () => {
-    if (isUploading || submitting) return;
+    if (isUploading || isSubmitting) return;
     await handleUpload();
   };
 
@@ -317,7 +309,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       }
       onClose();
     } catch (error: unknown) {
-      const msg = error instanceof Error ? getErrorMessage(error) : unknownErrorText(mode);
+      const msg = getErrorMessage(error, mode);
       showError(msg);
     } finally {
       onClose();
@@ -343,23 +335,30 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
-            aria-disabled={isMissing || isUploading || submitting ? "true" : "false"}
-            disabled={isMissing || isUploading || submitting}
+            aria-disabled={isMissing || isUploading || isSubmitting ? "true" : "false"}
+            disabled={isMissing || isUploading || isSubmitting}
           >
             Upload
           </Button>
         </>
       }
     >
-      {mode === "edit" && <TitleInput value={activeDocument.title} onChange={setDocumentTitle} />}
+      {mode === "edit" && (
+        <TitleInput
+          value={activeDocument.title}
+          onChange={(newTitle) => setActiveDocument((prev) => ({ ...prev, title: newTitle }))}
+        />
+      )}
 
       <DescriptionInput
         ref={descriptionRef}
         value={activeDocument.description}
-        onChange={setDescription}
+        onChange={(newDescription) =>
+          setActiveDocument((prev) => ({ ...prev, description: newDescription }))
+        }
       />
 
-      <DocumentTypeInput value={activeDocument.documentType} onSelect={setSelectedType} />
+      <DocumentTypeInput value={activeDocument.documentType} onSelect={() => {}} />
 
       <DropTarget
         file={file}
@@ -377,20 +376,10 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
 );
 
 export const EditDocumentModal: React.FC<{
-  documentId: string;
-  documentTitle: string;
-  description: string;
-  documentType: string;
   onClose: () => void;
-}> = ({ documentId, documentTitle, description, documentType, onClose }) => (
-  <DocumentModal
-    mode="edit"
-    forDocumentId={documentId}
-    initialTitle={documentTitle}
-    initialDescription={description}
-    initialType={documentType}
-    onClose={onClose}
-  />
+  initialDocument: DocumentFields;
+}> = ({ initialDocument, onClose }) => (
+  <DocumentModal mode="edit" initialDocument={initialDocument} onClose={onClose} />
 );
 
 export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () => void }> = ({

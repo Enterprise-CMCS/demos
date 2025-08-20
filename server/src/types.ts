@@ -1,4 +1,4 @@
-import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL } from "./constants.js";
+import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL, DOCUMENT_TYPES } from "./constants.js";
 
 // Export types for use in the client code
 export type {
@@ -59,7 +59,6 @@ export type {
 
 export type {
   CreateDocumentTypeInput,
-  DocumentType,
   UpdateDocumentTypeInput,
 } from "./model/documentType/documentTypeSchema.js";
 
@@ -68,3 +67,4 @@ export type { Document } from "./model/document/documentSchema.js";
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
 export type CmcsDivision = (typeof CMCS_DIVISION)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
+export type DocumentType = (typeof DOCUMENT_TYPES)[number];
