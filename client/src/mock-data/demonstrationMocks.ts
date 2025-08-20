@@ -13,9 +13,9 @@ import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
 import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { DEMONSTRATIONS_PAGE_QUERY, DemonstrationsPage } from "pages/Demonstrations";
+import { DEMONSTRATIONS_PAGE_QUERY, DemonstrationsPageQueryResult } from "pages/Demonstrations";
 
-export const demonstrationsPageMockData: DemonstrationsPage = {
+export const demonstrationsPageMockData: DemonstrationsPageQueryResult = {
   demonstrations: [
     {
       id: "1",

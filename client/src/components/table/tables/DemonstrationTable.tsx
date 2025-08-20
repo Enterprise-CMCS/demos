@@ -5,97 +5,82 @@ import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
-import { Demonstration } from "demos-server";
+import { Amendment, DemonstrationStatus, State, User } from "demos-server";
 
-export type DemonstrationTableItem = {
-  id: Demonstration["id"];
-  name: Demonstration["name"];
-  state: Pick<Demonstration["state"], "name">;
-  projectOfficer: Pick<Demonstration["projectOfficer"], "fullName">;
-  users: Pick<Demonstration["users"][number], "id">[];
-  demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;
-  amendments: {
-    id: Demonstration["amendments"][number]["id"];
-    name: Demonstration["amendments"][number]["name"];
-    projectOfficer: Pick<Demonstration["amendments"][number]["projectOfficer"], "fullName">;
-    amendmentStatus: Pick<Demonstration["amendments"][number]["amendmentStatus"], "name">;
-  }[];
-  extensions: {
-    id: Demonstration["extensions"][number]["id"];
-    name: Demonstration["extensions"][number]["name"];
-    projectOfficer: Pick<Demonstration["extensions"][number]["projectOfficer"], "fullName">;
-    extensionStatus: Pick<Demonstration["extensions"][number]["extensionStatus"], "name">;
-  }[];
+type DemonstrationTableState = Pick<State, "name">;
+type DemonstrationTableProjectOfficer = Pick<User, "fullName">;
+type DemonstrationTableUser = Pick<User, "id">;
+type DemonstrationTableStatus = Pick<DemonstrationStatus, "name">;
+type DemonstrationTableAmendment = Pick<Amendment, "id" | "name"> & {
+  projectOfficer: DemonstrationTableProjectOfficer;
+  amendmentStatus: DemonstrationTableStatus;
+};
+type DemonstrationTableExtension = Pick<Amendment, "id" | "name"> & {
+  projectOfficer: DemonstrationTableProjectOfficer;
+  extensionStatus: DemonstrationTableStatus;
 };
 
-// --- Generic TableRow type for both demonstration and application rows ---
-export type TableRow = {
+type DemonstrationTableRow = {
   id: string;
   name: string;
-  state?: { name: string };
-  projectOfficer?: { fullName: string };
-  users?: { id: string }[];
-  amendments?: TableRow[];
-  extensions?: TableRow[];
-  applications?: TableRow[];
-  type?: "amendment" | "extension";
-  applicationStatus?: { name: string };
-  demonstrationStatus?: { name: string };
-  status?: { name: string };
-  parentId?: string;
+  state: DemonstrationTableState;
+  projectOfficer: DemonstrationTableProjectOfficer;
+  users: DemonstrationTableUser[];
+  demonstrationStatus: DemonstrationTableStatus;
+  amendments: DemonstrationTableAmendment[];
+  extensions: DemonstrationTableExtension[];
 };
 
-// Map demonstration data to generic TableRow
-function mapToTableRow(item: DemonstrationTableItem): TableRow {
-  const amendments = (item.amendments || []).map((app) => ({
-    id: app.id,
-    name: app.name,
-    type: "amendment" as const,
-    projectOfficer: app.projectOfficer,
-    applicationStatus: app.amendmentStatus,
-    state: item.state,
-    status: app.amendmentStatus,
-    parentId: item.id,
-  }));
+export type GenericDemonstrationTableRow =
+  | (DemonstrationTableRow & { type: "demonstration" })
+  | (DemonstrationTableAmendment & {
+      type: "amendment";
+      parentId: string;
+      state: DemonstrationTableState;
+      status: DemonstrationTableStatus;
+    })
+  | (DemonstrationTableExtension & {
+      type: "extension";
+      parentId: string;
+      state: DemonstrationTableState;
+      status: DemonstrationTableStatus;
+    });
 
-  const extensions = (item.extensions || []).map((app) => ({
-    id: app.id,
-    name: app.name,
-    type: "extension" as const,
-    projectOfficer: app.projectOfficer,
-    applicationStatus: app.extensionStatus,
-    state: item.state,
-    status: app.extensionStatus,
-    parentId: item.id,
-  }));
+const getSubRows = (
+  row: GenericDemonstrationTableRow
+): GenericDemonstrationTableRow[] | undefined => {
+  if (row.type !== "demonstration") return undefined;
+  return [
+    ...row.amendments.map(
+      (amendment) =>
+        ({
+          ...amendment,
+          type: "amendment",
+          state: row.state,
+          status: amendment.amendmentStatus,
+        }) as GenericDemonstrationTableRow
+    ),
+    ...row.extensions.map(
+      (extension) =>
+        ({
+          ...extension,
+          type: "extension",
+          state: row.state,
+          status: extension.extensionStatus,
+        }) as GenericDemonstrationTableRow
+    ),
+  ];
+};
 
-  const applications = [...amendments, ...extensions];
-
-  return {
-    id: item.id,
-    name: item.name,
-    state: item.state,
-    demonstrationStatus: item.demonstrationStatus,
-    status: item.demonstrationStatus,
-    projectOfficer: item.projectOfficer,
-    users: item.users,
-    amendments,
-    extensions,
-    applications,
-  };
-}
-
-const getSubRows = (row: TableRow) => row.applications;
-
-type DemonstrationTableProps = {
-  demonstrations: DemonstrationTableItem[];
+export type DemonstrationTableProps = {
+  demonstrations: DemonstrationTableRow[];
 };
 
 export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({ demonstrations }) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
   const { demonstrationColumns, demonstrationColumnsLoading, demonstrationColumnsError } =
-    DemonstrationColumns();
+    DemonstrationColumns<GenericDemonstrationTableRow>();
 
   if (demonstrationColumnsLoading) return <div className="p-4">Loading...</div>;
   if (demonstrationColumnsError)
@@ -104,11 +89,11 @@ export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({ demonstr
   // TODO: Replace with actual current user ID from authentication context
   const currentUserId = "1";
 
-  const myDemos: DemonstrationTableItem[] = demonstrations.filter((demo: DemonstrationTableItem) =>
+  const myDemos: DemonstrationTableRow[] = demonstrations.filter((demo: DemonstrationTableRow) =>
     demo.users.some((user) => user.id === currentUserId)
   );
 
-  const allDemos: DemonstrationTableItem[] = demonstrations;
+  const allDemos: DemonstrationTableRow[] = demonstrations;
 
   const tabList: TabItem[] = [
     {
@@ -130,8 +115,6 @@ export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({ demonstr
       : "No demonstrations are tracked.";
   const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
 
-  const tableRows: TableRow[] = dataToShow.map(mapToTableRow);
-
   return (
     <div>
       <Tabs
@@ -140,8 +123,12 @@ export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({ demonstr
         onChange={(newVal) => setTab(newVal as "my" | "all")}
       />
       {demonstrationColumns && (
-        <Table<TableRow>
-          data={tableRows}
+        <Table<GenericDemonstrationTableRow>
+          data={dataToShow.map((demonstration) => ({
+            ...demonstration,
+            type: "demonstration",
+            status: demonstration.demonstrationStatus,
+          }))}
           columns={demonstrationColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columnFilter={(table) => <ColumnFilter table={table} />}
