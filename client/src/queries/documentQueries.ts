@@ -16,3 +16,9 @@ export const DOCUMENT_TABLE_QUERY = gql`
     }
   }
 `;
+
+export const DELETE_DOCUMENTS_QUERY = gql`
+  mutation DeleteDocuments($ids: [ID!]!) {
+    deleteDocuments(ids: $ids)
+  }
+`;
