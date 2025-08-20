@@ -2,7 +2,6 @@ import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
 import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 import { User } from "demos-server";
 import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
-import { USER_OPTIONS_QUERY } from "queries/userQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
 
@@ -134,16 +133,6 @@ export const userMocks: MockedResponse[] = [
         user: {
           fullName: "John Doe",
         },
-      },
-    },
-  },
-  {
-    request: {
-      query: USER_OPTIONS_QUERY,
-    },
-    result: {
-      data: {
-        users: userOptions,
       },
     },
   },
