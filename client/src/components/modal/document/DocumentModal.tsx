@@ -373,7 +373,12 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
         }
       />
 
-      <DocumentTypeInput value={activeDocument.documentType} onSelect={() => {}} />
+      <DocumentTypeInput
+        value={activeDocument.documentType}
+        onSelect={(newType) =>
+          setActiveDocument((prev) => ({ ...prev, documentType: newType as DocumentType }))
+        }
+      />
 
       <DropTarget
         file={file}

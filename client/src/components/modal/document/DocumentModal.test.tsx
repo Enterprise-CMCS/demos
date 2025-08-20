@@ -217,6 +217,7 @@ describe("EditDocumentModal", () => {
     expect(screen.getByDisplayValue("This is an existing document")).toBeInTheDocument(); // Description
     const documentTypeInput = screen.getByTestId("input-autocomplete-select");
     expect(documentTypeInput).toBeInTheDocument();
+    expect(screen.getByDisplayValue("General File")).toBeInTheDocument(); // Document Type
   });
 
   it("disables Upload button when no file is selected", () => {
