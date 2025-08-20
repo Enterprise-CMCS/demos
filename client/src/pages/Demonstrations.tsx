@@ -1,7 +1,7 @@
 import React from "react";
 import {
   DemonstrationTable,
-  DemonstrationTableItem,
+  DemonstrationTableRow,
 } from "components/table/tables/DemonstrationTable";
 import { gql, useQuery } from "@apollo/client";
 
@@ -47,7 +47,7 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
 `;
 
 export type DemonstrationsPageQueryResult = {
-  demonstrations: DemonstrationTableItem[];
+  demonstrations: DemonstrationTableRow[];
 };
 
 export const Demonstrations: React.FC = () => {

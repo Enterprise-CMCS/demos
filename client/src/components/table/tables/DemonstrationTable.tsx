@@ -20,7 +20,7 @@ type DemonstrationTableExtension = Pick<Amendment, "id" | "name"> & {
   extensionStatus: DemonstrationTableStatus;
 };
 
-type DemonstrationTableRow = {
+export type DemonstrationTableRow = {
   id: string;
   name: string;
   state: DemonstrationTableState;
@@ -72,15 +72,13 @@ const getSubRows = (
   ];
 };
 
-export type DemonstrationTableProps = {
-  demonstrations: DemonstrationTableRow[];
-};
-
-export const DemonstrationTable: React.FC<DemonstrationTableProps> = ({ demonstrations }) => {
+export const DemonstrationTable: React.FC<{ demonstrations: DemonstrationTableRow[] }> = ({
+  demonstrations,
+}) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
   const { demonstrationColumns, demonstrationColumnsLoading, demonstrationColumnsError } =
-    DemonstrationColumns<GenericDemonstrationTableRow>();
+    DemonstrationColumns();
 
   if (demonstrationColumnsLoading) return <div className="p-4">Loading...</div>;
   if (demonstrationColumnsError)
