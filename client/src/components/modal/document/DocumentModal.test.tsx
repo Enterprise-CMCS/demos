@@ -24,6 +24,10 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+const CONFIRM_REMOVE_BUTTON_TEST_ID = "confirm-remove";
+const CANCEL_REMOVE_BUTTON_TEST_ID = "cancel-remove";
+const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "upload-document";
+
 describe("AddDocumentModal", () => {
   const setup = () => {
     const onClose = vi.fn();
@@ -50,7 +54,7 @@ describe("AddDocumentModal", () => {
 
   it("has disabled button in edit when file is missing", () => {
     setup();
-    const uploadBtn = screen.getByRole("button", { name: /upload/i });
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     expect(uploadBtn).toBeDisabled(); // pulls from the native disabled prop
   });
 
@@ -76,7 +80,7 @@ describe("AddDocumentModal", () => {
     fireEvent.mouseDown(option);
 
     // assert using the actual button node
-    const uploadBtn = screen.getByRole("button", { name: /upload/i });
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     await waitFor(() => expect(uploadBtn).toBeEnabled());
   });
 
@@ -149,8 +153,8 @@ describe("RemoveDocumentModal", () => {
     expect(screen.getByText(/Remove Document/)).toBeInTheDocument();
     expect(screen.getByText(/Are you sure you want to remove 1 document/)).toBeInTheDocument();
     expect(screen.getByText(/This action cannot be undone/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Remove/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Cancel/ })).toBeInTheDocument();
+    expect(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID)).toBeInTheDocument();
+    expect(screen.getByTestId(CANCEL_REMOVE_BUTTON_TEST_ID)).toBeInTheDocument();
   });
 
   it("renders with multiple documents", () => {
@@ -160,14 +164,14 @@ describe("RemoveDocumentModal", () => {
 
   it("calls onClose when Cancel is clicked", () => {
     const { onClose } = setup(["1"]);
-    fireEvent.click(screen.getByRole("button", { name: /Cancel/ }));
+    fireEvent.click(screen.getByTestId(CANCEL_REMOVE_BUTTON_TEST_ID));
     expect(onClose).toHaveBeenCalled();
   });
 
   it("shows warning and closes when Remove is clicked", async () => {
     const { onClose } = setup(["1", "2"]);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Remove/ }));
+      fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
     });
     await waitFor(() => {
       expect(onClose).toHaveBeenCalled();
@@ -176,7 +180,7 @@ describe("RemoveDocumentModal", () => {
 
   it("calls deleteDocumentsTrigger when Remove is clicked", async () => {
     setup(["test-document-id"]);
-    fireEvent.click(screen.getByRole("button", { name: /Remove/ }));
+    fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
     await waitFor(() => {
       expect(mockDelete).toHaveBeenCalledWith({ variables: { ids: ["test-document-id"] } });
     });
@@ -211,7 +215,7 @@ describe("EditDocumentModal", () => {
 
   it("disables Upload button when no file is selected", () => {
     setup();
-    const uploadBtn = screen.getByRole("button", { name: /upload/i });
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     expect(uploadBtn).toBeDisabled();
   });
 
@@ -236,7 +240,7 @@ describe("EditDocumentModal", () => {
     const option = await screen.findByText("General File");
     fireEvent.mouseDown(option);
 
-    const uploadBtn = screen.getByRole("button", { name: /upload/i });
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     await waitFor(() => expect(uploadBtn).toBeEnabled());
   });
 
