@@ -13,10 +13,9 @@ interface PrimaryLayoutProps {
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const { currentUser, loading, error } = useCurrentUser();
-  console.log("PrimaryLayout currentUser:", currentUser);
 
   // You now have the *real* user id from the server
-  const userId = currentUser?.id ?? "";
+  const userId = currentUser?.id;
 
   // Optional: lightweight loading fence so Header doesn't flicker
   if (loading) {
@@ -40,7 +39,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   return (
     <ToastProvider>
       <HeaderConfigProvider
-        defaultLowerContent={<DefaultHeaderLower userId={userId} />}
+        defaultLowerContent={<DefaultHeaderLower />}
       >
         <div className="h-screen flex flex-col">
           <Header userId={userId} />
