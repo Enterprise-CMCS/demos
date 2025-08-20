@@ -3,15 +3,15 @@ import * as React from "react";
 
 import { CircleButton } from "components/button/CircleButton";
 import {
+  AddDocumentDialog,
+  EditDocumentDialog,
+  RemoveDocumentDialog,
+} from "components/dialog/document/DocumentDialog";
+import {
   DeleteIcon,
   EditIcon,
   ImportIcon,
 } from "components/icons";
-import {
-  AddDocumentModal,
-  EditDocumentModal,
-  RemoveDocumentModal,
-} from "components/modal/document/DocumentModal";
 import {
   DocumentTableRow,
   useDocument,
@@ -37,7 +37,7 @@ function DocumentModals({
   selectedDocs,
 }: DocumentModalsProps) {
   if (displayedModal === "add") {
-    return <AddDocumentModal onClose={onClose} />;
+    return <AddDocumentDialog onClose={onClose} />;
   }
   if (displayedModal === "edit" && selectedDocs.length === 1) {
     const selectedDoc = selectedDocs[0];
@@ -45,7 +45,7 @@ function DocumentModals({
     if (!selectedDoc) return null;
 
     return (
-      <EditDocumentModal
+      <EditDocumentDialog
         documentId={selectedDoc.id}
         documentTitle={selectedDoc.title}
         description={selectedDoc.description}
@@ -56,7 +56,7 @@ function DocumentModals({
   }
   if (displayedModal === "remove" && selectedDocs.length > 0) {
     const selectedIds = selectedDocs.map((doc) => doc.id);
-    return <RemoveDocumentModal documentIds={selectedIds} onClose={onClose} />;
+    return <RemoveDocumentDialog documentIds={selectedIds} onClose={onClose} />;
   }
   return null;
 }

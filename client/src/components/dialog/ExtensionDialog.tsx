@@ -7,13 +7,14 @@ import {
   Button,
   SecondaryButton,
 } from "components/button";
+import { BaseDialog } from "components/dialog/BaseDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
-import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { useDemonstration } from "hooks/useDemonstration";
+import { useExtension } from "hooks/useExtension";
 import {
   normalizeDemonstrationId,
   normalizeUserId,
@@ -23,12 +24,13 @@ import { tw } from "tags/tw";
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
 
-type AmendmentModalMode = "add" | "edit";
+type ExtensionDialogMode = "add" | "edit";
 
 type Props = {
+  isOpen?: boolean;
   onClose: () => void;
-  mode: AmendmentModalMode;
-  amendmentId?: string;
+  mode: ExtensionDialogMode;
+  extensionId?: string;
   demonstrationId?: string;
   data?: {
     title?: string;
@@ -41,9 +43,11 @@ type Props = {
   };
 };
 
-export const AmendmentModal: React.FC<Props> = ({
+export const ExtensionDialog: React.FC<Props> = ({
+  isOpen = true,
   onClose,
   mode,
+  extensionId,
   demonstrationId,
   data,
 }) => {
@@ -61,6 +65,7 @@ export const AmendmentModal: React.FC<Props> = ({
 
   const { showSuccess, showError } = useToast();
   const { getAllDemonstrations } = useDemonstration();
+  const { addExtension } = useExtension();
 
   // Fetch demonstrations for dropdown
   useEffect(() => {
@@ -68,10 +73,11 @@ export const AmendmentModal: React.FC<Props> = ({
   }, [getAllDemonstrations.trigger]);
 
   // Convert demonstrations to options format for the dropdown
-  const demoOptions = getAllDemonstrations.data?.map((demo) => ({
-    label: demo.name,
-    value: demo.id,
-  })) || [];
+  const demoOptions =
+    getAllDemonstrations.data?.map((demo) => ({
+      label: demo.name,
+      value: demo.id,
+    })) || [];
 
   const isFormValid = demonstration && title && state && projectOfficer;
 
@@ -92,36 +98,40 @@ export const AmendmentModal: React.FC<Props> = ({
     setFormStatus("pending");
 
     try {
-      // TODO: Implement amendment creation/update logic when amendment hooks are available
-      // For now, just show success message
-      const amendmentData = {
-        demonstrationId: normalizeDemonstrationId(demonstration),
-        name: title,
-        description: description,
-        projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
-        ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
-        ...(expirationDate && { expirationDate: new Date(expirationDate) }),
-      };
-
-      console.log("Amendment data to be created:", amendmentData);
+      if (mode === "add") {
+        const extensionData = {
+          demonstrationId: normalizeDemonstrationId(demonstration),
+          name: title,
+          description: description,
+          extensionStatusId: "EXTENSION_NEW", // Default status for new extensions
+          projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
+          ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
+          ...(expirationDate && { expirationDate: new Date(expirationDate) }),
+        };
+        await addExtension.trigger(extensionData);
+      } else {
+        // TODO: Implement extension update logic when available
+        console.log("Extension update not yet implemented for ID:", extensionId);
+      }
 
       showSuccess(
         mode === "edit"
-          ? "Amendment updated successfully!"
-          : "Amendment created successfully!"
+          ? "Extension updated successfully!"
+          : "Extension created successfully!"
       );
       onClose();
     } catch (error) {
-      console.error("Error saving amendment:", error);
-      showError("Failed to save amendment. Please try again.");
+      console.error("Error saving extension:", error);
+      showError("Failed to save extension. Please try again.");
     } finally {
       setFormStatus("idle");
     }
   };
 
   return (
-    <BaseModal
-      title={mode === "edit" ? "Edit Amendment" : "New Amendment"}
+    <BaseDialog
+      title={mode === "edit" ? "Edit Extension" : "New Extension"}
+      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -132,10 +142,10 @@ export const AmendmentModal: React.FC<Props> = ({
             Cancel
           </SecondaryButton>
           <Button
+            onClick={() => { }}
             size="small"
             type="submit"
-            form="amendment-form"
-            onClick={() => { }}
+            form="extension-form"
             disabled={!isFormValid || formStatus === "pending"}
           >
             {formStatus === "pending" ? "Saving..." : "Submit"}
@@ -144,7 +154,7 @@ export const AmendmentModal: React.FC<Props> = ({
       }
     >
       <form
-        id="amendment-form"
+        id="extension-form"
         className="space-y-4"
         onSubmit={handleSubmit}
       >
@@ -159,7 +169,7 @@ export const AmendmentModal: React.FC<Props> = ({
           />
           {showWarning && !demonstration && (
             <p className="text-sm text-text-warn mt-0.5">
-              Each amendment record must be linked to an existing demonstration.
+              Each extension record must be linked to an existing demonstration.
             </p>
           )}
         </div>
@@ -168,7 +178,7 @@ export const AmendmentModal: React.FC<Props> = ({
           <div className="col-span-2">
             <TextInput
               name="title"
-              label="Amendment Title"
+              label="Extension Title"
               placeholder="Enter title"
               isRequired
               value={title}
@@ -242,7 +252,7 @@ export const AmendmentModal: React.FC<Props> = ({
 
         <div className="flex flex-col gap-sm">
           <label className={LABEL_CLASSES} htmlFor="description">
-            Amendment Description
+            Extension Description
           </label>
           <textarea
             id="description"
@@ -253,6 +263,6 @@ export const AmendmentModal: React.FC<Props> = ({
           />
         </div>
       </form>
-    </BaseModal>
+    </BaseDialog>
   );
 };

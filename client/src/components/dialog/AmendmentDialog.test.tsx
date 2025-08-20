@@ -9,7 +9,14 @@ import {
   waitFor,
 } from "@testing-library/react";
 
-import { AmendmentModal } from "./AmendmentModal";
+import { AmendmentDialog } from "./AmendmentDialog";
+
+// Mock HTMLDialogElement methods for testing
+beforeAll(() => {
+  HTMLDialogElement.prototype.show = vi.fn();
+  HTMLDialogElement.prototype.showModal = vi.fn();
+  HTMLDialogElement.prototype.close = vi.fn();
+});
 
 // Mock dependencies
 vi.mock("components/toast", () => ({
@@ -33,8 +40,8 @@ vi.mock("hooks/useDemonstration", () => ({
   }),
 }));
 
-vi.mock("components/modal/BaseModal", () => ({
-  BaseModal: ({ title, children, actions }: { title: string; children: React.ReactNode; actions: React.ReactNode }) => (
+vi.mock("components/dialog/BaseDialog", () => ({
+  BaseDialog: ({ title, children, actions }: { title: string; children: React.ReactNode; actions: React.ReactNode }) => (
     <div data-testid="amendment-modal">
       <h2>{title}</h2>
       <div>{children}</div>
@@ -52,7 +59,7 @@ vi.mock("components/button", () => ({
   ),
 }));
 
-describe("AmendmentModal", () => {
+describe("AmendmentDialog", () => {
   const defaultProps = {
     onClose: vi.fn(),
     mode: "add" as const,
@@ -63,17 +70,17 @@ describe("AmendmentModal", () => {
   });
 
   it("renders with correct title for add mode", () => {
-    render(<AmendmentModal {...defaultProps} mode="add" />);
+    render(<AmendmentDialog {...defaultProps} mode="add" />);
     expect(screen.getByText("New Amendment")).toBeInTheDocument();
   });
 
   it("renders with correct title for edit mode", () => {
-    render(<AmendmentModal {...defaultProps} mode="edit" />);
+    render(<AmendmentDialog {...defaultProps} mode="edit" />);
     expect(screen.getByText("Edit Amendment")).toBeInTheDocument();
   });
 
   it("renders required form fields", () => {
-    render(<AmendmentModal {...defaultProps} />);
+    render(<AmendmentDialog {...defaultProps} />);
 
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
     expect(screen.getByText("Amendment Title")).toBeInTheDocument();
@@ -83,7 +90,7 @@ describe("AmendmentModal", () => {
   });
 
   it("shows warning when demonstration is not selected", async () => {
-    render(<AmendmentModal {...defaultProps} />);
+    render(<AmendmentDialog {...defaultProps} />);
 
     // Submit the form directly by finding it in the document
     const formElement = document.querySelector('form[id="amendment-form"]');
@@ -96,7 +103,7 @@ describe("AmendmentModal", () => {
     });
   }); it("calls onClose when cancel is clicked", () => {
     const onClose = vi.fn();
-    render(<AmendmentModal {...defaultProps} onClose={onClose} />);
+    render(<AmendmentDialog {...defaultProps} onClose={onClose} />);
 
     const cancelButton = screen.getByTestId("secondary-button");
     fireEvent.click(cancelButton);
@@ -111,7 +118,7 @@ describe("AmendmentModal", () => {
       description: "Test description",
     };
 
-    render(<AmendmentModal {...defaultProps} data={data} />);
+    render(<AmendmentDialog {...defaultProps} data={data} />);
 
     const titleInput = screen.getByDisplayValue("Test Amendment");
     const descriptionInput = screen.getByDisplayValue("Test description");

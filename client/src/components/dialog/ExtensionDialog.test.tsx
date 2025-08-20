@@ -9,7 +9,14 @@ import {
   waitFor,
 } from "@testing-library/react";
 
-import { ExtensionModal } from "./ExtensionModal";
+import { ExtensionDialog } from "./ExtensionDialog";
+
+// Mock HTMLDialogElement methods for testing
+beforeAll(() => {
+  HTMLDialogElement.prototype.show = vi.fn();
+  HTMLDialogElement.prototype.showModal = vi.fn();
+  HTMLDialogElement.prototype.close = vi.fn();
+});
 
 // Mock dependencies
 vi.mock("components/toast", () => ({
@@ -43,8 +50,8 @@ vi.mock("hooks/useExtension", () => ({
   }),
 }));
 
-vi.mock("components/modal/BaseModal", () => ({
-  BaseModal: ({ title, children, actions }: { title: string; children: React.ReactNode; actions: React.ReactNode }) => (
+vi.mock("components/dialog/BaseDialog", () => ({
+  BaseDialog: ({ title, children, actions }: { title: string; children: React.ReactNode; actions: React.ReactNode }) => (
     <div data-testid="extension-modal">
       <h2>{title}</h2>
       <div>{children}</div>
@@ -62,7 +69,7 @@ vi.mock("components/button", () => ({
   ),
 }));
 
-describe("ExtensionModal", () => {
+describe("ExtensionDialog", () => {
   const defaultProps = {
     onClose: vi.fn(),
     mode: "add" as const,
@@ -73,17 +80,17 @@ describe("ExtensionModal", () => {
   });
 
   it("renders with correct title for add mode", () => {
-    render(<ExtensionModal {...defaultProps} mode="add" />);
+    render(<ExtensionDialog {...defaultProps} mode="add" />);
     expect(screen.getByText("New Extension")).toBeInTheDocument();
   });
 
   it("renders with correct title for edit mode", () => {
-    render(<ExtensionModal {...defaultProps} mode="edit" />);
+    render(<ExtensionDialog {...defaultProps} mode="edit" />);
     expect(screen.getByText("Edit Extension")).toBeInTheDocument();
   });
 
   it("renders required form fields", () => {
-    render(<ExtensionModal {...defaultProps} />);
+    render(<ExtensionDialog {...defaultProps} />);
 
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
     expect(screen.getByText("Extension Title")).toBeInTheDocument();
@@ -93,7 +100,7 @@ describe("ExtensionModal", () => {
   });
 
   it("shows warning when demonstration is not selected", async () => {
-    render(<ExtensionModal {...defaultProps} />);
+    render(<ExtensionDialog {...defaultProps} />);
 
     // Submit the form directly by finding it in the document
     const formElement = document.querySelector('form[id="extension-form"]');
@@ -108,7 +115,7 @@ describe("ExtensionModal", () => {
 
   it("calls onClose when cancel is clicked", () => {
     const onClose = vi.fn();
-    render(<ExtensionModal {...defaultProps} onClose={onClose} />);
+    render(<ExtensionDialog {...defaultProps} onClose={onClose} />);
 
     const cancelButton = screen.getByTestId("secondary-button");
     fireEvent.click(cancelButton);
@@ -123,7 +130,7 @@ describe("ExtensionModal", () => {
       description: "Test description",
     };
 
-    render(<ExtensionModal {...defaultProps} data={data} />);
+    render(<ExtensionDialog {...defaultProps} data={data} />);
 
     const titleInput = screen.getByDisplayValue("Test Extension");
     const descriptionInput = screen.getByDisplayValue("Test description");
@@ -133,7 +140,7 @@ describe("ExtensionModal", () => {
   });
 
   it("pre-selects demonstration when demonstrationId is provided", () => {
-    render(<ExtensionModal {...defaultProps} demonstrationId="demo-1" />);
+    render(<ExtensionDialog {...defaultProps} demonstrationId="demo-1" />);
 
     // The demonstration should be pre-selected but we can't easily test the AutoCompleteSelect value
     // without more complex mocking. For now, just ensure the component renders.

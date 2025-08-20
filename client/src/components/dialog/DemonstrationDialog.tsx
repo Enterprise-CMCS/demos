@@ -1,10 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, {
+  useEffect,
+  useState,
+} from "react";
 
-import { Button, SecondaryButton } from "components/button";
+import {
+  Button,
+  SecondaryButton,
+} from "components/button";
+import { BaseDialog } from "components/dialog/BaseDialog";
+import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
+import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
-import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import {
   CmcsDivision,
@@ -14,22 +22,21 @@ import {
 } from "demos-server";
 import { useDemonstration } from "hooks/useDemonstration";
 import { tw } from "tags/tw";
-import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
-import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { formatDate } from "util/formatDate";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
 
-type DemonstrationModalMode = "add" | "edit";
+type DemonstrationDialogMode = "add" | "edit";
 
 type Props = {
+  isOpen?: boolean;
   onClose: () => void;
   demonstration?: Demonstration;
-  mode: DemonstrationModalMode;
+  mode: DemonstrationDialogMode;
 };
 
-export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mode }) => {
+export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, demonstration, mode }) => {
   const [state, setState] = useState("");
   const [title, setTitle] = useState("");
   const [projectOfficer, setProjectOfficer] = useState("");
@@ -113,8 +120,9 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
   };
 
   return (
-    <BaseModal
+    <BaseDialog
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
+      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -212,10 +220,9 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
           <input
             id="expiration-date"
             type="date"
-            className={`${DATE_INPUT_CLASSES} ${
-              expirationError
-                ? "border-border-warn focus:ring-border-warn"
-                : "border-border-fields focus:ring-border-focus"
+            className={`${DATE_INPUT_CLASSES} ${expirationError
+              ? "border-border-warn focus:ring-border-warn"
+              : "border-border-fields focus:ring-border-focus"
             }`}
             value={expirationDate}
             min={effectiveDate || undefined}
@@ -250,6 +257,6 @@ export const DemonstrationModal: React.FC<Props> = ({ onClose, demonstration, mo
         <SelectCMCSDivision onSelect={setCmcsDivision} />
         <SelectSignatureLevel onSelect={setSignatureLevel} />
       </div>
-    </BaseModal>
+    </BaseDialog>
   );
 };

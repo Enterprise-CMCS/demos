@@ -1,15 +1,15 @@
 import React from "react";
 
-import { DemonstrationModal } from "components/modal/DemonstrationModal";
-import { AmendmentModal } from "components/modal/AmendmentModal";
-import { ExtensionModal } from "components/modal/ExtensionModal";
-import { AddDocumentModal } from "components/modal/document/DocumentModal";
+import { AmendmentDialog } from "components/dialog/AmendmentDialog";
+import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { Demonstration } from "demos-server";
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
 type DemonstrationActionModal = "edit" | "delete" | null;
 
-export type DemonstrationModalDetails = {
+export type DemonstrationDialogDetails = {
   id: Demonstration["id"];
   state: Pick<Demonstration["state"], "id">;
   description: Demonstration["description"];
@@ -19,9 +19,9 @@ export type DemonstrationModalDetails = {
 interface DemonstrationDetailModalsProps {
   entityCreationModal: EntityCreationModal;
   demonstrationActionModal: DemonstrationActionModal;
-  demonstration: DemonstrationModalDetails;
+  demonstration: DemonstrationDialogDetails;
   onCloseEntityModal: () => void;
-  onCloseDemonstrationModal: () => void;
+  onCloseDemonstrationDialog: () => void;
 }
 
 export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps> = ({
@@ -29,12 +29,12 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
   demonstrationActionModal,
   demonstration,
   onCloseEntityModal,
-  onCloseDemonstrationModal,
+  onCloseDemonstrationDialog,
 }) => (
   <>
     {/* Entity Creation Modals */}
     {entityCreationModal === "amendment" && (
-      <AmendmentModal
+      <AmendmentDialog
         mode="add"
         demonstrationId={demonstration.id}
         onClose={onCloseEntityModal}
@@ -42,7 +42,7 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
     )}
 
     {entityCreationModal === "extension" && (
-      <ExtensionModal
+      <ExtensionDialog
         mode="add"
         demonstrationId={demonstration.id}
         onClose={onCloseEntityModal}
@@ -50,14 +50,14 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
     )}
 
     {entityCreationModal === "document" && (
-      <AddDocumentModal onClose={onCloseEntityModal} />
+      <AddDocumentDialog onClose={onCloseEntityModal} />
     )}
 
     {/* Demonstration Action Modals */}
     {demonstrationActionModal === "edit" && (
-      <DemonstrationModal
+      <DemonstrationDialog
         mode="edit"
-        onClose={onCloseDemonstrationModal}
+        onClose={onCloseDemonstrationDialog}
       />
     )}
 
