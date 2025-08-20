@@ -20,8 +20,9 @@ const DOCUMENT_TYPE_LOOKUP: Record<DocumentType, string> = {
   generalFile: "General File",
 };
 
-const DOCUMENT_TYPE_OPTIONS: Option[] = Object.entries(DOCUMENT_TYPE_LOOKUP)
-.map(([value, label]) => ({value,label,}));
+const DOCUMENT_TYPE_OPTIONS: Option[] = Object.entries(DOCUMENT_TYPE_LOOKUP).map(
+  ([value, label]) => ({ value, label })
+);
 
 const STYLES = {
   label: tw`block text-sm font-bold text-text-font mb-xs`,
@@ -225,14 +226,20 @@ const DropTarget: React.FC<{
       </p>
     </div>
   );
+};
 
 // Currently the Document object has the old documentType on it so this is
 // a simplification until the new documentType field is on document as a string
-type DocumentFields = Pick<Document, "id" | "title" | "description">;
+type DocumentFields = Pick<Document, "id" | "title" | "description"> & {
+  documentType?: DocumentType;
+};
 
-// const EMPTY_DOCUMENT_FIELDS: Partial<DocumentFields> = {
-//   id: undefined, title: undefined, description: undefined, documentType: undefined,
-// };
+const EMPTY_DOCUMENT_FIELDS: DocumentFields = {
+  id: undefined,
+  title: "",
+  description: "",
+  documentType: "generalFile",
+};
 
 type DocumentModalProps = {
   onClose?: () => void;
@@ -246,7 +253,9 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
-  const [activeDocument, setActiveDocument] = useState<Partial<DocumentFields>>(initialDocument || EMPTY_DOCUMENT_FIELDS);
+  const [activeDocument, setActiveDocument] = useState<Partial<DocumentFields>>(
+    initialDocument || EMPTY_DOCUMENT_FIELDS
+  );
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
