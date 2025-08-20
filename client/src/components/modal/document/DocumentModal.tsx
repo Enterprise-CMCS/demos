@@ -235,7 +235,7 @@ type DocumentFields = Pick<Document, "id" | "title" | "description"> & {
 };
 
 const EMPTY_DOCUMENT_FIELDS: DocumentFields = {
-  id: undefined,
+  id: "",
   title: "",
   description: "",
   documentType: "generalFile",
@@ -253,7 +253,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
-  const [activeDocument, setActiveDocument] = useState<Partial<DocumentFields>>(
+  const [activeDocument, setActiveDocument] = useState<DocumentFields>(
     initialDocument || EMPTY_DOCUMENT_FIELDS
   );
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);

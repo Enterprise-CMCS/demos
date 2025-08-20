@@ -184,17 +184,17 @@ describe("RemoveDocumentModal", () => {
 });
 
 describe("EditDocumentModal", () => {
+  const existingDocument = {
+    id: "123",
+    title: "Existing Document",
+    description: "This is an existing document",
+    type: "General File",
+  };
   const setup = () => {
     const onClose = vi.fn();
     render(
       <ToastProvider>
-        <EditDocumentModal
-          documentId="123"
-          documentTitle="Existing Document"
-          description="This is an existing document"
-          documentType="General File"
-          onClose={onClose}
-        />
+        <EditDocumentModal initialDocument={existingDocument} onClose={onClose} />
       </ToastProvider>
     );
     return { onClose };
