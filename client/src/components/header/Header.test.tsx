@@ -1,18 +1,12 @@
-// src/components/header/Header.test.tsx
 import React from "react";
 import { MockedProvider } from "@apollo/client/testing";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-
 import { userMocks } from "mock-data/userMocks";
-
-import { Avatar } from "./Avatar";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
 import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
-
-// Use the correct UserProvider import for your project
 import { UserProvider } from "components/user/UserContext";
 
 // Mock react-oidc-context so useAuth works without wiring AuthProvider
@@ -58,16 +52,14 @@ describe("Header", () => {
     expect(await screen.findByRole("button", { name: /Create New/i })).toBeInTheDocument();
   });
 
-  it("toggles menu under Profile Block", async () => {
+  it("toggles menu under Profile Block (Top right corner)", async () => {
     renderWithProviders(<ProfileBlock />);
     const profileName = await screen.findByText("John Doe");
 
-    // open
     fireEvent.click(profileName);
     const logoutButton = await screen.findByText("Logout");
     expect(logoutButton).toBeVisible();
 
-    // close
     fireEvent.click(profileName);
     expect(screen.queryByText("Logout")).not.toBeInTheDocument();
   });

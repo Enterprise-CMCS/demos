@@ -2,24 +2,23 @@ import React, { useState } from "react";
 import { ChevronDownIcon } from "components/icons";
 import { Avatar } from "./Avatar";
 import { getCurrentUser } from "components/user/UserContext";
-import { useAuthActions } from "components/auth/AuthActions";
+import { SigninButton, SignoutButton } from "../auth/AuthButtons";
+import { SignoutLink } from "../auth/AuthLinks";
 
 export const ProfileBlock: React.FC = () => {
   const [open, setOpen] = useState(false);
   const { currentUser, loading, error } = getCurrentUser();
-  const { signIn, signOut } = useAuthActions();
 
   if (loading) return <div className="animate-pulse h-6 w-28 bg-white/20 rounded" />;
   if (error) { console.error("[ProfileBlock] currentUser error:", error); return null; }
 
   if (!currentUser) {
     return (
-      <button
-        onClick={signIn}
-        className="text-white bg-black/20 hover:bg-black/30 rounded px-2 py-1"
-      >
-        Log In
-      </button>
+      <SigninButton size="small">
+        <div className="text-decoration-none">
+          Sign In
+        </div>
+      </SigninButton>
     );
   }
   // Right now, after user creation. We have no good way of setting displayName or fullName
@@ -39,11 +38,7 @@ export const ProfileBlock: React.FC = () => {
       {open && (
         <ul className="absolute top-12 right-0 min-w-full bg-white border border-gray-300 rounded shadow-lg z-50">
           <li className="hover:bg-gray-100 cursor-pointer p-1">
-            <button
-              onClick={(e) => { e.stopPropagation(); setOpen(false); signOut(); }}
-            >
-              Logout
-            </button>
+            <SignoutLink />
           </li>
           <li className="hover:bg-gray-100 cursor-pointer p-1">
             <button onClick={(e) => e.stopPropagation()}>View Roles</button>

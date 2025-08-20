@@ -16,7 +16,7 @@ type CurrentUser = {
 type UserContextValue = {
   currentUser: CurrentUser | null;
   loading: boolean;
-  error?: ApolloError;
+  error?: ApolloError | undefined | null;
   refresh: () => Promise<ApolloQueryResult<{ currentUser: CurrentUser }>>;
   hasRole: (name: string) => boolean;
 };
