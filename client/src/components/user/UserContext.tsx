@@ -6,7 +6,9 @@ import { GET_CURRENT_USER_QUERY } from "../../hooks/useCurrentUser";
 
 type CurrentUser = {
   id: string;
+  username: string;
   email: string;
+  fullName: string;
   displayName: string;
   roles: { id: string; name: string }[];
 };
