@@ -180,7 +180,7 @@ describe("RemoveDocumentModal", () => {
 
   it("calls deleteDocumentsTrigger when Remove is clicked", async () => {
     setup(["test-document-id"]);
-    fireEvent.click(screen.getByRole("button", { name: /Remove/ }));
+    fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
     await waitFor(() => {
       expect(mockDelete).toHaveBeenCalledWith({ variables: { ids: ["test-document-id"] } });
     });
