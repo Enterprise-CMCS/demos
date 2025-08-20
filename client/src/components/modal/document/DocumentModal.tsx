@@ -100,7 +100,6 @@ const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
           <span className="text-text-warn mr-1">*</span>Document Description
         </label>
         <textarea
-          data-testid="textarea-description-input"
           ref={ref}
           rows={2}
           placeholder="Enter"
@@ -193,7 +192,7 @@ const DropTarget: React.FC<{
       />
 
       <SecondaryButton
-        name="select-files"
+        name="button-select-files"
         type="button"
         aria-label="Select File"
         size="small"
@@ -232,11 +231,11 @@ const DropTarget: React.FC<{
 
 // Currently the Document object has the old documentType on it so this is
 // a simplification until the new documentType field is on document as a string
-type DocumentFields = Pick<Document, "id" | "title" | "description"> & {
+export type DocumentModalFields = Pick<Document, "id" | "title" | "description"> & {
   documentType?: DocumentType;
 };
 
-const EMPTY_DOCUMENT_FIELDS: DocumentFields = {
+const EMPTY_DOCUMENT_FIELDS: DocumentModalFields = {
   id: "",
   title: "",
   description: "",
@@ -246,7 +245,7 @@ const EMPTY_DOCUMENT_FIELDS: DocumentFields = {
 type DocumentModalProps = {
   onClose?: () => void;
   mode: DocumentModalType;
-  initialDocument?: DocumentFields;
+  initialDocument?: DocumentModalFields;
 };
 
 const DocumentModal: React.FC<DocumentModalProps> = ({
@@ -255,7 +254,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
-  const [activeDocument, setActiveDocument] = useState<DocumentFields>(
+  const [activeDocument, setActiveDocument] = useState<DocumentModalFields>(
     initialDocument || EMPTY_DOCUMENT_FIELDS
   );
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -340,14 +339,14 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       actions={
         <>
           <SecondaryButton
-            name="cancel-upload"
+            name="button-cancel-upload-document"
             size="small"
             onClick={() => setShowCancelConfirm(true)}
           >
             Cancel
           </SecondaryButton>
           <Button
-            name="upload-document"
+            name="button-confirm-upload-document"
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
@@ -393,7 +392,7 @@ export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose })
 
 export const EditDocumentModal: React.FC<{
   onClose: () => void;
-  initialDocument: DocumentFields;
+  initialDocument: DocumentModalFields;
 }> = ({ initialDocument, onClose }) => (
   <DocumentModal mode="edit" initialDocument={initialDocument} onClose={onClose} />
 );
@@ -433,7 +432,7 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
       actions={
         <>
           <SecondaryButton
-            name="cancel-remove"
+            name="button-cancel-delete-document"
             size="small"
             onClick={onClose}
             disabled={isDeleting}
@@ -441,7 +440,7 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
             Cancel
           </SecondaryButton>
           <ErrorButton
-            name="confirm-remove"
+            name="button-confirm-delete-document"
             size="small"
             onClick={() => onConfirm(documentIds)}
             aria-label="Confirm Remove Document"
