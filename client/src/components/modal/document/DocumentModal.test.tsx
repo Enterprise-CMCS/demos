@@ -1,13 +1,28 @@
 import "@testing-library/jest-dom";
 
 import React from "react";
-
 import { ToastProvider } from "components/toast/ToastContext";
 import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { RemoveDocumentModal, AddDocumentModal, EditDocumentModal } from "./DocumentModal";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+let mockDelete: () => Promise<{ data: { removedDocumentIds: string[] } }>;
 
-import { AddDocumentModal, RemoveDocumentModal, EditDocumentModal } from "./DocumentModal";
+beforeEach(() => {
+  mockDelete = vi.fn().mockResolvedValue({ data: { removedDocumentIds: ["1"] } });
+  vi.mock("@apollo/client", async () => {
+    const actual = await vi.importActual("@apollo/client");
+    return {
+      ...actual,
+      useMutation: () => [mockDelete],
+    };
+  });
+});
+
+afterEach(() => {
+  vi.resetModules();
+  vi.clearAllMocks();
+});
 
 const CONFIRM_REMOVE_BUTTON_TEST_ID = "confirm-remove";
 const CANCEL_REMOVE_BUTTON_TEST_ID = "cancel-remove";
@@ -153,11 +168,22 @@ describe("RemoveDocumentModal", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("shows warning and closes when Remove is clicked", () => {
+  it("shows warning and closes when Remove is clicked", async () => {
     const { onClose } = setup(["1", "2"]);
-    fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
-    expect(onClose).toHaveBeenCalled();
-    // The warning toast is shown via useToast, which would be tested in integration
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
+    });
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  it("calls deleteDocumentsTrigger when Remove is clicked", async () => {
+    setup(["test-document-id"]);
+    fireEvent.click(screen.getByRole("button", { name: /Remove/ }));
+    await waitFor(() => {
+      expect(mockDelete).toHaveBeenCalledWith({ variables: { ids: ["test-document-id"] } });
+    });
   });
 });
 
