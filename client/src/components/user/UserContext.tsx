@@ -48,7 +48,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-export function useCurrentUser() {
+export function getCurrentUser() {
   const ctx = useContext(Ctx);
   if (!ctx) {
     if (import.meta.env.DEV) {

@@ -1,13 +1,12 @@
-// src/components/header/ProfileBlock.tsx
 import React, { useState } from "react";
 import { ChevronDownIcon } from "components/icons";
 import { Avatar } from "./Avatar";
-import { useCurrentUser } from "components/user/UserContext";
+import { getCurrentUser } from "components/user/UserContext";
 import { useAuthActions } from "components/auth/AuthActions";
 
 export const ProfileBlock: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const { currentUser, loading, error } = useCurrentUser();
+  const { currentUser, loading, error } = getCurrentUser();
   const { signIn, signOut } = useAuthActions();
 
   if (loading) return <div className="animate-pulse h-6 w-28 bg-white/20 rounded" />;
@@ -23,7 +22,7 @@ export const ProfileBlock: React.FC = () => {
       </button>
     );
   }
-
+  // Right now, after user creation. We have no good way of setting displayName or fullName
   const name = currentUser.fullName || currentUser.displayName || currentUser.email;
   const firstCharacter = (name?.trim()?.[0] ?? "?").toUpperCase();
 

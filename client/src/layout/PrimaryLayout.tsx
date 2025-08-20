@@ -4,7 +4,7 @@ import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
 import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
 import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
-import { useCurrentUser } from "components/user/UserContext";
+import { getCurrentUser } from "components/user/UserContext";
 
 interface PrimaryLayoutProps {
   children: React.ReactNode;
@@ -12,7 +12,7 @@ interface PrimaryLayoutProps {
 
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const { currentUser, loading, error } = useCurrentUser();
+  const { currentUser, loading, error } = getCurrentUser();
 
   // You now have the *real* user id from the server
   const userId = currentUser?.id;
