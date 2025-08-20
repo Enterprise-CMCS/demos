@@ -49,7 +49,9 @@ export const RadioGroup = ({
 }: RadioGroupProps) => {
   const [value, setValue] = useState(defaultValue);
   const [validationMessage, setValidationMessage] = useState("");
-  const radioContainerClasses = isInline ? RADIO_CONTAINER_BASE_CLASSES :`${RADIO_CONTAINER_BASE_CLASSES} flex-col`;
+  const radioContainerClasses = isInline
+    ? RADIO_CONTAINER_BASE_CLASSES
+    : `${RADIO_CONTAINER_BASE_CLASSES} flex-col`;
   let radioColorClasses = getRadioColors("");
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
@@ -67,10 +69,15 @@ export const RadioGroup = ({
       </label>
       <div className={radioContainerClasses}>
         {options.map((option) => (
-          <label htmlFor={`${name}-radio-option-${option.value}`} key={option.value} className={RADIO_OPTION_CLASSES}>
+          <label
+            htmlFor={`${name}-radio-option-${option.value}`}
+            key={option.value}
+            className={RADIO_OPTION_CLASSES}
+          >
             <input
               type="radio"
               id={`${name}-radio-option-${option.value}`}
+              data-testid={`${name}-radio-option-${option.value}`}
               name={name}
               value={option.value}
               disabled={isDisabled}
@@ -82,7 +89,14 @@ export const RadioGroup = ({
             />
             <div>
               <p>{option.label}</p>
-              {option.helperText && <p id="helper-radio-text" className="text-xs break-before font-normal text-gray-500 dark:text-gray-300">{option.helperText}</p>}
+              {option.helperText && (
+                <p
+                  id="helper-radio-text"
+                  className="text-xs break-before font-normal text-gray-500 dark:text-gray-300"
+                >
+                  {option.helperText}
+                </p>
+              )}
             </div>
           </label>
         ))}

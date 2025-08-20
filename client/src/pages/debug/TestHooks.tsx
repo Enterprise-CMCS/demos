@@ -11,6 +11,7 @@ const TestUserOperationsHook: React.FC = () => {
     <div className="p-md flex gap-sm">
       <TextInput label="ID (try initials of spongebob characters)" name="userId" />
       <Button
+        name="get-user-by-id"
         onClick={() =>
           userOperations.getUserById.trigger(
             (document.getElementsByName("userId")[0] as HTMLInputElement).value
@@ -19,7 +20,9 @@ const TestUserOperationsHook: React.FC = () => {
       >
         Get User By ID
       </Button>
-      <Button onClick={() => userOperations.getAllUsers.trigger()}>Get All Users</Button>
+      <Button name="get-all-users" onClick={() => userOperations.getAllUsers.trigger()}>
+        Get All Users
+      </Button>
       <div>
         Get User By ID Response:
         {userOperations.getUserById.data ? (

@@ -38,6 +38,7 @@ export function DocumentColumns() {
       id: "Select",
       header: ({ table }) => (
         <input
+          data-testid="select-all-rows"
           id="select-all-rows"
           type="checkbox"
           className="cursor-pointer"
@@ -48,6 +49,7 @@ export function DocumentColumns() {
       ),
       cell: ({ row }) => (
         <input
+          data-testid={`select-row-${row.id}`}
           id={`select-row-${row.id}`}
           type="checkbox"
           className="cursor-pointer"
