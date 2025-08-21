@@ -1,6 +1,5 @@
 import React from "react";
 import { Table } from "../Table";
-import { TabItem, Tabs } from "layout/Tabs";
 import {
   DemonstrationColumns,
   StateOption,
@@ -11,6 +10,10 @@ import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
 import { Amendment, DemonstrationStatus, State, User } from "demos-server";
+
+const EMPTY_ROWS_MESSAGE = "No demonstrations are tracked.";
+const NO_RESULTS_FOUND_MESSAGE =
+  "No results were returned. Adjust your search and filter criteria.";
 
 type DemonstrationTableState = Pick<State, "name">;
 type DemonstrationTableProjectOfficer = Pick<User, "fullName">;
@@ -82,54 +85,27 @@ export const DemonstrationTable: React.FC<{
   stateOptions: StateOption[];
   projectOfficerOptions: UserOption[];
   statusOptions: StatusOption[];
-}> = ({ demonstrations, stateOptions, projectOfficerOptions, statusOptions }) => {
-  const [tab, setTab] = React.useState<"my" | "all">("my");
-
+  emptyRowsMessage?: string;
+  noResultsFoundMessage?: string;
+}> = ({
+  demonstrations,
+  stateOptions,
+  projectOfficerOptions,
+  statusOptions,
+  emptyRowsMessage = EMPTY_ROWS_MESSAGE,
+  noResultsFoundMessage = NO_RESULTS_FOUND_MESSAGE,
+}) => {
   const demonstrationColumns = DemonstrationColumns(
     stateOptions,
     projectOfficerOptions,
     statusOptions
   );
 
-  // TODO: Replace with actual current user ID from authentication context
-  const currentUserId = "1";
-
-  const myDemos: DemonstrationTableRow[] = demonstrations.filter((demo: DemonstrationTableRow) =>
-    demo.users.some((user) => user.id === currentUserId)
-  );
-
-  const allDemos: DemonstrationTableRow[] = demonstrations;
-
-  const tabList: TabItem[] = [
-    {
-      value: "my",
-      label: "My Demonstrations",
-      count: myDemos.length,
-    },
-    {
-      value: "all",
-      label: "All Demonstrations",
-      count: allDemos.length,
-    },
-  ];
-
-  const dataToShow = tab === "my" ? myDemos : allDemos;
-  const emptyRowsMessage =
-    tab === "my"
-      ? "You have no assigned demonstrations at this time."
-      : "No demonstrations are tracked.";
-  const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
-
   return (
     <div>
-      <Tabs
-        tabs={tabList}
-        selectedValue={tab}
-        onChange={(newVal) => setTab(newVal as "my" | "all")}
-      />
       {demonstrationColumns && (
         <Table<GenericDemonstrationTableRow>
-          data={dataToShow.map((demonstration) => ({
+          data={demonstrations.map((demonstration) => ({
             ...demonstration,
             type: "demonstration",
             status: demonstration.demonstrationStatus,

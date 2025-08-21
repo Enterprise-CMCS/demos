@@ -140,7 +140,7 @@ export function DemonstrationColumns(
             type="button"
             size="small"
             onClick={handleClick}
-            className="px-2 py-0 text-sm font-medium"
+            name={`view-details-${row.original.id}`}
           >
             View
           </SecondaryButton>
