@@ -11,11 +11,11 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
-import { useDialogForm } from "hooks/useDialogForm";
 import {
   createFormDataWithDates,
   createSuccessMessages,
-} from "hooks/useDialogHelpers";
+  useDialogForm,
+} from "hooks/useDialogForm";
 import {
   normalizeDemonstrationId,
   normalizeUserId,
