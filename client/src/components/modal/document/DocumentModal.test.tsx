@@ -1,13 +1,32 @@
 import "@testing-library/jest-dom";
 
 import React from "react";
-
 import { ToastProvider } from "components/toast/ToastContext";
 import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { RemoveDocumentModal, AddDocumentModal, EditDocumentModal } from "./DocumentModal";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+let mockDelete: () => Promise<{ data: { removedDocumentIds: string[] } }>;
 
-import { AddDocumentModal, RemoveDocumentModal, EditDocumentModal } from "./DocumentModal";
+beforeEach(() => {
+  mockDelete = vi.fn().mockResolvedValue({ data: { removedDocumentIds: ["1"] } });
+  vi.mock("@apollo/client", async () => {
+    const actual = await vi.importActual("@apollo/client");
+    return {
+      ...actual,
+      useMutation: () => [mockDelete],
+    };
+  });
+});
+
+afterEach(() => {
+  vi.resetModules();
+  vi.clearAllMocks();
+});
+
+const CONFIRM_REMOVE_BUTTON_TEST_ID = "confirm-remove";
+const CANCEL_REMOVE_BUTTON_TEST_ID = "cancel-remove";
+const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "upload-document";
 
 describe("AddDocumentModal", () => {
   const setup = () => {
@@ -30,33 +49,39 @@ describe("AddDocumentModal", () => {
   it("shows cancel confirmation modal when cancel is clicked", () => {
     setup();
     fireEvent.click(screen.getByText("Cancel"));
-    expect(
-      screen.getByText("Are you sure you want to cancel?")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Are you sure you want to cancel?")).toBeInTheDocument();
   });
 
-  it("disables Upload button when description is missing", () => {
+  it("has disabled button in edit when file is missing", () => {
     setup();
-    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
-    expect(uploadBtn.disabled).toBe(true);
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    expect(uploadBtn).toBeDisabled(); // pulls from the native disabled prop
   });
 
-  it("enables Upload button when description and file are set", async () => {
+  it("enables Upload button when description, type, and file are set", async () => {
     setup();
 
+    // file
     const file = new File(["sample"], "test.pdf", { type: "application/pdf" });
-    const fileInput = screen.getByTestId("file-input");
-    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.change(screen.getByTestId("file-input"), {
+      target: { files: [file] },
+    });
 
+    // description
     fireEvent.change(screen.getByPlaceholderText("Enter"), {
       target: { value: "Test document" },
     });
 
-    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
+    // type (AutoCompleteSelect)
+    const typeInput = screen.getByRole("textbox", { name: "Document Type" });
+    fireEvent.focus(typeInput);
+    fireEvent.change(typeInput, { target: { value: "General" } });
+    const option = await screen.findByText("General File");
+    fireEvent.mouseDown(option);
 
-    await waitFor(() => {
-      expect(uploadBtn.disabled).toBe(false);
-    });
+    // assert using the actual button node
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
   });
 
   it("calls onClose when confirming cancel", async () => {
@@ -126,34 +151,39 @@ describe("RemoveDocumentModal", () => {
   it("renders with single document", () => {
     setup(["1"]);
     expect(screen.getByText(/Remove Document/)).toBeInTheDocument();
-    expect(
-      screen.getByText(/Are you sure you want to remove 1 document/)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/This action cannot be undone/)
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Remove/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Cancel/ })).toBeInTheDocument();
+    expect(screen.getByText(/Are you sure you want to remove 1 document/)).toBeInTheDocument();
+    expect(screen.getByText(/This action cannot be undone/)).toBeInTheDocument();
+    expect(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID)).toBeInTheDocument();
+    expect(screen.getByTestId(CANCEL_REMOVE_BUTTON_TEST_ID)).toBeInTheDocument();
   });
 
   it("renders with multiple documents", () => {
     setup(["1", "2", "3"]);
-    expect(
-      screen.getByText(/Are you sure you want to remove 3 documents/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Are you sure you want to remove 3 documents/)).toBeInTheDocument();
   });
 
   it("calls onClose when Cancel is clicked", () => {
     const { onClose } = setup(["1"]);
-    fireEvent.click(screen.getByRole("button", { name: /Cancel/ }));
+    fireEvent.click(screen.getByTestId(CANCEL_REMOVE_BUTTON_TEST_ID));
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("shows warning and closes when Remove is clicked", () => {
+  it("shows warning and closes when Remove is clicked", async () => {
     const { onClose } = setup(["1", "2"]);
-    fireEvent.click(screen.getByRole("button", { name: /Remove/ }));
-    expect(onClose).toHaveBeenCalled();
-    // The warning toast is shown via useToast, which would be tested in integration
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
+    });
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  it("calls deleteDocumentsTrigger when Remove is clicked", async () => {
+    setup(["test-document-id"]);
+    fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
+    await waitFor(() => {
+      expect(mockDelete).toHaveBeenCalledWith({ variables: { ids: ["test-document-id"] } });
+    });
   });
 });
 
@@ -178,34 +208,40 @@ describe("EditDocumentModal", () => {
     setup();
 
     expect(screen.getByText("Edit Document")).toBeInTheDocument();
-    expect(
-      screen.getByDisplayValue("Existing Document")
-    ).toBeInTheDocument(); // Title
-    expect(
-      screen.getByDisplayValue("This is an existing document")
-    ).toBeInTheDocument(); // Description
+    expect(screen.getByDisplayValue("Existing Document")).toBeInTheDocument(); // Title
+    expect(screen.getByDisplayValue("This is an existing document")).toBeInTheDocument(); // Description
     expect(screen.getByDisplayValue("General File")).toBeInTheDocument(); // Document Type
   });
 
   it("disables Upload button when no file is selected", () => {
     setup();
-    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
-    expect(uploadBtn.disabled).toBe(true);
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    expect(uploadBtn).toBeDisabled();
   });
 
-  it("enables Upload when all fields including file are set", async () => {
+  it("enables Upload button when description, type, and file are set", async () => {
     setup();
 
-    const file = new File(["doc"], "test.pdf", { type: "application/pdf" });
+    // file
+    const file = new File(["sample"], "test.pdf", { type: "application/pdf" });
     fireEvent.change(screen.getByTestId("file-input"), {
       target: { files: [file] },
     });
 
-    const uploadBtn = screen.getByText("Upload") as HTMLButtonElement;
-
-    await waitFor(() => {
-      expect(uploadBtn.disabled).toBe(false);
+    // description
+    fireEvent.change(screen.getByPlaceholderText("Enter"), {
+      target: { value: "Test document" },
     });
+
+    // document type (your component requires it)
+    const typeInput = screen.getByRole("textbox", { name: "Document Type" });
+    fireEvent.focus(typeInput);
+    fireEvent.change(typeInput, { target: { value: "General" } });
+    const option = await screen.findByText("General File");
+    fireEvent.mouseDown(option);
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
   });
 
   it("calls onClose when cancel is confirmed", async () => {

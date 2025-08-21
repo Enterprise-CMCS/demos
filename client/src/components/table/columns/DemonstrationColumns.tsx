@@ -9,14 +9,10 @@ import { DemonstrationStatus, State, User } from "demos-server";
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
 
-export type StateOption = Pick<State, "name" | "id">;
-export type UserOption = Pick<User, "fullName">;
-export type StatusOption = Pick<DemonstrationStatus, "name">;
-
 export function DemonstrationColumns(
-  stateOptions: StateOption[],
-  userOptions: UserOption[],
-  statusOptions: StatusOption[]
+  stateOptions: Pick<State, "id" | "name">[],
+  userOptions: Pick<User, "fullName">[],
+  statusOptions: Pick<DemonstrationStatus, "name">[]
 ) {
   const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
 

@@ -3,11 +3,7 @@ import React from "react";
 import { userMocks } from "mock-data/userMocks";
 
 import { MockedProvider } from "@apollo/client/testing";
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { Avatar } from "./Avatar";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
@@ -24,9 +20,7 @@ describe("Header", async () => {
   it("renders all quick links", () => {
     render(<QuickLinks />);
     expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Notifications/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument();
   });
 
@@ -60,9 +54,7 @@ describe("Header", async () => {
         <DefaultHeaderLower userId="2" />
       </MockedProvider>
     );
-    expect(
-      await screen.findByRole("button", { name: /Create New/i })
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("create-new")).toBeInTheDocument();
   });
 
   it("toggles menu under Profile Block", async () => {

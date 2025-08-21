@@ -69,35 +69,41 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
       </div>
       <div className="relative" ref={dropdownRef}>
         <SecondaryButton
+          name="create-new"
           size="small"
-          className="cursor-pointer flex items-center gap-1 px-1 py-1"
           onClick={() => setShowDropdown((prev) => !prev)}
         >
-          <span>Create New</span>
-          <AddNewIcon />
+          <div className="flex items-center gap-1">
+            <span>Create New</span>
+            <AddNewIcon />
+          </div>
         </SecondaryButton>
 
         {showDropdown && (
           <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
             <button
+              data-testid="button-create-new-demonstration"
               onClick={() => handleSelect("Demonstration")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Demonstration
             </button>
             <button
+              data-testid="button-create-new-document"
               onClick={() => handleSelect("AddDocument")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Add New Document
             </button>
             <button
+              data-testid="button-create-new-amendment"
               onClick={() => handleSelect("Amendment")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Amendment
             </button>
             <button
+              data-testid="button-create-new-extension"
               onClick={() => handleSelect("Extension")}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
