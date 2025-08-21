@@ -1,11 +1,10 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MockedProvider } from "@apollo/client/testing";
-import { userMocks } from "mock-data/userMocks";
 import { UserProvider } from "components/user/UserContext";
 import { HeaderConfigProvider, useHeaderConfig } from "./HeaderConfigContext";
 import { Header } from "./Header";
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 const TestConsumer = () => {
   const { setHeaderConfig } = useHeaderConfig();
@@ -22,9 +21,9 @@ const TestConsumer = () => {
 
 function renderWithProviders(ui: React.ReactNode) {
   return render(
-    <MockedProvider mocks={userMocks} addTypename={false}>
+    <DemosApolloProvider>
       <UserProvider>{ui}</UserProvider>
-    </MockedProvider>
+    </DemosApolloProvider>
   );
 }
 
