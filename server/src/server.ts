@@ -26,13 +26,9 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
   handlers.createAPIGatewayProxyEventRequestHandler(),
   {
     context: async ({ event, context }) => {
-      // ensure DATABASE_URL is ready before Prisma is used
       await databaseUrlPromise;
-
-      // ⬇️ central auth + upsert + roles
       const gqlCtx = await buildLambdaContext(event.headers);
 
-      // add lambda bits alongside GraphQL context
       return {
         ...gqlCtx,
         lambdaEvent: event,
