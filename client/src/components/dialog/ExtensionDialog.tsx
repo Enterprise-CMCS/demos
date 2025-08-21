@@ -12,8 +12,9 @@ import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
-import { useToast } from "components/toast";
+import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstration } from "hooks/useDemonstration";
+import { useDialogForm } from "hooks/useDialogForm";
 import { useExtension } from "hooks/useExtension";
 import {
   normalizeDemonstrationId,
@@ -58,14 +59,49 @@ export const ExtensionDialog: React.FC<Props> = ({
   const [expirationDate, setExpirationDate] = useState(data?.expirationDate || "");
   const [description, setDescription] = useState(data?.description || "");
   const [demonstration, setDemonstration] = useState(data?.demonstration || demonstrationId || "");
-  const [expirationError, setExpirationError] = useState("");
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [formStatus, setFormStatus] = useState<"idle" | "pending">("idle");
-  const [showWarning, setShowWarning] = useState(false);
 
-  const { showSuccess, showError } = useToast();
   const { getAllDemonstrations } = useDemonstration();
   const { addExtension } = useExtension();
+
+  const {
+    expirationError,
+    handleEffectiveDateChange,
+    handleExpirationDateChange,
+  } = useDateValidation();
+
+  const {
+    formStatus,
+    showWarning,
+    showCancelConfirm,
+    setShowCancelConfirm,
+    handleSubmit,
+  } = useDialogForm({
+    mode,
+    onClose,
+    validateForm: () => Boolean(demonstration && title && state && projectOfficer),
+    getFormData: () => ({
+      demonstrationId: normalizeDemonstrationId(demonstration),
+      name: title,
+      description: description,
+      extensionStatusId: "EXTENSION_NEW",
+      projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
+      ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
+      ...(expirationDate && { expirationDate: new Date(expirationDate) }),
+    }),
+    onSubmit: async (extensionData) => {
+      if (mode === "add") {
+        await addExtension.trigger(extensionData);
+      } else {
+        // TODO: Implement extension update logic when available
+        console.log("Extension update not yet implemented for ID:", extensionId);
+      }
+    },
+    successMessage: {
+      add: "Extension created successfully!",
+      edit: "Extension updated successfully!",
+    },
+    errorMessage: "Failed to save extension. Please try again.",
+  });
 
   // Fetch demonstrations for dropdown
   useEffect(() => {
@@ -78,55 +114,6 @@ export const ExtensionDialog: React.FC<Props> = ({
       label: demo.name,
       value: demo.id,
     })) || [];
-
-  const isFormValid = demonstration && title && state && projectOfficer;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!demonstration) {
-      setShowWarning(true);
-      return;
-    }
-
-    if (!isFormValid) {
-      showError("Please complete all required fields.");
-      return;
-    }
-
-    setShowWarning(false);
-    setFormStatus("pending");
-
-    try {
-      if (mode === "add") {
-        const extensionData = {
-          demonstrationId: normalizeDemonstrationId(demonstration),
-          name: title,
-          description: description,
-          extensionStatusId: "EXTENSION_NEW", // Default status for new extensions
-          projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
-          ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
-          ...(expirationDate && { expirationDate: new Date(expirationDate) }),
-        };
-        await addExtension.trigger(extensionData);
-      } else {
-        // TODO: Implement extension update logic when available
-        console.log("Extension update not yet implemented for ID:", extensionId);
-      }
-
-      showSuccess(
-        mode === "edit"
-          ? "Extension updated successfully!"
-          : "Extension created successfully!"
-      );
-      onClose();
-    } catch (error) {
-      console.error("Error saving extension:", error);
-      showError("Failed to save extension. Please try again.");
-    } finally {
-      setFormStatus("idle");
-    }
-  };
 
   return (
     <BaseDialog
@@ -147,7 +134,7 @@ export const ExtensionDialog: React.FC<Props> = ({
             size="small"
             type="submit"
             form="extension-form"
-            disabled={!isFormValid || formStatus === "pending"}
+            disabled={!(demonstration && title && state && projectOfficer) || formStatus === "pending"}
           >
             {formStatus === "pending" ? "Saving..." : "Submit"}
           </Button>
@@ -216,10 +203,12 @@ export const ExtensionDialog: React.FC<Props> = ({
               data-testid="effective-date-input"
               value={effectiveDate}
               onChange={(e) => {
-                setEffectiveDate(e.target.value);
-                if (expirationDate && expirationDate < e.target.value) {
-                  setExpirationDate("");
-                }
+                handleEffectiveDateChange(
+                  e.target.value,
+                  expirationDate,
+                  setEffectiveDate,
+                  setExpirationDate
+                );
               }}
             />
           </div>
@@ -237,15 +226,7 @@ export const ExtensionDialog: React.FC<Props> = ({
               data-testid="input-expiration-date"
               value={expirationDate}
               min={effectiveDate || undefined}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (effectiveDate && val < effectiveDate) {
-                  setExpirationError("Expiration Date cannot be before Effective Date.");
-                } else {
-                  setExpirationError("");
-                  setExpirationDate(val);
-                }
-              }}
+              onChange={(e) => handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)}
             />
             {expirationError && (
               <div className="text-text-warn text-sm mt-1">{expirationError}</div>

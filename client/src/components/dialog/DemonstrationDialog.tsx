@@ -13,14 +13,15 @@ import { SelectSignatureLevel } from "components/input/select/SelectSignatureLev
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
-import { useToast } from "components/toast";
 import {
   CmcsDivision,
   CreateDemonstrationInput,
   Demonstration,
   SignatureLevel,
 } from "demos-server";
+import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstration } from "hooks/useDemonstration";
+import { useDialogForm } from "hooks/useDialogForm";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
@@ -45,14 +46,49 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
   const [description, setDescription] = useState("");
   const [cmcsDivision, setCmcsDivision] = useState("");
   const [signatureLevel, setSignatureLevel] = useState("");
-  const [expirationError, setExpirationError] = useState("");
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [formStatus, setFormStatus] = useState<"idle" | "pending">("idle");
 
-  const { showSuccess, showError } = useToast();
   const { addDemonstration, updateDemonstration } = useDemonstration();
 
-  const isFormValid = state && title && projectOfficer;
+  const {
+    expirationError,
+    handleEffectiveDateChange,
+    handleExpirationDateChange,
+  } = useDateValidation();
+
+  const {
+    formStatus,
+    showCancelConfirm,
+    setShowCancelConfirm,
+    handleSubmit,
+  } = useDialogForm({
+    mode,
+    onClose,
+    validateForm: () => Boolean(state && title && projectOfficer),
+    getFormData: (): CreateDemonstrationInput => ({
+      name: title,
+      description,
+      effectiveDate: new Date(effectiveDate),
+      expirationDate: new Date(expirationDate),
+      demonstrationStatusId: "1",
+      stateId: state,
+      userIds: [projectOfficer],
+      projectOfficerUserId: projectOfficer,
+      cmcsDivision: cmcsDivision as CmcsDivision,
+      signatureLevel: signatureLevel as SignatureLevel,
+    }),
+    onSubmit: async (input: CreateDemonstrationInput) => {
+      if (mode === "edit" && demonstration?.id) {
+        await updateDemonstration.trigger(demonstration.id, input);
+      } else {
+        await addDemonstration.trigger(input);
+      }
+    },
+    successMessage: {
+      add: "Demonstration created successfully!",
+      edit: "Demonstration updated successfully!",
+    },
+    errorMessage: "Failed to save demonstration. Please try again.",
+  });
 
   useEffect(() => {
     if (demonstration) {
@@ -66,58 +102,6 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
       setSignatureLevel(demonstration.signatureLevel || "");
     }
   }, [demonstration]);
-
-  const getInput = (): CreateDemonstrationInput => ({
-    name: title,
-    description,
-    effectiveDate: new Date(effectiveDate),
-    expirationDate: new Date(expirationDate),
-    demonstrationStatusId: "1",
-    stateId: state,
-    userIds: [projectOfficer],
-    projectOfficerUserId: projectOfficer,
-    cmcsDivision: cmcsDivision as CmcsDivision,
-    signatureLevel: signatureLevel as SignatureLevel,
-  });
-
-  const handleSubmit = async () => {
-    if (!isFormValid) {
-      showError("Please complete all required fields.");
-      return;
-    }
-
-    setFormStatus("pending");
-
-    try {
-      const input = getInput();
-      let result;
-
-      if (mode === "edit" && demonstration?.id) {
-        result = await updateDemonstration.trigger(demonstration.id, input);
-      } else {
-        result = await addDemonstration.trigger(input);
-      }
-
-      if (
-        result.data &&
-        ("addDemonstration" in result.data || "updateDemonstration" in result.data)
-      ) {
-        showSuccess(
-          mode === "edit"
-            ? "Demonstration updated successfully!"
-            : "Demonstration created successfully!"
-        );
-        onClose();
-      } else {
-        showError("Failed to save demonstration. Please try again.");
-      }
-    } catch (error) {
-      console.error(error);
-      showError("Failed to save demonstration. Please try again.");
-    } finally {
-      setFormStatus("idle");
-    }
-  };
 
   return (
     <BaseDialog
@@ -135,8 +119,10 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
           <Button
             name="submit"
             size="small"
-            disabled={!isFormValid || formStatus === "pending"}
-            onClick={handleSubmit}
+            disabled={!(state && title && projectOfficer) || formStatus === "pending"}
+            type="submit"
+            form="demonstration-form"
+            onClick={() => { }}
           >
             {formStatus === "pending" ? (
               <svg
@@ -166,101 +152,94 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
         </>
       }
     >
-      <div className="grid grid-cols-3 gap-5">
-        <div>
-          <SelectUSAStates
-            label="State/Territory"
-            currentState={state}
-            value={state}
-            isRequired
-            onStateChange={setState}
-          />
+      <form
+        id="demonstration-form"
+        className="space-y-4"
+        onSubmit={handleSubmit}
+      >
+        <div className="grid grid-cols-3 gap-5">
+          <div>
+            <SelectUSAStates
+              label="State/Territory"
+              currentState={state}
+              value={state}
+              isRequired
+              onStateChange={setState}
+            />
+          </div>
+          <div className="col-span-2">
+            <TextInput
+              name="title"
+              label="Demonstration Title"
+              isRequired
+              placeholder="Enter title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
         </div>
-        <div className="col-span-2">
-          <TextInput
-            name="title"
-            label="Demonstration Title"
-            isRequired
-            placeholder="Enter title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-4 gap-4">
-        <div className="col-span-2">
-          <SelectUsers
-            label="Project Officer"
-            isRequired
-            onStateChange={setProjectOfficer}
-            value={projectOfficer}
-          />
+        <div className="grid grid-cols-4 gap-4">
+          <div className="col-span-2">
+            <SelectUsers
+              label="Project Officer"
+              isRequired
+              onStateChange={setProjectOfficer}
+              value={projectOfficer}
+            />
+          </div>
+          <div className="flex flex-col gap-sm">
+            <label className={LABEL_CLASSES} htmlFor="effective-date">
+              Effective Date
+            </label>
+            <input
+              data-testid="effective-date-input"
+              id="effective-date"
+              type="date"
+              className={DATE_INPUT_CLASSES}
+              value={effectiveDate}
+              onChange={(e) => handleEffectiveDateChange(e.target.value, expirationDate, setEffectiveDate, setExpirationDate)}
+            />
+          </div>
+          <div className="flex flex-col gap-sm">
+            <label className={LABEL_CLASSES} htmlFor="expiration-date">
+              Expiration Date
+            </label>
+            <input
+              data-testid="input-expiration-date"
+              id="expiration-date"
+              type="date"
+              className={`${DATE_INPUT_CLASSES} ${expirationError
+                ? "border-border-warn focus:ring-border-warn"
+                : "border-border-fields focus:ring-border-focus"
+              }`}
+              value={expirationDate}
+              min={effectiveDate || undefined}
+              onChange={(e) => handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)}
+            />
+            {expirationError && <div className="text-text-warn text-sm mt-1">{expirationError}</div>}
+          </div>
         </div>
+
         <div className="flex flex-col gap-sm">
-          <label className={LABEL_CLASSES} htmlFor="effective-date">
-            Effective Date
+          <label className={LABEL_CLASSES} htmlFor="description">
+            Demonstration Description
           </label>
-          <input
-            data-testid="effective-date-input"
-            id="effective-date"
-            type="date"
-            className={DATE_INPUT_CLASSES}
-            value={effectiveDate}
-            onChange={(e) => {
-              setEffectiveDate(e.target.value);
-              if (expirationDate && expirationDate < e.target.value) {
-                setExpirationDate("");
-              }
-            }}
+          <textarea
+            data-testid="textarea-description"
+            id="description"
+            placeholder="Enter description"
+            className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <div className="flex flex-col gap-sm">
-          <label className={LABEL_CLASSES} htmlFor="expiration-date">
-            Expiration Date
-          </label>
-          <input
-            data-testid="input-expiration-date"
-            id="expiration-date"
-            type="date"
-            className={`${DATE_INPUT_CLASSES} ${expirationError
-              ? "border-border-warn focus:ring-border-warn"
-              : "border-border-fields focus:ring-border-focus"
-            }`}
-            value={expirationDate}
-            min={effectiveDate || undefined}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (effectiveDate && val < effectiveDate) {
-                setExpirationError("Expiration Date cannot be before Effective Date.");
-              } else {
-                setExpirationError("");
-                setExpirationDate(val);
-              }
-            }}
-          />
-          {expirationError && <div className="text-text-warn text-sm mt-1">{expirationError}</div>}
+
+        <div className="grid grid-cols-2 gap-2">
+          <SelectCMCSDivision onSelect={setCmcsDivision} />
+          <SelectSignatureLevel onSelect={setSignatureLevel} />
         </div>
-      </div>
-
-      <div className="flex flex-col gap-sm">
-        <label className={LABEL_CLASSES} htmlFor="description">
-          Demonstration Description
-        </label>
-        <textarea
-          data-testid="textarea-description"
-          id="description"
-          placeholder="Enter description"
-          className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <SelectCMCSDivision onSelect={setCmcsDivision} />
-        <SelectSignatureLevel onSelect={setSignatureLevel} />
-      </div>
+      </form>
     </BaseDialog>
   );
 };
