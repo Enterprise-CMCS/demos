@@ -3,6 +3,7 @@ import React, { createContext, useContext, useMemo, useEffect } from "react";
 import { useQuery, ApolloError, ApolloQueryResult } from "@apollo/client";
 import { useAuth } from "react-oidc-context";
 import { GET_CURRENT_USER_QUERY } from "../../hooks/useCurrentUser";
+import { isLocalDevelopment } from "config/env";
 
 type CurrentUser = {
   id: string;
@@ -51,17 +52,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 export function getCurrentUser() {
   const ctx = useContext(Ctx);
   if (!ctx) {
-    if (import.meta.env.DEV) {
-      console.warn("useCurrentUser used outside <UserProvider>");
-      return {
-        currentUser: null,
-        loading: false,
-        error: undefined,
-        refresh: async () => Promise.resolve({} as any),
-        hasRole: () => false,
-      } as const;
-    }
-    throw new Error("useCurrentUser must be used within <UserProvider>");
+    throw new Error("getCurrentUser must be used within <UserProvider>");
   }
   return ctx;
 }
