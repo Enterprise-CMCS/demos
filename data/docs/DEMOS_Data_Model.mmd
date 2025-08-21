@@ -9,17 +9,22 @@ erDiagram
   classDef typeLimiter stroke:navy,fill:lightskyblue
   classDef dataTable stroke:green,fill:lightgreen
   classDef associativeTable stroke:darkmagenta,fill:plum
-  
+  classDef legend stroke:black,fill:#ddd
+
+  bundle_phase_date ||--|{ bundle_phase_status : "bundle_phase_status.(bundle_id, phase_id, display_date_type_id) ∈ bundle_phase_date.(bundle_id, phase_id, date_type_id)"
+  phase ||--|{ bundle_phase_status : "bundle_phase_status.phase_id ∈ phase.id"
+  phase_status ||--|{ bundle_phase_status : "bundle_phase_status.phase_status_id ∈ phase_status.id"
   document }|--|| bundle : "document.bundle_id ∈ bundle.id"
-  bundle_requirement }|--|| bundle : "bundle_requirement.bundle_id ∈ bundle.id"
+  bundle_phase_requirement }|--|| bundle : "bundle_phase_requirement.bundle_id ∈ bundle.id"
   bundle_phase_date }|--|| bundle : "bundle_phase_date.bundle_id ∈ bundle.id"
-  document ||--|{ bundle_requirement : "bundle_requirement.(bundle_id, phase_id, document_id) ∈ document.(bundle_id, phase_id, id)"
+  document ||--|{ bundle_phase_requirement : "bundle_phase_requirement.(bundle_id, phase_id, document_id) ∈ document.(bundle_id, phase_id, id)"
   document_type ||--|{ document : "document.document_type_id ∈ document_type.id"
-  phase ||--|{ bundle_requirement : "bundle_requirement.phase_id ∈ phase.id"
+  phase ||--|{ bundle_phase_requirement : "bundle_phase_requirement.phase_id ∈ phase.id"
   phase ||--|{ bundle_phase_date : "bundle_phase_date.phase_id ∈ phase.id"
   phase ||--|{ document: "document.phase_id ∈ phase.id"
-  date_type ||--|{ bundle_phase_date : "bundle_phase_date.date_type_id ∈ date_type.id"
-  requirement ||--|{ bundle_requirement : "bundle_requirement.(requirement_id, is_document_requirement) ∈ requirement.(id, is_document_requirement)"
+  %% date_type ||--|{ bundle_phase_date : "bundle_phase_date.date_type_id ∈ date_type.id"
+  bundle_phase_date }|--|| date_type : "bundle_phase_date.date_type_id ∈ date_type.id"
+  requirement ||--|{ bundle_phase_requirement : "bundle_phase_requirement.(requirement_id, is_document_requirement) ∈ requirement.(id, is_document_requirement)"
   cmcs_division ||--|{ demonstration : "demonstration.cmcs_division_id ∈ cmcs_division.id"
   signature_level ||--|{ demonstration : "demonstration.signature_level_id ∈ signature_level.id"
   bundle ||--|| modification : "modificaton.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
@@ -31,8 +36,8 @@ erDiagram
   bundle_type ||--|| modification_bundle_type : "modification_bundle_type.id ∈ bundle_type.id"
   bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
   modification_bundle_type ||--|{ modification : "modification.bundle_type_id ∈ modification_bundle_type.id"
-  status ||--|{ modification : "modification.status_id ∈ status.id"
-  demonstration }|--|| status : "demonstration.status_id ∈ status.id"
+  bundle_status ||--|{ modification : "modification.bundle_status_id ∈ bundle_status.id"
+  demonstration }|--|| bundle_status : "demonstration.bundle_status_id ∈ bundle_status.id"
   state ||--|{ demonstration : "demonstration.state_id ∈ state.id"
   demonstration }|--|| users : "demonstration.project_officer_user_id ∈ users.id"
   demonstration ||--|{ modification : "modification.demonstration_id ∈ demonstration.id"
@@ -47,7 +52,7 @@ erDiagram
   permission ||--|{ role_permission : "role_permission.permission_id ∈ permission.id"
   role ||--|{ role_permission : "role_permission.role_id ∈ role.id"
   event }O..|| reportable_event_type : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
-  
+  bundle_phase_status }|--|| bundle : "bundle_phase_status.bundle_id ∈ bundle.id"
 
   %% Static Constraints
   bundle_type:::staticConstraint {
@@ -70,6 +75,10 @@ erDiagram
     text id PK
   }
 
+  phase_status:::staticConstraint {
+    text id PK
+  }
+
   requirement:::staticConstraint {
     text id PK, UK "UK: (id, is_document_requirement)"
     bool is_document_requirement UK "UK: (id, is_document_requirement)"
@@ -84,7 +93,7 @@ erDiagram
     text name
   }
 
-  status:::staticConstraint {
+  bundle_status:::staticConstraint {
     text id PK
   }
 
@@ -119,7 +128,16 @@ erDiagram
     timestamptz updated_at
   }
 
-  bundle_requirement:::dataTable {
+  bundle_phase_status:::dataTable {
+    uuid bundle_id PK, FK, FK "FK: bundle.id<br>FK1: bundle_phase_date.(bundle_id, phase_id, date_type_id)"
+    text phase_id PK, FK, FK "FK: phase.id<br>FK1: bundle_phase_date.(bundle_id, phase_id, date_type_id)"
+    text phase_status_id FK "FK: phase_status.id"
+    text display_date_type_id FK "FK1: bundle_phase_date.(bundle_id, phase_id, date_type_id)<br>NULLABLE"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  bundle_phase_requirement:::dataTable {
     uuid bundle_id PK, FK "FK: bundle.id<br>FK2: document.(bundle_id, phase_id, id)"
     text phase_id PK, FK "FK: phase.id<br>FK2: document.(bundle_id, phase_id, id)"
     text requirement_id PK, FK "FK1: requirement.(id, is_document_requirement)"
@@ -142,7 +160,7 @@ erDiagram
     text signature_level_id FK "FK: signature_level.id"
     timestamptz created_at
     timestamptz updated_at
-    text status_id FK "FK: status.id"
+    text bundle_status_id FK "FK: bundle_status.id"
     text state_id FK, UK "FK: state.id, UK2: (id, state_id)"
     uuid project_officer_user_id FK "FK: users.id"
   }
@@ -181,7 +199,7 @@ erDiagram
     date expiration_date
     timestamptz created_at
     timestamptz updated_at
-    text status_id FK "FK: status.id,"
+    text bundle_status_id FK "FK: bundle_status.id,"
     uuid project_officer_user_id FK "FK: users.id"
   }
 
@@ -235,7 +253,7 @@ erDiagram
   }
 
   %% Legend
-  Legend {
+  Legend:::legend {
     text StaticConstraint "Red"
     text TypeLimiter "Blue"
     text AssociativeTable "Purple"
