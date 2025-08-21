@@ -23,12 +23,6 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
     () =>
       setContext((_, { headers }) => {
         const token = auth.user?.id_token ?? auth.user?.access_token ?? null;
-        console.debug("[Apollo] has token:", !!token);
-        // dev-only breadcrumb
-        if (import.meta.env.DEV) {
-          // will spam if left in; comment out once verified
-          console.debug("[Apollo] has token:", !!token);
-        }
         return {
           headers: {
             ...headers,
