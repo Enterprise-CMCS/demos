@@ -17,7 +17,7 @@ export const SigninLink = forwardRef<HTMLAnchorElement, AnchorProps>(
         ref={ref}
         href={href ?? "#"}
         onClick={(e) => {
-          // Prevent default navigation when using "#" so OIDC flow handles redirect
+          // Prevent default nav "#" so OIDC flow handles redirect
           if (!href) e.preventDefault();
           signIn();
           onClick?.(e);
@@ -43,7 +43,6 @@ export const SignoutLink = forwardRef<HTMLAnchorElement, AnchorProps>(
         ref={ref}
         href={logoutHref}
         onClick={(e) => {
-          // Let the anchor navigate; just clear local state first
           auth.removeUser?.();
           onClick?.(e);
         }}

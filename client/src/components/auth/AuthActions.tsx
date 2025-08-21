@@ -1,8 +1,6 @@
 import { useAuth } from "react-oidc-context";
 import { logout } from "router/cognitoConfig";
 
-// Centralize the auth functionality
-
 export function useAuthActions() {
   const auth = useAuth();
   const signIn = () => auth.signinRedirect();

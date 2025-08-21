@@ -7,8 +7,6 @@ import { UserProvider } from "components/user/UserContext";
 import { HeaderConfigProvider, useHeaderConfig } from "./HeaderConfigContext";
 import { Header } from "./Header";
 
-// (place the vi.mock("react-oidc-context", ...) block here or in setup)
-
 const TestConsumer = () => {
   const { setHeaderConfig } = useHeaderConfig();
   return (
