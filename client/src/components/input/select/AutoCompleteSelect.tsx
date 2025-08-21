@@ -2,7 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
+
 import { Option } from "./Select";
+
+// Re-export Option for components that need it
+export type { Option };
 
 export interface AutoCompleteSelectProps {
   options: Option[];

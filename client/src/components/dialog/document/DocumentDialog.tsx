@@ -1,17 +1,19 @@
-import React, { useRef, useEffect, useState, useCallback, forwardRef } from "react";
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+
+import { Button, ErrorButton, SecondaryButton } from "components/button";
+import { BaseDialog } from "components/dialog/BaseDialog";
+import { ErrorIcon } from "components/icons";
+import { TextInput } from "components/input";
+import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
+import { useToast } from "components/toast";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
-import { ErrorButton, Button, SecondaryButton } from "components/button";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { ErrorIcon } from "components/icons";
-import { BaseModal } from "components/modal/BaseModal";
-import { useToast } from "components/toast";
-import { tw } from "tags/tw";
-import { TextInput } from "components/input";
-import { useMutation } from "@apollo/client";
 import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
+import { tw } from "tags/tw";
 
-type DocumentModalType = "add" | "edit";
+import { useMutation } from "@apollo/client";
+
+type DocumentDialogType = "add" | "edit";
 
 const DOCUMENT_TYPES = [
   { label: "Pre-Submission Concept", value: "preSubmissionConcept" },
@@ -62,7 +64,7 @@ const getErrorMessage = (error: unknown): string => {
 };
 
 // helper to choose the unknown-error copy by mode
-const unknownErrorText = (mode: DocumentModalType) =>
+const unknownErrorText = (mode: DocumentDialogType) =>
   mode === "edit"
     ? "Your changes could not be saved because of an unknown problem."
     : "Your document could not be added because of an unknown problem.";
@@ -151,6 +153,7 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
     <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
       <div
         role="progressbar"
+        data-testid="upload-progress-bar"
         className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`}
         style={{ width: `${progress}%` }}
       />
@@ -233,7 +236,8 @@ const DropTarget: React.FC<{
   );
 };
 
-type DocumentModalProps = {
+type DocumentDialogProps = {
+  isOpen?: boolean;
   onClose?: () => void;
   mode: "add" | "edit";
   forDocumentId?: string;
@@ -242,7 +246,8 @@ type DocumentModalProps = {
   initialType?: string;
 };
 
-const DocumentModal: React.FC<DocumentModalProps> = ({
+const DocumentDialog: React.FC<DocumentDialogProps> = ({
+  isOpen = true,
   onClose = () => {},
   mode,
   initialTitle = "",
@@ -333,8 +338,9 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   };
 
   return (
-    <BaseModal
+    <BaseDialog
       title={modalTitle}
+      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -373,22 +379,25 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
         uploadProgress={uploadProgress}
         handleFileChange={handleFileChange}
       />
-    </BaseModal>
+    </BaseDialog>
   );
 };
 
-export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
-  <DocumentModal onClose={onClose} mode="add" />
-);
+export const AddDocumentDialog: React.FC<{ isOpen?: boolean; onClose: () => void }> = ({
+  isOpen = true,
+  onClose,
+}) => <DocumentDialog isOpen={isOpen} onClose={onClose} mode="add" />;
 
-export const EditDocumentModal: React.FC<{
+export const EditDocumentDialog: React.FC<{
+  isOpen?: boolean;
   documentId: string;
   documentTitle: string;
   description: string;
   documentType: string;
   onClose: () => void;
-}> = ({ documentId, documentTitle, description, documentType, onClose }) => (
-  <DocumentModal
+}> = ({ isOpen = true, documentId, documentTitle, description, documentType, onClose }) => (
+  <DocumentDialog
+    isOpen={isOpen}
     mode="edit"
     forDocumentId={documentId}
     initialTitle={documentTitle}
@@ -398,10 +407,11 @@ export const EditDocumentModal: React.FC<{
   />
 );
 
-export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () => void }> = ({
-  documentIds,
-  onClose,
-}) => {
+export const RemoveDocumentDialog: React.FC<{
+  isOpen?: boolean;
+  documentIds: string[];
+  onClose: () => void;
+}> = ({ isOpen = true, documentIds, onClose }) => {
   const { showWarning, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -427,8 +437,9 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
   };
 
   return (
-    <BaseModal
+    <BaseDialog
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
+      isOpen={isOpen}
       onClose={onClose}
       actions={
         <>
@@ -462,6 +473,6 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
           This action cannot be undone.
         </span>
       </div>
-    </BaseModal>
+    </BaseDialog>
   );
 };

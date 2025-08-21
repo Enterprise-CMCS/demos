@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 
+import { ModificationTableRow } from "components/table/tables/ModificationTable";
 import { isTestMode } from "config/env";
 import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
@@ -9,12 +10,12 @@ import {
 } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
 
+import { gql, useQuery } from "@apollo/client";
+
 import { AmendmentsTab } from "./AmendmentsTab";
-import { DemonstrationDetailModals, DemonstrationModalDetails } from "./DemonstrationDetailModals";
+import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
 import { DemonstrationTab, DemonstrationTabDetails } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
-import { ModificationTableRow } from "components/table/tables/ModificationTable";
-import { gql, useQuery } from "@apollo/client";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
@@ -63,7 +64,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 `;
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
-  DemonstrationModalDetails &
+  DemonstrationDialogDetails &
   DemonstrationTabDetails & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
@@ -157,11 +158,7 @@ export const DemonstrationDetail: React.FC = () => {
           />
 
           <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && (
-              <DemonstrationTab
-                demonstration={demonstration}
-              />
-            )}
+            {tab === "details" && <DemonstrationTab demonstration={demonstration} />}
 
             {tab === "amendments" && (
               <AmendmentsTab
@@ -185,7 +182,7 @@ export const DemonstrationDetail: React.FC = () => {
               demonstrationActionModal={demonstrationActionModal}
               demonstration={demonstration}
               onCloseEntityModal={() => setEntityCreationModal(null)}
-              onCloseDemonstrationModal={() => setDemonstrationActionModal(null)}
+              onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
             />
           )}
         </>

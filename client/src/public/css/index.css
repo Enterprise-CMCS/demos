@@ -60,3 +60,17 @@
   /* Animations */
   --animate-fade-in: fade-in 0.3s ease-out;
 }
+
+/* Dialog centering styles */
+dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+}

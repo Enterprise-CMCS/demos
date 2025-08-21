@@ -1,11 +1,10 @@
-import { johnDoe } from "../userMocks";
-import {
-  LOG_EVENT_MUTATION,
-  GET_EVENTS_QUERY,
-} from "queries/eventQueries";
-import { MockedResponse } from "@apollo/client/testing";
-import { LogEventArguments } from "hooks/event/useEvent";
 import { Event } from "demos-server";
+import { LogEventArguments } from "hooks/event/useEvent";
+import { GET_EVENTS_QUERY, LOG_EVENT_MUTATION } from "queries/eventQueries";
+
+import { MockedResponse } from "@apollo/client/testing";
+
+import { johnDoe } from "../userMocks";
 
 const testRole = {
   id: "CMS_USER",
@@ -38,6 +37,9 @@ const testEvent2: Event = {
   withRole: testRole,
   route: "/demonstrations",
   createdAt: new Date("2025-01-01T11:00:00Z"),
+  eventData: {
+    additionalInfo: "Failed login attempt",
+  },
 };
 
 const mockLogEventInput: LogEventArguments = {
@@ -57,7 +59,7 @@ export const eventMocks: MockedResponse[] = [
   {
     request: {
       query: LOG_EVENT_MUTATION,
-      variables: { input: {...mockLogEventInput, route: "/events"} },
+      variables: { input: { ...mockLogEventInput, route: "/events" } },
     },
     result: {
       data: { logEvent: testEvent },

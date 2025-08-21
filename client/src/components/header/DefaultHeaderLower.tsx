@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
+import { AmendmentDialog } from "components/dialog/AmendmentDialog";
+import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { AddNewIcon } from "components/icons";
-import { DemonstrationModal } from "components/modal/DemonstrationModal";
-import { CreateNewModal } from "components/modal/CreateNewModal";
-import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { gql } from "graphql-tag";
 import { normalizeUserId } from "hooks/user/uuidHelpers";
 
@@ -114,14 +115,14 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
       </div>
 
       {modalType === "create" && (
-        <DemonstrationModal mode="add" onClose={() => setModalType(null)} />
+        <DemonstrationDialog mode="add" onClose={() => setModalType(null)} />
       )}
-      {modalType === "document" && <AddDocumentModal onClose={() => setModalType(null)} />}
+      {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}
       {modalType === "amendment" && (
-        <CreateNewModal mode="amendment" onClose={() => setModalType(null)} />
+        <AmendmentDialog mode="add" onClose={() => setModalType(null)} />
       )}
       {modalType === "extension" && (
-        <CreateNewModal mode="extension" onClose={() => setModalType(null)} />
+        <ExtensionDialog mode="add" onClose={() => setModalType(null)} />
       )}
     </div>
   );

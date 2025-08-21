@@ -1,13 +1,13 @@
 // src/components/DefaultHeaderLower.test.tsx
 import React from "react";
 
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 import { vi } from "vitest";
 
 import { useQuery } from "@apollo/client";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
-import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 // Mock Apollo
 vi.mock("@apollo/client", async () => {
@@ -19,23 +19,31 @@ vi.mock("@apollo/client", async () => {
 });
 
 // Stub modals
-vi.mock("components/modal/document/DocumentModal", () => ({
-  AddDocumentModal: ({ onClose }: { onClose: () => void }) => (
-    <div data-testid="add-document-modal">
-      AddDocumentModal
-      <button onClick={onClose}>CloseDoc</button>
+vi.mock("components/dialog/document/DocumentDialog", () => ({
+  AddDocumentDialog: ({ onClose }: { onClose: () => void }) => (
+    <div>
+      AddDocumentDialog
+      <button onClick={onClose}>Close</button>
     </div>
   ),
 }));
 
-vi.mock("components/modal/DemonstrationModal", () => ({
-  DemonstrationModal: () => <div>DemonstrationModal</div>,
+vi.mock("components/dialog/DemonstrationDialog", () => ({
+  DemonstrationDialog: () => <div>DemonstrationDialog</div>,
 }));
 
-vi.mock("components/modal/CreateNewModal", () => ({
-  CreateNewModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
-    <div data-testid={`modal-${mode}`}>
-      CreateNewModal ({mode})<button onClick={onClose}>Close</button>
+vi.mock("components/dialog/AmendmentDialog", () => ({
+  AmendmentDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div>
+      AmendmentDialog ({mode})<button onClick={onClose}>Close</button>
+    </div>
+  ),
+}));
+
+vi.mock("components/dialog/ExtensionDialog", () => ({
+  ExtensionDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div>
+      ExtensionDialog ({mode})<button onClick={onClose}>Close</button>
     </div>
   ),
 }));
@@ -62,7 +70,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: null,
     });
-    render(<DefaultHeaderLower userId={1} />);
+    render(<DefaultHeaderLower userId="1" />);
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
@@ -72,7 +80,7 @@ describe("DefaultHeaderLower", () => {
       error: { message: "fail" },
       data: null,
     });
-    render(<DefaultHeaderLower userId={2} />);
+    render(<DefaultHeaderLower userId="2" />);
     expect(screen.getByText("Error: fail")).toBeInTheDocument();
   });
 
@@ -82,7 +90,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: { user: null },
     });
-    const { container } = render(<DefaultHeaderLower userId={3} />);
+    const { container } = render(<DefaultHeaderLower userId="3" />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -92,7 +100,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: { user: { fullName: "John Test" } },
     });
-    render(<DefaultHeaderLower userId={4} />);
+    render(<DefaultHeaderLower userId="4" />);
     expect(screen.getByText("Hello John Test")).toBeInTheDocument();
   });
 
@@ -102,7 +110,7 @@ describe("DefaultHeaderLower", () => {
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={5} />);
+    render(<DefaultHeaderLower userId="5" />);
     const button = screen.getByText("Create New");
     fireEvent.click(button);
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
@@ -110,7 +118,7 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByText("Demonstration")).not.toBeInTheDocument();
   });
 
-  it("opens DemonstrationModal when demonstration modal is clicked", () => {
+  it("opens DemonstrationDialog when demonstration modal is clicked", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
@@ -119,49 +127,49 @@ describe("DefaultHeaderLower", () => {
 
     render(
       <DemosApolloProvider>
-        <DefaultHeaderLower userId={"6"} />
+        <DefaultHeaderLower userId="6" />
       </DemosApolloProvider>
     );
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
-    expect(screen.queryByText("DemonstrationModal")).toBeInTheDocument();
+    expect(screen.queryByText("DemonstrationDialog")).toBeInTheDocument();
   });
 
-  it("opens AddDocumentModal", () => {
+  it("opens AddDocumentDialog", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={7} />);
+    render(<DefaultHeaderLower userId="7" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Add New Document"));
-    expect(screen.getByTestId("add-document-modal")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("CloseDoc"));
-    expect(screen.queryByTestId("add-document-modal")).not.toBeInTheDocument();
+    expect(screen.getByText("AddDocumentDialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Close"));
+    expect(screen.queryByText("AddDocumentDialog")).not.toBeInTheDocument();
   });
 
-  it("opens CreateNewModal for amendment", () => {
+  it("opens AmendmentDialog for amendment", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={8} />);
+    render(<DefaultHeaderLower userId="8" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
-    expect(screen.getByTestId("modal-amendment")).toBeInTheDocument();
+    expect(screen.getByText("AmendmentDialog (add)")).toBeInTheDocument();
   });
 
-  it("opens CreateNewModal for extension", () => {
+  it("opens ExtensionDialog for extension", () => {
     (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { user: { fullName: "X" } },
     });
-    render(<DefaultHeaderLower userId={9} />);
+    render(<DefaultHeaderLower userId="9" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
-    expect(screen.getByTestId("modal-extension")).toBeInTheDocument();
+    expect(screen.getByText("ExtensionDialog (add)")).toBeInTheDocument();
   });
 });

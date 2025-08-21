@@ -1,5 +1,7 @@
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { DemonstrationTableItem } from "hooks/useDemonstration";
+import { DemonstrationDetail } from "pages/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import {
   ADD_DEMONSTRATION_QUERY,
   DEMONSTRATION_TABLE_QUERY,
@@ -13,8 +15,6 @@ import { MockedResponse } from "@apollo/client/testing";
 import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
-import { DemonstrationDetail } from "pages/DemonstrationDetail";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 export const testDemonstration: Demonstration = {
   id: "1",
@@ -198,6 +198,7 @@ export const demonstrationMocks: MockedResponse[] = [
           demonstrationStatusId: "1",
           stateId: "1",
           userIds: ["1"],
+          projectOfficerUserId: "1",
         },
       },
     },

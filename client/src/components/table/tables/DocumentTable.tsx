@@ -3,15 +3,15 @@ import * as React from "react";
 
 import { CircleButton } from "components/button/CircleButton";
 import {
+  AddDocumentDialog,
+  EditDocumentDialog,
+  RemoveDocumentDialog,
+} from "components/dialog/document/DocumentDialog";
+import {
   DeleteIcon,
   EditIcon,
   ImportIcon,
 } from "components/icons";
-import {
-  AddDocumentModal,
-  EditDocumentModal,
-  RemoveDocumentModal,
-} from "components/modal/document/DocumentModal";
 import {
   DocumentTableRow,
   useDocument,
@@ -31,13 +31,9 @@ interface DocumentModalsProps {
   selectedDocs: DocumentTableRow[];
 }
 
-function DocumentModals({
-  displayedModal,
-  onClose,
-  selectedDocs,
-}: DocumentModalsProps) {
+function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModalsProps) {
   if (displayedModal === "add") {
-    return <AddDocumentModal onClose={onClose} />;
+    return <AddDocumentDialog onClose={onClose} />;
   }
   if (displayedModal === "edit" && selectedDocs.length === 1) {
     const selectedDoc = selectedDocs[0];
@@ -45,7 +41,7 @@ function DocumentModals({
     if (!selectedDoc) return null;
 
     return (
-      <EditDocumentModal
+      <EditDocumentDialog
         documentId={selectedDoc.id}
         documentTitle={selectedDoc.title}
         description={selectedDoc.description}
@@ -56,7 +52,7 @@ function DocumentModals({
   }
   if (displayedModal === "remove" && selectedDocs.length > 0) {
     const selectedIds = selectedDocs.map((doc) => doc.id);
-    return <RemoveDocumentModal documentIds={selectedIds} onClose={onClose} />;
+    return <RemoveDocumentDialog documentIds={selectedIds} onClose={onClose} />;
   }
   return null;
 }
@@ -74,10 +70,11 @@ function DocumentActionButtons({
 }: DocumentActionButtonsProps) {
   return (
     <div className="flex gap-2 ml-4">
-      <CircleButton ariaLabel="Add Document" onClick={() => onShowModal("add")}>
+      <CircleButton name="add-document" ariaLabel="Add Document" onClick={() => onShowModal("add")}>
         <ImportIcon />
       </CircleButton>
       <CircleButton
+        name="edit-document"
         ariaLabel="Edit Document"
         onClick={() => !editDisabled && onShowModal("edit")}
         disabled={editDisabled}
@@ -85,6 +82,7 @@ function DocumentActionButtons({
         <EditIcon />
       </CircleButton>
       <CircleButton
+        name="remove-document"
         ariaLabel="Remove Document"
         onClick={() => !removeDisabled && onShowModal("remove")}
         disabled={removeDisabled}
@@ -96,10 +94,8 @@ function DocumentActionButtons({
 }
 
 export function DocumentTable() {
-  const [displayedModal, setDisplayedModal] =
-    React.useState<DisplayedModal>(null);
-  const { documentColumns, documentColumnsLoading, documentColumnsError } =
-    DocumentColumns();
+  const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
+  const { documentColumns, documentColumnsLoading, documentColumnsError } = DocumentColumns();
 
   const { getDocumentTable } = useDocument();
   const {
@@ -114,15 +110,11 @@ export function DocumentTable() {
 
   if (documentColumnsLoading) return <div className="p-4">Loading...</div>;
   if (documentColumnsError)
-    return (
-      <div className="p-4">Error loading data: {documentColumnsError}</div>
-    );
+    return <div className="p-4">Error loading data: {documentColumnsError}</div>;
 
   if (documentTableLoading) return <div className="p-4">Loading...</div>;
-  if (documentsTableError)
-    return <div className="p-4">Error loading documents</div>;
-  if (!documentsTableData)
-    return <div className="p-4">Documents not found</div>;
+  if (documentsTableError) return <div className="p-4">Error loading documents</div>;
+  if (!documentsTableData) return <div className="p-4">Documents not found</div>;
 
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
@@ -148,9 +140,7 @@ export function DocumentTable() {
             />
           )}
           actionModals={(table) => {
-            const selectedDocs = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original);
+            const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
 
             return (
               <DocumentModals
