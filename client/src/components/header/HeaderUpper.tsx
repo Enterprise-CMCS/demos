@@ -14,7 +14,7 @@ export const HeaderUpper: React.FC<{ userId?: string }> = ({ userId }) => {
         <div id="header-quicklinks" className="border-r-2 border-gray-300 pr-2">
           <QuickLinks />
         </div>
-        <ProfileBlock userId={userId} />
+        <ProfileBlock />
       </div>
     </header>
   );

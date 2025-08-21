@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { ChevronDownIcon } from "components/icons";
 import { Avatar } from "./Avatar";
 import { getCurrentUser } from "components/user/UserContext";
-import { SigninButton, SignoutButton } from "../auth/AuthButtons";
-import { SignoutLink } from "../auth/AuthLinks";
+import { SignoutLink, SigninLink } from "../auth/AuthLinks";
 
 export const ProfileBlock: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -14,11 +13,8 @@ export const ProfileBlock: React.FC = () => {
 
   if (!currentUser) {
     return (
-      <SigninButton size="small">
-        <div className="text-decoration-none">
-          Sign In
-        </div>
-      </SigninButton>
+      // this really should not be seen, user would be behind login wall.
+      <SigninLink />
     );
   }
   // Right now, after user creation. We have no good way of setting displayName or fullName
