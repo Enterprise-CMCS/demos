@@ -18,13 +18,13 @@ export type GenericDemonstrationTableRow =
       type: "amendment";
       state: Pick<State, "name">;
       status: Pick<DemonstrationStatus, "name">;
-      parentId?: string;
+      parentId: string;
     })
   | (DemonstrationExtension & {
       type: "extension";
       state: Pick<State, "name">;
       status: Pick<DemonstrationStatus, "name">;
-      parentId?: string;
+      parentId: string;
     });
 
 const getSubRows = (
