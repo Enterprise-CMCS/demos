@@ -18,11 +18,13 @@ export type GenericDemonstrationTableRow =
       type: "amendment";
       state: Pick<State, "name">;
       status: Pick<DemonstrationStatus, "name">;
+      parentId?: string;
     })
   | (DemonstrationExtension & {
       type: "extension";
       state: Pick<State, "name">;
       status: Pick<DemonstrationStatus, "name">;
+      parentId?: string;
     });
 
 const getSubRows = (
@@ -37,6 +39,7 @@ const getSubRows = (
           type: "amendment",
           state: row.state,
           status: amendment.amendmentStatus,
+          parentId: row.id,
         }) as GenericDemonstrationTableRow
     ),
     ...row.extensions.map(
@@ -46,6 +49,7 @@ const getSubRows = (
           type: "extension",
           state: row.state,
           status: extension.extensionStatus,
+          parentId: row.id,
         }) as GenericDemonstrationTableRow
     ),
   ];
