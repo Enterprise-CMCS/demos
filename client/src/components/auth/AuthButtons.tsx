@@ -2,25 +2,23 @@ import React from "react";
 import { Button } from "components/button/Button";
 import { useAuthActions } from "./AuthActions";
 
-type Props = React.ComponentProps<typeof Button>;
-
 /**
  * Remove `onClick` from the props passed to SigninButton,
  * so only the internal `signIn` handler is used.
  */
-export const SigninButton: React.FC<Omit<Props, "onClick">> = ({ children = "Sign In"}) => {
+export function SigninButton(): React.ReactElement {
   const { signIn } = useAuthActions();
   return (
     <Button onClick={signIn}>
-      {children}
+      Sign In
     </Button>
   );
 };
-export const SignoutButton: React.FC<Omit<Props, "onClick">> = ({ children = "Sign Out"}) => {
+export function SignoutButton(): React.ReactElement {
   const { signOut } = useAuthActions();
   return (
     <Button onClick={signOut}>
-      {children}
+      Sign Out
     </Button>
   );
 };

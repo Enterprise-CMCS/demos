@@ -63,9 +63,9 @@ export const AuthDebugComponent: React.FC = () => {
   }
 
   const authenticationButton = auth.isAuthenticated ? (
-    <SignoutButton children="Sign Out" />
+    <SignoutButton />
   ) : (
-    <SigninButton children="Sign In" />
+    <SigninButton />
   );
 
   return (

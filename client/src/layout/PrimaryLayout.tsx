@@ -13,11 +13,8 @@ interface PrimaryLayoutProps {
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const { currentUser, loading, error } = getCurrentUser();
-
-  // You now have the *real* user id from the server
   const userId = currentUser?.id;
 
-  // Optional: lightweight loading fence so Header doesn't flicker
   if (loading) {
     return (
       <ToastProvider>
@@ -30,9 +27,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
     );
   }
 
-  // Optional: surface auth/data errors
   if (error) {
-    // You can render something nicer or trigger a sign-out here
     console.error("[PrimaryLayout] currentUser error:", error);
   }
 
