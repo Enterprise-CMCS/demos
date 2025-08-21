@@ -1,16 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-import { Button, SecondaryButton } from "components/button";
+import {
+  Button,
+  SecondaryButton,
+} from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { useDateValidation } from "hooks/useDateValidation";
-import { useDemonstration } from "hooks/useDemonstration";
+import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
 import { useDialogForm } from "hooks/useDialogForm";
+import {
+  createFormDataWithDates,
+  createSuccessMessages,
+} from "hooks/useDialogHelpers";
 import { useExtension } from "hooks/useExtension";
-import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
+import {
+  normalizeDemonstrationId,
+  normalizeUserId,
+} from "hooks/user/uuidHelpers";
 import { tw } from "tags/tw";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -51,7 +61,7 @@ export const ExtensionDialog: React.FC<Props> = ({
   const [description, setDescription] = useState(data?.description || "");
   const [demonstration, setDemonstration] = useState(data?.demonstration || demonstrationId || "");
 
-  const { getAllDemonstrations } = useDemonstration();
+  const { demoOptions } = useDemonstrationOptions();
   const { addExtension } = useExtension();
 
   const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
@@ -62,15 +72,18 @@ export const ExtensionDialog: React.FC<Props> = ({
       mode,
       onClose,
       validateForm: () => Boolean(demonstration && title && state && projectOfficer),
-      getFormData: () => ({
-        demonstrationId: normalizeDemonstrationId(demonstration),
-        name: title,
-        description: description,
-        extensionStatusId: "EXTENSION_NEW",
-        projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
-        ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
-        ...(expirationDate && { expirationDate: new Date(expirationDate) }),
-      }),
+      getFormData: () =>
+        createFormDataWithDates(
+          {
+            demonstrationId: normalizeDemonstrationId(demonstration),
+            name: title,
+            description: description,
+            extensionStatusId: "EXTENSION_NEW",
+            projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
+          },
+          effectiveDate,
+          expirationDate
+        ),
       onSubmit: async (extensionData) => {
         if (mode === "add") {
           await addExtension.trigger(extensionData);
@@ -79,24 +92,12 @@ export const ExtensionDialog: React.FC<Props> = ({
           console.log("Extension update not yet implemented for ID:", extensionId);
         }
       },
-      successMessage: {
-        add: "Extension created successfully!",
-        edit: "Extension updated successfully!",
-      },
+      successMessage: createSuccessMessages(
+        "Extension created successfully!",
+        "Extension updated successfully!"
+      ),
       errorMessage: "Failed to save extension. Please try again.",
     });
-
-  // Fetch demonstrations for dropdown
-  useEffect(() => {
-    getAllDemonstrations.trigger();
-  }, [getAllDemonstrations.trigger]);
-
-  // Convert demonstrations to options format for the dropdown
-  const demoOptions =
-    getAllDemonstrations.data?.map((demo) => ({
-      label: demo.name,
-      value: demo.id,
-    })) || [];
 
   return (
     <BaseDialog

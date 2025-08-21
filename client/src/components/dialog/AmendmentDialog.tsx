@@ -1,15 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-import { Button, SecondaryButton } from "components/button";
+import {
+  Button,
+  SecondaryButton,
+} from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { useDateValidation } from "hooks/useDateValidation";
-import { useDemonstration } from "hooks/useDemonstration";
+import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
 import { useDialogForm } from "hooks/useDialogForm";
-import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
+import {
+  createFormDataWithDates,
+  createSuccessMessages,
+} from "hooks/useDialogHelpers";
+import {
+  normalizeDemonstrationId,
+  normalizeUserId,
+} from "hooks/user/uuidHelpers";
 import { tw } from "tags/tw";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -49,7 +59,7 @@ export const AmendmentDialog: React.FC<Props> = ({
   const [description, setDescription] = useState(data?.description || "");
   const [demonstration, setDemonstration] = useState(data?.demonstration || demonstrationId || "");
 
-  const { getAllDemonstrations } = useDemonstration();
+  const { demoOptions } = useDemonstrationOptions();
 
   const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
     useDateValidation();
@@ -59,36 +69,27 @@ export const AmendmentDialog: React.FC<Props> = ({
       mode,
       onClose,
       validateForm: () => Boolean(demonstration && title && state && projectOfficer),
-      getFormData: () => ({
-        demonstrationId: normalizeDemonstrationId(demonstration),
-        name: title,
-        description: description,
-        projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
-        ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
-        ...(expirationDate && { expirationDate: new Date(expirationDate) }),
-      }),
+      getFormData: () =>
+        createFormDataWithDates(
+          {
+            demonstrationId: normalizeDemonstrationId(demonstration),
+            name: title,
+            description: description,
+            projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
+          },
+          effectiveDate,
+          expirationDate
+        ),
       onSubmit: async (amendmentData) => {
         // TODO: Implement amendment creation/update logic when amendment hooks are available
         console.log("Amendment data to be created:", amendmentData);
       },
-      successMessage: {
-        add: "Amendment created successfully!",
-        edit: "Amendment updated successfully!",
-      },
+      successMessage: createSuccessMessages(
+        "Amendment created successfully!",
+        "Amendment updated successfully!"
+      ),
       errorMessage: "Failed to save amendment. Please try again.",
     });
-
-  // Fetch demonstrations for dropdown
-  useEffect(() => {
-    getAllDemonstrations.trigger();
-  }, [getAllDemonstrations.trigger]);
-
-  // Convert demonstrations to options format for the dropdown
-  const demoOptions =
-    getAllDemonstrations.data?.map((demo) => ({
-      label: demo.name,
-      value: demo.id,
-    })) || [];
 
   return (
     <BaseDialog
