@@ -1,9 +1,7 @@
 import React from "react";
-import {
-  DemonstrationTable,
-  DemonstrationTableRow,
-} from "components/table/tables/DemonstrationTable";
+import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import { gql, useQuery } from "@apollo/client";
+import { Amendment, DemonstrationStatus, Extension, State, User } from "demos-server";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
   query GetDemonstrationsPage {
@@ -46,8 +44,28 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
   }
 `;
 
+export type DemonstrationAmendment = Pick<Amendment, "id" | "name"> & {
+  projectOfficer: Pick<User, "id">;
+  amendmentStatus: DemonstrationStatus;
+};
+export type DemonstrationExtension = Pick<Extension, "id" | "name"> & {
+  projectOfficer: Pick<User, "id">;
+  extensionStatus: DemonstrationStatus;
+};
+
+export type Demonstration = {
+  id: string;
+  name: string;
+  state: Pick<State, "name">;
+  projectOfficer: Pick<User, "fullName">;
+  users: Pick<User, "id">[];
+  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  amendments: DemonstrationAmendment[];
+  extensions: DemonstrationExtension[];
+};
+
 export type DemonstrationsPageQueryResult = {
-  demonstrations: DemonstrationTableRow[];
+  demonstrations: Demonstration[];
 };
 
 export const Demonstrations: React.FC = () => {

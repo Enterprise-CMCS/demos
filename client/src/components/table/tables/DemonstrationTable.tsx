@@ -5,45 +5,24 @@ import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
-import { Amendment, DemonstrationStatus, State, User } from "demos-server";
-
-type DemonstrationTableState = Pick<State, "name">;
-type DemonstrationTableProjectOfficer = Pick<User, "fullName">;
-type DemonstrationTableUser = Pick<User, "id">;
-type DemonstrationTableStatus = Pick<DemonstrationStatus, "name">;
-type DemonstrationTableAmendment = Pick<Amendment, "id" | "name"> & {
-  projectOfficer: DemonstrationTableProjectOfficer;
-  amendmentStatus: DemonstrationTableStatus;
-};
-type DemonstrationTableExtension = Pick<Amendment, "id" | "name"> & {
-  projectOfficer: DemonstrationTableProjectOfficer;
-  extensionStatus: DemonstrationTableStatus;
-};
-
-export type DemonstrationTableRow = {
-  id: string;
-  name: string;
-  state: DemonstrationTableState;
-  projectOfficer: DemonstrationTableProjectOfficer;
-  users: DemonstrationTableUser[];
-  demonstrationStatus: DemonstrationTableStatus;
-  amendments: DemonstrationTableAmendment[];
-  extensions: DemonstrationTableExtension[];
-};
+import { DemonstrationStatus, State } from "demos-server";
+import {
+  Demonstration,
+  DemonstrationAmendment,
+  DemonstrationExtension,
+} from "pages/Demonstrations";
 
 export type GenericDemonstrationTableRow =
-  | (DemonstrationTableRow & { type: "demonstration" })
-  | (DemonstrationTableAmendment & {
+  | (Demonstration & { type: "demonstration" })
+  | (DemonstrationAmendment & {
       type: "amendment";
-      parentId: string;
-      state: DemonstrationTableState;
-      status: DemonstrationTableStatus;
+      state: Pick<State, "name">;
+      status: Pick<DemonstrationStatus, "name">;
     })
-  | (DemonstrationTableExtension & {
+  | (DemonstrationExtension & {
       type: "extension";
-      parentId: string;
-      state: DemonstrationTableState;
-      status: DemonstrationTableStatus;
+      state: Pick<State, "name">;
+      status: Pick<DemonstrationStatus, "name">;
     });
 
 const getSubRows = (
@@ -72,6 +51,7 @@ const getSubRows = (
   ];
 };
 
+type DemonstrationTableRow = Demonstration;
 export const DemonstrationTable: React.FC<{ demonstrations: DemonstrationTableRow[] }> = ({
   demonstrations,
 }) => {
