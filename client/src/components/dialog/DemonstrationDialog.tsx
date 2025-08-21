@@ -1,12 +1,6 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 
-import {
-  Button,
-  SecondaryButton,
-} from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
@@ -37,7 +31,12 @@ type Props = {
   mode: DemonstrationDialogMode;
 };
 
-export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, demonstration, mode }) => {
+export const DemonstrationDialog: React.FC<Props> = ({
+  isOpen = true,
+  onClose,
+  demonstration,
+  mode,
+}) => {
   const [state, setState] = useState("");
   const [title, setTitle] = useState("");
   const [projectOfficer, setProjectOfficer] = useState("");
@@ -49,18 +48,10 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
 
   const { addDemonstration, updateDemonstration } = useDemonstration();
 
-  const {
-    expirationError,
-    handleEffectiveDateChange,
-    handleExpirationDateChange,
-  } = useDateValidation();
+  const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
+    useDateValidation();
 
-  const {
-    formStatus,
-    showCancelConfirm,
-    setShowCancelConfirm,
-    handleSubmit,
-  } = useDialogForm({
+  const { formStatus, showCancelConfirm, setShowCancelConfirm, handleSubmit } = useDialogForm({
     mode,
     onClose,
     validateForm: () => Boolean(state && title && projectOfficer),
@@ -122,7 +113,7 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
             disabled={!(state && title && projectOfficer) || formStatus === "pending"}
             type="submit"
             form="demonstration-form"
-            onClick={() => { }}
+            onClick={() => {}}
           >
             {formStatus === "pending" ? (
               <svg
@@ -152,11 +143,7 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
         </>
       }
     >
-      <form
-        id="demonstration-form"
-        className="space-y-4"
-        onSubmit={handleSubmit}
-      >
+      <form id="demonstration-form" className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-3 gap-5">
           <div>
             <SelectUSAStates
@@ -198,7 +185,14 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
               type="date"
               className={DATE_INPUT_CLASSES}
               value={effectiveDate}
-              onChange={(e) => handleEffectiveDateChange(e.target.value, expirationDate, setEffectiveDate, setExpirationDate)}
+              onChange={(e) =>
+                handleEffectiveDateChange(
+                  e.target.value,
+                  expirationDate,
+                  setEffectiveDate,
+                  setExpirationDate
+                )
+              }
             />
           </div>
           <div className="flex flex-col gap-sm">
@@ -209,15 +203,20 @@ export const DemonstrationDialog: React.FC<Props> = ({ isOpen = true, onClose, d
               data-testid="input-expiration-date"
               id="expiration-date"
               type="date"
-              className={`${DATE_INPUT_CLASSES} ${expirationError
-                ? "border-border-warn focus:ring-border-warn"
-                : "border-border-fields focus:ring-border-focus"
+              className={`${DATE_INPUT_CLASSES} ${
+                expirationError
+                  ? "border-border-warn focus:ring-border-warn"
+                  : "border-border-fields focus:ring-border-focus"
               }`}
               value={expirationDate}
               min={effectiveDate || undefined}
-              onChange={(e) => handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)}
+              onChange={(e) =>
+                handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)
+              }
             />
-            {expirationError && <div className="text-text-warn text-sm mt-1">{expirationError}</div>}
+            {expirationError && (
+              <div className="text-text-warn text-sm mt-1">{expirationError}</div>
+            )}
           </div>
         </div>
 

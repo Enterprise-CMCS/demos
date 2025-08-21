@@ -1,7 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-} from "react";
+import React, { useEffect, useRef } from "react";
 
 import { ErrorButton } from "components/button";
 import { SecondaryButton } from "components/button/SecondaryButton";
@@ -121,11 +118,13 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
           className={CONFIRMATION_DIALOG}
           onClick={handleConfirmDialogClick}
         >
-          <p className="text-sm font-bold mb-sm text-text-font">
-            Are you sure you want to cancel?
-          </p>
+          <p className="text-sm font-bold mb-sm text-text-font">Are you sure you want to cancel?</p>
           <div className="flex justify-center gap-sm">
-            <SecondaryButton name="cancel-no" size="small" onClick={() => setShowCancelConfirm(false)}>
+            <SecondaryButton
+              name="cancel-no"
+              size="small"
+              onClick={() => setShowCancelConfirm(false)}
+            >
               No
             </SecondaryButton>
             <ErrorButton name="cancel-yes" isOutlined={true} size="small" onClick={onClose}>

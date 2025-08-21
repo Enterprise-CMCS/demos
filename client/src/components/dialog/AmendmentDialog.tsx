@@ -1,12 +1,6 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 
-import {
-  Button,
-  SecondaryButton,
-} from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
@@ -15,10 +9,7 @@ import { TextInput } from "components/input/TextInput";
 import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstration } from "hooks/useDemonstration";
 import { useDialogForm } from "hooks/useDialogForm";
-import {
-  normalizeDemonstrationId,
-  normalizeUserId,
-} from "hooks/user/uuidHelpers";
+import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
 import { tw } from "tags/tw";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -60,40 +51,32 @@ export const AmendmentDialog: React.FC<Props> = ({
 
   const { getAllDemonstrations } = useDemonstration();
 
-  const {
-    expirationError,
-    handleEffectiveDateChange,
-    handleExpirationDateChange,
-  } = useDateValidation();
+  const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
+    useDateValidation();
 
-  const {
-    formStatus,
-    showWarning,
-    showCancelConfirm,
-    setShowCancelConfirm,
-    handleSubmit,
-  } = useDialogForm({
-    mode,
-    onClose,
-    validateForm: () => Boolean(demonstration && title && state && projectOfficer),
-    getFormData: () => ({
-      demonstrationId: normalizeDemonstrationId(demonstration),
-      name: title,
-      description: description,
-      projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
-      ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
-      ...(expirationDate && { expirationDate: new Date(expirationDate) }),
-    }),
-    onSubmit: async (amendmentData) => {
-      // TODO: Implement amendment creation/update logic when amendment hooks are available
-      console.log("Amendment data to be created:", amendmentData);
-    },
-    successMessage: {
-      add: "Amendment created successfully!",
-      edit: "Amendment updated successfully!",
-    },
-    errorMessage: "Failed to save amendment. Please try again.",
-  });
+  const { formStatus, showWarning, showCancelConfirm, setShowCancelConfirm, handleSubmit } =
+    useDialogForm({
+      mode,
+      onClose,
+      validateForm: () => Boolean(demonstration && title && state && projectOfficer),
+      getFormData: () => ({
+        demonstrationId: normalizeDemonstrationId(demonstration),
+        name: title,
+        description: description,
+        projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
+        ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
+        ...(expirationDate && { expirationDate: new Date(expirationDate) }),
+      }),
+      onSubmit: async (amendmentData) => {
+        // TODO: Implement amendment creation/update logic when amendment hooks are available
+        console.log("Amendment data to be created:", amendmentData);
+      },
+      successMessage: {
+        add: "Amendment created successfully!",
+        edit: "Amendment updated successfully!",
+      },
+      errorMessage: "Failed to save amendment. Please try again.",
+    });
 
   // Fetch demonstrations for dropdown
   useEffect(() => {
@@ -101,10 +84,11 @@ export const AmendmentDialog: React.FC<Props> = ({
   }, [getAllDemonstrations.trigger]);
 
   // Convert demonstrations to options format for the dropdown
-  const demoOptions = getAllDemonstrations.data?.map((demo) => ({
-    label: demo.name,
-    value: demo.id,
-  })) || [];
+  const demoOptions =
+    getAllDemonstrations.data?.map((demo) => ({
+      label: demo.name,
+      value: demo.id,
+    })) || [];
 
   return (
     <BaseDialog
@@ -124,19 +108,17 @@ export const AmendmentDialog: React.FC<Props> = ({
             size="small"
             type="submit"
             form="amendment-form"
-            onClick={() => { }}
-            disabled={!(demonstration && title && state && projectOfficer) || formStatus === "pending"}
+            onClick={() => {}}
+            disabled={
+              !(demonstration && title && state && projectOfficer) || formStatus === "pending"
+            }
           >
             {formStatus === "pending" ? "Saving..." : "Submit"}
           </Button>
         </>
       }
     >
-      <form
-        id="amendment-form"
-        className="space-y-4"
-        onSubmit={handleSubmit}
-      >
+      <form id="amendment-form" className="space-y-4" onSubmit={handleSubmit}>
         <div>
           <AutoCompleteSelect
             label="Demonstration"
@@ -210,19 +192,16 @@ export const AmendmentDialog: React.FC<Props> = ({
             <input
               id="expiration-date"
               type="date"
-              className={`${DATE_INPUT_CLASSES} ${expirationError
-                ? "border-border-warn focus:ring-border-warn"
-                : "border-border-fields focus:ring-border-focus"
+              className={`${DATE_INPUT_CLASSES} ${
+                expirationError
+                  ? "border-border-warn focus:ring-border-warn"
+                  : "border-border-fields focus:ring-border-focus"
               }`}
               data-testid="input-expiration-date"
               value={expirationDate}
               min={effectiveDate || undefined}
               onChange={(e) => {
-                handleExpirationDateChange(
-                  e.target.value,
-                  effectiveDate,
-                  setExpirationDate
-                );
+                handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate);
               }}
             />
             {expirationError && (

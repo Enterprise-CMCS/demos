@@ -2,12 +2,7 @@ import React from "react";
 
 import { vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AmendmentDialog } from "./AmendmentDialog";
 
@@ -41,7 +36,15 @@ vi.mock("hooks/useDemonstration", () => ({
 }));
 
 vi.mock("components/dialog/BaseDialog", () => ({
-  BaseDialog: ({ title, children, actions }: { title: string; children: React.ReactNode; actions: React.ReactNode }) => (
+  BaseDialog: ({
+    title,
+    children,
+    actions,
+  }: {
+    title: string;
+    children: React.ReactNode;
+    actions: React.ReactNode;
+  }) => (
     <div data-testid="amendment-modal">
       <h2>{title}</h2>
       <div>{children}</div>
@@ -52,10 +55,14 @@ vi.mock("components/dialog/BaseDialog", () => ({
 
 vi.mock("components/button", () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-    <button {...props} data-testid="primary-button">{children}</button>
+    <button {...props} data-testid="primary-button">
+      {children}
+    </button>
   ),
   SecondaryButton: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-    <button {...props} data-testid="secondary-button">{children}</button>
+    <button {...props} data-testid="secondary-button">
+      {children}
+    </button>
   ),
 }));
 
@@ -99,9 +106,12 @@ describe("AmendmentDialog", () => {
     }
 
     await waitFor(() => {
-      expect(screen.getByText("Each amendment record must be linked to an existing demonstration.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Each amendment record must be linked to an existing demonstration.")
+      ).toBeInTheDocument();
     });
-  }); it("calls onClose when cancel is clicked", () => {
+  });
+  it("calls onClose when cancel is clicked", () => {
     const onClose = vi.fn();
     render(<AmendmentDialog {...defaultProps} onClose={onClose} />);
 

@@ -1,8 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AmendmentDialog } from "components/dialog/AmendmentDialog";

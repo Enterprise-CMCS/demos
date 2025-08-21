@@ -5,11 +5,7 @@ import { DemosApolloProvider } from "router/DemosApolloProvider";
 import { vi } from "vitest";
 
 import { useQuery } from "@apollo/client";
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 

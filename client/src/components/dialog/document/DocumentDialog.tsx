@@ -1,27 +1,13 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  Button,
-  ErrorButton,
-  SecondaryButton,
-} from "components/button";
+import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { useToast } from "components/toast";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import {
-  ErrorMessage,
-  UploadStatus,
-  useFileUpload,
-} from "hooks/file/useFileUpload";
+import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
 import { tw } from "tags/tw";
 
@@ -262,7 +248,7 @@ type DocumentDialogProps = {
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
   isOpen = true,
-  onClose = () => { },
+  onClose = () => {},
   mode,
   initialTitle = "",
   initialDescription = "",
@@ -397,9 +383,10 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   );
 };
 
-export const AddDocumentDialog: React.FC<{ isOpen?: boolean; onClose: () => void }> = ({ isOpen = true, onClose }) => (
-  <DocumentDialog isOpen={isOpen} onClose={onClose} mode="add" />
-);
+export const AddDocumentDialog: React.FC<{ isOpen?: boolean; onClose: () => void }> = ({
+  isOpen = true,
+  onClose,
+}) => <DocumentDialog isOpen={isOpen} onClose={onClose} mode="add" />;
 
 export const EditDocumentDialog: React.FC<{
   isOpen?: boolean;
@@ -424,11 +411,7 @@ export const RemoveDocumentDialog: React.FC<{
   isOpen?: boolean;
   documentIds: string[];
   onClose: () => void;
-}> = ({
-  isOpen = true,
-  documentIds,
-  onClose,
-}) => {
+}> = ({ isOpen = true, documentIds, onClose }) => {
   const { showWarning, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -466,7 +449,7 @@ export const RemoveDocumentDialog: React.FC<{
             onClick={onClose}
             disabled={isDeleting}
           >
-              Cancel
+            Cancel
           </SecondaryButton>
           <ErrorButton
             name="confirm-remove"
@@ -482,12 +465,12 @@ export const RemoveDocumentDialog: React.FC<{
       }
     >
       <div className="mb-2 text-sm text-text-filled">
-          Are you sure you want to remove {documentIds.length} document
+        Are you sure you want to remove {documentIds.length} document
         {documentIds.length > 1 ? "s" : ""}?
         <br />
         <span className="text-error flex items-center gap-1 mt-1">
           <ErrorIcon />
-            This action cannot be undone.
+          This action cannot be undone.
         </span>
       </div>
     </BaseDialog>

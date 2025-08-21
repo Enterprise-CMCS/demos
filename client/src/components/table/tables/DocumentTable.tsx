@@ -31,11 +31,7 @@ interface DocumentModalsProps {
   selectedDocs: DocumentTableRow[];
 }
 
-function DocumentModals({
-  displayedModal,
-  onClose,
-  selectedDocs,
-}: DocumentModalsProps) {
+function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModalsProps) {
   if (displayedModal === "add") {
     return <AddDocumentDialog onClose={onClose} />;
   }
@@ -74,10 +70,11 @@ function DocumentActionButtons({
 }: DocumentActionButtonsProps) {
   return (
     <div className="flex gap-2 ml-4">
-      <CircleButton ariaLabel="Add Document" onClick={() => onShowModal("add")}>
+      <CircleButton name="add-document" ariaLabel="Add Document" onClick={() => onShowModal("add")}>
         <ImportIcon />
       </CircleButton>
       <CircleButton
+        name="edit-document"
         ariaLabel="Edit Document"
         onClick={() => !editDisabled && onShowModal("edit")}
         disabled={editDisabled}
@@ -85,6 +82,7 @@ function DocumentActionButtons({
         <EditIcon />
       </CircleButton>
       <CircleButton
+        name="remove-document"
         ariaLabel="Remove Document"
         onClick={() => !removeDisabled && onShowModal("remove")}
         disabled={removeDisabled}
@@ -96,10 +94,8 @@ function DocumentActionButtons({
 }
 
 export function DocumentTable() {
-  const [displayedModal, setDisplayedModal] =
-    React.useState<DisplayedModal>(null);
-  const { documentColumns, documentColumnsLoading, documentColumnsError } =
-    DocumentColumns();
+  const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
+  const { documentColumns, documentColumnsLoading, documentColumnsError } = DocumentColumns();
 
   const { getDocumentTable } = useDocument();
   const {
@@ -114,15 +110,11 @@ export function DocumentTable() {
 
   if (documentColumnsLoading) return <div className="p-4">Loading...</div>;
   if (documentColumnsError)
-    return (
-      <div className="p-4">Error loading data: {documentColumnsError}</div>
-    );
+    return <div className="p-4">Error loading data: {documentColumnsError}</div>;
 
   if (documentTableLoading) return <div className="p-4">Loading...</div>;
-  if (documentsTableError)
-    return <div className="p-4">Error loading documents</div>;
-  if (!documentsTableData)
-    return <div className="p-4">Documents not found</div>;
+  if (documentsTableError) return <div className="p-4">Error loading documents</div>;
+  if (!documentsTableData) return <div className="p-4">Documents not found</div>;
 
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
@@ -148,9 +140,7 @@ export function DocumentTable() {
             />
           )}
           actionModals={(table) => {
-            const selectedDocs = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original);
+            const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
 
             return (
               <DocumentModals

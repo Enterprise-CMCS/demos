@@ -34,31 +34,18 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
   <>
     {/* Entity Creation Modals */}
     {entityCreationModal === "amendment" && (
-      <AmendmentDialog
-        mode="add"
-        demonstrationId={demonstration.id}
-        onClose={onCloseEntityModal}
-      />
+      <AmendmentDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
     )}
 
     {entityCreationModal === "extension" && (
-      <ExtensionDialog
-        mode="add"
-        demonstrationId={demonstration.id}
-        onClose={onCloseEntityModal}
-      />
+      <ExtensionDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
     )}
 
-    {entityCreationModal === "document" && (
-      <AddDocumentDialog onClose={onCloseEntityModal} />
-    )}
+    {entityCreationModal === "document" && <AddDocumentDialog onClose={onCloseEntityModal} />}
 
     {/* Demonstration Action Modals */}
     {demonstrationActionModal === "edit" && (
-      <DemonstrationDialog
-        mode="edit"
-        onClose={onCloseDemonstrationDialog}
-      />
+      <DemonstrationDialog mode="edit" onClose={onCloseDemonstrationDialog} />
     )}
 
     {/* TODO: Add delete confirmation modal when available */}

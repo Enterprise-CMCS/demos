@@ -3,11 +3,7 @@ import React from "react";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 // Mock HTMLDialogElement methods for testing
 beforeAll(() => {

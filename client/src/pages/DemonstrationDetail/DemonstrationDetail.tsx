@@ -1,39 +1,20 @@
-import React, {
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import { ModificationTableRow } from "components/table/tables/ModificationTable";
 import { isTestMode } from "config/env";
 import { usePageHeader } from "hooks/usePageHeader";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
 import {
   DemonstrationDetailHeader,
   DemonstrationHeaderDetails,
 } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
-import {
-  useLocation,
-  useParams,
-} from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
-import {
-  gql,
-  useQuery,
-} from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
-import {
-  DemonstrationDetailModals,
-  DemonstrationDialogDetails,
-} from "./DemonstrationDetailModals";
-import {
-  DemonstrationTab,
-  DemonstrationTabDetails,
-} from "./DemonstrationTab";
+import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
+import { DemonstrationTab, DemonstrationTabDetails } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
@@ -177,11 +158,7 @@ export const DemonstrationDetail: React.FC = () => {
           />
 
           <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && (
-              <DemonstrationTab
-                demonstration={demonstration}
-              />
-            )}
+            {tab === "details" && <DemonstrationTab demonstration={demonstration} />}
 
             {tab === "amendments" && (
               <AmendmentsTab

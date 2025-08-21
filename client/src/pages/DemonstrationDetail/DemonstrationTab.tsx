@@ -5,10 +5,7 @@ import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { AddNewIcon } from "components/icons";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -85,9 +82,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
         )}
       </div>
 
-      {modalType === "document" && (
-        <AddDocumentDialog onClose={() => setModalType(null)} />
-      )}
+      {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}
     </div>
   );
 };

@@ -3,19 +3,9 @@ import React from "react";
 import { Demonstration } from "demos-server";
 import { testDemonstration } from "mock-data/demonstrationMocks";
 import { formatDate } from "util/formatDate";
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";

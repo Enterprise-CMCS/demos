@@ -1,12 +1,6 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 
-import {
-  Button,
-  SecondaryButton,
-} from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
@@ -16,10 +10,7 @@ import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstration } from "hooks/useDemonstration";
 import { useDialogForm } from "hooks/useDialogForm";
 import { useExtension } from "hooks/useExtension";
-import {
-  normalizeDemonstrationId,
-  normalizeUserId,
-} from "hooks/user/uuidHelpers";
+import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
 import { tw } from "tags/tw";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -63,45 +54,37 @@ export const ExtensionDialog: React.FC<Props> = ({
   const { getAllDemonstrations } = useDemonstration();
   const { addExtension } = useExtension();
 
-  const {
-    expirationError,
-    handleEffectiveDateChange,
-    handleExpirationDateChange,
-  } = useDateValidation();
+  const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
+    useDateValidation();
 
-  const {
-    formStatus,
-    showWarning,
-    showCancelConfirm,
-    setShowCancelConfirm,
-    handleSubmit,
-  } = useDialogForm({
-    mode,
-    onClose,
-    validateForm: () => Boolean(demonstration && title && state && projectOfficer),
-    getFormData: () => ({
-      demonstrationId: normalizeDemonstrationId(demonstration),
-      name: title,
-      description: description,
-      extensionStatusId: "EXTENSION_NEW",
-      projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
-      ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
-      ...(expirationDate && { expirationDate: new Date(expirationDate) }),
-    }),
-    onSubmit: async (extensionData) => {
-      if (mode === "add") {
-        await addExtension.trigger(extensionData);
-      } else {
-        // TODO: Implement extension update logic when available
-        console.log("Extension update not yet implemented for ID:", extensionId);
-      }
-    },
-    successMessage: {
-      add: "Extension created successfully!",
-      edit: "Extension updated successfully!",
-    },
-    errorMessage: "Failed to save extension. Please try again.",
-  });
+  const { formStatus, showWarning, showCancelConfirm, setShowCancelConfirm, handleSubmit } =
+    useDialogForm({
+      mode,
+      onClose,
+      validateForm: () => Boolean(demonstration && title && state && projectOfficer),
+      getFormData: () => ({
+        demonstrationId: normalizeDemonstrationId(demonstration),
+        name: title,
+        description: description,
+        extensionStatusId: "EXTENSION_NEW",
+        projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
+        ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
+        ...(expirationDate && { expirationDate: new Date(expirationDate) }),
+      }),
+      onSubmit: async (extensionData) => {
+        if (mode === "add") {
+          await addExtension.trigger(extensionData);
+        } else {
+          // TODO: Implement extension update logic when available
+          console.log("Extension update not yet implemented for ID:", extensionId);
+        }
+      },
+      successMessage: {
+        add: "Extension created successfully!",
+        edit: "Extension updated successfully!",
+      },
+      errorMessage: "Failed to save extension. Please try again.",
+    });
 
   // Fetch demonstrations for dropdown
   useEffect(() => {
@@ -130,22 +113,20 @@ export const ExtensionDialog: React.FC<Props> = ({
           </SecondaryButton>
           <Button
             name="submit"
-            onClick={() => { }}
+            onClick={() => {}}
             size="small"
             type="submit"
             form="extension-form"
-            disabled={!(demonstration && title && state && projectOfficer) || formStatus === "pending"}
+            disabled={
+              !(demonstration && title && state && projectOfficer) || formStatus === "pending"
+            }
           >
             {formStatus === "pending" ? "Saving..." : "Submit"}
           </Button>
         </>
       }
     >
-      <form
-        id="extension-form"
-        className="space-y-4"
-        onSubmit={handleSubmit}
-      >
+      <form id="extension-form" className="space-y-4" onSubmit={handleSubmit}>
         <div>
           <AutoCompleteSelect
             label="Demonstration"
@@ -219,14 +200,17 @@ export const ExtensionDialog: React.FC<Props> = ({
             <input
               id="expiration-date"
               type="date"
-              className={`${DATE_INPUT_CLASSES} ${expirationError
-                ? "border-border-warn focus:ring-border-warn"
-                : "border-border-fields focus:ring-border-focus"
+              className={`${DATE_INPUT_CLASSES} ${
+                expirationError
+                  ? "border-border-warn focus:ring-border-warn"
+                  : "border-border-fields focus:ring-border-focus"
               }`}
               data-testid="input-expiration-date"
               value={expirationDate}
               min={effectiveDate || undefined}
-              onChange={(e) => handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)}
+              onChange={(e) =>
+                handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)
+              }
             />
             {expirationError && (
               <div className="text-text-warn text-sm mt-1">{expirationError}</div>
