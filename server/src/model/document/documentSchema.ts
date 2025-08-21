@@ -74,13 +74,11 @@ export const documentSchema = gql`
   type Mutation {
     uploadDemonstrationDocument(input: UploadDemonstrationDocumentInput!): Document
     updateDemonstrationDocument(id: ID!, input: UpdateDemonstrationDocumentInput!): Document
-    deleteDemonstrationDocument(id: ID!): Document
     uploadAmendmentDocument(input: UploadAmendmentDocumentInput!): Document
     updateAmendmentDocument(id: ID!, input: UpdateAmendmentDocumentInput!): Document
-    deleteAmendmentDocument(id: ID!): Document
     uploadExtensionDocument(input: UploadExtensionDocumentInput!): Document
     updateExtensionDocument(id: ID!, input: UpdateExtensionDocumentInput!): Document
-    deleteExtensionDocument(id: ID!): Document
+    deleteDocuments(ids: [ID!]!): [ID!]!
   }
 
   type Query {
@@ -90,7 +88,6 @@ export const documentSchema = gql`
 `;
 
 type Bundle = Demonstration | Amendment | Extension;
-export type DateTime = Date;
 export interface Document {
   id: string;
   title: string;
@@ -100,8 +97,8 @@ export interface Document {
   documentType: DocumentType;
   bundle: Bundle;
   bundleType: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface UploadDemonstrationDocumentInput {
