@@ -1,4 +1,3 @@
-// src/components/header/DefaultHeaderLower.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
@@ -7,10 +6,11 @@ import { CreateNewModal } from "components/modal/CreateNewModal";
 import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { getCurrentUser } from "components/user/UserContext";
 
-export const DefaultHeaderLower: React.FC<{ userId?: string }> = () => {
+export const DefaultHeaderLower: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [modalType, setModalType] = useState<"create" | "document" | "amendment" | "extension" | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
   const { currentUser, loading, error } = getCurrentUser();
 
   // Close dropdown on outside click

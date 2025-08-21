@@ -29,24 +29,23 @@ export const spongebob: Partial<User> = { fullName: "spongebob squarepants" };
 export const squidward: Partial<User> = { fullName: " squidward tentacles" };
 export const patrick: Partial<User> = { fullName: "patrick star" };
 
-export const userMocks: MockedResponse[] = [
-  {
-    request: { query: GET_CURRENT_USER_QUERY },
-    result: {
-      data: {
-        currentUser: {
-          __typename: "User",
-          id: "1",
-          email: "johndoe@example.com",
-          displayName: "John",
-          fullName: "John Doe",
-          roles: [],
-          cognitoSubject: "1234567890",
-          username: "johndoe",
-        },
-      },
+const currentUserResult = {
+  data: {
+    currentUser: {
+      __typename: "User",
+      id: "1",
+      email: "johndoe@example.com",
+      displayName: "John",
+      fullName: "John Doe",
+      roles: [],
     },
   },
+};
+
+export const userMocks: MockedResponse[] = [
+  // It takes two of these apparently to hydrate the Profile block.
+  { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
+  { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
 
   {
     request: { query: GET_ALL_USERS },

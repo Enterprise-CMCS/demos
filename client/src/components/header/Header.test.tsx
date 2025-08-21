@@ -9,18 +9,6 @@ import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
 import { UserProvider } from "components/user/UserContext";
 
-// Mock react-oidc-context so useAuth works without wiring AuthProvider
-vi.mock("react-oidc-context", () => ({
-  useAuth: () => ({
-    isAuthenticated: true,
-    isLoading: true,
-    user: { id_token: "fake-token", cognitoSubject: "fake-cognito-subject" },
-    signinRedirect: vi.fn(),
-    signoutRedirect: vi.fn(),
-    removeUser: vi.fn(),
-  }),
-}));
-
 function renderWithProviders(ui: React.ReactNode) {
   return render(
     <MockedProvider mocks={userMocks} addTypename={false}>
@@ -57,11 +45,12 @@ describe("Header", () => {
     const profileName = await screen.findByText("John Doe");
 
     fireEvent.click(profileName);
-    const logoutButton = await screen.findByText("Logout");
-    expect(logoutButton).toBeVisible();
+    // NOW an anchor with text "Sign Out"
+    const signOutLink = await screen.findByRole("link", { name: /Sign Out/i });
+    expect(signOutLink).toBeVisible();
 
     fireEvent.click(profileName);
-    expect(screen.queryByText("Logout")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Sign Out/i })).not.toBeInTheDocument();
   });
 
   it("toggles menu under Profile Block", async () => {
@@ -69,10 +58,11 @@ describe("Header", () => {
     const profileName = await screen.findByText("John Doe");
 
     fireEvent.click(profileName);
-    const logoutButton = screen.getByText("Logout");
-    expect(logoutButton).toBeVisible();
+    const signOutLink = await screen.findByRole("link", { name: /Sign Out/i });
+    expect(signOutLink).toBeVisible();
 
     fireEvent.click(profileName);
-    expect(screen.queryByText("Logout")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Sign Out/i })).not.toBeInTheDocument();
   });
+
 });
