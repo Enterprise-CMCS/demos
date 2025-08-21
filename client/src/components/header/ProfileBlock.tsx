@@ -17,7 +17,7 @@ export const ProfileBlock: React.FC = () => {
       <SigninLink />
     );
   }
-  // Right now, after user creation. We have no good way of setting displayName or fullName
+  // TODO: Add ability to set username, fullname, and displayName (if we keep all 3)
   const name = currentUser.fullName || currentUser.displayName || currentUser.email;
   const firstCharacter = (name?.trim()?.[0] ?? "?").toUpperCase();
 
@@ -25,7 +25,7 @@ export const ProfileBlock: React.FC = () => {
     <div
       id="profile-container"
       className="relative flex items-center gap-x-1 mr-2 cursor-pointer select-none"
-      onClick={() => setOpen(v => !v)}
+      onClick={() => setOpen(value => !value)}
     >
       <Avatar character={firstCharacter} />
       <span id="profile-name" className="text-lg font-semibold">{name}</span>
