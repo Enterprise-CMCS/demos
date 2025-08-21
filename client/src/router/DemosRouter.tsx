@@ -15,11 +15,7 @@ import { EventSandbox } from "pages/debug/EventSandbox";
 import { UserProvider } from "components/user/UserContext";
 
 export const DemosRouter = () => {
-  // TODO: When we know what IDM integration looks like
-  // We will want to read the JWT claims and
-  // add it to the AuthProvider (specifically the user object)
   const cognitoConfig = getCognitoConfig();
-
   return (
     <AuthProvider {...cognitoConfig}>
       <DemosApolloProvider>
@@ -36,7 +32,7 @@ export const DemosRouter = () => {
               {/* Real Pages the user should be able to access */}
               <Route path="/" element={<LandingPage />} />
               <Route path="demonstrations" element={<Demonstrations />} />
-              {/* THIS SHOULD BE REMOVED AS SOON AS WE ARE SURE THIS IS WORKING */}
+              {/* DEBG AUTH IN EARLY STAGE DEV */}
               <Route path="/auth" element={<AuthDebugComponent />} />
               <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
               {/* 404 Page */}
