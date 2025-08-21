@@ -1,46 +1,43 @@
-import { ApolloServer, BaseContext } from '@apollo/server';
+import { ApolloServer } from "@apollo/server";
 import {
-    startServerAndCreateLambdaHandler,
-    handlers,
-} from '@as-integrations/aws-lambda';
+  startServerAndCreateLambdaHandler,
+  handlers,
+} from "@as-integrations/aws-lambda";
 import { typeDefs, resolvers } from "./model/graphql.js";
-import {
-    getCognitoUserInfoForLambda,
-    getUserRoles,
-    getDatabaseUrl
-} from "./auth/auth.util.js";
+import { GraphQLContext, buildLambdaContext, getDatabaseUrl } from "./auth/auth.util.js";
 
-const databaseUrlPromise = getDatabaseUrl().then(url => {
+const databaseUrlPromise = getDatabaseUrl()
+  .then((url) => {
     process.env.DATABASE_URL = url;
     return url;
-}).catch(error => {
+  })
+  .catch((error) => {
     console.error("Failed to get database URL:", error);
     throw error;
-});
+  });
 
-const server = new ApolloServer<BaseContext>({
-    typeDefs,
-    resolvers
+const server = new ApolloServer<GraphQLContext>({
+  typeDefs,
+  resolvers,
 });
 
 export const graphqlHandler = startServerAndCreateLambdaHandler(
-    server,
-    handlers.createAPIGatewayProxyEventRequestHandler(),
-    {
-        context: async ({ event, context }) => {
-            // Add any shared context here, e.g., user authentication
-            await databaseUrlPromise;
+  server,
+  handlers.createAPIGatewayProxyEventRequestHandler(),
+  {
+    context: async ({ event, context }) => {
+      // ensure DATABASE_URL is ready before Prisma is used
+      await databaseUrlPromise;
 
-            // Values from the user's id_token are set in /lambda_authorizer/index.mjs
-            // and available here from event.requestContext.authorizer.<key>
+      // ⬇️ central auth + upsert + roles
+      const gqlCtx = await buildLambdaContext(event.headers);
 
-            const { sub, email } = await getCognitoUserInfoForLambda(event.headers);
-            const roles = await getUserRoles(sub);
-            return {
-                user: { id: sub, name: email, roles },
-                lambdaEvent: event,
-                lambdaContext: context
-            };
-        },
-    }
+      // add lambda bits alongside GraphQL context
+      return {
+        ...gqlCtx,
+        lambdaEvent: event,
+        lambdaContext: context,
+      };
+    },
+  }
 );

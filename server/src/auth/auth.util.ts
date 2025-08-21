@@ -1,25 +1,18 @@
-import jwt, {
-  JwtHeader, VerifyOptions
-} from "jsonwebtoken";
+import jwt, { JwtHeader, VerifyOptions } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { GraphQLError } from "graphql";
 import { IncomingMessage } from "http";
-import { PrismaClient, } from "@prisma/client";
-import { getAuthConfig } from "./auth.config.js";
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand
-} from "@aws-sdk/client-secrets-manager";
+import { prisma } from "../prismaClient.js"; // <-- adjust path if needed
+import { getAuthConfig } from "./auth.config.js";
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
-const prisma = new PrismaClient();
 const config = getAuthConfig();
-
-// const AUTH_DEBUG = process.env.AUTH_DEBUG === "true";
 
 export interface GraphQLContext {
   user: null | {
     id: string;
+    sub: string;
     roles: string[] | null;
     displayName?: string;
   };
@@ -31,186 +24,234 @@ type DecodedJWT = {
   token_use?: "id" | "access";
 };
 
-const decodeToken = (token: string): Promise<DecodedJWT> => {
-  const client = jwksClient({
-    jwksUri: config.jwksUri,
-  });
+const verifyOpts: VerifyOptions = {
+  audience: config.audience,
+  issuer: config.issuer,
+  algorithms: ["RS256"],
+};
 
-  function getKey(
-    header: JwtHeader,
-    callback: (err: Error | null, signingKey?: string) => void,
-  ): void {
-    client.getSigningKey(header.kid, (err, key) => {
-      if (err || !key)
-        return callback(err || new Error("Signing key not found"));
-      const signingKey = key.getPublicKey();
-      callback(null, signingKey);
-    });
-  }
+// Reuse a single JWKS client (with cache)
+const jwks = jwksClient({
+  jwksUri: config.jwksUri,
+  cache: true,
+  cacheMaxEntries: 10,
+  cacheMaxAge: 10 * 60 * 1000, // 10 mins
+  rateLimit: true,
+  jwksRequestsPerMinute: 10,
+});
 
-  return new Promise((resolve, reject) => {
-    jwt.verify(
-      token,
-      getKey,
-      {
-        audience: config.audience,
-        issuer: config.issuer,
-      },
-      (err, decoded) => {
-        if (err) {
-          return reject(
-            new GraphQLError("User is not authenticated", {
-              extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
-            }),
-          );
-        }
-        resolve(decoded as DecodedJWT);
-      },
-    );
+function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void) {
+  jwks.getSigningKey(header.kid, (err, key) => {
+    if (err || !key) return cb(err || new Error("Signing key not found"));
+    cb(null, key.getPublicKey());
   });
 }
+
+const decodeToken = (token: string): Promise<DecodedJWT> =>
+  new Promise((resolve, reject) => {
+    if (!token) {
+      return reject(
+        new GraphQLError("User is not authenticated", {
+          extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+        })
+      );
+    }
+    jwt.verify(token, getKey, verifyOpts, (err, decoded) => {
+      if (err) {
+        return reject(
+          new GraphQLError("User is not authenticated", {
+            extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+          })
+        );
+      }
+      resolve(decoded as DecodedJWT);
+    });
+  });
+
 const checkAuthBypass = (): DecodedJWT | undefined => {
-  // Bypass authentication for testing purposes
   if (process.env.BYPASS_AUTH === "true") {
     return {
       sub: "1234abcd-0000-1111-2222-333333333333",
-      email: "bypassedUser@email.com"
+      email: "bypassedUser@email.com",
     };
+  }
+};
+
+export async function buildLambdaContext(
+  headers: APIGatewayProxyEventHeaders
+): Promise<GraphQLContext> {
+  const authHeader =
+    headers.authorization || (headers as Record<string, string>).Authorization || "";
+
+  // no bearer -> anonymous
+  if (!authHeader?.startsWith("Bearer ")) return { user: null };
+
+  try {
+    const { sub, email } = await getCognitoUserInfoForLambda(headers);
+
+    const username = email?.includes("@") ? email.split("@")[0] : sub;
+    const displayName = username;
+    const emailForCreate = email ?? `${sub}@no-email.local`;
+    const fullName = email ?? username;
+
+    // ⬇️ upsert by cognitoSubject
+    const dbUser = await prisma().user.upsert({
+      where: { cognitoSubject: sub },
+      update: { ...(email ? { email } : {}) }, // keep email fresh if present
+      create: {
+        cognitoSubject: sub,
+        username,
+        email: emailForCreate,
+        fullName,
+        displayName,
+      },
+    });
+
+    const roles = await getUserRoles(sub);
+
+    // include both DB id and sub in context
+    return {
+      user: {
+        id: dbUser.id,
+        sub,
+        roles,
+        displayName: dbUser.displayName,
+      },
+    };
+  } catch (err) {
+    console.error("[auth] lambda context error:", err);
+    return { user: null };
   }
 }
 
-export const getCognitoUserInfo = (
-  req: IncomingMessage,
-): Promise<DecodedJWT> => {
-
-  const bypassResult = checkAuthBypass();
-  if (bypassResult) {
-    return Promise.resolve(bypassResult);
-  }
-
-  const token: string = req.headers.authorization?.split(" ")[1] || "";
-  return decodeToken(token);
-
-};
-
-export const getCognitoUserInfoForLambda = (
-  headers: APIGatewayProxyEventHeaders,
-): Promise<DecodedJWT> => {
-
-  const bypassResult = checkAuthBypass();
-  if (bypassResult) {
-    return Promise.resolve(bypassResult);
-  }
-
-  const token: string = headers.authorization?.split(" ")[1] || "";
-  return decodeToken(token);
-};
-
-/**
- * Fetches a user's role from the DB using their Cognito sub.
- */
-export const getUserRoles = async (
-  cognitoSubject: string,
-): Promise<string[] | null> => {
-
-  if (process.env.BYPASS_AUTH === "true") {
-    return ["ADMIN"];
-  }
-
-  const user = await prisma.user.findUnique({
-    include: {
-      userRoles: {
-        include: {
-          role: true,
-        },
+/** Build context for Node/Express/standalone HTTP */
+export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLContext> {
+  // BYPASS first (so it works even without Authorization header)
+  const bypass = checkAuthBypass();
+  if (bypass) {
+    const { sub, email } = bypass;
+    const username = email?.includes("@") ? email.split("@")[0] : sub;
+    const dbUser = await prisma().user.upsert({
+      where: { cognitoSubject: sub },
+      update: { ...(email ? { email } : {}) },
+      create: {
+        cognitoSubject: sub,
+        username,
+        email: email ?? `${sub}@no-email.local`,
+        fullName: email ?? username,
+        displayName: username,
       },
-    },
+    });
+    const roles = await getUserRoles(sub);
+    return { user: { id: dbUser.id, sub, roles, displayName: dbUser.displayName } };
+  }
+
+  const rawAuth =
+    req.headers.authorization ??
+    // some Node envs may populate capitalized version
+    (req as IncomingMessage & { headers: Record<string, string> }).headers?.Authorization ??
+    "";
+
+  if (!rawAuth.startsWith("Bearer ")) return { user: null };
+
+  try {
+    const token = rawAuth.slice(7);
+    const { sub, email } = await decodeToken(token);
+
+    const username = email?.includes("@") ? email.split("@")[0] : sub;
+    const dbUser = await prisma().user.upsert({
+      where: { cognitoSubject: sub },
+      update: { ...(email ? { email } : {}) },
+      create: {
+        cognitoSubject: sub,
+        username,
+        email: email ?? `${sub}@no-email.local`,
+        fullName: email ?? username,
+        displayName: username,
+      },
+    });
+
+    const roles = await getUserRoles(sub);
+    return { user: { id: dbUser.id, sub, roles, displayName: dbUser.displayName } };
+  } catch (err) {
+    console.error("[auth] context error:", err);
+    return { user: null };
+  }
+}
+
+/** Raw token helpers (HTTP & Lambda) */
+export const getCognitoUserInfo = (req: IncomingMessage): Promise<DecodedJWT> => {
+  const bypass = checkAuthBypass();
+  if (bypass) return Promise.resolve(bypass);
+  // Sometimes this can be cappped?
+  const bearer =
+    req.headers.authorization ??
+    req.headers.Authorization ??
+    "";
+  const token = typeof bearer === "string" && bearer.startsWith("Bearer ") ? bearer.slice(7) : "";
+  return decodeToken(token);
+};
+
+export const getCognitoUserInfoForLambda = (headers: APIGatewayProxyEventHeaders): Promise<DecodedJWT> => {
+  const bypass = checkAuthBypass();
+  if (bypass) return Promise.resolve(bypass);
+
+  const bearer = (headers.authorization || (headers as any).Authorization || "") as string;
+  const token = bearer.startsWith("Bearer ") ? bearer.slice(7) : "";
+  return decodeToken(token);
+};
+
+/** Roles by cognito subject */
+export const getUserRoles = async (cognitoSubject: string): Promise<string[] | null> => {
+  if (process.env.BYPASS_AUTH === "true") return ["ADMIN"];
+  const user = await prisma().user.findUnique({
+    include: { userRoles: { include: { role: true } } },
     where: { cognitoSubject },
   });
-  return user?.userRoles.map(userRole => userRole.role.name) || null;
+  return user?.userRoles.map((ur) => ur.role.name) || null;
 };
 
-function assertContextUserExists(context: GraphQLContext)
-: asserts context is GraphQLContext & { user: NonNullable<GraphQLContext['user']> } {
+/** Context assertions & helpers */
+function assertContextUserExists(
+  context: GraphQLContext
+): asserts context is GraphQLContext & { user: NonNullable<GraphQLContext["user"]> } {
   if (!context.user) {
-    throw new GraphQLError("User not authenticated", {
-      extensions: { code: "UNAUTHENTICATED" },
-    });
+    throw new GraphQLError("User not authenticated", { extensions: { code: "UNAUTHENTICATED" } });
   }
-};
+}
 
-/**
- * Gets the current user's primary role ID from the GraphQL context.
- * This is useful for associating actions with the role the user was acting under.
- */
 export const getCurrentUserRoleId = async (context: GraphQLContext): Promise<string> => {
   assertContextUserExists(context);
-
-  // Find the user with their roles to get the role ID
-  const userWithRoles = await prisma.user.findUnique({
-    where: { cognitoSubject: context.user.id },
-    include: {
-      userRoles: {
-        include: {
-          role: true
-        }
-      }
-    }
+  const userWithRoles = await prisma().user.findUnique({
+    where: { id: context.user.id }, // DB id
+    include: { userRoles: { include: { role: true } } },
   });
-
   if (!userWithRoles || userWithRoles.userRoles.length === 0) {
-    throw new GraphQLError("User has no assigned roles", {
-      extensions: { code: "FORBIDDEN" },
-    });
+    throw new GraphQLError("User has no assigned roles", { extensions: { code: "FORBIDDEN" } });
   }
-
   return userWithRoles.userRoles[0].role.id;
 };
 
-/**
- * Gets the current user's database ID from the GraphQL context.
- */
 export const getCurrentUserId = async (context: GraphQLContext): Promise<string> => {
   assertContextUserExists(context);
-
-  // Find the user by their Cognito subject to get the database ID
-  const user = await prisma.user.findUnique({
-    where: { cognitoSubject: context.user.id },
-    select: { id: true }
-  });
-
-  if (!user) {
-    throw new GraphQLError("User not found in database", {
-      extensions: { code: "NOT_FOUND" },
-    });
-  }
-
-  return user.id;
+  return context.user.id; // already DB id
 };
 
-/**
- * Obtaining (with caching) secrets from SecretsManager.
- */
+/** Secrets Manager helper */
 const secretsManager = new SecretsManagerClient({ region: process.env.AWS_REGION });
 let databaseUrlCache = "";
 let cacheExpiration = 0;
 
 export async function getDatabaseUrl(): Promise<string> {
   const now = Date.now();
-  if (databaseUrlCache && cacheExpiration > now) {
-    return databaseUrlCache;
-  }
+  if (databaseUrlCache && cacheExpiration > now) return databaseUrlCache;
 
   const secretArn = process.env.DATABASE_SECRET_ARN;
-  const command = new GetSecretValueCommand({ SecretId: secretArn });
-  const response = await secretsManager.send(command);
+  const response = await secretsManager.send(new GetSecretValueCommand({ SecretId: secretArn }));
+  if (!response.SecretString) throw new Error("The SecretString value is undefined!");
 
-  if (!response.SecretString) {
-    throw new Error("The SecretString value is undefined!")
-  }
   const secretData = JSON.parse(response.SecretString);
   databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=demos_app`;
-  cacheExpiration = now + 60 * 60 * 1000; // Cache for 1 hour
-
+  cacheExpiration = now + 60 * 60 * 1000; // 1 hour
   return databaseUrlCache;
 }
