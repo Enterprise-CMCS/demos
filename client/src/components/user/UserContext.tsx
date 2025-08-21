@@ -3,7 +3,6 @@ import React, { createContext, useContext, useMemo, useEffect } from "react";
 import { useQuery, ApolloError, ApolloQueryResult } from "@apollo/client";
 import { useAuth } from "react-oidc-context";
 import { GET_CURRENT_USER_QUERY } from "../../hooks/useCurrentUser";
-import { isLocalDevelopment } from "config/env";
 
 type CurrentUser = {
   id: string;
