@@ -29,14 +29,18 @@ export const spongebob: Partial<User> = { fullName: "spongebob squarepants" };
 export const squidward: Partial<User> = { fullName: " squidward tentacles" };
 export const patrick: Partial<User> = { fullName: "patrick star" };
 
+export const bypassUserGUID = "00000000-1111-2222-3333-123abc123abc";
+
 const currentUserResult = {
   data: {
     currentUser: {
       __typename: "User",
-      id: "1",
+      id: bypassUserGUID,
+      cognitoSubject: "fake-sub-1",
+      username: "johndoe",
       email: "johndoe@example.com",
-      displayName: "John",
       fullName: "John Doe",
+      displayName: "John",
       roles: [],
     },
   },

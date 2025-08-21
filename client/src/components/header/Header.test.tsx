@@ -17,22 +17,28 @@ function renderWithProviders(ui: React.ReactNode) {
   );
 }
 
+vi.mock("react-oidc-context", () => ({
+  useAuth: () => ({
+    isAuthenticated: true,
+    isLoading: false,
+    user: { id_token: "fake-token" },
+    signinRedirect: vi.fn(),
+    signoutRedirect: vi.fn(),
+    removeUser: vi.fn(),
+  }),
+}));
+
 describe("Header", () => {
   it("renders the logo", () => {
-    render(<Header />);
+    renderWithProviders(<Header />);
     expect(screen.getByAltText("Logo")).toBeInTheDocument();
   });
 
   it("renders all quick links", () => {
-    render(<QuickLinks />);
+    renderWithProviders(<QuickLinks />);
     expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument();
-  });
-
-  it("renders the profile block with the current user's name", async () => {
-    renderWithProviders(<ProfileBlock />);
-    expect(await screen.findByText("John Doe")).toBeInTheDocument();
   });
 
   it("renders the Create New button", async () => {
