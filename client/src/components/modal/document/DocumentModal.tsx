@@ -246,31 +246,17 @@ const EMPTY_DOCUMENT_FIELDS: DocumentModalFields = {
   documentType: "generalFile",
 };
 
-const getUploadDocumentInput = (fields: DocumentModalFields): UploadDocumentInput => {
-  return {
-    title: fields.title,
-    description: fields.description,
-    documentType: fields.documentType,
-  };
-};
-
-const getUpdateDocumentInput = (fields: DocumentModalFields): UpdateDocumentInput => {
-  return {
-    title: fields.title,
-    description: fields.description,
-    documentType: fields.documentType,
-  };
-};
-
 type DocumentModalProps = {
   onClose?: () => void;
   mode: DocumentModalType;
+  onSubmit: (modalFields: DocumentModalFields) => Promise<void>;
   initialDocument?: DocumentModalFields;
 };
 
 const DocumentModal: React.FC<DocumentModalProps> = ({
   onClose = () => {},
   mode,
+  onSubmit,
   initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
@@ -327,25 +313,16 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       focusFirstMissing();
       return;
     }
-    // This is just for testing purposes. Fill it in as needed
-    const success = true;
+
     try {
       setSubmitting(true);
-      // your api/mutator call goes here
-      if (!success) {
-        // Throw error to see message.
-        // Still need to break down specifc file size vs fail virus check messages
-        throw new Error("Your document could not be added because of an unknown problem.");
-      }
+      await onSubmit(activeDocument);
       onClose();
     } catch (error: unknown) {
-      const msg = getErrorMessage(error, mode);
-      showError(msg);
+      showError(getErrorMessage(error, mode));
     } finally {
       onClose();
-      if (success) {
-        showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
-      }
+      showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
       setSubmitting(false);
     }
   };
@@ -411,16 +388,46 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   );
 };
 
-export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
-  <DocumentModal onClose={onClose} mode="add" />
-);
+export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
+
+  const handleUpload = async (modalFields: DocumentModalFields) => {
+    const uploadDocumentInput: UploadDocumentInput = {
+      title: modalFields.title,
+      description: modalFields.description,
+      documentType: modalFields.documentType,
+    };
+
+    uploadDocumentTrigger({ variables: { input: uploadDocumentInput } });
+  };
+
+  return <DocumentModal mode="add" onClose={onClose} onSubmit={handleUpload} />;
+};
 
 export const EditDocumentModal: React.FC<{
   onClose: () => void;
   initialDocument: DocumentModalFields;
-}> = ({ initialDocument, onClose }) => (
-  <DocumentModal mode="edit" initialDocument={initialDocument} onClose={onClose} />
-);
+}> = ({ initialDocument, onClose }) => {
+  const [updateDocumentTrigger] = useMutation<UpdateDocumentInput>(UPDATE_DOCUMENT_QUERY);
+
+  const handleEdit = async (modalFields: DocumentModalFields) => {
+    const updateDocumentInput: UpdateDocumentInput = {
+      title: modalFields.title,
+      description: modalFields.description,
+      documentType: modalFields.documentType,
+    };
+    updateDocumentTrigger({ variables: { input: updateDocumentInput } });
+  };
+
+  return (
+    <DocumentModal
+      mode="edit"
+      initialDocument={initialDocument}
+      onClose={onClose}
+      onSubmit={handleEdit}
+    />
+  );
+};
 
 export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () => void }> = ({
   documentIds,
