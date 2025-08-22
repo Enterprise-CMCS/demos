@@ -2,7 +2,6 @@ import { User } from "@prisma/client";
 import type { User as PrismaUser } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { CreateUserInput } from "./userSchema.js";
-import type { GraphQLResolveInfo } from "graphql";
 import type { GraphQLContext } from "../../auth/auth.util.js";
 
 export const userResolvers = {
@@ -19,7 +18,6 @@ export const userResolvers = {
       _parent: unknown,
       _args: Record<string, never>,
       ctx: GraphQLContext,
-      _info?: GraphQLResolveInfo
     ): Promise<PrismaUser | null> => {
       if (!ctx.user) return null;
       try {
