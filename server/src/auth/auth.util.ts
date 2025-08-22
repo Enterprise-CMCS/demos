@@ -118,48 +118,77 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
 }
 
 /* -----------------------  Lambda Context  ----------------------- */
-function getHeaderCI(
-  headers: APIGatewayProxyEventHeaders,
-  name: string
-): string | undefined {
-  // Fast path
-  const direct = headers[name];
-  if (typeof direct === "string") return direct;
+// I'll nuke this once i debug dev
+// function getHeaderCI(
+//   headers: APIGatewayProxyEventHeaders,
+//   name: string
+// ): string | undefined {
+//   // Fast path
+//   const direct = headers[name];
+//   if (typeof direct === "string") return direct;
 
-  const target = name.toLowerCase();
-  for (const key in headers) {
-    if (key.toLowerCase() === target) {
-      const val = headers[key];
-      return typeof val === "string" ? val : undefined;
-    }
-  }
-  return undefined;
-}
+//   const target = name.toLowerCase();
+//   for (const key in headers) {
+//     if (key.toLowerCase() === target) {
+//       const val = headers[key];
+//       return typeof val === "string" ? val : undefined;
+//     }
+//   }
+//   return undefined;
+// }
 
-export async function buildLambdaContext(
-  headers: APIGatewayProxyEventHeaders
-): Promise<GraphQLContext> {
-  // 1) Prefer claims passed from API Gateway authorizer (if present)
-  const rawClaims = getHeaderCI(headers, "x-authorizer-claims");
-  if (rawClaims) {
-    try {
-      const parsed = JSON.parse(rawClaims) as { sub: string; email?: string };
-      if (typeof parsed.sub === "string" && parsed.sub.length > 0) {
-        return buildContextFromClaims({ sub: parsed.sub, email: parsed.email });
-      }
-    } catch (e) {
-      console.warn("[auth] invalid x-authorizer-claims header:", e);
-    }
-  }
-
-  const authHeader = getHeaderCI(headers, "authorization") ?? "";
-  if (!authHeader.startsWith("Bearer ")) return { user: null };
-
+// auth.util.ts
+export async function buildLambdaContext(headers: APIGatewayProxyEventHeaders): Promise<GraphQLContext> {
   const bypass = checkAuthBypass();
   if (bypass) return buildContextFromClaims(bypass);
 
+  // 1) Prefer claims from the authorizer (added by server.ts)
+  const claimsHeader =
+    headers["x-authorizer-claims"] ??
+    (headers as Record<string, string | undefined>)["X-Authorizer-Claims"];
+
+  if (claimsHeader) {
+    try {
+      const parsed = JSON.parse(claimsHeader) as { sub: string; email?: string };
+      if (parsed?.sub) {
+        // Optional: tiny debug breadcrumb
+        console.log("[auth] using authorizer claims, sub:", parsed.sub);
+        return buildContextFromClaims(parsed);
+      }
+    } catch (e) {
+      console.error("[auth] bad x-authorizer-claims header:", e);
+      // fall through to Bearer verification
+    }
+  }
+
+  // 2) Fallback: verify Bearer token ourselves
+  const raw =
+    headers.authorization ||
+    (headers as Record<string, string | undefined>).Authorization ||
+    "";
+
+  if (!raw.startsWith("Bearer ")) return { user: null };
+
+  const token = raw.slice(7);
+
+  // Gentle introspection to help debug what's wrong
   try {
-    const { sub, email } = await decodeToken(authHeader.slice(7));
+    const decodedLoose = jwt.decode(token, { complete: true }) as
+      | { header?: Record<string, unknown>; payload?: Record<string, unknown> }
+      | null;
+    console.log(
+      "[jwt] kid:", decodedLoose?.header?.kid,
+      "token_use:", decodedLoose?.payload?.token_use,
+      "iss:", decodedLoose?.payload?.iss,
+      "aud:", decodedLoose?.payload?.aud,
+      "client_id:", decodedLoose?.payload?.client_id
+    );
+  } catch {
+    // ignore
+  }
+
+  try {
+    const { sub, email } = await decodeToken(token);
     return buildContextFromClaims({ sub, email });
   } catch (err) {
     console.error("[auth] lambda context error:", err);
