@@ -1,14 +1,7 @@
 import React from "react";
-import {
-  DemonstrationTable,
-  DemonstrationTableRow,
-} from "components/table/tables/DemonstrationTable";
+import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import { gql, useQuery } from "@apollo/client";
-import {
-  StateOption,
-  StatusOption,
-  UserOption,
-} from "components/table/columns/DemonstrationColumns";
+import { Amendment, DemonstrationStatus, Extension, State, User } from "demos-server";
 import { TabItem, Tabs } from "layout/Tabs";
 
 const MY_EMPTY_ROWS_MESSAGE = "You have no assigned demonstrations at this time.";
@@ -67,11 +60,31 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
   }
 `;
 
+export type DemonstrationAmendment = Pick<Amendment, "id" | "name"> & {
+  projectOfficer: Pick<User, "id">;
+  amendmentStatus: DemonstrationStatus;
+};
+export type DemonstrationExtension = Pick<Extension, "id" | "name"> & {
+  projectOfficer: Pick<User, "id">;
+  extensionStatus: DemonstrationStatus;
+};
+
+export type Demonstration = {
+  id: string;
+  name: string;
+  state: Pick<State, "name">;
+  projectOfficer: Pick<User, "fullName">;
+  users: Pick<User, "id">[];
+  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  amendments: DemonstrationAmendment[];
+  extensions: DemonstrationExtension[];
+};
+
 export type DemonstrationsPageQueryResult = {
-  demonstrations: DemonstrationTableRow[];
-  projectOfficerOptions: UserOption[];
-  stateOptions: StateOption[];
-  statusOptions: StatusOption[];
+  demonstrations: Demonstration[];
+  projectOfficerOptions: Pick<User, "fullName">[];
+  stateOptions: Pick<State, "name" | "id">[];
+  statusOptions: Pick<DemonstrationStatus, "name">[];
 };
 
 export const Demonstrations: React.FC = () => {
@@ -92,8 +105,8 @@ export const Demonstrations: React.FC = () => {
   // TODO: Replace with actual current user ID from authentication context
   const currentUserId = "1";
 
-  const myDemos: DemonstrationTableRow[] = data.demonstrations.filter(
-    (demo: DemonstrationTableRow) => demo.users.some((user) => user.id === currentUserId)
+  const myDemos: Demonstration[] = data.demonstrations.filter((demo: Demonstration) =>
+    demo.users.some((user) => user.id === currentUserId)
   );
 
   const tabList: TabItem[] = [

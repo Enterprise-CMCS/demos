@@ -1,57 +1,33 @@
 import React from "react";
 import { Table } from "../Table";
-import {
-  DemonstrationColumns,
-  StateOption,
-  StatusOption,
-  UserOption,
-} from "../columns/DemonstrationColumns";
+import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
-import { Amendment, DemonstrationStatus, State, User } from "demos-server";
+import { DemonstrationStatus, State, User } from "demos-server";
+import {
+  Demonstration,
+  DemonstrationAmendment,
+  DemonstrationExtension,
+} from "pages/Demonstrations";
 
 const EMPTY_ROWS_MESSAGE = "No demonstrations are tracked.";
 const NO_RESULTS_FOUND_MESSAGE =
   "No results were returned. Adjust your search and filter criteria.";
 
-type DemonstrationTableState = Pick<State, "name">;
-type DemonstrationTableProjectOfficer = Pick<User, "fullName">;
-type DemonstrationTableUser = Pick<User, "id">;
-type DemonstrationTableStatus = Pick<DemonstrationStatus, "name">;
-type DemonstrationTableAmendment = Pick<Amendment, "id" | "name"> & {
-  projectOfficer: DemonstrationTableProjectOfficer;
-  amendmentStatus: DemonstrationTableStatus;
-};
-type DemonstrationTableExtension = Pick<Amendment, "id" | "name"> & {
-  projectOfficer: DemonstrationTableProjectOfficer;
-  extensionStatus: DemonstrationTableStatus;
-};
-
-export type DemonstrationTableRow = {
-  id: string;
-  name: string;
-  state: DemonstrationTableState;
-  projectOfficer: DemonstrationTableProjectOfficer;
-  users: DemonstrationTableUser[];
-  demonstrationStatus: DemonstrationTableStatus;
-  amendments: DemonstrationTableAmendment[];
-  extensions: DemonstrationTableExtension[];
-};
-
 export type GenericDemonstrationTableRow =
-  | (DemonstrationTableRow & { type: "demonstration" })
-  | (DemonstrationTableAmendment & {
+  | (Demonstration & { type: "demonstration" })
+  | (DemonstrationAmendment & {
       type: "amendment";
+      state: Pick<State, "name">;
+      status: Pick<DemonstrationStatus, "name">;
       parentId: string;
-      state: DemonstrationTableState;
-      status: DemonstrationTableStatus;
     })
-  | (DemonstrationTableExtension & {
+  | (DemonstrationExtension & {
       type: "extension";
+      state: Pick<State, "name">;
+      status: Pick<DemonstrationStatus, "name">;
       parentId: string;
-      state: DemonstrationTableState;
-      status: DemonstrationTableStatus;
     });
 
 const getSubRows = (
@@ -66,6 +42,7 @@ const getSubRows = (
           type: "amendment",
           state: row.state,
           status: amendment.amendmentStatus,
+          parentId: row.id,
         }) as GenericDemonstrationTableRow
     ),
     ...row.extensions.map(
@@ -75,16 +52,17 @@ const getSubRows = (
           type: "extension",
           state: row.state,
           status: extension.extensionStatus,
+          parentId: row.id,
         }) as GenericDemonstrationTableRow
     ),
   ];
 };
 
 export const DemonstrationTable: React.FC<{
-  demonstrations: DemonstrationTableRow[];
-  stateOptions: StateOption[];
-  projectOfficerOptions: UserOption[];
-  statusOptions: StatusOption[];
+  demonstrations: Demonstration[];
+  projectOfficerOptions: Pick<User, "fullName">[];
+  stateOptions: Pick<State, "name" | "id">[];
+  statusOptions: Pick<DemonstrationStatus, "name">[];
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
 }> = ({
