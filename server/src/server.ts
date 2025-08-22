@@ -90,6 +90,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
       await databaseUrlPromise;
 
       const claims = extractAuthorizerClaims(event as LambdaEvent);
+      console.log("[lambda] authorizer claims present:", !!claims, claims?.sub ?? null);
       const headersWithClaims = withAuthorizerHeader(event.headers, claims);
 
       const gqlCtx = await buildLambdaContext(headersWithClaims);
