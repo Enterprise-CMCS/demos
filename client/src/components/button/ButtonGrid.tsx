@@ -27,13 +27,9 @@ export const ButtonGrid: React.FC = () => {
   return (
     <div className="overflow-auto text-black">
       <div className="mb-2 flex gap-1">
-        <button
-          type="button"
-          onClick={() => setAllDisabled((d) => !d)}
-          className="px-2 py-1 border rounded bg-gray-100"
-        >
+        <Button name="set-disabled" onClick={() => setAllDisabled((d) => !d)}>
           {allDisabled ? "Enable All" : "Disable All"}
-        </button>
+        </Button>
       </div>
       <div className="mb-2 text-lg font-bold text-gray-700">
         <strong>Focus Testing:</strong> Click on a button and use Tab/Shift+Tab to move through the

@@ -11,11 +11,7 @@ export const Header: React.FC<{
   return (
     <div id="header-container" className="top-0 left-0 w-full z-11">
       <HeaderUpper userId={userId} />
-      {effectiveContent && (
-        <div className="flex w-full min-h-[6rem]">
-          {effectiveContent}
-        </div>
-      )}
+      {effectiveContent && <div className="flex w-full min-h-[6rem]">{effectiveContent}</div>}
     </div>
   );
 };

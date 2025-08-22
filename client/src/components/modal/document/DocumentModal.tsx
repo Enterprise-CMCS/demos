@@ -8,6 +8,8 @@ import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
+import { useMutation } from "@apollo/client";
+import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
 
 type DocumentModalType = "add" | "edit";
 
@@ -101,6 +103,7 @@ const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
           <span className="text-text-warn mr-1">*</span>Document Description
         </label>
         <textarea
+          data-testid="textarea-description-input"
           ref={ref}
           rows={2}
           placeholder="Enter"
@@ -193,6 +196,7 @@ const DropTarget: React.FC<{
       />
 
       <SecondaryButton
+        name="select-files"
         type="button"
         aria-label="Select File"
         size="small"
@@ -336,10 +340,15 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       setShowCancelConfirm={setShowCancelConfirm}
       actions={
         <>
-          <SecondaryButton size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton
+            name="cancel-upload"
+            size="small"
+            onClick={() => setShowCancelConfirm(true)}
+          >
             Cancel
           </SecondaryButton>
           <Button
+            name="upload-document"
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
@@ -394,22 +403,26 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
   onClose,
 }) => {
   const { showWarning, showError } = useToast();
-  const [submitting, setSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [deleteDocumentsTrigger] = useMutation<{ removedDocumentIds: string[] }>(
+    DELETE_DOCUMENTS_QUERY
+  );
 
   const onConfirm = async (documentIdList: string[]) => {
     try {
-      setSubmitting(true);
-      // TODO: await api.deleteDocuments(documentIdList);
-      const isMultiple = documentIdList.length > 1;
+      setIsDeleting(true);
+      await deleteDocumentsTrigger({ variables: { ids: documentIdList } });
+
+      const isMultipleDocuments = documentIdList.length > 1;
       showWarning(
-        `Your document${isMultiple ? "s" : ""} ${isMultiple ? "have been" : "has been"} removed.`
+        `Your document${isMultipleDocuments ? "s" : ""} ${isMultipleDocuments ? "have been" : "has been"} removed.`
       );
       onClose();
-    } catch (error) {
+    } catch {
       showError("Your changes could not be saved due to an unknown problem.");
-      console.error("Remove documents failed:", error);
     } finally {
-      setSubmitting(false);
+      setIsDeleting(false);
     }
   };
 
@@ -419,17 +432,23 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
       onClose={onClose}
       actions={
         <>
-          <SecondaryButton size="small" onClick={onClose} disabled={submitting}>
+          <SecondaryButton
+            name="cancel-remove"
+            size="small"
+            onClick={onClose}
+            disabled={isDeleting}
+          >
             Cancel
           </SecondaryButton>
           <ErrorButton
+            name="confirm-remove"
             size="small"
             onClick={() => onConfirm(documentIds)}
             aria-label="Confirm Remove Document"
-            disabled={submitting}
-            aria-disabled={submitting}
+            disabled={isDeleting}
+            aria-disabled={isDeleting}
           >
-            {submitting ? "Removing..." : "Remove"}
+            {isDeleting ? "Removing..." : "Remove"}
           </ErrorButton>
         </>
       }

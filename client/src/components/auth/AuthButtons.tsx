@@ -9,7 +9,7 @@ import { useAuthActions } from "./AuthActions";
 export function SigninButton(): React.ReactElement {
   const { signIn } = useAuthActions();
   return (
-    <Button onClick={signIn}>
+    <Button name="sign-in" onClick={signIn}>
       Sign In
     </Button>
   );
@@ -17,7 +17,7 @@ export function SigninButton(): React.ReactElement {
 export function SignoutButton(): React.ReactElement {
   const { signOut } = useAuthActions();
   return (
-    <Button onClick={signOut}>
+    <Button name="sign-out" onClick={signOut}>
       Sign Out
     </Button>
   );
