@@ -135,7 +135,7 @@ export class ApiStack extends Stack {
         authorizationType: props.isLocalstack ? undefined : aws_apigateway.AuthorizationType.CUSTOM,
         asCode: true,
         environment: {
-          BYPASS_AUTH: commonProps.hostEnvironment == "dev" ? "true" : "",
+          BYPASS_AUTH: "false",
           DATABASE_URL: "postgres://placeholder",
           DATABASE_SECRET_ARN: dbSecret.secretName, // This needs to be the name rather than the arn, otherwise the request from the lambda fails since no secret suffix is available
           UPLOAD_BUCKET: uploadBucket.bucketName,

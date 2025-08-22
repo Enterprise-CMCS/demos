@@ -1,17 +1,10 @@
 // src/layout/PrimaryLayout.tsx
 import React, { useState } from "react";
-
 import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
 import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
-import {
-  Footer,
-  Header,
-  ToastContainer,
-  ToastProvider,
-} from "components/index";
-import { shouldUseMocks } from "config/env";
-
+import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
+import { getCurrentUser } from "components/user/UserContext";
 
 interface PrimaryLayoutProps {
   children: React.ReactNode;
@@ -19,13 +12,30 @@ interface PrimaryLayoutProps {
 
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const { currentUser, loading, error } = getCurrentUser();
+  const userId = currentUser?.id;
 
-  // Use different user ID based on environment - always string now
-  const userId = shouldUseMocks() ? "2" : "00000000-1111-2222-3333-123abc123abc";
+  if (loading) {
+    return (
+      <ToastProvider>
+        <div className="h-screen flex flex-col">
+          <header className="p-3 shadow">Loading…</header>
+          <div className="flex-1 bg-gray-100" />
+          <ToastContainer />
+        </div>
+      </ToastProvider>
+    );
+  }
+
+  if (error) {
+    console.error("[PrimaryLayout] currentUser error:", error);
+  }
 
   return (
     <ToastProvider>
-      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower userId={userId} />}>
+      <HeaderConfigProvider
+        defaultLowerContent={<DefaultHeaderLower />}
+      >
         <div className="h-screen flex flex-col">
           <Header userId={userId} />
           <div className="flex flex-1 overflow-hidden bg-gray-100">
