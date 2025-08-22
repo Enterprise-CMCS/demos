@@ -4,7 +4,7 @@ import { Logo } from "./Logo";
 import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
 
-export const HeaderUpper: React.FC<{ userId?: string }> = ({ userId }) => {
+export const HeaderUpper: React.FC = () => {
   return (
     <header className="w-full flex items-stretch justify-between py-1 px-2 gap-1">
       <div id="header-upper-left">
