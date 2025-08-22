@@ -8,6 +8,7 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
 
+
 const config = getAuthConfig();
 
 export interface GraphQLContext {
@@ -117,12 +118,42 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
 }
 
 /* -----------------------  Lambda Context  ----------------------- */
-export async function buildLambdaContext(headers: APIGatewayProxyEventHeaders): Promise<GraphQLContext> {
-  const authHeader =
-    headers.authorization ||
-    (headers as Record<string, string | undefined>).Authorization ||
-    "";
-  if (!authHeader?.startsWith("Bearer ")) return { user: null };
+function getHeaderCI(
+  headers: APIGatewayProxyEventHeaders,
+  name: string
+): string | undefined {
+  // Fast path
+  const direct = headers[name];
+  if (typeof direct === "string") return direct;
+
+  const target = name.toLowerCase();
+  for (const key in headers) {
+    if (key.toLowerCase() === target) {
+      const val = headers[key];
+      return typeof val === "string" ? val : undefined;
+    }
+  }
+  return undefined;
+}
+
+export async function buildLambdaContext(
+  headers: APIGatewayProxyEventHeaders
+): Promise<GraphQLContext> {
+  // 1) Prefer claims passed from API Gateway authorizer (if present)
+  const rawClaims = getHeaderCI(headers, "x-authorizer-claims");
+  if (rawClaims) {
+    try {
+      const parsed = JSON.parse(rawClaims) as { sub: string; email?: string };
+      if (typeof parsed.sub === "string" && parsed.sub.length > 0) {
+        return buildContextFromClaims({ sub: parsed.sub, email: parsed.email });
+      }
+    } catch (e) {
+      console.warn("[auth] invalid x-authorizer-claims header:", e);
+    }
+  }
+
+  const authHeader = getHeaderCI(headers, "authorization") ?? "";
+  if (!authHeader.startsWith("Bearer ")) return { user: null };
 
   const bypass = checkAuthBypass();
   if (bypass) return buildContextFromClaims(bypass);
