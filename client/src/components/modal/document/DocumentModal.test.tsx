@@ -11,15 +11,14 @@ import {
   DocumentModalFields,
 } from "./DocumentModal";
 
-let mockDelete: () => Promise<{ data: { removedDocumentIds: string[] } }>;
+const mockQuery = vi.fn();
 
 beforeEach(() => {
-  mockDelete = vi.fn().mockResolvedValue({ data: { removedDocumentIds: ["1"] } });
   vi.mock("@apollo/client", async () => {
     const actual = await vi.importActual("@apollo/client");
     return {
       ...actual,
-      useMutation: () => [mockDelete],
+      useMutation: () => [mockQuery],
     };
   });
 });
@@ -187,7 +186,7 @@ describe("RemoveDocumentModal", () => {
     setup(["test-document-id"]);
     fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
     await waitFor(() => {
-      expect(mockDelete).toHaveBeenCalledWith({ variables: { ids: ["test-document-id"] } });
+      expect(mockQuery).toHaveBeenCalledWith({ variables: { ids: ["test-document-id"] } });
     });
   });
 });
