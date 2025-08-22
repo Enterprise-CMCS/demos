@@ -118,46 +118,39 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
 }
 
 /* -----------------------  Lambda Context  ----------------------- */
-export async function buildLambdaContext(headers: APIGatewayProxyEventHeaders): Promise<GraphQLContext> {
-  // 1) Prefer claims provided by the API Gateway custom authorizer
-  const rawInjected = headers["x-authorizer-claims"] || headers["X-Authorizer-Claims"];
-  if (rawInjected) {
+export async function buildLambdaContext(
+  headers: APIGatewayProxyEventHeaders
+): Promise<GraphQLContext> {
+  // 1) Prefer claims passed from the Lambda entrypoint (authorizer output)
+  const rawClaims = headers["x-authorizer-claims"] ?? headers["X-Authorizer-Claims"];
+  if (rawClaims) {
     try {
-      const parsed = JSON.parse(rawInjected as string) as { sub?: unknown; email?: unknown };
-      const sub = typeof parsed.sub === "string" ? parsed.sub : undefined;
-      const email = typeof parsed.email === "string" ? parsed.email : undefined;
-
-      if (sub) {
-        console.log("[auth] using claims from authorizer");
-        return buildContextFromClaims({ sub, email });
-      } else {
-        console.warn("[auth] x-authorizer-claims present but no valid 'sub'");
-      }
-    } catch (e) {
-      console.warn("[auth] failed to parse x-authorizer-claims:", e);
+      const { sub, email } = JSON.parse(rawClaims as string) as { sub: string; email?: string };
+      return buildContextFromClaims({ sub, email });
+    } catch {
+      // fall through to JWT verify
     }
   }
 
-  // 2) BYPASS (local/dev)
-  const bypass = checkAuthBypass();
-  if (bypass) return buildContextFromClaims(bypass);
-
-  // 3) Fallback to verifying the bearer token ourselves
-  const rawAuth =
+  // 2) Fallback: verify the Bearer token yourself
+  const authHeader =
     headers.authorization ||
     (headers as Record<string, string | undefined>).Authorization ||
     "";
+  if (!authHeader.startsWith("Bearer ")) return { user: null };
 
-  if (!rawAuth.startsWith("Bearer ")) return { user: null };
+  const bypass = checkAuthBypass();
+  if (bypass) return buildContextFromClaims(bypass);
 
   try {
-    const { sub, email } = await decodeToken(rawAuth.slice(7));
+    const { sub, email } = await decodeToken(authHeader.slice(7));
     return buildContextFromClaims({ sub, email });
   } catch (err) {
     console.error("[auth] lambda context error:", err);
     return { user: null };
   }
 }
+
 
 /* -----------------------  HTTP Context  ----------------------- */
 export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLContext> {

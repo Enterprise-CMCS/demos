@@ -59,16 +59,13 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
   {
     context: async ({ event, context }) => {
       await databaseUrlPromise;
-
       const restEvent = event as APIGatewayProxyEvent;
-
       const claims = extractAuthorizerClaims(restEvent);
       console.log(
         "[lambda] authorizer claims present:",
         !!claims,
         claims?.sub ?? null
       );
-
       // Pass claims to the existing builder via a header so we don't change its signature
       const headersWithClaims = withAuthorizerHeader(restEvent.headers, claims);
 
