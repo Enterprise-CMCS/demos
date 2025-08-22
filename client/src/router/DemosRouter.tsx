@@ -20,35 +20,35 @@ export const DemosRouter = () => {
     <AuthProvider {...cognitoConfig}>
       <DemosApolloProvider>
         <UserProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route
-              element={
-                <PrimaryLayout>
-                  <Outlet />
-                </PrimaryLayout>
-              }
-            >
-              {/* Real Pages the user should be able to access */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="demonstrations" element={<Demonstrations />} />
-              {/* DEBG AUTH IN EARLY STAGE DEV */}
-              <Route path="/auth" element={<AuthDebugComponent />} />
-              <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
-              {/* 404 Page */}
-              <Route path="*" element={<div>404: Page Not Found</div>} />
-              {/* Debug routes, only available in development mode */}
-              {isLocalDevelopment() && (
-                <>
-                  <Route path="/components" element={<ComponentLibrary />} />
-                  <Route path="/hooks" element={<TestHooks />} />
-                  <Route path="/icons" element={<IconLibrary />} />
-                  <Route path="/events" element={<EventSandbox />} />
-                </>
-              )}
-            </Route>
-          </Routes>
-        </BrowserRouter>
+          <BrowserRouter>
+            <Routes>
+              <Route
+                element={
+                  <PrimaryLayout>
+                    <Outlet />
+                  </PrimaryLayout>
+                }
+              >
+                {/* Real Pages the user should be able to access */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="demonstrations" element={<Demonstrations />} />
+                {/* DEBG AUTH IN EARLY STAGE DEV */}
+                <Route path="/auth" element={<AuthDebugComponent />} />
+                <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+                {/* 404 Page */}
+                <Route path="*" element={<div>404: Page Not Found</div>} />
+                {/* Debug routes, only available in development mode */}
+                {isLocalDevelopment() && (
+                  <>
+                    <Route path="/components" element={<ComponentLibrary />} />
+                    <Route path="/hooks" element={<TestHooks />} />
+                    <Route path="/icons" element={<IconLibrary />} />
+                    <Route path="/events" element={<EventSandbox />} />
+                  </>
+                )}
+              </Route>
+            </Routes>
+          </BrowserRouter>
         </UserProvider>
       </DemosApolloProvider>
     </AuthProvider>
