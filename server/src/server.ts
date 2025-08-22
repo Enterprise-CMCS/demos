@@ -32,8 +32,14 @@ function isV2Context(
 function extractAuthorizerClaims(event: LambdaEvent): JwtClaims | null {
   const rc = event.requestContext;
   if (isV2Context(rc)) {
-    // HTTP API (v2): requestContext.authorizer.jwt.claims
-    const claims = (rc as APIGatewayEventRequestContextV2 & { authorizer?: { jwt?: { claims?: Record<string, unknown> } } }).authorizer?.jwt?.claims;
+    // HTTP API (v2): requestContext.authorizer.jwt.claims See if this exists!
+    const claims = (rc as APIGatewayEventRequestContextV2 & {
+      authorizer?: {
+        jwt?: {
+          claims?: Record<string, unknown>
+        }
+      }
+    }).authorizer?.jwt?.claims;
     if (claims && typeof claims === "object") {
       const subVal = (claims as Record<string, unknown>).sub;
       if (typeof subVal !== "string" || !subVal) return null;
