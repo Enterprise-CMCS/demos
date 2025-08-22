@@ -118,23 +118,24 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
 }
 
 /* -----------------------  Lambda Context  ----------------------- */
-function getHeaderCI(
-  headers: APIGatewayProxyEventHeaders,
-  name: string
-): string | undefined {
-  // Fast path
-  const direct = headers[name];
-  if (typeof direct === "string") return direct;
+// I'll nuke this once i debug dev
+// function getHeaderCI(
+//   headers: APIGatewayProxyEventHeaders,
+//   name: string
+// ): string | undefined {
+//   // Fast path
+//   const direct = headers[name];
+//   if (typeof direct === "string") return direct;
 
-  const target = name.toLowerCase();
-  for (const key in headers) {
-    if (key.toLowerCase() === target) {
-      const val = headers[key];
-      return typeof val === "string" ? val : undefined;
-    }
-  }
-  return undefined;
-}
+//   const target = name.toLowerCase();
+//   for (const key in headers) {
+//     if (key.toLowerCase() === target) {
+//       const val = headers[key];
+//       return typeof val === "string" ? val : undefined;
+//     }
+//   }
+//   return undefined;
+// }
 
 // auth.util.ts
 export async function buildLambdaContext(headers: APIGatewayProxyEventHeaders): Promise<GraphQLContext> {
