@@ -37,7 +37,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
         defaultLowerContent={<DefaultHeaderLower />}
       >
         <div className="h-screen flex flex-col">
-          <Header userId={userId} />
+          <Header />
           <div className="flex flex-1 overflow-hidden bg-gray-100">
             <div className={collapsed ? "w-20" : "w-64"}>
               <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />
