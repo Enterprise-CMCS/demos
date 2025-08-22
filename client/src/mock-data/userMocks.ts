@@ -47,7 +47,8 @@ const currentUserResult = {
 };
 
 export const userMocks: MockedResponse[] = [
-  // It takes two of these apparently to hydrate the Profile block.
+  // It takes two of these apparently to hydrate the Profile block. If load it refetches.
+  // TODO: figure out why refetch is so eager.
   { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
   { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
 

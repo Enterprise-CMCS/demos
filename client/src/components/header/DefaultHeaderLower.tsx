@@ -13,8 +13,8 @@ export const DefaultHeaderLower: React.FC = () => {
 
   const { currentUser, loading, error } = getCurrentUser();
 
-  // Close dropdown on outside click
   useEffect(() => {
+    // Close dropdown on outside click
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
@@ -53,6 +53,7 @@ export const DefaultHeaderLower: React.FC = () => {
       <div className="relative" ref={dropdownRef}>
         <SecondaryButton
           name="create-new"
+          data-testid="create-new"
           size="small"
           onClick={() => setShowDropdown((prev) => !prev)}
         >

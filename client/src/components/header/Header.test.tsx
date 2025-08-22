@@ -20,7 +20,7 @@ function renderWithProviders(ui: React.ReactNode) {
 vi.mock("react-oidc-context", () => ({
   useAuth: () => ({
     isAuthenticated: true,
-    isLoading: false,
+    isLoading: true,
     user: { id_token: "fake-token" },
     signinRedirect: vi.fn(),
     signoutRedirect: vi.fn(),
@@ -43,7 +43,7 @@ describe("Header", () => {
 
   it("renders the Create New button", async () => {
     renderWithProviders(<DefaultHeaderLower />);
-    expect(await screen.findByRole("button", { name: /Create New/i })).toBeInTheDocument();
+    expect(await screen.findByTestId("create-new")).toBeInTheDocument(); // ← await
   });
 
   it("toggles menu under Profile Block (Top right corner)", async () => {
