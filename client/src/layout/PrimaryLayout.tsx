@@ -12,8 +12,7 @@ interface PrimaryLayoutProps {
 
 export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const { currentUser, loading, error } = getCurrentUser();
-  const userId = currentUser?.id;
+  const { loading, error } = getCurrentUser();
 
   if (loading) {
     return (
