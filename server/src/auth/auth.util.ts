@@ -139,56 +139,39 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
 
 // auth.util.ts
 export async function buildLambdaContext(headers: APIGatewayProxyEventHeaders): Promise<GraphQLContext> {
-  const bypass = checkAuthBypass();
-  if (bypass) return buildContextFromClaims(bypass);
-
-  // 1) Prefer claims from the authorizer (added by server.ts)
-  const claimsHeader =
-    headers["x-authorizer-claims"] ??
-    (headers as Record<string, string | undefined>)["X-Authorizer-Claims"];
-
-  if (claimsHeader) {
+  // 1) Prefer claims provided by the API Gateway custom authorizer
+  const rawInjected = headers["x-authorizer-claims"] || headers["X-Authorizer-Claims"];
+  if (rawInjected) {
     try {
-      const parsed = JSON.parse(claimsHeader) as { sub: string; email?: string };
-      if (parsed?.sub) {
-        // Optional: tiny debug breadcrumb
-        console.log("[auth] using authorizer claims, sub:", parsed.sub);
-        return buildContextFromClaims(parsed);
+      const parsed = JSON.parse(rawInjected as string) as { sub?: unknown; email?: unknown };
+      const sub = typeof parsed.sub === "string" ? parsed.sub : undefined;
+      const email = typeof parsed.email === "string" ? parsed.email : undefined;
+
+      if (sub) {
+        console.log("[auth] using claims from authorizer");
+        return buildContextFromClaims({ sub, email });
+      } else {
+        console.warn("[auth] x-authorizer-claims present but no valid 'sub'");
       }
     } catch (e) {
-      console.error("[auth] bad x-authorizer-claims header:", e);
-      // fall through to Bearer verification
+      console.warn("[auth] failed to parse x-authorizer-claims:", e);
     }
   }
 
-  // 2) Fallback: verify Bearer token ourselves
-  const raw =
+  // 2) BYPASS (local/dev)
+  const bypass = checkAuthBypass();
+  if (bypass) return buildContextFromClaims(bypass);
+
+  // 3) Fallback to verifying the bearer token ourselves
+  const rawAuth =
     headers.authorization ||
     (headers as Record<string, string | undefined>).Authorization ||
     "";
 
-  if (!raw.startsWith("Bearer ")) return { user: null };
-
-  const token = raw.slice(7);
-
-  // Gentle introspection to help debug what's wrong
-  try {
-    const decodedLoose = jwt.decode(token, { complete: true }) as
-      | { header?: Record<string, unknown>; payload?: Record<string, unknown> }
-      | null;
-    console.log(
-      "[jwt] kid:", decodedLoose?.header?.kid,
-      "token_use:", decodedLoose?.payload?.token_use,
-      "iss:", decodedLoose?.payload?.iss,
-      "aud:", decodedLoose?.payload?.aud,
-      "client_id:", decodedLoose?.payload?.client_id
-    );
-  } catch {
-    // ignore
-  }
+  if (!rawAuth.startsWith("Bearer ")) return { user: null };
 
   try {
-    const { sub, email } = await decodeToken(token);
+    const { sub, email } = await decodeToken(rawAuth.slice(7));
     return buildContextFromClaims({ sub, email });
   } catch (err) {
     console.error("[auth] lambda context error:", err);

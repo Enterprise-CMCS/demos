@@ -13,52 +13,28 @@ import {
 
 import type {
   APIGatewayProxyEvent,
-  APIGatewayProxyEventV2,
   APIGatewayProxyEventHeaders,
-  APIGatewayEventRequestContext,
-  APIGatewayEventRequestContextV2,
 } from "aws-lambda";
-
-type LambdaEvent = APIGatewayProxyEvent | APIGatewayProxyEventV2;
 
 type JwtClaims = { sub: string; email?: string };
 
-function isV2Context(
-  ctx: APIGatewayEventRequestContext | APIGatewayEventRequestContextV2
-): ctx is APIGatewayEventRequestContextV2 {
-  return "http" in ctx;
-}
+function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null {
+  // In REST custom authorizer, requestContext.authorizer is a flat map of strings
+  const auth = (event.requestContext?.authorizer ?? {}) as Record<string, unknown>;
 
-function extractAuthorizerClaims(event: LambdaEvent): JwtClaims | null {
-  const rc = event.requestContext;
-  if (isV2Context(rc)) {
-    // HTTP API (v2): requestContext.authorizer.jwt.claims See if this exists!
-    const claims = (rc as APIGatewayEventRequestContextV2 & {
-      authorizer?: {
-        jwt?: {
-          claims?: Record<string, unknown>
-        }
-      }
-    }).authorizer?.jwt?.claims;
-    if (claims && typeof claims === "object") {
-      const subVal = (claims as Record<string, unknown>).sub;
-      if (typeof subVal !== "string" || !subVal) return null;
-      const emailVal = (claims as Record<string, unknown>).email;
-      const email = typeof emailVal === "string" ? emailVal : undefined;
-      return { sub: subVal, email };
-    }
-  } else {
-    // REST API (v1): requestContext.authorizer.claims
-    const auth = (rc.authorizer ?? {}) as { claims?: Record<string, unknown> };
-    const claims = auth.claims;
-    if (claims && typeof claims === "object") {
-      const sub = typeof claims.sub === "string" ? claims.sub : "";
-      if (!sub) return null;
-      const email = typeof claims.email === "string" ? claims.email : undefined;
-      return { sub, email };
-    }
-  }
-  return null;
+  const sub = typeof auth.sub === "string" && auth.sub.length > 0 ? auth.sub : null;
+  const email = typeof auth.email === "string" ? auth.email : undefined;
+
+  if (!sub) return null;
+
+  // Optional: show what's coming through from the authorizer
+  // (Be careful to not log PII in production)
+  console.log(
+    "[lambda] authorizer keys:",
+    Object.keys(auth).join(", ") || "<none>"
+  );
+
+  return { sub, email };
 }
 
 function withAuthorizerHeader(
@@ -70,15 +46,10 @@ function withAuthorizerHeader(
     : headers;
 }
 
-const databaseUrlPromise = getDatabaseUrl()
-  .then((url) => {
-    process.env.DATABASE_URL = url;
-    return url;
-  })
-  .catch((error) => {
-    console.error("Failed to get database URL:", error);
-    throw error;
-  });
+const databaseUrlPromise = getDatabaseUrl().then((url) => {
+  process.env.DATABASE_URL = url;
+  return url;
+});
 
 const server = new ApolloServer<GraphQLContext>({ typeDefs, resolvers });
 
@@ -89,9 +60,17 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
     context: async ({ event, context }) => {
       await databaseUrlPromise;
 
-      const claims = extractAuthorizerClaims(event as LambdaEvent);
-      console.log("[lambda] authorizer claims present:", !!claims, claims?.sub ?? null);
-      const headersWithClaims = withAuthorizerHeader(event.headers, claims);
+      const restEvent = event as APIGatewayProxyEvent;
+
+      const claims = extractAuthorizerClaims(restEvent);
+      console.log(
+        "[lambda] authorizer claims present:",
+        !!claims,
+        claims?.sub ?? null
+      );
+
+      // Pass claims to the existing builder via a header so we don't change its signature
+      const headersWithClaims = withAuthorizerHeader(restEvent.headers, claims);
 
       const gqlCtx = await buildLambdaContext(headersWithClaims);
 
