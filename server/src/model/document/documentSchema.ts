@@ -67,6 +67,7 @@ export interface UploadDocumentInput {
 }
 
 export interface UpdateDocumentInput {
+  id: string;
   title?: string;
   description?: string;
   documentType?: string;

@@ -412,6 +412,7 @@ export const EditDocumentModal: React.FC<{
 
   const handleEdit = async (modalFields: DocumentModalFields) => {
     const updateDocumentInput: UpdateDocumentInput = {
+      id: modalFields.id,
       title: modalFields.title,
       description: modalFields.description,
       documentType: modalFields.documentType,
