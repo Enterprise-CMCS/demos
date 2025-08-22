@@ -1,31 +1,24 @@
 import React from "react";
 import { Button } from "components/button/Button";
-import { useAuth } from "react-oidc-context";
-import { logout } from "router/cognitoConfig";
+import { useAuthActions } from "./AuthActions";
 
-export const SignoutButton = () => {
-  const auth = useAuth();
-  const handleLogout = () => {
-    auth.removeUser();
-    logout();
-  };
-
+/**
+ * Remove `onClick` from the props passed to SigninButton,
+ * so only the internal `signIn` handler is used.
+ */
+export function SigninButton(): React.ReactElement {
+  const { signIn } = useAuthActions();
   return (
-    <Button name="sign-out" onClick={handleLogout}>
-      Sign Out
+    <Button name="sign-in" onClick={signIn}>
+      Sign In
     </Button>
   );
 };
-
-export const SigninButton = () => {
-  const auth = useAuth();
-  const handleSignin = () => {
-    auth.signinRedirect();
-  };
-
+export function SignoutButton(): React.ReactElement {
+  const { signOut } = useAuthActions();
   return (
-    <Button name="sign-in" onClick={handleSignin}>
-      Sign In
+    <Button name="sign-out" onClick={signOut}>
+      Sign Out
     </Button>
   );
 };
