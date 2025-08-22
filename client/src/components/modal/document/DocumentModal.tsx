@@ -8,9 +8,13 @@ import { BaseModal } from "components/modal/BaseModal";
 import { useToast } from "components/toast";
 import { tw } from "tags/tw";
 import { TextInput } from "components/input";
-import { Document, DocumentType } from "demos-server";
+import { Document, DocumentType, UploadDocumentInput, UpdateDocumentInput } from "demos-server";
 import { useMutation } from "@apollo/client";
-import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
+import {
+  DELETE_DOCUMENTS_QUERY,
+  UPLOAD_DOCUMENT_QUERY,
+  UPDATE_DOCUMENT_QUERY,
+} from "queries/documentQueries";
 import { Option } from "components/input/select/Select";
 
 type DocumentModalType = "add" | "edit";
@@ -232,7 +236,7 @@ const DropTarget: React.FC<{
 // Currently the Document object has the old documentType on it so this is
 // a simplification until the new documentType field is on document as a string
 export type DocumentModalFields = Pick<Document, "id" | "title" | "description"> & {
-  documentType?: DocumentType;
+  documentType: DocumentType;
 };
 
 const EMPTY_DOCUMENT_FIELDS: DocumentModalFields = {
@@ -240,6 +244,22 @@ const EMPTY_DOCUMENT_FIELDS: DocumentModalFields = {
   title: "",
   description: "",
   documentType: "generalFile",
+};
+
+const getUploadDocumentInput = (fields: DocumentModalFields): UploadDocumentInput => {
+  return {
+    title: fields.title,
+    description: fields.description,
+    documentType: fields.documentType,
+  };
+};
+
+const getUpdateDocumentInput = (fields: DocumentModalFields): UpdateDocumentInput => {
+  return {
+    title: fields.title,
+    description: fields.description,
+    documentType: fields.documentType,
+  };
 };
 
 type DocumentModalProps = {

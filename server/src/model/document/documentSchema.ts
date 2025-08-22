@@ -25,8 +25,6 @@ export const documentSchema = gql`
     title: String!
     description: String!
     documentType: String!
-    ownerUserId: ID!
-    demonstrationId: ID!
   }
 
   input UpdateDocumentInput {
@@ -65,16 +63,11 @@ export interface Document {
 export interface UploadDocumentInput {
   title: string;
   description: string;
-  ownerUserId: string;
-  documentTypeId: string;
-  demonstrationId: string;
+  documentType: string;
 }
 
 export interface UpdateDocumentInput {
   title?: string;
   description?: string;
-  s3Path?: string;
-  ownerUserId?: string;
-  documentTypeId?: string;
-  demonstrationId?: string;
+  documentType?: string;
 }
