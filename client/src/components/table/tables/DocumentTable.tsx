@@ -2,20 +2,13 @@
 import * as React from "react";
 
 import { CircleButton } from "components/button/CircleButton";
-import {
-  DeleteIcon,
-  EditIcon,
-  ImportIcon,
-} from "components/icons";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 import {
   AddDocumentModal,
   EditDocumentModal,
   RemoveDocumentModal,
 } from "components/modal/document/DocumentModal";
-import {
-  DocumentTableRow,
-  useDocument,
-} from "hooks/useDocument";
+import { DocumentTableRow, useDocument } from "hooks/useDocument";
 
 import { ColumnFilter } from "../ColumnFilter";
 import { DocumentColumns } from "../columns/DocumentColumns";
@@ -31,11 +24,7 @@ interface DocumentModalsProps {
   selectedDocs: DocumentTableRow[];
 }
 
-function DocumentModals({
-  displayedModal,
-  onClose,
-  selectedDocs,
-}: DocumentModalsProps) {
+function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModalsProps) {
   if (displayedModal === "add") {
     return <AddDocumentModal onClose={onClose} />;
   }
@@ -96,10 +85,8 @@ function DocumentActionButtons({
 }
 
 export function DocumentTable() {
-  const [displayedModal, setDisplayedModal] =
-    React.useState<DisplayedModal>(null);
-  const { documentColumns, documentColumnsLoading, documentColumnsError } =
-    DocumentColumns();
+  const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
+  const { documentColumns, documentColumnsLoading, documentColumnsError } = DocumentColumns();
 
   const { getDocumentTable } = useDocument();
   const {
@@ -114,15 +101,11 @@ export function DocumentTable() {
 
   if (documentColumnsLoading) return <div className="p-4">Loading...</div>;
   if (documentColumnsError)
-    return (
-      <div className="p-4">Error loading data: {documentColumnsError}</div>
-    );
+    return <div className="p-4">Error loading data: {documentColumnsError}</div>;
 
   if (documentTableLoading) return <div className="p-4">Loading...</div>;
-  if (documentsTableError)
-    return <div className="p-4">Error loading documents</div>;
-  if (!documentsTableData)
-    return <div className="p-4">Documents not found</div>;
+  if (documentsTableError) return <div className="p-4">Error loading documents</div>;
+  if (!documentsTableData) return <div className="p-4">Documents not found</div>;
 
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
@@ -148,9 +131,7 @@ export function DocumentTable() {
             />
           )}
           actionModals={(table) => {
-            const selectedDocs = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original);
+            const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
 
             return (
               <DocumentModals

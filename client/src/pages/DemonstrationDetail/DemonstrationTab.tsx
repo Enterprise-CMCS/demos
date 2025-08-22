@@ -6,6 +6,7 @@ import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { TabItem, Tabs } from "layout/Tabs";
+import { DemonstrationDetailContacts } from "./DemonstrationDetailContacts";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -71,15 +72,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
           </div>
         )}
 
-        {subTab === "contacts" && (
-          <div>
-            <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
-              {/* TO DO: Add New button? */}
-            </div>
-            {/* TO DO: Add Table */}
-          </div>
-        )}
+        {subTab === "contacts" && <DemonstrationDetailContacts />}
       </div>
 
       {/* Replaced the CreateNewModal */}
