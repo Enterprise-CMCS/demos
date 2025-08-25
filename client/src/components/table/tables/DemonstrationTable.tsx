@@ -1,103 +1,81 @@
 import React from "react";
 import { Table } from "../Table";
 import { TabItem, Tabs } from "layout/Tabs";
-import { DemonstrationTableItem, useDemonstration } from "hooks/useDemonstration";
 import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
+import { DemonstrationStatus, State } from "demos-server";
+import {
+  Demonstration,
+  DemonstrationAmendment,
+  DemonstrationExtension,
+} from "pages/Demonstrations";
 
-// --- Generic TableRow type for both demonstration and application rows ---
-export type TableRow = {
-  id: string;
-  name: string;
-  state?: { name: string };
-  projectOfficer?: { fullName: string };
-  users?: { id: string }[];
-  amendments?: TableRow[];
-  extensions?: TableRow[];
-  applications?: TableRow[];
-  type?: "amendment" | "extension";
-  applicationStatus?: { name: string };
-  demonstrationStatus?: { name: string };
-  status?: { name: string };
-  parentId?: string;
+export type GenericDemonstrationTableRow =
+  | (Demonstration & { type: "demonstration" })
+  | (DemonstrationAmendment & {
+      type: "amendment";
+      state: Pick<State, "name">;
+      status: Pick<DemonstrationStatus, "name">;
+      parentId: string;
+    })
+  | (DemonstrationExtension & {
+      type: "extension";
+      state: Pick<State, "name">;
+      status: Pick<DemonstrationStatus, "name">;
+      parentId: string;
+    });
+
+const getSubRows = (
+  row: GenericDemonstrationTableRow
+): GenericDemonstrationTableRow[] | undefined => {
+  if (row.type !== "demonstration") return undefined;
+  return [
+    ...row.amendments.map(
+      (amendment) =>
+        ({
+          ...amendment,
+          type: "amendment",
+          state: row.state,
+          status: amendment.amendmentStatus,
+          parentId: row.id,
+        }) as GenericDemonstrationTableRow
+    ),
+    ...row.extensions.map(
+      (extension) =>
+        ({
+          ...extension,
+          type: "extension",
+          state: row.state,
+          status: extension.extensionStatus,
+          parentId: row.id,
+        }) as GenericDemonstrationTableRow
+    ),
+  ];
 };
 
-// Map demonstration data to generic TableRow
-function mapToTableRow(item: DemonstrationTableItem): TableRow {
-  const amendments = (item.amendments || []).map((app) => ({
-    id: app.id,
-    name: app.name,
-    type: "amendment" as const,
-    projectOfficer: app.projectOfficer,
-    applicationStatus: app.amendmentStatus,
-    state: item.state,
-    status: app.amendmentStatus,
-    parentId: item.id,
-  }));
-
-  const extensions = (item.extensions || []).map((app) => ({
-    id: app.id,
-    name: app.name,
-    type: "extension" as const,
-    projectOfficer: app.projectOfficer,
-    applicationStatus: app.extensionStatus,
-    state: item.state,
-    status: app.extensionStatus,
-    parentId: item.id,
-  }));
-
-  const applications = [...amendments, ...extensions];
-
-  return {
-    id: item.id,
-    name: item.name,
-    state: item.state,
-    demonstrationStatus: item.demonstrationStatus,
-    status: item.demonstrationStatus,
-    projectOfficer: item.projectOfficer,
-    users: item.users,
-    amendments,
-    extensions,
-    applications,
-  };
-}
-
-const getSubRows = (row: TableRow) => row.applications;
-
-export const DemonstrationTable: React.FC = () => {
+type DemonstrationTableRow = Demonstration;
+export const DemonstrationTable: React.FC<{ demonstrations: DemonstrationTableRow[] }> = ({
+  demonstrations,
+}) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
   const { demonstrationColumns, demonstrationColumnsLoading, demonstrationColumnsError } =
     DemonstrationColumns();
 
-  const { getDemonstrationTable } = useDemonstration();
-  const {
-    data: demonstrationsTableData,
-    loading: demonstrationsTableLoading,
-    error: demonstrationsTableError,
-  } = getDemonstrationTable;
-
-  React.useEffect(() => {
-    getDemonstrationTable.trigger();
-  }, []);
-
   if (demonstrationColumnsLoading) return <div className="p-4">Loading...</div>;
   if (demonstrationColumnsError)
-    return <div className="p-4">Error loading data: {demonstrationColumnsError}</div>;
-  if (demonstrationsTableLoading) return <div className="p-4">Loading...</div>;
-  if (demonstrationsTableError) return <div className="p-4">Error loading demonstrations</div>;
-  if (!demonstrationsTableData) return <div className="p-4">Demonstrations not found</div>;
+    return <div className="p-4">Error loading column data: {demonstrationColumnsError}</div>;
 
   // TODO: Replace with actual current user ID from authentication context
   const currentUserId = "1";
 
-  const myDemos: DemonstrationTableItem[] = demonstrationsTableData.filter(
-    (demo: DemonstrationTableItem) => demo.users.some((user) => user.id === currentUserId)
+  const myDemos: DemonstrationTableRow[] = demonstrations.filter((demo: DemonstrationTableRow) =>
+    demo.users.some((user) => user.id === currentUserId)
   );
 
-  const allDemos: DemonstrationTableItem[] = demonstrationsTableData;
+  const allDemos: DemonstrationTableRow[] = demonstrations;
 
   const tabList: TabItem[] = [
     {
@@ -119,8 +97,6 @@ export const DemonstrationTable: React.FC = () => {
       : "No demonstrations are tracked.";
   const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
 
-  const tableRows: TableRow[] = dataToShow.map(mapToTableRow);
-
   return (
     <div>
       <Tabs
@@ -129,8 +105,12 @@ export const DemonstrationTable: React.FC = () => {
         onChange={(newVal) => setTab(newVal as "my" | "all")}
       />
       {demonstrationColumns && (
-        <Table<TableRow>
-          data={tableRows}
+        <Table<GenericDemonstrationTableRow>
+          data={dataToShow.map((demonstration) => ({
+            ...demonstration,
+            type: "demonstration",
+            status: demonstration.demonstrationStatus,
+          }))}
           columns={demonstrationColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columnFilter={(table) => <ColumnFilter table={table} />}
