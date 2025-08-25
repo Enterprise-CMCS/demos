@@ -6,7 +6,7 @@ import { useUserOperations } from "hooks/useUserOperations";
 import { useState } from "hooks/useState";
 import { useDemonstrationStatus } from "hooks/useDemonstrationStatus";
 import React from "react";
-import { TableRow } from "../tables/DemonstrationTable";
+import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
@@ -23,18 +23,10 @@ export function DemonstrationColumns() {
   }, []);
 
   // Loading and error handling
-  if (
-    getUserOptions.loading ||
-    getStateOptions.loading ||
-    getDemonstrationStatusOptions.loading
-  ) {
+  if (getUserOptions.loading || getStateOptions.loading || getDemonstrationStatusOptions.loading) {
     return { loading: true };
   }
-  if (
-    getUserOptions.error ||
-    getStateOptions.error ||
-    getDemonstrationStatusOptions.error
-  ) {
+  if (getUserOptions.error || getStateOptions.error || getDemonstrationStatusOptions.error) {
     return {
       error:
         getUserOptions.error?.message ||
@@ -42,15 +34,11 @@ export function DemonstrationColumns() {
         getDemonstrationStatusOptions.error?.message,
     };
   }
-  if (
-    !getUserOptions.data ||
-    !getStateOptions.data ||
-    !getDemonstrationStatusOptions.data
-  ) {
+  if (!getUserOptions.data || !getStateOptions.data || !getDemonstrationStatusOptions.data) {
     return { error: "Data not found" };
   }
 
-  const columnHelper = createColumnHelper<TableRow>();
+  const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
 
   const demonstrationColumns = [
     columnHelper.display({
@@ -118,15 +106,8 @@ export function DemonstrationColumns() {
       id: "applications",
       header: "Applications",
       cell: ({ row }) => {
-        if (
-          row.original.type === "amendment" ||
-          row.original.type === "extension"
-        ) {
-          return (
-            <span>
-              {row.original.type === "amendment" ? "Amendment" : "Extension"}
-            </span>
-          );
+        if (row.original.type === "amendment" || row.original.type === "extension") {
+          return <span>{row.original.type === "amendment" ? "Amendment" : "Extension"}</span>;
         }
         const amendmentsCount = row.original.amendments?.length ?? 0;
         const extensionsCount = row.original.extensions?.length ?? 0;
