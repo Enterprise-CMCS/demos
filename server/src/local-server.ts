@@ -3,8 +3,7 @@ import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import {
   GraphQLContext,
-  getCognitoUserInfo,
-  getUserRoles,
+  buildHttpContext,
 } from "./auth/auth.util.js";
 
 const server = new ApolloServer<GraphQLContext>({
@@ -13,14 +12,9 @@ const server = new ApolloServer<GraphQLContext>({
   introspection: process.env.ALLOW_INTROSPECTION === "true",
 });
 
-const { url } = await startStandaloneServer(server, {
+const { url } = await startStandaloneServer<GraphQLContext>(server, {
   listen: { port: 4000 },
-  context: async ({ req }) => {
-    // Add any shared context here, e.g., user authentication
-    const { sub, email } = await getCognitoUserInfo(req);
-    const roles = await getUserRoles(sub);
-    return { user: { id: sub, name: email, roles } };
-  },
+  context: async ({ req }) => buildHttpContext(req),
 });
 
 console.log(`🚀 Server listening at: ${url}`);

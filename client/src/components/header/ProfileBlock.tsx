@@ -1,74 +1,43 @@
 import React, { useState } from "react";
-
 import { ChevronDownIcon } from "components/icons";
-import { normalizeUserId } from "hooks/user/uuidHelpers";
-
-import { gql, useQuery } from "@apollo/client";
-
 import { Avatar } from "./Avatar";
-import { Button } from "components/button";
+import { getCurrentUser } from "components/user/UserContext";
+import { SignoutLink, SigninLink } from "../auth/AuthLinks";
 
-export const PROFILE_BLOCK_QUERY = gql`
-  query ProfileBlockQuery($id: ID!) {
-    user(id: $id) {
-      fullName
-    }
-  }
-`;
-
-export const ProfileBlock: React.FC<{ userId?: string }> = ({ userId }) => {
+export const ProfileBlock: React.FC = () => {
   const [open, setOpen] = useState(false);
+  const { currentUser, loading, error } = getCurrentUser();
 
-  if (!userId) {
+  if (loading) return <div className="animate-pulse h-6 w-28 bg-white/20 rounded" />;
+  if (error) { console.error("[ProfileBlock] currentUser error:", error); return null; }
+
+  if (!currentUser) {
     return (
-      <div>
-        <Button name="button-log-in" onClick={() => {}}>
-          Log In
-        </Button>
-      </div>
+      // this really should not be seen, user would be behind login wall.
+      <SigninLink />
     );
   }
-
-  const { data, error, loading } = useQuery(PROFILE_BLOCK_QUERY, {
-    variables: { id: normalizeUserId(userId) },
-  });
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  if (!data || !data.user) {
-    return null;
-  }
-
-  const user = data.user;
-  const firstCharacter = user.fullName.charAt(0).toUpperCase();
+  // TODO: Add ability to set username, fullname, and displayName (if we keep all 3)
+  const name = currentUser.fullName || currentUser.displayName || currentUser.email;
+  const firstCharacter = (name?.trim()?.[0] ?? "?").toUpperCase();
 
   return (
     <div
       id="profile-container"
-      className="relative flex items-center gap-x-1 mr-2 cursor-pointer"
-      onClick={() => setOpen(!open)}
+      className="relative flex items-center gap-x-1 mr-2 cursor-pointer select-none"
+      onClick={() => setOpen(value => !value)}
     >
       <Avatar character={firstCharacter} />
-      <span id="profile-name" className="text-lg font-semibold">
-        {user.fullName}
-      </span>
-      <span>
-        <ChevronDownIcon className={open ? "rotate-180" : ""} />
-      </span>
+      <span id="profile-name" className="text-lg font-semibold">{name}</span>
+      <span><ChevronDownIcon className={open ? "rotate-180" : ""} /></span>
+
       {open && (
-        <ul
-          id="user-actions"
-          className="absolute top-12 min-w-full right-0 bg-white border border-gray-300 rounded shadow-lg z-11"
-        >
+        <ul className="absolute top-12 right-0 min-w-full bg-white border border-gray-300 rounded shadow-lg z-50">
           <li className="hover:bg-gray-100 cursor-pointer p-1">
-            <a>Logout</a>
+            <SignoutLink />
           </li>
           <li className="hover:bg-gray-100 cursor-pointer p-1">
-            <a>View Roles</a>
+            <button onClick={(e) => e.stopPropagation()}>View Roles</button>
           </li>
         </ul>
       )}

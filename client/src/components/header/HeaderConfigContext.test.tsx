@@ -1,13 +1,13 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { UserProvider } from "components/user/UserContext";
 import { HeaderConfigProvider, useHeaderConfig } from "./HeaderConfigContext";
 import { Header } from "./Header";
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 
-// Test component that updates the header content
 const TestConsumer = () => {
   const { setHeaderConfig } = useHeaderConfig();
-
   return (
     <button
       onClick={() =>
@@ -19,21 +19,28 @@ const TestConsumer = () => {
   );
 };
 
+function renderWithProviders(ui: React.ReactNode) {
+  return render(
+    <DemosApolloProvider>
+      <UserProvider>{ui}</UserProvider>
+    </DemosApolloProvider>
+  );
+}
+
 describe("HeaderConfigProvider", () => {
   it("renders defaultLowerContent initially inside Header", () => {
-    render(
+    renderWithProviders(
       <HeaderConfigProvider defaultLowerContent={<div data-testid="default">Default Content</div>}>
         <Header />
       </HeaderConfigProvider>
     );
-
     expect(screen.getByTestId("default")).toHaveTextContent("Default Content");
   });
 
   it("updates content in Header when setHeaderConfig is called", async () => {
     const user = userEvent.setup();
 
-    render(
+    renderWithProviders(
       <HeaderConfigProvider defaultLowerContent={<div data-testid="default">Default Content</div>}>
         <Header />
         <TestConsumer />

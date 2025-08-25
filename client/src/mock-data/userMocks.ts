@@ -1,28 +1,10 @@
-import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
-import { PROFILE_BLOCK_QUERY } from "components/header/ProfileBlock";
 import { User } from "demos-server";
-import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
+import { GET_ALL_USERS, GET_USER_BY_ID, UserOption } from "hooks/useUserOperations";
+import { USER_OPTIONS_QUERY } from "queries/userQueries";
+import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
 
 import { MockedResponse } from "@apollo/client/testing";
 
-export const userOptions: Pick<User, "fullName">[] = [
-  { fullName: "John Doe" },
-  { fullName: "Jane Smith" },
-  { fullName: "Jim Smith" },
-  { fullName: "Darth Smith" },
-  { fullName: "Bob Johnson" },
-  { fullName: "Alice Brown" },
-  { fullName: "Carlos Rivera" },
-  { fullName: "Emily Clark" },
-  { fullName: "Samantha Lee" },
-  { fullName: "Michael Chen" },
-  { fullName: "Linda Park" },
-  { fullName: "David Kim" },
-  { fullName: "Olivia Turner" },
-  { fullName: "Henry Adams" },
-  { fullName: "Sophia Martinez" },
-  { fullName: "James Lee" },
-];
 export const johnDoe: User = {
   id: "1",
   fullName: "John Doe",
@@ -38,101 +20,72 @@ export const johnDoe: User = {
   events: [],
   ownedDocuments: [],
 };
-export const spongebob: Partial<User> = {
-  fullName: "spongebob squarepants",
-};
-export const squidward: Partial<User> = {
-  fullName: " squidward tentacles",
-};
-export const patrick: Partial<User> = {
-  fullName: "patrick star",
+
+export const spongebob: Partial<User> = { fullName: "spongebob squarepants" };
+export const squidward: Partial<User> = { fullName: " squidward tentacles" };
+export const patrick: Partial<User> = { fullName: "patrick star" };
+
+export const bypassUserGUID = "00000000-1111-2222-3333-123abc123abc";
+
+const currentUserResult = {
+  data: {
+    currentUser: {
+      __typename: "User",
+      id: bypassUserGUID,
+      cognitoSubject: "fake-sub-1",
+      username: "johndoe",
+      email: "johndoe@example.com",
+      fullName: "John Doe",
+      displayName: "John",
+      roles: [],
+    },
+  },
 };
 
 export const userMocks: MockedResponse[] = [
+  // It takes two of these apparently to hydrate the Profile block. If load it refetches.
+  // TODO: figure out why refetch is so eager.
+  { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
+  { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
+
   {
-    request: {
-      query: GET_ALL_USERS,
-    },
-    result: {
-      data: { users: [spongebob, squidward, patrick] },
-    },
+    request: { query: GET_ALL_USERS },
+    result: { data: { users: [spongebob, squidward, patrick] } },
   },
   {
-    request: {
-      query: GET_USER_BY_ID,
-      variables: { id: "ss" },
-    },
-    result: {
-      data: { user: spongebob },
-    },
+    request: { query: GET_USER_BY_ID, variables: { id: "ss" } },
+    result: { data: { user: spongebob } },
   },
   {
-    request: {
-      query: GET_USER_BY_ID,
-      variables: { id: "ps" },
-    },
-    result: {
-      data: { user: patrick },
-    },
+    request: { query: GET_USER_BY_ID, variables: { id: "ps" } },
+    result: { data: { user: patrick } },
   },
   {
-    request: {
-      query: GET_USER_BY_ID,
-      variables: { id: "st" },
-    },
-    result: {
-      data: { user: squidward },
-    },
+    request: { query: GET_USER_BY_ID, variables: { id: "st" } },
+    result: { data: { user: squidward } },
   },
+
+  // Options list
   {
-    request: {
-      query: HEADER_LOWER_QUERY,
-      variables: { id: "1" },
-    },
+    request: { query: USER_OPTIONS_QUERY },
     result: {
       data: {
-        user: {
-          fullName: "User Testerson",
-        },
-      },
-    },
-  },
-  {
-    request: {
-      query: PROFILE_BLOCK_QUERY,
-      variables: { id: "1" },
-    },
-    result: {
-      data: {
-        user: {
-          fullName: "User Testerson",
-        },
-      },
-    },
-  },
-  {
-    request: {
-      query: HEADER_LOWER_QUERY,
-      variables: { id: "2" },
-    },
-    result: {
-      data: {
-        user: {
-          fullName: "John Doe",
-        },
-      },
-    },
-  },
-  {
-    request: {
-      query: PROFILE_BLOCK_QUERY,
-      variables: { id: "2" },
-    },
-    result: {
-      data: {
-        user: {
-          fullName: "John Doe",
-        },
+        users: [
+          { fullName: "Yoda" },
+          { fullName: "Leia Organa" },
+          { fullName: "Han Solo" },
+          { fullName: "Luke Skywalker" },
+          { fullName: "Darth Vader" },
+          { fullName: "John Doe" },
+          { fullName: "spongebob squarepants" },
+          { fullName: " squidward tentacles" },
+          { fullName: "patrick star" },
+          { fullName: "User Testerson" },
+          { fullName: "Jane Smith" },
+          { fullName: "Jim Smith" },
+          { fullName: "Darth Smith" },
+          { fullName: "Bob Johnson" },
+        ] satisfies UserOption[],
       },
     },
   },
