@@ -25,6 +25,7 @@
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-idle-timer": "^5.7.2",
     "tailwindcss": "^4.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
