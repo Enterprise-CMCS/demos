@@ -58,12 +58,12 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
 `;
 
 export type DemonstrationAmendment = Pick<Amendment, "id" | "name"> & {
-  projectOfficer: Pick<User, "id">;
-  amendmentStatus: DemonstrationStatus;
+  projectOfficer: Pick<User, "fullName">;
+  amendmentStatus: Pick<DemonstrationStatus, "name">;
 };
 export type DemonstrationExtension = Pick<Extension, "id" | "name"> & {
-  projectOfficer: Pick<User, "id">;
-  extensionStatus: DemonstrationStatus;
+  projectOfficer: Pick<User, "fullName">;
+  extensionStatus: Pick<DemonstrationStatus, "name">;
 };
 
 export type Demonstration = {
