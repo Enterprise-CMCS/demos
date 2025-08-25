@@ -1,46 +1,81 @@
-import { ApolloServer, BaseContext } from '@apollo/server';
+// server.ts
+import { ApolloServer } from "@apollo/server";
 import {
-    startServerAndCreateLambdaHandler,
-    handlers,
-} from '@as-integrations/aws-lambda';
+  startServerAndCreateLambdaHandler,
+  handlers,
+} from "@as-integrations/aws-lambda";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import {
-    getCognitoUserInfoForLambda,
-    getUserRoles,
-    getDatabaseUrl
+  GraphQLContext,
+  buildLambdaContext,
+  getDatabaseUrl,
 } from "./auth/auth.util.js";
 
-const databaseUrlPromise = getDatabaseUrl().then(url => {
-    process.env.DATABASE_URL = url;
-    return url;
-}).catch(error => {
-    console.error("Failed to get database URL:", error);
-    throw error;
+import type {
+  APIGatewayProxyEvent,
+  APIGatewayProxyEventHeaders,
+} from "aws-lambda";
+
+type JwtClaims = { sub: string; email?: string };
+
+function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null {
+  // In REST custom authorizer, requestContext.authorizer is a flat map of strings
+  const auth = (event.requestContext?.authorizer ?? {}) as Record<string, unknown>;
+
+  const sub = typeof auth.sub === "string" && auth.sub.length > 0 ? auth.sub : null;
+  const email = typeof auth.email === "string" ? auth.email : undefined;
+
+  if (!sub) return null;
+
+  // Optional: show what's coming through from the authorizer
+  // (Be careful to not log PII in production)
+  console.log(
+    "[lambda] authorizer keys:",
+    Object.keys(auth).join(", ") || "<none>"
+  );
+
+  return { sub, email };
+}
+
+function withAuthorizerHeader(
+  headers: APIGatewayProxyEventHeaders,
+  claims: JwtClaims | null
+): APIGatewayProxyEventHeaders {
+  return claims
+    ? { ...headers, "x-authorizer-claims": JSON.stringify(claims) }
+    : headers;
+}
+
+const databaseUrlPromise = getDatabaseUrl().then((url) => {
+  process.env.DATABASE_URL = url;
+  return url;
 });
 
-const server = new ApolloServer<BaseContext>({
-    typeDefs,
-    resolvers
-});
+const server = new ApolloServer<GraphQLContext>({ typeDefs, resolvers });
 
 export const graphqlHandler = startServerAndCreateLambdaHandler(
-    server,
-    handlers.createAPIGatewayProxyEventRequestHandler(),
-    {
-        context: async ({ event, context }) => {
-            // Add any shared context here, e.g., user authentication
-            await databaseUrlPromise;
-            
-            // Values from the user's id_token are set in /lambda_authorizer/index.mjs
-            // and available here from event.requestContext.authorizer.<key>
+  server,
+  handlers.createAPIGatewayProxyEventRequestHandler(),
+  {
+    context: async ({ event, context }) => {
+      await databaseUrlPromise;
+      const restEvent = event as APIGatewayProxyEvent;
+      const claims = extractAuthorizerClaims(restEvent);
+      console.log(
+        "[lambda] authorizer claims present:",
+        !!claims,
+        claims?.sub ?? null
+      );
+      // Pass claims to the existing builder via a header so we don't change its signature
+      const headersWithClaims = withAuthorizerHeader(restEvent.headers, claims);
 
-            const { sub, email } = await getCognitoUserInfoForLambda(event.headers);
-            const roles = await getUserRoles(sub);
-            return {
-                user: { id: sub, name: email, roles },
-                lambdaEvent: event,
-                lambdaContext: context
-            };
-        },
-    }
+      const gqlCtx = await buildLambdaContext(headersWithClaims);
+
+      return {
+        ...gqlCtx,
+        lambdaEvent: event,
+        lambdaContext: context,
+      };
+    },
+  }
 );
