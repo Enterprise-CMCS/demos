@@ -57,16 +57,34 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       }
       contacts {
         id
+        fullName
+        email
+        contactType
       }
     }
   }
 `;
+
+export type Contact = {
+  id: string;
+  fullName: string | null;
+  email: string | null;
+  contactType: ContactType | null;
+};
+
+export type ContactType =
+  | "Primary Project Officer"
+  | "Secondary Project Officer"
+  | "State Representative"
+  | "Subject Matter Expert";
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationModalDetails &
   DemonstrationTabDetails & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
+  } & {
+    contacts: Contact[];
   };
 
 type TabType = "details" | "amendments" | "extensions";
@@ -157,11 +175,7 @@ export const DemonstrationDetail: React.FC = () => {
           />
 
           <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && (
-              <DemonstrationTab
-                demonstration={demonstration}
-              />
-            )}
+            {tab === "details" && <DemonstrationTab demonstration={demonstration} />}
 
             {tab === "amendments" && (
               <AmendmentsTab

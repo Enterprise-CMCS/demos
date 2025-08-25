@@ -1,6 +1,4 @@
-import { useParams } from "react-router-dom";
 import React from "react";
-import { gql, useQuery } from "@apollo/client";
 import {
   createColumnHelper,
   flexRender,
@@ -13,29 +11,17 @@ import { PaginationControls } from "../PaginationControls";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 
-export const DEMONSTRATION_DETAIL_CONTACTS_QUERY = gql`
-  query DemonstrationDetailContacts($id: ID!) {
-    demonstration(id: $id) {
-      contacts {
-        fullName
-        email
-        contactType
-      }
-    }
-  }
-`;
-
 type ContactType =
   | "Primary Project Officer"
   | "Secondary Project Officer"
   | "State Representative"
   | "Subject Matter Expert";
 
-type Contact = {
+export type Contact = {
   id: string;
-  fullName: string;
-  email: string;
-  contactType: ContactType;
+  fullName?: string;
+  email?: string;
+  contactType?: ContactType;
 };
 
 const CreateContactModal: React.FC = () => {
@@ -77,8 +63,8 @@ const contactsColumns = [
     size: 20,
   }),
   contactsColumnHelper.accessor("fullName", {
-    id: "stateName",
-    header: "State/Territory",
+    id: "fullName",
+    header: "Name",
   }),
   contactsColumnHelper.accessor("email", {
     id: "email",
@@ -149,19 +135,16 @@ function DocumentActionButtons({
   );
 }
 
-export const ContactsTable: React.FC = () => {
-  const { id: demonstrationId } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{ demonstration: { contacts: Contact[] } }>(
-    DEMONSTRATION_DETAIL_CONTACTS_QUERY,
-    {
-      variables: { id: demonstrationId },
-    }
-  );
+type ContactsTableProps = {
+  contacts: Contact[];
+};
+
+export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts }) => {
   const [rowSelection, setRowSelection] = React.useState({});
   const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
 
   const contactsTable = useReactTable<Contact>({
-    data: data?.demonstration.contacts || [],
+    data: contacts || [],
     columns: contactsColumns,
     state: { rowSelection },
     getCoreRowModel: getCoreRowModel(),
@@ -169,10 +152,6 @@ export const ContactsTable: React.FC = () => {
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection,
   });
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error loading contacts</div>;
-  if (!data || !data.demonstration) return <div>No contacts found</div>;
 
   return (
     <>
@@ -213,9 +192,12 @@ export const ContactsTable: React.FC = () => {
               className={row.depth > 0 ? "bg-gray-200" : ""}
             >
               {row.getVisibleCells().map((cell) => {
+                const value = cell.getContext().getValue();
                 return (
                   <td key={cell.id} className="px-2 py-1 border-b">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {value === undefined || value === null || value === ""
+                      ? "-"
+                      : flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 );
               })}

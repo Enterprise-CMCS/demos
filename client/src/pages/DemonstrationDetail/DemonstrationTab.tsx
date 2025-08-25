@@ -7,6 +7,7 @@ import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable
 import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { TabItem, Tabs } from "layout/Tabs";
 import { DemonstrationDetailContacts } from "./DemonstrationDetailContacts";
+import { Contact } from "./DemonstrationDetail";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -14,7 +15,7 @@ type DocumentModalType = "document" | null;
 export type DemonstrationTabDetails = {
   demonstrationTypes: object[];
   documents: object[];
-  contacts: object[];
+  contacts: Contact[];
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails }> = ({
@@ -72,7 +73,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
           </div>
         )}
 
-        {subTab === "contacts" && <DemonstrationDetailContacts />}
+        {subTab === "contacts" && <DemonstrationDetailContacts demonstration={demonstration} />}
       </div>
 
       {/* Replaced the CreateNewModal */}
