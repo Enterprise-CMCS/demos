@@ -5,13 +5,6 @@ import { vi } from "vitest";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 
-// Mock HTMLDialogElement methods for testing
-beforeAll(() => {
-  HTMLDialogElement.prototype.show = vi.fn();
-  HTMLDialogElement.prototype.showModal = vi.fn();
-  HTMLDialogElement.prototype.close = vi.fn();
-});
-
 describe("BaseDialog", () => {
   const defaultProps = {
     title: "Test Dialog",

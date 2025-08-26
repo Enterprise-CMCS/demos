@@ -6,19 +6,12 @@ import { useExtension } from "hooks/useExtension";
 
 import {
   BaseModificationDialog,
-  ModificationDialogData,
-  ModificationDialogMode,
+  BaseModificationDialogProps,
 } from "./BaseModificationDialog";
 
-type ExtensionDialogMode = ModificationDialogMode;
-
-type Props = {
-  isOpen?: boolean;
-  onClose: () => void;
-  mode: ExtensionDialogMode;
+// Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
+type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
   extensionId?: string;
-  demonstrationId?: string;
-  data?: ModificationDialogData;
 };
 
 export const ExtensionDialog: React.FC<Props> = ({

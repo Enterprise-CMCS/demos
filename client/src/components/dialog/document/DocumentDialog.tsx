@@ -10,9 +10,9 @@ import { Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
-import { DELETE_DOCUMENTS_QUERY, UPLOAD_DOCUMENT_QUERY, UPDATE_DOCUMENT_QUERY } from "queries/documentQueries";
+import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
 import { tw } from "tags/tw";
-import { Document, DocumentType, UploadDocumentInput, UpdateDocumentInput } from "demos-server";
+import { DocumentType } from "demos-server";
 
 type DocumentDialogType = "add" | "edit";
 

@@ -4,19 +4,12 @@ import { createFormDataWithDates } from "hooks/useDialogForm";
 
 import {
   BaseModificationDialog,
-  ModificationDialogData,
-  ModificationDialogMode,
+  BaseModificationDialogProps,
 } from "./BaseModificationDialog";
 
-type AmendmentDialogMode = ModificationDialogMode;
-
-type Props = {
-  isOpen?: boolean;
-  onClose: () => void;
-  mode: AmendmentDialogMode;
+// Pick the props we need from BaseModificationDialogProps and rename entityId to amendmentId for clarity
+type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
   amendmentId?: string;
-  demonstrationId?: string;
-  data?: ModificationDialogData;
 };
 
 export const AmendmentDialog: React.FC<Props> = ({
