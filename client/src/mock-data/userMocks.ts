@@ -1,4 +1,3 @@
-import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
 import { User } from "demos-server";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
 import {
@@ -91,33 +90,6 @@ export const userMocks: MockedResponse[] = [
           { fullName: "Darth Smith" },
           { fullName: "Bob Johnson" },
         ] satisfies UserOption[],
-      },
-    },
-  },
-  // Mock for HEADER_LOWER_QUERY
-  {
-    request: {
-      query: HEADER_LOWER_QUERY,
-      variables: { id: bypassUserGUID },
-    },
-    result: {
-      data: {
-        user: {
-          fullName: "John Doe",
-        },
-      },
-    },
-  },
-  {
-    request: {
-      query: HEADER_LOWER_QUERY,
-      variables: { id: johnDoe.id },
-    },
-    result: {
-      data: {
-        user: {
-          fullName: johnDoe.fullName,
-        },
       },
     },
   },
