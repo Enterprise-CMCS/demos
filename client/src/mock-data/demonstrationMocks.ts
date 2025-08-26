@@ -2,9 +2,9 @@ import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { DemonstrationTableItem } from "hooks/useDemonstration";
 import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/Demonstrations";
 import {
   ADD_DEMONSTRATION_QUERY,
-  DEMONSTRATION_TABLE_QUERY,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
@@ -221,7 +221,7 @@ export const demonstrationMocks: MockedResponse[] = [
   // its looking for. Surely there is a way that, providing a slim type, we can return a mock object that satisfies the type exactly.
   {
     request: {
-      query: DEMONSTRATION_TABLE_QUERY,
+      query: DEMONSTRATIONS_PAGE_QUERY,
     },
     result: {
       data: {
