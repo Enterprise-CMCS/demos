@@ -6,6 +6,9 @@ interface SuccessToastProps {
   onDismiss: () => void;
 }
 
-export const SuccessToast: React.FC<SuccessToastProps> = ({ message, onDismiss }) => (
+export const SuccessToast: React.FC<SuccessToastProps> = ({
+  message,
+  onDismiss,
+}) => (
   <BaseToast toastType="success" message={message} onDismiss={onDismiss} />
 );

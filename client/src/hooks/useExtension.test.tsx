@@ -75,9 +75,7 @@ describe("useExtension", () => {
       expect(result.current.addExtension.data).toBeUndefined();
 
       // Use type assertion to match the actual usage pattern
-      const mutationResult = await result.current.addExtension.trigger(
-        mockExtensionInput as unknown as AddExtensionInput
-      );
+      const mutationResult = await result.current.addExtension.trigger(mockExtensionInput as unknown as AddExtensionInput);
 
       // Check the mutation result directly
       expect(mutationResult.data?.addExtension).toEqual(mockExtensionResponse);

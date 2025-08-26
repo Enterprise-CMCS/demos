@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
 import { SecondaryButton } from "components/button";
-import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
 import { EditIcon } from "components/icons";
+import { DemonstrationModal } from "components/modal/DemonstrationModal";
 import { Demonstration } from "demos-server";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
@@ -107,7 +107,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
       </div>
 
       {isEditModalOpen && demonstration && (
-        <DemonstrationDialog mode="edit" demonstration={demonstration} onClose={handleCloseModal} />
+        <DemonstrationModal mode="edit" demonstration={demonstration} onClose={handleCloseModal} />
       )}
     </div>
   );

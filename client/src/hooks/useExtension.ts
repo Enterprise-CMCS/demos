@@ -1,4 +1,8 @@
-import { AddExtensionInput, Extension, UpdateExtensionInput } from "demos-server";
+import {
+  AddExtensionInput,
+  Extension,
+  UpdateExtensionInput,
+} from "demos-server";
 import {
   ADD_EXTENSION_QUERY,
   GET_ALL_EXTENSIONS_QUERY,
@@ -6,7 +10,12 @@ import {
   UPDATE_EXTENSION_MUTATION,
 } from "queries/extensionQueries";
 
-import { ApolloError, FetchResult, useLazyQuery, useMutation } from "@apollo/client";
+import {
+  ApolloError,
+  FetchResult,
+  useLazyQuery,
+  useMutation,
+} from "@apollo/client";
 
 interface GetAllExtensionsOperation {
   trigger: () => void;
@@ -23,7 +32,9 @@ interface GetExtensionByIdOperation {
 }
 
 interface CreateExtensionOperation {
-  trigger: (input: AddExtensionInput) => Promise<FetchResult<{ addExtension: Extension }>>;
+  trigger: (
+    input: AddExtensionInput
+  ) => Promise<FetchResult<{ addExtension: Extension }>>;
   data?: Extension;
   loading: boolean;
   error?: ApolloError;
@@ -78,7 +89,8 @@ const createAddExtensionHook = (): CreateExtensionOperation => {
   }>(ADD_EXTENSION_QUERY);
 
   return {
-    trigger: async (input: AddExtensionInput) => await trigger({ variables: { input } }),
+    trigger: async (input: AddExtensionInput) =>
+      await trigger({ variables: { input } }),
     data: data?.addExtension,
     loading,
     error,

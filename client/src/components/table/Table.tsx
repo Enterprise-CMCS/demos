@@ -13,7 +13,6 @@ import {
   InitialTableState,
   Table as TanstackTable,
   RowSelectionState,
-  HeaderGroup,
 } from "@tanstack/react-table";
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
 
@@ -32,34 +31,6 @@ export interface TableProps<T> {
   pagination?: (table: TanstackTable<T>) => React.ReactNode;
   actionButtons?: (table: TanstackTable<T>) => React.ReactNode;
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
-}
-
-type TableHeadProps<T> = {
-  headerGroups: HeaderGroup<T>[];
-};
-
-export function TableHead<T>({ headerGroups }: TableHeadProps<T>) {
-  return (
-    <thead>
-      {headerGroups.map((hg) => (
-        <tr key={hg.id} className="bg-gray-200">
-          {hg.headers.map((header) => (
-            <th
-              key={header.id}
-              className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
-              onClick={header.column.getToggleSortingHandler()}
-            >
-              {flexRender(header.column.columnDef.header, header.getContext())}
-              {{
-                asc: " ↑",
-                desc: " ↓",
-              }[header.column.getIsSorted() as string] ?? null}
-            </th>
-          ))}
-        </tr>
-      ))}
-    </thead>
-  );
 }
 
 export function Table<T>({
@@ -103,7 +74,8 @@ export function Table<T>({
   // Auto-expand parents with visible children after filtering
   React.useEffect(() => {
     const isFiltering =
-      table.getState().columnFilters?.length > 0 || !!table.getState().globalFilter;
+      table.getState().columnFilters?.length > 0 ||
+      !!table.getState().globalFilter;
 
     if (isFiltering) {
       const filteredRows = table.getFilteredRowModel().rows;
@@ -145,7 +117,28 @@ export function Table<T>({
 
       {/* Table Section */}
       <table className="w-full table-fixed text-sm">
-        <TableHead headerGroups={table.getHeaderGroups()} />
+        <thead>
+          {table.getHeaderGroups().map((hg) => (
+            <tr key={hg.id} className="bg-gray-200">
+              {hg.headers.map((header) => (
+                <th
+                  key={header.id}
+                  className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
+                  onClick={header.column.getToggleSortingHandler()}
+                >
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                  {{
+                    asc: " ↑",
+                    desc: " ↓",
+                  }[header.column.getIsSorted() as string] ?? null}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
         <tbody>
           {filtersClearedOutData ? (
             <tr>
@@ -175,7 +168,10 @@ export function Table<T>({
                 {row.getVisibleCells().map((cell) => {
                   return (
                     <td key={cell.id} className="px-2 py-1 border-b">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </td>
                   );
                 })}

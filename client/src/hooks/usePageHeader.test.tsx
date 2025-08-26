@@ -18,29 +18,31 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe("usePageHeader hook", () => {
   it("sets header content on mount, updates on rerender, and clears on unmount", async () => {
-    const { rerender, unmount } = renderHook(({ content }) => usePageHeader(content), {
-      initialProps: { content: <div data-testid="header-content">Test Header Content</div> },
-      wrapper,
-    });
+    const { rerender, unmount } = renderHook(
+      ({ content }) => usePageHeader(content),
+      {
+        initialProps: { content: <div data-testid="header-content">Test Header Content</div> },
+        wrapper,
+      }
+    );
 
     await waitFor(() => {
-      expect(document.querySelector("[data-testid='header-content']")?.textContent).toBe(
-        "Test Header Content"
-      );
+      expect(document.querySelector("[data-testid='header-content']")?.textContent)
+        .toBe("Test Header Content");
     });
 
     rerender({ content: <div data-testid="header-content">New Header Content</div> });
 
     await waitFor(() => {
-      expect(document.querySelector("[data-testid='header-content']")?.textContent).toBe(
-        "New Header Content"
-      );
+      expect(document.querySelector("[data-testid='header-content']")?.textContent)
+        .toBe("New Header Content");
     });
 
     unmount();
 
     await waitFor(() => {
-      expect(document.querySelector("[data-testid='header-content']")).not.toBeInTheDocument();
+      expect(document.querySelector("[data-testid='header-content']"))
+        .not.toBeInTheDocument();
     });
   });
 });

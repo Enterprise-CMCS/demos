@@ -6,6 +6,9 @@ interface ErrorToastProps {
   onDismiss: () => void;
 }
 
-export const ErrorToast: React.FC<ErrorToastProps> = ({ message, onDismiss }) => (
+export const ErrorToast: React.FC<ErrorToastProps> = ({
+  message,
+  onDismiss,
+}) => (
   <BaseToast toastType="error" message={message} onDismiss={onDismiss} />
 );

@@ -15,18 +15,19 @@ export interface DemonstrationStatusOperations {
   getDemonstrationStatusOptions: GetDemonstrationStatusOptionsOperation;
 }
 
-const createGetDemonstrationStatusOptionsHook = (): GetDemonstrationStatusOptionsOperation => {
-  const [trigger, { data, loading, error }] = useLazyQuery<{
-    demonstrationStatuses: DemonstrationStatusOption[];
-  }>(DEMONSTRATION_STATUS_OPTIONS_QUERY);
+const createGetDemonstrationStatusOptionsHook =
+  (): GetDemonstrationStatusOptionsOperation => {
+    const [trigger, { data, loading, error }] = useLazyQuery<{
+      demonstrationStatuses: DemonstrationStatusOption[];
+    }>(DEMONSTRATION_STATUS_OPTIONS_QUERY);
 
-  return {
-    trigger,
-    data: data?.demonstrationStatuses,
-    loading,
-    error,
+    return {
+      trigger,
+      data: data?.demonstrationStatuses,
+      loading,
+      error,
+    };
   };
-};
 
 export const useDemonstrationStatus = (): DemonstrationStatusOperations => {
   return {
