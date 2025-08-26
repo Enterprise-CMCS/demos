@@ -1,5 +1,4 @@
-import { CreateDemonstrationInput, Demonstration } from "demos-server";
-import { DemonstrationTableItem } from "hooks/useDemonstration";
+import { CreateDemonstrationInput } from "demos-server";
 import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/Demonstrations";
@@ -16,7 +15,7 @@ import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
 import { california } from "./stateMocks";
 import { johnDoe } from "./userMocks";
 
-export const testDemonstration: Demonstration = {
+export const testDemonstration = {
   id: "1",
   name: "Test Demonstration",
   description: "Test Description",
@@ -545,8 +544,22 @@ export const demonstrationMocks: MockedResponse[] = [
             amendments: [],
             extensions: [],
           },
-        ] satisfies DemonstrationTableItem[],
+        ],
       },
     },
   },
 ];
+
+// Extract the data from the DEMONSTRATIONS_PAGE_QUERY mock for use in tests
+const demonstrationsPageQueryMock = demonstrationMocks.find(
+  (mock) => mock.request.query === DEMONSTRATIONS_PAGE_QUERY
+);
+
+export const demonstrationsPageMockData = {
+  demonstrations: demonstrationsPageQueryMock?.result
+    ? typeof demonstrationsPageQueryMock.result === "function"
+      ? []
+      : (demonstrationsPageQueryMock.result as { data: { demonstrations: unknown[] } })?.data
+        ?.demonstrations || []
+    : [],
+};
