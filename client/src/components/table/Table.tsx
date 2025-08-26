@@ -13,6 +13,7 @@ import {
   InitialTableState,
   Table as TanstackTable,
   RowSelectionState,
+  HeaderGroup,
 } from "@tanstack/react-table";
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
 
@@ -31,6 +32,34 @@ export interface TableProps<T> {
   pagination?: (table: TanstackTable<T>) => React.ReactNode;
   actionButtons?: (table: TanstackTable<T>) => React.ReactNode;
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
+}
+
+type TableHeadProps<T> = {
+  headerGroups: HeaderGroup<T>[];
+};
+
+export function TableHead<T>({ headerGroups }: TableHeadProps<T>) {
+  return (
+    <thead>
+      {headerGroups.map((hg) => (
+        <tr key={hg.id} className="bg-gray-200">
+          {hg.headers.map((header) => (
+            <th
+              key={header.id}
+              className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
+              onClick={header.column.getToggleSortingHandler()}
+            >
+              {flexRender(header.column.columnDef.header, header.getContext())}
+              {{
+                asc: " ↑",
+                desc: " ↓",
+              }[header.column.getIsSorted() as string] ?? null}
+            </th>
+          ))}
+        </tr>
+      ))}
+    </thead>
+  );
 }
 
 export function Table<T>({
