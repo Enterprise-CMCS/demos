@@ -1,22 +1,35 @@
 import React, { useEffect, useRef, useState } from "react";
-import { SecondaryButton } from "components/button/SecondaryButton";
-import { AddNewIcon } from "components/icons";
-import { DemonstrationModal } from "components/modal/DemonstrationModal";
-import { CreateNewModal } from "components/modal/CreateNewModal";
-import { AddDocumentModal } from "components/modal/document/DocumentModal";
-import { getCurrentUser } from "components/user/UserContext";
 
-export const DefaultHeaderLower: React.FC = () => {
+import { SecondaryButton } from "components/button/SecondaryButton";
+import { AmendmentDialog } from "components/dialog/AmendmentDialog";
+import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { ExtensionDialog } from "components/dialog/ExtensionDialog";
+import { AddNewIcon } from "components/icons";
+import { gql } from "graphql-tag";
+import { normalizeUserId } from "hooks/user/uuidHelpers";
+
+import { useQuery } from "@apollo/client";
+
+export const HEADER_LOWER_QUERY = gql`
+  query HeaderLowerQuery($id: ID!) {
+    user(id: $id) {
+      fullName
+    }
+  }
+`;
+
+export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"create" | "document" | "amendment" | "extension" | null>(null);
+  const [modalType, setModalType] = useState<
+    "create" | "document" | "amendment" | "extension" | null
+  >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { currentUser, loading, error } = getCurrentUser();
-
+  // Close dropdown on outside click
   useEffect(() => {
-    // Close dropdown on outside click
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
     };
@@ -24,16 +37,21 @@ export const DefaultHeaderLower: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (loading) {
-    return <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">Loading…</div>;
+  if (!userId) {
+    return (
+      <div className="w-full bg-blue-900 text-white px-4 py-1 flex items-center justify-between" />
+    );
   }
 
-  if (error || !currentUser) {
-    // render a minimal bar if unauthenticated or errored
-    return <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between" />;
-  }
+  const { data, error, loading } = useQuery(HEADER_LOWER_QUERY, {
+    variables: { id: normalizeUserId(userId) },
+  });
 
-  const name = currentUser.displayName || currentUser.email;
+  if (error) return <div>Error: {error.message}</div>;
+  if (loading) return <div>Loading...</div>;
+  if (!data?.user) return null;
+
+  const user = data.user;
 
   const handleSelect = (item: string) => {
     setShowDropdown(false);
@@ -41,19 +59,18 @@ export const DefaultHeaderLower: React.FC = () => {
     else if (item === "AddDocument") setModalType("document");
     else if (item === "Amendment") setModalType("amendment");
     else if (item === "Extension") setModalType("extension");
+    // TODO: handle "Extension" later
   };
 
   return (
     <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
       <div>
-        <span className="font-bold block">Hello {name}</span>
+        <span className="font-bold block">Hello {user.fullName}</span>
         <span className="block text-sm">Welcome to DEMOS!</span>
       </div>
-
       <div className="relative" ref={dropdownRef}>
         <SecondaryButton
           name="create-new"
-          data-testid="create-new"
           size="small"
           onClick={() => setShowDropdown((prev) => !prev)}
         >
@@ -97,10 +114,16 @@ export const DefaultHeaderLower: React.FC = () => {
         )}
       </div>
 
-      {modalType === "create" && <DemonstrationModal mode="add" onClose={() => setModalType(null)} />}
-      {modalType === "document" && <AddDocumentModal onClose={() => setModalType(null)} />}
-      {modalType === "amendment" && <CreateNewModal mode="amendment" onClose={() => setModalType(null)} />}
-      {modalType === "extension" && <CreateNewModal mode="extension" onClose={() => setModalType(null)} />}
+      {modalType === "create" && (
+        <DemonstrationDialog mode="add" onClose={() => setModalType(null)} />
+      )}
+      {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}
+      {modalType === "amendment" && (
+        <AmendmentDialog mode="add" onClose={() => setModalType(null)} />
+      )}
+      {modalType === "extension" && (
+        <ExtensionDialog mode="add" onClose={() => setModalType(null)} />
+      )}
     </div>
   );
 };

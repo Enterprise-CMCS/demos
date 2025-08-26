@@ -1,21 +1,9 @@
 import React from "react";
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
-import {
-  Input,
-  InputProps,
-} from "./Input";
+import { Input, InputProps } from "./Input";
 
 describe("Input component", () => {
   const requiredProps: InputProps = {
@@ -61,15 +49,8 @@ describe("Input component", () => {
   });
 
   it("calls getValidationMessage and displays validation message", () => {
-    const getValidationMessage = vi.fn((value: string) =>
-      value.length < 3 ? "Too short" : ""
-    );
-    render(
-      <Input
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+    const getValidationMessage = vi.fn((value: string) => (value.length < 3 ? "Too short" : ""));
+    render(<Input {...requiredProps} getValidationMessage={getValidationMessage} />);
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "ab" } });
     expect(getValidationMessage).toHaveBeenCalledWith("ab");
@@ -96,12 +77,7 @@ describe("Input component", () => {
 
   it("applies correct classes for validation error", () => {
     const getValidationMessage = () => "Error!";
-    render(
-      <Input
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+    render(<Input {...requiredProps} getValidationMessage={getValidationMessage} />);
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "abc" } });
     expect(input.className).toContain("border-border-warn");
@@ -110,12 +86,7 @@ describe("Input component", () => {
 
   it("applies correct classes for valid state", () => {
     const getValidationMessage = () => "";
-    render(
-      <Input
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+    render(<Input {...requiredProps} getValidationMessage={getValidationMessage} />);
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "abc" } });
     expect(input.className).toContain("border-border-fields");

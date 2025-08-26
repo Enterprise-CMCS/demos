@@ -12,9 +12,7 @@ describe("Footer Component", () => {
   it("displays the current year", () => {
     render(<Footer />);
     const currentYear = new Date().getFullYear();
-    const yearElement = screen.getByText(
-      new RegExp(currentYear.toString(), "i")
-    );
+    const yearElement = screen.getByText(new RegExp(currentYear.toString(), "i"));
     expect(yearElement).toBeInTheDocument();
   });
 });

@@ -6,9 +6,6 @@ interface WarningToastProps {
   onDismiss: () => void;
 }
 
-export const WarningToast: React.FC<WarningToastProps> = ({
-  message,
-  onDismiss,
-}) => (
+export const WarningToast: React.FC<WarningToastProps> = ({ message, onDismiss }) => (
   <BaseToast toastType="warning" message={message} onDismiss={onDismiss} />
 );

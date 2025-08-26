@@ -1,9 +1,6 @@
 import React from "react";
 
-import {
-  Input,
-  InputProps,
-} from "./Input";
+import { Input, InputProps } from "./Input";
 
 export const TextInput = (props: Omit<InputProps, "type">) => {
   return (
