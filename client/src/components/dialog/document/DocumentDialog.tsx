@@ -1,23 +1,20 @@
-import React, { useRef, useState, useCallback, forwardRef } from "react";
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { useMutation } from "@apollo/client";
+
+import { Button, ErrorButton, SecondaryButton } from "components/button";
+import { BaseDialog } from "components/dialog/BaseDialog";
+import { ErrorIcon } from "components/icons";
+import { TextInput } from "components/input";
+import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
+import { Option } from "components/input/select/Select";
+import { useToast } from "components/toast";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
-import { ErrorButton, Button, SecondaryButton } from "components/button";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { ErrorIcon } from "components/icons";
-import { BaseModal } from "components/modal/BaseModal";
-import { useToast } from "components/toast";
+import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
 import { tw } from "tags/tw";
-import { TextInput } from "components/input";
-import { Document, DocumentType, UploadDocumentInput, UpdateDocumentInput } from "demos-server";
-import { useMutation } from "@apollo/client";
-import {
-  DELETE_DOCUMENTS_QUERY,
-  UPLOAD_DOCUMENT_QUERY,
-  UPDATE_DOCUMENT_QUERY,
-} from "queries/documentQueries";
-import { Option } from "components/input/select/Select";
+import { DocumentType } from "demos-server";
 
-type DocumentModalType = "add" | "edit";
+type DocumentDialogType = "add" | "edit";
 
 const DOCUMENT_TYPE_LOOKUP: Record<DocumentType, string> = {
   preSubmissionConcept: "Pre-Submission Concept",
@@ -52,12 +49,11 @@ const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILENAME_DISPLAY_LENGTH = 60;
 
-const ERROR_MESSAGES = {
+export const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
   missingField: "A required field is missing.",
 };
-
-const SUCCESS_MESSAGES = {
+export const SUCCESS_MESSAGES = {
   fileUploaded: "Your document has been added.",
   fileUpdated: "Your document has been updated.",
   fileDeleted: "Your document has been removed.",
@@ -65,13 +61,23 @@ const SUCCESS_MESSAGES = {
 
 // Simple error message retreiver.
 // Maybe we "third location" this as we standardize error messages
-const getErrorMessage = (error: unknown, mode: DocumentModalType): string => {
+const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
     return error.message;
   }
-  return mode === "edit"
+  return "An unknown error occurred.";
+};
+
+// helper to choose the unknown-error copy by mode
+const unknownErrorText = (mode: DocumentDialogType) =>
+  mode === "edit"
     ? "Your changes could not be saved because of an unknown problem."
     : "Your document could not be added because of an unknown problem.";
+
+const normalizeType = (doctype?: string) => {
+  if (!doctype) return "";
+  if (DOCUMENT_TYPE_OPTIONS.some((o) => o.value === doctype)) return doctype;
+  return DOCUMENT_TYPE_OPTIONS.find((o) => o.label === doctype)?.value ?? "";
 };
 
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
@@ -104,6 +110,7 @@ const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
           <span className="text-text-warn mr-1">*</span>Document Description
         </label>
         <textarea
+          data-testid="textarea-description-input"
           ref={ref}
           rows={2}
           placeholder="Enter"
@@ -151,6 +158,7 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
     <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
       <div
         role="progressbar"
+        data-testid="upload-progress-bar"
         className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`}
         style={{ width: `${progress}%` }}
       />
@@ -196,7 +204,7 @@ const DropTarget: React.FC<{
       />
 
       <SecondaryButton
-        name="button-select-files"
+        name="select-files"
         type="button"
         aria-label="Select File"
         size="small"
@@ -233,38 +241,30 @@ const DropTarget: React.FC<{
   );
 };
 
-// Currently the Document object has the old documentType on it so this is
-// a simplification until the new documentType field is on document as a string
-export type DocumentModalFields = Pick<Document, "id" | "title" | "description"> & {
-  documentType: DocumentType;
-};
-
-const EMPTY_DOCUMENT_FIELDS: DocumentModalFields = {
-  id: "",
-  title: "",
-  description: "",
-  documentType: "generalFile",
-};
-
-type DocumentModalProps = {
+type DocumentDialogProps = {
+  isOpen?: boolean;
   onClose?: () => void;
-  mode: DocumentModalType;
-  onSubmit: (modalFields: DocumentModalFields) => Promise<void>;
-  initialDocument?: DocumentModalFields;
+  mode: "add" | "edit";
+  forDocumentId?: string;
+  initialTitle?: string;
+  initialDescription?: string;
+  initialType?: string;
 };
 
-const DocumentModal: React.FC<DocumentModalProps> = ({
+const DocumentDialog: React.FC<DocumentDialogProps> = ({
+  isOpen = true,
   onClose = () => {},
   mode,
-  onSubmit,
-  initialDocument,
+  initialTitle = "",
+  initialDescription = "",
+  initialType = "",
 }) => {
   const { showSuccess, showError } = useToast();
-  const [activeDocument, setActiveDocument] = useState<DocumentModalFields>(
-    initialDocument || EMPTY_DOCUMENT_FIELDS
-  );
+  const [documentTitle, setDocumentTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription);
+  const [selectedType, setSelectedType] = useState(() => normalizeType(initialType));
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [isSubmitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -274,28 +274,34 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     onErrorCallback: (errorMessage: ErrorMessage) => showError(errorMessage),
   });
 
+  // keep type in sync if prop changes
+  useEffect(() => {
+    setSelectedType(normalizeType(initialType));
+  }, [initialType]);
+
   const modalTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
+
   const requiresType = mode === "add" || mode === "edit";
 
   // Edit has a title, but create does not. (maybe HCD convo)
   const isMissing =
-    (mode === "edit" && !activeDocument.title.trim()) ||
-    !activeDocument.description.trim() ||
+    (mode === "edit" && !documentTitle.trim()) ||
+    !description.trim() ||
     !file ||
-    (requiresType && !activeDocument.documentType);
+    (requiresType && !selectedType);
 
   const onUploadClick = async () => {
-    if (isUploading || isSubmitting) return;
+    if (isUploading || submitting) return;
     await handleUpload();
   };
 
   const focusFirstMissing = () => {
-    if (!activeDocument.description.trim()) {
+    if (!description.trim()) {
       descriptionRef.current?.focus();
       return;
     }
-    if (requiresType && !activeDocument.documentType) {
+    if (requiresType && !selectedType) {
       document.getElementById("document-type")?.focus();
       return;
     }
@@ -303,7 +309,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   };
 
   const handleUpload = async () => {
-    if (!activeDocument.description.trim() || (requiresType && !activeDocument.documentType)) {
+    if (!description.trim() || (requiresType && !selectedType)) {
       showError(ERROR_MESSAGES.missingField);
       focusFirstMissing();
       return;
@@ -313,69 +319,63 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       focusFirstMissing();
       return;
     }
-
+    // This is just for testing purposes. Fill it in as needed
+    const success = true;
     try {
       setSubmitting(true);
-      await onSubmit(activeDocument);
+      // your api/mutator call goes here
+      if (!success) {
+        // Throw error to see message.
+        // Still need to break down specifc file size vs fail virus check messages
+        throw new Error("Your document could not be added because of an unknown problem.");
+      }
       onClose();
     } catch (error: unknown) {
-      showError(getErrorMessage(error, mode));
+      const msg = error instanceof Error ? getErrorMessage(error) : unknownErrorText(mode);
+      showError(msg);
     } finally {
       onClose();
-      showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
+      if (success) {
+        showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
+      }
       setSubmitting(false);
     }
   };
 
   return (
-    <BaseModal
+    <BaseDialog
       title={modalTitle}
+      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
       actions={
         <>
           <SecondaryButton
-            name="button-cancel-upload-document"
+            name="cancel-upload"
             size="small"
             onClick={() => setShowCancelConfirm(true)}
           >
             Cancel
           </SecondaryButton>
           <Button
-            name="button-confirm-upload-document"
+            name="upload-document"
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
-            aria-disabled={isMissing || isUploading || isSubmitting ? "true" : "false"}
-            disabled={isMissing || isUploading || isSubmitting}
+            aria-disabled={isMissing || isUploading || submitting ? "true" : "false"}
+            disabled={isMissing || isUploading || submitting}
           >
             Upload
           </Button>
         </>
       }
     >
-      {mode === "edit" && (
-        <TitleInput
-          value={activeDocument.title}
-          onChange={(newTitle) => setActiveDocument((prev) => ({ ...prev, title: newTitle }))}
-        />
-      )}
+      {mode === "edit" && <TitleInput value={documentTitle} onChange={setDocumentTitle} />}
 
-      <DescriptionInput
-        ref={descriptionRef}
-        value={activeDocument.description}
-        onChange={(newDescription) =>
-          setActiveDocument((prev) => ({ ...prev, description: newDescription }))
-        }
-      />
+      <DescriptionInput ref={descriptionRef} value={description} onChange={setDescription} />
 
-      <DocumentTypeInput
-        value={activeDocument.documentType}
-        onSelect={(newType) =>
-          setActiveDocument((prev) => ({ ...prev, documentType: newType as DocumentType }))
-        }
-      />
+      <DocumentTypeInput value={selectedType} onSelect={setSelectedType} />
 
       <DropTarget
         file={file}
@@ -384,56 +384,39 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
         uploadProgress={uploadProgress}
         handleFileChange={handleFileChange}
       />
-    </BaseModal>
+    </BaseDialog>
   );
 };
 
-export const AddDocumentModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
-
-  const handleUpload = async (modalFields: DocumentModalFields) => {
-    const uploadDocumentInput: UploadDocumentInput = {
-      title: modalFields.title,
-      description: modalFields.description,
-      documentType: modalFields.documentType,
-    };
-
-    uploadDocumentTrigger({ variables: { input: uploadDocumentInput } });
-  };
-
-  return <DocumentModal mode="add" onClose={onClose} onSubmit={handleUpload} />;
-};
-
-export const EditDocumentModal: React.FC<{
-  onClose: () => void;
-  initialDocument: DocumentModalFields;
-}> = ({ initialDocument, onClose }) => {
-  const [updateDocumentTrigger] = useMutation<UpdateDocumentInput>(UPDATE_DOCUMENT_QUERY);
-
-  const handleEdit = async (modalFields: DocumentModalFields) => {
-    const updateDocumentInput: UpdateDocumentInput = {
-      id: modalFields.id,
-      title: modalFields.title,
-      description: modalFields.description,
-      documentType: modalFields.documentType,
-    };
-    updateDocumentTrigger({ variables: { input: updateDocumentInput } });
-  };
-
-  return (
-    <DocumentModal
-      mode="edit"
-      initialDocument={initialDocument}
-      onClose={onClose}
-      onSubmit={handleEdit}
-    />
-  );
-};
-
-export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () => void }> = ({
-  documentIds,
+export const AddDocumentDialog: React.FC<{ isOpen?: boolean; onClose: () => void }> = ({
+  isOpen = true,
   onClose,
-}) => {
+}) => <DocumentDialog isOpen={isOpen} onClose={onClose} mode="add" />;
+
+export const EditDocumentDialog: React.FC<{
+  isOpen?: boolean;
+  documentId: string;
+  documentTitle: string;
+  description: string;
+  documentType: string;
+  onClose: () => void;
+}> = ({ isOpen = true, documentId, documentTitle, description, documentType, onClose }) => (
+  <DocumentDialog
+    isOpen={isOpen}
+    mode="edit"
+    forDocumentId={documentId}
+    initialTitle={documentTitle}
+    initialDescription={description}
+    initialType={documentType}
+    onClose={onClose}
+  />
+);
+
+export const RemoveDocumentDialog: React.FC<{
+  isOpen?: boolean;
+  documentIds: string[];
+  onClose: () => void;
+}> = ({ isOpen = true, documentIds, onClose }) => {
   const { showWarning, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -459,13 +442,14 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
   };
 
   return (
-    <BaseModal
+    <BaseDialog
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
+      isOpen={isOpen}
       onClose={onClose}
       actions={
         <>
           <SecondaryButton
-            name="button-cancel-delete-document"
+            name="cancel-remove"
             size="small"
             onClick={onClose}
             disabled={isDeleting}
@@ -473,7 +457,7 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
             Cancel
           </SecondaryButton>
           <ErrorButton
-            name="button-confirm-delete-document"
+            name="confirm-remove"
             size="small"
             onClick={() => onConfirm(documentIds)}
             aria-label="Confirm Remove Document"
@@ -494,6 +478,6 @@ export const RemoveDocumentModal: React.FC<{ documentIds: string[]; onClose: () 
           This action cannot be undone.
         </span>
       </div>
-    </BaseModal>
+    </BaseDialog>
   );
 };

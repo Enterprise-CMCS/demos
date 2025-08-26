@@ -1,14 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import { SecondaryButton } from "components/button/SecondaryButton";
+import { AmendmentDialog } from "components/dialog/AmendmentDialog";
+import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { AddNewIcon } from "components/icons";
-import { DemonstrationModal } from "components/modal/DemonstrationModal";
-import { CreateNewModal } from "components/modal/CreateNewModal";
-import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { getCurrentUser } from "components/user/UserContext";
 
 export const DefaultHeaderLower: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"create" | "document" | "amendment" | "extension" | null>(null);
+  const [modalType, setModalType] = useState<
+    "demonstration" | "document" | "amendment" | "extension" | null
+  >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { currentUser, loading, error } = getCurrentUser();
@@ -25,19 +33,25 @@ export const DefaultHeaderLower: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">Loading…</div>;
+    return (
+      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
+        Loading…
+      </div>
+    );
   }
 
   if (error || !currentUser) {
     // render a minimal bar if unauthenticated or errored
-    return <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between" />;
+    return (
+      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between" />
+    );
   }
 
   const name = currentUser.displayName || currentUser.email;
 
   const handleSelect = (item: string) => {
     setShowDropdown(false);
-    if (item === "Demonstration") setModalType("create");
+    if (item === "Demonstration") setModalType("demonstration");
     else if (item === "AddDocument") setModalType("document");
     else if (item === "Amendment") setModalType("amendment");
     else if (item === "Extension") setModalType("extension");
@@ -97,10 +111,16 @@ export const DefaultHeaderLower: React.FC = () => {
         )}
       </div>
 
-      {modalType === "create" && <DemonstrationModal mode="add" onClose={() => setModalType(null)} />}
-      {modalType === "document" && <AddDocumentModal onClose={() => setModalType(null)} />}
-      {modalType === "amendment" && <CreateNewModal mode="amendment" onClose={() => setModalType(null)} />}
-      {modalType === "extension" && <CreateNewModal mode="extension" onClose={() => setModalType(null)} />}
+      {modalType === "demonstration" && (
+        <DemonstrationDialog mode="add" onClose={() => setModalType(null)} />
+      )}
+      {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}
+      {modalType === "amendment" && (
+        <AmendmentDialog mode="add" onClose={() => setModalType(null)} />
+      )}
+      {modalType === "extension" && (
+        <ExtensionDialog mode="add" onClose={() => setModalType(null)} />
+      )}
     </div>
   );
 };

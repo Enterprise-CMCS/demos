@@ -1,12 +1,15 @@
 import React from "react";
 
-import { CreateNewModal } from "components/modal/CreateNewModal";
+import { AmendmentDialog } from "components/dialog/AmendmentDialog";
+import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { Demonstration } from "demos-server";
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
 type DemonstrationActionModal = "edit" | "delete" | null;
 
-export type DemonstrationModalDetails = {
+export type DemonstrationDialogDetails = {
   id: Demonstration["id"];
   state: Pick<Demonstration["state"], "id">;
   description: Demonstration["description"];
@@ -16,9 +19,9 @@ export type DemonstrationModalDetails = {
 interface DemonstrationDetailModalsProps {
   entityCreationModal: EntityCreationModal;
   demonstrationActionModal: DemonstrationActionModal;
-  demonstration: DemonstrationModalDetails;
+  demonstration: DemonstrationDialogDetails;
   onCloseEntityModal: () => void;
-  onCloseDemonstrationModal: () => void;
+  onCloseDemonstrationDialog: () => void;
 }
 
 export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps> = ({
@@ -26,50 +29,23 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
   demonstrationActionModal,
   demonstration,
   onCloseEntityModal,
-  onCloseDemonstrationModal,
+  onCloseDemonstrationDialog,
 }) => (
   <>
     {/* Entity Creation Modals */}
     {entityCreationModal === "amendment" && (
-      <CreateNewModal
-        mode="amendment"
-        data={{ demonstration: demonstration.id }}
-        onClose={onCloseEntityModal}
-      />
+      <AmendmentDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
     )}
 
     {entityCreationModal === "extension" && (
-      <CreateNewModal
-        mode="extension"
-        data={{ demonstration: demonstration.id }}
-        onClose={onCloseEntityModal}
-      />
+      <ExtensionDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
     )}
 
-    {entityCreationModal === "document" && (
-      <CreateNewModal
-        mode="document"
-        data={{
-          demonstration: demonstration.id,
-          state: demonstration.state?.id,
-          projectOfficer: demonstration.description,
-        }}
-        onClose={onCloseEntityModal}
-      />
-    )}
+    {entityCreationModal === "document" && <AddDocumentDialog onClose={onCloseEntityModal} />}
 
     {/* Demonstration Action Modals */}
     {demonstrationActionModal === "edit" && (
-      <CreateNewModal
-        mode="demonstration"
-        data={{
-          title: demonstration.name,
-          state: demonstration.state?.id,
-          projectOfficer: demonstration.description,
-          description: demonstration.description,
-        }}
-        onClose={onCloseDemonstrationModal}
-      />
+      <DemonstrationDialog mode="edit" onClose={onCloseDemonstrationDialog} />
     )}
 
     {/* TODO: Add delete confirmation modal when available */}
