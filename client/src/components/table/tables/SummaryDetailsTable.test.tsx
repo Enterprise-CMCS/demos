@@ -2,20 +2,20 @@ import React from "react";
 
 import { Demonstration } from "demos-server";
 import { testDemonstration } from "mock-data/demonstrationMocks";
+import { formatDate } from "util/formatDate";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";
-import { formatDate } from "util/formatDate";
 
-// Mock the DemonstrationModal component
-vi.mock("components/modal/DemonstrationModal", () => ({
-  DemonstrationModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
-    <div data-testid="demonstration-modal">
-      <h2>Demonstration Modal - {mode}</h2>
-      <button onClick={onClose} data-testid="close-modal">
+// Mock the DemonstrationDialog component
+vi.mock("components/dialog/DemonstrationDialog", () => ({
+  DemonstrationDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div data-testid="demonstration-dialog">
+      <h2>Demonstration Dialog - {mode}</h2>
+      <button onClick={onClose} data-testid="close-dialog">
         Close
       </button>
     </div>
@@ -158,8 +158,8 @@ describe("SummaryDetailsTable", () => {
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
 
-      expect(screen.getByTestId("demonstration-modal")).toBeInTheDocument();
-      expect(screen.getByText("Demonstration Modal - edit")).toBeInTheDocument();
+      expect(screen.getByTestId("demonstration-dialog")).toBeInTheDocument();
+      expect(screen.getByText("Demonstration Dialog - edit")).toBeInTheDocument();
     });
 
     it("closes modal when close button is clicked", async () => {
@@ -169,14 +169,14 @@ describe("SummaryDetailsTable", () => {
       // Open modal
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
-      expect(screen.getByTestId("demonstration-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("demonstration-dialog")).toBeInTheDocument();
 
       // Close modal
-      const closeButton = screen.getByTestId("close-modal");
+      const closeButton = screen.getByTestId("close-dialog");
       await user.click(closeButton);
 
       await waitFor(() => {
-        expect(screen.queryByTestId("demonstration-modal")).not.toBeInTheDocument();
+        expect(screen.queryByTestId("demonstration-dialog")).not.toBeInTheDocument();
       });
     });
 
@@ -187,22 +187,22 @@ describe("SummaryDetailsTable", () => {
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
 
-      expect(screen.queryByTestId("demonstration-modal")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("demonstration-dialog")).not.toBeInTheDocument();
       expect(mockOnEdit).toHaveBeenCalledTimes(1);
     });
   });
 
   describe("Modal Integration", () => {
-    it("passes correct props to DemonstrationModal", async () => {
+    it("passes correct props to DemonstrationDialog", async () => {
       const user = userEvent.setup();
       render(<SummaryDetailsTable demonstration={testDemonstration} />);
 
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
 
-      const modal = screen.getByTestId("demonstration-modal");
+      const modal = screen.getByTestId("demonstration-dialog");
       expect(modal).toBeInTheDocument();
-      expect(screen.getByText("Demonstration Modal - edit")).toBeInTheDocument();
+      expect(screen.getByText("Demonstration Dialog - edit")).toBeInTheDocument();
     });
   });
 

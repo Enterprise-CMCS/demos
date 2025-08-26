@@ -51,8 +51,10 @@ const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
   authority: import.meta.env.VITE_COGNITO_AUTHORITY!,
   domain: import.meta.env.VITE_COGNITO_DOMAIN!,
   client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,
-  post_logout_redirect_uri: import.meta.env.BASE_URL == "/" ? `${window.location.origin}/` : import.meta.env.BASE_URL,
-  redirect_uri: import.meta.env.BASE_URL == "/" ? `${window.location.origin}/` : import.meta.env.BASE_URL,
+  post_logout_redirect_uri:
+    import.meta.env.BASE_URL == "/" ? `${window.location.origin}/` : import.meta.env.BASE_URL,
+  redirect_uri:
+    import.meta.env.BASE_URL == "/" ? `${window.location.origin}/` : import.meta.env.BASE_URL,
   scope: "openid email profile",
 };
 

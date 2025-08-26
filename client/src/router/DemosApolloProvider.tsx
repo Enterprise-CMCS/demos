@@ -1,7 +1,10 @@
 import React, { useMemo } from "react";
 import {
-  ApolloClient, InMemoryCache, ApolloProvider,
-  createHttpLink, ApolloLink,
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  createHttpLink,
+  ApolloLink,
 } from "@apollo/client";
 import { MockedProvider } from "@apollo/client/testing";
 import { setContext } from "@apollo/client/link/context";
@@ -15,7 +18,11 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const auth = useAuth();
 
   if (shouldUseMocks()) {
-    return <MockedProvider mocks={ALL_MOCKS} addTypename={false}>{children}</MockedProvider>;
+    return (
+      <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
+        {children}
+      </MockedProvider>
+    );
   }
 
   // Read token per request (not just once)

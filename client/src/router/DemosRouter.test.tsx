@@ -4,7 +4,6 @@ import { describe, it, expect, vi } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 import * as envMod from "config/env";
 
-
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("config/env")>();
   return {
@@ -47,6 +46,7 @@ vi.mock("layout/PrimaryLayout", () => ({
 }));
 vi.mock("pages/Demonstrations", () => ({
   Demonstrations: () => <div>Demonstrations</div>,
+  DEMONSTRATIONS_PAGE_QUERY: {},
 }));
 
 describe("DemosRouter", () => {

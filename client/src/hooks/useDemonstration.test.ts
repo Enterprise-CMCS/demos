@@ -1,11 +1,10 @@
-import { renderHook, waitFor } from "@testing-library/react";
-import { useDemonstration } from "./useDemonstration";
 import { CreateDemonstrationInput } from "demos-server";
-import {
-  mockAddDemonstrationInput,
-  testDemonstration,
-} from "mock-data/demonstrationMocks";
+import { mockAddDemonstrationInput, testDemonstration } from "mock-data/demonstrationMocks";
 import { DemosApolloProvider } from "router/DemosApolloProvider";
+
+import { renderHook, waitFor } from "@testing-library/react";
+
+import { useDemonstration } from "./useDemonstration";
 
 const expectedDemonstration = testDemonstration;
 
@@ -29,9 +28,7 @@ describe("useDemonstration", () => {
         expect(result.current.getAllDemonstrations.data).toBeDefined();
         const actualDemonstrations = result.current.getAllDemonstrations.data!;
         expect(actualDemonstrations.length).toBeGreaterThan(0);
-        expect(actualDemonstrations[0].name).toEqual(
-          expectedDemonstration.name
-        );
+        expect(actualDemonstrations[0].name).toEqual(expectedDemonstration.name);
       });
       expect(result.current.getAllDemonstrations.error).toBeUndefined();
     });
@@ -117,15 +114,13 @@ describe("useDemonstration", () => {
         demonstrationStatusId: "1",
         stateId: "1",
         userIds: ["1"],
+        projectOfficerUserId: "1",
       };
 
       const demonstrationId = expectedDemonstration.id;
 
       // Trigger update
-      await result.current.updateDemonstration.trigger(
-        demonstrationId,
-        updatedInput
-      );
+      await result.current.updateDemonstration.trigger(demonstrationId, updatedInput);
 
       await waitFor(() => {
         expect(result.current.updateDemonstration.data).toBeDefined();

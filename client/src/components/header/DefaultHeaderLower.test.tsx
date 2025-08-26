@@ -1,159 +1,175 @@
+// src/components/DefaultHeaderLower.test.tsx
 import React from "react";
-import { vi, Mock } from "vitest";
+
+import { DemosApolloProvider } from "router/DemosApolloProvider";
+import { vi } from "vitest";
+
+import { useQuery } from "@apollo/client";
 import { fireEvent, render, screen } from "@testing-library/react";
+
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
-import { getCurrentUser } from "components/user/UserContext";
 
-vi.mock("components/modal/document/DocumentModal", () => ({
-  AddDocumentModal: ({ onClose }: { onClose: () => void }) => (
-    <div data-testid="add-document-modal">
-      AddDocumentModal
-      <button onClick={onClose}>CloseDoc</button>
-    </div>
-  ),
-}));
-
-vi.mock("components/modal/DemonstrationModal", () => ({
-  DemonstrationModal: () => <div>DemonstrationModal</div>,
-}));
-
-vi.mock("components/modal/CreateNewModal", () => ({
-  CreateNewModal: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
-    <div data-testid={`modal-${mode}`}>
-      CreateNewModal ({mode})<button onClick={onClose}>Close</button>
-    </div>
-  ),
-}));
-
-vi.mock("components/user/UserContext", () => {
+// Mock Apollo
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
   return {
-    getCurrentUser: vi.fn(),
+    ...actual,
+    useQuery: vi.fn(),
   };
 });
+
+// Stub modals
+vi.mock("components/dialog/document/DocumentDialog", () => ({
+  AddDocumentDialog: ({ onClose }: { onClose: () => void }) => (
+    <div>
+      AddDocumentDialog
+      <button onClick={onClose}>Close</button>
+    </div>
+  ),
+}));
+
+vi.mock("components/dialog/DemonstrationDialog", () => ({
+  DemonstrationDialog: () => <div>DemonstrationDialog</div>,
+}));
+
+vi.mock("components/dialog/AmendmentDialog", () => ({
+  AmendmentDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div>
+      AmendmentDialog ({mode})<button onClick={onClose}>Close</button>
+    </div>
+  ),
+}));
+
+vi.mock("components/dialog/ExtensionDialog", () => ({
+  ExtensionDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+    <div>
+      ExtensionDialog ({mode})<button onClick={onClose}>Close</button>
+    </div>
+  ),
+}));
+
+// Mock Toast Context
+vi.mock("components/toast", () => ({
+  useToast: () => ({ showSuccess: vi.fn() }),
+}));
 
 describe("DefaultHeaderLower", () => {
   afterEach(() => {
     vi.resetAllMocks();
   });
 
-  it("shows loading state", () => {
-    (getCurrentUser as unknown as Mock).mockReturnValue({
-      currentUser: null,
-      loading: true,
-      error: undefined,
-    });
-
-    render(<DefaultHeaderLower />);
-    expect(screen.getByText(/Loading/i)).toBeInTheDocument();
+  it("renders empty bar when no userId is passed", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({});
+    const { container } = render(<DefaultHeaderLower />);
+    expect(container.firstChild?.childNodes.length).toBe(0);
   });
 
-  it("renders minimal bar on error", () => {
-    (getCurrentUser as unknown as vi.Mock).mockReturnValue({
-      currentUser: null,
+  it("shows loading state", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
+      loading: true,
+      error: null,
+      data: null,
+    });
+    render(<DefaultHeaderLower userId="1" />);
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+  });
+
+  it("shows error message", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
       error: { message: "fail" },
+      data: null,
     });
-
-    const { container } = render(<DefaultHeaderLower />);
-    expect(screen.queryByText(/Hello/i)).not.toBeInTheDocument();
-    expect(container.firstChild).toBeTruthy();
+    render(<DefaultHeaderLower userId="2" />);
+    expect(screen.getByText("Error: fail")).toBeInTheDocument();
   });
 
-  it("renders minimal bar when no user", () => {
-    (getCurrentUser as unknown as vi.Mock).mockReturnValue({
-      currentUser: null,
+  it("returns null if no user data", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
-      error: undefined,
+      error: null,
+      data: { user: null },
     });
-
-    const { container } = render(<DefaultHeaderLower />);
-    expect(screen.queryByText(/Hello/i)).not.toBeInTheDocument();
-    expect(container.firstChild).toBeTruthy();
+    const { container } = render(<DefaultHeaderLower userId="3" />);
+    expect(container.firstChild).toBeNull();
   });
 
   it("displays user greeting", () => {
-    (getCurrentUser as unknown as vi.Mock).mockReturnValue({
-      currentUser: {
-        id: "1",
-        email: "john@test.com",
-        displayName: "John Test",
-        roles: [],
-      },
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
-      error: undefined,
+      error: null,
+      data: { user: { fullName: "John Test" } },
     });
-
-    render(<DefaultHeaderLower />);
+    render(<DefaultHeaderLower userId="4" />);
     expect(screen.getByText("Hello John Test")).toBeInTheDocument();
-    expect(screen.getByText("Welcome to DEMOS!")).toBeInTheDocument();
   });
 
   it("opens and closes the dropdown", () => {
-    (getCurrentUser as unknown as vi.Mock).mockReturnValue({
-      currentUser: { id: "1", email: "x@test.com", displayName: "X", roles: [] },
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
-      error: undefined,
+      error: null,
+      data: { user: { fullName: "X" } },
     });
-
-    render(<DefaultHeaderLower />);
-    fireEvent.click(screen.getByText("Create New"));
+    render(<DefaultHeaderLower userId="5" />);
+    const button = screen.getByText("Create New");
+    fireEvent.click(button);
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
-
     fireEvent.mouseDown(document.body);
     expect(screen.queryByText("Demonstration")).not.toBeInTheDocument();
   });
 
-  it("opens DemonstrationModal when clicked", () => {
-    (getCurrentUser as unknown as vi.Mock).mockReturnValue({
-      currentUser: { id: "1", email: "x@test.com", displayName: "X", roles: [] },
+  it("opens DemonstrationDialog when demonstration modal is clicked", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
-      error: undefined,
+      error: null,
+      data: { user: { fullName: "X" } },
     });
 
-    render(<DefaultHeaderLower />);
+    render(
+      <DemosApolloProvider>
+        <DefaultHeaderLower userId="6" />
+      </DemosApolloProvider>
+    );
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
-    expect(screen.getByText("DemonstrationModal")).toBeInTheDocument();
+    expect(screen.queryByText("DemonstrationDialog")).toBeInTheDocument();
   });
 
-  it("opens AddDocumentModal and closes it", () => {
-    (getCurrentUser as unknown as vi.Mock).mockReturnValue({
-      currentUser: { id: "1", email: "x@test.com", displayName: "X", roles: [] },
+  it("opens AddDocumentDialog", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
-      error: undefined,
+      error: null,
+      data: { user: { fullName: "X" } },
     });
-
-    render(<DefaultHeaderLower />);
+    render(<DefaultHeaderLower userId="7" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Add New Document"));
-    expect(screen.getByTestId("add-document-modal")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("CloseDoc"));
-    expect(screen.queryByTestId("add-document-modal")).not.toBeInTheDocument();
+    expect(screen.getByText("AddDocumentDialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Close"));
+    expect(screen.queryByText("AddDocumentDialog")).not.toBeInTheDocument();
   });
 
-  it("opens CreateNewModal for amendment", () => {
-    (getCurrentUser as unknown as vi.Mock).mockReturnValue({
-      currentUser: { id: "1", email: "x@test.com", displayName: "X", roles: [] },
+  it("opens AmendmentDialog for amendment", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
-      error: undefined,
+      error: null,
+      data: { user: { fullName: "X" } },
     });
-
-    render(<DefaultHeaderLower />);
+    render(<DefaultHeaderLower userId="8" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
-    expect(screen.getByTestId("modal-amendment")).toBeInTheDocument();
+    expect(screen.getByText("AmendmentDialog (add)")).toBeInTheDocument();
   });
 
-  it("opens CreateNewModal for extension", () => {
-    (getCurrentUser as unknown as vi.Mock).mockReturnValue({
-      currentUser: { id: "1", email: "x@test.com", displayName: "X", roles: [] },
+  it("opens ExtensionDialog for extension", () => {
+    (useQuery as unknown as import("vitest").Mock).mockReturnValue({
       loading: false,
-      error: undefined,
+      error: null,
+      data: { user: { fullName: "X" } },
     });
-
-    render(<DefaultHeaderLower />);
+    render(<DefaultHeaderLower userId="9" />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
-    expect(screen.getByTestId("modal-extension")).toBeInTheDocument();
+    expect(screen.getByText("ExtensionDialog (add)")).toBeInTheDocument();
   });
 });

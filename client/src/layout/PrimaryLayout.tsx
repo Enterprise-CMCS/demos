@@ -32,9 +32,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
 
   return (
     <ToastProvider>
-      <HeaderConfigProvider
-        defaultLowerContent={<DefaultHeaderLower />}
-      >
+      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower />}>
         <div className="h-screen flex flex-col">
           <Header />
           <div className="flex flex-1 overflow-hidden bg-gray-100">
@@ -42,9 +40,7 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
               <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />
             </div>
             <div className="flex-1 overflow-auto p-2">
-              <div className="bg-white shadow-md p-2 max-w-[1600px] mx-auto">
-                {children}
-              </div>
+              <div className="bg-white shadow-md p-2 max-w-[1600px] mx-auto">{children}</div>
             </div>
           </div>
           <Footer />

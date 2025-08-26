@@ -10,9 +10,7 @@ vi.mock("config/env", () => ({
 }));
 
 vi.mock("react-oidc-context", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: vi.fn(() => ({
     user: {
       access_token: "mock-access-token-123",
@@ -24,9 +22,7 @@ vi.mock("react-oidc-context", () => ({
 vi.mock("@apollo/client", () => ({
   ApolloClient: vi.fn(),
   InMemoryCache: vi.fn(() => ({})),
-  ApolloProvider: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  ApolloProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   createHttpLink: vi.fn(),
   gql: vi.fn(),
   useQuery: vi.fn(() => ({
