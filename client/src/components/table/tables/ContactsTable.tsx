@@ -10,6 +10,7 @@ import {
 import { PaginationControls } from "../PaginationControls";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+import { createSelectColumnDef } from "../columns/selectColumn";
 
 type ContactType =
   | "Primary Project Officer"
@@ -26,30 +27,7 @@ export type Contact = {
 
 const contactsColumnHelper = createColumnHelper<Contact>();
 const contactsColumns = [
-  contactsColumnHelper.display({
-    id: "select",
-    header: ({ table }) => (
-      <input
-        id="select-all-rows"
-        type="checkbox"
-        className="cursor-pointer"
-        aria-label="Select all rows"
-        checked={table.getIsAllPageRowsSelected()}
-        onChange={table.getToggleAllPageRowsSelectedHandler()}
-      />
-    ),
-    cell: ({ row }) => (
-      <input
-        id={`select-row-${row.id}`}
-        type="checkbox"
-        className="cursor-pointer"
-        checked={row.getIsSelected()}
-        onChange={row.getToggleSelectedHandler()}
-        aria-label={`Select row ${row.index + 1}`}
-      />
-    ),
-    size: 20,
-  }),
+  createSelectColumnDef(contactsColumnHelper),
   contactsColumnHelper.accessor("fullName", {
     id: "fullName",
     header: "Name",
