@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { demonstrationsPageMockData } from "mock-data/demonstrationMocks";
 import { userMocks } from "mock-data/userMocks";
+import { demonstrationsPageMockData } from "mock-data/demonstrationMocks";
 import { stateMocks } from "mock-data/stateMocks";
 import { demonstrationStatusMocks } from "mock-data/demonstrationStatusMocks";
 import { DemonstrationTable } from "./DemonstrationTable";

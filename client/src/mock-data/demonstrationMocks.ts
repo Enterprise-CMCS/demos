@@ -169,7 +169,26 @@ export const demonstrationMocks: MockedResponse[] = [
           ],
           demonstrationTypes: [],
           documents: [{ id: "1" }, { id: "2" }],
-          contacts: [],
+          contacts: [
+            {
+              id: "1",
+              fullName: "John Doe",
+              email: "john@doe.com",
+              contactType: "Primary Project Officer",
+            },
+            {
+              id: "2",
+              fullName: "Jane Smith",
+              email: "jane@smith.com",
+              contactType: "State Representative",
+            },
+            {
+              id: "3",
+              fullName: "Emily Johnson",
+              email: null,
+              contactType: "Subject Matter Expert",
+            },
+          ],
         } satisfies DemonstrationDetail,
       },
     },

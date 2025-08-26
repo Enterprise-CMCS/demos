@@ -7,6 +7,7 @@ import { useState } from "hooks/useState";
 import { useDemonstrationStatus } from "hooks/useDemonstrationStatus";
 import React from "react";
 import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
+import { createSelectColumnDef } from "./selectColumn";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
@@ -41,30 +42,7 @@ export function DemonstrationColumns() {
   const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
 
   const demonstrationColumns = [
-    columnHelper.display({
-      id: "select",
-      header: ({ table }) => (
-        <input
-          id="select-all-rows"
-          type="checkbox"
-          className="cursor-pointer"
-          aria-label="Select all rows"
-          checked={table.getIsAllPageRowsSelected()}
-          onChange={table.getToggleAllPageRowsSelectedHandler()}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          id={`select-row-${row.id}`}
-          type="checkbox"
-          className="cursor-pointer"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          aria-label={`Select row ${row.index + 1}`}
-        />
-      ),
-      size: 20,
-    }),
+    createSelectColumnDef(columnHelper),
     columnHelper.accessor("state.name", {
       id: "stateName",
       header: "State/Territory",
