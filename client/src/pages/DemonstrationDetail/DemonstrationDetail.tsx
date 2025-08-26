@@ -58,16 +58,34 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       }
       contacts {
         id
+        fullName
+        email
+        contactType
       }
     }
   }
 `;
+
+export type Contact = {
+  id: string;
+  fullName?: string | null;
+  email?: string | null;
+  contactType?: ContactType | null;
+};
+
+export type ContactType =
+  | "Primary Project Officer"
+  | "Secondary Project Officer"
+  | "State Representative"
+  | "Subject Matter Expert";
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationDialogDetails &
   DemonstrationTabDetails & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
+  } & {
+    contacts: Contact[];
   };
 
 type TabType = "details" | "amendments" | "extensions";
