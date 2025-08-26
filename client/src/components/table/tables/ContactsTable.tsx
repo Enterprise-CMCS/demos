@@ -11,6 +11,7 @@ import { PaginationControls } from "../PaginationControls";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 import { createSelectColumnDef } from "../columns/selectColumn";
+import { TableHead } from "../Table";
 
 type ContactType =
   | "Primary Project Officer"
@@ -83,25 +84,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [] }) =
         </div>
       </div>
       <table className="w-full table-fixed text-sm">
-        <thead>
-          {contactsTable.getHeaderGroups().map((hg) => (
-            <tr key={hg.id} className="bg-gray-200">
-              {hg.headers.map((header) => (
-                <th
-                  key={header.id}
-                  className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
-                  onClick={header.column.getToggleSortingHandler()}
-                >
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                  {{
-                    asc: " ↑",
-                    desc: " ↓",
-                  }[header.column.getIsSorted() as string] ?? null}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
+        <TableHead headerGroups={contactsTable.getHeaderGroups()} />
         <tbody>
           {contactsTable.getRowModel().rows.map((row) => (
             <tr
