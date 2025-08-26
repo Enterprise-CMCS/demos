@@ -34,8 +34,7 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
     value: String(u.id),
   }));
 
-  const defaultLabel =
-    options.find((o) => o.value === currentUserId)?.label ?? "";
+  const defaultLabel = options.find((o) => o.value === currentUserId)?.label ?? "";
 
   return (
     <AutoCompleteSelect
@@ -51,4 +50,3 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
     />
   );
 };
-

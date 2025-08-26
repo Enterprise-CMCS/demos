@@ -39,10 +39,7 @@ export const DateTimeIcon: React.FC<IconInput> = ({
         fill="currentColor"
       />
       <path d="M4.92969 0H5.61328V1.74129H4.92969V0Z" fill="currentColor" />
-      <path
-        d="M11.7656 9.57707H13.1328V11.3184H11.7656V9.57707Z"
-        fill="currentColor"
-      />
+      <path d="M11.7656 9.57707H13.1328V11.3184H11.7656V9.57707Z" fill="currentColor" />
       <path d="M12.4492 0H13.1328V1.74129H12.4492V0Z" fill="currentColor" />
       <path
         fillRule="evenodd"
