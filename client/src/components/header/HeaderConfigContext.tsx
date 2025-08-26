@@ -1,16 +1,21 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useState,
+} from "react";
 
 interface HeaderConfig {
   lowerContent?: ReactNode;
 }
 
 const HeaderConfigContext = createContext<{
-    setHeaderConfig: (config: HeaderConfig) => void;
-    effectiveContent: ReactNode;
-      }>({
-        setHeaderConfig: () => {},
-        effectiveContent: null,
-      });
+  setHeaderConfig: (config: HeaderConfig) => void;
+  effectiveContent: ReactNode;
+    }>({
+      setHeaderConfig: () => {},
+      effectiveContent: null,
+    });
 
 export const useHeaderConfig = () => useContext(HeaderConfigContext);
 
