@@ -1,9 +1,5 @@
 import { User } from "demos-server";
-import {
-  GET_ALL_USERS,
-  GET_USER_BY_ID,
-  UserOption,
-} from "hooks/useUserOperations";
+import { GET_ALL_USERS, GET_USER_BY_ID, UserOption } from "hooks/useUserOperations";
 import { USER_OPTIONS_QUERY } from "queries/userQueries";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
 

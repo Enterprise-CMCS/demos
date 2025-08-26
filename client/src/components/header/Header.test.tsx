@@ -70,5 +70,4 @@ describe("Header", () => {
     fireEvent.click(profileName);
     expect(screen.queryByRole("link", { name: /Sign Out/i })).not.toBeInTheDocument();
   });
-
 });

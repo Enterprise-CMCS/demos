@@ -63,12 +63,7 @@ describe("CheckboxGroup component", () => {
     const getValidationMessage = vi.fn((vals: string[]) =>
       vals.includes("b") ? "Invalid choice" : ""
     );
-    render(
-      <CheckboxGroup
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+    render(<CheckboxGroup {...requiredProps} getValidationMessage={getValidationMessage} />);
     const input = screen.getByLabelText("Option B");
     fireEvent.click(input);
     expect(getValidationMessage).toHaveBeenCalledWith(["b"]);
@@ -76,15 +71,8 @@ describe("CheckboxGroup component", () => {
   });
 
   it("clears validation message when input becomes valid", () => {
-    const getValidationMessage = vi.fn((vals: string[]) =>
-      vals.includes("a") ? "" : "Invalid"
-    );
-    render(
-      <CheckboxGroup
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+    const getValidationMessage = vi.fn((vals: string[]) => (vals.includes("a") ? "" : "Invalid"));
+    render(<CheckboxGroup {...requiredProps} getValidationMessage={getValidationMessage} />);
 
     const bInput = screen.getByText("Option B").closest("label")!.querySelector("input")!;
     fireEvent.click(bInput);

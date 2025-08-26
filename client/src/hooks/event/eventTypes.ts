@@ -1,9 +1,6 @@
 export type LogLevel = "INFO" | "ERROR";
 
-export type EventType =
-  "LOGIN_SUCCEEDED"
-  | "LOGIN_FAILED"
-  | "LOGOUT_SUCCEEDED"
+export type EventType = "LOGIN_SUCCEEDED" | "LOGIN_FAILED" | "LOGOUT_SUCCEEDED";
 
 type EventLogLevelMap = {
   [K in EventType]: LogLevel;

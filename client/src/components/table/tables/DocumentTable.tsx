@@ -7,15 +7,8 @@ import {
   EditDocumentDialog,
   RemoveDocumentDialog,
 } from "components/dialog/document/DocumentDialog";
-import {
-  DeleteIcon,
-  EditIcon,
-  ImportIcon,
-} from "components/icons";
-import {
-  DocumentTableRow,
-  useDocument,
-} from "hooks/useDocument";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+import { DocumentTableRow, useDocument } from "hooks/useDocument";
 
 import { ColumnFilter } from "../ColumnFilter";
 import { DocumentColumns } from "../columns/DocumentColumns";

@@ -9,7 +9,10 @@ export const ProfileBlock: React.FC = () => {
   const { currentUser, loading, error } = getCurrentUser();
 
   if (loading) return <div className="animate-pulse h-6 w-28 bg-white/20 rounded" />;
-  if (error) { console.error("[ProfileBlock] currentUser error:", error); return null; }
+  if (error) {
+    console.error("[ProfileBlock] currentUser error:", error);
+    return null;
+  }
 
   if (!currentUser) {
     return (
@@ -25,11 +28,15 @@ export const ProfileBlock: React.FC = () => {
     <div
       id="profile-container"
       className="relative flex items-center gap-x-1 mr-2 cursor-pointer select-none"
-      onClick={() => setOpen(value => !value)}
+      onClick={() => setOpen((value) => !value)}
     >
       <Avatar character={firstCharacter} />
-      <span id="profile-name" className="text-lg font-semibold">{name}</span>
-      <span><ChevronDownIcon className={open ? "rotate-180" : ""} /></span>
+      <span id="profile-name" className="text-lg font-semibold">
+        {name}
+      </span>
+      <span>
+        <ChevronDownIcon className={open ? "rotate-180" : ""} />
+      </span>
 
       {open && (
         <ul className="absolute top-12 right-0 min-w-full bg-white border border-gray-300 rounded shadow-lg z-50">

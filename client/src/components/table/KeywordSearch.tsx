@@ -15,9 +15,7 @@ export const arrIncludesAllInsensitive = <T,>(
   columnId: string,
   filterValue: (string | undefined)[]
 ) => {
-  const validFilterValues = filterValue.filter(
-    (val): val is string => val != null
-  );
+  const validFilterValues = filterValue.filter((val): val is string => val != null);
 
   if (validFilterValues.length === 0) {
     return true;
@@ -27,9 +25,7 @@ export const arrIncludesAllInsensitive = <T,>(
     const search = val.toLowerCase();
     const rowValue = row.getValue(columnId);
 
-    return !(
-      rowValue != null && rowValue.toString().toLowerCase().includes(search)
-    );
+    return !(rowValue != null && rowValue.toString().toLowerCase().includes(search));
   });
 };
 

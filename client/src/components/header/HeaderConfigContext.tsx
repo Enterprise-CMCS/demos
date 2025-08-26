@@ -7,10 +7,10 @@ interface HeaderConfig {
 const HeaderConfigContext = createContext<{
   setHeaderConfig: (config: HeaderConfig) => void;
   effectiveContent: ReactNode;
-    }>({
-      setHeaderConfig: () => {},
-      effectiveContent: null,
-    });
+}>({
+  setHeaderConfig: () => {},
+  effectiveContent: null,
+});
 
 export const useHeaderConfig = () => useContext(HeaderConfigContext);
 

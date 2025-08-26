@@ -50,11 +50,7 @@ describe("useUserOperations", () => {
       expect(userOperations.current.getAllUsers.data).toBeDefined();
     });
 
-    expect(userOperations.current.getAllUsers.data).toEqual([
-      spongebob,
-      squidward,
-      patrick,
-    ]);
+    expect(userOperations.current.getAllUsers.data).toEqual([spongebob, squidward, patrick]);
     expect(userOperations.current.getAllUsers.loading).toBe(false);
     expect(userOperations.current.getAllUsers.error).toBeUndefined();
   });

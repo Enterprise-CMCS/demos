@@ -1,9 +1,6 @@
 import { vi } from "vitest";
 
-import {
-  act,
-  renderHook,
-} from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 
 import { useDateValidation } from "./useDateValidation";
 
