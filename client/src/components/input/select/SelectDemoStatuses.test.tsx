@@ -6,19 +6,26 @@ import { describe, it, expect, vi } from "vitest";
 import { SelectDemoStatuses } from "./SelectDemoStatuses";
 
 // Mock the JSON import
-vi.mock("faker_data/demonstrationStatuses.json", () => ({
-  default: [
-    { id: 1, name: "On Hold", deletedAt: null, createdAt: "", updatedAt: "" },
-    { id: 2, name: "Pending", deletedAt: null, createdAt: "", updatedAt: "" },
-    { id: 3, name: "Approved", deletedAt: null, createdAt: "", updatedAt: "" },
-  ],
-}));
+vi.mock(
+  "faker_data/demonstrationStatuses.json",
+  () => ({
+    default: [
+      { id: 1, name: "On Hold", deletedAt: null, createdAt: "", updatedAt: "" },
+      { id: 2, name: "Pending", deletedAt: null, createdAt: "", updatedAt: "" },
+      { id: 3, name: "Approved", deletedAt: null, createdAt: "", updatedAt: "" },
+    ],
+  })
+);
 
 describe("<SelectDemoStatuses />", () => {
   it("filters and selects a status, calling onStatusChange with the name", async () => {
     const onStatusChange = vi.fn();
     render(
-      <SelectDemoStatuses onStatusChange={onStatusChange} isRequired={false} isDisabled={false} />
+      <SelectDemoStatuses
+        onStatusChange={onStatusChange}
+        isRequired={false}
+        isDisabled={false}
+      />
     );
 
     // Focus and type "pe" to match "Pending"
@@ -50,7 +57,13 @@ describe("<SelectDemoStatuses />", () => {
   });
 
   it("applies required and disabled attributes to the input", () => {
-    render(<SelectDemoStatuses onStatusChange={() => {}} isRequired={true} isDisabled={true} />);
+    render(
+      <SelectDemoStatuses
+        onStatusChange={() => {}}
+        isRequired={true}
+        isDisabled={true}
+      />
+    );
 
     const input = screen.getByRole("textbox", { name: /select status/i });
     expect(input).toBeRequired();

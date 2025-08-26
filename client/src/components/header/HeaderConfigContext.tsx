@@ -1,9 +1,4 @@
-import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useState,
-} from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface HeaderConfig {
   lowerContent?: ReactNode;
