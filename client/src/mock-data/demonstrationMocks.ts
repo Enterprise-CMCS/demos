@@ -61,6 +61,14 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { demonstration: testDemonstration },
     },
   },
+  // Error mock for GET_DEMONSTRATION_BY_ID_QUERY with invalid ID
+  {
+    request: {
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      variables: { id: "fakeID" },
+    },
+    error: new Error("Demonstration not found"),
+  },
   {
     request: {
       query: DEMONSTRATION_DETAIL_QUERY,
@@ -213,6 +221,19 @@ export const demonstrationMocks: MockedResponse[] = [
         },
       },
     },
+  },
+  // Error mock for UPDATE_DEMONSTRATION_MUTATION with invalid data
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "invalid-id",
+        input: {
+          name: "",
+        },
+      },
+    },
+    error: new Error("Demonstration not found or invalid input"),
   },
   // TODO: we should revisit mock data in general. Suggestion to have a common set of three or so mock objects with primitives
   // which can be stitched together (deterministically, not randomly) in runtime. Would like to have a structure like

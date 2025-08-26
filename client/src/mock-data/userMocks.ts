@@ -1,7 +1,12 @@
+import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
 import { User } from "demos-server";
-import { GET_ALL_USERS, GET_USER_BY_ID, UserOption } from "hooks/useUserOperations";
-import { USER_OPTIONS_QUERY } from "queries/userQueries";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
+import {
+  GET_ALL_USERS,
+  GET_USER_BY_ID,
+  UserOption,
+} from "hooks/useUserOperations";
+import { USER_OPTIONS_QUERY } from "queries/userQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
 
@@ -86,6 +91,33 @@ export const userMocks: MockedResponse[] = [
           { fullName: "Darth Smith" },
           { fullName: "Bob Johnson" },
         ] satisfies UserOption[],
+      },
+    },
+  },
+  // Mock for HEADER_LOWER_QUERY
+  {
+    request: {
+      query: HEADER_LOWER_QUERY,
+      variables: { id: bypassUserGUID },
+    },
+    result: {
+      data: {
+        user: {
+          fullName: "John Doe",
+        },
+      },
+    },
+  },
+  {
+    request: {
+      query: HEADER_LOWER_QUERY,
+      variables: { id: johnDoe.id },
+    },
+    result: {
+      data: {
+        user: {
+          fullName: johnDoe.fullName,
+        },
       },
     },
   },
