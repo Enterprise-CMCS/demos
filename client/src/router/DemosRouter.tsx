@@ -12,45 +12,44 @@ import { IconLibrary } from "pages/debug/IconLibrary";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import { isLocalDevelopment } from "config/env";
 import { EventSandbox } from "pages/debug/EventSandbox";
+import { UserProvider } from "components/user/UserContext";
 
 export const DemosRouter = () => {
-  // TODO: When we know what IDM integration looks like
-  // We will want to read the JWT claims and
-  // add it to the AuthProvider (specifically the user object)
   const cognitoConfig = getCognitoConfig();
-
   return (
     <AuthProvider {...cognitoConfig}>
       <DemosApolloProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route
-              element={
-                <PrimaryLayout>
-                  <Outlet />
-                </PrimaryLayout>
-              }
-            >
-              {/* Real Pages the user should be able to access */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="demonstrations" element={<Demonstrations />} />
-              {/* THIS SHOULD BE REMOVED AS SOON AS WE ARE SURE THIS IS WORKING */}
-              <Route path="/auth" element={<AuthDebugComponent />} />
-              <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
-              {/* 404 Page */}
-              <Route path="*" element={<div>404: Page Not Found</div>} />
-              {/* Debug routes, only available in development mode */}
-              {isLocalDevelopment() && (
-                <>
-                  <Route path="/components" element={<ComponentLibrary />} />
-                  <Route path="/hooks" element={<TestHooks />} />
-                  <Route path="/icons" element={<IconLibrary />} />
-                  <Route path="/events" element={<EventSandbox />} />
-                </>
-              )}
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <UserProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route
+                element={
+                  <PrimaryLayout>
+                    <Outlet />
+                  </PrimaryLayout>
+                }
+              >
+                {/* Real Pages the user should be able to access */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="demonstrations" element={<Demonstrations />} />
+                {/* DEBG AUTH IN EARLY STAGE DEV */}
+                <Route path="/auth" element={<AuthDebugComponent />} />
+                <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+                {/* 404 Page */}
+                <Route path="*" element={<div>404: Page Not Found</div>} />
+                {/* Debug routes, only available in development mode */}
+                {isLocalDevelopment() && (
+                  <>
+                    <Route path="/components" element={<ComponentLibrary />} />
+                    <Route path="/hooks" element={<TestHooks />} />
+                    <Route path="/icons" element={<IconLibrary />} />
+                    <Route path="/events" element={<EventSandbox />} />
+                  </>
+                )}
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </UserProvider>
       </DemosApolloProvider>
     </AuthProvider>
   );

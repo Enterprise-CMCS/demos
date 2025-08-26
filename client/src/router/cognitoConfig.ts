@@ -35,7 +35,7 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_FCc2lmZDJ",
   domain: "https://demos-dev-login-user-pool-client.auth.us-east-1.amazoncognito.com",
   client_id: "5p61qososiui75cmclcift45oi",
-  post_logout_redirect_uri: "http://localhost:3000",
+  post_logout_redirect_uri: "http://localhost:3000/",
   redirect_uri: "http://localhost:3000/",
   scope: "email openid profile",
 };

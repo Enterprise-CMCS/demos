@@ -1,24 +1,29 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { useMutation } from "@apollo/client";
 
 import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
+import { Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
-import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
+import { DELETE_DOCUMENTS_QUERY, UPLOAD_DOCUMENT_QUERY, UPDATE_DOCUMENT_QUERY } from "queries/documentQueries";
 import { tw } from "tags/tw";
-
-import { useMutation } from "@apollo/client";
+import { Document, DocumentType, UploadDocumentInput, UpdateDocumentInput } from "demos-server";
 
 type DocumentDialogType = "add" | "edit";
 
-const DOCUMENT_TYPES = [
-  { label: "Pre-Submission Concept", value: "preSubmissionConcept" },
-  { label: "General File", value: "generalFile" },
-];
+const DOCUMENT_TYPE_LOOKUP: Record<DocumentType, string> = {
+  preSubmissionConcept: "Pre-Submission Concept",
+  generalFile: "General File",
+};
+
+const DOCUMENT_TYPE_OPTIONS: Option[] = Object.entries(DOCUMENT_TYPE_LOOKUP).map(
+  ([value, label]) => ({ value, label })
+);
 
 const STYLES = {
   label: tw`block text-sm font-bold text-text-font mb-xs`,
@@ -71,8 +76,8 @@ const unknownErrorText = (mode: DocumentDialogType) =>
 
 const normalizeType = (doctype?: string) => {
   if (!doctype) return "";
-  if (DOCUMENT_TYPES.some((o) => o.value === doctype)) return doctype;
-  return DOCUMENT_TYPES.find((o) => o.label === doctype)?.value ?? "";
+  if (DOCUMENT_TYPE_OPTIONS.some((o) => o.value === doctype)) return doctype;
+  return DOCUMENT_TYPE_OPTIONS.find((o) => o.label === doctype)?.value ?? "";
 };
 
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
@@ -128,7 +133,7 @@ const DocumentTypeInput: React.FC<{
     <AutoCompleteSelect
       id="document-type"
       label="Document Type"
-      options={DOCUMENT_TYPES}
+      options={DOCUMENT_TYPE_OPTIONS}
       value={value}
       onSelect={(selectedValue) => onSelect?.(selectedValue)}
     />
