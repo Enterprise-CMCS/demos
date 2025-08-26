@@ -48,11 +48,7 @@ interface BaseToastProps {
   onDismiss: () => void;
 }
 
-export const BaseToast: React.FC<BaseToastProps> = ({
-  message,
-  toastType,
-  onDismiss,
-}) => {
+export const BaseToast: React.FC<BaseToastProps> = ({ message, toastType, onDismiss }) => {
   const toastClasses = `${BASE_TOAST_CLASSES} ${getToastColor(toastType)}`;
   const toastIcon = getToastIcon(toastType);
 
@@ -61,9 +57,11 @@ export const BaseToast: React.FC<BaseToastProps> = ({
       <div className="mx-1">{toastIcon}</div>
       <span>{message}</span>
       <button
+        data-testid="button-dismiss-notification"
         onClick={onDismiss}
         className="h-3 w-3 border-l border-border-rules cursor-pointer px-sm ml-1"
-        aria-label="Dismiss notification">
+        aria-label="Dismiss notification"
+      >
         <ExitIcon />
       </button>
     </div>

@@ -2,34 +2,37 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { DemosRouter } from "./DemosRouter";
+import * as envMod from "config/env";
 
-vi.mock("config/env", () => ({
-  isLocalDevelopment: vi.fn(),
-  shouldUseMocks: vi.fn(() => true),
-}));
 
-// Mock react-oidc-context AuthProvider to just render children
+vi.mock("config/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("config/env")>();
+  return {
+    ...actual,
+    getAppMode: vi.fn(() => "test"),
+    isLocalDevelopment: vi.fn(() => false),
+    shouldUseMocks: vi.fn(() => true),
+  };
+});
+
 vi.mock("react-oidc-context", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: vi.fn(() => ({})),
 }));
 
-// Mock Apollo MockedProvider to just render children
-vi.mock("@apollo/client/testing", () => ({
-  MockedProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+vi.mock("./DemosApolloProvider", async () => {
+  const React = (await import("react")).default;
+  const { MockedProvider } = await import("@apollo/client/testing");
+  const { userMocks } = await import("mock-data/userMocks");
+  const DemosApolloProvider = ({ children }: { children: React.ReactNode }) => (
+    <MockedProvider mocks={userMocks} addTypename={false}>
+      {children}
+    </MockedProvider>
+  );
+  return { DemosApolloProvider };
+});
 
-// Mock getCognitoConfig to return an empty object
-vi.mock("./cognitoConfig", () => ({
-  getCognitoConfig: () => ({}),
-}));
-
-// Mock pages and components
-// TODO: Ideally we remove these mocks and use the actual components
-// but for now we just return divs to have something to match on
-vi.mock("pages", () => ({
-  LandingPage: () => <div>LandingPage</div>,
-}));
+vi.mock("pages", () => ({ LandingPage: () => <div>LandingPage</div> }));
 vi.mock("pages/debug", () => ({
   ComponentLibrary: () => <div>ComponentLibrary</div>,
   TestHooks: () => <div>TestHooks</div>,
@@ -44,6 +47,7 @@ vi.mock("layout/PrimaryLayout", () => ({
 }));
 vi.mock("pages/Demonstrations", () => ({
   Demonstrations: () => <div>Demonstrations</div>,
+  DEMONSTRATIONS_PAGE_QUERY: {},
 }));
 
 describe("DemosRouter", () => {
@@ -60,9 +64,8 @@ describe("DemosRouter", () => {
     expect(screen.getByText("Demonstrations")).toBeInTheDocument();
   });
 
-  it("renders debug routes in development mode", async () => {
-    const { isLocalDevelopment } = await import("config/env");
-    vi.mocked(isLocalDevelopment).mockReturnValue(true);
+  it("renders debug routes in development mode", () => {
+    (envMod.isLocalDevelopment as unknown as vi.Mock).mockReturnValue(true);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
@@ -74,11 +77,11 @@ describe("DemosRouter", () => {
 
     window.history.pushState({}, "Auth", "/auth");
     render(<DemosRouter />);
+    expect(screen.getByText("AuthDebugComponent")).toBeInTheDocument();
   });
 
-  it("does not render debug routes outside development mode", async () => {
-    const { isLocalDevelopment } = await import("config/env");
-    vi.mocked(isLocalDevelopment).mockReturnValue(false);
+  it("does not render debug routes outside development mode", () => {
+    (envMod.isLocalDevelopment as unknown as vi.Mock).mockReturnValue(false);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);

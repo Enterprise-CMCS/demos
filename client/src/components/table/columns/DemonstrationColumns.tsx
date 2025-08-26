@@ -6,7 +6,8 @@ import { useUserOperations } from "hooks/useUserOperations";
 import { useState } from "hooks/useState";
 import { useDemonstrationStatus } from "hooks/useDemonstrationStatus";
 import React from "react";
-import { TableRow } from "../tables/DemonstrationTable";
+import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
+import { createSelectColumnDef } from "./selectColumn";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
@@ -23,18 +24,10 @@ export function DemonstrationColumns() {
   }, []);
 
   // Loading and error handling
-  if (
-    getUserOptions.loading ||
-    getStateOptions.loading ||
-    getDemonstrationStatusOptions.loading
-  ) {
+  if (getUserOptions.loading || getStateOptions.loading || getDemonstrationStatusOptions.loading) {
     return { loading: true };
   }
-  if (
-    getUserOptions.error ||
-    getStateOptions.error ||
-    getDemonstrationStatusOptions.error
-  ) {
+  if (getUserOptions.error || getStateOptions.error || getDemonstrationStatusOptions.error) {
     return {
       error:
         getUserOptions.error?.message ||
@@ -42,41 +35,14 @@ export function DemonstrationColumns() {
         getDemonstrationStatusOptions.error?.message,
     };
   }
-  if (
-    !getUserOptions.data ||
-    !getStateOptions.data ||
-    !getDemonstrationStatusOptions.data
-  ) {
+  if (!getUserOptions.data || !getStateOptions.data || !getDemonstrationStatusOptions.data) {
     return { error: "Data not found" };
   }
 
-  const columnHelper = createColumnHelper<TableRow>();
+  const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
 
   const demonstrationColumns = [
-    columnHelper.display({
-      id: "select",
-      header: ({ table }) => (
-        <input
-          id="select-all-rows"
-          type="checkbox"
-          className="cursor-pointer"
-          aria-label="Select all rows"
-          checked={table.getIsAllPageRowsSelected()}
-          onChange={table.getToggleAllPageRowsSelectedHandler()}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          id={`select-row-${row.id}`}
-          type="checkbox"
-          className="cursor-pointer"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          aria-label={`Select row ${row.index + 1}`}
-        />
-      ),
-      size: 20,
-    }),
+    createSelectColumnDef(columnHelper),
     columnHelper.accessor("state.name", {
       id: "stateName",
       header: "State/Territory",
@@ -118,15 +84,8 @@ export function DemonstrationColumns() {
       id: "applications",
       header: "Applications",
       cell: ({ row }) => {
-        if (
-          row.original.type === "amendment" ||
-          row.original.type === "extension"
-        ) {
-          return (
-            <span>
-              {row.original.type === "amendment" ? "Amendment" : "Extension"}
-            </span>
-          );
+        if (row.original.type === "amendment" || row.original.type === "extension") {
+          return <span>{row.original.type === "amendment" ? "Amendment" : "Extension"}</span>;
         }
         const amendmentsCount = row.original.amendments?.length ?? 0;
         const extensionsCount = row.original.extensions?.length ?? 0;

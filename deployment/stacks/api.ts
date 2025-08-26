@@ -26,12 +26,7 @@ interface APIStackProps {
 }
 
 export class ApiStack extends Stack {
-  constructor(
-    scope: Construct,
-    id: string,
-    props: StackProps & DeploymentConfigProperties & APIStackProps
-  ) {
-
+  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties & APIStackProps) {
     super(scope, id, {
       ...props,
       terminationProtection: false,
@@ -42,11 +37,7 @@ export class ApiStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(
-              this,
-              "iamPermissionsBoundary",
-              props.iamPermissionsBoundaryArn
-            )
+          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
           : undefined,
     };
 
@@ -60,20 +51,12 @@ export class ApiStack extends Stack {
       `${commonProps.project}-${commonProps.hostEnvironment}-rds-security-group-id`
     );
 
-    const rdsPort = importNumberValue(
-      `${commonProps.project}-${commonProps.hostEnvironment}-rds-port`
-    );
+    const rdsPort = importNumberValue(`${commonProps.project}-${commonProps.hostEnvironment}-rds-port`);
 
-    const rdsSg = aws_ec2.SecurityGroup.fromSecurityGroupId(
-      commonProps.scope,
-      "rdsSg",
-      rdsSecurityGroupId
-    );
+    const rdsSg = aws_ec2.SecurityGroup.fromSecurityGroupId(commonProps.scope, "rdsSg", rdsSecurityGroupId);
 
     rdsSg.addIngressRule(
-      aws_ec2.Peer.securityGroupId(
-        graphqlLambdaSecurityGroup.securityGroup.securityGroupId
-      ),
+      aws_ec2.Peer.securityGroupId(graphqlLambdaSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow ingress from GraphQL Security Group",
       true
@@ -86,9 +69,7 @@ export class ApiStack extends Stack {
       true
     );
 
-    const secretsManagerVpceSgId = Fn.importValue(
-      `${commonProps.stage}SecretsManagerVpceSg`
-    );
+    const secretsManagerVpceSgId = Fn.importValue(`${commonProps.stage}SecretsManagerVpceSg`);
 
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
@@ -96,23 +77,25 @@ export class ApiStack extends Stack {
       "Allow traffic to secrets manager VPCE"
     );
 
-    const cognitoAuthority = Fn.importValue(
-      `${commonProps.hostEnvironment}CognitoAuthority`
-    )
-    const parts = Fn.split("com/",cognitoAuthority, 2)
-    const cognitoUserPoolId = Fn.select(1, parts)
-    const userPool = aws_cognito.UserPool.fromUserPoolId(commonProps.scope, "coreCognitoUserPool", cognitoUserPoolId)
+    const cognitoAuthority = Fn.importValue(`${commonProps.hostEnvironment}CognitoAuthority`);
+    const parts = Fn.split("com/", cognitoAuthority, 2);
+    const cognitoUserPoolId = Fn.select(1, parts);
+    const userPool = aws_cognito.UserPool.fromUserPoolId(commonProps.scope, "coreCognitoUserPool", cognitoUserPoolId);
     const apigateway_outputs = apigateway.create({
       ...commonProps,
       userPool: userPool,
     });
 
-    const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(commonProps.scope, "rdsDatabaseSecret",`demos-${commonProps.hostEnvironment}-rds-admin`)
+    const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+      commonProps.scope,
+      "rdsDatabaseSecret",
+      `demos-${commonProps.hostEnvironment}-rds-admin`
+    );
 
-    const authPath = path.join("..", "lambda_authorizer")
-    console.log("authPath", authPath)
-    const rel = path.resolve(authPath)
-    console.log("rel", rel)
+    const authPath = path.join("..", "lambda_authorizer");
+    console.log("authPath", authPath);
+    const rel = path.resolve(authPath);
+    console.log("rel", rel);
 
     const authorizerLambda = lambda.create(
       {
@@ -124,56 +107,50 @@ export class ApiStack extends Stack {
           JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
         },
         externalModules: ["aws-sdk"],
-        nodeModules: ["jsonwebtoken","jwks-rsa"],       
+        nodeModules: ["jsonwebtoken", "jwks-rsa"],
         depsLockFilePath: path.join(rel, "package-lock.json"),
       },
       "authorizer"
-    )
+    );
 
     const tokenAuthorizer = new aws_apigateway.TokenAuthorizer(commonProps.scope, "jwtTokenAuthorizer", {
       handler: authorizerLambda.lambda.lambda,
-      authorizerName: "cognitoTokenAuth"
-    })
+      authorizerName: "cognitoTokenAuth",
+    });
 
-    const uploadBucketName = Fn.importValue(`${props.stage}UploadBucketName`)
-    const uploadBucket = aws_s3.Bucket.fromBucketName(this, "uploadBucket", uploadBucketName)
+    const uploadBucketName = Fn.importValue(`${props.stage}UploadBucketName`);
+    const uploadBucket = aws_s3.Bucket.fromBucketName(this, "uploadBucket", uploadBucketName);
 
     const graphqlLambda = lambda.create(
       {
         ...commonProps,
-        entry: "../server/dist",
+        entry: "../server/build",
         handler: "server.graphqlHandler",
         apiParentResource: apigateway_outputs.apiParentResource,
         path: "graphql",
         method: "POST",
         vpc: props.vpc,
-        securityGroup: props.isLocalstack
-          ? undefined
-          : graphqlLambdaSecurityGroup?.securityGroup,
-        authorizer: props.isLocalstack
-          ? undefined
-          : tokenAuthorizer,
-        authorizationType: props.isLocalstack
-          ? undefined
-          : aws_apigateway.AuthorizationType.CUSTOM,
+        securityGroup: props.isLocalstack ? undefined : graphqlLambdaSecurityGroup?.securityGroup,
+        authorizer: props.isLocalstack ? undefined : tokenAuthorizer,
+        authorizationType: props.isLocalstack ? undefined : aws_apigateway.AuthorizationType.CUSTOM,
         asCode: true,
         environment: {
-          BYPASS_AUTH: commonProps.hostEnvironment == "dev" ? "true" : "",
+          BYPASS_AUTH: "false",
           DATABASE_URL: "postgres://placeholder",
           DATABASE_SECRET_ARN: dbSecret.secretName, // This needs to be the name rather than the arn, otherwise the request from the lambda fails since no secret suffix is available
-          UPLOAD_BUCKET: uploadBucket.bucketName
-        }
+          UPLOAD_BUCKET: uploadBucket.bucketName,
+        },
       },
       "graphql"
     );
-    dbSecret.grantRead(graphqlLambda.lambda.role)
-    uploadBucket.grantPut(graphqlLambda.lambda.role)
+    dbSecret.grantRead(graphqlLambda.lambda.role);
+    uploadBucket.grantPut(graphqlLambda.lambda.role);
 
     // Outputs
 
     new CfnOutput(this, "ApiUrl", {
       value: apigateway_outputs.apiGatewayRestApiUrl,
-      exportName: `${commonProps.stage}ApiGWUrl`
+      exportName: `${commonProps.stage}ApiGWUrl`,
     });
   }
 }

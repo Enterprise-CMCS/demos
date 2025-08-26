@@ -8,7 +8,9 @@ import { createColumnHelper } from "@tanstack/react-table";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
-import { format, isAfter, isBefore, isSameDay } from "date-fns";
+import { isAfter, isBefore, isSameDay } from "date-fns";
+import { formatDate } from "util/formatDate";
+import { createSelectColumnDef } from "./selectColumn";
 
 export function DocumentColumns() {
   const { getDocumentTypeOptions } = useDocumentType();
@@ -33,30 +35,7 @@ export function DocumentColumns() {
   const columnHelper = createColumnHelper<DocumentTableRow>();
 
   const documentColumns = [
-    columnHelper.display({
-      id: "Select",
-      header: ({ table }) => (
-        <input
-          id="select-all-rows"
-          type="checkbox"
-          className="cursor-pointer"
-          aria-label="Select all rows"
-          checked={table.getIsAllPageRowsSelected()}
-          onChange={table.getToggleAllPageRowsSelectedHandler()}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          id={`select-row-${row.id}`}
-          type="checkbox"
-          className="cursor-pointer"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          aria-label={`Select row ${row.index + 1}`}
-        />
-      ),
-      size: 20,
-    }),
+    createSelectColumnDef(columnHelper),
     columnHelper.accessor("title", {
       header: "Title",
       cell: highlightCell,
@@ -92,7 +71,7 @@ export function DocumentColumns() {
       header: "Date Uploaded",
       cell: ({ getValue }) => {
         const dateValue = getValue();
-        return format(dateValue, "MM/dd/yyyy");
+        return formatDate(dateValue);
       },
       filterFn: (row, columnId, filterValue) => {
         const dateValue = row.getValue(columnId) as string;

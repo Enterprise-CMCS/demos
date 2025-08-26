@@ -6,7 +6,8 @@ import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
 
 export const documentSchema = gql`
-  union Bundle = Demonstration | Amendment
+  union Bundle = Demonstration | Amendment | Extension
+
   type Document {
     id: ID!
     title: String!
@@ -20,67 +21,23 @@ export const documentSchema = gql`
     updatedAt: DateTime!
   }
 
-  input UploadDemonstrationDocumentInput {
+  input UploadDocumentInput {
     title: String!
     description: String!
-    ownerUserId: ID!
-    documentTypeId: String!
-    demonstrationId: ID!
+    documentType: String!
   }
 
-  input UpdateDemonstrationDocumentInput {
+  input UpdateDocumentInput {
+    id: ID!
     title: String
     description: String
-    s3Path: String
-    ownerUserId: ID
-    documentTypeId: String
-    demonstrationId: ID
-  }
-
-  input UploadAmendmentDocumentInput {
-    title: String!
-    description: String!
-    ownerUserId: ID!
-    documentTypeId: String!
-    amendmentId: ID!
-  }
-
-  input UpdateAmendmentDocumentInput {
-    title: String
-    description: String
-    s3Path: String
-    ownerUserId: ID
-    documentTypeId: String
-    amendmentId: ID
-  }
-
-  input UploadExtensionDocumentInput {
-    title: String!
-    description: String!
-    ownerUserId: ID!
-    documentTypeId: String!
-    extensionId: ID!
-  }
-
-  input UpdateExtensionDocumentInput {
-    title: String
-    description: String
-    s3Path: String
-    ownerUserId: ID
-    documentTypeId: ID
-    extensionId: ID
+    documentType: String
   }
 
   type Mutation {
-    uploadDemonstrationDocument(input: UploadDemonstrationDocumentInput!): Document
-    updateDemonstrationDocument(id: ID!, input: UpdateDemonstrationDocumentInput!): Document
-    deleteDemonstrationDocument(id: ID!): Document
-    uploadAmendmentDocument(input: UploadAmendmentDocumentInput!): Document
-    updateAmendmentDocument(id: ID!, input: UpdateAmendmentDocumentInput!): Document
-    deleteAmendmentDocument(id: ID!): Document
-    uploadExtensionDocument(input: UploadExtensionDocumentInput!): Document
-    updateExtensionDocument(id: ID!, input: UpdateExtensionDocumentInput!): Document
-    deleteExtensionDocument(id: ID!): Document
+    uploadDocument(input: UploadDocumentInput!): Document
+    updateDocument(input: UpdateDocumentInput!): Document
+    deleteDocuments(ids: [ID!]!): [ID!]!
   }
 
   type Query {
@@ -90,7 +47,6 @@ export const documentSchema = gql`
 `;
 
 type Bundle = Demonstration | Amendment | Extension;
-export type DateTime = Date;
 export interface Document {
   id: string;
   title: string;
@@ -100,57 +56,19 @@ export interface Document {
   documentType: DocumentType;
   bundle: Bundle;
   bundleType: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface UploadDemonstrationDocumentInput {
+export interface UploadDocumentInput {
   title: string;
   description: string;
-  ownerUserId: string;
-  documentTypeId: string;
-  demonstrationId: string;
+  documentType: string;
 }
 
-export interface UpdateDemonstrationDocumentInput {
+export interface UpdateDocumentInput {
+  id: string;
   title?: string;
   description?: string;
-  s3Path?: string;
-  ownerUserId?: string;
-  documentTypeId?: string;
-  demonstrationId?: string;
-}
-
-export interface UploadAmendmentDocumentInput {
-  title: string;
-  description: string;
-  ownerUserId: string;
-  documentTypeId: string;
-  amendmentId: string;
-}
-
-export interface UpdateAmendmentDocumentInput {
-  title?: string;
-  description?: string;
-  s3Path?: string;
-  ownerUserId?: string;
-  documentTypeId?: string;
-  amendmentId?: string;
-}
-
-export interface UploadExtensionDocumentInput {
-  title: string;
-  description: string;
-  ownerUserId: string;
-  documentTypeId: string;
-  extensionId: string;
-}
-
-export interface UpdateExtensionDocumentInput {
-  title?: string;
-  description?: string;
-  s3Path?: string;
-  ownerUserId?: string;
-  documentTypeId?: string;
-  extensionId?: string;
+  documentType?: string;
 }

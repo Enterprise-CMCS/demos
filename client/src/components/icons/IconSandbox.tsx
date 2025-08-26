@@ -124,13 +124,11 @@ export const IconSandbox = () => {
         className="flex items-center gap-2 p-2 bg-gray-50 rounded shadow"
         onSubmit={(e) => e.preventDefault()}
       >
-        <label
-          className="text-xs font-bold text-gray-700"
-          htmlFor="icon-hue-slider"
-        >
+        <label className="text-xs font-bold text-gray-700" htmlFor="icon-hue-slider">
           Change Icon Color:
         </label>
         <input
+          data-testid="input-hue-slider"
           id="icon-hue-slider"
           type="range"
           min="-1"
@@ -140,27 +138,20 @@ export const IconSandbox = () => {
           className={"w-40"}
         />
       </form>
-      {[alertIcons, inputIcons, actionIcons, symbolIcons, navigationIcons].map(
-        (icons, idx) => (
-          <div key={idx} className="mb-0">
-            <div className="flex flex-wrap gap-1">
-              {icons.map((Component) => (
-                <div
-                  key={Component.name}
-                  className="flex flex-col items-center rounded"
-                >
-                  <span style={{ color }}>
-                    <Component width="24" height="24" />
-                  </span>
-                  <span className="mt-0.5 text-[12px] text-gray-700">
-                    {Component.name}
-                  </span>
-                </div>
-              ))}
-            </div>
+      {[alertIcons, inputIcons, actionIcons, symbolIcons, navigationIcons].map((icons, idx) => (
+        <div key={idx} className="mb-0">
+          <div className="flex flex-wrap gap-1">
+            {icons.map((Component) => (
+              <div key={Component.name} className="flex flex-col items-center rounded">
+                <span style={{ color }}>
+                  <Component width="24" height="24" />
+                </span>
+                <span className="mt-0.5 text-[12px] text-gray-700">{Component.name}</span>
+              </div>
+            ))}
           </div>
-        )
-      )}
+        </div>
+      ))}
     </div>
   );
 };

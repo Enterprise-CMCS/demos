@@ -13,7 +13,7 @@ describe("cognitoConfig", () => {
   describe("getCognitoLogoutUrl", () => {
     it("should generate the correct logout URL", () => {
       const expectedUrl =
-        "https://demos-dev-login-user-pool-client.auth.us-east-1.amazoncognito.com/logout?client_id=5p61qososiui75cmclcift45oi&logout_uri=http%3A%2F%2Flocalhost%3A3000";
+        "https://demos-dev-login-user-pool-client.auth.us-east-1.amazoncognito.com/logout?client_id=5p61qososiui75cmclcift45oi&logout_uri=http%3A%2F%2Flocalhost%3A3000%2F";
       const url = getCognitoLogoutUrl(LOCAL_COGNITO_CONFIG);
       expect(url).toBe(expectedUrl);
     });

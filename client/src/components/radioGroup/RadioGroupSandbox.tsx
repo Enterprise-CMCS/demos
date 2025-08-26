@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { RadioGroup } from "./RadioGroup";
-import { PrimaryButton } from "components/button";
-
-const BUTTON_CLASS_NAME =
-  "bg-brand text-white my-sm p-sm rounded-normal hover:bg-brand-dark";
+import { Button } from "components/button";
 
 const getValidationMessage = (value: string) => {
   if (value === "pineapple") {
@@ -20,24 +17,15 @@ export const RadioGroupSandbox: React.FC = () => {
   return (
     <div>
       <div className="flex gap-sm mb-sm">
-        <PrimaryButton
-          className={BUTTON_CLASS_NAME}
-          onClick={() => setDisabled((d) => !d)}
-        >
+        <Button name="rg-set-enabled" onClick={() => setDisabled((d) => !d)}>
           {disabled ? "Enable" : "Disable"}
-        </PrimaryButton>
-        <PrimaryButton
-          className={BUTTON_CLASS_NAME}
-          onClick={() => setIsRequired((r) => !r)}
-        >
+        </Button>
+        <Button name="rg-set-required" onClick={() => setIsRequired((r) => !r)}>
           {isRequired ? "Set Not Required" : "Set Required"}
-        </PrimaryButton>
-        <PrimaryButton
-          className={BUTTON_CLASS_NAME}
-          onClick={() => setIsInline((r) => !r)}
-        >
+        </Button>
+        <Button name="rg-set-inline" onClick={() => setIsInline((r) => !r)}>
           {isInline ? "Set Not Inline" : "Set Inline"}
-        </PrimaryButton>
+        </Button>
       </div>
       <RadioGroup
         name="pizzaTopping"

@@ -27,9 +27,7 @@ export interface AutoCompleteMultiselectProps {
   values?: string[];
 }
 
-export const AutoCompleteMultiselect: React.FC<
-  AutoCompleteMultiselectProps
-> = ({
+export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = ({
   options,
   placeholder = "Select",
   onSelect,
@@ -63,10 +61,7 @@ export const AutoCompleteMultiselect: React.FC<
   // Close on outside click
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -118,6 +113,7 @@ export const AutoCompleteMultiselect: React.FC<
 
       <div className="relative w-full">
         <input
+          data-testid="input-autocomplete-multiselect"
           id={id}
           type="text"
           placeholder={placeholder}

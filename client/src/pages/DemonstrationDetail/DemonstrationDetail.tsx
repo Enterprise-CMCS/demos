@@ -11,7 +11,7 @@ import { useLocation, useParams } from "react-router-dom";
 
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationModalDetails } from "./DemonstrationDetailModals";
-import { DemonstrationTab } from "./DemonstrationTab";
+import { DemonstrationTab, DemonstrationTabDetails } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { ModificationTableRow } from "components/table/tables/ModificationTable";
 import { gql, useQuery } from "@apollo/client";
@@ -49,14 +49,42 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           name
         }
       }
+      demonstrationTypes {
+        id
+      }
+      documents {
+        id
+      }
+      contacts {
+        id
+        fullName
+        email
+        contactType
+      }
     }
   }
 `;
 
+export type Contact = {
+  id: string;
+  fullName?: string | null;
+  email?: string | null;
+  contactType?: ContactType | null;
+};
+
+export type ContactType =
+  | "Primary Project Officer"
+  | "Secondary Project Officer"
+  | "State Representative"
+  | "Subject Matter Expert";
+
 export type DemonstrationDetail = DemonstrationHeaderDetails &
-  DemonstrationModalDetails & {
+  DemonstrationModalDetails &
+  DemonstrationTabDetails & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
+  } & {
+    contacts: Contact[];
   };
 
 type TabType = "details" | "amendments" | "extensions";
@@ -101,10 +129,13 @@ export const DemonstrationDetail: React.FC = () => {
     setDemonstrationActionModal("delete");
   }, []);
 
-  const { data, loading, error } = useQuery(DEMONSTRATION_DETAIL_QUERY, {
-    variables: { id: id! },
-    skip: !id,
-  });
+  const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
+    DEMONSTRATION_DETAIL_QUERY,
+    {
+      variables: { id: id! },
+      skip: !id,
+    }
+  );
 
   const demonstration = data?.demonstration;
 
@@ -144,7 +175,11 @@ export const DemonstrationDetail: React.FC = () => {
           />
 
           <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && <DemonstrationTab />}
+            {tab === "details" && (
+              <DemonstrationTab
+                demonstration={demonstration}
+              />
+            )}
 
             {tab === "amendments" && (
               <AmendmentsTab
