@@ -19,21 +19,9 @@ type ContactType =
 
 export type Contact = {
   id: string;
-  fullName?: string;
-  email?: string;
-  contactType?: ContactType;
-};
-
-const CreateContactModal: React.FC = () => {
-  return <div>AddContactModal</div>;
-};
-
-const EditContactModal: React.FC = () => {
-  return <div>AddContactModal</div>;
-};
-
-const DeleteContactModal: React.FC = () => {
-  return <div>AddContactModal</div>;
+  fullName?: string | null;
+  email?: string | null;
+  contactType?: ContactType | null;
 };
 
 const contactsColumnHelper = createColumnHelper<Contact>();
@@ -76,59 +64,16 @@ const contactsColumns = [
   }),
 ];
 
-type DisplayedModal = null | "add" | "edit" | "remove";
-
-interface DocumentModalsProps {
-  displayedModal: DisplayedModal;
-  onClose: () => void;
-  selectedContacts: Contact[];
-}
-
-function ContactModals({ displayedModal, selectedContacts }: DocumentModalsProps) {
-  if (displayedModal === "add") {
-    return <CreateContactModal />;
-  }
-  if (displayedModal === "edit" && selectedContacts.length === 1) {
-    const selectedDoc = selectedContacts[0];
-
-    if (!selectedDoc) return null;
-
-    return <EditContactModal />;
-  }
-  if (displayedModal === "remove" && selectedContacts.length > 0) {
-    return <DeleteContactModal />;
-  }
-  return null;
-}
-
-interface DocumentActionButtonsProps {
-  onShowModal: (modal: DisplayedModal) => void;
-  editDisabled: boolean;
-  removeDisabled: boolean;
-}
-
-function DocumentActionButtons({
-  onShowModal,
-  editDisabled,
-  removeDisabled,
-}: DocumentActionButtonsProps) {
+function DocumentActionButtons() {
   return (
     <div className="flex gap-2 ml-4">
-      <CircleButton name="Add Contact" onClick={() => onShowModal("add")}>
+      <CircleButton name="Add Contact" onClick={() => {}}>
         <ImportIcon />
       </CircleButton>
-      <CircleButton
-        name="Edit Contact"
-        onClick={() => !editDisabled && onShowModal("edit")}
-        disabled={editDisabled}
-      >
+      <CircleButton name="Edit Contact" onClick={() => {}}>
         <EditIcon />
       </CircleButton>
-      <CircleButton
-        name="Remove Contact"
-        onClick={() => !removeDisabled && onShowModal("remove")}
-        disabled={removeDisabled}
-      >
+      <CircleButton name="Remove Contact" onClick={() => {}}>
         <DeleteIcon />
       </CircleButton>
     </div>
@@ -136,12 +81,11 @@ function DocumentActionButtons({
 }
 
 type ContactsTableProps = {
-  contacts: Contact[];
+  contacts?: Contact[];
 };
 
-export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts }) => {
+export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [] }) => {
   const [rowSelection, setRowSelection] = React.useState({});
-  const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
 
   const contactsTable = useReactTable<Contact>({
     data: contacts || [],
@@ -157,11 +101,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts }) => {
     <>
       <div className="flex items-center justify-end mb-2">
         <div className="mr-1">
-          <DocumentActionButtons
-            onShowModal={setDisplayedModal}
-            editDisabled={contactsTable.getSelectedRowModel().rows.length !== 1}
-            removeDisabled={contactsTable.getSelectedRowModel().rows.length < 1}
-          />
+          <DocumentActionButtons />
         </div>
       </div>
       <table className="w-full table-fixed text-sm">
@@ -195,7 +135,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts }) => {
                 const value = cell.getContext().getValue();
                 return (
                   <td key={cell.id} className="px-2 py-1 border-b">
-                    {value === undefined || value === null || value === ""
+                    {!value && cell.column.id !== "select"
                       ? "-"
                       : flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -206,11 +146,6 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts }) => {
         </tbody>
       </table>
       <PaginationControls table={contactsTable} />
-      <ContactModals
-        displayedModal={displayedModal}
-        onClose={() => setDisplayedModal(null)}
-        selectedContacts={contactsTable.getSelectedRowModel().rows.map((row) => row.original)}
-      />
     </>
   );
 };

@@ -67,9 +67,9 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 
 export type Contact = {
   id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: ContactType | null;
+  fullName?: string | null;
+  email?: string | null;
+  contactType?: ContactType | null;
 };
 
 export type ContactType =

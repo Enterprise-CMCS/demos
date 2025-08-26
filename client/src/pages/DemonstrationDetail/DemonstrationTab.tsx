@@ -6,8 +6,8 @@ import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { TabItem, Tabs } from "layout/Tabs";
-import { DemonstrationDetailContacts } from "./DemonstrationDetailContacts";
 import { Contact } from "./DemonstrationDetail";
+import { ContactsTable } from "components/table/tables/ContactsTable";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -73,7 +73,22 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
           </div>
         )}
 
-        {subTab === "contacts" && <DemonstrationDetailContacts demonstration={demonstration} />}
+        {subTab === "contacts" && (
+          <>
+            <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+              <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
+              <SecondaryButton
+                name="add-new-document"
+                size="small"
+                onClick={() => setModalType("document")}
+              >
+                <span>Add New</span>
+                <AddNewIcon className="w-2 h-2" />
+              </SecondaryButton>
+            </div>
+            <ContactsTable contacts={demonstration.contacts} />
+          </>
+        )}
       </div>
 
       {/* Replaced the CreateNewModal */}
