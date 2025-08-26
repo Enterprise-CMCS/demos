@@ -1,5 +1,10 @@
 ---
 title: DEMOS Data Model
+config:
+  theme: default
+  layout: elk
+  elk:
+    nodePlacementStrategy: NETWORK_SIMPLEX
 ---
 
 erDiagram
@@ -11,48 +16,45 @@ erDiagram
   classDef associativeTable stroke:darkmagenta,fill:plum
   classDef legend stroke:black,fill:#ddd
 
-  bundle_phase_date ||--|{ bundle_phase_status : "bundle_phase_status.(bundle_id, phase_id, display_date_type_id) ∈ bundle_phase_date.(bundle_id, phase_id, date_type_id)"
-  phase ||--|{ bundle_phase_status : "bundle_phase_status.phase_id ∈ phase.id"
-  phase_status ||--|{ bundle_phase_status : "bundle_phase_status.phase_status_id ∈ phase_status.id"
-  document }|--|| bundle : "document.bundle_id ∈ bundle.id"
-  bundle_phase_requirement }|--|| bundle : "bundle_phase_requirement.bundle_id ∈ bundle.id"
+  reportable_event_type ||..O{ event : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
+  document_type ||--|{ phase_document_type : "phase_document_type.document_type_id ∈ document_type.id"
+  phase_status ||--|{ bundle_phase_status  : "bundle_phase_status.phase_status_id ∈ phase_status.id"
+  date_type ||--|{ bundle_phase_date  : "bundle_phase_date.date_type_id ∈ date_type.id"
+  bundle_phase_status }|--|| bundle : "bundle_phase_status.bundle_id ∈ bundle.id"
   bundle_phase_date }|--|| bundle : "bundle_phase_date.bundle_id ∈ bundle.id"
-  document ||--|{ bundle_phase_requirement : "bundle_phase_requirement.(bundle_id, phase_id, document_id) ∈ document.(bundle_id, phase_id, id)"
-  document_type ||--|{ document : "document.document_type_id ∈ document_type.id"
-  phase ||--|{ bundle_phase_requirement : "bundle_phase_requirement.phase_id ∈ phase.id"
-  phase ||--|{ bundle_phase_date : "bundle_phase_date.phase_id ∈ phase.id"
-  phase ||--|{ document: "document.phase_id ∈ phase.id"
-  %% date_type ||--|{ bundle_phase_date : "bundle_phase_date.date_type_id ∈ date_type.id"
-  bundle_phase_date }|--|| date_type : "bundle_phase_date.date_type_id ∈ date_type.id"
-  requirement ||--|{ bundle_phase_requirement : "bundle_phase_requirement.(requirement_id, is_document_requirement) ∈ requirement.(id, is_document_requirement)"
-  cmcs_division ||--|{ demonstration : "demonstration.cmcs_division_id ∈ cmcs_division.id"
-  signature_level ||--|{ demonstration : "demonstration.signature_level_id ∈ signature_level.id"
+  bundle_phase_status }|--|| phase : "bundle_phase_status.phase_id ∈ phase.id"
+  bundle_phase_date }|--|| phase : "bundle_phase_date.phase_id ∈ phase.id"
+  phase ||--|{ demonstration : "demonstration.current_phase_id ∈ phase.id"
+  bundle ||--|| demonstration : "demonstration.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
   bundle ||--|| modification : "modificaton.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
+  demonstration ||--|{ modification : "modification.demonstration_id ∈ demonstration.id"
+  phase ||--|{ phase_document_type : "phase_document_type.phase_id ∈ phase.id"
+  bundle ||--|{ document : "document.bundle_id ∈ bundle.id"
+  phase_document_type ||--|{ document : "document.(phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
   document }|--|| users : "document.owner_user_id ∈ users.id"
   modification }|--|| users : "modification.project_officer_user_id ∈ users.id"
-  bundle }|--|| bundle_type : "bundle.bundle_type_id ∈ bundle_type.id"
-  demonstration_bundle_type ||--|{ demonstration : "demonstration.bundle_type_id ∈ demonstration_bundle_type.id"
-  bundle ||--|| demonstration : "demonstration.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
-  bundle_type ||--|| modification_bundle_type : "modification_bundle_type.id ∈ bundle_type.id"
-  bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
-  modification_bundle_type ||--|{ modification : "modification.bundle_type_id ∈ modification_bundle_type.id"
-  bundle_status ||--|{ modification : "modification.bundle_status_id ∈ bundle_status.id"
-  demonstration }|--|| bundle_status : "demonstration.bundle_status_id ∈ bundle_status.id"
-  state ||--|{ demonstration : "demonstration.state_id ∈ state.id"
   demonstration }|--|| users : "demonstration.project_officer_user_id ∈ users.id"
-  demonstration ||--|{ modification : "modification.demonstration_id ∈ demonstration.id"
-  users ||--|{ user_state : "user_state.user_id ∈ users.id"
-  user_state_demonstration }|--|| user_state : "user_state_demonstration.(user_id, state_id) ∈ user_state.(user_id, state_id)"
+  cmcs_division ||--|{ demonstration : "demonstration.cmcs_division_id ∈ cmcs_division.id"
+  signature_level ||--|{ demonstration : "demonstration.signature_level_id ∈ signature_level.id"
+  bundle }|--|| bundle_type : "bundle.bundle_type_id ∈ bundle_type.id"
+  bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
+  demonstration_bundle_type ||--|{ demonstration : "demonstration.bundle_type_id ∈ demonstration_bundle_type.id"
+  bundle_type ||--|| modification_bundle_type : "modification_bundle_type.id ∈ bundle_type.id"
+  modification_bundle_type ||--|{ modification : "modification.bundle_type_id ∈ modification_bundle_type.id"
+  demonstration }|--|| bundle_status : "demonstration.bundle_status_id ∈ bundle_status.id"
+  bundle_status ||--|{ modification : "modification.bundle_status_id ∈ bundle_status.id"
+  phase ||--|{ modification : "modification.current_phase_id ∈ phase.id"
+  demonstration }|--|| state : "demonstration.state_id ∈ state.id"
   state ||--|{ user_state : "user_state.user_id ∈ state.id"
+  user_state }|--|| users : "user_state.user_id ∈ users.id"
+  user_state_demonstration }|--|| user_state : "user_state_demonstration.(user_id, state_id) ∈ user_state.(user_id, state_id)"
   demonstration ||--|{ user_state_demonstration : "user_state_demonstration.(demonstration_id, state_id) ∈ demonstration.(id, state_id)"
   users ||--|{ event : "event.active_user_id ∈ users.id"
-  role ||--|{ user_role : "user_role.role_id ∈ role.id"
+  user_role }|--|| role : "user_role.role_id ∈ role.id"
   event }|--|| role : "event.active_role_id ∈ role.id"
   users ||--|{ user_role : "user_role.user_id ∈ users.id"
   permission ||--|{ role_permission : "role_permission.permission_id ∈ permission.id"
   role ||--|{ role_permission : "role_permission.role_id ∈ role.id"
-  event }O..|| reportable_event_type : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
-  bundle_phase_status }|--|| bundle : "bundle_phase_status.bundle_id ∈ bundle.id"
 
   %% Static Constraints
   bundle_type:::staticConstraint {
@@ -73,15 +75,11 @@ erDiagram
 
   phase:::staticConstraint {
     text id PK
+    integer phase_number UK
   }
 
   phase_status:::staticConstraint {
     text id PK
-  }
-
-  requirement:::staticConstraint {
-    text id PK, UK "UK: (id, is_document_requirement)"
-    bool is_document_requirement UK "UK: (id, is_document_requirement)"
   }
 
   signature_level:::staticConstraint {
@@ -132,37 +130,25 @@ erDiagram
     uuid bundle_id PK, FK, FK "FK: bundle.id<br>FK1: bundle_phase_date.(bundle_id, phase_id, date_type_id)"
     text phase_id PK, FK, FK "FK: phase.id<br>FK1: bundle_phase_date.(bundle_id, phase_id, date_type_id)"
     text phase_status_id FK "FK: phase_status.id"
-    text display_date_type_id FK "FK1: bundle_phase_date.(bundle_id, phase_id, date_type_id)<br>NULLABLE"
     timestamptz created_at
     timestamptz updated_at
-  }
-
-  bundle_phase_requirement:::dataTable {
-    uuid bundle_id PK, FK "FK: bundle.id<br>FK2: document.(bundle_id, phase_id, id)"
-    text phase_id PK, FK "FK: phase.id<br>FK2: document.(bundle_id, phase_id, id)"
-    text requirement_id PK, FK "FK1: requirement.(id, is_document_requirement)"
-    bool is_document_requirement FK "FK1: requirement.(id, is_document_requirement)"
-    bool is_requirement_met
-    uuid document_id "NULLABLE<br>FK2: document.(bundle_id, phase_id, id)"
-    timestamptz created_at
-    timestamptz updated_at
-    CHECK check_constraint "(NOT is_document_requirement) OR<br>(is_document_requirement AND NOT is_requirement_met) OR<br>(is_document_requirement AND is_requirement_met AND document_id IS NOT NULL)"
   }
 
   demonstration:::dataTable {
-    uuid id PK, FK, UK, UK "FK1: bundle.(id, bundle_type_id) UK1: (id, bundle_type_id), UK2: (id, state_id)"
-    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id), FK: demonstration_bundle_type.id"
+    uuid id PK, FK, UK, UK "FK1: bundle.(id, bundle_type_id)<br>UK1: (id, bundle_type_id)<br>UK2: (id, state_id)"
+    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id)<br>FK: demonstration_bundle_type.id"
     text name
     text description
     date effective_date
     date expiration_date
     text cmcs_division_id FK "FK: cmcs_division.id"
     text signature_level_id FK "FK: signature_level.id"
+    text bundle_status_id FK "FK: bundle_status.id"
+    text state_id FK, UK "FK: state.id<br>UK2: (id, state_id)"
+    uuid project_officer_user_id FK "FK: users.id"
+    text current_phase_id FK "FK: phase.id"
     timestamptz created_at
     timestamptz updated_at
-    text bundle_status_id FK "FK: bundle_status.id"
-    text state_id FK, UK "FK: state.id, UK2: (id, state_id)"
-    uuid project_officer_user_id FK "FK: users.id"
   }
 
   document:::dataTable {
@@ -171,9 +157,9 @@ erDiagram
     text description
     text s3_path
     uuid owner_user_id FK "FK: users.id"
-    text document_type_id FK "FK: document_type.id"
+    text document_type_id FK "FK1: phase_document_type.(phase_id, document_type_id)"
     uuid bundle_id FK, UK "FK: bundle.id<br>UK: (id, bundle_id, phase_id)"
-    text phase_id FK, UK "FK: phase.id<br>UK: (id, bundle_id, phase_id)"
+    text phase_id FK, UK "FK1: phase_document_type.(phase_id, document_type_id)<br>UK: (id, bundle_id, phase_id)"
     timestamptz created_at
     timestamptz updated_at
   }
@@ -191,16 +177,17 @@ erDiagram
 
   modification:::dataTable {
     uuid id PK, FK "FK1: bundle.(id, bundle_type_id)"
-    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id), FK: modification_bundle_type.id"
+    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id)<br>FK: modification_bundle_type.id"
     uuid demonstration_id FK "FK: demonstration.id"
     text name
     text description
     date effective_date
     date expiration_date
+    text bundle_status_id FK "FK: bundle_status.id"
+    uuid project_officer_user_id FK "FK: users.id"
+    text current_phase_id FK "FK: phase.id"
     timestamptz created_at
     timestamptz updated_at
-    text bundle_status_id FK "FK: bundle_status.id,"
-    uuid project_officer_user_id FK "FK: users.id"
   }
 
   permission:::dataTable {
@@ -231,6 +218,11 @@ erDiagram
   }
 
   %% Associative Tables
+  phase_document_type:::associativeTable {
+    text phase_id PK, FK "FK: phase.id"
+    text document_type_id PK, FK "FK: document_type.id"
+  }
+
   role_permission:::associativeTable {
     text role_id PK, FK "FK: role.id"
     text permission_id PK, FK "FK: permission.id"
