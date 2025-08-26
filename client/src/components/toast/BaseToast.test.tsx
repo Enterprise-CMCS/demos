@@ -96,8 +96,7 @@ describe("BaseToast", () => {
 
   describe("Message Content", () => {
     it("renders long messages properly", () => {
-      const longMessage =
-        "This is a very long toast message that should still be displayed properly without breaking the layout or causing any visual issues.";
+      const longMessage = "This is a very long toast message that should still be displayed properly without breaking the layout or causing any visual issues.";
       render(<BaseToast {...defaultProps} message={longMessage} />);
       expect(screen.getByText(longMessage)).toBeInTheDocument();
     });

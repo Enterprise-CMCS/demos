@@ -328,7 +328,9 @@ describe.sequential("KeywordSearch Component", () => {
       await waitFor(
         () => {
           expect(
-            screen.getByText("No results were returned. Adjust your search and filter criteria.")
+            screen.getByText(
+              "No results were returned. Adjust your search and filter criteria."
+            )
           ).toBeInTheDocument();
 
           // No table rows should be visible
@@ -351,7 +353,9 @@ describe.sequential("KeywordSearch Component", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText("No results were returned. Adjust your search and filter criteria.")
+          screen.getByText(
+            "No results were returned. Adjust your search and filter criteria."
+          )
         ).toBeInTheDocument();
       });
 
@@ -363,7 +367,9 @@ describe.sequential("KeywordSearch Component", () => {
         () => {
           expect(screen.getByText("Item One")).toBeInTheDocument();
           expect(
-            screen.queryByText("No results were returned. Adjust your search and filter criteria.")
+            screen.queryByText(
+              "No results were returned. Adjust your search and filter criteria."
+            )
           ).not.toBeInTheDocument();
         },
         { timeout: 500 }

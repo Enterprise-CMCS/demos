@@ -19,7 +19,13 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("renders input with placeholder", () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} placeholder="Pick fruit" />);
+    render(
+      <AutoCompleteSelect
+        options={options}
+        onSelect={onSelect}
+        placeholder="Pick fruit"
+      />
+    );
     expect(screen.getByPlaceholderText("Pick fruit")).toBeInTheDocument();
   });
 
@@ -39,7 +45,12 @@ describe("AutoCompleteSelect", () => {
 
   it("renders disabled input", () => {
     render(
-      <AutoCompleteSelect options={options} onSelect={onSelect} isDisabled placeholder="Disabled" />
+      <AutoCompleteSelect
+        options={options}
+        onSelect={onSelect}
+        isDisabled
+        placeholder="Disabled"
+      />
     );
     expect(screen.getByPlaceholderText("Disabled")).toBeDisabled();
   });
@@ -120,7 +131,13 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("prefills input with defaultValue", () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} defaultValue="Banana" />);
+    render(
+      <AutoCompleteSelect
+        options={options}
+        onSelect={onSelect}
+        defaultValue="Banana"
+      />
+    );
     expect(screen.getByDisplayValue("Banana")).toBeInTheDocument();
   });
 });

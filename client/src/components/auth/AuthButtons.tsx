@@ -13,7 +13,7 @@ export function SigninButton(): React.ReactElement {
       Sign In
     </Button>
   );
-}
+};
 export function SignoutButton(): React.ReactElement {
   const { signOut } = useAuthActions();
   return (
@@ -21,4 +21,4 @@ export function SignoutButton(): React.ReactElement {
       Sign Out
     </Button>
   );
-}
+};
