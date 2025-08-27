@@ -6,9 +6,7 @@ export const DOCUMENT_TABLE_QUERY = gql`
       id
       title
       description
-      documentType {
-        name
-      }
+      documentType
       owner {
         fullName
       }

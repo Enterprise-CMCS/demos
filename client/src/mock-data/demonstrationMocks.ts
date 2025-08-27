@@ -38,12 +38,13 @@ export const mockDemonstrations: MockDemonstration[] = [
   {
     id: "1",
     name: "Montana Medicaid Waiver",
-    demonstrationStatus: mockDemonstrationStatuses[1],
-    state: mockStates.find((state) => state.id === "MT")!,
     description: "A demonstration project in Montana.",
     effectiveDate: new Date("2025-01-01"),
     expirationDate: new Date("2025-12-01"),
+
     projectOfficer: mockUsers[0],
+    demonstrationStatus: mockDemonstrationStatuses[1],
+    state: mockStates.find((state) => state.id === "MT")!,
     users: [mockUsers[0]],
     amendments: [mockAmendments[0], mockAmendments[1]],
     extensions: [mockExtensions[0]],
@@ -54,10 +55,11 @@ export const mockDemonstrations: MockDemonstration[] = [
   {
     id: "2",
     name: "Florida Health Innovation",
-    demonstrationStatus: mockDemonstrationStatuses[5],
     effectiveDate: new Date("2025-02-02"),
     expirationDate: new Date("2025-12-02"),
     description: "A health innovation project in Florida.",
+
+    demonstrationStatus: mockDemonstrationStatuses[5],
     state: mockStates.find((state) => state.id === "FL")!,
     projectOfficer: mockUsers[1],
     users: [mockUsers[1]],
@@ -72,8 +74,9 @@ export const mockDemonstrations: MockDemonstration[] = [
     name: "Texas Reform Initiative",
     effectiveDate: new Date("2025-03-03"),
     expirationDate: new Date("2025-12-03"),
-    demonstrationStatus: mockDemonstrationStatuses[6],
     description: "A reform initiative in Texas.",
+
+    demonstrationStatus: mockDemonstrationStatuses[6],
     state: mockStates.find((state) => state.id === "TX")!,
     projectOfficer: mockUsers[4],
     users: [mockUsers[0]],
@@ -217,7 +220,6 @@ export const demonstrationMocks: MockedResponse[] = [
           description: "Updated description",
           effectiveDate: new Date("2024-07-01T00:00:00.000Z"),
           expirationDate: new Date("2024-07-31T00:00:00.000Z"),
-          updatedAt: new Date("2024-07-01T00:00:00.000Z"),
         },
       },
     },

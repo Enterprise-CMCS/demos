@@ -24,8 +24,6 @@ const mockExtensionResponse = {
   description: "Test extension description",
   effectiveDate: "2024-01-01",
   expirationDate: "2024-12-31",
-  createdAt: "2024-01-01T00:00:00Z",
-  updatedAt: "2024-01-01T00:00:00Z",
   demonstration: {
     id: "test-demo-id",
     name: "Test Demonstration",

@@ -17,8 +17,6 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
       description
       effectiveDate
       expirationDate
-      createdAt
-      updatedAt
       demonstrationStatus {
         id
         name
@@ -43,8 +41,6 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
       description
       effectiveDate
       expirationDate
-      createdAt
-      updatedAt
       demonstrationStatus {
         id
         name
@@ -72,8 +68,6 @@ export const ADD_DEMONSTRATION_QUERY = gql`
       description
       effectiveDate
       expirationDate
-      createdAt
-      updatedAt
       demonstrationStatus {
         id
         name
@@ -98,8 +92,6 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       description
       effectiveDate
       expirationDate
-      createdAt
-      updatedAt
       demonstrationStatus {
         id
         name

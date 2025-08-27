@@ -1,7 +1,6 @@
 import React from "react";
 
 import { Demonstration } from "demos-server";
-import { testDemonstration } from "mock-data/demonstrationMocks";
 import { formatDate } from "util/formatDate";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +8,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";
+import { mockDemonstrations } from "mock-data/demonstrationMocks";
 
 // Mock the DemonstrationDialog component
 vi.mock("components/dialog/DemonstrationDialog", () => ({
@@ -67,7 +67,7 @@ describe("SummaryDetailsTable", () => {
 
   describe("Component Rendering", () => {
     it("renders the summary details table with demonstration data", () => {
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       expect(screen.getByText("Summary Details")).toBeInTheDocument();
       expect(screen.getByText("Test Demonstration")).toBeInTheDocument();

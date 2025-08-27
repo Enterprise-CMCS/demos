@@ -13,8 +13,6 @@ const testRole = {
   id: "CMS_USER",
   name: "CMS User",
   description: "CMS User Role",
-  createdAt: new Date("2025-01-01"),
-  updatedAt: new Date("2025-01-01"),
   users: [],
   permissions: [],
 };
