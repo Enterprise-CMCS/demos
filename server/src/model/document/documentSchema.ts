@@ -32,7 +32,6 @@ export const documentSchema = gql`
   input UpdateDocumentInput {
     title: String
     description: String
-    s3Path: String
     ownerUserId: ID
     documentTypeId: String
     bundleId: ID
@@ -75,7 +74,6 @@ export interface UploadDocumentInput {
 export interface UpdateDocumentInput {
   title?: string;
   description?: string;
-  s3Path?: string;
   ownerUserId?: string;
   documentTypeId?: string;
   bundleId?: string;
