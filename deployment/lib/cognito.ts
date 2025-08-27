@@ -56,6 +56,14 @@ export function create(props: CognitoProps): CognitoOutputs {
       requireDigits: true,
       requireSymbols: true,
     },
+    customAttributes: {
+      roles:
+      new aws_cognito.StringAttribute({
+        minLen: 0,
+        maxLen: 2048,
+        mutable: true
+      })
+    },
   });
 
   const cfnUserPool = userPool.node.defaultChild as aws_cognito.CfnUserPool;
