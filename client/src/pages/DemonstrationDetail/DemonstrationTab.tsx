@@ -8,6 +8,10 @@ import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable
 import { TabItem, Tabs } from "layout/Tabs";
 import { Contact } from "./DemonstrationDetail";
 import { ContactsTable } from "components/table/tables/ContactsTable";
+import {
+  ApplicationWorkflow,
+  ApplicationWorkflowDemonstration,
+} from "components/application/ApplicationWorkflow";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -31,8 +35,13 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
     { value: "contacts", label: "Contacts", count: demonstration.contacts.length },
   ];
 
+  const MOCK_DEMONSTRATION: ApplicationWorkflowDemonstration = {
+    status: "under_review",
+  };
+
   return (
     <div>
+      <ApplicationWorkflow demonstration={MOCK_DEMONSTRATION} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}
