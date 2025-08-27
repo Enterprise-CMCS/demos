@@ -1,7 +1,5 @@
 import { DemonstrationStatus } from "demos-server";
 
-import { MockedResponse } from "@apollo/client/testing";
-
 export const activeDemonstrationStatus: DemonstrationStatus = {
   id: "1",
   name: "Active",
