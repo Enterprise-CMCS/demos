@@ -10,6 +10,7 @@ import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
 import { isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDate } from "util/formatDate";
+import { createSelectColumnDef } from "./selectColumn";
 
 export function DocumentColumns() {
   const { getDocumentTypeOptions } = useDocumentType();
@@ -34,32 +35,7 @@ export function DocumentColumns() {
   const columnHelper = createColumnHelper<DocumentTableRow>();
 
   const documentColumns = [
-    columnHelper.display({
-      id: "Select",
-      header: ({ table }) => (
-        <input
-          data-testid="select-all-rows"
-          id="select-all-rows"
-          type="checkbox"
-          className="cursor-pointer"
-          aria-label="Select all rows"
-          checked={table.getIsAllPageRowsSelected()}
-          onChange={table.getToggleAllPageRowsSelectedHandler()}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          data-testid={`select-row-${row.id}`}
-          id={`select-row-${row.id}`}
-          type="checkbox"
-          className="cursor-pointer"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          aria-label={`Select row ${row.index + 1}`}
-        />
-      ),
-      size: 20,
-    }),
+    createSelectColumnDef(columnHelper),
     columnHelper.accessor("title", {
       header: "Title",
       cell: highlightCell,

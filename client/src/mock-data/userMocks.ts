@@ -1,6 +1,9 @@
 import { User } from "demos-server";
-import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
+import {
+  GET_ALL_USERS,
+  GET_USER_BY_ID,
+} from "hooks/useUserOperations";
 
 import { MockedResponse } from "@apollo/client/testing";
 

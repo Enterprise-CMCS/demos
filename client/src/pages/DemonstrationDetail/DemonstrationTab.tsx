@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 
 import { SecondaryButton } from "components/button";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { AddNewIcon } from "components/icons";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import { AddDocumentModal } from "components/modal/document/DocumentModal";
 import { TabItem, Tabs } from "layout/Tabs";
+import { Contact } from "./DemonstrationDetail";
+import { ContactsTable } from "components/table/tables/ContactsTable";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -13,7 +15,7 @@ type DocumentModalType = "document" | null;
 export type DemonstrationTabDetails = {
   demonstrationTypes: object[];
   documents: object[];
-  contacts: object[];
+  contacts: Contact[];
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails }> = ({
@@ -72,18 +74,24 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
         )}
 
         {subTab === "contacts" && (
-          <div>
+          <>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
-              {/* TO DO: Add New button? */}
+              <SecondaryButton
+                name="add-new-document"
+                size="small"
+                onClick={() => setModalType("document")}
+              >
+                <span>Add New</span>
+                <AddNewIcon className="w-2 h-2" />
+              </SecondaryButton>
             </div>
-            {/* TO DO: Add Table */}
-          </div>
+            <ContactsTable contacts={demonstration.contacts} />
+          </>
         )}
       </div>
 
-      {/* Replaced the CreateNewModal */}
-      {modalType === "document" && <AddDocumentModal onClose={() => setModalType(null)} />}
+      {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}
     </div>
   );
 };

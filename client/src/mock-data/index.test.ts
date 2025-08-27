@@ -1,7 +1,13 @@
-import { describe, it, expect } from "vitest";
 import { print } from "graphql";
-import { ALL_MOCKS } from "./index";
+import {
+  describe,
+  expect,
+  it,
+} from "vitest";
+
 import { MockedResponse } from "@apollo/client/testing";
+
+import { ALL_MOCKS } from "./index";
 
 describe("ALL_MOCKS", () => {
   it("should have a request and result for each mock", () => {
@@ -13,6 +19,9 @@ describe("ALL_MOCKS", () => {
 
   it("should not have overlapping queries", () => {
     const queries = ALL_MOCKS.map((mock: MockedResponse) => {
+      if (!mock.request.query) {
+        throw new Error(`Mock is missing query: ${JSON.stringify(mock, null, 2)}`);
+      }
       return {
         query: print(mock.request.query),
         variables: mock.request.variables,

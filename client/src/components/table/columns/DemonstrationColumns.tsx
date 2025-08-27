@@ -5,6 +5,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import React from "react";
 import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
 import { DemonstrationStatus, State, User } from "demos-server";
+import { createSelectColumnDef } from "./selectColumn";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
@@ -17,30 +18,7 @@ export function DemonstrationColumns(
   const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
 
   return [
-    columnHelper.display({
-      id: "select",
-      header: ({ table }) => (
-        <input
-          id="select-all-rows"
-          type="checkbox"
-          className="cursor-pointer"
-          aria-label="Select all rows"
-          checked={table.getIsAllPageRowsSelected()}
-          onChange={table.getToggleAllPageRowsSelectedHandler()}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          id={`select-row-${row.id}`}
-          type="checkbox"
-          className="cursor-pointer"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          aria-label={`Select row ${row.index + 1}`}
-        />
-      ),
-      size: 20,
-    }),
+    createSelectColumnDef(columnHelper),
     columnHelper.accessor("state.name", {
       id: "stateName",
       header: "State/Territory",
@@ -136,7 +114,7 @@ export function DemonstrationColumns(
             type="button"
             size="small"
             onClick={handleClick}
-            className="px-2 py-0 text-sm font-medium"
+            name={`view-details-${row.original.id}`}
           >
             View
           </SecondaryButton>
