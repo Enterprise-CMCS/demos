@@ -20,8 +20,8 @@ model Demonstration {
   projectOfficer          User                     @relation(fields: [projectOfficerUserId], references: [id])
   userStateDemonstrations UserStateDemonstration[]
   modification            Modification[]
-  cmcsDivision            CmcsDivision?            @relation(fields: [cmcsDivisionId], references: [id])
-  signatureLevel          SignatureLevel?          @relation(fields: [signatureLevelId], references: [id])
+  cmcsDivision            CmcsDivision?            @relation(fields: [cmcsDivisionId], references: [id], onDelete: Restrict)
+  signatureLevel          SignatureLevel?          @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
 
   @@id([id])
   @@unique([id, stateId])
