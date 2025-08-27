@@ -1,13 +1,20 @@
 import React from "react";
-import { MockedProvider } from "@apollo/client/testing";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+
+import { UserProvider } from "components/user/UserContext";
 import { userMocks } from "mock-data/userMocks";
+import { vi } from "vitest";
+
+import { MockedProvider } from "@apollo/client/testing";
+import {
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
+
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
 import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
-import { UserProvider } from "components/user/UserContext";
 
 function renderWithProviders(ui: React.ReactNode) {
   return render(
@@ -42,7 +49,7 @@ describe("Header", () => {
   });
 
   it("renders the Create New button", async () => {
-    renderWithProviders(<DefaultHeaderLower />);
+    renderWithProviders(<DefaultHeaderLower userId="1" />);
     expect(await screen.findByTestId("create-new")).toBeInTheDocument(); // ← await
   });
 
