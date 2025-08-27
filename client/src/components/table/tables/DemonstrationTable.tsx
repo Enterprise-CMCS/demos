@@ -5,7 +5,7 @@ import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
-import { DemonstrationStatus, State } from "demos-server";
+import { DemonstrationStatus, State, User } from "demos-server";
 import {
   Demonstration,
   DemonstrationAmendment,
@@ -55,27 +55,28 @@ const getSubRows = (
   ];
 };
 
-type DemonstrationTableRow = Demonstration;
-export const DemonstrationTable: React.FC<{ demonstrations: DemonstrationTableRow[] }> = ({
-  demonstrations,
-}) => {
+export const DemonstrationTable: React.FC<{
+  demonstrations: Demonstration[];
+  projectOfficerOptions: Pick<User, "fullName">[];
+  stateOptions: Pick<State, "name" | "id">[];
+  statusOptions: Pick<DemonstrationStatus, "name">[];
+}> = ({ demonstrations, stateOptions, projectOfficerOptions, statusOptions }) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  const { demonstrationColumns, demonstrationColumnsLoading, demonstrationColumnsError } =
-    DemonstrationColumns();
-
-  if (demonstrationColumnsLoading) return <div className="p-4">Loading...</div>;
-  if (demonstrationColumnsError)
-    return <div className="p-4">Error loading column data: {demonstrationColumnsError}</div>;
+  const demonstrationColumns = DemonstrationColumns(
+    stateOptions,
+    projectOfficerOptions,
+    statusOptions
+  );
 
   // TODO: Replace with actual current user ID from authentication context
   const currentUserId = "1";
 
-  const myDemos: DemonstrationTableRow[] = demonstrations.filter((demo: DemonstrationTableRow) =>
+  const myDemos: Demonstration[] = demonstrations.filter((demo: Demonstration) =>
     demo.users.some((user) => user.id === currentUserId)
   );
 
-  const allDemos: DemonstrationTableRow[] = demonstrations;
+  const allDemos: Demonstration[] = demonstrations;
 
   const tabList: TabItem[] = [
     {
