@@ -4,7 +4,8 @@ import { shouldUseMocks } from "config/env";
  * Validates if a string is a valid UUID format
  */
 export const isValidUUID = (uuid: string): boolean => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 };
 
@@ -26,7 +27,9 @@ export const normalizeUserId = (userId: string): string => {
 
   // If it's not a valid UUID in real mode, this might be an error
   // Log it for debugging and return the bypassed user UUID
-  console.warn(`Invalid UUID format in real mode: ${userId}, using bypassed user`);
+  console.warn(
+    `Invalid UUID format in real mode: ${userId}, using bypassed user`
+  );
   return "00000000-1111-2222-3333-123abc123abc"; // The bypassed user from the database
 };
 

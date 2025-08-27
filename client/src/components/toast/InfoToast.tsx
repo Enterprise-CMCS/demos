@@ -6,6 +6,9 @@ interface InfoToastProps {
   onDismiss: () => void;
 }
 
-export const InfoToast: React.FC<InfoToastProps> = ({ message, onDismiss }) => (
+export const InfoToast: React.FC<InfoToastProps> = ({
+  message,
+  onDismiss,
+}) => (
   <BaseToast toastType="info" message={message} onDismiss={onDismiss} />
 );

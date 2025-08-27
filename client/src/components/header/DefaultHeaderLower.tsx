@@ -1,4 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AmendmentDialog } from "components/dialog/AmendmentDialog";
@@ -6,30 +10,21 @@ import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { AddNewIcon } from "components/icons";
-import { gql } from "graphql-tag";
-import { normalizeUserId } from "hooks/user/uuidHelpers";
+import { getCurrentUser } from "components/user/UserContext";
 
-import { useQuery } from "@apollo/client";
-
-export const HEADER_LOWER_QUERY = gql`
-  query HeaderLowerQuery($id: ID!) {
-    user(id: $id) {
-      fullName
-    }
-  }
-`;
-
-export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) => {
+export const DefaultHeaderLower: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [modalType, setModalType] = useState<
-    "create" | "document" | "amendment" | "extension" | null
+    "demonstration" | "document" | "amendment" | "extension" | null
   >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  const { currentUser, loading, error } = getCurrentUser();
+
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    // Close dropdown on outside click
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
       }
     };
@@ -37,40 +32,42 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (!userId) {
+  if (loading) {
     return (
-      <div className="w-full bg-blue-900 text-white px-4 py-1 flex items-center justify-between" />
+      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
+        Loading…
+      </div>
     );
   }
 
-  const { data, error, loading } = useQuery(HEADER_LOWER_QUERY, {
-    variables: { id: normalizeUserId(userId) },
-  });
+  if (error || !currentUser) {
+    // render a minimal bar if unauthenticated or errored
+    return (
+      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between" />
+    );
+  }
 
-  if (error) return <div>Error: {error.message}</div>;
-  if (loading) return <div>Loading...</div>;
-  if (!data?.user) return null;
-
-  const user = data.user;
+  const name = currentUser.displayName || currentUser.email;
 
   const handleSelect = (item: string) => {
     setShowDropdown(false);
-    if (item === "Demonstration") setModalType("create");
+    if (item === "Demonstration") setModalType("demonstration");
     else if (item === "AddDocument") setModalType("document");
     else if (item === "Amendment") setModalType("amendment");
     else if (item === "Extension") setModalType("extension");
-    // TODO: handle "Extension" later
   };
 
   return (
     <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
       <div>
-        <span className="font-bold block">Hello {user.fullName}</span>
+        <span className="font-bold block">Hello {name}</span>
         <span className="block text-sm">Welcome to DEMOS!</span>
       </div>
+
       <div className="relative" ref={dropdownRef}>
         <SecondaryButton
           name="create-new"
+          data-testid="create-new"
           size="small"
           onClick={() => setShowDropdown((prev) => !prev)}
         >
@@ -114,7 +111,7 @@ export const DefaultHeaderLower: React.FC<{ userId?: string }> = ({ userId }) =>
         )}
       </div>
 
-      {modalType === "create" && (
+      {modalType === "demonstration" && (
         <DemonstrationDialog mode="add" onClose={() => setModalType(null)} />
       )}
       {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}

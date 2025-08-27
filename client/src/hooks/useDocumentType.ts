@@ -15,18 +15,19 @@ export interface DocumentTypeOperations {
   getDocumentTypeOptions: GetDocumentTypeOptionsOperation;
 }
 
-const createGetDocumentTypeOptionsHook = (): GetDocumentTypeOptionsOperation => {
-  const [trigger, { data, loading, error }] = useLazyQuery<{
-    documentTypes: DocumentTypeOption[];
-  }>(DOCUMENT_TYPE_OPTIONS_QUERY);
+const createGetDocumentTypeOptionsHook =
+  (): GetDocumentTypeOptionsOperation => {
+    const [trigger, { data, loading, error }] = useLazyQuery<{
+      documentTypes: DocumentTypeOption[];
+    }>(DOCUMENT_TYPE_OPTIONS_QUERY);
 
-  return {
-    trigger,
-    data: data?.documentTypes,
-    loading,
-    error,
+    return {
+      trigger,
+      data: data?.documentTypes,
+      loading,
+      error,
+    };
   };
-};
 
 export const useDocumentType = (): DocumentTypeOperations => {
   return {

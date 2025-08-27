@@ -2,13 +2,13 @@ import React from "react";
 
 import { createFormDataWithDates } from "hooks/useDialogForm";
 
-import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
+import {
+  BaseModificationDialog,
+  BaseModificationDialogProps,
+} from "./BaseModificationDialog";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to amendmentId for clarity
-type Props = Pick<
-  BaseModificationDialogProps,
-  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
-> & {
+type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
   amendmentId?: string;
 };
 

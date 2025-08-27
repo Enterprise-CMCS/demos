@@ -62,7 +62,11 @@ export const useUserOperations = (): UserOperations => {
 
   const [
     triggerGetUserOptions,
-    { data: userOptionsData, loading: userOptionsLoading, error: userOptionsError },
+    {
+      data: userOptionsData,
+      loading: userOptionsLoading,
+      error: userOptionsError,
+    },
   ] = useLazyQuery<{ users: UserOption[] }>(USER_OPTIONS_QUERY);
 
   const getUserOptions: GetUserOptionsOperation = {

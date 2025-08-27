@@ -2,9 +2,17 @@ import React from "react";
 
 import { vi } from "vitest";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 
-import { BaseModificationDialog, ModificationDialogData } from "./BaseModificationDialog";
+import {
+  BaseModificationDialog,
+  ModificationDialogData,
+} from "./BaseModificationDialog";
 
 // Mock HTMLDialogElement methods for testing
 beforeAll(() => {

@@ -1,6 +1,9 @@
 import { Event } from "demos-server";
 import { LogEventArguments } from "hooks/event/useEvent";
-import { GET_EVENTS_QUERY, LOG_EVENT_MUTATION } from "queries/eventQueries";
+import {
+  GET_EVENTS_QUERY,
+  LOG_EVENT_MUTATION,
+} from "queries/eventQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
 
@@ -37,9 +40,7 @@ const testEvent2: Event = {
   withRole: testRole,
   route: "/demonstrations",
   createdAt: new Date("2025-01-01T11:00:00Z"),
-  eventData: {
-    additionalInfo: "Failed login attempt",
-  },
+  eventData: {},
 };
 
 const mockLogEventInput: LogEventArguments = {

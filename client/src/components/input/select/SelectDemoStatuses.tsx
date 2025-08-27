@@ -22,6 +22,7 @@ export const SelectDemoStatuses: React.FC<SelectDemoStatusesProps> = ({
   isRequired = false,
   isDisabled = false,
 }) => {
+
   const options: Option[] = (statuses as DemonstrationStatus[]).map((state) => ({
     label: state.name,
     value: state.name,
