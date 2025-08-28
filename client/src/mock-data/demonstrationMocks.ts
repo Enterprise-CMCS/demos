@@ -41,7 +41,6 @@ export const mockDemonstrations: MockDemonstration[] = [
     description: "A demonstration project in Montana.",
     effectiveDate: new Date(2025, 0, 1),
     expirationDate: new Date(2025, 11, 1),
-
     projectOfficer: mockUsers[0],
     demonstrationStatus: mockDemonstrationStatuses[1],
     state: mockStates.find((state) => state.id === "MT")!,
@@ -58,7 +57,6 @@ export const mockDemonstrations: MockDemonstration[] = [
     effectiveDate: new Date(2025, 0, 2),
     expirationDate: new Date(2025, 11, 2),
     description: "A health innovation project in Florida.",
-
     demonstrationStatus: mockDemonstrationStatuses[5],
     state: mockStates.find((state) => state.id === "FL")!,
     projectOfficer: mockUsers[1],
@@ -75,7 +73,6 @@ export const mockDemonstrations: MockDemonstration[] = [
     effectiveDate: new Date(2025, 0, 3),
     expirationDate: new Date(2025, 11, 3),
     description: "A reform initiative in Texas.",
-
     demonstrationStatus: mockDemonstrationStatuses[6],
     state: mockStates.find((state) => state.id === "TX")!,
     projectOfficer: mockUsers[4],
@@ -100,27 +97,6 @@ export const mockAddDemonstrationInput: CreateDemonstrationInput = {
 };
 
 export const demonstrationMocks: MockedResponse[] = [
-  // Error mock for GET_DEMONSTRATION_BY_ID_QUERY with invalid ID
-  {
-    request: {
-      query: GET_DEMONSTRATION_BY_ID_QUERY,
-      variables: { id: "fakeID" },
-    },
-    error: new Error("Demonstration not found"),
-  },
-  // Error mock for UPDATE_DEMONSTRATION_MUTATION with invalid data
-  {
-    request: {
-      query: UPDATE_DEMONSTRATION_MUTATION,
-      variables: {
-        id: "invalid-id",
-        input: {
-          name: "",
-        },
-      },
-    },
-    error: new Error("Demonstration not found or invalid input"),
-  },
   {
     request: {
       query: DEMONSTRATIONS_PAGE_QUERY,
@@ -158,9 +134,6 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        // demonstration: (() => {
-        //   return mockDemonstrations[0];
-        // })(),
         demonstration: (() => {
           const demo = mockDemonstrations[0];
           const newDemo = {
@@ -168,12 +141,12 @@ export const demonstrationMocks: MockedResponse[] = [
             amendments: demo.amendments.map((a) => ({
               ...a,
               status: a.amendmentStatus,
-              amendmentStatus: undefined, // Optionally remove the old field
+              amendmentStatus: undefined,
             })),
             extensions: demo.extensions.map((e) => ({
               ...e,
               status: e.extensionStatus,
-              extensionStatus: undefined, // Optionally remove the old field
+              extensionStatus: undefined,
             })),
           };
           return newDemo;
@@ -190,15 +163,6 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { addDemonstration: mockDemonstrations[0] },
     },
   },
-
-  {
-    request: {
-      query: ADD_DEMONSTRATION_QUERY,
-      variables: { input: { name: "bad add demonstration" } },
-    },
-    error: new Error("Failed to add demonstration"),
-  },
-
   {
     request: {
       query: UPDATE_DEMONSTRATION_MUTATION,
@@ -227,5 +191,34 @@ export const demonstrationMocks: MockedResponse[] = [
         },
       },
     },
+  },
+  // Error mock for GET_DEMONSTRATION_BY_ID_QUERY with invalid ID
+  {
+    request: {
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      variables: { id: "fakeID" },
+    },
+    error: new Error("Demonstration not found"),
+  },
+  // Error mock for UPDATE_DEMONSTRATION_MUTATION with invalid data
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "invalid-id",
+        input: {
+          name: "",
+        },
+      },
+    },
+    error: new Error("Demonstration not found or invalid input"),
+  },
+  // Error mock for ADD_DEMONSTRATION_QUERY with invalid data
+  {
+    request: {
+      query: ADD_DEMONSTRATION_QUERY,
+      variables: { input: { name: "bad add demonstration" } },
+    },
+    error: new Error("Failed to add demonstration"),
   },
 ];

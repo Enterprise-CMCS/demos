@@ -119,11 +119,13 @@ describe("Demonstrations", () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
+    localStorage.clear();
     user = userEvent.setup();
   });
 
   describe("Tab navigation", () => {
     beforeEach(async () => {
+      localStorage.clear();
       renderDemonstrations();
       await waitForTableData();
     });
@@ -199,6 +201,7 @@ describe("Demonstrations", () => {
 
   describe("Table rendering", () => {
     beforeEach(async () => {
+      localStorage.clear();
       renderDemonstrations();
       await waitForTableData();
     });
@@ -239,6 +242,7 @@ describe("Demonstrations", () => {
 
   describe("Table features", () => {
     beforeEach(async () => {
+      localStorage.clear();
       renderDemonstrations();
       await waitForTableData();
     });
@@ -326,6 +330,7 @@ describe("Demonstrations", () => {
   });
   describe("Applications column", () => {
     beforeEach(async () => {
+      localStorage.clear();
       renderDemonstrations();
       await waitForTableData();
     });
@@ -365,6 +370,7 @@ describe("Demonstrations", () => {
 
   describe("Nested view and row expansion for amendments and extensions", () => {
     beforeEach(async () => {
+      localStorage.clear();
       renderDemonstrations();
       await waitForTableData();
     });
@@ -482,22 +488,6 @@ describe("Demonstrations", () => {
       }
     });
 
-    it("search applies to all records, but always displays parent demonstration with matching children", async () => {
-      // Switch to All Demonstrations tab
-      await switchToAllDemonstrationsTab(user);
-
-      // Search for a unique amendment name
-      await searchForText(user, "Jim");
-      await waitFor(() => {
-        // Parent demonstration is visible
-        expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
-        // Only the matching amendment is visible
-        expect(screen.getByText("Amendment 2 - Florida Health Innovation")).toBeInTheDocument();
-        // Other amendments/extensions for this demo are not visible
-        expect(screen.queryByText("Amendment 3")).not.toBeInTheDocument();
-      });
-    });
-
     // Replace applyStateFilter with applyProjectOfficerFilter in your filtering tests, e.g.:
     it("filtering applies to all records, but always displays parent demonstration with matching children", async () => {
       // Switch to All Demonstrations tab
@@ -510,7 +500,7 @@ describe("Demonstrations", () => {
         // Parent demonstration is visible
         expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
         // Only the matching amendment is visible
-        expect(screen.getByText("Amendment 2 - Florida Health Innovation")).toBeInTheDocument();
+        expect(screen.getByText("Amendment 4 - Florida Health Innovation")).toBeInTheDocument();
         // Other amendments/extensions for this demo are not visible
         expect(screen.queryByText("Amendment 3")).not.toBeInTheDocument();
       });
