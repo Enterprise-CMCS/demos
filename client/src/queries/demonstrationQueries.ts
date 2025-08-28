@@ -60,7 +60,7 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
   }
 `;
 
-export const ADD_DEMONSTRATION_QUERY = gql`
+export const ADD_DEMONSTRATION_MUTATION = gql`
   mutation AddDemonstration($input: CreateDemonstrationInput!) {
     createDemonstration(input: $input) {
       id
