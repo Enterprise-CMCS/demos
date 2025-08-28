@@ -57,11 +57,6 @@ export type {
   UpdateExtensionInput,
 } from "./model/modification/modificationSchema.js";
 
-export type {
-  CreateDocumentTypeInput,
-  UpdateDocumentTypeInput,
-} from "./model/documentType/documentTypeSchema.js";
-
 export type { Document,
   UploadDocumentInput,
   UpdateDocumentInput,
