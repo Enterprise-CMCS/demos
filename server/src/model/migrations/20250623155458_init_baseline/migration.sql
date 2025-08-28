@@ -254,26 +254,8 @@ CREATE TABLE "document_pending_upload_history" (
 -- CreateTable
 CREATE TABLE "document_type" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "document_type_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "document_type_history" (
-    "revision_id" SERIAL NOT NULL,
-    "revision_type" "revision_type_enum" NOT NULL,
-    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL,
-    "updated_at" TIMESTAMPTZ NOT NULL,
-
-    CONSTRAINT "document_type_history_pkey" PRIMARY KEY ("revision_id")
 );
 
 -- CreateTable
@@ -1041,57 +1023,6 @@ CREATE OR REPLACE TRIGGER log_changes_document_pending_upload_trigger
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_pending_upload
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_pending_upload();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_document_type()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO demos_app.document_type_history (
-            revision_type,
-            id,
-            name,
-            description,
-            created_at,
-            updated_at
-        )
-        VALUES (
-            CASE TG_OP
-                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
-                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
-            END,
-            NEW.id,
-            NEW.name,
-            NEW.description,
-            NEW.created_at,
-            NEW.updated_at
-        );
-        RETURN NEW;
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO demos_app.document_type_history (
-            revision_type,
-            id,
-            name,
-            description,
-            created_at,
-            updated_at
-        )
-        VALUES (
-            'D'::demos_app.revision_type_enum,
-            OLD.id,
-            OLD.name,
-            OLD.description,
-            OLD.created_at,
-            OLD.updated_at
-        );
-        RETURN OLD;
-    END IF;
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER log_changes_document_type_trigger
-AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_type
-FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_type();
-
 CREATE OR REPLACE FUNCTION demos_app.log_changes_modification()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -1405,23 +1336,23 @@ VALUES
 
 INSERT INTO "reportable_event_type" (id, name, description) VALUES
 -- Authentication
-  ('LOGIN_SUCCEEDED', 'Login Succeeded', 'User logged in to the system'),
-  ('LOGOUT_SUCCEEDED', 'Logout Succeeded', 'User logged out of the system'),
+    ('LOGIN_SUCCEEDED', 'Login Succeeded', 'User logged in to the system'),
+    ('LOGOUT_SUCCEEDED', 'Logout Succeeded', 'User logged out of the system'),
 -- Record Creation
-  ('CREATE_DEMONSTRATION_SUCCEEDED', 'Create Demonstration Succeeded', 'A demonstration was created'),
-  ('CREATE_DEMONSTRATION_FAILED', 'Create Demonstration Failed', 'Demonstration creation failed'),
-  ('CREATE_EXTENSION_SUCCEEDED', 'Create Extension Succeeded', 'An extension was created'),
-  ('CREATE_EXTENSION_FAILED', 'Create Extension Failed', 'Extension creation failed'),
-  ('CREATE_AMENDMENT_SUCCEEDED', 'Create Amendment Succeeded', 'An amendment was created'),
-  ('CREATE_AMENDMENT_FAILED', 'Create Amendment Failed', 'Amendment creation failed'),
+    ('CREATE_DEMONSTRATION_SUCCEEDED', 'Create Demonstration Succeeded', 'A demonstration was created'),
+    ('CREATE_DEMONSTRATION_FAILED', 'Create Demonstration Failed', 'Demonstration creation failed'),
+    ('CREATE_EXTENSION_SUCCEEDED', 'Create Extension Succeeded', 'An extension was created'),
+    ('CREATE_EXTENSION_FAILED', 'Create Extension Failed', 'Extension creation failed'),
+    ('CREATE_AMENDMENT_SUCCEEDED', 'Create Amendment Succeeded', 'An amendment was created'),
+    ('CREATE_AMENDMENT_FAILED', 'Create Amendment Failed', 'Amendment creation failed'),
 -- Editing
-  ('EDIT_DEMONSTRATION_SUCCEEDED', 'Edit Demonstration Succeeded', 'A demonstration was edited'),
-  ('EDIT_DEMONSTRATION_FAILED', 'Edit Demonstration Failed', 'Demonstration editing failed'),
+    ('EDIT_DEMONSTRATION_SUCCEEDED', 'Edit Demonstration Succeeded', 'A demonstration was edited'),
+    ('EDIT_DEMONSTRATION_FAILED', 'Edit Demonstration Failed', 'Demonstration editing failed'),
 -- Deletion
-  ('DELETE_DEMONSTRATION_SUCCEEDED', 'Delete Demonstration Succeeded', 'A demonstration was deleted'),
-  ('DELETE_DEMONSTRATION_FAILED', 'Delete Demonstration Failed', 'Demonstration deletion failed'),
-  ('DELETE_DOCUMENT_SUCCEEDED', 'Delete Document Succeeded', 'A document was deleted'),
-  ('DELETE_DOCUMENT_FAILED', 'Delete Document Failed', 'Document deletion failed');
+    ('DELETE_DEMONSTRATION_SUCCEEDED', 'Delete Demonstration Succeeded', 'A demonstration was deleted'),
+    ('DELETE_DEMONSTRATION_FAILED', 'Delete Demonstration Failed', 'Demonstration deletion failed'),
+    ('DELETE_DOCUMENT_SUCCEEDED', 'Delete Document Succeeded', 'A document was deleted'),
+    ('DELETE_DOCUMENT_FAILED', 'Delete Document Failed', 'Document deletion failed');
 
 INSERT INTO "cmcs_division" ("id")
 VALUES
@@ -1433,3 +1364,18 @@ VALUES
     ('OA'),
     ('OCD'),
     ('OGD');
+
+INSERT INTO "document_type" ("id")
+VALUES
+    ('Application Completeness Letter'),
+    ('Approval Letter'),
+    ('Final BN Worksheet'),
+    ('Final Budget Neutrality Formulation Workbook'),
+    ('Formal OMB Policy Concurrence Email'),
+    ('General File'),
+    ('Internal Completeness Review Form'),
+    ('Payment Ratio Analysis'),
+    ('Pre-Submission'),
+    ('Q&A'),
+    ('Signed Decision Memo'),
+    ('State Application');
