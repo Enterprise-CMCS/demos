@@ -6,10 +6,10 @@ model Modification {
   description          String
   effectiveDate        DateTime? @map("effective_date") @db.Date
   expirationDate       DateTime? @map("expiration_date") @db.Date
-  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
   modificationStatusId String    @map("modification_status_id")
   projectOfficerUserId String    @map("project_officer_user_id") @db.Uuid
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
   bundle             Bundle                 @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
   bundleType         ModificationBundleType @relation(fields: [bundleTypeId], references: [id])

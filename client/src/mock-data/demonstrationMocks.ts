@@ -8,14 +8,17 @@ import {
 
 import { MockedResponse } from "@apollo/client/testing";
 
-import { activeDemonstrationStatus } from "./demonstrationStatusMocks";
-import { california } from "./stateMocks";
-import { johnDoe } from "./userMocks";
+import { activeDemonstrationStatus, demonstrationStatusOptions } from "./demonstrationStatusMocks";
+import { california, stateOptions } from "./stateMocks";
+import { johnDoe, userOptions } from "./userMocks";
 import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY, DemonstrationsPageQueryResult } from "pages/Demonstrations";
 
 export const demonstrationsPageMockData: DemonstrationsPageQueryResult = {
+  stateOptions: stateOptions,
+  projectOfficerOptions: userOptions,
+  statusOptions: demonstrationStatusOptions,
   demonstrations: [
     {
       id: "1",
@@ -368,12 +371,41 @@ export const mockAddDemonstrationInput: CreateDemonstrationInput = {
 };
 
 export const demonstrationMocks: MockedResponse[] = [
+  // Error mock for GET_DEMONSTRATION_BY_ID_QUERY with invalid ID
+  {
+    request: {
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      variables: { id: "fakeID" },
+    },
+    error: new Error("Demonstration not found"),
+  },
+  // Error mock for UPDATE_DEMONSTRATION_MUTATION with invalid data
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "invalid-id",
+        input: {
+          name: "",
+        },
+      },
+    },
+    error: new Error("Demonstration not found or invalid input"),
+  },
+  {
+    request: {
+      query: DEMONSTRATIONS_PAGE_QUERY,
+    },
+    result: {
+      data: demonstrationsPageMockData,
+    },
+  },
   {
     request: {
       query: GET_ALL_DEMONSTRATIONS_QUERY,
     },
     result: {
-      data: { demonstrations: [testDemonstration] },
+      data: { demonstrations: [testDemonstration, ...demonstrationsPageMockData.demonstrations] },
     },
   },
   {
@@ -540,6 +572,7 @@ export const demonstrationMocks: MockedResponse[] = [
           demonstrationStatusId: "1",
           stateId: "1",
           userIds: ["1"],
+          projectOfficerUserId: "1",
         },
       },
     },
@@ -554,18 +587,6 @@ export const demonstrationMocks: MockedResponse[] = [
           updatedAt: new Date("2024-07-01T00:00:00.000Z"),
         },
       },
-    },
-  },
-  // TODO: we should revisit mock data in general. Suggestion to have a common set of three or so mock objects with primitives
-  // which can be stitched together (deterministically, not randomly) in runtime. Would like to have a structure like
-  // Demonstration A with amendments B and C and Extension D, user E, and project officer F. Each mapped to contain the data
-  // its looking for. Surely there is a way that, providing a slim type, we can return a mock object that satisfies the type exactly.
-  {
-    request: {
-      query: DEMONSTRATIONS_PAGE_QUERY,
-    },
-    result: {
-      data: demonstrationsPageMockData,
     },
   },
 ];
