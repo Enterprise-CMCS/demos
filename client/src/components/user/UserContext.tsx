@@ -23,17 +23,21 @@ type UserContextValue = {
 const Ctx = createContext<UserContextValue | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const { data, loading, error, refetch } = useQuery(GET_CURRENT_USER_QUERY, {
-    fetchPolicy: "cache-first",
-  });
   const auth = useAuth();
+  const shouldQuery = auth.isAuthenticated && !!auth.user && !auth.isLoading;
+  const { data, loading: qLoading, error, refetch } = useQuery(GET_CURRENT_USER_QUERY, {
+    fetchPolicy: "cache-first",
+    skip: !shouldQuery,
+    errorPolicy: "ignore",
+  });
 
   useEffect(() => {
-    if (!auth.isLoading) {
-      refetch().catch(() => {});
-    }
-  }, [auth.isLoading, auth.isAuthenticated, auth.user, refetch]);
+    if (shouldQuery) refetch().catch(() => {});
+  }, [shouldQuery, refetch]);
+
   const currentUser = (data?.currentUser as CurrentUser | undefined) ?? null;
+  const loading = auth.isLoading || qLoading;
+
   const value = useMemo<UserContextValue>(
     () => ({
       currentUser,
@@ -44,6 +48,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }),
     [currentUser, loading, error, refetch]
   );
+
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

@@ -13,40 +13,46 @@ import { DemosApolloProvider } from "./DemosApolloProvider";
 import { isLocalDevelopment } from "config/env";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { UserProvider } from "components/user/UserContext";
+import { RequireAuth } from "components/auth/RequireAuth";
 
+// src/router/DemosRouter.tsx
 export const DemosRouter = () => {
   const cognitoConfig = getCognitoConfig();
+
   return (
     <AuthProvider {...cognitoConfig}>
       <DemosApolloProvider>
         <UserProvider>
           <BrowserRouter>
             <Routes>
+              {/* PUBLIC routes */}
+              {/* <Route path="/public" element={<PublicPage />} />  - this does not exist, but just leaving placegol*/}
+              {/* PROTECTED routes */}
               <Route
                 element={
-                  <PrimaryLayout>
-                    <Outlet />
-                  </PrimaryLayout>
+                  <RequireAuth>
+                    <PrimaryLayout>
+                      <Outlet />
+                    </PrimaryLayout>
+                  </RequireAuth>
                 }
               >
-                {/* Real Pages the user should be able to access */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
-                {/* DEBG AUTH IN EARLY STAGE DEV */}
-                <Route path="/auth" element={<AuthDebugComponent />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
-                {/* 404 Page */}
-                <Route path="*" element={<div>404: Page Not Found</div>} />
-                {/* Debug routes, only available in development mode */}
                 {isLocalDevelopment() && (
                   <>
                     <Route path="/components" element={<ComponentLibrary />} />
                     <Route path="/hooks" element={<TestHooks />} />
                     <Route path="/icons" element={<IconLibrary />} />
                     <Route path="/events" element={<EventSandbox />} />
+                    <Route path="/auth" element={<AuthDebugComponent />} />
                   </>
                 )}
               </Route>
+
+              {/* Debug auth route can remain public if you want */}
+              <Route path="*" element={<div>404: Page Not Found</div>} />
             </Routes>
           </BrowserRouter>
         </UserProvider>
