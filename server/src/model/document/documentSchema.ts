@@ -24,20 +24,23 @@ export const documentSchema = gql`
   input UploadDocumentInput {
     title: String!
     description: String!
-    documentType: String!
+    ownerUserId: ID!
+    documentTypeId: String!
+    bundleId: ID!
   }
 
   input UpdateDocumentInput {
-    id: ID!
     title: String
     description: String
-    documentType: String
+    ownerUserId: ID
+    documentTypeId: String
+    bundleId: ID
   }
 
   type Mutation {
     uploadDocument(input: UploadDocumentInput!): Document
-    updateDocument(input: UpdateDocumentInput!): Document
-    deleteDocuments(ids: [ID!]!): [ID!]!
+    updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+    deleteDocuments(ids: [ID!]!): Int!
   }
 
   type Query {
@@ -63,12 +66,15 @@ export interface Document {
 export interface UploadDocumentInput {
   title: string;
   description: string;
-  documentType: string;
+  ownerUserId: string;
+  documentTypeId: string;
+  bundleId: string;
 }
 
 export interface UpdateDocumentInput {
-  id: string;
   title?: string;
   description?: string;
-  documentType?: string;
+  ownerUserId?: string;
+  documentTypeId?: string;
+  bundleId?: string;
 }
