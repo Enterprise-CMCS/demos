@@ -11,8 +11,15 @@ export const mockExtensions: MockExtension[] = [
   {
     id: "1",
     name: "Extension 1 - Montana Medicaid Waiver",
-    effectiveDate: new Date("2025-01-01"),
+    effectiveDate: new Date(2025, 0, 1),
     projectOfficer: mockUsers[0],
     extensionStatus: mockDemonstrationStatuses[2],
+  },
+  {
+    id: "2",
+    name: "Extension 2 - Montana Medicaid Waiver",
+    effectiveDate: new Date(2025, 1, 1),
+    projectOfficer: mockUsers[1],
+    extensionStatus: mockDemonstrationStatuses[1],
   },
 ];

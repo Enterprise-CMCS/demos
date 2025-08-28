@@ -348,7 +348,7 @@ describe("Demonstrations", () => {
       // For a new demonstration row
       const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
       expect(montanaRow).toHaveTextContent(/Amendments \(2\)/);
-      expect(montanaRow).toHaveTextContent(/Extensions \(1\)/);
+      expect(montanaRow).toHaveTextContent(/Extensions \(2\)/);
     });
 
     it("displays (0) for amendments and extensions if there are no associated records", () => {

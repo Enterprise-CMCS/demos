@@ -23,7 +23,7 @@ const mockEvents: MockEvent[] = [
     logLevel: "INFO",
     withRole: mockRoles[0],
     route: "/events",
-    createdAt: new Date("2025-01-01T10:00:00Z"),
+    createdAt: new Date(2025, 0, 1),
     eventData: {
       additionalInfo: "User Created event from events page",
     },
@@ -35,7 +35,7 @@ const mockEvents: MockEvent[] = [
     logLevel: "ERROR",
     withRole: mockRoles[0],
     route: "/demonstrations",
-    createdAt: new Date("2025-01-01T11:00:00Z"),
+    createdAt: new Date(2025, 0, 1),
     eventData: {},
   },
 ];

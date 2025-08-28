@@ -111,7 +111,6 @@ describe("DocumentTable", () => {
     });
 
     const table = screen.getByRole("table");
-    screen.debug(table, 300000);
     // Should show only documents within the range (inclusive)
     expect(within(table).getByText("Final Report")).toBeInTheDocument();
     expect(within(table).getByText("Project Plan")).toBeInTheDocument();

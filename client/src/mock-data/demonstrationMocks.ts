@@ -46,7 +46,7 @@ export const mockDemonstrations: MockDemonstration[] = [
     state: mockStates.find((state) => state.id === "MT")!,
     users: [mockUsers[0]],
     amendments: [mockAmendments[0], mockAmendments[1]],
-    extensions: [mockExtensions[0]],
+    extensions: [mockExtensions[0], mockExtensions[1]],
     contacts: [mockContacts[0], mockContacts[1], mockContacts[2]],
     demonstrationTypes: [],
     documents: [mockDocuments[0], mockDocuments[1], mockDocuments[2]],
