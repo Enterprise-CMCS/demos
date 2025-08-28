@@ -12,6 +12,16 @@ export const CMCS_DIVISION = [
 ] as const;
 
 export const DOCUMENT_TYPES = [
-  "preSubmissionConcept",
-  "generalFile",
+  "Application Completeness Letter",
+  "Approval Letter",
+  "Final BN Worksheet",
+  "Final Budget Neutrality Formulation Workbook",
+  "Formal OMB Policy Concurrence Email",
+  "General File",
+  "Internal Completeness Review Form",
+  "Payment Ratio Analysis",
+  "Pre-Submission",
+  "Q&A",
+  "Signed Decision Memo",
+  "State Application"
 ] as const;
