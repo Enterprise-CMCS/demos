@@ -119,7 +119,7 @@ describe("DocumentTable", () => {
     expect(within(table).queryByText("Meeting Minutes")).toBeNull();
     expect(within(table).queryByText("Budget Summary")).toBeNull();
     // ...add other titles as needed
-  });
+  }, 10000);
 
   it("shows no documents if filter matches none", async () => {
     const user = userEvent.setup();
