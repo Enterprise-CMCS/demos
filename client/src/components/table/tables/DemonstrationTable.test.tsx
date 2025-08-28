@@ -3,20 +3,20 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { demonstrationsPageMockData } from "mock-data/demonstrationMocks";
 import { userOptions } from "mock-data/userMocks";
-import { stateOptions } from "mock-data/stateMocks";
-import { demonstrationStatusOptions } from "mock-data/demonstrationStatusMocks";
 import { DemonstrationTable } from "./DemonstrationTable";
+import { mockDemonstrationStatuses } from "mock-data/demonstrationStatusMocks";
+import { mockStates } from "mock-data/stateMocks";
+import { mockDemonstrations } from "mock-data/demonstrationMocks";
 
 // Helper functions
 const renderDemonstrations = () => {
   return render(
     <DemonstrationTable
       projectOfficerOptions={userOptions}
-      statusOptions={demonstrationStatusOptions}
-      stateOptions={stateOptions}
-      demonstrations={demonstrationsPageMockData.demonstrations}
+      statusOptions={mockDemonstrationStatuses}
+      stateOptions={mockStates}
+      demonstrations={mockDemonstrations}
     />
   );
 };
@@ -132,7 +132,7 @@ describe("Demonstrations", () => {
       expect(screen.getByText(/My Demonstrations/)).toBeInTheDocument();
       expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();
       expect(screen.getByText(/My Demonstrations.*\(2\)/)).toBeInTheDocument();
-      expect(screen.getByText(/All Demonstrations.*\(14\)/)).toBeInTheDocument();
+      expect(screen.getByText(/All Demonstrations.*\(3\)/)).toBeInTheDocument();
     });
 
     it("defaults to 'My Demonstrations' tab", () => {
@@ -167,8 +167,8 @@ describe("Demonstrations", () => {
       render(
         <DemonstrationTable
           projectOfficerOptions={userOptions}
-          statusOptions={demonstrationStatusOptions}
-          stateOptions={stateOptions}
+          statusOptions={mockDemonstrationStatuses}
+          stateOptions={mockStates}
           demonstrations={[]}
         />
       );
@@ -183,8 +183,8 @@ describe("Demonstrations", () => {
       render(
         <DemonstrationTable
           projectOfficerOptions={userOptions}
-          statusOptions={demonstrationStatusOptions}
-          stateOptions={stateOptions}
+          statusOptions={mockDemonstrationStatuses}
+          stateOptions={mockStates}
           demonstrations={[]}
         />
       );
@@ -427,7 +427,7 @@ describe("Demonstrations", () => {
       const tbody = table.querySelector("tbody");
       if (!tbody) throw new Error("tbody not found");
       const visibleDemos = within(tbody).getAllByRole("row");
-      expect(visibleDemos.length).toBe(10);
+      expect(visibleDemos.length).toBe(3);
 
       // Expand and check all children are visible
       const expandButton = within(visibleDemos[0]).getByRole("button", {

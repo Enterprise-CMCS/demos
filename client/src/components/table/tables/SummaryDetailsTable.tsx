@@ -3,12 +3,21 @@ import React, { useState } from "react";
 import { SecondaryButton } from "components/button";
 import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
 import { EditIcon } from "components/icons";
-import { Demonstration } from "demos-server";
+import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
+type SummaryDetailsDemonstration = Pick<
+  Demonstration,
+  "id" | "name" | "description" | "effectiveDate" | "expirationDate"
+> & {
+  state: Pick<State, "name" | "id">;
+  projectOfficer: Pick<User, "id" | "fullName">;
+  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+};
+
 type Props = {
-  demonstration?: Demonstration;
+  demonstration: SummaryDetailsDemonstration;
   onEdit?: () => void;
 };
 
@@ -30,27 +39,6 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
     setIsEditModalOpen(false);
   };
 
-  if (!demonstration) {
-    return (
-      <div className="border border-gray-300 bg-white p-2 shadow-sm">
-        <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
-          <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
-          <SecondaryButton name="edit-details" size="small" onClick={handleEditClick} disabled>
-            <div className="flex items-center gap-1">
-              <EditIcon className="w-2 h-2" />
-              Edit Details
-            </div>
-          </SecondaryButton>
-        </div>
-        <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-          <div className="col-span-2 text-center text-gray-500 py-8">
-            No demonstration data available
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="border border-gray-300 bg-white p-2 shadow-sm">
       <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
@@ -66,43 +54,39 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
       <div className="grid grid-cols-2 gap-y-4 gap-x-8">
         <div>
           <div className={LABEL_CLASSES}>State/Territory</div>
-          <div className={VALUE_CLASSES}>{demonstration.state?.name || "-"}</div>
+          <div className={VALUE_CLASSES}>{demonstration.state.name}</div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Demonstration (Max Limit - 128 Characters)</div>
-          <div className={VALUE_CLASSES}>{demonstration.name || "-"}</div>
+          <div className={VALUE_CLASSES}>{demonstration.name}</div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Project Officer</div>
-          <div className={VALUE_CLASSES}>{demonstration.projectOfficer?.fullName || "-"}</div>
+          <div className={VALUE_CLASSES}>{demonstration.projectOfficer.fullName}</div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Status</div>
-          <div className={VALUE_CLASSES}>{demonstration.demonstrationStatus?.name || "-"}</div>
+          <div className={VALUE_CLASSES}>{demonstration.demonstrationStatus.name}</div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Effective Date</div>
-          <div className={VALUE_CLASSES}>
-            {demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "-"}
-          </div>
+          <div className={VALUE_CLASSES}>{formatDate(demonstration.effectiveDate)}</div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Expiration Date</div>
-          <div className={VALUE_CLASSES}>
-            {demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "-"}
-          </div>
+          <div className={VALUE_CLASSES}>{formatDate(demonstration.expirationDate)}</div>
         </div>
 
         <div className="col-span-2">
           <div className={LABEL_CLASSES}>
             Demonstration Description (Max Limit - 2048 Characters)
           </div>
-          <div className={VALUE_CLASSES}>{demonstration.description || "-"}</div>
+          <div className={VALUE_CLASSES}>{demonstration.description}</div>
         </div>
       </div>
 

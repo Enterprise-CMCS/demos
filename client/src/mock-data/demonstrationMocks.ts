@@ -39,8 +39,8 @@ export const mockDemonstrations: MockDemonstration[] = [
     id: "1",
     name: "Montana Medicaid Waiver",
     description: "A demonstration project in Montana.",
-    effectiveDate: new Date("2025-01-01"),
-    expirationDate: new Date("2025-12-01"),
+    effectiveDate: new Date(2025, 0, 1),
+    expirationDate: new Date(2025, 11, 1),
 
     projectOfficer: mockUsers[0],
     demonstrationStatus: mockDemonstrationStatuses[1],
@@ -55,8 +55,8 @@ export const mockDemonstrations: MockDemonstration[] = [
   {
     id: "2",
     name: "Florida Health Innovation",
-    effectiveDate: new Date("2025-02-02"),
-    expirationDate: new Date("2025-12-02"),
+    effectiveDate: new Date(2025, 0, 2),
+    expirationDate: new Date(2025, 11, 2),
     description: "A health innovation project in Florida.",
 
     demonstrationStatus: mockDemonstrationStatuses[5],
@@ -72,8 +72,8 @@ export const mockDemonstrations: MockDemonstration[] = [
   {
     id: "3",
     name: "Texas Reform Initiative",
-    effectiveDate: new Date("2025-03-03"),
-    expirationDate: new Date("2025-12-03"),
+    effectiveDate: new Date(2025, 0, 3),
+    expirationDate: new Date(2025, 11, 3),
     description: "A reform initiative in Texas.",
 
     demonstrationStatus: mockDemonstrationStatuses[6],
@@ -91,8 +91,8 @@ export const mockDemonstrations: MockDemonstration[] = [
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
-  effectiveDate: new Date("2025-01-01"),
-  expirationDate: new Date("2025-12-31"),
+  effectiveDate: new Date(2025, 0, 1),
+  expirationDate: new Date(2025, 11, 1),
   demonstrationStatusId: mockDemonstrationStatuses[0].id,
   stateId: "CA",
   userIds: [mockUsers[0].id],
@@ -158,21 +158,25 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
+        // demonstration: (() => {
+        //   return mockDemonstrations[0];
+        // })(),
         demonstration: (() => {
           const demo = mockDemonstrations[0];
-          return {
+          const newDemo = {
             ...demo,
             amendments: demo.amendments.map((a) => ({
               ...a,
               status: a.amendmentStatus,
-              amendmentStatus: undefined,
+              amendmentStatus: undefined, // Optionally remove the old field
             })),
             extensions: demo.extensions.map((e) => ({
               ...e,
               status: e.extensionStatus,
-              extensionStatus: undefined,
+              extensionStatus: undefined, // Optionally remove the old field
             })),
           };
+          return newDemo;
         })(),
       },
     },
@@ -203,8 +207,8 @@ export const demonstrationMocks: MockedResponse[] = [
         input: {
           name: "Updated Demo Name",
           description: "Updated description",
-          effectiveDate: new Date("2024-07-01T00:00:00.000Z"),
-          expirationDate: new Date("2024-07-31T00:00:00.000Z"),
+          effectiveDate: new Date(2025, 0, 1),
+          expirationDate: new Date(2025, 11, 1),
           demonstrationStatusId: "1",
           stateId: "1",
           userIds: ["1"],
@@ -218,8 +222,8 @@ export const demonstrationMocks: MockedResponse[] = [
           ...mockDemonstrations[0],
           name: "Updated Demo Name",
           description: "Updated description",
-          effectiveDate: new Date("2024-07-01T00:00:00.000Z"),
-          expirationDate: new Date("2024-07-31T00:00:00.000Z"),
+          effectiveDate: new Date(2025, 0, 1),
+          expirationDate: new Date(2025, 11, 1),
         },
       },
     },

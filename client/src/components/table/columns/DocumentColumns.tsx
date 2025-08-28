@@ -87,11 +87,7 @@ export function DocumentColumns() {
           window.open(`/documents/${docId}`, "_blank");
         };
         return (
-          <SecondaryButton
-            size="small"
-            onClick={handleClick}
-            className="px-2 py-0 text-sm font-medium"
-          >
+          <SecondaryButton size="small" onClick={handleClick} name="view-document">
             View
           </SecondaryButton>
         );

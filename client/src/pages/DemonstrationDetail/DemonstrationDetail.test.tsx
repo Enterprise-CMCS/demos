@@ -30,7 +30,7 @@ describe("DemonstrationDetail", () => {
 
     // Wait for component to load
     await waitFor(() => {
-      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+      expect(screen.getByText("Summary Details")).toBeInTheDocument();
     });
 
     // Check breadcrumb navigation
@@ -47,11 +47,11 @@ describe("DemonstrationDetail", () => {
 
     // Expected attributes in order
     const expectedAttributes = [
-      { label: "State/Territory", value: "CA" },
+      { label: "State/Territory", value: "MT" },
       { label: "Project Officer", value: "John Doe" },
-      { label: "Status", value: "Active" },
+      { label: "Status", value: "Approved" },
       { label: "Effective", value: "01/01/2025" },
-      { label: "Expiration", value: "12/31/2025" },
+      { label: "Expiration", value: "12/01/2025" },
     ];
 
     // Verify we have the expected number of attribute items
@@ -73,7 +73,7 @@ describe("DemonstrationDetail", () => {
 
     // Wait for component to load and navigate to Documents tab where table is located
     await waitFor(() => {
-      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+      expect(screen.getByText("Summary Details")).toBeInTheDocument();
     });
 
     // Navigate to Documents tab first to access the table
@@ -90,7 +90,7 @@ describe("DemonstrationDetail", () => {
     fireEvent.click(amendmentsTab);
 
     expect(screen.getByText("Amendments")).toBeInTheDocument();
-    expect(screen.getByText("Amendment 1")).toBeInTheDocument();
+    expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
   });
 
   it("opens Add New Amendment modal", async () => {
@@ -98,7 +98,7 @@ describe("DemonstrationDetail", () => {
 
     // Wait for component to load and navigate to Documents tab where table is located
     await waitFor(() => {
-      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+      expect(screen.getByText("Summary Details")).toBeInTheDocument();
     });
 
     // Navigate to Documents tab first to access the table
@@ -120,7 +120,7 @@ describe("DemonstrationDetail", () => {
 
     // Wait for component to load and navigate to Documents tab where table is located
     await waitFor(() => {
-      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+      expect(screen.getByText("Summary Details")).toBeInTheDocument();
     });
 
     // Navigate to Documents tab first to access the table
@@ -134,6 +134,6 @@ describe("DemonstrationDetail", () => {
     fireEvent.click(screen.getByRole("button", { name: /Extensions/i }));
 
     expect(screen.getByText("Extensions")).toBeInTheDocument();
-    expect(screen.getByText("Extension 1")).toBeInTheDocument();
+    expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
   });
 });

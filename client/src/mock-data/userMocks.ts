@@ -5,8 +5,8 @@ import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 export type MockUser = Pick<User, "id" | "fullName">;
 
 export const mockUsers: MockUser[] = [
-  { id: "1", fullName: "Jane Smith" },
-  { id: "2", fullName: "John Doe" },
+  { id: "1", fullName: "John Doe" },
+  { id: "2", fullName: "Jane Smith" },
   { id: "3", fullName: "Jim Smith" },
   { id: "4", fullName: "Darth Smith" },
   { id: "5", fullName: "Bob Johnson" },

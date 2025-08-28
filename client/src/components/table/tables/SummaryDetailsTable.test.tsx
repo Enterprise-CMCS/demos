@@ -1,6 +1,5 @@
 import React from "react";
 
-import { Demonstration } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -70,15 +69,15 @@ describe("SummaryDetailsTable", () => {
       render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       expect(screen.getByText("Summary Details")).toBeInTheDocument();
-      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
-      expect(screen.getByText("California")).toBeInTheDocument();
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getByText("Montana")).toBeInTheDocument();
       expect(screen.getByText("John Doe")).toBeInTheDocument();
-      expect(screen.getByText("Active")).toBeInTheDocument();
-      expect(screen.getByText("Test Description")).toBeInTheDocument();
+      expect(screen.getByText("Approved")).toBeInTheDocument();
+      expect(screen.getByText("A demonstration project in Montana.")).toBeInTheDocument();
     });
 
     it("renders all field labels correctly", () => {
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       expect(screen.getByText("State/Territory")).toBeInTheDocument();
       expect(screen.getByText("Demonstration (Max Limit - 128 Characters)")).toBeInTheDocument();
@@ -92,7 +91,7 @@ describe("SummaryDetailsTable", () => {
     });
 
     it("renders the edit button with correct styling", () => {
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       const editButton = screen.getByTestId("edit-button");
       expect(editButton).toBeInTheDocument();
@@ -100,40 +99,15 @@ describe("SummaryDetailsTable", () => {
       expect(editButton).toHaveAttribute("data-size", "small");
       expect(screen.getByTestId("edit-icon")).toBeInTheDocument();
     });
-
-    it("displays fallback values when demonstration data is missing", () => {
-      const incompleteDemo = {
-        ...testDemonstration,
-        state: null,
-        projectOfficer: null,
-        demonstrationStatus: null,
-        description: null,
-      } as unknown as Demonstration;
-
-      render(<SummaryDetailsTable demonstration={incompleteDemo} />);
-
-      const dashElements = screen.getAllByText("-");
-      expect(dashElements.length).toBeGreaterThan(0);
-    });
-
-    it("displays no data message when demonstration is undefined", () => {
-      render(<SummaryDetailsTable />);
-
-      expect(screen.getByText("Summary Details")).toBeInTheDocument();
-      expect(screen.getByText("No demonstration data available")).toBeInTheDocument();
-
-      const editButton = screen.getByTestId("edit-button");
-      expect(editButton).toBeDisabled();
-    });
   });
 
   describe("Date Formatting", () => {
     it("formats effective and expiration dates correctly", () => {
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       // Check that dates are rendered (format will depend on locale)
-      const effectiveDate = formatDate(testDemonstration.effectiveDate);
-      const expirationDate = formatDate(testDemonstration.expirationDate);
+      const effectiveDate = formatDate(mockDemonstrations[0].effectiveDate);
+      const expirationDate = formatDate(mockDemonstrations[0].expirationDate);
 
       expect(screen.getByText(effectiveDate)).toBeInTheDocument();
       expect(screen.getByText(expirationDate)).toBeInTheDocument();
@@ -143,7 +117,7 @@ describe("SummaryDetailsTable", () => {
   describe("Edit Functionality", () => {
     it("calls onEdit prop when provided and edit button is clicked", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={testDemonstration} onEdit={mockOnEdit} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} onEdit={mockOnEdit} />);
 
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
@@ -153,7 +127,7 @@ describe("SummaryDetailsTable", () => {
 
     it("opens modal when no onEdit prop is provided and edit button is clicked", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
@@ -164,7 +138,7 @@ describe("SummaryDetailsTable", () => {
 
     it("closes modal when close button is clicked", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       // Open modal
       const editButton = screen.getByTestId("edit-button");
@@ -182,7 +156,7 @@ describe("SummaryDetailsTable", () => {
 
     it("does not open modal when onEdit prop is provided", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={testDemonstration} onEdit={mockOnEdit} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} onEdit={mockOnEdit} />);
 
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
@@ -195,7 +169,7 @@ describe("SummaryDetailsTable", () => {
   describe("Modal Integration", () => {
     it("passes correct props to DemonstrationDialog", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       const editButton = screen.getByTestId("edit-button");
       await user.click(editButton);
@@ -208,14 +182,14 @@ describe("SummaryDetailsTable", () => {
 
   describe("Accessibility", () => {
     it("has proper heading structure", () => {
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       const heading = screen.getByText("Summary Details");
       expect(heading.tagName).toBe("H2");
     });
 
     it("has accessible button with proper content", () => {
-      render(<SummaryDetailsTable demonstration={testDemonstration} />);
+      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       const editButton = screen.getByTestId("edit-button");
       expect(editButton).toHaveTextContent("Edit Details");
@@ -225,13 +199,13 @@ describe("SummaryDetailsTable", () => {
   describe("Component Props", () => {
     it("renders without onEdit prop", () => {
       expect(() => {
-        render(<SummaryDetailsTable demonstration={testDemonstration} />);
+        render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
       }).not.toThrow();
     });
 
     it("renders with onEdit prop", () => {
       expect(() => {
-        render(<SummaryDetailsTable demonstration={testDemonstration} onEdit={mockOnEdit} />);
+        render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} onEdit={mockOnEdit} />);
       }).not.toThrow();
     });
   });

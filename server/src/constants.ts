@@ -11,7 +11,4 @@ export const CMCS_DIVISION = [
   "Division of Eligibility and Coverage Demonstrations",
 ] as const;
 
-export const DOCUMENT_TYPES = [
-  "preSubmissionConcept",
-  "generalFile",
-] as const;
+export const DOCUMENT_TYPES = ["preSubmissionConcept", "generalFile", "other"] as const;

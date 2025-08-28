@@ -16,7 +16,7 @@ export const mockDocuments: MockDocument[] = [
     description: "Initial project planning document.",
     documentType: "generalFile",
     owner: mockUsers[5],
-    createdAt: new Date("2025-07-01"),
+    createdAt: new Date(2025, 0, 1),
   },
   {
     id: "2",
@@ -24,7 +24,7 @@ export const mockDocuments: MockDocument[] = [
     description: "Comprehensive final report.",
     documentType: "preSubmissionConcept",
     owner: mockUsers[4],
-    createdAt: new Date("2025-07-10"),
+    createdAt: new Date(2025, 0, 2),
   },
   {
     id: "3",
@@ -32,7 +32,7 @@ export const mockDocuments: MockDocument[] = [
     description: "Q2 budget breakdown.",
     documentType: "generalFile",
     owner: mockUsers[8],
-    createdAt: new Date("2025-07-05"),
+    createdAt: new Date(2025, 0, 3),
   },
   {
     id: "4",
@@ -40,7 +40,7 @@ export const mockDocuments: MockDocument[] = [
     description: "Minutes from the July stakeholder meeting.",
     documentType: "preSubmissionConcept",
     owner: mockUsers[7],
-    createdAt: new Date("2025-07-15"),
+    createdAt: new Date(2025, 0, 4),
   },
 ];
 
