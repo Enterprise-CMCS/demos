@@ -129,10 +129,10 @@ describe("DocumentTable", () => {
     await user.selectOptions(screen.getByLabelText(/filter by:/i), ["type"]);
 
     const input = screen.getByPlaceholderText("Select Document Type");
-    await user.type(input, "other");
+    await user.type(input, "Q&A");
 
     // Find the list item containing "Other"
-    const otherOption = screen.getByText("other").closest("li");
+    const otherOption = screen.getByText("Q&A").closest("li");
     expect(otherOption).toBeInTheDocument();
 
     // Find the checkbox inside the "Other" option and click it
