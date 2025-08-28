@@ -1,5 +1,10 @@
 ---
 title: DEMOS Current Data Model
+config:
+  theme: default
+  layout: elk
+  elk:
+    nodePlacementStrategy: NETWORK_SIMPLEX
 ---
 
 erDiagram
@@ -96,10 +101,6 @@ erDiagram
 
   document_type {
     text id PK
-    text name
-    text description
-    timestamptz created_at
-    timestamptz updated_at
   }
 
   event {
