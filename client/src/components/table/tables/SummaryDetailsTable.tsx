@@ -74,12 +74,16 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
         <div>
           <div className={LABEL_CLASSES}>Effective Date</div>
-          <div className={VALUE_CLASSES}>{formatDate(demonstration.effectiveDate)}</div>
+          <div className={VALUE_CLASSES}>
+            {demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "-"}
+          </div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Expiration Date</div>
-          <div className={VALUE_CLASSES}>{formatDate(demonstration.expirationDate)}</div>
+          <div className={VALUE_CLASSES}>
+            {demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "-"}
+          </div>
         </div>
 
         <div className="col-span-2">

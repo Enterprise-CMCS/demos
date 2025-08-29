@@ -1,8 +1,8 @@
-export { BUNDLE_TYPE } from "./model/bundleType/bundleTypeSchema.js";
-export { SIGNATURE_LEVEL } from "./model/signatureLevel/signatureLevelSchema.js";
-export { CMCS_DIVISION } from "./model/cmcsDivision/cmcsDivisionSchema.js";
-export { DOCUMENT_TYPES } from "./model/documentType/documentTypeSchema.js";
-export { CONTACT_TYPES } from "./model/contactType/contactTypeSchema.js";
+export { BundleType } from "./model/bundleType/bundleTypeSchema.js";
+export { SignatureLevel } from "./model/signatureLevel/signatureLevelSchema.js";
+export { CmcsDivision } from "./model/cmcsDivision/cmcsDivisionSchema.js";
+export { DocumentType } from "./model/documentType/documentTypeSchema.js";
+export { ContactType } from "./model/contactType/contactTypeSchema.js";
 
 // Export types for use in the client code
 export type { CreateUserInput, UpdateUserInput, User } from "./model/user/userSchema.js";

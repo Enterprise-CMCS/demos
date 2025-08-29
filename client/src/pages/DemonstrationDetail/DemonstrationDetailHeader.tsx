@@ -116,26 +116,19 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
         {showButtons && (
           <span className="mr-0.75">
             <CircleButton
-              aria-label="Delete demonstration"
-              className="cursor-pointer flex items-center gap-1 px-1 py-1 mr-0.75"
+              name="Delete demonstration"
               data-testid="delete-button"
               onClick={handleDelete}
             >
               <DeleteIcon width="24" height="24" />
             </CircleButton>
-            <CircleButton
-              aria-label="Edit demonstration"
-              className="cursor-pointer flex items-center gap-1 px-1 py-1"
-              data-testid="edit-button"
-              onClick={handleEdit}
-            >
+            <CircleButton name="Edit demonstration" data-testid="edit-button" onClick={handleEdit}>
               <EditIcon width="24" height="24" />
             </CircleButton>
           </span>
         )}
         <CircleButton
-          className="cursor-pointer flex items-center gap-1 px-1 py-1"
-          aria-label="Toggle more options"
+          name="Toggle more options"
           data-testid="toggle-ellipsis-button"
           onClick={handleToggleButtons}
         >

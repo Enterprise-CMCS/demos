@@ -6,9 +6,8 @@ import { AddNewIcon } from "components/icons";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { TabItem, Tabs } from "layout/Tabs";
-import { Contact } from "./DemonstrationDetail";
 import { ContactsTable } from "components/table/tables/ContactsTable";
-import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
+import { Contact, Demonstration, DemonstrationStatus, State, User } from "demos-server";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -19,7 +18,9 @@ export type DemonstrationTabDemonstration = Pick<
 > & {
   demonstrationTypes: object[];
   documents: object[];
-  contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
+  contacts: (Pick<Contact, "contactType"> & {
+    user: Pick<User, "fullName" | "email">;
+  })[];
   state: Pick<State, "id" | "name">;
   projectOfficer: Pick<User, "fullName" | "id">;
   demonstrationStatus: Pick<DemonstrationStatus, "name">;

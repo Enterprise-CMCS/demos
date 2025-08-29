@@ -25,7 +25,6 @@ export const demonstrationResolvers = {
       const {
         demonstrationStatusId,
         stateId,
-        userIds,
         projectOfficerUserId,
         effectiveDate,
         expirationDate,
@@ -66,15 +65,6 @@ export const demonstrationResolvers = {
             state: {
               connect: { id: stateId },
             },
-            ...(userIds &&
-              stateId && {
-                userStateDemonstrations: {
-                  create: userIds.map((userId: string) => ({
-                    userId,
-                    stateId,
-                  })),
-                },
-              }),
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -89,7 +79,6 @@ export const demonstrationResolvers = {
     ) => {
       const {
         demonstrationStatusId,
-        userIds,
         stateId,
         projectOfficerUserId,
         effectiveDate,
@@ -139,15 +128,6 @@ export const demonstrationResolvers = {
               connect: { id: stateId },
             },
           }),
-          ...(userIds &&
-            existingStateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId: existingStateId,
-                })),
-              },
-            }),
           ...(projectOfficerUserId && {
             projectOfficer: {
               connect: { id: projectOfficerUserId },

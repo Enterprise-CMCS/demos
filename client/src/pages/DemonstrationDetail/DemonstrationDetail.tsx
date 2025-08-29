@@ -16,6 +16,7 @@ import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
+import { Contact, User } from "demos-server";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
@@ -58,21 +59,15 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         id
       }
       contacts {
-        id
-        fullName
-        email
         contactType
+        user {
+          fullName
+          email
+        }
       }
     }
   }
 `;
-
-export type Contact = {
-  id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: ContactType | null;
-};
 
 export type ContactType =
   | "Primary Project Officer"
@@ -86,7 +81,9 @@ export type DemonstrationDetail = DemonstrationHeaderDetails &
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
   } & {
-    contacts: Contact[];
+    contacts: (Pick<Contact, "contactType"> & {
+      user: Pick<User, "fullName" | "email">;
+    })[];
   };
 
 type TabType = "details" | "amendments" | "extensions";

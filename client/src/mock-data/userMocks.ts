@@ -2,19 +2,19 @@ import { User } from "demos-server";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
 import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 
-export type MockUser = Pick<User, "id" | "fullName">;
+export type MockUser = Pick<User, "id" | "fullName" | "email">;
 
 export const mockUsers: MockUser[] = [
-  { id: "1", fullName: "John Doe" },
-  { id: "2", fullName: "Jane Smith" },
-  { id: "3", fullName: "Jim Smith" },
-  { id: "4", fullName: "Darth Smith" },
-  { id: "5", fullName: "Bob Johnson" },
-  { id: "6", fullName: "Alice Brown" },
-  { id: "7", fullName: "Carlos Rivera" },
-  { id: "8", fullName: "Emily Clark" },
-  { id: "9", fullName: "Cara Lee" },
-  { id: "10", fullName: "David Chen" },
+  { id: "1", fullName: "John Doe", email: "john.doe@email.com" },
+  { id: "2", fullName: "Jane Smith", email: "jane.smith@email.com" },
+  { id: "3", fullName: "Jim Smith", email: "jim.smith@email.com" },
+  { id: "4", fullName: "Darth Smith", email: "darth.smith@email.com" },
+  { id: "5", fullName: "Bob Johnson", email: "bob.johnson@email.com" },
+  { id: "6", fullName: "Alice Brown", email: "alice.brown@email.com" },
+  { id: "7", fullName: "Carlos Rivera", email: "carlos.rivera@email.com" },
+  { id: "8", fullName: "Emily Clark", email: "emily.clark@email.com" },
+  { id: "9", fullName: "Cara Lee", email: "cara.lee@email.com" },
+  { id: "10", fullName: "David Chen", email: "david.chen@email.com" },
 ];
 
 import { MockedResponse } from "@apollo/client/testing";

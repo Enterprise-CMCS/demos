@@ -21,7 +21,6 @@ export const demonstrationSchema = gql`
     updatedAt: DateTime!
     demonstrationStatus: DemonstrationStatus!
     state: State!
-    users: [User!]!
     projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
@@ -79,7 +78,6 @@ export interface Demonstration {
   updatedAt: Date;
   demonstrationStatus: DemonstrationStatus;
   state: State;
-  users: User[];
   projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
