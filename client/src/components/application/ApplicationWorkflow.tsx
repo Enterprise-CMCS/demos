@@ -1,47 +1,8 @@
-import { HomeIcon, ReviewIcon, SaveIcon } from "components/icons";
 import React from "react";
-import { PhaseSelector } from "./PhaseSelector";
+import { PhaseSelector } from "./phase-selector/PhaseSelector";
+import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
 
-type DemonstrationStatus = "under_review" | "approved" | "rejected";
-
-const STYLES = {
-  DEMONSTRATION_STATUS_BADGE:
-    "whitespace-nowrap h-full min-h-3 flex items-center gap-xs ml-auto text-lg",
-};
-
-const DemonstrationStatusBadge = ({
-  demonstrationStatus,
-}: {
-  demonstrationStatus: DemonstrationStatus;
-}) => {
-  let statusNode;
-
-  switch (demonstrationStatus) {
-    case "under_review":
-      statusNode = (
-        <>
-          <ReviewIcon className="text-border-alert min-h-2 h-full w-full" /> Under Review
-        </>
-      );
-      break;
-    case "approved":
-      statusNode = (
-        <>
-          <SaveIcon className="text-border-success min-h-2 h-full w-full" /> Approved
-        </>
-      );
-      break;
-    case "rejected":
-      statusNode = (
-        <>
-          <HomeIcon className="text-error min-h-2 h-full w-full" /> Rejected
-        </>
-      );
-      break;
-  }
-
-  return <div className={STYLES.DEMONSTRATION_STATUS_BADGE}>{statusNode}</div>;
-};
+export type DemonstrationStatus = "under_review" | "approved" | "rejected";
 
 export interface ApplicationWorkflowDemonstration {
   status: DemonstrationStatus;
