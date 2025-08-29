@@ -48,8 +48,8 @@ const PhaseGroups = () => {
   );
 };
 
-// TODO: REMOVE - JUST FOR TESTING!
-const MOCK_PHASE_STATUSES: PhaseStatusLookup = {
+// For testing all the different styles, Will remove in DEMOS-677
+const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
   Concept: "skipped",
   "State Application": "completed",
   Completeness: "in_progress",
@@ -60,7 +60,13 @@ const MOCK_PHASE_STATUSES: PhaseStatusLookup = {
   "Post Approval": "not_started",
 };
 
-type PhaseStatusLookup = Record<PhaseName, PhaseStatus>;
+const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
+  Concept: new Date(2024, 4, 20),
+  "State Application": new Date(2024, 4, 22),
+  Completeness: new Date(2024, 11, 31),
+};
+
+export type PhaseStatusLookup = Record<PhaseName, PhaseStatus>;
 interface PhaseSelectorProps {
   initialPhase?: PhaseName;
   phaseStatusLookup?: PhaseStatusLookup;
@@ -68,6 +74,7 @@ interface PhaseSelectorProps {
 
 export const PhaseSelector = (props: PhaseSelectorProps) => {
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(props.initialPhase ?? "Concept");
+  const [phaseStatusLookup] = useState<PhaseStatusLookup>(MOCK_PHASE_STATUS_LOOKUP);
 
   return (
     <>
@@ -77,9 +84,11 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
           <PhaseBox
             key={phaseName}
             phaseName={phaseName}
-            phaseStatus={MOCK_PHASE_STATUSES[phaseName]}
+            phaseStatus={phaseStatusLookup[phaseName]}
             phaseNumber={idx + 1}
-            setSelectedPhase={setSelectedPhase}
+            displayDate={MOCK_PHASE_DATE_LOOKUP[phaseName]}
+            isSelectedPhase={selectedPhase === phaseName}
+            setPhaseAsSelected={() => setSelectedPhase(phaseName)}
           />
         ))}
       </div>
