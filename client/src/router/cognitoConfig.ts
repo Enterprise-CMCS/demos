@@ -35,7 +35,7 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_FCc2lmZDJ",
   domain: "https://demos-dev-login-user-pool-client.auth.us-east-1.amazoncognito.com",
   client_id: "5p61qososiui75cmclcift45oi",
-  post_logout_redirect_uri: "http://localhost:3000/",
+  post_logout_redirect_uri: "http://localhost:3000/sign-out",
   redirect_uri: "http://localhost:3000/",
   scope: "email openid profile",
 };
@@ -51,11 +51,12 @@ const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
   scope: "openid email profile",
 };
 
-export const getCognitoLogoutUrl = (cognitoConfig: CognitoConfig): string => {
-  const url = `${cognitoConfig.domain}/logout
-  ?client_id=${cognitoConfig.client_id}
-  &logout_uri=${encodeURIComponent(cognitoConfig.post_logout_redirect_uri)}`;
-  return url.replace(/\s+/g, "");
+
+export const getCognitoLogoutUrl = (cfg: CognitoConfig): string => {
+  const u = new URL(`${cfg.domain}/logout`);
+  u.searchParams.set("client_id", cfg.client_id);
+  u.searchParams.set("logout_uri", cfg.post_logout_redirect_uri); // URL() encodes for us
+  return u.toString();
 };
 
 export const logout = () => {
