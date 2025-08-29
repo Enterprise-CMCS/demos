@@ -1,14 +1,13 @@
 import { ModificationStatus } from "@prisma/client";
 
-import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
 import {
   AddExtensionStatusInput,
   CreateAmendmentStatusInput,
   UpdateAmendmentStatusInput,
   UpdateExtensionStatusInput,
 } from "./modificationStatusSchema.js";
+import { BUNDLE_TYPE, BundleType } from "../bundleType/bundleTypeSchema.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -54,7 +53,7 @@ export const modificationStatusResolvers = {
   Mutation: {
     createAmendmentStatus: async (
       _: undefined,
-      { input }: { input: CreateAmendmentStatusInput },
+      { input }: { input: CreateAmendmentStatusInput }
     ) => {
       return await prisma().modificationStatus.create({
         data: {
@@ -68,7 +67,7 @@ export const modificationStatusResolvers = {
 
     updateAmendmentStatus: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateAmendmentStatusInput },
+      { id, input }: { id: string; input: UpdateAmendmentStatusInput }
     ) => {
       return await prisma().modificationStatus.update({
         where: {
@@ -91,10 +90,7 @@ export const modificationStatusResolvers = {
         },
       });
     },
-    addExtensionStatus: async (
-      _: undefined,
-      { input }: { input: AddExtensionStatusInput },
-    ) => {
+    addExtensionStatus: async (_: undefined, { input }: { input: AddExtensionStatusInput }) => {
       return await prisma().modificationStatus.create({
         data: {
           id: input.id,
@@ -106,7 +102,7 @@ export const modificationStatusResolvers = {
     },
     updateExtensionStatus: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateExtensionStatusInput },
+      { id, input }: { id: string; input: UpdateExtensionStatusInput }
     ) => {
       return await prisma().modificationStatus.update({
         where: {

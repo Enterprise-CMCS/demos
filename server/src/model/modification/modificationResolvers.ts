@@ -1,14 +1,13 @@
 import { Modification } from "@prisma/client";
 
-import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
 import {
   AddExtensionInput,
   CreateAmendmentInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
+import { BUNDLE_TYPE, BundleType } from "../bundleType/bundleTypeSchema.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -48,10 +47,7 @@ export const modificationResolvers = {
   },
 
   Mutation: {
-    createAmendment: async (
-      _: undefined,
-      { input }: { input: CreateAmendmentInput },
-    ) => {
+    createAmendment: async (_: undefined, { input }: { input: CreateAmendmentInput }) => {
       const {
         demonstrationId,
         amendmentStatusId,
@@ -106,14 +102,9 @@ export const modificationResolvers = {
 
     updateAmendment: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateAmendmentInput },
+      { id, input }: { id: string; input: UpdateAmendmentInput }
     ) => {
-      const {
-        demonstrationId,
-        amendmentStatusId,
-        projectOfficerUserId,
-        ...rest
-      } = input;
+      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
 
       return await prisma().modification.update({
         where: {
@@ -155,10 +146,7 @@ export const modificationResolvers = {
       });
     },
 
-    addExtension: async (
-      _: undefined,
-      { input }: { input: AddExtensionInput },
-    ) => {
+    addExtension: async (_: undefined, { input }: { input: AddExtensionInput }) => {
       const {
         demonstrationId,
         extensionStatusId,
@@ -213,14 +201,9 @@ export const modificationResolvers = {
 
     updateExtension: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateExtensionInput },
+      { id, input }: { id: string; input: UpdateExtensionInput }
     ) => {
-      const {
-        demonstrationId,
-        extensionStatusId,
-        projectOfficerUserId,
-        ...rest
-      } = input;
+      const { demonstrationId, extensionStatusId, projectOfficerUserId, ...rest } = input;
 
       return await prisma().modification.update({
         where: {

@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model ContactType {
+  id String
+
+  contact              Contact[]
+
+  @@id([id])
+  @@map("contact_type")
+}

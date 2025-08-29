@@ -1,14 +1,12 @@
 import { faker } from "@faker-js/faker";
 
-import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL } from "./constants.js";
 import { prisma } from "./prismaClient.js";
-import { DocumentType } from "./types.js";
+import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL } from "./types.js";
+import { DocumentType } from "./model/documentType/documentTypeSchema.js";
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
-    throw new Error(
-      "Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.",
-    );
+    throw new Error("Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.");
   }
 }
 
@@ -83,6 +81,7 @@ async function seedDatabase() {
   const demonstrationCount = 20;
   const amendmentCount = 10;
   const documentCount = 130;
+  const contactCount = 130;
 
   console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
@@ -103,8 +102,7 @@ async function seedDatabase() {
     data: {
       id: bypassRoleId,
       name: "Bypassed Admin Role",
-      description:
-        "This role is a testing role for the bypassed user and is not a real role.",
+      description: "This role is a testing role for the bypassed user and is not a real role.",
     },
   });
   await prisma().userRole.create({
@@ -173,12 +171,8 @@ async function seedDatabase() {
   console.log("🌱 Seeding permissions...");
   for (let i = 0; i < permissionCount; i++) {
     const permissionName = sampleFromArray(
-      [
-        faker.lorem.sentence(1),
-        faker.lorem.sentence(2),
-        faker.lorem.sentence(3),
-      ],
-      1,
+      [faker.lorem.sentence(1), faker.lorem.sentence(2), faker.lorem.sentence(3)],
+      1
     );
 
     await prisma().permission.create({
@@ -225,8 +219,7 @@ async function seedDatabase() {
         expirationDate: faker.date.future({ years: 1 }),
         cmcsDivisionId: sampleFromArray([...CMCS_DIVISION, null], 1)[0],
         signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
-        demonstrationStatusId:
-          (await prisma().demonstrationStatus.findRandom())!.id,
+        demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
         projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
@@ -380,8 +373,8 @@ async function seedDatabase() {
       },
       where: {
         NOT: { id: applicationDocumentType },
-        }
-      })
+      },
+    });
     await prisma().document.create({
       data: {
         title: faker.lorem.sentence(2),
@@ -392,6 +385,22 @@ async function seedDatabase() {
         bundleId: (await prisma().bundle.findRandom())!.id,
       },
     });
+  }
+
+  console.log("🔗 Assigning contacts to demonstrations...");
+  for (let i = 0; i < contactCount; i++) {
+    // It is easier to just pull from the DB than to sample randomly from the constant
+    try {
+      await prisma().contact.create({
+        data: {
+          contactTypeId: (await prisma().contactType.findRandom())!.id,
+          userId: (await prisma().user.findRandom())!.id,
+          bundleId: (await prisma().bundle.findRandom())!.id,
+        },
+      });
+    } catch {
+      continue;
+    }
   }
 
   // Getting IDs for join tables and events
@@ -461,41 +470,6 @@ async function seedDatabase() {
         },
       });
     }
-  }
-
-  console.log("🔗 Assigning users to demonstrations...");
-  const demonstrationStates = await prisma().demonstration.findMany({
-    select: {
-      id: true,
-      stateId: true,
-    },
-  });
-  const userStates = await prisma().userState.findMany({
-    select: {
-      userId: true,
-      stateId: true,
-    },
-  });
-  const userStateDemonstrationValues = [];
-  for (const userState of userStates) {
-    for (const demonstrationState of demonstrationStates) {
-      if (userState.stateId === demonstrationState.stateId) {
-        userStateDemonstrationValues.push({
-          userId: userState.userId,
-          stateId: userState.stateId,
-          demonstrationId: demonstrationState.id,
-        });
-      }
-    }
-  }
-  for (const userStateDemonstrationValue of userStateDemonstrationValues) {
-    await prisma().userStateDemonstration.create({
-      data: {
-        userId: userStateDemonstrationValue.userId,
-        stateId: userStateDemonstrationValue.stateId,
-        demonstrationId: userStateDemonstrationValue.demonstrationId,
-      },
-    });
   }
 
   console.log("✨ Database seeding complete.");

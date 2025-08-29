@@ -7,6 +7,7 @@ import {
   ExtensionStatus,
 } from "../modificationStatus/modificationStatusSchema.js";
 import { User } from "../user/userSchema.js";
+import { Contact } from "../contact/contactSchema.js";
 
 export const modificationSchema = gql`
   type Amendment {
@@ -21,6 +22,7 @@ export const modificationSchema = gql`
     amendmentStatus: AmendmentStatus!
     projectOfficer: User!
     documents: [Document!]!
+    contacts: [Contact!]!
   }
 
   input CreateAmendmentInput {
@@ -55,6 +57,7 @@ export const modificationSchema = gql`
     extensionStatus: ExtensionStatus!
     projectOfficer: User!
     documents: [Document!]!
+    contacts: [Contact!]!
   }
 
   input AddExtensionInput {
@@ -106,6 +109,7 @@ export interface Amendment {
   amendmentStatus: AmendmentStatus;
   projectOfficer: User;
   documents: Document[];
+  contacts: Contact[];
 }
 
 export interface CreateAmendmentInput {
@@ -140,6 +144,7 @@ export interface Extension {
   extensionStatus: ExtensionStatus;
   projectOfficer: User;
   documents: Document[];
+  contacts: Contact[];
 }
 
 export interface AddExtensionInput {
