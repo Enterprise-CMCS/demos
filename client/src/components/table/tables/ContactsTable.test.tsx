@@ -13,6 +13,7 @@ const contacts: Contact[] = [
   {
     id: "2",
     fullName: "Bob Jones",
+    email: null,
     contactType: "State Representative",
   },
 ];

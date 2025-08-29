@@ -12,8 +12,8 @@ const mockExtensionInput = {
   demonstrationId: "test-demo-id",
   name: "Test Extension",
   description: "Test extension description",
-  effectiveDate: new Date("2024-01-01"),
-  expirationDate: new Date("2024-12-31"),
+  effectiveDate: new Date(2025, 0, 1),
+  expirationDate: new Date(2025, 11, 1),
   extensionStatusId: "EXTENSION_NEW",
   projectOfficerUserId: "test-user-id",
 };
@@ -24,8 +24,6 @@ const mockExtensionResponse = {
   description: "Test extension description",
   effectiveDate: "2024-01-01",
   expirationDate: "2024-12-31",
-  createdAt: "2024-01-01T00:00:00Z",
-  updatedAt: "2024-01-01T00:00:00Z",
   demonstration: {
     id: "test-demo-id",
     name: "Test Demonstration",
@@ -75,7 +73,9 @@ describe("useExtension", () => {
       expect(result.current.addExtension.data).toBeUndefined();
 
       // Use type assertion to match the actual usage pattern
-      const mutationResult = await result.current.addExtension.trigger(mockExtensionInput as unknown as AddExtensionInput);
+      const mutationResult = await result.current.addExtension.trigger(
+        mockExtensionInput as unknown as AddExtensionInput
+      );
 
       // Check the mutation result directly
       expect(mutationResult.data?.addExtension).toEqual(mockExtensionResponse);

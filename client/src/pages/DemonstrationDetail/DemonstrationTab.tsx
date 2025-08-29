@@ -8,17 +8,24 @@ import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable
 import { TabItem, Tabs } from "layout/Tabs";
 import { Contact } from "./DemonstrationDetail";
 import { ContactsTable } from "components/table/tables/ContactsTable";
+import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
-export type DemonstrationTabDetails = {
+export type DemonstrationTabDemonstration = Pick<
+  Demonstration,
+  "id" | "name" | "description" | "effectiveDate" | "expirationDate"
+> & {
   demonstrationTypes: object[];
   documents: object[];
-  contacts: Contact[];
+  contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
+  state: Pick<State, "id" | "name">;
+  projectOfficer: Pick<User, "fullName" | "id">;
+  demonstrationStatus: Pick<DemonstrationStatus, "name">;
 };
 
-export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails }> = ({
+export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
@@ -42,7 +49,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
       <div className="mt-2">
         {subTab === "summary" && (
           <div>
-            <SummaryDetailsTable />
+            <SummaryDetailsTable demonstration={demonstration} />
           </div>
         )}
 

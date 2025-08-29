@@ -1,9 +1,21 @@
 import { User } from "demos-server";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
-import {
-  GET_ALL_USERS,
-  GET_USER_BY_ID,
-} from "hooks/useUserOperations";
+import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
+
+export type MockUser = Pick<User, "id" | "fullName">;
+
+export const mockUsers: MockUser[] = [
+  { id: "1", fullName: "John Doe" },
+  { id: "2", fullName: "Jane Smith" },
+  { id: "3", fullName: "Jim Smith" },
+  { id: "4", fullName: "Darth Smith" },
+  { id: "5", fullName: "Bob Johnson" },
+  { id: "6", fullName: "Alice Brown" },
+  { id: "7", fullName: "Carlos Rivera" },
+  { id: "8", fullName: "Emily Clark" },
+  { id: "9", fullName: "Cara Lee" },
+  { id: "10", fullName: "David Chen" },
+];
 
 import { MockedResponse } from "@apollo/client/testing";
 
@@ -14,8 +26,6 @@ export const johnDoe: User = {
   username: "johndoe",
   email: "johndoe@example.com",
   displayName: "John",
-  createdAt: new Date("2025-01-01"),
-  updatedAt: new Date("2025-01-01"),
   roles: [],
   states: [],
   demonstrations: [],

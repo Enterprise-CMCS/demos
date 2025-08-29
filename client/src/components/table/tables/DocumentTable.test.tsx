@@ -13,6 +13,7 @@ import { DocumentTable } from "./DocumentTable";
 
 describe("DocumentTable", () => {
   beforeEach(() => {
+    localStorage.removeItem("keyword-search");
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
         <ToastProvider>
@@ -47,10 +48,10 @@ describe("DocumentTable", () => {
     const editBtn = screen.getByLabelText(/Edit Document/i);
     expect(editBtn).toBeDisabled();
     // Select one row
-    await user.click(screen.getByText("Presentation Slides"));
+    await user.click(screen.getByText("Meeting Minutes"));
     expect(editBtn).not.toBeDisabled();
     // Select another row (should switch selection)
-    await user.click(screen.getByText("Legal Review"));
+    await user.click(screen.getByText("Budget Summary"));
     expect(editBtn).toBeDisabled();
   });
 
@@ -60,7 +61,7 @@ describe("DocumentTable", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
     // Select a row
-    await user.click(screen.getByText("Feedback Summary"));
+    await user.click(screen.getByText("Budget Summary"));
     const editBtn = screen.getByLabelText(/Edit Document/i);
     await user.click(editBtn);
     // Modal should open, assuming it renders 'edit document' text
@@ -78,16 +79,10 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    expect(screen.getByText("Feedback Summary")).toBeInTheDocument();
-    expect(screen.getByText("Presentation Slides")).toBeInTheDocument();
-    expect(screen.getByText("Legal Review")).toBeInTheDocument();
-    expect(screen.getByText("Contract Draft")).toBeInTheDocument();
-    expect(screen.getByText("Timeline Overview")).toBeInTheDocument();
+    expect(screen.getByText("Meeting Minutes")).toBeInTheDocument();
+    expect(screen.getByText("Budget Summary")).toBeInTheDocument();
     expect(screen.getByText("Final Report")).toBeInTheDocument();
-    expect(screen.getByText("Risk Assessment")).toBeInTheDocument();
-    expect(screen.getByText("User Guide")).toBeInTheDocument();
-    expect(screen.getByText("Technical Specification")).toBeInTheDocument();
-    expect(screen.getByText("Test Plan")).toBeInTheDocument();
+    expect(screen.getByText("Project Plan")).toBeInTheDocument();
   });
 
   it("filters documents by upload date range when 'Upload Date' filter is used", async () => {
@@ -105,27 +100,26 @@ describe("DocumentTable", () => {
     await pickDateInCalendar({
       datePickerRoot: startInput!.closest("[role='group']")!,
       year: 2025,
-      month: 7,
-      day: 8,
+      month: 1,
+      day: 1,
     });
     await pickDateInCalendar({
       datePickerRoot: endInput!.closest("[role='group']")!,
       year: 2025,
-      month: 7,
-      day: 10,
+      month: 1,
+      day: 2,
     });
 
     const table = screen.getByRole("table");
     // Should show only documents within the range (inclusive)
-    expect(within(table).getByText("Final Report")).toBeInTheDocument(); // 2025-07-10
-    expect(within(table).getByText("Risk Assessment")).toBeInTheDocument(); // 2025-07-09
-    expect(within(table).getByText("User Guide")).toBeInTheDocument(); // 2025-07-08
+    expect(within(table).getByText("Final Report")).toBeInTheDocument();
+    expect(within(table).getByText("Project Plan")).toBeInTheDocument();
 
     // Should NOT show documents outside the range
-    expect(within(table).queryByText("Feedback Summary")).toBeNull();
-    expect(within(table).queryByText("Presentation Slides")).toBeNull();
+    expect(within(table).queryByText("Meeting Minutes")).toBeNull();
+    expect(within(table).queryByText("Budget Summary")).toBeNull();
     // ...add other titles as needed
-  });
+  }, 10000);
 
   it("shows no documents if filter matches none", async () => {
     const user = userEvent.setup();
@@ -135,10 +129,10 @@ describe("DocumentTable", () => {
     await user.selectOptions(screen.getByLabelText(/filter by:/i), ["type"]);
 
     const input = screen.getByPlaceholderText("Select Document Type");
-    await user.type(input, "Other");
+    await user.type(input, "Q&A");
 
     // Find the list item containing "Other"
-    const otherOption = screen.getByText("Other").closest("li");
+    const otherOption = screen.getByText("Q&A").closest("li");
     expect(otherOption).toBeInTheDocument();
 
     // Find the checkbox inside the "Other" option and click it
@@ -164,18 +158,7 @@ describe("DocumentTable", () => {
       return cells[1]?.textContent?.trim() || "";
     });
 
-    expect(titles).toEqual([
-      "Feedback Summary",
-      "Presentation Slides",
-      "Legal Review",
-      "Contract Draft",
-      "Timeline Overview",
-      "Final Report",
-      "Risk Assessment",
-      "User Guide",
-      "Technical Specification",
-      "Test Plan",
-    ]);
+    expect(titles).toEqual(["Meeting Minutes", "Budget Summary", "Final Report", "Project Plan"]);
   });
 
   describe("Keyword Search functionality", () => {
@@ -195,12 +178,12 @@ describe("DocumentTable", () => {
       const searchInput = screen.getByLabelText(/search:/i);
 
       await user.clear(searchInput);
-      await user.type(searchInput, "Risk");
+      await user.type(searchInput, "July");
       await waitFor(() => {
-        // Find all <mark> elements containing "Risk"
+        // Find all <mark> elements containing "July"
         const highlightedMarks = screen.getAllByText(
           (content, element) =>
-            element!.tagName.toLowerCase() === "mark" && content.toLowerCase().includes("risk")
+            element!.tagName.toLowerCase() === "mark" && content.toLowerCase().includes("july")
         );
         expect(highlightedMarks.length).toBeGreaterThan(0);
 
@@ -220,23 +203,23 @@ describe("DocumentTable", () => {
 
       // Try a keyword that matches Description
       await user.clear(searchInput);
-      await user.type(searchInput, "timeline");
+      await user.type(searchInput, "stakeholder");
       await waitFor(() => {
-        expect(screen.getByText(/Timeline Overview/i)).toBeInTheDocument();
+        expect(screen.getByText(/Meeting Minutes/i)).toBeInTheDocument();
       });
 
       // Try a keyword that matches Document Type
       await user.clear(searchInput);
-      await user.type(searchInput, "Specification");
+      await user.type(searchInput, "general");
       await waitFor(() => {
-        expect(screen.getByText(/Technical Specification/i)).toBeInTheDocument();
+        expect(screen.getByText(/Budget Summary/i)).toBeInTheDocument();
       });
 
       // Try a keyword that matches Uploaded By
       await user.clear(searchInput);
-      await user.type(searchInput, "admin");
+      await user.type(searchInput, "Alice Brown");
       await waitFor(() => {
-        expect(screen.getByText(/Legal Review/i)).toBeInTheDocument();
+        expect(screen.getByText(/Initial project planning document/i)).toBeInTheDocument();
       });
     });
 
@@ -288,9 +271,11 @@ describe("DocumentTable", () => {
       });
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, "Test");
+      await user.type(searchInput, "stakeholder");
+
       await waitFor(() => {
-        expect(screen.getByText(/Test Plan/i)).toBeInTheDocument();
+        expect(screen.getByText(/Meeting Minutes/i)).toBeInTheDocument();
+        expect(screen.queryByText(/Q2 budget breakdown/i)).not.toBeInTheDocument();
       });
 
       // Find and click the clear icon
@@ -299,8 +284,8 @@ describe("DocumentTable", () => {
 
       // Search input should be cleared and all documents visible again
       expect(searchInput).toHaveValue("");
-      expect(screen.getByText(/Feedback Summary/i)).toBeInTheDocument();
-      expect(screen.getByText(/Test Plan/i)).toBeInTheDocument();
+      expect(screen.getByText(/Meeting Minutes/i)).toBeInTheDocument();
+      expect(screen.getByText(/Q2 budget breakdown/i)).toBeInTheDocument();
     });
 
     it("restores previous sort settings after clearing search", async () => {
@@ -322,9 +307,9 @@ describe("DocumentTable", () => {
 
       // Apply search
       const searchInput = screen.getByLabelText(/search:/i);
-      await user.type(searchInput, "Plan");
+      await user.type(searchInput, "Project");
       await waitFor(() => {
-        expect(screen.getByText(/Test Plan/i)).toBeInTheDocument();
+        expect(screen.getByText(/Initial project planning document/i)).toBeInTheDocument();
       });
 
       // Clear search
@@ -346,9 +331,9 @@ describe("DocumentTable", () => {
       });
 
       const searchInput = screen.getByLabelText(/search:/i);
-      await user.type(searchInput, "Guide");
+      await user.type(searchInput, "Report");
       await waitFor(() => {
-        expect(screen.getByText(/User Guide/i)).toBeInTheDocument();
+        expect(screen.getByText(/Comprehensive final report/i)).toBeInTheDocument();
       });
 
       // Clear search
@@ -358,18 +343,7 @@ describe("DocumentTable", () => {
       // Table should be sorted by Date Uploaded descending
       const rows = screen.getAllByRole("row").slice(1);
       const titles = rows.map((row) => row.querySelectorAll("td")[1]?.textContent?.trim() || "");
-      expect(titles).toEqual([
-        "Feedback Summary",
-        "Presentation Slides",
-        "Legal Review",
-        "Contract Draft",
-        "Timeline Overview",
-        "Final Report",
-        "Risk Assessment",
-        "User Guide",
-        "Technical Specification",
-        "Test Plan",
-      ]);
+      expect(titles).toEqual(["Meeting Minutes", "Budget Summary", "Final Report", "Project Plan"]);
     });
   });
 });

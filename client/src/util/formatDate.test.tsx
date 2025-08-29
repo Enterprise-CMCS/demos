@@ -3,13 +3,13 @@
 import { formatDate, formatTimestamp, formatDateTime } from "./formatDate";
 
 describe("formatDate utilities", () => {
-  const testDate = new Date("2023-04-15T13:45:30Z");
-  const leapYearDate = new Date("2024-02-29T23:59:59Z");
-  const startOfYear = new Date("2022-01-01T00:00:00Z");
-  const endOfYear = new Date("2022-12-31T23:59:59Z");
-  const noon = new Date("2023-07-04T12:00:00Z");
-  const midnight = new Date("2023-07-04T00:00:00Z");
-  const singleDigitMonthDay = new Date("2023-03-05T07:08:09Z");
+  const testDate = new Date(2023, 3, 15, 13, 45, 30);
+  const leapYearDate = new Date(2024, 1, 29, 23, 59, 59);
+  const startOfYear = new Date(2022, 0, 1, 0, 0, 0);
+  const endOfYear = new Date(2022, 11, 31, 23, 59, 59);
+  const noon = new Date(2023, 6, 4, 12, 0, 0);
+  const midnight = new Date(2023, 6, 4, 0, 0, 0);
+  const singleDigitMonthDay = new Date(2023, 2, 5, 7, 8, 9);
 
   it("formats date as MM/dd/yyyy", () => {
     expect(formatDate(testDate)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);

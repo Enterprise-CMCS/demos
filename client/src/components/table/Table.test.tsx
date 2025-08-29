@@ -66,7 +66,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Alpha",
     },
-    date: new Date("2023-01-01"),
+    date: new Date(2023, 0, 1),
   },
   {
     name: "Item Two",
@@ -74,7 +74,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Beta",
     },
-    date: new Date("2023-02-01"),
+    date: new Date(2023, 1, 1),
   },
   {
     name: "Item Three",
@@ -82,7 +82,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Gamma",
     },
-    date: new Date("2023-03-01"),
+    date: new Date(2023, 2, 1),
   },
   {
     name: "Item Four",
@@ -90,7 +90,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Delta",
     },
-    date: new Date("2023-04-01"),
+    date: new Date(2023, 3, 1),
   },
   {
     name: "Item Five",
@@ -98,7 +98,7 @@ export const testTableData: TestType[] = [
     option: {
       name: "Option Alpha",
     },
-    date: new Date("2023-05-01"),
+    date: new Date(2023, 4, 1),
   },
 ];
 

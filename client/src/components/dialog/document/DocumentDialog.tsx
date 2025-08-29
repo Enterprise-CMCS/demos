@@ -12,18 +12,15 @@ import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
 import { tw } from "tags/tw";
+import { DOCUMENT_TYPES } from "demos-server-constants";
 import { DocumentType } from "demos-server";
 
 type DocumentDialogType = "add" | "edit";
 
-const DOCUMENT_TYPE_LOOKUP: Record<DocumentType, string> = {
-  preSubmissionConcept: "Pre-Submission Concept",
-  generalFile: "General File",
-};
-
-const DOCUMENT_TYPE_OPTIONS: Option[] = Object.entries(DOCUMENT_TYPE_LOOKUP).map(
-  ([value, label]) => ({ value, label })
-);
+const DOCUMENT_TYPE_OPTIONS: Option[] = DOCUMENT_TYPES.map((type) => ({
+  label: type,
+  value: type,
+}));
 
 const STYLES = {
   label: tw`block text-sm font-bold text-text-font mb-xs`,
@@ -248,7 +245,7 @@ type DocumentDialogProps = {
   forDocumentId?: string;
   initialTitle?: string;
   initialDescription?: string;
-  initialType?: string;
+  initialType?: DocumentType;
 };
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
@@ -398,7 +395,7 @@ export const EditDocumentDialog: React.FC<{
   documentId: string;
   documentTitle: string;
   description: string;
-  documentType: string;
+  documentType: DocumentType;
   onClose: () => void;
 }> = ({ isOpen = true, documentId, documentTitle, description, documentType, onClose }) => (
   <DocumentDialog
