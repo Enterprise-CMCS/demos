@@ -10,12 +10,12 @@ import { Demonstrations } from "pages/Demonstrations";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { DemosApolloProvider } from "./DemosApolloProvider";
+import { SignedOut } from "pages/SignedOut";
 import { isLocalDevelopment } from "config/env";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { UserProvider } from "components/user/UserContext";
 import { RequireAuth } from "components/auth/RequireAuth";
 
-// src/router/DemosRouter.tsx
 export const DemosRouter = () => {
   const cognitoConfig = getCognitoConfig();
 
@@ -26,14 +26,18 @@ export const DemosRouter = () => {
           <BrowserRouter>
             <Routes>
               {/* PUBLIC routes */}
-              {/* <Route path="/public" element={<PublicPage />} />  - this does not exist, but just leaving placegol*/}
+              <Route path="/signed-out" element={<SignedOut />} />
               {/* PROTECTED routes */}
               <Route
                 element={
                   <RequireAuth>
-                    <PrimaryLayout>
-                      <Outlet />
-                    </PrimaryLayout>
+                    <DemosApolloProvider>
+                      <UserProvider>
+                        <PrimaryLayout>
+                          <Outlet />
+                        </PrimaryLayout>
+                      </UserProvider>
+                    </DemosApolloProvider>
                   </RequireAuth>
                 }
               >

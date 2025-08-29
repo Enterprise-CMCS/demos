@@ -4,29 +4,17 @@ import { useAuthActions } from "./AuthActions";
 export function SigninLink(): React.ReactElement {
   const { signIn } = useAuthActions();
   return (
-    <a
-      href="#"
-      onClick={(event) => {
-        event.preventDefault();
-        signIn();
-      }}
-    >
-    Sign In
-    </a>
+    <button type="button" onClick={signIn}>
+      Sign In
+    </button>
   );
 }
 
 export function SignoutLink(): React.ReactElement {
   const { signOut } = useAuthActions();
   return (
-    <a
-      href="#"
-      onClick={(event) => {
-        event.preventDefault();
-        signOut();
-      }}
-    >
+    <button type="button" onClick={signOut}>
       Sign Out
-    </a>
+    </button>
   );
 }
