@@ -23,8 +23,8 @@ export interface TableProps<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<T, any>[];
   className?: string;
-  emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
+  emptyRowsMessage?: string;
   getSubRows?: (originalRow: T, index: number) => T[] | undefined;
   initialState?: InitialTableState;
   keywordSearch?: (table: TanstackTable<T>) => React.ReactNode;

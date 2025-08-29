@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import { useMutation } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 
 import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -10,10 +10,15 @@ import { Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
-import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
 import { tw } from "tags/tw";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { DocumentType } from "demos-server";
+
+const DELETE_DOCUMENTS_QUERY = gql`
+  mutation DeleteDocuments($ids: [ID!]!) {
+    deleteDocuments(ids: $ids)
+  }
+`;
 
 type DocumentDialogType = "add" | "edit";
 

@@ -7,28 +7,28 @@ import {
   EditDocumentDialog,
   RemoveDocumentDialog,
 } from "components/dialog/document/DocumentDialog";
-import {
-  DeleteIcon,
-  EditIcon,
-  ImportIcon,
-} from "components/icons";
-import {
-  DocumentTableRow,
-  useDocument,
-} from "hooks/useDocument";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 
 import { ColumnFilter } from "../ColumnFilter";
-import { DocumentColumns } from "../columns/DocumentColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
+import { Document, User } from "demos-server";
+import { DocumentColumns } from "../columns/DocumentColumns";
 
 type DisplayedModal = null | "add" | "edit" | "remove";
+
+export type DocumentTableDocument = Pick<
+  Document,
+  "id" | "title" | "description" | "documentType" | "createdAt"
+> & {
+  owner: Pick<User, "fullName">;
+};
 
 interface DocumentModalsProps {
   displayedModal: DisplayedModal;
   onClose: () => void;
-  selectedDocs: DocumentTableRow[];
+  selectedDocs: DocumentTableDocument[];
 }
 
 function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModalsProps) {
@@ -93,28 +93,14 @@ function DocumentActionButtons({
   );
 }
 
-export function DocumentTable() {
+type DocumentTableProps = {
+  documents: DocumentTableDocument[];
+};
+
+export const DocumentTable: React.FC<DocumentTableProps> = ({ documents }) => {
   const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
-  const { documentColumns, documentColumnsLoading, documentColumnsError } = DocumentColumns();
 
-  const { getDocumentTable } = useDocument();
-  const {
-    data: documentsTableData,
-    loading: documentTableLoading,
-    error: documentsTableError,
-  } = getDocumentTable;
-
-  React.useEffect(() => {
-    getDocumentTable.trigger();
-  }, []);
-
-  if (documentColumnsLoading) return <div className="p-4">Loading...</div>;
-  if (documentColumnsError)
-    return <div className="p-4">Error loading data: {documentColumnsError}</div>;
-
-  if (documentTableLoading) return <div className="p-4">Loading...</div>;
-  if (documentsTableError) return <div className="p-4">Error loading documents</div>;
-  if (!documentsTableData) return <div className="p-4">Documents not found</div>;
+  const documentColumns = DocumentColumns();
 
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
@@ -123,8 +109,8 @@ export function DocumentTable() {
   return (
     <div className="overflow-x-auto w-full mb-2">
       {documentColumns && (
-        <Table<DocumentTableRow>
-          data={documentsTableData}
+        <Table<DocumentTableDocument>
+          data={documents}
           columns={documentColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columnFilter={(table) => <ColumnFilter table={table} />}
@@ -154,4 +140,4 @@ export function DocumentTable() {
       )}
     </div>
   );
-}
+};

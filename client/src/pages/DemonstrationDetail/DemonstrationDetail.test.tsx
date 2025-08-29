@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { MockedProvider } from "@apollo/client/testing";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
-import { DemonstrationDetail } from "./DemonstrationDetail";
+import { DemonstrationDetail } from ".";
 
 describe("DemonstrationDetail", () => {
   function renderWithProviders() {
