@@ -14,7 +14,7 @@ import { mockDocuments } from "mock-data/documentMocks";
 
 describe("DocumentTable", () => {
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.removeItem("keyword-search");
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
         <ToastProvider>
