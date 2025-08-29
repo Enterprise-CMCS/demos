@@ -70,7 +70,7 @@ export const testColumns = [
 
 describe("ColumnFilter Component", () => {
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.removeItem("keyword-search");
     render(
       <Table<TestType>
         columns={testColumns}

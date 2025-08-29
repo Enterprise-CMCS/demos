@@ -45,7 +45,7 @@ function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModal
         documentId={selectedDoc.id}
         documentTitle={selectedDoc.title}
         description={selectedDoc.description}
-        documentType={selectedDoc.documentType?.name ?? ""}
+        documentType={selectedDoc.documentType}
         onClose={onClose}
       />
     );
