@@ -1,8 +1,6 @@
 // DocumentColumns.tsx
 import * as React from "react";
 
-import { DocumentTableRow } from "hooks/useDocument";
-
 import { createColumnHelper } from "@tanstack/react-table";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
@@ -11,11 +9,12 @@ import { isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDate } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
 import { DOCUMENT_TYPES } from "demos-server-constants";
+import { DocumentTableDocument } from "../tables/DocumentTable";
 
 export function DocumentColumns() {
-  const columnHelper = createColumnHelper<DocumentTableRow>();
+  const columnHelper = createColumnHelper<DocumentTableDocument>();
 
-  const documentColumns = [
+  return [
     createSelectColumnDef(columnHelper),
     columnHelper.accessor("title", {
       header: "Title",
@@ -95,10 +94,4 @@ export function DocumentColumns() {
       enableSorting: false,
     }),
   ];
-
-  return {
-    documentColumns,
-    documentColumnsLoading: false,
-    documentColumnsError: null,
-  };
 }
