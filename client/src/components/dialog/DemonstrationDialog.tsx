@@ -78,7 +78,6 @@ export const DemonstrationDialog: React.FC<Props> = ({
       expirationDate: new Date(expirationDate),
       demonstrationStatusId: "1",
       stateId: state,
-      userIds: [projectOfficer],
       projectOfficerUserId: projectOfficer,
       cmcsDivision: cmcsDivision as CmcsDivision,
       signatureLevel: signatureLevel as SignatureLevel,

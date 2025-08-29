@@ -1,12 +1,8 @@
 import { Demonstration, User } from "@prisma/client";
 
-import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
-import {
-  CreateDemonstrationInput,
-  UpdateDemonstrationInput,
-} from "./demonstrationSchema.js";
+import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
+import { BUNDLE_TYPE, BundleType } from "../bundleType/bundleTypeSchema.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -25,14 +21,10 @@ export const demonstrationResolvers = {
   },
 
   Mutation: {
-    createDemonstration: async (
-      _: undefined,
-      { input }: { input: CreateDemonstrationInput },
-    ) => {
+    createDemonstration: async (_: undefined, { input }: { input: CreateDemonstrationInput }) => {
       const {
         demonstrationStatusId,
         stateId,
-        userIds,
         projectOfficerUserId,
         effectiveDate,
         expirationDate,
@@ -73,15 +65,6 @@ export const demonstrationResolvers = {
             state: {
               connect: { id: stateId },
             },
-            ...(userIds &&
-              stateId && {
-                userStateDemonstrations: {
-                  create: userIds.map((userId: string) => ({
-                    userId,
-                    stateId,
-                  })),
-                },
-              }),
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -92,11 +75,10 @@ export const demonstrationResolvers = {
 
     updateDemonstration: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDemonstrationInput },
+      { id, input }: { id: string; input: UpdateDemonstrationInput }
     ) => {
       const {
         demonstrationStatusId,
-        userIds,
         stateId,
         projectOfficerUserId,
         effectiveDate,
@@ -146,15 +128,6 @@ export const demonstrationResolvers = {
               connect: { id: stateId },
             },
           }),
-          ...(userIds &&
-            existingStateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId: existingStateId,
-                })),
-              },
-            }),
           ...(projectOfficerUserId && {
             projectOfficer: {
               connect: { id: projectOfficerUserId },
@@ -185,21 +158,19 @@ export const demonstrationResolvers = {
     },
 
     users: async (parent: Demonstration) => {
-      const userStateDemonstrations =
-        await prisma().userStateDemonstration.findMany({
-          where: { demonstrationId: parent.id, stateId: parent.stateId },
-          include: {
-            user: true,
-          },
-        });
+      const userStateDemonstrations = await prisma().userStateDemonstration.findMany({
+        where: { demonstrationId: parent.id, stateId: parent.stateId },
+        include: {
+          user: true,
+        },
+      });
 
       interface UserStateDemonstrationWithUser {
         user: User;
       }
 
       return userStateDemonstrations.map(
-        (userStateDemonstration: UserStateDemonstrationWithUser) =>
-          userStateDemonstration.user,
+        (userStateDemonstration: UserStateDemonstrationWithUser) => userStateDemonstration.user
       );
     },
 
@@ -241,6 +212,14 @@ export const demonstrationResolvers = {
 
     signatureLevel: async (parent: Demonstration) => {
       return parent.signatureLevelId;
+    },
+
+    contacts: async (parent: Demonstration) => {
+      return await prisma().contact.findMany({
+        where: {
+          bundleId: parent.id,
+        },
+      });
     },
   },
 };

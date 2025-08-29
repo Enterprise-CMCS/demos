@@ -2,12 +2,11 @@ import { GraphQLError } from "graphql";
 
 import { Bundle, Document, DocumentPendingUpload } from "@prisma/client";
 
-import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
 import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { BUNDLE_TYPE, BundleType } from "../bundleType/bundleTypeSchema.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;

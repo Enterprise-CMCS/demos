@@ -106,8 +106,8 @@ describe("SummaryDetailsTable", () => {
       render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
       // Check that dates are rendered (format will depend on locale)
-      const effectiveDate = formatDate(mockDemonstrations[0].effectiveDate);
-      const expirationDate = formatDate(mockDemonstrations[0].expirationDate);
+      const effectiveDate = formatDate(mockDemonstrations[0].effectiveDate!);
+      const expirationDate = formatDate(mockDemonstrations[0].expirationDate!);
 
       expect(screen.getByText(effectiveDate)).toBeInTheDocument();
       expect(screen.getByText(expirationDate)).toBeInTheDocument();

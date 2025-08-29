@@ -1,0 +1,15 @@
+model Contact {
+  id            String @id @default(uuid()) @db.Uuid
+  contactTypeId String @map("contact_type_id")
+  bundleId      String @map("bundle_id") @db.Uuid
+  userId        String @map("user_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  contactType ContactType @relation(fields: [contactTypeId], references: [id])
+  bundle      Bundle      @relation(fields: [bundleId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@unique([contactTypeId, bundleId, userId])
+  @@map("contact")
+}

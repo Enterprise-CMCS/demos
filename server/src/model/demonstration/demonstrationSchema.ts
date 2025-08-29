@@ -4,39 +4,28 @@ import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
-import { CmcsDivision, SignatureLevel } from "../../types.js";
+import { CmcsDivision } from "../cmcsDivision/cmcsDivisionSchema.js";
+import { SignatureLevel } from "../signatureLevel/signatureLevelSchema.js";
+import { Contact } from "../contact/contactSchema.js";
 
 export const demonstrationSchema = gql`
-  """
-  A string representing a CMCS division. Expected values are:
-  - Division of System Reform Demonstrations
-  - Division of Eligibility and Coverage Demonstrations
-  """
-  scalar CmcsDivision
-  """
-  A string representing a signature level. Expected values are:
-  - OA
-  - OCD
-  - OGD
-  """
-  scalar SignatureLevel
   type Demonstration {
     id: ID!
     name: String!
     description: String!
-    effectiveDate: Date!
-    expirationDate: Date!
+    effectiveDate: Date
+    expirationDate: Date
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
     createdAt: DateTime!
     updatedAt: DateTime!
     demonstrationStatus: DemonstrationStatus!
     state: State!
-    users: [User!]!
     projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
+    contacts: [Contact!]!
   }
 
   input CreateDemonstrationInput {
@@ -67,10 +56,7 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
-    updateDemonstration(
-      id: ID!
-      input: UpdateDemonstrationInput!
-    ): Demonstration
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
@@ -84,19 +70,19 @@ export interface Demonstration {
   id: string;
   name: string;
   description: string;
-  effectiveDate: Date;
-  expirationDate: Date;
+  effectiveDate?: Date;
+  expirationDate?: Date;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
   createdAt: Date;
   updatedAt: Date;
   demonstrationStatus: DemonstrationStatus;
   state: State;
-  users: User[];
   projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
+  contacts: Contact[];
 }
 
 export interface CreateDemonstrationInput {

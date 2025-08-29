@@ -1,33 +1,21 @@
-type MockContactType =
-  | "Primary Project Officer"
-  | "Secondary Project Officer"
-  | "State Representative"
-  | "Subject Matter Expert";
+import { Contact } from "demos-server";
+import { MockUser, mockUsers } from "./userMocks";
 
-export type MockContact = {
-  id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: MockContactType | null;
+export type MockContact = Pick<Contact, "contactType"> & {
+  user: MockUser;
 };
 
 export const mockContacts: MockContact[] = [
   {
-    id: "1",
-    fullName: "John Doe",
-    email: "john@doe.com",
-    contactType: "Primary Project Officer",
+    user: mockUsers[0],
+    contactType: "Project Officer",
   },
   {
-    id: "2",
-    fullName: "Jane Smith",
-    email: "jane@smith.com",
-    contactType: "State Representative",
+    user: mockUsers[1],
+    contactType: "State Point of Contact",
   },
   {
-    id: "3",
-    fullName: "Emily Johnson",
-    email: null,
-    contactType: "Subject Matter Expert",
+    user: mockUsers[2],
+    contactType: "Policy Technical Director",
   },
 ];

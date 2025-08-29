@@ -12,28 +12,20 @@ import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 import { createSelectColumnDef } from "../columns/selectColumn";
 import { TableHead } from "../Table";
+import { Contact, User } from "demos-server";
 
-type ContactType =
-  | "Primary Project Officer"
-  | "Secondary Project Officer"
-  | "State Representative"
-  | "Subject Matter Expert";
-
-export type Contact = {
-  id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: ContactType | null;
+export type ContactsTableContact = Pick<Contact, "contactType"> & {
+  user: Pick<User, "fullName" | "email">;
 };
 
-const contactsColumnHelper = createColumnHelper<Contact>();
+const contactsColumnHelper = createColumnHelper<ContactsTableContact>();
 const contactsColumns = [
   createSelectColumnDef(contactsColumnHelper),
-  contactsColumnHelper.accessor("fullName", {
+  contactsColumnHelper.accessor("user.fullName", {
     id: "fullName",
     header: "Name",
   }),
-  contactsColumnHelper.accessor("email", {
+  contactsColumnHelper.accessor("user.email", {
     id: "email",
     header: "Email",
   }),
@@ -60,13 +52,13 @@ function DocumentActionButtons() {
 }
 
 type ContactsTableProps = {
-  contacts?: Contact[];
+  contacts?: ContactsTableContact[];
 };
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [] }) => {
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const contactsTable = useReactTable<Contact>({
+  const contactsTable = useReactTable<ContactsTableContact>({
     data: contacts || [],
     columns: contactsColumns,
     state: { rowSelection },
