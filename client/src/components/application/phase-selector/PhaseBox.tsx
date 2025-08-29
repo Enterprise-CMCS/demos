@@ -13,8 +13,8 @@ const BASE_STYLES = {
 const PHASE_NUMBER_COLORS: Record<PhaseStatus, string> = {
   in_progress: tw`text-brand border border-brand`,
   not_started: tw`text-icon-base border border-icon-base`,
-  // ICONS are rendered here
-  completed: tw``, // Curently, an icon is rendered instead
+  // Currently icons are rendered here, no styles needed
+  completed: tw``,
   skipped: tw``,
 };
 

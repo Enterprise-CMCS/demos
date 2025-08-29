@@ -1,5 +1,4 @@
 import React from "react";
-
 import { describe, it, expect } from "vitest";
 import { PhaseBox } from "./PhaseBox";
 import { render, screen, fireEvent } from "@testing-library/react";
