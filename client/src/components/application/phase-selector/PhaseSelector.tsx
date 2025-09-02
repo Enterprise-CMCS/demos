@@ -48,6 +48,16 @@ const PhaseGroups = () => {
   );
 };
 
+const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
+  const PhaseComponent = PHASE_COMPONENTS_LOOKUP[selectedPhase];
+
+  return (
+    <div className="border border-dashed w-full h-full min-h-64">
+      <PhaseComponent />
+    </div>
+  );
+};
+
 // For testing all the different styles, Will remove in DEMOS-677
 const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
   Concept: "skipped",
@@ -94,15 +104,5 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
       </div>
       <DisplayPhase selectedPhase={selectedPhase} />
     </>
-  );
-};
-
-export const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
-  const PhaseComponent = PHASE_COMPONENTS_LOOKUP[selectedPhase];
-
-  return (
-    <div className="border border-dashed w-full h-full min-h-64">
-      <PhaseComponent />
-    </div>
   );
 };
