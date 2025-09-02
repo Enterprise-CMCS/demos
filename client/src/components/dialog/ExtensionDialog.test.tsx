@@ -152,4 +152,12 @@ describe("ExtensionDialog", () => {
     // without more complex mocking. For now, just ensure the component renders.
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
   });
+
+  it("disables demonstration select when data is provided with demonstrationId", () => {
+    render(<ExtensionDialog {...defaultProps} demonstrationId={"testId"} />);
+
+    const demonstrationSelect = screen.getByPlaceholderText("Select demonstration");
+
+    expect(demonstrationSelect).toBeDisabled();
+  });
 });

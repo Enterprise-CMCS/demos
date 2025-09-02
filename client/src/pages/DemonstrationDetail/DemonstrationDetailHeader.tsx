@@ -137,8 +137,8 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <EditIcon width="24" height="24" />
             </CircleButton>
             <CircleButton
-              name="Create New demonstration"
-              data-testid="edit-button"
+              name="Create New"
+              data-testid="create-new-button"
               onClick={() => setShowDropdown((prev) => !prev)}
             >
               <AddNewIcon width="24" height="24" />

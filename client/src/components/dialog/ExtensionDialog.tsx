@@ -4,13 +4,13 @@ import { AddExtensionInput } from "demos-server";
 import { createFormDataWithDates } from "hooks/useDialogForm";
 import { useExtension } from "hooks/useExtension";
 
-import {
-  BaseModificationDialog,
-  BaseModificationDialogProps,
-} from "./BaseModificationDialog";
+import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
-type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
+type Props = Pick<
+  BaseModificationDialogProps,
+  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
+> & {
   extensionId?: string;
 };
 

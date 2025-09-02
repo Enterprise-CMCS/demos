@@ -133,4 +133,12 @@ describe("AmendmentDialog", () => {
     expect(titleInput).toBeInTheDocument();
     expect(descriptionInput).toBeInTheDocument();
   });
+
+  it("disables demonstration select when data is provided with demonstrationId", () => {
+    render(<AmendmentDialog {...defaultProps} demonstrationId={"testId"} />);
+
+    const demonstrationSelect = screen.getByPlaceholderText("Select demonstration");
+
+    expect(demonstrationSelect).toBeDisabled();
+  });
 });
