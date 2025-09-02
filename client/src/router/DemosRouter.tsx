@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "react-oidc-context";
 import { getCognitoConfig } from "./cognitoConfig";
+import { getAuthProviderProps } from "./cognitoConfig";
 import { LandingPage } from "pages";
 import { ComponentLibrary, TestHooks } from "pages/debug";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
@@ -20,13 +21,13 @@ export const DemosRouter = () => {
   const cognitoConfig = getCognitoConfig();
 
   return (
-    <AuthProvider {...cognitoConfig}>
+    <AuthProvider {...getAuthProviderProps(cognitoConfig)}>
       <DemosApolloProvider>
         <UserProvider>
           <BrowserRouter>
             <Routes>
               {/* PUBLIC routes */}
-              <Route path="/signed-out" element={<SignedOut />} />
+              <Route path="/sign-out" element={<SignedOut />} />
               {/* PROTECTED routes */}
               <Route
                 element={

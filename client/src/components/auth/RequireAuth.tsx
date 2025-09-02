@@ -1,58 +1,55 @@
-// src/components/auth/RequireAuth.tsx
 import React, { useEffect, useRef } from "react";
 import { useAuth } from "react-oidc-context";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+
+const PUBLIC_PATHS = new Set(["/sign-out"]); // public routes.
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const location = useLocation();
-  const kickedOff = useRef(false);
+  const navigate = useNavigate();
 
-  // Are we on the OIDC callback URL? (Hosted UI returns with ?code=...&state=...)
-  const isOidcCallback = new URLSearchParams(location.search).has("code");
+  const kicked = useRef(false);
+  const cleaned = useRef(false);
 
-  // Helpful one-liner while you stabilize:
-  if (import.meta.env.DEV) {
-    // activeNavigator tells you if react-oidc-context is currently handling a redirect
-    console.table({
-      isLoading: auth.isLoading,
-      isAuthenticated: auth.isAuthenticated,
-      activeNavigator: auth.activeNavigator ?? "<none>",
-      path: location.pathname + location.search,
-      isOidcCallback,
-    });
-  }
+  const path = location.pathname;
+  const search = location.search || "";
+
+  // Leave logout page alone.
+  if (PUBLIC_PATHS.has(path)) return <>{children}</>;
+
+  const isCallbackQuery =
+    search.includes("code=") || search.includes("id_token=") || search.includes("access_token=");
+
+  const finishingNavigator =
+    auth.activeNavigator === "signinRedirect" || auth.activeNavigator === "signinSilent";
 
   useEffect(() => {
-    // Don’t trigger while library is handling a redirect or during callback
-    if (auth.isLoading || auth.activeNavigator || isOidcCallback) return;
-
-    if (!auth.isAuthenticated && !kickedOff.current) {
-      kickedOff.current = true;
-      auth
-        .signinRedirect({
-          // send them back where they started
-          state: { returnUrl: location.pathname + location.search },
-        })
-        .catch((e) => console.error("[RequireAuth] signinRedirect failed:", e));
+    if ((isCallbackQuery || finishingNavigator) && !auth.isLoading && !cleaned.current) {
+      cleaned.current = true;
+      const cleanUrl = location.pathname + location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+      navigate(cleanUrl, { replace: true });
     }
-  }, [
-    auth,
-    auth.isLoading,
-    auth.activeNavigator,
-    auth.isAuthenticated,
-    isOidcCallback,
-    location.pathname,
-    location.search,
-  ]);
+  }, [isCallbackQuery, finishingNavigator, auth.isLoading, location.pathname, location.hash, navigate]);
 
-  // While loading or callback in progress: render a tiny filler to avoid blank page
-  if (auth.isLoading || auth.activeNavigator || isOidcCallback) {
-    return <div style={{ height: 1 }} />; // or a spinner
-  }
+  useEffect(() => {
+    /* Always try to login, unleess you just logged out */
+    const justLoggedOut = sessionStorage.getItem("justLoggedOut") === "1";
+    if (justLoggedOut) return;
 
-  // If unauthenticated, redirect has been kicked off. Render nothing.
-  if (!auth.isAuthenticated) return null;
+    if (!auth.isLoading && !auth.isAuthenticated && !isCallbackQuery && !finishingNavigator && !kicked.current) {
+      kicked.current = true;
+      auth.signinRedirect({ state: { returnUrl: location.pathname + location.search } }).catch(() => {});
+    }
+  }, [auth.isLoading, auth.isAuthenticated, auth.signinRedirect, isCallbackQuery, finishingNavigator, location]);
+
+  const stillCleaning = (isCallbackQuery || finishingNavigator) && !auth.isLoading && !cleaned.current;
+  if (auth.isLoading || finishingNavigator || stillCleaning) return <div style={{ display: "none" }} />;
+  if (!auth.isAuthenticated) return <div style={{ display: "none" }} />;
+
+  // authenticated; if flag somehow remained, clear it now
+  if (sessionStorage.getItem("justLoggedOut") === "1") sessionStorage.removeItem("justLoggedOut");
 
   return <>{children}</>;
 }
