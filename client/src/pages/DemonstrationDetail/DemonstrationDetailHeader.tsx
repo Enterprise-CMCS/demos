@@ -1,20 +1,36 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
+
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
-import { ApolloError } from "@apollo/client";
 import { Demonstration } from "demos-server";
+import { ApolloError } from "@apollo/client";
+import { formatDate } from "util/formatDate";
+
+export type DemonstrationHeaderDetails = {
+  state: Pick<Demonstration["state"], "id">;
+  projectOfficer: Pick<Demonstration["projectOfficer"], "fullName">;
+  demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;
+  effectiveDate: Demonstration["effectiveDate"];
+  expirationDate: Demonstration["expirationDate"];
+  id: Demonstration["id"];
+  name: Demonstration["name"];
+};
 
 interface DemonstrationDetailHeaderProps {
-  demonstration?: Demonstration;
+  demonstration?: DemonstrationHeaderDetails;
   loading?: boolean;
   error?: ApolloError;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export const DemonstrationDetailHeader: React.FC<
-  DemonstrationDetailHeaderProps
-> = ({ demonstration, loading, error, onEdit, onDelete }) => {
+export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps> = ({
+  demonstration,
+  loading,
+  error,
+  onEdit,
+  onDelete,
+}) => {
   const [showButtons, setShowButtons] = useState(false);
 
   const handleToggleButtons = useCallback(() => {
@@ -83,9 +99,7 @@ export const DemonstrationDetailHeader: React.FC<
                 <React.Fragment key={field.label}>
                   <li className="text-sm">
                     <strong>{field.label}</strong>:{" "}
-                    {field.value instanceof Date
-                      ? field.value.toLocaleDateString()
-                      : field.value}
+                    {field.value instanceof Date ? formatDate(field.value) : field.value}
                   </li>
                   {index < displayFields.length - 1 && (
                     <li className="text-sm mx-1" aria-hidden="true">

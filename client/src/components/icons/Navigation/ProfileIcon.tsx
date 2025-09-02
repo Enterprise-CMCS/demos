@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const ProfileIcon = ({
+export const ProfileIcon: React.FC<IconInput> = ({
+  label = "Profile",
   width = "19",
   height = "19",
   viewBox = "0 0 19 19",
@@ -13,6 +14,8 @@ export const ProfileIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       fillRule="evenodd"

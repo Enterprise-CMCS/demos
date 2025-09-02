@@ -53,10 +53,10 @@ export const userSchema = gql`
   type Query {
     users: [User!]!
     user(id: ID!): User
+    currentUser: User
   }
 `;
 
-export type DateTime = Date;
 export interface User {
   id: string;
   cognitoSubject: string;
@@ -64,8 +64,8 @@ export interface User {
   email: string;
   fullName: string;
   displayName: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
   states: State[];
   roles: Role[];
   demonstrations: Demonstration[];

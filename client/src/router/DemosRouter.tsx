@@ -4,27 +4,22 @@ import { AuthProvider } from "react-oidc-context";
 import { getCognitoConfig } from "./cognitoConfig";
 import { LandingPage } from "pages";
 import { ComponentLibrary, TestHooks } from "pages/debug";
-import { AuthComponent } from "components/auth/AuthComponent";
+import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
 import { PrimaryLayout } from "layout/PrimaryLayout";
 import { Demonstrations } from "pages/Demonstrations";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { DemosApolloProvider } from "./DemosApolloProvider";
-import { isDevelopmentMode } from "config/env";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { isLocalDevelopment } from "config/env";
 import { EventSandbox } from "pages/debug/EventSandbox";
+import { UserProvider } from "components/user/UserContext";
 
 export const DemosRouter = () => {
-  // TODO: When we know what IDM integration looks like
-  // We will want to read the JWT claims and
-  // add it to the AuthProvider (specifically the user object)
   const cognitoConfig = getCognitoConfig();
-
   return (
     <AuthProvider {...cognitoConfig}>
       <DemosApolloProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <UserProvider>
           <BrowserRouter>
             <Routes>
               <Route
@@ -37,16 +32,16 @@ export const DemosRouter = () => {
                 {/* Real Pages the user should be able to access */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
-                <Route
-                  path="demonstrations/:id"
-                  element={<DemonstrationDetail />}
-                />
+                {/* DEBG AUTH IN EARLY STAGE DEV */}
+                <Route path="/auth" element={<AuthDebugComponent />} />
+                <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+                {/* 404 Page */}
+                <Route path="*" element={<div>404: Page Not Found</div>} />
                 {/* Debug routes, only available in development mode */}
-                {isDevelopmentMode() && (
+                {isLocalDevelopment() && (
                   <>
                     <Route path="/components" element={<ComponentLibrary />} />
                     <Route path="/hooks" element={<TestHooks />} />
-                    <Route path="/auth" element={<AuthComponent />} />
                     <Route path="/icons" element={<IconLibrary />} />
                     <Route path="/events" element={<EventSandbox />} />
                   </>
@@ -54,7 +49,7 @@ export const DemosRouter = () => {
               </Route>
             </Routes>
           </BrowserRouter>
-        </LocalizationProvider>
+        </UserProvider>
       </DemosApolloProvider>
     </AuthProvider>
   );

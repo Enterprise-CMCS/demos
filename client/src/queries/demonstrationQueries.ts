@@ -17,8 +17,6 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
       description
       effectiveDate
       expirationDate
-      createdAt
-      updatedAt
       demonstrationStatus {
         id
         name
@@ -30,45 +28,6 @@ export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
       users {
         id
         fullName
-      }
-    }
-  }
-`;
-
-export const DEMONSTRATION_TABLE_QUERY = gql`
-  query GetDemonstrations {
-    demonstrations {
-      id
-      name
-      demonstrationStatus {
-        name
-      }
-      state {
-        name
-      }
-      users {
-        id
-      }
-      projectOfficer {
-        fullName
-      }
-      amendments {
-        name
-        projectOfficer {
-          fullName
-        }
-        amendmentStatus {
-          name
-        }
-      }
-      extensions {
-        name
-        projectOfficer {
-          fullName
-        }
-        extensionStatus {
-          name
-        }
       }
     }
   }
@@ -82,8 +41,6 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
       description
       effectiveDate
       expirationDate
-      createdAt
-      updatedAt
       demonstrationStatus {
         id
         name
@@ -103,7 +60,7 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
   }
 `;
 
-export const ADD_DEMONSTRATION_QUERY = gql`
+export const ADD_DEMONSTRATION_MUTATION = gql`
   mutation AddDemonstration($input: CreateDemonstrationInput!) {
     createDemonstration(input: $input) {
       id
@@ -111,8 +68,6 @@ export const ADD_DEMONSTRATION_QUERY = gql`
       description
       effectiveDate
       expirationDate
-      createdAt
-      updatedAt
       demonstrationStatus {
         id
         name
@@ -137,8 +92,6 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       description
       effectiveDate
       expirationDate
-      createdAt
-      updatedAt
       demonstrationStatus {
         id
         name

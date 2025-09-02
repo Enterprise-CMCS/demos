@@ -1,12 +1,10 @@
-// Flags: NATURAL_KEY
+// Flags: STATIC_CONSTRAINT
 model DocumentType {
-  id          String   @id
-  name        String
-  description String
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  id String
 
-  document Document[]
+  document              Document[]
+  documentPendingUpload DocumentPendingUpload[]
 
+  @@id([id])
   @@map("document_type")
 }

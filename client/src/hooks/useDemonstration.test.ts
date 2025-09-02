@@ -1,13 +1,10 @@
-import { renderHook, waitFor } from "@testing-library/react";
-import { useDemonstration } from "./useDemonstration";
 import { CreateDemonstrationInput } from "demos-server";
-import {
-  mockAddDemonstrationInput,
-  testDemonstration,
-} from "mock-data/demonstrationMocks";
+import { mockAddDemonstrationInput, mockDemonstrations } from "mock-data/demonstrationMocks";
 import { DemosApolloProvider } from "router/DemosApolloProvider";
 
-const expectedDemonstration = testDemonstration;
+import { renderHook, waitFor } from "@testing-library/react";
+
+import { useDemonstration } from "./useDemonstration";
 
 const renderUseDemonstrationHook = () => {
   return renderHook(() => useDemonstration(), {
@@ -29,9 +26,7 @@ describe("useDemonstration", () => {
         expect(result.current.getAllDemonstrations.data).toBeDefined();
         const actualDemonstrations = result.current.getAllDemonstrations.data!;
         expect(actualDemonstrations.length).toBeGreaterThan(0);
-        expect(actualDemonstrations[0].name).toEqual(
-          expectedDemonstration.name
-        );
+        expect(actualDemonstrations[0].name).toEqual(mockDemonstrations[0].name);
       });
       expect(result.current.getAllDemonstrations.error).toBeUndefined();
     });
@@ -41,12 +36,12 @@ describe("useDemonstration", () => {
     it("should fetch demonstration by id successfully", async () => {
       const { result } = renderUseDemonstrationHook();
 
-      result.current.getDemonstrationById.trigger(expectedDemonstration.id);
+      result.current.getDemonstrationById.trigger(mockDemonstrations[0].id);
 
       await waitFor(() => {
         expect(result.current.getDemonstrationById.data).toBeDefined();
         const actualDemonstration = result.current.getDemonstrationById.data!;
-        expect(actualDemonstration.name).toEqual(testDemonstration.name);
+        expect(actualDemonstration.name).toEqual(mockDemonstrations[0].name);
       });
       expect(result.current.getDemonstrationById.error).toBeUndefined();
     });
@@ -78,7 +73,7 @@ describe("useDemonstration", () => {
       });
 
       const actualDemonstration = result.current.addDemonstration.data!;
-      expect(actualDemonstration.name).toEqual(expectedDemonstration.name);
+      expect(actualDemonstration.name).toEqual(mockDemonstrations[0].name);
       expect(result.current.addDemonstration.error).toBeUndefined();
     });
 
@@ -112,20 +107,18 @@ describe("useDemonstration", () => {
       const updatedInput = {
         name: "Updated Demo Name",
         description: "Updated description",
-        effectiveDate: new Date("2024-07-01T00:00:00.000Z"),
-        expirationDate: new Date("2024-07-31T00:00:00.000Z"),
+        effectiveDate: new Date(2025, 0, 1),
+        expirationDate: new Date(2025, 11, 1),
         demonstrationStatusId: "1",
         stateId: "1",
         userIds: ["1"],
+        projectOfficerUserId: "1",
       };
 
-      const demonstrationId = expectedDemonstration.id;
+      const demonstrationId = mockDemonstrations[0].id;
 
       // Trigger update
-      await result.current.updateDemonstration.trigger(
-        demonstrationId,
-        updatedInput
-      );
+      await result.current.updateDemonstration.trigger(demonstrationId, updatedInput);
 
       await waitFor(() => {
         expect(result.current.updateDemonstration.data).toBeDefined();

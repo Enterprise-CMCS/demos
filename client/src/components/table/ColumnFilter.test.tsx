@@ -4,13 +4,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { Table } from "./Table";
 import { testTableData, TestType } from "./Table.test";
 import { createColumnHelper } from "@tanstack/react-table";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { Dayjs } from "dayjs";
 import { ColumnFilter } from "./ColumnFilter";
+import { isAfter, isBefore, isSameDay } from "date-fns";
+import { formatDate } from "util/formatDate";
 
 const columnHelper = createColumnHelper<TestType>();
 
@@ -41,7 +40,7 @@ export const testColumns = [
     id: "date",
     header: "Date",
     cell: ({ getValue }) => {
-      return getValue().format("MM/DD/YYYY");
+      return formatDate(getValue());
     },
     meta: {
       filterConfig: {
@@ -49,20 +48,20 @@ export const testColumns = [
       },
     },
     filterFn: (row, columnId, filterValue) => {
-      const date: Dayjs = row.getValue(columnId);
+      const date: Date = row.getValue(columnId);
       const { start, end } = filterValue || {};
       if (start && end) {
         return (
-          date.isSame(start, "day") ||
-          date.isSame(end, "day") ||
-          (date.isAfter(start, "day") && date.isBefore(end, "day"))
+          isSameDay(date, start) ||
+          isSameDay(date, end) ||
+          (isAfter(date, start) && isBefore(date, end))
         );
       }
       if (start) {
-        return date.isSame(start, "day") || date.isAfter(start, "day");
+        return isSameDay(date, start) || isAfter(date, start);
       }
       if (end) {
-        return date.isSame(end, "day") || date.isBefore(end, "day");
+        return isSameDay(date, end) || isBefore(date, end);
       }
       return true;
     },
@@ -71,16 +70,14 @@ export const testColumns = [
 
 describe("ColumnFilter Component", () => {
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.removeItem("keyword-search");
     render(
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Table<TestType>
-          columns={testColumns}
-          data={testTableData}
-          columnFilter={(table) => <ColumnFilter table={table} />}
-          noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-        />
-      </LocalizationProvider>
+      <Table<TestType>
+        columns={testColumns}
+        data={testTableData}
+        columnFilter={(table) => <ColumnFilter table={table} />}
+        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+      />
     );
   });
 
@@ -101,15 +98,9 @@ describe("ColumnFilter Component", () => {
 
     it("does not show filter input initially", () => {
       // No filter input should be visible until a column is selected
-      expect(
-        screen.queryByPlaceholderText(/filter name/i)
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByPlaceholderText(/Select Option/i)
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByPlaceholderText(/filter date/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText(/filter name/i)).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText(/Select Option/i)).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText(/filter date/i)).not.toBeInTheDocument();
     });
   });
 
@@ -141,9 +132,7 @@ describe("ColumnFilter Component", () => {
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText(/Select Option/i)
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
       });
 
       // Test date filter (Date column)
@@ -256,9 +245,7 @@ describe("ColumnFilter Component", () => {
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText(/Select Option/i)
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
       });
     });
 
@@ -269,9 +256,7 @@ describe("ColumnFilter Component", () => {
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText(/Select Option/i)
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
       });
 
       const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
@@ -309,9 +294,7 @@ describe("ColumnFilter Component", () => {
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText(/Select Option/i)
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
       });
 
       const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
@@ -357,9 +340,7 @@ describe("ColumnFilter Component", () => {
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText(/Select Option/i)
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
       });
 
       const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
@@ -395,9 +376,7 @@ describe("ColumnFilter Component", () => {
         const alphaDropdownOption = alphaOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
-        const alphaCheckbox = alphaDropdownOption?.querySelector(
-          'input[type="checkbox"]'
-        );
+        const alphaCheckbox = alphaDropdownOption?.querySelector('input[type="checkbox"]');
         expect(alphaCheckbox).toHaveProperty("checked", false);
       });
     });
@@ -468,7 +447,7 @@ describe("ColumnFilter Component", () => {
       });
     });
 
-    it("shows no results for unmatched MM/DD/YYYY date", async () => {
+    it("shows no results for unmatched MM/dd/yyyy date", async () => {
       const user = userEvent.setup();
       const columnSelect = screen.getByLabelText(/filter by:/i);
 
@@ -504,9 +483,7 @@ describe("ColumnFilter Component", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(
-            "No results were returned. Adjust your search and filter criteria."
-          )
+          screen.getByText("No results were returned. Adjust your search and filter criteria.")
         ).toBeInTheDocument();
       });
     });
@@ -528,9 +505,7 @@ describe("ColumnFilter Component", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(
-            "No results were returned. Adjust your search and filter criteria."
-          )
+          screen.getByText("No results were returned. Adjust your search and filter criteria.")
         ).toBeInTheDocument();
 
         // No table rows should be visible
@@ -559,9 +534,7 @@ describe("ColumnFilter Component", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(
-            "No results were returned. Adjust your search and filter criteria."
-          )
+          screen.getByText("No results were returned. Adjust your search and filter criteria.")
         ).toBeInTheDocument();
       });
 
@@ -572,9 +545,7 @@ describe("ColumnFilter Component", () => {
       await waitFor(() => {
         expect(screen.getByText("Item One")).toBeInTheDocument();
         expect(
-          screen.queryByText(
-            "No results were returned. Adjust your search and filter criteria."
-          )
+          screen.queryByText("No results were returned. Adjust your search and filter criteria.")
         ).not.toBeInTheDocument();
       });
     });

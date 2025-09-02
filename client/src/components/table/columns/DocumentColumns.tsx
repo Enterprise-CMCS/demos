@@ -1,59 +1,22 @@
 // DocumentColumns.tsx
 import * as React from "react";
+
+import { DocumentTableRow } from "hooks/useDocument";
+
 import { createColumnHelper } from "@tanstack/react-table";
+
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
-import { useDocumentType } from "hooks/useDocumentType";
-import { DocumentTableRow } from "hooks/useDocument";
-import { Dayjs } from "dayjs";
+import { isAfter, isBefore, isSameDay } from "date-fns";
+import { formatDate } from "util/formatDate";
+import { createSelectColumnDef } from "./selectColumn";
+import { DOCUMENT_TYPES } from "demos-server-constants";
 
 export function DocumentColumns() {
-  const { getDocumentTypeOptions } = useDocumentType();
-
-  // Trigger queries on mount
-  React.useEffect(() => {
-    getDocumentTypeOptions.trigger();
-  }, []);
-
-  // Loading and error handling
-  if (getDocumentTypeOptions.loading) {
-    return { loading: true };
-  }
-  if (getDocumentTypeOptions.error) {
-    return {
-      error: getDocumentTypeOptions.error?.message,
-    };
-  }
-  if (!getDocumentTypeOptions.data) {
-    return { error: "Data not found" };
-  }
   const columnHelper = createColumnHelper<DocumentTableRow>();
 
   const documentColumns = [
-    columnHelper.display({
-      id: "Select",
-      header: ({ table }) => (
-        <input
-          id="select-all-rows"
-          type="checkbox"
-          className="cursor-pointer"
-          aria-label="Select all rows"
-          checked={table.getIsAllPageRowsSelected()}
-          onChange={table.getToggleAllPageRowsSelectedHandler()}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          id={`select-row-${row.id}`}
-          type="checkbox"
-          className="cursor-pointer"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          aria-label={`Select row ${row.index + 1}`}
-        />
-      ),
-      size: 20,
-    }),
+    createSelectColumnDef(columnHelper),
     columnHelper.accessor("title", {
       header: "Title",
       cell: highlightCell,
@@ -64,7 +27,7 @@ export function DocumentColumns() {
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("documentType.name", {
+    columnHelper.accessor("documentType", {
       id: "type",
       header: "Document Type",
       cell: highlightCell,
@@ -72,39 +35,40 @@ export function DocumentColumns() {
       meta: {
         filterConfig: {
           filterType: "select",
-          options:
-            getDocumentTypeOptions.data?.map((documentType) => ({
-              label: documentType.name,
-              value: documentType.name,
-            })) ?? [],
+          options: DOCUMENT_TYPES.map((type) => ({
+            label: type,
+            value: type,
+          })),
         },
       },
     }),
-    columnHelper.accessor("uploadedBy.fullName", {
+    columnHelper.accessor("owner.fullName", {
       header: "Uploaded By",
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("uploadDate", {
+    columnHelper.accessor("createdAt", {
       header: "Date Uploaded",
       cell: ({ getValue }) => {
-        return getValue().format("MM/DD/YYYY");
+        const dateValue = getValue();
+        return formatDate(dateValue);
       },
       filterFn: (row, columnId, filterValue) => {
-        const date: Dayjs = row.getValue(columnId);
+        const dateValue = row.getValue(columnId) as string;
+        const date: Date = new Date(dateValue);
         const { start, end } = filterValue || {};
         if (start && end) {
           return (
-            date.isSame(start, "day") ||
-            date.isSame(end, "day") ||
-            (date.isAfter(start, "day") && date.isBefore(end, "day"))
+            isSameDay(date, start) ||
+            isSameDay(date, end) ||
+            (isAfter(date, start) && isBefore(date, end))
           );
         }
         if (start) {
-          return date.isSame(start, "day") || date.isAfter(start, "day");
+          return isSameDay(date, start) || isAfter(date, start);
         }
         if (end) {
-          return date.isSame(end, "day") || date.isBefore(end, "day");
+          return isSameDay(date, end) || isBefore(date, end);
         }
         return true;
       },
@@ -123,11 +87,7 @@ export function DocumentColumns() {
           window.open(`/documents/${docId}`, "_blank");
         };
         return (
-          <SecondaryButton
-            size="small"
-            onClick={handleClick}
-            className="px-2 py-0 text-sm font-medium"
-          >
+          <SecondaryButton size="small" onClick={handleClick} name="view-document">
             View
           </SecondaryButton>
         );

@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const DateTimeIcon = ({
+export const DateTimeIcon: React.FC<IconInput> = ({
+  label = "Date Time",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",
@@ -13,6 +14,8 @@ export const DateTimeIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <mask
       id="mask0_10840_311306"

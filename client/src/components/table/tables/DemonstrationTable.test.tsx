@@ -1,40 +1,23 @@
 import React from "react";
-import { MockedProvider } from "@apollo/client/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { demonstrationMocks } from "mock-data/demonstrationMocks";
-import { userMocks } from "mock-data/userMocks";
-import { stateMocks } from "mock-data/stateMocks";
-import { demonstrationStatusMocks } from "mock-data/demonstrationStatusMocks";
+import { userOptions } from "mock-data/userMocks";
 import { DemonstrationTable } from "./DemonstrationTable";
-import { DEMONSTRATION_TABLE_QUERY } from "queries/demonstrationQueries";
-
-const standardMocks = [
-  ...demonstrationMocks,
-  ...userMocks,
-  ...stateMocks,
-  ...demonstrationStatusMocks,
-];
-
-const emptyDemonstrationsMock = {
-  request: {
-    query: DEMONSTRATION_TABLE_QUERY,
-  },
-  result: {
-    data: {
-      demonstrations: [],
-    },
-  },
-};
+import { mockDemonstrationStatuses } from "mock-data/demonstrationStatusMocks";
+import { mockStates } from "mock-data/stateMocks";
+import { mockDemonstrations } from "mock-data/demonstrationMocks";
 
 // Helper functions
-const renderDemonstrations = (mocks = standardMocks) => {
+const renderDemonstrations = () => {
   return render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <DemonstrationTable />
-    </MockedProvider>
+    <DemonstrationTable
+      projectOfficerOptions={userOptions}
+      statusOptions={mockDemonstrationStatuses}
+      stateOptions={mockStates}
+      demonstrations={mockDemonstrations}
+    />
   );
 };
 
@@ -44,16 +27,12 @@ const waitForTableData = async () => {
   });
 };
 
-const switchToAllDemonstrationsTab = async (
-  user: ReturnType<typeof userEvent.setup>
-) => {
+const switchToAllDemonstrationsTab = async (user: ReturnType<typeof userEvent.setup>) => {
   const allDemosTab = screen.getByText(/All Demonstrations/);
   await user.click(allDemosTab);
 };
 
-const switchToMyDemonstrationsTab = async (
-  user: ReturnType<typeof userEvent.setup>
-) => {
+const switchToMyDemonstrationsTab = async (user: ReturnType<typeof userEvent.setup>) => {
   const myDemosTab = screen.getByText(/My Demonstrations/);
   await user.click(myDemosTab);
 };
@@ -63,10 +42,7 @@ const clearSearchInput = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.clear(searchInput);
 };
 
-const searchForText = async (
-  user: ReturnType<typeof userEvent.setup>,
-  searchText: string
-) => {
+const searchForText = async (user: ReturnType<typeof userEvent.setup>, searchText: string) => {
   const searchInput = screen.getByLabelText(/keyword search/i);
   await user.type(searchInput, searchText);
 };
@@ -80,15 +56,11 @@ const applyProjectOfficerFilter = async (
 
   // Wait for the project officer filter input to appear
   await waitFor(() => {
-    expect(
-      screen.getByPlaceholderText(/select project officer/i)
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/select project officer/i)).toBeInTheDocument();
   });
 
   // Filter by the specified project officer
-  const officerFilterInput = screen.getByPlaceholderText(
-    /select project officer/i
-  );
+  const officerFilterInput = screen.getByPlaceholderText(/select project officer/i);
   await user.type(officerFilterInput, officerName);
 
   // Wait for dropdown and select officer
@@ -101,55 +73,40 @@ const applyProjectOfficerFilter = async (
   });
 
   const officerOptions = screen.getAllByText(officerName);
-  const officerOptionToClick = officerOptions.find(
-    (el) => el.tagName === "LI" || el.closest("li")
-  );
+  const officerOptionToClick = officerOptions.find((el) => el.tagName === "LI" || el.closest("li"));
   await user.click(officerOptionToClick!);
 };
 
-const applyStateFilter = async (
-  user: ReturnType<typeof userEvent.setup>,
-  stateCode: string
-) => {
+const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateCode: string) => {
   // Select state filter from column dropdown
   const columnSelect = screen.getByLabelText(/filter by:/i);
   await user.selectOptions(columnSelect, ["State/Territory"]);
 
   // Wait for the state filter input to appear
   await waitFor(() => {
-    expect(
-      screen.getByPlaceholderText(/select state\/territory/i)
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/select state\/territory/i)).toBeInTheDocument();
   });
 
   // Filter by the specified state
-  const stateFilterInput = screen.getByPlaceholderText(
-    /select state\/territory/i
-  );
+  const stateFilterInput = screen.getByPlaceholderText(/select state\/territory/i);
   await user.type(stateFilterInput, stateCode);
 
   // Wait for dropdown and select state
   await waitFor(() => {
     const stateOptions = screen.getAllByText(stateCode);
-    const stateDropdownOption = stateOptions.find(
-      (el) => el.tagName === "LI" || el.closest("li")
-    );
+    const stateDropdownOption = stateOptions.find((el) => el.tagName === "LI" || el.closest("li"));
     expect(stateDropdownOption).toBeInTheDocument();
   });
 
   const stateOptions = screen.getAllByText(stateCode);
-  const stateOptionToClick = stateOptions.find(
-    (el) => el.tagName === "LI" || el.closest("li")
-  );
+  const stateOptionToClick = stateOptions.find((el) => el.tagName === "LI" || el.closest("li"));
   await user.click(stateOptionToClick!);
 };
 
 const expectMyDemonstrationResults = () => {
   expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
   expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-  expect(
-    screen.queryByText("Florida Health Innovation")
-  ).not.toBeInTheDocument();
+  expect(screen.queryByText("Florida Health Innovation")).not.toBeInTheDocument();
 };
 
 const expectAllDemonstrationResults = () => {
@@ -162,31 +119,13 @@ describe("Demonstrations", () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
+    localStorage.removeItem("keyword-search");
     user = userEvent.setup();
-  });
-
-  describe("Basic rendering", () => {
-    it("shows loading state initially", () => {
-      renderDemonstrations();
-      expect(screen.getByText("Loading...")).toBeInTheDocument();
-    });
-
-    it("handles GraphQL errors gracefully", async () => {
-      renderDemonstrations([
-        ...userMocks,
-        ...stateMocks,
-        ...demonstrationStatusMocks,
-      ]);
-      await waitFor(() => {
-        expect(
-          screen.getByText("Error loading demonstrations")
-        ).toBeInTheDocument();
-      });
-    });
   });
 
   describe("Tab navigation", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -195,33 +134,22 @@ describe("Demonstrations", () => {
       expect(screen.getByText(/My Demonstrations/)).toBeInTheDocument();
       expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();
       expect(screen.getByText(/My Demonstrations.*\(2\)/)).toBeInTheDocument();
-      expect(
-        screen.getByText(/All Demonstrations.*\(14\)/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/All Demonstrations.*\(3\)/)).toBeInTheDocument();
     });
 
     it("defaults to 'My Demonstrations' tab", () => {
       const myDemosTab = screen.getByText(/My Demonstrations/);
-      expect(myDemosTab.closest("button")).toHaveAttribute(
-        "aria-selected",
-        "true"
-      );
+      expect(myDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
     });
 
     it("switches between tabs correctly", async () => {
       await switchToAllDemonstrationsTab(user);
       const allDemosTab = screen.getByText(/All Demonstrations/);
-      expect(allDemosTab.closest("button")).toHaveAttribute(
-        "aria-selected",
-        "true"
-      );
+      expect(allDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
 
       await switchToMyDemonstrationsTab(user);
       const myDemosTab = screen.getByText(/My Demonstrations/);
-      expect(myDemosTab.closest("button")).toHaveAttribute(
-        "aria-selected",
-        "true"
-      );
+      expect(myDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
     });
 
     it("maintains tab state when switching between tabs with data", async () => {
@@ -237,15 +165,15 @@ describe("Demonstrations", () => {
   });
 
   describe("Empty states", () => {
-    const emptyMocks = [
-      emptyDemonstrationsMock,
-      ...userMocks,
-      ...stateMocks,
-      ...demonstrationStatusMocks,
-    ];
-
     it("passes correct empty message for My Demonstrations tab", async () => {
-      renderDemonstrations(emptyMocks);
+      render(
+        <DemonstrationTable
+          projectOfficerOptions={userOptions}
+          statusOptions={mockDemonstrationStatuses}
+          stateOptions={mockStates}
+          demonstrations={[]}
+        />
+      );
       await waitFor(() => {
         expect(
           screen.getByText("You have no assigned demonstrations at this time.")
@@ -254,20 +182,26 @@ describe("Demonstrations", () => {
     });
 
     it("passes correct empty message for All Demonstrations tab", async () => {
-      renderDemonstrations(emptyMocks);
+      render(
+        <DemonstrationTable
+          projectOfficerOptions={userOptions}
+          statusOptions={mockDemonstrationStatuses}
+          stateOptions={mockStates}
+          demonstrations={[]}
+        />
+      );
       await waitFor(() => {
         expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();
       });
 
       await switchToAllDemonstrationsTab(user);
-      expect(
-        screen.getByText("No demonstrations are tracked.")
-      ).toBeInTheDocument();
+      expect(screen.getByText("No demonstrations are tracked.")).toBeInTheDocument();
     });
   });
 
   describe("Table rendering", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -284,21 +218,11 @@ describe("Demonstrations", () => {
     it("renders table columns correctly", () => {
       const headers = screen.getAllByRole("columnheader");
       expect(headers).toHaveLength(8);
-      expect(
-        screen.getByRole("columnheader", { name: "Title" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("columnheader", { name: "State/Territory" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("columnheader", { name: "Project Officer" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("columnheader", { name: "Applications" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("columnheader", { name: "Status" })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "Title" })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "State/Territory" })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "Project Officer" })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "Applications" })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "Status" })).toBeInTheDocument();
     });
 
     it("renders demonstration data correctly in table cells", () => {
@@ -318,12 +242,13 @@ describe("Demonstrations", () => {
 
   describe("Table features", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
 
     it("includes table features (search, filter, pagination)", () => {
-      expect(screen.getByLabelText(/search/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/search:/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/filter by:/i)).toBeInTheDocument();
       expect(screen.getByText("Items per page:")).toBeInTheDocument();
     });
@@ -336,9 +261,7 @@ describe("Demonstrations", () => {
             return element?.textContent === "Montana Medicaid Waiver";
           })
         ).toBeInTheDocument();
-        expect(
-          screen.queryByText("Texas Reform Initiative")
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText("Texas Reform Initiative")).not.toBeInTheDocument();
       });
     });
 
@@ -346,9 +269,7 @@ describe("Demonstrations", () => {
       await searchForText(user, "NonexistentDemo");
       await waitFor(() => {
         expect(
-          screen.getByText(
-            "No results were returned. Adjust your search and filter criteria."
-          )
+          screen.getByText("No results were returned. Adjust your search and filter criteria.")
         ).toBeInTheDocument();
       });
     });
@@ -360,9 +281,7 @@ describe("Demonstrations", () => {
 
       await waitFor(() => {
         expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-        expect(
-          screen.queryByText("Montana Medicaid Waiver")
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
       });
     });
 
@@ -376,23 +295,17 @@ describe("Demonstrations", () => {
 
       // Wait for the state filter input to appear
       await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText(/select state\/territory/i)
-        ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/select state\/territory/i)).toBeInTheDocument();
       });
 
-      const stateFilterInput = screen.getByPlaceholderText(
-        /select state\/territory/i
-      );
+      const stateFilterInput = screen.getByPlaceholderText(/select state\/territory/i);
       await user.click(stateFilterInput);
 
       // Select "Montana"
       await user.type(stateFilterInput, "MT");
       await waitFor(() => {
         const mtOptions = screen.getAllByText("MT");
-        const mtDropdownOption = mtOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
+        const mtDropdownOption = mtOptions.find((el) => el.tagName === "LI" || el.closest("li"));
         expect(mtDropdownOption).toBeInTheDocument();
         user.click(mtDropdownOption!);
       });
@@ -402,9 +315,7 @@ describe("Demonstrations", () => {
       await user.type(stateFilterInput, "TX");
       await waitFor(() => {
         const txOptions = screen.getAllByText("TX");
-        const txDropdownOption = txOptions.find(
-          (el) => el.tagName === "LI" || el.closest("li")
-        );
+        const txDropdownOption = txOptions.find((el) => el.tagName === "LI" || el.closest("li"));
         expect(txDropdownOption).toBeInTheDocument();
         user.click(txDropdownOption!);
       });
@@ -413,45 +324,36 @@ describe("Demonstrations", () => {
       await waitFor(() => {
         expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
         expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-        expect(
-          screen.queryByText("Florida Health Innovation")
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText("Florida Health Innovation")).not.toBeInTheDocument();
       });
     });
   });
   describe("Applications column", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
 
     it("displays the 'Applications' column for both My Demonstrations and All Demonstrations tabs", async () => {
       // My Demonstrations tab
-      expect(
-        screen.getByRole("columnheader", { name: "Applications" })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "Applications" })).toBeInTheDocument();
 
       // Switch to All Demonstrations tab
       await switchToAllDemonstrationsTab(user);
-      expect(
-        screen.getByRole("columnheader", { name: "Applications" })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: "Applications" })).toBeInTheDocument();
     });
 
     it("displays correct values for 'Applications' column for new demonstration, amendment, and extension", async () => {
       // For a new demonstration row
-      const montanaRow = screen
-        .getByText("Montana Medicaid Waiver")
-        .closest("tr");
+      const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
       expect(montanaRow).toHaveTextContent(/Amendments \(2\)/);
-      expect(montanaRow).toHaveTextContent(/Extensions \(1\)/);
+      expect(montanaRow).toHaveTextContent(/Extensions \(2\)/);
     });
 
     it("displays (0) for amendments and extensions if there are no associated records", () => {
       // Find a demonstration with no amendments/extensions
-      const floridaRow = screen
-        .getByText("Texas Reform Initiative")
-        .closest("tr");
+      const floridaRow = screen.getByText("Texas Reform Initiative").closest("tr");
       expect(floridaRow).toHaveTextContent(/Amendments \(0\)/);
       expect(floridaRow).toHaveTextContent(/Extensions \(0\)/);
     });
@@ -462,53 +364,38 @@ describe("Demonstrations", () => {
       });
       // Check that the header does not have a sort button or aria-sort attribute
       expect(applicationsHeader).not.toHaveAttribute("aria-sort");
-      expect(
-        applicationsHeader.querySelector("button[aria-label*='sort']")
-      ).toBeNull();
+      expect(applicationsHeader.querySelector("button[aria-label*='sort']")).toBeNull();
     });
   });
 
   describe("Nested view and row expansion for amendments and extensions", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
 
     it("displays amendment and extension records in a nested view under their parent demonstration", async () => {
       // Expand the demonstration row
-      const montanaRow = screen
-        .getByText("Montana Medicaid Waiver")
-        .closest("tr");
+      const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
       const expandButton = within(montanaRow!).getByRole("button", {
         name: /expand/i,
       });
       await user.click(expandButton);
 
       // Check for nested amendment and extension rows
-      expect(
-        screen.getByText("Amendment 1 - Montana Medicaid Waiver")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText("Extension 1 - Montana Medicaid Waiver")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
     });
 
     it("shows an expand option only for demonstrations with amendments or extensions", () => {
       // Demonstration with children
-      const montanaRow = screen
-        .getByText("Montana Medicaid Waiver")
-        .closest("tr");
-      expect(
-        within(montanaRow!).getByRole("button", { name: /expand/i })
-      ).toBeInTheDocument();
+      const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
+      expect(within(montanaRow!).getByRole("button", { name: /expand/i })).toBeInTheDocument();
 
       // Demonstration with no children
-      const texasRow = screen
-        .getByText("Texas Reform Initiative")
-        .closest("tr");
-      expect(
-        within(texasRow!).queryByRole("button", { name: /expand/i })
-      ).toBeNull();
+      const texasRow = screen.getByText("Texas Reform Initiative").closest("tr");
+      expect(within(texasRow!).queryByRole("button", { name: /expand/i })).toBeNull();
     });
 
     it("shows all demonstration rows collapsed by default", () => {
@@ -518,27 +405,17 @@ describe("Demonstrations", () => {
     });
 
     it("shows amendment/extension details with correct columns when expanded", async () => {
-      const montanaRow = screen
-        .getByText("Montana Medicaid Waiver")
-        .closest("tr");
+      const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
       const expandButton = within(montanaRow!).getByRole("button", {
         name: /expand/i,
       });
       await user.click(expandButton);
 
       // Check for child row columns (adjust as needed)
-      expect(
-        screen.getByText("Amendment 1 - Montana Medicaid Waiver")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText("Extension 1 - Montana Medicaid Waiver")
-      ).toBeInTheDocument();
-      expect(
-        screen.getAllByRole("cell", { name: /John Doe/i }).length
-      ).toBeGreaterThan(0);
-      expect(
-        screen.getAllByRole("cell", { name: /Approved/i }).length
-      ).toBeGreaterThan(0);
+      expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getAllByRole("cell", { name: /John Doe/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("cell", { name: /Approved/i }).length).toBeGreaterThan(0);
     });
 
     it("pagination applies only to demonstration records, not to nested amendments/extensions", async () => {
@@ -556,19 +433,15 @@ describe("Demonstrations", () => {
       const tbody = table.querySelector("tbody");
       if (!tbody) throw new Error("tbody not found");
       const visibleDemos = within(tbody).getAllByRole("row");
-      expect(visibleDemos.length).toBe(10);
+      expect(visibleDemos.length).toBe(3);
 
       // Expand and check all children are visible
       const expandButton = within(visibleDemos[0]).getByRole("button", {
         name: "expand",
       });
       await user.click(expandButton);
-      expect(
-        screen.getByText("Amendment 1 - Montana Medicaid Waiver")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText("Extension 1 - Montana Medicaid Waiver")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
     });
 
     it("sorting applies only to demonstration records, not to nested amendments/extensions", async () => {
@@ -591,9 +464,7 @@ describe("Demonstrations", () => {
 
       // Filter rows that contain a demonstration title
       const demoRows = allRows.filter((row) =>
-        demoTitles.some((title) =>
-          within(row).queryByText(title, { exact: false })
-        )
+        demoTitles.some((title) => within(row).queryByText(title, { exact: false }))
       );
 
       // Get the title from the first demonstration row
@@ -612,31 +483,9 @@ describe("Demonstrations", () => {
         await user.click(expandButton);
         // Check for child rows by their content, e.g. "Amendment" or "Extension"
         expect(
-          within(firstDemoRow.parentElement!).queryByText(
-            "Amendment 1 - Montana Medicaid Waiver"
-          )
+          within(firstDemoRow.parentElement!).queryByText("Amendment 1 - Montana Medicaid Waiver")
         ).toBeInTheDocument();
       }
-    });
-
-    it("search applies to all records, but always displays parent demonstration with matching children", async () => {
-      // Switch to All Demonstrations tab
-      await switchToAllDemonstrationsTab(user);
-
-      // Search for a unique amendment name
-      await searchForText(user, "Jim");
-      await waitFor(() => {
-        // Parent demonstration is visible
-        expect(
-          screen.getByText("Florida Health Innovation")
-        ).toBeInTheDocument();
-        // Only the matching amendment is visible
-        expect(
-          screen.getByText("Amendment 2 - Florida Health Innovation")
-        ).toBeInTheDocument();
-        // Other amendments/extensions for this demo are not visible
-        expect(screen.queryByText("Amendment 3")).not.toBeInTheDocument();
-      });
     });
 
     // Replace applyStateFilter with applyProjectOfficerFilter in your filtering tests, e.g.:
@@ -649,13 +498,9 @@ describe("Demonstrations", () => {
 
       await waitFor(() => {
         // Parent demonstration is visible
-        expect(
-          screen.getByText("Florida Health Innovation")
-        ).toBeInTheDocument();
+        expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
         // Only the matching amendment is visible
-        expect(
-          screen.getByText("Amendment 2 - Florida Health Innovation")
-        ).toBeInTheDocument();
+        expect(screen.getByText("Amendment 4 - Florida Health Innovation")).toBeInTheDocument();
         // Other amendments/extensions for this demo are not visible
         expect(screen.queryByText("Amendment 3")).not.toBeInTheDocument();
       });

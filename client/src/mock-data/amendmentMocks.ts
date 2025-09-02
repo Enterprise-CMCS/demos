@@ -1,22 +1,46 @@
-import { RawAmendment } from "components/table/columns/AmendmentColumns";
+import { Amendment } from "demos-server";
+import { MockDemonstrationStatus, mockDemonstrationStatuses } from "./demonstrationStatusMocks";
+import { MockUser, mockUsers } from "./userMocks";
 
-export const mockAmendments: RawAmendment[] = [
+export type MockAmendment = Pick<Amendment, "id" | "name" | "effectiveDate"> & {
+  projectOfficer: MockUser;
+  amendmentStatus: MockDemonstrationStatus;
+};
+
+export const mockAmendments: MockAmendment[] = [
   {
     id: "1",
-    title: "Amendment 3",
-    status: "Under Review",
-    effectiveDate: "2025-07-21",
+    name: "Amendment 1 - Montana Medicaid Waiver",
+    effectiveDate: new Date(2025, 0, 1),
+    projectOfficer: mockUsers[0],
+    amendmentStatus: mockDemonstrationStatuses[0],
   },
   {
     id: "2",
-    title: "Amendment 2",
-    status: "Approved",
-    effectiveDate: "2024-09-14",
+    name: "Amendment 2 - Montana Medicaid Waiver",
+    effectiveDate: new Date(2025, 1, 1),
+    projectOfficer: mockUsers[0],
+    amendmentStatus: mockDemonstrationStatuses[1],
   },
   {
     id: "3",
-    title: "Amendment 1",
-    status: "Draft",
-    effectiveDate: "2023-01-03",
+    name: "Amendment 3 - Florida Health Innovation",
+    effectiveDate: new Date(2025, 2, 1),
+    projectOfficer: mockUsers[1],
+    amendmentStatus: mockDemonstrationStatuses[1],
+  },
+  {
+    id: "4",
+    name: "Amendment 4 - Florida Health Innovation",
+    effectiveDate: new Date(2025, 3, 1),
+    projectOfficer: mockUsers[2],
+    amendmentStatus: mockDemonstrationStatuses[0],
+  },
+  {
+    id: "5",
+    name: "Amendment 5 - Florida Health Innovation",
+    effectiveDate: new Date(2025, 4, 1),
+    projectOfficer: mockUsers[3],
+    amendmentStatus: mockDemonstrationStatuses[3],
   },
 ];

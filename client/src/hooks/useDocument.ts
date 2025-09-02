@@ -1,15 +1,15 @@
-import { useLazyQuery, ApolloError } from "@apollo/client";
-import { Dayjs } from "dayjs";
-import { Document, User } from "demos-server";
+import { Document, DocumentType } from "demos-server";
 import { DOCUMENT_TABLE_QUERY } from "queries/documentQueries";
+
+import { ApolloError, useLazyQuery } from "@apollo/client";
 
 export type DocumentTableRow = {
   id: Document["id"];
   title: Document["title"];
   description: Document["description"];
-  documentType: Pick<Document["documentType"], "name">;
-  uploadedBy: Pick<User, "fullName">;
-  uploadDate: Dayjs;
+  documentType: DocumentType;
+  owner: Pick<Document["owner"], "fullName">;
+  createdAt: Document["createdAt"];
 };
 
 interface GetDocumentTableOperation {

@@ -1,59 +1,151 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
-import { useDemonstration } from "hooks/useDemonstration";
+import { ModificationTableRow } from "components/table/tables/ModificationTable";
+import { isTestMode } from "config/env";
 import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
-import { mockAmendments } from "mock-data/amendmentMocks";
-import { mockExtensions } from "mock-data/extensionMocks";
+import {
+  DemonstrationDetailHeader,
+  DemonstrationHeaderDetails,
+} from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
 
-import { isTestMode } from "config/env";
-import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
-import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
-import { DemonstrationTab } from "./DemonstrationTab";
+import { gql, useQuery } from "@apollo/client";
+
 import { AmendmentsTab } from "./AmendmentsTab";
+import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
+import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 
-type ModalType = "edit" | "delete" | "amendment" | "extension" | null;
+export const DEMONSTRATION_DETAIL_QUERY = gql`
+  query DemonstrationDetailQuery($id: ID!) {
+    demonstration(id: $id) {
+      id
+      name
+      description
+      effectiveDate
+      expirationDate
+      state {
+        id
+        name
+      }
+      demonstrationStatus {
+        name
+      }
+      projectOfficer {
+        fullName
+      }
+      amendments {
+        id
+        name
+        effectiveDate
+        status: amendmentStatus {
+          name
+        }
+      }
+      extensions {
+        id
+        name
+        effectiveDate
+        status: extensionStatus {
+          name
+        }
+      }
+      demonstrationTypes {
+        id
+      }
+      documents {
+        id
+      }
+      contacts {
+        id
+        fullName
+        email
+        contactType
+      }
+    }
+  }
+`;
+
+export type Contact = {
+  id: string;
+  fullName: string | null;
+  email: string | null;
+  contactType: ContactType | null;
+};
+
+export type ContactType =
+  | "Primary Project Officer"
+  | "Secondary Project Officer"
+  | "State Representative"
+  | "Subject Matter Expert";
+
+export type DemonstrationDetail = DemonstrationHeaderDetails &
+  DemonstrationDialogDetails &
+  DemonstrationTabDemonstration & {
+    amendments: ModificationTableRow[];
+    extensions: ModificationTableRow[];
+  } & {
+    contacts: Contact[];
+  };
+
 type TabType = "details" | "amendments" | "extensions";
 
-const tabList: TabItem[] = [
+type EntityCreationModal = "amendment" | "extension" | "document" | null;
+type DemonstrationActionModal = "edit" | "delete" | null;
+
+const createTabList = (amendmentCount: number, extensionCount: number): TabItem[] => [
   { value: "details", label: "Demonstration Details" },
-  { value: "amendments", label: "Amendments", count: mockAmendments.length },
-  { value: "extensions", label: "Extensions", count: mockExtensions.length },
+  { value: "amendments", label: "Amendments", count: amendmentCount },
+  { value: "extensions", label: "Extensions", count: extensionCount },
 ];
 
+const getQueryParamValue = (
+  searchParams: URLSearchParams,
+  singular: string,
+  plural: string
+): string | null => {
+  return searchParams.get(plural) || searchParams.get(singular);
+};
+
 export const DemonstrationDetail: React.FC = () => {
-  const [modalType, setModalType] = useState<ModalType>(null);
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-
   const queryParams = new URLSearchParams(location.search);
-  const [tab, setTab] = useState<TabType>(() => {
-    const amendmentParam =
-      queryParams.get("amendments") || queryParams.get("amendment");
-    const extensionParam =
-      queryParams.get("extensions") || queryParams.get("extension");
+  const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
+  const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
-    if (amendmentParam === "true") return "amendments";
-    if (extensionParam === "true") return "extensions";
+  const [tab, setTab] = useState<TabType>(() => {
+    if (amendmentParam) return "amendments";
+    if (extensionParam) return "extensions";
     return "details";
   });
-
-  const { getDemonstrationById } = useDemonstration();
-  const { trigger, data: demonstration, loading, error } = getDemonstrationById;
-
-  useEffect(() => {
-    if (id) trigger(id);
-  }, [id]);
+  const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
+  const [demonstrationActionModal, setDemonstrationActionModal] =
+    useState<DemonstrationActionModal>(null);
 
   const handleEdit = useCallback(() => {
-    setModalType("edit");
+    setDemonstrationActionModal("edit");
+  }, []);
+  const handleDelete = useCallback(() => {
+    setDemonstrationActionModal("delete");
   }, []);
 
-  const handleDelete = useCallback(() => {
-    setModalType("delete");
-  }, []);
+  const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
+    DEMONSTRATION_DETAIL_QUERY,
+    {
+      variables: { id: id! },
+      skip: !id,
+    }
+  );
+
+  const demonstration = data?.demonstration;
+
+  const tabList = useMemo(
+    () =>
+      createTabList(demonstration?.amendments.length ?? 0, demonstration?.extensions.length ?? 0),
+    [demonstration]
+  );
 
   const headerContent = useMemo(
     () => (
@@ -85,27 +177,31 @@ export const DemonstrationDetail: React.FC = () => {
           />
 
           <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && <DemonstrationTab />}
+            {tab === "details" && <DemonstrationTab demonstration={demonstration} />}
 
             {tab === "amendments" && (
               <AmendmentsTab
-                demonstration={demonstration}
-                onClick={() => setModalType("amendment")}
+                amendments={demonstration.amendments || []}
+                onClick={() => setEntityCreationModal("amendment")}
+                initiallyExpandedId={amendmentParam ?? undefined}
               />
             )}
 
             {tab === "extensions" && (
               <ExtensionsTab
-                demonstration={demonstration}
-                onClick={() => setModalType("extension")}
+                extensions={demonstration.extensions || []}
+                onClick={() => setEntityCreationModal("extension")}
+                initiallyExpandedId={extensionParam ?? undefined}
               />
             )}
           </div>
-          {modalType && (
+          {(entityCreationModal || demonstrationActionModal) && (
             <DemonstrationDetailModals
-              modalType={modalType}
+              entityCreationModal={entityCreationModal}
+              demonstrationActionModal={demonstrationActionModal}
               demonstration={demonstration}
-              handleOnClose={() => setModalType(null)}
+              onCloseEntityModal={() => setEntityCreationModal(null)}
+              onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
             />
           )}
         </>

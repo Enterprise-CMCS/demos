@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const MenuCollapseRightIcon = ({
+export const MenuCollapseRightIcon: React.FC<IconInput> = ({
+  label = "Menu Collapse Right",
   width = "15",
   height = "15",
   viewBox = "0 0 15 15",
@@ -13,6 +14,8 @@ export const MenuCollapseRightIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       d="M13.5 14L13.5 -8.74227e-08L14.5 0L14.5 14L13.5 14Z"

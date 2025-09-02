@@ -1,16 +1,29 @@
-import { Dayjs } from "dayjs";
 import { gql } from "graphql-tag";
 
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
-import { DocumentType } from "../documentType/documentTypeSchema.js";
-import {
-  Amendment,
-  Extension,
-} from "../modification/modificationSchema.js";
+import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
+import { DocumentType } from "../../types.js";
 
 export const documentSchema = gql`
-  union Bundle = Demonstration | Amendment
+  """
+  A string representing a document type. Expected values are:
+  - Application Completeness Letter
+  - Approval Letter
+  - Final BN Worksheet
+  - Final Budget Neutrality Formulation Workbook
+  - Formal OMB Policy Concurrence Email
+  - General File
+  - Internal Completeness Review Form
+  - Payment Ratio Analysis
+  - Pre-Submission
+  - Q&A
+  - Signed Decision Memo
+  - State Application
+  """
+  scalar DocumentType
+  union Bundle = Demonstration | Amendment | Extension
+
   type Document {
     id: ID!
     title: String!
@@ -24,81 +37,26 @@ export const documentSchema = gql`
     updatedAt: DateTime!
   }
 
-  input CreateDemonstrationDocumentInput {
+  input UploadDocumentInput {
     title: String!
     description: String!
-    s3Path: String!
     ownerUserId: ID!
-    documentTypeId: String!
-    demonstrationId: ID!
+    documentTypeId: DocumentType!
+    bundleId: ID!
   }
 
-  input UpdateDemonstrationDocumentInput {
+  input UpdateDocumentInput {
     title: String
     description: String
-    s3Path: String
     ownerUserId: ID
-    documentTypeId: String
-    demonstrationId: ID
-  }
-
-  input CreateAmendmentDocumentInput {
-    title: String!
-    description: String!
-    s3Path: String!
-    ownerUserId: ID!
-    documentTypeId: String!
-    amendmentId: ID!
-  }
-
-  input UpdateAmendmentDocumentInput {
-    title: String
-    description: String
-    s3Path: String
-    ownerUserId: ID
-    documentTypeId: String
-    amendmentId: ID
-  }
-
-  input CreateExtensionDocumentInput {
-    title: String!
-    description: String!
-    s3Path: String!
-    ownerUserId: ID!
-    documentTypeId: String!
-    extensionId: ID!
-  }
-
-  input UpdateExtensionDocumentInput {
-    title: String
-    description: String
-    s3Path: String
-    ownerUserId: ID
-    documentTypeId: ID
-    extensionId: ID
+    documentTypeId: DocumentType
+    bundleId: ID
   }
 
   type Mutation {
-    createDemonstrationDocument(
-      input: CreateDemonstrationDocumentInput!
-    ): Document
-    updateDemonstrationDocument(
-      id: ID!
-      input: UpdateDemonstrationDocumentInput!
-    ): Document
-    deleteDemonstrationDocument(id: ID!): Document
-    createAmendmentDocument(input: CreateAmendmentDocumentInput!): Document
-    updateAmendmentDocument(
-      id: ID!
-      input: UpdateAmendmentDocumentInput!
-    ): Document
-    deleteAmendmentDocument(id: ID!): Document
-    createExtensionDocument(input: CreateExtensionDocumentInput!): Document
-    updateExtensionDocument(
-      id: ID!
-      input: UpdateExtensionDocumentInput!
-    ): Document
-    deleteExtensionDocument(id: ID!): Document
+    uploadDocument(input: UploadDocumentInput!): Document
+    updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+    deleteDocuments(ids: [ID!]!): Int!
   }
 
   type Query {
@@ -108,7 +66,6 @@ export const documentSchema = gql`
 `;
 
 type Bundle = Demonstration | Amendment | Extension;
-export type DateTime = Dayjs;
 export interface Document {
   id: string;
   title: string;
@@ -118,60 +75,22 @@ export interface Document {
   documentType: DocumentType;
   bundle: Bundle;
   bundleType: string;
-  createdAt: DateTime;
-  updatedAt: DateTime;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface CreateDemonstrationDocumentInput {
+export interface UploadDocumentInput {
   title: string;
   description: string;
-  s3Path: string;
   ownerUserId: string;
-  documentTypeId: string;
-  demonstrationId: string;
+  documentTypeId: DocumentType;
+  bundleId: string;
 }
 
-export interface UpdateDemonstrationDocumentInput {
+export interface UpdateDocumentInput {
   title?: string;
   description?: string;
-  s3Path?: string;
   ownerUserId?: string;
-  documentTypeId?: string;
-  demonstrationId?: string;
-}
-
-export interface CreateAmendmentDocumentInput {
-  title: string;
-  description: string;
-  s3Path: string;
-  ownerUserId: string;
-  documentTypeId: string;
-  amendmentId: string;
-}
-
-export interface UpdateAmendmentDocumentInput {
-  title?: string;
-  description?: string;
-  s3Path?: string;
-  ownerUserId?: string;
-  documentTypeId?: string;
-  amendmentId?: string;
-}
-
-export interface CreateExtensionDocumentInput {
-  title: string;
-  description: string;
-  s3Path: string;
-  ownerUserId: string;
-  documentTypeId: string;
-  extensionId: string;
-}
-
-export interface UpdateExtensionDocumentInput {
-  title?: string;
-  description?: string;
-  s3Path?: string;
-  ownerUserId?: string;
-  documentTypeId?: string;
-  extensionId?: string;
+  documentTypeId?: DocumentType;
+  bundleId?: string;
 }

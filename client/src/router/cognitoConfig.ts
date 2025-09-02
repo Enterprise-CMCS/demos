@@ -32,12 +32,12 @@ const BASE_COGNITO_CONFIG: BaseCognitoConfig = {
 
 export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   ...BASE_COGNITO_CONFIG,
-  authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_A7CaR2Wo3",
-  domain: "https://us-east-1a7car2wo3.auth.us-east-1.amazoncognito.com",
-  client_id: "5km9thunj8g6qd32s5et2i8pga",
-  post_logout_redirect_uri: "http://localhost:3000",
-  redirect_uri: "http://localhost:3000",
-  scope: "openid email phone",
+  authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_FCc2lmZDJ",
+  domain: "https://demos-dev-login-user-pool-client.auth.us-east-1.amazoncognito.com",
+  client_id: "5p61qososiui75cmclcift45oi",
+  post_logout_redirect_uri: "http://localhost:3000/",
+  redirect_uri: "http://localhost:3000/",
+  scope: "email openid profile",
 };
 
 // TODO: Revisit this when we know more about the deployment setup

@@ -11,8 +11,10 @@ import {
   applyApiSuppressions,
   applyCoreSuppressions,
   applyDatabaseSuppressions,
+  applyFileUploadSuppressions,
   applyUISuppressions,
 } from "./nag-suppressions";
+import { FileUploadStack } from "./stacks/fileupload";
 
 async function main() {
   const path = "delegatedadmin/developer/";
@@ -91,6 +93,17 @@ async function main() {
     database.addDependency(core);
   }
 
+
+  const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
+    ...config,
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: process.env.CDK_DEFAULT_REGION,
+    },
+    vpc: core.vpc
+  });
+  fileUpload.addDependency(core)
+
   const api = new ApiStack(app, `${project}-${stage}-api`, {
     ...config,
     env: {
@@ -100,6 +113,7 @@ async function main() {
     vpc: core.vpc,
   });
   api.addDependency(core);
+  api.addDependency(fileUpload)
 
 const ui = new UiStack(app, `${project}-${stage}-ui`, {
     ...config,
@@ -119,6 +133,7 @@ const ui = new UiStack(app, `${project}-${stage}-ui`, {
   applyCoreSuppressions(core);
   applyApiSuppressions(api, stage);
   applyUISuppressions(ui, stage);
+  applyFileUploadSuppressions(fileUpload, stage)
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 }
 

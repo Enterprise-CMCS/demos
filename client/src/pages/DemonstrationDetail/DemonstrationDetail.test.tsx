@@ -6,13 +6,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 import { DemonstrationDetail } from "./DemonstrationDetail";
 
@@ -23,10 +17,7 @@ describe("DemonstrationDetail", () => {
         <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
           <MemoryRouter initialEntries={["/demonstrations/1"]}>
             <Routes>
-              <Route
-                path="/demonstrations/:id"
-                element={<DemonstrationDetail />}
-              />
+              <Route path="/demonstrations/:id" element={<DemonstrationDetail />} />
             </Routes>
           </MemoryRouter>
         </MockedProvider>
@@ -39,13 +30,11 @@ describe("DemonstrationDetail", () => {
 
     // Wait for component to load
     await waitFor(() => {
-      expect(screen.getByText("Test Demonstration")).toBeInTheDocument();
+      expect(screen.getByText("Summary Details")).toBeInTheDocument();
     });
 
     // Check breadcrumb navigation
-    expect(
-      screen.getByRole("link", { name: /demonstration list/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /demonstration list/i })).toBeInTheDocument();
 
     // Get the attributes list and verify its structure
     const attributesList = screen.getByTestId("demonstration-attributes-list");
@@ -54,17 +43,15 @@ describe("DemonstrationDetail", () => {
 
     // Get all list items (excluding pipe separators)
     const listItems = within(attributesList).getAllByRole("listitem");
-    const attributeItems = listItems.filter(
-      (item) => !item.textContent?.includes("|")
-    );
+    const attributeItems = listItems.filter((item) => !item.textContent?.includes("|"));
 
     // Expected attributes in order
     const expectedAttributes = [
-      { label: "State/Territory", value: "CA" },
+      { label: "State/Territory", value: "MT" },
       { label: "Project Officer", value: "John Doe" },
-      { label: "Status", value: "Active" },
-      { label: "Effective", value: "1/1/2025" },
-      { label: "Expiration", value: "12/31/2025" },
+      { label: "Status", value: "Approved" },
+      { label: "Effective", value: "01/01/2025" },
+      { label: "Expiration", value: "12/01/2025" },
     ];
 
     // Verify we have the expected number of attribute items
@@ -77,55 +64,76 @@ describe("DemonstrationDetail", () => {
       expect(item).toHaveTextContent(expected.value);
 
       // Verify the structure: should contain both label and value
-      expect(item.textContent).toMatch(
-        new RegExp(`${expected.label}.*${expected.value}`)
-      );
+      expect(item.textContent).toMatch(new RegExp(`${expected.label}.*${expected.value}`));
     });
   });
 
   it("renders and switches to Amendments tab", async () => {
     renderWithProviders();
 
+    // Wait for component to load and navigate to Documents tab where table is located
+    await waitFor(() => {
+      expect(screen.getByText("Summary Details")).toBeInTheDocument();
+    });
+
+    // Navigate to Documents tab first to access the table
+    const documentsTab = screen.getByRole("button", { name: /Documents/i });
+    fireEvent.click(documentsTab);
+
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    expect(
-      screen.getByRole("heading", { name: /Documents/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Documents/i })).toBeInTheDocument();
 
     const amendmentsTab = screen.getByRole("button", { name: /Amendments/i });
     fireEvent.click(amendmentsTab);
 
     expect(screen.getByText("Amendments")).toBeInTheDocument();
-    expect(screen.getByText("Amendment 1")).toBeInTheDocument();
+    expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
   });
 
   it("opens Add New Amendment modal", async () => {
     renderWithProviders();
+
+    // Wait for component to load and navigate to Documents tab where table is located
+    await waitFor(() => {
+      expect(screen.getByText("Summary Details")).toBeInTheDocument();
+    });
+
+    // Navigate to Documents tab first to access the table
+    const documentsTab = screen.getByRole("button", { name: /Documents/i });
+    fireEvent.click(documentsTab);
+
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole("button", { name: /Amendments/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Add New/i }));
+    fireEvent.click(screen.getByTestId("add-new-amendment"));
 
     expect(screen.getByText(/New Amendment/i)).toBeInTheDocument();
   });
 
   it("renders and switches to Extensions tab", async () => {
     renderWithProviders();
+
+    // Wait for component to load and navigate to Documents tab where table is located
+    await waitFor(() => {
+      expect(screen.getByText("Summary Details")).toBeInTheDocument();
+    });
+
+    // Navigate to Documents tab first to access the table
+    const documentsTab = screen.getByRole("button", { name: /Documents/i });
+    fireEvent.click(documentsTab);
+
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    expect(
-      screen.getByRole("heading", { name: /Documents/i })
-    ).toBeInTheDocument();
 
-    const extensionsTab = screen.getByRole("button", { name: /Extensions/i });
-    fireEvent.click(extensionsTab);
+    fireEvent.click(screen.getByRole("button", { name: /Extensions/i }));
 
     expect(screen.getByText("Extensions")).toBeInTheDocument();
-    expect(screen.getByText("Extension 1")).toBeInTheDocument();
+    expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
   });
 });

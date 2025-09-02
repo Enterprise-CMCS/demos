@@ -1,21 +1,13 @@
 import { GraphQLError } from "graphql";
 
-import {
-  Bundle,
-  Document,
-} from "@prisma/client";
+import { Bundle, Document, DocumentPendingUpload } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
-import {
-  CreateAmendmentDocumentInput,
-  CreateDemonstrationDocumentInput,
-  CreateExtensionDocumentInput,
-  UpdateAmendmentDocumentInput,
-  UpdateDemonstrationDocumentInput,
-  UpdateExtensionDocumentInput,
-} from "./documentSchema.js";
+import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -37,6 +29,31 @@ async function getBundleTypeId(bundleId: string) {
   return result!.bundleType.id;
 }
 
+async function attachPresignedUploadUrl(document: DocumentPendingUpload) {
+  const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
+    ? {
+        region: "us-east-1",
+        endpoint: process.env.S3_ENDPOINT_LOCAL,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: "",
+          secretAccessKey: "",
+        },
+      }
+    : {};
+  const s3 = new S3Client(s3ClientConfig);
+  const uploadBucket = process.env.UPLOAD_BUCKET;
+  const key = document.id;
+  const command = new PutObjectCommand({
+    Bucket: uploadBucket,
+    Key: key,
+  });
+  const s3Path = await getSignedUrl(s3, command, {
+    expiresIn: 3600,
+  });
+  return { ...document, s3Path };
+}
+
 export const documentResolvers = {
   Query: {
     document: async (_: undefined, { id }: { id: string }) => {
@@ -44,22 +61,9 @@ export const documentResolvers = {
         where: { id: id },
       });
     },
-    documents: async (
-      _: undefined,
-      { bundleTypeId }: { bundleTypeId?: string },
-    ) => {
+    documents: async (_: undefined, { bundleTypeId }: { bundleTypeId?: string }) => {
       if (bundleTypeId) {
-        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(
-          bundleTypeId as BundleType,
-        );
-        const implementedBundleTypes: BundleType[] = [
-          demonstrationBundleTypeId,
-          amendmentBundleTypeId,
-          extensionBundleTypeId,
-        ];
-        const isImplementedBundleType = implementedBundleTypes.includes(
-          bundleTypeId as BundleType,
-        );
+        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(bundleTypeId as BundleType);
         if (!isValidBundleType) {
           throw new GraphQLError("The requested bundle type is not valid.", {
             extensions: {
@@ -68,18 +72,7 @@ export const documentResolvers = {
             },
           });
         }
-        if (!isImplementedBundleType) {
-          throw new GraphQLError(
-            "The requested bundle type is not yet implemented.",
-            {
-              extensions: {
-                code: "NOT_IMPLEMENTED",
-                http: { status: 501 },
-              },
-            },
-          );
-        }
-      }
+    }
       return await prisma().document.findMany({
         where: {
           bundle: {
@@ -93,32 +86,27 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    createDemonstrationDocument: async (
+    uploadDocument: async (
       _: undefined,
-      { input }: { input: CreateDemonstrationDocumentInput },
+      { input }: { input: UploadDocumentInput }
     ) => {
-      const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
-      return await prisma().document.create({
+      const { ownerUserId, documentTypeId, bundleId, ...rest } = input;
+      const document = await prisma().documentPendingUpload.create({
         data: {
           ...rest,
-          owner: {
-            connect: { id: ownerUserId },
-          },
-          documentType: {
-            connect: { id: documentTypeId },
-          },
-          bundle: {
-            connect: { id: demonstrationId },
-          },
+          owner: { connect: { id: ownerUserId } },
+          documentType: { connect: { id: documentTypeId } },
+          bundle: { connect: { id: bundleId } },
         },
       });
+      return await attachPresignedUploadUrl(document);
     },
 
-    updateDemonstrationDocument: async (
+    updateDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDemonstrationDocumentInput },
-    ) => {
-      const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
+      { id, input }: { id: string; input: UpdateDocumentInput }
+    ): Promise<Document> => {
+      const { ownerUserId, documentTypeId, bundleId, ...rest } = input;
       return await prisma().document.update({
         where: { id: id },
         data: {
@@ -133,132 +121,20 @@ export const documentResolvers = {
               connect: { id: documentTypeId },
             },
           }),
-          ...(demonstrationId && {
+          ...(bundleId && {
             bundle: {
-              connect: { id: demonstrationId },
+              connect: { id: bundleId },
             },
           }),
         },
       });
     },
 
-    deleteDemonstrationDocument: async (
-      _: undefined,
-      { id }: { id: string },
-    ) => {
-      return await prisma().document.delete({
-        where: { id: id },
+    deleteDocuments: async (_: undefined, { ids }: { ids: string[] }) => {
+      const deleteResult = await prisma().document.deleteMany({
+        where: { id: { in: ids } },
       });
-    },
-
-    createAmendmentDocument: async (
-      _: undefined,
-      { input }: { input: CreateAmendmentDocumentInput },
-    ) => {
-      const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
-      return await prisma().document.create({
-        data: {
-          ...rest,
-          owner: {
-            connect: { id: ownerUserId },
-          },
-          documentType: {
-            connect: { id: documentTypeId },
-          },
-          bundle: {
-            connect: { id: amendmentId },
-          },
-        },
-      });
-    },
-
-    updateAmendmentDocument: async (
-      _: undefined,
-      { id, input }: { id: string; input: UpdateAmendmentDocumentInput },
-    ) => {
-      const { ownerUserId, documentTypeId, amendmentId, ...rest } = input;
-      return await prisma().document.update({
-        where: { id: id },
-        data: {
-          ...rest,
-          ...(ownerUserId && {
-            owner: {
-              connect: { id: ownerUserId },
-            },
-          }),
-          ...(documentTypeId && {
-            documentType: {
-              connect: { id: documentTypeId },
-            },
-          }),
-          ...(amendmentId && {
-            bundle: {
-              connect: { id: amendmentId },
-            },
-          }),
-        },
-      });
-    },
-
-    deleteAmendmentDocument: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().document.delete({
-        where: { id: id },
-      });
-    },
-
-    createExtensionDocument: async (
-      _: undefined,
-      { input }: { input: CreateExtensionDocumentInput },
-    ) => {
-      const { ownerUserId, documentTypeId, extensionId, ...rest } = input;
-      return await prisma().document.create({
-        data: {
-          ...rest,
-          owner: {
-            connect: { id: ownerUserId },
-          },
-          documentType: {
-            connect: { id: documentTypeId },
-          },
-          bundle: {
-            connect: { id: extensionId },
-          },
-        },
-      });
-    },
-
-    updateExtensionDocument: async (
-      _: undefined,
-      { id, input }: { id: string; input: UpdateExtensionDocumentInput },
-    ) => {
-      const { ownerUserId, documentTypeId, extensionId, ...rest } = input;
-      return await prisma().document.update({
-        where: { id: id },
-        data: {
-          ...rest,
-          ...(ownerUserId && {
-            owner: {
-              connect: { id: ownerUserId },
-            },
-          }),
-          ...(documentTypeId && {
-            documentType: {
-              connect: { id: documentTypeId },
-            },
-          }),
-          ...(extensionId && {
-            bundle: {
-              connect: { id: extensionId },
-            },
-          }),
-        },
-      });
-    },
-
-    deleteExtensionDocument: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().document.delete({
-        where: { id: id },
-      });
+      return deleteResult.count;
     },
   },
 

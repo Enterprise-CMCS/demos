@@ -1,16 +1,7 @@
+import { useLazyQuery, useMutation, ApolloError, FetchResult } from "@apollo/client";
+import { Demonstration as ServerDemonstration, CreateDemonstrationInput } from "demos-server";
 import {
-  useLazyQuery,
-  useMutation,
-  ApolloError,
-  FetchResult,
-} from "@apollo/client";
-import {
-  Demonstration as ServerDemonstration,
-  CreateDemonstrationInput,
-} from "demos-server";
-import {
-  ADD_DEMONSTRATION_QUERY,
-  DEMONSTRATION_TABLE_QUERY,
+  ADD_DEMONSTRATION_MUTATION,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
@@ -32,43 +23,6 @@ interface GetAllDemonstrationsOperation {
 }
 
 // TODO: as the demonstration model changes, this will likely need to be updated
-export type DemonstrationTableItem = {
-  id: Demonstration["id"];
-  name: Demonstration["name"];
-  state: Pick<Demonstration["state"], "name">;
-  projectOfficer: Pick<Demonstration["projectOfficer"], "fullName">;
-  users: Pick<Demonstration["users"][number], "id">[];
-  demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;
-  amendments: {
-    name: Demonstration["amendments"][number]["name"];
-    projectOfficer: Pick<
-      Demonstration["amendments"][number]["projectOfficer"],
-      "fullName"
-    >;
-    amendmentStatus: Pick<
-      Demonstration["amendments"][number]["amendmentStatus"],
-      "name"
-    >;
-  }[];
-  extensions: {
-    name: Demonstration["extensions"][number]["name"];
-    projectOfficer: Pick<
-      Demonstration["extensions"][number]["projectOfficer"],
-      "fullName"
-    >;
-    extensionStatus: Pick<
-      Demonstration["extensions"][number]["extensionStatus"],
-      "name"
-    >;
-  }[];
-};
-
-interface GetDemonstrationTableOperation {
-  trigger: () => void;
-  data?: DemonstrationTableItem[];
-  loading: boolean;
-  error?: ApolloError;
-}
 
 interface GetDemonstrationByIdOperation {
   trigger: (id: string) => void;
@@ -98,7 +52,6 @@ interface UpdateDemonstrationOperation {
 
 export interface DemonstrationOperations {
   getAllDemonstrations: GetAllDemonstrationsOperation;
-  getDemonstrationTable: GetDemonstrationTableOperation;
   getDemonstrationById: GetDemonstrationByIdOperation;
   addDemonstration: AddDemonstrationOperation;
   updateDemonstration: UpdateDemonstrationOperation;
@@ -108,19 +61,6 @@ const createGetAllDemonstrationsHook = (): GetAllDemonstrationsOperation => {
   const [trigger, { data, loading, error }] = useLazyQuery<{
     demonstrations: Demonstration[];
   }>(GET_ALL_DEMONSTRATIONS_QUERY);
-
-  return {
-    trigger,
-    data: data?.demonstrations,
-    loading,
-    error,
-  };
-};
-
-const createGetDemonstrationTableHook = (): GetDemonstrationTableOperation => {
-  const [trigger, { data, loading, error }] = useLazyQuery<{
-    demonstrations: DemonstrationTableItem[];
-  }>(DEMONSTRATION_TABLE_QUERY);
 
   return {
     trigger,
@@ -146,11 +86,10 @@ const createGetDemonstrationByIdHook = (): GetDemonstrationByIdOperation => {
 const createAddDemonstrationHook = (): AddDemonstrationOperation => {
   const [trigger, { data, loading, error }] = useMutation<{
     addDemonstration: Demonstration;
-  }>(ADD_DEMONSTRATION_QUERY);
+  }>(ADD_DEMONSTRATION_MUTATION);
 
   return {
-    trigger: async (input: CreateDemonstrationInput) =>
-      await trigger({ variables: { input } }),
+    trigger: async (input: CreateDemonstrationInput) => await trigger({ variables: { input } }),
     data: data?.addDemonstration,
     loading,
     error,
@@ -174,7 +113,6 @@ const createUpdateDemonstrationHook = (): UpdateDemonstrationOperation => {
 export const useDemonstration = (): DemonstrationOperations => {
   return {
     getAllDemonstrations: createGetAllDemonstrationsHook(),
-    getDemonstrationTable: createGetDemonstrationTableHook(),
     getDemonstrationById: createGetDemonstrationByIdHook(),
     addDemonstration: createAddDemonstrationHook(),
     updateDemonstration: createUpdateDemonstrationHook(),

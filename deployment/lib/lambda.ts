@@ -16,6 +16,7 @@ import {
   ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { DemosLogGroup } from "./logGroup";
 
 interface LambdaProps extends CommonProps {
   additionalPolicies?: PolicyStatement[];
@@ -51,9 +52,12 @@ export function create(props: LambdaProps, id: string) {
 export class Lambda extends Construct {
   public readonly lambda: NodejsFunction;
   public readonly role: Role;
+  private readonly isLocalStack: boolean;
 
   constructor(scope: Construct, id: string, props: LambdaProps) {
     super(scope, id);
+
+    this.isLocalStack = props.isLocalstack;
 
     const {
       additionalPolicies = [],
@@ -62,6 +66,12 @@ export class Lambda extends Construct {
       asCode = false,
     } = props;
 
+    const logGroup = new DemosLogGroup(this, "LogGroup", {
+      name: `lambda/${id}`,
+      isEphemeral: props.isEphemeral,
+      stage: props.stage
+    })
+
     const role = new Role(this, `${id}LambdaExecutionRole`, {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       permissionsBoundary: props.iamPermissionsBoundary,
@@ -69,11 +79,11 @@ export class Lambda extends Construct {
       inlinePolicies: {
         LambdaPolicy: new PolicyDocument({
           statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
-              actions: ["ssm:GetParameter"],
-              resources: ["*"],
-            }),
+            // new PolicyStatement({
+            //   effect: Effect.ALLOW,
+            //   actions: ["ssm:GetParameter"],
+            //   resources: ["*"],
+            // }),
             new PolicyStatement({
               effect: Effect.ALLOW,
               actions: [
@@ -123,6 +133,7 @@ export class Lambda extends Construct {
       environment: props.environment,
       vpc: props.vpc,
       vpcSubnets: props.vpc ? { subnets: props.vpc.privateSubnets } : undefined,
+      logGroup: logGroup.logGroup
     });
 
     let alias;
@@ -147,15 +158,18 @@ export class Lambda extends Construct {
         props.method,
         new aws_apigateway.LambdaIntegration(alias ? alias : this.lambda),
         {
-          authorizationType: props.isLocalstack
-            ? undefined
-            : props.authorizationType,
-          authorizer: props.isLocalstack ? undefined : props.authorizer,
+          authorizationType: this.onAws(props.authorizationType),
+          authorizer: this.onAws(props.authorizer),
           // authorizationScopes: props.isLocalstack
           //   ? undefined
           //   : ["demosApi/read", "demosApi/write"],
         }
       );
     }
+  }
+
+
+  private onAws<T>(value: T) {
+    return this.isLocalStack ? undefined : value
   }
 }

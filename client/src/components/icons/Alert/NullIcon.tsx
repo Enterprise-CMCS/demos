@@ -1,7 +1,8 @@
 import React from "react";
 
 import { IconInput } from "../Icon";
-export const NullIcon = ({
+export const NullIcon: React.FC<IconInput> = ({
+  label = "Null",
   width = "21",
   height = "21",
   viewBox = "0 0 21 21",
@@ -13,6 +14,8 @@ export const NullIcon = ({
     viewBox={viewBox}
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    aria-label={label}
+    role="img"
   >
     <path
       d="M20.5 10C20.5 4.47 16.03 2.41724e-07 10.5 0C4.97 -2.41724e-07 0.5 4.47 0.5 10C0.5 15.53 4.97 20 10.5 20C16.03 20 20.5 15.53 20.5 10Z"

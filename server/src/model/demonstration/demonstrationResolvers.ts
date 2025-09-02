@@ -1,7 +1,4 @@
-import {
-  Demonstration,
-  User,
-} from "@prisma/client";
+import { Demonstration, User } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
@@ -39,6 +36,8 @@ export const demonstrationResolvers = {
         projectOfficerUserId,
         effectiveDate,
         expirationDate,
+        cmcsDivision,
+        signatureLevel,
         ...rest
       } = input;
 
@@ -62,6 +61,12 @@ export const demonstrationResolvers = {
             },
             effectiveDate: new Date(effectiveDate),
             expirationDate: new Date(expirationDate),
+            cmcsDivision: {
+              connect: { id: cmcsDivision },
+            },
+            signatureLevel: {
+              connect: { id: signatureLevel },
+            },
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
             },
@@ -96,6 +101,8 @@ export const demonstrationResolvers = {
         projectOfficerUserId,
         effectiveDate,
         expirationDate,
+        cmcsDivision,
+        signatureLevel,
         ...rest
       } = input;
 
@@ -118,6 +125,16 @@ export const demonstrationResolvers = {
           }),
           ...(expirationDate && {
             expirationDate: new Date(expirationDate),
+          }),
+          ...(cmcsDivision && {
+            cmcsDivision: {
+              connect: { id: cmcsDivision },
+            },
+          }),
+          ...(signatureLevel && {
+            signatureLevel: {
+              connect: { id: signatureLevel },
+            },
           }),
           ...(demonstrationStatusId && {
             demonstrationStatus: {
@@ -208,6 +225,7 @@ export const demonstrationResolvers = {
         },
       });
     },
+
     extensions: async (parent: Demonstration) => {
       return await prisma().modification.findMany({
         where: {
@@ -215,6 +233,14 @@ export const demonstrationResolvers = {
           bundleTypeId: extensionBundleTypeId,
         },
       });
+    },
+
+    cmcsDivision: async (parent: Demonstration) => {
+      return parent.cmcsDivisionId;
+    },
+
+    signatureLevel: async (parent: Demonstration) => {
+      return parent.signatureLevelId;
     },
   },
 };
