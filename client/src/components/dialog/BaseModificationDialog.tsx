@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 
-import {
-  Button,
-  SecondaryButton,
-} from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
@@ -11,14 +8,8 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
-import {
-  createSuccessMessages,
-  useDialogForm,
-} from "hooks/useDialogForm";
-import {
-  normalizeDemonstrationId,
-  normalizeUserId,
-} from "hooks/user/uuidHelpers";
+import { createSuccessMessages, useDialogForm } from "hooks/useDialogForm";
+import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
 import { tw } from "tags/tw";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -176,49 +167,53 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
               onStateChange={setProjectOfficer}
             />
           </div>
-          <div className="flex flex-col gap-sm">
-            <label className={LABEL_CLASSES} htmlFor="effective-date">
-              Effective Date
-            </label>
-            <input
-              id="effective-date"
-              type="date"
-              className={DATE_INPUT_CLASSES}
-              data-testid="effective-date-input"
-              value={effectiveDate}
-              onChange={(e) => {
-                handleEffectiveDateChange(
-                  e.target.value,
-                  expirationDate,
-                  setEffectiveDate,
-                  setExpirationDate
-                );
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-sm">
-            <label className={LABEL_CLASSES} htmlFor="expiration-date">
-              Expiration Date
-            </label>
-            <input
-              id="expiration-date"
-              type="date"
-              className={`${DATE_INPUT_CLASSES} ${
-                expirationError
-                  ? "border-border-warn focus:ring-border-warn"
-                  : "border-border-fields focus:ring-border-focus"
-              }`}
-              data-testid="input-expiration-date"
-              value={expirationDate}
-              min={effectiveDate || undefined}
-              onChange={(e) => {
-                handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate);
-              }}
-            />
-            {expirationError && (
-              <div className="text-text-warn text-sm mt-1">{expirationError}</div>
-            )}
-          </div>
+          {mode === "edit" && (
+            <>
+              <div className="flex flex-col gap-sm">
+                <label className={LABEL_CLASSES} htmlFor="effective-date">
+                  Effective Date
+                </label>
+                <input
+                  id="effective-date"
+                  type="date"
+                  className={DATE_INPUT_CLASSES}
+                  data-testid="input-effective-date"
+                  value={effectiveDate}
+                  onChange={(e) => {
+                    handleEffectiveDateChange(
+                      e.target.value,
+                      expirationDate,
+                      setEffectiveDate,
+                      setExpirationDate
+                    );
+                  }}
+                />
+              </div>
+              <div className="flex flex-col gap-sm">
+                <label className={LABEL_CLASSES} htmlFor="expiration-date">
+                  Expiration Date
+                </label>
+                <input
+                  id="expiration-date"
+                  type="date"
+                  className={`${DATE_INPUT_CLASSES} ${
+                    expirationError
+                      ? "border-border-warn focus:ring-border-warn"
+                      : "border-border-fields focus:ring-border-focus"
+                  }`}
+                  data-testid="input-expiration-date"
+                  value={expirationDate}
+                  min={effectiveDate || undefined}
+                  onChange={(e) => {
+                    handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate);
+                  }}
+                />
+                {expirationError && (
+                  <div className="text-text-warn text-sm mt-1">{expirationError}</div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex flex-col gap-sm">
