@@ -34,9 +34,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
 }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<
-    "demonstration" | "document" | "amendment" | "extension" | null
-  >(null);
+  const [modalType, setModalType] = useState<"amendment" | "extension" | null>(null);
 
   const handleToggleButtons = useCallback(() => {
     setShowButtons((prev) => !prev);

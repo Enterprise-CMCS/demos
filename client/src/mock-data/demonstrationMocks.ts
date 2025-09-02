@@ -193,7 +193,6 @@ export const demonstrationMocks: MockedResponse[] = [
       },
     },
   },
-  // Add this to your demonstrationMocks array
   {
     request: {
       query: GET_DEMONSTRATION_OPTIONS_QUERY,
