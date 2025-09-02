@@ -24,8 +24,8 @@ export const demonstrationSchema = gql`
     id: ID!
     name: String!
     description: String!
-    effectiveDate: Date!
-    expirationDate: Date!
+    effectiveDate: Date
+    expirationDate: Date
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
     createdAt: DateTime!
@@ -42,8 +42,6 @@ export const demonstrationSchema = gql`
   input CreateDemonstrationInput {
     name: String!
     description: String!
-    effectiveDate: Date!
-    expirationDate: Date!
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
     demonstrationStatusId: ID!
@@ -67,10 +65,7 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
-    updateDemonstration(
-      id: ID!
-      input: UpdateDemonstrationInput!
-    ): Demonstration
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
@@ -84,8 +79,8 @@ export interface Demonstration {
   id: string;
   name: string;
   description: string;
-  effectiveDate: Date;
-  expirationDate: Date;
+  effectiveDate?: Date;
+  expirationDate?: Date;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
   createdAt: Date;
@@ -102,8 +97,6 @@ export interface Demonstration {
 export interface CreateDemonstrationInput {
   name: string;
   description: string;
-  effectiveDate: Date;
-  expirationDate: Date;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
   demonstrationStatusId: string;

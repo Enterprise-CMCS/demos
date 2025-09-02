@@ -2,18 +2,17 @@ import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
-import { Demonstration } from "demos-server";
+import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
 import { ApolloError } from "@apollo/client";
 import { formatDate } from "util/formatDate";
 
-export type DemonstrationHeaderDetails = {
-  state: Pick<Demonstration["state"], "id">;
-  projectOfficer: Pick<Demonstration["projectOfficer"], "fullName">;
-  demonstrationStatus: Pick<Demonstration["demonstrationStatus"], "name">;
-  effectiveDate: Demonstration["effectiveDate"];
-  expirationDate: Demonstration["expirationDate"];
-  id: Demonstration["id"];
-  name: Demonstration["name"];
+export type DemonstrationHeaderDetails = Pick<
+  Demonstration,
+  "id" | "name" | "expirationDate" | "effectiveDate"
+> & {
+  state: Pick<State, "id">;
+  projectOfficer: Pick<User, "fullName">;
+  demonstrationStatus: Pick<DemonstrationStatus, "name">;
 };
 
 interface DemonstrationDetailHeaderProps {
@@ -65,8 +64,8 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     { label: "State/Territory", value: demonstration.state.id },
     { label: "Project Officer", value: demonstration.projectOfficer.fullName },
     { label: "Status", value: demonstration.demonstrationStatus.name },
-    { label: "Effective", value: demonstration.effectiveDate },
-    { label: "Expiration", value: demonstration.expirationDate },
+    { label: "Effective", value: formatDate(demonstration.effectiveDate) },
+    { label: "Expiration", value: formatDate(demonstration.expirationDate) },
   ];
 
   return (
@@ -99,7 +98,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 <React.Fragment key={field.label}>
                   <li className="text-sm">
                     <strong>{field.label}</strong>:{" "}
-                    {field.value instanceof Date ? formatDate(field.value) : field.value}
+                    <span data-testid={`demonstration-${field.label}`}>{field.value}</span>
                   </li>
                   {index < displayFields.length - 1 && (
                     <li className="text-sm mx-1" aria-hidden="true">
