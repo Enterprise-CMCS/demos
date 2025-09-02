@@ -2,78 +2,57 @@ import React from "react";
 
 import { describe, expect, it } from "vitest";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 
 import { ModificationTable, ModificationTableRow } from "./ModificationTable";
+import { mockExtensions } from "mock-data/extensionMocks";
+import { mockAmendments } from "mock-data/amendmentMocks";
 
-const mockExtensions = [
-  {
-    id: "1",
-    name: "Extension 1",
-    status: {
-      name: "Pending Review",
-    },
-    effectiveDate: new Date("2025-08-15"),
-  },
-  {
-    id: "2",
-    name: "Extension 2",
-    status: {
-      name: "Approved",
-    },
-    effectiveDate: new Date("2024-10-01"),
-  },
-] satisfies ModificationTableRow[];
+const mappedMockExtensions: ModificationTableRow[] = mockExtensions.map((extension) => ({
+  ...extension,
+  status: extension.extensionStatus,
+}));
 
-const mockAmendments = [
-  {
-    id: "1",
-    name: "Amendment 1",
-    status: {
-      name: "Under Review",
-    },
-    effectiveDate: new Date("2025-07-21"),
-  },
-  {
-    id: "2",
-    name: "Amendment 2",
-    status: {
-      name: "Approved",
-    },
-    effectiveDate: new Date("2024-09-14"),
-  },
-] satisfies ModificationTableRow[];
+const mappedMockAmendments: ModificationTableRow[] = mockAmendments.map((amendment) => ({
+  ...amendment,
+  status: amendment.amendmentStatus,
+}));
 
-const mockUnknownStatus = [
+const mockUnknownStatus: ModificationTableRow[] = [
   {
     id: "3",
     name: "Test Item",
     status: {
       name: "Unknown Status",
     },
-    effectiveDate: new Date("2025-01-01"),
+    effectiveDate: new Date(2025, 0, 1),
   },
 ] satisfies ModificationTableRow[];
 
 describe("ExtensionTable", () => {
   it("renders extension rows with correct title, status, and date", () => {
-    render(<ModificationTable modifications={mockExtensions} />);
+    render(<ModificationTable modifications={mappedMockExtensions} />);
 
-    expect(screen.getByText("Extension 1")).toBeInTheDocument();
-    expect(screen.getByText("Extension 2")).toBeInTheDocument();
-    expect(screen.getByText("Pending Review")).toBeInTheDocument();
-    expect(screen.getByText("Approved")).toBeInTheDocument();
-    expect(screen.getByText("08/15/2025")).toBeInTheDocument();
-    expect(screen.getByText("10/01/2024")).toBeInTheDocument();
+    const row1 = screen
+      .getByText("Extension 1 - Montana Medicaid Waiver")
+      .closest(".grid")! as HTMLElement;
+    expect(within(row1).getByText("Active")).toBeInTheDocument();
+    expect(within(row1).getByText("01/01/2025")).toBeInTheDocument();
+
+    const row2 = screen
+      .getByText("Extension 2 - Montana Medicaid Waiver")
+      .closest(".grid")! as HTMLElement;
+    expect(within(row2).getByText("Approved")).toBeInTheDocument();
+    expect(within(row2).getByText("02/01/2025")).toBeInTheDocument();
   });
 
   it("toggles expand section when a row is clicked", () => {
-    render(<ModificationTable modifications={mockExtensions} />);
+    render(<ModificationTable modifications={mappedMockExtensions} />);
 
     // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
 
-    const row = screen.getByText("Extension 1").closest("div")!;
+    const row = screen.getByText("Extension 1 - Montana Medicaid Waiver").closest("div")!;
     fireEvent.click(row);
 
     expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
@@ -85,23 +64,28 @@ describe("ExtensionTable", () => {
 
 describe("AmendmentTable", () => {
   it("renders amendment rows with correct title, status, and date", () => {
-    render(<ModificationTable modifications={mockAmendments} />);
+    render(<ModificationTable modifications={mappedMockAmendments} />);
 
-    expect(screen.getByText("Amendment 1")).toBeInTheDocument();
-    expect(screen.getByText("Amendment 2")).toBeInTheDocument();
-    expect(screen.getByText("Under Review")).toBeInTheDocument();
-    expect(screen.getByText("Approved")).toBeInTheDocument();
-    expect(screen.getByText("07/21/2025")).toBeInTheDocument();
-    expect(screen.getByText("09/14/2024")).toBeInTheDocument();
+    const row1 = screen
+      .getByText("Amendment 1 - Montana Medicaid Waiver")
+      .closest(".grid")! as HTMLElement;
+    expect(within(row1).getByText("Pending")).toBeInTheDocument();
+    expect(within(row1).getByText("01/01/2025")).toBeInTheDocument();
+
+    const row2 = screen
+      .getByText("Amendment 2 - Montana Medicaid Waiver")
+      .closest(".grid")! as HTMLElement;
+    expect(within(row2).getByText("Approved")).toBeInTheDocument();
+    expect(within(row2).getByText("02/01/2025")).toBeInTheDocument();
   });
 
   it("toggles expand section when a row is clicked", () => {
-    render(<ModificationTable modifications={mockAmendments} />);
+    render(<ModificationTable modifications={mappedMockAmendments} />);
 
     // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
 
-    const row = screen.getByText("Amendment 1").closest("div")!;
+    const row = screen.getByText("Amendment 1 - Montana Medicaid Waiver").closest("div")!;
     fireEvent.click(row);
 
     expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
@@ -129,7 +113,7 @@ describe("Status rendering", () => {
 
 describe("Initially expanded row", () => {
   it("automatically expands a row if initiallyExpandedId is provided", () => {
-    render(<ModificationTable modifications={mockExtensions} initiallyExpandedId="1" />);
+    render(<ModificationTable modifications={mappedMockExtensions} initiallyExpandedId="1" />);
 
     expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
   });

@@ -14,7 +14,7 @@ import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
-import { DemonstrationTab, DemonstrationTabDetails } from "./DemonstrationTab";
+import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
@@ -27,6 +27,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       expirationDate
       state {
         id
+        name
       }
       demonstrationStatus {
         name
@@ -68,9 +69,9 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 
 export type Contact = {
   id: string;
-  fullName?: string | null;
-  email?: string | null;
-  contactType?: ContactType | null;
+  fullName: string | null;
+  email: string | null;
+  contactType: ContactType | null;
 };
 
 export type ContactType =
@@ -81,7 +82,7 @@ export type ContactType =
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationDialogDetails &
-  DemonstrationTabDetails & {
+  DemonstrationTabDemonstration & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
   } & {

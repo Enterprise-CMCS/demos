@@ -12,6 +12,8 @@ import {
   CreateDemonstrationInput,
   Demonstration,
   SignatureLevel,
+  State,
+  User,
 } from "demos-server";
 import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstration } from "hooks/useDemonstration";
@@ -24,10 +26,24 @@ const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
 
 type DemonstrationDialogMode = "add" | "edit";
 
+type DemonstrationDialogDemonstration = Pick<
+  Demonstration,
+  | "id"
+  | "name"
+  | "effectiveDate"
+  | "expirationDate"
+  | "description"
+  | "cmcsDivision"
+  | "signatureLevel"
+> & {
+  state: Pick<State, "id">;
+  projectOfficer: Pick<User, "id">;
+};
+
 type Props = {
   isOpen?: boolean;
   onClose: () => void;
-  demonstration?: Demonstration;
+  demonstration?: DemonstrationDialogDemonstration;
   mode: DemonstrationDialogMode;
 };
 
@@ -43,8 +59,8 @@ export const DemonstrationDialog: React.FC<Props> = ({
   const [effectiveDate, setEffectiveDate] = useState("");
   const [expirationDate, setExpirationDate] = useState("");
   const [description, setDescription] = useState("");
-  const [cmcsDivision, setCmcsDivision] = useState("");
-  const [signatureLevel, setSignatureLevel] = useState("");
+  const [cmcsDivision, setCmcsDivision] = useState<CmcsDivision | undefined>();
+  const [signatureLevel, setSignatureLevel] = useState<SignatureLevel | undefined>();
 
   const { addDemonstration, updateDemonstration } = useDemonstration();
 
@@ -83,14 +99,14 @@ export const DemonstrationDialog: React.FC<Props> = ({
 
   useEffect(() => {
     if (demonstration) {
-      setState(demonstration.state?.id || "");
-      setTitle(demonstration.name || "");
-      setProjectOfficer(demonstration.users?.[0]?.id || "");
+      setState(demonstration.state.id);
+      setTitle(demonstration.name);
+      setProjectOfficer(demonstration.projectOfficer.id);
       setEffectiveDate(formatDate(demonstration.effectiveDate));
       setExpirationDate(formatDate(demonstration.expirationDate));
-      setDescription(demonstration.description || "");
-      setCmcsDivision(demonstration.cmcsDivision || "");
-      setSignatureLevel(demonstration.signatureLevel || "");
+      setDescription(demonstration.description);
+      setCmcsDivision(demonstration.cmcsDivision);
+      setSignatureLevel(demonstration.signatureLevel);
     }
   }, [demonstration]);
 

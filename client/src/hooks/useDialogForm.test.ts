@@ -1,15 +1,8 @@
 import { vi } from "vitest";
 
-import {
-  act,
-  renderHook,
-} from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 
-import {
-  createFormDataWithDates,
-  createSuccessMessages,
-  useDialogForm,
-} from "./useDialogForm";
+import { createFormDataWithDates, createSuccessMessages, useDialogForm } from "./useDialogForm";
 
 // Mock the toast context
 const mockShowSuccess = vi.fn();
@@ -169,8 +162,8 @@ describe("createFormDataWithDates", () => {
     expect(result).toEqual({
       name: "test",
       id: 1,
-      effectiveDate: new Date("2024-06-01"),
-      expirationDate: new Date("2024-07-01"),
+      effectiveDate: new Date(2024, 5, 1),
+      expirationDate: new Date(2024, 6, 1),
     });
   });
 
@@ -187,7 +180,7 @@ describe("createFormDataWithDates", () => {
 
     expect(result).toEqual({
       name: "test",
-      effectiveDate: new Date("2024-06-01"),
+      effectiveDate: new Date(2024, 5, 1),
     });
   });
 });
