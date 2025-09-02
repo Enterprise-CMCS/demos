@@ -18,6 +18,7 @@ import { MockAmendment, mockAmendments } from "./amendmentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { MockContact, mockContacts } from "./contactMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
+import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -189,6 +190,17 @@ export const demonstrationMocks: MockedResponse[] = [
           effectiveDate: new Date(2025, 0, 1),
           expirationDate: new Date(2025, 11, 1),
         },
+      },
+    },
+  },
+  // Add this to your demonstrationMocks array
+  {
+    request: {
+      query: GET_DEMONSTRATION_OPTIONS_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: mockDemonstrations,
       },
     },
   },
