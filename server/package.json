@@ -21,8 +21,8 @@
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
-    "build": "prisma generate; tsc; esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify",
-    "build:ci": "prisma generate; tsc; esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify; mkdir -p build/node_modules/.prisma/client/ && cp node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node build/node_modules/.prisma/client/",
+    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify",
+    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify && mkdir -p build/node_modules/.prisma/client/ && cp node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node build/node_modules/.prisma/client/",
     "depcheck": "depcheck",
     "dev": "node ./dist/index.js",
     "local": "tsx watch --inspect=9229 --clear-screen=false src/local-server.ts",

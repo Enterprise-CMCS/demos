@@ -1,11 +1,27 @@
 import { gql } from "graphql-tag";
 
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
-import { DocumentType } from "../documentType/documentTypeSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
+import { DocumentType } from "../../types.js";
 
 export const documentSchema = gql`
+  """
+  A string representing a document type. Expected values are:
+  - Application Completeness Letter
+  - Approval Letter
+  - Final BN Worksheet
+  - Final Budget Neutrality Formulation Workbook
+  - Formal OMB Policy Concurrence Email
+  - General File
+  - Internal Completeness Review Form
+  - Payment Ratio Analysis
+  - Pre-Submission
+  - Q&A
+  - Signed Decision Memo
+  - State Application
+  """
+  scalar DocumentType
   union Bundle = Demonstration | Amendment | Extension
 
   type Document {
@@ -24,20 +40,23 @@ export const documentSchema = gql`
   input UploadDocumentInput {
     title: String!
     description: String!
-    documentType: String!
+    ownerUserId: ID!
+    documentTypeId: DocumentType!
+    bundleId: ID!
   }
 
   input UpdateDocumentInput {
-    id: ID!
     title: String
     description: String
-    documentType: String
+    ownerUserId: ID
+    documentTypeId: DocumentType
+    bundleId: ID
   }
 
   type Mutation {
     uploadDocument(input: UploadDocumentInput!): Document
-    updateDocument(input: UpdateDocumentInput!): Document
-    deleteDocuments(ids: [ID!]!): [ID!]!
+    updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+    deleteDocuments(ids: [ID!]!): Int!
   }
 
   type Query {
@@ -63,12 +82,15 @@ export interface Document {
 export interface UploadDocumentInput {
   title: string;
   description: string;
-  documentType: string;
+  ownerUserId: string;
+  documentTypeId: DocumentType;
+  bundleId: string;
 }
 
 export interface UpdateDocumentInput {
-  id: string;
   title?: string;
   description?: string;
-  documentType?: string;
+  ownerUserId?: string;
+  documentTypeId?: DocumentType;
+  bundleId?: string;
 }

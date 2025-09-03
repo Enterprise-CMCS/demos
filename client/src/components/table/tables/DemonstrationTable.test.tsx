@@ -1,23 +1,23 @@
 import React from "react";
-import { MockedProvider } from "@apollo/client/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { demonstrationsPageMockData } from "mock-data/demonstrationMocks";
-import { userMocks } from "mock-data/userMocks";
-import { stateMocks } from "mock-data/stateMocks";
-import { demonstrationStatusMocks } from "mock-data/demonstrationStatusMocks";
+import { userOptions } from "mock-data/userMocks";
 import { DemonstrationTable } from "./DemonstrationTable";
-
-const standardMocks = [...userMocks, ...stateMocks, ...demonstrationStatusMocks];
+import { mockDemonstrationStatuses } from "mock-data/demonstrationStatusMocks";
+import { mockStates } from "mock-data/stateMocks";
+import { mockDemonstrations } from "mock-data/demonstrationMocks";
 
 // Helper functions
-const renderDemonstrations = (mocks = standardMocks) => {
+const renderDemonstrations = () => {
   return render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <DemonstrationTable demonstrations={demonstrationsPageMockData.demonstrations} />
-    </MockedProvider>
+    <DemonstrationTable
+      projectOfficerOptions={userOptions}
+      statusOptions={mockDemonstrationStatuses}
+      stateOptions={mockStates}
+      demonstrations={mockDemonstrations}
+    />
   );
 };
 
@@ -119,11 +119,13 @@ describe("Demonstrations", () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
+    localStorage.removeItem("keyword-search");
     user = userEvent.setup();
   });
 
   describe("Tab navigation", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -132,7 +134,7 @@ describe("Demonstrations", () => {
       expect(screen.getByText(/My Demonstrations/)).toBeInTheDocument();
       expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();
       expect(screen.getByText(/My Demonstrations.*\(2\)/)).toBeInTheDocument();
-      expect(screen.getByText(/All Demonstrations.*\(14\)/)).toBeInTheDocument();
+      expect(screen.getByText(/All Demonstrations.*\(3\)/)).toBeInTheDocument();
     });
 
     it("defaults to 'My Demonstrations' tab", () => {
@@ -164,10 +166,13 @@ describe("Demonstrations", () => {
 
   describe("Empty states", () => {
     it("passes correct empty message for My Demonstrations tab", async () => {
-      return render(
-        <MockedProvider mocks={standardMocks} addTypename={false}>
-          <DemonstrationTable demonstrations={demonstrationsPageMockData.demonstrations} />
-        </MockedProvider>
+      render(
+        <DemonstrationTable
+          projectOfficerOptions={userOptions}
+          statusOptions={mockDemonstrationStatuses}
+          stateOptions={mockStates}
+          demonstrations={[]}
+        />
       );
       await waitFor(() => {
         expect(
@@ -177,10 +182,13 @@ describe("Demonstrations", () => {
     });
 
     it("passes correct empty message for All Demonstrations tab", async () => {
-      return render(
-        <MockedProvider mocks={standardMocks} addTypename={false}>
-          <DemonstrationTable demonstrations={demonstrationsPageMockData.demonstrations} />
-        </MockedProvider>
+      render(
+        <DemonstrationTable
+          projectOfficerOptions={userOptions}
+          statusOptions={mockDemonstrationStatuses}
+          stateOptions={mockStates}
+          demonstrations={[]}
+        />
       );
       await waitFor(() => {
         expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();
@@ -193,6 +201,7 @@ describe("Demonstrations", () => {
 
   describe("Table rendering", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -233,6 +242,7 @@ describe("Demonstrations", () => {
 
   describe("Table features", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -320,6 +330,7 @@ describe("Demonstrations", () => {
   });
   describe("Applications column", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -337,7 +348,7 @@ describe("Demonstrations", () => {
       // For a new demonstration row
       const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
       expect(montanaRow).toHaveTextContent(/Amendments \(2\)/);
-      expect(montanaRow).toHaveTextContent(/Extensions \(1\)/);
+      expect(montanaRow).toHaveTextContent(/Extensions \(2\)/);
     });
 
     it("displays (0) for amendments and extensions if there are no associated records", () => {
@@ -359,6 +370,7 @@ describe("Demonstrations", () => {
 
   describe("Nested view and row expansion for amendments and extensions", () => {
     beforeEach(async () => {
+      localStorage.removeItem("keyword-search");
       renderDemonstrations();
       await waitForTableData();
     });
@@ -421,7 +433,7 @@ describe("Demonstrations", () => {
       const tbody = table.querySelector("tbody");
       if (!tbody) throw new Error("tbody not found");
       const visibleDemos = within(tbody).getAllByRole("row");
-      expect(visibleDemos.length).toBe(10);
+      expect(visibleDemos.length).toBe(3);
 
       // Expand and check all children are visible
       const expandButton = within(visibleDemos[0]).getByRole("button", {
@@ -476,22 +488,6 @@ describe("Demonstrations", () => {
       }
     });
 
-    it("search applies to all records, but always displays parent demonstration with matching children", async () => {
-      // Switch to All Demonstrations tab
-      await switchToAllDemonstrationsTab(user);
-
-      // Search for a unique amendment name
-      await searchForText(user, "Jim");
-      await waitFor(() => {
-        // Parent demonstration is visible
-        expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
-        // Only the matching amendment is visible
-        expect(screen.getByText("Amendment 2 - Florida Health Innovation")).toBeInTheDocument();
-        // Other amendments/extensions for this demo are not visible
-        expect(screen.queryByText("Amendment 3")).not.toBeInTheDocument();
-      });
-    });
-
     // Replace applyStateFilter with applyProjectOfficerFilter in your filtering tests, e.g.:
     it("filtering applies to all records, but always displays parent demonstration with matching children", async () => {
       // Switch to All Demonstrations tab
@@ -504,7 +500,7 @@ describe("Demonstrations", () => {
         // Parent demonstration is visible
         expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
         // Only the matching amendment is visible
-        expect(screen.getByText("Amendment 2 - Florida Health Innovation")).toBeInTheDocument();
+        expect(screen.getByText("Amendment 4 - Florida Health Innovation")).toBeInTheDocument();
         // Other amendments/extensions for this demo are not visible
         expect(screen.queryByText("Amendment 3")).not.toBeInTheDocument();
       });

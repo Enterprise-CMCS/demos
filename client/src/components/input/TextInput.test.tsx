@@ -1,8 +1,16 @@
 import React from "react";
 
-import { describe, expect, it, vi } from "vitest";
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
-import { render, screen } from "@testing-library/react";
+import {
+  render,
+  screen,
+} from "@testing-library/react";
 
 import { TextInput } from "./TextInput";
 
@@ -34,9 +42,16 @@ describe("TextInput", () => {
     expect(input).toHaveValue("test@example.com");
   });
 
+
   it("calls getValidationMessage if provided", () => {
     const getValidationMessage = vi.fn();
-    render(<TextInput name="test" label="Test" getValidationMessage={getValidationMessage} />);
+    render(
+      <TextInput
+        name="test"
+        label="Test"
+        getValidationMessage={getValidationMessage}
+      />
+    );
     expect(getValidationMessage).toHaveBeenCalledTimes(1);
     expect(getValidationMessage).toHaveBeenCalledWith("");
   });

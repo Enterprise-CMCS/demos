@@ -1,6 +1,9 @@
 import { DemosApolloProvider } from "router/DemosApolloProvider";
 
-import { renderHook, waitFor } from "@testing-library/react";
+import {
+  renderHook,
+  waitFor,
+} from "@testing-library/react";
 
 import { useDemonstrationOptions } from "./useDemonstrationOptions";
 

@@ -34,7 +34,7 @@ export const testColumns = [
 
 describe.sequential("KeywordSearch Component", () => {
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.removeItem("keyword-search");
     render(
       <Table<TestType>
         keywordSearch={(table) => <KeywordSearch table={table} />}

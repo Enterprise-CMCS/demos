@@ -6,17 +6,27 @@ import { AddNewIcon } from "components/icons";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { TabItem, Tabs } from "layout/Tabs";
+import { Contact } from "./DemonstrationDetail";
+import { ContactsTable } from "components/table/tables/ContactsTable";
+import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
+import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
-export type DemonstrationTabDetails = {
+export type DemonstrationTabDemonstration = Pick<
+  Demonstration,
+  "id" | "name" | "description" | "effectiveDate" | "expirationDate"
+> & {
   demonstrationTypes: object[];
   documents: object[];
-  contacts: object[];
+  contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
+  state: Pick<State, "id" | "name">;
+  projectOfficer: Pick<User, "fullName" | "id">;
+  demonstrationStatus: Pick<DemonstrationStatus, "name">;
 };
 
-export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails }> = ({
+export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
@@ -31,6 +41,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
 
   return (
     <div>
+      <ApplicationWorkflow demonstration={{ status: "under_review" }} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}
@@ -40,7 +51,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
       <div className="mt-2">
         {subTab === "summary" && (
           <div>
-            <SummaryDetailsTable />
+            <SummaryDetailsTable demonstration={demonstration} />
           </div>
         )}
 
@@ -72,13 +83,20 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDetails
         )}
 
         {subTab === "contacts" && (
-          <div>
+          <>
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
-              {/* TO DO: Add New button? */}
+              <SecondaryButton
+                name="add-new-document"
+                size="small"
+                onClick={() => setModalType("document")}
+              >
+                <span>Add New</span>
+                <AddNewIcon className="w-2 h-2" />
+              </SecondaryButton>
             </div>
-            {/* TO DO: Add Table */}
-          </div>
+            <ContactsTable contacts={demonstration.contacts} />
+          </>
         )}
       </div>
 

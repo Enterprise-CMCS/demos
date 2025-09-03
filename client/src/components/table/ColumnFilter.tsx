@@ -27,20 +27,28 @@ export interface ColumnMetaFilterConfig {
       };
 }
 
-export function ColumnFilter<T>({ table, className = "" }: ColumnFilterByDropdownProps<T>) {
+export function ColumnFilter<T>({
+  table,
+  className = "",
+}: ColumnFilterByDropdownProps<T>) {
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
-  const [filterValue, setFilterValue] = React.useState<string | string[] | null>("");
+  const [filterValue, setFilterValue] = React.useState<
+    string | string[] | null
+  >("");
 
   const [filterRangeValue, setFilterRangeValue] = React.useState<{
     start: Date | null;
     end: Date | null;
   }>({ start: null, end: null });
 
-  const availableColumns = table.getAllColumns().filter((column) => column.getCanFilter());
+  const availableColumns = table
+    .getAllColumns()
+    .filter((column) => column.getCanFilter());
 
   const columnOptions: Option[] = availableColumns.map((col) => {
     const columnDef = col.columnDef;
-    const displayLabel = typeof columnDef.header === "string" ? columnDef.header : col.id;
+    const displayLabel =
+      typeof columnDef.header === "string" ? columnDef.header : col.id;
 
     return {
       label: displayLabel,
@@ -73,8 +81,11 @@ export function ColumnFilter<T>({ table, className = "" }: ColumnFilterByDropdow
     }
   };
   // Get the selected column's filter configuration
-  const selectedColumnObj = availableColumns.find((col) => col.id === selectedColumn);
-  const meta: ColumnMetaFilterConfig | undefined = selectedColumnObj?.columnDef.meta;
+  const selectedColumnObj = availableColumns.find(
+    (col) => col.id === selectedColumn
+  );
+  const meta: ColumnMetaFilterConfig | undefined =
+    selectedColumnObj?.columnDef.meta;
   const filterConfig = meta?.filterConfig;
 
   // Render the appropriate input based on filter configuration

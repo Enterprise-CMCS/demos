@@ -162,8 +162,8 @@ describe("createFormDataWithDates", () => {
     expect(result).toEqual({
       name: "test",
       id: 1,
-      effectiveDate: new Date("2024-06-01"),
-      expirationDate: new Date("2024-07-01"),
+      effectiveDate: new Date(2024, 5, 1),
+      expirationDate: new Date(2024, 6, 1),
     });
   });
 
@@ -180,7 +180,7 @@ describe("createFormDataWithDates", () => {
 
     expect(result).toEqual({
       name: "test",
-      effectiveDate: new Date("2024-06-01"),
+      effectiveDate: new Date(2024, 5, 1),
     });
   });
 });

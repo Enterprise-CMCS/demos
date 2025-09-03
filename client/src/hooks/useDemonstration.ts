@@ -1,7 +1,7 @@
 import { useLazyQuery, useMutation, ApolloError, FetchResult } from "@apollo/client";
 import { Demonstration as ServerDemonstration, CreateDemonstrationInput } from "demos-server";
 import {
-  ADD_DEMONSTRATION_QUERY,
+  ADD_DEMONSTRATION_MUTATION,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
@@ -86,7 +86,7 @@ const createGetDemonstrationByIdHook = (): GetDemonstrationByIdOperation => {
 const createAddDemonstrationHook = (): AddDemonstrationOperation => {
   const [trigger, { data, loading, error }] = useMutation<{
     addDemonstration: Demonstration;
-  }>(ADD_DEMONSTRATION_QUERY);
+  }>(ADD_DEMONSTRATION_MUTATION);
 
   return {
     trigger: async (input: CreateDemonstrationInput) => await trigger({ variables: { input } }),

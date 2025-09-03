@@ -41,16 +41,29 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
         }
       }
     }
+
+    stateOptions: states {
+      id
+      name
+    }
+
+    projectOfficerOptions: users {
+      fullName
+    }
+
+    statusOptions: demonstrationStatuses {
+      name
+    }
   }
 `;
 
 export type DemonstrationAmendment = Pick<Amendment, "id" | "name"> & {
-  projectOfficer: Pick<User, "id">;
-  amendmentStatus: DemonstrationStatus;
+  projectOfficer: Pick<User, "fullName">;
+  amendmentStatus: Pick<DemonstrationStatus, "name">;
 };
 export type DemonstrationExtension = Pick<Extension, "id" | "name"> & {
-  projectOfficer: Pick<User, "id">;
-  extensionStatus: DemonstrationStatus;
+  projectOfficer: Pick<User, "fullName">;
+  extensionStatus: Pick<DemonstrationStatus, "name">;
 };
 
 export type Demonstration = {
@@ -66,6 +79,9 @@ export type Demonstration = {
 
 export type DemonstrationsPageQueryResult = {
   demonstrations: Demonstration[];
+  projectOfficerOptions: Pick<User, "fullName">[];
+  stateOptions: Pick<State, "name" | "id">[];
+  statusOptions: Pick<DemonstrationStatus, "name">[];
 };
 
 export const Demonstrations: React.FC = () => {
@@ -77,7 +93,14 @@ export const Demonstrations: React.FC = () => {
       <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Demonstrations</h1>
       {loading && <div className="p-4">Loading demonstrations...</div>}
       {error && <div className="p-4 text-red-500">Error loading</div>}
-      {data && <DemonstrationTable demonstrations={data.demonstrations} />}
+      {data && (
+        <DemonstrationTable
+          demonstrations={data.demonstrations}
+          stateOptions={data.stateOptions}
+          projectOfficerOptions={data.projectOfficerOptions}
+          statusOptions={data.statusOptions}
+        />
+      )}
     </div>
   );
 };

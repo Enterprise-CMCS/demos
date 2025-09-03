@@ -64,12 +64,6 @@ export const documentResolvers = {
     documents: async (_: undefined, { bundleTypeId }: { bundleTypeId?: string }) => {
       if (bundleTypeId) {
         const isValidBundleType = Object.values(BUNDLE_TYPE).includes(bundleTypeId as BundleType);
-        const implementedBundleTypes: BundleType[] = [
-          demonstrationBundleTypeId,
-          amendmentBundleTypeId,
-          extensionBundleTypeId,
-        ];
-        const isImplementedBundleType = implementedBundleTypes.includes(bundleTypeId as BundleType);
         if (!isValidBundleType) {
           throw new GraphQLError("The requested bundle type is not valid.", {
             extensions: {
@@ -78,15 +72,7 @@ export const documentResolvers = {
             },
           });
         }
-        if (!isImplementedBundleType) {
-          throw new GraphQLError("The requested bundle type is not yet implemented.", {
-            extensions: {
-              code: "NOT_IMPLEMENTED",
-              http: { status: 501 },
-            },
-          });
-        }
-      }
+    }
       return await prisma().document.findMany({
         where: {
           bundle: {
@@ -104,13 +90,13 @@ export const documentResolvers = {
       _: undefined,
       { input }: { input: UploadDocumentInput }
     ) => {
-      const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
+      const { ownerUserId, documentTypeId, bundleId, ...rest } = input;
       const document = await prisma().documentPendingUpload.create({
         data: {
           ...rest,
           owner: { connect: { id: ownerUserId } },
           documentType: { connect: { id: documentTypeId } },
-          bundle: { connect: { id: demonstrationId } },
+          bundle: { connect: { id: bundleId } },
         },
       });
       return await attachPresignedUploadUrl(document);
@@ -120,7 +106,7 @@ export const documentResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
-      const { ownerUserId, documentTypeId, demonstrationId, ...rest } = input;
+      const { ownerUserId, documentTypeId, bundleId, ...rest } = input;
       return await prisma().document.update({
         where: { id: id },
         data: {
@@ -135,9 +121,9 @@ export const documentResolvers = {
               connect: { id: documentTypeId },
             },
           }),
-          ...(demonstrationId && {
+          ...(bundleId && {
             bundle: {
-              connect: { id: demonstrationId },
+              connect: { id: bundleId },
             },
           }),
         },
@@ -145,9 +131,10 @@ export const documentResolvers = {
     },
 
     deleteDocuments: async (_: undefined, { ids }: { ids: string[] }) => {
-      return await prisma().document.deleteMany({
+      const deleteResult = await prisma().document.deleteMany({
         where: { id: { in: ids } },
       });
+      return deleteResult.count;
     },
   },
 

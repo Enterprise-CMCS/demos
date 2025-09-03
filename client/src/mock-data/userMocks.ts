@@ -1,12 +1,21 @@
-import { HEADER_LOWER_QUERY } from "components/header/DefaultHeaderLower";
 import { User } from "demos-server";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
-import {
-  GET_ALL_USERS,
-  GET_USER_BY_ID,
-  UserOption,
-} from "hooks/useUserOperations";
-import { USER_OPTIONS_QUERY } from "queries/userQueries";
+import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
+
+export type MockUser = Pick<User, "id" | "fullName">;
+
+export const mockUsers: MockUser[] = [
+  { id: "1", fullName: "John Doe" },
+  { id: "2", fullName: "Jane Smith" },
+  { id: "3", fullName: "Jim Smith" },
+  { id: "4", fullName: "Darth Smith" },
+  { id: "5", fullName: "Bob Johnson" },
+  { id: "6", fullName: "Alice Brown" },
+  { id: "7", fullName: "Carlos Rivera" },
+  { id: "8", fullName: "Emily Clark" },
+  { id: "9", fullName: "Cara Lee" },
+  { id: "10", fullName: "David Chen" },
+];
 
 import { MockedResponse } from "@apollo/client/testing";
 
@@ -17,14 +26,31 @@ export const johnDoe: User = {
   username: "johndoe",
   email: "johndoe@example.com",
   displayName: "John",
-  createdAt: new Date("2025-01-01"),
-  updatedAt: new Date("2025-01-01"),
   roles: [],
   states: [],
   demonstrations: [],
   events: [],
   ownedDocuments: [],
 };
+
+export const userOptions: Pick<User, "fullName">[] = [
+  { fullName: "John Doe" },
+  { fullName: "Jane Smith" },
+  { fullName: "Jim Smith" },
+  { fullName: "Darth Smith" },
+  { fullName: "Bob Johnson" },
+  { fullName: "Alice Brown" },
+  { fullName: "Carlos Rivera" },
+  { fullName: "Emily Clark" },
+  { fullName: "Samantha Lee" },
+  { fullName: "Michael Chen" },
+  { fullName: "Linda Park" },
+  { fullName: "David Kim" },
+  { fullName: "Olivia Turner" },
+  { fullName: "Henry Adams" },
+  { fullName: "Sophia Martinez" },
+  { fullName: "James Lee" },
+];
 
 export const spongebob: Partial<User> = { fullName: "spongebob squarepants" };
 export const squidward: Partial<User> = { fullName: " squidward tentacles" };
@@ -68,57 +94,5 @@ export const userMocks: MockedResponse[] = [
   {
     request: { query: GET_USER_BY_ID, variables: { id: "st" } },
     result: { data: { user: squidward } },
-  },
-
-  // Options list
-  {
-    request: { query: USER_OPTIONS_QUERY },
-    result: {
-      data: {
-        users: [
-          { fullName: "Yoda" },
-          { fullName: "Leia Organa" },
-          { fullName: "Han Solo" },
-          { fullName: "Luke Skywalker" },
-          { fullName: "Darth Vader" },
-          { fullName: "John Doe" },
-          { fullName: "spongebob squarepants" },
-          { fullName: " squidward tentacles" },
-          { fullName: "patrick star" },
-          { fullName: "User Testerson" },
-          { fullName: "Jane Smith" },
-          { fullName: "Jim Smith" },
-          { fullName: "Darth Smith" },
-          { fullName: "Bob Johnson" },
-        ] satisfies UserOption[],
-      },
-    },
-  },
-  // Mock for HEADER_LOWER_QUERY
-  {
-    request: {
-      query: HEADER_LOWER_QUERY,
-      variables: { id: bypassUserGUID },
-    },
-    result: {
-      data: {
-        user: {
-          fullName: "John Doe",
-        },
-      },
-    },
-  },
-  {
-    request: {
-      query: HEADER_LOWER_QUERY,
-      variables: { id: johnDoe.id },
-    },
-    result: {
-      data: {
-        user: {
-          fullName: johnDoe.fullName,
-        },
-      },
-    },
   },
 ];

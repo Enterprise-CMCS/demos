@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { LOCAL_COGNITO_CONFIG, getCognitoLogoutUrl, getCognitoConfig } from "./cognitoConfig";
+import {
+  LOCAL_COGNITO_CONFIG,
+  getCognitoLogoutUrl,
+  getCognitoConfig,
+} from "./cognitoConfig";
 
 vi.mock("config/env", () => ({
   getAppMode: vi.fn(),
@@ -55,7 +59,9 @@ describe("cognitoConfig", () => {
       const { getAppMode } = await import("config/env");
       vi.mocked(getAppMode).mockImplementation(mockGetAppMode);
 
-      expect(() => getCognitoConfig()).toThrow("Cognito configuration for staging is not defined.");
+      expect(() => getCognitoConfig()).toThrow(
+        "Cognito configuration for staging is not defined."
+      );
     });
   });
 });

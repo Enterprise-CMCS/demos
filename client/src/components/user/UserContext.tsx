@@ -40,7 +40,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       refresh: () => refetch(),
-      hasRole: (name) => !!currentUser?.roles?.some((r) => r.name === name),
+      hasRole: (name) => !!currentUser?.roles?.some(r => r.name === name),
     }),
     [currentUser, loading, error, refetch]
   );

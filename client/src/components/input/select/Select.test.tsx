@@ -32,14 +32,26 @@ describe("Select", () => {
     const user = userEvent.setup();
     const handleSelect = vi.fn();
     render(
-      <Select options={options} placeholder="Choose one" onSelect={handleSelect} id="test-select" />
+      <Select
+        options={options}
+        placeholder="Choose one"
+        onSelect={handleSelect}
+        id="test-select"
+      />
     );
     await user.selectOptions(screen.getByRole("combobox"), "beta");
     expect(handleSelect).toHaveBeenCalledWith("beta");
   });
 
   it("shows the selected value", () => {
-    render(<Select options={options} value="gamma" onSelect={() => {}} id="test-select" />);
+    render(
+      <Select
+        options={options}
+        value="gamma"
+        onSelect={() => {}}
+        id="test-select"
+      />
+    );
     const select = screen.getByRole("combobox") as HTMLSelectElement;
     expect(select.value).toBe("gamma");
   });
@@ -75,12 +87,26 @@ describe("Select", () => {
   });
 
   it("disables the select when isDisabled is true", () => {
-    render(<Select options={options} isDisabled onSelect={() => {}} id="test-select" />);
+    render(
+      <Select
+        options={options}
+        isDisabled
+        onSelect={() => {}}
+        id="test-select"
+      />
+    );
     expect(screen.getByRole("combobox")).toBeDisabled();
   });
 
   it("requires the select when isRequired is true", () => {
-    render(<Select options={options} isRequired onSelect={() => {}} id="test-select" />);
+    render(
+      <Select
+        options={options}
+        isRequired
+        onSelect={() => {}}
+        id="test-select"
+      />
+    );
     expect(screen.getByRole("combobox")).toBeRequired();
   });
 });

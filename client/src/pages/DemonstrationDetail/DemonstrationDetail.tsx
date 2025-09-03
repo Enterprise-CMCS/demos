@@ -14,7 +14,7 @@ import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
-import { DemonstrationTab, DemonstrationTabDetails } from "./DemonstrationTab";
+import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
@@ -27,6 +27,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       expirationDate
       state {
         id
+        name
       }
       demonstrationStatus {
         name
@@ -58,16 +59,34 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       }
       contacts {
         id
+        fullName
+        email
+        contactType
       }
     }
   }
 `;
 
+export type Contact = {
+  id: string;
+  fullName: string | null;
+  email: string | null;
+  contactType: ContactType | null;
+};
+
+export type ContactType =
+  | "Primary Project Officer"
+  | "Secondary Project Officer"
+  | "State Representative"
+  | "Subject Matter Expert";
+
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationDialogDetails &
-  DemonstrationTabDetails & {
+  DemonstrationTabDemonstration & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
+  } & {
+    contacts: Contact[];
   };
 
 type TabType = "details" | "amendments" | "extensions";
