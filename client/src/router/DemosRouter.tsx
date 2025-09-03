@@ -56,12 +56,10 @@ export const DemosRouter: React.FC = () => {
                     <Route path="icons" element={<IconLibrary />} />
                     <Route path="events" element={<EventSandbox />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
+                    <Route path="*" element={<div>404: Page Not Found</div>} />
                   </>
                 )}
               </Route>
-
-              {/* Fallback */}
-              <Route path="*" element={<div>404: Page Not Found</div>} />
             </Routes>
           </BrowserRouter>
         </UserProvider>
