@@ -140,7 +140,7 @@ const DropTarget: React.FC<{
           className="hidden"
           accept={ACCEPTED_EXTENSIONS}
           onChange={handleFileChange}
-          data-testid="file-input"
+          data-testid="input-file"
         />
 
         <SecondaryButton
@@ -388,7 +388,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
         </>
       }
     >
-      {/* Order: Dropzone → File chip/progress → Title → Description → Type */}
       <DropTarget
         file={file}
         onRemove={clearFile}
@@ -509,7 +508,7 @@ export const RemoveDocumentDialog: React.FC<{
       actions={
         <>
           <SecondaryButton
-            name="cancel-remove"
+            name="button-cancel-delete-document"
             size="small"
             onClick={onClose}
             disabled={isDeleting}
@@ -517,7 +516,7 @@ export const RemoveDocumentDialog: React.FC<{
             Cancel
           </SecondaryButton>
           <ErrorButton
-            name="confirm-remove"
+            name="button-confirm-delete-document"
             size="small"
             onClick={() => onConfirm(documentIds)}
             aria-label="Confirm Remove Document"

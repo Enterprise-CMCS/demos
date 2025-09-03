@@ -31,11 +31,11 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const CONFIRM_REMOVE_BUTTON_TEST_ID = "confirm-remove";
-const CANCEL_REMOVE_BUTTON_TEST_ID = "cancel-remove";
+const CONFIRM_REMOVE_BUTTON_TEST_ID = "button-confirm-delete-document";
+const CANCEL_REMOVE_BUTTON_TEST_ID = "button-cancel-delete-document";
 const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "button-confirm-upload-document";
 const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
-const FILE_INPUT_TEST_ID = "file-input";
+const FILE_INPUT_TEST_ID = "input-file";
 
 describe("AddDocumentDialog", () => {
   const setup = () => {
