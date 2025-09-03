@@ -79,8 +79,8 @@ export interface Demonstration {
   id: string;
   name: string;
   description: string;
-  effectiveDate: Date | null;
-  expirationDate: Date | null;
+  effectiveDate?: Date;
+  expirationDate?: Date;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
   createdAt: Date;
