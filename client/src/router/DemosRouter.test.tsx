@@ -22,12 +22,22 @@ vi.mock("react-oidc-context", () => {
 
   // Simple passthrough HOC so routes render without real auth logic
 
-  const withAuthenticationRequired =
-    <T extends React.ComponentType<any>>(Component: T) => {
-      const WrappedComponent: React.FC<React.ComponentProps<T>> = (props) => <Component {...props} />;
-      WrappedComponent.displayName = `withAuthenticationRequired(${Component.displayName || Component.name || "Component"})`;
-      return WrappedComponent;
-    };
+  type WithAuthenticationRequired = <P extends object>(
+  Component: React.ComponentType<P>,
+  options?: unknown
+) => React.ComponentType<P>;
+
+  const withAuthenticationRequired: WithAuthenticationRequired = (Component) => {
+    const Wrapped: React.FC<React.ComponentProps<typeof Component>> = (props) => (
+      <Component {...props} />
+    );
+
+    // Readable display name without using `any`
+    const named = Component as { displayName?: string; name?: string };
+    Wrapped.displayName = `withAuthenticationRequired(${named.displayName ?? named.name ?? "Component"})`;
+
+    return Wrapped;
+  };
 
   return {
     AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
