@@ -49,11 +49,11 @@ const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILENAME_DISPLAY_LENGTH = 60;
 
-export const ERROR_MESSAGES = {
+const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
   missingField: "A required field is missing.",
 };
-export const SUCCESS_MESSAGES = {
+const SUCCESS_MESSAGES = {
   fileUploaded: "Your document has been added.",
   fileUpdated: "Your document has been updated.",
   fileDeleted: "Your document has been removed.",
@@ -250,9 +250,6 @@ export type DocumentDialogProps = {
   isOpen: boolean;
   onClose?: () => void;
   mode: DocumentDialogType;
-  initialTitle?: string;
-  initialDescription?: string;
-  initialType?: DocumentType;
   documentTypeOptions?: Option[];
   onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
@@ -262,26 +259,15 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   isOpen,
   onClose = () => {},
   mode,
-  initialTitle = "",
-  initialDescription = "",
-  initialType = "",
   documentTypeOptions,
   onSubmit,
   initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
 
-  const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(() => {
-    if (initialDocument) {
-      return initialDocument;
-    }
-    return {
-      ...EMPTY_DOCUMENT_FIELDS,
-      title: initialTitle,
-      description: initialDescription,
-      documentType: (initialType as DocumentType) || "General File",
-    };
-  });
+  const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
+    initialDocument || EMPTY_DOCUMENT_FIELDS
+  );
 
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
@@ -471,29 +457,9 @@ export const EditDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   documentTypeOptions?: Option[];
-  initialDocument?: DocumentDialogFields;
-  documentId?: string;
-  documentTitle?: string;
-  description?: string;
-  documentType?: DocumentType;
-}> = ({
-  isOpen,
-  onClose,
-  documentTypeOptions,
-  initialDocument,
-  documentId,
-  documentTitle,
-  description,
-  documentType,
-}) => {
+  initialDocument: DocumentDialogFields;
+}> = ({ isOpen, onClose, documentTypeOptions, initialDocument }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
-
-  const editDocument = initialDocument || {
-    id: documentId || "",
-    title: documentTitle || "",
-    description: description || "",
-    documentType: documentType || ("General File" as DocumentType),
-  };
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
     const updateDocumentInput: UpdateDocumentInput = {
@@ -510,7 +476,7 @@ export const EditDocumentDialog: React.FC<{
     <DocumentDialog
       isOpen={isOpen}
       mode="edit"
-      initialDocument={editDocument}
+      initialDocument={initialDocument}
       onClose={onClose}
       onSubmit={handleEdit}
       documentTypeOptions={documentTypeOptions}
