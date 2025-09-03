@@ -8,6 +8,7 @@ import { BundleType } from "../../types.js";
 import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -61,9 +62,14 @@ export const documentResolvers = {
         where: { id: id },
       });
     },
-    documents: async (_: undefined, { bundleTypeId }: { bundleTypeId?: string }) => {
+    documents: async (
+      _: undefined,
+      { bundleTypeId }: { bundleTypeId?: string },
+    ) => {
       if (bundleTypeId) {
-        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(bundleTypeId as BundleType);
+        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(
+          bundleTypeId as BundleType,
+        );
         if (!isValidBundleType) {
           throw new GraphQLError("The requested bundle type is not valid.", {
             extensions: {
@@ -72,7 +78,7 @@ export const documentResolvers = {
             },
           });
         }
-    }
+      }
       return await prisma().document.findMany({
         where: {
           bundle: {
@@ -87,15 +93,16 @@ export const documentResolvers = {
 
   Mutation: {
     uploadDocument: async (
-      _: undefined,
-      { input }: { input: UploadDocumentInput }
+      context: GraphQLContext,
+      { input }: { input: UploadDocumentInput },
     ) => {
-      const { ownerUserId, documentTypeId, bundleId, ...rest } = input;
+      const { documentType, bundleId, ...rest } = input;
+
       const document = await prisma().documentPendingUpload.create({
         data: {
           ...rest,
-          owner: { connect: { id: ownerUserId } },
-          documentType: { connect: { id: documentTypeId } },
+          owner: { connect: { id: context.user?.id } },
+          documentType: { connect: { id: documentType } },
           bundle: { connect: { id: bundleId } },
         },
       });
@@ -106,19 +113,14 @@ export const documentResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
-      const { ownerUserId, documentTypeId, bundleId, ...rest } = input;
+      const { documentType, bundleId, ...rest } = input;
       return await prisma().document.update({
         where: { id: id },
         data: {
           ...rest,
-          ...(ownerUserId && {
-            owner: {
-              connect: { id: ownerUserId },
-            },
-          }),
-          ...(documentTypeId && {
+          ...(documentType && {
             documentType: {
-              connect: { id: documentTypeId },
+              connect: { id: documentType },
             },
           }),
           ...(bundleId && {
