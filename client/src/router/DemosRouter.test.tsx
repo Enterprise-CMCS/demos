@@ -1,9 +1,8 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, Mock } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 import * as envMod from "config/env";
-
 
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("config/env")>();
@@ -21,11 +20,20 @@ vi.mock("react-oidc-context", () => {
   const removeUser = vi.fn();
   const revokeTokens = vi.fn();
 
+  // Simple passthrough HOC so routes render without real auth logic
+  const withAuthenticationRequired =
+    (Component: React.ComponentType<any>) => {
+      const WrappedComponent = (props: any) => <Component {...props} />;
+      WrappedComponent.displayName = `withAuthenticationRequired(${Component.displayName || Component.name || "Component"})`;
+      return WrappedComponent;
+    };
+
   return {
     AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    withAuthenticationRequired,
     useAuth: () => ({
-      isAuthenticated: true,      // ← authenticated so RequireAuth doesn't redirect
-      isLoading: false,           // ← not loading so UserProvider will query
+      isAuthenticated: true,   // so protected routes render
+      isLoading: false,
       user: { id_token: "fake" },
       signinRedirect,
       signoutRedirect,
@@ -35,6 +43,7 @@ vi.mock("react-oidc-context", () => {
     }),
   };
 });
+
 vi.mock("./DemosApolloProvider", async () => {
   const React = (await import("react")).default;
   const { MockedProvider } = await import("@apollo/client/testing");
@@ -80,7 +89,7 @@ describe("DemosRouter", () => {
   });
 
   it("renders debug routes in development mode", () => {
-    (envMod.isLocalDevelopment as unknown as vi.Mock).mockReturnValue(true);
+    (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(true);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
@@ -96,7 +105,7 @@ describe("DemosRouter", () => {
   });
 
   it("does not render debug routes outside development mode", () => {
-    (envMod.isLocalDevelopment as unknown as vi.Mock).mockReturnValue(false);
+    (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(false);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);

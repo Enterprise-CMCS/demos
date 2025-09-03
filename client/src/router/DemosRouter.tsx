@@ -27,9 +27,8 @@ function ProtectedShell() {
   );
 }
 
-// 2) Wrap shell with auth guard
-const ProtectedShellWithAuth = withAuthenticationRequired(ProtectedShell, {
-  OnRedirecting: () => <></>, // or a tiny spinner
+const AuthGuard = withAuthenticationRequired(ProtectedShell, {
+  OnRedirecting: () => <></>,
   signinRedirectArgs: {
     state: { returnUrl: window.location.pathname + window.location.search },
   },
@@ -45,7 +44,7 @@ export const DemosRouter: React.FC = () => {
           <BrowserRouter>
             <Routes>
               {/* Everything below is protected */}
-              <Route element={<ProtectedShellWithAuth />}>
+              <Route element={<AuthGuard />}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
