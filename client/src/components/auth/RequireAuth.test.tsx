@@ -16,11 +16,11 @@ describe("RequireAuth", () => {
   beforeEach(() => {
     signinRedirect = vi.fn().mockResolvedValue(undefined);
     sessionStorage.clear();
-    useAuthMock.mockReset();
+    (useAuthMock as unknown as Mock).mockReset();
   });
 
   it("renders children when authenticated and not processing", () => {
-    useAuthMock.mockReturnValue({
+    (useAuthMock as unknown as Mock).mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
       activeNavigator: undefined,
@@ -32,7 +32,7 @@ describe("RequireAuth", () => {
   });
 
   it("returns null when processing", () => {
-    useAuthMock.mockReturnValue({
+    (useAuthMock as unknown as Mock).mockReturnValue({
       isAuthenticated: true,
       isLoading: true,
       activeNavigator: undefined,
@@ -44,7 +44,7 @@ describe("RequireAuth", () => {
   });
 
   it("returns null when not authenticated", () => {
-    useAuthMock.mockReturnValue({
+    (useAuthMock as unknown as Mock).mockReturnValue({
       isAuthenticated: false,
       isLoading: false,
       activeNavigator: undefined,
