@@ -51,8 +51,8 @@ describe("Demonstration Detail Header", () => {
   it("renders date placeholder as --/--/---- when dates are missing", async () => {
     const demonstrationWithMissingDates = {
       ...mockDemonstrations[0],
-      effectiveDate: undefined,
-      expirationDate: undefined,
+      effectiveDate: null,
+      expirationDate: null,
     };
 
     render(
