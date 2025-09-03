@@ -4,11 +4,10 @@ config:
   theme: default
   layout: elk
   elk:
-    nodePlacementStrategy: NETWORK_SIMPLEX
+    nodePlacementStrategy: BERGES_KOEPF
 ---
 
 erDiagram
-
   classDef staticConstraint stroke:red,fill:pink
   classDef unenforcedConstraint stroke:orange,fill:palegoldenrod
   classDef typeLimiter stroke:navy,fill:lightskyblue
@@ -16,47 +15,69 @@ erDiagram
   classDef associativeTable stroke:darkmagenta,fill:plum
   classDef legend stroke:black,fill:#ddd
 
-  reportable_event_type ||..O{ event : "⊂(event.event_type_id) ∈ reportable_event_type.id (unenforced)"
-  document_type ||--|{ phase_document_type : "phase_document_type.document_type_id ∈ document_type.id"
-  phase_status ||--|{ bundle_phase_status  : "bundle_phase_status.phase_status_id ∈ phase_status.id"
-  date_type ||--|{ bundle_phase_date  : "bundle_phase_date.date_type_id ∈ date_type.id"
-  bundle_phase_status }|--|| bundle : "bundle_phase_status.bundle_id ∈ bundle.id"
-  bundle_phase_date }|--|| bundle : "bundle_phase_date.bundle_id ∈ bundle.id"
-  bundle_phase_status }|--|| phase : "bundle_phase_status.phase_id ∈ phase.id"
-  bundle_phase_date }|--|| phase : "bundle_phase_date.phase_id ∈ phase.id"
-  phase ||--|{ demonstration : "demonstration.current_phase_id ∈ phase.id"
-  bundle ||--|| demonstration : "demonstration.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
-  bundle ||--|| modification : "modificaton.(id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
-  demonstration ||--|{ modification : "modification.demonstration_id ∈ demonstration.id"
-  phase ||--|{ phase_document_type : "phase_document_type.phase_id ∈ phase.id"
-  bundle ||--|{ document : "document.bundle_id ∈ bundle.id"
-  phase_document_type ||--|{ document : "document.(phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-  document }|--|| users : "document.owner_user_id ∈ users.id"
-  modification }|--|| users : "modification.project_officer_user_id ∈ users.id"
-  demonstration }|--|| users : "demonstration.project_officer_user_id ∈ users.id"
-  cmcs_division ||--|{ demonstration : "demonstration.cmcs_division_id ∈ cmcs_division.id"
-  signature_level ||--|{ demonstration : "demonstration.signature_level_id ∈ signature_level.id"
-  bundle }|--|| bundle_type : "bundle.bundle_type_id ∈ bundle_type.id"
-  bundle_type ||--|| demonstration_bundle_type : "demonstration_bundle_type.id ∈ bundle_type.id"
-  demonstration_bundle_type ||--|{ demonstration : "demonstration.bundle_type_id ∈ demonstration_bundle_type.id"
-  bundle_type ||--|| modification_bundle_type : "modification_bundle_type.id ∈ bundle_type.id"
-  modification_bundle_type ||--|{ modification : "modification.bundle_type_id ∈ modification_bundle_type.id"
-  demonstration }|--|| bundle_status : "demonstration.bundle_status_id ∈ bundle_status.id"
-  bundle_status ||--|{ modification : "modification.bundle_status_id ∈ bundle_status.id"
-  phase ||--|{ modification : "modification.current_phase_id ∈ phase.id"
-  demonstration }|--|| state : "demonstration.state_id ∈ state.id"
-  state ||--|{ user_state : "user_state.user_id ∈ state.id"
-  user_state }|--|| users : "user_state.user_id ∈ users.id"
-  user_state_demonstration }|--|| user_state : "user_state_demonstration.(user_id, state_id) ∈ user_state.(user_id, state_id)"
-  demonstration ||--|{ user_state_demonstration : "user_state_demonstration.(demonstration_id, state_id) ∈ demonstration.(id, state_id)"
-  users ||--|{ event : "event.active_user_id ∈ users.id"
-  user_role }|--|| role : "user_role.role_id ∈ role.id"
-  event }|--|| role : "event.active_role_id ∈ role.id"
-  users ||--|{ user_role : "user_role.user_id ∈ users.id"
-  permission ||--|{ role_permission : "role_permission.permission_id ∈ permission.id"
-  role ||--|{ role_permission : "role_permission.role_id ∈ role.id"
+  date_type ||--|{ bundle_phase_date  : "FK001"
+  bundle_phase_date }|--|| bundle : "FK002"
+  bundle_phase_date }|--|| phase : "FK003"
+  phase_status ||--|{ bundle_phase_status  : "FK004"
+  bundle_phase_status }|--|| bundle : "FK005"
+  bundle_phase_status }|--|| phase : "FK006"
+  bundle }|--|| bundle_type : "FK007"
+  bundle ||--|| demonstration : "FK008"
+  bundle ||--|| modification : "FK009"
+  demonstration }|--|| cmcs_division : "FK010"
+  demonstration }|--|| signature_level : "FK011"
+  demonstration ||--|{ modification : "FK012"
+  bundle_type ||--|{ demonstration_bundle_type_limit : "FK013"
+  demonstration_bundle_type_limit ||--|{ demonstration : "FK014"
+  bundle_type ||--|{ modification_bundle_type_limit : "FK015"
+  modification_bundle_type_limit ||--|{ modification : "FK016"
+  demonstration }|--|| bundle_status : "FK017"
+  bundle_status ||--|{ modification : "FK018"
+  phase ||--|{ demonstration : "FK019"
+  phase ||--|{ modification : "FK020"
+  state ||--|{ demonstration : "FK021"
+  person_type ||--|{ person : "FK022"
+  person ||--|| users : "FK023"
+  person_type ||--|| user_person_type_limit : "FK024"
+  user_person_type_limit ||--|{ users : "FK025"
+  users ||--|{ document : "FK026"
+  users ||--|{ document_pending_upload : "FK057"
+  phase ||--|{ phase_document_type : "FK027"
+  phase_document_type }|--|| document_type : "FK028"
+  phase_document_type ||--|{ document : "FK029"
+  phase_document_type ||--|{ document_pending_upload : "FK055"
+  bundle ||--|{ document : "FK030"
+  bundle ||--|{ document_pending_upload : "FK056"
+  role_person_type }|--|| person_type : "FK031"
+  role ||--|{ role_person_type : "FK032"
+  role ||--|{ role_permission : "FK033"
+  permission ||--|{ role_permission : "FK034"
+  grant_level ||--|{ role : "FK035"
+  grant_level ||--|{ permission : "FK036"
+  system_grant_level_limit ||--|{ person_system_role : "FK037"
+  person_system_role }|--|| role_person_type : "FK038"
+  person_system_role }|--|| person : "FK039"
+  role ||--|{ person_system_role : "FK040"
+  grant_level ||--|| system_grant_level_limit : "FK041"
+  person_demonstration_role }|--|| person_state : "FK042"
+  person_state }|--|| state : "FK043"
+  person_state }|--|| person : "FK044"
+  grant_level ||--|{ demonstration_grant_level_limit : "FK045"
+  demonstration_grant_level_limit ||--|{ person_demonstration_role : "FK046"
+  role_person_type ||--|{ person_demonstration_role : "FK047"
+  person_demonstration_role }|--|| person : "FK048"
+  role ||--|{ person_demonstration_role : "FK049"
+  person_demonstration_role }|--|| demonstration : "FK050"
+  person_demonstration_role ||--|| primary_person_demonstration_role : "FK051"
+  event }O..|| reportable_event_type : "FK052"
+  role ||--|{ event : "FK053"
+  event }|--|| users : "FK054"
 
   %% Static Constraints
+  bundle_status:::staticConstraint {
+    text id PK
+  }
+
   bundle_type:::staticConstraint {
     text id PK
   }
@@ -73,6 +94,19 @@ erDiagram
     text id PK
   }
 
+  grant_level:::staticConstraint {
+    text id PK
+  }
+
+  person_type:::staticConstraint {
+    text id PK
+  }
+
+  permission:::staticConstraint {
+    text id PK, UK "UK: (id, grant_level_id)"
+    text grant_level_id FK, UK "FK036: grant_level_id ∈ grant_level.id<br>UK: (id, grant_level_id)"
+  }
+
   phase:::staticConstraint {
     text id PK
     integer phase_number UK
@@ -80,6 +114,11 @@ erDiagram
 
   phase_status:::staticConstraint {
     text id PK
+  }
+
+  role:::staticConstraint {
+    text id PK, UK "UK: (id, grant_level_id)"
+    text grant_level_id FK, UK "FK035: grant_level_id ∈ grant_level.id<br>UK: (id, grant_level_id)"
   }
 
   signature_level:::staticConstraint {
@@ -91,10 +130,6 @@ erDiagram
     text name
   }
 
-  bundle_status:::staticConstraint {
-    text id PK
-  }
-
   %% Unenforced Constraints
   reportable_event_type:::unenforcedConstraint {
     text id PK
@@ -103,72 +138,95 @@ erDiagram
   }
 
   %% Type Limiters
-  demonstration_bundle_type:::typeLimiter {
-    text id PK, FK "FK: bundle_type.id"
+  demonstration_bundle_type_limit:::typeLimiter {
+    text id PK, FK "FK013: id ∈ bundle_type.id"
   }
 
-  modification_bundle_type:::typeLimiter {
-    text uuid PK, FK "FK: bundle_type.id"
+  demonstration_grant_level_limit:::typeLimiter {
+    text id PK, FK "FK045: id ∈ grant_level.id"
+  }
+
+  modification_bundle_type_limit:::typeLimiter {
+    text id PK, FK "FK015: id ∈ bundle_type.id"
+  }
+
+  system_grant_level_limit:::typeLimiter {
+    text id PK, FK "FK037: id ∈ grant_level.id"
+  }
+
+  user_person_type_limit:::typeLimiter {
+    text id PK, FK "FK024: id ∈ person_type.id"
   }
 
   %% Data Tables
   bundle:::dataTable {
     uuid id PK, UK "UK: (id, bundle_type_id)"
-    text bundle_type_id FK, UK "FK: bundle_type.id, UK: (id, bundle_type_id)"
+    text bundle_type_id FK, UK "FK007: bundle_type_id ∈ bundle_type.id<br>UK: (id, bundle_type_id)"
   }
 
   bundle_phase_date:::dataTable {
-    uuid bundle_id PK, FK "FK: bundle.id"
-    text phase_id PK, FK "FK: phase.id"
-    text date_type_id PK, FK "FK: date_type.id"
+    uuid bundle_id PK, FK "FK002: bundle_id ∈ bundle.id"
+    text phase_id PK, FK "FK003: phase_id ∈ phase.id"
+    text date_type_id PK, FK "FK001: date_type_id ∈ date_type.id"
     timestamptz value "Format DATE vs TIMESTAMPTZ?"
     timestamptz created_at
     timestamptz updated_at
   }
 
   bundle_phase_status:::dataTable {
-    uuid bundle_id PK, FK, FK "FK: bundle.id<br>FK1: bundle_phase_date.(bundle_id, phase_id, date_type_id)"
-    text phase_id PK, FK, FK "FK: phase.id<br>FK1: bundle_phase_date.(bundle_id, phase_id, date_type_id)"
-    text phase_status_id FK "FK: phase_status.id"
+    uuid bundle_id PK, FK "FK005: bundle_id ∈ bundle.id"
+    text phase_id PK, FK "FK006: phase_id ∈ phase.id"
+    text phase_status_id FK "FK004: phase_status_id ∈ phase_status.id"
     timestamptz created_at
     timestamptz updated_at
   }
 
   demonstration:::dataTable {
-    uuid id PK, FK, UK, UK "FK1: bundle.(id, bundle_type_id)<br>UK1: (id, bundle_type_id)<br>UK2: (id, state_id)"
-    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id)<br>FK: demonstration_bundle_type.id"
+    uuid id PK, FK, UK "FK008: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)<br>UK: (id, state_id)"
+    text bundle_type_id FK "FK008: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)<br>FK014: bundle_type_id ∈ demonstration_bundle_type_limit.id"
     text name
     text description
     date effective_date
     date expiration_date
-    text cmcs_division_id FK "FK: cmcs_division.id"
-    text signature_level_id FK "FK: signature_level.id"
-    text bundle_status_id FK "FK: bundle_status.id"
-    text state_id FK, UK "FK: state.id<br>UK2: (id, state_id)"
-    uuid project_officer_user_id FK "FK: users.id"
-    text current_phase_id FK "FK: phase.id"
+    text cmcs_division_id FK "FK010: cmcs_division_id ∈ cmcs_division.id<br>NULLABLE"
+    text signature_level_id FK "FK011: signature_level_id ∈ signature_level.id<br>NULLABLE"
+    text bundle_status_id FK "FK017: bundle_status_id ∈ bundle_status.id"
+    text state_id FK, UK "FK021: state_id ∈ state.id<br>UK: (id, state_id)"
+    text current_phase_id FK "FK019: current_phase_id ∈ phase.id"
     timestamptz created_at
     timestamptz updated_at
   }
 
   document:::dataTable {
-    uuid id PK, UK "UK: (id, bundle_id, phase_id)"
-    text title
+    uuid id PK
+    text name
     text description
     text s3_path
-    uuid owner_user_id FK "FK: users.id"
-    text document_type_id FK "FK1: phase_document_type.(phase_id, document_type_id)"
-    uuid bundle_id FK, UK "FK: bundle.id<br>UK: (id, bundle_id, phase_id)"
-    text phase_id FK, UK "FK1: phase_document_type.(phase_id, document_type_id)<br>UK: (id, bundle_id, phase_id)"
+    uuid owner_user_id FK "FK026: owner_user_id ∈ users.id"
+    text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    uuid bundle_id FK "FK030: bundle_id ∈ bundle.id"
+    text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  document_pending_upload:::dataTable {
+    uuid id PK
+    text name
+    text description
+    uuid owner_user_id FK "FK057: owner_user_id ∈ users.id"
+    text document_type_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    uuid bundle_id FK "FK056: bundle_id ∈ bundle.id"
+    text phase_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
     timestamptz created_at
     timestamptz updated_at
   }
 
   event:::dataTable {
     uuid id PK
-    uuid user_id FK "FK: users.id, NULLABLE"
-    text with_role_id FK "FK: role.id, NULLABLE"
-    text event_type
+    uuid user_id FK "FK054: user_id ∈ user.id<br>NULLABLE"
+    text with_role_id FK "FK053: with_role_id ∈ role.id<br>NULLABLE"
+    text event_type FK "FK052: ⊂(event_type) ∈ reportable_event_type.id (unenforced)"
     text log_level
     text route
     timestamptz created_at
@@ -176,40 +234,22 @@ erDiagram
   }
 
   modification:::dataTable {
-    uuid id PK, FK "FK1: bundle.(id, bundle_type_id)"
-    text bundle_type_id FK, FK "FK1: bundle.(id, bundle_type_id)<br>FK: modification_bundle_type.id"
-    uuid demonstration_id FK "FK: demonstration.id"
+    uuid id PK, FK "FK009: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
+    text bundle_type_id FK "FK009: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)<br>FK016: bundle_type_id ∈ modification_bundle_type_limit.id"
+    uuid demonstration_id FK "FK012: demonstration_id ∈ demonstration.id"
     text name
     text description
     date effective_date
     date expiration_date
-    text bundle_status_id FK "FK: bundle_status.id"
-    uuid project_officer_user_id FK "FK: users.id"
-    text current_phase_id FK "FK: phase.id"
+    text bundle_status_id FK "FK018: bundle_status_id ∈ bundle_status.id"
+    text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
     timestamptz created_at
     timestamptz updated_at
   }
 
-  permission:::dataTable {
-    text id PK
-    text name
-    text description
-    timestamptz created_at
-    timestamptz updated_at
-  }
-
-  role:::dataTable {
-    text id PK
-    text name
-    text description
-    timestamptz created_at
-    timestamptz updated_at
-  }
-
-  users:::dataTable {
-    uuid id PK
-    uuid cognito_subject
-    text username
+  person:::dataTable {
+    id uuid PK, UK "UK: (id, person_type_id)"
+    text person_type_id FK "FK022: person_type_id ∈ person_type.id<br>UK: (id, person_type_id)"
     text email
     text full_name
     text display_name
@@ -217,31 +257,57 @@ erDiagram
     timestamptz updated_at
   }
 
+  users:::dataTable {
+    uuid id PK, FK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)"
+    text person_type_id FK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id"
+    uuid cognito_subject
+    text username
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
   %% Associative Tables
+  person_demonstration_role:::associativeTable {
+    uuid person_id PK, FK "FK042: (person_id, state_id) ∈ person_state.(person_id, state_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
+    uuid demonstration_id PK, FK "FK050: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
+    text role_id PK, FK "FK047: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+    text state_id FK "FK042: (person_id, state_id) ∈ person_state.(person_id, state_id)<br>FK050: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
+    text person_type_id FK "FK047: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
+    text grant_level_id FK "FK046: grant_level_id ∈ demonstration_grant_level_limit.id<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+  }
+
+  person_state:::associativeTable {
+    uuid person_id PK, FK "FK044: person_id ∈ person.id"
+    text state_id PK, FK "FK043: state_id ∈ state.id"
+  }
+
+  person_system_role:::associativeTable {
+    uuid person_id PK, FK "FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
+    text role_id PK, FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+    text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
+    text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id., grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
+  }
+
   phase_document_type:::associativeTable {
-    text phase_id PK, FK "FK: phase.id"
-    text document_type_id PK, FK "FK: document_type.id"
+    text phase_id PK, FK "FK027: phase_id ∈ phase.id"
+    text document_type_id PK, FK "FK028: document_type_id ∈ document_type.id"
+  }
+
+  primary_person_demonstration_role:::associativeTable {
+    uuid person_id FK "FK051: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
+    uuid demonstration_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
+    text role_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
   }
 
   role_permission:::associativeTable {
-    text role_id PK, FK "FK: role.id"
-    text permission_id PK, FK "FK: permission.id"
+    text role_id PK, FK "FK033: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+    text grant_level_id PK, FK "FK033: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK034: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
+    text permission_id PK, FK "FK034: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
   }
 
-  user_role:::associativeTable {
-    uuid user_id PK, FK "FK: users.id"
-    text role_id PK, FK "FK: role.id"
-  }
-
-  user_state:::associativeTable {
-    uuid user_id PK, FK "FK: users.id"
-    text state_id PK, FK "FK: state.id"
-  }
-
-  user_state_demonstration:::associativeTable {
-    uuid user_id FK "FK: (user_state.user_id, user_state.state_id)"
-    text state_id FK, FK "FK: (user_state.user_id, user_state.state_id)<br>FK: (demonstration.id, demonstration.state_id)"
-    uuid demonstration_id FK "FK: (demonstration.id, demonstration.state_id)"
+  role_person_type:::associativeTable {
+    text role_id PK, FK "FK032: role_id ∈ role.id"
+    text person_type_id PK, FK "FK031: person_type_id ∈ person_type.id"
   }
 
   %% Legend
