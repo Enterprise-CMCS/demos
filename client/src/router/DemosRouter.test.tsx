@@ -21,9 +21,10 @@ vi.mock("react-oidc-context", () => {
   const revokeTokens = vi.fn();
 
   // Simple passthrough HOC so routes render without real auth logic
+
   const withAuthenticationRequired =
-    (Component: React.ComponentType<any>) => {
-      const WrappedComponent = (props: any) => <Component {...props} />;
+    <T extends React.ComponentType<any>>(Component: T) => {
+      const WrappedComponent: React.FC<React.ComponentProps<T>> = (props) => <Component {...props} />;
       WrappedComponent.displayName = `withAuthenticationRequired(${Component.displayName || Component.name || "Component"})`;
       return WrappedComponent;
     };
