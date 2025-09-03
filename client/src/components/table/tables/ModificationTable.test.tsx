@@ -8,31 +8,18 @@ import { ModificationTable, ModificationTableRow } from "./ModificationTable";
 import { mockExtensions } from "mock-data/extensionMocks";
 import { mockAmendments } from "mock-data/amendmentMocks";
 
-const mappedMockExtensions: ModificationTableRow[] = mockExtensions.map((extension) => ({
-  ...extension,
-  status: extension.extensionStatus,
-}));
-
-const mappedMockAmendments: ModificationTableRow[] = mockAmendments.map((amendment) => ({
-  ...amendment,
-  status: amendment.amendmentStatus,
-}));
-
-const mockUnknownStatus: ModificationTableRow[] = [
-  {
-    id: "3",
-    name: "Test Item",
-    status: {
-      name: "Unknown Status",
-    },
-    effectiveDate: new Date(2025, 0, 1),
-  },
-] satisfies ModificationTableRow[];
-
 describe("ExtensionTable", () => {
+  beforeEach(() => {
+    render(
+      <ModificationTable
+        modifications={mockExtensions.map((extension) => ({
+          ...extension,
+          status: extension.extensionStatus,
+        }))}
+      />
+    );
+  });
   it("renders extension rows with correct title, status, and date", () => {
-    render(<ModificationTable modifications={mappedMockExtensions} />);
-
     const row1 = screen
       .getByText("Extension 1 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
@@ -47,8 +34,6 @@ describe("ExtensionTable", () => {
   });
 
   it("toggles expand section when a row is clicked", () => {
-    render(<ModificationTable modifications={mappedMockExtensions} />);
-
     // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
 
@@ -63,9 +48,17 @@ describe("ExtensionTable", () => {
 });
 
 describe("AmendmentTable", () => {
+  beforeEach(() => {
+    render(
+      <ModificationTable
+        modifications={mockAmendments.map((amendment) => ({
+          ...amendment,
+          status: amendment.amendmentStatus,
+        }))}
+      />
+    );
+  });
   it("renders amendment rows with correct title, status, and date", () => {
-    render(<ModificationTable modifications={mappedMockAmendments} />);
-
     const row1 = screen
       .getByText("Amendment 1 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
@@ -80,12 +73,10 @@ describe("AmendmentTable", () => {
   });
 
   it("toggles expand section when a row is clicked", () => {
-    render(<ModificationTable modifications={mappedMockAmendments} />);
-
     // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
 
-    const row = screen.getByText("Amendment 1 - Montana Medicaid Waiver").closest("div")!;
+    const row = screen.getByText("Amendment 2 - Montana Medicaid Waiver").closest("div")!;
     fireEvent.click(row);
 
     expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
@@ -97,7 +88,20 @@ describe("AmendmentTable", () => {
 
 describe("Status rendering", () => {
   it("renders unknown status without an icon", () => {
-    render(<ModificationTable modifications={mockUnknownStatus} />);
+    render(
+      <ModificationTable
+        modifications={[
+          {
+            id: "3",
+            name: "Test Item",
+            status: {
+              name: "Unknown Status",
+            },
+            effectiveDate: new Date(2025, 0, 1),
+          },
+        ]}
+      />
+    );
 
     const statusElement = screen.getByText("Unknown Status");
     expect(statusElement).toBeInTheDocument();
@@ -113,8 +117,51 @@ describe("Status rendering", () => {
 
 describe("Initially expanded row", () => {
   it("automatically expands a row if initiallyExpandedId is provided", () => {
-    render(<ModificationTable modifications={mappedMockExtensions} initiallyExpandedId="1" />);
+    render(
+      <ModificationTable
+        modifications={mockExtensions.map((extension) => ({
+          ...extension,
+          status: extension.extensionStatus,
+        }))}
+        initiallyExpandedId="1"
+      />
+    );
 
     expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
+  });
+});
+
+describe("Date formatting", () => {
+  it("renders placeholder for both amendments and extensions when effectiveDate is undefined", () => {
+    // Test amendment
+    const { rerender } = render(
+      <ModificationTable
+        modifications={[
+          {
+            ...mockAmendments[5],
+            status: mockAmendments[5].amendmentStatus,
+          },
+        ]}
+      />
+    );
+    const amendmentRow = screen
+      .getByText("Amendment 6 - Florida Health Innovation")
+      .closest(".grid")! as HTMLElement;
+    expect(within(amendmentRow).getByText("--/--/----")).toBeInTheDocument();
+
+    rerender(
+      <ModificationTable
+        modifications={[
+          {
+            ...mockExtensions[2],
+            status: mockExtensions[2].extensionStatus,
+          },
+        ]}
+      />
+    );
+    const extensionRow = screen
+      .getByText("Extension 3 - Montana Medicaid Waiver")
+      .closest(".grid")! as HTMLElement;
+    expect(within(extensionRow).getByText("--/--/----")).toBeInTheDocument();
   });
 });

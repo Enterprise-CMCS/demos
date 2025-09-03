@@ -9,15 +9,15 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
-import { Amendment, Extension } from "demos-server";
+import { Amendment, DemonstrationStatus, Extension } from "demos-server";
 import { formatDate } from "util/formatDate";
 
 export type ModificationTableRow =
   | (Pick<Amendment, "id" | "name" | "effectiveDate"> & {
-      status: Pick<Amendment["amendmentStatus"], "name">;
+      status: Pick<DemonstrationStatus, "name">;
     })
   | (Pick<Extension, "id" | "name" | "effectiveDate"> & {
-      status: Pick<Extension["extensionStatus"], "name">;
+      status: Pick<DemonstrationStatus, "name">;
     });
 
 export function ModificationTable({
@@ -71,9 +71,7 @@ export function ModificationTable({
                 <div>{renderStatus(status.name)}</div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-800">
-                    {effectiveDate ? formatDate(effectiveDate) : "N/A"}
-                  </span>
+                  <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
                   <ChevronRightIcon
                     className={`w-[1.25rem] h-[1.25rem] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
                   />
