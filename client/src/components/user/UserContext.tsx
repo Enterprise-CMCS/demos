@@ -46,17 +46,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const currentUser = (shouldQuery ? (data?.currentUser as CurrentUser | undefined) : null) ?? null;
   const loading = auth.isLoading || (shouldQuery && qLoading);
-  const value = useMemo<UserContextValue>(
+  const userContextValues = useMemo<UserContextValue>(
     () => ({
       currentUser,
       loading,
       error,
       refresh: () => refetch(),
-      hasRole: (name) => !!currentUser?.roles?.some((r) => r.name === name),
+      // Setting the ground work for roles
+      hasRole: (name) => !!currentUser?.roles?.some((role) => role.name === name),
     }),
     [currentUser, loading, error, refetch]
   );
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={userContextValues}>{children}</Ctx.Provider>;
 }
 
 
