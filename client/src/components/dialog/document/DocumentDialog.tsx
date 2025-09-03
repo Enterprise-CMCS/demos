@@ -326,7 +326,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const dialogTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
-  const requiresType = true;
 
   // Use activeDocument for validation if available, otherwise use individual state
   const currentTitle = initialDocument ? activeDocument.title : documentTitle;
@@ -335,7 +334,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const missingTitle = mode === "edit" ? !currentTitle.trim() : false;
   const missingDesc = !currentDescription.trim();
-  const missingType = requiresType && !currentType;
+  const missingType = !currentType;
   const missingFile = !file;
   const isMissing = missingTitle || missingDesc || missingType || missingFile;
 
