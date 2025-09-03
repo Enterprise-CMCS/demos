@@ -15,11 +15,26 @@ vi.mock("config/env", async (importOriginal) => {
   };
 });
 
-vi.mock("react-oidc-context", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useAuth: vi.fn(() => ({})),
-}));
+vi.mock("react-oidc-context", () => {
+  const signinRedirect = vi.fn();
+  const signoutRedirect = vi.fn();
+  const removeUser = vi.fn();
+  const revokeTokens = vi.fn();
 
+  return {
+    AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useAuth: () => ({
+      isAuthenticated: true,      // ← authenticated so RequireAuth doesn't redirect
+      isLoading: false,           // ← not loading so UserProvider will query
+      user: { id_token: "fake" },
+      signinRedirect,
+      signoutRedirect,
+      removeUser,
+      revokeTokens,
+      activeNavigator: undefined,
+    }),
+  };
+});
 vi.mock("./DemosApolloProvider", async () => {
   const React = (await import("react")).default;
   const { MockedProvider } = await import("@apollo/client/testing");
