@@ -5,11 +5,7 @@ import { userMocks } from "mock-data/userMocks";
 import { vi } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
@@ -49,7 +45,7 @@ describe("Header", () => {
   });
 
   it("renders the Create New button", async () => {
-    renderWithProviders(<DefaultHeaderLower userId="1" />);
+    renderWithProviders(<DefaultHeaderLower />);
     expect(await screen.findByTestId("create-new")).toBeInTheDocument(); // ← await
   });
 
@@ -77,5 +73,4 @@ describe("Header", () => {
     fireEvent.click(profileName);
     expect(screen.queryByRole("link", { name: /Sign Out/i })).not.toBeInTheDocument();
   });
-
 });

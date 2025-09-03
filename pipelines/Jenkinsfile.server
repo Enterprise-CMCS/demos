@@ -22,6 +22,8 @@ pipeline {
           sh '''
           npm ci
           npm run lint
+          npx tsc --noEmit --skipLibCheck
+          npm run build:ci
           '''
         }
       }
