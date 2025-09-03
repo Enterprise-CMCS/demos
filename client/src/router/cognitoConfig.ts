@@ -84,8 +84,15 @@ export const logoutRedirect = (): void => {
 };
 
 export const getCognitoConfig = (): CognitoConfig => {
-  const mode = getAppMode();
-  if (mode === "development" || mode === "test") return LOCAL_COGNITO_CONFIG;
-  if (mode === "production") return PRODUCTION_COGNITO_CONFIG;
-  throw new Error(`Cognito configuration for ${mode} is not defined.`);
+  const appMode = getAppMode();
+  switch (appMode) {
+    case "development":
+      return LOCAL_COGNITO_CONFIG;
+    case "test":
+      return LOCAL_COGNITO_CONFIG;
+    case "production":
+      return PRODUCTION_COGNITO_CONFIG;
+    default:
+      throw new Error(`Cognito configuration for ${appMode} is not defined.`);
+  }
 };
