@@ -9,7 +9,7 @@ vi.mock("react-oidc-context", async () => {
   const actual = await import("react-oidc-context");
   return {
     ...actual,
-    withAuthenticationRequired: (Component: React.ComponentType, _options?: any) => Component,
+    withAuthenticationRequired: (Component: React.ComponentType) => Component,
   };
 });
 
