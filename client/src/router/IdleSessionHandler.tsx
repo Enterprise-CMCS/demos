@@ -1,8 +1,11 @@
 import { useIdleTimer } from "react-idle-timer";
-import { logout } from "router/cognitoConfig";
-const IdleSessionHandler = () => {
+import { useAuthActions } from "components/auth/AuthActions";
+
+export const IdleSessionHandler = () => {
+  const { signOut } = useAuthActions();
+
   const onIdle = () => {
-    logout();
+    signOut();
   };
 
   useIdleTimer({
@@ -12,8 +15,4 @@ const IdleSessionHandler = () => {
   });
 
   return null;
-};
-
-export {
-  IdleSessionHandler
 };

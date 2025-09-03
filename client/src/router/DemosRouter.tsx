@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "react-oidc-context";
 import { getCognitoConfig } from "./cognitoConfig";
-import { IdleSessionHandler } from './IdleSessionHandler';
+import { IdleSessionHandler } from "./IdleSessionHandler";
 import { LandingPage } from "pages";
 import { ComponentLibrary, TestHooks } from "pages/debug";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
