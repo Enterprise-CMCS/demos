@@ -126,6 +126,7 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
             label="Demonstration"
             placeholder="Select demonstration"
             isRequired
+            isDisabled={Boolean(demonstrationId)}
             options={demoOptions}
             value={demonstration}
             onSelect={setDemonstration}

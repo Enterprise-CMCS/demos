@@ -21,17 +21,14 @@ vi.mock("components/toast", () => ({
   }),
 }));
 
-vi.mock("hooks/useDemonstration", () => ({
-  useDemonstration: () => ({
-    getAllDemonstrations: {
-      trigger: vi.fn(),
-      data: [
-        { id: "demo-1", name: "Test Demo 1" },
-        { id: "demo-2", name: "Test Demo 2" },
-      ],
-      loading: false,
-      error: null,
-    },
+vi.mock("hooks/useDemonstrationOptions", () => ({
+  useDemonstrationOptions: () => ({
+    demoOptions: [
+      { label: "Test Demo 1", value: "demo-1" },
+      { label: "Test Demo 2", value: "demo-2" },
+    ],
+    loading: false,
+    error: null,
   }),
 }));
 
@@ -154,5 +151,13 @@ describe("ExtensionDialog", () => {
     // The demonstration should be pre-selected but we can't easily test the AutoCompleteSelect value
     // without more complex mocking. For now, just ensure the component renders.
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
+  });
+
+  it("disables demonstration select when data is provided with demonstrationId", () => {
+    render(<ExtensionDialog {...defaultProps} demonstrationId={"testId"} />);
+
+    const demonstrationSelect = screen.getByPlaceholderText("Select demonstration");
+
+    expect(demonstrationSelect).toBeDisabled();
   });
 });

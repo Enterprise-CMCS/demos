@@ -1,10 +1,11 @@
 import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
+import { AddNewIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
 import { ApolloError } from "@apollo/client";
 import { formatDate } from "util/formatDate";
+import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
@@ -31,6 +32,8 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   onDelete,
 }) => {
   const [showButtons, setShowButtons] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [modalType, setModalType] = useState<"amendment" | "extension" | null>(null);
 
   const handleToggleButtons = useCallback(() => {
     setShowButtons((prev) => !prev);
@@ -67,6 +70,12 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     { label: "Effective", value: formatDate(demonstration.effectiveDate) },
     { label: "Expiration", value: formatDate(demonstration.expirationDate) },
   ];
+
+  const handleSelect = (item: string) => {
+    setShowDropdown(false);
+    if (item === "Amendment") setModalType("amendment");
+    else if (item === "Extension") setModalType("extension");
+  };
 
   return (
     <div
@@ -115,26 +124,44 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
         {showButtons && (
           <span className="mr-0.75">
             <CircleButton
-              aria-label="Delete demonstration"
-              className="cursor-pointer flex items-center gap-1 px-1 py-1 mr-0.75"
+              name="Delete demonstration"
               data-testid="delete-button"
               onClick={handleDelete}
             >
               <DeleteIcon width="24" height="24" />
             </CircleButton>
-            <CircleButton
-              aria-label="Edit demonstration"
-              className="cursor-pointer flex items-center gap-1 px-1 py-1"
-              data-testid="edit-button"
-              onClick={handleEdit}
-            >
+            <CircleButton name="Edit demonstration" data-testid="edit-button" onClick={handleEdit}>
               <EditIcon width="24" height="24" />
             </CircleButton>
+            <CircleButton
+              name="Create New"
+              data-testid="create-new-button"
+              onClick={() => setShowDropdown((prev) => !prev)}
+            >
+              <AddNewIcon width="24" height="24" />
+            </CircleButton>
+            {showDropdown && (
+              <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
+                <button
+                  data-testid="button-create-new-amendment"
+                  onClick={() => handleSelect("Amendment")}
+                  className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
+                >
+                  Amendment
+                </button>
+                <button
+                  data-testid="button-create-new-extension"
+                  onClick={() => handleSelect("Extension")}
+                  className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
+                >
+                  Extension
+                </button>
+              </div>
+            )}
           </span>
         )}
         <CircleButton
-          className="cursor-pointer flex items-center gap-1 px-1 py-1"
-          aria-label="Toggle more options"
+          name="Toggle more options"
           data-testid="toggle-ellipsis-button"
           onClick={handleToggleButtons}
         >
@@ -147,6 +174,20 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           </span>
         </CircleButton>
       </div>
+      {modalType === "amendment" && (
+        <AmendmentDialog
+          mode="add"
+          onClose={() => setModalType(null)}
+          demonstrationId={demonstration.id}
+        />
+      )}
+      {modalType === "extension" && (
+        <ExtensionDialog
+          mode="add"
+          onClose={() => setModalType(null)}
+          demonstrationId={demonstration.id}
+        />
+      )}
     </div>
   );
 };

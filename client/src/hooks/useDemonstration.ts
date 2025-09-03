@@ -2,7 +2,6 @@ import { useLazyQuery, useMutation, ApolloError, FetchResult } from "@apollo/cli
 import { Demonstration as ServerDemonstration, CreateDemonstrationInput } from "demos-server";
 import {
   ADD_DEMONSTRATION_MUTATION,
-  GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
@@ -14,13 +13,6 @@ type Demonstration = ServerDemonstration & {
     extensionStatus: { name: string };
   }[];
 };
-
-interface GetAllDemonstrationsOperation {
-  trigger: () => void;
-  data?: Demonstration[];
-  loading: boolean;
-  error?: ApolloError;
-}
 
 // TODO: as the demonstration model changes, this will likely need to be updated
 
@@ -51,24 +43,10 @@ interface UpdateDemonstrationOperation {
 }
 
 export interface DemonstrationOperations {
-  getAllDemonstrations: GetAllDemonstrationsOperation;
   getDemonstrationById: GetDemonstrationByIdOperation;
   addDemonstration: AddDemonstrationOperation;
   updateDemonstration: UpdateDemonstrationOperation;
 }
-
-const createGetAllDemonstrationsHook = (): GetAllDemonstrationsOperation => {
-  const [trigger, { data, loading, error }] = useLazyQuery<{
-    demonstrations: Demonstration[];
-  }>(GET_ALL_DEMONSTRATIONS_QUERY);
-
-  return {
-    trigger,
-    data: data?.demonstrations,
-    loading,
-    error,
-  };
-};
 
 const createGetDemonstrationByIdHook = (): GetDemonstrationByIdOperation => {
   const [trigger, { data, loading, error }] = useLazyQuery<{
@@ -112,7 +90,6 @@ const createUpdateDemonstrationHook = (): UpdateDemonstrationOperation => {
 
 export const useDemonstration = (): DemonstrationOperations => {
   return {
-    getAllDemonstrations: createGetAllDemonstrationsHook(),
     getDemonstrationById: createGetDemonstrationByIdHook(),
     addDemonstration: createAddDemonstrationHook(),
     updateDemonstration: createUpdateDemonstrationHook(),
