@@ -296,7 +296,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [description, setDescription] = useState(initialDescription);
   const [selectedType, setSelectedType] = useState(() => normalizeType(initialType, options));
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
@@ -345,7 +345,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   };
 
   const onUploadClick = async () => {
-    if (isUploading || submitting) return;
+    if (isUploading || isSubmitting) return;
     if (isMissing) {
       showError(ERROR_MESSAGES.missingField);
       focusFirstMissing();
@@ -396,8 +396,8 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
-            aria-disabled={isMissing || isUploading || submitting ? "true" : "false"}
-            disabled={isMissing || isUploading || submitting}
+            aria-disabled={isMissing || isUploading || isSubmitting ? "true" : "false"}
+            disabled={isMissing || isUploading || isSubmitting}
           >
             Upload
           </Button>
