@@ -13,25 +13,6 @@ const renderUseDemonstrationHook = () => {
 };
 
 describe("useDemonstration", () => {
-  describe("getAllDemonstrations", () => {
-    it("should fetch all demonstrations successfully", async () => {
-      const { result } = renderUseDemonstrationHook();
-
-      expect(result.current.getAllDemonstrations.loading).toBe(false);
-      expect(result.current.getAllDemonstrations.data).toBeUndefined();
-
-      result.current.getAllDemonstrations.trigger();
-
-      await waitFor(() => {
-        expect(result.current.getAllDemonstrations.data).toBeDefined();
-        const actualDemonstrations = result.current.getAllDemonstrations.data!;
-        expect(actualDemonstrations.length).toBeGreaterThan(0);
-        expect(actualDemonstrations[0].name).toEqual(mockDemonstrations[0].name);
-      });
-      expect(result.current.getAllDemonstrations.error).toBeUndefined();
-    });
-  });
-
   describe("getDemonstrationById", () => {
     it("should fetch demonstration by id successfully", async () => {
       const { result } = renderUseDemonstrationHook();
@@ -158,10 +139,6 @@ describe("useDemonstration", () => {
       const { result } = renderUseDemonstrationHook();
 
       // Check initial state for all operations
-      expect(result.current.getAllDemonstrations.loading).toBe(false);
-      expect(result.current.getAllDemonstrations.data).toBeUndefined();
-      expect(result.current.getAllDemonstrations.error).toBeUndefined();
-
       expect(result.current.getDemonstrationById.loading).toBe(false);
       expect(result.current.getDemonstrationById.data).toBeUndefined();
       expect(result.current.getDemonstrationById.error).toBeUndefined();
