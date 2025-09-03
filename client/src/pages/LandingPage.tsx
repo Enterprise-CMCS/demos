@@ -6,7 +6,6 @@ import { Demonstrations } from "pages/Demonstrations";
 export const LandingPage: React.FC = () => {
   return (
     <Fragment>
-      {/* <script src="http://localhost:8097"></script> */}
       <Demonstrations />
     </Fragment>
   );

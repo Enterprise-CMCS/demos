@@ -11,7 +11,6 @@ import { Demonstrations } from "pages/Demonstrations";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { DemosApolloProvider } from "./DemosApolloProvider";
-import { SignedOut } from "pages/SignedOut";
 import { isLocalDevelopment } from "config/env";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { UserProvider } from "components/user/UserContext";
@@ -26,9 +25,6 @@ export const DemosRouter = () => {
         <UserProvider>
           <BrowserRouter>
             <Routes>
-              {/* PUBLIC routes */}
-              <Route path="/sign-out" element={<SignedOut />} />
-              {/* PROTECTED routes */}
               <Route
                 element={
                   <RequireAuth>
@@ -42,6 +38,7 @@ export const DemosRouter = () => {
                   </RequireAuth>
                 }
               >
+                {/* Private routes vv */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />

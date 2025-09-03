@@ -5,7 +5,7 @@ import type { UserManagerSettings } from "oidc-client-ts";
 import { WebStorageStateStore } from "oidc-client-ts";
 
 // Strip OIDC callback junk after login
-const onSigninCallback = (): void => {
+const onSigninCallback = () => {
   window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
 };
 
@@ -41,7 +41,7 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   domain: "https://demos-dev-login-user-pool-client.auth.us-east-1.amazoncognito.com",
   client_id: "5p61qososiui75cmclcift45oi",
   redirect_uri: `${window.location.origin}/`,
-  post_logout_redirect_uri: `${window.location.origin}/sign-out`,
+  post_logout_redirect_uri: `${window.location.origin}/`,
   scope: "openid email profile",
 };
 
@@ -54,8 +54,8 @@ const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
     import.meta.env.BASE_URL === "/" ? `${window.location.origin}/` : import.meta.env.BASE_URL,
   post_logout_redirect_uri:
     import.meta.env.BASE_URL === "/"
-      ? `${window.location.origin}/sign-out`
-      : new URL("sign-out", import.meta.env.BASE_URL).toString(),
+      ? `${window.location.origin}/`
+      : new URL("", import.meta.env.BASE_URL).toString(),
   scope: "openid email profile",
 };
 
@@ -79,7 +79,7 @@ export const getCognitoLogoutUrl = (cfg: CognitoConfig): string => {
   return url.toString();
 };
 
-export const logout = (): void => {
+export const logoutRedirect = (): void => {
   window.location.assign(getCognitoLogoutUrl(getCognitoConfig()));
 };
 

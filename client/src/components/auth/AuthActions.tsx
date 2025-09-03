@@ -1,8 +1,5 @@
-// AuthActions.tsx
 import { useAuth } from "react-oidc-context";
-import { getCognitoConfig, getCognitoLogoutUrl } from "router/cognitoConfig";
-
-let signingOut = false;
+import { logoutRedirect } from "router/cognitoConfig";
 
 export function useAuthActions() {
   const auth = useAuth();
@@ -10,17 +7,15 @@ export function useAuthActions() {
   const signIn = () => auth.signinRedirect();
 
   const signOut = async () => {
-    if (signingOut) return;
-    signingOut = true;
-    // prevent RequireAuth from immediately kicking us back to /authorize
+    // Attribute for RequireAuth to not redirect to /authorize.
     sessionStorage.setItem("justLoggedOut", "1");
-
-    // clear SPA tokens first (so UI flips to logged out instantly)
-    try { await auth.removeUser(); } catch {
-      console.warn("Failed removeUser");
+    try {
+      auth.signinSilent?.();
+      auth.removeUser();
+    } catch (error) {
+      console.warn("[Logout] logout failed", error);
     }
-    const url = getCognitoLogoutUrl(getCognitoConfig());
-    window.location.replace(url); // hard-redirect to Cognito Hosted UI logout
+    logoutRedirect();
   };
 
   return {
