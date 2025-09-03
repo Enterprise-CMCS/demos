@@ -166,7 +166,7 @@ export const DemonstrationDetail: React.FC = () => {
       {isTestMode() && headerContent}
 
       {loading && <p>Loading...</p>}
-      {error && <p>Error loading demonstration: {error.message}</p>}
+      {error && <p>Error loading demonstration</p>}
 
       {demonstration && (
         <>
