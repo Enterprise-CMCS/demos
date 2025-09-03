@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 
-import {
-  Button,
-  SecondaryButton,
-} from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
@@ -11,14 +8,8 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
-import {
-  createSuccessMessages,
-  useDialogForm,
-} from "hooks/useDialogForm";
-import {
-  normalizeDemonstrationId,
-  normalizeUserId,
-} from "hooks/user/uuidHelpers";
+import { createSuccessMessages, useDialogForm } from "hooks/useDialogForm";
+import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
 import { tw } from "tags/tw";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
@@ -135,6 +126,7 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
             label="Demonstration"
             placeholder="Select demonstration"
             isRequired
+            isDisabled={Boolean(demonstrationId)}
             options={demoOptions}
             value={demonstration}
             onSelect={setDemonstration}
