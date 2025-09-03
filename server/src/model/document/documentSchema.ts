@@ -40,16 +40,14 @@ export const documentSchema = gql`
   input UploadDocumentInput {
     title: String!
     description: String!
-    ownerUserId: ID!
-    documentTypeId: DocumentType!
+    documentType: DocumentType!
     bundleId: ID!
   }
 
   input UpdateDocumentInput {
     title: String
     description: String
-    ownerUserId: ID
-    documentTypeId: DocumentType
+    documentType: DocumentType
     bundleId: ID
   }
 
@@ -82,15 +80,13 @@ export interface Document {
 export interface UploadDocumentInput {
   title: string;
   description: string;
-  ownerUserId: string;
-  documentTypeId: DocumentType;
+  documentType: DocumentType;
   bundleId: string;
 }
 
 export interface UpdateDocumentInput {
   title?: string;
   description?: string;
-  ownerUserId?: string;
-  documentTypeId?: DocumentType;
+  documentType?: DocumentType;
   bundleId?: string;
 }
