@@ -7,8 +7,6 @@ export function useAuthActions() {
   const signIn = () => auth.signinRedirect();
 
   const signOut = async () => {
-    // Attribute for RequireAuth to not redirect to /authorize.
-    sessionStorage.setItem("justLoggedOut", "1");
     try {
       auth.signinSilent?.();
       auth.removeUser();

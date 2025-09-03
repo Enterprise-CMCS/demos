@@ -1,59 +1,67 @@
+// src/router/DemosRouter.tsx
 import React from "react";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { AuthProvider } from "react-oidc-context";
-import { getCognitoConfig } from "./cognitoConfig";
-import { getAuthProviderProps } from "./cognitoConfig";
-import { LandingPage } from "pages";
-import { ComponentLibrary, TestHooks } from "pages/debug";
-import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
-import { PrimaryLayout } from "layout/PrimaryLayout";
-import { Demonstrations } from "pages/Demonstrations";
-import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
-import { IconLibrary } from "pages/debug/IconLibrary";
-import { DemosApolloProvider } from "./DemosApolloProvider";
-import { isLocalDevelopment } from "config/env";
-import { EventSandbox } from "pages/debug/EventSandbox";
-import { UserProvider } from "components/user/UserContext";
-import { RequireAuth } from "components/auth/RequireAuth";
+import { AuthProvider, withAuthenticationRequired } from "react-oidc-context";
 
-export const DemosRouter = () => {
-  const cognitoConfig = getCognitoConfig();
+import { getCognitoConfig, getAuthProviderProps } from "./cognitoConfig";
+import { DemosApolloProvider } from "./DemosApolloProvider";
+
+import { UserProvider } from "components/user/UserContext";
+import { PrimaryLayout } from "layout/PrimaryLayout";
+
+import { LandingPage } from "pages";
+import { Demonstrations } from "pages/Demonstrations";
+import { DemonstrationDetail } from "pages/DemonstrationDetail";
+import { ComponentLibrary, TestHooks } from "pages/debug";
+import { IconLibrary } from "pages/debug/IconLibrary";
+import { EventSandbox } from "pages/debug/EventSandbox";
+import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
+import { isLocalDevelopment } from "config/env";
+
+// 1) Shell that provides the layout and outlet for child routes
+function ProtectedShell() {
+  return (
+    <PrimaryLayout>
+      <Outlet />
+    </PrimaryLayout>
+  );
+}
+
+// 2) Wrap shell with auth guard
+const ProtectedShellWithAuth = withAuthenticationRequired(ProtectedShell, {
+  OnRedirecting: () => <></>, // or a tiny spinner
+  signinRedirectArgs: {
+    state: { returnUrl: window.location.pathname + window.location.search },
+  },
+});
+
+export const DemosRouter: React.FC = () => {
+  const cfg = getCognitoConfig();
 
   return (
-    <AuthProvider {...getAuthProviderProps(cognitoConfig)}>
+    <AuthProvider {...getAuthProviderProps(cfg)}>
       <DemosApolloProvider>
         <UserProvider>
           <BrowserRouter>
             <Routes>
-              <Route
-                element={
-                  <RequireAuth>
-                    <DemosApolloProvider>
-                      <UserProvider>
-                        <PrimaryLayout>
-                          <Outlet />
-                        </PrimaryLayout>
-                      </UserProvider>
-                    </DemosApolloProvider>
-                  </RequireAuth>
-                }
-              >
-                {/* Private routes vv */}
+              {/* Everything below is protected */}
+              <Route element={<ProtectedShellWithAuth />}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+
                 {isLocalDevelopment() && (
                   <>
-                    <Route path="/components" element={<ComponentLibrary />} />
-                    <Route path="/hooks" element={<TestHooks />} />
-                    <Route path="/icons" element={<IconLibrary />} />
-                    <Route path="/events" element={<EventSandbox />} />
-                    <Route path="/auth" element={<AuthDebugComponent />} />
+                    <Route path="components" element={<ComponentLibrary />} />
+                    <Route path="hooks" element={<TestHooks />} />
+                    <Route path="icons" element={<IconLibrary />} />
+                    <Route path="events" element={<EventSandbox />} />
+                    <Route path="auth" element={<AuthDebugComponent />} />
                   </>
                 )}
               </Route>
 
-              {/* Debug auth route can remain public if you want */}
+              {/* Fallback */}
               <Route path="*" element={<div>404: Page Not Found</div>} />
             </Routes>
           </BrowserRouter>
