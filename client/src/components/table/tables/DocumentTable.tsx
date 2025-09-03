@@ -7,15 +7,8 @@ import {
   EditDocumentDialog,
   RemoveDocumentDialog,
 } from "components/dialog/document/DocumentDialog";
-import {
-  DeleteIcon,
-  EditIcon,
-  ImportIcon,
-} from "components/icons";
-import {
-  DocumentTableRow,
-  useDocument,
-} from "hooks/useDocument";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+import { DocumentTableRow, useDocument } from "hooks/useDocument";
 
 import { ColumnFilter } from "../ColumnFilter";
 import { DocumentColumns } from "../columns/DocumentColumns";
@@ -42,10 +35,12 @@ function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModal
 
     return (
       <EditDocumentDialog
-        documentId={selectedDoc.id}
-        documentTitle={selectedDoc.title}
-        description={selectedDoc.description}
-        documentType={selectedDoc.documentType}
+        initialDocument={{
+          documentType: selectedDoc.documentType,
+          id: selectedDoc.id,
+          title: selectedDoc.title,
+          description: selectedDoc.description,
+        }}
         onClose={onClose}
       />
     );

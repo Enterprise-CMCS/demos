@@ -1,9 +1,8 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, Mock } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 import * as envMod from "config/env";
-
 
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("config/env")>();
@@ -65,7 +64,7 @@ describe("DemosRouter", () => {
   });
 
   it("renders debug routes in development mode", () => {
-    (envMod.isLocalDevelopment as unknown as vi.Mock).mockReturnValue(true);
+    (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(true);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
@@ -81,7 +80,7 @@ describe("DemosRouter", () => {
   });
 
   it("does not render debug routes outside development mode", () => {
-    (envMod.isLocalDevelopment as unknown as vi.Mock).mockReturnValue(false);
+    (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(false);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);

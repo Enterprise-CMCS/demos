@@ -240,7 +240,7 @@ const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
 
 type DocumentDialogProps = {
   onClose?: () => void;
-  isOpen: boolean;
+  isOpen?: boolean;
   mode: DocumentDialogType;
   onSubmit: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
@@ -383,7 +383,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   );
 };
 
-export const AddDocumentDialog: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
+export const AddDocumentDialog: React.FC<{ isOpen?: boolean; onClose: () => void }> = ({
   isOpen,
   onClose,
 }) => {
@@ -403,7 +403,7 @@ export const AddDocumentDialog: React.FC<{ isOpen: boolean; onClose: () => void 
 };
 
 export const EditDocumentDialog: React.FC<{
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   initialDocument: DocumentDialogFields;
 }> = ({ isOpen, initialDocument, onClose }) => {
@@ -431,7 +431,7 @@ export const EditDocumentDialog: React.FC<{
 };
 
 export const RemoveDocumentDialog: React.FC<{
-  isOpen: boolean;
+  isOpen?: boolean;
   documentIds: string[];
   onClose: () => void;
 }> = ({ isOpen, documentIds, onClose }) => {
