@@ -21,9 +21,9 @@ type ContactType =
 
 export type Contact = {
   id: string;
-  fullName?: string | null;
-  email?: string | null;
-  contactType?: ContactType | null;
+  fullName: string | null;
+  email: string | null;
+  contactType: ContactType | null;
 };
 
 const contactsColumnHelper = createColumnHelper<Contact>();

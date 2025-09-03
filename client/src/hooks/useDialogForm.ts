@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { parse } from "date-fns";
 import { useToast } from "components/toast";
 
 export type DialogFormStatus = "idle" | "pending";
@@ -11,8 +11,8 @@ export const createFormDataWithDates = <T extends Record<string, unknown>>(
   expirationDate?: string
 ): T & { effectiveDate?: Date; expirationDate?: Date } => ({
     ...baseData,
-    ...(effectiveDate && { effectiveDate: new Date(effectiveDate) }),
-    ...(expirationDate && { expirationDate: new Date(expirationDate) }),
+    ...(effectiveDate && { effectiveDate: parse(effectiveDate, "yyyy-MM-dd", new Date()) }),
+    ...(expirationDate && { expirationDate: parse(expirationDate, "yyyy-MM-dd", new Date()) }),
   });
 
 export const createSuccessMessages = (addMessage: string, editMessage: string) => ({

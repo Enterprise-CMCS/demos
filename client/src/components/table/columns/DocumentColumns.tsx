@@ -2,7 +2,6 @@
 import * as React from "react";
 
 import { DocumentTableRow } from "hooks/useDocument";
-import { useDocumentType } from "hooks/useDocumentType";
 
 import { createColumnHelper } from "@tanstack/react-table";
 
@@ -11,27 +10,9 @@ import { highlightCell } from "../KeywordSearch";
 import { isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDate } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
+import { DOCUMENT_TYPES } from "demos-server-constants";
 
 export function DocumentColumns() {
-  const { getDocumentTypeOptions } = useDocumentType();
-
-  // Trigger queries on mount
-  React.useEffect(() => {
-    getDocumentTypeOptions.trigger();
-  }, []);
-
-  // Loading and error handling
-  if (getDocumentTypeOptions.loading) {
-    return { loading: true };
-  }
-  if (getDocumentTypeOptions.error) {
-    return {
-      error: getDocumentTypeOptions.error?.message,
-    };
-  }
-  if (!getDocumentTypeOptions.data) {
-    return { error: "Data not found" };
-  }
   const columnHelper = createColumnHelper<DocumentTableRow>();
 
   const documentColumns = [
@@ -46,7 +27,7 @@ export function DocumentColumns() {
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("documentType.name", {
+    columnHelper.accessor("documentType", {
       id: "type",
       header: "Document Type",
       cell: highlightCell,
@@ -54,11 +35,10 @@ export function DocumentColumns() {
       meta: {
         filterConfig: {
           filterType: "select",
-          options:
-            getDocumentTypeOptions.data?.map((documentType) => ({
-              label: documentType.name,
-              value: documentType.name,
-            })) ?? [],
+          options: DOCUMENT_TYPES.map((type) => ({
+            label: type,
+            value: type,
+          })),
         },
       },
     }),
@@ -107,11 +87,7 @@ export function DocumentColumns() {
           window.open(`/documents/${docId}`, "_blank");
         };
         return (
-          <SecondaryButton
-            size="small"
-            onClick={handleClick}
-            className="px-2 py-0 text-sm font-medium"
-          >
+          <SecondaryButton size="small" onClick={handleClick} name="view-document">
             View
           </SecondaryButton>
         );

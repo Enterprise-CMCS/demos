@@ -13,18 +13,12 @@ import { Amendment, Extension } from "demos-server";
 import { formatDate } from "util/formatDate";
 
 export type ModificationTableRow =
-  | {
-      id: Amendment["id"];
-      name: Amendment["name"];
-      effectiveDate: Amendment["effectiveDate"];
+  | (Pick<Amendment, "id" | "name" | "effectiveDate"> & {
       status: Pick<Amendment["amendmentStatus"], "name">;
-    }
-  | {
-      id: Extension["id"];
-      name: Extension["name"];
-      effectiveDate: Extension["effectiveDate"];
+    })
+  | (Pick<Extension, "id" | "name" | "effectiveDate"> & {
       status: Pick<Extension["extensionStatus"], "name">;
-    };
+    });
 
 export function ModificationTable({
   modifications,

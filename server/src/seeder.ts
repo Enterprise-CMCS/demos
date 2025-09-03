@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 
 import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL } from "./constants.js";
 import { prisma } from "./prismaClient.js";
+import { DocumentType } from "./types.js";
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
@@ -58,7 +59,6 @@ function clearDatabase() {
 
     // Documents, which are attached to bundles
     prisma().document.deleteMany(),
-    prisma().documentType.deleteMany(),
 
     // Bundles themselves
     prisma().bundle.deleteMany(),
@@ -206,28 +206,6 @@ async function seedDatabase() {
     });
   }
 
-  console.log("🌱 Seeding bundle types...");
-  await prisma().bundleType.createMany({
-    data: [
-      {
-        id: "DEMONSTRATION",
-        name: "Demonstration",
-        description: "Demonstration bundle type.",
-      },
-      {
-        id: "AMENDMENT",
-        name: "Amendment",
-        description: "Amendment bundle type.",
-      },
-      {
-        id: "EXTENSION",
-        name: "Extension",
-        description: "Extension bundle type.",
-      },
-    ],
-    skipDuplicates: true,
-  });
-
   console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < demonstrationCount; i++) {
     const bundle = await prisma().bundle.create({
@@ -335,47 +313,9 @@ async function seedDatabase() {
     });
   }
 
-  console.log("🌱 Seeding document types...");
-  const documentTypes = [
-    {
-      name: "Demonstration Application",
-      description: "Demonstration application file.",
-    },
-    {
-      name: "Budget Proposal",
-      description: "Proposed budget for the project.",
-    },
-    {
-      name: "Elected Official Endorsement",
-      description: "Endorsement by elected official.",
-    },
-    {
-      name: "Conflict of Interest Disclosure",
-      description: "Conflict of interest disclosure.",
-    },
-    { name: "Deviation Report", description: "Report of a deviation." },
-    { name: "Expense Table", description: "Expense table." },
-    {
-      name: "Intentionally Omitted",
-      description:
-        "A document type intended not to be used, to allow for zero-count joins.",
-    },
-    {
-      name: "Amendment Application",
-      description: "Application for an amendment.",
-    },
-  ];
-  for (const documentType of documentTypes) {
-    await prisma().documentType.create({
-      data: {
-        id: makeIdStyleString(documentType.name),
-        name: documentType.name,
-        description: documentType.description,
-      },
-    });
-  }
-
   console.log("🌱 Seeding documents...");
+  // Get the application document type
+  const applicationDocumentType: DocumentType = "State Application";
   // Every demonstration has an application
   const demonstrationIds = await prisma().demonstration.findMany({
     select: {
@@ -390,19 +330,15 @@ async function seedDatabase() {
         description: "Application for " + fakeTitle,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: "DEMONSTRATION_APPLICATION",
+        documentTypeId: applicationDocumentType,
         bundleId: demonstrationId.id,
       },
     });
   }
-  // Every amendment has an application
+  // Every amendment and extension has an application
   const amendmentIds = await prisma().modification.findMany({
-    select: {
-      id: true,
-    },
-    where: {
-      bundleTypeId: BUNDLE_TYPE.AMENDMENT,
-    },
+    select: { id: true },
+    where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
   });
   for (const amendmentId of amendmentIds) {
     const fakeTitle = faker.lorem.sentence(2);
@@ -412,18 +348,15 @@ async function seedDatabase() {
         description: "Application for " + fakeTitle,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: "DEMONSTRATION_APPLICATION",
+        documentTypeId: applicationDocumentType,
         bundleId: amendmentId.id,
       },
     });
   }
-
-  console.log("🌱 Seeding extension application documents...");
   const extensionIds = await prisma().modification.findMany({
     select: { id: true },
     where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
   });
-
   for (const extensionId of extensionIds) {
     const fakeTitle = faker.lorem.sentence(2);
     await prisma().document.create({
@@ -432,7 +365,7 @@ async function seedDatabase() {
         description: "Application for " + fakeTitle,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: "DEMONSTRATION_APPLICATION",
+        documentTypeId: applicationDocumentType,
         bundleId: extensionId.id,
       },
     });
@@ -440,22 +373,15 @@ async function seedDatabase() {
 
   // Now, the rest can be largely randomized
   for (let i = 0; i < documentCount; i++) {
+    // It is easier to just pull from the DB than to sample randomly from the constant
     const documentTypeId = await prisma().documentType.findRandom({
       select: {
         id: true,
       },
       where: {
-        NOT: {
-          id: {
-            in: [
-              "DEMONSTRATION_APPLICATION",
-              "INTENTIONALLY_OMITTED",
-              "AMENDMENT_APPLICATION",
-            ],
-          },
-        },
-      },
-    });
+        NOT: { id: applicationDocumentType },
+        }
+      })
     await prisma().document.create({
       data: {
         title: faker.lorem.sentence(2),

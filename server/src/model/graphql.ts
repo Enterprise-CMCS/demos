@@ -7,9 +7,6 @@ import { demonstrationStatusResolvers } from "./demonstrationStatus/demonstratio
 import { documentSchema } from "./document/documentSchema.js";
 import { documentResolvers } from "./document/documentResolvers.js";
 
-import { documentTypeSchema } from "./documentType/documentTypeSchema.js";
-import { documentTypeResolvers } from "./documentType/documentTypeResolver.js";
-
 import { eventSchema, eventResolvers } from "./event/index.js";
 
 import { modificationSchema } from "./modification/modificationSchema.js";
@@ -46,7 +43,6 @@ export const typeDefs = [
   demonstrationSchema,
   demonstrationStatusSchema,
   documentSchema,
-  documentTypeSchema,
   eventSchema,
   modificationSchema,
   modificationStatusSchema,
@@ -61,7 +57,6 @@ export const resolvers = [
   demonstrationResolvers,
   demonstrationStatusResolvers,
   documentResolvers,
-  documentTypeResolvers,
   eventResolvers,
   modificationResolvers,
   modificationStatusResolvers,

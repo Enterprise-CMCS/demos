@@ -1,11 +1,27 @@
 import { gql } from "graphql-tag";
 
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
-import { DocumentType } from "../documentType/documentTypeSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
+import { DocumentType } from "../../types.js";
 
 export const documentSchema = gql`
+  """
+  A string representing a document type. Expected values are:
+  - Application Completeness Letter
+  - Approval Letter
+  - Final BN Worksheet
+  - Final Budget Neutrality Formulation Workbook
+  - Formal OMB Policy Concurrence Email
+  - General File
+  - Internal Completeness Review Form
+  - Payment Ratio Analysis
+  - Pre-Submission
+  - Q&A
+  - Signed Decision Memo
+  - State Application
+  """
+  scalar DocumentType
   union Bundle = Demonstration | Amendment | Extension
 
   type Document {
@@ -24,16 +40,14 @@ export const documentSchema = gql`
   input UploadDocumentInput {
     title: String!
     description: String!
-    ownerUserId: ID!
-    documentTypeId: String!
+    documentType: DocumentType!
     bundleId: ID!
   }
 
   input UpdateDocumentInput {
     title: String
     description: String
-    ownerUserId: ID
-    documentTypeId: String
+    documentType: DocumentType
     bundleId: ID
   }
 
@@ -66,15 +80,13 @@ export interface Document {
 export interface UploadDocumentInput {
   title: string;
   description: string;
-  ownerUserId: string;
-  documentTypeId: string;
+  documentType: DocumentType;
   bundleId: string;
 }
 
 export interface UpdateDocumentInput {
   title?: string;
   description?: string;
-  ownerUserId?: string;
-  documentTypeId?: string;
+  documentType?: DocumentType;
   bundleId?: string;
 }

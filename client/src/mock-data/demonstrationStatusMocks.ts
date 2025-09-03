@@ -1,20 +1,13 @@
 import { DemonstrationStatus } from "demos-server";
 
-export const activeDemonstrationStatus: DemonstrationStatus = {
-  id: "1",
-  name: "Active",
-  createdAt: new Date("2025-01-01"),
-  updatedAt: new Date("2025-01-01"),
-  description: "Active Demonstration Status",
-  demonstrations: [],
-};
+export type MockDemonstrationStatus = Pick<DemonstrationStatus, "id" | "name">;
 
-export const demonstrationStatusOptions: Pick<DemonstrationStatus, "name">[] = [
-  { name: "Approved" },
-  { name: "Pending" },
-  { name: "Expired" },
-  { name: "Withdrawn" },
-  { name: "Rejected" },
-  { name: "Active" },
-  { name: "Inactive" },
+export const mockDemonstrationStatuses: MockDemonstrationStatus[] = [
+  { id: "1", name: "Pending" },
+  { id: "2", name: "Approved" },
+  { id: "3", name: "Active" },
+  { id: "4", name: "Rejected" },
+  { id: "5", name: "Inactive" },
+  { id: "6", name: "Expired" },
+  { id: "7", name: "Withdrawn" },
 ];
