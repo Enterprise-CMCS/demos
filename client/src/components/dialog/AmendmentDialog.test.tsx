@@ -21,17 +21,14 @@ vi.mock("components/toast", () => ({
   }),
 }));
 
-vi.mock("hooks/useDemonstration", () => ({
-  useDemonstration: () => ({
-    getAllDemonstrations: {
-      trigger: vi.fn(),
-      data: [
-        { id: "demo-1", name: "Test Demo 1" },
-        { id: "demo-2", name: "Test Demo 2" },
-      ],
-      loading: false,
-      error: null,
-    },
+vi.mock("hooks/useDemonstrationOptions", () => ({
+  useDemonstrationOptions: () => ({
+    demoOptions: [
+      { label: "Test Demo 1", value: "demo-1" },
+      { label: "Test Demo 2", value: "demo-2" },
+    ],
+    loading: false,
+    error: null,
   }),
 }));
 
@@ -135,5 +132,13 @@ describe("AmendmentDialog", () => {
 
     expect(titleInput).toBeInTheDocument();
     expect(descriptionInput).toBeInTheDocument();
+  });
+
+  it("disables demonstration select when data is provided with demonstrationId", () => {
+    render(<AmendmentDialog {...defaultProps} demonstrationId={"testId"} />);
+
+    const demonstrationSelect = screen.getByPlaceholderText("Select demonstration");
+
+    expect(demonstrationSelect).toBeDisabled();
   });
 });
