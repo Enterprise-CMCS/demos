@@ -95,8 +95,8 @@ export interface Amendment {
   demonstration: Demonstration;
   name: string;
   description: string;
-  effectiveDate?: Date;
-  expirationDate?: Date;
+  effectiveDate: Date | null;
+  expirationDate: Date | null;
   createdAt: Date;
   updatedAt: Date;
   amendmentStatus: AmendmentStatus;
@@ -127,8 +127,8 @@ export interface Extension {
   demonstration: Demonstration;
   name: string;
   description: string;
-  effectiveDate?: Date;
-  expirationDate?: Date;
+  effectiveDate: Date | null;
+  expirationDate?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   extensionStatus: ExtensionStatus;
