@@ -6,7 +6,7 @@ import { tw } from "tags/tw";
 
 interface BaseDialogProps {
   title: string;
-  isOpen?: boolean;
+  isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
   actions?: React.ReactNode;

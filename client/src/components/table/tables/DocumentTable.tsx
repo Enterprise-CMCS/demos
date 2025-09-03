@@ -26,7 +26,7 @@ interface DocumentModalsProps {
 
 function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModalsProps) {
   if (displayedModal === "add") {
-    return <AddDocumentDialog onClose={onClose} />;
+    return <AddDocumentDialog isOpen={true} onClose={onClose} />;
   }
   if (displayedModal === "edit" && selectedDocs.length === 1) {
     const selectedDoc = selectedDocs[0];
@@ -41,13 +41,14 @@ function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModal
           title: selectedDoc.title,
           description: selectedDoc.description,
         }}
+        isOpen={true}
         onClose={onClose}
       />
     );
   }
   if (displayedModal === "remove" && selectedDocs.length > 0) {
     const selectedIds = selectedDocs.map((doc) => doc.id);
-    return <RemoveDocumentDialog documentIds={selectedIds} onClose={onClose} />;
+    return <RemoveDocumentDialog isOpen={true} documentIds={selectedIds} onClose={onClose} />;
   }
   return null;
 }
