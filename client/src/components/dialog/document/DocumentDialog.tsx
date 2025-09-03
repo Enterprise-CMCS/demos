@@ -1,38 +1,16 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  Button,
-  ErrorButton,
-  SecondaryButton,
-} from "components/button";
+import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import {
-  ErrorIcon,
-  ExitIcon,
-  FileIcon,
-} from "components/icons";
+import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
-import {
-  Document,
-  DocumentType,
-} from "demos-server";
+import { Document, DocumentType } from "demos-server";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import {
-  ErrorMessage,
-  UploadStatus,
-  useFileUpload,
-} from "hooks/file/useFileUpload";
+import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
 import { tw } from "tags/tw";
 
@@ -106,7 +84,7 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
   progress,
   uploadStatus,
 }) => {
-  const color = (
+  const progressBarColor = (
     {
       error: "bg-red-500",
       success: "bg-green-500",
@@ -119,7 +97,7 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
       <div
         role="progressbar"
         data-testid="upload-progress-bar"
-        className={`h-full transition-all ease-in-out duration-500 ${color}`}
+        className={`h-full transition-all ease-in-out duration-500 ${progressBarColor}`}
         style={{ width: `${progress}%` }}
       />
     </div>
@@ -319,7 +297,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
   }, [mode, file, titleManuallyEdited, documentTitle]);
 
-  const modalTitle = mode === "edit" ? "Edit Document" : "Add New Document";
+  const dialogTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
   const requiresType = true;
 
@@ -377,7 +355,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   return (
     <BaseDialog
-      title={modalTitle}
+      title={dialogTitle}
       isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
