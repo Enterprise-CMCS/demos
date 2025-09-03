@@ -229,9 +229,13 @@ const DropTarget: React.FC<{
   );
 };
 
-export type DocumentDialogFields = Pick<Document, "id" | "title" | "description" | "documentType">;
+export type DocumentDialogFields = Pick<
+  Document,
+  "id" | "title" | "description" | "documentType"
+> & { file: File | null };
 
 const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
+  file: null,
   id: "",
   title: "",
   description: "",
@@ -387,8 +391,9 @@ export const AddDocumentDialog: React.FC<{ isOpen: boolean; onClose: () => void 
   isOpen,
   onClose,
 }) => {
+  const { showError, showSuccess } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
-  const handleUpload = async (dialogFields: DocumentDialogFields) => {
+  const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
     const uploadDocumentInput: UploadDocumentInput = {
       bundleId: dialogFields.id,
       title: dialogFields.title,
@@ -396,7 +401,25 @@ export const AddDocumentDialog: React.FC<{ isOpen: boolean; onClose: () => void 
       documentType: dialogFields.documentType,
     };
 
-    uploadDocumentTrigger({ variables: { input: uploadDocumentInput } });
+    const uploadDocumentResponse = await uploadDocumentTrigger({
+      variables: { input: uploadDocumentInput },
+    });
+    const presignedURL = uploadDocumentResponse.data?.uploadDocument ?? null;
+
+    if (!presignedURL) {
+      throw new Error("Could not get presigned URL from the client");
+    }
+
+    const putResponse = await fetch(presignedURL, {
+      method: "PUT",
+      body: dialogFields.file,
+    });
+
+    if (putResponse.ok) {
+      showSuccess("File uploaded successfully");
+    } else {
+      showError("Failed to upload file");
+    }
   };
 
   return <DocumentDialog isOpen={isOpen} mode="add" onClose={onClose} onSubmit={handleUpload} />;
