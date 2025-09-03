@@ -31,6 +31,8 @@ export const johnDoe: User = {
   demonstrations: [],
   events: [],
   ownedDocuments: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 export const userOptions: Pick<User, "fullName">[] = [

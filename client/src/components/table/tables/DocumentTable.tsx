@@ -48,7 +48,7 @@ function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModal
   }
   if (displayedModal === "remove" && selectedDocs.length > 0) {
     const selectedIds = selectedDocs.map((doc) => doc.id);
-    return <RemoveDocumentDialog documentIds={selectedIds} onClose={onClose} />;
+    return <RemoveDocumentDialog isOpen={true} documentIds={selectedIds} onClose={onClose} />;
   }
   return null;
 }
