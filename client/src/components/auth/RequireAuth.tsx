@@ -24,6 +24,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     }
   }, [processing, auth.isAuthenticated, auth.signinRedirect]);
 
+  // If you get stuck in a login loop with a blank page. Check this!
   if (processing || !auth.isAuthenticated) return null;
 
   return <>{children}</>;
