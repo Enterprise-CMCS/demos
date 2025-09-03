@@ -1,16 +1,38 @@
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import { Button, ErrorButton, SecondaryButton } from "components/button";
+import {
+  Button,
+  ErrorButton,
+  SecondaryButton,
+} from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
+import {
+  ErrorIcon,
+  ExitIcon,
+  FileIcon,
+} from "components/icons";
 import { TextInput } from "components/input";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
-import { Document, DocumentType } from "demos-server";
+import {
+  Document,
+  DocumentType,
+} from "demos-server";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
+import {
+  ErrorMessage,
+  UploadStatus,
+  useFileUpload,
+} from "hooks/file/useFileUpload";
 import { DELETE_DOCUMENTS_QUERY } from "queries/documentQueries";
 import { tw } from "tags/tw";
 
@@ -192,7 +214,6 @@ const DropTarget: React.FC<{
   );
 };
 
-// Inputs
 const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
   value,
   onChange,
@@ -245,7 +266,6 @@ const DocumentTypeInput: React.FC<{
   />
 );
 
-// Props
 export type DocumentDialogProps = {
   isOpen?: boolean;
   onClose?: () => void;
@@ -254,7 +274,7 @@ export type DocumentDialogProps = {
   initialTitle?: string;
   initialDescription?: string;
   initialType?: DocumentType;
-  documentTypeOptions?: Option[]; // allow story-specific list & ordering
+  documentTypeOptions?: Option[];
 };
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
@@ -288,12 +308,10 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
     onErrorCallback: (msg: ErrorMessage) => showError(msg),
   });
 
-  // Keep type in sync if prop changes
   useEffect(() => {
     setSelectedType((prev) => normalizeType(prev || initialType, options));
   }, [initialType, options]);
 
-  // Auto-populate title on Add ONLY until the user edits it
   useEffect(() => {
     if (mode === "add" && file && !titleManuallyEdited && !documentTitle.trim()) {
       const base = file.name.replace(/\.[^.]+$/, "");
@@ -303,9 +321,9 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const modalTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
-  const requiresType = true; // required on both add & edit per new UI
+  const requiresType = true;
 
-  const missingTitle = mode === "edit" ? !documentTitle.trim() : false; // keep original rule
+  const missingTitle = mode === "edit" ? !documentTitle.trim() : false;
   const missingDesc = !description.trim();
   const missingType = requiresType && !selectedType;
   const missingFile = !file;
@@ -337,7 +355,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   };
 
   const handleUpload = async () => {
-    // Demo no-op; wire to mutation
     const success = true;
     try {
       setSubmitting(true);
@@ -356,7 +373,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const clearFile = () => {
     setFile(null);
-    // keep title if user typed it; do not clear
   };
 
   return (
@@ -401,7 +417,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
         value={documentTitle}
         onChange={(val) => {
           setDocumentTitle(val);
-          setTitleManuallyEdited(true); // user took control
+          setTitleManuallyEdited(true);
         }}
       />
 
@@ -412,7 +428,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   );
 };
 
-// Export for backward compatibility with tests
 export type DocumentDialogFields = Pick<Document, "id" | "title" | "description" | "documentType">;
 
 export const AddDocumentDialog: React.FC<{
@@ -432,9 +447,7 @@ export const EditDocumentDialog: React.FC<{
   isOpen?: boolean;
   onClose: () => void;
   documentTypeOptions?: Option[];
-  // Support both patterns for backward compatibility
   initialDocument?: DocumentDialogFields;
-  // Individual props (current pattern)
   documentId?: string;
   documentTitle?: string;
   description?: string;
@@ -449,7 +462,6 @@ export const EditDocumentDialog: React.FC<{
   description,
   documentType,
 }) => {
-  // Use initialDocument if provided, otherwise use individual props
   const title = initialDocument?.title ?? documentTitle ?? "";
   const desc = initialDocument?.description ?? description ?? "";
   const type = (initialDocument?.documentType ?? documentType ?? "") as DocumentType | "";
