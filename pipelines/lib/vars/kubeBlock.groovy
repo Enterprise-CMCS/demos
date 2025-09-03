@@ -16,10 +16,10 @@ def call(Map params = [:]) {
   tty: true
   resources:
     requests:
-      cpu: 750m
+      cpu: ${opts.NODE_CPU_REQUEST ?: '2000m'}
       memory: 2Gi
     limits:
-      cpu: 1500m
+      cpu: ${opts.NODE_CPU_LIMIT ?: '4000m'}
       memory: 4Gi
 """,
       'aws-cli': """

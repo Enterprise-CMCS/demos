@@ -1,7 +1,9 @@
+@Library('demos-lib@pipeline-speed-test') _
+
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["node", "scanner","snyk"])
+      yaml kubeBlock(containerNames:["node", "scanner","snyk"], opts: [NODE_CPU_REQUEST: '2000m', NODE_CPU_LIMIT: '4000m'])
     }
   }
 
