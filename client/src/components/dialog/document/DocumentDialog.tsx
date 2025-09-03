@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -21,11 +21,6 @@ import { tw } from "tags/tw";
 import { useMutation } from "@apollo/client";
 
 type DocumentDialogType = "add" | "edit";
-
-const DEFAULT_TYPE_OPTIONS: Option[] = DOCUMENT_TYPES.map((type) => ({
-  label: type,
-  value: type,
-}));
 
 const STYLES = {
   label: tw`block text-sm font-bold text-text-font mb-xs`,
@@ -71,12 +66,6 @@ const unknownErrorText = (mode: DocumentDialogType) =>
   mode === "edit"
     ? "Your changes could not be saved because of an unknown problem."
     : "Your document could not be added because of an unknown problem.";
-
-const normalizeType = (doctype?: string, options: Option[] = DEFAULT_TYPE_OPTIONS) => {
-  if (!doctype) return "";
-  if (options.some((o) => o.value === doctype)) return doctype;
-  return options.find((o) => o.label === doctype)?.value ?? "";
-};
 
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
@@ -237,22 +226,30 @@ const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
 const DocumentTypeInput: React.FC<{
   value?: string;
   onSelect?: (value: string) => void;
-  options: Option[];
-}> = ({ value, onSelect, options }) => (
-  <AutoCompleteSelect
-    id="document-type"
-    label="Document Type"
-    options={options}
-    value={value}
-    onSelect={(selectedValue) => onSelect?.(selectedValue)}
-  />
-);
+  options?: Option[];
+}> = ({ value, onSelect, options }) => {
+  const DOCUMENT_TYPE_OPTIONS: Option[] =
+    options ||
+    DOCUMENT_TYPES.map((type) => ({
+      label: type,
+      value: type,
+    }));
+
+  return (
+    <AutoCompleteSelect
+      id="document-type"
+      label="Document Type"
+      options={DOCUMENT_TYPE_OPTIONS}
+      value={value}
+      onSelect={(selectedValue) => onSelect?.(selectedValue)}
+    />
+  );
+};
 
 export type DocumentDialogProps = {
-  isOpen?: boolean;
+  isOpen: boolean;
   onClose?: () => void;
   mode: DocumentDialogType;
-  forDocumentId?: string;
   initialTitle?: string;
   initialDescription?: string;
   initialType?: DocumentType;
@@ -262,7 +259,7 @@ export type DocumentDialogProps = {
 };
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
-  isOpen = true,
+  isOpen,
   onClose = () => {},
   mode,
   initialTitle = "",
@@ -273,12 +270,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
-  const options = useMemo(
-    () => (documentTypeOptions?.length ? documentTypeOptions : DEFAULT_TYPE_OPTIONS),
-    [documentTypeOptions]
-  );
 
-  // Use Tresdon's activeDocument pattern if initialDocument is provided, otherwise use individual state
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(() => {
     if (initialDocument) {
       return initialDocument;
@@ -287,14 +279,11 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
       ...EMPTY_DOCUMENT_FIELDS,
       title: initialTitle,
       description: initialDescription,
-      documentType: (normalizeType(initialType, options) as DocumentType) || "General File",
+      documentType: (initialType as DocumentType) || "General File",
     };
   });
 
-  const [documentTitle, setDocumentTitle] = useState(initialTitle);
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
-  const [description, setDescription] = useState(initialDescription);
-  const [selectedType, setSelectedType] = useState(() => normalizeType(initialType, options));
   const [isSubmitting, setSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
@@ -308,33 +297,24 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   });
 
   useEffect(() => {
-    setSelectedType((prev) => normalizeType(prev || initialType, options));
     if (initialDocument) {
       setActiveDocument(initialDocument);
     }
-  }, [initialType, options, initialDocument]);
+  }, [initialDocument]);
 
   useEffect(() => {
-    if (mode === "add" && file && !titleManuallyEdited && !documentTitle.trim()) {
+    if (mode === "add" && file && !titleManuallyEdited && !activeDocument.title.trim()) {
       const base = file.name.replace(/\.[^.]+$/, "");
-      setDocumentTitle(base);
-      if (initialDocument) {
-        setActiveDocument((prev) => ({ ...prev, title: base }));
-      }
+      setActiveDocument((prev) => ({ ...prev, title: base }));
     }
-  }, [mode, file, titleManuallyEdited, documentTitle, initialDocument]);
+  }, [mode, file, titleManuallyEdited, activeDocument.title]);
 
   const dialogTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
 
-  // Use activeDocument for validation if available, otherwise use individual state
-  const currentTitle = initialDocument ? activeDocument.title : documentTitle;
-  const currentDescription = initialDocument ? activeDocument.description : description;
-  const currentType = initialDocument ? activeDocument.documentType : selectedType;
-
-  const missingTitle = mode === "edit" ? !currentTitle.trim() : false;
-  const missingDesc = !currentDescription.trim();
-  const missingType = !currentType;
+  const missingTitle = mode === "edit" ? !activeDocument.title.trim() : false;
+  const missingDesc = !activeDocument.description.trim();
+  const missingType = !activeDocument.documentType;
   const missingFile = !file;
   const isMissing = missingTitle || missingDesc || missingType || missingFile;
 
@@ -368,16 +348,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
       setSubmitting(true);
 
       if (onSubmit) {
-        // Use Tresdon's pattern with activeDocument
-        const submitData = initialDocument
-          ? activeDocument
-          : {
-            id: "",
-            title: currentTitle,
-            description: currentDescription,
-            documentType: currentType as DocumentType,
-          };
-        await onSubmit(submitData);
+        await onSubmit(activeDocument);
       }
 
       showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
@@ -432,36 +403,27 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
       />
 
       <TitleInput
-        value={initialDocument ? activeDocument.title : documentTitle}
+        value={activeDocument.title}
         onChange={(val) => {
-          setDocumentTitle(val);
+          setActiveDocument((prev) => ({ ...prev, title: val }));
           setTitleManuallyEdited(true);
-          if (initialDocument) {
-            setActiveDocument((prev) => ({ ...prev, title: val }));
-          }
         }}
       />
 
       <DescriptionInput
         ref={descriptionRef}
-        value={initialDocument ? activeDocument.description : description}
+        value={activeDocument.description}
         onChange={(val) => {
-          setDescription(val);
-          if (initialDocument) {
-            setActiveDocument((prev) => ({ ...prev, description: val }));
-          }
+          setActiveDocument((prev) => ({ ...prev, description: val }));
         }}
       />
 
       <DocumentTypeInput
-        value={initialDocument ? activeDocument.documentType : selectedType}
+        value={activeDocument.documentType}
         onSelect={(val) => {
-          setSelectedType(val);
-          if (initialDocument) {
-            setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }));
-          }
+          setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }));
         }}
-        options={options}
+        options={documentTypeOptions}
       />
     </BaseDialog>
   );
@@ -477,10 +439,10 @@ const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
 };
 
 export const AddDocumentDialog: React.FC<{
-  isOpen?: boolean;
+  isOpen: boolean;
   onClose: () => void;
   documentTypeOptions?: Option[];
-}> = ({ isOpen = true, onClose, documentTypeOptions }) => {
+}> = ({ isOpen, onClose, documentTypeOptions }) => {
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
 
   const handleUpload = async (dialogFields: DocumentDialogFields) => {
@@ -506,7 +468,7 @@ export const AddDocumentDialog: React.FC<{
 };
 
 export const EditDocumentDialog: React.FC<{
-  isOpen?: boolean;
+  isOpen: boolean;
   onClose: () => void;
   documentTypeOptions?: Option[];
   initialDocument?: DocumentDialogFields;
@@ -515,7 +477,7 @@ export const EditDocumentDialog: React.FC<{
   description?: string;
   documentType?: DocumentType;
 }> = ({
-  isOpen = true,
+  isOpen,
   onClose,
   documentTypeOptions,
   initialDocument,
@@ -526,7 +488,6 @@ export const EditDocumentDialog: React.FC<{
 }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
-  // Use Tresdon's pattern if initialDocument is provided, otherwise use individual props
   const editDocument = initialDocument || {
     id: documentId || "",
     title: documentTitle || "",
@@ -558,10 +519,10 @@ export const EditDocumentDialog: React.FC<{
 };
 
 export const RemoveDocumentDialog: React.FC<{
-  isOpen?: boolean;
+  isOpen: boolean;
   documentIds: string[];
   onClose: () => void;
-}> = ({ isOpen = true, documentIds, onClose }) => {
+}> = ({ isOpen, documentIds, onClose }) => {
   const { showWarning, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
