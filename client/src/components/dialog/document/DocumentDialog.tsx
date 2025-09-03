@@ -20,15 +20,6 @@ import { tw } from "tags/tw";
 
 import { useMutation } from "@apollo/client";
 
-/**
- * Goals from DEMOS-680:
- *  - Field order per new UI
- *  - Title on Add & Edit (auto from file on Add)
- *  - File chip + progress + remove
- *  - Required: Description, Type, File (Title required on Edit)
- *  - Keep cancel-confirm, toasts, limits
- */
-
 type DocumentDialogType = "add" | "edit";
 
 const STYLES = {
