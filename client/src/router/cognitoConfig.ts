@@ -29,10 +29,10 @@ const BASE_COGNITO_CONFIG: OidcSettingsSubset = {
   onSigninCallback,
   automaticSilentRenew: true,
   userStore: new WebStorageStateStore({ store: window.localStorage }),
-  authority: "",
-  client_id: "",
-  redirect_uri: "",
-  scope: "",
+  authority: import.meta.env.VITE_COGNITO_AUTHORITY!,
+  client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,
+  redirect_uri: `${window.location.origin}/`,
+  scope: "openid email profile",
 };
 
 export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
@@ -42,7 +42,6 @@ export const LOCAL_COGNITO_CONFIG: CognitoConfig = {
   client_id: "5p61qososiui75cmclcift45oi",
   redirect_uri: `${window.location.origin}/`,
   post_logout_redirect_uri: `${window.location.origin}/`,
-  scope: "openid email profile",
 };
 
 const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
@@ -56,7 +55,6 @@ const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
     import.meta.env.BASE_URL === "/"
       ? `${window.location.origin}/`
       : new URL("", import.meta.env.BASE_URL).toString(),
-  scope: "openid email profile",
 };
 
 /** Only pass the OIDC fields to <AuthProvider/>. */
