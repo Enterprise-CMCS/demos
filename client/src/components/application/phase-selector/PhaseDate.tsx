@@ -33,7 +33,6 @@ export const PhaseDate = ({ phaseStatus, date }: { phaseStatus: PhaseStatus; dat
         {PHASE_DATE_TEXT_LOOKUP[phaseStatus]}
       </span>
       <span className={PHASE_DATE_STYLE_LOOKUP[phaseStatus]}>
-        {" "}
         {date ? formatDate(date) : "--/--/----"}
       </span>
     </div>
