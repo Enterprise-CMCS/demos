@@ -62,13 +62,22 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
       </div>
     );
   }
+  {
+    date ? formatDate(date) : "--/--/----";
+  }
 
   const displayFields = [
     { label: "State/Territory", value: demonstration.state.id },
     { label: "Project Officer", value: demonstration.projectOfficer.fullName },
     { label: "Status", value: demonstration.demonstrationStatus.name },
-    { label: "Effective", value: formatDate(demonstration.effectiveDate) },
-    { label: "Expiration", value: formatDate(demonstration.expirationDate) },
+    {
+      label: "Effective",
+      value: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----",
+    },
+    {
+      label: "Expiration",
+      value: demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "--/--/----",
+    },
   ];
 
   const handleSelect = (item: string) => {

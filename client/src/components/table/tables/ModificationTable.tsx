@@ -71,7 +71,9 @@ export function ModificationTable({
                 <div>{renderStatus(status.name)}</div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-800">{formatDate(effectiveDate)}</span>
+                  <span className="text-sm text-gray-800">
+                    {effectiveDate ? formatDate(effectiveDate) : "--/--/----"}
+                  </span>
                   <ChevronRightIcon
                     className={`w-[1.25rem] h-[1.25rem] text-[var(--color-action)] transform transition-transform duration-200 ${isExpanded ? "rotate-90" : "rotate-0"}`}
                   />
