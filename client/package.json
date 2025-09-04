@@ -52,6 +52,7 @@
   "scripts": {
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "vite build",
+    "build:ts": "npx tsc --noEmit --skipLibCheck && vite build",
     "coverage": "vitest --coverage",
     "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
     "dev": "vite --host",
