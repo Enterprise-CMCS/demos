@@ -81,13 +81,65 @@ const getTypeOfGqlField = (field) => {
 
 // Gets normalized field information from the TypeScript AST
 const getTsFieldInfo = (field) => {
+  // Handle different field structures
+  const fieldName = field.key?.name || field.key?.value;
+
+  if (!fieldName) {
+    throw new Error(`Unable to determine field name for field: ${JSON.stringify(field, null, 2)}`);
+  }
+
+  const getTypeFromAnnotation = (typeAnnotation) => {
+    switch (typeAnnotation.type) {
+      case "TSUnionType": {
+        // Handle union types like "obj | null"
+        const nonNullTypes = typeAnnotation.types.filter(
+          (t) => !(t.type === "TSNullKeyword" || t.type === "TSUndefinedKeyword")
+        );
+
+        if (nonNullTypes.length === 1) {
+          const mainType = nonNullTypes[0];
+          if (mainType.type === "TSTypeReference") {
+            return mainType.typeName.name;
+          }
+          return TS_AST_TYPE_TO_NORMALIZED_TYPE[mainType.type] || mainType.type;
+        }
+
+        // If multiple non-null types, return the union as-is (fallback)
+        return typeAnnotation.types
+          .map((t) =>
+            t.type === "TSTypeReference"
+              ? t.typeName.name
+              : TS_AST_TYPE_TO_NORMALIZED_TYPE[t.type] || t.type
+          )
+          .join(" | ");
+      }
+      case "TSTypeReference":
+        return typeAnnotation.typeName.name;
+
+      case "TSArrayType":
+        return LIST;
+
+      default:
+        return TS_AST_TYPE_TO_NORMALIZED_TYPE[typeAnnotation.type] || typeAnnotation.type;
+    }
+  };
+
+  const isNullable = (typeAnnotation) => {
+    if (field.optional) return true;
+
+    if (typeAnnotation.type === "TSUnionType") {
+      return typeAnnotation.types.some(
+        (t) => t.type === "TSNullKeyword" || t.type === "TSUndefinedKeyword"
+      );
+    }
+
+    return false;
+  };
+
   return {
-    name: field.key.name,
-    type:
-      TS_AST_TYPE_TO_NORMALIZED_TYPE[
-        field.typeAnnotation.typeAnnotation.type
-      ] ?? field.typeAnnotation.typeAnnotation.typeName.name,
-    nullable: field.optional,
+    name: fieldName,
+    type: getTypeFromAnnotation(field.typeAnnotation.typeAnnotation),
+    nullable: isNullable(field.typeAnnotation.typeAnnotation),
     loc: field.loc,
   };
 };
@@ -167,8 +219,7 @@ export const validateGraphQLTypescriptMatch = createRule({
   name: "validate-graphql-typescript-match",
   meta: {
     docs: {
-      description:
-        "Validate that GraphQL types and TypeScript interfaces match",
+      description: "Validate that GraphQL types and TypeScript interfaces match",
       recommended: "error",
     },
     type: "problem",
@@ -180,10 +231,7 @@ export const validateGraphQLTypescriptMatch = createRule({
       Program(programNode) {
         // Scope to the file we're working on
         const scopeManager = context.sourceCode.scopeManager;
-        const innermostScope = getInnermostScope(
-          scopeManager.globalScope,
-          programNode,
-        );
+        const innermostScope = getInnermostScope(scopeManager.globalScope, programNode);
 
         // Try to get a GQL schema variable,
         // if there's not one theres nothing else to do.
@@ -202,8 +250,7 @@ export const validateGraphQLTypescriptMatch = createRule({
         }
 
         // Parse the GraphQL Schema variable and extract the field types
-        const gqlSchemaRaw =
-          graphQLSchemaVariable.defs[0].node.init.quasi.quasis[0].value.raw;
+        const gqlSchemaRaw = graphQLSchemaVariable.defs[0].node.init.quasi.quasis[0].value.raw;
         const gqlAST = parse(gqlSchemaRaw);
 
         // Guard: If no definitions in the GQL schema, nothing else to do.
@@ -229,7 +276,7 @@ export const validateGraphQLTypescriptMatch = createRule({
           gqlDefinitions.map((definition) => [
             definition.name.value,
             definition.fields.map(getGqlFieldInfo),
-          ]),
+          ])
         );
 
         // Get all the Typescript interfaces in the file (and eventually types)

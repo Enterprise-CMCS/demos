@@ -7,7 +7,7 @@ export type MockAmendment = Pick<Amendment, "id" | "name" | "effectiveDate"> & {
   amendmentStatus: MockDemonstrationStatus;
 };
 
-export const mockAmendments: MockAmendment[] = [
+export const mockAmendments = [
   {
     id: "1",
     name: "Amendment 1 - Montana Medicaid Waiver",
@@ -43,4 +43,11 @@ export const mockAmendments: MockAmendment[] = [
     projectOfficer: mockUsers[3],
     amendmentStatus: mockDemonstrationStatuses[3],
   },
-];
+  {
+    id: "6",
+    name: "Amendment 6 - Florida Health Innovation",
+    effectiveDate: null,
+    projectOfficer: mockUsers[3],
+    amendmentStatus: mockDemonstrationStatuses[3],
+  },
+] as const satisfies MockAmendment[];

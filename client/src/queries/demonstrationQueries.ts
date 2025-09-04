@@ -66,8 +66,6 @@ export const ADD_DEMONSTRATION_MUTATION = gql`
       id
       name
       description
-      effectiveDate
-      expirationDate
       demonstrationStatus {
         id
         name

@@ -2,17 +2,9 @@ import React from "react";
 
 import { vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import {
-  BaseModificationDialog,
-  ModificationDialogData,
-} from "./BaseModificationDialog";
+import { BaseModificationDialog, ModificationDialogData } from "./BaseModificationDialog";
 
 // Mock HTMLDialogElement methods for testing
 beforeAll(() => {
@@ -182,9 +174,9 @@ describe("BaseModificationDialog", () => {
   });
 
   it("handles date input changes correctly", () => {
-    render(<BaseModificationDialog {...defaultProps} />);
+    render(<BaseModificationDialog {...defaultProps} mode="edit" />);
 
-    const effectiveDateInput = screen.getByTestId("effective-date-input");
+    const effectiveDateInput = screen.getByTestId("input-effective-date");
     fireEvent.change(effectiveDateInput, { target: { value: "2024-06-01" } });
 
     expect(effectiveDateInput).toHaveValue("2024-06-01");
@@ -195,5 +187,19 @@ describe("BaseModificationDialog", () => {
 
     const submitButton = screen.getByTestId("primary-button");
     expect(submitButton).toHaveTextContent("Submit");
+  });
+
+  it("shows date fields only in edit mode, not in add mode", () => {
+    // Test add mode - date fields should not be visible
+    const { rerender } = render(<BaseModificationDialog {...defaultProps} mode="add" />);
+
+    expect(screen.queryByTestId("input-effective-date")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("input-expiration-date")).not.toBeInTheDocument();
+
+    // Test edit mode - date fields should be visible
+    rerender(<BaseModificationDialog {...defaultProps} mode="edit" />);
+
+    expect(screen.getByTestId("input-effective-date")).toBeInTheDocument();
+    expect(screen.getByTestId("input-expiration-date")).toBeInTheDocument();
   });
 });

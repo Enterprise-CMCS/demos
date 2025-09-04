@@ -15,7 +15,7 @@ export type MockEvent = Pick<
   withRole: MockRole;
 };
 
-const mockEvents: MockEvent[] = [
+const mockEvents = [
   {
     id: "1",
     user: johnDoe,
@@ -38,7 +38,7 @@ const mockEvents: MockEvent[] = [
     createdAt: new Date(2025, 0, 1),
     eventData: {},
   },
-];
+] as const satisfies MockEvent[];
 
 const mockLogEventInput: LogEventArguments = {
   eventType: "LOGIN_SUCCEEDED",

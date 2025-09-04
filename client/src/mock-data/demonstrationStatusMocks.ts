@@ -2,7 +2,7 @@ import { DemonstrationStatus } from "demos-server";
 
 export type MockDemonstrationStatus = Pick<DemonstrationStatus, "id" | "name">;
 
-export const mockDemonstrationStatuses: MockDemonstrationStatus[] = [
+export const mockDemonstrationStatuses = [
   { id: "1", name: "Pending" },
   { id: "2", name: "Approved" },
   { id: "3", name: "Active" },
@@ -10,4 +10,4 @@ export const mockDemonstrationStatuses: MockDemonstrationStatus[] = [
   { id: "5", name: "Inactive" },
   { id: "6", name: "Expired" },
   { id: "7", name: "Withdrawn" },
-];
+] as const satisfies MockDemonstrationStatus[];
