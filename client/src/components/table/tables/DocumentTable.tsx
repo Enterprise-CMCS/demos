@@ -35,14 +35,14 @@ function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModal
 
     return (
       <EditDocumentDialog
+        isOpen={true}
+        onClose={onClose}
         initialDocument={{
-          documentType: selectedDoc.documentType,
           id: selectedDoc.id,
           title: selectedDoc.title,
           description: selectedDoc.description,
+          documentType: selectedDoc.documentType,
         }}
-        isOpen={true}
-        onClose={onClose}
       />
     );
   }

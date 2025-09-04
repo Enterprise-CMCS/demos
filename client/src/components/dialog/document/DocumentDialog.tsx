@@ -1,22 +1,24 @@
-import React, { useRef, useState, useCallback, forwardRef } from "react";
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+
+import { Button, ErrorButton, SecondaryButton } from "components/button";
+import { BaseDialog } from "components/dialog/BaseDialog";
+import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
+import { TextInput } from "components/input";
+import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
+import { Option } from "components/input/select/Select";
+import { useToast } from "components/toast";
+import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
+import { DOCUMENT_TYPES } from "demos-server-constants";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
-import { ErrorButton, Button, SecondaryButton } from "components/button";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { ErrorIcon } from "components/icons";
-import { useToast } from "components/toast";
-import { tw } from "tags/tw";
-import { TextInput } from "components/input";
-import { Document, DocumentType, UploadDocumentInput, UpdateDocumentInput } from "demos-server";
-import { useMutation } from "@apollo/client";
 import {
   DELETE_DOCUMENTS_QUERY,
-  UPLOAD_DOCUMENT_QUERY,
   UPDATE_DOCUMENT_QUERY,
+  UPLOAD_DOCUMENT_QUERY,
 } from "queries/documentQueries";
-import { Option } from "components/input/select/Select";
-import { BaseDialog } from "../BaseDialog";
-import { DOCUMENT_TYPES } from "demos-server-constants";
+import { tw } from "tags/tw";
+
+import { useMutation } from "@apollo/client";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -27,6 +29,9 @@ const STYLES = {
   dropzoneHeader: tw`text-sm font-bold text-text-font mb-xs`,
   dropzoneOr: tw`text-sm text-text-placeholder mb-sm`,
   fileNote: tw`text-[11px] text-text-placeholder mt-xs leading-tight`,
+  fileChip: tw`w-full border border-border-fields rounded flex items-center justify-between px-sm py-2 mt-sm`,
+  fileChipLeft: tw`flex items-center gap-2 text-sm font-medium text-text-font truncate`,
+  fileMetaRow: tw`flex justify-between mt-1 text-[12px] text-text-placeholder font-medium`,
 };
 
 const ALLOWED_MIME_TYPES = [
@@ -48,21 +53,19 @@ const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
   missingField: "A required field is missing.",
 };
-
 const SUCCESS_MESSAGES = {
   fileUploaded: "Your document has been added.",
   fileUpdated: "Your document has been updated.",
   fileDeleted: "Your document has been removed.",
 };
 
-const getErrorMessage = (error: unknown, mode: DocumentDialogType): string => {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return mode === "edit"
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : "An unknown error occurred.";
+
+const unknownErrorText = (mode: DocumentDialogType) =>
+  mode === "edit"
     ? "Your changes could not be saved because of an unknown problem."
     : "Your document could not be added because of an unknown problem.";
-};
 
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
@@ -70,78 +73,18 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
 
-const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
-  value,
-  onChange,
-}) => (
-  <TextInput
-    name="title"
-    label="Document Title"
-    isRequired
-    placeholder="Enter document title"
-    onChange={(event) => onChange(event.target.value)}
-    value={value}
-  />
-);
-
-// Forward ref so we can focus() the textarea when a field is missing
-type DescriptionInputProps = { value: string; onChange: (value: string) => void; error?: string };
-const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
-  function DescriptionInput({ value, onChange, error }, ref) {
-    return (
-      <div>
-        <label className={STYLES.label}>
-          <span className="text-text-warn mr-1">*</span>Document Description
-        </label>
-        <textarea
-          ref={ref}
-          rows={2}
-          placeholder="Enter"
-          className={STYLES.textarea}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          aria-invalid={!!error}
-          aria-describedby={error ? "description-error" : undefined}
-        />
-      </div>
-    );
-  }
-);
-
-const DocumentTypeInput: React.FC<{
-  value?: string;
-  onSelect?: (value: string) => void;
-}> = ({ value, onSelect }) => {
-  const documentTypeOptions = DOCUMENT_TYPES.map((type) => ({
-    label: type,
-    value: type,
-  })) as Option[];
-
-  return (
-    <AutoCompleteSelect
-      id="document-type"
-      label="Document Type"
-      options={documentTypeOptions}
-      value={value}
-      onSelect={(selectedValue) => onSelect?.(selectedValue)}
-    />
-  );
-};
-
 const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({
   progress,
   uploadStatus,
 }) => {
-  const progressBarColor =
-    (
-      {
-        error: "bg-red-500",
-        success: "bg-green-500",
-        uploading: "bg-primary",
-        idle: "bg-primary",
-      } as const
-    )[uploadStatus] || "bg-primary";
-
+  const progressBarColor = (
+    {
+      error: "bg-red-500",
+      success: "bg-green-500",
+      uploading: "bg-primary",
+      idle: "bg-primary",
+    } as const
+  )[uploadStatus];
   return (
     <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
       <div
@@ -156,11 +99,12 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
 
 const DropTarget: React.FC<{
   file: File | null;
+  onRemove: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   uploadStatus: UploadStatus;
   uploadProgress: number;
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ file, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
+}> = ({ file, onRemove, fileInputRef, uploadStatus, uploadProgress, handleFileChange }) => {
   const handleFiles = useCallback(
     (fileList: FileList) => {
       if (!fileList || fileList.length === 0) return;
@@ -169,7 +113,7 @@ const DropTarget: React.FC<{
       const dataTransfer = new DataTransfer();
       Array.from(fileList).forEach((fileItem) => dataTransfer.items.add(fileItem));
       inputElement.files = dataTransfer.files;
-      // @ts-expect-error: for React synthetic event compatibility
+      // @ts-expect-error React synthetic event compatibility
       handleFileChange({ target: inputElement });
     },
     [handleFileChange]
@@ -178,71 +122,136 @@ const DropTarget: React.FC<{
   const { handleDragOver, handleDrop } = useFileDrop(handleFiles);
 
   return (
-    <div className={STYLES.dropzone} onDragOver={handleDragOver} onDrop={handleDrop}>
-      <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
-      <p className={STYLES.dropzoneOr}>or</p>
+    <div>
+      <div className={STYLES.dropzone} onDragOver={handleDragOver} onDrop={handleDrop}>
+        <p className={STYLES.dropzoneHeader}>Drop file(s) to upload</p>
+        <p className={STYLES.dropzoneOr}>or</p>
 
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept={ACCEPTED_EXTENSIONS}
-        onChange={handleFileChange}
-        data-testid="input-file"
-      />
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept={ACCEPTED_EXTENSIONS}
+          onChange={handleFileChange}
+          data-testid="input-file"
+        />
 
-      <SecondaryButton
-        name="button-select-files"
-        type="button"
-        aria-label="Select File"
-        size="small"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={uploadStatus === "uploading"}
-      >
-        {file ? (
-          <span className="inline-block max-w-full truncate text-left" title={file.name}>
-            {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
-          </span>
-        ) : (
-          "Select File(s)"
-        )}
-      </SecondaryButton>
+        <SecondaryButton
+          name="select-files"
+          type="button"
+          aria-label="Select File"
+          size="small"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadStatus === "uploading"}
+        >
+          Select File(s)
+        </SecondaryButton>
+
+        <p className={STYLES.fileNote}>
+          (Note: Files must be less than {MAX_FILE_SIZE_MB}MB)
+          <br />
+          Allowed file types: {ACCEPTED_EXTENSIONS.split(",").join(", ")}
+        </p>
+      </div>
 
       {file && (
-        <div className="w-full">
+        <div className="mt-sm">
+          <div className={STYLES.fileChip}>
+            <span className={STYLES.fileChipLeft} title={file.name}>
+              <FileIcon />
+              <span className="truncate">
+                {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
+              </span>
+            </span>
+            <button
+              type="button"
+              aria-label="Remove file"
+              className="p-1 hover:opacity-80"
+              onClick={onRemove}
+            >
+              <ExitIcon />
+            </button>
+          </div>
           <ProgressBar progress={uploadProgress} uploadStatus={uploadStatus} />
           {uploadProgress > 0 && (
-            <div className="flex justify-between mt-1 text-[12px] text-text-placeholder font-medium">
+            <div className={STYLES.fileMetaRow}>
               <span>{(file.size / 1_000_000).toFixed(1)} MB</span>
               <span>{uploadProgress}%</span>
             </div>
           )}
         </div>
       )}
-
-      <p className={STYLES.fileNote}>
-        (Note: Files must be less than {MAX_FILE_SIZE_MB}MB)
-        <br />
-        Allowed file types: {ACCEPTED_EXTENSIONS.split(",").join(", ")}
-      </p>
     </div>
   );
 };
 
-export type DocumentDialogFields = Pick<Document, "id" | "title" | "description" | "documentType">;
+const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
+  value,
+  onChange,
+}) => (
+  <TextInput
+    name="title"
+    label="Document Title"
+    isRequired
+    placeholder="Enter document title"
+    onChange={(e) => onChange(e.target.value)}
+    value={value}
+  />
+);
 
-const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
-  id: "",
-  title: "",
-  description: "",
-  documentType: "General File",
+type DescriptionInputProps = { value: string; onChange: (value: string) => void; error?: string };
+const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
+  function DescriptionInput({ value, onChange, error }, ref) {
+    return (
+      <div>
+        <label className={STYLES.label}>
+          <span className="text-text-warn mr-1">*</span>Document Description
+        </label>
+        <textarea
+          data-testid="textarea-description-input"
+          ref={ref}
+          rows={2}
+          placeholder="Enter"
+          className={STYLES.textarea}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-invalid={!!error}
+          aria-describedby={error ? "description-error" : undefined}
+        />
+      </div>
+    );
+  }
+);
+
+const DocumentTypeInput: React.FC<{
+  value?: string;
+  onSelect?: (value: string) => void;
+  options?: Option[];
+}> = ({ value, onSelect, options }) => {
+  const DOCUMENT_TYPE_OPTIONS: Option[] =
+    options ||
+    DOCUMENT_TYPES.map((type) => ({
+      label: type,
+      value: type,
+    }));
+
+  return (
+    <AutoCompleteSelect
+      id="document-type"
+      label="Document Type"
+      options={DOCUMENT_TYPE_OPTIONS}
+      value={value}
+      onSelect={(selectedValue) => onSelect?.(selectedValue)}
+    />
+  );
 };
 
-type DocumentDialogProps = {
-  onClose?: () => void;
+export type DocumentDialogProps = {
   isOpen: boolean;
+  onClose?: () => void;
   mode: DocumentDialogType;
-  onSubmit: (dialogFields: DocumentDialogFields) => Promise<void>;
+  documentTypeOptions?: Option[];
+  onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
 };
 
@@ -250,81 +259,101 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   isOpen,
   onClose = () => {},
   mode,
+  documentTypeOptions,
   onSubmit,
   initialDocument,
 }) => {
   const { showSuccess, showError } = useToast();
+
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
     initialDocument || EMPTY_DOCUMENT_FIELDS
   );
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const { file, uploadProgress, uploadStatus, handleFileChange } = useFileUpload({
+  const { file, uploadProgress, uploadStatus, handleFileChange, setFile } = useFileUpload({
     allowedMimeTypes: ALLOWED_MIME_TYPES,
     maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
-    onErrorCallback: (errorMessage: ErrorMessage) => showError(errorMessage),
+    onErrorCallback: (msg: ErrorMessage) => showError(msg),
   });
+
+  useEffect(() => {
+    if (initialDocument) {
+      setActiveDocument(initialDocument);
+    }
+  }, [initialDocument]);
+
+  useEffect(() => {
+    if (mode === "add" && file && !titleManuallyEdited && !activeDocument.title.trim()) {
+      const base = file.name.replace(/\.[^.]+$/, "");
+      setActiveDocument((prev) => ({ ...prev, title: base }));
+    }
+  }, [mode, file, titleManuallyEdited, activeDocument.title]);
 
   const dialogTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
-  const requiresType = mode === "add" || mode === "edit";
 
-  // Edit has a title, but create does not. (maybe HCD convo)
-  const isMissing =
-    (mode === "edit" && !activeDocument.title.trim()) ||
-    !activeDocument.description.trim() ||
-    !file ||
-    (requiresType && !activeDocument.documentType);
-
-  const onUploadClick = async () => {
-    if (isUploading || isSubmitting) return;
-    await handleUpload();
-  };
+  const missingTitle = mode === "edit" ? !activeDocument.title.trim() : false;
+  const missingDesc = !activeDocument.description.trim();
+  const missingType = !activeDocument.documentType;
+  const missingFile = !file;
+  const isMissing = missingTitle || missingDesc || missingType || missingFile;
 
   const focusFirstMissing = () => {
-    if (!activeDocument.description.trim()) {
+    if (missingDesc) {
       descriptionRef.current?.focus();
       return;
     }
-    if (requiresType && !activeDocument.documentType) {
+    if (missingType) {
       document.getElementById("document-type")?.focus();
       return;
     }
-    fileInputRef.current?.focus();
+    if (missingFile) {
+      fileInputRef.current?.focus();
+      return;
+    }
   };
 
-  const handleUpload = async () => {
-    if (!activeDocument.description.trim() || (requiresType && !activeDocument.documentType)) {
+  const onUploadClick = async () => {
+    if (isUploading || isSubmitting) return;
+    if (isMissing) {
       showError(ERROR_MESSAGES.missingField);
       focusFirstMissing();
       return;
     }
-    if (!file) {
-      showError(ERROR_MESSAGES.noFileSelected);
-      focusFirstMissing();
-      return;
-    }
+    await handleUpload();
+  };
 
+  const handleUpload = async () => {
     try {
       setSubmitting(true);
-      await onSubmit(activeDocument);
+
+      if (onSubmit) {
+        await onSubmit(activeDocument);
+      }
+
+      showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
       onClose();
     } catch (error: unknown) {
-      showError(getErrorMessage(error, mode));
+      showError(getErrorMessage(error) || unknownErrorText(mode));
     } finally {
-      onClose();
-      showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
       setSubmitting(false);
     }
   };
 
+  const clearFile = () => {
+    setFile(null);
+  };
+
   return (
     <BaseDialog
-      isOpen={isOpen}
       title={dialogTitle}
+      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -350,44 +379,58 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
         </>
       }
     >
-      {mode === "edit" && (
-        <TitleInput
-          value={activeDocument.title}
-          onChange={(newTitle) => setActiveDocument((prev) => ({ ...prev, title: newTitle }))}
-        />
-      )}
-
-      <DescriptionInput
-        ref={descriptionRef}
-        value={activeDocument.description}
-        onChange={(newDescription) =>
-          setActiveDocument((prev) => ({ ...prev, description: newDescription }))
-        }
-      />
-
-      <DocumentTypeInput
-        value={activeDocument.documentType}
-        onSelect={(newType) =>
-          setActiveDocument((prev) => ({ ...prev, documentType: newType as DocumentType }))
-        }
-      />
-
       <DropTarget
         file={file}
+        onRemove={clearFile}
         fileInputRef={fileInputRef}
         uploadStatus={uploadStatus}
         uploadProgress={uploadProgress}
         handleFileChange={handleFileChange}
       />
+
+      <TitleInput
+        value={activeDocument.title}
+        onChange={(val) => {
+          setActiveDocument((prev) => ({ ...prev, title: val }));
+          setTitleManuallyEdited(true);
+        }}
+      />
+
+      <DescriptionInput
+        ref={descriptionRef}
+        value={activeDocument.description}
+        onChange={(val) => {
+          setActiveDocument((prev) => ({ ...prev, description: val }));
+        }}
+      />
+
+      <DocumentTypeInput
+        value={activeDocument.documentType}
+        onSelect={(val) => {
+          setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }));
+        }}
+        options={documentTypeOptions}
+      />
     </BaseDialog>
   );
 };
 
-export const AddDocumentDialog: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
-  isOpen,
-  onClose,
-}) => {
+export type DocumentDialogFields = Pick<Document, "id" | "title" | "description" | "documentType">;
+
+const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
+  id: "",
+  title: "",
+  description: "",
+  documentType: "General File",
+};
+
+export const AddDocumentDialog: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  documentTypeOptions?: Option[];
+}> = ({ isOpen, onClose, documentTypeOptions }) => {
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
+
   const handleUpload = async (dialogFields: DocumentDialogFields) => {
     const uploadDocumentInput: UploadDocumentInput = {
       bundleId: dialogFields.id,
@@ -396,18 +439,27 @@ export const AddDocumentDialog: React.FC<{ isOpen: boolean; onClose: () => void 
       documentType: dialogFields.documentType,
     };
 
-    uploadDocumentTrigger({ variables: { input: uploadDocumentInput } });
+    await uploadDocumentTrigger({ variables: { input: uploadDocumentInput } });
   };
 
-  return <DocumentDialog isOpen={isOpen} mode="add" onClose={onClose} onSubmit={handleUpload} />;
+  return (
+    <DocumentDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      mode="add"
+      onSubmit={handleUpload}
+      documentTypeOptions={documentTypeOptions}
+    />
+  );
 };
 
 export const EditDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
+  documentTypeOptions?: Option[];
   initialDocument: DocumentDialogFields;
-}> = ({ isOpen, initialDocument, onClose }) => {
-  const [updateDocumentTrigger] = useMutation<UpdateDocumentInput>(UPDATE_DOCUMENT_QUERY);
+}> = ({ isOpen, onClose, documentTypeOptions, initialDocument }) => {
+  const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
     const updateDocumentInput: UpdateDocumentInput = {
@@ -416,7 +468,8 @@ export const EditDocumentDialog: React.FC<{
       description: dialogFields.description,
       documentType: dialogFields.documentType,
     };
-    updateDocumentTrigger({ variables: { input: updateDocumentInput } });
+
+    await updateDocumentTrigger({ variables: { input: updateDocumentInput } });
   };
 
   return (
@@ -426,6 +479,7 @@ export const EditDocumentDialog: React.FC<{
       initialDocument={initialDocument}
       onClose={onClose}
       onSubmit={handleEdit}
+      documentTypeOptions={documentTypeOptions}
     />
   );
 };
@@ -438,9 +492,9 @@ export const RemoveDocumentDialog: React.FC<{
   const { showWarning, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [deleteDocumentsTrigger] = useMutation<{ removedDocumentIds: string[] }>(
-    DELETE_DOCUMENTS_QUERY
-  );
+  const [deleteDocumentsTrigger] = useMutation<{
+    removedDocumentIds: string[];
+  }>(DELETE_DOCUMENTS_QUERY);
 
   const onConfirm = async (documentIdList: string[]) => {
     try {
@@ -449,7 +503,9 @@ export const RemoveDocumentDialog: React.FC<{
 
       const isMultipleDocuments = documentIdList.length > 1;
       showWarning(
-        `Your document${isMultipleDocuments ? "s" : ""} ${isMultipleDocuments ? "have been" : "has been"} removed.`
+        `Your document${isMultipleDocuments ? "s" : ""} ${
+          isMultipleDocuments ? "have been" : "has been"
+        } removed.`
       );
       onClose();
     } catch {
@@ -461,8 +517,8 @@ export const RemoveDocumentDialog: React.FC<{
 
   return (
     <BaseDialog
-      isOpen={isOpen}
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
+      isOpen={isOpen}
       onClose={onClose}
       actions={
         <>
