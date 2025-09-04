@@ -10,6 +10,7 @@ const onSigninCallback = (): void => {
 interface BaseCognitoConfig extends AuthProviderBaseProps {
   onSigninCallback: () => void;
   automaticSilentRenew: boolean;
+  onSilentRenewError?: (error: Error) => void;
   userStore?: WebStorageStateStore;
   response_type: string;
 }
@@ -27,6 +28,10 @@ const BASE_COGNITO_CONFIG: BaseCognitoConfig = {
   response_type: "code",
   onSigninCallback: onSigninCallback,
   automaticSilentRenew: true,
+  onSilentRenewError: (error) => {
+    console.error("Silent renew failed:", error);
+    logout();
+  },
   userStore: new WebStorageStateStore({ store: window.localStorage }),
 };
 
