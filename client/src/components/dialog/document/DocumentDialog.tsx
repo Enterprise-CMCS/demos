@@ -1,47 +1,22 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  Button,
-  ErrorButton,
-  SecondaryButton,
-} from "components/button";
+import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import {
-  ErrorIcon,
-  ExitIcon,
-  FileIcon,
-} from "components/icons";
+import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
-import {
-  Document,
-  DocumentType,
-  UpdateDocumentInput,
-  UploadDocumentInput,
-} from "demos-server";
+import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import {
-  ErrorMessage,
-  UploadStatus,
-  useFileUpload,
-} from "hooks/file/useFileUpload";
+import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import {
   DELETE_DOCUMENTS_QUERY,
   UPDATE_DOCUMENT_QUERY,
   UPLOAD_DOCUMENT_QUERY,
 } from "queries/documentQueries";
 import { tw } from "tags/tw";
-
 import { useMutation } from "@apollo/client";
+import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -95,6 +70,75 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   const half = Math.floor((maxLength - 3) / 2);
   return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
+
+interface S3UploadResponse {
+  success: boolean;
+  errorMessage: string;
+}
+
+/**
+ * @internal - Exported for testing only
+ */
+export const tryUploadingFileToS3 = async (
+  presignedURL: string,
+  file: File
+): Promise<S3UploadResponse> => {
+  try {
+    const putResponse = await fetch(presignedURL, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type },
+    });
+
+    if (putResponse.ok) {
+      return { success: true, errorMessage: "" };
+    } else {
+      const errorText = await putResponse.text();
+      return { success: false, errorMessage: `Failed to upload file: ${errorText}` };
+    }
+  } catch (error) {
+    const errorText = error instanceof Error ? error.message : "Network error during upload";
+    return { success: false, errorMessage: errorText };
+  }
+};
+
+const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
+  value,
+  onChange,
+}) => (
+  <TextInput
+    name="title"
+    label="Document Title"
+    isRequired
+    placeholder="Enter document title"
+    onChange={(event) => onChange(event.target.value)}
+    value={value}
+  />
+);
+
+// Forward ref so we can focus() the textarea when a field is missing
+type DescriptionInputProps = { value: string; onChange: (value: string) => void; error?: string };
+const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
+  function DescriptionInput({ value, onChange, error }, ref) {
+    return (
+      <div>
+        <label className={STYLES.label}>
+          <span className="text-text-warn mr-1">*</span>Document Description
+        </label>
+        <textarea
+          ref={ref}
+          rows={2}
+          placeholder="Enter"
+          className={STYLES.textarea}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          aria-invalid={!!error}
+          aria-describedby={error ? "description-error" : undefined}
+        />
+      </div>
+    );
+  }
+);
 
 const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({
   progress,
@@ -208,72 +252,24 @@ const DropTarget: React.FC<{
   );
 };
 
-const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
-  value,
-  onChange,
-}) => (
-  <TextInput
-    name="title"
-    label="Document Title"
-    isRequired
-    placeholder="Enter document title"
-    onChange={(e) => onChange(e.target.value)}
-    value={value}
-  />
-);
+export type DocumentDialogFields = Pick<
+  Document,
+  "id" | "title" | "description" | "documentType"
+> & { file: File | null };
 
-type DescriptionInputProps = { value: string; onChange: (value: string) => void; error?: string };
-const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
-  function DescriptionInput({ value, onChange, error }, ref) {
-    return (
-      <div>
-        <label className={STYLES.label}>
-          <span className="text-text-warn mr-1">*</span>Document Description
-        </label>
-        <textarea
-          data-testid="textarea-description-input"
-          ref={ref}
-          rows={2}
-          placeholder="Enter"
-          className={STYLES.textarea}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          aria-invalid={!!error}
-          aria-describedby={error ? "description-error" : undefined}
-        />
-      </div>
-    );
-  }
-);
-
-const DocumentTypeInput: React.FC<{
-  value?: string;
-  onSelect?: (value: string) => void;
-  options?: Option[];
-}> = ({ value, onSelect, options }) => {
-  const DOCUMENT_TYPE_OPTIONS: Option[] =
-    options ||
-    DOCUMENT_TYPES.map((type) => ({
-      label: type,
-      value: type,
-    }));
-
-  return (
-    <AutoCompleteSelect
-      id="document-type"
-      label="Document Type"
-      options={DOCUMENT_TYPE_OPTIONS}
-      value={value}
-      onSelect={(selectedValue) => onSelect?.(selectedValue)}
-    />
-  );
+const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
+  file: null,
+  id: "",
+  title: "",
+  description: "",
+  documentType: "General File",
 };
 
 export type DocumentDialogProps = {
   isOpen: boolean;
   onClose?: () => void;
   mode: DocumentDialogType;
-  documentTypeOptions?: Option[];
+  documentTypeSubset?: DocumentType[];
   onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
@@ -283,7 +279,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   isOpen,
   onClose = () => {},
   mode,
-  documentTypeOptions,
+  documentTypeSubset,
   onSubmit,
   initialDocument,
   titleOverride,
@@ -433,33 +429,30 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
         onSelect={(val) => {
           setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }));
         }}
-        options={documentTypeOptions}
+        documentTypeSubset={documentTypeSubset}
       />
     </BaseDialog>
   );
 };
 
-export type DocumentDialogFields = Pick<Document, "id" | "title" | "description" | "documentType">;
-
-const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
-  id: "",
-  title: "",
-  description: "",
-  documentType: "General File",
-};
-
 export const AddDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  documentTypeOptions?: Option[];
+  documentTypeSubset?: DocumentType[];
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
   refetchQueries?: string[];
-}> = ({ isOpen, onClose, documentTypeOptions, initialDocument, titleOverride, refetchQueries }) => {
+}> = ({ isOpen, onClose, documentTypeSubset, initialDocument, titleOverride, refetchQueries }) => {
+  const { showError, showSuccess } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
     refetchQueries,
   });
-  const handleUpload = async (dialogFields: DocumentDialogFields) => {
+  const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
+    if (!dialogFields.file) {
+      showError("No file selected");
+      return;
+    }
+
     const uploadDocumentInput: UploadDocumentInput = {
       bundleId: dialogFields.id,
       title: dialogFields.title,
@@ -467,7 +460,21 @@ export const AddDocumentDialog: React.FC<{
       documentType: dialogFields.documentType,
     };
 
-    await uploadDocumentTrigger({ variables: { input: uploadDocumentInput } });
+    const uploadDocumentResponse = await uploadDocumentTrigger({
+      variables: { input: uploadDocumentInput },
+    });
+
+    const presignedURL = uploadDocumentResponse.data?.uploadDocument.presignedUrl ?? null;
+    if (!presignedURL) {
+      throw new Error("Could not get presigned URL from the server");
+    }
+
+    const response: S3UploadResponse = await tryUploadingFileToS3(presignedURL, dialogFields.file);
+    if (response.success) {
+      showSuccess("Your document was uploaded successfully!");
+    } else {
+      showError(response.errorMessage);
+    }
   };
 
   return (
@@ -476,7 +483,7 @@ export const AddDocumentDialog: React.FC<{
       onClose={onClose}
       mode="add"
       onSubmit={handleUpload}
-      documentTypeOptions={documentTypeOptions}
+      documentTypeSubset={documentTypeSubset}
       initialDocument={initialDocument}
       titleOverride={titleOverride}
     />
@@ -486,9 +493,9 @@ export const AddDocumentDialog: React.FC<{
 export const EditDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  documentTypeOptions?: Option[];
   initialDocument: DocumentDialogFields;
-}> = ({ isOpen, onClose, documentTypeOptions, initialDocument }) => {
+  documentTypeSubset?: DocumentType[];
+}> = ({ isOpen, onClose, documentTypeSubset, initialDocument }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
@@ -509,7 +516,7 @@ export const EditDocumentDialog: React.FC<{
       initialDocument={initialDocument}
       onClose={onClose}
       onSubmit={handleEdit}
-      documentTypeOptions={documentTypeOptions}
+      documentTypeSubset={documentTypeSubset}
     />
   );
 };

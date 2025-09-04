@@ -14,7 +14,7 @@ export const ApplicationWorkflow = ({
   demonstration: ApplicationWorkflowDemonstration;
 }) => {
   return (
-    <div className="flex flex-col gap-sm">
+    <div className="flex flex-col gap-sm p-md">
       <div className="flex w-full">
         <h3 className="text-brand text-2xl font-bold">APPLICATION</h3>
         <DemonstrationStatusBadge demonstrationStatus={demonstration.status} />

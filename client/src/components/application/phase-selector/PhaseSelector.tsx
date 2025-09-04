@@ -38,12 +38,13 @@ const PHASE_COMPONENTS_LOOKUP: Record<PhaseName, React.ComponentType> = {
 };
 
 const PhaseGroups = () => {
+  const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
   return (
     <>
       <span className="col-span-1">Pre-Submission</span>
-      <span className="col-span-3">Submission</span>
-      <span className="col-span-3">Approval</span>
-      <span className="col-span-1">Post-Approval</span>
+      <span className={`col-span-3 ${leftBorderStyles}`}>Submission</span>
+      <span className={`col-span-3 ${leftBorderStyles}`}>Approval</span>
+      <span className={`col-span-1 ${leftBorderStyles}`}>Post-Approval</span>
     </>
   );
 };
@@ -88,7 +89,7 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-8 gap-sm">
+      <div className="grid grid-cols-8 gap-md">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, idx) => (
           <PhaseBox
