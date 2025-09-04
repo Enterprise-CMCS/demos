@@ -74,8 +74,6 @@ export const DemonstrationDialog: React.FC<Props> = ({
     getFormData: (): CreateDemonstrationInput => ({
       name: title,
       description,
-      effectiveDate: new Date(effectiveDate),
-      expirationDate: new Date(expirationDate),
       demonstrationStatusId: "1",
       stateId: state,
       userIds: [projectOfficer],
@@ -102,8 +100,10 @@ export const DemonstrationDialog: React.FC<Props> = ({
       setState(demonstration.state.id);
       setTitle(demonstration.name);
       setProjectOfficer(demonstration.projectOfficer.id);
-      setEffectiveDate(formatDate(demonstration.effectiveDate));
-      setExpirationDate(formatDate(demonstration.expirationDate));
+      setEffectiveDate(demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "");
+      setExpirationDate(
+        demonstration.expirationDate ? formatDate(demonstration.expirationDate) : ""
+      );
       setDescription(demonstration.description);
       setCmcsDivision(demonstration.cmcsDivision);
       setSignatureLevel(demonstration.signatureLevel);
