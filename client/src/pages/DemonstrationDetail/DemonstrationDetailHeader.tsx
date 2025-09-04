@@ -62,9 +62,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
       </div>
     );
   }
-  {
-    date ? formatDate(date) : "--/--/----";
-  }
 
   const displayFields = [
     { label: "State/Territory", value: demonstration.state.id },
