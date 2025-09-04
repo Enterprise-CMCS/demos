@@ -23,11 +23,13 @@ function renderWithProviders(ui: React.ReactNode) {
 vi.mock("react-oidc-context", () => ({
   useAuth: () => ({
     isAuthenticated: true,
-    isLoading: true,
-    user: { id_token: "fake-token" },
+    isLoading: false,
+    user: { id_token: "fake" },
     signinRedirect: vi.fn(),
     signoutRedirect: vi.fn(),
     removeUser: vi.fn(),
+    revokeTokens: vi.fn(),
+    activeNavigator: undefined,
   }),
 }));
 
