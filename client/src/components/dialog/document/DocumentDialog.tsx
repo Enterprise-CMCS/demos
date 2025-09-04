@@ -456,7 +456,7 @@ export const AddDocumentDialog: React.FC<{
     const uploadDocumentResponse = await uploadDocumentTrigger({
       variables: { input: uploadDocumentInput },
     });
-    const presignedURL = uploadDocumentResponse.data?.uploadDocument ?? null;
+    const presignedURL = uploadDocumentResponse.data?.uploadDocument.presignedUrl ?? null;
 
     if (!presignedURL) {
       throw new Error("Could not get presigned URL from the server");
