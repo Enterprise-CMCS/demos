@@ -1,14 +1,17 @@
 import "@testing-library/jest-dom";
 
 import React from "react";
+
 import { ToastProvider } from "components/toast/ToastContext";
 import { describe, expect, it, vi } from "vitest";
+
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+
 import {
-  RemoveDocumentDialog,
   AddDocumentDialog,
-  EditDocumentDialog,
   DocumentDialogFields,
+  EditDocumentDialog,
+  RemoveDocumentDialog,
 } from "./DocumentDialog";
 
 const mockQuery = vi.fn();

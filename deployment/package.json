@@ -31,11 +31,11 @@
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.848.0",
-    "@aws-sdk/client-ec2": "^3.854.0",
+    "@aws-sdk/client-ec2": "^3.866.0",
     "@aws-sdk/client-secrets-manager": "^3.848.0",
     "aws-cdk": "^2.1028.0",
     "aws-cdk-lib": "^2.214.0",
-    "cdk-nag": "^2.36.46",
+    "cdk-nag": "^2.37.2",
     "chalk": "^5.4.1",
     "constructs": "^10.0.0",
     "pg": "^8.16.3"
