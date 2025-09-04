@@ -7,15 +7,8 @@ import {
   EditDocumentDialog,
   RemoveDocumentDialog,
 } from "components/dialog/document/DocumentDialog";
-import {
-  DeleteIcon,
-  EditIcon,
-  ImportIcon,
-} from "components/icons";
-import {
-  DocumentTableRow,
-  useDocument,
-} from "hooks/useDocument";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+import { DocumentTableRow, useDocument } from "hooks/useDocument";
 
 import { ColumnFilter } from "../ColumnFilter";
 import { DocumentColumns } from "../columns/DocumentColumns";
@@ -33,7 +26,7 @@ interface DocumentModalsProps {
 
 function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModalsProps) {
   if (displayedModal === "add") {
-    return <AddDocumentDialog onClose={onClose} />;
+    return <AddDocumentDialog isOpen={true} onClose={onClose} />;
   }
   if (displayedModal === "edit" && selectedDocs.length === 1) {
     const selectedDoc = selectedDocs[0];
@@ -42,17 +35,20 @@ function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModal
 
     return (
       <EditDocumentDialog
-        documentId={selectedDoc.id}
-        documentTitle={selectedDoc.title}
-        description={selectedDoc.description}
-        documentType={selectedDoc.documentType}
+        initialDocument={{
+          documentType: selectedDoc.documentType,
+          id: selectedDoc.id,
+          title: selectedDoc.title,
+          description: selectedDoc.description,
+        }}
+        isOpen={true}
         onClose={onClose}
       />
     );
   }
   if (displayedModal === "remove" && selectedDocs.length > 0) {
     const selectedIds = selectedDocs.map((doc) => doc.id);
-    return <RemoveDocumentDialog documentIds={selectedIds} onClose={onClose} />;
+    return <RemoveDocumentDialog isOpen={true} documentIds={selectedIds} onClose={onClose} />;
   }
   return null;
 }

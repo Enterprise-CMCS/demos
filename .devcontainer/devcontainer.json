@@ -33,7 +33,8 @@
         "vscode": {
             "extensions": [
                 "tomoyukim.vscode-mermaid-editor",
-                "apollographql.vscode-apollo"
+                "apollographql.vscode-apollo",
+                "esbenp.prettier-vscode"
             ]
         }
     }
