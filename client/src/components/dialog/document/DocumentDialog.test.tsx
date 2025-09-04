@@ -12,6 +12,7 @@ import {
   DocumentDialogFields,
   EditDocumentDialog,
   RemoveDocumentDialog,
+  tryUploadingFileToS3,
 } from "./DocumentDialog";
 
 const mockQuery = vi.fn();
@@ -202,6 +203,7 @@ describe("EditDocumentDialog", () => {
     title: "Existing Document",
     description: "This is an existing document",
     documentType: "General File",
+    file: null,
   };
   const setup = () => {
     const onClose = vi.fn();
@@ -274,6 +276,94 @@ describe("EditDocumentDialog", () => {
 
     await waitFor(() => {
       expect(onClose).toHaveBeenCalled();
+    });
+  });
+});
+
+describe("tryUploadingFileToS3", () => {
+  const mockFile = new File(["test content"], "test.pdf", { type: "application/pdf" });
+  const testPresignedURL = "https://test-bucket.s3.amazonaws.com/test-key?presigned=true";
+
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns success when upload is successful", async () => {
+    const mockResponse = {
+      ok: true,
+    };
+    vi.mocked(global.fetch).mockResolvedValue(mockResponse as Response);
+
+    const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
+
+    expect(result).toEqual({ success: true, errorMessage: "" });
+    expect(global.fetch).toHaveBeenCalledWith(testPresignedURL, {
+      method: "PUT",
+      body: mockFile,
+      headers: { "Content-Type": "application/pdf" },
+    });
+  });
+
+  it("returns error when upload fails with bad response", async () => {
+    const errorText = "Access Denied";
+    const mockResponse = {
+      ok: false,
+      text: vi.fn().mockResolvedValue(errorText),
+    } as unknown as Response;
+    vi.mocked(global.fetch).mockResolvedValue(mockResponse);
+
+    const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
+
+    expect(result).toEqual({
+      success: false,
+      errorMessage: `Failed to upload file: ${errorText}`,
+    });
+    expect(mockResponse.text).toHaveBeenCalled();
+  });
+
+  it("returns error when network error occurs", async () => {
+    const networkError = new Error("Network timeout");
+    vi.mocked(global.fetch).mockRejectedValue(networkError);
+
+    const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
+
+    expect(result).toEqual({
+      success: false,
+      errorMessage: "Network timeout",
+    });
+  });
+
+  it("returns generic error message for non-Error exceptions", async () => {
+    const nonErrorException = "String error";
+    vi.mocked(global.fetch).mockRejectedValue(nonErrorException);
+
+    const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
+
+    expect(result).toEqual({
+      success: false,
+      errorMessage: "Network error during upload",
+    });
+  });
+
+  it("uses correct headers with file content type", async () => {
+    const mockFileWithDifferentType = new File(["content"], "test.docx", {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    const mockResponse = { ok: true };
+    vi.mocked(global.fetch).mockResolvedValue(mockResponse as Response);
+
+    await tryUploadingFileToS3(testPresignedURL, mockFileWithDifferentType);
+
+    expect(global.fetch).toHaveBeenCalledWith(testPresignedURL, {
+      method: "PUT",
+      body: mockFileWithDifferentType,
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
     });
   });
 });

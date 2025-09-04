@@ -59,6 +59,7 @@
     "test": "vitest --mode test",
     "test:once": "vitest --mode test --run --reporter=dot",
     "test:debug": "vitest --mode test --run --inspect-brk --no-file-parallelism",
+    "tsc": "tsc --noEmit --skipLibCheck",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",
