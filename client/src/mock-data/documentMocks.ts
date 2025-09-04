@@ -1,6 +1,3 @@
-import { DOCUMENT_TABLE_QUERY } from "queries/documentQueries";
-
-import { MockedResponse } from "@apollo/client/testing";
 import { Document, DocumentType } from "demos-server";
 import { MockUser, mockUsers } from "./userMocks";
 
@@ -41,18 +38,5 @@ export const mockDocuments: MockDocument[] = [
     documentType: "General File",
     owner: mockUsers[7],
     createdAt: new Date(2025, 0, 4),
-  },
-];
-
-export const documentMocks: MockedResponse[] = [
-  {
-    request: {
-      query: DOCUMENT_TABLE_QUERY,
-    },
-    result: {
-      data: {
-        documents: mockDocuments,
-      },
-    },
   },
 ];
