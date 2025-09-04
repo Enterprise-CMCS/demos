@@ -14,10 +14,46 @@ vi.mock("config/env", async (importOriginal) => {
   };
 });
 
-vi.mock("react-oidc-context", () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useAuth: vi.fn(() => ({})),
-}));
+vi.mock("react-oidc-context", () => {
+  const signinRedirect = vi.fn();
+  const signoutRedirect = vi.fn();
+  const removeUser = vi.fn();
+  const revokeTokens = vi.fn();
+
+  // Simple passthrough HOC so routes render without real auth logic
+
+  type WithAuthenticationRequired = <P extends object>(
+  Component: React.ComponentType<P>,
+  options?: unknown
+) => React.ComponentType<P>;
+
+  const withAuthenticationRequired: WithAuthenticationRequired = (Component) => {
+    const Wrapped: React.FC<React.ComponentProps<typeof Component>> = (props) => (
+      <Component {...props} />
+    );
+
+    // Readable display name without using `any`
+    const named = Component as { displayName?: string; name?: string };
+    Wrapped.displayName = `withAuthenticationRequired(${named.displayName ?? named.name ?? "Component"})`;
+
+    return Wrapped;
+  };
+
+  return {
+    AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    withAuthenticationRequired,
+    useAuth: () => ({
+      isAuthenticated: true,   // so protected routes render
+      isLoading: false,
+      user: { id_token: "fake" },
+      signinRedirect,
+      signoutRedirect,
+      removeUser,
+      revokeTokens,
+      activeNavigator: undefined,
+    }),
+  };
+});
 
 vi.mock("./DemosApolloProvider", async () => {
   const React = (await import("react")).default;
