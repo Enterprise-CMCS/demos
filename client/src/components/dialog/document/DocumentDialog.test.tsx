@@ -300,7 +300,7 @@ describe("tryUploadingFileToS3", () => {
 
     const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
 
-    expect(result).toEqual({ success: true });
+    expect(result).toEqual({ success: true, errorMessage: "" });
     expect(global.fetch).toHaveBeenCalledWith(testPresignedURL, {
       method: "PUT",
       body: mockFile,
