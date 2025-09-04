@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 
+import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { SecondaryButton } from "components/button";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { AddNewIcon } from "components/icons";
+import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { TabItem, Tabs } from "layout/Tabs";
-import { Contact } from "./DemonstrationDetail";
-import { ContactsTable } from "components/table/tables/ContactsTable";
-import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { Demonstration, DemonstrationStatus, Document, State, User } from "demos-server";
+import { Contact } from "./DemonstrationDetail";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
