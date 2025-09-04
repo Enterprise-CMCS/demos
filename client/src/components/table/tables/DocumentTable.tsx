@@ -49,6 +49,7 @@ function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModal
           title: selectedDoc.title,
           description: selectedDoc.description,
           documentType: selectedDoc.documentType,
+          file: null,
         }}
       />
     );
