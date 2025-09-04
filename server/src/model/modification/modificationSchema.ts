@@ -128,7 +128,7 @@ export interface Extension {
   name: string;
   description: string;
   effectiveDate: Date | null;
-  expirationDate?: Date | null;
+  expirationDate: Date | null;
   createdAt: Date;
   updatedAt: Date;
   extensionStatus: ExtensionStatus;
