@@ -48,23 +48,8 @@ export const modificationResolvers = {
   },
 
   Mutation: {
-    createAmendment: async (
-      _: undefined,
-      { input }: { input: CreateAmendmentInput },
-    ) => {
-      const {
-        demonstrationId,
-        amendmentStatusId,
-        projectOfficerUserId,
-        effectiveDate,
-        expirationDate,
-        ...rest
-      } = input;
-
-      // Only include dates if they are provided
-      const dateFields: { effectiveDate?: Date; expirationDate?: Date } = {};
-      if (effectiveDate) dateFields.effectiveDate = effectiveDate;
-      if (expirationDate) dateFields.expirationDate = expirationDate;
+    createAmendment: async (_: undefined, { input }: { input: CreateAmendmentInput }) => {
+      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -98,7 +83,6 @@ export const modificationResolvers = {
               connect: { id: projectOfficerUserId },
             },
             ...rest,
-            ...dateFields,
           },
         });
       });
@@ -106,14 +90,9 @@ export const modificationResolvers = {
 
     updateAmendment: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateAmendmentInput },
+      { id, input }: { id: string; input: UpdateAmendmentInput }
     ) => {
-      const {
-        demonstrationId,
-        amendmentStatusId,
-        projectOfficerUserId,
-        ...rest
-      } = input;
+      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
 
       return await prisma().modification.update({
         where: {
@@ -155,23 +134,8 @@ export const modificationResolvers = {
       });
     },
 
-    addExtension: async (
-      _: undefined,
-      { input }: { input: AddExtensionInput },
-    ) => {
-      const {
-        demonstrationId,
-        extensionStatusId,
-        projectOfficerUserId,
-        effectiveDate,
-        expirationDate,
-        ...rest
-      } = input;
-
-      // Only include dates if they are provided
-      const dateFields: { effectiveDate?: Date; expirationDate?: Date } = {};
-      if (effectiveDate) dateFields.effectiveDate = effectiveDate;
-      if (expirationDate) dateFields.expirationDate = expirationDate;
+    addExtension: async (_: undefined, { input }: { input: AddExtensionInput }) => {
+      const { demonstrationId, extensionStatusId, projectOfficerUserId, ...rest } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -205,7 +169,6 @@ export const modificationResolvers = {
               connect: { id: projectOfficerUserId },
             },
             ...rest,
-            ...dateFields,
           },
         });
       });
@@ -213,14 +176,9 @@ export const modificationResolvers = {
 
     updateExtension: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateExtensionInput },
+      { id, input }: { id: string; input: UpdateExtensionInput }
     ) => {
-      const {
-        demonstrationId,
-        extensionStatusId,
-        projectOfficerUserId,
-        ...rest
-      } = input;
+      const { demonstrationId, extensionStatusId, projectOfficerUserId, ...rest } = input;
 
       return await prisma().modification.update({
         where: {

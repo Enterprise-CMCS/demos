@@ -347,8 +347,8 @@ describe("Demonstrations", () => {
     it("displays correct values for 'Applications' column for new demonstration, amendment, and extension", async () => {
       // For a new demonstration row
       const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
-      expect(montanaRow).toHaveTextContent(/Amendments \(2\)/);
-      expect(montanaRow).toHaveTextContent(/Extensions \(2\)/);
+      expect(montanaRow).toHaveTextContent(/Amendments \(3\)/);
+      expect(montanaRow).toHaveTextContent(/Extensions \(3\)/);
     });
 
     it("displays (0) for amendments and extensions if there are no associated records", () => {

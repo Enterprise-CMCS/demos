@@ -9,7 +9,7 @@ export type MockDocument = Pick<Document, "id" | "title" | "description" | "crea
   owner: MockUser;
 };
 
-export const mockDocuments: MockDocument[] = [
+export const mockDocuments = [
   {
     id: "1",
     title: "Project Plan",
@@ -42,7 +42,7 @@ export const mockDocuments: MockDocument[] = [
     owner: mockUsers[7],
     createdAt: new Date(2025, 0, 4),
   },
-];
+] as const satisfies MockDocument[];
 
 export const documentMocks: MockedResponse[] = [
   {
