@@ -1,16 +1,39 @@
-import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-import { Button, ErrorButton, SecondaryButton } from "components/button";
+import {
+  Button,
+  ErrorButton,
+  SecondaryButton,
+} from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
+import {
+  ErrorIcon,
+  ExitIcon,
+  FileIcon,
+} from "components/icons";
 import { TextInput } from "components/input";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
-import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
+import {
+  Document,
+  DocumentType,
+  UpdateDocumentInput,
+  UploadDocumentInput,
+} from "demos-server";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { useFileDrop } from "hooks/file/useFileDrop";
-import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
+import {
+  ErrorMessage,
+  UploadStatus,
+  useFileUpload,
+} from "hooks/file/useFileUpload";
 import {
   DELETE_DOCUMENTS_QUERY,
   UPDATE_DOCUMENT_QUERY,
@@ -253,6 +276,7 @@ export type DocumentDialogProps = {
   documentTypeOptions?: Option[];
   onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
+  titleOverride?: string;
 };
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
@@ -262,6 +286,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   documentTypeOptions,
   onSubmit,
   initialDocument,
+  titleOverride,
 }) => {
   const { showSuccess, showError } = useToast();
 
@@ -272,7 +297,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-
+  const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -295,7 +320,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
   }, [mode, file, titleManuallyEdited, activeDocument.title]);
 
-  const dialogTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
 
   const missingTitle = mode === "edit" ? !activeDocument.title.trim() : false;
@@ -428,9 +452,13 @@ export const AddDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   documentTypeOptions?: Option[];
-}> = ({ isOpen, onClose, documentTypeOptions }) => {
-  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
-
+  initialDocument?: DocumentDialogFields;
+  titleOverride?: string;
+  refetchQueries?: string[];
+}> = ({ isOpen, onClose, documentTypeOptions, initialDocument, titleOverride, refetchQueries }) => {
+  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
+    refetchQueries,
+  });
   const handleUpload = async (dialogFields: DocumentDialogFields) => {
     const uploadDocumentInput: UploadDocumentInput = {
       bundleId: dialogFields.id,
@@ -449,6 +477,8 @@ export const AddDocumentDialog: React.FC<{
       mode="add"
       onSubmit={handleUpload}
       documentTypeOptions={documentTypeOptions}
+      initialDocument={initialDocument}
+      titleOverride={titleOverride}
     />
   );
 };
