@@ -72,7 +72,7 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
 
 interface S3UploadResponse {
   success: boolean;
-  errorMessage?: string;
+  errorMessage: string;
 }
 
 /**
@@ -90,7 +90,7 @@ export const tryUploadingFileToS3 = async (
     });
 
     if (putResponse.ok) {
-      return { success: true };
+      return { success: true, errorMessage: "" };
     } else {
       const errorText = await putResponse.text();
       return { success: false, errorMessage: `Failed to upload file: ${errorText}` };
@@ -438,7 +438,7 @@ export const AddDocumentDialog: React.FC<{
   onClose: () => void;
   documentTypeSubset?: DocumentType[];
 }> = ({ isOpen, onClose, documentTypeSubset }) => {
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
     if (!dialogFields.file) {
@@ -462,7 +462,13 @@ export const AddDocumentDialog: React.FC<{
       throw new Error("Could not get presigned URL from the server");
     }
 
-    await tryUploadingFileToS3(presignedURL, dialogFields.file);
+    const response: S3UploadResponse = await tryUploadingFileToS3(presignedURL, dialogFields.file);
+
+    if (response.success) {
+      showSuccess("Your document was uploaded successfully!");
+    } else {
+      showError(response.errorMessage);
+    }
   };
 
   return (
