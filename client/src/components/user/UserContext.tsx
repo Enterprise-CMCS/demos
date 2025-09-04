@@ -23,29 +23,43 @@ type UserContextValue = {
 const Ctx = createContext<UserContextValue | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const { data, loading, error, refetch } = useQuery(GET_CURRENT_USER_QUERY, {
-    fetchPolicy: "cache-first",
-  });
   const auth = useAuth();
+  const token = auth.user?.id_token ?? null;
+  const shouldQuery = !!token && auth.isAuthenticated && !auth.isLoading;
+  const {
+    data,
+    loading: qLoading,
+    error,
+    refetch,
+  } = useQuery(GET_CURRENT_USER_QUERY, {
+    fetchPolicy: "cache-first",
+    skip: !shouldQuery,
+    errorPolicy: "ignore",
+    notifyOnNetworkStatusChange: true,
+  });
 
   useEffect(() => {
-    if (!auth.isLoading) {
+    if (shouldQuery) {
       refetch().catch(() => {});
     }
-  }, [auth.isLoading, auth.isAuthenticated, auth.user, refetch]);
-  const currentUser = (data?.currentUser as CurrentUser | undefined) ?? null;
-  const value = useMemo<UserContextValue>(
+  }, [shouldQuery, token, refetch]);
+
+  const currentUser = (shouldQuery ? (data?.currentUser as CurrentUser | undefined) : null) ?? null;
+  const loading = auth.isLoading || (shouldQuery && qLoading);
+  const userContextValues = useMemo<UserContextValue>(
     () => ({
       currentUser,
       loading,
       error,
       refresh: () => refetch(),
-      hasRole: (name) => !!currentUser?.roles?.some(r => r.name === name),
+      // Setting the ground work for roles
+      hasRole: (name) => !!currentUser?.roles?.some((role) => role.name === name),
     }),
     [currentUser, loading, error, refetch]
   );
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={userContextValues}>{children}</Ctx.Provider>;
 }
+
 
 export function getCurrentUser() {
   const ctx = useContext(Ctx);
