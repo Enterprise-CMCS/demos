@@ -70,6 +70,37 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
 
+interface S3UploadResponse {
+  success: boolean;
+  errorMessage?: string;
+}
+
+/**
+ * @internal - Exported for testing only
+ */
+export const tryUploadingFileToS3 = async (
+  presignedURL: string,
+  file: File
+): Promise<S3UploadResponse> => {
+  try {
+    const putResponse = await fetch(presignedURL, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type },
+    });
+
+    if (putResponse.ok) {
+      return { success: true };
+    } else {
+      const errorText = await putResponse.text();
+      return { success: false, errorMessage: `Failed to upload file: ${errorText}` };
+    }
+  } catch (error) {
+    const errorText = error instanceof Error ? error.message : "Network error during upload";
+    return { success: false, errorMessage: errorText };
+  }
+};
+
 const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
   value,
   onChange,
@@ -391,9 +422,14 @@ export const AddDocumentDialog: React.FC<{ isOpen: boolean; onClose: () => void 
   isOpen,
   onClose,
 }) => {
-  const { showError, showSuccess } = useToast();
+  const { showError } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
+    if (!dialogFields.file) {
+      showError("No file selected");
+      return;
+    }
+
     const uploadDocumentInput: UploadDocumentInput = {
       bundleId: dialogFields.id,
       title: dialogFields.title,
@@ -407,19 +443,10 @@ export const AddDocumentDialog: React.FC<{ isOpen: boolean; onClose: () => void 
     const presignedURL = uploadDocumentResponse.data?.uploadDocument ?? null;
 
     if (!presignedURL) {
-      throw new Error("Could not get presigned URL from the client");
+      throw new Error("Could not get presigned URL from the server");
     }
 
-    const putResponse = await fetch(presignedURL, {
-      method: "PUT",
-      body: dialogFields.file,
-    });
-
-    if (putResponse.ok) {
-      showSuccess("File uploaded successfully");
-    } else {
-      showError("Failed to upload file");
-    }
+    await tryUploadingFileToS3(presignedURL, dialogFields.file);
   };
 
   return <DocumentDialog isOpen={isOpen} mode="add" onClose={onClose} onSubmit={handleUpload} />;

@@ -199,6 +199,7 @@ describe("EditDocumentDialog", () => {
     title: "Existing Document",
     description: "This is an existing document",
     documentType: "General File",
+    file: null,
   };
   const setup = () => {
     const onClose = vi.fn();

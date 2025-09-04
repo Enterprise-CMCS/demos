@@ -24,10 +24,7 @@ export const DELETE_DOCUMENTS_QUERY = gql`
 export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
-      id
-      title
-      description
-      documentType
+      presignedURL
     }
   }
 `;

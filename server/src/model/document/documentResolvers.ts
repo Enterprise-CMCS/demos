@@ -31,7 +31,7 @@ async function getBundleTypeId(bundleId: string) {
 }
 
 async function getPresignedUploadUrl(
-  document: DocumentPendingUpload,
+  documentPendingUpload: DocumentPendingUpload,
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
@@ -46,7 +46,7 @@ async function getPresignedUploadUrl(
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const uploadBucket = process.env.UPLOAD_BUCKET;
-  const key = document.id;
+  const key = documentPendingUpload.id;
   const command = new PutObjectCommand({
     Bucket: uploadBucket,
     Key: key,
