@@ -4,9 +4,9 @@ import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
+import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 import { useToast } from "components/toast";
 import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
-import { DOCUMENT_TYPES } from "demos-server-constants";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import {
@@ -15,8 +15,8 @@ import {
   UPLOAD_DOCUMENT_QUERY,
 } from "queries/documentQueries";
 import { tw } from "tags/tw";
+
 import { useMutation } from "@apollo/client";
-import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 
 type DocumentDialogType = "add" | "edit";
 
