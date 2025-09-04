@@ -39,8 +39,6 @@ pipeline {
                 npm i -g tsx
 
                 npm ci
-                echo "Deploying core to ${env.STAGE}"
-                exit 1
                 npx tsx demosctl/index deploy:core ${env.STAGE}
                 """
               }
