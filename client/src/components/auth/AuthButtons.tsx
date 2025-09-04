@@ -2,10 +2,6 @@ import React from "react";
 import { Button } from "components/button/Button";
 import { useAuthActions } from "./AuthActions";
 
-/**
- * Remove `onClick` from the props passed to SigninButton,
- * so only the internal `signIn` handler is used.
- */
 export function SigninButton(): React.ReactElement {
   const { signIn } = useAuthActions();
   return (
