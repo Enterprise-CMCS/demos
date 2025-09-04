@@ -52,7 +52,7 @@
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "vite build",
     "coverage": "vitest --coverage",
-    "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
+    "coverage:ci": "vitest run --no-isolate --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
     "dev": "vite --host",
     "dev:mocks": "VITE_USE_MOCKS=true npm run dev",
     "test": "vitest --mode test",
