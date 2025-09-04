@@ -72,19 +72,6 @@ export class GuardDutyS3 extends Construct {
           actions: ["s3:GetObject", "s3:GetObjectVersion"],
           resources: [`${props.bucket.bucketArn}/*`],
         }),
-        // new aws_iam.PolicyStatement({
-        //   sid: "AllowDecryptForMalwareScan",
-        //   effect: aws_iam.Effect.ALLOW,
-        //   actions: ["kms:GenerateDataKey", "kms:Decrypt"],
-        //   resources: [
-        //     `${S3MalwareProtectedBucketStack.kmsEncryptionKey.keyArn}`,
-        //   ],
-        //   conditions: {
-        //     StringLike: {
-        //       "kms:ViaService": "s3.*.amazonaws.com",
-        //     },
-        //   },
-        // }),
       ],
     });
 
