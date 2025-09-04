@@ -1,12 +1,19 @@
 import { useAuth } from "react-oidc-context";
-import { logout } from "router/cognitoConfig";
+import { logoutRedirect } from "router/cognitoConfig";
 
 export function useAuthActions() {
   const auth = useAuth();
+
   const signIn = () => auth.signinRedirect();
-  const signOut = () => {
-    auth.removeUser();
-    logout();
+
+  const signOut = async () => {
+    try {
+      auth.signinSilent?.();
+      auth.removeUser();
+    } catch (error) {
+      console.warn("[Logout] logout failed", error);
+    }
+    logoutRedirect();
   };
 
   return {
