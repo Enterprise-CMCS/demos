@@ -41,7 +41,9 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
       <ExtensionDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
     )}
 
-    {entityCreationModal === "document" && <AddDocumentDialog onClose={onCloseEntityModal} />}
+    {entityCreationModal === "document" && (
+      <AddDocumentDialog isOpen={true} onClose={onCloseEntityModal} />
+    )}
 
     {/* Demonstration Action Modals */}
     {demonstrationActionModal === "edit" && (

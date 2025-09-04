@@ -1,15 +1,14 @@
 import React from "react";
-import { useAuth } from "react-oidc-context";
 import { useAuthActions } from "./AuthActions";
-import { getCognitoConfig, getCognitoLogoutUrl } from "router/cognitoConfig";
 
-export function SigninLink(): React.ReactElement {
+export function SigninLink() {
   const { signIn } = useAuthActions();
   return (
     <a
       href="#"
-      onClick={(e) => {
-        e.preventDefault();
+      onClick={(signInEvent) => {
+        signInEvent.preventDefault();
+        signInEvent.stopPropagation();
         signIn();
       }}
     >
@@ -18,15 +17,15 @@ export function SigninLink(): React.ReactElement {
   );
 }
 
-export function SignoutLink(): React.ReactElement {
-  const auth = useAuth();
-  const logoutHref = getCognitoLogoutUrl(getCognitoConfig());
-
+export function SignoutLink() {
+  const { signOut } = useAuthActions();
   return (
     <a
-      href={logoutHref}
-      onClick={() => {
-        auth.removeUser?.();
+      href="#"
+      onClick={(signOutEvent) => {
+        signOutEvent.preventDefault();
+        signOutEvent.stopPropagation();
+        signOut();
       }}
     >
       Sign Out

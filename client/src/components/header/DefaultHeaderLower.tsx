@@ -1,8 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AmendmentDialog } from "components/dialog/AmendmentDialog";
@@ -114,7 +110,9 @@ export const DefaultHeaderLower: React.FC = () => {
       {modalType === "demonstration" && (
         <DemonstrationDialog mode="add" onClose={() => setModalType(null)} />
       )}
-      {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}
+      {modalType === "document" && (
+        <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
+      )}
       {modalType === "amendment" && (
         <AmendmentDialog mode="add" onClose={() => setModalType(null)} />
       )}
