@@ -15,6 +15,8 @@ type OidcSettingsSubset = Pick<
   "authority" | "client_id" | "redirect_uri" | "scope" | "response_type" | "automaticSilentRenew"
 > & {
   onSigninCallback: () => void;
+  automaticSilentRenew: boolean;
+  onSilentRenewError?: (error: Error) => void;
   userStore?: WebStorageStateStore;
 };
 
@@ -28,6 +30,10 @@ const BASE_COGNITO_CONFIG: OidcSettingsSubset = {
   response_type: "code",
   onSigninCallback,
   automaticSilentRenew: true,
+  onSilentRenewError: (error) => {
+    console.error("Silent renew failed:", error);
+    logoutRedirect(); // Maybe this needs to be authActions -> signout?
+  },
   userStore: new WebStorageStateStore({ store: window.localStorage }),
   authority: import.meta.env.VITE_COGNITO_AUTHORITY!,
   client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,

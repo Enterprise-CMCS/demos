@@ -4,7 +4,7 @@ config:
   theme: default
   layout: elk
   elk:
-    nodePlacementStrategy: BERGES_KOEPF
+    nodePlacementStrategy: NETWORK_SIMPLEX
 ---
 
 erDiagram
@@ -54,21 +54,21 @@ erDiagram
   permission ||--|{ role_permission : "FK034"
   grant_level ||--|{ role : "FK035"
   grant_level ||--|{ permission : "FK036"
-  system_grant_level_limit ||--|{ person_system_role : "FK037"
-  person_system_role }|--|| role_person_type : "FK038"
-  person_system_role }|--|| person : "FK039"
-  role ||--|{ person_system_role : "FK040"
+  system_grant_level_limit ||--|{ system_role_assignment : "FK037"
+  system_role_assignment }|--|| role_person_type : "FK038"
+  system_role_assignment }|--|| person : "FK039"
+  role ||--|{ system_role_assignment : "FK040"
   grant_level ||--|| system_grant_level_limit : "FK041"
-  person_demonstration_role }|--|| person_state : "FK042"
+  demonstration_role_assignment }|--|| person_state : "FK042"
   person_state }|--|| state : "FK043"
   person_state }|--|| person : "FK044"
   grant_level ||--|{ demonstration_grant_level_limit : "FK045"
-  demonstration_grant_level_limit ||--|{ person_demonstration_role : "FK046"
-  role_person_type ||--|{ person_demonstration_role : "FK047"
-  person_demonstration_role }|--|| person : "FK048"
-  role ||--|{ person_demonstration_role : "FK049"
-  person_demonstration_role }|--|| demonstration : "FK050"
-  person_demonstration_role ||--|| primary_person_demonstration_role : "FK051"
+  demonstration_grant_level_limit ||--|{ demonstration_role_assignment : "FK046"
+  role_person_type ||--|{ demonstration_role_assignment : "FK047"
+  demonstration_role_assignment }|--|| person : "FK048"
+  role ||--|{ demonstration_role_assignment : "FK049"
+  demonstration_role_assignment }|--|| demonstration : "FK050"
+  demonstration_role_assignment ||--|| primary_demonstration_role_assignment : "FK051"
   event }O..|| reportable_event_type : "FK052"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
@@ -267,7 +267,7 @@ erDiagram
   }
 
   %% Associative Tables
-  person_demonstration_role:::associativeTable {
+  demonstration_role_assignment:::associativeTable {
     uuid person_id PK, FK "FK042: (person_id, state_id) ∈ person_state.(person_id, state_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     uuid demonstration_id PK, FK "FK050: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
     text role_id PK, FK "FK047: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
@@ -281,7 +281,7 @@ erDiagram
     text state_id PK, FK "FK043: state_id ∈ state.id"
   }
 
-  person_system_role:::associativeTable {
+  system_role_assignment:::associativeTable {
     uuid person_id PK, FK "FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text role_id PK, FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
@@ -293,10 +293,10 @@ erDiagram
     text document_type_id PK, FK "FK028: document_type_id ∈ document_type.id"
   }
 
-  primary_person_demonstration_role:::associativeTable {
-    uuid person_id FK "FK051: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
-    uuid demonstration_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
-    text role_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ person_demonstration_role.(person_id, demonstration_id, role_id)"
+  primary_demonstration_role_assignment:::associativeTable {
+    uuid person_id FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
+    uuid demonstration_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
+    text role_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
   }
 
   role_permission:::associativeTable {

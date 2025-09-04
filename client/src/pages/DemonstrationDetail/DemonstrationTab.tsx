@@ -100,7 +100,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         )}
       </div>
 
-      {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}
+      {modalType === "document" && (
+        <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
+      )}
     </div>
   );
 };

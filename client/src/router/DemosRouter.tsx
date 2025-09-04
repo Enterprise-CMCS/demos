@@ -2,16 +2,14 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider, withAuthenticationRequired } from "react-oidc-context";
-
+import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { getCognitoConfig, getAuthProviderProps } from "./cognitoConfig";
 import { DemosApolloProvider } from "./DemosApolloProvider";
-
+import { IdleSessionHandler } from "./IdleSessionHandler";
 import { UserProvider } from "components/user/UserContext";
 import { PrimaryLayout } from "layout/PrimaryLayout";
-
 import { LandingPage } from "pages";
 import { Demonstrations } from "pages/Demonstrations";
-import { DemonstrationDetail } from "pages/DemonstrationDetail";
 import { ComponentLibrary, TestHooks } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
@@ -64,6 +62,7 @@ export const DemosRouter: React.FC = () => {
           </BrowserRouter>
         </UserProvider>
       </DemosApolloProvider>
+      <IdleSessionHandler />
     </AuthProvider>
   );
 };
