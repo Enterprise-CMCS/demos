@@ -51,8 +51,12 @@ export const documentSchema = gql`
     bundleId: ID
   }
 
+  type UploadDocumentResponse {
+    presignedURL: String!
+  }
+
   type Mutation {
-    uploadDocument(input: UploadDocumentInput!): String!
+    uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
     deleteDocuments(ids: [ID!]!): Int!
   }

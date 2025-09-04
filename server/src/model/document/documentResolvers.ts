@@ -110,7 +110,8 @@ export const documentResolvers = {
         },
       );
 
-      return await getPresignedUploadUrl(documentPendingUpload);
+      const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
+      return { presignedURL };
     },
 
     updateDocument: async (

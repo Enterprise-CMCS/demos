@@ -4,11 +4,8 @@ import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
 import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
-import { DOCUMENT_TYPES } from "demos-server-constants";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import {
@@ -17,8 +14,8 @@ import {
   UPLOAD_DOCUMENT_QUERY,
 } from "queries/documentQueries";
 import { tw } from "tags/tw";
-
 import { useMutation } from "@apollo/client";
+import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -141,26 +138,6 @@ const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
     );
   }
 );
-
-const DocumentTypeInput: React.FC<{
-  value?: string;
-  onSelect?: (value: string) => void;
-}> = ({ value, onSelect }) => {
-  const documentTypeOptions = DOCUMENT_TYPES.map((type) => ({
-    label: type,
-    value: type,
-  })) as Option[];
-
-  return (
-    <AutoCompleteSelect
-      id="document-type"
-      label="Document Type"
-      options={documentTypeOptions}
-      value={value}
-      onSelect={(selectedValue) => onSelect?.(selectedValue)}
-    />
-  );
-};
 
 const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({
   progress,
@@ -291,7 +268,7 @@ export type DocumentDialogProps = {
   isOpen: boolean;
   onClose?: () => void;
   mode: DocumentDialogType;
-  documentTypeOptions?: Option[];
+  documentTypeSubset?: DocumentType[];
   onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
 };
@@ -300,7 +277,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   isOpen,
   onClose = () => {},
   mode,
-  documentTypeOptions,
+  documentTypeSubset,
   onSubmit,
   initialDocument,
 }) => {
@@ -450,7 +427,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
         onSelect={(val) => {
           setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }));
         }}
-        options={documentTypeOptions}
+        documentTypeSubset={documentTypeSubset}
       />
     </BaseDialog>
   );
@@ -459,8 +436,8 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 export const AddDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  documentTypeOptions: Option[];
-}> = ({ isOpen, onClose, documentTypeOptions }) => {
+  documentTypeSubset?: DocumentType[];
+}> = ({ isOpen, onClose, documentTypeSubset }) => {
   const { showError } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
@@ -494,7 +471,7 @@ export const AddDocumentDialog: React.FC<{
       onClose={onClose}
       mode="add"
       onSubmit={handleUpload}
-      documentTypeOptions={documentTypeOptions}
+      documentTypeSubset={documentTypeSubset}
     />
   );
 };
@@ -502,9 +479,9 @@ export const AddDocumentDialog: React.FC<{
 export const EditDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  documentTypeOptions?: Option[];
   initialDocument: DocumentDialogFields;
-}> = ({ isOpen, onClose, documentTypeOptions, initialDocument }) => {
+  documentTypeSubset?: DocumentType[];
+}> = ({ isOpen, onClose, documentTypeSubset, initialDocument }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
@@ -525,7 +502,7 @@ export const EditDocumentDialog: React.FC<{
       initialDocument={initialDocument}
       onClose={onClose}
       onSubmit={handleEdit}
-      documentTypeOptions={documentTypeOptions}
+      documentTypeSubset={documentTypeSubset}
     />
   );
 };
