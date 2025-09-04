@@ -10,6 +10,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DocumentTable } from "./DocumentTable";
+import { mockDocuments } from "mock-data/documentMocks";
 
 describe("DocumentTable", () => {
   beforeEach(() => {
@@ -17,7 +18,7 @@ describe("DocumentTable", () => {
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
         <ToastProvider>
-          <DocumentTable />
+          <DocumentTable documents={mockDocuments} />
         </ToastProvider>
       </MockedProvider>
     );
