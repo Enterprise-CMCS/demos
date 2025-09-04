@@ -55,6 +55,18 @@ export function create(props: CognitoProps): CognitoOutputs {
       requireDigits: true,
       requireSymbols: true,
     },
+    customAttributes: {
+      roles: new aws_cognito.StringAttribute({
+        // Cognito custom attributes can't be modified once added. Since our
+        // integration is closely tied to IDM and the only way to fix this would
+        // be to delete the user pool completely and recreate it, then work with
+        // IDM to reconfigure everything, we are using this ternary as a
+        // workaround to avoid extra work
+        minLen: props.stage == "dev" ? undefined : 0,
+        maxLen: props.stage == "dev" ? undefined : 2048,
+        mutable: true,
+      }),
+    },
   });
 
   const cfnUserPool = userPool.node.defaultChild as aws_cognito.CfnUserPool;
