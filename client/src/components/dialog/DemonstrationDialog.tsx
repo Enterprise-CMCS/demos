@@ -74,8 +74,6 @@ export const DemonstrationDialog: React.FC<Props> = ({
     getFormData: (): CreateDemonstrationInput => ({
       name: title,
       description,
-      effectiveDate: new Date(effectiveDate),
-      expirationDate: new Date(expirationDate),
       demonstrationStatusId: "1",
       stateId: state,
       userIds: [projectOfficer],
@@ -102,8 +100,10 @@ export const DemonstrationDialog: React.FC<Props> = ({
       setState(demonstration.state.id);
       setTitle(demonstration.name);
       setProjectOfficer(demonstration.projectOfficer.id);
-      setEffectiveDate(formatDate(demonstration.effectiveDate));
-      setExpirationDate(formatDate(demonstration.expirationDate));
+      setEffectiveDate(demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "");
+      setExpirationDate(
+        demonstration.expirationDate ? formatDate(demonstration.expirationDate) : ""
+      );
       setDescription(demonstration.description);
       setCmcsDivision(demonstration.cmcsDivision);
       setSignatureLevel(demonstration.signatureLevel);
@@ -191,49 +191,53 @@ export const DemonstrationDialog: React.FC<Props> = ({
               value={projectOfficer}
             />
           </div>
-          <div className="flex flex-col gap-sm">
-            <label className={LABEL_CLASSES} htmlFor="effective-date">
-              Effective Date
-            </label>
-            <input
-              data-testid="effective-date-input"
-              id="effective-date"
-              type="date"
-              className={DATE_INPUT_CLASSES}
-              value={effectiveDate}
-              onChange={(e) =>
-                handleEffectiveDateChange(
-                  e.target.value,
-                  expirationDate,
-                  setEffectiveDate,
-                  setExpirationDate
-                )
-              }
-            />
-          </div>
-          <div className="flex flex-col gap-sm">
-            <label className={LABEL_CLASSES} htmlFor="expiration-date">
-              Expiration Date
-            </label>
-            <input
-              data-testid="input-expiration-date"
-              id="expiration-date"
-              type="date"
-              className={`${DATE_INPUT_CLASSES} ${
-                expirationError
-                  ? "border-border-warn focus:ring-border-warn"
-                  : "border-border-fields focus:ring-border-focus"
-              }`}
-              value={expirationDate}
-              min={effectiveDate || undefined}
-              onChange={(e) =>
-                handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)
-              }
-            />
-            {expirationError && (
-              <div className="text-text-warn text-sm mt-1">{expirationError}</div>
-            )}
-          </div>
+          {mode === "edit" && (
+            <>
+              <div className="flex flex-col gap-sm">
+                <label className={LABEL_CLASSES} htmlFor="effective-date">
+                  Effective Date
+                </label>
+                <input
+                  data-testid="input-effective-date"
+                  id="effective-date"
+                  type="date"
+                  className={DATE_INPUT_CLASSES}
+                  value={effectiveDate}
+                  onChange={(e) =>
+                    handleEffectiveDateChange(
+                      e.target.value,
+                      expirationDate,
+                      setEffectiveDate,
+                      setExpirationDate
+                    )
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-sm">
+                <label className={LABEL_CLASSES} htmlFor="expiration-date">
+                  Expiration Date
+                </label>
+                <input
+                  data-testid="input-expiration-date"
+                  id="expiration-date"
+                  type="date"
+                  className={`${DATE_INPUT_CLASSES} ${
+                    expirationError
+                      ? "border-border-warn focus:ring-border-warn"
+                      : "border-border-fields focus:ring-border-focus"
+                  }`}
+                  value={expirationDate}
+                  min={effectiveDate || undefined}
+                  onChange={(e) =>
+                    handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)
+                  }
+                />
+                {expirationError && (
+                  <div className="text-text-warn text-sm mt-1">{expirationError}</div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex flex-col gap-sm">

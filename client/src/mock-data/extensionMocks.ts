@@ -7,7 +7,7 @@ export type MockExtension = Pick<Extension, "id" | "name" | "effectiveDate"> & {
   extensionStatus: Pick<DemonstrationStatus, "name">;
 };
 
-export const mockExtensions: MockExtension[] = [
+export const mockExtensions = [
   {
     id: "1",
     name: "Extension 1 - Montana Medicaid Waiver",
@@ -22,4 +22,11 @@ export const mockExtensions: MockExtension[] = [
     projectOfficer: mockUsers[1],
     extensionStatus: mockDemonstrationStatuses[1],
   },
-];
+  {
+    id: "3",
+    name: "Extension 3 - Montana Medicaid Waiver",
+    effectiveDate: null,
+    projectOfficer: mockUsers[1],
+    extensionStatus: mockDemonstrationStatuses[1],
+  },
+] as const satisfies MockExtension[];

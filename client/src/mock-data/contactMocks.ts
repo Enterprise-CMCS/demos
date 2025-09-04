@@ -11,7 +11,7 @@ export type MockContact = {
   contactType: MockContactType | null;
 };
 
-export const mockContacts: MockContact[] = [
+export const mockContacts = [
   {
     id: "1",
     fullName: "John Doe",
@@ -30,4 +30,4 @@ export const mockContacts: MockContact[] = [
     email: null,
     contactType: "Subject Matter Expert",
   },
-];
+] as const satisfies MockContact[];
