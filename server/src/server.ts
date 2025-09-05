@@ -21,18 +21,9 @@ type JwtClaims = { sub: string; email?: string };
 function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null {
   // In REST custom authorizer, requestContext.authorizer is a flat map of strings
   const auth = (event.requestContext?.authorizer ?? {}) as Record<string, unknown>;
-
   const sub = typeof auth.sub === "string" && auth.sub.length > 0 ? auth.sub : null;
   const email = typeof auth.email === "string" ? auth.email : undefined;
-
   if (!sub) return null;
-
-  // Optional: show what's coming through from the authorizer
-  // (Be careful to not log PII in production)
-  console.log(
-    "[lambda] authorizer keys:",
-    Object.keys(auth).join(", ") || "<none>"
-  );
 
   return { sub, email };
 }
@@ -61,14 +52,8 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
       await databaseUrlPromise;
       const restEvent = event as APIGatewayProxyEvent;
       const claims = extractAuthorizerClaims(restEvent);
-      console.log(
-        "[lambda] authorizer claims present:",
-        !!claims,
-        claims?.sub ?? null
-      );
       // Pass claims to the existing builder via a header so we don't change its signature
       const headersWithClaims = withAuthorizerHeader(restEvent.headers, claims);
-
       const gqlCtx = await buildLambdaContext(headersWithClaims);
 
       return {

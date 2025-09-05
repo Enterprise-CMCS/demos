@@ -1,5 +1,6 @@
 import { useIdleTimer } from "react-idle-timer";
 import { useAuthActions } from "components/auth/AuthActions";
+import { isLocalDevelopment } from "config/env";
 
 export const IdleSessionHandler = () => {
   const { signOut } = useAuthActions();
@@ -8,8 +9,15 @@ export const IdleSessionHandler = () => {
     signOut();
   };
 
+  // if local, then allow for removal of time out.
+  if (isLocalDevelopment() && import.meta.env.VITE_IDLE_TIMEOUT === "-1") {
+    return null;
+  }
+
+  const idleTimeout = Number(import.meta.env.VITE_IDLE_TIMEOUT) || 15 * 60 * 1000;
+
   useIdleTimer({
-    timeout: 15 * 60 * 1000, // TODO: Adjust to CMS Required Value
+    timeout: idleTimeout,
     onIdle,
     debounce: 500,
   });

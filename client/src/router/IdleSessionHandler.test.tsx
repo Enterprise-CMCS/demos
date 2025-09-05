@@ -20,6 +20,12 @@ vi.mock("react-idle-timer", () => ({
 }));
 
 describe("IdleSessionHandler", () => {
+  beforeEach(() => {
+    (import.meta as any).env.VITE_IDLE_TIMEOUT = undefined;
+    mockUseIdleTimer.mockClear();
+    mockSignOut.mockClear();
+  });
+
   it("initializes the idle timer with correct config", () => {
     render(<IdleSessionHandler />);
 
@@ -41,5 +47,13 @@ describe("IdleSessionHandler", () => {
     onIdleCallback();
 
     expect(mockSignOut).toHaveBeenCalled();
+  });
+
+  it("does not initialize the idle timer when disabled (-1)", () => {
+    (import.meta as any).env.VITE_IDLE_TIMEOUT = "-1";
+
+    render(<IdleSessionHandler />);
+
+    expect(mockUseIdleTimer).not.toHaveBeenCalled();
   });
 });
