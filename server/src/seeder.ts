@@ -57,6 +57,9 @@ function clearDatabase() {
     // States are only connected to specific bundles and to the join tables
     prisma().state.deleteMany(),
 
+    // Phases and accompanying items
+    prisma().bundlePhaseStatus.deleteMany(),
+
     // Documents, which are attached to bundles
     prisma().document.deleteMany(),
 
@@ -380,8 +383,8 @@ async function seedDatabase() {
       },
       where: {
         NOT: { id: applicationDocumentType },
-        }
-      })
+      },
+    });
     await prisma().document.create({
       data: {
         title: faker.lorem.sentence(2),
