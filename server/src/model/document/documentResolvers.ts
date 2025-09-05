@@ -54,7 +54,7 @@ async function attachPresignedUploadUrl(document: DocumentPendingUpload) {
   return { ...document, s3Path };
 }
 
-async function getPresignedDownloadUrl(document: Document) {
+async function getPresignedDownloadUrl(document: Document) : Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
       region: "us-east-1",
@@ -76,8 +76,7 @@ async function getPresignedDownloadUrl(document: Document) {
   const s3Url = await getSignedUrl(s3, getObjectCommand, {
     expiresIn: 3600,
   });
-  return { ...document, downloadUrl: s3Url };
-
+  return s3Url;
 }
 
 

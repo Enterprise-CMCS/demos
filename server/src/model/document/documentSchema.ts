@@ -34,9 +34,9 @@ export const documentSchema = gql`
     bundle: Bundle!
     bundleType: String!
     createdAt: DateTime!
-    updatedAt: DateTime!
+    updatedAt: DateTime!    
   }
-
+  
   input UploadDocumentInput {
     title: String!
     description: String!
@@ -57,6 +57,7 @@ export const documentSchema = gql`
     uploadDocument(input: UploadDocumentInput!): Document
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
     deleteDocuments(ids: [ID!]!): Int!
+    downloadDocument(id: ID!): String
   }
 
   type Query {
@@ -76,7 +77,7 @@ export interface Document {
   bundle: Bundle;
   bundleType: string;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt: Date;  
 }
 
 export interface UploadDocumentInput {
