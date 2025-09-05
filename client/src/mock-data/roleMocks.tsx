@@ -7,4 +7,4 @@ export const mockRoles = [
     name: "CMS User",
     description: "CMS User Role",
   },
-];
+] as const satisfies MockRole[];

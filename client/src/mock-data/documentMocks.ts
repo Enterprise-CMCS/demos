@@ -1,6 +1,3 @@
-import { DOCUMENT_TABLE_QUERY } from "queries/documentQueries";
-
-import { MockedResponse } from "@apollo/client/testing";
 import { Document, DocumentType } from "demos-server";
 import { MockUser, mockUsers } from "./userMocks";
 
@@ -9,7 +6,7 @@ export type MockDocument = Pick<Document, "id" | "title" | "description" | "crea
   owner: MockUser;
 };
 
-export const mockDocuments: MockDocument[] = [
+export const mockDocuments = [
   {
     id: "1",
     title: "Project Plan",
@@ -42,17 +39,4 @@ export const mockDocuments: MockDocument[] = [
     owner: mockUsers[7],
     createdAt: new Date(2025, 0, 4),
   },
-];
-
-export const documentMocks: MockedResponse[] = [
-  {
-    request: {
-      query: DOCUMENT_TABLE_QUERY,
-    },
-    result: {
-      data: {
-        documents: mockDocuments,
-      },
-    },
-  },
-];
+] as const satisfies MockDocument[];

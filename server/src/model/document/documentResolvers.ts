@@ -8,6 +8,7 @@ import { BundleType } from "../../types.js";
 import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -29,7 +30,9 @@ async function getBundleTypeId(bundleId: string) {
   return result!.bundleType.id;
 }
 
-async function attachPresignedUploadUrl(document: DocumentPendingUpload) {
+async function getPresignedUploadUrl(
+  documentPendingUpload: DocumentPendingUpload,
+): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
       region: "us-east-1",
@@ -43,15 +46,14 @@ async function attachPresignedUploadUrl(document: DocumentPendingUpload) {
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const uploadBucket = process.env.UPLOAD_BUCKET;
-  const key = document.id;
+  const key = documentPendingUpload.id;
   const command = new PutObjectCommand({
     Bucket: uploadBucket,
     Key: key,
   });
-  const s3Path = await getSignedUrl(s3, command, {
+  return await getSignedUrl(s3, command, {
     expiresIn: 3600,
   });
-  return { ...document, s3Path };
 }
 
 async function getPresignedDownloadUrl(document: Document): Promise<string> {
@@ -87,9 +89,14 @@ export const documentResolvers = {
         where: { id: id },
       });
     },
-    documents: async (_: undefined, { bundleTypeId }: { bundleTypeId?: string }) => {
+    documents: async (
+      _: undefined,
+      { bundleTypeId }: { bundleTypeId?: string },
+    ) => {
       if (bundleTypeId) {
-        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(bundleTypeId as BundleType);
+        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(
+          bundleTypeId as BundleType,
+        );
         if (!isValidBundleType) {
           throw new GraphQLError("The requested bundle type is not valid.", {
             extensions: {
@@ -113,19 +120,24 @@ export const documentResolvers = {
 
   Mutation: {
     uploadDocument: async (
-      _: undefined,
-      { input }: { input: UploadDocumentInput }
+      context: GraphQLContext,
+      { input }: { input: UploadDocumentInput },
     ) => {
-      const { ownerUserId, documentTypeId, bundleId, ...rest } = input;
-      const document = await prisma().documentPendingUpload.create({
-        data: {
-          ...rest,
-          owner: { connect: { id: ownerUserId } },
-          documentType: { connect: { id: documentTypeId } },
-          bundle: { connect: { id: bundleId } },
+      const { documentType, bundleId, ...rest } = input;
+
+      const documentPendingUpload = await prisma().documentPendingUpload.create(
+        {
+          data: {
+            ...rest,
+            owner: { connect: { id: context.user?.id } },
+            documentType: { connect: { id: documentType } },
+            bundle: { connect: { id: bundleId } },
+          },
         },
-      });
-      return await attachPresignedUploadUrl(document);
+      );
+
+      const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
+      return { presignedURL };
     },
 
     downloadDocument: async (
@@ -148,21 +160,16 @@ export const documentResolvers = {
 
     updateDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDocumentInput }
+      { id, input }: { id: string; input: UpdateDocumentInput },
     ): Promise<Document> => {
-      const { ownerUserId, documentTypeId, bundleId, ...rest } = input;
+      const { documentType, bundleId, ...rest } = input;
       return await prisma().document.update({
         where: { id: id },
         data: {
           ...rest,
-          ...(ownerUserId && {
-            owner: {
-              connect: { id: ownerUserId },
-            },
-          }),
-          ...(documentTypeId && {
+          ...(documentType && {
             documentType: {
-              connect: { id: documentTypeId },
+              connect: { id: documentType },
             },
           }),
           ...(bundleId && {

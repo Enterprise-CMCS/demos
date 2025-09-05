@@ -25,6 +25,7 @@
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-idle-timer": "^5.7.2",
     "tailwindcss": "^4.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
@@ -51,6 +52,7 @@
   "scripts": {
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "vite build",
+    "build:ts": "npx tsc --noEmit --skipLibCheck && vite build",
     "coverage": "vitest --coverage",
     "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
     "dev": "vite --host",
@@ -58,6 +60,7 @@
     "test": "vitest --mode test",
     "test:once": "vitest --mode test --run --reporter=dot",
     "test:debug": "vitest --mode test --run --inspect-brk --no-file-parallelism",
+    "tsc": "tsc --noEmit --skipLibCheck",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",

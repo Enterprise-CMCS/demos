@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 
+import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { SecondaryButton } from "components/button";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { AddNewIcon } from "components/icons";
+import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { TabItem, Tabs } from "layout/Tabs";
+import { Demonstration, DemonstrationStatus, Document, State, User } from "demos-server";
 import { Contact } from "./DemonstrationDetail";
-import { ContactsTable } from "components/table/tables/ContactsTable";
-import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
-import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
@@ -19,7 +19,9 @@ export type DemonstrationTabDemonstration = Pick<
   "id" | "name" | "description" | "effectiveDate" | "expirationDate"
 > & {
   demonstrationTypes: object[];
-  documents: object[];
+  documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
+    owner: Pick<User, "fullName">;
+  })[];
   contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
   state: Pick<State, "id" | "name">;
   projectOfficer: Pick<User, "fullName" | "id">;
@@ -78,7 +80,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <DocumentTable />
+            <DocumentTable documents={demonstration.documents} />
           </div>
         )}
 
@@ -100,7 +102,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         )}
       </div>
 
-      {modalType === "document" && <AddDocumentDialog onClose={() => setModalType(null)} />}
+      {modalType === "document" && (
+        <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
+      )}
     </div>
   );
 };

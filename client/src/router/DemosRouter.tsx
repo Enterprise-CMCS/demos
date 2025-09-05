@@ -1,49 +1,60 @@
+// src/router/DemosRouter.tsx
 import React from "react";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { AuthProvider } from "react-oidc-context";
-import { getCognitoConfig } from "./cognitoConfig";
-import { LandingPage } from "pages";
-import { ComponentLibrary, TestHooks } from "pages/debug";
-import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
-import { PrimaryLayout } from "layout/PrimaryLayout";
-import { Demonstrations } from "pages/Demonstrations";
+import { AuthProvider, withAuthenticationRequired } from "react-oidc-context";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
-import { IconLibrary } from "pages/debug/IconLibrary";
+import { getCognitoConfig, getAuthProviderProps } from "./cognitoConfig";
 import { DemosApolloProvider } from "./DemosApolloProvider";
-import { isLocalDevelopment } from "config/env";
-import { EventSandbox } from "pages/debug/EventSandbox";
+import { IdleSessionHandler } from "./IdleSessionHandler";
 import { UserProvider } from "components/user/UserContext";
+import { PrimaryLayout } from "layout/PrimaryLayout";
+import { LandingPage } from "pages";
+import { Demonstrations } from "pages/Demonstrations";
+import { ComponentLibrary, TestHooks } from "pages/debug";
+import { IconLibrary } from "pages/debug/IconLibrary";
+import { EventSandbox } from "pages/debug/EventSandbox";
+import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
+import { isLocalDevelopment } from "config/env";
 
-export const DemosRouter = () => {
-  const cognitoConfig = getCognitoConfig();
+// 1) Shell that provides the layout and outlet for child routes
+function ProtectedShell() {
   return (
-    <AuthProvider {...cognitoConfig}>
+    <PrimaryLayout>
+      <Outlet />
+    </PrimaryLayout>
+  );
+}
+
+const AuthGuard = withAuthenticationRequired(ProtectedShell, {
+  OnRedirecting: () => <></>,
+  signinRedirectArgs: {
+    state: { returnUrl: window.location.pathname + window.location.search },
+  },
+});
+
+export const DemosRouter: React.FC = () => {
+  const cfg = getCognitoConfig();
+
+  return (
+    <AuthProvider {...getAuthProviderProps(cfg)}>
       <DemosApolloProvider>
         <UserProvider>
           <BrowserRouter>
             <Routes>
-              <Route
-                element={
-                  <PrimaryLayout>
-                    <Outlet />
-                  </PrimaryLayout>
-                }
-              >
-                {/* Real Pages the user should be able to access */}
+              {/* Everything below is protected */}
+              <Route element={<AuthGuard />}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
-                {/* DEBG AUTH IN EARLY STAGE DEV */}
-                <Route path="/auth" element={<AuthDebugComponent />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
-                {/* 404 Page */}
-                <Route path="*" element={<div>404: Page Not Found</div>} />
-                {/* Debug routes, only available in development mode */}
+
                 {isLocalDevelopment() && (
                   <>
-                    <Route path="/components" element={<ComponentLibrary />} />
-                    <Route path="/hooks" element={<TestHooks />} />
-                    <Route path="/icons" element={<IconLibrary />} />
-                    <Route path="/events" element={<EventSandbox />} />
+                    <Route path="components" element={<ComponentLibrary />} />
+                    <Route path="hooks" element={<TestHooks />} />
+                    <Route path="icons" element={<IconLibrary />} />
+                    <Route path="events" element={<EventSandbox />} />
+                    <Route path="auth" element={<AuthDebugComponent />} />
+                    <Route path="*" element={<div>404: Page Not Found</div>} />
                   </>
                 )}
               </Route>
@@ -51,6 +62,7 @@ export const DemosRouter = () => {
           </BrowserRouter>
         </UserProvider>
       </DemosApolloProvider>
+      <IdleSessionHandler />
     </AuthProvider>
   );
 };

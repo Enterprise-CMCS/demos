@@ -19,12 +19,14 @@
   "repositoryHost": "github.com/Enterprise-CMCS",
   "repositoryVisibility": "public",
   "vcs": "git",
-  "laborHours": 11258,
+  "laborHours": 11462,
   "reuseFrequency": {
     "forks": 0,
     "clones": 0
   },
-  "platforms": ["web"],
+  "platforms": [
+    "web"
+  ],
   "categories": [
     "applicant-tracking",
     "business-intelligence",
@@ -35,11 +37,11 @@
   "softwareType": "standalone/web",
   "languages": [
     "TypeScript",
-    "Python",
     "PLpgSQL",
+    "Python",
+    "Shell",
     "JavaScript",
     "Mermaid",
-    "Shell",
     "CSS",
     "Groovy",
     "Dockerfile",
@@ -49,15 +51,25 @@
   "contractNumber": "75FCMC24F0232",
   "date": {
     "created": "2025-05-08T12:52:27Z",
-    "lastModified": "2025-07-31T13:38:34Z",
-    "metaDataLastUpdated": "2025-08-01T00:01:38.002Z"
+    "lastModified": "2025-08-29T16:44:45Z",
+    "metaDataLastUpdated": "2025-09-01T00:01:58.086Z"
   },
-  "tags": ["PMDA", "DEMOS", "1115 Waivers", "Medicaid", "budget neutrality", "Medicaid demonstration"],
+  "tags": [
+    "PMDA",
+    "DEMOS",
+    "1115 Waivers",
+    "Medicaid",
+    "budget neutrality",
+    "Medicaid demonstration"
+  ],
   "contact": {
     "email": "dl-pmda@globalalliantinc.com",
     "name": ""
   },
-  "feedbackMechanisms": ["https://github.com/Enterprise-CMCS/demos/issues", "Help Desk"],
+  "feedbackMechanisms": [
+    "https://github.com/Enterprise-CMCS/demos/issues",
+    "Help Desk"
+  ],
   "localisation": false,
   "repositoryType": "website",
   "userInput": true,
@@ -66,7 +78,11 @@
   "projects": [],
   "systems": [],
   "upstream": "https://github.com/Enterprise-CMCS/demos/network/dependencies",
-  "subsetInHealthcare": ["Medicaid"],
-  "userType": ["Government"],
+  "subsetInHealthcare": [
+    "Medicaid"
+  ],
+  "userType": [
+    "Government"
+  ],
   "maturityModelTier": 3
 }
