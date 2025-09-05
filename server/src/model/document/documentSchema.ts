@@ -34,7 +34,7 @@ export const documentSchema = gql`
     bundle: Bundle!
     bundleType: String!
     createdAt: DateTime!
-    updatedAt: DateTime!    
+    updatedAt: DateTime!
   }
   
   input UploadDocumentInput {
