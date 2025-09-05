@@ -36,7 +36,7 @@ export const documentSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
   }
-
+ 
   input UploadDocumentInput {
     title: String!
     description: String!
@@ -59,6 +59,7 @@ export const documentSchema = gql`
     uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
     deleteDocuments(ids: [ID!]!): Int!
+    downloadDocument(id: ID!): String
   }
 
   type Query {

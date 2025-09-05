@@ -1379,3 +1379,51 @@ VALUES
     ('Q&A'),
     ('Signed Decision Memo'),
     ('State Application');
+
+CREATE OR REPLACE PROCEDURE
+demos_app.move_document_from_processing_to_clean(
+    p_id UUID,
+    p_s3_path TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    IF NOT EXISTS (SELECT id FROM demos_app.document_pending_upload WHERE id = p_id) THEN
+        RAISE EXCEPTION 'No document_pending_upload found for id: %', p_id;
+    END IF;
+
+    INSERT INTO demos_app.document (
+        id,
+        title,
+        description,
+        s3_path,
+        owner_user_id,
+        document_type_id,
+        bundle_id,
+        created_at,
+        updated_at
+    )
+    SELECT
+        id,
+        title,
+        description,
+        p_s3_path,
+        owner_user_id,
+        document_type_id,
+        bundle_id,
+        created_at,
+        updated_at
+    FROM
+        demos_app.document_pending_upload
+    WHERE id = p_id;
+
+    DELETE FROM
+        demos_app.document_pending_upload
+    WHERE
+        id = p_id;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE EXCEPTION 'Failed to move document from processing to clean. Details: %', SQLERRM;
+END;
+$$;
