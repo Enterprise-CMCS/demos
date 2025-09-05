@@ -68,7 +68,7 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const cleanBucket = process.env.CLEAN_BUCKET;
-  const key = document.id;
+  const key = `${document.bundleId}/${document.id}`;
   const getObjectCommand = new GetObjectCommand({
     Bucket: cleanBucket,
     Key: key,
