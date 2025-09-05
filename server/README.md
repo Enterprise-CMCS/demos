@@ -492,7 +492,7 @@ npm run seed
 npm run watch
 ```
 
-Conversely. if you prefer to run prisma and the local code separately.
+Alternatively. If you prefer to run prisma and the local code separately.
 You can use same top three instructions
 ```zsh
 cd server
