@@ -24,6 +24,7 @@ interface ImportMetaEnv {
   readonly VITE_COGNITO_CLIENT_ID: EnvironmentVariable;
   readonly VITE_APPLICATION_HOSTNAME: EnvironmentVariable;
   readonly VITE_API_URL_PREFIX: EnvironmentVariable;
+  readonly VITE_IDLE_TIMEOUT: EnvironmentVariable;
 }
 
 interface ImportMeta {

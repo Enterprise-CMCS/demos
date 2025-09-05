@@ -89,6 +89,27 @@ async function seedDatabase() {
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
   const bypassRoleId = "BYPASSED_ADMIN_ROLE";
   const bypassPermissionId = "BYPASSED_ADMIN_PERMISSION";
+  if (
+    process.env.LOCAL_USER_SUB &&
+    process.env.LOCAL_USER_USERNAME &&
+    process.env.LOCAL_USER_EMAIL &&
+    process.env.LOCAL_USER_FULLNAME &&
+    process.env.LOCAL_USER_DISPLAYNAME
+  ) {
+    console.log("🌱 Adding Local User from env vars...");
+    await prisma().user.create({
+      data: {
+        cognitoSubject: process.env.LOCAL_USER_SUB,
+        username: process.env.LOCAL_USER_USERNAME,
+        email: process.env.LOCAL_USER_EMAIL,
+        fullName: process.env.LOCAL_USER_FULLNAME,
+        displayName: process.env.LOCAL_USER_DISPLAYNAME,
+      },
+    });
+  } else {
+    console.log("⚠️ Skipping Local User — required env vars not found.");
+    return;
+  }
   await prisma().user.create({
     data: {
       id: bypassUserId,
