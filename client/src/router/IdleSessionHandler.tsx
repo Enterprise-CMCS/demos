@@ -1,24 +1,20 @@
 import { useIdleTimer } from "react-idle-timer";
 import { useAuthActions } from "components/auth/AuthActions";
-import { isLocalDevelopment } from "config/env";
+import { getIdleTimeoutMs } from "config/env"; // from earlier refactor
 
 export const IdleSessionHandler = () => {
   const { signOut } = useAuthActions();
 
-  const onIdle = () => {
-    signOut();
-  };
+  const idleTimeout = getIdleTimeoutMs(); // number or NaN
 
-  // if local, then allow for removal of time out.
-  if (isLocalDevelopment() && import.meta.env.VITE_IDLE_TIMEOUT === "-1") {
+  // Disable when -1 (or any non-positive / invalid value)
+  if (!Number.isFinite(idleTimeout) || idleTimeout <= 0) {
     return null;
   }
 
-  const idleTimeout = Number(import.meta.env.VITE_IDLE_TIMEOUT) || 15 * 60 * 1000;
-
   useIdleTimer({
     timeout: idleTimeout,
-    onIdle,
+    onIdle: () => signOut(),
     debounce: 500,
   });
 
