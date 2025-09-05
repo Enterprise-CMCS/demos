@@ -77,7 +77,7 @@ export interface Document {
   bundle: Bundle;
   bundleType: string;
   createdAt: Date;
-  updatedAt: Date;  
+  updatedAt: Date;
 }
 
 export interface UploadDocumentInput {
