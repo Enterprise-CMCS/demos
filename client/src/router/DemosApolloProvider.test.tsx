@@ -3,6 +3,7 @@ import React from "react";
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DemosApolloProvider } from "./DemosApolloProvider";
+import type { ApolloLink } from "@apollo/client";
 
 // ---- Fix the env mock: include isLocalDevelopment and shouldUseMocks ----
 vi.mock("config/env", async (importOriginal) => {
@@ -16,10 +17,12 @@ vi.mock("config/env", async (importOriginal) => {
   };
 });
 
+type MockAuth = { user: { access_token?: string; id_token?: string } | null };
+
 // react-oidc-context mock
 vi.mock("react-oidc-context", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useAuth: vi.fn(() => ({
+  useAuth: vi.fn<[], MockAuth>(() => ({
     user: {
       access_token: "mock-access-token-123",
       id_token: "mock-id-token-123",
@@ -32,7 +35,7 @@ vi.mock("@apollo/client", () => ({
   ApolloClient: vi.fn(),
   InMemoryCache: vi.fn(() => ({})),
   ApolloProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  createHttpLink: vi.fn(() => ({ kind: "httpLink" } as any)),
+  createHttpLink: vi.fn(() => ({ kind: "httpLink" } as object)),
   gql: vi.fn(),
   useQuery: vi.fn(() => ({ data: undefined, error: undefined, loading: false })),
 }));
@@ -54,16 +57,21 @@ describe("DemosApolloProvider", () => {
     const mockSetContext = vi.mocked(setContext);
 
     // make auth link that supports concat
-    const mockAuthLink = { concat: vi.fn(() => "combined-link") } as any;
+    const mockAuthLink = { concat: vi.fn(() => "combined-link") } as unknown as ApolloLink;
     mockSetContext.mockReturnValue(mockAuthLink);
 
     render(<DemosApolloProvider>Hello</DemosApolloProvider>);
 
     expect(mockSetContext).toHaveBeenCalledWith(expect.any(Function));
 
-    const authHeaderFn = mockSetContext.mock.calls[0][0];
+    type Headers = Record<string, string>;
+    type SetContextFn = (
+      op: { query: unknown },
+      ctx: { headers?: Headers }
+    ) => { headers: Headers };
+    const authHeaderFn = mockSetContext.mock.calls[0][0] as SetContextFn;
     const result = authHeaderFn(
-      { query: "test" } as any,
+      { query: "test" },
       { headers: { "Content-Type": "application/json" } }
     );
 
@@ -80,21 +88,25 @@ describe("DemosApolloProvider", () => {
     vi.mocked(shouldUseMocks).mockReturnValue(false); // force real client
 
     const { useAuth } = await import("react-oidc-context");
-    vi.mocked(useAuth).mockReturnValue({ user: null } as any);
+    const mockedUseAuth = vi.mocked(useAuth as unknown as () => MockAuth);
+    mockedUseAuth.mockReturnValue({ user: null });
 
     const { setContext } = await import("@apollo/client/link/context");
     const mockSetContext = vi.mocked(setContext);
 
-    const mockAuthLink = { concat: vi.fn(() => "combined-link") } as any;
+    const mockAuthLink = { concat: vi.fn(() => "combined-link") } as unknown as ApolloLink;
     mockSetContext.mockReturnValue(mockAuthLink);
 
     render(<DemosApolloProvider>Hello</DemosApolloProvider>);
 
     expect(mockSetContext).toHaveBeenCalledWith(expect.any(Function));
 
-    const authHeaderFn = mockSetContext.mock.calls[0][0];
+    const authHeaderFn = mockSetContext.mock.calls[0][0] as (
+      op: { query: unknown },
+      ctx: { headers?: Record<string, string> }
+    ) => { headers: Record<string, string> };
     const result = authHeaderFn(
-      { query: "test" } as any,
+      { query: "test" },
       { headers: { "Content-Type": "application/json" } }
     );
 

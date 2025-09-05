@@ -5,6 +5,7 @@ import {
   handlers,
 } from "@as-integrations/aws-lambda";
 import { typeDefs, resolvers } from "./model/graphql.js";
+import { authGatePlugin } from "./auth/auth.plugin.js";
 import {
   GraphQLContext,
   buildLambdaContext,
@@ -42,7 +43,11 @@ const databaseUrlPromise = getDatabaseUrl().then((url) => {
   return url;
 });
 
-const server = new ApolloServer<GraphQLContext>({ typeDefs, resolvers });
+const server = new ApolloServer<GraphQLContext>({
+  typeDefs,
+  resolvers,
+  plugins: [authGatePlugin],
+});
 
 export const graphqlHandler = startServerAndCreateLambdaHandler(
   server,
