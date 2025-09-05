@@ -36,7 +36,7 @@ export const documentSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
   }
-  
+ 
   input UploadDocumentInput {
     title: String!
     description: String!
