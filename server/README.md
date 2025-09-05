@@ -513,6 +513,8 @@ API Gateway URL: http://localhost:4566/_aws/execute-api/yvbkw90rxr/local
 
 You should be able to use this URL from something like Bruno to make API calls against the database. Note that if you are making calls from _inside_ the devcontainer, you should replace `localhost` with `localstack`; this is because within the broader devcontainer environment, the DNS for the container running LocalStack is just `localstack`.
 
+There is a second local stack script located under `lambdas/fileprocess/setup.sh`  It setups up the S3 buckets for upload and the clean bucket.
+
 ## Prisma Migrations
 
 Prisma has a robust system which detects drift between the current state of the database and the Prisma models, and can generate SQL migration files to address this drift automatically. All of this functionality falls under the `prisma migrate` command.
