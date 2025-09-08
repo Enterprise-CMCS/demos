@@ -57,6 +57,9 @@ function clearDatabase() {
     // States are only connected to specific bundles and to the join tables
     prisma().state.deleteMany(),
 
+    // Phases and accompanying items
+    prisma().bundlePhaseStatus.deleteMany(),
+
     // Documents, which are attached to bundles
     prisma().document.deleteMany(),
 
@@ -89,6 +92,7 @@ async function seedDatabase() {
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
   const bypassRoleId = "BYPASSED_ADMIN_ROLE";
   const bypassPermissionId = "BYPASSED_ADMIN_PERMISSION";
+
   await prisma().user.create({
     data: {
       id: bypassUserId,
@@ -380,8 +384,8 @@ async function seedDatabase() {
       },
       where: {
         NOT: { id: applicationDocumentType },
-        }
-      })
+      },
+    });
     await prisma().document.create({
       data: {
         title: faker.lorem.sentence(2),

@@ -492,6 +492,19 @@ npm run seed
 npm run watch
 ```
 
+Alternatively. If you prefer to run prisma and the local code separately.
+You can use same top three instructions
+```zsh
+cd server
+npm install
+npm run seed
+```
+Then run this to separate prisma and the code in separate shell sessions.
+```zsh
+npm run dev
+npm run prisma
+```
+
 You may run the seeder as much as you like. Note that `npm run seed` both rebuilds the DB schemas from the ground up, and then loads data into them. If you just want to drop and reload data (for instance, to check that history tracking is working), you can use `tsx --inspect ./src/seeder.ts` to just run that portion.
 
 ## Localstack for Lambdas
