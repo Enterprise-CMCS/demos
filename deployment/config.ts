@@ -13,6 +13,7 @@ export interface DeploymentConfigProperties {
   isEphemeral: boolean;
   hostEnvironment: string;
   cloudfrontCertificateArn?: string;
+  cloudfrontHost: string;
   zScalerIps: string[];
   hostUserPoolId?: string;
   idmMetadataEndpoint?: string;
@@ -37,16 +38,20 @@ export const determineDeploymentConfig = async (
     isLocalstack: process.env.CDK_DEFAULT_ACCOUNT == "000000000000",
   };
 
-  const isEphemeral = !["dev","test","prod"].includes(stage)
-  const hostEnvironment = !isEphemeral ? stage : hostEnv ? hostEnv : "dev"
+  const isEphemeral = !["dev", "test", "prod"].includes(stage);
+  const hostEnvironment = !isEphemeral ? stage : hostEnv ? hostEnv : "dev";
   const hostUserPoolId = isEphemeral ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`) : undefined;
 
   const secretConfig =
-    stage != "bootstrap"
-      ? JSON.parse((await getSecret(`${project}-${hostEnvironment}/config`))!)
-      : {};
+    stage != "bootstrap" ? JSON.parse((await getSecret(`${project}-${hostEnvironment}/config`))!) : {};
 
-  const zScalerIps = await getZScalerIps()
+  const zScalerIps = await getZScalerIps();
+
+  let cloudfrontHost = `${hostEnvironment}.demos.internal.cms.gov`;
+
+  if (isEphemeral) {
+    cloudfrontHost = `${stage}.${cloudfrontHost}`;
+  }
 
   return {
     ...config,
@@ -54,6 +59,7 @@ export const determineDeploymentConfig = async (
     isEphemeral,
     hostEnvironment,
     zScalerIps,
-    hostUserPoolId
+    hostUserPoolId,
+    cloudfrontHost,
   };
 };

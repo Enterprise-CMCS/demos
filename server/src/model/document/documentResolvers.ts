@@ -6,7 +6,7 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GraphQLContext } from "../../auth/auth.util.js";
 
@@ -30,30 +30,57 @@ async function getBundleTypeId(bundleId: string) {
   return result!.bundleType.id;
 }
 
-async function attachPresignedUploadUrl(document: DocumentPendingUpload) {
+async function getPresignedUploadUrl(
+  documentPendingUpload: DocumentPendingUpload,
+): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
-        region: "us-east-1",
-        endpoint: process.env.S3_ENDPOINT_LOCAL,
-        forcePathStyle: true,
-        credentials: {
-          accessKeyId: "",
-          secretAccessKey: "",
-        },
-      }
+      region: "us-east-1",
+      endpoint: process.env.S3_ENDPOINT_LOCAL,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: "",
+        secretAccessKey: "",
+      },
+    }
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const uploadBucket = process.env.UPLOAD_BUCKET;
-  const key = document.id;
+  const key = documentPendingUpload.id;
   const command = new PutObjectCommand({
     Bucket: uploadBucket,
     Key: key,
   });
-  const s3Path = await getSignedUrl(s3, command, {
+  return await getSignedUrl(s3, command, {
     expiresIn: 3600,
   });
-  return { ...document, s3Path };
 }
+
+async function getPresignedDownloadUrl(document: Document): Promise<string> {
+  const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
+    ? {
+      region: "us-east-1",
+      endpoint: process.env.S3_ENDPOINT_LOCAL,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: "",
+        secretAccessKey: "",
+      },
+    }
+    : {};
+  const s3 = new S3Client(s3ClientConfig);
+  const cleanBucket = process.env.CLEAN_BUCKET;
+  const key = `${document.bundleId}/${document.id}`;
+  const getObjectCommand = new GetObjectCommand({
+    Bucket: cleanBucket,
+    Key: key,
+  });
+  const s3Url = await getSignedUrl(s3, getObjectCommand, {
+    expiresIn: 3600,
+  });
+  return s3Url;
+}
+
 
 export const documentResolvers = {
   Query: {
@@ -98,20 +125,42 @@ export const documentResolvers = {
     ) => {
       const { documentType, bundleId, ...rest } = input;
 
-      const document = await prisma().documentPendingUpload.create({
-        data: {
-          ...rest,
-          owner: { connect: { id: context.user?.id } },
-          documentType: { connect: { id: documentType } },
-          bundle: { connect: { id: bundleId } },
+      const documentPendingUpload = await prisma().documentPendingUpload.create(
+        {
+          data: {
+            ...rest,
+            owner: { connect: { id: context.user?.id } },
+            documentType: { connect: { id: documentType } },
+            bundle: { connect: { id: bundleId } },
+          },
         },
+      );
+
+      const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
+      return { presignedURL };
+    },
+
+    downloadDocument: async (
+      _: undefined,
+      { id }: { id: string }
+    ) => {
+      const document = await prisma().document.findUnique({
+        where: { id: id },
       });
-      return await attachPresignedUploadUrl(document);
+      if (!document) {
+        throw new GraphQLError("Document not found.", {
+          extensions: {
+            code: "NOT_FOUND",
+            http: { status: 404 },
+          },
+        });
+      }
+      return await getPresignedDownloadUrl(document);
     },
 
     updateDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDocumentInput }
+      { id, input }: { id: string; input: UpdateDocumentInput },
     ): Promise<Document> => {
       const { documentType, bundleId, ...rest } = input;
       return await prisma().document.update({

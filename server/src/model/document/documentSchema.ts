@@ -36,7 +36,7 @@ export const documentSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
   }
-
+ 
   input UploadDocumentInput {
     title: String!
     description: String!
@@ -51,10 +51,15 @@ export const documentSchema = gql`
     bundleId: ID
   }
 
+  type UploadDocumentResponse {
+    presignedURL: String!
+  }
+
   type Mutation {
-    uploadDocument(input: UploadDocumentInput!): Document
+    uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
     deleteDocuments(ids: [ID!]!): Int!
+    downloadDocument(id: ID!): String
   }
 
   type Query {

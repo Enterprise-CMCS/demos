@@ -13,4 +13,5 @@ export interface CommonProps {
   isEphemeral: boolean;
   zScalerIps: string[];
   idmMetadataEndpoint?: string;
+  cloudfrontHost: string;
 }
