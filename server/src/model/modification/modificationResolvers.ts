@@ -14,6 +14,30 @@ const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
 
+async function getDemonstration(parent: Modification) {
+  return await prisma().demonstration.findUnique({
+    where: { id: parent.demonstrationId },
+  });
+}
+
+async function getProjectOfficer(parent: Modification) {
+  return await prisma().user.findUnique({
+    where: { id: parent.projectOfficerUserId },
+  });
+}
+
+async function getDocuments(parent: Modification) {
+  return await prisma().document.findMany({
+    where: {
+      bundleId: parent.id,
+    },
+  });
+}
+
+async function getCurrentPhase(parent: Modification) {
+  return parent.currentPhaseId;
+}
+
 export const modificationResolvers = {
   Query: {
     amendment: async (_: undefined, { id }: { id: string }) => {
@@ -267,11 +291,7 @@ export const modificationResolvers = {
   },
 
   Amendment: {
-    demonstration: async (parent: Modification) => {
-      return await prisma().demonstration.findUnique({
-        where: { id: parent.demonstrationId },
-      });
-    },
+    demonstration: getDemonstration,
 
     amendmentStatus: async (parent: Modification) => {
       return await prisma().modificationStatus.findUnique({
@@ -284,30 +304,13 @@ export const modificationResolvers = {
       });
     },
 
-    projectOfficer: async (parent: Modification) => {
-      return await prisma().user.findUnique({
-        where: { id: parent.projectOfficerUserId },
-      });
-    },
-
-    documents: async (parent: Modification) => {
-      return await prisma().document.findMany({
-        where: {
-          bundleId: parent.id,
-        },
-      });
-    },
-
-    currentPhase: async (parent: Modification) => {
-      return parent.currentPhaseId;
-    },
+    projectOfficer: getProjectOfficer,
+    documents: getDocuments,
+    currentPhase: getCurrentPhase,
   },
+
   Extension: {
-    demonstration: async (parent: Modification) => {
-      return await prisma().demonstration.findUnique({
-        where: { id: parent.demonstrationId },
-      });
-    },
+    demonstration: getDemonstration,
 
     extensionStatus: async (parent: Modification) => {
       return await prisma().modificationStatus.findUnique({
@@ -320,22 +323,8 @@ export const modificationResolvers = {
       });
     },
 
-    projectOfficer: async (parent: Modification) => {
-      return await prisma().user.findUnique({
-        where: { id: parent.projectOfficerUserId },
-      });
-    },
-
-    documents: async (parent: Modification) => {
-      return await prisma().document.findMany({
-        where: {
-          bundleId: parent.id,
-        },
-      });
-    },
-
-    currentPhase: async (parent: Modification) => {
-      return parent.currentPhaseId;
-    },
+    projectOfficer: getProjectOfficer,
+    documents: getDocuments,
+    currentPhase: getCurrentPhase,
   },
 };
