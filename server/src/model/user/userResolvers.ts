@@ -1,8 +1,15 @@
 import { User } from "@prisma/client";
-import type { User as PrismaUser } from "@prisma/client";
+import type { Person, User as PrismaUser } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { CreateUserInput, UpdateUserInput } from "./userSchema.js";
 import type { GraphQLContext } from "../../auth/auth.util.js";
+
+export function resolveUser(user: User & { person: Person }) {
+  return {
+    ...user,
+    ...user.person,
+  };
+}
 
 export const userResolvers = {
   Query: {
@@ -16,10 +23,7 @@ export const userResolvers = {
       return { ...user, ...user?.person };
     },
     users: async () => {
-      return (await prisma().user.findMany({ include: { person: true } })).map((user) => ({
-        ...user,
-        ...user.person,
-      }));
+      return (await prisma().user.findMany({ include: { person: true } })).map(resolveUser);
     },
     currentUser: async (
       _parent: unknown,
@@ -28,9 +32,12 @@ export const userResolvers = {
     ): Promise<PrismaUser | null> => {
       if (!ctx.user) return null;
       try {
-        return await prisma()
-          .user.findUnique({ where: { id: ctx.user.id }, include: { person: true } })
-          .then((user) => (user ? { ...user, ...user.person } : null));
+        const user = await prisma().user.findUnique({
+          where: { id: ctx.user.id },
+          include: { person: true },
+        });
+        if (!user) return null;
+        return resolveUser(user);
       } catch (e) {
         console.error("[currentUser] resolver error:", e);
         throw e;

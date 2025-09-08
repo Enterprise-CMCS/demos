@@ -4,6 +4,7 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
+import { resolveUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -203,7 +204,8 @@ export const demonstrationResolvers = {
         where: { id: parent.projectOfficerUserId },
         include: { person: true },
       });
-      return { ...user, ...user?.person };
+      if (!user) return null;
+      return resolveUser(user);
     },
 
     documents: async (parent: Demonstration) => {

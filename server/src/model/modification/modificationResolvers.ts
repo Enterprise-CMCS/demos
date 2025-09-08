@@ -9,6 +9,7 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
+import { resolveUser } from "../user/userResolvers.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -244,7 +245,8 @@ export const modificationResolvers = {
         where: { id: parent.projectOfficerUserId },
         include: { person: true },
       });
-      return { ...user, ...user?.person };
+      if (!user) return null;
+      return resolveUser(user);
     },
 
     documents: async (parent: Modification) => {
@@ -278,7 +280,8 @@ export const modificationResolvers = {
         where: { id: parent.projectOfficerUserId },
         include: { person: true },
       });
-      return { ...user, ...user?.person };
+      if (!user) return null;
+      return resolveUser(user);
     },
 
     documents: async (parent: Modification) => {
