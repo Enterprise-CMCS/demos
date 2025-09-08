@@ -8,6 +8,7 @@ import { Document } from "../document/documentSchema.js";
 export const userSchema = gql`
   type User {
     id: ID!
+    personTypeId: String!
     cognitoSubject: String!
     username: String!
     email: String!
@@ -23,6 +24,7 @@ export const userSchema = gql`
   }
 
   input CreateUserInput {
+    personTypeId: ID!
     cognitoSubject: String!
     username: String!
     email: String!
@@ -34,6 +36,7 @@ export const userSchema = gql`
   }
 
   input UpdateUserInput {
+    personTypeId: ID
     cognitoSubject: String
     username: String
     email: String
@@ -59,6 +62,7 @@ export const userSchema = gql`
 
 export interface User {
   id: string;
+  personTypeId: string;
   cognitoSubject: string;
   username: string;
   email: string;
@@ -74,6 +78,7 @@ export interface User {
 }
 
 export interface CreateUserInput {
+  personTypeId: string;
   cognitoSubject: string;
   username: string;
   email: string;
@@ -85,6 +90,7 @@ export interface CreateUserInput {
 }
 
 export interface UpdateUserInput {
+  personTypeId?: string;
   cognitoSubject?: string;
   username?: string;
   email?: string;

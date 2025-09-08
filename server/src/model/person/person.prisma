@@ -1,5 +1,5 @@
 model Person {
-  id           String   @db.Uuid
+  id           String   @default(uuid()) @db.Uuid
   personTypeId String   @map("person_type_id")
   email        String
   fullName     String   @map("full_name")

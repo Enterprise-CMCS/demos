@@ -4,8 +4,12 @@
   - You are about to drop the column `display_name` on the `users` table. All the data in the column will be lost.
   - You are about to drop the column `email` on the `users` table. All the data in the column will be lost.
   - You are about to drop the column `full_name` on the `users` table. All the data in the column will be lost.
+  - You are about to drop the column `display_name` on the `users_history` table. All the data in the column will be lost.
+  - You are about to drop the column `email` on the `users_history` table. All the data in the column will be lost.
+  - You are about to drop the column `full_name` on the `users_history` table. All the data in the column will be lost.
   - A unique constraint covering the columns `[id,person_type_id]` on the table `users` will be added. If there are existing duplicate values, this will fail.
   - Added the required column `person_type_id` to the `users` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `person_type_id` to the `users_history` table without a default value. This is not possible if the table is not empty.
 
 */
 -- DropIndex
@@ -13,6 +17,12 @@ DROP INDEX "demos_app"."users_cognito_subject_key";
 
 -- AlterTable
 ALTER TABLE "demos_app"."users" DROP COLUMN "display_name",
+DROP COLUMN "email",
+DROP COLUMN "full_name",
+ADD COLUMN     "person_type_id" TEXT NOT NULL;
+
+-- AlterTable
+ALTER TABLE "demos_app"."users_history" DROP COLUMN "display_name",
 DROP COLUMN "email",
 DROP COLUMN "full_name",
 ADD COLUMN     "person_type_id" TEXT NOT NULL;
@@ -28,6 +38,22 @@ CREATE TABLE "demos_app"."person" (
     "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "person_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "demos_app"."person_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "demos_app"."revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "person_type_id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "full_name" TEXT NOT NULL,
+    "display_name" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "person_history_pkey" PRIMARY KEY ("revision_id")
 );
 
 -- CreateTable
@@ -61,6 +87,7 @@ ALTER TABLE "demos_app"."users" ADD CONSTRAINT "users_person_type_id_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."user_person_type_limit" ADD CONSTRAINT "user_person_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "demos_app"."person_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
 CREATE OR REPLACE FUNCTION demos_app.log_changes_person()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -175,3 +202,15 @@ CREATE OR REPLACE TRIGGER log_changes_users_trigger
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.users
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_users();
 
+INSERT INTO "person_type" ("id")
+VALUES
+    ('demos-admin'),
+    ('demos-cms-user'),
+    ('demos-state-user'),
+    ('non-user-contact');
+
+INSERT INTO "user_person_type_limit" ("id")
+VALUES
+    ('demos-admin'),
+    ('demos-cms-user'),
+    ('demos-state-user');

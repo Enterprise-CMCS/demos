@@ -1,5 +1,5 @@
 model User {
-  id             String   @default(uuid()) @db.Uuid
+  id             String   @db.Uuid
   personTypeId   String   @map("person_type_id")
   cognitoSubject String   @map("cognito_subject") @db.Uuid
   username       String
@@ -19,5 +19,6 @@ model User {
 
   @@id([id])
   @@unique([id, personTypeId]) // TODO: add note here saying that this is a prism-ism. Update doc image to match
+  @@unique([cognitoSubject])
   @@map("users")
 }

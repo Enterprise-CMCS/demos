@@ -3,12 +3,11 @@ import { faker } from "@faker-js/faker";
 import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL } from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
+import { PERSON_TYPES } from "./model/personType/personTypeSchema.js";
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
-    throw new Error(
-      "Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.",
-    );
+    throw new Error("Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.");
   }
 }
 
@@ -69,6 +68,7 @@ function clearDatabase() {
     // Finally, roles and users
     prisma().role.deleteMany(),
     prisma().user.deleteMany(),
+    prisma().person.deleteMany(),
   ]);
 }
 
@@ -89,22 +89,29 @@ async function seedDatabase() {
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
   const bypassRoleId = "BYPASSED_ADMIN_ROLE";
   const bypassPermissionId = "BYPASSED_ADMIN_PERMISSION";
-  await prisma().user.create({
+
+  await prisma().person.create({
     data: {
       id: bypassUserId,
-      cognitoSubject: bypassUserSub,
-      username: "BYPASSED_USER",
+      personTypeId: "demos-admin",
       email: "bypassedUser@email.com",
       fullName: "Bypassed J. User",
       displayName: "Bypass",
+    },
+  });
+  await prisma().user.create({
+    data: {
+      id: bypassUserId,
+      personTypeId: "demos-admin",
+      cognitoSubject: bypassUserSub,
+      username: "BYPASSED_USER",
     },
   });
   await prisma().role.create({
     data: {
       id: bypassRoleId,
       name: "Bypassed Admin Role",
-      description:
-        "This role is a testing role for the bypassed user and is not a real role.",
+      description: "This role is a testing role for the bypassed user and is not a real role.",
     },
   });
   await prisma().userRole.create({
@@ -157,15 +164,24 @@ async function seedDatabase() {
     });
   }
 
-  console.log("🌱 Seeding users...");
+  console.log("🌱 Seeding people and users...");
   for (let i = 0; i < userCount; i++) {
-    await prisma().user.create({
+    const person = await prisma().person.create({
       data: {
-        cognitoSubject: faker.string.uuid(),
-        username: faker.internet.username(),
+        personType: {
+          connect: { id: PERSON_TYPES[i % (PERSON_TYPES.length - 1)] },
+        },
         email: faker.internet.email(),
         fullName: faker.person.fullName(),
         displayName: faker.internet.username(),
+      },
+    });
+    await prisma().user.create({
+      data: {
+        id: person.id,
+        personTypeId: person.personTypeId,
+        cognitoSubject: faker.string.uuid(),
+        username: faker.internet.username(),
       },
     });
   }
@@ -173,12 +189,8 @@ async function seedDatabase() {
   console.log("🌱 Seeding permissions...");
   for (let i = 0; i < permissionCount; i++) {
     const permissionName = sampleFromArray(
-      [
-        faker.lorem.sentence(1),
-        faker.lorem.sentence(2),
-        faker.lorem.sentence(3),
-      ],
-      1,
+      [faker.lorem.sentence(1), faker.lorem.sentence(2), faker.lorem.sentence(3)],
+      1
     );
 
     await prisma().permission.create({
@@ -225,8 +237,7 @@ async function seedDatabase() {
         expirationDate: faker.date.future({ years: 1 }),
         cmcsDivisionId: sampleFromArray([...CMCS_DIVISION, null], 1)[0],
         signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
-        demonstrationStatusId:
-          (await prisma().demonstrationStatus.findRandom())!.id,
+        demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
         projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
@@ -380,8 +391,8 @@ async function seedDatabase() {
       },
       where: {
         NOT: { id: applicationDocumentType },
-        }
-      })
+      },
+    });
     await prisma().document.create({
       data: {
         title: faker.lorem.sentence(2),

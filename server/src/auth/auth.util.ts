@@ -8,7 +8,6 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
 
-
 const config = getAuthConfig();
 
 export interface GraphQLContext {
@@ -16,7 +15,6 @@ export interface GraphQLContext {
     id: string;
     sub: string;
     roles: string[] | null;
-    displayName?: string;
   };
 }
 
@@ -24,6 +22,7 @@ type DecodedJWT = {
   sub: string;
   email?: string;
   token_use?: "id" | "access";
+  "custom:roles"?: string;
 };
 
 const verifyOpts: VerifyOptions = {
@@ -70,7 +69,7 @@ const checkAuthBypass = (): DecodedJWT | undefined => {
 };
 
 /* -----------------------  CENTRALIZED HELPERS  ----------------------- */
-type Claims = { sub: string; email?: string };
+type Claims = { sub: string; email?: string; role?: string };
 
 function deriveUserFields({ sub, email }: Claims) {
   const username = email?.includes("@") ? email.split("@")[0] : sub;
@@ -82,18 +81,35 @@ function deriveUserFields({ sub, email }: Claims) {
 
 /** Upsert user and return the DB row */
 async function ensureUserFromClaims(claims: Claims) {
-  const { sub, email } = claims;
+  const { sub, role } = claims;
   const { username, displayName, emailForCreate, fullName } = deriveUserFields(claims);
 
-  return prisma().user.upsert({
+  // Add await and handle the result properly
+  const existingUser = await prisma().user.findUnique({
     where: { cognitoSubject: sub },
-    update: { ...(email ? { email } : {}) },
-    create: {
-      cognitoSubject: sub,
-      username,
+  });
+
+  if (existingUser) {
+    return existingUser;
+  }
+
+  const person = await prisma().person.create({
+    data: {
+      personType: {
+        connect: { id: role },
+      },
       email: emailForCreate,
       fullName,
       displayName,
+    },
+  });
+
+  return await prisma().user.create({
+    data: {
+      id: person.id,
+      personTypeId: person.personTypeId,
+      cognitoSubject: sub,
+      username,
     },
   });
 }
@@ -105,7 +121,7 @@ export async function getUserRoles(cognitoSubject: string): Promise<string[] | n
     where: { cognitoSubject },
     include: { userRoles: { include: { role: true } } },
   });
-  return user?.userRoles.map(ur => ur.role.name) || null;
+  return user?.userRoles.map((ur) => ur.role.name) || null;
 }
 
 /** Build GraphQLContext from verified claims, creating user/roles as needed */
@@ -113,7 +129,7 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
   const dbUser = await ensureUserFromClaims(claims);
   const roles = await getUserRoles(claims.sub);
   return {
-    user: { id: dbUser.id, sub: claims.sub, roles, displayName: dbUser.displayName },
+    user: { id: dbUser.id, sub: claims.sub, roles },
   };
 }
 
@@ -125,8 +141,12 @@ export async function buildLambdaContext(
   const rawClaims = headers["x-authorizer-claims"] ?? headers["X-Authorizer-Claims"];
   if (rawClaims) {
     try {
-      const { sub, email } = JSON.parse(rawClaims as string) as { sub: string; email?: string };
-      return buildContextFromClaims({ sub, email });
+      const { sub, email, role } = JSON.parse(rawClaims as string) as {
+        sub: string;
+        email?: string;
+        role: string;
+      };
+      return buildContextFromClaims({ sub, email, role });
     } catch {
       // fall through to JWT verify
     }
@@ -134,9 +154,7 @@ export async function buildLambdaContext(
 
   // 2) Fallback: verify the Bearer token yourself
   const authHeader =
-    headers.authorization ||
-    (headers as Record<string, string | undefined>).Authorization ||
-    "";
+    headers.authorization || (headers as Record<string, string | undefined>).Authorization || "";
   if (!authHeader.startsWith("Bearer ")) return { user: null };
 
   const bypass = checkAuthBypass();
@@ -150,7 +168,6 @@ export async function buildLambdaContext(
     return { user: null };
   }
 }
-
 
 /* -----------------------  HTTP Context  ----------------------- */
 export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLContext> {
@@ -166,8 +183,11 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
   if (!rawAuth.startsWith("Bearer ")) return { user: null };
 
   try {
-    const { sub, email } = await decodeToken(rawAuth.slice(7));
-    return buildContextFromClaims({ sub, email });
+    const decodedToken = await decodeToken(rawAuth.slice(7));
+    const { sub, email } = decodedToken;
+    const role = decodedToken["custom:roles"];
+    const context = buildContextFromClaims({ sub, email, role });
+    return context;
   } catch (err) {
     console.error("[auth] context error:", err);
     return { user: null };
