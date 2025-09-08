@@ -1,4 +1,3 @@
-// src/auth/auth.util.ts
 import jwt, { JwtHeader, VerifyOptions } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { GraphQLError } from "graphql";
@@ -7,7 +6,6 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
-
 
 const config = getAuthConfig();
 
@@ -63,14 +61,43 @@ function decodeToken(token: string): Promise<DecodedJWT> {
   });
 }
 
-const checkAuthBypass = (): DecodedJWT | undefined => {
-  if (process.env.BYPASS_AUTH === "true") {
-    return { sub: "1234abcd-0000-1111-2222-333333333333", email: "bypassedUser@email.com" };
-  }
-};
-
-/* -----------------------  CENTRALIZED HELPERS  ----------------------- */
+/* -----------------------  HELPERS  ----------------------- */
 type Claims = { sub: string; email?: string };
+type HeaderGetter = (name: string) => string | undefined;
+
+function createHeaderGetter(obj: Record<string, unknown> | undefined | null): HeaderGetter {
+  const lowerMap = new Map<string, string | undefined>();
+  if (obj) {
+    for (const k of Object.keys(obj)) {
+      const v = (obj as Record<string, string | undefined>)[k];
+      lowerMap.set(k.toLowerCase(), v);
+    }
+  }
+  return (name: string) => lowerMap.get(name.toLowerCase());
+}
+
+function parseCookie(header: string | undefined): Record<string, string> {
+  if (!header) return {};
+  const entries = header.split("; ").map((c) => {
+    const idx = c.indexOf("=");
+    return idx === -1 ? [c, ""] : [c.slice(0, idx), decodeURIComponent(c.slice(idx + 1))];
+  });
+  return Object.fromEntries(entries);
+}
+
+function extractToken(getHeader: HeaderGetter): string {
+  const rawAuth = getHeader("authorization") || "";
+  let token = "";
+  if (rawAuth.startsWith("Bearer ")) {
+    token = rawAuth.slice(7);
+  } else {
+    const cookieHeader = getHeader("cookie");
+    const cookieMap = parseCookie(cookieHeader);
+    token = cookieMap["id_token"] || cookieMap["access_token"] || cookieMap["authorization"] || "";
+    if (token.startsWith("Bearer ")) token = token.slice(7);
+  }
+  return token;
+}
 
 function deriveUserFields({ sub, email }: Claims) {
   const username = email?.includes("@") ? email.split("@")[0] : sub;
@@ -98,9 +125,8 @@ async function ensureUserFromClaims(claims: Claims) {
   });
 }
 
-/** Get roles by Cognito sub (already handles BYPASS_AUTH internally) */
+/** Get roles by Cognito sub */
 export async function getUserRoles(cognitoSubject: string): Promise<string[] | null> {
-  if (process.env.BYPASS_AUTH === "true") return ["ADMIN"];
   const user = await prisma().user.findUnique({
     where: { cognitoSubject },
     include: { userRoles: { include: { role: true } } },
@@ -133,17 +159,11 @@ export async function buildLambdaContext(
   }
 
   // 2) Fallback: verify the Bearer token yourself
-  const authHeader =
-    headers.authorization ||
-    (headers as Record<string, string | undefined>).Authorization ||
-    "";
-  if (!authHeader.startsWith("Bearer ")) return { user: null };
-
-  const bypass = checkAuthBypass();
-  if (bypass) return buildContextFromClaims(bypass);
+  const token = extractToken(createHeaderGetter(headers as unknown as Record<string, unknown>));
+  if (!token) return { user: null };
 
   try {
-    const { sub, email } = await decodeToken(authHeader.slice(7));
+    const { sub, email } = await decodeToken(token);
     return buildContextFromClaims({ sub, email });
   } catch (err) {
     console.error("[auth] lambda context error:", err);
@@ -154,19 +174,11 @@ export async function buildLambdaContext(
 
 /* -----------------------  HTTP Context  ----------------------- */
 export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLContext> {
-  const bypass = checkAuthBypass();
-  if (bypass) return buildContextFromClaims(bypass);
-
-  const rawAuth =
-    req.headers.authorization ||
-    // some environments set capitalized header
-    (req.headers as Record<string, string | undefined>)["Authorization"] ||
-    "";
-
-  if (!rawAuth.startsWith("Bearer ")) return { user: null };
+  const token = extractToken(createHeaderGetter(req.headers as Record<string, unknown>));
+  if (!token) return { user: null };
 
   try {
-    const { sub, email } = await decodeToken(rawAuth.slice(7));
+    const { sub, email } = await decodeToken(token);
     return buildContextFromClaims({ sub, email });
   } catch (err) {
     console.error("[auth] context error:", err);
