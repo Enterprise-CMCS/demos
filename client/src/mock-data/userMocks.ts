@@ -21,6 +21,7 @@ import { MockedResponse } from "@apollo/client/testing";
 
 export const johnDoe: User = {
   id: "1",
+  personTypeId: "demos-cms-user",
   fullName: "John Doe",
   cognitoSubject: "1234567890",
   username: "johndoe",
