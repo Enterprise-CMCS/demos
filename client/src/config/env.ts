@@ -34,5 +34,5 @@ export const shouldUseMocks = (): boolean => {
 
 export const getIdleTimeoutMs = (): number => {
   const n = Number(import.meta.env.VITE_IDLE_TIMEOUT);
-  return Number.isFinite(n) ? n : 15 * 60 * 1000; // default 15 min
+  return Number.isFinite(n) ? n : 60 * 60 * 1000; // default 60 min per fisma
 };
