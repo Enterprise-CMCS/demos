@@ -15,7 +15,7 @@ vi.mock("react-idle-timer", () => ({
   useIdleTimer: (cfg: IIdleTimerProps) => mockUseIdleTimer(cfg),
 }));
 
-const getIdleTimeoutMsMock = vi.fn<number, []>();
+const getIdleTimeoutMsMock = vi.fn();
 vi.mock("config/env", () => ({
   // isLocalDevelopment no longer matters for disabling
   getIdleTimeoutMs: () => getIdleTimeoutMsMock(),

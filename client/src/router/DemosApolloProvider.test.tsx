@@ -22,7 +22,7 @@ type MockAuth = { user: { access_token?: string; id_token?: string } | null };
 // react-oidc-context mock
 vi.mock("react-oidc-context", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useAuth: vi.fn<[], MockAuth>(() => ({
+  useAuth: vi.fn(() => ({
     user: {
       access_token: "mock-access-token-123",
       id_token: "mock-id-token-123",
