@@ -4,8 +4,7 @@ import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
-import { CmcsDivision, SignatureLevel } from "../../types.js";
-import { Phase } from "../../types.js";
+import { CmcsDivision, SignatureLevel, Phase } from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
