@@ -15,7 +15,7 @@ export const personTypeSchema = gql`
   - demos-state-user
   - non-user-contact
   """
-  scalar DocumentType
+  scalar PersonType
 `;
 
 export type PersonType = (typeof PERSON_TYPES)[number];

@@ -25,7 +25,7 @@ export const userSchema = gql`
   }
 
   input CreateUserInput {
-    personTypeId: ID!
+    personTypeId: PersonType!
     cognitoSubject: String!
     username: String!
     email: String!
@@ -37,7 +37,7 @@ export const userSchema = gql`
   }
 
   input UpdateUserInput {
-    personTypeId: ID
+    personTypeId: PersonType
     cognitoSubject: String
     username: String
     email: String
@@ -79,7 +79,7 @@ export interface User {
 }
 
 export interface CreateUserInput {
-  personTypeId: string;
+  personTypeId: PersonType;
   cognitoSubject: string;
   username: string;
   email: string;
@@ -91,7 +91,7 @@ export interface CreateUserInput {
 }
 
 export interface UpdateUserInput {
-  personTypeId?: string;
+  personTypeId?: PersonType;
   cognitoSubject?: string;
   username?: string;
   email?: string;

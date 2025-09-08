@@ -18,7 +18,7 @@ model User {
   modifications           Modification[]
 
   @@id([id])
-  @@unique([id, personTypeId]) // TODO: add note here saying that this is a prism-ism. Update doc image to match
+  @@unique([id, personTypeId]) // This isnt actually required in Postgres; however prisma requires that we explicitly notate this as a unique constraint
   @@unique([cognitoSubject])
   @@map("users")
 }

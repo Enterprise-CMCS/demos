@@ -27,17 +27,10 @@ import { stateResolvers } from "./state/stateResolvers.js";
 import { userSchema } from "./user/userSchema.js";
 import { userResolvers } from "./user/userResolvers.js";
 
-import {
-  JSONObjectDefinition,
-  DateTimeTypeDefinition,
-  DateTypeDefinition,
-} from "graphql-scalars";
+import { JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition } from "graphql-scalars";
+import { personTypeSchema } from "./personType/personTypeSchema.js";
 
-const scalarTypes = [
-  JSONObjectDefinition,
-  DateTimeTypeDefinition,
-  DateTypeDefinition,
-];
+const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
 export const typeDefs = [
   demonstrationSchema,
@@ -50,6 +43,7 @@ export const typeDefs = [
   roleSchema,
   stateSchema,
   userSchema,
+  personTypeSchema,
   ...scalarTypes,
 ];
 
