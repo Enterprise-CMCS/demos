@@ -1,4 +1,9 @@
-export { PERSON_TYPES } from "./model/personType/personTypeSchema";
+export const PERSON_TYPES = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-state-user",
+  "non-user-contact",
+] as const;
 
 export const BUNDLE_TYPE = {
   DEMONSTRATION: "DEMONSTRATION",

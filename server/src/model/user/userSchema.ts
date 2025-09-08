@@ -4,7 +4,7 @@ import { Role } from "../role/roleSchema.js";
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
 import { Event } from "../event/eventSchema.js";
 import { Document } from "../document/documentSchema.js";
-import { PersonType } from "../personType/personTypeSchema.js";
+import { PersonType } from "../../types.js";
 
 export const userSchema = gql`
   type User {

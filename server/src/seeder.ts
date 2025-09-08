@@ -1,9 +1,8 @@
 import { faker } from "@faker-js/faker";
 
-import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL } from "./constants.js";
+import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
-import { PERSON_TYPES } from "./model/personType/personTypeSchema.js";
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
