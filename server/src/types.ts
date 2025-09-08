@@ -1,4 +1,5 @@
 import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL, DOCUMENT_TYPES } from "./constants.js";
+import { PERSON_TYPES } from "./model/personType/personTypeSchema.js";
 
 // Export types for use in the client code
 export type {
@@ -66,3 +67,4 @@ export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
 export type CmcsDivision = (typeof CMCS_DIVISION)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
+export type PersonType = (typeof PERSON_TYPES)[number];

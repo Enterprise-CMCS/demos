@@ -1,3 +1,5 @@
+export { PERSON_TYPES } from "./model/personType/personTypeSchema";
+
 export const BUNDLE_TYPE = {
   DEMONSTRATION: "DEMONSTRATION",
   AMENDMENT: "AMENDMENT",
