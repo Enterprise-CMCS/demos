@@ -11,6 +11,7 @@ TBL_FOLDERS = [
     "_userState",
     "_userStateDemonstration",
     "bundle",
+    "bundlePhaseStatus",
     "demonstration",
     "demonstrationStatus",
     "document",
