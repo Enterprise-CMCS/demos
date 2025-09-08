@@ -6,7 +6,7 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
 import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GraphQLContext } from "../../auth/auth.util.js";
 
@@ -35,14 +35,14 @@ async function getPresignedUploadUrl(
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
-        region: "us-east-1",
-        endpoint: process.env.S3_ENDPOINT_LOCAL,
-        forcePathStyle: true,
-        credentials: {
-          accessKeyId: "",
-          secretAccessKey: "",
-        },
-      }
+      region: "us-east-1",
+      endpoint: process.env.S3_ENDPOINT_LOCAL,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: "",
+        secretAccessKey: "",
+      },
+    }
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const uploadBucket = process.env.UPLOAD_BUCKET;
@@ -55,6 +55,32 @@ async function getPresignedUploadUrl(
     expiresIn: 3600,
   });
 }
+
+async function getPresignedDownloadUrl(document: Document): Promise<string> {
+  const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
+    ? {
+      region: "us-east-1",
+      endpoint: process.env.S3_ENDPOINT_LOCAL,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: "",
+        secretAccessKey: "",
+      },
+    }
+    : {};
+  const s3 = new S3Client(s3ClientConfig);
+  const cleanBucket = process.env.CLEAN_BUCKET;
+  const key = `${document.bundleId}/${document.id}`;
+  const getObjectCommand = new GetObjectCommand({
+    Bucket: cleanBucket,
+    Key: key,
+  });
+  const s3Url = await getSignedUrl(s3, getObjectCommand, {
+    expiresIn: 3600,
+  });
+  return s3Url;
+}
+
 
 export const documentResolvers = {
   Query: {
@@ -112,6 +138,24 @@ export const documentResolvers = {
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return { presignedURL };
+    },
+
+    downloadDocument: async (
+      _: undefined,
+      { id }: { id: string }
+    ) => {
+      const document = await prisma().document.findUnique({
+        where: { id: id },
+      });
+      if (!document) {
+        throw new GraphQLError("Document not found.", {
+          extensions: {
+            code: "NOT_FOUND",
+            http: { status: 404 },
+          },
+        });
+      }
+      return await getPresignedDownloadUrl(document);
     },
 
     updateDocument: async (

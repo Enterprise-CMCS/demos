@@ -121,6 +121,9 @@ export class ApiStack extends Stack {
     const uploadBucketName = Fn.importValue(`${props.stage}UploadBucketName`);
     const uploadBucket = aws_s3.Bucket.fromBucketName(this, "uploadBucket", uploadBucketName);
 
+    const cleanBucketName = Fn.importValue(`${props.stage}CleanBucketName`);
+    const cleanBucket = aws_s3.Bucket.fromBucketName(this, "cleanBucket", cleanBucketName);
+
     const graphqlLambda = lambda.create(
       {
         ...commonProps,
@@ -139,6 +142,7 @@ export class ApiStack extends Stack {
           DATABASE_URL: "postgres://placeholder",
           DATABASE_SECRET_ARN: dbSecret.secretName, // This needs to be the name rather than the arn, otherwise the request from the lambda fails since no secret suffix is available
           UPLOAD_BUCKET: uploadBucket.bucketName,
+          CLEAN_BUCKET: cleanBucket.bucketName,
         },
       },
       "graphql"
