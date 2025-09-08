@@ -1,0 +1,11 @@
+// Flags: STATIC_CONSTRAINT
+model Phase {
+  id          String
+  phaseNumber Int    @map("phase_number")
+
+  bundlePhaseStatus BundlePhaseStatus[]
+
+  @@id([id])
+  @@unique([phaseNumber])
+  @@map("phase")
+}
