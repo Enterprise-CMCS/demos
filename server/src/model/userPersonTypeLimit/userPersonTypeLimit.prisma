@@ -1,0 +1,9 @@
+model UserPersonTypeLimit {
+  id String
+
+  users      User[]
+  personType PersonType @relation(fields: [id], references: [id])
+
+  @@id([id])
+  @@map("user_person_type_limit")
+}

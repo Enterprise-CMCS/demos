@@ -1,0 +1,9 @@
+model PersonType {
+  id String
+
+  people              Person[]
+  userPersonTypeLimit UserPersonTypeLimit?
+
+  @@id([id])
+  @@map("person_type")
+}

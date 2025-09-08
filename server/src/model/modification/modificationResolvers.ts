@@ -9,9 +9,29 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
+import { resolveUser } from "../user/userResolvers.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
+
+const resolveCommonSubfields = {
+  projectOfficer: async (parent: Modification) => {
+    const user = await prisma().user.findUnique({
+      where: { id: parent.projectOfficerUserId },
+      include: { person: true },
+    });
+    if (!user) return null;
+    return resolveUser(user);
+  },
+
+  documents: async (parent: Modification) => {
+    return await prisma().document.findMany({
+      where: {
+        bundleId: parent.id,
+      },
+    });
+  },
+};
 
 export const modificationResolvers = {
   Query: {
@@ -238,20 +258,7 @@ export const modificationResolvers = {
         },
       });
     },
-
-    projectOfficer: async (parent: Modification) => {
-      return await prisma().user.findUnique({
-        where: { id: parent.projectOfficerUserId },
-      });
-    },
-
-    documents: async (parent: Modification) => {
-      return await prisma().document.findMany({
-        where: {
-          bundleId: parent.id,
-        },
-      });
-    },
+    ...resolveCommonSubfields,
   },
   Extension: {
     demonstration: async (parent: Modification) => {
@@ -270,19 +277,6 @@ export const modificationResolvers = {
         },
       });
     },
-
-    projectOfficer: async (parent: Modification) => {
-      return await prisma().user.findUnique({
-        where: { id: parent.projectOfficerUserId },
-      });
-    },
-
-    documents: async (parent: Modification) => {
-      return await prisma().document.findMany({
-        where: {
-          bundleId: parent.id,
-        },
-      });
-    },
+    ...resolveCommonSubfields,
   },
 };
