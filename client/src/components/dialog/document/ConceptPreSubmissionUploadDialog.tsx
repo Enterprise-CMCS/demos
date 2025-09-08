@@ -1,12 +1,9 @@
 import React from "react";
 
 import { AddDocumentDialog, DocumentDialogFields } from "components/dialog/document/DocumentDialog";
-import { Option } from "components/input/select/Select";
+import { DocumentType } from "demos-server";
 
-const OPTIONS: Option[] = [
-  { label: "Pre-Submission", value: "Pre-Submission" },
-  { label: "General File", value: "General File" },
-];
+const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["Pre-Submission", "General File"];
 
 type Props = {
   isOpen: boolean;
@@ -19,21 +16,25 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   bundleId,
+  refetchQueries,
 }) => {
-  const initial: DocumentDialogFields = {
+  const getInitialDocument = (): DocumentDialogFields => ({
     id: bundleId,
     title: "",
     description: "",
     documentType: "Pre-Submission",
-  };
+    file: null,
+  });
 
   return (
     <AddDocumentDialog
+      key={isOpen ? "open" : "closed"}
       isOpen={isOpen}
       onClose={onClose}
-      documentTypeOptions={OPTIONS}
-      initialDocument={initial}
+      documentTypeSubset={DOCUMENT_TYPE_SUBSET}
+      initialDocument={getInitialDocument()}
       titleOverride="Pre-Submission Document"
+      refetchQueries={refetchQueries}
     />
   );
 };
