@@ -28,7 +28,9 @@ export const userResolvers = {
     ): Promise<PrismaUser | null> => {
       if (!ctx.user) return null;
       try {
-        return await prisma().user.findUnique({ where: { id: ctx.user.id } });
+        return await prisma()
+          .user.findUnique({ where: { id: ctx.user.id }, include: { person: true } })
+          .then((user) => (user ? { ...user, ...user.person } : null));
       } catch (e) {
         console.error("[currentUser] resolver error:", e);
         throw e;

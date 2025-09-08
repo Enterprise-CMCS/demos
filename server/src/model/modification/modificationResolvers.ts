@@ -240,9 +240,11 @@ export const modificationResolvers = {
     },
 
     projectOfficer: async (parent: Modification) => {
-      return await prisma().user.findUnique({
+      const user = await prisma().user.findUnique({
         where: { id: parent.projectOfficerUserId },
+        include: { person: true },
       });
+      return { ...user, ...user?.person };
     },
 
     documents: async (parent: Modification) => {
@@ -272,9 +274,11 @@ export const modificationResolvers = {
     },
 
     projectOfficer: async (parent: Modification) => {
-      return await prisma().user.findUnique({
+      const user = await prisma().user.findUnique({
         where: { id: parent.projectOfficerUserId },
+        include: { person: true },
       });
+      return { ...user, ...user?.person };
     },
 
     documents: async (parent: Modification) => {
