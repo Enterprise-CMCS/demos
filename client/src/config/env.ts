@@ -31,3 +31,8 @@ export const shouldUseMocks = (): boolean => {
 
   return isTestMode() || (isLocalDevelopment() && useMocks);
 };
+
+export const getIdleTimeoutMs = (): number => {
+  const n = Number(import.meta.env.VITE_IDLE_TIMEOUT);
+  return Number.isFinite(n) ? n : 60 * 60 * 1000; // default 60 min per fisma
+};

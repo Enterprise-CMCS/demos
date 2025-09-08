@@ -89,6 +89,7 @@ async function seedDatabase() {
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
   const bypassRoleId = "BYPASSED_ADMIN_ROLE";
   const bypassPermissionId = "BYPASSED_ADMIN_PERMISSION";
+
   await prisma().user.create({
     data: {
       id: bypassUserId,
