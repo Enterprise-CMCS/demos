@@ -7,6 +7,7 @@ import {
   ExtensionStatus,
 } from "../modificationStatus/modificationStatusSchema.js";
 import { User } from "../user/userSchema.js";
+import { Phase } from "../../types.js";
 
 export const modificationSchema = gql`
   type Amendment {
@@ -16,11 +17,12 @@ export const modificationSchema = gql`
     description: String!
     effectiveDate: Date
     expirationDate: Date
-    createdAt: DateTime!
-    updatedAt: DateTime!
     amendmentStatus: AmendmentStatus!
+    currentPhase: Phase!
     projectOfficer: User!
     documents: [Document!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input CreateAmendmentInput {
@@ -38,6 +40,7 @@ export const modificationSchema = gql`
     effectiveDate: Date
     expirationDate: Date
     amendmentStatusId: ID
+    currentPhase: Phase
     projectOfficerUserId: String
   }
 
@@ -48,11 +51,12 @@ export const modificationSchema = gql`
     description: String!
     effectiveDate: Date
     expirationDate: Date
-    createdAt: DateTime!
-    updatedAt: DateTime!
     extensionStatus: ExtensionStatus!
+    currentPhase: Phase!
     projectOfficer: User!
     documents: [Document!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input AddExtensionInput {
@@ -70,6 +74,7 @@ export const modificationSchema = gql`
     effectiveDate: Date
     expirationDate: Date
     extensionStatusId: ID
+    currentPhase: Phase
     projectOfficerUserId: String
   }
 
@@ -97,11 +102,12 @@ export interface Amendment {
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
   amendmentStatus: AmendmentStatus;
+  currentPhase: Phase;
   projectOfficer: User;
   documents: Document[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateAmendmentInput {
@@ -119,6 +125,7 @@ export interface UpdateAmendmentInput {
   effectiveDate?: Date;
   expirationDate?: Date;
   amendmentStatusId?: string;
+  currentPhase?: Phase;
   projectOfficerUserId?: string;
 }
 
@@ -129,11 +136,12 @@ export interface Extension {
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
   extensionStatus: ExtensionStatus;
+  currentPhase: Phase;
   projectOfficer: User;
   documents: Document[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface AddExtensionInput {
@@ -151,5 +159,6 @@ export interface UpdateExtensionInput {
   effectiveDate?: Date;
   expirationDate?: Date;
   extensionStatusId?: string;
+  currentPhase?: Phase;
   projectOfficerUserId?: string;
 }

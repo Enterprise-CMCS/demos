@@ -2,7 +2,7 @@ import { Modification } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
+import { BundleType, Phase } from "../../types.js";
 import {
   AddExtensionInput,
   CreateAmendmentInput,
@@ -12,6 +12,7 @@ import {
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
+const conceptPhaseId: Phase = "Concept";
 
 export const modificationResolvers = {
   Query: {
@@ -48,8 +49,16 @@ export const modificationResolvers = {
   },
 
   Mutation: {
-    createAmendment: async (_: undefined, { input }: { input: CreateAmendmentInput }) => {
-      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
+    createAmendment: async (
+      _: undefined,
+      { input }: { input: CreateAmendmentInput },
+    ) => {
+      const {
+        demonstrationId,
+        amendmentStatusId,
+        projectOfficerUserId,
+        ...rest
+      } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -79,6 +88,9 @@ export const modificationResolvers = {
                 },
               },
             },
+            currentPhase: {
+              connect: { id: conceptPhaseId },
+            },
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -90,9 +102,15 @@ export const modificationResolvers = {
 
     updateAmendment: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateAmendmentInput }
+      { id, input }: { id: string; input: UpdateAmendmentInput },
     ) => {
-      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
+      const {
+        demonstrationId,
+        amendmentStatusId,
+        currentPhase,
+        projectOfficerUserId,
+        ...rest
+      } = input;
 
       return await prisma().modification.update({
         where: {
@@ -115,6 +133,11 @@ export const modificationResolvers = {
               },
             },
           }),
+          ...(currentPhase && {
+            currentPhase: {
+              connect: { id: currentPhase },
+            },
+          }),
           ...(projectOfficerUserId && {
             projectOfficer: {
               connect: { id: projectOfficerUserId },
@@ -134,8 +157,16 @@ export const modificationResolvers = {
       });
     },
 
-    addExtension: async (_: undefined, { input }: { input: AddExtensionInput }) => {
-      const { demonstrationId, extensionStatusId, projectOfficerUserId, ...rest } = input;
+    addExtension: async (
+      _: undefined,
+      { input }: { input: AddExtensionInput },
+    ) => {
+      const {
+        demonstrationId,
+        extensionStatusId,
+        projectOfficerUserId,
+        ...rest
+      } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -165,6 +196,9 @@ export const modificationResolvers = {
                 },
               },
             },
+            currentPhase: {
+              connect: { id: conceptPhaseId },
+            },
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -176,9 +210,15 @@ export const modificationResolvers = {
 
     updateExtension: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateExtensionInput }
+      { id, input }: { id: string; input: UpdateExtensionInput },
     ) => {
-      const { demonstrationId, extensionStatusId, projectOfficerUserId, ...rest } = input;
+      const {
+        demonstrationId,
+        extensionStatusId,
+        currentPhase,
+        projectOfficerUserId,
+        ...rest
+      } = input;
 
       return await prisma().modification.update({
         where: {
@@ -199,6 +239,11 @@ export const modificationResolvers = {
                   bundleTypeId: extensionBundleTypeId,
                 },
               },
+            },
+          }),
+          ...(currentPhase && {
+            currentPhase: {
+              connect: { id: currentPhase },
             },
           }),
           ...(projectOfficerUserId && {
@@ -252,6 +297,10 @@ export const modificationResolvers = {
         },
       });
     },
+
+    currentPhase: async (parent: Modification) => {
+      return parent.currentPhaseId;
+    },
   },
   Extension: {
     demonstration: async (parent: Modification) => {
@@ -283,6 +332,10 @@ export const modificationResolvers = {
           bundleId: parent.id,
         },
       });
+    },
+
+    currentPhase: async (parent: Modification) => {
+      return parent.currentPhaseId;
     },
   },
 };

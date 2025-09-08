@@ -2,12 +2,16 @@ import { Demonstration, User } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
-import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
+import { BundleType, Phase } from "../../types.js";
+import {
+  CreateDemonstrationInput,
+  UpdateDemonstrationInput,
+} from "./demonstrationSchema.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
+const conceptPhaseId: Phase = "Concept";
 
 export const demonstrationResolvers = {
   Query: {
@@ -22,7 +26,10 @@ export const demonstrationResolvers = {
   },
 
   Mutation: {
-    createDemonstration: async (_: undefined, { input }: { input: CreateDemonstrationInput }) => {
+    createDemonstration: async (
+      _: undefined,
+      { input }: { input: CreateDemonstrationInput },
+    ) => {
       const {
         demonstrationStatusId,
         stateId,
@@ -51,17 +58,24 @@ export const demonstrationResolvers = {
             bundleType: {
               connect: { id: demonstrationBundleTypeId },
             },
-            cmcsDivision: {
-              connect: { id: cmcsDivision },
-            },
-            signatureLevel: {
-              connect: { id: signatureLevel },
-            },
+            ...(cmcsDivision && {
+              cmcsDivision: {
+                connect: { id: cmcsDivision },
+              },
+            }),
+            ...(signatureLevel && {
+              signatureLevel: {
+                connect: { id: signatureLevel },
+              },
+            }),
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
             },
             state: {
               connect: { id: stateId },
+            },
+            currentPhase: {
+              connect: { id: conceptPhaseId },
             },
             ...(userIds &&
               stateId && {
@@ -82,7 +96,7 @@ export const demonstrationResolvers = {
 
     updateDemonstration: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDemonstrationInput }
+      { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
       const {
         demonstrationStatusId,
@@ -93,6 +107,7 @@ export const demonstrationResolvers = {
         expirationDate,
         cmcsDivision,
         signatureLevel,
+        currentPhase,
         ...rest
       } = input;
 
@@ -136,6 +151,11 @@ export const demonstrationResolvers = {
               connect: { id: stateId },
             },
           }),
+          ...(currentPhase && {
+            currentPhase: {
+              connect: { id: currentPhase },
+            },
+          }),
           ...(userIds &&
             existingStateId && {
               userStateDemonstrations: {
@@ -175,19 +195,21 @@ export const demonstrationResolvers = {
     },
 
     users: async (parent: Demonstration) => {
-      const userStateDemonstrations = await prisma().userStateDemonstration.findMany({
-        where: { demonstrationId: parent.id, stateId: parent.stateId },
-        include: {
-          user: true,
-        },
-      });
+      const userStateDemonstrations =
+        await prisma().userStateDemonstration.findMany({
+          where: { demonstrationId: parent.id, stateId: parent.stateId },
+          include: {
+            user: true,
+          },
+        });
 
       interface UserStateDemonstrationWithUser {
         user: User;
       }
 
       return userStateDemonstrations.map(
-        (userStateDemonstration: UserStateDemonstrationWithUser) => userStateDemonstration.user
+        (userStateDemonstration: UserStateDemonstrationWithUser) =>
+          userStateDemonstration.user,
       );
     },
 
@@ -229,6 +251,10 @@ export const demonstrationResolvers = {
 
     signatureLevel: async (parent: Demonstration) => {
       return parent.signatureLevelId;
+    },
+
+    currentPhase: async (parent: Demonstration) => {
+      return parent.currentPhaseId;
     },
   },
 };
