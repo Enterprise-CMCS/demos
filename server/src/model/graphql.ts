@@ -15,12 +15,6 @@ import { modificationStatusSchema } from "./modificationStatus/modificationStatu
 import { modificationResolvers } from "./modification/modificationResolvers.js";
 import { modificationStatusResolvers } from "./modificationStatus/modificationStatusResolvers.js";
 
-import { permissionSchema } from "./permission/permissionSchema.js";
-import { permissionResolvers } from "./permission/permissionResolvers.js";
-
-import { roleSchema } from "./role/roleSchema.js";
-import { roleResolvers } from "./role/roleResolvers.js";
-
 import { stateSchema } from "./state/stateSchema.js";
 import { stateResolvers } from "./state/stateResolvers.js";
 
@@ -39,8 +33,6 @@ export const typeDefs = [
   eventSchema,
   modificationSchema,
   modificationStatusSchema,
-  permissionSchema,
-  roleSchema,
   stateSchema,
   userSchema,
   personTypeSchema,
@@ -54,8 +46,6 @@ export const resolvers = [
   eventResolvers,
   modificationResolvers,
   modificationStatusResolvers,
-  permissionResolvers,
-  roleResolvers,
   stateResolvers,
   userResolvers,
 ];

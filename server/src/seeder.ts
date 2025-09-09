@@ -142,18 +142,15 @@ async function seedDatabase() {
     });
   }
 
+  const baseStatuses = ["New", "In Progress", "On Hold", "Completed"];
+
   console.log("🌱 Seeding demonstration statuses...");
-  const demonstrationStatuses = [
-    { name: "New", description: "New" },
-    { name: "In Progress", description: "In Progress" },
-    { name: "Completed", description: "Completed" },
-  ];
-  for (const status of demonstrationStatuses) {
+  for (const statusName of baseStatuses) {
     await prisma().demonstrationStatus.create({
       data: {
-        id: makeIdStyleString(status.name),
-        name: status.name,
-        description: status.description,
+        id: makeIdStyleString(`demonstration_${statusName}`),
+        name: statusName,
+        description: `${statusName} demonstration.`,
       },
     });
   }
@@ -179,12 +176,12 @@ async function seedDatabase() {
         signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
         demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
+        projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
   }
 
   console.log("🌱 Seeding amendment statuses...");
-  const baseStatuses = ["New", "In Progress", "On Hold", "Completed"];
 
   for (const statusName of baseStatuses) {
     await prisma().modificationStatus.create({

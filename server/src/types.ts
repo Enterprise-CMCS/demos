@@ -5,6 +5,7 @@ import {
   DOCUMENT_TYPES,
   PERSON_TYPES,
   GRANT_LEVELS,
+  ROLES,
 } from "./constants.js";
 
 // Export types for use in the client code
@@ -56,3 +57,4 @@ export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
+export type Role = (typeof ROLES)[number];

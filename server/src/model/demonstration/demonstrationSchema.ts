@@ -32,7 +32,6 @@ export const demonstrationSchema = gql`
     updatedAt: DateTime!
     demonstrationStatus: DemonstrationStatus!
     state: State!
-    users: [User!]!
     projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
@@ -46,7 +45,6 @@ export const demonstrationSchema = gql`
     signatureLevel: SignatureLevel
     demonstrationStatusId: ID!
     stateId: ID!
-    userIds: [ID!]
     projectOfficerUserId: String!
   }
 
@@ -59,7 +57,6 @@ export const demonstrationSchema = gql`
     signatureLevel: SignatureLevel
     demonstrationStatusId: ID
     stateId: ID
-    userIds: [ID!]
     projectOfficerUserId: String
   }
 
@@ -87,7 +84,6 @@ export interface Demonstration {
   updatedAt: Date;
   demonstrationStatus: DemonstrationStatus;
   state: State;
-  users: User[];
   projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
@@ -101,7 +97,6 @@ export interface CreateDemonstrationInput {
   signatureLevel?: SignatureLevel;
   demonstrationStatusId: string;
   stateId: string;
-  userIds?: string[];
   projectOfficerUserId: string;
 }
 
@@ -114,6 +109,5 @@ export interface UpdateDemonstrationInput {
   signatureLevel?: SignatureLevel;
   demonstrationStatusId?: string;
   stateId?: string;
-  userIds?: string[];
   projectOfficerUserId?: string;
 }
