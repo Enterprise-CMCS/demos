@@ -4,6 +4,8 @@ model Phase {
   phaseNumber Int    @map("phase_number")
 
   bundlePhaseStatus BundlePhaseStatus[]
+  demonstration     Demonstration[]
+  modification      Modification[]
 
   @@id([id])
   @@unique([phaseNumber])

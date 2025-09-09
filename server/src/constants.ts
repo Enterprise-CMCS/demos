@@ -32,3 +32,17 @@ export const DOCUMENT_TYPES = [
   "Signed Decision Memo",
   "State Application",
 ] as const;
+
+export const PHASE = [
+  "None",
+  "Concept",
+  "State Application",
+  "Completeness",
+] as const;
+
+export const PHASE_STATUS = [
+  "Not Started",
+  "Started",
+  "Completed",
+  "Skipped",
+] as const;
