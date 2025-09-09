@@ -9,6 +9,7 @@ model Bundle {
   document              Document[]
   documentPendingUpload DocumentPendingUpload[]
   modification          Modification[]
+  bundlePhaseStatus     BundlePhaseStatus[]
 
   @@unique([id, bundleTypeId])
   @@map("bundle")

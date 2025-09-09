@@ -11,6 +11,7 @@ TBL_FOLDERS = [
     "_userState",
     "_userStateDemonstration",
     "bundle",
+    "bundlePhaseStatus",
     "demonstration",
     "demonstrationStatus",
     "document",
@@ -19,7 +20,8 @@ TBL_FOLDERS = [
     "modificationStatus",
     "permission",
     "role",
-    "user"
+    "user",
+    "person",
 ]
 APP_SCHEMA = "demos_app"
 

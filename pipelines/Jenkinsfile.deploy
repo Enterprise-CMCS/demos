@@ -9,15 +9,18 @@ pipeline {
     disableConcurrentBuilds()
   }
 
-  parameters {
-    string(name: 'STAGE', defaultValue: 'dev', description: 'The deployment stage / environment')
-  }
-
   environment {
     NO_COLOR = 1
   }
   
   stages {
+    stage('Set env from branch') {
+      steps {
+        script {
+          env.STAGE = (env.BRANCH_NAME == 'main') ? "dev" : "${env.BRANCH_NAME}"
+        }
+      }
+    }
     stage('Build & Test') {
       failFast true
       parallel {
@@ -36,19 +39,19 @@ pipeline {
                 npm i -g tsx
 
                 npm ci
-                npx tsx demosctl/index deploy:core ${params.STAGE}
+                npx tsx demosctl/index deploy:core ${env.STAGE}
                 """
               }
               parallel(
                 'Build Client': {
                   dirCon('deployment','node') {
-                      sh "npx tsx demosctl/index build:client ${params.STAGE}"
+                      sh "npx tsx demosctl/index build:client ${env.STAGE}"
                       
                       
                   }
                 }, 'Build Server': {
                   dirCon('deployment', 'node') {
-                      sh "npx tsx demosctl/index build:server ${params.STAGE}"
+                      sh "npx tsx demosctl/index build:server ${env.STAGE}"
                   }
                 }
               )
@@ -78,7 +81,7 @@ pipeline {
         script {
           dirCon('deployment', 'node') {
             sh """
-            npx tsx demosctl/index migrate ${params.STAGE}
+            npx tsx demosctl/index migrate ${env.STAGE}
             """
           }
         }
@@ -89,7 +92,7 @@ pipeline {
       steps {
           script {
             dirCon('deployment','node') {
-              sh "npx tsx demosctl/index deploy:all ${params.STAGE}"
+              sh "npx tsx demosctl/index deploy:all ${env.STAGE}"
             }
           }
       }
