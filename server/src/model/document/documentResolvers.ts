@@ -35,14 +35,14 @@ async function getPresignedUploadUrl(
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
-      region: "us-east-1",
-      endpoint: process.env.S3_ENDPOINT_LOCAL,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: "",
-        secretAccessKey: "",
-      },
-    }
+        region: "us-east-1",
+        endpoint: process.env.S3_ENDPOINT_LOCAL,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: "",
+          secretAccessKey: "",
+        },
+      }
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const uploadBucket = process.env.UPLOAD_BUCKET;
@@ -59,14 +59,14 @@ async function getPresignedUploadUrl(
 async function getPresignedDownloadUrl(document: Document): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
-      region: "us-east-1",
-      endpoint: process.env.S3_ENDPOINT_LOCAL,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: "",
-        secretAccessKey: "",
-      },
-    }
+        region: "us-east-1",
+        endpoint: process.env.S3_ENDPOINT_LOCAL,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: "",
+          secretAccessKey: "",
+        },
+      }
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const cleanBucket = process.env.CLEAN_BUCKET;
@@ -80,7 +80,6 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
   });
   return s3Url;
 }
-
 
 export const documentResolvers = {
   Query: {
@@ -130,10 +129,7 @@ export const documentResolvers = {
       return { presignedURL };
     },
 
-    downloadDocument: async (
-      _: undefined,
-      { id }: { id: string }
-    ) => {
+    downloadDocument: async (_: undefined, { id }: { id: string }) => {
       const document = await prisma().document.findUnique({
         where: { id: id },
       });
@@ -189,9 +185,7 @@ export const documentResolvers = {
     },
 
     documentType: async (parent: Document) => {
-      return await prisma().documentType.findUnique({
-        where: { id: parent.documentTypeId },
-      });
+      return parent.documentTypeId;
     },
 
     // NOTE: Not checking for the bundle type being implemented here
