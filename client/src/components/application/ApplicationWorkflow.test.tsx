@@ -1,18 +1,18 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
-import { ApplicationWorkflow } from "./ApplicationWorkflow";
+
+import { TestProvider } from "test-utils/TestProvider";
+import { describe, expect, it } from "vitest";
+
 import { render, screen } from "@testing-library/react";
-import { MockedProvider } from "@apollo/client/testing";
-import { ToastProvider } from "components/toast/ToastContext";
+
+import { ApplicationWorkflow } from "./ApplicationWorkflow";
 
 describe("ApplicationWorkflow", () => {
   it("renders APPLICATION heading", () => {
     render(
-      <ToastProvider>
-        <MockedProvider mocks={[]} addTypename={false}>
-          <ApplicationWorkflow demonstration={{ status: "under_review" }} />
-        </MockedProvider>
-      </ToastProvider>
+      <TestProvider>
+        <ApplicationWorkflow demonstration={{ status: "under_review" }} />
+      </TestProvider>
     );
     expect(screen.getByText("APPLICATION")).toBeInTheDocument();
   });

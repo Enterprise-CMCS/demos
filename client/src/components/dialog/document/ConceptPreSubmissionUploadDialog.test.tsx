@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ToastProvider } from "components/toast/ToastContext";
+import { TestProvider } from "test-utils/TestProvider";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render, screen } from "@testing-library/react";
@@ -27,9 +27,9 @@ const defaultProps = {
 function setup(props = {}) {
   const finalProps = { ...defaultProps, ...props };
   return render(
-    <ToastProvider>
+    <TestProvider>
       <ConceptPreSubmissionUploadDialog {...finalProps} />
-    </ToastProvider>
+    </TestProvider>
   );
 }
 

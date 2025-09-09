@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import React from "react";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
-import { ToastProvider } from "components/toast/ToastContext";
+import { TestProvider } from "test-utils/TestProvider";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render, screen, waitFor } from "@testing-library/react";
@@ -13,6 +13,15 @@ import { ConceptPhase } from "./ConceptPhase";
 
 const mockMutation = vi.fn();
 const mockOnDocumentsRefetch = vi.fn();
+
+// Mock isLocalDevelopment to return true for testing panel
+vi.mock("config/env", async () => {
+  const actual = await vi.importActual("config/env");
+  return {
+    ...actual,
+    isLocalDevelopment: vi.fn(() => true),
+  };
+});
 
 beforeEach(() => {
   vi.mock("@apollo/client", async () => {
@@ -63,9 +72,9 @@ describe("ConceptPhase", () => {
     const finalProps = { ...defaultProps, ...props };
 
     render(
-      <ToastProvider>
+      <TestProvider>
         <ConceptPhase {...finalProps} />
-      </ToastProvider>
+      </TestProvider>
     );
 
     return finalProps;

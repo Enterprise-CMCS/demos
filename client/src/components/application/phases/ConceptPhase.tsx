@@ -6,6 +6,7 @@ import { ChevronRightIcon, DeleteIcon, ExportIcon } from "components/icons";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
+import { isLocalDevelopment } from "config/env";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
@@ -21,7 +22,6 @@ const COMPLETE_CONCEPT_PHASE = gql`
 `;
 
 type Props = {
-  bundleId?: string;
   demonstrationId?: string;
   documents?: DocumentTableDocument[];
   onDocumentsRefetch?: () => void;
@@ -47,7 +47,6 @@ const DEMONSTRATION_TYPE_OPTIONS: Option[] = [
 ];
 
 export const ConceptPhase: React.FC<Props> = ({
-  bundleId = "default-bundle-id",
   demonstrationId = "default-demo-id",
   documents = [],
   onDocumentsRefetch,
@@ -140,45 +139,167 @@ export const ConceptPhase: React.FC<Props> = ({
     setMockDocuments([]);
   };
 
+  // Testing Panel Component (Development Only)
+  const TestingPanel = () => (
+    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <h4 className="text-sm font-bold text-yellow-800 mb-2">Testing Panel (Development Only)</h4>
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={addMockDocument}
+          className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+        >
+          Add Mock Pre-Submission Doc
+        </button>
+        <button
+          onClick={clearAllMockDocuments}
+          className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+        >
+          Clear All Mock Docs
+        </button>
+        <span className="text-xs text-gray-600 self-center">
+          Mock docs: {mockDocuments.length} | Pre-Submission docs: {preSubmissionDocuments.length}
+        </span>
+      </div>
+      <div className="mt-2 text-xs text-yellow-700">
+        Use these buttons to test the validation logic without actual file upload.
+      </div>
+      <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
+        <strong>Current State:</strong>
+        <br />• Has Pre-Submission Docs: {hasPreSubmissionDocuments ? "✅ Yes" : "❌ No"}
+        <br />• Date Populated: {hasDatePopulated ? "✅ Yes" : "❌ No"}{" "}
+        {dateSubmitted && `(${dateSubmitted})`}
+        <br />• Any Activity: {hasAnyActivity ? "✅ Yes" : "❌ No"}
+        <br />• Finish Enabled: {isFinishEnabled ? "✅ Yes" : "❌ No"}
+        <br />• Skip Enabled: {isSkipEnabled ? "✅ Yes" : "❌ No"}
+      </div>
+    </div>
+  );
+
+  const UploadSection = () => (
+    <div aria-labelledby="concept-upload-title">
+      <h4 id="concept-upload-title" className={STYLES.title}>
+        STEP 1 - UPLOAD
+      </h4>
+      <p className={STYLES.helper}>
+        Upload the Pre-Submission Document describing your demonstration.
+      </p>
+
+      <SecondaryButton
+        onClick={() => setUploadOpen(true)}
+        size="small"
+        name="button-open-upload-modal"
+      >
+        <span className="flex items-center gap-1">
+          Upload
+          <ExportIcon />
+        </span>
+      </SecondaryButton>
+
+      <div className={STYLES.list}>
+        {preSubmissionDocuments.length === 0 && (
+          <div className="text-sm text-text-placeholder">No documents yet.</div>
+        )}
+        {preSubmissionDocuments.map((doc) => (
+          <div key={doc.id} className={STYLES.fileRow}>
+            <div>
+              <div className="font-medium">{doc.title}</div>
+              <div className={STYLES.fileMeta}>
+                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
+                {doc.description ? ` • ${doc.description}` : ""}
+              </div>
+            </div>
+            <button
+              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
+              onClick={() => {
+                if (doc.id.startsWith("mock-")) {
+                  removeMockDocument(doc.id);
+                } else {
+                  // TODO: wire to RemoveDocumentDialog for real documents
+                  console.log("Delete document:", doc.id);
+                }
+              }}
+              aria-label={`Delete ${doc.title}`}
+              title={`Delete ${doc.title}`}
+            >
+              <DeleteIcon className="w-2 h-2" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const VerifyCompleteSection = () => (
+    <div aria-labelledby="concept-verify-title">
+      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
+      <h4 id="concept-verify-title" className={STYLES.title}>
+        VERIFY/COMPLETE
+      </h4>
+      <p className={STYLES.helper}>
+        Verify that the document is uploaded/accurate and that all the required fields are filled.
+      </p>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-bold mb-1">
+            {hasPreSubmissionDocuments && <span className="text-text-warn mr-1">*</span>}
+            Pre-Submission Document Submitted Date
+          </label>
+          <input
+            type="date"
+            value={dateSubmitted}
+            onChange={(e) => setDateSubmitted(e.target.value)}
+            className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+            aria-required={hasPreSubmissionDocuments}
+          />
+          {hasPreSubmissionDocuments && !dateSubmitted && (
+            <div className="text-xs text-text-warn mt-1">
+              Date is required when documents are uploaded
+            </div>
+          )}
+          {!hasPreSubmissionDocuments && dateSubmitted && (
+            <div className="text-xs text-text-warn mt-1">
+              At least one Pre-Submission document is required when date is provided
+            </div>
+          )}
+        </div>
+
+        <AutoCompleteSelect
+          id="demo-type"
+          label="Demonstration Type(s) Requested"
+          options={DEMONSTRATION_TYPE_OPTIONS}
+          value={demoType}
+          onSelect={(v) => setDemoType(String(v))}
+        />
+      </div>
+
+      <div className={STYLES.actions}>
+        <SecondaryButton
+          name="button-skip-concept"
+          onClick={onSkip}
+          size="small"
+          disabled={!isSkipEnabled}
+        >
+          <span className="flex items-center gap-1">
+            Skip
+            <ChevronRightIcon />
+          </span>
+        </SecondaryButton>
+        <Button
+          name="button-finish-concept"
+          onClick={onFinish}
+          disabled={!isFinishEnabled}
+          size="small"
+        >
+          {finishing ? "Saving…" : "Finish"}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div>
-      {process.env.NODE_ENV === "development" && (
-        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h4 className="text-sm font-bold text-yellow-800 mb-2">
-            Testing Panel (Development Only)
-          </h4>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={addMockDocument}
-              className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-            >
-              Add Mock Pre-Submission Doc
-            </button>
-            <button
-              onClick={clearAllMockDocuments}
-              className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-            >
-              Clear All Mock Docs
-            </button>
-            <span className="text-xs text-gray-600 self-center">
-              Mock docs: {mockDocuments.length} | Pre-Submission docs:{" "}
-              {preSubmissionDocuments.length}
-            </span>
-          </div>
-          <div className="mt-2 text-xs text-yellow-700">
-            Use these buttons to test the validation logic without actual file upload.
-          </div>
-          <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
-            <strong>Current State:</strong>
-            <br />• Has Pre-Submission Docs: {hasPreSubmissionDocuments ? "✅ Yes" : "❌ No"}
-            <br />• Date Populated: {hasDatePopulated ? "✅ Yes" : "❌ No"}{" "}
-            {dateSubmitted && `(${dateSubmitted})`}
-            <br />• Any Activity: {hasAnyActivity ? "✅ Yes" : "❌ No"}
-            <br />• Finish Enabled: {isFinishEnabled ? "✅ Yes" : "❌ No"}
-            <br />• Skip Enabled: {isSkipEnabled ? "✅ Yes" : "❌ No"}
-          </div>
-        </div>
-      )}
+      {isLocalDevelopment() && <TestingPanel />}
 
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">CONCEPT</h3>
       <p className="text-sm text-text-placeholder mb-4">
@@ -189,136 +310,15 @@ export const ConceptPhase: React.FC<Props> = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-
-          <div aria-labelledby="concept-upload-title">
-            <h4 id="concept-upload-title" className={STYLES.title}>
-              STEP 1 - UPLOAD
-            </h4>
-            <p className={STYLES.helper}>
-              Upload the Pre-Submission Document describing your demonstration.
-            </p>
-
-            <SecondaryButton
-              onClick={() => setUploadOpen(true)}
-              size="small"
-              name="button-open-upload-modal"
-            >
-              <span className="flex items-center gap-1">
-                Upload
-                <ExportIcon />
-              </span>
-            </SecondaryButton>
-
-            <div className={STYLES.list}>
-              {preSubmissionDocuments.length === 0 && (
-                <div className="text-sm text-text-placeholder">No documents yet.</div>
-              )}
-              {preSubmissionDocuments.map((doc) => (
-                <div key={doc.id} className={STYLES.fileRow}>
-                  <div>
-                    <div className="font-medium">{doc.title}</div>
-                    <div className={STYLES.fileMeta}>
-                      {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
-                      {doc.description ? ` • ${doc.description}` : ""}
-                    </div>
-                  </div>
-                  <button
-                    className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-                    onClick={() => {
-                      if (doc.id.startsWith("mock-")) {
-                        removeMockDocument(doc.id);
-                      } else {
-                        // TODO: wire to RemoveDocumentDialog for real documents
-                        console.log("Delete document:", doc.id);
-                      }
-                    }}
-                    aria-label={`Delete ${doc.title}`}
-                    title={`Delete ${doc.title}`}
-                  >
-                    <DeleteIcon className="w-2 h-2" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div aria-labelledby="concept-verify-title">
-            <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
-            <h4 id="concept-verify-title" className={STYLES.title}>
-              VERIFY/COMPLETE
-            </h4>
-            <p className={STYLES.helper}>
-              Verify that the document is uploaded/accurate and that all the required fields are
-              filled.
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold mb-1">
-                  {hasPreSubmissionDocuments && <span className="text-text-warn mr-1">*</span>}
-                  Pre-Submission Document Submitted Date
-                </label>
-                <input
-                  type="date"
-                  value={dateSubmitted}
-                  onChange={(e) => setDateSubmitted(e.target.value)}
-                  className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-                  aria-required={hasPreSubmissionDocuments}
-                />
-                {hasPreSubmissionDocuments && !dateSubmitted && (
-                  <div className="text-xs text-text-warn mt-1">
-                    Date is required when documents are uploaded
-                  </div>
-                )}
-                {!hasPreSubmissionDocuments && dateSubmitted && (
-                  <div className="text-xs text-text-warn mt-1">
-                    At least one Pre-Submission document is required when date is provided
-                  </div>
-                )}
-              </div>
-
-              <AutoCompleteSelect
-                id="demo-type"
-                label="Demonstration Type(s) Requested"
-                options={DEMONSTRATION_TYPE_OPTIONS}
-                value={demoType}
-                onSelect={(v) => setDemoType(String(v))}
-              />
-            </div>
-
-            <div className={STYLES.actions}>
-              <SecondaryButton
-                name="button-skip-concept"
-                onClick={onSkip}
-                size="small"
-                disabled={!isSkipEnabled}
-              >
-                <span className="flex items-center gap-1">
-                  Skip
-                  <ChevronRightIcon />
-                </span>
-              </SecondaryButton>
-              <Button
-                name="button-finish-concept"
-                onClick={onFinish}
-                disabled={!isFinishEnabled}
-                size="small"
-              >
-                {finishing ? "Saving…" : "Finish"}
-              </Button>
-            </div>
-          </div>
+          <UploadSection />
+          <VerifyCompleteSection />
         </div>
       </section>
 
       <ConceptPreSubmissionUploadDialog
         isOpen={isUploadOpen}
-        onClose={() => {
-          setUploadOpen(false);
-          onDocumentsRefetch?.();
-        }}
-        bundleId={bundleId}
-        refetchQueries={["GetConceptDocuments", "GetDemonstrationDocuments"]}
+        onClose={() => setUploadOpen(false)}
+        bundleId={demonstrationId}
       />
     </div>
   );

@@ -5,6 +5,8 @@ import { DocumentType } from "demos-server";
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["Pre-Submission", "General File"];
 
+const REFETCH_QUERIES = ["GetConceptDocuments", "GetDemonstrationDocuments"];
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
@@ -16,7 +18,7 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   bundleId,
-  refetchQueries,
+  refetchQueries = REFETCH_QUERIES,
 }) => {
   const getInitialDocument = (): DocumentDialogFields => ({
     id: bundleId,

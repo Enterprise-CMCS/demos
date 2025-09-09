@@ -1,18 +1,18 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
-import { PhaseSelector } from "./PhaseSelector";
+
+import { TestProvider } from "test-utils/TestProvider";
+import { describe, expect, it } from "vitest";
+
 import { render, screen } from "@testing-library/react";
-import { MockedProvider } from "@apollo/client/testing";
-import { ToastProvider } from "components/toast/ToastContext";
+
+import { PhaseSelector } from "./PhaseSelector";
 
 describe("PhaseSelector", () => {
   it("renders all phase names", () => {
     render(
-      <ToastProvider>
-        <MockedProvider mocks={[]} addTypename={false}>
-          <PhaseSelector />
-        </MockedProvider>
-      </ToastProvider>
+      <TestProvider>
+        <PhaseSelector />
+      </TestProvider>
     );
     [
       "Concept",
