@@ -6,6 +6,7 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
+import { PERSON_TYPES } from "../constants.js";
 
 const config = getAuthConfig();
 
@@ -121,11 +122,22 @@ async function ensureUserFromClaims(claims: Claims) {
     return existingUser;
   }
 
+  // Derive a safe personTypeId from the role claim (or default)
+  const resolvedPersonTypeId = (() => {
+    // we started requiring a roles without actually adding the role feature.
+    if (!role) return "demos-cms-user";
+    // role may be a CSV or a single value; pick the first matching PERSON_TYPES
+    const parts = role.split(/[,\s]+/).filter(Boolean);
+    for (const part of parts) {
+      const match = (PERSON_TYPES as readonly string[]).find((p) => p === part);
+      if (match) return match;
+    }
+    return "demos-cms-user";
+  })();
+
   const person = await prisma().person.create({
     data: {
-      personType: {
-        connect: { id: role },
-      },
+      personTypeId: resolvedPersonTypeId,
       email: emailForCreate,
       fullName,
       displayName,
