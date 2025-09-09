@@ -31,7 +31,7 @@ async function getBundleTypeId(bundleId: string) {
 }
 
 async function getPresignedUploadUrl(
-  documentPendingUpload: DocumentPendingUpload,
+  documentPendingUpload: DocumentPendingUpload
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
@@ -89,14 +89,9 @@ export const documentResolvers = {
         where: { id: id },
       });
     },
-    documents: async (
-      _: undefined,
-      { bundleTypeId }: { bundleTypeId?: string },
-    ) => {
+    documents: async (_: undefined, { bundleTypeId }: { bundleTypeId?: string }) => {
       if (bundleTypeId) {
-        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(
-          bundleTypeId as BundleType,
-        );
+        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(bundleTypeId as BundleType);
         if (!isValidBundleType) {
           throw new GraphQLError("The requested bundle type is not valid.", {
             extensions: {
@@ -119,22 +114,17 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    uploadDocument: async (
-      context: GraphQLContext,
-      { input }: { input: UploadDocumentInput },
-    ) => {
+    uploadDocument: async (context: GraphQLContext, { input }: { input: UploadDocumentInput }) => {
       const { documentType, bundleId, ...rest } = input;
 
-      const documentPendingUpload = await prisma().documentPendingUpload.create(
-        {
-          data: {
-            ...rest,
-            owner: { connect: { id: context.user?.id } },
-            documentType: { connect: { id: documentType } },
-            bundle: { connect: { id: bundleId } },
-          },
+      const documentPendingUpload = await prisma().documentPendingUpload.create({
+        data: {
+          ...rest,
+          owner: { connect: { id: context.user?.id } },
+          documentType: { connect: { id: documentType } },
+          bundle: { connect: { id: bundleId } },
         },
-      );
+      });
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return { presignedURL };
@@ -160,7 +150,7 @@ export const documentResolvers = {
 
     updateDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDocumentInput },
+      { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
       const { documentType, bundleId, ...rest } = input;
       return await prisma().document.update({
@@ -191,9 +181,11 @@ export const documentResolvers = {
 
   Document: {
     owner: async (parent: Document) => {
-      return await prisma().user.findUnique({
+      const user = await prisma().user.findUnique({
         where: { id: parent.ownerUserId },
+        include: { person: true },
       });
+      return { ...user, ...user?.person };
     },
 
     documentType: async (parent: Document) => {

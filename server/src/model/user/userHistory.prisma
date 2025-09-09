@@ -3,11 +3,9 @@ model UserHistory {
   revisionType   RevisionType @map("revision_type")
   modifiedAt     DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
   id             String       @db.Uuid
+  personTypeId   String       @map("person_type_id")
   cognitoSubject String       @map("cognito_subject") @db.Uuid
   username       String
-  email          String
-  fullName       String       @map("full_name")
-  displayName    String       @map("display_name")
   createdAt      DateTime     @map("created_at") @db.Timestamptz()
   updatedAt      DateTime     @map("updated_at") @db.Timestamptz()
 

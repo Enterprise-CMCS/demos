@@ -1,5 +1,6 @@
 import { State } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
+import { resolveUser } from "../user/userResolvers.js";
 
 export const stateResolvers = {
   Query: {
@@ -18,10 +19,13 @@ export const stateResolvers = {
       const userStates = await prisma().userState.findMany({
         where: { stateId: parent.id },
         include: {
-          user: true,
+          user: {
+            include: { person: true },
+          },
         },
       });
-      return userStates.map((userState) => userState.user);
+      const users = userStates.map((userState) => userState.user);
+      return users.map(resolveUser);
     },
     demonstrations: async (parent: State) => {
       return await prisma().demonstration.findMany({

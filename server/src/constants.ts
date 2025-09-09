@@ -1,3 +1,10 @@
+export const PERSON_TYPES = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-state-user",
+  "non-user-contact",
+] as const;
+
 export const BUNDLE_TYPE = {
   DEMONSTRATION: "DEMONSTRATION",
   AMENDMENT: "AMENDMENT",

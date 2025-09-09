@@ -6,6 +6,7 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
+import { PERSON_TYPES } from "../constants.js";
 
 const config = getAuthConfig();
 
@@ -14,7 +15,6 @@ export interface GraphQLContext {
     id: string;
     sub: string;
     roles: string[] | null;
-    displayName?: string;
   };
 }
 
@@ -22,6 +22,7 @@ type DecodedJWT = {
   sub: string;
   email?: string;
   token_use?: "id" | "access";
+  "custom:roles"?: string;
 };
 
 const verifyOpts: VerifyOptions = {
@@ -62,7 +63,7 @@ function decodeToken(token: string): Promise<DecodedJWT> {
 }
 
 /* -----------------------  HELPERS  ----------------------- */
-type Claims = { sub: string; email?: string };
+type Claims = { sub: string; email?: string; role?: string };
 type HeaderGetter = (name: string) => string | undefined;
 
 function createHeaderGetter(obj: Record<string, unknown> | undefined | null): HeaderGetter {
@@ -109,18 +110,46 @@ function deriveUserFields({ sub, email }: Claims) {
 
 /** Upsert user and return the DB row */
 async function ensureUserFromClaims(claims: Claims) {
-  const { sub, email } = claims;
+  const { sub, role } = claims;
   const { username, displayName, emailForCreate, fullName } = deriveUserFields(claims);
 
-  return prisma().user.upsert({
+  // Add await and handle the result properly
+  const existingUser = await prisma().user.findUnique({
     where: { cognitoSubject: sub },
-    update: { ...(email ? { email } : {}) },
-    create: {
-      cognitoSubject: sub,
-      username,
+  });
+
+  if (existingUser) {
+    return existingUser;
+  }
+
+  // Derive a safe personTypeId from the role claim (or default)
+  const resolvedPersonTypeId = (() => {
+    // we started requiring a roles without actually adding the role feature.
+    if (!role) return "demos-cms-user";
+    // role may be a CSV or a single value; pick the first matching PERSON_TYPES
+    const parts = role.split(/[,\s]+/).filter(Boolean);
+    for (const part of parts) {
+      const match = (PERSON_TYPES as readonly string[]).find((p) => p === part);
+      if (match) return match;
+    }
+    return "demos-cms-user";
+  })();
+
+  const person = await prisma().person.create({
+    data: {
+      personTypeId: resolvedPersonTypeId,
       email: emailForCreate,
       fullName,
       displayName,
+    },
+  });
+
+  return await prisma().user.create({
+    data: {
+      id: person.id,
+      personTypeId: person.personTypeId,
+      cognitoSubject: sub,
+      username,
     },
   });
 }
@@ -131,7 +160,7 @@ export async function getUserRoles(cognitoSubject: string): Promise<string[] | n
     where: { cognitoSubject },
     include: { userRoles: { include: { role: true } } },
   });
-  return user?.userRoles.map(ur => ur.role.name) || null;
+  return user?.userRoles.map((ur) => ur.role.name) || null;
 }
 
 /** Build GraphQLContext from verified claims, creating user/roles as needed */
@@ -139,7 +168,7 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
   const dbUser = await ensureUserFromClaims(claims);
   const roles = await getUserRoles(claims.sub);
   return {
-    user: { id: dbUser.id, sub: claims.sub, roles, displayName: dbUser.displayName },
+    user: { id: dbUser.id, sub: claims.sub, roles },
   };
 }
 
@@ -151,8 +180,12 @@ export async function buildLambdaContext(
   const rawClaims = headers["x-authorizer-claims"] ?? headers["X-Authorizer-Claims"];
   if (rawClaims) {
     try {
-      const { sub, email } = JSON.parse(rawClaims as string) as { sub: string; email?: string };
-      return buildContextFromClaims({ sub, email });
+      const { sub, email, role } = JSON.parse(rawClaims as string) as {
+        sub: string;
+        email?: string;
+        role: string;
+      };
+      return buildContextFromClaims({ sub, email, role });
     } catch {
       // fall through to JWT verify
     }
@@ -171,15 +204,16 @@ export async function buildLambdaContext(
   }
 }
 
-
 /* -----------------------  HTTP Context  ----------------------- */
 export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLContext> {
   const token = extractToken(createHeaderGetter(req.headers as Record<string, unknown>));
   if (!token) return { user: null };
 
   try {
-    const { sub, email } = await decodeToken(token);
-    return buildContextFromClaims({ sub, email });
+    const decodedToken = await decodeToken(token);
+    const { sub, email } = decodedToken;
+    const role = decodedToken["custom:roles"];
+    return buildContextFromClaims({ sub, email, role });
   } catch (err) {
     console.error("[auth] context error:", err);
     return { user: null };
