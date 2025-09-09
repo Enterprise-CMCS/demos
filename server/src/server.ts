@@ -16,17 +16,30 @@ import type {
   APIGatewayProxyEvent,
   APIGatewayProxyEventHeaders,
 } from "aws-lambda";
+import { PERSON_TYPES } from "./constants.js";
 
-type JwtClaims = { sub: string; email?: string };
+type JwtClaims = { sub: string; email?: string; role?: string };
 
 function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null {
   // In REST custom authorizer, requestContext.authorizer is a flat map of strings
   const auth = (event.requestContext?.authorizer ?? {}) as Record<string, unknown>;
   const sub = typeof auth.sub === "string" && auth.sub.length > 0 ? auth.sub : null;
   const email = typeof auth.email === "string" ? auth.email : undefined;
+  const rawRole = typeof auth.role === "string" ? auth.role : undefined;
+
+  // Normalize role: authorizer may pass a comma-separated list; pick the first valid
+  let role: string | undefined = undefined;
+  if (rawRole) {
+    const valid = new Set<string>(PERSON_TYPES as unknown as string[]);
+    const picked = rawRole
+      .split(",")
+      .map((r) => r.trim())
+      .find((r) => valid.has(r));
+    role = picked ?? undefined;
+  }
   if (!sub) return null;
 
-  return { sub, email };
+  return { sub, email, role };
 }
 
 function withAuthorizerHeader(

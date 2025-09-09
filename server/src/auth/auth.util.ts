@@ -153,6 +153,14 @@ export async function getUserRoles(cognitoSubject: string): Promise<string[] | n
 
 /** Build GraphQLContext from verified claims, creating user/roles as needed */
 async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
+  // If role is missing, try to use an existing user; otherwise, defer to auth gate
+  if (!claims.role) {
+    const existingUser = await prisma().user.findUnique({ where: { cognitoSubject: claims.sub } });
+    if (!existingUser) return { user: null };
+    const roles = await getUserRoles(claims.sub);
+    return { user: { id: existingUser.id, sub: claims.sub, roles } };
+  }
+
   const dbUser = await ensureUserFromClaims(claims);
   const roles = await getUserRoles(claims.sub);
   return {
@@ -184,8 +192,12 @@ export async function buildLambdaContext(
   if (!token) return { user: null };
 
   try {
-    const { sub, email } = await decodeToken(token);
-    return buildContextFromClaims({ sub, email });
+    const decoded = await decodeToken(token);
+    const { sub, email } = decoded;
+    // Cognito can set multiple roles in custom:roles, comma-separated
+    const rawRoles = decoded["custom:roles"]; // e.g. "demos-cms-user,demos-state-user"
+    const role = typeof rawRoles === "string" ? rawRoles.split(",")[0]?.trim() : undefined;
+    return buildContextFromClaims({ sub, email, role });
   } catch (err) {
     console.error("[auth] lambda context error:", err);
     return { user: null };
