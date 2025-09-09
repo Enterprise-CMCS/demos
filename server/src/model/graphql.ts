@@ -50,6 +50,7 @@ const mockDemonstrationSchemaExtension = gql`
   }
 `;
 
+// TO BE REPLACED WITH ACTUAL RESOLVERS WHEN CONTACTS ARE FULLY IMPLEMENTED
 const mockDemonstrationResolverExtension = {
   Demonstration: {
     contacts: async () => {
