@@ -8,10 +8,6 @@ model User {
 
   person                  Person                   @relation(fields: [id, personTypeId], references: [id, personTypeId])
   userPersonTypeLimit     UserPersonTypeLimit      @relation(fields: [personTypeId], references: [id])
-  userRoles               UserRole[]
-  userStates              UserState[]
-  userStateDemonstrations UserStateDemonstration[]
-  demonstrations          Demonstration[]
   documents               Document[]
   documentsPendingUpload  DocumentPendingUpload[]
   events                  Event[]

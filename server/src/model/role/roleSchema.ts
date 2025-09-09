@@ -12,32 +12,6 @@ export const roleSchema = gql`
     users: [User!]!
     permissions: [Permission!]!
   }
-
-  input CreateRoleInput {
-    id: String!
-    name: String!
-    description: String!
-    userIds: [ID!]
-    permissionIds: [ID!]
-  }
-
-  input UpdateRoleInput {
-    name: String
-    description: String
-    userIds: [ID!]
-    permissionIds: [ID!]
-  }
-
-  type Mutation {
-    createRole(input: CreateRoleInput!): Role
-    updateRole(id: String!, input: UpdateRoleInput!): Role
-    deleteRole(id: String!): Role
-  }
-
-  type Query {
-    roles: [Role!]!
-    role(id: ID!): Role
-  }
 `;
 
 export interface Role {
@@ -48,19 +22,4 @@ export interface Role {
   updatedAt: Date;
   users: User[];
   permissions: Permission[];
-}
-
-export interface CreateRoleInput {
-  id: string;
-  name: string;
-  description: string;
-  userIds?: string[];
-  permissionIds?: string[];
-}
-
-export interface UpdateRoleInput {
-  name?: string;
-  description?: string;
-  userIds?: string[];
-  permissionIds?: string[];
 }

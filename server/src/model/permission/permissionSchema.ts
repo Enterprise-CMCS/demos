@@ -10,30 +10,6 @@ export const permissionSchema = gql`
     updatedAt: DateTime!
     roles: [Role!]!
   }
-
-  input CreatePermissionInput {
-    id: String!
-    name: String!
-    description: String!
-    roleIds: [ID!]
-  }
-
-  input UpdatePermissionInput {
-    name: String
-    description: String
-    roleIds: [ID!]
-  }
-
-  type Mutation {
-    createPermission(input: CreatePermissionInput!): Permission
-    updatePermission(id: String!, input: UpdatePermissionInput!): Permission
-    deletePermission(id: String!): Permission
-  }
-
-  type Query {
-    permissions: [Permission!]!
-    permission(id: ID!): Permission
-  }
 `;
 
 export interface Permission {
@@ -43,17 +19,4 @@ export interface Permission {
   createdAt: Date;
   updatedAt: Date;
   roles: Role[];
-}
-
-export interface CreatePermissionInput {
-  id: string;
-  name: string;
-  description: string;
-  roleIds?: string[];
-}
-
-export interface UpdatePermissionInput {
-  name?: string;
-  description?: string;
-  roleIds?: string[];
 }

@@ -4,7 +4,6 @@ model State {
   id   String @id
   name String
 
-  userStates     UserState[]
   demonstrations Demonstration[]
 
   @@map("state")

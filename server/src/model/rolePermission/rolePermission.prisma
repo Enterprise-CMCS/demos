@@ -1,0 +1,12 @@
+// Flags: NATURAL_KEY
+model RolePermission {
+  roleId       String @map("role_id")
+  grantLevelId String @map("grant_level_id")
+  permissionId String @map("permission_id")
+
+  role      Role       @relation(fields: [roleId, grantLevelId], references: [id, grantLevelId])
+  permission Permission @relation(fields: [permissionId, grantLevelId], references: [id, grantLevelId])
+
+  @@id([roleId, grantLevelId, permissionId])
+  @@map("role_permission")
+}

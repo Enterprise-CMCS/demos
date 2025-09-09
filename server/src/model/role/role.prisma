@@ -1,14 +1,11 @@
-// Flags: NATURAL_KEY
 model Role {
-  id          String   @id
-  name        String
-  description String
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  id              String           @id
+  grantLevelId String
 
-  userRoles       UserRole[]
+  grantLevel GrantLevel @relation(fields: [grantLevelId], references: [id])
+  events    Event[]
   rolePermissions RolePermission[]
-  events          Event[]
-
+  
+@@unique([id, grantLevelId])
   @@map("role")
 }

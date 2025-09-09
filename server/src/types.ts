@@ -4,6 +4,7 @@ import {
   SIGNATURE_LEVEL,
   DOCUMENT_TYPES,
   PERSON_TYPES,
+  GRANT_LEVELS,
 } from "./constants.js";
 
 // Export types for use in the client code
@@ -32,13 +33,9 @@ export type {
 
 export type { State } from "./model/state/stateSchema.js";
 
-export type { CreateRoleInput, Role, UpdateRoleInput } from "./model/role/roleSchema.js";
+export type { Role } from "./model/role/roleSchema.js";
 
-export type {
-  CreatePermissionInput,
-  Permission,
-  UpdatePermissionInput,
-} from "./model/permission/permissionSchema.js";
+export type { Permission } from "./model/permission/permissionSchema.js";
 
 export type { Event, EventLoggedStatus, LogEventInput } from "./model/event/eventSchema.js";
 
@@ -62,3 +59,4 @@ export type CmcsDivision = (typeof CMCS_DIVISION)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
+export type GrantLevel = (typeof GRANT_LEVELS)[number];

@@ -5,6 +5,8 @@ export const PERSON_TYPES = [
   "non-user-contact",
 ] as const;
 
+export const GRANT_LEVELS = ["System", "Demonstration"] as const;
+
 export const BUNDLE_TYPE = {
   DEMONSTRATION: "DEMONSTRATION",
   AMENDMENT: "AMENDMENT",
