@@ -84,9 +84,11 @@ ADD CONSTRAINT "role_permission_pkey" PRIMARY KEY ("role_id", "grant_level_id", 
 ALTER TABLE "demos_app"."role_permission_history" ADD COLUMN     "grant_level_id" TEXT NOT NULL;
 
 -- DropTable
+DROP TRIGGER "log_changes_permission_trigger" ON "demos_app"."permission";
 DROP TABLE "demos_app"."permission_history";
 
 -- DropTable
+DROP TRIGGER "log_changes_role_trigger" ON "demos_app"."role";
 DROP TABLE "demos_app"."role_history";
 
 -- DropTable
@@ -232,3 +234,19 @@ CREATE OR REPLACE TRIGGER log_changes_users_trigger
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.users
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_users();
 
+-- Standard values
+INSERT INTO
+    "grant_level"
+VALUES
+    ('System'),
+    ('Demonstration');
+
+INSERT INTO
+    "role"
+VALUES
+    ('Project Officer', 'Demonstration'),
+    ('State Point of Contact', 'Demonstration'),
+    ('DDME Analyst', 'Demonstration'),
+    ('Policy Technical Director', 'Demonstration'),
+    ('Monitoring & Evaluation Technical Director', 'Demonstration'),
+    ('All Users', 'System'); -- This role is intended to be assigned to all users by default 

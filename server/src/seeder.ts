@@ -38,10 +38,7 @@ function clearDatabase() {
   return prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
     // Start with join tables
-    prisma().userStateDemonstration.deleteMany(),
-    prisma().userState.deleteMany(),
     prisma().rolePermission.deleteMany(),
-    prisma().userRole.deleteMany(),
 
     // Permissions are only attached to rolePermission
     prisma().permission.deleteMany(),
@@ -79,9 +76,7 @@ async function seedDatabase() {
   await clearDatabase();
 
   // Setting constants for record generation
-  const roleCount = 4;
   const userCount = 9;
-  const permissionCount = 9;
   const demonstrationCount = 20;
   const amendmentCount = 10;
   const documentCount = 130;
@@ -89,8 +84,6 @@ async function seedDatabase() {
   console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
-  const bypassRoleId = "BYPASSED_ADMIN_ROLE";
-  const bypassPermissionId = "BYPASSED_ADMIN_PERMISSION";
 
   await prisma().person.create({
     data: {
@@ -109,45 +102,6 @@ async function seedDatabase() {
       username: "BYPASSED_USER",
     },
   });
-  await prisma().role.create({
-    data: {
-      id: bypassRoleId,
-      name: "Bypassed Admin Role",
-      description: "This role is a testing role for the bypassed user and is not a real role.",
-    },
-  });
-  await prisma().userRole.create({
-    data: {
-      userId: bypassUserId,
-      roleId: bypassRoleId,
-    },
-  });
-  await prisma().permission.create({
-    data: {
-      id: bypassPermissionId,
-      name: "Bypassed Admin Permission",
-      description:
-        "This permission is a testing permission for the bypassed user and is not a real permission.",
-    },
-  });
-  await prisma().rolePermission.create({
-    data: {
-      roleId: bypassRoleId,
-      permissionId: bypassPermissionId,
-    },
-  });
-
-  console.log("🌱 Seeding roles...");
-  for (let i = 0; i < roleCount; i++) {
-    const title = faker.person.jobTitle();
-    await prisma().role.create({
-      data: {
-        id: makeIdStyleString(title),
-        name: title,
-        description: faker.person.jobDescriptor(),
-      },
-    });
-  }
 
   console.log("🌱 Seeding states...");
   const states = [
@@ -184,22 +138,6 @@ async function seedDatabase() {
         personTypeId: person.personTypeId,
         cognitoSubject: faker.string.uuid(),
         username: faker.internet.username(),
-      },
-    });
-  }
-
-  console.log("🌱 Seeding permissions...");
-  for (let i = 0; i < permissionCount; i++) {
-    const permissionName = sampleFromArray(
-      [faker.lorem.sentence(1), faker.lorem.sentence(2), faker.lorem.sentence(3)],
-      1
-    );
-
-    await prisma().permission.create({
-      data: {
-        id: makeIdStyleString(permissionName[0]),
-        name: permissionName[0],
-        description: faker.lorem.sentence(),
       },
     });
   }
@@ -241,7 +179,6 @@ async function seedDatabase() {
         signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
         demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
-        projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
   }
@@ -403,110 +340,6 @@ async function seedDatabase() {
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: documentTypeId!.id,
         bundleId: (await prisma().bundle.findRandom())!.id,
-      },
-    });
-  }
-
-  // Getting IDs for join tables and events
-  // Note we exclude the bypass user to avoid conflicts
-  const roleIds = await prisma().role.findMany({
-    select: { id: true },
-    where: {
-      NOT: {
-        id: bypassRoleId,
-      },
-    },
-  });
-  const stateIds = await prisma().state.findMany({
-    select: { id: true },
-  });
-  const userIds = await prisma().user.findMany({
-    select: { id: true },
-    where: {
-      NOT: {
-        id: bypassUserId,
-      },
-    },
-  });
-  const permissionIds = await prisma().permission.findMany({
-    select: { id: true },
-    where: {
-      NOT: {
-        id: bypassPermissionId,
-      },
-    },
-  });
-
-  console.log("🔗 Assigning permissions to roles...");
-  for (const roleId of roleIds) {
-    const assignedPermissionIds = sampleFromArray(permissionIds, 2);
-    for (let i = 0; i < assignedPermissionIds.length; i++) {
-      await prisma().rolePermission.create({
-        data: {
-          roleId: roleId.id,
-          permissionId: assignedPermissionIds[i].id,
-        },
-      });
-    }
-  }
-
-  console.log("🔗 Assigning users to roles...");
-  for (const userId of userIds) {
-    const assignedRoleIds = sampleFromArray(roleIds, 2);
-    for (let i = 0; i < assignedRoleIds.length; i++) {
-      await prisma().userRole.create({
-        data: {
-          userId: userId.id,
-          roleId: assignedRoleIds[i].id,
-        },
-      });
-    }
-  }
-
-  console.log("🔗 Assigning users to states...");
-  for (const userId of userIds) {
-    const assignedStateIds = sampleFromArray(stateIds, 2);
-    for (let i = 0; i < assignedStateIds.length; i++) {
-      await prisma().userState.create({
-        data: {
-          userId: userId.id,
-          stateId: assignedStateIds[i].id,
-        },
-      });
-    }
-  }
-
-  console.log("🔗 Assigning users to demonstrations...");
-  const demonstrationStates = await prisma().demonstration.findMany({
-    select: {
-      id: true,
-      stateId: true,
-    },
-  });
-  const userStates = await prisma().userState.findMany({
-    select: {
-      userId: true,
-      stateId: true,
-    },
-  });
-  const userStateDemonstrationValues = [];
-  for (const userState of userStates) {
-    for (const demonstrationState of demonstrationStates) {
-      if (userState.stateId === demonstrationState.stateId) {
-        userStateDemonstrationValues.push({
-          userId: userState.userId,
-          stateId: userState.stateId,
-          demonstrationId: demonstrationState.id,
-        });
-      }
-    }
-  }
-  for (const userStateDemonstrationValue of userStateDemonstrationValues) {
-    await prisma().userStateDemonstration.create({
-      data: {
-        userId: userStateDemonstrationValue.userId,
-        stateId: userStateDemonstrationValue.stateId,
-        demonstrationId: userStateDemonstrationValue.demonstrationId,
       },
     });
   }
