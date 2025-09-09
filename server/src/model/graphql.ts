@@ -45,13 +45,8 @@ const mockDemonstrationSchemaExtension = gql`
     contactType: String!
   }
 
-  type DemonstrationTypes {
-    id: String!
-  }
-
   extend type Demonstration {
     contacts: [Contact!]!
-    demonstrationTypes: [DemonstrationTypes!]!
   }
 `;
 
@@ -66,9 +61,6 @@ const mockDemonstrationResolverExtension = {
           contactType: "Project Officer",
         },
       ];
-    },
-    demonstrationTypes: async () => {
-      return [];
     },
   },
 };
