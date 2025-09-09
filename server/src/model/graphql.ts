@@ -18,6 +18,9 @@ import { modificationStatusResolvers } from "./modificationStatus/modificationSt
 import { permissionSchema } from "./permission/permissionSchema.js";
 import { permissionResolvers } from "./permission/permissionResolvers.js";
 
+import { phaseSchema } from "./phase/phaseSchema.js";
+import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
+
 import { roleSchema } from "./role/roleSchema.js";
 import { roleResolvers } from "./role/roleResolvers.js";
 
@@ -40,6 +43,8 @@ export const typeDefs = [
   modificationSchema,
   modificationStatusSchema,
   permissionSchema,
+  phaseSchema,
+  phaseStatusSchema,
   roleSchema,
   stateSchema,
   userSchema,
