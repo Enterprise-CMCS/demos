@@ -1,16 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useQuery } from "@apollo/client";
 import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
-import users from "faker_data/users.json";
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  username: string;
-  role: string;
-  status: string;
-  created_at: string;
-}
+import { USER_OPTIONS_QUERY } from "queries/userQueries";
 
 export interface SelectUsersProps {
   label?: string;
@@ -29,10 +20,18 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
   currentUserId,
   value,
 }) => {
-  const options: Option[] = (users as User[]).map((u) => ({
-    label: u.name,
-    value: String(u.id),
-  }));
+  const { data, loading, error } = useQuery<{ users: { id: string; fullName: string }[] }>(
+    USER_OPTIONS_QUERY
+  );
+
+  const options: Option[] = useMemo(
+    () =>
+      (data?.users || []).map((u) => ({
+        label: u.fullName,
+        value: String(u.id),
+      })),
+    [data]
+  );
 
   const defaultLabel =
     options.find((o) => o.value === currentUserId)?.label ?? "";
@@ -45,10 +44,9 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
       placeholder={`Select ${label.toLowerCase()}…`}
       onSelect={onStateChange}
       isRequired={isRequired}
-      isDisabled={isDisabled}
+      isDisabled={isDisabled || loading || !!error}
       defaultValue={defaultLabel}
-      value={value} // <-- pass controlled value
+      value={value}
     />
   );
 };
-
