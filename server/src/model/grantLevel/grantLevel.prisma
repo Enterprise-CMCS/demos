@@ -4,6 +4,7 @@ model GrantLevel {
 
   permissions  Permission[]
   roles        Role[]
+  
   @@id([id])
   @@map("grant_level")
 }

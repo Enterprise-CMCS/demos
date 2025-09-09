@@ -1,4 +1,3 @@
-// Flags: NATURAL_KEY
 model RolePermission {
   roleId       String @map("role_id")
   grantLevelId String @map("grant_level_id")

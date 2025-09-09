@@ -49,12 +49,7 @@ export const userResolvers = {
     ): Promise<PrismaUser | null> => {
       if (!ctx.user) return null;
       try {
-        const user = await prisma().user.findUnique({
-          where: { id: ctx.user.id },
-          include: { person: true },
-        });
-        if (!user) return null;
-        return resolveUser(user);
+        return findUniqueUser(ctx.user.id);
       } catch (e) {
         console.error("[currentUser] resolver error:", e);
         throw e;
@@ -69,14 +64,11 @@ export const userResolvers = {
         username,
         cognitoSubject,
         personTypeId,
-        demonstrationIds,
         fullName,
         displayName,
-        ...rest
       } = input;
       const person = await prisma().person.create({
         data: {
-          ...rest,
           displayName: displayName,
           fullName: fullName,
           email: email,
@@ -89,32 +81,17 @@ export const userResolvers = {
           cognitoSubject: cognitoSubject,
           id: person.id,
           personTypeId: person.personTypeId,
-          ...rest,
-          ...(demonstrationIds && {
-            userStateDemonstrations: {
-              create: (
-                await prisma().demonstration.findMany({
-                  where: { id: { in: demonstrationIds } },
-                  select: { id: true, stateId: true },
-                })
-              ).map((demonstration) => ({
-                stateId: demonstration.stateId,
-                demonstrationId: demonstration.id,
-              })),
-            },
-          }),
         },
       });
       return { ...user, ...person };
     },
 
     updateUser: async (_: undefined, { id, input }: { id: string; input: UpdateUserInput }) => {
-      const { fullName, displayName, email, username, personTypeId, demonstrationIds, ...rest } =
+      const { fullName, displayName, email, username, personTypeId } =
         input;
       const person = await prisma().person.update({
         where: { id },
         data: {
-          ...rest,
           displayName: displayName,
           fullName: fullName,
           email: email,
@@ -124,21 +101,7 @@ export const userResolvers = {
       const user = await prisma().user.update({
         where: { id },
         data: {
-          ...rest,
           username: username,
-          ...(demonstrationIds && {
-            userStateDemonstrations: {
-              create: (
-                await prisma().demonstration.findMany({
-                  where: { id: { in: demonstrationIds } },
-                  select: { id: true, stateId: true },
-                })
-              ).map((demonstration) => ({
-                stateId: demonstration.stateId,
-                demonstrationId: demonstration.id,
-              })),
-            },
-          }),
         },
       });
       return { ...user, ...person };

@@ -33,10 +33,6 @@ export type {
 
 export type { State } from "./model/state/stateSchema.js";
 
-export type { Role } from "./model/role/roleSchema.js";
-
-export type { Permission } from "./model/permission/permissionSchema.js";
-
 export type { Event, EventLoggedStatus, LogEventInput } from "./model/event/eventSchema.js";
 
 export type {
