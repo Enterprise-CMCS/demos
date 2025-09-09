@@ -124,7 +124,8 @@ async function ensureUserFromClaims(claims: Claims) {
 
   // Derive a safe personTypeId from the role claim (or default)
   const resolvedPersonTypeId = (() => {
-    if (!role) return "demos-cms-user"; // sensible default for first-login
+    // we started requiring a roles without actually adding the role feature.
+    if (!role) return "demos-cms-user";
     // role may be a CSV or a single value; pick the first matching PERSON_TYPES
     const parts = role.split(/[,\s]+/).filter(Boolean);
     for (const part of parts) {
