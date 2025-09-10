@@ -1,6 +1,6 @@
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import {
-  ADD_DEMONSTRATION_MUTATION,
+  CREATE_DEMONSTRATION_MUTATION,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
@@ -209,7 +209,7 @@ export const demonstrationMocks: MockedResponse[] = [
   },
   {
     request: {
-      query: ADD_DEMONSTRATION_MUTATION,
+      query: CREATE_DEMONSTRATION_MUTATION,
       variables: { input: mockAddDemonstrationInput },
     },
     result: {
@@ -279,7 +279,7 @@ export const demonstrationMocks: MockedResponse[] = [
   // Error mock for ADD_DEMONSTRATION_MUTATION with invalid data
   {
     request: {
-      query: ADD_DEMONSTRATION_MUTATION,
+      query: CREATE_DEMONSTRATION_MUTATION,
       variables: { input: { name: "bad add demonstration" } },
     },
     error: new Error("Failed to add demonstration"),
