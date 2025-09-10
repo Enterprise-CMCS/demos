@@ -1,12 +1,14 @@
 // Flags: STATIC_CONSTRAINT
 model Role {
-  id           String          
+  id           String
   grantLevelId String
 
   grantLevel GrantLevel @relation(fields: [grantLevelId], references: [id])
-  
-  events          Event[]
-  rolePermissions RolePermission[]
+
+  events                Event[]
+  rolePermissions       RolePermission[]
+  rolePersonTypes       RolePersonType[]
+  systemRoleAssignments SystemRoleAssignment[]
 
   @@id([id])
   @@unique([id, grantLevelId])

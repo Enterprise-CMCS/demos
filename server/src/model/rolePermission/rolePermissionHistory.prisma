@@ -1,7 +1,7 @@
 model RolePermissionHistory {
-  revisionId     Int          @id @default(autoincrement()) @map("revision_id")
-  revisionType   RevisionType @map("revision_type")
-  modifiedAt     DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  revisionId   Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType RevisionType @map("revision_type")
+  modifiedAt   DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
 
   roleId       String @map("role_id")
   grantLevelId String @map("grant_level_id")

@@ -3,6 +3,7 @@ model PersonType {
 
   people              Person[]
   userPersonTypeLimit UserPersonTypeLimit?
+  rolePersonTypes     RolePersonType[]
 
   @@id([id])
   @@map("person_type")

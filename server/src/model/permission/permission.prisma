@@ -1,6 +1,6 @@
 // Flags: STATIC_CONSTRAINT
 model Permission {
-  id           String          
+  id           String
   grantLevelId String
 
   grantLevel GrantLevel @relation(fields: [grantLevelId], references: [id])
