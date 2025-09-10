@@ -1,8 +1,9 @@
 import { faker } from "@faker-js/faker";
-
-import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
+import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL, PHASE } from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
+
+const PHASE_WITHOUT_NONE = [...PHASE].filter((phase) => phase !== "None");
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
@@ -176,6 +177,7 @@ async function seedDatabase() {
         signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
         demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
         stateId: (await prisma().state.findRandom())!.id,
+        currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
         projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
@@ -227,6 +229,7 @@ async function seedDatabase() {
         modificationStatusId: (await prisma().modificationStatus.findRandom({
           where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
         }))!.id,
+        currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
         projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
@@ -255,6 +258,7 @@ async function seedDatabase() {
         modificationStatusId: (await prisma().modificationStatus.findRandom({
           where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
         }))!.id,
+        currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
         projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });

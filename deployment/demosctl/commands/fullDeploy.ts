@@ -16,8 +16,8 @@ export async function fullDeploy(environment: string) {
   ]);
 
   if (completeDeployCmd != 0) {
-    process.stderr.write(`complete deploy command failed with code ${completeDeployCmd}`);
-    process.exit(completeDeployCmd);
+    console.error(`complete deploy command failed with code ${completeDeployCmd}`);
+    return process.exit(completeDeployCmd);
   }
 
   // Add cloudfront url to list of redirect urls
@@ -28,5 +28,5 @@ export async function fullDeploy(environment: string) {
     getOutputValue(outputData, `demos-${environment}-ui`, "CloudfrontURL")
   );
 
-  process.stdout.write(`\n======\ncomplete deploy command succeeded\n======\n`);
+  console.log(`\n======\ncomplete deploy command succeeded\n======\n`);
 }

@@ -1,3 +1,5 @@
+import { gql } from "graphql-tag";
+
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
 
@@ -15,6 +17,9 @@ import { modificationStatusSchema } from "./modificationStatus/modificationStatu
 import { modificationResolvers } from "./modification/modificationResolvers.js";
 import { modificationStatusResolvers } from "./modificationStatus/modificationStatusResolvers.js";
 
+import { phaseSchema } from "./phase/phaseSchema.js";
+import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
+
 import { stateSchema } from "./state/stateSchema.js";
 import { stateResolvers } from "./state/stateResolvers.js";
 
@@ -26,6 +31,35 @@ import { personTypeSchema } from "./personType/personTypeSchema.js";
 
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
+const mockDemonstrationSchemaExtension = gql`
+  type Contact {
+    id: String!
+    fullName: String!
+    email: String!
+    contactType: String!
+  }
+
+  extend type Demonstration {
+    contacts: [Contact!]!
+  }
+`;
+
+// TO BE REPLACED WITH ACTUAL RESOLVERS WHEN CONTACTS ARE FULLY IMPLEMENTED
+const mockDemonstrationResolverExtension = {
+  Demonstration: {
+    contacts: async () => {
+      return [
+        {
+          id: "1",
+          fullName: "John Doe",
+          email: "john.doe@email.com",
+          contactType: "Project Officer",
+        },
+      ];
+    },
+  },
+};
+
 export const typeDefs = [
   demonstrationSchema,
   demonstrationStatusSchema,
@@ -33,9 +67,12 @@ export const typeDefs = [
   eventSchema,
   modificationSchema,
   modificationStatusSchema,
+  phaseSchema,
+  phaseStatusSchema,
   stateSchema,
   userSchema,
   personTypeSchema,
+  mockDemonstrationSchemaExtension,
   ...scalarTypes,
 ];
 
@@ -48,4 +85,5 @@ export const resolvers = [
   modificationStatusResolvers,
   stateResolvers,
   userResolvers,
+  mockDemonstrationResolverExtension,
 ];

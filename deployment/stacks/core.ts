@@ -1,11 +1,4 @@
-import {
-  CfnOutput,
-  Stack,
-  StackProps,
-  aws_iam,
-  aws_cognito,
-  aws_ec2,
-} from "aws-cdk-lib";
+import { CfnOutput, Stack, StackProps, aws_iam, aws_cognito, aws_ec2 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
@@ -23,12 +16,7 @@ export class CoreStack extends Stack {
   public readonly secretsManagerVpceSg: aws_ec2.ISecurityGroup;
   public readonly cloudVpnSecurityGroup: aws_ec2.ISecurityGroup;
 
-  constructor(
-    scope: Construct,
-    id: string,
-    props: StackProps & DeploymentConfigProperties
-  ) {
-    
+  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties) {
     super(scope, id, {
       ...props,
       terminationProtection: false,
@@ -39,11 +27,7 @@ export class CoreStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(
-              this,
-              "iamPermissionsBoundary",
-              props.iamPermissionsBoundaryArn
-            )
+          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
           : undefined,
     };
 
@@ -52,23 +36,23 @@ export class CoreStack extends Stack {
       cognito_outputs = cognito.create(commonProps);
       this.cognito_outputs = cognito_outputs.userPool;
     } else if (commonProps.hostUserPoolId) {
-      cognito_outputs = cognito.createUserPoolClient(commonProps, commonProps.hostUserPoolId, commonProps.hostEnvironment);
+      cognito_outputs = cognito.createUserPoolClient(
+        commonProps,
+        commonProps.hostUserPoolId,
+        commonProps.hostEnvironment
+      );
       this.cognito_outputs = cognito_outputs.userPool;
     } else {
-      throw new Error("cannot start ephemeral environment without host user pool")
+      throw new Error("cannot start ephemeral environment without host user pool");
     }
 
     const vpc = props.isLocalstack
-      ? undefined
+      ? aws_ec2.Vpc.fromLookup(this, "lsVpc", { tags: { Name: `demos-local` } })
       : aws_ec2.Vpc.fromLookup(this, "vpc", {
           tags: {
             Name: `demos-east-${!commonProps.isEphemeral ? commonProps.stage : commonProps.hostEnvironment}`,
           },
         });
-
-    if (!vpc) {
-      throw new Error("The specified VPC could not be found.");
-    }
 
     this.vpcId = vpc.vpcId;
     this.vpc = vpc;
@@ -91,12 +75,11 @@ export class CoreStack extends Stack {
     this.cognitoAuthorityParamName = ca.name;
     this.cognitoClientIdParamName = cid.name;
 
-    const secretsManagerSecurityGroupName = `${commonProps.project}-${commonProps.hostEnvironment}-secrets-manager-vpce`
+    const secretsManagerSecurityGroupName = `${commonProps.project}-${commonProps.hostEnvironment}-secrets-manager-vpce`;
 
     let secretsManagerEndpointSG: aws_ec2.ISecurityGroup;
 
     if (!commonProps.isEphemeral) {
-
       secretsManagerEndpointSG = securityGroup.create({
         ...commonProps,
         vpc,
@@ -112,15 +95,16 @@ export class CoreStack extends Stack {
       });
 
       vpc.addGatewayEndpoint("s3GatewayEndpoint", {
-        service: aws_ec2.GatewayVpcEndpointAwsService.S3
-      })
-
+        service: aws_ec2.GatewayVpcEndpointAwsService.S3,
+      });
     } else {
-
       // Ephemeral Environments
-      secretsManagerEndpointSG = aws_ec2.SecurityGroup.fromLookupByName(commonProps.scope, "hostEnvSecretsManagerSG", `${commonProps.project}-${commonProps.hostEnvironment}-${secretsManagerSecurityGroupName}`, vpc)
-
-
+      secretsManagerEndpointSG = aws_ec2.SecurityGroup.fromLookupByName(
+        commonProps.scope,
+        "hostEnvSecretsManagerSG",
+        `${commonProps.project}-${commonProps.hostEnvironment}-${secretsManagerSecurityGroupName}`,
+        vpc
+      );
     }
 
     this.secretsManagerVpceSg = secretsManagerEndpointSG;
@@ -136,13 +120,13 @@ export class CoreStack extends Stack {
 
     new CfnOutput(this, "cognitoDomain", {
       value: cognito_outputs.domain,
-      exportName: `${commonProps.stage}CognitoDomain`
-    })
+      exportName: `${commonProps.stage}CognitoDomain`,
+    });
 
     new CfnOutput(this, "cognitoClientId", {
       value: cognito_outputs.userPoolClientId,
-      exportName: `${commonProps.stage}CognitoClientId`
-    })
+      exportName: `${commonProps.stage}CognitoClientId`,
+    });
 
     this.cloudVpnSecurityGroup = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,

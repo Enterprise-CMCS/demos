@@ -2,13 +2,14 @@ import { Demonstration } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
+import { BundleType, Phase } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { findUniqueUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
+const conceptPhaseId: Phase = "Concept";
 
 export const demonstrationResolvers = {
   Query: {
@@ -51,17 +52,24 @@ export const demonstrationResolvers = {
             bundleType: {
               connect: { id: demonstrationBundleTypeId },
             },
-            cmcsDivision: {
-              connect: { id: cmcsDivision },
-            },
-            signatureLevel: {
-              connect: { id: signatureLevel },
-            },
+            ...(cmcsDivision && {
+              cmcsDivision: {
+                connect: { id: cmcsDivision },
+              },
+            }),
+            ...(signatureLevel && {
+              signatureLevel: {
+                connect: { id: signatureLevel },
+              },
+            }),
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
             },
             state: {
               connect: { id: stateId },
+            },
+            currentPhase: {
+              connect: { id: conceptPhaseId },
             },
             projectOfficer: {
               connect: { id: projectOfficerUserId },
@@ -83,6 +91,7 @@ export const demonstrationResolvers = {
         expirationDate,
         cmcsDivision,
         signatureLevel,
+        currentPhase,
         ...rest
       } = input;
 
@@ -124,6 +133,11 @@ export const demonstrationResolvers = {
           ...(stateId && {
             state: {
               connect: { id: stateId },
+            },
+          }),
+          ...(currentPhase && {
+            currentPhase: {
+              connect: { id: currentPhase },
             },
           }),
           ...(projectOfficerUserId && {
@@ -191,6 +205,10 @@ export const demonstrationResolvers = {
 
     signatureLevel: async (parent: Demonstration) => {
       return parent.signatureLevelId;
+    },
+
+    currentPhase: async (parent: Demonstration) => {
+      return parent.currentPhaseId;
     },
   },
 };
