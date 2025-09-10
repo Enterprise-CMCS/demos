@@ -63,6 +63,11 @@ vi.mock("components/button", () => ({
   ),
 }));
 
+// Mock SelectUsers to avoid Apollo dependency in tests
+vi.mock("components/input/select/SelectUsers", () => ({
+  SelectUsers: ({ label = "Users" }: { label?: string }) => <div>{label}</div>,
+}));
+
 describe("AmendmentDialog", () => {
   const defaultProps = {
     onClose: vi.fn(),

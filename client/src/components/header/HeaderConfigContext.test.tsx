@@ -28,13 +28,13 @@ function renderWithProviders(ui: React.ReactNode) {
 }
 
 describe("HeaderConfigProvider", () => {
-  it("renders defaultLowerContent initially inside Header", () => {
+  it("renders defaultLowerContent initially inside Header", async () => {
     renderWithProviders(
       <HeaderConfigProvider defaultLowerContent={<div data-testid="default">Default Content</div>}>
         <Header />
       </HeaderConfigProvider>
     );
-    expect(screen.getByTestId("default")).toHaveTextContent("Default Content");
+    expect(await screen.findByTestId("default")).toHaveTextContent("Default Content");
   });
 
   it("updates content in Header when setHeaderConfig is called", async () => {
@@ -47,11 +47,11 @@ describe("HeaderConfigProvider", () => {
       </HeaderConfigProvider>
     );
 
-    expect(screen.getByTestId("default")).toBeInTheDocument();
+    expect(await screen.findByTestId("default")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Update Header/i }));
 
-    expect(screen.getByTestId("updated")).toHaveTextContent("Updated Content");
+    expect(await screen.findByTestId("updated")).toHaveTextContent("Updated Content");
     expect(screen.queryByTestId("default")).not.toBeInTheDocument();
   });
 });

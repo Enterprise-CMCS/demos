@@ -1,4 +1,4 @@
-import { DemosApolloProvider } from "router/DemosApolloProvider";
+import { MockedApolloWrapper } from "router/MockedApolloWrapper";
 
 import {
   renderHook,
@@ -9,7 +9,7 @@ import { useDemonstrationOptions } from "./useDemonstrationOptions";
 
 const renderUseDemonstrationOptionsHook = () => {
   return renderHook(() => useDemonstrationOptions(), {
-    wrapper: DemosApolloProvider,
+    wrapper: MockedApolloWrapper,
   });
 };
 

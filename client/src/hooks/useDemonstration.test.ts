@@ -1,6 +1,6 @@
 import { CreateDemonstrationInput } from "demos-server";
 import { mockAddDemonstrationInput, mockDemonstrations } from "mock-data/demonstrationMocks";
-import { DemosApolloProvider } from "router/DemosApolloProvider";
+import { MockedApolloWrapper } from "router/MockedApolloWrapper";
 
 import { renderHook, waitFor } from "@testing-library/react";
 
@@ -8,7 +8,7 @@ import { useDemonstration } from "./useDemonstration";
 
 const renderUseDemonstrationHook = () => {
   return renderHook(() => useDemonstration(), {
-    wrapper: DemosApolloProvider,
+    wrapper: MockedApolloWrapper,
   });
 };
 

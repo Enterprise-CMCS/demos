@@ -4,17 +4,19 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { SelectUSAStates } from "./SelectUSAStates";
 
-// 1) Mock the `states` export from your TS file
-vi.mock(
-  "faker_data/usStates",
-  () => ({
-    states: [
-      { name: "Maryland", abbrev: "MD" },
-      { name: "California", abbrev: "CA" },
-      { name: "Texas", abbrev: "TX" },
-    ],
-  })
-);
+// Provide a small, controlled set of states for this test
+const { mockStates } = vi.hoisted(() => ({
+  mockStates: [
+    { name: "Maryland", abbrev: "MD" },
+    { name: "California", abbrev: "CA" },
+    { name: "Texas", abbrev: "TX" },
+  ],
+}));
+
+// Mock the real data module consumed by the component
+vi.mock("data/StatesAndTerritories", () => ({
+  states: mockStates,
+}));
 
 describe("<SelectUSAStates />", () => {
   it("filters options by input and calls onStateChange with the abbrev", async () => {

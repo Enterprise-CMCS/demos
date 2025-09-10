@@ -2,12 +2,12 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { useUserOperations } from "./useUserOperations";
 import { describe, expect, it } from "vitest";
 import { patrick, spongebob, squidward } from "mock-data/userMocks";
-import { DemosApolloProvider } from "router/DemosApolloProvider";
+import { MockedApolloWrapper } from "router/MockedApolloWrapper";
 
 describe("useUserOperations", () => {
   it("can get a user by ID", async () => {
     const { result: userOperations } = renderHook(() => useUserOperations(), {
-      wrapper: DemosApolloProvider,
+      wrapper: MockedApolloWrapper,
     });
 
     // Get spongebob by ID
@@ -39,7 +39,7 @@ describe("useUserOperations", () => {
 
   it("can get all users", async () => {
     const { result: userOperations } = renderHook(() => useUserOperations(), {
-      wrapper: DemosApolloProvider,
+      wrapper: MockedApolloWrapper,
     });
 
     act(() => {

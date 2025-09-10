@@ -154,11 +154,7 @@ describe("DefaultHeaderLower", () => {
       hasRole: vi.fn(),
     });
 
-    render(
-      <DemosApolloProvider>
-        <DefaultHeaderLower />
-      </DemosApolloProvider>
-    );
+    render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
     expect(screen.queryByText("DemonstrationDialog")).toBeInTheDocument();
