@@ -1,11 +1,19 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
-import { ApplicationWorkflow } from "./ApplicationWorkflow";
+
+import { TestProvider } from "test-utils/TestProvider";
+import { describe, expect, it } from "vitest";
+
 import { render, screen } from "@testing-library/react";
+
+import { ApplicationWorkflow } from "./ApplicationWorkflow";
 
 describe("ApplicationWorkflow", () => {
   it("renders APPLICATION heading", () => {
-    render(<ApplicationWorkflow demonstration={{ status: "under_review" }} />);
+    render(
+      <TestProvider>
+        <ApplicationWorkflow demonstration={{ status: "under_review" }} />
+      </TestProvider>
+    );
     expect(screen.getByText("APPLICATION")).toBeInTheDocument();
   });
 });

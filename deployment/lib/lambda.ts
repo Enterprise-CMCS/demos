@@ -1,20 +1,8 @@
 import { LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
-import {
-  Duration,
-  aws_apigateway,
-  aws_codedeploy,
-  aws_ec2,
-  aws_lambda,
-} from "aws-cdk-lib";
-import {
-  Role,
-  PolicyDocument,
-  PolicyStatement,
-  Effect,
-  ServicePrincipal,
-} from "aws-cdk-lib/aws-iam";
+import { Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_lambda } from "aws-cdk-lib";
+import { Role, PolicyDocument, PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
 
@@ -27,9 +15,9 @@ interface LambdaProps extends CommonProps {
   environment?: { [key: string]: string };
   path?: string;
   method?: string;
-  apiParentResource?: aws_apigateway.Resource;
+  apiParentResource?: aws_apigateway.IResource;
   vpc?: aws_ec2.IVpc;
-  securityGroup?: aws_ec2.SecurityGroup;
+  securityGroup?: aws_ec2.ISecurityGroup;
   useAlias?: boolean;
   deploymentConfig?: aws_codedeploy.ILambdaDeploymentConfig;
   authorizer?: aws_apigateway.Authorizer;
@@ -42,7 +30,7 @@ interface LambdaProps extends CommonProps {
 
 export function create(props: LambdaProps, id: string) {
   const lambda = new Lambda(props.scope, id, props);
-  
+
   return {
     functionName: lambda.lambda.functionName,
     lambda,
@@ -69,8 +57,8 @@ export class Lambda extends Construct {
     const logGroup = new DemosLogGroup(this, "LogGroup", {
       name: `lambda/${id}`,
       isEphemeral: props.isEphemeral,
-      stage: props.stage
-    })
+      stage: props.stage,
+    });
 
     const role = new Role(this, `${id}LambdaExecutionRole`, {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
@@ -86,11 +74,7 @@ export class Lambda extends Construct {
             // }),
             new PolicyStatement({
               effect: Effect.ALLOW,
-              actions: [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-              ],
+              actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
               resources: ["arn:aws:logs:*:*:*"],
             }),
             new PolicyStatement({
@@ -121,19 +105,18 @@ export class Lambda extends Construct {
       timeout,
       memorySize,
       role,
-      securityGroups:
-        props.vpc && props.securityGroup ? [props.securityGroup] : undefined,
+      securityGroups: props.vpc && props.securityGroup ? [props.securityGroup] : undefined,
       bundling: {
         minify: true,
         sourceMap: true,
         externalModules: props.externalModules,
         nodeModules: props.nodeModules,
-        logLevel: LogLevel.VERBOSE
+        logLevel: LogLevel.VERBOSE,
       },
       environment: props.environment,
       vpc: props.vpc,
       vpcSubnets: props.vpc ? { subnets: props.vpc.privateSubnets } : undefined,
-      logGroup: logGroup.logGroup
+      logGroup: logGroup.logGroup,
     });
 
     let alias;
@@ -154,22 +137,17 @@ export class Lambda extends Construct {
 
     if (props.apiParentResource && props.path && props.method) {
       const resource = props.apiParentResource.resourceForPath(props.path);
-      resource.addMethod(
-        props.method,
-        new aws_apigateway.LambdaIntegration(alias ? alias : this.lambda),
-        {
-          authorizationType: this.onAws(props.authorizationType),
-          authorizer: this.onAws(props.authorizer),
-          // authorizationScopes: props.isLocalstack
-          //   ? undefined
-          //   : ["demosApi/read", "demosApi/write"],
-        }
-      );
+      resource.addMethod(props.method, new aws_apigateway.LambdaIntegration(alias ?? this.lambda), {
+        authorizationType: this.onAws(props.authorizationType),
+        authorizer: this.onAws(props.authorizer),
+        // authorizationScopes: props.isLocalstack
+        //   ? undefined
+        //   : ["demosApi/read", "demosApi/write"],
+      });
     }
   }
 
-
   private onAws<T>(value: T) {
-    return this.isLocalStack ? undefined : value
+    return this.isLocalStack ? undefined : value;
   }
 }

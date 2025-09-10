@@ -5,8 +5,7 @@ export function applyCoreSuppressions(core: Stack) {
   NagSuppressions.addStackSuppressions(core, [
     {
       id: "AwsSolutions-COG3",
-      reason:
-        "Advanced security mode is an increased cost and unnecessary since all logins are managed by IDM in PROD",
+      reason: "Advanced security mode is an increased cost and unnecessary since all logins are managed by IDM in PROD",
     },
   ]);
 }
@@ -15,53 +14,36 @@ export function applyUISuppressions(ui: Stack, stage: string) {
   NagSuppressions.addStackSuppressions(ui, [
     {
       id: "AwsSolutions-L1",
-      reason:
-        "This is caused by the bucket deployment, which is not managed within our code",
+      reason: "This is caused by the bucket deployment, which is not managed within our code",
     },
   ]);
 
-  NagSuppressions.addResourceSuppressionsByPath(
-    ui,
-    `/demos-${stage}-ui/BucketDeploymentRole/DefaultPolicy/Resource`,
-    [
-      {
-        id: "AwsSolutions-IAM5",
-        reason:
-          "CDK adds non-modifiable default policies that fail this rule. Required for the bucket deployment",
-      },
-      {
-        id: "AwsSolutions-L1",
-        reason:
-          "This is caused by the bucket deployment, which is not managed within our code",
-      },
-    ]
-  );
+  NagSuppressions.addResourceSuppressionsByPath(ui, `/demos-${stage}-ui/BucketDeploymentRole/DefaultPolicy/Resource`, [
+    {
+      id: "AwsSolutions-IAM5",
+      reason: "CDK adds non-modifiable default policies that fail this rule. Required for the bucket deployment",
+    },
+    {
+      id: "AwsSolutions-L1",
+      reason: "This is caused by the bucket deployment, which is not managed within our code",
+    },
+  ]);
 
-  NagSuppressions.addResourceSuppressionsByPath(
-    ui,
-    `/demos-${stage}-ui/BucketDeploymentRole/Resource`,
-    [
-      {
-        id: "AwsSolutions-IAM5",
-        reason:
-          "CDK adds non-modifiable default policies that fail this rule. Required for the bucket deployment",
-      },
-    ]
-  );
+  NagSuppressions.addResourceSuppressionsByPath(ui, `/demos-${stage}-ui/BucketDeploymentRole/Resource`, [
+    {
+      id: "AwsSolutions-IAM5",
+      reason: "CDK adds non-modifiable default policies that fail this rule. Required for the bucket deployment",
+    },
+  ]);
 }
 
 export function applyApiSuppressions(api: Stack, stage: string) {
-  NagSuppressions.addResourceSuppressionsByPath(
-    api,
-    `/demos-${stage}-api/ApiGatewayRestApi/Resource`,
-    [
-      {
-        id: "AwsSolutions-APIG4",
-        reason:
-          "This is a healthcheck endpoint that does not return any actual information",
-      },
-    ]
-  );
+  NagSuppressions.addResourceSuppressionsByPath(api, `/demos-${stage}-api/ApiGatewayRestApi/Resource`, [
+    {
+      id: "AwsSolutions-APIG4",
+      reason: "This is a healthcheck endpoint that does not return any actual information",
+    },
+  ]);
 
   NagSuppressions.addResourceSuppressionsByPath(
     api,
@@ -69,8 +51,7 @@ export function applyApiSuppressions(api: Stack, stage: string) {
     [
       {
         id: "AwsSolutions-APIG4",
-        reason:
-          "This is a healthcheck endpoint that does not return any actual information",
+        reason: "This is a healthcheck endpoint that does not return any actual information",
       },
       {
         id: "AwsSolutions-COG4",
@@ -84,22 +65,19 @@ export function applyApiSuppressions(api: Stack, stage: string) {
     [
       {
         id: "AwsSolutions-COG4",
-        reason: "Cognito is still being used for authorization, but done with a custom authorizer rather than the AWS default one",
+        reason:
+          "Cognito is still being used for authorization, but done with a custom authorizer rather than the AWS default one",
       },
     ]
   );
 
-  NagSuppressions.addResourceSuppressionsByPath(
-    api,
-    `/demos-${stage}-api/ApiGatewayRestApi/Resource`,
-    [
-      {
-        id: "AwsSolutions-APIG2",
-        reason:
-          "Request validation is done on the backend. Would be difficult to sensibly implement for a graphql endpoint",
-      },
-    ]
-  );
+  NagSuppressions.addResourceSuppressionsByPath(api, `/demos-${stage}-api/ApiGatewayRestApi/Resource`, [
+    {
+      id: "AwsSolutions-APIG2",
+      reason:
+        "Request validation is done on the backend. Would be difficult to sensibly implement for a graphql endpoint",
+    },
+  ]);
 
   NagSuppressions.addResourceSuppressionsByPath(
     api,
@@ -147,7 +125,6 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
             id: "AwsSolutions-RDS10",
             reason: "Not using deletion protection in non-prod environments",
           },
-          // TODO: Revisit
           {
             id: "AwsSolutions-IAM4",
             reason: "Using AWS managed policies currently",
@@ -167,19 +144,7 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
   );
 }
 
-
 export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
-  // NagSuppressions.addResourceSuppressionsByPath(
-  //   fileUpload,
-  //   `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role`,
-  //   [
-  //     {
-  //       id: "AwsSolutions-IAM4",
-  //       reason:
-  //         "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
-  //     }
-  //   ]
-  // );
   NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource`,
@@ -188,7 +153,7 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
         id: "AwsSolutions-IAM4",
         reason:
           "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
-      }
+      },
     ]
   );
   NagSuppressions.addResourceSuppressionsByPath(
@@ -199,22 +164,11 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
         id: "AwsSolutions-IAM5",
         reason:
           "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
-      }
+      },
     ]
   );
-  // NagSuppressions.addResourceSuppressionsByPath(
-  //   fileUpload,
-  //   `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource`,
-  //   [
-  //     {
-  //       id: "AwsSolutions-IAM5",
-  //       reason:
-  //         "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
-  //     },
-  //   ]
-  // );
 
-    NagSuppressions.addResourceSuppressionsByPath(
+  NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/fileProcess/fileProcessLambdaExecutionRole/Resource`,
     [
@@ -225,7 +179,7 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
     ]
   );
 
-    NagSuppressions.addResourceSuppressionsByPath(
+  NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/fileProcess/fileProcessLambdaExecutionRole/DefaultPolicy/Resource`,
     [
@@ -235,7 +189,7 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
       },
     ]
   );
-    NagSuppressions.addResourceSuppressionsByPath(
+  NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/uploadBucketScan/GuardDutyMalwareProtectionRolePolicy/Resource`,
     [

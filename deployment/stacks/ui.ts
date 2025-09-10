@@ -81,6 +81,7 @@ export class UiStack extends Stack {
       autoDeleteObjects: true,
       serverAccessLogsBucket: serverAccessLogBucket,
       enforceSSL: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
 
     //
@@ -265,7 +266,7 @@ export class UiStack extends Stack {
         },
       ],
       webAclId: webAcl.attrArn,
-      enableIpv6: false, //TODO: only in lower environments
+      enableIpv6: !["dev", "test", "impl"].includes(commonProps.hostEnvironment),
       comment: `Env Name: ${commonProps.stage}`,
     });
     distribution.applyRemovalPolicy(commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN);
