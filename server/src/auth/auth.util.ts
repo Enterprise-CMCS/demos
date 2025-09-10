@@ -173,7 +173,7 @@ export async function buildLambdaContext(
     try {
       const { sub, email, role } = JSON.parse(rawClaims as string) as {
         sub: string;
-        email: string;
+        email?: string;
         role: string;
       };
       return buildContextFromClaims({ sub, email, role });

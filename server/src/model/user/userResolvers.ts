@@ -37,7 +37,7 @@ export async function findManyUsers(where?: Record<string, string>): Promise<Pri
 export const userResolvers = {
   Query: {
     user: async (_: undefined, { id }: { id: string }) => {
-      return findUniqueUser(id);
+      return await findUniqueUser(id);
     },
     users: async () => {
       return findManyUsers();
@@ -49,7 +49,7 @@ export const userResolvers = {
     ): Promise<PrismaUser | null> => {
       if (!ctx.user) return null;
       try {
-        return findUniqueUser(ctx.user.id);
+        return await findUniqueUser(ctx.user.id);
       } catch (e) {
         console.error("[currentUser] resolver error:", e);
         throw e;

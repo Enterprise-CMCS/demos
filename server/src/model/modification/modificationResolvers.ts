@@ -22,7 +22,7 @@ async function getDemonstration(parent: Modification) {
 }
 
 async function getProjectOfficer(parent: Modification) {
-  return findUniqueUser(parent.projectOfficerUserId);
+  return await findUniqueUser(parent.projectOfficerUserId);
 }
 
 async function getDocuments(parent: Modification) {

@@ -170,7 +170,7 @@ export const demonstrationResolvers = {
     },
 
     projectOfficer: async (parent: Demonstration) => {
-      return findUniqueUser(parent.projectOfficerUserId);
+      return await findUniqueUser(parent.projectOfficerUserId);
     },
 
     documents: async (parent: Demonstration) => {
