@@ -52,7 +52,7 @@ ALTER TABLE "demos_app"."system_role_assignment" ADD CONSTRAINT "system_role_ass
 ALTER TABLE "demos_app"."system_role_assignment" ADD CONSTRAINT "system_role_assignment_role_id_person_type_id_fkey" FOREIGN KEY ("role_id", "person_type_id") REFERENCES "demos_app"."role_person_type"("role_id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "demos_app"."system_role_assignment" ADD CONSTRAINT "system_role_assignment_role_id_grant_level_id_fkey" FOREIGN KEY ("role_id", "grant_level_id") REFERENCES "demos_app"."role"("id", "grantLevelId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "demos_app"."system_role_assignment" ADD CONSTRAINT "system_role_assignment_role_id_grant_level_id_fkey" FOREIGN KEY ("role_id", "grant_level_id") REFERENCES "demos_app"."role"("id", "grant_level_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."system_role_assignment" ADD CONSTRAINT "system_role_assignment_grant_level_id_fkey" FOREIGN KEY ("grant_level_id") REFERENCES "demos_app"."system_grant_level_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
