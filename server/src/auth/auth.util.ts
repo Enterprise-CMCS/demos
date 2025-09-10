@@ -10,7 +10,7 @@ import { prisma } from "../prismaClient.js";
 const config = getAuthConfig();
 
 const ALGORITHMS: Algorithm[] = ["RS256"];
-const CACHE_MAX_AGE = 10 * 60 * 1000; // 10 minutes
+const CACHE_MAX_AGE = 60 * 60 * 1000; // 10 minutes
 const CACHE_MAX_ENTRIES = 10;
 
 export interface GraphQLContext {
@@ -249,6 +249,6 @@ export async function getDatabaseUrl(): Promise<string> {
   if (!response.SecretString) throw new Error("The SecretString value is undefined!");
   const s = JSON.parse(response.SecretString);
   databaseUrlCache = `postgresql://${s.username}:${s.password}@${s.host}:${s.port}/${s.dbname}?schema=demos_app`;
-  cacheExpiration = now + 60 * 60 * 1000;
+  cacheExpiration = now + CACHE_MAX_AGE;
   return databaseUrlCache;
 }
