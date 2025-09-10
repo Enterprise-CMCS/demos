@@ -73,7 +73,7 @@ export const mockDemonstrations = [
     description: "A reform initiative in Texas.",
     demonstrationStatus: mockDemonstrationStatuses[6],
     state: mockStates.find((state) => state.id === "TX")!,
-    projectOfficer: mockUsers[4],
+    projectOfficer: mockUsers[0],
     amendments: [] as MockAmendment[],
     extensions: [] as MockExtension[],
     contacts: [mockContacts[1], mockContacts[2]],
