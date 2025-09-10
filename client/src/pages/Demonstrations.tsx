@@ -14,11 +14,9 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
       state {
         name
       }
-      users {
-        id
-      }
       projectOfficer {
         fullName
+        id
       }
       amendments {
         id
@@ -70,8 +68,7 @@ export type Demonstration = {
   id: string;
   name: string;
   state: Pick<State, "name">;
-  projectOfficer: Pick<User, "fullName">;
-  users: Pick<User, "id">[];
+  projectOfficer: Pick<User, "fullName" | "id">;
   demonstrationStatus: Pick<DemonstrationStatus, "name">;
   amendments: DemonstrationAmendment[];
   extensions: DemonstrationExtension[];

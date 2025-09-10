@@ -69,11 +69,10 @@ export const DemonstrationTable: React.FC<{
     statusOptions
   );
 
-  // TODO: Replace with actual current user ID from authentication context
-  const currentUserId = "1";
+  const currentUserId = "1"; // Replace with actual current user ID from auth context
 
-  const myDemos: Demonstration[] = demonstrations.filter((demo: Demonstration) =>
-    demo.users.some((user) => user.id === currentUserId)
+  const myDemos: Demonstration[] = demonstrations.filter(
+    (demo: Demonstration) => demo.projectOfficer.id === currentUserId
   );
 
   const allDemos: Demonstration[] = demonstrations;

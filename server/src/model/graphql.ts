@@ -28,6 +28,7 @@ import { userResolvers } from "./user/userResolvers.js";
 
 import { JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition } from "graphql-scalars";
 import { personTypeSchema } from "./personType/personTypeSchema.js";
+import { roleSchema } from "./role/roleSchema.js";
 
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
@@ -73,6 +74,7 @@ export const typeDefs = [
   userSchema,
   personTypeSchema,
   mockDemonstrationSchemaExtension,
+  roleSchema,
   ...scalarTypes,
 ];
 

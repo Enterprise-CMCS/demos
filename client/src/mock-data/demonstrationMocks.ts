@@ -27,7 +27,6 @@ export type MockDemonstration = Pick<
   demonstrationStatus: MockDemonstrationStatus;
   state: MockState;
   projectOfficer: MockUser;
-  users: MockUser[];
   amendments: MockAmendment[];
   extensions: MockExtension[];
   contacts: MockContact[];
@@ -45,7 +44,6 @@ export const mockDemonstrations = [
     projectOfficer: mockUsers[0],
     demonstrationStatus: mockDemonstrationStatuses[1],
     state: mockStates.find((state) => state.id === "MT")!,
-    users: [mockUsers[0]],
     amendments: [mockAmendments[0], mockAmendments[1], mockAmendments[5]],
     extensions: [mockExtensions[0], mockExtensions[1], mockExtensions[2]],
     contacts: [mockContacts[0], mockContacts[1], mockContacts[2]],
@@ -61,7 +59,6 @@ export const mockDemonstrations = [
     demonstrationStatus: mockDemonstrationStatuses[5],
     state: mockStates.find((state) => state.id === "FL")!,
     projectOfficer: mockUsers[1],
-    users: [mockUsers[1]],
     amendments: [mockAmendments[2], mockAmendments[3], mockAmendments[4]],
     extensions: [] as MockExtension[],
     contacts: [mockContacts[1], mockContacts[2]],
@@ -77,7 +74,6 @@ export const mockDemonstrations = [
     demonstrationStatus: mockDemonstrationStatuses[6],
     state: mockStates.find((state) => state.id === "TX")!,
     projectOfficer: mockUsers[4],
-    users: [mockUsers[0]],
     amendments: [] as MockAmendment[],
     extensions: [] as MockExtension[],
     contacts: [mockContacts[1], mockContacts[2]],
@@ -91,7 +87,6 @@ export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   description: "New Description",
   demonstrationStatusId: mockDemonstrationStatuses[0].id,
   stateId: "CA",
-  userIds: [mockUsers[0].id],
   projectOfficerUserId: mockUsers[0].id,
 };
 
