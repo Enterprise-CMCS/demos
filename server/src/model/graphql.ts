@@ -1,3 +1,5 @@
+import { gql } from "graphql-tag";
+
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
 
@@ -35,6 +37,35 @@ import { personTypeSchema } from "./personType/personTypeSchema.js";
 
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
+const mockDemonstrationSchemaExtension = gql`
+  type Contact {
+    id: String!
+    fullName: String!
+    email: String!
+    contactType: String!
+  }
+
+  extend type Demonstration {
+    contacts: [Contact!]!
+  }
+`;
+
+// TO BE REPLACED WITH ACTUAL RESOLVERS WHEN CONTACTS ARE FULLY IMPLEMENTED
+const mockDemonstrationResolverExtension = {
+  Demonstration: {
+    contacts: async () => {
+      return [
+        {
+          id: "1",
+          fullName: "John Doe",
+          email: "john.doe@email.com",
+          contactType: "Project Officer",
+        },
+      ];
+    },
+  },
+};
+
 export const typeDefs = [
   demonstrationSchema,
   demonstrationStatusSchema,
@@ -49,6 +80,7 @@ export const typeDefs = [
   stateSchema,
   userSchema,
   personTypeSchema,
+  mockDemonstrationSchemaExtension,
   ...scalarTypes,
 ];
 
@@ -63,4 +95,5 @@ export const resolvers = [
   roleResolvers,
   stateResolvers,
   userResolvers,
+  mockDemonstrationResolverExtension,
 ];
