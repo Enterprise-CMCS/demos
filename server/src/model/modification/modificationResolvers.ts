@@ -2,7 +2,7 @@ import { Modification } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
+import { BundleType, Phase } from "../../types.js";
 import {
   AddExtensionInput,
   CreateAmendmentInput,
@@ -13,25 +13,34 @@ import { resolveUser } from "../user/userResolvers.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
+const conceptPhaseId: Phase = "Concept";
 
-const resolveCommonSubfields = {
-  projectOfficer: async (parent: Modification) => {
-    const user = await prisma().user.findUnique({
-      where: { id: parent.projectOfficerUserId },
-      include: { person: true },
-    });
-    if (!user) return null;
-    return resolveUser(user);
-  },
+async function getDemonstration(parent: Modification) {
+  return await prisma().demonstration.findUnique({
+    where: { id: parent.demonstrationId },
+  });
+}
 
-  documents: async (parent: Modification) => {
-    return await prisma().document.findMany({
-      where: {
-        bundleId: parent.id,
-      },
-    });
-  },
-};
+async function getProjectOfficer(parent: Modification) {
+  const user = await prisma().user.findUnique({
+    where: { id: parent.projectOfficerUserId },
+    include: { person: true },
+  });
+  if (!user) return null;
+  return resolveUser(user);
+}
+
+async function getDocuments(parent: Modification) {
+  return await prisma().document.findMany({
+    where: {
+      bundleId: parent.id,
+    },
+  });
+}
+
+async function getCurrentPhase(parent: Modification) {
+  return parent.currentPhaseId;
+}
 
 export const modificationResolvers = {
   Query: {
@@ -99,6 +108,9 @@ export const modificationResolvers = {
                 },
               },
             },
+            currentPhase: {
+              connect: { id: conceptPhaseId },
+            },
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -112,7 +124,8 @@ export const modificationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateAmendmentInput }
     ) => {
-      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
+      const { demonstrationId, amendmentStatusId, currentPhase, projectOfficerUserId, ...rest } =
+        input;
 
       return await prisma().modification.update({
         where: {
@@ -133,6 +146,11 @@ export const modificationResolvers = {
                   bundleTypeId: amendmentBundleTypeId,
                 },
               },
+            },
+          }),
+          ...(currentPhase && {
+            currentPhase: {
+              connect: { id: currentPhase },
             },
           }),
           ...(projectOfficerUserId && {
@@ -185,6 +203,9 @@ export const modificationResolvers = {
                 },
               },
             },
+            currentPhase: {
+              connect: { id: conceptPhaseId },
+            },
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -198,7 +219,8 @@ export const modificationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateExtensionInput }
     ) => {
-      const { demonstrationId, extensionStatusId, projectOfficerUserId, ...rest } = input;
+      const { demonstrationId, extensionStatusId, currentPhase, projectOfficerUserId, ...rest } =
+        input;
 
       return await prisma().modification.update({
         where: {
@@ -219,6 +241,11 @@ export const modificationResolvers = {
                   bundleTypeId: extensionBundleTypeId,
                 },
               },
+            },
+          }),
+          ...(currentPhase && {
+            currentPhase: {
+              connect: { id: currentPhase },
             },
           }),
           ...(projectOfficerUserId && {
@@ -242,11 +269,7 @@ export const modificationResolvers = {
   },
 
   Amendment: {
-    demonstration: async (parent: Modification) => {
-      return await prisma().demonstration.findUnique({
-        where: { id: parent.demonstrationId },
-      });
-    },
+    demonstration: getDemonstration,
 
     amendmentStatus: async (parent: Modification) => {
       return await prisma().modificationStatus.findUnique({
@@ -258,14 +281,14 @@ export const modificationResolvers = {
         },
       });
     },
-    ...resolveCommonSubfields,
+
+    projectOfficer: getProjectOfficer,
+    documents: getDocuments,
+    currentPhase: getCurrentPhase,
   },
+
   Extension: {
-    demonstration: async (parent: Modification) => {
-      return await prisma().demonstration.findUnique({
-        where: { id: parent.demonstrationId },
-      });
-    },
+    demonstration: getDemonstration,
 
     extensionStatus: async (parent: Modification) => {
       return await prisma().modificationStatus.findUnique({
@@ -277,6 +300,9 @@ export const modificationResolvers = {
         },
       });
     },
-    ...resolveCommonSubfields,
+
+    projectOfficer: getProjectOfficer,
+    documents: getDocuments,
+    currentPhase: getCurrentPhase,
   },
 };

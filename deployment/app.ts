@@ -16,7 +16,8 @@ import {
 } from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
 
-async function main() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function main(passedContext?: { [key: string]: any }) {
   const path = "delegatedadmin/developer/";
 
   const app = new App({
@@ -43,6 +44,7 @@ async function main() {
         "cdk-${Qualifier}-lookup-role-${AWS::AccountId}-${AWS::Region}",
       qualifier: "hnb659fds",
     }),
+    context: passedContext,
   });
 
   const stage = app.node.getContext("stage");
@@ -67,7 +69,7 @@ async function main() {
         region: process.env.CDK_DEFAULT_REGION,
       },
     });
-    return;
+    return app;
   }
 
   const core = new CoreStack(app, `${project}-${stage}-core`, {
@@ -93,16 +95,15 @@ async function main() {
     database.addDependency(core);
   }
 
-
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
     ...config,
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
       region: process.env.CDK_DEFAULT_REGION,
     },
-    vpc: core.vpc
+    vpc: core.vpc,
   });
-  fileUpload.addDependency(core)
+  fileUpload.addDependency(core);
 
   const api = new ApiStack(app, `${project}-${stage}-api`, {
     ...config,
@@ -113,9 +114,9 @@ async function main() {
     vpc: core.vpc,
   });
   api.addDependency(core);
-  api.addDependency(fileUpload)
+  api.addDependency(fileUpload);
 
-const ui = new UiStack(app, `${project}-${stage}-ui`, {
+  const ui = new UiStack(app, `${project}-${stage}-ui`, {
     ...config,
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -127,14 +128,12 @@ const ui = new UiStack(app, `${project}-${stage}-ui`, {
     },
   });
   ui.addDependency(core);
-  ui.addDependency(api)
-
+  ui.addDependency(api);
 
   applyCoreSuppressions(core);
   applyApiSuppressions(api, stage);
   applyUISuppressions(ui, stage);
-  applyFileUploadSuppressions(fileUpload, stage)
+  applyFileUploadSuppressions(fileUpload, stage);
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
+  return app;
 }
-
-main();
