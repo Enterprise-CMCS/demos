@@ -1,11 +1,5 @@
 import { faker } from "@faker-js/faker";
-import {
-  BUNDLE_TYPE,
-  CMCS_DIVISION,
-  PERSON_TYPES,
-  SIGNATURE_LEVEL,
-  PHASE,
-} from "./constants.js";
+import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL, PHASE } from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
 
@@ -157,6 +151,7 @@ async function seedDatabase() {
 
   const people = await prisma().person.findMany();
   for (const person of people) {
+    // NOSONAR - this is an appropriate use of Math.random() for seeding a random number of roles
     const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length));
     for (const role of roles) {
       await prisma().systemRoleAssignment.create({
