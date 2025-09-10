@@ -66,7 +66,7 @@ export async function testMigration(environment: string, dbname?: string) {
 
   try {
     await client.connect();
-    const res = await client.query("DROP DATABASE $1;", [dbname]);
+    const res = await client.query(`DROP DATABASE ${dbname};`); // NOSONAR - parameterization is not possible for this query
     console.log("command:", res.command);
     console.log(`database '${dbname} dropped successfully`);
   } catch (err) {
