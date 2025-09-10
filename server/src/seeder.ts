@@ -1,5 +1,11 @@
 import { faker } from "@faker-js/faker";
-import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL, PHASE } from "./constants.js";
+import {
+  BUNDLE_TYPE,
+  CMCS_DIVISION,
+  PERSON_TYPES,
+  SIGNATURE_LEVEL,
+  PHASE,
+} from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
 
@@ -66,9 +72,9 @@ function clearDatabase() {
     prisma().event.deleteMany(),
 
     // Finally, roles and users
-    prisma().role.deleteMany(),
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
+    prisma().systemRoleAssignment.deleteMany(),
   ]);
 }
 
@@ -141,6 +147,27 @@ async function seedDatabase() {
         username: faker.internet.username(),
       },
     });
+  }
+
+  console.log("🌱 Seeding system role assignments...");
+  // for each user, assign a random set of roles from the system roles
+  const systemRoles = await prisma().role.findMany({
+    where: { grantLevelId: "System" },
+  });
+
+  const people = await prisma().person.findMany();
+  for (const person of people) {
+    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length));
+    for (const role of roles) {
+      await prisma().systemRoleAssignment.create({
+        data: {
+          personId: person.id,
+          personTypeId: person.personTypeId,
+          roleId: role.id,
+          grantLevelId: "System",
+        },
+      });
+    }
   }
 
   const baseStatuses = ["New", "In Progress", "On Hold", "Completed"];

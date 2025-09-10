@@ -106,7 +106,7 @@ FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_system_role_assignment();
 INSERT INTO
     "system_grant_level_limit"
 VALUES
-    ('System'),
+    ('System');
 
 INSERT INTO
     "role_person_type"

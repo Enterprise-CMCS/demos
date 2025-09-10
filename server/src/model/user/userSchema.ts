@@ -1,7 +1,7 @@
 import { gql } from "graphql-tag";
 import { Event } from "../event/eventSchema.js";
 import { Document } from "../document/documentSchema.js";
-import { PersonType } from "../../types.js";
+import { PersonType, Role } from "../../types.js";
 
 export const userSchema = gql`
   type User {
@@ -16,6 +16,7 @@ export const userSchema = gql`
     updatedAt: DateTime!
     events: [Event!]!
     ownedDocuments: [Document!]!
+    roles: [Role!]!
   }
 
   input CreateUserInput {
@@ -61,6 +62,7 @@ export interface User {
   updatedAt: Date;
   events: Event[];
   ownedDocuments: Document[];
+  roles: Role[];
 }
 
 export interface CreateUserInput {
