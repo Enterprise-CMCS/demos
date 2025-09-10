@@ -19,9 +19,9 @@
   - You are about to drop the `user_state_demonstration_history` table. If the table is not empty, all the data it contains will be lost.
   - You are about to drop the `user_state_history` table. If the table is not empty, all the data it contains will be lost.
   - A unique constraint covering the columns `[id,grantLevelId]` on the table `permission` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[id,grantLevelId]` on the table `role` will be added. If there are existing duplicate values, this will fail.
+  - A unique constraint covering the columns `[id,grant_level_id]` on the table `role` will be added. If there are existing duplicate values, this will fail.
   - Added the required column `grantLevelId` to the `permission` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `grantLevelId` to the `role` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `grant_level_id` to the `role` table without a default value. This is not possible if the table is not empty.
   - Added the required column `grant_level_id` to the `role_permission` table without a default value. This is not possible if the table is not empty.
   - Added the required column `grant_level_id` to the `role_permission_history` table without a default value. This is not possible if the table is not empty.
 
@@ -65,7 +65,7 @@ ALTER TABLE "demos_app"."role" DROP COLUMN "created_at",
 DROP COLUMN "description",
 DROP COLUMN "name",
 DROP COLUMN "updated_at",
-ADD COLUMN     "grantLevelId" TEXT NOT NULL;
+ADD COLUMN     "grant_level_id" TEXT NOT NULL;
 
 -- AlterTable
 ALTER TABLE "demos_app"."role_permission" DROP CONSTRAINT "role_permission_pkey",
@@ -112,16 +112,16 @@ CREATE TABLE "demos_app"."grant_level" (
 CREATE UNIQUE INDEX "permission_id_grantLevelId_key" ON "demos_app"."permission"("id", "grantLevelId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "role_id_grantLevelId_key" ON "demos_app"."role"("id", "grantLevelId");
+CREATE UNIQUE INDEX "role_id_grant_level_id_key" ON "demos_app"."role"("id", "grant_level_id");
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."permission" ADD CONSTRAINT "permission_grantLevelId_fkey" FOREIGN KEY ("grantLevelId") REFERENCES "demos_app"."grant_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "demos_app"."role" ADD CONSTRAINT "role_grantLevelId_fkey" FOREIGN KEY ("grantLevelId") REFERENCES "demos_app"."grant_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "demos_app"."role" ADD CONSTRAINT "role_grant_level_id_fkey" FOREIGN KEY ("grant_level_id") REFERENCES "demos_app"."grant_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "demos_app"."role_permission" ADD CONSTRAINT "role_permission_role_id_grant_level_id_fkey" FOREIGN KEY ("role_id", "grant_level_id") REFERENCES "demos_app"."role"("id", "grantLevelId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "demos_app"."role_permission" ADD CONSTRAINT "role_permission_role_id_grant_level_id_fkey" FOREIGN KEY ("role_id", "grant_level_id") REFERENCES "demos_app"."role"("id", "grant_level_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."role_permission" ADD CONSTRAINT "role_permission_permission_id_grant_level_id_fkey" FOREIGN KEY ("permission_id", "grant_level_id") REFERENCES "demos_app"."permission"("id", "grantLevelId") ON DELETE RESTRICT ON UPDATE CASCADE;
