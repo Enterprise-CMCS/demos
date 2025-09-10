@@ -31,6 +31,7 @@ export const johnDoe: User = {
   ownedDocuments: [],
   createdAt: new Date(),
   updatedAt: new Date(),
+  roles: ["All Users"],
 };
 
 export const userOptions: Pick<User, "fullName">[] = [
