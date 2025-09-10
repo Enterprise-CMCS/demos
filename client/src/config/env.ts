@@ -28,8 +28,10 @@ export const isProductionMode = (): boolean => {
 
 export const shouldUseMocks = (): boolean => {
   const useMocks = import.meta.env.VITE_USE_MOCKS == "true";
+  const forceMocks = import.meta.env.VITE_FORCE_MOCKS == "true";
 
-  return isTestMode() || (isLocalDevelopment() && useMocks);
+  // Allow tests, or an explicit override, or dev+flag
+  return isTestMode() || forceMocks || (isLocalDevelopment() && useMocks);
 };
 
 export const getIdleTimeoutMs = (): number => {

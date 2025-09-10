@@ -1,21 +1,27 @@
-import React, { useEffect, useMemo } from "react";
+import React, { Suspense, useEffect, useMemo } from "react";
 import {
   ApolloClient, InMemoryCache, ApolloProvider,
   createHttpLink, ApolloLink,
 } from "@apollo/client";
-import { MockedProvider } from "@apollo/client/testing";
 import { setContext } from "@apollo/client/link/context";
-import { ALL_MOCKS } from "mock-data";
 import { shouldUseMocks, isLocalDevelopment } from "config/env";
 import { useAuth } from "react-oidc-context";
 
 const GRAPHQL_ENDPOINT = import.meta.env.VITE_API_URL_PREFIX ?? "/graphql";
 
+const LazyMockedApollo = React.lazy(() =>
+  import("./MockedApolloWrapper").then(module => ({ default: module.MockedApolloWrapper }))
+);
+
 export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const auth = useAuth();
 
   if (shouldUseMocks()) {
-    return <MockedProvider mocks={ALL_MOCKS} addTypename={false}>{children}</MockedProvider>;
+    return (
+      <Suspense fallback={null}>
+        <LazyMockedApollo>{children}</LazyMockedApollo>
+      </Suspense>
+    );
   }
 
   // Mirror tokens into cookies for Apollo Sandbox (local dev only)

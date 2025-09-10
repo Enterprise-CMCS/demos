@@ -1,6 +1,7 @@
 import { User } from "demos-server";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
 import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
+import { USER_OPTIONS_QUERY } from "queries/userQueries";
 
 export type MockUser = Pick<User, "id" | "fullName">;
 
@@ -78,13 +79,17 @@ const currentUserResult = {
 
 export const userMocks: MockedResponse[] = [
   // It takes two of these apparently to hydrate the Profile block. If load it refetches.
-  // TODO: figure out why refetch is so eager.
+  // TODO: figure out why refetch is so eager, and why i have to add this twice?
   { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
   { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
 
   {
     request: { query: GET_ALL_USERS },
     result: { data: { users: [spongebob, squidward, patrick] } },
+  },
+  {
+    request: { query: USER_OPTIONS_QUERY },
+    result: { data: { users: mockUsers } },
   },
   {
     request: { query: GET_USER_BY_ID, variables: { id: "ss" } },

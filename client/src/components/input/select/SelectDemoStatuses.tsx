@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useQuery } from "@apollo/client";
 import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
-import statuses from "faker_data/demonstrationStatuses.json";
+import { DEMONSTRATION_STATUS_OPTIONS_QUERY } from "queries/demonstrationQueries";
 
 // This may not be the final type. This is more of just an exmaple of the select.
 export interface DemonstrationStatus {
@@ -22,21 +23,30 @@ export const SelectDemoStatuses: React.FC<SelectDemoStatusesProps> = ({
   isRequired = false,
   isDisabled = false,
 }) => {
+  const { data, loading, error } = useQuery<{
+    demonstrationStatuses: { id: string; name: string }[];
+  }>(DEMONSTRATION_STATUS_OPTIONS_QUERY);
 
-  const options: Option[] = (statuses as DemonstrationStatus[]).map((state) => ({
-    label: state.name,
-    value: state.name,
-  }));
+  const options: Option[] = useMemo(
+    () =>
+      (data?.demonstrationStatuses || []).map((s) => ({
+        label: s.name,
+        value: s.name,
+      })),
+    [data]
+  );
 
   return (
     <AutoCompleteSelect
       id="demo-status"
       label="Select Status"
       options={options}
-      placeholder="Select"
+      placeholder={
+        loading ? "Loading statuses…" : error ? "Error loading statuses" : "Select"
+      }
       onSelect={onStatusChange}
       isRequired={isRequired}
-      isDisabled={isDisabled}
+      isDisabled={isDisabled || loading || !!error}
     />
   );
 };

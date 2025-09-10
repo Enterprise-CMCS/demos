@@ -19,6 +19,7 @@ import { MockExtension, mockExtensions } from "./extensionMocks";
 import { MockContact, mockContacts } from "./contactMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
+import { DEMONSTRATION_STATUS_OPTIONS_QUERY } from "queries/demonstrationQueries";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -108,6 +109,10 @@ export const demonstrationMocks: MockedResponse[] = [
         statusOptions: mockDemonstrationStatuses,
       },
     },
+  },
+  {
+    request: { query: DEMONSTRATION_STATUS_OPTIONS_QUERY },
+    result: { data: { demonstrationStatuses: mockDemonstrationStatuses } },
   },
   {
     request: {

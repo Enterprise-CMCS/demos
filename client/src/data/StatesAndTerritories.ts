@@ -1,10 +1,10 @@
-// client/src/faker_data/usStates.ts
 
 export interface USState {
   name: string;
   abbrev: string;
 }
 
+// 59 states and territories
 export const states: USState[] = [
   { name: "Alabama", abbrev: "AL" },
   { name: "Alaska", abbrev: "AK" },

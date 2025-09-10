@@ -9,6 +9,15 @@ export const DEMONSTRATION_OPTIONS_QUERY = gql`
   }
 `;
 
+export const DEMONSTRATION_STATUS_OPTIONS_QUERY = gql`
+  query GetDemonstrationStatusOptions {
+    demonstrationStatuses {
+      id
+      name
+    }
+  }
+`;
+
 export const GET_ALL_DEMONSTRATIONS_QUERY = gql`
   query GetDemonstrations {
     demonstrations {
