@@ -6,9 +6,8 @@ model BundlePhaseDate {
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  bundle   Bundle   @relation(fields: [bundleId], references: [id])
-  phase    Phase    @relation(fields: [phaseId], references: [id])
-  dateType DateType @relation(fields: [dateTypeId], references: [id])
+  bundlePhase BundlePhase @relation(fields: [bundleId, phaseId], references: [bundleId, phaseId])
+  dateType    DateType    @relation(fields: [dateTypeId], references: [id])
 
   @@id([bundleId, phaseId, dateTypeId])
   @@map("bundle_phase_date")

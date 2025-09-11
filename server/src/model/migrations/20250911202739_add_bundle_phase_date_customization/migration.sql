@@ -54,23 +54,51 @@ CREATE OR REPLACE TRIGGER log_changes_bundle_phase_date_trigger
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.bundle_phase_date
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_bundle_phase_date();
 
--- Add first date on creation
-CREATE OR REPLACE FUNCTION demos_app.create_initial_start_date_for_new_application()
+-- Need to fix the steps taken when a new application is created
+-- Have to do them in a proper sequence
+-- First, clean up old items
+DROP TRIGGER IF EXISTS create_phases_for_new_application_trigger ON demos_app.bundle;
+DROP FUNCTION IF EXISTS demos_app.create_phases_for_new_application();
+
+-- Now, unified function
+CREATE OR REPLACE FUNCTION demos_app.create_phases_and_dates_for_new_application()
 RETURNS TRIGGER AS $$
 DECLARE
-    first_phase_id TEXT;
+    v_phase_id TEXT;
+    v_first_phase_id TEXT;
+    v_phase_status_id TEXT;
 BEGIN
-    SELECT
-        id
-    INTO
-        first_phase_id
-    FROM
-        phase
-    WHERE
-        phase_number = 1;
+    -- Identify the first phase
+    SELECT id INTO v_first_phase_id FROM demos_app.phase WHERE phase_number = 1;
+
+    -- Populate all phases for the new application
+    FOR v_phase_id IN
+        SELECT id FROM demos_app.phase WHERE id != 'None'
+    LOOP
+        -- The first phase should be set to started
+        IF v_phase_id = v_first_phase_id THEN
+            v_phase_status_id := 'Started';
+        ELSE
+            v_phase_status_id := 'Not Started';
+        END IF;
+        INSERT INTO demos_app.bundle_phase (
+            bundle_id,
+            phase_id,
+            phase_status_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            NEW.id,
+            v_phase_id,
+            v_phase_status_id,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    END LOOP;
 
     INSERT INTO
-        bundle_phase_date (
+        demos_app.bundle_phase_date (
             bundle_id,
             phase_id,
             date_type_id,
@@ -80,7 +108,7 @@ BEGIN
         )
     VALUES (
         NEW.id,
-        first_phase_id,
+        v_first_phase_id,
         'Start Date',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
@@ -90,9 +118,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER create_initial_start_date_for_new_application_trigger
+CREATE OR REPLACE TRIGGER create_phases_and_dates_for_new_application_trigger
 AFTER INSERT ON demos_app.bundle
-FOR EACH ROW EXECUTE FUNCTION demos_app.create_initial_start_date_for_new_application();
+FOR EACH ROW EXECUTE FUNCTION demos_app.create_phases_and_dates_for_new_application();
 
 -- Inserting standard values
 INSERT INTO

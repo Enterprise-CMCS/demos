@@ -33,10 +33,7 @@ CREATE TABLE "demos_app"."date_type" (
 );
 
 -- AddForeignKey
-ALTER TABLE "demos_app"."bundle_phase_date" ADD CONSTRAINT "bundle_phase_date_bundle_id_fkey" FOREIGN KEY ("bundle_id") REFERENCES "demos_app"."bundle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."bundle_phase_date" ADD CONSTRAINT "bundle_phase_date_phase_id_fkey" FOREIGN KEY ("phase_id") REFERENCES "demos_app"."phase"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "demos_app"."bundle_phase_date" ADD CONSTRAINT "bundle_phase_date_bundle_id_phase_id_fkey" FOREIGN KEY ("bundle_id", "phase_id") REFERENCES "demos_app"."bundle_phase"("bundle_id", "phase_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."bundle_phase_date" ADD CONSTRAINT "bundle_phase_date_date_type_id_fkey" FOREIGN KEY ("date_type_id") REFERENCES "demos_app"."date_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

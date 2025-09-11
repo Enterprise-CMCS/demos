@@ -4,9 +4,8 @@ model Phase {
   phaseNumber Int    @map("phase_number")
 
   bundlePhase   BundlePhase[]
-  bundlePhaseDate   BundlePhaseDate[]
-  demonstration     Demonstration[]
-  modification      Modification[]
+  demonstration Demonstration[]
+  modification  Modification[]
 
   @@id([id])
   @@unique([phaseNumber])

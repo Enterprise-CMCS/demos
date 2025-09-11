@@ -1,6 +1,6 @@
 // Flags: STATIC_CONSTRAINT
 model DateType {
-  id              String
+  id String
 
   bundlePhaseDate BundlePhaseDate[]
 
