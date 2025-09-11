@@ -2,10 +2,9 @@ model RolePersonType {
   roleId       String @map("role_id")
   personTypeId String @map("person_type_id")
 
-  role                        Role                          @relation(fields: [roleId], references: [id])
-  personType                  PersonType                    @relation(fields: [personTypeId], references: [id])
-  
-  systemRoleAssignments       SystemRoleAssignment[]
+  role                  Role                   @relation(fields: [roleId], references: [id])
+  personType            PersonType             @relation(fields: [personTypeId], references: [id])
+  systemRoleAssignments SystemRoleAssignment[]
   demonstrationRoleAssignment DemonstrationRoleAssignment[]
 
   @@id([roleId, personTypeId])

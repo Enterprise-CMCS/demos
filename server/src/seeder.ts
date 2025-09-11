@@ -65,6 +65,9 @@ function clearDatabase() {
     // Events, which attach to users and roles
     prisma().event.deleteMany(),
 
+    // delete system role assignments before roles and users
+    prisma().systemRoleAssignment.deleteMany(),
+
     // Finally, roles and users
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
@@ -152,7 +155,7 @@ async function seedDatabase() {
   const people = await prisma().person.findMany();
   for (const person of people) {
     // NOSONAR - this is an appropriate use of Math.random() for seeding a random number of roles
-    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length));
+    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length)); // NOSONAR
     for (const role of roles) {
       await prisma().systemRoleAssignment.create({
         data: {

@@ -8,7 +8,6 @@ model Person {
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   personType PersonType  @relation(fields: [personTypeId], references: [id])
-  
   user                        User?
   systemRoleAssignments       SystemRoleAssignment[]
   demonstrationRoleAssignment DemonstrationRoleAssignment[]
