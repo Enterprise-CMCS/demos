@@ -1,10 +1,9 @@
 // Flags: STATIC_CONSTRAINT
 model Permission {
   id           String
-  grantLevelId String
+  grantLevelId String @map("grant_level_id")
 
   grantLevel GrantLevel @relation(fields: [grantLevelId], references: [id])
-
   rolePermissions RolePermission[]
 
   @@id([id])
