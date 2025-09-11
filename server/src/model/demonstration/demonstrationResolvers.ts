@@ -3,7 +3,11 @@ import { Demonstration } from "@prisma/client";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType, Phase } from "../../types.js";
-import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
+import {
+  AddPeopleToDemonstrationInput,
+  CreateDemonstrationInput,
+  UpdateDemonstrationInput,
+} from "./demonstrationSchema.js";
 import { findUniqueUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
@@ -152,6 +156,59 @@ export const demonstrationResolvers = {
     deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
       return await prisma().demonstration.delete({
         where: { id: id },
+      });
+    },
+    addPeopleToDemonstration: async (
+      _: undefined,
+      { id, input }: { id: string; input: AddPeopleToDemonstrationInput[] }
+    ) => {
+      const demonstration = await prisma().demonstration.findUnique({
+        where: { id },
+      });
+
+      if (!demonstration) {
+        throw new Error(`Demonstration with id ${id} not found`);
+      }
+
+      for (const roleAssignment of input) {
+        const person = await prisma().person.findUnique({
+          where: { id: roleAssignment.personId },
+        });
+
+        if (!person) {
+          throw new Error(`Person with id ${roleAssignment.personId} not found`);
+        }
+
+        return await prisma().demonstrationRoleAssignment.create({
+          data: {
+            personId: roleAssignment.personId,
+            demonstrationId: demonstration.id,
+            roleId: roleAssignment.roleId,
+            stateId: demonstration.stateId,
+            personTypeId: person.personTypeId,
+            grantLevelId: "Demonstration",
+          },
+        });
+      }
+    },
+
+    removePeopleFromDemonstration: async (
+      _: undefined,
+      { id, personIds }: { id: string; personIds: string[] }
+    ) => {
+      const demonstration = await prisma().demonstration.findUnique({
+        where: { id },
+      });
+
+      if (!demonstration) {
+        throw new Error(`Demonstration with id ${id} not found`);
+      }
+
+      return await prisma().demonstrationRoleAssignment.deleteMany({
+        where: {
+          demonstrationId: demonstration.id,
+          personId: { in: personIds },
+        },
       });
     },
   },
