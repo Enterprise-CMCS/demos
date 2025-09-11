@@ -6,8 +6,8 @@ model UserHistory {
   personTypeId   String       @map("person_type_id")
   cognitoSubject String       @map("cognito_subject") @db.Uuid
   username       String
-  createdAt      DateTime @map("created_at") @db.Timestamptz()
-  updatedAt      DateTime @map("updated_at") @db.Timestamptz()
+  createdAt      DateTime     @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime     @map("updated_at") @db.Timestamptz()
 
   @@map("users_history") // user is a reserved word in PostgreSQL; users is not, which is why this is plural
 }
