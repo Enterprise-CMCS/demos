@@ -241,6 +241,63 @@ CREATE OR REPLACE TRIGGER log_changes_primary_demonstration_role_assignment_trig
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment();
 
+-- constraint trigger function to check for primary project officer
+CREATE OR REPLACE FUNCTION demos_app.check_demonstration_primary_project_officer()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if there's a primary project officer for this demonstration
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM demos_app.primary_demonstration_role_assignment pdra
+        JOIN demos_app.role r ON pdra.role_id = r.id
+        WHERE pdra.demonstration_id = NEW.id 
+        AND r.name = 'Project Officer'
+    ) THEN
+        RAISE EXCEPTION 'Demonstration % must have a primary project officer assigned', NEW.id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- apply trigger to table with deferred evaluation
+CREATE CONSTRAINT TRIGGER check_demonstration_primary_project_officer_trigger
+    AFTER INSERT OR UPDATE ON demos_app.demonstration
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW 
+    EXECUTE FUNCTION demos_app.check_demonstration_primary_project_officer();
+
+-- trigger on primary_demonstration_role_assignment to check when assignments are changed
+CREATE OR REPLACE FUNCTION demos_app.check_demonstration_retains_primary_project_officer()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Only check on DELETE or UPDATE that changes the role away from Project Officer
+    IF TG_OP = 'DELETE' OR (TG_OP = 'UPDATE' AND OLD.role_id != NEW.role_id) THEN
+        -- Check if this was the last primary project officer for the demonstration
+        IF NOT EXISTS (
+            SELECT 1 
+            FROM demos_app.primary_demonstration_role_assignment pdra
+            JOIN demos_app.role r ON pdra.role_id = r.id
+            WHERE pdra.demonstration_id = OLD.demonstration_id
+            AND r.name = 'Project Officer'
+            AND (TG_OP = 'DELETE' OR pdra.role_id != OLD.role_id)
+        ) THEN
+            RAISE EXCEPTION 'Cannot remove the last primary project officer from demonstration %', 
+                OLD.demonstration_id;
+        END IF;
+    END IF;
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- apply trigger to table with deferred evaluation
+CREATE CONSTRAINT TRIGGER check_demonstration_retains_primary_project_officer_trigger
+    AFTER DELETE OR UPDATE ON demos_app.primary_demonstration_role_assignment
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW 
+    EXECUTE FUNCTION demos_app.check_demonstration_retains_primary_project_officer();
+
 INSERT INTO
     "demonstration_grant_level_limit"
 VALUES
