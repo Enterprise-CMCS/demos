@@ -27,9 +27,6 @@ export const johnDoe: User = {
   username: "johndoe",
   email: "johndoe@example.com",
   displayName: "John",
-  roles: [],
-  states: [],
-  demonstrations: [],
   events: [],
   ownedDocuments: [],
   createdAt: new Date(),
@@ -71,7 +68,7 @@ const currentUserResult = {
       email: "johndoe@example.com",
       fullName: "John Doe",
       displayName: "John",
-      roles: [],
+      personTypeId: "demos-cms-user",
     },
   },
 };

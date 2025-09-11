@@ -1,7 +1,4 @@
 import { gql } from "graphql-tag";
-import { State } from "../state/stateSchema.js";
-import { Role } from "../role/roleSchema.js";
-import { Demonstration } from "../demonstration/demonstrationSchema.js";
 import { Event } from "../event/eventSchema.js";
 import { Document } from "../document/documentSchema.js";
 import { PersonType } from "../../types.js";
@@ -17,9 +14,6 @@ export const userSchema = gql`
     displayName: String!
     createdAt: DateTime!
     updatedAt: DateTime!
-    states: [State!]!
-    roles: [Role!]!
-    demonstrations: [Demonstration!]!
     events: [Event!]!
     ownedDocuments: [Document!]!
   }
@@ -31,9 +25,6 @@ export const userSchema = gql`
     email: String!
     fullName: String!
     displayName: String!
-    stateIds: [ID!]
-    roleIds: [ID!]
-    demonstrationIds: [ID!]
   }
 
   input UpdateUserInput {
@@ -43,9 +34,6 @@ export const userSchema = gql`
     email: String
     fullName: String
     displayName: String
-    stateIds: [ID!]
-    roleIds: [ID!]
-    demonstrationIds: [ID!]
   }
 
   type Mutation {
@@ -71,9 +59,6 @@ export interface User {
   displayName: string;
   createdAt: Date;
   updatedAt: Date;
-  states: State[];
-  roles: Role[];
-  demonstrations: Demonstration[];
   events: Event[];
   ownedDocuments: Document[];
 }
@@ -85,9 +70,6 @@ export interface CreateUserInput {
   email: string;
   fullName: string;
   displayName: string;
-  stateIds?: string[];
-  roleIds?: string[];
-  demonstrationIds?: string[];
 }
 
 export interface UpdateUserInput {
@@ -97,7 +79,4 @@ export interface UpdateUserInput {
   email?: string;
   fullName?: string;
   displayName?: string;
-  stateIds?: string[];
-  roleIds?: string[];
-  demonstrationIds?: string[];
 }

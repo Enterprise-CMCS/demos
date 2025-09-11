@@ -6,16 +6,14 @@ model User {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  person                  Person                   @relation(fields: [id, personTypeId], references: [id, personTypeId])
-  userPersonTypeLimit     UserPersonTypeLimit      @relation(fields: [personTypeId], references: [id])
-  userRoles               UserRole[]
-  userStates              UserState[]
-  userStateDemonstrations UserStateDemonstration[]
-  demonstrations          Demonstration[]
-  documents               Document[]
-  documentsPendingUpload  DocumentPendingUpload[]
-  events                  Event[]
-  modifications           Modification[]
+  person     Person              @relation(fields: [id, personTypeId], references: [id, personTypeId])
+  personType UserPersonTypeLimit @relation(fields: [personTypeId], references: [id])
+
+  demonstrations         Demonstration[]
+  modifications          Modification[]
+  documents              Document[]
+  documentsPendingUpload DocumentPendingUpload[]
+  events                 Event[]
 
   @@id([id])
   @@unique([id, personTypeId]) // This isnt actually required in Postgres; however prisma requires that we explicitly notate this as a unique constraint

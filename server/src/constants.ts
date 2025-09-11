@@ -1,9 +1,20 @@
+export const ROLES = [
+  "Project Officer",
+  "State Point of Contact",
+  "DDME Analyst",
+  "Policy Technical Director",
+  "Monitoring & Evaluation Technical Director",
+  "All Users",
+] as const;
+
 export const PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",
   "demos-state-user",
   "non-user-contact",
 ] as const;
+
+export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
 export const BUNDLE_TYPE = {
   DEMONSTRATION: "DEMONSTRATION",

@@ -1,11 +1,13 @@
-// Flags: NATURAL_KEY
+// Flags: STATIC_CONSTRAINT
 model Permission {
-  id              String           @id
-  name            String
-  description     String
-  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+  id           String
+  grantLevelId String @map("grant_level_id")
+
+  grantLevel GrantLevel @relation(fields: [grantLevelId], references: [id])
+
   rolePermissions RolePermission[]
 
+  @@id([id])
+  @@unique([id, grantLevelId])
   @@map("permission")
 }

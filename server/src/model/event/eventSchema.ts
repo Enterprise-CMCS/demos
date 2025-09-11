@@ -1,7 +1,7 @@
 import { gql } from "graphql-tag";
 
-import { Role } from "../role/roleSchema.js";
 import { User } from "../user/userSchema.js";
+import { Role } from "../../types.js";
 
 export const eventSchema = gql`
   """
