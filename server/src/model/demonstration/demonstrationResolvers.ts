@@ -14,7 +14,8 @@ const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
 
-const SENTINEL_GUID = "00000000-0000-0000-0000-000000000000";
+const SENTINEL_STRING = "NEW";
+const SENTINEL_LIST: string[] = [];
 
 export const demonstrationResolvers = {
   Query: {
@@ -41,8 +42,6 @@ export const demonstrationResolvers = {
         signatureLevel,
         ...rest
       } = input;
-
-      const userIds: string[] = [];
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -74,7 +73,7 @@ export const demonstrationResolvers = {
               },
             }),
             demonstrationStatus: {
-              connect: { id: SENTINEL_GUID },
+              connect: { id: SENTINEL_STRING },
             },
             state: {
               connect: { id: stateId },
@@ -82,10 +81,10 @@ export const demonstrationResolvers = {
             currentPhase: {
               connect: { id: conceptPhaseId },
             },
-            ...(userIds &&
+            ...(SENTINEL_LIST &&
               stateId && {
                 userStateDemonstrations: {
-                  create: userIds.map((userId: string) => ({
+                  create: SENTINEL_LIST.map((userId: string) => ({
                     userId,
                     stateId,
                   })),
