@@ -1,4 +1,4 @@
-model BundlePhaseStatus {
+model BundlePhase {
   bundleId      String   @map("bundle_id") @db.Uuid
   phaseId       String   @map("phase_id")
   phaseStatusId String   @map("phase_status_id")
@@ -10,5 +10,5 @@ model BundlePhaseStatus {
   phaseStatus PhaseStatus @relation(fields: [phaseStatusId], references: [id])
 
   @@id([bundleId, phaseId])
-  @@map("bundle_phase_status")
+  @@map("bundle_phase")
 }
