@@ -295,7 +295,7 @@ export const CreateDemonstrationDialog: React.FC<{
     name: demonstration.name,
     description: demonstration.description,
     stateId: demonstration.stateId,
-    projectOfficerUserId: demonstration.projectOfficerId,
+    projectOfficerUserId: "00000000-1111-2222-3333-123abc123abc",
     cmcsDivision: demonstration.cmcsDivision,
     signatureLevel: demonstration.signatureLevel,
   });

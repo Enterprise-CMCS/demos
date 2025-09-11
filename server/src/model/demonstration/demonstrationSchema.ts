@@ -61,8 +61,15 @@ export const demonstrationSchema = gql`
     projectOfficerUserId: String
   }
 
+  type CreateDemonstrationResponse {
+    success: Boolean!
+    message: String
+  }
+
   type Mutation {
-    createDemonstration(input: CreateDemonstrationInput!): Demonstration
+    createDemonstration(
+      input: CreateDemonstrationInput!
+    ): CreateDemonstrationResponse
     updateDemonstration(
       id: ID!
       input: UpdateDemonstrationInput!

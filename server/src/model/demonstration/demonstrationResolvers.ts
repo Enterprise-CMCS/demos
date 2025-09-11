@@ -1,4 +1,4 @@
-import { Demonstration, Person, User } from "@prisma/client";
+import { Demonstration } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
@@ -13,8 +13,6 @@ const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
-
-const SENTINEL_STRING = "NEW";
 
 export const demonstrationResolvers = {
   Query: {
@@ -51,40 +49,49 @@ export const demonstrationResolvers = {
           },
         });
 
-        return await tx.demonstration.create({
-          data: {
-            ...rest,
-            description: description || "",
-            bundle: {
-              connect: { id: bundle.id },
-            },
-            bundleType: {
-              connect: { id: demonstrationBundleTypeId },
-            },
-            ...(cmcsDivision && {
-              cmcsDivision: {
-                connect: { id: cmcsDivision },
+        try {
+          await tx.demonstration.create({
+            data: {
+              ...rest,
+              description: description || "",
+              bundle: {
+                connect: { id: bundle.id },
               },
-            }),
-            ...(signatureLevel && {
-              signatureLevel: {
-                connect: { id: signatureLevel },
+              bundleType: {
+                connect: { id: demonstrationBundleTypeId },
               },
-            }),
-            demonstrationStatus: {
-              connect: { id: SENTINEL_STRING },
+              ...(cmcsDivision && {
+                cmcsDivision: {
+                  connect: { id: cmcsDivision },
+                },
+              }),
+              ...(signatureLevel && {
+                signatureLevel: {
+                  connect: { id: signatureLevel },
+                },
+              }),
+              demonstrationStatus: {
+                connect: { id: "DEMONSTRATION_NEW" },
+              },
+              state: {
+                connect: { id: stateId },
+              },
+              currentPhase: {
+                connect: { id: conceptPhaseId },
+              },
+              projectOfficer: {
+                connect: { id: projectOfficerUserId },
+              },
             },
-            state: {
-              connect: { id: stateId },
-            },
-            currentPhase: {
-              connect: { id: conceptPhaseId },
-            },
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          },
-        });
+          });
+        } catch (error) {
+          console.error(error);
+        }
+
+        return {
+          success: true,
+          message: "Demonstration created successfully",
+        };
       });
     },
 
@@ -176,31 +183,6 @@ export const demonstrationResolvers = {
       return await prisma().demonstrationStatus.findUnique({
         where: { id: parent.demonstrationStatusId },
       });
-    },
-
-    users: async (parent: Demonstration) => {
-      const userStateDemonstrations =
-        await prisma().userStateDemonstration.findMany({
-          where: { demonstrationId: parent.id, stateId: parent.stateId },
-          include: {
-            user: {
-              include: {
-                person: true,
-              },
-            },
-          },
-        });
-
-      interface UserStateDemonstrationWithUser {
-        user: User & { person: Person };
-      }
-
-      return userStateDemonstrations.map(
-        (userStateDemonstration: UserStateDemonstrationWithUser) => ({
-          ...userStateDemonstration.user,
-          ...userStateDemonstration.user.person,
-        }),
-      );
     },
 
     projectOfficer: async (parent: Demonstration) => {
