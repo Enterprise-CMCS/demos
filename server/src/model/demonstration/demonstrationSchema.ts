@@ -42,13 +42,11 @@ export const demonstrationSchema = gql`
 
   input CreateDemonstrationInput {
     name: String!
-    description: String!
+    stateId: ID!
+    projectOfficerUserId: String!
+    description: String
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
-    demonstrationStatusId: ID!
-    stateId: ID!
-    userIds: [ID!]
-    projectOfficerUserId: String!
   }
 
   input UpdateDemonstrationInput {
@@ -100,15 +98,15 @@ export interface Demonstration {
   updatedAt: Date;
 }
 
+// Used in creating a demonstration from the F/E dialog.
+// The fields here should match the fields in that dialog.
 export interface CreateDemonstrationInput {
   name: string;
-  description: string;
+  projectOfficerUserId: string;
+  stateId: string;
+  description?: string;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  demonstrationStatusId: string;
-  stateId: string;
-  userIds?: string[];
-  projectOfficerUserId: string;
 }
 
 export interface UpdateDemonstrationInput {

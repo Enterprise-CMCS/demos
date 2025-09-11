@@ -3,13 +3,18 @@ import { Demonstration, Person, User } from "@prisma/client";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType, Phase } from "../../types.js";
-import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
+import {
+  CreateDemonstrationInput,
+  UpdateDemonstrationInput,
+} from "./demonstrationSchema.js";
 import { resolveUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
+
+const SENTINEL_GUID = "00000000-0000-0000-0000-000000000000";
 
 export const demonstrationResolvers = {
   Query: {
@@ -24,16 +29,20 @@ export const demonstrationResolvers = {
   },
 
   Mutation: {
-    createDemonstration: async (_: undefined, { input }: { input: CreateDemonstrationInput }) => {
+    createDemonstration: async (
+      _: undefined,
+      { input }: { input: CreateDemonstrationInput },
+    ) => {
       const {
-        demonstrationStatusId,
         stateId,
-        userIds,
         projectOfficerUserId,
+        description,
         cmcsDivision,
         signatureLevel,
         ...rest
       } = input;
+
+      const userIds: string[] = [];
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -47,24 +56,26 @@ export const demonstrationResolvers = {
         return await tx.demonstration.create({
           data: {
             ...rest,
+            description: description || "",
             bundle: {
               connect: { id: bundle.id },
             },
             bundleType: {
               connect: { id: demonstrationBundleTypeId },
             },
-            ...(cmcsDivision && {
-              cmcsDivision: {
-                connect: { id: cmcsDivision },
-              },
-            }),
+            ...(cmcsDivision && { cmcsDivision: cmcsDivision || null }),
+            // ...(cmcsDivision && {
+            //   cmcsDivision: {
+            //     connect: { id: cmcsDivision },
+            //   },
+            // }),
             ...(signatureLevel && {
               signatureLevel: {
                 connect: { id: signatureLevel },
               },
             }),
             demonstrationStatus: {
-              connect: { id: demonstrationStatusId },
+              connect: { id: SENTINEL_GUID },
             },
             state: {
               connect: { id: stateId },
@@ -91,7 +102,7 @@ export const demonstrationResolvers = {
 
     updateDemonstration: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDemonstrationInput }
+      { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
       const {
         demonstrationStatusId,
@@ -190,16 +201,17 @@ export const demonstrationResolvers = {
     },
 
     users: async (parent: Demonstration) => {
-      const userStateDemonstrations = await prisma().userStateDemonstration.findMany({
-        where: { demonstrationId: parent.id, stateId: parent.stateId },
-        include: {
-          user: {
-            include: {
-              person: true,
+      const userStateDemonstrations =
+        await prisma().userStateDemonstration.findMany({
+          where: { demonstrationId: parent.id, stateId: parent.stateId },
+          include: {
+            user: {
+              include: {
+                person: true,
+              },
             },
           },
-        },
-      });
+        });
 
       interface UserStateDemonstrationWithUser {
         user: User & { person: Person };
@@ -209,7 +221,7 @@ export const demonstrationResolvers = {
         (userStateDemonstration: UserStateDemonstrationWithUser) => ({
           ...userStateDemonstration.user,
           ...userStateDemonstration.user.person,
-        })
+        }),
       );
     },
 

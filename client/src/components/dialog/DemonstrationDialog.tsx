@@ -47,7 +47,7 @@ const ERROR_MESSAGES: Record<DemonstrationDialogMode, string> = {
 };
 
 const DemonstrationDescriptionTextArea: React.FC<{
-  description: string;
+  description?: string;
   setDescription: (value: string) => void;
 }> = ({ description, setDescription }) => {
   return (
@@ -181,9 +181,11 @@ const DemonstrationDialog: React.FC<{
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
+    formEvent.preventDefault();
     setIsSubmitting(true);
     await onSubmit(activeDemonstration);
+    setIsSubmitting(false);
   };
 
   return (
@@ -296,9 +298,6 @@ export const CreateDemonstrationDialog: React.FC<{
     projectOfficerUserId: demonstration.projectOfficerId,
     cmcsDivision: demonstration.cmcsDivision,
     signatureLevel: demonstration.signatureLevel,
-    demonstrationStatusId: "1", // Default to 'Draft' status
-    // effectiveDate: demonstration.effectiveDate,
-    // expirationDate: demonstration.expirationDate,
   });
 
   const onSubmit = async (demonstration: DemonstrationDialogFields) => {
