@@ -8,6 +8,7 @@ import {
   PERSON_TYPES,
   GRANT_LEVELS,
   ROLES,
+  DATE_TYPES,
 } from "./constants.js";
 
 export type { CreateUserInput, UpdateUserInput, User } from "./model/user/userSchema.js";
@@ -61,3 +62,4 @@ export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
+export type DateType = (typeof DATE_TYPES)[number];

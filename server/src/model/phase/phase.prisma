@@ -6,6 +6,7 @@ model Phase {
   bundlePhaseStatus BundlePhaseStatus[]
   demonstration     Demonstration[]
   modification      Modification[]
+  bundlePhaseDate   BundlePhaseDate[]
 
   @@id([id])
   @@unique([phaseNumber])
