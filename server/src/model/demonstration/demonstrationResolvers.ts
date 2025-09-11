@@ -63,12 +63,11 @@ export const demonstrationResolvers = {
             bundleType: {
               connect: { id: demonstrationBundleTypeId },
             },
-            ...(cmcsDivision && { cmcsDivision: cmcsDivision || null }),
-            // ...(cmcsDivision && {
-            //   cmcsDivision: {
-            //     connect: { id: cmcsDivision },
-            //   },
-            // }),
+            ...(cmcsDivision && {
+              cmcsDivision: {
+                connect: { id: cmcsDivision },
+              },
+            }),
             ...(signatureLevel && {
               signatureLevel: {
                 connect: { id: signatureLevel },
