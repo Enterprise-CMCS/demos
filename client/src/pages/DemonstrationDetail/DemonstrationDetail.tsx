@@ -52,6 +52,9 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           name
         }
       }
+      demonstrationTypes {
+        id
+      }
       documents {
         id
         title

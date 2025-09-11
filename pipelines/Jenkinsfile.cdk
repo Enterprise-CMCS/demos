@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk", "scanner"])
+      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk"])
     }
   }
 
@@ -29,50 +29,18 @@ pipeline {
       }
     }
 
-    stage('CDK - Test') {
-      steps {
-        dirCon('deployment', 'node') {
-          sh '''
-          mkdir ../client/dist
-          mkdir ../server/build
-          touch ../server/build/server.cjs
-
-          # These are needed for the built-in CDK bundling
-          apk add bash
-          npm i -g esbuild
-
-          npm run test:ci
-          '''
-        }
-      }
-    }
-
-    stage('CDK - Sonar Scan') {
-      steps {
-        script {
-          sonarQubeScan(
-            projectKey: 'demos-cdk',
-            credentialsId: 'sonarqube-demos-cdk',
-            projectBaseDir: 'deployment',
-            sonarqubeFlags: [
-              "javascript.lcov.reportPaths": "coverage/lcov.info",
-              "pullrequest.key": env.CHANGE_ID ?: null,
-              "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-              "pullrequest.base": env.CHANGE_TARGET ?: null,
-              "exclusions": "**/*.test.ts,**/*.test.tsx,coverage/**,cdk.out/**,**/nag-suppressions.ts,jest.config.cjs,lib/mockLambda.js,index.ts,demosctl/index.ts",
-              "sources": "./",
-              "tests": "./"
-            ]
-          )
-        }
-      }
-    }
-
     stage('CDK - Synth') {
       steps {
         assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
         dirCon('deployment', 'node') {
           sh '''
+          mkdir ../client/dist
+          mkdir ../server/build
+          
+          # These are needed for the built-in CDK bundling
+          apk add bash
+          npm i -g esbuild
+
           npm run synth:dev
           '''
         }

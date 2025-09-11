@@ -6,6 +6,7 @@ import {
   aws_ec2,
   Fn,
   aws_secretsmanager,
+  aws_cognito,
   aws_apigateway,
   aws_s3,
 } from "aws-cdk-lib";
@@ -61,7 +62,7 @@ export class ApiStack extends Stack {
       true
     );
 
-    graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
+    graphqlLambdaSecurityGroup?.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
       aws_ec2.Port.tcp(rdsPort),
       "Allow egress to RDS",
@@ -77,8 +78,12 @@ export class ApiStack extends Stack {
     );
 
     const cognitoAuthority = Fn.importValue(`${commonProps.hostEnvironment}CognitoAuthority`);
+    const parts = Fn.split("com/", cognitoAuthority, 2);
+    const cognitoUserPoolId = Fn.select(1, parts);
+    const userPool = aws_cognito.UserPool.fromUserPoolId(commonProps.scope, "coreCognitoUserPool", cognitoUserPoolId);
     const apigateway_outputs = apigateway.create({
       ...commonProps,
+      userPool: userPool,
     });
 
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
@@ -88,7 +93,9 @@ export class ApiStack extends Stack {
     );
 
     const authPath = path.join("..", "lambda_authorizer");
+    console.log("authPath", authPath);
     const rel = path.resolve(authPath);
+    console.log("rel", rel);
 
     const authorizerLambda = lambda.create(
       {

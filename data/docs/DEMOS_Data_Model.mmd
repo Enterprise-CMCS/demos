@@ -258,9 +258,9 @@ erDiagram
   }
 
   users:::dataTable {
-    uuid id PK, FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>UK: (id, person_type_id)"
-    text person_type_id FK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id<br>UK: (id, person_type_id)"
-    uuid cognito_subject UK "UK: cognito_subject"
+    uuid id PK, FK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)"
+    text person_type_id FK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id"
+    uuid cognito_subject
     text username
     timestamptz created_at
     timestamptz updated_at

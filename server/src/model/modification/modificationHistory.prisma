@@ -10,7 +10,6 @@ model ModificationHistory {
   effectiveDate        DateTime?    @map("effective_date") @db.Date
   expirationDate       DateTime?    @map("expiration_date") @db.Date
   modificationStatusId String       @map("modification_status_id")
-  currentPhaseId       String       @map("current_phase_id")
   projectOfficerUserId String       @map("project_officer_user_id") @db.Uuid
   createdAt            DateTime     @map("created_at") @db.Timestamptz()
   updatedAt            DateTime     @map("updated_at") @db.Timestamptz()

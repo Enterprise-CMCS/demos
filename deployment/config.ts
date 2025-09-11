@@ -24,7 +24,7 @@ export const determineDeploymentConfig = async (
   stage: string,
   hostEnv?: string
 ): Promise<DeploymentConfigProperties> => {
-  const project = process.env.PROJECT ?? "demos";
+  const project = process.env.PROJECT || "demos";
 
   const iamPermissionsBoundaryArn = `arn:aws:iam::${Aws.ACCOUNT_ID}:policy/cms-cloud-admin/developer-boundary-policy`;
   const iamPath = "/delegatedadmin/developer/";
@@ -39,7 +39,7 @@ export const determineDeploymentConfig = async (
   };
 
   const isEphemeral = !["dev", "test", "prod"].includes(stage);
-  const hostEnvironment = !isEphemeral ? stage : hostEnv ?? "dev";
+  const hostEnvironment = !isEphemeral ? stage : hostEnv ? hostEnv : "dev";
   const hostUserPoolId = isEphemeral ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`) : undefined;
 
   const secretConfig =

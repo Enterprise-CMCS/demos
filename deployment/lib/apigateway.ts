@@ -1,15 +1,28 @@
-import { aws_apigateway, Duration } from "aws-cdk-lib";
+import {
+  aws_apigateway,
+  Duration,
+  aws_cognito,
+} from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
 
-import { MockIntegration, Model, PassthroughBehavior } from "aws-cdk-lib/aws-apigateway";
+import {
+  MockIntegration,
+  Model,
+  PassthroughBehavior,
+} from "aws-cdk-lib/aws-apigateway";
 import { DemosLogGroup } from "./logGroup";
 
-export function create(props: CommonProps) {
+interface ApiGatewayProps extends CommonProps {
+  userPool: aws_cognito.IUserPool;
+}
+
+export function create(props: ApiGatewayProps) {
+
   const apiAccessLogGroup = new DemosLogGroup(props.scope, "ApiAccessLogs", {
     name: "apigateway/access",
     isEphemeral: props.isEphemeral,
-    stage: props.stage,
-  });
+    stage: props.stage
+  })
 
   const api = new aws_apigateway.RestApi(props.scope, "ApiGatewayRestApi", {
     restApiName: `${props.project}-${props.stage}-api`,
@@ -72,7 +85,7 @@ export function create(props: CommonProps) {
     },
   });
 
-  const apiParentResource = api.root.addResource("api");
+  const apiParentResource = api.root.addResource("api")
 
   const healthResource = apiParentResource.addResource("health");
   healthResource.addMethod("GET", healthEndpoint, {
@@ -90,6 +103,6 @@ export function create(props: CommonProps) {
     api,
     restApiId: api.restApiId,
     apiGatewayRestApiUrl: api.url.slice(0, -1),
-    apiParentResource,
+    apiParentResource
   };
 }

@@ -18,6 +18,7 @@ export type DemonstrationTabDemonstration = Pick<
   Demonstration,
   "id" | "name" | "description" | "effectiveDate" | "expirationDate"
 > & {
+  demonstrationTypes: object[];
   documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
     owner: Pick<User, "fullName">;
   })[];
@@ -35,7 +36,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
-    { value: "types", label: "Types", count: 0 },
+    { value: "types", label: "Types", count: demonstration.demonstrationTypes.length },
     { value: "documents", label: "Documents", count: demonstration.documents.length },
     { value: "contacts", label: "Contacts", count: demonstration.contacts.length },
   ];
