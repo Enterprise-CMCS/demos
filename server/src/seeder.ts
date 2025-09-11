@@ -65,10 +65,12 @@ function clearDatabase() {
     // Events, which attach to users and roles
     prisma().event.deleteMany(),
 
+    // delete system role assignments before roles and users
+    prisma().systemRoleAssignment.deleteMany(),
+
     // Finally, roles and users
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
-    prisma().systemRoleAssignment.deleteMany(),
   ]);
 }
 

@@ -2,11 +2,10 @@ model SystemRoleAssignmentHistory {
   revisionId   Int          @id @default(autoincrement()) @map("revision_id")
   revisionType RevisionType @map("revision_type")
   modifiedAt   DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
-
-  personId     String @map("person_id") @db.Uuid
-  roleId       String @map("role_id")
-  personTypeId String @map("person_type_id")
-  grantLevelId String @map("grant_level_id")
+  personId     String       @map("person_id") @db.Uuid
+  roleId       String       @map("role_id")
+  personTypeId String       @map("person_type_id")
+  grantLevelId String       @map("grant_level_id")
 
   @@map("system_role_assignment_history")
 }
