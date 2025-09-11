@@ -79,7 +79,7 @@ describe("testMigration", () => {
     );
 
     expect(mockConnect).toHaveBeenCalled();
-    expect(mockQuery).toHaveBeenCalledWith(`DROP DATABASE $1;`, [targetDB]);
+    expect(mockQuery).toHaveBeenCalledWith(`DROP DATABASE ${targetDB};`);
   });
 
   test("should exit if no db name is specified", async () => {
