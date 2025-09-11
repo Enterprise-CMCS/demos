@@ -85,7 +85,6 @@ export const mockDemonstrations = [
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
-  demonstrationStatusId: mockDemonstrationStatuses[0].id,
   stateId: "CA",
   projectOfficerUserId: mockUsers[0].id,
 };
