@@ -65,8 +65,10 @@ function clearDatabase() {
     // Events, which attach to users and roles
     prisma().event.deleteMany(),
 
+    // delete system role assignments before roles and users
+    prisma().systemRoleAssignment.deleteMany(),
+
     // Finally, roles and users
-    prisma().role.deleteMany(),
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
   ]);
@@ -141,6 +143,28 @@ async function seedDatabase() {
         username: faker.internet.username(),
       },
     });
+  }
+
+  console.log("🌱 Seeding system role assignments...");
+  // for each user, assign a random set of roles from the system roles
+  const systemRoles = await prisma().role.findMany({
+    where: { grantLevelId: "System" },
+  });
+
+  const people = await prisma().person.findMany();
+  for (const person of people) {
+    // NOSONAR - this is an appropriate use of Math.random() for seeding a random number of roles
+    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length)); // NOSONAR
+    for (const role of roles) {
+      await prisma().systemRoleAssignment.create({
+        data: {
+          personId: person.id,
+          personTypeId: person.personTypeId,
+          roleId: role.id,
+          grantLevelId: "System",
+        },
+      });
+    }
   }
 
   const baseStatuses = ["New", "In Progress", "On Hold", "Completed"];

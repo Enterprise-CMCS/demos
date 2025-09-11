@@ -1,0 +1,14 @@
+model SystemRoleAssignment {
+  personId     String @map("person_id") @db.Uuid
+  roleId       String @map("role_id")
+  personTypeId String @map("person_type_id")
+  grantLevelId String @map("grant_level_id")
+
+  person         Person                @relation(fields: [personId, personTypeId], references: [id, personTypeId])
+  rolePersonType RolePersonType        @relation(fields: [roleId, personTypeId], references: [roleId, personTypeId])
+  role           Role                  @relation(fields: [roleId, grantLevelId], references: [id, grantLevelId])
+  grantLevel     SystemGrantLevelLimit @relation(fields: [grantLevelId], references: [id])
+
+  @@id([personId, roleId])
+  @@map("system_role_assignment")
+}

@@ -59,14 +59,7 @@ export const userResolvers = {
 
   Mutation: {
     createUser: async (_: undefined, { input }: { input: CreateUserInput }) => {
-      const {
-        email,
-        username,
-        cognitoSubject,
-        personTypeId,
-        fullName,
-        displayName,
-      } = input;
+      const { email, username, cognitoSubject, personTypeId, fullName, displayName } = input;
       const person = await prisma().person.create({
         data: {
           displayName: displayName,
@@ -87,8 +80,7 @@ export const userResolvers = {
     },
 
     updateUser: async (_: undefined, { id, input }: { id: string; input: UpdateUserInput }) => {
-      const { fullName, displayName, email, username, personTypeId } =
-        input;
+      const { fullName, displayName, email, username, personTypeId } = input;
       const person = await prisma().person.update({
         where: { id },
         data: {
@@ -129,6 +121,13 @@ export const userResolvers = {
           ownerUserId: parent.id,
         },
       });
+    },
+    roles: async (parent: User) => {
+      const assignments = await prisma().systemRoleAssignment.findMany({
+        where: { personId: parent.id },
+        include: { role: true },
+      });
+      return assignments.map((a) => a.role);
     },
   },
 };
