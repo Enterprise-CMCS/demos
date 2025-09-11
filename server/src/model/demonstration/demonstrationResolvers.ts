@@ -1,13 +1,15 @@
-import { Demonstration, User } from "@prisma/client";
+import { Demonstration, Person, User } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
+import { BundleType, Phase } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
+import { resolveUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
+const conceptPhaseId: Phase = "Concept";
 
 export const demonstrationResolvers = {
   Query: {
@@ -51,17 +53,24 @@ export const demonstrationResolvers = {
             bundleType: {
               connect: { id: demonstrationBundleTypeId },
             },
-            cmcsDivision: {
-              connect: { id: cmcsDivision },
-            },
-            signatureLevel: {
-              connect: { id: signatureLevel },
-            },
+            ...(cmcsDivision && {
+              cmcsDivision: {
+                connect: { id: cmcsDivision },
+              },
+            }),
+            ...(signatureLevel && {
+              signatureLevel: {
+                connect: { id: signatureLevel },
+              },
+            }),
             demonstrationStatus: {
               connect: { id: demonstrationStatusId },
             },
             state: {
               connect: { id: stateId },
+            },
+            currentPhase: {
+              connect: { id: conceptPhaseId },
             },
             ...(userIds &&
               stateId && {
@@ -93,6 +102,7 @@ export const demonstrationResolvers = {
         expirationDate,
         cmcsDivision,
         signatureLevel,
+        currentPhase,
         ...rest
       } = input;
 
@@ -134,6 +144,11 @@ export const demonstrationResolvers = {
           ...(stateId && {
             state: {
               connect: { id: stateId },
+            },
+          }),
+          ...(currentPhase && {
+            currentPhase: {
+              connect: { id: currentPhase },
             },
           }),
           ...(userIds &&
@@ -178,23 +193,33 @@ export const demonstrationResolvers = {
       const userStateDemonstrations = await prisma().userStateDemonstration.findMany({
         where: { demonstrationId: parent.id, stateId: parent.stateId },
         include: {
-          user: true,
+          user: {
+            include: {
+              person: true,
+            },
+          },
         },
       });
 
       interface UserStateDemonstrationWithUser {
-        user: User;
+        user: User & { person: Person };
       }
 
       return userStateDemonstrations.map(
-        (userStateDemonstration: UserStateDemonstrationWithUser) => userStateDemonstration.user
+        (userStateDemonstration: UserStateDemonstrationWithUser) => ({
+          ...userStateDemonstration.user,
+          ...userStateDemonstration.user.person,
+        })
       );
     },
 
     projectOfficer: async (parent: Demonstration) => {
-      return await prisma().user.findUnique({
+      const user = await prisma().user.findUnique({
         where: { id: parent.projectOfficerUserId },
+        include: { person: true },
       });
+      if (!user) return null;
+      return resolveUser(user);
     },
 
     documents: async (parent: Demonstration) => {
@@ -229,6 +254,10 @@ export const demonstrationResolvers = {
 
     signatureLevel: async (parent: Demonstration) => {
       return parent.signatureLevelId;
+    },
+
+    currentPhase: async (parent: Demonstration) => {
+      return parent.currentPhaseId;
     },
   },
 };

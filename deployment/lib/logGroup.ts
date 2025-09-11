@@ -6,7 +6,7 @@ import { Construct } from "constructs";
 interface DemosLogGroupProps {
   isEphemeral: boolean;
   name?: string;
-  stage: string;
+  stage?: string;
   overrideFullName?: string;
 }
 
@@ -18,6 +18,10 @@ export class DemosLogGroup extends Construct {
 
     if (!props.name && !props.overrideFullName) {
       throw new Error("you must specify `name` or `overrideFullName` for the log group")
+    }
+
+    if (props.name && !props.stage) {
+      throw new Error("you must specify the `stage` property")
     }
 
     this.logGroup = new LogGroup(this, "LogGroup", {

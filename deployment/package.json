@@ -13,7 +13,9 @@
     "deploy": "cdk deploy --context stage=dev --all --no-change-set --require-approval=never",
     "lint": "eslint ./",
     "lint:fix": "eslint ./ --fix",
-    "synth:dev": "cdk synth --context stage=dev --all"
+    "synth:dev": "cdk synth --context stage=dev --all",
+    "test": "jest --cache --coverage",
+    "test:ci": "jest --coverage"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",

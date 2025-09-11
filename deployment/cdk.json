@@ -1,5 +1,5 @@
 {
-  "app": "npx tsx app.ts",
+  "app": "npx tsx index.ts",
   "watch": {
     "include": ["**"],
     "exclude": [

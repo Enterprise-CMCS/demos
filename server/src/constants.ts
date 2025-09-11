@@ -1,3 +1,10 @@
+export const PERSON_TYPES = [
+  "demos-admin",
+  "demos-cms-user",
+  "demos-state-user",
+  "non-user-contact",
+] as const;
+
 export const BUNDLE_TYPE = {
   DEMONSTRATION: "DEMONSTRATION",
   AMENDMENT: "AMENDMENT",
@@ -24,4 +31,18 @@ export const DOCUMENT_TYPES = [
   "Q&A",
   "Signed Decision Memo",
   "State Application",
+] as const;
+
+export const PHASE = [
+  "None",
+  "Concept",
+  "State Application",
+  "Completeness",
+] as const;
+
+export const PHASE_STATUS = [
+  "Not Started",
+  "Started",
+  "Completed",
+  "Skipped",
 ] as const;
