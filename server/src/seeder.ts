@@ -54,7 +54,7 @@ function clearDatabase() {
     prisma().state.deleteMany(),
 
     // Phases and accompanying items
-    prisma().bundlePhaseStatus.deleteMany(),
+    prisma().bundlePhase.deleteMany(),
 
     // Documents, which are attached to bundles
     prisma().document.deleteMany(),

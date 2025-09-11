@@ -3,10 +3,10 @@ model Phase {
   id          String
   phaseNumber Int    @map("phase_number")
 
-  bundlePhaseStatus BundlePhaseStatus[]
+  bundlePhase   BundlePhase[]
+  bundlePhaseDate   BundlePhaseDate[]
   demonstration     Demonstration[]
   modification      Modification[]
-  bundlePhaseDate   BundlePhaseDate[]
 
   @@id([id])
   @@unique([phaseNumber])
