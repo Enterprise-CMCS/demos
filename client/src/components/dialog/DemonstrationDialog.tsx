@@ -76,7 +76,6 @@ export const DemonstrationDialog: React.FC<Props> = ({
       description,
       demonstrationStatusId: "1",
       stateId: state,
-      userIds: [projectOfficer],
       projectOfficerUserId: projectOfficer,
       cmcsDivision: cmcsDivision as CmcsDivision,
       signatureLevel: signatureLevel as SignatureLevel,
