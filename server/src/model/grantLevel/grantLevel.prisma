@@ -2,9 +2,9 @@
 model GrantLevel {
   id String
 
-  permissions  Permission[]
-  roles        Role[]
-  
+  permissions Permission[]
+  roles       Role[]
+
   @@id([id])
   @@map("grant_level")
 }

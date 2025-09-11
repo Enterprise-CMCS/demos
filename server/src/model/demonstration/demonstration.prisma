@@ -14,15 +14,15 @@ model Demonstration {
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
-  bundle                  Bundle                   @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
-  bundleType              DemonstrationBundleType  @relation(fields: [bundleTypeId], references: [id])
-  demonstrationStatus     DemonstrationStatus      @relation(fields: [demonstrationStatusId], references: [id])
-  state                   State                    @relation(fields: [stateId], references: [id])
-  projectOfficer          User                     @relation(fields: [projectOfficerUserId], references: [id])
-  modification            Modification[]
-  cmcsDivision            CmcsDivision?            @relation(fields: [cmcsDivisionId], references: [id], onDelete: Restrict)
-  signatureLevel          SignatureLevel?          @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
-  currentPhase            Phase                    @relation(fields: [currentPhaseId], references: [id])
+  bundle              Bundle                  @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
+  bundleType          DemonstrationBundleType @relation(fields: [bundleTypeId], references: [id])
+  demonstrationStatus DemonstrationStatus     @relation(fields: [demonstrationStatusId], references: [id])
+  state               State                   @relation(fields: [stateId], references: [id])
+  projectOfficer      User                    @relation(fields: [projectOfficerUserId], references: [id])
+  modification        Modification[]
+  cmcsDivision        CmcsDivision?           @relation(fields: [cmcsDivisionId], references: [id], onDelete: Restrict)
+  signatureLevel      SignatureLevel?         @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
+  currentPhase        Phase                   @relation(fields: [currentPhaseId], references: [id])
 
   @@id([id])
   @@unique([id, stateId])
