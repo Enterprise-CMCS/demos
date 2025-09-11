@@ -1,0 +1,19 @@
+model DemonstrationRoleAssignment {
+  personId        String @map("person_id") @db.Uuid
+  demonstrationId String @map("demonstration_id")
+  roleId          String @map("role_id")
+  stateId         String @map("state_id")
+  personTypeId    String @map("person_type_id")
+  grantLevelId    String @map("grant_level_id")
+
+  personState                        PersonState                          @relation(fields: [personId, stateId], references: [personId, stateId])
+  person                             Person                               @relation(fields: [personId, personTypeId], references: [id, personTypeId])
+  demonstration                      Demonstration                        @relation(fields: [demonstrationId, stateId], references: [id, stateId])
+  rolePersonType                     RolePersonType                       @relation(fields: [roleId, personTypeId], references: [roleId, personTypeId])
+  role                               Role                                 @relation(fields: [roleId, grantLevelId], references: [id, grantLevelId])
+  grantLevel                         DemonstrationGrantLevelLimit         @relation(fields: [grantLevelId], references: [id])
+  PrimaryDemonstrationRoleAssignment PrimaryDemonstrationRoleAssignment[]
+
+  @@id([personId, demonstrationId, roleId])
+  @@map("demonstration_role_assignment")
+}
