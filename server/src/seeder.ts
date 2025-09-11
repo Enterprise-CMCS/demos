@@ -71,7 +71,6 @@ function clearDatabase() {
     // Finally, roles and users
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
-    prisma().systemRoleAssignment.deleteMany(),
   ]);
 }
 
