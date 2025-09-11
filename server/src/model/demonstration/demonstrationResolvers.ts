@@ -85,12 +85,17 @@ export const demonstrationResolvers = {
             },
           });
         } catch (error) {
-          console.error(error);
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          return {
+            success: false,
+            message: "Error creating demonstration: " + errorMessage,
+          };
         }
 
         return {
           success: true,
-          message: "Demonstration created successfully",
+          message: "Demonstration created successfully!",
         };
       });
     },
