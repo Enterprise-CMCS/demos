@@ -152,7 +152,7 @@ async function seedDatabase() {
   const people = await prisma().person.findMany();
   for (const person of people) {
     // NOSONAR - this is an appropriate use of Math.random() for seeding a random number of roles
-    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length));
+    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length)); // NOSONAR
     for (const role of roles) {
       await prisma().systemRoleAssignment.create({
         data: {
