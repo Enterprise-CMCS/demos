@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-
 import {
-  ApprovalPackagePhase,
-  CompletenessPhase,
   ConceptPhase,
-  FederalCommentPhase,
-  OgcOmbPhase,
-  PostApprovalPhase,
-  SmeFrtPhase,
   StateApplicationPhase,
+  CompletenessPhase,
+  FederalCommentPhase,
+  SmeFrtPhase,
+  OgcOmbPhase,
+  ApprovalPackagePhase,
+  PostApprovalPhase,
 } from "../phases";
 import { PhaseBox } from "./PhaseBox";
 
@@ -54,7 +53,7 @@ const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
   const PhaseComponent = PHASE_COMPONENTS_LOOKUP[selectedPhase];
 
   return (
-    <div className="w-full h-full min-h-64">
+    <div className="border border-dashed w-full h-full min-h-64">
       <PhaseComponent />
     </div>
   );
@@ -90,7 +89,7 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-8 gap-md mb-2">
+      <div className="grid grid-cols-8 gap-md">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, idx) => (
           <PhaseBox

@@ -1,19 +1,11 @@
 import React from "react";
-
-import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it } from "vitest";
-
-import { render, screen } from "@testing-library/react";
-
+import { describe, it, expect } from "vitest";
 import { PhaseSelector } from "./PhaseSelector";
+import { render, screen } from "@testing-library/react";
 
 describe("PhaseSelector", () => {
   it("renders all phase names", () => {
-    render(
-      <TestProvider>
-        <PhaseSelector />
-      </TestProvider>
-    );
+    render(<PhaseSelector />);
     [
       "Concept",
       "State Application",

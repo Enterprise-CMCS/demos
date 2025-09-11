@@ -1,14 +1,11 @@
-import {
-  BUNDLE_TYPE,
-  CMCS_DIVISION,
-  SIGNATURE_LEVEL,
-  DOCUMENT_TYPES,
-  PHASE,
-  PHASE_STATUS,
-  PERSON_TYPES,
-} from "./constants.js";
+import { BUNDLE_TYPE, CMCS_DIVISION, SIGNATURE_LEVEL, DOCUMENT_TYPES } from "./constants.js";
 
-export type { CreateUserInput, UpdateUserInput, User } from "./model/user/userSchema.js";
+// Export types for use in the client code
+export type {
+  CreateUserInput,
+  UpdateUserInput,
+  User,
+} from "./model/user/userSchema.js";
 
 export type {
   CreateDemonstrationInput,
@@ -33,7 +30,11 @@ export type {
 
 export type { State } from "./model/state/stateSchema.js";
 
-export type { CreateRoleInput, Role, UpdateRoleInput } from "./model/role/roleSchema.js";
+export type {
+  CreateRoleInput,
+  Role,
+  UpdateRoleInput,
+} from "./model/role/roleSchema.js";
 
 export type {
   CreatePermissionInput,
@@ -41,7 +42,11 @@ export type {
   UpdatePermissionInput,
 } from "./model/permission/permissionSchema.js";
 
-export type { Event, EventLoggedStatus, LogEventInput } from "./model/event/eventSchema.js";
+export type {
+  Event,
+  EventLoggedStatus,
+  LogEventInput,
+} from "./model/event/eventSchema.js";
 
 export type {
   AddExtensionInput,
@@ -52,16 +57,12 @@ export type {
   UpdateExtensionInput,
 } from "./model/modification/modificationSchema.js";
 
-export type {
-  Document,
+export type { Document,
   UploadDocumentInput,
   UpdateDocumentInput,
-} from "./model/document/documentSchema.js";
+ } from "./model/document/documentSchema.js";
 
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
 export type CmcsDivision = (typeof CMCS_DIVISION)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
-export type Phase = (typeof PHASE)[number];
-export type PhaseStatus = (typeof PHASE_STATUS)[number];
-export type PersonType = (typeof PERSON_TYPES)[number];

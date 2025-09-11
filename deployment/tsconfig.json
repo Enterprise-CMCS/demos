@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "lib": ["es2022", "DOM"],
+    "lib": ["es2020", "DOM"],
     "target": "es2020",
     "module": "commonjs",
     "esModuleInterop": true,
     "baseUrl": "src",
     "strict": true,
-    "types": ["node", "jest"]
+    "types": ["node"]
   },
   "include": ["./"],
   "exclude": ["node_modules"]

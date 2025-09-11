@@ -1,24 +1,9 @@
 import { spawn, SpawnOptionsWithoutStdio } from "child_process";
 import chalk from "chalk";
 
-type chalkColors =
-  | "bgBlue"
-  | "bgGreen"
-  | "bgYellow"
-  | "bgRed"
-  | "bgMagenta"
-  | "bgCyan"
-  | "bgWhite"
-  | "black"
-  | "red"
-  | "green"
-  | "yellow"
-  | "blue"
-  | "magenta"
-  | "cyan"
-  | "white";
+type chalkColors = "bgBlue" | "bgGreen" | "bgYellow" | "bgRed" | "bgMagenta" | "bgCyan" | "bgWhite" | "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" | "white"
 
-const colorOpts: { [k in chalkColors]: boolean } = {
+const colorOpts: {[k in chalkColors]: boolean} = {
   bgBlue: false,
   bgGreen: false,
   bgYellow: false,
@@ -36,7 +21,7 @@ const colorOpts: { [k in chalkColors]: boolean } = {
   white: false,
 };
 
-export function reserveRandomColor(): chalkColors {
+function reserveRandomColor(): chalkColors {
   const colors = Object.keys(colorOpts).filter((key) => !colorOpts[key as chalkColors]) as chalkColors[];
   if (colors.length === 0) {
     return "blue";
@@ -46,34 +31,29 @@ export function reserveRandomColor(): chalkColors {
   return randomColor;
 }
 
-export function runCommand(
-  name: string,
-  cmd: string,
-  args: string[],
-  opts?: SpawnOptionsWithoutStdio
-): Promise<number> {
+export function runCommand(name: string, cmd: string, args: string[], opts?: SpawnOptionsWithoutStdio): Promise<number> {
   const child = spawn(cmd, args, opts);
   const color = reserveRandomColor();
   const nameC = chalk[color](`[${name}]`);
 
   child.stdout.on("data", (data) => {
-    console.log(`${nameC} ${data}`);
+    process.stdout.write(`${nameC} ${data}`);
   });
 
   child.stderr.on("data", (data) => {
-    console.log(`${nameC} ${data}`);
+    process.stdout.write(`${nameC} ${data}`);
   });
   return new Promise((resolve, reject) => {
     child.on("error", (error) => {
-      console.error(`child process error: ${error}`);
+      process.stderr.write(`child process error: ${error}`);
       colorOpts[color] = false;
       reject(error);
     });
 
     child.on("close", (code) => {
-      console.log(`${cmd} exited with code ${code}`);
+      process.stdout.write(`${cmd} exited with code ${code}`);
       colorOpts[color] = false;
-      resolve(code ?? 0);
+      resolve(code || 0);
     });
   });
 }
@@ -83,21 +63,21 @@ export function runShell(name: string, sh: string, opts?: SpawnOptionsWithoutStd
   const color = reserveRandomColor();
   const nameC = chalk[color](`[${name}]`);
   child.stdout.on("data", (data) => {
-    console.log(`${nameC} ${data}`);
+    process.stdout.write(`${nameC} ${data}`);
   });
 
   child.stderr.on("data", (data) => {
-    console.log(`${nameC} ${data}`);
+    process.stdout.write(`${nameC} ${data}`);
   });
   return new Promise((resolve, reject) => {
     child.on("error", (error) => {
-      console.error(`child process error: ${error}\n`);
+      process.stderr.write(`child process error: ${error}\n`);
       colorOpts[color] = false;
       reject(error);
     });
 
     child.on("close", (code) => {
-      console.log(`${sh} exited with code ${code}\n`);
+      process.stdout.write(`${sh} exited with code ${code}\n`);
       colorOpts[color] = false;
       resolve(code);
     });

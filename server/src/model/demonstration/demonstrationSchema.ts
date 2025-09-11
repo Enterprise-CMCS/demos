@@ -4,7 +4,7 @@ import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
-import { CmcsDivision, SignatureLevel, Phase } from "../../types.js";
+import { CmcsDivision, SignatureLevel } from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
@@ -28,16 +28,15 @@ export const demonstrationSchema = gql`
     expirationDate: Date
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
+    createdAt: DateTime!
+    updatedAt: DateTime!
     demonstrationStatus: DemonstrationStatus!
     state: State!
-    currentPhase: Phase!
     users: [User!]!
     projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
   }
 
   input CreateDemonstrationInput {
@@ -59,7 +58,6 @@ export const demonstrationSchema = gql`
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
     demonstrationStatusId: ID
-    currentPhase: Phase
     stateId: ID
     userIds: [ID!]
     projectOfficerUserId: String
@@ -67,10 +65,7 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
-    updateDemonstration(
-      id: ID!
-      input: UpdateDemonstrationInput!
-    ): Demonstration
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
@@ -88,16 +83,15 @@ export interface Demonstration {
   expirationDate: Date | null;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
+  createdAt: Date;
+  updatedAt: Date;
   demonstrationStatus: DemonstrationStatus;
   state: State;
-  currentPhase: Phase;
   users: User[];
   projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface CreateDemonstrationInput {
@@ -119,7 +113,6 @@ export interface UpdateDemonstrationInput {
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
   demonstrationStatusId?: string;
-  currentPhase?: Phase;
   stateId?: string;
   userIds?: string[];
   projectOfficerUserId?: string;

@@ -1,43 +1,27 @@
 import { User } from "@prisma/client";
-import type { Person, User as PrismaUser } from "@prisma/client";
+import type { User as PrismaUser } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { CreateUserInput, UpdateUserInput } from "./userSchema.js";
+import { CreateUserInput } from "./userSchema.js";
 import type { GraphQLContext } from "../../auth/auth.util.js";
-
-export function resolveUser(user: User & { person: Person }) {
-  return {
-    ...user,
-    ...user.person,
-  };
-}
 
 export const userResolvers = {
   Query: {
     user: async (_: undefined, { id }: { id: string }) => {
-      const user = await prisma().user.findUnique({
+      return await prisma().user.findUnique({
         where: { id: id },
-        include: {
-          person: true,
-        },
       });
-      return { ...user, ...user?.person };
     },
     users: async () => {
-      return (await prisma().user.findMany({ include: { person: true } })).map(resolveUser);
+      return await prisma().user.findMany();
     },
     currentUser: async (
       _parent: unknown,
       _args: Record<string, never>,
-      ctx: GraphQLContext
+      ctx: GraphQLContext,
     ): Promise<PrismaUser | null> => {
       if (!ctx.user) return null;
       try {
-        const user = await prisma().user.findUnique({
-          where: { id: ctx.user.id },
-          include: { person: true },
-        });
-        if (!user) return null;
-        return resolveUser(user);
+        return await prisma().user.findUnique({ where: { id: ctx.user.id } });
       } catch (e) {
         console.error("[currentUser] resolver error:", e);
         throw e;
@@ -47,33 +31,9 @@ export const userResolvers = {
 
   Mutation: {
     createUser: async (_: undefined, { input }: { input: CreateUserInput }) => {
-      const {
-        email,
-        username,
-        cognitoSubject,
-        personTypeId,
-        stateIds,
-        roleIds,
-        demonstrationIds,
-        fullName,
-        displayName,
-        ...rest
-      } = input;
-      const person = await prisma().person.create({
+      const { stateIds, roleIds, demonstrationIds, ...rest } = input;
+      return await prisma().user.create({
         data: {
-          ...rest,
-          displayName: displayName,
-          fullName: fullName,
-          email: email,
-          personTypeId,
-        },
-      });
-      const user = await prisma().user.create({
-        data: {
-          username: username,
-          cognitoSubject: cognitoSubject,
-          id: person.id,
-          personTypeId: person.personTypeId,
           ...rest,
           ...(stateIds && {
             userStates: {
@@ -100,36 +60,17 @@ export const userResolvers = {
           }),
         },
       });
-      return { ...user, ...person };
     },
 
-    updateUser: async (_: undefined, { id, input }: { id: string; input: UpdateUserInput }) => {
-      const {
-        fullName,
-        displayName,
-        email,
-        username,
-        personTypeId,
-        stateIds,
-        roleIds,
-        demonstrationIds,
-        ...rest
-      } = input;
-      const person = await prisma().person.update({
+    updateUser: async (
+      _: undefined,
+      { id, input }: { id: string; input: CreateUserInput },
+    ) => {
+      const { stateIds, roleIds, demonstrationIds, ...rest } = input;
+      return await prisma().user.update({
         where: { id },
         data: {
           ...rest,
-          displayName: displayName,
-          fullName: fullName,
-          email: email,
-          personTypeId,
-        },
-      });
-      const user = await prisma().user.update({
-        where: { id },
-        data: {
-          ...rest,
-          username: username,
           ...(stateIds && {
             userStates: {
               create: stateIds.map((stateId: string) => ({ stateId })),
@@ -155,7 +96,6 @@ export const userResolvers = {
           }),
         },
       });
-      return { ...user, ...person };
     },
 
     deleteUser: async (_: undefined, { id }: { id: string }) => {
@@ -186,15 +126,16 @@ export const userResolvers = {
     },
 
     demonstrations: async (parent: User) => {
-      const userStateDemonstrations = await prisma().userStateDemonstration.findMany({
-        where: { userId: parent.id },
-        include: {
-          demonstration: true,
-        },
-      });
+      const userStateDemonstrations =
+        await prisma().userStateDemonstration.findMany({
+          where: { userId: parent.id },
+          include: {
+            demonstration: true,
+          },
+        });
 
       return userStateDemonstrations.map(
-        (userStateDemonstration) => userStateDemonstration.demonstration
+        (userStateDemonstration) => userStateDemonstration.demonstration,
       );
     },
 

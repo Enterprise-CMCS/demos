@@ -20,8 +20,7 @@ TBL_FOLDERS = [
     "modificationStatus",
     "permission",
     "role",
-    "user",
-    "person",
+    "user"
 ]
 APP_SCHEMA = "demos_app"
 

@@ -4,7 +4,6 @@ import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
-import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 import { useToast } from "components/toast";
 import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
@@ -15,8 +14,8 @@ import {
   UPLOAD_DOCUMENT_QUERY,
 } from "queries/documentQueries";
 import { tw } from "tags/tw";
-
 import { useMutation } from "@apollo/client";
+import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -272,7 +271,6 @@ export type DocumentDialogProps = {
   documentTypeSubset?: DocumentType[];
   onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
-  titleOverride?: string;
 };
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
@@ -282,7 +280,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   documentTypeSubset,
   onSubmit,
   initialDocument,
-  titleOverride,
 }) => {
   const { showSuccess, showError } = useToast();
 
@@ -293,7 +290,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
+
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -316,6 +313,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
   }, [mode, file, titleManuallyEdited, activeDocument.title]);
 
+  const dialogTitle = mode === "edit" ? "Edit Document" : "Add New Document";
   const isUploading = uploadStatus === "uploading";
 
   const missingTitle = mode === "edit" ? !activeDocument.title.trim() : false;
@@ -439,14 +437,9 @@ export const AddDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   documentTypeSubset?: DocumentType[];
-  initialDocument?: DocumentDialogFields;
-  titleOverride?: string;
-  refetchQueries?: string[];
-}> = ({ isOpen, onClose, documentTypeSubset, initialDocument, titleOverride, refetchQueries }) => {
+}> = ({ isOpen, onClose, documentTypeSubset }) => {
   const { showError, showSuccess } = useToast();
-  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
-    refetchQueries,
-  });
+  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
     if (!dialogFields.file) {
       showError("No file selected");
@@ -484,8 +477,6 @@ export const AddDocumentDialog: React.FC<{
       mode="add"
       onSubmit={handleUpload}
       documentTypeSubset={documentTypeSubset}
-      initialDocument={initialDocument}
-      titleOverride={titleOverride}
     />
   );
 };
