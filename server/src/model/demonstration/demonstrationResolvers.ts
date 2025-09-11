@@ -7,7 +7,7 @@ import {
   CreateDemonstrationInput,
   UpdateDemonstrationInput,
 } from "./demonstrationSchema.js";
-import { resolveUser } from "../user/userResolvers.js";
+import { findUniqueUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -15,7 +15,6 @@ const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
 
 const SENTINEL_STRING = "NEW";
-const SENTINEL_LIST: string[] = [];
 
 export const demonstrationResolvers = {
   Query: {
@@ -81,15 +80,6 @@ export const demonstrationResolvers = {
             currentPhase: {
               connect: { id: conceptPhaseId },
             },
-            ...(SENTINEL_LIST &&
-              stateId && {
-                userStateDemonstrations: {
-                  create: SENTINEL_LIST.map((userId: string) => ({
-                    userId,
-                    stateId,
-                  })),
-                },
-              }),
             projectOfficer: {
               connect: { id: projectOfficerUserId },
             },
@@ -104,7 +94,6 @@ export const demonstrationResolvers = {
     ) => {
       const {
         demonstrationStatusId,
-        userIds,
         stateId,
         projectOfficerUserId,
         effectiveDate,
@@ -160,15 +149,6 @@ export const demonstrationResolvers = {
               connect: { id: currentPhase },
             },
           }),
-          ...(userIds &&
-            existingStateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId: existingStateId,
-                })),
-              },
-            }),
           ...(projectOfficerUserId && {
             projectOfficer: {
               connect: { id: projectOfficerUserId },
@@ -224,12 +204,7 @@ export const demonstrationResolvers = {
     },
 
     projectOfficer: async (parent: Demonstration) => {
-      const user = await prisma().user.findUnique({
-        where: { id: parent.projectOfficerUserId },
-        include: { person: true },
-      });
-      if (!user) return null;
-      return resolveUser(user);
+      return await findUniqueUser(parent.projectOfficerUserId);
     },
 
     documents: async (parent: Demonstration) => {

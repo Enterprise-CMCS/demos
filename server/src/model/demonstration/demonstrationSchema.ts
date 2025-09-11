@@ -31,7 +31,6 @@ export const demonstrationSchema = gql`
     demonstrationStatus: DemonstrationStatus!
     state: State!
     currentPhase: Phase!
-    users: [User!]!
     projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
@@ -59,7 +58,6 @@ export const demonstrationSchema = gql`
     demonstrationStatusId: ID
     currentPhase: Phase
     stateId: ID
-    userIds: [ID!]
     projectOfficerUserId: String
   }
 
@@ -89,7 +87,6 @@ export interface Demonstration {
   demonstrationStatus: DemonstrationStatus;
   state: State;
   currentPhase: Phase;
-  users: User[];
   projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
@@ -119,6 +116,5 @@ export interface UpdateDemonstrationInput {
   demonstrationStatusId?: string;
   currentPhase?: Phase;
   stateId?: string;
-  userIds?: string[];
   projectOfficerUserId?: string;
 }

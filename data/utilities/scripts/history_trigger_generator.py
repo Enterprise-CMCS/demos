@@ -6,10 +6,7 @@ from textwrap import dedent
 from typing import List
 
 TBL_FOLDERS = [
-    "_rolePermission",
-    "_userRole",
-    "_userState",
-    "_userStateDemonstration",
+    "rolePermission",
     "bundle",
     "bundlePhaseStatus",
     "demonstration",
@@ -18,10 +15,8 @@ TBL_FOLDERS = [
     "documentPendingUpload",
     "modification",
     "modificationStatus",
-    "permission",
-    "role",
     "user",
-    "person",
+    "person"
 ]
 APP_SCHEMA = "demos_app"
 

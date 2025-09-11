@@ -6,6 +6,8 @@ import {
   PHASE,
   PHASE_STATUS,
   PERSON_TYPES,
+  GRANT_LEVELS,
+  ROLES,
 } from "./constants.js";
 
 export type { CreateUserInput, UpdateUserInput, User } from "./model/user/userSchema.js";
@@ -33,14 +35,6 @@ export type {
 
 export type { State } from "./model/state/stateSchema.js";
 
-export type { CreateRoleInput, Role, UpdateRoleInput } from "./model/role/roleSchema.js";
-
-export type {
-  CreatePermissionInput,
-  Permission,
-  UpdatePermissionInput,
-} from "./model/permission/permissionSchema.js";
-
 export type { Event, EventLoggedStatus, LogEventInput } from "./model/event/eventSchema.js";
 
 export type {
@@ -65,3 +59,5 @@ export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export type Phase = (typeof PHASE)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
+export type GrantLevel = (typeof GRANT_LEVELS)[number];
+export type Role = (typeof ROLES)[number];
