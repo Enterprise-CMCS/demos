@@ -4,7 +4,7 @@ model PersonState {
 
   person                       Person                        @relation(fields: [personId], references: [id])
   state                        State                         @relation(fields: [stateId], references: [id])
-  DemonstrationRoleAssignments DemonstrationRoleAssignment[]
+  demonstrationRoleAssignments DemonstrationRoleAssignment[]
 
   @@id([personId, stateId])
   @@map("person_state")
