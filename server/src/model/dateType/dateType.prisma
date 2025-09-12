@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model DateType {
+  id String
+
+  bundlePhaseDate BundlePhaseDate[]
+
+  @@id([id])
+  @@map("date_type")
+}
