@@ -2,7 +2,7 @@ import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
 import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
 
-export type DemonstrationStatus = "under_review" | "approved" | "rejected";
+export type DemonstrationStatus = "DEMONSTRATION_UNDER_REVIEW" | "DEMONSTRATION_APPROVED" | "DEMONSTRATION_DENIED";
 
 export interface ApplicationWorkflowDemonstration {
   status: DemonstrationStatus;

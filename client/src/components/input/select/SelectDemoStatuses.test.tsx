@@ -4,11 +4,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { SelectDemoStatuses } from "./SelectDemoStatuses";
-// No network or external constants needed; component uses local data
-
-
-// Optionally, if SelectDemoStatuses expects the statuses as a prop, pass them in the render calls.
-// Otherwise, ensure the component uses this constant internally or mock the import if needed.
 
 describe("<SelectDemoStatuses />", () => {
   it("filters and selects a status, calling onStatusChange with the name", async () => {
@@ -21,22 +16,22 @@ describe("<SelectDemoStatuses />", () => {
       />
     );
 
-    // Focus and type "pe" to match "Pending"
+    // Focus and type to match "Under Review"
     const input = screen.getByRole("textbox", { name: /select status/i });
     await userEvent.click(input);
-    await userEvent.type(input, "pe");
+    await userEvent.type(input, "revi");
 
-    // It should show only "Pending"
-    expect(screen.getByText("Pending")).toBeInTheDocument();
-    expect(screen.queryByText("On Hold")).toBeNull();
+    // It should show only "Under Review"
+    expect(screen.getByText("Under Review")).toBeInTheDocument();
+    expect(screen.queryByText("On-hold")).toBeNull();
     expect(screen.queryByText("Approved")).toBeNull();
 
-    // Click "Pending"
-    await userEvent.click(screen.getByText("Pending"));
+    // Click "Under Review"
+    await userEvent.click(screen.getByText("Under Review"));
 
-    // Callback should be called once with "Pending"
+    // Callback should be called once with "Under Review"
     expect(onStatusChange).toHaveBeenCalledTimes(1);
-    expect(onStatusChange).toHaveBeenCalledWith("Pending");
+    expect(onStatusChange).toHaveBeenCalledWith("Under Review");
   });
 
   it("shows 'No matches found' when nothing matches", async () => {

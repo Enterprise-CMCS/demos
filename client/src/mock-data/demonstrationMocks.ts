@@ -85,7 +85,6 @@ export const mockDemonstrations = [
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
-  demonstrationStatusId: mockDemonstrationStatuses.find((s) => s.name === "Pending")!.id,
   stateId: "CA",
   projectOfficerUserId: mockUsers[0].id,
 };
@@ -208,7 +207,7 @@ export const demonstrationMocks: MockedResponse[] = [
       variables: { input: mockAddDemonstrationInput },
     },
     result: {
-      data: { addDemonstration: mockDemonstrations[0] },
+      data: { createDemonstration: { success: true, message: "Created" } },
     },
   },
   {
@@ -223,7 +222,6 @@ export const demonstrationMocks: MockedResponse[] = [
           expirationDate: new Date(2025, 11, 1),
           demonstrationStatusId: "1",
           stateId: "1",
-          userIds: ["1"],
           projectOfficerUserId: "1",
         },
       },

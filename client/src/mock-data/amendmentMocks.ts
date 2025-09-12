@@ -13,7 +13,7 @@ export const mockAmendments = [
     name: "Amendment 1 - Montana Medicaid Waiver",
     effectiveDate: new Date(2025, 0, 1),
     projectOfficer: mockUsers[0],
-    amendmentStatus: mockDemonstrationStatuses.find((s) => s.name === "Pending")!,
+    amendmentStatus: mockDemonstrationStatuses.find((s) => s.name === "Under Review")!,
   },
   {
     id: "2",
@@ -34,7 +34,7 @@ export const mockAmendments = [
     name: "Amendment 4 - Florida Health Innovation",
     effectiveDate: new Date(2025, 3, 1),
     projectOfficer: mockUsers[2],
-    amendmentStatus: mockDemonstrationStatuses.find((s) => s.name === "Pending")!,
+    amendmentStatus: mockDemonstrationStatuses.find((s) => s.name === "Under Review")!,
   },
   {
     id: "5",

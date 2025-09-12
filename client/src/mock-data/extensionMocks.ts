@@ -13,7 +13,7 @@ export const mockExtensions = [
     name: "Extension 1 - Montana Medicaid Waiver",
     effectiveDate: new Date(2025, 0, 1),
     projectOfficer: mockUsers[0],
-    extensionStatus: mockDemonstrationStatuses.find((s) => s.name === "Pending")!,
+    extensionStatus: mockDemonstrationStatuses.find((s) => s.name === "Under Review")!,
   },
   {
     id: "2",

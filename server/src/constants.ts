@@ -30,11 +30,12 @@ export const CMCS_DIVISION = [
 ] as const;
 
 export const DEMONSTRATION_STATUSES = [
-  { id: "DEMONSTRATION_ON_HOLD", name: "On Hold" },
+  { id: "DEMONSTRATION_PRE-SUBMISSION", name: "Pre-Submission" },
   { id: "DEMONSTRATION_UNDER_REVIEW", name: "Under Review" },
-  { id: "DEMONSTRATION_PENDING", name: "Pending" },
-  { id: "DEMONSTRATION_SUBMITTED", name: "Submitted" },
   { id: "DEMONSTRATION_APPROVED", name: "Approved" },
+  { id: "DEMONSTRATION_DENIED", name: "Denied" },
+  { id: "DEMONSTRATION_WITHDRAWN", name: "Withdrawn" },
+  { id: "DEMONSTRATION_ON-HOLD", name: "On-hold" },
 ] as const;
 
 

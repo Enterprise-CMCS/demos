@@ -23,7 +23,7 @@ describe("ExtensionTable", () => {
     const row1 = screen
       .getByText("Extension 1 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
-    expect(within(row1).getByText("Pending")).toBeInTheDocument();
+    expect(within(row1).getByText("Under Review")).toBeInTheDocument();
     expect(within(row1).getByText("01/01/2025")).toBeInTheDocument();
 
     const row2 = screen
@@ -62,7 +62,7 @@ describe("AmendmentTable", () => {
     const row1 = screen
       .getByText("Amendment 1 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
-    expect(within(row1).getByText("Pending")).toBeInTheDocument();
+    expect(within(row1).getByText("Under Review")).toBeInTheDocument();
     expect(within(row1).getByText("01/01/2025")).toBeInTheDocument();
 
     const row2 = screen
