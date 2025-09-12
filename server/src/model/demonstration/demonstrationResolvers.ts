@@ -4,7 +4,6 @@ import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType, Phase } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
-import { findUniqueUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -25,14 +24,7 @@ export const demonstrationResolvers = {
 
   Mutation: {
     createDemonstration: async (_: undefined, { input }: { input: CreateDemonstrationInput }) => {
-      const {
-        demonstrationStatusId,
-        stateId,
-        projectOfficerUserId,
-        cmcsDivision,
-        signatureLevel,
-        ...rest
-      } = input;
+      const { demonstrationStatusId, stateId, cmcsDivision, signatureLevel, ...rest } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -71,9 +63,6 @@ export const demonstrationResolvers = {
             currentPhase: {
               connect: { id: conceptPhaseId },
             },
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
           },
         });
       });
@@ -86,7 +75,6 @@ export const demonstrationResolvers = {
       const {
         demonstrationStatusId,
         stateId,
-        projectOfficerUserId,
         effectiveDate,
         expirationDate,
         cmcsDivision,
@@ -140,11 +128,6 @@ export const demonstrationResolvers = {
               connect: { id: currentPhase },
             },
           }),
-          ...(projectOfficerUserId && {
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          }),
         },
       });
     },
@@ -167,10 +150,6 @@ export const demonstrationResolvers = {
       return await prisma().demonstrationStatus.findUnique({
         where: { id: parent.demonstrationStatusId },
       });
-    },
-
-    projectOfficer: async (parent: Demonstration) => {
-      return await findUniqueUser(parent.projectOfficerUserId);
     },
 
     documents: async (parent: Demonstration) => {
@@ -209,6 +188,17 @@ export const demonstrationResolvers = {
 
     currentPhase: async (parent: Demonstration) => {
       return parent.currentPhaseId;
+    },
+
+    roles: async (parent: Demonstration) => {
+      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
+        where: { demonstrationId: parent.id },
+        include: { primaryDemonstrationRoleAssignment: true },
+      });
+      return roleAssignments.map((assignment) => ({
+        ...assignment,
+        isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
+      }));
     },
   },
 };

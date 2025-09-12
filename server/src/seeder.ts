@@ -237,7 +237,6 @@ async function seedDatabase() {
           demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
           stateId: person.personStates[0].stateId,
           currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
-          projectOfficerUserId: (await prisma().user.findRandom())!.id,
         },
       }),
       prisma().demonstrationRoleAssignment.create({
@@ -307,7 +306,6 @@ async function seedDatabase() {
           where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
         }))!.id,
         currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
-        projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
   }
@@ -336,7 +334,6 @@ async function seedDatabase() {
           where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
         }))!.id,
         currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
-        projectOfficerUserId: (await prisma().user.findRandom())!.id,
       },
     });
   }

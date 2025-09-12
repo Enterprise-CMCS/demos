@@ -9,7 +9,6 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
-import { findUniqueUser } from "../user/userResolvers.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -19,10 +18,6 @@ async function getDemonstration(parent: Modification) {
   return await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
-}
-
-async function getProjectOfficer(parent: Modification) {
-  return await findUniqueUser(parent.projectOfficerUserId);
 }
 
 async function getDocuments(parent: Modification) {
@@ -73,7 +68,7 @@ export const modificationResolvers = {
 
   Mutation: {
     createAmendment: async (_: undefined, { input }: { input: CreateAmendmentInput }) => {
-      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
+      const { demonstrationId, amendmentStatusId, ...rest } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -106,9 +101,6 @@ export const modificationResolvers = {
             currentPhase: {
               connect: { id: conceptPhaseId },
             },
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
             ...rest,
           },
         });
@@ -119,8 +111,7 @@ export const modificationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateAmendmentInput }
     ) => {
-      const { demonstrationId, amendmentStatusId, currentPhase, projectOfficerUserId, ...rest } =
-        input;
+      const { demonstrationId, amendmentStatusId, currentPhase, ...rest } = input;
 
       return await prisma().modification.update({
         where: {
@@ -148,11 +139,6 @@ export const modificationResolvers = {
               connect: { id: currentPhase },
             },
           }),
-          ...(projectOfficerUserId && {
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          }),
           ...rest,
         },
       });
@@ -168,7 +154,7 @@ export const modificationResolvers = {
     },
 
     addExtension: async (_: undefined, { input }: { input: AddExtensionInput }) => {
-      const { demonstrationId, extensionStatusId, projectOfficerUserId, ...rest } = input;
+      const { demonstrationId, extensionStatusId, ...rest } = input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -201,9 +187,6 @@ export const modificationResolvers = {
             currentPhase: {
               connect: { id: conceptPhaseId },
             },
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
             ...rest,
           },
         });
@@ -214,8 +197,7 @@ export const modificationResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateExtensionInput }
     ) => {
-      const { demonstrationId, extensionStatusId, currentPhase, projectOfficerUserId, ...rest } =
-        input;
+      const { demonstrationId, extensionStatusId, currentPhase, ...rest } = input;
 
       return await prisma().modification.update({
         where: {
@@ -241,11 +223,6 @@ export const modificationResolvers = {
           ...(currentPhase && {
             currentPhase: {
               connect: { id: currentPhase },
-            },
-          }),
-          ...(projectOfficerUserId && {
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
             },
           }),
           ...rest,
@@ -277,7 +254,6 @@ export const modificationResolvers = {
       });
     },
 
-    projectOfficer: getProjectOfficer,
     documents: getDocuments,
     currentPhase: getCurrentPhase,
   },
@@ -296,7 +272,6 @@ export const modificationResolvers = {
       });
     },
 
-    projectOfficer: getProjectOfficer,
     documents: getDocuments,
     currentPhase: getCurrentPhase,
   },

@@ -11,8 +11,6 @@ import {
   DATE_TYPES,
 } from "./constants.js";
 
-export type { CreateUserInput, UpdateUserInput, User } from "./model/user/userSchema.js";
-
 export type {
   CreateDemonstrationInput,
   Demonstration,

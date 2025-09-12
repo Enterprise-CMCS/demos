@@ -3,8 +3,8 @@ import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusS
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
-import { User } from "../user/userSchema.js";
 import { CmcsDivision, SignatureLevel, Phase } from "../../types.js";
+import { DemonstrationRoleAssignment } from "../demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
 
 export const demonstrationSchema = gql`
   """
@@ -20,6 +20,7 @@ export const demonstrationSchema = gql`
   - OGD
   """
   scalar SignatureLevel
+
   type Demonstration {
     id: ID!
     name: String!
@@ -31,12 +32,12 @@ export const demonstrationSchema = gql`
     demonstrationStatus: DemonstrationStatus!
     state: State!
     currentPhase: Phase!
-    projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+    roles: [DemonstrationRoleAssignment!]!
   }
 
   input CreateDemonstrationInput {
@@ -46,7 +47,6 @@ export const demonstrationSchema = gql`
     signatureLevel: SignatureLevel
     demonstrationStatusId: ID!
     stateId: ID!
-    projectOfficerUserId: String!
   }
 
   input UpdateDemonstrationInput {
@@ -59,15 +59,11 @@ export const demonstrationSchema = gql`
     demonstrationStatusId: ID
     currentPhase: Phase
     stateId: ID
-    projectOfficerUserId: String
   }
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
-    updateDemonstration(
-      id: ID!
-      input: UpdateDemonstrationInput!
-    ): Demonstration
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
@@ -88,12 +84,12 @@ export interface Demonstration {
   demonstrationStatus: DemonstrationStatus;
   state: State;
   currentPhase: Phase;
-  projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
   createdAt: Date;
   updatedAt: Date;
+  roles: DemonstrationRoleAssignment[];
 }
 
 export interface CreateDemonstrationInput {
@@ -103,7 +99,6 @@ export interface CreateDemonstrationInput {
   signatureLevel?: SignatureLevel;
   demonstrationStatusId: string;
   stateId: string;
-  projectOfficerUserId: string;
 }
 
 export interface UpdateDemonstrationInput {
@@ -116,5 +111,4 @@ export interface UpdateDemonstrationInput {
   demonstrationStatusId?: string;
   currentPhase?: Phase;
   stateId?: string;
-  projectOfficerUserId?: string;
 }
