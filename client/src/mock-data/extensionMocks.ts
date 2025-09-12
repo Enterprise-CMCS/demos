@@ -13,20 +13,20 @@ export const mockExtensions = [
     name: "Extension 1 - Montana Medicaid Waiver",
     effectiveDate: new Date(2025, 0, 1),
     projectOfficer: mockUsers[0],
-    extensionStatus: mockDemonstrationStatuses[2],
+    extensionStatus: mockDemonstrationStatuses.find((s) => s.name === "Pending")!,
   },
   {
     id: "2",
     name: "Extension 2 - Montana Medicaid Waiver",
     effectiveDate: new Date(2025, 1, 1),
     projectOfficer: mockUsers[1],
-    extensionStatus: mockDemonstrationStatuses[1],
+    extensionStatus: mockDemonstrationStatuses.find((s) => s.name === "Approved")!,
   },
   {
     id: "3",
     name: "Extension 3 - Montana Medicaid Waiver",
     effectiveDate: null,
     projectOfficer: mockUsers[1],
-    extensionStatus: mockDemonstrationStatuses[1],
+    extensionStatus: mockDemonstrationStatuses.find((s) => s.name === "Approved")!,
   },
 ] as const satisfies MockExtension[];

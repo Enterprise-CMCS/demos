@@ -1,13 +1,7 @@
 import { DemonstrationStatus } from "demos-server";
+import { demonstrationStatuses } from "data/DemonstrationStatuses";
 
 export type MockDemonstrationStatus = Pick<DemonstrationStatus, "id" | "name">;
 
-export const mockDemonstrationStatuses = [
-  { id: "1", name: "Pending" },
-  { id: "2", name: "Approved" },
-  { id: "3", name: "Active" },
-  { id: "4", name: "Rejected" },
-  { id: "5", name: "Inactive" },
-  { id: "6", name: "Expired" },
-  { id: "7", name: "Withdrawn" },
-] as const satisfies MockDemonstrationStatus[];
+export const mockDemonstrationStatuses: readonly MockDemonstrationStatus[] =
+  demonstrationStatuses;

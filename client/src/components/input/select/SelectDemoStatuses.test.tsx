@@ -4,18 +4,27 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { SelectDemoStatuses } from "./SelectDemoStatuses";
+import { DEMONSTRATION_STATUS_OPTIONS_QUERY } from "queries/demonstrationQueries";
 
 // Mock the JSON import
-vi.mock(
-  "faker_data/demonstrationStatuses.json",
-  () => ({
-    default: [
-      { id: 1, name: "On Hold", deletedAt: null, createdAt: "", updatedAt: "" },
-      { id: 2, name: "Pending", deletedAt: null, createdAt: "", updatedAt: "" },
-      { id: 3, name: "Approved", deletedAt: null, createdAt: "", updatedAt: "" },
-    ],
-  })
-);
+const mocks = [
+  {
+    request: { query: DEMONSTRATION_STATUS_OPTIONS_QUERY },
+    result: {
+      data: {
+        demonstrationStatuses: [
+          { id: "1", name: "On Hold" },
+          { id: "2", name: "Pending" },
+          { id: "3", name: "Approved" },
+        ],
+      },
+    },
+  },
+];
+
+
+// Optionally, if SelectDemoStatuses expects the statuses as a prop, pass them in the render calls.
+// Otherwise, ensure the component uses this constant internally or mock the import if needed.
 
 describe("<SelectDemoStatuses />", () => {
   it("filters and selects a status, calling onStatusChange with the name", async () => {

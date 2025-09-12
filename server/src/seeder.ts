@@ -166,8 +166,15 @@ async function seedDatabase() {
       });
     }
   }
-
-  const baseStatuses = ["New", "In Progress", "On Hold", "Completed"];
+  // Accurate based on spec
+  const baseStatuses = [
+    "Pre-Submission",
+    "Under Review",
+    "Approved",
+    "Denied",
+    "Withdrawn",
+    "On-hold",
+  ];
 
   console.log("🌱 Seeding demonstration statuses...");
   for (const statusName of baseStatuses) {
