@@ -1,5 +1,11 @@
 import { gql } from "graphql-tag";
 
+import { bundlePhaseSchema } from "./bundlePhase/bundlePhaseSchema.js";
+import { bundlePhaseResolvers } from "./bundlePhase/bundlePhaseResolvers.js";
+
+import { bundlePhaseDateSchema } from "./bundlePhaseDate/bundlePhaseDateSchema.js";
+import { bundlePhaseDateResolvers } from "./bundlePhaseDate/bundlePhaseDateResolvers.js";
+
 import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
 
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
@@ -65,6 +71,8 @@ const mockDemonstrationResolverExtension = {
 };
 
 export const typeDefs = [
+  bundlePhaseSchema,
+  bundlePhaseDateSchema,
   dateTypeSchema,
   demonstrationSchema,
   demonstrationStatusSchema,
@@ -83,6 +91,8 @@ export const typeDefs = [
 ];
 
 export const resolvers = [
+  bundlePhaseResolvers,
+  bundlePhaseDateResolvers,
   demonstrationResolvers,
   demonstrationStatusResolvers,
   documentResolvers,

@@ -53,6 +53,9 @@ export type {
   UpdateDocumentInput,
 } from "./model/document/documentSchema.js";
 
+export type { BundlePhase } from "./model/bundlePhase/bundlePhaseSchema.js";
+export type { BundlePhaseDate } from "./model/bundlePhaseDate/bundlePhaseDateSchema.js";
+
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
 export type CmcsDivision = (typeof CMCS_DIVISION)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];

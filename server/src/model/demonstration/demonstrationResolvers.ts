@@ -210,5 +210,13 @@ export const demonstrationResolvers = {
     currentPhase: async (parent: Demonstration) => {
       return parent.currentPhaseId;
     },
+
+    phases: async (parent: Demonstration) => {
+      return await prisma().bundlePhase.findMany({
+        where: {
+          bundleId: parent.id,
+        },
+      });
+    },
   },
 };

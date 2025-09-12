@@ -4,7 +4,7 @@ import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
 import { User } from "../user/userSchema.js";
-import { CmcsDivision, SignatureLevel, Phase } from "../../types.js";
+import { CmcsDivision, SignatureLevel, Phase, BundlePhase } from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
@@ -31,6 +31,7 @@ export const demonstrationSchema = gql`
     demonstrationStatus: DemonstrationStatus!
     state: State!
     currentPhase: Phase!
+    phases: [BundlePhase!]!
     projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
@@ -64,10 +65,7 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
-    updateDemonstration(
-      id: ID!
-      input: UpdateDemonstrationInput!
-    ): Demonstration
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
@@ -88,6 +86,7 @@ export interface Demonstration {
   demonstrationStatus: DemonstrationStatus;
   state: State;
   currentPhase: Phase;
+  phases: BundlePhase[];
   projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
