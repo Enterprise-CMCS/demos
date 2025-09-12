@@ -164,8 +164,8 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
             <SelectUsers
               label="Project Officer"
               isRequired
-              currentUserId={projectOfficer}
-              onStateChange={setProjectOfficer}
+              initialUserId={projectOfficer}
+              onSelect={setProjectOfficer}
             />
           </div>
           {mode === "edit" && (

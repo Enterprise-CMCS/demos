@@ -234,10 +234,10 @@ const DemonstrationDialog: React.FC<{
           <div className="col-span-2">
             <SelectUsers
               label="Project Officer"
-              isRequired
-              value={activeDemonstration.projectOfficerId}
-              onStateChange={(projectOfficerId) =>
-                setActiveDemonstration((prev) => ({ ...prev, projectOfficerId }))
+              isRequired={true}
+              initialUserId={activeDemonstration.projectOfficerId}
+              onSelect={(userId) =>
+                setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }))
               }
             />
           </div>
@@ -295,7 +295,7 @@ export const CreateDemonstrationDialog: React.FC<{
     name: demonstration.name,
     description: demonstration.description,
     stateId: demonstration.stateId,
-    projectOfficerUserId: "00000000-1111-2222-3333-123abc123abc",
+    projectOfficerUserId: demonstration.projectOfficerId,
     cmcsDivision: demonstration.cmcsDivision,
     signatureLevel: demonstration.signatureLevel,
   });
@@ -307,6 +307,7 @@ export const CreateDemonstrationDialog: React.FC<{
           input: getCreateDemonstrationInput(demonstration),
         },
       });
+      onClose();
       showSuccess(SUCCESS_MESSAGES.create);
     } catch {
       showError(ERROR_MESSAGES.create);
@@ -354,6 +355,7 @@ export const EditDemonstrationDialog: React.FC<{
           input: getUpdateDemonstrationInput(demonstration),
         },
       });
+      onClose();
       showSuccess(SUCCESS_MESSAGES.edit);
     } catch {
       showError(ERROR_MESSAGES.edit);
