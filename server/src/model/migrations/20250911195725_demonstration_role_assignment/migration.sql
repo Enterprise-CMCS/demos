@@ -272,6 +272,16 @@ RETURNS TRIGGER AS $$
 BEGIN
     -- Only check on DELETE or UPDATE that changes the role away from Project Officer
     IF TG_OP = 'DELETE' OR (TG_OP = 'UPDATE' AND OLD.role_id != NEW.role_id) THEN
+        -- First check if the demonstration still exists (skip constraint if demonstration is being deleted)
+        IF NOT EXISTS (
+            SELECT 1 
+            FROM demos_app.demonstration 
+            WHERE id = OLD.demonstration_id
+        ) THEN
+            -- Demonstration is being deleted, so we don't need to enforce the constraint
+            RETURN COALESCE(NEW, OLD);
+        END IF;
+
         -- Check if this was the last primary project officer for the demonstration
         IF NOT EXISTS (
             SELECT 1 

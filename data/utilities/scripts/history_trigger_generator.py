@@ -7,7 +7,8 @@ from typing import List
 
 TBL_FOLDERS = [
     "bundle",
-    "bundlePhaseStatus",
+    "bundlePhase",
+    "bundlePhaseDate",
     "demonstration",
     "demonstrationRoleAssignment",
     "demonstrationStatus",

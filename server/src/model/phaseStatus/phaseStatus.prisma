@@ -2,7 +2,7 @@
 model PhaseStatus {
   id String
 
-  bundlePhaseStatuses BundlePhaseStatus[]
+  bundlePhases BundlePhase[]
 
   @@id([id])
   @@map("phase_status")

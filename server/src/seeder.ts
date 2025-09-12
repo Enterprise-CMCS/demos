@@ -32,11 +32,11 @@ function makeIdStyleString(inputString: string): string {
   return inputString.toUpperCase().replace(/ /g, "_").replace(/\./g, "");
 }
 
-function clearDatabase() {
+async function clearDatabase() {
   // Note: the history tables are not truncated in this process
   // Almost always, this runs via npm run seed which empties the DB anyway
   // However, if this does not happen, the history tables will contain the truncates
-  return prisma().$transaction([
+  return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
     // Start with join tables
     prisma().rolePermission.deleteMany(),
@@ -47,14 +47,20 @@ function clearDatabase() {
     // Delete various bundle types
     prisma().modification.deleteMany(),
     prisma().modificationStatus.deleteMany(),
+    prisma().primaryDemonstrationRoleAssignment.deleteMany(),
+    prisma().demonstrationRoleAssignment.deleteMany(),
     prisma().demonstration.deleteMany(),
     prisma().demonstrationStatus.deleteMany(),
+
+    prisma().personState.deleteMany(),
 
     // States are only connected to specific bundles and to the join tables
     prisma().state.deleteMany(),
 
+    prisma().bundlePhaseDate.deleteMany(),
+
     // Phases and accompanying items
-    prisma().bundlePhaseStatus.deleteMany(),
+    prisma().bundlePhase.deleteMany(),
 
     // Documents, which are attached to bundles
     prisma().document.deleteMany(),
