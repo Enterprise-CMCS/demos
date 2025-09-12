@@ -5,6 +5,7 @@ import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
 const GET_USER_SELECT_OPTIONS_QUERY = gql`
   query GetUserSelectOptions {
     users {
+      id
       fullName
     }
   }
@@ -15,13 +16,8 @@ interface UserSelectQueryResult {
 }
 
 export interface SelectUsersProps {
-  // New prop
-  onSelect?: (id: string) => void;
-  // Back-compat props used in various dialogs
-  onStateChange?: (id: string) => void;
+  onSelect: (id: string) => void;
   initialUserId?: string;
-  currentUserId?: string;
-  value?: string;
   label?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
@@ -36,23 +32,17 @@ const getOptionsFromQueryResult = (queryResult: UserSelectQueryResult): Option[]
 
 export const SelectUsers: React.FC<SelectUsersProps> = ({
   onSelect,
-  onStateChange,
   initialUserId,
-  currentUserId,
-  value,
   label = "Users",
   isRequired = false,
   isDisabled = false,
 }) => {
-  const [selectedUserId, setSelectedUserId] = React.useState<string>(
-    value ?? initialUserId ?? currentUserId ?? ""
-  );
+  const [selectedUserId, setSelectedUserId] = React.useState<string>(initialUserId || "");
   const { data, loading, error } = useQuery<UserSelectQueryResult>(GET_USER_SELECT_OPTIONS_QUERY);
 
   const handleSelect = (id: string) => {
     setSelectedUserId(id);
-    onSelect?.(id);
-    onStateChange?.(id);
+    onSelect(id);
   };
 
   if (loading) return <p>Loading...</p>;
@@ -68,7 +58,7 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
       onSelect={handleSelect}
       isRequired={isRequired}
       isDisabled={isDisabled || loading || !!error}
-      value={value ?? selectedUserId}
+      value={selectedUserId}
     />
   );
 };
