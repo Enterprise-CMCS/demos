@@ -1,5 +1,7 @@
 import { gql } from "graphql-tag";
 
+import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
+
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
 
@@ -17,14 +19,9 @@ import { modificationStatusSchema } from "./modificationStatus/modificationStatu
 import { modificationResolvers } from "./modification/modificationResolvers.js";
 import { modificationStatusResolvers } from "./modificationStatus/modificationStatusResolvers.js";
 
-import { permissionSchema } from "./permission/permissionSchema.js";
-import { permissionResolvers } from "./permission/permissionResolvers.js";
-
 import { phaseSchema } from "./phase/phaseSchema.js";
-import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 
-import { roleSchema } from "./role/roleSchema.js";
-import { roleResolvers } from "./role/roleResolvers.js";
+import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 
 import { stateSchema } from "./state/stateSchema.js";
 import { stateResolvers } from "./state/stateResolvers.js";
@@ -34,6 +31,7 @@ import { userResolvers } from "./user/userResolvers.js";
 
 import { JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition } from "graphql-scalars";
 import { personTypeSchema } from "./personType/personTypeSchema.js";
+import { roleSchema } from "./role/roleSchema.js";
 
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
@@ -67,20 +65,20 @@ const mockDemonstrationResolverExtension = {
 };
 
 export const typeDefs = [
+  dateTypeSchema,
   demonstrationSchema,
   demonstrationStatusSchema,
   documentSchema,
   eventSchema,
   modificationSchema,
   modificationStatusSchema,
-  permissionSchema,
   phaseSchema,
   phaseStatusSchema,
-  roleSchema,
   stateSchema,
   userSchema,
   personTypeSchema,
   mockDemonstrationSchemaExtension,
+  roleSchema,
   ...scalarTypes,
 ];
 
@@ -91,8 +89,6 @@ export const resolvers = [
   eventResolvers,
   modificationResolvers,
   modificationStatusResolvers,
-  permissionResolvers,
-  roleResolvers,
   stateResolvers,
   userResolvers,
   mockDemonstrationResolverExtension,

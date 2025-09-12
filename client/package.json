@@ -73,7 +73,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@mui/x-date-pickers": "^8.5.0",
+    "@mui/x-date-pickers": "^8.10.2",
     "@tanstack/react-table": "^8.21.3",
     "@testing-library/user-event": "^14.6.1",
     "date-fns": "^4.1.0",

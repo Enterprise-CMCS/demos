@@ -1,9 +1,20 @@
+export const ROLES = [
+  "Project Officer",
+  "State Point of Contact",
+  "DDME Analyst",
+  "Policy Technical Director",
+  "Monitoring & Evaluation Technical Director",
+  "All Users",
+] as const;
+
 export const PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",
   "demos-state-user",
   "non-user-contact",
 ] as const;
+
+export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
 export const BUNDLE_TYPE = {
   DEMONSTRATION: "DEMONSTRATION",
@@ -33,16 +44,18 @@ export const DOCUMENT_TYPES = [
   "State Application",
 ] as const;
 
-export const PHASE = [
-  "None",
-  "Concept",
-  "State Application",
-  "Completeness",
-] as const;
+export const PHASE = ["None", "Concept", "State Application", "Completeness"] as const;
 
-export const PHASE_STATUS = [
-  "Not Started",
-  "Started",
-  "Completed",
-  "Skipped",
-] as const;
+export const PHASE_STATUS = ["Not Started", "Started", "Completed", "Skipped"] as const;
+
+export const DATE_TYPES = [
+  "Start Date",
+  "Completion Date",
+  "Pre-Submission Submitted Date",
+  "State Application Submitted Date",
+  "Completeness Review Due Date",
+  "Completeness Due Date",
+  "State Application Deemed Complete",
+  "Federal Comment Period Start Date",
+  "Federal Comment Period End Date",
+];

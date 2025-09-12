@@ -27,13 +27,11 @@ export const johnDoe: User = {
   username: "johndoe",
   email: "johndoe@example.com",
   displayName: "John",
-  roles: [],
-  states: [],
-  demonstrations: [],
   events: [],
   ownedDocuments: [],
   createdAt: new Date(),
   updatedAt: new Date(),
+  roles: ["All Users"],
 };
 
 export const userOptions: Pick<User, "fullName">[] = [
@@ -71,7 +69,7 @@ const currentUserResult = {
       email: "johndoe@example.com",
       fullName: "John Doe",
       displayName: "John",
-      roles: [],
+      personTypeId: "demos-cms-user",
     },
   },
 };

@@ -9,7 +9,7 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
-import { resolveUser } from "../user/userResolvers.js";
+import { findUniqueUser } from "../user/userResolvers.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -22,12 +22,7 @@ async function getDemonstration(parent: Modification) {
 }
 
 async function getProjectOfficer(parent: Modification) {
-  const user = await prisma().user.findUnique({
-    where: { id: parent.projectOfficerUserId },
-    include: { person: true },
-  });
-  if (!user) return null;
-  return resolveUser(user);
+  return await findUniqueUser(parent.projectOfficerUserId);
 }
 
 async function getDocuments(parent: Modification) {

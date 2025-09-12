@@ -5,13 +5,10 @@ import * as UserContext from "components/user/UserContext";
 import { DemosApolloProvider } from "router/DemosApolloProvider";
 import { vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
+import { PersonType } from "demos-server";
 
 // Mock UserContext
 vi.mock("components/user/UserContext", () => ({
@@ -62,7 +59,7 @@ describe("DefaultHeaderLower", () => {
     email: "john@test.com",
     fullName: "John Test",
     displayName: "John Test",
-    roles: [],
+    personTypeId: "demos-cms-user" as PersonType,
   };
 
   afterEach(() => {
