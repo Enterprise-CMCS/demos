@@ -5,9 +5,10 @@ model BundlePhase {
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  bundle      Bundle      @relation(fields: [bundleId], references: [id])
-  phase       Phase       @relation(fields: [phaseId], references: [id])
-  phaseStatus PhaseStatus @relation(fields: [phaseStatusId], references: [id])
+  bundle          Bundle            @relation(fields: [bundleId], references: [id])
+  phase           Phase             @relation(fields: [phaseId], references: [id])
+  phaseStatus     PhaseStatus       @relation(fields: [phaseStatusId], references: [id])
+  bundlePhaseDate BundlePhaseDate[]
 
   @@id([bundleId, phaseId])
   @@map("bundle_phase")

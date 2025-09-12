@@ -1,5 +1,7 @@
 import { gql } from "graphql-tag";
 
+import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
+
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
 
@@ -18,6 +20,7 @@ import { modificationResolvers } from "./modification/modificationResolvers.js";
 import { modificationStatusResolvers } from "./modificationStatus/modificationStatusResolvers.js";
 
 import { phaseSchema } from "./phase/phaseSchema.js";
+
 import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 
 import { stateSchema } from "./state/stateSchema.js";
@@ -62,6 +65,7 @@ const mockDemonstrationResolverExtension = {
 };
 
 export const typeDefs = [
+  dateTypeSchema,
   demonstrationSchema,
   demonstrationStatusSchema,
   documentSchema,
