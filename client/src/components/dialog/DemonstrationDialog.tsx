@@ -73,7 +73,7 @@ const SubmitButton: React.FC<{
 }> = ({ activeDemonstration, isSubmitting }) => {
   return (
     <Button
-      name="submit"
+      name="button-submit-demonstration-dialog"
       size="small"
       disabled={
         !(
@@ -198,7 +198,11 @@ const DemonstrationDialog: React.FC<{
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton name="cancel" size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton
+            name="button-cancel-demonstration-dialog"
+            size="small"
+            onClick={() => setShowCancelConfirm(true)}
+          >
             Cancel
           </SecondaryButton>
           <SubmitButton activeDemonstration={activeDemonstration} isSubmitting={isSubmitting} />
