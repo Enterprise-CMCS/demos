@@ -249,9 +249,8 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 
         FROM demos_app.primary_demonstration_role_assignment pdra
-        JOIN demos_app.role r ON pdra.role_id = r.id
         WHERE pdra.demonstration_id = NEW.id 
-        AND r.name = 'Project Officer'
+        AND pdra.role_id = 'Project Officer'
     ) THEN
         RAISE EXCEPTION 'Demonstration % must have a primary project officer assigned', NEW.id;
     END IF;
@@ -277,9 +276,8 @@ BEGIN
         IF NOT EXISTS (
             SELECT 1 
             FROM demos_app.primary_demonstration_role_assignment pdra
-            JOIN demos_app.role r ON pdra.role_id = r.id
             WHERE pdra.demonstration_id = OLD.demonstration_id
-            AND r.name = 'Project Officer'
+            AND pdra.role_id = 'Project Officer'
             AND (TG_OP = 'DELETE' OR pdra.role_id != OLD.role_id)
         ) THEN
             RAISE EXCEPTION 'Cannot remove the last primary project officer from demonstration %', 

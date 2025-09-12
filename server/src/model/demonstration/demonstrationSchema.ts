@@ -64,7 +64,7 @@ export const demonstrationSchema = gql`
 
   input AddPeopleToDemonstrationInput {
     personId: String!
-    roleId: Role!
+    role: Role!
   }
 
   type Mutation {
@@ -112,7 +112,7 @@ export interface CreateDemonstrationInput {
 
 export interface AddPeopleToDemonstrationInput {
   personId: string;
-  roleId: Role;
+  role: Role;
 }
 
 export interface RemovePeopleFromDemonstrationInput {

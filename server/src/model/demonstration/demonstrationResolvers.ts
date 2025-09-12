@@ -183,7 +183,7 @@ export const demonstrationResolvers = {
           data: {
             personId: roleAssignment.personId,
             demonstrationId: demonstration.id,
-            roleId: roleAssignment.roleId,
+            roleId: roleAssignment.role,
             stateId: demonstration.stateId,
             personTypeId: person.personTypeId,
             grantLevelId: "Demonstration",

@@ -145,6 +145,22 @@ async function seedDatabase() {
     });
   }
 
+  console.log("🌱 Seeding person states...");
+  const allPeople = await prisma().person.findMany();
+  for (const person of allPeople) {
+    // for now, just adding one state to each person
+    const state = await prisma().state.findRandom();
+    if (!state) {
+      throw new Error("No states found to assign to person");
+    }
+    await prisma().personState.create({
+      data: {
+        personId: person.id,
+        stateId: state.id,
+      },
+    });
+  }
+
   console.log("🌱 Seeding system role assignments...");
   // for each user, assign a random set of roles from the system roles
   const systemRoles = await prisma().role.findMany({
@@ -189,22 +205,46 @@ async function seedDatabase() {
         },
       },
     });
-    await prisma().demonstration.create({
-      data: {
-        id: bundle.id,
-        bundleTypeId: BUNDLE_TYPE.DEMONSTRATION,
-        name: faker.lorem.words(3),
-        description: faker.lorem.sentence(),
-        effectiveDate: faker.date.future(),
-        expirationDate: faker.date.future({ years: 1 }),
-        cmcsDivisionId: sampleFromArray([...CMCS_DIVISION, null], 1)[0],
-        signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
-        demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
-        stateId: (await prisma().state.findRandom())!.id,
-        currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
-        projectOfficerUserId: (await prisma().user.findRandom())!.id,
-      },
+
+    const person = await prisma().person.findRandom({
+      where: { personTypeId: "demos-cms-user" },
+      include: { personStates: true },
     });
+    if (!person) {
+      throw new Error(
+        "No person with personTypeId demos-cms-user found to assign as project officer"
+      );
+    }
+
+    // within the same transaction, create the demonstration and assign a project officer
+    prisma().$transaction([
+      prisma().demonstration.create({
+        data: {
+          id: bundle.id,
+          bundleTypeId: BUNDLE_TYPE.DEMONSTRATION,
+          name: faker.lorem.words(3),
+          description: faker.lorem.sentence(),
+          effectiveDate: faker.date.future(),
+          expirationDate: faker.date.future({ years: 1 }),
+          cmcsDivisionId: sampleFromArray([...CMCS_DIVISION, null], 1)[0],
+          signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
+          demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
+          stateId: person.personStates[0].stateId,
+          currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
+          projectOfficerUserId: (await prisma().user.findRandom())!.id,
+        },
+      }),
+      prisma().demonstrationRoleAssignment.create({
+        data: {
+          personId: person.id,
+          demonstrationId: bundle.id,
+          roleId: "Project Officer",
+          stateId: person.personStates[0].stateId,
+          personTypeId: person.personTypeId,
+          grantLevelId: "Demonstration",
+        },
+      }),
+    ]);
   }
 
   console.log("🌱 Seeding amendment statuses...");
