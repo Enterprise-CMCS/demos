@@ -1,7 +1,9 @@
 import React from "react";
-import { HomeIcon, ReviewIcon, SaveIcon } from "icons";
+import { HomeIcon, ReviewIcon, SaveIcon, OnHoldIcon, UndoIcon, SubmitIcon } from "icons";
 import { tw } from "tags/tw";
-import { DemonstrationStatus } from "./ApplicationWorkflow";
+import { DEMONSTRATION_STATUSES } from "demos-server-constants";
+
+type DemonstrationStatusId = (typeof DEMONSTRATION_STATUSES)[number]["id"];
 
 const BASE_STYLES =
   tw`whitespace-nowrap h-full min-h-3 flex items-center gap-xs ml-auto text-lg`;
@@ -9,10 +11,17 @@ const BASE_STYLES =
 export const DemonstrationStatusBadge = ({
   demonstrationStatus,
 }: {
-  demonstrationStatus: DemonstrationStatus;
+  demonstrationStatus: DemonstrationStatusId;
 }) => {
   let statusNode;
   switch (demonstrationStatus) {
+    case "DEMONSTRATION_PRE-SUBMISSION":
+      statusNode = (
+        <>
+          <SubmitIcon className="text-text-placeholder min-h-2 h-full w-full" /> Pre-Submission
+        </>
+      );
+      break;
     case "DEMONSTRATION_UNDER_REVIEW":
       statusNode = (
         <>
@@ -30,7 +39,21 @@ export const DemonstrationStatusBadge = ({
     case "DEMONSTRATION_DENIED":
       statusNode = (
         <>
-          <HomeIcon className="text-error min-h-2 h-full w-full" /> Rejected
+          <HomeIcon className="text-error min-h-2 h-full w-full" /> Denied
+        </>
+      );
+      break;
+    case "DEMONSTRATION_WITHDRAWN":
+      statusNode = (
+        <>
+          <UndoIcon className="text-text-placeholder min-h-2 h-full w-full" /> Withdrawn
+        </>
+      );
+      break;
+    case "DEMONSTRATION_ON-HOLD":
+      statusNode = (
+        <>
+          <OnHoldIcon className="text-border-alert min-h-2 h-full w-full" /> On-hold
         </>
       );
       break;

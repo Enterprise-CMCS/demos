@@ -12,8 +12,8 @@ describe("DemonstrationStatusBadge", () => {
     render(<DemonstrationStatusBadge demonstrationStatus="DEMONSTRATION_APPROVED" />);
     expect(screen.getByText("Approved")).toBeInTheDocument();
   });
-  it("shows Rejected for rejected", () => {
+  it("shows Denied for DEMONSTRATION_DENIED", () => {
     render(<DemonstrationStatusBadge demonstrationStatus="DEMONSTRATION_DENIED" />);
-    expect(screen.getByText("Rejected")).toBeInTheDocument();
+    expect(screen.getByText("Denied")).toBeInTheDocument();
   });
 });
