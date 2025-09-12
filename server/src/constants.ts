@@ -29,6 +29,15 @@ export const CMCS_DIVISION = [
   "Division of Eligibility and Coverage Demonstrations",
 ] as const;
 
+export const DEMONSTRATION_STATUSES = [
+  { id: "DEMONSTRATION_ON_HOLD", name: "On Hold" },
+  { id: "DEMONSTRATION_UNDER_REVIEW", name: "Under Review" },
+  { id: "DEMONSTRATION_PENDING", name: "Pending" },
+  { id: "DEMONSTRATION_SUBMITTED", name: "Submitted" },
+  { id: "DEMONSTRATION_APPROVED", name: "Approved" },
+] as const;
+
+
 export const DOCUMENT_TYPES = [
   "Application Completeness Letter",
   "Approval Letter",

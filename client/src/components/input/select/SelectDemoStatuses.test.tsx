@@ -4,23 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { SelectDemoStatuses } from "./SelectDemoStatuses";
-import { DEMONSTRATION_STATUS_OPTIONS_QUERY } from "queries/demonstrationQueries";
-
-// Mock the JSON import
-const mocks = [
-  {
-    request: { query: DEMONSTRATION_STATUS_OPTIONS_QUERY },
-    result: {
-      data: {
-        demonstrationStatuses: [
-          { id: "1", name: "On Hold" },
-          { id: "2", name: "Pending" },
-          { id: "3", name: "Approved" },
-        ],
-      },
-    },
-  },
-];
+// No network or external constants needed; component uses local data
 
 
 // Optionally, if SelectDemoStatuses expects the statuses as a prop, pass them in the render calls.

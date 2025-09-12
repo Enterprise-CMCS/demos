@@ -1,6 +1,6 @@
 import React from "react";
 import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
-import { demonstrationStatuses } from "data/DemonstrationStatuses";
+import { DEMONSTRATION_STATUSES } from "demos-server-constants";
 
 // This may not be the final type. This is more of just an example of the select.
 
@@ -15,7 +15,7 @@ export const SelectDemoStatuses: React.FC<SelectDemoStatusesProps> = ({
   isRequired = false,
   isDisabled = false,
 }) => {
-  const options: Option[] = demonstrationStatuses.map((status) => ({
+  const options: Option[] = DEMONSTRATION_STATUSES.map((status) => ({
     label: status.name,
     value: status.name,
   }));
