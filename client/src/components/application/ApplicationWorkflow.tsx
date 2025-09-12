@@ -1,11 +1,12 @@
 import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
 import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
+import { DEMONSTRATION_STATUSES } from "demos-server-constants";
 
-export type DemonstrationStatus = "DEMONSTRATION_UNDER_REVIEW" | "DEMONSTRATION_APPROVED" | "DEMONSTRATION_DENIED";
+type DemonstrationStatusId = (typeof DEMONSTRATION_STATUSES)[number]["id"];
 
 export interface ApplicationWorkflowDemonstration {
-  status: DemonstrationStatus;
+  status: DemonstrationStatusId;
 }
 
 export const ApplicationWorkflow = ({
