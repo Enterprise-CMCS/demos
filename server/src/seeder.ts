@@ -1,5 +1,12 @@
 import { faker } from "@faker-js/faker";
-import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL, PHASE } from "./constants.js";
+import {
+  BUNDLE_TYPE,
+  CMCS_DIVISION,
+  PERSON_TYPES,
+  SIGNATURE_LEVEL,
+  PHASE,
+  DEMONSTRATION_STATUSES
+} from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
 
@@ -166,8 +173,8 @@ async function seedDatabase() {
       });
     }
   }
-
-  const baseStatuses = ["New", "In Progress", "On Hold", "Completed"];
+  // Derive from single source of truth
+  const baseStatuses = DEMONSTRATION_STATUSES.map((s) => s.name);
 
   console.log("🌱 Seeding demonstration statuses...");
   for (const statusName of baseStatuses) {

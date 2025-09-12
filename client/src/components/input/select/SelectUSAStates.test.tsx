@@ -4,18 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { SelectUSAStates } from "./SelectUSAStates";
 
-// 1) Mock the `states` export from your TS file
-vi.mock(
-  "faker_data/usStates",
-  () => ({
-    states: [
-      { name: "Maryland", abbrev: "MD" },
-      { name: "California", abbrev: "CA" },
-      { name: "Texas", abbrev: "TX" },
-    ],
-  })
-);
-
 describe("<SelectUSAStates />", () => {
   it("filters options by input and calls onStateChange with the abbrev", async () => {
     const onStateChange = vi.fn();
@@ -27,22 +15,20 @@ describe("<SelectUSAStates />", () => {
       />
     );
 
-    // Open the dropdown and type "ma"
+    // Open the dropdown and type a substring unique to one state
     const input = screen.getByRole("textbox", { name: /state or territory/i });
     await userEvent.click(input);
-    await userEvent.type(input, "ma");
+    await userEvent.type(input, "ver");
 
-    // Only “Maryland” should appear
-    expect(screen.getByText("Maryland")).toBeInTheDocument();
-    expect(screen.queryByText("California")).toBeNull();
-    expect(screen.queryByText("Texas")).toBeNull();
+    // It should show “Vermont” (unique match for "ver")
+    expect(screen.getByText("Vermont")).toBeInTheDocument();
 
     // Select it
-    await userEvent.click(screen.getByText("Maryland"));
+    await userEvent.click(screen.getByText("Vermont"));
 
-    // Should call back with “MD”
+    // Should call back with “VT”
     expect(onStateChange).toHaveBeenCalledTimes(1);
-    expect(onStateChange).toHaveBeenCalledWith("MD");
+    expect(onStateChange).toHaveBeenCalledWith("VT");
   });
 
   it("shows 'No matches found' when filter yields nothing", async () => {

@@ -1,11 +1,10 @@
 import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
 import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
-
-export type DemonstrationStatus = "under_review" | "approved" | "rejected";
+import type { DemonstrationStatusId } from "demos-server";
 
 export interface ApplicationWorkflowDemonstration {
-  status: DemonstrationStatus;
+  status: DemonstrationStatusId;
 }
 
 export const ApplicationWorkflow = ({

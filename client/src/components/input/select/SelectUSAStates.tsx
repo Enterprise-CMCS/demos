@@ -1,9 +1,6 @@
 import React from "react";
 
-import {
-  states,
-  USState,
-} from "data/StatesAndTerritories";
+import { STATES_AND_TERRITORIES } from "demos-server-constants";
 
 import {
   AutoCompleteSelect,
@@ -27,9 +24,9 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
   currentState,
   value,
 }) => {
-  const options: Option[] = (states as USState[]).map((state) => ({
+  const options: Option[] = STATES_AND_TERRITORIES.map((state) => ({
+    value: state.id,
     label: state.name,
-    value: state.abbrev,
   }));
 
   const selectedValue = value ?? currentState;
