@@ -12,7 +12,7 @@ model DemonstrationRoleAssignment {
   rolePersonType                     RolePersonType                      @relation(fields: [roleId, personTypeId], references: [roleId, personTypeId])
   role                               Role                                @relation(fields: [roleId, grantLevelId], references: [id, grantLevelId])
   grantLevel                         DemonstrationGrantLevelLimit        @relation(fields: [grantLevelId], references: [id])
-  PrimaryDemonstrationRoleAssignment PrimaryDemonstrationRoleAssignment?
+  primaryDemonstrationRoleAssignment PrimaryDemonstrationRoleAssignment?
 
   @@id([personId, demonstrationId, roleId])
   @@map("demonstration_role_assignment")

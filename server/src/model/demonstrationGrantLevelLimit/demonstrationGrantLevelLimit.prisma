@@ -1,8 +1,8 @@
 model DemonstrationGrantLevelLimit {
   id String
 
-  grantLevel                  GrantLevel                    @relation(fields: [id], references: [id])
-  DemonstrationRoleAssignment DemonstrationRoleAssignment[]
+  grantLevel                   GrantLevel                    @relation(fields: [id], references: [id])
+  DemonstrationRoleAssignments DemonstrationRoleAssignment[]
 
   @@id([id])
   @@map("demonstration_grant_level_limit")

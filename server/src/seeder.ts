@@ -217,7 +217,7 @@ async function seedDatabase() {
     }
 
     // within the same transaction, create the demonstration and assign a project officer
-    prisma().$transaction([
+    await prisma().$transaction([
       prisma().demonstration.create({
         data: {
           id: bundle.id,
@@ -242,6 +242,13 @@ async function seedDatabase() {
           stateId: person.personStates[0].stateId,
           personTypeId: person.personTypeId,
           grantLevelId: "Demonstration",
+        },
+      }),
+      prisma().primaryDemonstrationRoleAssignment.create({
+        data: {
+          personId: person.id,
+          demonstrationId: bundle.id,
+          roleId: "Project Officer",
         },
       }),
     ]);

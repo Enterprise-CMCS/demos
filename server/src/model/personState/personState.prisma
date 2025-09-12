@@ -2,9 +2,9 @@ model PersonState {
   personId String @map("person_id") @db.Uuid
   stateId  String @map("state_id")
 
-  person                      Person                        @relation(fields: [personId], references: [id])
-  state                       State                         @relation(fields: [stateId], references: [id])
-  DemonstrationRoleAssignment DemonstrationRoleAssignment[]
+  person                       Person                        @relation(fields: [personId], references: [id])
+  state                        State                         @relation(fields: [stateId], references: [id])
+  DemonstrationRoleAssignments DemonstrationRoleAssignment[]
 
   @@id([personId, stateId])
   @@map("person_state")
