@@ -74,8 +74,8 @@ export const InputSandbox: React.FC = () => {
           isRequired={isRequired}
           label="Project Officers (default U ID is 123)"
           isDisabled={disabled}
-          onStateChange={setStatus}
-          currentUserId={String(currentUserId)}
+          onSelect={setStatus}
+          initialUserId={String(currentUserId)}
         />
       </div>
       {status && (
