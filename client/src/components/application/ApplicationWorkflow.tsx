@@ -1,9 +1,7 @@
 import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
 import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
-import { DEMONSTRATION_STATUSES } from "demos-server-constants";
-
-type DemonstrationStatusId = (typeof DEMONSTRATION_STATUSES)[number]["id"];
+import type { DemonstrationStatusId } from "demos-server";
 
 export interface ApplicationWorkflowDemonstration {
   status: DemonstrationStatusId;

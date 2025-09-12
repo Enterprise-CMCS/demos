@@ -9,6 +9,7 @@ import {
   GRANT_LEVELS,
   ROLES,
   DATE_TYPES,
+  DEMONSTRATION_STATUSES,
 } from "./constants.js";
 
 export type { CreateUserInput, UpdateUserInput, User } from "./model/user/userSchema.js";
@@ -63,3 +64,4 @@ export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
 export type DateType = (typeof DATE_TYPES)[number];
+export type DemonstrationStatusId = (typeof DEMONSTRATION_STATUSES)[number]["id"];

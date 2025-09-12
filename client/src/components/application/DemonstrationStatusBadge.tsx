@@ -1,9 +1,7 @@
 import React from "react";
 import { HomeIcon, ReviewIcon, SaveIcon, OnHoldIcon, UndoIcon, SubmitIcon } from "icons";
 import { tw } from "tags/tw";
-import { DEMONSTRATION_STATUSES } from "demos-server-constants";
-
-type DemonstrationStatusId = (typeof DEMONSTRATION_STATUSES)[number]["id"];
+import type { DemonstrationStatusId } from "demos-server";
 
 const BASE_STYLES =
   tw`whitespace-nowrap h-full min-h-3 flex items-center gap-xs ml-auto text-lg`;
