@@ -11,10 +11,12 @@ import {
   applyApiSuppressions,
   applyCoreSuppressions,
   applyDatabaseSuppressions,
+  applyDbRoleSuppressions,
   applyFileUploadSuppressions,
   applyUISuppressions,
 } from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
+import { DBRoleStack } from "./stacks/dbRoles";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function main(passedContext?: { [key: string]: any }) {
@@ -95,6 +97,15 @@ export async function main(passedContext?: { [key: string]: any }) {
     database.addDependency(core);
   }
 
+  const dbRole = new DBRoleStack(app, `${project}-${stage}-db-role`, {
+    ...config,
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: process.env.CDK_DEFAULT_REGION,
+    },
+    vpc: core.vpc,
+  });
+
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
     ...config,
     env: {
@@ -134,6 +145,7 @@ export async function main(passedContext?: { [key: string]: any }) {
   applyApiSuppressions(api, stage);
   applyUISuppressions(ui, stage);
   applyFileUploadSuppressions(fileUpload, stage);
+  applyDbRoleSuppressions(dbRole, stage);
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
   return app;
 }

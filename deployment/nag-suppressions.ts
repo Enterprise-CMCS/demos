@@ -200,3 +200,46 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
     ]
   );
 }
+
+export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {
+  NagSuppressions.addResourceSuppressionsByPath(
+    dbRole,
+    `/demos-${stage}-db-role/dbRoleManagement/dbRoleManagementLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are validated and required",
+      },
+    ]
+  );
+  NagSuppressions.addResourceSuppressionsByPath(
+    dbRole,
+    `/demos-${stage}-db-role/rolesCrp/framework-onEvent/ServiceRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM4",
+        reason: "Permissions are validated and required",
+      },
+    ]
+  );
+  NagSuppressions.addResourceSuppressionsByPath(
+    dbRole,
+    `/demos-${stage}-db-role/rolesCrp/framework-onEvent/ServiceRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are validated and required",
+      },
+    ]
+  );
+  NagSuppressions.addResourceSuppressionsByPath(
+    dbRole,
+    `/demos-${stage}-db-role/dbRoleManagement/dbRoleManagementLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "The flagged wildcard is scoped to the proper resources",
+      },
+    ]
+  );
+}
