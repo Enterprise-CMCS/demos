@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import { PersonType } from "../../types";
+import { PersonType, State } from "../../types";
 import { DemonstrationRoleAssignment } from "../demonstrationRoleAssignment/demonstrationRoleAssignmentSchema";
 
 export const personSchema = gql`
@@ -11,6 +11,7 @@ export const personSchema = gql`
     displayName: String!
     createdAt: DateTime!
     updatedAt: DateTime!
+    states: [State!]!
     roles: [DemonstrationRoleAssignment!]!
   }
   type Query {
@@ -28,4 +29,5 @@ export type Person = {
   createdAt: Date;
   updatedAt: Date;
   roles: DemonstrationRoleAssignment[];
+  states: State[];
 };

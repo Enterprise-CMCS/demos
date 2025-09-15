@@ -29,5 +29,12 @@ export const personResolvers = {
         isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
       }));
     },
+    states: async (parent: Person) => {
+      const personStates = await prisma().personState.findMany({
+        where: { personId: parent.id },
+        include: { state: true },
+      });
+      return personStates.map((ps) => ps.state);
+    }
   },
 };

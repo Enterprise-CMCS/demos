@@ -3,7 +3,13 @@ import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusS
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
-import { CmcsDivision, SignatureLevel, Phase, Role, DemonstrationRoleAssignment } from "../../types.js";
+import {
+  CmcsDivision,
+  SignatureLevel,
+  Phase,
+  Role,
+  DemonstrationRoleAssignment,
+} from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
@@ -60,7 +66,13 @@ export const demonstrationSchema = gql`
   }
 
   input AddPeopleToDemonstrationInput {
-    personId: String!
+    personId: ID!
+    role: Role!
+    isPrimary: Boolean
+  }
+
+  input RemovePeopleFromDemonstrationInput {
+    personId: ID!
     role: Role!
   }
 
@@ -72,8 +84,14 @@ export const demonstrationSchema = gql`
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): CreateDemonstrationResponse
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
-    addPeopleToDemonstration(id: ID!, input: [AddPeopleToDemonstrationInput!]!): Demonstration
-    removePeopleFromDemonstration(id: ID!, personIds: [String!]!): Demonstration
+    addPeopleToDemonstration(
+      id: ID!
+      demonstrationAssignments: [AddPeopleToDemonstrationInput!]!
+    ): Demonstration
+    removePeopleFromDemonstration(
+      id: ID!
+      input: [RemovePeopleFromDemonstrationInput!]!
+    ): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
@@ -126,6 +144,12 @@ export interface UpdateDemonstrationInput {
 }
 
 export interface AddPeopleToDemonstrationInput {
+  personId: string;
+  role: Role;
+  isPrimary?: boolean;
+}
+
+export interface RemovePeopleFromDemonstrationInput {
   personId: string;
   role: Role;
 }
