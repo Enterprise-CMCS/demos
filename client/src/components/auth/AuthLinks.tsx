@@ -4,8 +4,7 @@ import { useAuthActions } from "./AuthActions";
 export function SigninLink() {
   const { signIn } = useAuthActions();
   return (
-    <a
-      href="#"
+    <li className="cursor-pointer"
       onClick={(signInEvent) => {
         signInEvent.preventDefault();
         signInEvent.stopPropagation();
@@ -13,15 +12,14 @@ export function SigninLink() {
       }}
     >
       Sign In
-    </a>
+    </li>
   );
 }
 
 export function SignoutLink() {
   const { signOut } = useAuthActions();
   return (
-    <a
-      href="#"
+    <li className="cursor-pointer"
       onClick={(signOutEvent) => {
         signOutEvent.preventDefault();
         signOutEvent.stopPropagation();
@@ -29,6 +27,6 @@ export function SignoutLink() {
       }}
     >
       Sign Out
-    </a>
+    </li>
   );
 }
