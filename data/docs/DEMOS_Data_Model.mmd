@@ -167,7 +167,7 @@ erDiagram
     uuid bundle_id PK, FK "FK002: (bundle_id, phase_id) ∈ bundle_phase.(bundle_id, phase_id)"
     text phase_id PK, FK "FK002: (bundle_id, phase_id) ∈ bundle_phase.(bundle_id, phase_id)"
     text date_type_id PK, FK "FK001: date_type_id ∈ date_type.id"
-    timestamptz value "Format DATE vs TIMESTAMPTZ?"
+    timestamptz date_value
     timestamptz created_at
     timestamptz updated_at
   }

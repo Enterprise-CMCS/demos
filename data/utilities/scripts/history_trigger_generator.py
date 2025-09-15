@@ -8,6 +8,7 @@ from typing import List
 TBL_FOLDERS = [
     "bundle",
     "bundlePhase",
+    "bundlePhaseDate",
     "demonstration",
     "demonstrationStatus",
     "document",
