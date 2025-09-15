@@ -1,12 +1,12 @@
 import { CdkCustomResourceResponse, CloudFormationCustomResourceEvent, Context } from "aws-lambda";
 import { applyRoleChanges, deleteAllRoles } from "./services/roles";
-import { loadEnvs } from "./util/env";
+import { getStage, loadEnvs } from "./util/env";
 
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
-  console.log("event", event);
+  console.log("event", event); // Do not remove this log, it is important for troubleshooting
   loadEnvs(context);
 
-  const physicalResourceId = `demos-jesse-db-role-roles-custom${event.LogicalResourceId}`;
+  const physicalResourceId = `demos-${getStage()}-db-role-roles-custom${event.LogicalResourceId}`;
 
   if (!event.ResourceProperties?.roles) {
     throw new Error("the array of roles must be defined");

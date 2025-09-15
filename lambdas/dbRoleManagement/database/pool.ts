@@ -11,7 +11,7 @@ export async function getPool() {
   pool = new Pool({
     connectionString,
     ssl: {
-      rejectUnauthorized: false,
+      rejectUnauthorized: true,
     },
   });
 

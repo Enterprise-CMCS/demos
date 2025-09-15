@@ -33,7 +33,7 @@ export async function storeSecret(env: string, role: string, password: string) {
 
     const rotateCmd = new RotateSecretCommand({
       SecretId: resp.ARN || resp.Name,
-      RotationLambdaARN: `arn:aws:lambda:${getRegion}:${getAccountId()}:function:demos-${getStage()}-rds-rotation`, // modularize
+      RotationLambdaARN: `arn:aws:lambda:${getRegion()}:${getAccountId()}:function:demos-${getStage()}-rds-rotation`, // modularize
       RotateImmediately: true,
       RotationRules: {
         AutomaticallyAfterDays: 30,

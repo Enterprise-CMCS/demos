@@ -18,6 +18,7 @@ import * as lambda from "../lib/lambda";
 import * as securityGroup from "../lib/security-group";
 import importNumberValue from "../util/importNumberValue";
 import { Provider } from "aws-cdk-lib/custom-resources";
+import * as databaseRoles from "../databaseRoles";
 
 interface DBRoleStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -29,29 +30,6 @@ export class DBRoleStack extends Stack {
       ...props,
       terminationProtection: false,
     });
-
-    // THIS IS ONLY HERE FOR TESTING AND SHOULD NOT BE MERGED
-    const ssmEndpointSecurityGroupName = `${props.project}-${props.hostEnvironment}-ssm-vpce`;
-    const ssmEndpoint = securityGroup.create({
-      ...props,
-      vpc: props.vpc,
-      scope: this,
-      name: ssmEndpointSecurityGroupName,
-    }).securityGroup;
-
-    const nvpc = aws_ec2.Vpc.fromLookup(this, "vpcLookup", {
-      vpcId: props.vpc.vpcId,
-    });
-
-    nvpc.addInterfaceEndpoint("secretsMaasdfnagerEndpoint", {
-      service: aws_ec2.InterfaceVpcEndpointAwsService.SSM,
-      subnets: {
-        subnets: props.vpc.privateSubnets,
-      },
-      securityGroups: [ssmEndpoint],
-    });
-
-    // THIS IS ONLY HERE FOR TESTING AND SHOULD NOT BE MERGED
 
     const dbRoleManagementSecurityGroup = securityGroup.create({
       ...props,
@@ -94,17 +72,19 @@ export class DBRoleStack extends Stack {
       aws_ec2.Port.tcp(443)
     );
 
+    const ssmSg = aws_ec2.SecurityGroup.fromLookupByName(
+      this,
+      "ssmSecurityGroup",
+      `${props.project}-${props.hostEnvironment}-${props.project}-${props.hostEnvironment}-ssm-vpce`,
+      props.vpc
+    );
+
     dbRoleManagementSecurityGroup.securityGroup.addEgressRule(
-      aws_ec2.Peer.securityGroupId(ssmEndpoint.securityGroupId),
+      aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
       aws_ec2.Port.HTTPS
     );
 
-    // ssmEndpoint.addIngressRule(
-    //   aws_ec2.Peer.securityGroupId(dbRoleManagementSecurityGroup.securityGroup.securityGroupId),
-    //   aws_ec2.Port.HTTPS
-    // );
-
-    const l = new lambda.Lambda(this, "dbRoleManagement", {
+    const roleManagmentLambda = new lambda.Lambda(this, "dbRoleManagement", {
       ...props,
       scope: this,
       entry: "../lambdas/dbRoleManagement/index.ts",
@@ -118,10 +98,11 @@ export class DBRoleStack extends Stack {
       environment: {
         DATABASE_SECRET_ARN: `demos-${props.hostEnvironment}-rds-admin`, // pragma: allowlist secret
         STAGE: props.hostEnvironment,
+        NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
     });
 
-    l.role.addToPolicy(
+    roleManagmentLambda.role.addToPolicy(
       new aws_iam.PolicyStatement({
         actions: ["ssm:PutParameter", "ssm:DeleteParameter", "ssm:DeleteParameters"],
         resources: [
@@ -130,7 +111,7 @@ export class DBRoleStack extends Stack {
       })
     );
 
-    l.role.addToPolicy(
+    roleManagmentLambda.role.addToPolicy(
       new aws_iam.PolicyStatement({
         actions: [
           "secretsmanager:CreateSecret",
@@ -143,7 +124,7 @@ export class DBRoleStack extends Stack {
       })
     );
 
-    l.role.addToPolicy(
+    roleManagmentLambda.role.addToPolicy(
       new aws_iam.PolicyStatement({
         actions: ["lambda:InvokeFunction"],
         resources: [
@@ -157,27 +138,17 @@ export class DBRoleStack extends Stack {
       "rdsDatabaseSecret",
       `demos-${props.hostEnvironment}-rds-admin`
     );
-    dbSecret.grantRead(l.lambda);
+    dbSecret.grantRead(roleManagmentLambda.lambda);
 
     const crp = new Provider(this, "rolesCrp", {
-      onEventHandler: l.lambda,
+      onEventHandler: roleManagmentLambda.lambda,
     });
 
     const cr = new CustomResource(this, "dbRoles", {
       serviceToken: crp.serviceToken,
       removalPolicy: RemovalPolicy.DESTROY,
       properties: {
-        roles: [
-          {
-            name: "jesse",
-            memberships: ["demos_read"],
-          },
-          {
-            name: "demos_server",
-            memberships: ["demos_read", "demos_write"],
-            systemRole: true,
-          },
-        ],
+        roles: databaseRoles[props.hostEnvironment],
       },
     });
     cr.node.addDependency(crp);

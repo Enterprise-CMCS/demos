@@ -22,7 +22,10 @@ export async function storeSecureString(env: string, role: string, password: str
 }
 
 export async function deleteSecureStrings(env: string, roles: string[]) {
-  console.log("storing password in secure param");
+  if (roles.length == 0) {
+    return;
+  }
+  console.log("deleting passwords from secure param");
   const client = new SSMClient({ region: "us-east-1" });
 
   const command = new DeleteParametersCommand({
