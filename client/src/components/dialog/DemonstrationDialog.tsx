@@ -306,13 +306,19 @@ export const CreateDemonstrationDialog: React.FC<{
 
   const onSubmit = async (demonstration: DemonstrationDialogFields) => {
     try {
-      await createDemonstrationTrigger({
+      const result = await createDemonstrationTrigger({
         variables: {
           input: getCreateDemonstrationInput(demonstration),
         },
       });
+
+      const success = result.data?.createDemonstration?.success || false;
       onClose();
-      showSuccess(SUCCESS_MESSAGES.create);
+      if (success) {
+        showSuccess(SUCCESS_MESSAGES.create);
+      } else {
+        showError(result.data?.createDemonstration?.message || ERROR_MESSAGES.create);
+      }
     } catch {
       showError(ERROR_MESSAGES.create);
     }
