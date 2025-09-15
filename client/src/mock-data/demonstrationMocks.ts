@@ -5,13 +5,9 @@ import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
-
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/Demonstrations";
-
 import { MockedResponse } from "@apollo/client/testing";
-
-import { MockDemonstrationStatus, mockDemonstrationStatuses } from "./demonstrationStatusMocks";
 import { MockState, mockStates } from "./stateMocks";
 import { MockUser, mockUsers } from "./userMocks";
 import { MockAmendment, mockAmendments } from "./amendmentMocks";
@@ -19,12 +15,18 @@ import { MockExtension, mockExtensions } from "./extensionMocks";
 import { MockContact, mockContacts } from "./contactMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
+import { DEMONSTRATION_STATUSES } from "demos-server-constants";
+import type { DemonstrationStatus } from "demos-server";
+
+const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] = DEMONSTRATION_STATUSES.map(
+  (s) => ({ id: s.id, name: s.name })
+);
 
 export type MockDemonstration = Pick<
   Demonstration,
   "id" | "name" | "description" | "effectiveDate" | "expirationDate"
 > & {
-  demonstrationStatus: MockDemonstrationStatus;
+  demonstrationStatus: Pick<DemonstrationStatus, "id" | "name">;
   state: MockState;
   projectOfficer: MockUser;
   amendments: MockAmendment[];
@@ -42,7 +44,7 @@ export const mockDemonstrations = [
     effectiveDate: new Date(2025, 0, 1),
     expirationDate: new Date(2025, 11, 1),
     projectOfficer: mockUsers[0],
-    demonstrationStatus: mockDemonstrationStatuses[1],
+    demonstrationStatus: demonstrationStatuses.find((s) => s.name === "Approved")!,
     state: mockStates.find((state) => state.id === "MT")!,
     amendments: [mockAmendments[0], mockAmendments[1], mockAmendments[5]],
     extensions: [mockExtensions[0], mockExtensions[1], mockExtensions[2]],
@@ -56,7 +58,7 @@ export const mockDemonstrations = [
     description: "A health innovation project in Florida.",
     effectiveDate: new Date(2025, 0, 2),
     expirationDate: new Date(2025, 11, 2),
-    demonstrationStatus: mockDemonstrationStatuses[5],
+    demonstrationStatus: demonstrationStatuses.find((s) => s.name === "Pre-Submission")!,
     state: mockStates.find((state) => state.id === "FL")!,
     projectOfficer: mockUsers[1],
     amendments: [mockAmendments[2], mockAmendments[3], mockAmendments[4]],
@@ -71,7 +73,7 @@ export const mockDemonstrations = [
     effectiveDate: new Date(2025, 0, 3),
     expirationDate: new Date(2025, 11, 3),
     description: "A reform initiative in Texas.",
-    demonstrationStatus: mockDemonstrationStatuses[6],
+    demonstrationStatus: demonstrationStatuses.find((s) => s.name === "On-hold")!,
     state: mockStates.find((state) => state.id === "TX")!,
     projectOfficer: mockUsers[0],
     amendments: [] as MockAmendment[],
@@ -99,7 +101,7 @@ export const demonstrationMocks: MockedResponse[] = [
         demonstrations: mockDemonstrations,
         projectOfficerOptions: mockUsers,
         stateOptions: mockStates,
-        statusOptions: mockDemonstrationStatuses,
+        statusOptions: demonstrationStatuses,
       },
     },
   },
@@ -207,7 +209,7 @@ export const demonstrationMocks: MockedResponse[] = [
       variables: { input: mockAddDemonstrationInput },
     },
     result: {
-      data: { addDemonstration: mockDemonstrations[0] },
+      data: { createDemonstration: { success: true, message: "Created" } },
     },
   },
   {
@@ -222,7 +224,6 @@ export const demonstrationMocks: MockedResponse[] = [
           expirationDate: new Date(2025, 11, 1),
           demonstrationStatusId: "1",
           stateId: "1",
-          userIds: ["1"],
           projectOfficerUserId: "1",
         },
       },
