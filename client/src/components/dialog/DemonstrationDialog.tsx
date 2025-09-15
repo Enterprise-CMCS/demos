@@ -312,7 +312,7 @@ export const CreateDemonstrationDialog: React.FC<{
         },
       });
 
-      const success = result.data?.createDemonstration?.success;
+      const success = result.data?.createDemonstration?.success || false;
       onClose();
       if (success) {
         showSuccess(SUCCESS_MESSAGES.create);
