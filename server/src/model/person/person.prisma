@@ -7,11 +7,9 @@ model Person {
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  personType                   PersonType                    @relation(fields: [personTypeId], references: [id])
-  user                         User?
-  systemRoleAssignments        SystemRoleAssignment[]
-  demonstrationRoleAssignments DemonstrationRoleAssignment[]
-  personStates                 PersonState[]
+  personType            PersonType             @relation(fields: [personTypeId], references: [id])
+  user                  User?
+  systemRoleAssignments SystemRoleAssignment[]
 
   @@id([id])
   @@unique([id, personTypeId])

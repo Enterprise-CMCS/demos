@@ -3,8 +3,8 @@
 model DemonstrationBundleType {
   id String @id
 
-  bundleType     BundleType      @relation(fields: [id], references: [id])
-  demonstrations Demonstration[]
+  bundleType    BundleType      @relation(fields: [id], references: [id])
+  demonstration Demonstration[]
 
   @@map("demonstration_bundle_type")
 }

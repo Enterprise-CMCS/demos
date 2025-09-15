@@ -2,7 +2,7 @@
 model CmcsDivision {
   id String
 
-  demonstrations Demonstration[]
+  demonstration Demonstration[]
 
   @@id([id])
   @@map("cmcs_division")
