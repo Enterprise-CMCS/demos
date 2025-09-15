@@ -3,12 +3,11 @@ model Role {
   id           String
   grantLevelId String @map("grant_level_id")
 
-  grantLevel                   GrantLevel                    @relation(fields: [grantLevelId], references: [id])
-  events                       Event[]
-  rolePermissions              RolePermission[]
-  rolePersonTypes              RolePersonType[]
-  systemRoleAssignments        SystemRoleAssignment[]
-  demonstrationRoleAssignments DemonstrationRoleAssignment[]
+  grantLevel            GrantLevel             @relation(fields: [grantLevelId], references: [id])
+  events                Event[]
+  rolePermissions       RolePermission[]
+  rolePersonTypes       RolePersonType[]
+  systemRoleAssignments SystemRoleAssignment[]
 
   @@id([id])
   @@unique([id, grantLevelId])

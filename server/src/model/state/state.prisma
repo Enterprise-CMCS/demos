@@ -5,7 +5,6 @@ model State {
   name String
 
   demonstrations Demonstration[]
-  personStates   PersonState[]
 
   @@map("state")
 }
