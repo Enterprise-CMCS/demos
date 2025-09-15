@@ -14,6 +14,7 @@ import {
   ScaleIcon,
 } from "components/icons";
 import { Link, useLocation } from "react-router-dom";
+import { CalendarIcon } from "@mui/x-date-pickers";
 
 type SVGIconElement = React.ReactElement<React.SVGProps<SVGSVGElement>>;
 
@@ -38,6 +39,7 @@ const debugNavLinks: NavLink[] = [
   { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
   { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
   { label: "Events", href: "/events", icon: <CommentIcon /> },
+  { label: "Dates Flowchart", href: "/dates", icon: <CalendarIcon /> },
 ];
 
 interface NavLinkProps {
