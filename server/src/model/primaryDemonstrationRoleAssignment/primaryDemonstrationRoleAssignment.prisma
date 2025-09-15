@@ -1,0 +1,11 @@
+model PrimaryDemonstrationRoleAssignment {
+  personId        String @map("person_id") @db.Uuid
+  demonstrationId String @map("demonstration_id") @db.Uuid
+  roleId          String @map("role_id")
+
+  demonstrationRoleAssignment DemonstrationRoleAssignment @relation(fields: [personId, demonstrationId, roleId], references: [personId, demonstrationId, roleId])
+
+  @@id([demonstrationId, roleId])
+  @@unique([personId, demonstrationId, roleId])
+  @@map("primary_demonstration_role_assignment")
+}
