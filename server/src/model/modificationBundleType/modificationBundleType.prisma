@@ -3,9 +3,9 @@
 model ModificationBundleType {
   id String @id
 
-  bundleType           BundleType           @relation(fields: [id], references: [id])
-  modifications        Modification[]
-  modificationStatuses ModificationStatus[]
+  bundleType         BundleType           @relation(fields: [id], references: [id])
+  modification       Modification[]
+  modificationStatus ModificationStatus[]
 
   @@map("modification_bundle_type")
 }

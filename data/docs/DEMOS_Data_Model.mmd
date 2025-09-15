@@ -61,7 +61,7 @@ erDiagram
   demonstration_role_assignment }|--|| person_state : "FK042"
   person_state }|--|| state : "FK043"
   person_state }|--|| person : "FK044"
-  grant_level ||--|| demonstration_grant_level_limit : "FK045"
+  grant_level ||--|{ demonstration_grant_level_limit : "FK045"
   demonstration_grant_level_limit ||--|{ demonstration_role_assignment : "FK046"
   role_person_type ||--|{ demonstration_role_assignment : "FK047"
   demonstration_role_assignment }|--|| person : "FK048"
@@ -293,9 +293,9 @@ erDiagram
   }
 
   primary_demonstration_role_assignment:::associativeTable {
-    uuid person_id FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
-    uuid demonstration_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
-    text role_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
+    uuid person_id FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
+    uuid demonstration_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
+    text role_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
   }
 
   role_permission:::associativeTable {
