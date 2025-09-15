@@ -42,7 +42,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "under_review" }} />
+      <ApplicationWorkflow demonstration={{ status: "DEMONSTRATION_UNDER_REVIEW" }} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}
