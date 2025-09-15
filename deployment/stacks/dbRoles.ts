@@ -99,11 +99,6 @@ export class DBRoleStack extends Stack {
       aws_ec2.Port.HTTPS
     );
 
-    // ssmEndpoint.addIngressRule(
-    //   aws_ec2.Peer.securityGroupId(dbRoleManagementSecurityGroup.securityGroup.securityGroupId),
-    //   aws_ec2.Port.HTTPS
-    // );
-
     const l = new lambda.Lambda(this, "dbRoleManagement", {
       ...props,
       scope: this,
