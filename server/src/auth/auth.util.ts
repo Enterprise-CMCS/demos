@@ -51,6 +51,18 @@ function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void
   });
 }
 
+export function verifyRole(role: string): void {
+  const validRoles = PERSON_TYPES as readonly string[];
+  if (!validRoles.includes(role)) {
+    throw new GraphQLError(`Invalid user role: '${role}'`, {
+      extensions: {
+        code: "UNAUTHORIZED",
+        http: { status: 403 },
+      },
+    });
+  }
+}
+
 function decodeToken(token: string): Promise<DecodedJWT> {
   return new Promise((resolve, reject) => {
     jwt.verify(token, getKey, verifyOpts, (err, decoded) => {
@@ -61,17 +73,24 @@ function decodeToken(token: string): Promise<DecodedJWT> {
           })
         );
       }
-
       const rawDecoded = decoded as {
         sub: string;
         email: string;
         token_use?: "id" | "access";
         "custom:roles": string;
       };
+      const role = rawDecoded["custom:roles"];
+      try {
+        verifyRole(role);
+      } catch (err) {
+        return reject(err);
+      }
 
       resolve({
-        ...rawDecoded,
-        role: rawDecoded["custom:roles"],
+        sub: rawDecoded.sub,
+        email: rawDecoded.email,
+        token_use: rawDecoded.token_use,
+        role,
       });
     });
   });
@@ -182,9 +201,10 @@ export async function buildLambdaContext(
         email?: string;
         role: string;
       };
+      verifyRole(role);
       return buildContextFromClaims({ sub, email, role });
     } catch {
-      // fall through to JWT verify
+      console.warn("[auth] Attempt to parse x-authorizer-claims failed");
     }
   }
 
@@ -204,8 +224,9 @@ export async function buildLambdaContext(
 /* -----------------------  HTTP Context  ----------------------- */
 export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLContext> {
   const token = extractToken(createHeaderGetter(req.headers as Record<string, unknown>));
-  if (!token) return { user: null };
 
+  if (!token) return { user: null };
+  verifyRole(token.role);
   try {
     const decodedToken = await decodeToken(token);
     const { sub, email, role } = decodedToken;
