@@ -23,6 +23,9 @@ export interface CognitoOutputs {
 }
 
 export function create(props: CognitoProps): CognitoOutputs {
+  // Remove Cognito IDP for TEST/VAL/PROD and will be IDM. Only DEV & ephemeral will be Cognito IDP.
+  const allowNativeCognitoIdp = props.isDev || props.isEphemeral;
+
   const userPool = new aws_cognito.UserPool(props.scope, "UserPool", {
     userPoolName: `${props.project}-${props.stage}-user-pool`,
     signInAliases: {
@@ -119,7 +122,7 @@ export function create(props: CognitoProps): CognitoOutputs {
     refreshTokenValidity: Duration.hours(24),
     supportedIdentityProviders: [
       UserPoolClientIdentityProvider.custom(IDM.providerName),
-      UserPoolClientIdentityProvider.COGNITO,
+      ...(allowNativeCognitoIdp ? [UserPoolClientIdentityProvider.COGNITO] : []),
     ],
     generateSecret: false,
   });
@@ -162,6 +165,9 @@ export const createUserPoolClient = (
   userPoolId: string,
   hostEnvironment: string
 ): CognitoOutputs => {
+  // Remove Cognito IDP for TEST/VAL/PROD and will be IDM. Only DEV & ephemeral will be Cognito IDP.
+  const allowNativeCognitoIdp = props.isDev || props.isEphemeral;
+
   const userPool = aws_cognito.UserPool.fromUserPoolId(props.scope, "importedUserPool", userPoolId);
 
   const httpsCloudfront = `https://${props.cloudfrontHost}/`;
@@ -193,7 +199,7 @@ export const createUserPoolClient = (
     refreshTokenValidity: Duration.hours(24),
     supportedIdentityProviders: [
       UserPoolClientIdentityProvider.custom(IDM.providerName),
-      UserPoolClientIdentityProvider.COGNITO,
+      ...(allowNativeCognitoIdp ? [UserPoolClientIdentityProvider.COGNITO] : []),
     ],
     generateSecret: false,
   });
