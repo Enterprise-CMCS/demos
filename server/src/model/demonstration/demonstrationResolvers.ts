@@ -6,8 +6,8 @@ import { BundleType, Phase } from "../../types.js";
 import {
   CreateDemonstrationInput,
   UpdateDemonstrationInput,
+  AddPeopleToDemonstrationInput,
 } from "./demonstrationSchema.js";
-import { findUniqueUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -27,18 +27,9 @@ export const demonstrationResolvers = {
   },
 
   Mutation: {
-    createDemonstration: async (
-      _: undefined,
-      { input }: { input: CreateDemonstrationInput },
-    ) => {
-      const {
-        stateId,
-        projectOfficerUserId,
-        description,
-        cmcsDivision,
-        signatureLevel,
-        ...rest
-      } = input;
+    createDemonstration: async (_: undefined, { input }: { input: CreateDemonstrationInput }) => {
+      const { stateId, projectOfficerUserId, description, cmcsDivision, signatureLevel, ...rest } =
+        input;
 
       return await prisma().$transaction(async (tx) => {
         const bundle = await tx.bundle.create({
@@ -48,66 +39,58 @@ export const demonstrationResolvers = {
             },
           },
         });
-
-        try {
-          await tx.demonstration.create({
-            data: {
-              ...rest,
-              description: description || "",
-              bundle: {
-                connect: { id: bundle.id },
-              },
-              bundleType: {
-                connect: { id: demonstrationBundleTypeId },
-              },
-              ...(cmcsDivision && {
-                cmcsDivision: {
-                  connect: { id: cmcsDivision },
-                },
-              }),
-              ...(signatureLevel && {
-                signatureLevel: {
-                  connect: { id: signatureLevel },
-                },
-              }),
-              demonstrationStatus: {
-                connect: { id: "DEMONSTRATION_NEW" },
-              },
-              state: {
-                connect: { id: stateId },
-              },
-              currentPhase: {
-                connect: { id: conceptPhaseId },
-              },
-              projectOfficer: {
-                connect: { id: projectOfficerUserId },
-              },
+        await tx.demonstration.create({
+          data: {
+            ...rest,
+            description: description || "",
+            bundle: {
+              connect: { id: bundle.id },
             },
-          });
-        } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : String(error);
-          return {
-            success: false,
-            message: "Error creating demonstration: " + errorMessage,
-          };
-        }
+            bundleType: {
+              connect: { id: demonstrationBundleTypeId },
+            },
+            ...(cmcsDivision && {
+              cmcsDivision: {
+                connect: { id: cmcsDivision },
+              },
+            }),
+            ...(signatureLevel && {
+              signatureLevel: {
+                connect: { id: signatureLevel },
+              },
+            }),
+            demonstrationStatus: {
+              connect: { id: "DEMONSTRATION_NEW" },
+            },
+            state: {
+              connect: { id: stateId },
+            },
+            currentPhase: {
+              connect: { id: conceptPhaseId },
+            },
+          },
+        });
 
-        return {
-          success: true,
-          message: "Demonstration created successfully!",
-        };
+        await tx.demonstrationRoleAssignment.create({
+          data: {
+            demonstrationId: bundle.id,
+            personId: projectOfficerUserId,
+            roleId: "Project Officer",
+            stateId: stateId,
+            personTypeId: "Project Officer",
+            grantLevelId: "Demonstration",
+          },
+        });
       });
     },
 
     updateDemonstration: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDemonstrationInput },
+      { id, input }: { id: string; input: UpdateDemonstrationInput }
     ) => {
       const {
         demonstrationStatusId,
         stateId,
-        projectOfficerUserId,
         effectiveDate,
         expirationDate,
         cmcsDivision,
@@ -161,11 +144,6 @@ export const demonstrationResolvers = {
               connect: { id: currentPhase },
             },
           }),
-          ...(projectOfficerUserId && {
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          }),
         },
       });
     },
@@ -173,6 +151,60 @@ export const demonstrationResolvers = {
     deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
       return await prisma().demonstration.delete({
         where: { id: id },
+      });
+    },
+
+    addPeopleToDemonstration: async (
+      _: undefined,
+      { id, input }: { id: string; input: AddPeopleToDemonstrationInput[] }
+    ) => {
+      const demonstration = await prisma().demonstration.findUnique({
+        where: { id },
+      });
+
+      if (!demonstration) {
+        throw new Error(`Demonstration with id ${id} not found`);
+      }
+
+      for (const roleAssignment of input) {
+        const person = await prisma().person.findUnique({
+          where: { id: roleAssignment.personId },
+        });
+
+        if (!person) {
+          throw new Error(`Person widsafath id ${roleAssignment.personId} not found`);
+        }
+
+        return await prisma().demonstrationRoleAssignment.create({
+          data: {
+            personId: roleAssignment.personId,
+            demonstrationId: demonstration.id,
+            roleId: roleAssignment.role,
+            stateId: demonstration.stateId,
+            personTypeId: person.personTypeId,
+            grantLevelId: "Demonstration",
+          },
+        });
+      }
+    },
+
+    removePeopleFromDemonstration: async (
+      _: undefined,
+      { id, personIds }: { id: string; personIds: string[] }
+    ) => {
+      const demonstration = await prisma().demonstration.findUnique({
+        where: { id },
+      });
+
+      if (!demonstration) {
+        throw new Error(`Demonstration with id ${id} not found`);
+      }
+
+      return await prisma().demonstrationRoleAssignment.deleteMany({
+        where: {
+          demonstrationId: demonstration.id,
+          personId: { in: personIds },
+        },
       });
     },
   },
@@ -188,10 +220,6 @@ export const demonstrationResolvers = {
       return await prisma().demonstrationStatus.findUnique({
         where: { id: parent.demonstrationStatusId },
       });
-    },
-
-    projectOfficer: async (parent: Demonstration) => {
-      return await findUniqueUser(parent.projectOfficerUserId);
     },
 
     documents: async (parent: Demonstration) => {
@@ -230,6 +258,17 @@ export const demonstrationResolvers = {
 
     currentPhase: async (parent: Demonstration) => {
       return parent.currentPhaseId;
+    },
+
+    roles: async (parent: Demonstration) => {
+      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
+        where: { demonstrationId: parent.id },
+        include: { primaryDemonstrationRoleAssignment: true },
+      });
+      return roleAssignments.map((assignment) => ({
+        ...assignment,
+        isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
+      }));
     },
   },
 };
