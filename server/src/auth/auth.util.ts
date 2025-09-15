@@ -6,6 +6,7 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
+import { PERSON_TYPES } from "../constants.ts";
 
 const config = getAuthConfig();
 
@@ -77,7 +78,12 @@ function decodeToken(token: string): Promise<DecodedJWT> {
 }
 
 /* -----------------------  HELPERS  ----------------------- */
-type Claims = { sub: string; email?: string; role: string };
+type Claims = {
+  sub: string;
+  email?: string;
+  role: string;
+};
+
 type HeaderGetter = (name: string) => string | undefined;
 
 function createHeaderGetter(obj: Record<string, unknown> | undefined | null): HeaderGetter {
