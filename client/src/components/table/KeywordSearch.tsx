@@ -37,7 +37,8 @@ export function highlightCell<TData>({
   cell,
   table,
 }: CellContext<TData, unknown>): React.ReactNode {
-  const text = cell.getValue() as string;
+  const raw = cell.getValue();
+  const text = raw == null ? "" : String(raw);
   const query = table.getState().globalFilter || "";
 
   const keywords = Array.isArray(query) ? query : [query];

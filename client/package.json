@@ -32,7 +32,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.39.0",
-    "vite": "^6.2.5",
+    "vite": "^6.3.6",
     "vite-bundle-visualizer": "^1.2.1",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4",
@@ -79,7 +79,7 @@
     "@testing-library/user-event": "^14.6.1",
     "date-fns": "^4.1.0",
     "react-oidc-context": "^3.3.0",
-    "react-router-dom": "^7.8.1"
+    "react-router-dom": "^7.8.2"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-musl": "^4.44.0",

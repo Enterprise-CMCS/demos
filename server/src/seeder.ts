@@ -1,5 +1,12 @@
 import { faker } from "@faker-js/faker";
-import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL, PHASE } from "./constants.js";
+import {
+  BUNDLE_TYPE,
+  CMCS_DIVISION,
+  PERSON_TYPES,
+  SIGNATURE_LEVEL,
+  PHASE,
+  DEMONSTRATION_STATUSES
+} from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
 
@@ -32,11 +39,11 @@ function makeIdStyleString(inputString: string): string {
   return inputString.toUpperCase().replace(/ /g, "_").replace(/\./g, "");
 }
 
-function clearDatabase() {
+async function clearDatabase() {
   // Note: the history tables are not truncated in this process
   // Almost always, this runs via npm run seed which empties the DB anyway
   // However, if this does not happen, the history tables will contain the truncates
-  return prisma().$transaction([
+  return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
     // Start with join tables
     prisma().rolePermission.deleteMany(),
@@ -47,11 +54,17 @@ function clearDatabase() {
     // Delete various bundle types
     prisma().modification.deleteMany(),
     prisma().modificationStatus.deleteMany(),
+    prisma().primaryDemonstrationRoleAssignment.deleteMany(),
+    prisma().demonstrationRoleAssignment.deleteMany(),
     prisma().demonstration.deleteMany(),
     prisma().demonstrationStatus.deleteMany(),
 
+    prisma().personState.deleteMany(),
+
     // States are only connected to specific bundles and to the join tables
     prisma().state.deleteMany(),
+
+    prisma().bundlePhaseDate.deleteMany(),
 
     // Phases and accompanying items
     prisma().bundlePhase.deleteMany(),
@@ -145,6 +158,22 @@ async function seedDatabase() {
     });
   }
 
+  console.log("🌱 Seeding person states...");
+  const allPeople = await prisma().person.findMany();
+  for (const person of allPeople) {
+    // for now, just adding one state to each person
+    const state = await prisma().state.findRandom();
+    if (!state) {
+      throw new Error("No states found to assign to person");
+    }
+    await prisma().personState.create({
+      data: {
+        personId: person.id,
+        stateId: state.id,
+      },
+    });
+  }
+
   console.log("🌱 Seeding system role assignments...");
   // for each user, assign a random set of roles from the system roles
   const systemRoles = await prisma().role.findMany({
@@ -166,8 +195,8 @@ async function seedDatabase() {
       });
     }
   }
-
-  const baseStatuses = ["New", "In Progress", "On Hold", "Completed"];
+  // Derive from single source of truth
+  const baseStatuses = DEMONSTRATION_STATUSES.map((s) => s.name);
 
   console.log("🌱 Seeding demonstration statuses...");
   for (const statusName of baseStatuses) {
@@ -189,22 +218,53 @@ async function seedDatabase() {
         },
       },
     });
-    await prisma().demonstration.create({
-      data: {
-        id: bundle.id,
-        bundleTypeId: BUNDLE_TYPE.DEMONSTRATION,
-        name: faker.lorem.words(3),
-        description: faker.lorem.sentence(),
-        effectiveDate: faker.date.future(),
-        expirationDate: faker.date.future({ years: 1 }),
-        cmcsDivisionId: sampleFromArray([...CMCS_DIVISION, null], 1)[0],
-        signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
-        demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
-        stateId: (await prisma().state.findRandom())!.id,
-        currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
-        projectOfficerUserId: (await prisma().user.findRandom())!.id,
-      },
+
+    const person = await prisma().person.findRandom({
+      where: { personTypeId: "demos-cms-user" },
+      include: { personStates: true },
     });
+    if (!person) {
+      throw new Error(
+        "No person with personTypeId demos-cms-user found to assign as project officer"
+      );
+    }
+
+    // within the same transaction, create the demonstration and assign a project officer
+    await prisma().$transaction([
+      prisma().demonstration.create({
+        data: {
+          id: bundle.id,
+          bundleTypeId: BUNDLE_TYPE.DEMONSTRATION,
+          name: faker.lorem.words(3),
+          description: faker.lorem.sentence(),
+          effectiveDate: faker.date.future(),
+          expirationDate: faker.date.future({ years: 1 }),
+          cmcsDivisionId: sampleFromArray([...CMCS_DIVISION, null], 1)[0],
+          signatureLevelId: sampleFromArray([...SIGNATURE_LEVEL, null], 1)[0],
+          demonstrationStatusId: (await prisma().demonstrationStatus.findRandom())!.id,
+          stateId: person.personStates[0].stateId,
+          currentPhaseId: sampleFromArray(PHASE_WITHOUT_NONE, 1)[0],
+          projectOfficerUserId: (await prisma().user.findRandom())!.id,
+        },
+      }),
+      prisma().demonstrationRoleAssignment.create({
+        data: {
+          personId: person.id,
+          demonstrationId: bundle.id,
+          roleId: "Project Officer",
+          stateId: person.personStates[0].stateId,
+          personTypeId: person.personTypeId,
+          grantLevelId: "Demonstration",
+        },
+      }),
+      prisma().primaryDemonstrationRoleAssignment.create({
+        data: {
+          personId: person.id,
+          demonstrationId: bundle.id,
+          roleId: "Project Officer",
+        },
+      }),
+    ]);
   }
 
   console.log("🌱 Seeding amendment statuses...");

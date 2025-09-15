@@ -1,4 +1,4 @@
-import { states } from "data/StatesAndTerritories";
+import { STATES_AND_TERRITORIES } from "demos-server-constants";
 import { State } from "demos-server";
 
 export const california: State = {
@@ -9,7 +9,7 @@ export const california: State = {
 
 export type MockState = Pick<State, "name" | "id">;
 
-export const mockStates: MockState[] = states.map((state) => ({
+export const mockStates: MockState[] = STATES_AND_TERRITORIES.map((state) => ({
   name: state.name,
-  id: state.abbrev,
+  id: state.id,
 }));
