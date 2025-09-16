@@ -3,8 +3,13 @@ import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusS
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
-import { User } from "../user/userSchema.js";
-import { CmcsDivision, SignatureLevel, Phase } from "../../types.js";
+import {
+  CmcsDivision,
+  SignatureLevel,
+  Phase,
+  Role,
+  DemonstrationRoleAssignment,
+} from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
@@ -31,12 +36,12 @@ export const demonstrationSchema = gql`
     demonstrationStatus: DemonstrationStatus!
     state: State!
     currentPhase: Phase!
-    projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+    roles: [DemonstrationRoleAssignment!]!
   }
 
   input CreateDemonstrationInput {
@@ -58,7 +63,17 @@ export const demonstrationSchema = gql`
     demonstrationStatusId: ID
     currentPhase: Phase
     stateId: ID
-    projectOfficerUserId: String
+  }
+
+  input AddPeopleToDemonstrationInput {
+    personId: ID!
+    role: Role!
+    isPrimary: Boolean
+  }
+
+  input RemovePeopleFromDemonstrationInput {
+    personId: ID!
+    role: Role!
   }
 
   type CreateDemonstrationResponse {
@@ -67,12 +82,15 @@ export const demonstrationSchema = gql`
   }
 
   type Mutation {
-    createDemonstration(
-      input: CreateDemonstrationInput!
-    ): CreateDemonstrationResponse
-    updateDemonstration(
+    createDemonstration(input: CreateDemonstrationInput!): CreateDemonstrationResponse
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
+    addPeopleToDemonstration(
       id: ID!
-      input: UpdateDemonstrationInput!
+      demonstrationAssignments: [AddPeopleToDemonstrationInput!]!
+    ): Demonstration
+    removePeopleFromDemonstration(
+      id: ID!
+      input: [RemovePeopleFromDemonstrationInput!]!
     ): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
@@ -94,12 +112,12 @@ export interface Demonstration {
   demonstrationStatus: DemonstrationStatus;
   state: State;
   currentPhase: Phase;
-  projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
   createdAt: Date;
   updatedAt: Date;
+  roles: DemonstrationRoleAssignment[];
 }
 
 // Used in creating a demonstration from the F/E dialog.
@@ -123,5 +141,15 @@ export interface UpdateDemonstrationInput {
   demonstrationStatusId?: string;
   currentPhase?: Phase;
   stateId?: string;
-  projectOfficerUserId?: string;
+}
+
+export interface AddPeopleToDemonstrationInput {
+  personId: string;
+  role: Role;
+  isPrimary?: boolean;
+}
+
+export interface RemovePeopleFromDemonstrationInput {
+  personId: string;
+  role: Role;
 }
