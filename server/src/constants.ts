@@ -60,14 +60,14 @@ export const PHASE_STATUS = ["Not Started", "Started", "Completed", "Skipped"] a
 
 export const DATE_TYPES = [
   "Start Date",
-  "Completion Date",
   "Pre-Submission Submitted Date",
   "State Application Submitted Date",
+  "State Application Deemed Complete",
   "Completeness Review Due Date",
   "Completeness Due Date",
-  "State Application Deemed Complete",
   "Federal Comment Period Start Date",
   "Federal Comment Period End Date",
+  "Completion Date",
 ];
 
 // US States and Territories
