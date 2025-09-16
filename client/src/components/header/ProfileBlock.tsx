@@ -2,20 +2,30 @@ import React, { useState } from "react";
 import { ChevronDownIcon } from "components/icons";
 import { Avatar } from "./Avatar";
 import { getCurrentUser } from "components/user/UserContext";
-import { SignoutLink, SigninLink } from "../auth/AuthLinks";
+import { SignoutLink } from "../auth/AuthLinks";
+import { useAuthActions } from "components/auth/AuthActions";
 
 export const ProfileBlock: React.FC = () => {
+  const { signOut } = useAuthActions();
   const [open, setOpen] = useState(false);
   const { currentUser, loading, error } = getCurrentUser();
 
-  if (loading) return <div className="animate-pulse h-6 w-28 bg-white/20 rounded" />;
-  if (error) { console.error("[ProfileBlock] currentUser error:", error); return null; }
+  if (loading) {
+    return <div className="animate-pulse h-6 w-28 bg-white/20 rounded" />;
+  }
+  // Handle error state, log event, signout, return null just to be sure.
+  if (error) {
+    console.error("[ProfileBlock] currentUser error:", error);
+    console.log("currentUser", currentUser);
+    signOut();
+    return;
+  }
 
   if (!currentUser) {
-    return (
-      // this really should not be seen, user would be behind login wall.
-      <SigninLink />
-    );
+    console.log("currentUser", currentUser);
+    console.warn("[ProfileBlock] No currentUser found, signout");
+    signOut();
+    return;
   }
   // TODO: Add ability to set username, fullname, and displayName (if we keep all 3)
   const name = currentUser.fullName || currentUser.displayName || currentUser.email;

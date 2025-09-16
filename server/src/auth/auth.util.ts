@@ -6,7 +6,7 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
-import { PERSON_TYPES } from "../constants.ts";
+import { PERSON_TYPES } from "../constants";
 
 const config = getAuthConfig();
 
@@ -51,7 +51,8 @@ function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void
   });
 }
 
-export function verifyRole(role: string): void {
+// Check if role is demos-admin, demos-cms-user, or demos-state-user
+function verifyRole(role: string): void {
   const validRoles = PERSON_TYPES as readonly string[];
   if (!validRoles.includes(role)) {
     throw new GraphQLError(`Invalid user role: '${role}'`, {
@@ -226,7 +227,6 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
   const token = extractToken(createHeaderGetter(req.headers as Record<string, unknown>));
 
   if (!token) return { user: null };
-  verifyRole(token.role);
   try {
     const decodedToken = await decodeToken(token);
     const { sub, email, role } = decodedToken;
