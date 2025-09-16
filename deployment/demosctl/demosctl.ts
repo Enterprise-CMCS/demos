@@ -19,34 +19,25 @@ export async function main() {
   const environment = args[1];
   switch (command) {
     case "build:client":
-      await buildClient(environment, args[2] == "true");
-      break;
+      return await buildClient(environment, args[2] == "true");
     case "build:server":
-      await buildServer();
-      break;
+      return await buildServer();
     case "deploy:core":
-      await getCoreOutputs(environment);
-      break;
+      return await getCoreOutputs(environment);
     case "deploy:all":
-      await fullDeploy(environment);
-      break;
+      return await fullDeploy(environment);
     case "deploy:add-cloudfront-redirect":
-      await addCloudfrontRedirect(environment);
-      break;
+      return await addCloudfrontRedirect(environment);
     case "up":
-      await up(environment);
-      break;
+      return await up(environment);
     case "down":
-      down(environment);
-      break;
+      return await down(environment);
     case "migrate":
-      runMigration(environment, args[2]);
-      break;
+      return await runMigration(environment, args[2]);
     case "test-migration":
-      testMigration(environment, args[2]);
-      break;
+      return await testMigration(environment, args[2]);
     default:
       console.error(`Unknown command: ${command}`);
-      process.exit(1);
+      return 1;
   }
 }

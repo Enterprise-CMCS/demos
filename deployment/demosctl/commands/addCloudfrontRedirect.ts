@@ -18,7 +18,7 @@ export async function addCloudfrontRedirect(environment: string) {
 
   if (cmd != 0) {
     console.error(`deploy-no-execute command failed with code ${cmd}`);
-    return process.exit(cmd);
+    return cmd;
   }
 
   const outputData = readOutputs("all-outputs.json");
@@ -30,4 +30,5 @@ export async function addCloudfrontRedirect(environment: string) {
   );
 
   console.log(`\n======\ncloudfront url added as a valid redirect\n======\n`);
+  return 0;
 }

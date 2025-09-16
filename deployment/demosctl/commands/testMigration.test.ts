@@ -85,18 +85,18 @@ describe("testMigration", () => {
   test("should exit if no db name is specified", async () => {
     const mockStageName = "unit-test";
 
-    await testMigration(mockStageName);
+    const exitCode = await testMigration(mockStageName);
     expect(console.error).toHaveBeenCalledWith("you must specify a database name");
-    expect(process.exit).toHaveBeenCalled();
+    expect(exitCode).toBe(1);
   });
 
   test("should exit if db is set to 'demos'", async () => {
     const mockStageName = "unit-test";
     const targetDB = "demos";
 
-    await testMigration(mockStageName, targetDB);
+    const exitCode = await testMigration(mockStageName, targetDB);
     expect(console.error).toHaveBeenCalledWith("testMigration cannot be run against 'demos' db");
-    expect(process.exit).toHaveBeenCalled();
+    expect(exitCode).toBe(1);
   });
 
   test("should fail when secret data can't be retrieved", async () => {
@@ -117,10 +117,10 @@ describe("testMigration", () => {
 
     (getSecret as jest.Mock).mockResolvedValue(null);
 
-    await testMigration(mockStageName, targetDB);
+    const exitCode = await testMigration(mockStageName, targetDB);
 
     expect(console.error).toHaveBeenCalledWith(`unable to retrieve secret data for demos-${mockStageName}-rds-admin`);
-    expect(process.exit).toHaveBeenCalled();
+    expect(exitCode).toBe(1);
   });
 
   test("should print error if migration fails", async () => {
@@ -142,10 +142,10 @@ describe("testMigration", () => {
     (getSecret as jest.Mock).mockResolvedValue(JSON.stringify(mockDBData));
     (runMigration as jest.Mock).mockRejectedValue("something went wrong");
 
-    await testMigration(mockStageName, targetDB);
+    const exitCode = await testMigration(mockStageName, targetDB);
 
     expect(console.error).toHaveBeenCalledWith("migrationStatus error", "something went wrong");
-    expect(process.exit).toHaveBeenCalled();
+    expect(exitCode).toBe(1);
   });
 
   test("should handle error when failing to drop database", async () => {
@@ -170,7 +170,7 @@ describe("testMigration", () => {
     // @ts-expect-error ignore invalid mock
     mockQuery.mockRejectedValueOnce(1);
 
-    await testMigration(mockStageName, targetDB);
+    const exitCode = await testMigration(mockStageName, targetDB);
 
     expect(console.error).toHaveBeenCalledTimes(2);
     expect(console.error).toHaveBeenCalledWith("failed to drop database:", 1);
@@ -178,6 +178,6 @@ describe("testMigration", () => {
       expect.stringContaining("`prisma migration deploy` exited with a non-zero exit code")
     );
 
-    expect(process.exit).toHaveBeenCalled();
+    expect(exitCode).toBe(1);
   });
 });
