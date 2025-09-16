@@ -27,6 +27,10 @@ type DecodedJWT = {
   email?: string;
   token_use?: "id" | "access";
   role: string;
+  givenName?: string;
+  familyName?: string;
+  name?: string;
+  externalUserId?: string;
 };
 
 const verifyOpts: VerifyOptions = {
@@ -76,9 +80,13 @@ function decodeToken(token: string): Promise<DecodedJWT> {
       }
       const rawDecoded = decoded as {
         sub: string;
-        email: string;
+        email?: string;
         token_use?: "id" | "access";
         "custom:roles": string;
+        given_name?: string;
+        family_name?: string;
+        name?: string;
+        identities?: string | undefined;
       };
       const role = rawDecoded["custom:roles"];
       try {
@@ -87,11 +95,30 @@ function decodeToken(token: string): Promise<DecodedJWT> {
         return reject(err);
       }
 
+      // Extract external userId from Cognito identities claim when available
+      let externalUserId: string | undefined;
+      try {
+        const raw = rawDecoded.identities;
+        const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (Array.isArray(arr) && arr.length > 0) {
+          const first = arr[0] as { userId?: string };
+          if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
+            externalUserId = first.userId.trim();
+          }
+        }
+      } catch {
+        // ignore parse errors; fall back below
+      }
+
       resolve({
         sub: rawDecoded.sub,
         email: rawDecoded.email,
         token_use: rawDecoded.token_use,
         role,
+        givenName: rawDecoded.given_name,
+        familyName: rawDecoded.family_name,
+        name: rawDecoded.name,
+        externalUserId,
       });
     });
   });
@@ -102,6 +129,10 @@ type Claims = {
   sub: string;
   email?: string;
   role: string;
+  givenName?: string;
+  familyName?: string;
+  name?: string;
+  externalUserId?: string;
 };
 
 type HeaderGetter = (name: string) => string | undefined;
@@ -140,11 +171,13 @@ function extractToken(getHeader: HeaderGetter): string {
   return token;
 }
 
-function deriveUserFields({ sub, email }: Claims) {
-  const username = email?.includes("@") ? email.split("@")[0] : sub;
-  const displayName = username;
+function deriveUserFields({ sub, email, givenName, familyName, name, externalUserId }: Claims) {
+  const usernameFromEmail = email?.includes("@") ? email.split("@")[0] : undefined;
+  const username = externalUserId || usernameFromEmail || sub;
+  const displayName = (givenName && givenName.trim()) || username;
   const emailForCreate = email ?? `${sub}@no-email.local`;
-  const fullName = email ?? username;
+  const fullNameFromParts = [givenName, familyName].filter(Boolean).join(" ").trim();
+  const fullName = (name && name.trim()) || fullNameFromParts || email || username;
   return { username, displayName, emailForCreate, fullName };
 }
 
@@ -197,13 +230,38 @@ export async function buildLambdaContext(
   const rawClaims = headers["x-authorizer-claims"] ?? headers["X-Authorizer-Claims"];
   if (rawClaims) {
     try {
-      const { sub, email, role } = JSON.parse(rawClaims as string) as {
+      const parsed = JSON.parse(rawClaims as string) as {
         sub: string;
         email?: string;
         role: string;
+        given_name?: string;
+        family_name?: string;
+        name?: string;
       };
+      const role = parsed.role;
       verifyRole(role);
-      return buildContextFromClaims({ sub, email, role });
+      // optional identities can be a JSON string or object
+      let externalUserId: string | undefined;
+      try {
+        const rawIdent = (parsed as unknown as { identities?: unknown }).identities;
+        const arr = typeof rawIdent === "string" ? JSON.parse(rawIdent) : rawIdent;
+        if (Array.isArray(arr) && arr.length > 0) {
+          const first = arr[0] as { userId?: string };
+          if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
+            externalUserId = first.userId.trim();
+          }
+        }
+      } catch {}
+
+      return buildContextFromClaims({
+        sub: parsed.sub,
+        email: parsed.email,
+        role,
+        givenName: parsed.given_name,
+        familyName: parsed.family_name,
+        name: parsed.name,
+        externalUserId,
+      });
     } catch {
       console.warn("[auth] Attempt to parse x-authorizer-claims failed");
     }
@@ -214,8 +272,8 @@ export async function buildLambdaContext(
   if (!token) return { user: null };
 
   try {
-    const { sub, email, role } = await decodeToken(token);
-    return buildContextFromClaims({ sub, email, role });
+    const { sub, email, role, givenName, familyName, name, externalUserId } = await decodeToken(token);
+    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
     console.error("[auth] lambda context error:", err);
     return { user: null };
@@ -229,8 +287,8 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
   if (!token) return { user: null };
   try {
     const decodedToken = await decodeToken(token);
-    const { sub, email, role } = decodedToken;
-    return buildContextFromClaims({ sub, email, role });
+    const { sub, email, role, givenName, familyName, name, externalUserId } = decodedToken;
+    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
     console.error("[auth] context error:", err);
     return { user: null };
