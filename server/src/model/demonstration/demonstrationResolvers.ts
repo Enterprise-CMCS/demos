@@ -3,7 +3,10 @@ import { Demonstration } from "@prisma/client";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType, Phase } from "../../types.js";
-import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
+import {
+  CreateDemonstrationInput,
+  UpdateDemonstrationInput,
+} from "./demonstrationSchema.js";
 import { findUniqueUser } from "../user/userResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
@@ -26,11 +29,14 @@ export const demonstrationResolvers = {
   },
 
   Mutation: {
-    createDemonstration: async (_: undefined, { input }: { input: CreateDemonstrationInput }) => {
+    createDemonstration: async (
+      _: undefined,
+      { input }: { input: CreateDemonstrationInput },
+    ) => {
       const {
-        demonstrationStatusId,
         stateId,
         projectOfficerUserId,
+        description,
         cmcsDivision,
         signatureLevel,
         ...rest
@@ -45,45 +51,60 @@ export const demonstrationResolvers = {
           },
         });
 
-        return await tx.demonstration.create({
-          data: {
-            ...rest,
-            bundle: {
-              connect: { id: bundle.id },
-            },
-            bundleType: {
-              connect: { id: demonstrationBundleTypeId },
-            },
-            ...(cmcsDivision && {
-              cmcsDivision: {
-                connect: { id: cmcsDivision },
+        try {
+          await tx.demonstration.create({
+            data: {
+              ...rest,
+              description: description || "",
+              bundle: {
+                connect: { id: bundle.id },
               },
-            }),
-            ...(signatureLevel && {
-              signatureLevel: {
-                connect: { id: signatureLevel },
+              bundleType: {
+                connect: { id: demonstrationBundleTypeId },
               },
-            }),
-            demonstrationStatus: {
-              connect: { id: demonstrationStatusId },
+              ...(cmcsDivision && {
+                cmcsDivision: {
+                  connect: { id: cmcsDivision },
+                },
+              }),
+              ...(signatureLevel && {
+                signatureLevel: {
+                  connect: { id: signatureLevel },
+                },
+              }),
+              demonstrationStatus: {
+                connect: { id: "DEMONSTRATION_NEW" },
+              },
+              state: {
+                connect: { id: stateId },
+              },
+              currentPhase: {
+                connect: { id: conceptPhaseId },
+              },
+              projectOfficer: {
+                connect: { id: projectOfficerUserId },
+              },
             },
-            state: {
-              connect: { id: stateId },
-            },
-            currentPhase: {
-              connect: { id: conceptPhaseId },
-            },
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          },
-        });
+          });
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          return {
+            success: false,
+            message: "Error creating demonstration: " + errorMessage,
+          };
+        }
+
+        return {
+          success: true,
+          message: "Demonstration created successfully!",
+        };
       });
     },
 
     updateDemonstration: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDemonstrationInput }
+      { id, input }: { id: string; input: UpdateDemonstrationInput },
     ) => {
       const {
         demonstrationStatusId,

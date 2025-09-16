@@ -33,6 +33,20 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
+  const handleUpdateContact = async (contactId: string, contactType: string) => {
+    // TODO: Implement actual API call to update contact
+    console.log("Updating contact:", { contactId, contactType });
+    // This would typically call a mutation/API to update the contact in the database
+    // await updateContactMutation({ variables: { id: contactId, contactType } });
+  };
+
+  const handleDeleteContacts = async (contactIds: string[]) => {
+    // TODO: Implement actual API call to delete contacts
+    console.log("Deleting contacts:", contactIds);
+    // This would typically call a mutation/API to delete the contacts from the database
+    // await deleteContactsMutation({ variables: { ids: contactIds } });
+  };
+
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
     { value: "types", label: "Types", count: 0 },
@@ -42,7 +56,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "under_review" }} />
+      <ApplicationWorkflow demonstration={{ status: "DEMONSTRATION_UNDER_REVIEW" }} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}
@@ -96,7 +110,11 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <ContactsTable contacts={demonstration.contacts} />
+            <ContactsTable
+              contacts={demonstration.contacts}
+              onUpdateContact={handleUpdateContact}
+              onDeleteContacts={handleDeleteContacts}
+            />
           </>
         )}
       </div>
