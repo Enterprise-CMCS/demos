@@ -79,4 +79,10 @@ pipeline {
       }
     }
   }
+
+  post {
+    failure {
+      slackPipelineFail("CDK")
+    }
+  }
 }
