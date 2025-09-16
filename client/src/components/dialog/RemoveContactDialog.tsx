@@ -71,7 +71,7 @@ export const RemoveContactDialog: React.FC<RemoveContactDialogProps> = ({
     >
       <div className="mb-2 text-sm text-text-filled">
         Are you sure you want to remove {contactIds.length > 1 ? "the" : ""} contact
-        {contactIds.length > 1 ? "s" : ""} ? This action cannot be undone!
+        {contactIds.length > 1 ? "s" : ""}?
         <br />
         <span className="text-error flex items-center gap-1 mt-1">
           <ErrorIcon />
