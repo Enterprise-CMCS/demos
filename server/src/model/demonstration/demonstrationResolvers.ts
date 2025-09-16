@@ -11,13 +11,15 @@ const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
 
+export async function getDemonstration(_: undefined, { id }: { id: string }) {
+  return await prisma().demonstration.findUnique({
+    where: { id: id },
+  });
+}
+
 export const demonstrationResolvers = {
   Query: {
-    demonstration: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().demonstration.findUnique({
-        where: { id: id },
-      });
-    },
+    demonstration: getDemonstration,
     demonstrations: async () => {
       return await prisma().demonstration.findMany();
     },

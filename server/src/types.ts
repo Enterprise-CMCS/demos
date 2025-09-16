@@ -55,6 +55,7 @@ export type {
 
 export type { BundlePhase } from "./model/bundlePhase/bundlePhaseSchema.js";
 export type { BundlePhaseDate } from "./model/bundlePhaseDate/bundlePhaseDateSchema.js";
+export { Bundle } from "./model/bundle/bundleSchema.js";
 
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
 export type CmcsDivision = (typeof CMCS_DIVISION)[number];

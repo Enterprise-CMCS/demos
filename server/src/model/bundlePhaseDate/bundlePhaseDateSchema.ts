@@ -8,6 +8,10 @@ export const bundlePhaseDateSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
   }
+
+  type Mutation {
+    setPhaseDate(bundleId: ID!, phase: Phase!, dateType: DateType!, dateValue: DateTime!): Bundle
+  }
 `;
 
 export interface BundlePhaseDate {
