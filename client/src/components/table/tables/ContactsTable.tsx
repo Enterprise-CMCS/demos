@@ -13,6 +13,7 @@ import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 import { createSelectColumnDef } from "../columns/selectColumn";
 import { TableHead } from "../Table";
 import { EditContactDialog } from "components/dialog/EditContactDialog";
+import { RemoveContactDialog } from "components/dialog/RemoveContactDialog";
 import { useToast } from "components/toast";
 
 type ContactType =
@@ -88,7 +89,9 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
 }) => {
   const [rowSelection, setRowSelection] = React.useState({});
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = React.useState(false);
   const [selectedContact, setSelectedContact] = React.useState<Contact | null>(null);
+  const [selectedContactIds, setSelectedContactIds] = React.useState<string[]>([]);
   const { showError } = useToast();
 
   const contactsTable = useReactTable<Contact>({
@@ -128,13 +131,19 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
     }
 
     const contactIds = selectedRows.map((row) => row.original.id);
+    setSelectedContactIds(contactIds);
+    setIsRemoveDialogOpen(true);
+  };
 
+  const handleConfirmRemoveContacts = async (contactIds: string[]) => {
     if (onDeleteContacts) {
       onDeleteContacts(contactIds);
     } else {
       // TODO: Add actual API call here when available
       console.log("Deleting contacts:", contactIds);
     }
+    setIsRemoveDialogOpen(false);
+    setSelectedContactIds([]);
   };
   const handleCloseDialog = () => {
     setIsEditDialogOpen(false);
@@ -199,6 +208,14 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
           onSubmit={handleSubmitContact}
         />
       )}
+
+      {/* Remove Contact Dialog */}
+      <RemoveContactDialog
+        isOpen={isRemoveDialogOpen}
+        onClose={() => setIsRemoveDialogOpen(false)}
+        onConfirm={handleConfirmRemoveContacts}
+        contactIds={selectedContactIds}
+      />
     </>
   );
 };

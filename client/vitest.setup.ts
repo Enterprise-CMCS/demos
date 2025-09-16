@@ -5,17 +5,23 @@ import { vi } from "vitest";
 
 // Mock HTML dialog element for tests
 Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
-  value: vi.fn(),
+  value: vi.fn(function (this: HTMLDialogElement) {
+    this.open = true;
+  }),
   writable: true,
 });
 
 Object.defineProperty(HTMLDialogElement.prototype, "show", {
-  value: vi.fn(),
+  value: vi.fn(function (this: HTMLDialogElement) {
+    this.open = true;
+  }),
   writable: true,
 });
 
 Object.defineProperty(HTMLDialogElement.prototype, "close", {
-  value: vi.fn(),
+  value: vi.fn(function (this: HTMLDialogElement) {
+    this.open = false;
+  }),
   writable: true,
 });
 
