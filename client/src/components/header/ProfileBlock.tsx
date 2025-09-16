@@ -16,13 +16,11 @@ export const ProfileBlock: React.FC = () => {
   // Handle error state, log event, signout, return null just to be sure.
   if (error) {
     console.error("[ProfileBlock] currentUser error:", error);
-    console.log("currentUser", currentUser);
     signOut();
     return;
   }
 
   if (!currentUser) {
-    console.log("currentUser", currentUser);
     console.warn("[ProfileBlock] No currentUser found, signout");
     signOut();
     return;
