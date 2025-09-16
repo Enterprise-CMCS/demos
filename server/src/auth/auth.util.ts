@@ -240,6 +240,7 @@ export async function buildLambdaContext(
       };
       const role = parsed.role;
       verifyRole(role);
+
       // optional identities can be a JSON string or object
       let externalUserId: string | undefined;
       try {
@@ -251,7 +252,9 @@ export async function buildLambdaContext(
             externalUserId = first.userId.trim();
           }
         }
-      } catch {}
+      } catch {
+        console.warn("[auth] Attempt to parse identities from x-authorizer-claims failed, falling back");
+      }
 
       return buildContextFromClaims({
         sub: parsed.sub,
