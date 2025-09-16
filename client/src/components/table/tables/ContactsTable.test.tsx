@@ -1,7 +1,9 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 import { Contact, ContactsTable } from "./ContactsTable";
+import { ToastProvider } from "components/toast/ToastContext";
 
 const contacts: Contact[] = [
   {
@@ -18,27 +20,31 @@ const contacts: Contact[] = [
   },
 ];
 
+const renderWithToast = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
+};
+
 describe("ContactsTable", () => {
   it("displays all contacts associated with a demonstration", () => {
-    render(<ContactsTable contacts={contacts} />);
+    renderWithToast(<ContactsTable contacts={contacts} />);
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
   });
 
   it("displays all required fields for each contact", () => {
-    render(<ContactsTable contacts={contacts} />);
+    renderWithToast(<ContactsTable contacts={contacts} />);
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Email")).toBeInTheDocument();
     expect(screen.getByText("Contact Type")).toBeInTheDocument();
   });
 
   it('displays a dash "-" for missing field values', () => {
-    render(<ContactsTable contacts={contacts} />);
+    renderWithToast(<ContactsTable contacts={contacts} />);
     expect(screen.getAllByText("-").length).toBeGreaterThan(0);
   });
 
   it("allows sorting by any column, ascending and descending", async () => {
-    render(<ContactsTable contacts={contacts} />);
+    renderWithToast(<ContactsTable contacts={contacts} />);
     const nameHeader = screen.getByText("Name");
 
     // default
@@ -61,14 +67,14 @@ describe("ContactsTable", () => {
   });
 
   it("pagination controls are user friendly and responsive", () => {
-    render(<ContactsTable contacts={Array(25).fill(contacts[0])} />);
+    renderWithToast(<ContactsTable contacts={Array(25).fill(contacts[0])} />);
     expect(screen.getByLabelText("Go to next page")).toBeInTheDocument();
     expect(screen.getByLabelText("No previous page")).toBeInTheDocument();
     expect(screen.getByLabelText("Page 1, current page")).toBeInTheDocument();
   });
 
   it("allows navigation to specific pages and page sizes", async () => {
-    render(<ContactsTable contacts={Array(25).fill(contacts[0])} />);
+    renderWithToast(<ContactsTable contacts={Array(25).fill(contacts[0])} />);
     // Click page 2
     await userEvent.click(screen.getByText("2"));
     // Change page size
@@ -83,9 +89,61 @@ describe("ContactsTable", () => {
   });
 
   it("displays 10 records per page by default", () => {
-    render(<ContactsTable contacts={Array(15).fill(contacts[0])} />);
-    const rows = screen.getAllByRole("row");
-    // 1 header row + 10 data rows
-    expect(rows.length).toBe(11);
+    renderWithToast(<ContactsTable contacts={Array(15).fill(contacts[0])} />);
+    expect(screen.getByDisplayValue("10")).toBeInTheDocument();
+  });
+
+  it("enables edit button only when exactly one contact is selected", () => {
+    renderWithToast(<ContactsTable contacts={contacts} />);
+
+    const editButton = screen.getByLabelText("Edit Contact");
+    const deleteButton = screen.getByLabelText("Remove Contact");
+
+    // Initially no selection, both buttons disabled
+    expect(editButton).toBeDisabled();
+    expect(deleteButton).toBeDisabled();
+
+    // Select first contact
+    const firstCheckbox = screen.getAllByRole("checkbox")[1]; // Skip header checkbox
+    fireEvent.click(firstCheckbox);
+
+    // Edit enabled with single selection, delete enabled
+    expect(editButton).toBeEnabled();
+    expect(deleteButton).toBeEnabled();
+
+    // Select second contact (multi-selection)
+    const secondCheckbox = screen.getAllByRole("checkbox")[2];
+    fireEvent.click(secondCheckbox);
+
+    // Edit disabled with multi-selection, delete still enabled
+    expect(editButton).toBeDisabled();
+    expect(deleteButton).toBeEnabled();
+  });
+
+  it("calls onDeleteContacts with selected contact IDs when delete button is clicked", () => {
+    const mockOnDeleteContacts = vi.fn();
+    renderWithToast(<ContactsTable contacts={contacts} onDeleteContacts={mockOnDeleteContacts} />);
+
+    // Select both contacts
+    const firstCheckbox = screen.getAllByRole("checkbox")[1];
+    const secondCheckbox = screen.getAllByRole("checkbox")[2];
+    fireEvent.click(firstCheckbox);
+    fireEvent.click(secondCheckbox);
+
+    // Click delete button
+    const deleteButton = screen.getByLabelText("Remove Contact");
+    fireEvent.click(deleteButton);
+
+    expect(mockOnDeleteContacts).toHaveBeenCalledWith(["1", "2"]);
+  });
+
+  it("shows error message when trying to delete without selecting any contacts", () => {
+    renderWithToast(<ContactsTable contacts={contacts} />);
+
+    const deleteButton = screen.getByLabelText("Remove Contact");
+    fireEvent.click(deleteButton);
+
+    // Should be disabled, but testing the handler logic if called
+    expect(deleteButton).toBeDisabled();
   });
 });

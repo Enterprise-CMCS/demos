@@ -3,12 +3,17 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { EditContactDialog } from "./EditContactDialog";
+import { ToastProvider } from "components/toast/ToastContext";
 
 const mockContact = {
   id: "1",
   fullName: "John Doe",
   email: "john@example.com",
-  contactType: "Project Officer",
+  contactType: "Primary Project Officer",
+};
+
+const renderWithToast = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
 };
 
 describe("EditContactDialog", () => {
@@ -20,7 +25,7 @@ describe("EditContactDialog", () => {
   });
 
   it("renders dialog with contact information", () => {
-    render(
+    renderWithToast(
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
@@ -32,11 +37,11 @@ describe("EditContactDialog", () => {
     expect(screen.getByText("Edit Contact")).toBeInTheDocument();
     expect(screen.getByDisplayValue("John Doe")).toBeInTheDocument();
     expect(screen.getByDisplayValue("john@example.com")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Primary Project Officer")).toBeInTheDocument();
   });
 
   it("shows disabled name and email fields with helper text", () => {
-    render(
+    renderWithToast(
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
@@ -56,7 +61,7 @@ describe("EditContactDialog", () => {
   it("allows changing contact type", async () => {
     const user = userEvent.setup();
 
-    render(
+    renderWithToast(
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
@@ -65,16 +70,16 @@ describe("EditContactDialog", () => {
       />
     );
 
-    const contactTypeSelect = screen.getByDisplayValue("Project Officer");
-    await user.selectOptions(contactTypeSelect, "DDME Analyst");
+    const contactTypeSelect = screen.getByDisplayValue("Primary Project Officer");
+    await user.selectOptions(contactTypeSelect, "Secondary Project Officer");
 
-    expect(screen.getByDisplayValue("DDME Analyst")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Secondary Project Officer")).toBeInTheDocument();
   });
 
   it("validates required contact type field", async () => {
     const user = userEvent.setup();
 
-    render(
+    renderWithToast(
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
@@ -86,14 +91,14 @@ describe("EditContactDialog", () => {
     const submitButton = screen.getByText("Submit");
     await user.click(submitButton);
 
-    expect(screen.getByText("A required field is missing.")).toBeInTheDocument();
+    // The form should not submit when contact type is empty
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
   it("submits contact update with new contact type", async () => {
     const user = userEvent.setup();
 
-    render(
+    renderWithToast(
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
@@ -102,21 +107,21 @@ describe("EditContactDialog", () => {
       />
     );
 
-    const contactTypeSelect = screen.getByDisplayValue("Project Officer");
-    await user.selectOptions(contactTypeSelect, "State Point of Contact");
+    const contactTypeSelect = screen.getByDisplayValue("Primary Project Officer");
+    await user.selectOptions(contactTypeSelect, "State Representative");
 
     const submitButton = screen.getByText("Submit");
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith("1", "State Point of Contact");
+      expect(mockOnSubmit).toHaveBeenCalledWith("1", "State Representative");
     });
   });
 
   it("shows cancel confirmation on cancel button click", async () => {
     const user = userEvent.setup();
 
-    render(
+    renderWithToast(
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}

@@ -40,6 +40,13 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
     // await updateContactMutation({ variables: { id: contactId, contactType } });
   };
 
+  const handleDeleteContacts = async (contactIds: string[]) => {
+    // TODO: Implement actual API call to delete contacts
+    console.log("Deleting contacts:", contactIds);
+    // This would typically call a mutation/API to delete the contacts from the database
+    // await deleteContactsMutation({ variables: { ids: contactIds } });
+  };
+
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
     { value: "types", label: "Types", count: 0 },
@@ -106,6 +113,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             <ContactsTable
               contacts={demonstration.contacts}
               onUpdateContact={handleUpdateContact}
+              onDeleteContacts={handleDeleteContacts}
             />
           </>
         )}

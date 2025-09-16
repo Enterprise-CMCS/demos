@@ -46,6 +46,18 @@ export const ContactsTableDemo: React.FC = () => {
     console.log(`Updated contact ${contactId} to type: ${contactType}`);
   };
 
+  const handleDeleteContacts = async (contactIds: string[]) => {
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Remove the contacts from state
+    setContacts((prevContacts) =>
+      prevContacts.filter((contact) => !contactIds.includes(contact.id))
+    );
+
+    console.log(`Deleted contacts: ${contactIds.join(", ")}`);
+  };
+
   const resetContacts = () => {
     setContacts(mockContacts);
   };
@@ -59,18 +71,22 @@ export const ContactsTableDemo: React.FC = () => {
         </Button>
       </div>
       <div className="bg-white p-4 border rounded">
-        <ContactsTable contacts={contacts} onUpdateContact={handleUpdateContact} />
+        <ContactsTable
+          contacts={contacts}
+          onUpdateContact={handleUpdateContact}
+          onDeleteContacts={handleDeleteContacts}
+        />
       </div>
       <div className="mt-4 text-sm text-gray-600">
         <p>
           <strong>Instructions:</strong>
         </p>
         <ol className="list-decimal list-inside">
-          <li>Select a contact by clicking the checkbox</li>
-          <li>Click the &quot;Edit Contact&quot; button</li>
-          <li>Change the contact type in the dropdown</li>
-          <li>Click &quot;Submit&quot; to save changes</li>
-          <li>The table will update with the new contact type</li>
+          <li>Select contact(s) by clicking the checkbox(es)</li>
+          <li>For editing: Select exactly one contact and click &quot;Edit Contact&quot;</li>
+          <li>For deleting: Select one or more contacts and click &quot;Remove Contact&quot;</li>
+          <li>Change the contact type in the edit dialog and click &quot;Submit&quot;</li>
+          <li>The table will update with changes or remove deleted contacts</li>
         </ol>
       </div>
     </div>

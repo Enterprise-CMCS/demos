@@ -47,10 +47,14 @@ const contactsColumns = [
 
 function DocumentActionButtons({
   onEditContact,
+  onDeleteContacts,
   hasSelectedContact,
+  hasSelectedContacts,
 }: {
   onEditContact: () => void;
+  onDeleteContacts: () => void;
   hasSelectedContact: boolean;
+  hasSelectedContacts: boolean;
 }) {
   return (
     <div className="flex gap-2 ml-4">
@@ -60,7 +64,11 @@ function DocumentActionButtons({
       <CircleButton name="Edit Contact" onClick={onEditContact} disabled={!hasSelectedContact}>
         <EditIcon />
       </CircleButton>
-      <CircleButton name="Remove Contact" onClick={() => {}} disabled={!hasSelectedContact}>
+      <CircleButton
+        name="Remove Contact"
+        onClick={onDeleteContacts}
+        disabled={!hasSelectedContacts}
+      >
         <DeleteIcon />
       </CircleButton>
     </div>
@@ -70,9 +78,14 @@ function DocumentActionButtons({
 type ContactsTableProps = {
   contacts?: Contact[];
   onUpdateContact?: (contactId: string, contactType: string) => Promise<void>;
+  onDeleteContacts?: (contactIds: string[]) => Promise<void>;
 };
 
-export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [], onUpdateContact }) => {
+export const ContactsTable: React.FC<ContactsTableProps> = ({
+  contacts = [],
+  onUpdateContact,
+  onDeleteContacts,
+}) => {
   const [rowSelection, setRowSelection] = React.useState({});
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [selectedContact, setSelectedContact] = React.useState<Contact | null>(null);
@@ -106,6 +119,23 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [], onU
     setIsEditDialogOpen(true);
   };
 
+  const handleDeleteContacts = () => {
+    const selectedRows = contactsTable.getSelectedRowModel().rows;
+
+    if (selectedRows.length === 0) {
+      showError("Please select contacts to delete");
+      return;
+    }
+
+    const contactIds = selectedRows.map((row) => row.original.id);
+
+    if (onDeleteContacts) {
+      onDeleteContacts(contactIds);
+    } else {
+      // TODO: Add actual API call here when available
+      console.log("Deleting contacts:", contactIds);
+    }
+  };
   const handleCloseDialog = () => {
     setIsEditDialogOpen(false);
     setSelectedContact(null);
@@ -121,6 +151,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [], onU
 
   const selectedRows = contactsTable.getSelectedRowModel().rows;
   const hasSelectedContact = selectedRows.length === 1;
+  const hasSelectedContacts = selectedRows.length > 0;
 
   return (
     <>
@@ -128,7 +159,9 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [], onU
         <div className="mr-1">
           <DocumentActionButtons
             onEditContact={handleEditContact}
+            onDeleteContacts={handleDeleteContacts}
             hasSelectedContact={hasSelectedContact}
+            hasSelectedContacts={hasSelectedContacts}
           />
         </div>
       </div>
