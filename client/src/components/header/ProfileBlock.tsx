@@ -27,8 +27,8 @@ export const ProfileBlock: React.FC = () => {
     signOut();
     return;
   }
-  // TODO: Add ability to set username, fullname, and displayName (if we keep all 3)
-  const name = currentUser.fullName || currentUser.displayName || currentUser.email;
+  // These fields are not nullable in DB. So they can't be missing.
+  const name = currentUser.displayName ?? currentUser.fullName;
   const firstCharacter = (name?.trim()?.[0] ?? "?").toUpperCase();
 
   return (
