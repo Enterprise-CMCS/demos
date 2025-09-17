@@ -7,8 +7,18 @@ import { AddNewIcon } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import { TabItem, Tabs } from "layout/Tabs";
-import { Demonstration, DemonstrationStatus, Document, State, User } from "demos-server";
+import {
+  Demonstration,
+  DemonstrationStatus,
+  Document,
+  State,
+  User,
+} from "demos-server";
+import {
+  TabItem,
+  Tabs,
+} from "layout/Tabs";
+
 import { Contact } from "./DemonstrationDetail";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
@@ -38,13 +48,6 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
     console.log("Updating contact:", { contactId, contactType });
     // This would typically call a mutation/API to update the contact in the database
     // await updateContactMutation({ variables: { id: contactId, contactType } });
-  };
-
-  const handleDeleteContacts = async (contactIds: string[]) => {
-    // TODO: Implement actual API call to delete contacts
-    console.log("Deleting contacts:", contactIds);
-    // This would typically call a mutation/API to delete the contacts from the database
-    // await deleteContactsMutation({ variables: { ids: contactIds } });
   };
 
   const subTabList: TabItem[] = [
@@ -113,7 +116,6 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             <ContactsTable
               contacts={demonstration.contacts}
               onUpdateContact={handleUpdateContact}
-              onDeleteContacts={handleDeleteContacts}
             />
           </>
         )}

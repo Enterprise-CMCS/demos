@@ -1,9 +1,12 @@
 import React from "react";
-import { render, screen, within, fireEvent } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { vi } from "vitest";
-import { Contact, ContactsTable } from "./ContactsTable";
+
 import { ToastProvider } from "components/toast/ToastContext";
+import { vi } from "vitest";
+
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import { Contact, ContactsTable } from "./ContactsTable";
 
 const contacts: Contact[] = [
   {
@@ -120,9 +123,8 @@ describe("ContactsTable", () => {
     expect(deleteButton).toBeEnabled();
   });
 
-  it("calls onDeleteContacts with selected contact IDs when delete button is clicked", () => {
-    const mockOnDeleteContacts = vi.fn();
-    renderWithToast(<ContactsTable contacts={contacts} onDeleteContacts={mockOnDeleteContacts} />);
+  it("opens confirmation dialog when delete button is clicked", () => {
+    renderWithToast(<ContactsTable contacts={contacts} />);
 
     // Select both contacts
     const firstCheckbox = screen.getAllByRole("checkbox")[1];
@@ -134,7 +136,52 @@ describe("ContactsTable", () => {
     const deleteButton = screen.getByLabelText("Remove Contact");
     fireEvent.click(deleteButton);
 
-    expect(mockOnDeleteContacts).toHaveBeenCalledWith(["1", "2"]);
+    // Should open confirmation dialog
+    expect(
+      screen.getByText(/Are you sure you want to remove the contact\(s\)/)
+    ).toBeInTheDocument();
+    expect(screen.getByText("This action cannot be undone.")).toBeInTheDocument();
+  });
+
+  it("calls delete functionality when confirmation dialog is confirmed", async () => {
+    const consoleSpy = vi.spyOn(console, "log");
+    renderWithToast(<ContactsTable contacts={contacts} />);
+
+    // Select both contacts
+    const firstCheckbox = screen.getAllByRole("checkbox")[1];
+    const secondCheckbox = screen.getAllByRole("checkbox")[2];
+    fireEvent.click(firstCheckbox);
+    fireEvent.click(secondCheckbox);
+
+    // Verify the remove button is enabled
+    const deleteButton = screen.getByLabelText("Remove Contact");
+    expect(deleteButton).not.toBeDisabled();
+
+    // Click delete button to open dialog
+    fireEvent.click(deleteButton);
+
+    // Wait for the dialog to appear and verify its content
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Are you sure you want to remove the contact\(s\)/)
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("This action cannot be undone.")).toBeInTheDocument();
+
+    // Find the confirm button in the dialog
+    const confirmButton = await screen.findByRole("button", {
+      name: "button-confirm-delete-contact",
+    });
+
+    fireEvent.click(confirmButton);
+
+    // Verify the delete function was called with correct IDs
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Deleting contacts:", ["1", "2"]);
+    });
+
+    consoleSpy.mockRestore();
   });
 
   it("shows error message when trying to delete without selecting any contacts", () => {
