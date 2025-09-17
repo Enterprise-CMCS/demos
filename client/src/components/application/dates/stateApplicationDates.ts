@@ -10,7 +10,7 @@
  * when the user clicks Finish on the State Application Phase.
  */
 
-import { EndDate, StartDate } from "../applicationDates";
+import { EndDate, StartDate } from "./applicationDates";
 
 export type StateApplicationStartDate = StartDate & { readonly __stateAppStartDate: never };
 export type StateApplicationCompletionDate = EndDate & { readonly __stateAppEndDate: never };

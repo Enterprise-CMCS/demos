@@ -1,4 +1,4 @@
-import { DateUTC, EndDate } from "../applicationDates";
+import { DateUTC, EndDate } from "./applicationDates";
 
 /**
  * Concept Phase

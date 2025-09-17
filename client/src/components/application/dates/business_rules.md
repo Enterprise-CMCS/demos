@@ -1,4 +1,4 @@
-This is how the
+This is how the dates in the application are set / calculated
 
 1. Concept Phase
 
