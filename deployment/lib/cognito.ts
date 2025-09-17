@@ -99,9 +99,10 @@ export function create(props: CognitoProps): CognitoOutputs {
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
   const httpsCloudfront = `https://${props.cloudfrontHost}/`;
   const idmLogout = `https://test.idp.idm.cms.gov/login/signout`;
+  const localhost = "http://localhost:3000/";
   const callbackUrls =
     props.isEphemeral || ["dev", "test"].includes(props.stage)
-      ? [httpsCloudfront, "http://localhost:3000/"]
+      ? [httpsCloudfront, localhost]
       : [httpsCloudfront];
   const logoutUrls = [
     ...callbackUrls,
