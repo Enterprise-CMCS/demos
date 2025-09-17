@@ -8,30 +8,62 @@ import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { TabItem, Tabs } from "layout/Tabs";
-import { Demonstration, DemonstrationStatus, Document, State, User } from "demos-server";
-import { Contact } from "./DemonstrationDetail";
+import { Document } from "demos-server";
+import { gql, useQuery } from "@apollo/client";
+import { useParams } from "react-router-dom";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
-export type DemonstrationTabDemonstration = Pick<
-  Demonstration,
-  "id" | "name" | "description" | "effectiveDate" | "expirationDate"
-> & {
-  documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
-    owner: Pick<User, "fullName">;
-  })[];
-  contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
-  state: Pick<State, "id" | "name">;
-  projectOfficer: Pick<User, "fullName" | "id">;
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+export const DEMONSTRATION_TAB_QUERY = gql`
+  query DemonstrationTab($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
+      id
+      documents {
+        id
+      }
+      contacts {
+        id
+      }
+    }
+  }
+`;
+
+export type Contact = {
+  id: string;
+  fullName: string | null;
+  email: string | null;
+  contactType: ContactType | null;
 };
 
-export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
-  demonstration,
-}) => {
+export type ContactType =
+  | "Primary Project Officer"
+  | "Secondary Project Officer"
+  | "State Representative"
+  | "Subject Matter Expert";
+
+type Demonstration = {
+  documents: Pick<Document, "id">[];
+  contacts: Pick<Contact, "id">[];
+};
+
+export const DemonstrationTab: React.FC = () => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
+  const { id } = useParams<{ id: string }>();
+  const { data, error, loading } = useQuery<{ demonstration: Demonstration }>(
+    DEMONSTRATION_TAB_QUERY,
+    {
+      variables: { demonstrationId: id },
+    }
+  );
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  const demonstration = data?.demonstration;
+
+  if (!demonstration) return <div>No demonstration data found.</div>;
 
   const handleUpdateContact = async (contactId: string, contactType: string) => {
     // TODO: Implement actual API call to update contact
@@ -93,7 +125,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <DocumentTable documents={demonstration.documents} />
+            <DocumentTable />
           </div>
         )}
 
@@ -111,7 +143,6 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               </SecondaryButton>
             </div>
             <ContactsTable
-              contacts={demonstration.contacts}
               onUpdateContact={handleUpdateContact}
               onDeleteContacts={handleDeleteContacts}
             />

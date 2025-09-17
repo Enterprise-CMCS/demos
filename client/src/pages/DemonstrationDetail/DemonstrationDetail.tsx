@@ -2,100 +2,40 @@ import React, { useCallback, useMemo, useState } from "react";
 
 import { isTestMode } from "config/env";
 import { usePageHeader } from "hooks/usePageHeader";
-import { TabItem, Tabs } from "layout/Tabs";
-import {
-  DemonstrationDetailHeader,
-  DemonstrationHeaderDetails,
-} from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { Tabs } from "layout/Tabs";
+import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
 
 import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
-import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
+import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
-import { Document, User } from "demos-server";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($demonstrationId: ID!) {
     demonstration(id: $demonstrationId) {
       id
-      name
-      description
-      effectiveDate
-      expirationDate
-      state {
-        id
-        name
-      }
-      demonstrationStatus {
-        name
-      }
-      projectOfficer {
-        fullName
-      }
       amendments {
         id
       }
       extensions {
         id
       }
-      documents {
-        id
-        title
-        description
-        documentType
-        createdAt
-        owner {
-          fullName
-        }
-      }
-      contacts {
-        id
-        fullName
-        email
-        contactType
-      }
     }
   }
 `;
 
-export type Contact = {
-  id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: ContactType | null;
+export type DemonstrationDetail = DemonstrationDialogDetails & {
+  amendments: { id: string }[];
+  extensions: { id: string }[];
 };
-
-export type ContactType =
-  | "Primary Project Officer"
-  | "Secondary Project Officer"
-  | "State Representative"
-  | "Subject Matter Expert";
-
-export type DemonstrationDetail = DemonstrationHeaderDetails &
-  DemonstrationDialogDetails &
-  DemonstrationTabDemonstration & {
-    contacts: Contact[];
-    documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
-      owner: Pick<User, "fullName">;
-    })[];
-  } & {
-    amendments: { id: string }[];
-    extensions: { id: string }[];
-  };
 
 type TabType = "details" | "amendments" | "extensions";
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
 type DemonstrationActionModal = "edit" | "delete" | null;
-
-const createTabList = (amendmentCount: number, extensionCount: number): TabItem[] => [
-  { value: "details", label: "Demonstration Details" },
-  { value: "amendments", label: "Amendments", count: amendmentCount },
-  { value: "extensions", label: "Extensions", count: extensionCount },
-];
 
 const getQueryParamValue = (
   searchParams: URLSearchParams,
@@ -135,71 +75,68 @@ export const DemonstrationDetail: React.FC = () => {
     }
   );
 
-  const demonstration = data?.demonstration;
-
-  const tabList = useMemo(
-    () =>
-      createTabList(demonstration?.amendments.length ?? 0, demonstration?.extensions.length ?? 0),
-    [demonstration]
-  );
-
   const headerContent = useMemo(
-    () => (
-      <DemonstrationDetailHeader
-        demonstration={demonstration}
-        loading={loading}
-        error={error}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-    ),
-    [demonstration, loading, error, handleEdit, handleDelete]
+    () => <DemonstrationDetailHeader onEdit={handleEdit} onDelete={handleDelete} />,
+    [handleEdit, handleDelete]
   );
   usePageHeader(headerContent);
+
+  if (error) {
+    return <div>Error loading demonstration: {error.message}</div>;
+  }
+  if (loading) {
+    return <div>Loading demonstration...</div>;
+  }
+
+  const demonstration = data?.demonstration;
+
+  if (!demonstration) {
+    return <div>No demonstration data found.</div>;
+  }
+
+  const tabList = [
+    { value: "details", label: "Demonstration Details" },
+    { value: "amendments", label: "Amendments", count: demonstration.amendments.length },
+    { value: "extensions", label: "Extensions", count: demonstration.extensions.length },
+  ];
 
   return (
     <div>
       {isTestMode() && headerContent}
+      <>
+        <Tabs
+          tabs={tabList}
+          selectedValue={tab}
+          onChange={(newVal) => setTab(newVal as typeof tab)}
+        />
 
-      {loading && <p>Loading...</p>}
-      {error && <p>Error loading demonstration</p>}
+        <div className="mt-4 h-[60vh] overflow-y-auto">
+          {tab === "details" && <DemonstrationTab />}
 
-      {demonstration && (
-        <>
-          <Tabs
-            tabs={tabList}
-            selectedValue={tab}
-            onChange={(newVal) => setTab(newVal as typeof tab)}
-          />
-
-          <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && <DemonstrationTab demonstration={demonstration} />}
-
-            {tab === "amendments" && (
-              <AmendmentsTab
-                onClick={() => setEntityCreationModal("amendment")}
-                initiallyExpandedId={amendmentParam ?? undefined}
-              />
-            )}
-
-            {tab === "extensions" && (
-              <ExtensionsTab
-                onClick={() => setEntityCreationModal("extension")}
-                initiallyExpandedId={extensionParam ?? undefined}
-              />
-            )}
-          </div>
-          {(entityCreationModal || demonstrationActionModal) && (
-            <DemonstrationDetailModals
-              entityCreationModal={entityCreationModal}
-              demonstrationActionModal={demonstrationActionModal}
-              demonstration={demonstration}
-              onCloseEntityModal={() => setEntityCreationModal(null)}
-              onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
+          {tab === "amendments" && (
+            <AmendmentsTab
+              onClick={() => setEntityCreationModal("amendment")}
+              initiallyExpandedId={amendmentParam ?? undefined}
             />
           )}
-        </>
-      )}
+
+          {tab === "extensions" && (
+            <ExtensionsTab
+              onClick={() => setEntityCreationModal("extension")}
+              initiallyExpandedId={extensionParam ?? undefined}
+            />
+          )}
+        </div>
+        {(entityCreationModal || demonstrationActionModal) && (
+          <DemonstrationDetailModals
+            entityCreationModal={entityCreationModal}
+            demonstrationActionModal={demonstrationActionModal}
+            demonstration={demonstration}
+            onCloseEntityModal={() => setEntityCreationModal(null)}
+            onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
+          />
+        )}
+      </>
     </div>
   );
 };

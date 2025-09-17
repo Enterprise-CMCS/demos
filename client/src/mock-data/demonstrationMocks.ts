@@ -21,6 +21,10 @@ import { EXTENSIONS_TABLE_QUERY } from "components/table/tables/ExtensionsTable"
 import { AMENDMENTS_TABLE_QUERY } from "components/table/tables/AmendmentsTable";
 import { DEMONSTRATION_SUMMARY_DETAILS_QUERY } from "components/table/tables/SummaryDetailsTable";
 import { APPLICATION_WORKFLOW_QUERY } from "components/application/ApplicationWorkflow";
+import { DOCUMENT_TABLE_QUERY } from "components/table/tables/DocumentTable";
+import { CONTACTS_TABLE_QUERY } from "components/table/tables/ContactsTable";
+import { DEMONSTRATION_TAB_QUERY } from "pages/DemonstrationDetail/DemonstrationTab";
+import { DEMONSTRATION_DETAIL_HEADER_QUERY } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 
 const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] =
   DEMONSTRATION_STATUSES.map((s) => ({ id: s.id, name: s.name }));
@@ -170,6 +174,34 @@ export const demonstrationMocks: MockedResponse[] = [
   },
   {
     request: {
+      query: DOCUMENT_TABLE_QUERY,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  },
+  {
+    request: {
+      query: CONTACTS_TABLE_QUERY,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  },
+  {
+    request: {
       query: GET_ALL_DEMONSTRATIONS_QUERY,
     },
     result: {
@@ -179,6 +211,34 @@ export const demonstrationMocks: MockedResponse[] = [
   {
     request: {
       query: DEMONSTRATION_DETAIL_QUERY,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  },
+  {
+    request: {
+      query: DEMONSTRATION_DETAIL_HEADER_QUERY,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  },
+  {
+    request: {
+      query: DEMONSTRATION_TAB_QUERY,
     },
     variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
       mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),

@@ -2,13 +2,39 @@ import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button/CircleButton";
 import { AddNewIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
-import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
-import { ApolloError } from "@apollo/client";
+import {
+  Demonstration as ServerDemonstration,
+  DemonstrationStatus,
+  State,
+  User,
+} from "demos-server";
+import { gql, useQuery } from "@apollo/client";
 import { formatDate } from "util/formatDate";
 import { AmendmentDialog, ExtensionDialog } from "components/dialog";
+import { useParams } from "react-router-dom";
 
-export type DemonstrationHeaderDetails = Pick<
-  Demonstration,
+export const DEMONSTRATION_DETAIL_HEADER_QUERY = gql`
+  query DemonstrationDetailHeader($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
+      id
+      name
+      effectiveDate
+      expirationDate
+      state {
+        id
+      }
+      projectOfficer {
+        fullName
+      }
+      demonstrationStatus {
+        name
+      }
+    }
+  }
+`;
+
+export type Demonstration = Pick<
+  ServerDemonstration,
   "id" | "name" | "expirationDate" | "effectiveDate"
 > & {
   state: Pick<State, "id">;
@@ -17,24 +43,17 @@ export type DemonstrationHeaderDetails = Pick<
 };
 
 interface DemonstrationDetailHeaderProps {
-  demonstration?: DemonstrationHeaderDetails;
-  loading?: boolean;
-  error?: ApolloError;
   onEdit: () => void;
   onDelete: () => void;
 }
 
 export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps> = ({
-  demonstration,
-  loading,
-  error,
   onEdit,
   onDelete,
 }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [modalType, setModalType] = useState<"amendment" | "extension" | null>(null);
-
   const handleToggleButtons = useCallback(() => {
     setShowButtons((prev) => !prev);
   }, []);
@@ -47,21 +66,20 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     onDelete();
   }, [onDelete]);
 
-  if (loading) {
-    return (
-      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
-        Loading demonstration...
-      </div>
-    );
-  }
+  const { id } = useParams<{ id: string }>();
 
-  if (error || !demonstration) {
-    return (
-      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
-        Failed to load demonstration
-      </div>
-    );
-  }
+  const { data, loading, error } = useQuery<{ demonstration: Demonstration }>(
+    DEMONSTRATION_DETAIL_HEADER_QUERY,
+    {
+      variables: { demonstrationId: id },
+    }
+  );
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  const demonstration = data?.demonstration;
+  if (!demonstration) return <div>No demonstration data found.</div>;
 
   const displayFields = [
     { label: "State/Territory", value: demonstration.state.id },

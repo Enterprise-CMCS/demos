@@ -10,25 +10,133 @@ import {
 import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
 
 import { ColumnFilter } from "../ColumnFilter";
-import { DocumentColumns } from "../columns/DocumentColumns";
-import { KeywordSearch } from "../KeywordSearch";
+import { highlightCell, KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
-import { Document, User } from "demos-server";
+import { Document as ServerDocument, User } from "demos-server";
+import { gql, useQuery } from "@apollo/client";
+import { useParams } from "react-router-dom";
+import { createColumnHelper } from "@tanstack/react-table";
+import { createSelectColumnDef } from "../columns/selectColumn";
+import { DOCUMENT_TYPES } from "demos-server-constants";
+import { formatDate } from "util/formatDate";
+import { isAfter, isBefore, isSameDay } from "date-fns";
+import { SecondaryButton } from "components/button";
 
-export type DocumentTableDocument = Pick<
-  Document,
+export const DOCUMENT_TABLE_QUERY = gql`
+  query DocumentTable($demonstrationId: ID!) {
+    demonstration {
+      id
+      documents {
+        id
+        title
+        description
+        documentType
+        createdAt
+        owner {
+          fullName
+        }
+      }
+    }
+  }
+`;
+
+type Document = Pick<
+  ServerDocument,
   "id" | "title" | "description" | "documentType" | "createdAt"
 > & {
   owner: Pick<User, "fullName">;
 };
+
+const columnHelper = createColumnHelper<Document>();
+
+const documentColumns = [
+  createSelectColumnDef(columnHelper),
+  columnHelper.accessor("title", {
+    header: "Title",
+    cell: highlightCell,
+    enableColumnFilter: false,
+  }),
+  columnHelper.accessor("description", {
+    header: "Description",
+    cell: highlightCell,
+    enableColumnFilter: false,
+  }),
+  columnHelper.accessor("documentType", {
+    id: "type",
+    header: "Document Type",
+    cell: highlightCell,
+    filterFn: "arrIncludesSome",
+    meta: {
+      filterConfig: {
+        filterType: "select",
+        options: DOCUMENT_TYPES.map((type) => ({
+          label: type,
+          value: type,
+        })),
+      },
+    },
+  }),
+  columnHelper.accessor("owner.fullName", {
+    header: "Uploaded By",
+    cell: highlightCell,
+    enableColumnFilter: false,
+  }),
+  columnHelper.accessor("createdAt", {
+    header: "Date Uploaded",
+    cell: ({ getValue }) => {
+      const dateValue = getValue();
+      return formatDate(dateValue);
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const dateValue = row.getValue(columnId) as string;
+      const date: Date = new Date(dateValue);
+      const { start, end } = filterValue || {};
+      if (start && end) {
+        return (
+          isSameDay(date, start) ||
+          isSameDay(date, end) ||
+          (isAfter(date, start) && isBefore(date, end))
+        );
+      }
+      if (start) {
+        return isSameDay(date, start) || isAfter(date, start);
+      }
+      if (end) {
+        return isSameDay(date, end) || isBefore(date, end);
+      }
+      return true;
+    },
+    meta: {
+      filterConfig: {
+        filterType: "date",
+      },
+    },
+  }),
+  columnHelper.display({
+    id: "view",
+    header: "View",
+    cell: ({ row }) => {
+      const docId = row.original.id;
+      const handleClick = () => {
+        window.open(`/documents/${docId}`, "_blank");
+      };
+      return (
+        <SecondaryButton size="small" onClick={handleClick} name="view-document">
+          View
+        </SecondaryButton>
+      );
+    },
+    enableSorting: false,
+  }),
+];
 
 type DisplayedModal = null | "add" | "edit" | "remove";
 
 interface DocumentModalsProps {
   displayedModal: DisplayedModal;
   onClose: () => void;
-  selectedDocs: DocumentTableDocument[];
+  selectedDocs: Document[];
 }
 
 function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModalsProps) {
@@ -97,13 +205,24 @@ function DocumentActionButtons({
   );
 }
 
-export type DocumentsTableProps = {
-  documents: DocumentTableDocument[];
-};
-export const DocumentTable: React.FC<DocumentsTableProps> = ({ documents }) => {
+export const DocumentTable: React.FC = () => {
   const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
+  const { id } = useParams<{ id: string }>();
 
-  const documentColumns = DocumentColumns();
+  const { data, loading, error } = useQuery<{
+    demonstration: { documents: Document[] };
+  }>(DOCUMENT_TABLE_QUERY, {
+    variables: { demonstrationId: id! },
+  });
+
+  if (loading) {
+    return <div>Loading documents...</div>;
+  }
+  if (error) {
+    return <div>Error loading documents: {error.message}</div>;
+  }
+
+  const documents = data?.demonstration?.documents || [];
 
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
@@ -112,7 +231,7 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ documents }) => {
   return (
     <div className="overflow-x-auto w-full mb-2">
       {documentColumns && (
-        <Table<DocumentTableDocument>
+        <Table<Document>
           data={documents}
           columns={documentColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}

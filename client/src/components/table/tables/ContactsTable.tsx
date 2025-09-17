@@ -14,6 +14,22 @@ import { createSelectColumnDef } from "../columns/selectColumn";
 import { TableHead } from "../Table";
 import { EditContactDialog } from "components/dialog/EditContactDialog";
 import { useToast } from "components/toast";
+import { gql, useQuery } from "@apollo/client";
+import { useParams } from "react-router-dom";
+
+export const CONTACTS_TABLE_QUERY = gql`
+  query ContactsTable($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
+      id
+      contacts {
+        id
+        fullName
+        email
+        contactType
+      }
+    }
+  }
+`;
 
 type ContactType =
   | "Primary Project Officer"
@@ -76,13 +92,11 @@ function DocumentActionButtons({
 }
 
 type ContactsTableProps = {
-  contacts?: Contact[];
   onUpdateContact?: (contactId: string, contactType: string) => Promise<void>;
   onDeleteContacts?: (contactIds: string[]) => Promise<void>;
 };
 
 export const ContactsTable: React.FC<ContactsTableProps> = ({
-  contacts = [],
   onUpdateContact,
   onDeleteContacts,
 }) => {
@@ -90,9 +104,21 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [selectedContact, setSelectedContact] = React.useState<Contact | null>(null);
   const { showError } = useToast();
+  const { id } = useParams<{ id: string }>();
+
+  const { data, loading, error } = useQuery<{ demonstration: { contacts: Contact[] } }>(
+    CONTACTS_TABLE_QUERY,
+    {
+      variables: { demonstrationId: id },
+    }
+  );
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  const contacts = data?.demonstration?.contacts || [];
 
   const contactsTable = useReactTable<Contact>({
-    data: contacts || [],
+    data: contacts,
     columns: contactsColumns,
     state: { rowSelection },
     getCoreRowModel: getCoreRowModel(),
