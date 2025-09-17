@@ -68,6 +68,48 @@ function verifyRole(role: string): void {
   }
 }
 
+// Extract external userId from Cognito identities claim when available
+function extractExternalUserIdFromIdentities(identities: unknown): string | undefined {
+  try {
+    const arr = typeof identities === "string" ? JSON.parse(identities) : identities;
+    if (Array.isArray(arr) && arr.length > 0) {
+      const first = arr[0] as { userId?: string };
+      if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
+        return first.userId.trim();
+      }
+    }
+  } catch {
+    // ignore parse errors; fall back to undefined
+  }
+  return undefined;
+}
+
+// Normalize raw Cognito payload (token or authorizer-claims) into our Claims shape and verify role
+function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
+  const role = (raw["custom:roles"] as string) ?? (raw["role"] as string);
+  if (!role) {
+    throw new GraphQLError("Missing role in token", {
+      extensions: { code: "UNAUTHORIZED", http: { status: 403 } },
+    });
+  }
+  verifyRole(role);
+
+  const sub = String(raw["sub"] ?? "");
+  if (!sub) {
+    throw new GraphQLError("Missing subject in token", {
+      extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+    });
+  }
+
+  const email = (raw["email"] as string | undefined) ?? undefined;
+  const givenName = (raw["given_name"] as string | undefined) ?? undefined;
+  const familyName = (raw["family_name"] as string | undefined) ?? undefined;
+  const name = (raw["name"] as string | undefined) ?? undefined;
+  const externalUserId = extractExternalUserIdFromIdentities(raw["identities"]);
+
+  return { sub, email, role, givenName, familyName, name, externalUserId };
+}
+
 function decodeToken(token: string): Promise<DecodedJWT> {
   return new Promise((resolve, reject) => {
     jwt.verify(token, getKey, verifyOpts, (err, decoded) => {
@@ -78,47 +120,23 @@ function decodeToken(token: string): Promise<DecodedJWT> {
           })
         );
       }
-      const rawDecoded = decoded as {
-        sub: string;
-        email?: string;
-        token_use?: "id" | "access";
-        "custom:roles": string;
-        given_name?: string;
-        family_name?: string;
-        name?: string;
-        identities?: string | undefined;
-      };
-      const role = rawDecoded["custom:roles"];
+      const rawDecoded = decoded as Record<string, unknown>;
+      let claims: Claims;
       try {
-        verifyRole(role);
-      } catch (err) {
-        return reject(err);
-      }
-
-      // Extract external userId from Cognito identities claim when available
-      let externalUserId: string | undefined;
-      try {
-        const raw = rawDecoded.identities;
-        const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
-        if (Array.isArray(arr) && arr.length > 0) {
-          const first = arr[0] as { userId?: string };
-          if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
-            externalUserId = first.userId.trim();
-          }
-        }
-      } catch {
-        // ignore parse errors; fall back below
+        claims = normalizeClaimsFromRaw(rawDecoded);
+      } catch (e) {
+        return reject(e);
       }
 
       resolve({
-        sub: rawDecoded.sub,
-        email: rawDecoded.email,
-        token_use: rawDecoded.token_use,
-        role,
-        givenName: rawDecoded.given_name,
-        familyName: rawDecoded.family_name,
-        name: rawDecoded.name,
-        externalUserId,
+        sub: claims.sub,
+        email: claims.email,
+        token_use: (rawDecoded["token_use"] as DecodedJWT["token_use"]) ?? undefined,
+        role: claims.role,
+        givenName: claims.givenName,
+        familyName: claims.familyName,
+        name: claims.name,
+        externalUserId: claims.externalUserId,
       });
     });
   });
@@ -230,41 +248,9 @@ export async function buildLambdaContext(
   const rawClaims = headers["x-authorizer-claims"] ?? headers["X-Authorizer-Claims"];
   if (rawClaims) {
     try {
-      const parsed = JSON.parse(rawClaims as string) as {
-        sub: string;
-        email?: string;
-        role: string;
-        given_name?: string;
-        family_name?: string;
-        name?: string;
-      };
-      const role = parsed.role;
-      verifyRole(role);
-
-      // optional identities can be a JSON string or object
-      let externalUserId: string | undefined;
-      try {
-        const rawIdent = (parsed as unknown as { identities?: unknown }).identities;
-        const arr = typeof rawIdent === "string" ? JSON.parse(rawIdent) : rawIdent;
-        if (Array.isArray(arr) && arr.length > 0) {
-          const first = arr[0] as { userId?: string };
-          if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
-            externalUserId = first.userId.trim();
-          }
-        }
-      } catch {
-        console.warn("[auth] Attempt to parse identities from x-authorizer-claims failed, falling back");
-      }
-
-      return buildContextFromClaims({
-        sub: parsed.sub,
-        email: parsed.email,
-        role,
-        givenName: parsed.given_name,
-        familyName: parsed.family_name,
-        name: parsed.name,
-        externalUserId,
-      });
+      const parsed = JSON.parse(rawClaims as string) as Record<string, unknown>;
+      const claims = normalizeClaimsFromRaw(parsed);
+      return buildContextFromClaims(claims);
     } catch {
       console.warn("[auth] Attempt to parse x-authorizer-claims failed");
     }
