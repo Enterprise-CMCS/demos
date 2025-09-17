@@ -3,12 +3,7 @@ import { Demonstration } from "@prisma/client";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType, Phase } from "../../types.js";
-import {
-  CreateDemonstrationInput,
-  UpdateDemonstrationInput,
-  AddPeopleToDemonstrationInput,
-  RemovePeopleFromDemonstrationInput,
-} from "./demonstrationSchema.js";
+import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -36,40 +31,24 @@ export const demonstrationResolvers = {
         await prisma().$transaction(async (tx) => {
           const bundle = await tx.bundle.create({
             data: {
-              bundleType: {
-                connect: { id: demonstrationBundleTypeId },
-              },
+              bundleTypeId: demonstrationBundleTypeId,
             },
           });
           await tx.demonstration.create({
             data: {
               ...rest,
               description: description || "",
-              bundle: {
-                connect: { id: bundle.id },
-              },
-              bundleType: {
-                connect: { id: demonstrationBundleTypeId },
-              },
+              id: bundle.id,
+              bundleTypeId: demonstrationBundleTypeId,
+              demonstrationStatusId: "DEMONSTRATION_NEW",
+              stateId: stateId,
+              currentPhaseId: conceptPhaseId,
               ...(cmcsDivision && {
-                cmcsDivision: {
-                  connect: { id: cmcsDivision },
-                },
+                cmcsDivisionId: cmcsDivision,
               }),
               ...(signatureLevel && {
-                signatureLevel: {
-                  connect: { id: signatureLevel },
-                },
+                signatureLevelId: signatureLevel,
               }),
-              demonstrationStatus: {
-                connect: { id: "DEMONSTRATION_NEW" },
-              },
-              state: {
-                connect: { id: stateId },
-              },
-              currentPhase: {
-                connect: { id: conceptPhaseId },
-              },
             },
           });
 
@@ -113,16 +92,6 @@ export const demonstrationResolvers = {
         ...rest
       } = input;
 
-      let existingStateId = stateId;
-      if (!existingStateId) {
-        existingStateId = (
-          await prisma().demonstration.findUnique({
-            where: { id },
-            select: { stateId: true },
-          })
-        )?.stateId;
-      }
-
       return await prisma().demonstration.update({
         where: { id },
         data: {
@@ -134,29 +103,19 @@ export const demonstrationResolvers = {
             expirationDate: new Date(expirationDate),
           }),
           ...(cmcsDivision && {
-            cmcsDivision: {
-              connect: { id: cmcsDivision },
-            },
+            cmcsDivisionId: cmcsDivision,
           }),
           ...(signatureLevel && {
-            signatureLevel: {
-              connect: { id: signatureLevel },
-            },
+            signatureLevelId: signatureLevel,
           }),
           ...(demonstrationStatusId && {
-            demonstrationStatus: {
-              connect: { id: demonstrationStatusId },
-            },
+            demonstrationStatusId: demonstrationStatusId,
           }),
           ...(stateId && {
-            state: {
-              connect: { id: stateId },
-            },
+            stateId: stateId,
           }),
           ...(currentPhase && {
-            currentPhase: {
-              connect: { id: currentPhase },
-            },
+            currentPhaseId: currentPhase,
           }),
         },
       });
@@ -165,84 +124,6 @@ export const demonstrationResolvers = {
     deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
       return await prisma().demonstration.delete({
         where: { id: id },
-      });
-    },
-
-    addPeopleToDemonstration: async (
-      _: undefined,
-      { id, input }: { id: string; input: AddPeopleToDemonstrationInput[] }
-    ) => {
-      await prisma().$transaction(async (tx) => {
-        const demonstration = await tx.demonstration.findUnique({
-          where: { id },
-        });
-
-        if (!demonstration) {
-          throw new Error(`Demonstration with id ${id} not found`);
-        }
-
-        for (const roleAssignment of input) {
-          const person = await tx.person.findUnique({
-            where: { id: roleAssignment.personId },
-          });
-
-          if (!person) {
-            console.log(`Reached Error`);
-            throw new Error(`Person with id ${roleAssignment.personId} not found`);
-          }
-
-          await tx.demonstrationRoleAssignment.create({
-            data: {
-              personId: roleAssignment.personId,
-              demonstrationId: demonstration.id,
-              roleId: roleAssignment.role,
-              stateId: demonstration.stateId,
-              personTypeId: person.personTypeId,
-              grantLevelId: "Demonstration",
-            },
-          });
-
-          if (roleAssignment.isPrimary) {
-            await tx.primaryDemonstrationRoleAssignment.create({
-              data: {
-                personId: roleAssignment.personId,
-                demonstrationId: demonstration.id,
-                roleId: roleAssignment.role,
-              },
-            });
-          }
-        }
-      });
-
-      return await prisma().demonstration.findUnique({
-        where: { id },
-      });
-    },
-
-    removePeopleFromDemonstration: async (
-      _: undefined,
-      { id, input }: { id: string; input: RemovePeopleFromDemonstrationInput[] }
-    ) => {
-      for (const demonstrationAssignment of input) {
-        await prisma().primaryDemonstrationRoleAssignment.deleteMany({
-          where: {
-            demonstrationId: id,
-            personId: demonstrationAssignment.personId,
-            roleId: demonstrationAssignment.role,
-          },
-        });
-
-        await prisma().demonstrationRoleAssignment.deleteMany({
-          where: {
-            demonstrationId: id,
-            personId: demonstrationAssignment.personId,
-            roleId: demonstrationAssignment.role,
-          },
-        });
-      }
-
-      return await prisma().demonstration.findUnique({
-        where: { id },
       });
     },
   },

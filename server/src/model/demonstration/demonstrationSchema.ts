@@ -65,17 +65,6 @@ export const demonstrationSchema = gql`
     stateId: ID
   }
 
-  input AddPeopleToDemonstrationInput {
-    personId: ID!
-    role: Role!
-    isPrimary: Boolean
-  }
-
-  input RemovePeopleFromDemonstrationInput {
-    personId: ID!
-    role: Role!
-  }
-
   type CreateDemonstrationResponse {
     success: Boolean!
     message: String
@@ -84,14 +73,6 @@ export const demonstrationSchema = gql`
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): CreateDemonstrationResponse
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
-    addPeopleToDemonstration(
-      id: ID!
-      demonstrationAssignments: [AddPeopleToDemonstrationInput!]!
-    ): Demonstration
-    removePeopleFromDemonstration(
-      id: ID!
-      input: [RemovePeopleFromDemonstrationInput!]!
-    ): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
