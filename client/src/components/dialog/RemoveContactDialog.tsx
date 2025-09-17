@@ -10,14 +10,12 @@ export type RemoveContactDialogProps = {
   isOpen: boolean;
   contactIds: string[];
   onClose: () => void;
-  onConfirm?: (contactIds: string[]) => Promise<void>;
 };
 
 export const RemoveContactDialog: React.FC<RemoveContactDialogProps> = ({
   isOpen,
   contactIds,
   onClose,
-  onConfirm,
 }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -26,9 +24,8 @@ export const RemoveContactDialog: React.FC<RemoveContactDialogProps> = ({
     try {
       setIsDeleting(true);
 
-      if (onConfirm) {
-        await onConfirm(contactIds);
-      }
+      // TODO: Add actual API call here when available
+      console.log("Deleting contacts:", contactIds);
 
       const isMultipleContacts = contactIds.length > 1;
       showSuccess(`Your contact${isMultipleContacts ? "s have" : " has"} been removed.`);
@@ -43,7 +40,7 @@ export const RemoveContactDialog: React.FC<RemoveContactDialogProps> = ({
 
   return (
     <BaseDialog
-      title={`Remove Contact${contactIds.length > 1 ? "s" : ""}`}
+      title="Remove Contact(s)"
       isOpen={isOpen}
       onClose={onClose}
       actions={
@@ -70,8 +67,7 @@ export const RemoveContactDialog: React.FC<RemoveContactDialogProps> = ({
       }
     >
       <div className="mb-2 text-sm text-text-filled">
-        Are you sure you want to remove {contactIds.length > 1 ? "the" : ""} contact
-        {contactIds.length > 1 ? "s" : ""}?
+        Are you sure you want to remove the contact(s)?
         <br />
         <span className="text-error flex items-center gap-1 mt-1">
           <ErrorIcon />

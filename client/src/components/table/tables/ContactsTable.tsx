@@ -1,4 +1,11 @@
 import React from "react";
+
+import { CircleButton } from "components/button/CircleButton";
+import { EditContactDialog } from "components/dialog/EditContactDialog";
+import { RemoveContactDialog } from "components/dialog/RemoveContactDialog";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+import { useToast } from "components/toast";
+
 import {
   createColumnHelper,
   flexRender,
@@ -7,14 +14,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { PaginationControls } from "../PaginationControls";
-import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+
 import { createSelectColumnDef } from "../columns/selectColumn";
+import { PaginationControls } from "../PaginationControls";
 import { TableHead } from "../Table";
-import { EditContactDialog } from "components/dialog/EditContactDialog";
-import { RemoveContactDialog } from "components/dialog/RemoveContactDialog";
-import { useToast } from "components/toast";
 
 type ContactType =
   | "Primary Project Officer"
@@ -79,19 +82,14 @@ function DocumentActionButtons({
 type ContactsTableProps = {
   contacts?: Contact[];
   onUpdateContact?: (contactId: string, contactType: string) => Promise<void>;
-  onDeleteContacts?: (contactIds: string[]) => Promise<void>;
 };
 
-export const ContactsTable: React.FC<ContactsTableProps> = ({
-  contacts = [],
-  onUpdateContact,
-  onDeleteContacts,
-}) => {
+type ContactDialogMode = "edit" | "remove" | null;
+
+export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [], onUpdateContact }) => {
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = React.useState(false);
+  const [dialogMode, setDialogMode] = React.useState<ContactDialogMode>(null);
   const [selectedContact, setSelectedContact] = React.useState<Contact | null>(null);
-  const [selectedContactIds, setSelectedContactIds] = React.useState<string[]>([]);
   const { showError } = useToast();
 
   const contactsTable = useReactTable<Contact>({
@@ -119,7 +117,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
 
     const contactToEdit = selectedRows[0].original;
     setSelectedContact(contactToEdit);
-    setIsEditDialogOpen(true);
+    setDialogMode("edit");
   };
 
   const handleDeleteContacts = () => {
@@ -130,23 +128,11 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       return;
     }
 
-    const contactIds = selectedRows.map((row) => row.original.id);
-    setSelectedContactIds(contactIds);
-    setIsRemoveDialogOpen(true);
+    setDialogMode("remove");
   };
 
-  const handleConfirmRemoveContacts = async (contactIds: string[]) => {
-    if (onDeleteContacts) {
-      onDeleteContacts(contactIds);
-    } else {
-      // TODO: Add actual API call here when available
-      console.log("Deleting contacts:", contactIds);
-    }
-    setIsRemoveDialogOpen(false);
-    setSelectedContactIds([]);
-  };
   const handleCloseDialog = () => {
-    setIsEditDialogOpen(false);
+    setDialogMode(null);
     setSelectedContact(null);
   };
 
@@ -159,6 +145,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
   };
 
   const selectedRows = contactsTable.getSelectedRowModel().rows;
+  const selectedContactIds = selectedRows.map((row) => row.original.id);
   const hasSelectedContact = selectedRows.length === 1;
   const hasSelectedContacts = selectedRows.length > 0;
 
@@ -202,7 +189,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
       {/* Edit Contact Dialog */}
       {selectedContact && (
         <EditContactDialog
-          isOpen={isEditDialogOpen}
+          isOpen={dialogMode === "edit"}
           onClose={handleCloseDialog}
           contact={selectedContact}
           onSubmit={handleSubmitContact}
@@ -211,9 +198,8 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({
 
       {/* Remove Contact Dialog */}
       <RemoveContactDialog
-        isOpen={isRemoveDialogOpen}
-        onClose={() => setIsRemoveDialogOpen(false)}
-        onConfirm={handleConfirmRemoveContacts}
+        isOpen={dialogMode === "remove"}
+        onClose={handleCloseDialog}
         contactIds={selectedContactIds}
       />
     </>
