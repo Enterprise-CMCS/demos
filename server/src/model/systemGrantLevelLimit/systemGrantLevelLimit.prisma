@@ -1,0 +1,9 @@
+model SystemGrantLevelLimit {
+  id String
+
+  grantLevel            GrantLevel             @relation(fields: [id], references: [id])
+  systemRoleAssignments SystemRoleAssignment[]
+
+  @@id([id])
+  @@map("system_grant_level_limit")
+}
