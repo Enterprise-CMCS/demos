@@ -79,7 +79,7 @@ function extractExternalUserIdFromIdentities(identities: unknown): string | unde
       }
     }
   } catch {
-    // ignore parse errors; fall back to undefined
+    console.log("Failed to parse identities json claim (probably a local user)");
   }
   return undefined;
 }
@@ -88,6 +88,7 @@ function extractExternalUserIdFromIdentities(identities: unknown): string | unde
 function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
   const role = (raw["custom:roles"] as string) ?? (raw["role"] as string);
   if (!role) {
+    console.error("User Missing custom:roles value in token");
     throw new GraphQLError("Missing role in token", {
       extensions: { code: "UNAUTHORIZED", http: { status: 403 } },
     });
@@ -96,6 +97,7 @@ function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
 
   const sub = String(raw["sub"] ?? "");
   if (!sub) {
+    console.error("User Missing sub value in token");
     throw new GraphQLError("Missing subject in token", {
       extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
     });
@@ -124,8 +126,9 @@ function decodeToken(token: string): Promise<DecodedJWT> {
       let claims: Claims;
       try {
         claims = normalizeClaimsFromRaw(rawDecoded);
-      } catch (e) {
-        return reject(e);
+      } catch (error) {
+        console.error("Token claims error:", error);
+        return reject(error);
       }
 
       resolve({
@@ -196,6 +199,7 @@ function deriveUserFields({ sub, email, givenName, familyName, name, externalUse
   const emailForCreate = email ?? `${sub}@no-email.local`;
   const fullNameFromParts = [givenName, familyName].filter(Boolean).join(" ").trim();
   const fullName = (name && name.trim()) || fullNameFromParts || email || username;
+  console.log("username:", username);
   return { username, displayName, emailForCreate, fullName };
 }
 
@@ -212,7 +216,7 @@ async function ensureUserFromClaims(claims: Claims) {
   if (existingUser) {
     return existingUser;
   }
-
+  console.log(`Creating new user: ${username}`);
   const person = await prisma().person.create({
     data: {
       personTypeId: role,
