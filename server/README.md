@@ -364,35 +364,25 @@ Note that it's acceptable to have fields in a query / return type that are not o
 
 ### Mutators
 
-Mutators are named using a standard syntax and with standard inputs.
+Mutators are named using a fairly standard syntax, but with flexibility. In general, the naming conventions are a guideline to try and aim for consistency, with the understanding that some cases may call for going outside these general guidelines.
 
-| Mutator | Meaning | Example |
-|---------|---------|---------|
-| `createX` | Create a new X. | Create a new proposal. |
-| `updateX` | Update fields that accept a single value for a specific X. | Change the title of a proposal. |
-| `deleteX` | Delete a specifc X. | Delete an existing proposal. |
-| `addYsToX` | Add one or more Ys to a specific X. | Add an author to a proposal. |
-| `removeYsFromX` | Remove one or more Ys from a specific X. | Remove two authors from a proposal. |
-| `setYsForX` | Set a list of Y on X. | Remove all existing authors on a proposal and replace them with a new list. |
+| Mutator | Meaning | Notes | Arguments |
+|---------|---------|-------|-----------|
+| `createX` | Create a new instance of X. | Generally, a `create` mutator is used for operations that insert into tables that have a single ID column, like demonstrations, as opposed to associative tables with multiple columns. | Generally, this mutator should accept a single argument `input` which contains all the required and optional fields necessary to create a new record. |
+| `updateX` | Update an instance of X that was created using a `create` mutator. | Like the `create` mutator, this focuses on top-level tables that have a single identifer, rather than composite / join tables. | Generally, the mutator should accept an `id` argument to identify the row to update, and an `input` argument with the updated values. The `input` object should generally have all values as optional. |
+| `deleteXs` | Delete one or more Xs that were created using a `create` mutator. | Generally, `delete` mutators should accept multiple IDs unless there is a reason not to do this. | Usually, this will accept a list of `ids` to delete. |
+| `setXYZ` | Create or update a record in an associative table, where XYZ describes the operation occurring. | The title should be descriptive of what occurs. For instance, `setDemonstrationRole` or `setDemonstrationContact` might be the name of a method that creates or updates a contact record for a user on a demonstration. | The arguments to these mutators should depend on the operation being performed. |
+| `unsetXYZ` | Remove a record in an associative table, where XYZ describes the operation occurring. This is the inverse of the `setXYZ` mutator. | For example, `unsetDemonstrationRole` or `unsetDemonstrationContact` may remove those associations. | Again, the arguments should be specific to the use case. |
 
-| Mutator | Arguments | Notes |
-|---------|-----------|-------|
-| `createX` | `input`: Required and optional keys | May include `id`, generally in cases where `id` is human-readable. |
-| `updateX` | `id`: ID to update, `input`: Update values. | Generally, all values in `input` should be optional. |
-| `deleteX` | `id`: ID to delete. | |
-| `addYsToX` | `XId`, `YIds`: A single `XId` and a list of `YIds` to add to it. | |
-| `removeYsFromX` | `XId`, `YIds`: A single `XId` and a list of `YIds` to remove from it. | |
-| `setYsForX` | `XId`, `YIds`: A single `XId` and a list of `YIds` IDs; all existing associations are replaced by the list. | An empty list of `YIds` is equivalent to removing all associations. |
+The phrase `set` was chosen over `add` to help denote that these operations are upserts (create or update). `unset` is intended to be the obvious opposite of `set`.
 
 A few general rules that apply here are outlined below.
 
 __Not All Mutators Are Required.__ You do not need to implement every possible combination of mutator for every object. The required mutators should be defined as part of the requirements. Without this, the amount of possible routes and combinations of queries rapidly become untenable.
 
-__Create and Update Are For Single Values.__ In general, when creating a new item, only fields with a single value should be accepted, not lists of things to be associated. For instance, `createUser` should not accept a list of roles to assign to the user. Instead, `createUser` should be called, and then `addRolesToUser` or `setRolesForUser` should be used to add roles to the user. Similarly, `updateUser` should allow you to change the name of a user, but not change their roles; this is what `setRolesForUser` does.
+__Associate Tables using Set/Unset.__ The `create`, `update`, and `delete` mutators are intended for records that represent independent entities, not for associating two entities together. For instance, we would not have a mutator called `createUserRoleAssignment`, even though it is necessary to assign users to roles, because such assignments are just associatons between the higher-level `User` and `Role` entities. The `set` and `unset` mutators are designed to be flexibly named to support those types of associations, with `set` explicitly being intended for upsert operations as well.
 
-__Add, Remove, and Set Should Be Defined In One Place.__ Usually, it is not necessary to define a resolver to perform operations from both directions. For instance, it would be redundant to have a resolver to add users to a role, and a separate resolver to add roles to a user. Ideally, a single route or definition should be derived from the requirements.
-  * As with most things, there may be exceptions to this rule, which should be documented.
-  * The model where these are implemented should be whatever X is. For instance, AddUserToRole would be defined on the Role model, while AddRoleToUser would be defined on the User model.
+__Provide A Limited Set of Paths.__ It is not necessary to define mutators to perform operations in every possible direction, or in every possible operation. For instance, it's not necessary to define a mutator to create a new demonstration which allows you to assign contacts to the demonstration at the same time, and to also define a mutator to create and update new contact assignments.
 
 ### Field Resolvers
 
