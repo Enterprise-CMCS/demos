@@ -36,6 +36,9 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
       VITE_COGNITO_DOMAIN: getOutputValue(coreOutputData, `demos-${environment}-core`, `cognitoDomain`),
       VITE_COGNITO_CLIENT_ID: getOutputValue(coreOutputData, `demos-${environment}-core`, `cognitoClientId`),
       VITE_API_URL_PREFIX: "/api/graphql",
+      VITE_IDM_LOGOUT_URI: ["dev", "test"].includes(environment)
+      ? "https://test.idp.idm.cms.gov/login/signout"
+      : "",
     },
   });
 }

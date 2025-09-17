@@ -43,6 +43,7 @@ export const DemosRouter: React.FC = () => {
             <Routes>
               {/* Everything below is protected */}
               <Route element={<AuthGuard />}>
+                <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
@@ -54,7 +55,6 @@ export const DemosRouter: React.FC = () => {
                     <Route path="icons" element={<IconLibrary />} />
                     <Route path="events" element={<EventSandbox />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
-                    <Route path="*" element={<div>404: Page Not Found</div>} />
                   </>
                 )}
               </Route>
