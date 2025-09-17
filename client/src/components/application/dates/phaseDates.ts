@@ -1,11 +1,12 @@
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
+import { BundlePhase, Phase, PhaseStatus, BundlePhaseDate, DateType } from "demos-server";
 import { formatDateTime } from "util/formatDate";
 
-const ZERO = 0;
-const END_OF_DAY_HOUR = 23;
-const END_OF_DAY_MINUTE = 59;
-const END_OF_DAY_MILLISECOND = 999;
+export type SimplePhaseDate = Omit<BundlePhaseDate, "createdAt" | "updatedAt">;
+export type SimplePhase = Omit<BundlePhase, "createdAt" | "updatedAt" | "phaseDates"> & {
+  phaseDates: SimplePhaseDate[];
+};
 
 /**
  * Application Dates Library
@@ -25,12 +26,12 @@ const EST_TIMEZONE: TimeZone = "America/New_York";
 /**
  * Base date types.
  *
- * DateUTC: A date in UTC timezone.
- * DateEST: A date in EST timezone.
- * StartDate: A date that marks the beginning of a phase. Timestamp should be SOD - 00:00:00 EST.
- * EndDate: A date that marks the end of a phase. Timestamp should be EOD - 23:59:59 EST.
+ * DateUTC: A date in UTC timezone - Used when the date is set by a user event
+ * DateEST: A date in EST timezone - Used when the date is calculated for a deadline or beginning period
+ * StartDate: A date that marks the beginning of a phase. Timestamp should be SOD - 00:00:00.000 EST.
+ * EndDate: A date that marks the end of a phase. Timestamp should be EOD - 23:59:59.999 EST.
  *
- * This system uses branded types to prevent mixing up date types in function calls:
+ * This file uses branded types to prevent mixing up date types in function calls:
  * https://www.learningtypescript.com/articles/branded-types
  */
 export type DateUTC = UTCDate & { readonly __utc: never };
@@ -38,67 +39,89 @@ export type DateEST = TZDate & { readonly __est: never };
 export type StartDate = DateEST & { readonly __start: never };
 export type EndDate = DateEST & { readonly __end: never };
 
+export const getStartOfDayEST = (year: number, month: number, day: number): StartDate => {
+  return new TZDate(year, month, day, 0, 0, 0, 0, EST_TIMEZONE) as StartDate;
+};
+
+export const getEndOfDayEST = (year: number, month: number, day: number): EndDate => {
+  return new TZDate(year, month, day, 23, 59, 59, 999, EST_TIMEZONE) as EndDate;
+};
+
+// Format the date as an ISO-8601 string in UTC timezone.
+// Example: 2024-08-30T23:59:59.999Z
+export const formatDateUTCForServer = (dateUtc: DateUTC): string => {
+  return formatDateTime(dateUtc);
+};
+
+export const formatDateEstForServer = (dateEst: DateEST): string => {
+  return formatDateTime(dateEst);
+};
+
 /**
- * Date Utility Functions
- *
- * These functions are used to convert between the types here:
- * Date, DateEST, StartDate and EndDate.
- * It is also to format dates correctly for the server
- *
+ * Phase Status Operations
  */
-export const getESTDate = (date: Date): DateEST => {
-  return new TZDate(date, EST_TIMEZONE) as DateEST;
+export const getStatusForPhase = (
+  bundlePhases: SimplePhase[],
+  phaseName: Phase
+): PhaseStatus | null => {
+  const phase = bundlePhases.find((p) => p.phase === phaseName);
+  return phase ? phase.phaseStatus : null;
 };
 
-export const getStartDate = (dateEst: DateEST): StartDate => {
-  return new TZDate(
-    dateEst.getFullYear(),
-    dateEst.getMonth(),
-    dateEst.getDate(),
-    ZERO,
-    ZERO,
-    ZERO,
-    EST_TIMEZONE
-  ) as StartDate;
-};
-
-export const getEndDate = (dateEst: DateEST): EndDate => {
-  return new TZDate(
-    dateEst.getFullYear(),
-    dateEst.getMonth(),
-    dateEst.getDate(),
-    END_OF_DAY_HOUR,
-    END_OF_DAY_MINUTE,
-    END_OF_DAY_MILLISECOND,
-    EST_TIMEZONE
-  ) as EndDate;
-};
-
-export const formatDateForServer = (date: Date): string => {
-  // Format the date as needed for the server
-  return formatDateTime(date);
-};
-
-// {
-//   "bundleId": "5cb0286f-d770-4927-80c8-fb1c7864e21a",
-//   "phase": "Concept",
-//   "dateType": "Start Date",
-//   "dateValue": "2025-08-30T23:59:59.999-04:00"
-// }
-
-/**
- * query Query($demonstrationId: ID!) {
-  demonstration(id: $demonstrationId) {
-    id
-    name
-    phases {
-      phase
-      phaseStatus
-      phaseDates {
-        dateType
-        dateValue
-      }
+export const setStatusForPhase = (
+  bundlePhases: SimplePhase[],
+  phaseName: Phase,
+  phaseStatus: PhaseStatus
+): SimplePhase[] => {
+  return bundlePhases.map((phase) => {
+    if (phase.phase === phaseName) {
+      return { ...phase, phaseStatus };
     }
-  }
-}
+    return phase;
+  });
+};
+
+/**
+ * Phase Date Operations
  */
+export const getDateFromPhaseDates = (
+  phaseDates: SimplePhaseDate[],
+  dateType: DateType
+): Date | null => {
+  const dateEntry = phaseDates.find((d) => d.dateType === dateType);
+  return dateEntry ? dateEntry.dateValue : null;
+};
+
+export const setDateInPhaseDates = (
+  phaseDates: SimplePhaseDate[],
+  dateType: DateType,
+  dateValue: Date
+): SimplePhaseDate[] => {
+  return phaseDates.map((date) => {
+    if (date.dateType === dateType) {
+      return { ...date, dateValue };
+    }
+    return date;
+  });
+};
+
+export const getAllDatesForPhase = (
+  bundlePhases: SimplePhase[],
+  phaseName: Phase
+): SimplePhaseDate[] | null => {
+  const phase = bundlePhases.find((p) => p.phase === phaseName);
+  return phase ? phase.phaseDates : null;
+};
+
+export const setAllDatesForPhase = (
+  phaseDates: SimplePhaseDate[],
+  dateType: DateType,
+  dateValue: Date
+): SimplePhaseDate[] => {
+  return phaseDates.map((date) => {
+    if (date.dateType === dateType) {
+      return { ...date, dateValue };
+    }
+    return date;
+  });
+};
