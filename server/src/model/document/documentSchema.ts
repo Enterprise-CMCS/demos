@@ -1,29 +1,9 @@
 import { gql } from "graphql-tag";
 
-import { Demonstration } from "../demonstration/demonstrationSchema.js";
-import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { User } from "../user/userSchema.js";
-import { DocumentType } from "../../types.js";
+import { DocumentType, Bundle } from "../../types.js";
 
 export const documentSchema = gql`
-  """
-  A string representing a document type. Expected values are:
-  - Application Completeness Letter
-  - Approval Letter
-  - Final BN Worksheet
-  - Final Budget Neutrality Formulation Workbook
-  - Formal OMB Policy Concurrence Email
-  - General File
-  - Internal Completeness Review Form
-  - Payment Ratio Analysis
-  - Pre-Submission
-  - Q&A
-  - Signed Decision Memo
-  - State Application
-  """
-  scalar DocumentType
-  union Bundle = Demonstration | Amendment | Extension
-
   type Document {
     id: ID!
     title: String!
@@ -36,7 +16,7 @@ export const documentSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
   }
- 
+
   input UploadDocumentInput {
     title: String!
     description: String!
@@ -68,7 +48,6 @@ export const documentSchema = gql`
   }
 `;
 
-type Bundle = Demonstration | Amendment | Extension;
 export interface Document {
   id: string;
   title: string;
