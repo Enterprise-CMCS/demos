@@ -60,7 +60,7 @@ const PRODUCTION_COGNITO_CONFIG: CognitoConfig = {
   post_logout_redirect_uri:
     import.meta.env.BASE_URL === "/"
       ? `${window.location.origin}/`
-      : new URL("", import.meta.env.BASE_URL).toString(),
+      : new URL("", import.meta.env.VITE_IDM_LOGOUT_URI).toString(),
 };
 
 /** Only pass the OIDC fields to <AuthProvider/>. */
