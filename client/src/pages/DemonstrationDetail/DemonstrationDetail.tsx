@@ -9,9 +9,10 @@ import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
-import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
+import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
+import { Demonstration as ServerDemonstration } from "demos-server";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($demonstrationId: ID!) {
@@ -27,9 +28,9 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   }
 `;
 
-export type DemonstrationDetail = DemonstrationDialogDetails & {
-  amendments: { id: string }[];
-  extensions: { id: string }[];
+export type Demonstration = Pick<ServerDemonstration, "id"> & {
+  amendments: [];
+  extensions: [];
 };
 
 type TabType = "details" | "amendments" | "extensions";
@@ -68,10 +69,10 @@ export const DemonstrationDetail: React.FC = () => {
     setDemonstrationActionModal("delete");
   }, []);
 
-  const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
+  const { data, loading, error } = useQuery<{ demonstration: Demonstration }>(
     DEMONSTRATION_DETAIL_QUERY,
     {
-      variables: { demonstrationId: id! },
+      variables: { demonstrationId: id },
     }
   );
 
@@ -131,7 +132,7 @@ export const DemonstrationDetail: React.FC = () => {
           <DemonstrationDetailModals
             entityCreationModal={entityCreationModal}
             demonstrationActionModal={demonstrationActionModal}
-            demonstration={demonstration}
+            demonstrationId={demonstration.id}
             onCloseEntityModal={() => setEntityCreationModal(null)}
             onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
           />

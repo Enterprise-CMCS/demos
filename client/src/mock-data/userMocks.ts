@@ -18,6 +18,7 @@ export const mockUsers: MockUser[] = [
 ];
 
 import { MockedResponse } from "@apollo/client/testing";
+import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
 
 export const johnDoe: User & { __typename: "User" } = {
   __typename: "User",
@@ -96,5 +97,9 @@ export const userMocks: MockedResponse[] = [
   {
     request: { query: GET_USER_BY_ID, variables: { id: "st" } },
     result: { data: { user: squidward } },
+  },
+  {
+    request: { query: GET_USER_SELECT_OPTIONS_QUERY },
+    result: { data: { users: mockUsers } },
   },
 ];
