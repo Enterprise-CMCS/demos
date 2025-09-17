@@ -19,6 +19,8 @@ import { DEMONSTRATION_STATUSES } from "demos-server-constants";
 import type { DemonstrationStatus } from "demos-server";
 import { EXTENSIONS_TABLE_QUERY } from "components/table/tables/ExtensionsTable";
 import { AMENDMENTS_TABLE_QUERY } from "components/table/tables/AmendmentsTable";
+import { DEMONSTRATION_SUMMARY_DETAILS_QUERY } from "components/table/tables/SummaryDetailsTable";
+import { APPLICATION_WORKFLOW_QUERY } from "components/application/ApplicationWorkflow";
 
 const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] =
   DEMONSTRATION_STATUSES.map((s) => ({ id: s.id, name: s.name }));
@@ -127,6 +129,34 @@ export const demonstrationMocks: MockedResponse[] = [
   {
     request: {
       query: EXTENSIONS_TABLE_QUERY,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  },
+  {
+    request: {
+      query: DEMONSTRATION_SUMMARY_DETAILS_QUERY,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  },
+  {
+    request: {
+      query: APPLICATION_WORKFLOW_QUERY,
     },
     variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
       mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),

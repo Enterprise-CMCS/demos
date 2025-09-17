@@ -3,12 +3,42 @@ import React, { useState } from "react";
 import { SecondaryButton } from "components/button";
 import { EditDemonstrationDialog } from "components/dialog/DemonstrationDialog";
 import { EditIcon } from "components/icons";
-import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
+import {
+  Demonstration as ServerDemonstration,
+  DemonstrationStatus,
+  State,
+  User,
+} from "demos-server";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
+import { gql, useQuery } from "@apollo/client";
+import { useParams } from "react-router-dom";
 
-type SummaryDetailsDemonstration = Pick<
-  Demonstration,
+export const DEMONSTRATION_SUMMARY_DETAILS_QUERY = gql`
+  query DemonstrationSummaryDetails($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
+      id
+      name
+      description
+      effectiveDate
+      expirationDate
+      state {
+        id
+        name
+      }
+      projectOfficer {
+        id
+        fullName
+      }
+      demonstrationStatus {
+        name
+      }
+    }
+  }
+`;
+
+type Demonstration = Pick<
+  ServerDemonstration,
   "id" | "name" | "description" | "effectiveDate" | "expirationDate"
 > & {
   state: Pick<State, "name" | "id">;
@@ -17,15 +47,33 @@ type SummaryDetailsDemonstration = Pick<
 };
 
 type Props = {
-  demonstration: SummaryDetailsDemonstration;
   onEdit?: () => void;
 };
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-xs uppercase tracking-wide`;
 const VALUE_CLASSES = tw`text-text-font text-sm leading-relaxed`;
 
-export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) => {
+export const SummaryDetailsTable: React.FC<Props> = ({ onEdit }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { id } = useParams<{ id: string }>();
+  const { data, loading, error } = useQuery<{ demonstration: Demonstration }>(
+    DEMONSTRATION_SUMMARY_DETAILS_QUERY,
+    {
+      variables: { demonstrationId: id },
+    }
+  );
+
+  if (loading) {
+    return <div>Loading summary details...</div>;
+  }
+  if (error) {
+    return <div>Error loading summary details: {error.message}</div>;
+  }
+  const demonstration = data?.demonstration;
+
+  if (!demonstration) {
+    return <div>No demonstration data available.</div>;
+  }
 
   const handleEditClick = () => {
     if (onEdit) {

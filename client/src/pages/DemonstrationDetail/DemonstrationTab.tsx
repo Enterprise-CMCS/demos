@@ -56,7 +56,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "DEMONSTRATION_UNDER_REVIEW" }} />
+      <ApplicationWorkflow />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}
@@ -66,7 +66,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
       <div className="mt-2">
         {subTab === "summary" && (
           <div>
-            <SummaryDetailsTable demonstration={demonstration} />
+            <SummaryDetailsTable />
           </div>
         )}
 
