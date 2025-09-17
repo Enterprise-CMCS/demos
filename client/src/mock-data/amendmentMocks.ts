@@ -9,10 +9,12 @@ const demonstrationStatuses: ReadonlyArray<Pick<DemonstrationStatus, "id" | "nam
 export type MockAmendment = Pick<Amendment, "id" | "name" | "effectiveDate"> & {
   projectOfficer: MockUser;
   amendmentStatus: Pick<DemonstrationStatus, "name">;
+  __typename: "Amendment";
 };
 
 export const mockAmendments = [
   {
+    __typename: "Amendment",
     id: "1",
     name: "Amendment 1 - Montana Medicaid Waiver",
     effectiveDate: new Date(2025, 0, 1),
@@ -20,6 +22,7 @@ export const mockAmendments = [
     amendmentStatus: demonstrationStatuses.find((s) => s.name === "Under Review")!,
   },
   {
+    __typename: "Amendment",
     id: "2",
     name: "Amendment 2 - Montana Medicaid Waiver",
     effectiveDate: new Date(2025, 1, 1),
@@ -27,6 +30,7 @@ export const mockAmendments = [
     amendmentStatus: demonstrationStatuses.find((s) => s.name === "Approved")!,
   },
   {
+    __typename: "Amendment",
     id: "3",
     name: "Amendment 3 - Florida Health Innovation",
     effectiveDate: new Date(2025, 2, 1),
@@ -34,6 +38,7 @@ export const mockAmendments = [
     amendmentStatus: demonstrationStatuses.find((s) => s.name === "Approved")!,
   },
   {
+    __typename: "Amendment",
     id: "4",
     name: "Amendment 4 - Florida Health Innovation",
     effectiveDate: new Date(2025, 3, 1),
@@ -41,6 +46,7 @@ export const mockAmendments = [
     amendmentStatus: demonstrationStatuses.find((s) => s.name === "Under Review")!,
   },
   {
+    __typename: "Amendment",
     id: "5",
     name: "Amendment 5 - Florida Health Innovation",
     effectiveDate: new Date(2025, 4, 1),
@@ -48,6 +54,7 @@ export const mockAmendments = [
     amendmentStatus: demonstrationStatuses[3],
   },
   {
+    __typename: "Amendment",
     id: "6",
     name: "Amendment 6 - Florida Health Innovation",
     effectiveDate: null,

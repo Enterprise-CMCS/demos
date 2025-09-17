@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { fireEvent, render, screen, within } from "@testing-library/react";
 
-import { ModificationTable } from "./ModificationTable";
+import { ModificationTable } from "./ExtensionsTable";
 import { mockExtensions } from "mock-data/extensionMocks";
 import { mockAmendments } from "mock-data/amendmentMocks";
 

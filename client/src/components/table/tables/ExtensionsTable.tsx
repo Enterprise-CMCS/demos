@@ -3,34 +3,57 @@ import * as React from "react";
 import { ChevronRightIcon, SuccessIcon } from "components/icons";
 import { ReviewIcon } from "components/icons/Action/ReviewIcon";
 import {
+  ColumnDef,
   ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ModificationColumns } from "../columns/ModificationColumns";
-import { Amendment, DemonstrationStatus, Extension } from "demos-server";
+import { Extension as ServerExtension, DemonstrationStatus } from "demos-server";
 import { formatDate } from "util/formatDate";
+import { useParams } from "react-router-dom";
+import { gql, useQuery } from "@apollo/client";
 
-export type ModificationTableRow =
-  | (Pick<Amendment, "id" | "name" | "effectiveDate"> & {
-      status: Pick<DemonstrationStatus, "name">;
-    })
-  | (Pick<Extension, "id" | "name" | "effectiveDate"> & {
-      status: Pick<DemonstrationStatus, "name">;
-    });
+export const EXTENSIONS_TABLE_QUERY = gql`
+  query ExtensionsTable($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
+      id
+      extensions {
+        id
+        name
+        effectiveDate
+        extensionStatus {
+          name
+        }
+      }
+    }
+  }
+`;
 
-export function ModificationTable({
-  modifications,
-  initiallyExpandedId,
-}: {
-  modifications: ModificationTableRow[];
-  initiallyExpandedId?: string;
-}) {
+export type Extension = Pick<ServerExtension, "id" | "name" | "effectiveDate"> & {
+  extensionStatus: Pick<DemonstrationStatus, "name">;
+};
+
+const ExtensionColumns: ColumnDef<Extension>[] = [
+  {
+    header: "Title",
+    accessorKey: "name",
+  },
+  {
+    header: "Status",
+    accessorKey: "extensionStatus.name",
+  },
+  {
+    header: "Effective Date",
+    accessorKey: "effectiveDate",
+  },
+];
+
+export function ExtensionsTable({ initiallyExpandedId }: { initiallyExpandedId?: string }) {
   const [expanded, setExpanded] = React.useState<ExpandedState>(() =>
     initiallyExpandedId ? { [initiallyExpandedId]: true } : {}
   );
-
+  const { id } = useParams<{ id: string }>();
   const handleExpandedChange = React.useCallback(
     (updater: ExpandedState | ((prev: ExpandedState) => ExpandedState)) => {
       setExpanded((prev) => {
@@ -39,10 +62,18 @@ export function ModificationTable({
     },
     []
   );
+  const { data, loading, error } = useQuery<{ demonstration: { extensions: Extension[] } }>(
+    EXTENSIONS_TABLE_QUERY,
+    {
+      variables: { demonstrationId: id },
+    }
+  );
 
-  const table = useReactTable<ModificationTableRow>({
-    data: modifications,
-    columns: ModificationColumns,
+  const amendments: Extension[] = data?.demonstration?.extensions || [];
+
+  const table = useReactTable<Extension>({
+    data: amendments,
+    columns: ExtensionColumns,
     state: { expanded },
     onExpandedChange: handleExpandedChange,
     getCoreRowModel: getCoreRowModel(),
@@ -51,11 +82,14 @@ export function ModificationTable({
     getRowId: (row) => row.id,
   });
 
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
   return (
     <div className="w-full">
       <div className="flex flex-col gap-2">
         {table.getRowModel().rows.map((row) => {
-          const { name, effectiveDate, status } = row.original;
+          const { name, effectiveDate, extensionStatus } = row.original;
           const isExpanded = row.getIsExpanded();
 
           return (
@@ -68,7 +102,7 @@ export function ModificationTable({
 
                 <div className="h-1" />
 
-                <div>{renderStatus(status.name)}</div>
+                <div>{renderStatus(extensionStatus.name)}</div>
 
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-800">

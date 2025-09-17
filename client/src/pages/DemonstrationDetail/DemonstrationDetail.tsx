@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
 
-import { ModificationTableRow } from "components/table/tables/ModificationTable";
 import { isTestMode } from "config/env";
 import { usePageHeader } from "hooks/usePageHeader";
 import { TabItem, Tabs } from "layout/Tabs";
@@ -19,8 +18,8 @@ import { ExtensionsTab } from "./ExtensionsTab";
 import { Document, User } from "demos-server";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
-  query DemonstrationDetailQuery($id: ID!) {
-    demonstration(id: $id) {
+  query DemonstrationDetailQuery($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
       id
       name
       description
@@ -38,19 +37,9 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       }
       amendments {
         id
-        name
-        effectiveDate
-        status: amendmentStatus {
-          name
-        }
       }
       extensions {
         id
-        name
-        effectiveDate
-        status: extensionStatus {
-          name
-        }
       }
       documents {
         id
@@ -88,13 +77,13 @@ export type ContactType =
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationDialogDetails &
   DemonstrationTabDemonstration & {
-    amendments: ModificationTableRow[];
-    extensions: ModificationTableRow[];
-  } & {
     contacts: Contact[];
     documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
       owner: Pick<User, "fullName">;
     })[];
+  } & {
+    amendments: { id: string }[];
+    extensions: { id: string }[];
   };
 
 type TabType = "details" | "amendments" | "extensions";
@@ -142,8 +131,7 @@ export const DemonstrationDetail: React.FC = () => {
   const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
     DEMONSTRATION_DETAIL_QUERY,
     {
-      variables: { id: id! },
-      skip: !id,
+      variables: { demonstrationId: id! },
     }
   );
 
@@ -189,7 +177,6 @@ export const DemonstrationDetail: React.FC = () => {
 
             {tab === "amendments" && (
               <AmendmentsTab
-                amendments={demonstration.amendments || []}
                 onClick={() => setEntityCreationModal("amendment")}
                 initiallyExpandedId={amendmentParam ?? undefined}
               />
@@ -197,7 +184,6 @@ export const DemonstrationDetail: React.FC = () => {
 
             {tab === "extensions" && (
               <ExtensionsTab
-                extensions={demonstration.extensions || []}
                 onClick={() => setEntityCreationModal("extension")}
                 initiallyExpandedId={extensionParam ?? undefined}
               />

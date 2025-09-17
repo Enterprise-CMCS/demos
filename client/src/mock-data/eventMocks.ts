@@ -11,10 +11,12 @@ export type MockEvent = Pick<
   "id" | "eventType" | "logLevel" | "route" | "createdAt" | "eventData" | "withRole"
 > & {
   user: MockUser;
+  __typename: "Event";
 };
 
 const mockEvents = [
   {
+    __typename: "Event",
     id: "1",
     user: johnDoe,
     eventType: "LOGIN_SUCCEEDED",
@@ -27,6 +29,7 @@ const mockEvents = [
     },
   },
   {
+    __typename: "Event",
     id: "2",
     user: johnDoe,
     eventType: "LOGIN_FAILED",

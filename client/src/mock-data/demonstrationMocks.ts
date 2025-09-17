@@ -17,10 +17,11 @@ import { MockDocument, mockDocuments } from "./documentMocks";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_STATUSES } from "demos-server-constants";
 import type { DemonstrationStatus } from "demos-server";
+import { EXTENSIONS_TABLE_QUERY } from "components/table/tables/ExtensionsTable";
+import { AMENDMENTS_TABLE_QUERY } from "components/table/tables/AmendmentsTable";
 
-const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] = DEMONSTRATION_STATUSES.map(
-  (s) => ({ id: s.id, name: s.name })
-);
+const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] =
+  DEMONSTRATION_STATUSES.map((s) => ({ id: s.id, name: s.name }));
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -34,10 +35,12 @@ export type MockDemonstration = Pick<
   contacts: MockContact[];
   demonstrationTypes: Array<object>;
   documents: MockDocument[];
+  __typename: "Demonstration";
 };
 
 export const mockDemonstrations = [
   {
+    __typename: "Demonstration",
     id: "1",
     name: "Montana Medicaid Waiver",
     description: "A demonstration project in Montana.",
@@ -53,6 +56,7 @@ export const mockDemonstrations = [
     documents: [mockDocuments[0], mockDocuments[1], mockDocuments[2]],
   },
   {
+    __typename: "Demonstration",
     id: "2",
     name: "Florida Health Innovation",
     description: "A health innovation project in Florida.",
@@ -68,6 +72,7 @@ export const mockDemonstrations = [
     documents: [mockDocuments[3]],
   },
   {
+    __typename: "Demonstration",
     id: "3",
     name: "Texas Reform Initiative",
     effectiveDate: new Date(2025, 0, 3),
@@ -107,6 +112,34 @@ export const demonstrationMocks: MockedResponse[] = [
   },
   {
     request: {
+      query: AMENDMENTS_TABLE_QUERY,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  },
+  {
+    request: {
+      query: EXTENSIONS_TABLE_QUERY,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  },
+  {
+    request: {
       query: GET_ALL_DEMONSTRATIONS_QUERY,
     },
     result: {
@@ -115,92 +148,16 @@ export const demonstrationMocks: MockedResponse[] = [
   },
   {
     request: {
-      query: GET_DEMONSTRATION_BY_ID_QUERY,
-      variables: { id: mockDemonstrations[0].id },
-    },
-    result: {
-      data: { demonstration: mockDemonstrations[0] },
-    },
-  },
-  {
-    request: {
       query: DEMONSTRATION_DETAIL_QUERY,
-      variables: { id: "1" },
     },
-    result: {
-      data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[0];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
-      },
-    },
-  },
-  {
-    request: {
-      query: DEMONSTRATION_DETAIL_QUERY,
-      variables: { id: "2" },
-    },
-    result: {
-      data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[1];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
-      },
-    },
-  },
-  {
-    request: {
-      query: DEMONSTRATION_DETAIL_QUERY,
-      variables: { id: "3" },
-    },
-    result: {
-      data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[2];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
-      },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
     },
   },
   {

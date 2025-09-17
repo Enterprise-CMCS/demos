@@ -7,9 +7,12 @@ export const california: State = {
   demonstrations: [],
 };
 
-export type MockState = Pick<State, "name" | "id">;
+export type MockState = Pick<State, "name" | "id"> & {
+  __typename: "State";
+};
 
 export const mockStates: MockState[] = STATES_AND_TERRITORIES.map((state) => ({
+  __typename: "State",
   name: state.name,
   id: state.id,
 }));

@@ -2,25 +2,26 @@ import { User } from "demos-server";
 import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
 import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 
-export type MockUser = Pick<User, "id" | "fullName">;
+export type MockUser = Pick<User, "id" | "fullName"> & { __typename: "User" };
 
 export const mockUsers: MockUser[] = [
-  { id: "1", fullName: "John Doe" },
-  { id: "2", fullName: "Jane Smith" },
-  { id: "3", fullName: "Jim Smith" },
-  { id: "4", fullName: "Darth Smith" },
-  { id: "5", fullName: "Bob Johnson" },
-  { id: "6", fullName: "Alice Brown" },
-  { id: "7", fullName: "Carlos Rivera" },
-  { id: "8", fullName: "Emily Clark" },
-  { id: "9", fullName: "Cara Lee" },
-  { id: "10", fullName: "David Chen" },
+  { __typename: "User", id: "1", fullName: "John Doe" },
+  { __typename: "User", id: "2", fullName: "Jane Smith" },
+  { __typename: "User", id: "3", fullName: "Jim Smith" },
+  { __typename: "User", id: "4", fullName: "Darth Smith" },
+  { __typename: "User", id: "5", fullName: "Bob Johnson" },
+  { __typename: "User", id: "6", fullName: "Alice Brown" },
+  { __typename: "User", id: "7", fullName: "Carlos Rivera" },
+  { __typename: "User", id: "8", fullName: "Emily Clark" },
+  { __typename: "User", id: "9", fullName: "Cara Lee" },
+  { __typename: "User", id: "10", fullName: "David Chen" },
 ];
 
 import { MockedResponse } from "@apollo/client/testing";
 
-export const johnDoe: User = {
-  id: "1",
+export const johnDoe: User & { __typename: "User" } = {
+  __typename: "User",
+  id: "JohnDoe",
   personTypeId: "demos-cms-user",
   fullName: "John Doe",
   cognitoSubject: "1234567890",
