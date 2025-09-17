@@ -68,6 +68,7 @@ describe("buildClient", () => {
           VITE_COGNITO_DOMAIN: "cognitoDomain",
           VITE_COGNITO_CLIENT_ID: "cognitoClientId",
           VITE_API_URL_PREFIX: "/api/graphql",
+          VITE_IDM_LOGOUT_URI: "",
         }),
       })
     );
