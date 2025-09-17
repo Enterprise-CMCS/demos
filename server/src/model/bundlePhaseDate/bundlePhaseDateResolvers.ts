@@ -2,7 +2,7 @@ import { BundlePhaseDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { Phase, DateType } from "../../types.js";
 import { getBundle } from "../bundle/bundleResolvers.js";
-import { throwUsefulError } from "../../errors/ThrowUsefulError.js";
+import { handleError } from "../../errors/HandleError.js";
 
 async function setPhaseDate(
   _: undefined,
@@ -33,7 +33,7 @@ async function setPhaseDate(
       },
     });
   } catch (error) {
-    throwUsefulError(error);
+    handleError(error);
   }
   return await getBundle(bundleId);
 }

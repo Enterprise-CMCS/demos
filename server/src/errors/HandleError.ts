@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-export function throwUsefulError(error: unknown) {
+export function handleError(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
       case "P2003":
