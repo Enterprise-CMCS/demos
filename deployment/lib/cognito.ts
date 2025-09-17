@@ -104,8 +104,7 @@ export function create(props: CognitoProps): CognitoOutputs {
       ? [httpsCloudfront, "http://localhost:3000/"]
       : [httpsCloudfront];
   const logoutUrls = [
-    ...callbackUrls.flatMap((url) => [url]),
-    // Allow redirecting to IDM signout page in dev/test/ephemeral
+    ...callbackUrls,
     ...(["dev", "test"].includes(props.stage) || props.isEphemeral ? [idmLogout] : []),
   ];
 
