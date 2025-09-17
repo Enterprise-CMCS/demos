@@ -78,3 +78,27 @@ export const formatDateForServer = (date: Date): string => {
   // Format the date as needed for the server
   return formatDateTime(date);
 };
+
+// {
+//   "bundleId": "5cb0286f-d770-4927-80c8-fb1c7864e21a",
+//   "phase": "Concept",
+//   "dateType": "Start Date",
+//   "dateValue": "2025-08-30T23:59:59.999-04:00"
+// }
+
+/**
+ * query Query($demonstrationId: ID!) {
+  demonstration(id: $demonstrationId) {
+    id
+    name
+    phases {
+      phase
+      phaseStatus
+      phaseDates {
+        dateType
+        dateValue
+      }
+    }
+  }
+}
+ */

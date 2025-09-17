@@ -1,29 +1,20 @@
 import React, { useState } from "react";
 import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
-import { getESTDate, getStartDate, getEndDate } from "./applicationDates";
+import { getESTDate, getStartDate, getEndDate } from "./phaseDates";
 import { formatTimestamp } from "util/formatDate";
-
-// Phase status types following the business rules
-type PhaseStatus = "not-started" | "started" | "completed" | "skipped";
-
-interface PhaseState {
-  status: PhaseStatus;
-  startDate?: Date;
-  completionDate?: Date;
-}
+import { BundlePhase } from "demos-server";
 
 interface SimulationState {
-  concept: PhaseState;
-  stateApplication: PhaseState;
-  completeness: PhaseState;
-  stateApplicationSubmittedDate?: Date;
+  concept: BundlePhase;
+  stateApplication: BundlePhase;
+  completeness: BundlePhase;
 }
 
 const DEFAULT_SIMULATION_STATE: SimulationState = {
-  concept: { status: "not-started" },
-  stateApplication: { status: "not-started" },
-  completeness: { status: "not-started" },
+  concept: { phaseStatus: "not-started" },
+  stateApplication: { phaseName: "not-started" },
+  completeness: { phaseName: "not-started" },
 };
 
 const PHASE_BOX = tw`p-4 border-2 rounded-lg bg-white min-h-[120px] flex flex-col justify-between`;
@@ -37,7 +28,7 @@ const DATE_DISPLAY = tw`text-xs text-gray-600 mt-1`;
 const PHASE_TITLE = tw`font-bold text-lg mb-2`;
 const PHASE_STATUS = tw`text-sm font-medium mb-2`;
 
-export const ApplicationDatesFlowchart: React.FC = () => {
+export const PhaseDatesSimulation: React.FC = () => {
   const [simulation, setSimulation] = useState<SimulationState>(DEFAULT_SIMULATION_STATE);
   setSimulation((prev) => ({ ...prev, concept: { status: "started", startDate: new Date() } })); // Ensure state update on initial render
   const resetSimulation = () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getESTDate } from "./applicationDates";
+import { getESTDate } from "./phaseDates";
 import { formatDate, formatDateTime } from "util/formatDate";
 
 const EPOCH_DATE = new Date(0); // January 1, 1970, 00:00:00 UTC
