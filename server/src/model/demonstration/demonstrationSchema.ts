@@ -31,7 +31,6 @@ export const demonstrationSchema = gql`
     demonstrationStatus: DemonstrationStatus!
     state: State!
     currentPhase: Phase!
-    users: [User!]!
     projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
@@ -42,13 +41,11 @@ export const demonstrationSchema = gql`
 
   input CreateDemonstrationInput {
     name: String!
-    description: String!
+    stateId: ID!
+    projectOfficerUserId: String!
+    description: String
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
-    demonstrationStatusId: ID!
-    stateId: ID!
-    userIds: [ID!]
-    projectOfficerUserId: String!
   }
 
   input UpdateDemonstrationInput {
@@ -61,12 +58,18 @@ export const demonstrationSchema = gql`
     demonstrationStatusId: ID
     currentPhase: Phase
     stateId: ID
-    userIds: [ID!]
     projectOfficerUserId: String
   }
 
+  type CreateDemonstrationResponse {
+    success: Boolean!
+    message: String
+  }
+
   type Mutation {
-    createDemonstration(input: CreateDemonstrationInput!): Demonstration
+    createDemonstration(
+      input: CreateDemonstrationInput!
+    ): CreateDemonstrationResponse
     updateDemonstration(
       id: ID!
       input: UpdateDemonstrationInput!
@@ -91,7 +94,6 @@ export interface Demonstration {
   demonstrationStatus: DemonstrationStatus;
   state: State;
   currentPhase: Phase;
-  users: User[];
   projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
@@ -100,15 +102,15 @@ export interface Demonstration {
   updatedAt: Date;
 }
 
+// Used in creating a demonstration from the F/E dialog.
+// The fields here should match the fields in that dialog.
 export interface CreateDemonstrationInput {
   name: string;
-  description: string;
+  projectOfficerUserId: string;
+  stateId: string;
+  description?: string;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  demonstrationStatusId: string;
-  stateId: string;
-  userIds?: string[];
-  projectOfficerUserId: string;
 }
 
 export interface UpdateDemonstrationInput {
@@ -121,6 +123,5 @@ export interface UpdateDemonstrationInput {
   demonstrationStatusId?: string;
   currentPhase?: Phase;
   stateId?: string;
-  userIds?: string[];
   projectOfficerUserId?: string;
 }

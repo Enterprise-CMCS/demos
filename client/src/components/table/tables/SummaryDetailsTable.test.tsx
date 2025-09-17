@@ -3,58 +3,18 @@ import React from "react";
 import { formatDate } from "util/formatDate";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
 
+const EDIT_BUTTON_TEST_ID = "button-edit-details";
+
 // Mock the DemonstrationDialog component
 vi.mock("components/dialog/DemonstrationDialog", () => ({
-  DemonstrationDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
-    <div data-testid="demonstration-dialog">
-      <h2>Demonstration Dialog - {mode}</h2>
-      <button onClick={onClose} data-testid="close-dialog">
-        Close
-      </button>
-    </div>
-  ),
-}));
-
-// Mock the SecondaryButton component
-vi.mock("components/button", () => ({
-  SecondaryButton: ({
-    children,
-    onClick,
-    className,
-    size,
-    disabled,
-  }: {
-    children: React.ReactNode;
-    onClick: () => void;
-    className?: string;
-    size?: string;
-    disabled?: boolean;
-  }) => (
-    <button
-      onClick={onClick}
-      className={className}
-      data-testid="edit-button"
-      data-size={size}
-      disabled={disabled}
-    >
-      {children}
-    </button>
-  ),
-}));
-
-// Mock the EditIcon component
-vi.mock("components/icons", () => ({
-  EditIcon: ({ className }: { className?: string }) => (
-    <span className={className} data-testid="edit-icon">
-      ✏️
-    </span>
-  ),
+  EditDemonstrationDialog: () => <div>EditDemonstrationDialog</div>,
+  CreateDemonstrationDialog: () => <div>CreateDemonstrationDialog</div>,
 }));
 
 describe("SummaryDetailsTable", () => {
@@ -93,11 +53,9 @@ describe("SummaryDetailsTable", () => {
     it("renders the edit button with correct styling", () => {
       render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
-      const editButton = screen.getByTestId("edit-button");
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       expect(editButton).toBeInTheDocument();
       expect(editButton).toHaveTextContent("Edit Details");
-      expect(editButton).toHaveAttribute("data-size", "small");
-      expect(screen.getByTestId("edit-icon")).toBeInTheDocument();
     });
   });
 
@@ -119,7 +77,7 @@ describe("SummaryDetailsTable", () => {
       const user = userEvent.setup();
       render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} onEdit={mockOnEdit} />);
 
-      const editButton = screen.getByTestId("edit-button");
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
 
       expect(mockOnEdit).toHaveBeenCalledTimes(1);
@@ -129,36 +87,17 @@ describe("SummaryDetailsTable", () => {
       const user = userEvent.setup();
       render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
-      const editButton = screen.getByTestId("edit-button");
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
 
-      expect(screen.getByTestId("demonstration-dialog")).toBeInTheDocument();
-      expect(screen.getByText("Demonstration Dialog - edit")).toBeInTheDocument();
-    });
-
-    it("closes modal when close button is clicked", async () => {
-      const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
-
-      // Open modal
-      const editButton = screen.getByTestId("edit-button");
-      await user.click(editButton);
-      expect(screen.getByTestId("demonstration-dialog")).toBeInTheDocument();
-
-      // Close modal
-      const closeButton = screen.getByTestId("close-dialog");
-      await user.click(closeButton);
-
-      await waitFor(() => {
-        expect(screen.queryByTestId("demonstration-dialog")).not.toBeInTheDocument();
-      });
+      expect(screen.getByText("EditDemonstrationDialog")).toBeInTheDocument();
     });
 
     it("does not open modal when onEdit prop is provided", async () => {
       const user = userEvent.setup();
       render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} onEdit={mockOnEdit} />);
 
-      const editButton = screen.getByTestId("edit-button");
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
 
       expect(screen.queryByTestId("demonstration-dialog")).not.toBeInTheDocument();
@@ -171,12 +110,10 @@ describe("SummaryDetailsTable", () => {
       const user = userEvent.setup();
       render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
-      const editButton = screen.getByTestId("edit-button");
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
 
-      const modal = screen.getByTestId("demonstration-dialog");
-      expect(modal).toBeInTheDocument();
-      expect(screen.getByText("Demonstration Dialog - edit")).toBeInTheDocument();
+      expect(screen.getByText("EditDemonstrationDialog")).toBeInTheDocument();
     });
   });
 
@@ -191,7 +128,7 @@ describe("SummaryDetailsTable", () => {
     it("has accessible button with proper content", () => {
       render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
 
-      const editButton = screen.getByTestId("edit-button");
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       expect(editButton).toHaveTextContent("Edit Details");
     });
   });

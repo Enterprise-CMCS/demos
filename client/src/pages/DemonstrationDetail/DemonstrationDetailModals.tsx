@@ -1,7 +1,7 @@
 import React from "react";
 
 import { AmendmentDialog } from "components/dialog/AmendmentDialog";
-import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { EditDemonstrationDialog } from "components/dialog/DemonstrationDialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { Demonstration } from "demos-server";
@@ -47,7 +47,11 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
 
     {/* Demonstration Action Modals */}
     {demonstrationActionModal === "edit" && (
-      <DemonstrationDialog mode="edit" onClose={onCloseDemonstrationDialog} />
+      <EditDemonstrationDialog
+        isOpen={true}
+        onClose={onCloseDemonstrationDialog}
+        demonstrationId={demonstration.id}
+      />
     )}
 
     {/* TODO: Add delete confirmation modal when available */}
