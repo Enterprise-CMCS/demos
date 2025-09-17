@@ -1,11 +1,11 @@
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
+import { formatDateTime } from "util/formatDate";
 
-const START_OF_DAY_HOUR = 0;
-const START_OF_DAY_MINUTE = 0;
-
+const ZERO = 0;
 const END_OF_DAY_HOUR = 23;
 const END_OF_DAY_MINUTE = 59;
+const END_OF_DAY_MILLISECOND = 999;
 
 /**
  * Application Dates Library
@@ -42,24 +42,24 @@ export type EndDate = DateEST & { readonly __end: never };
  * Date Utility Functions
  *
  * These functions are used to convert between the types here:
- * Date, DateUTC, DateEST, StartDate and EndDate.
+ * Date, DateEST, StartDate and EndDate.
+ * It is also to format dates correctly for the server
  *
  */
-
 export const getESTDate = (date: Date): DateEST => {
   return new TZDate(date, EST_TIMEZONE) as DateEST;
 };
 
-export const getUTCDate = (date: Date): DateUTC => {
-  return new UTCDate(date) as DateUTC;
-};
-
-export const isEndDate = (dateEst: DateEST): dateEst is EndDate => {
-  return dateEst.getHours() === 23 && dateEst.getMinutes() === 59;
-};
-
-export const isStartDate = (dateEst: DateEST): dateEst is StartDate => {
-  return dateEst.getHours() === 0 && dateEst.getMinutes() === 0;
+export const getStartDate = (dateEst: DateEST): StartDate => {
+  return new TZDate(
+    dateEst.getFullYear(),
+    dateEst.getMonth(),
+    dateEst.getDate(),
+    ZERO,
+    ZERO,
+    ZERO,
+    EST_TIMEZONE
+  ) as StartDate;
 };
 
 export const getEndDate = (dateEst: DateEST): EndDate => {
@@ -69,17 +69,12 @@ export const getEndDate = (dateEst: DateEST): EndDate => {
     dateEst.getDate(),
     END_OF_DAY_HOUR,
     END_OF_DAY_MINUTE,
+    END_OF_DAY_MILLISECOND,
     EST_TIMEZONE
   ) as EndDate;
 };
 
-export const getStartDate = (dateEst: DateEST): StartDate => {
-  return new TZDate(
-    dateEst.getFullYear(),
-    dateEst.getMonth(),
-    dateEst.getDate(),
-    START_OF_DAY_HOUR,
-    START_OF_DAY_MINUTE,
-    EST_TIMEZONE
-  ) as StartDate;
+export const formatDateForServer = (date: Date): string => {
+  // Format the date as needed for the server
+  return formatDateTime(date);
 };
