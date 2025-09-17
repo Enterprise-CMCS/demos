@@ -17,16 +17,14 @@ export const ProfileBlock: React.FC = () => {
   if (error) {
     console.error("[ProfileBlock] currentUser error:", error);
     signOut();
-    return;
   }
 
   if (!currentUser) {
     console.warn("[ProfileBlock] No currentUser found, signout");
     signOut();
-    return;
   }
   // These fields are not nullable in DB. So they can't be missing.
-  const name = currentUser.displayName ?? currentUser.fullName;
+  const name = currentUser ? (currentUser.displayName ?? currentUser.fullName) : "";
   const firstCharacter = (name?.trim()?.[0] ?? "?").toUpperCase();
 
   return (
