@@ -36,15 +36,15 @@ const EST_TIMEZONE: TimeZone = "America/New_York";
  */
 export type DateUTC = UTCDate & { readonly __utc: never };
 export type DateEST = TZDate & { readonly __est: never };
-export type StartDate = DateEST & { readonly __start: never };
-export type EndDate = DateEST & { readonly __end: never };
+export type StartOfDayEST = DateEST & { readonly __start: never };
+export type EndOfDayEST = DateEST & { readonly __end: never };
 
-export const getStartOfDayEST = (year: number, month: number, day: number): StartDate => {
-  return new TZDate(year, month, day, 0, 0, 0, 0, EST_TIMEZONE) as StartDate;
+export const getStartOfDayEST = (year: number, month: number, day: number): StartOfDayEST => {
+  return new TZDate(year, month, day, 0, 0, 0, 0, EST_TIMEZONE) as StartOfDayEST;
 };
 
-export const getEndOfDayEST = (year: number, month: number, day: number): EndDate => {
-  return new TZDate(year, month, day, 23, 59, 59, 999, EST_TIMEZONE) as EndDate;
+export const getEndOfDayEST = (year: number, month: number, day: number): EndOfDayEST => {
+  return new TZDate(year, month, day, 23, 59, 59, 999, EST_TIMEZONE) as EndOfDayEST;
 };
 
 // Format the date as an ISO-8601 string in UTC timezone.

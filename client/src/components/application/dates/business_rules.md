@@ -1,5 +1,3 @@
-This is how the dates in the application are set / calculated
-
 1. Concept Phase
 
 - Concept Start Date - Begins when the demonstration, amendment or extension is created.
