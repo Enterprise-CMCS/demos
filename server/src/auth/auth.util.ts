@@ -57,7 +57,7 @@ function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void
 
 // Check if role is demos-admin, demos-cms-user, or demos-state-user
 function verifyRole(role: string): void {
-  const validRoles = PERSON_TYPES as readonly string[];
+  const validRoles = (PERSON_TYPES as readonly string[]).filter(r => r !== "non-user-contact");
   if (!validRoles.includes(role)) {
     throw new GraphQLError(`Invalid user role: '${role}'`, {
       extensions: {
