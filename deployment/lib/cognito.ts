@@ -95,6 +95,7 @@ export function create(props: CognitoProps): CognitoOutputs {
     ],
   });
 
+  // Set up SAML IdP for IDM
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
   const httpsCloudfront = `https://${props.cloudfrontHost}/`;
   const callbackUrls =
@@ -115,7 +116,7 @@ export function create(props: CognitoProps): CognitoOutputs {
       scopes: [aws_cognito.OAuthScope.EMAIL, aws_cognito.OAuthScope.OPENID, aws_cognito.OAuthScope.PROFILE],
       callbackUrls,
       defaultRedirectUri: httpsCloudfront,
-      logoutUrls: callbackUrls.flatMap((url) => [url, `${url}sign-out`, `${url}signed-out`]),
+      logoutUrls: callbackUrls.flatMap((url) => [url, `https://test.idp.idm.cms.gov/login/signout`]),
     },
     accessTokenValidity: Duration.minutes(30),
     idTokenValidity: Duration.minutes(30),
