@@ -127,7 +127,7 @@ async function updateModification(
     data: {
       demonstrationId: input.demonstrationId ?? undefined,
       name: input.name ?? undefined,
-      description: input.description ?? "",
+      description: input.description ?? undefined,
       effectiveDate: input.effectiveDate ?? undefined,
       expirationDate: input.expirationDate ?? undefined,
       statusId: input.status ?? undefined,

@@ -73,7 +73,7 @@ export async function updateDemonstration(
     where: { id },
     data: {
       name: input.name ?? undefined,
-      description: input.description ?? "",
+      description: input.description ?? undefined,
       effectiveDate: input.effectiveDate ?? undefined,
       expirationDate: input.expirationDate ?? undefined,
       cmcsDivisionId: input.cmcsDivision ?? undefined,
