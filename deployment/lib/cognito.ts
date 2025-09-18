@@ -23,21 +23,24 @@ export interface CognitoOutputs {
 }
 
 // Shared helpers to avoid duplication
-const NON_PROD_STAGES = ["dev", "test"] as const;
+const NON_PROD_STAGES = ["dev", "test"];
 type NonProdStage = typeof NON_PROD_STAGES[number];
-const LOCALHOST_URL = "http://localhost:3000/" as const;
-const IDM_LOGOUT_URL = "https://test.idp.idm.cms.gov/login/signout" as const;
+
+export const URLS = {
+  LOCALHOST: "http://localhost:3000/",
+  IDM_LOGOUT: "https://test.idp.idm.cms.gov/login/signout",
+};
 
 const getHttpsCloudfront = (props: CognitoProps): string => `https://${props.cloudfrontHost}/`;
 const getCallbackUrls = (props: CognitoProps): string[] => {
   const httpsCloudfront = getHttpsCloudfront(props);
   return props.isEphemeral || NON_PROD_STAGES.includes(props.stage as NonProdStage)
-    ? [httpsCloudfront, LOCALHOST_URL]
+    ? [httpsCloudfront, URLS.LOCALHOST]
     : [httpsCloudfront];
 };
 const getLogoutUrls = (props: CognitoProps, callbackUrls: string[]): string[] => [
   ...callbackUrls,
-  ...(props.isEphemeral || NON_PROD_STAGES.includes(props.stage as NonProdStage) ? [IDM_LOGOUT_URL] : []),
+  ...(props.isEphemeral || NON_PROD_STAGES.includes(props.stage as NonProdStage) ? [URLS.IDM_LOGOUT] : []),
 ];
 
 export function create(props: CognitoProps): CognitoOutputs {
