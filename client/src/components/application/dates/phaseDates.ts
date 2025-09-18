@@ -1,7 +1,6 @@
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
 import { BundlePhase, Phase, PhaseStatus, BundlePhaseDate, DateType } from "demos-server";
-import { formatDateTime } from "util/formatDate";
 
 export type SimplePhaseDate = Omit<BundlePhaseDate, "createdAt" | "updatedAt">;
 export type SimplePhase = Omit<BundlePhase, "createdAt" | "updatedAt" | "phaseDates"> & {
@@ -45,16 +44,6 @@ export const getStartOfDayEST = (year: number, month: number, day: number): Star
 
 export const getEndOfDayEST = (year: number, month: number, day: number): EndOfDayEST => {
   return new TZDate(year, month, day, 23, 59, 59, 999, EST_TIMEZONE) as EndOfDayEST;
-};
-
-// Format the date as an ISO-8601 string in UTC timezone.
-// Example: 2024-08-30T23:59:59.999Z
-export const formatDateUTCForServer = (dateUtc: DateUTC): string => {
-  return formatDateTime(dateUtc);
-};
-
-export const formatDateEstForServer = (dateEst: DateEST): string => {
-  return formatDateTime(dateEst);
 };
 
 /**

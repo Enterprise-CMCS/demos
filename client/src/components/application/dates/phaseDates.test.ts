@@ -2,8 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   getStartOfDayEST,
   getEndOfDayEST,
-  formatDateUTCForServer,
-  formatDateEstForServer,
   getStatusForPhase,
   setStatusForPhase,
   getDateFromPhaseDates,
@@ -12,11 +10,7 @@ import {
   setAllDatesForPhase,
   type SimplePhase,
   type SimplePhaseDate,
-  type DateUTC,
-  type DateEST,
 } from "./phaseDates";
-import { UTCDate } from "@date-fns/utc";
-import { TZDate } from "@date-fns/tz";
 
 // Mock data for testing
 const mockPhaseDates: SimplePhaseDate[] = [
@@ -88,22 +82,6 @@ describe("phaseDates", () => {
       expect(endDate.getSeconds()).toBe(59);
       expect(endDate.getMilliseconds()).toBe(999);
       expect(endDate.timeZone).toBe("America/New_York");
-    });
-  });
-
-  describe("Date formatting functions", () => {
-    it("should format UTC date for server", () => {
-      const utcDate = new UTCDate("2025-01-01T12:00:00.000Z") as DateUTC;
-      const formatted = formatDateUTCForServer(utcDate);
-
-      expect(formatted).toBe("01/01/2025 12:00");
-    });
-
-    it("should format EST date for server", () => {
-      const estDate = new TZDate("2025-01-01T12:00:00.000", "America/New_York") as DateEST;
-      const formatted = formatDateEstForServer(estDate);
-
-      expect(formatted).toBe("01/01/2025 12:00");
     });
   });
 

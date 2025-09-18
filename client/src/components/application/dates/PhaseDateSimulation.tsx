@@ -98,10 +98,6 @@ export const PhaseDatesSimulation: React.FC = () => {
   const [simulationState, setSimulationState] = useState<SimulationState>(DEFAULT_SIMULATION_STATE);
   const [demonstrationCreated, setDemonstrationCreated] = useState(false);
 
-  const formatDate = (date: Date) => {
-    return formatDateTime(date);
-  };
-
   const updatePhaseDate = (
     phases: SimulationState,
     phaseName: "Concept" | "State Application" | "Completeness",
@@ -220,7 +216,7 @@ export const PhaseDatesSimulation: React.FC = () => {
 
   const getDateDisplay = (phase: SimplePhase, dateType: DateType) => {
     const date = getDateFromPhaseDates(phase.phaseDates, dateType);
-    return date ? formatDate(date) : "Not set";
+    return date ? formatDateTime(date, "millisecond") : "Not set";
   };
 
   return (

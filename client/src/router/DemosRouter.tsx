@@ -15,7 +15,7 @@ import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
 import { isLocalDevelopment } from "config/env";
-import { PhaseDatesSimulation } from "components/application/dates/phaseDatesSimulation";
+import { PhaseDatesSimulation } from "components/application/dates/PhaseDateSimulation";
 
 // 1) Shell that provides the layout and outlet for child routes
 function ProtectedShell() {

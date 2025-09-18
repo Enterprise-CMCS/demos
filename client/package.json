@@ -64,7 +64,7 @@
     "test:serial": "vitest --mode test --run --no-file-parallelism",
     "test:debug": "vitest --mode test --run --inspect-brk --no-file-parallelism",
     "tsc": "tsc --noEmit --skipLibCheck",
-    "lint": "eslint src",
+    "lint": "eslint src; npx tsc --noEmit --skipLibCheck",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
