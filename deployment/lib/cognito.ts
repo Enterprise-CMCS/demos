@@ -25,8 +25,8 @@ export interface CognitoOutputs {
 // Shared helpers to avoid duplication
 const NON_PROD_STAGES = ["dev", "test"] as const;
 type NonProdStage = typeof NON_PROD_STAGES[number];
-const LOCALHOST_URL = "http://localhost:3000/";
-const IDM_LOGOUT_URL = "https://test.idp.idm.cms.gov/login/signout";
+const LOCALHOST_URL = "http://localhost:3000/" as const;
+const IDM_LOGOUT_URL = "https://test.idp.idm.cms.gov/login/signout" as const;
 
 const getHttpsCloudfront = (props: CognitoProps): string => `https://${props.cloudfrontHost}/`;
 const getCallbackUrls = (props: CognitoProps): string[] => {
@@ -41,8 +41,6 @@ const getLogoutUrls = (props: CognitoProps, callbackUrls: string[]): string[] =>
 ];
 
 export function create(props: CognitoProps): CognitoOutputs {
-  // Remove Cognito IDP for TEST/VAL/PROD and will be IDM. Only DEV & ephemeral will be Cognito IDP.
-  const allowNativeCognitoIdp = props.isDev || props.isEphemeral;
   const userPool = new aws_cognito.UserPool(props.scope, "UserPool", {
     userPoolName: `${props.project}-${props.stage}-user-pool`,
     signInAliases: {
@@ -112,42 +110,10 @@ export function create(props: CognitoProps): CognitoOutputs {
     ],
   });
 
-  // Set up SAML IdP for IDM
+  // Set up SAML IdP for IDM and user pool client + branding
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
-  const callbackUrls = getCallbackUrls(props);
-  const logoutUrls = getLogoutUrls(props, callbackUrls);
-
-  const userPoolClient = new aws_cognito.UserPoolClient(props.scope, "UserPoolClient", {
-    userPoolClientName: `${props.project}-${props.stage}-user-pool-client`,
-    userPool,
-    authFlows: {
-      adminUserPassword: true,
-    },
-    oAuth: {
-      flows: {
-        authorizationCodeGrant: true,
-      },
-      scopes: [aws_cognito.OAuthScope.EMAIL, aws_cognito.OAuthScope.OPENID, aws_cognito.OAuthScope.PROFILE],
-      callbackUrls,
-      defaultRedirectUri: getHttpsCloudfront(props),
-      logoutUrls,
-    },
-    accessTokenValidity: Duration.minutes(30),
-    idTokenValidity: Duration.minutes(30),
-    refreshTokenValidity: Duration.hours(24),
-    supportedIdentityProviders: [
-      UserPoolClientIdentityProvider.custom(IDM.providerName),
-      ...(allowNativeCognitoIdp ? [UserPoolClientIdentityProvider.COGNITO] : []),
-    ],
-    generateSecret: false,
-  });
-
-  new aws_cognito.CfnManagedLoginBranding(props.scope, "CognitoBranding", {
-    userPoolId: userPool.userPoolId,
-    assets: cognitoHostedUiAssets,
-    clientId: userPoolClient.userPoolClientId,
-    settings: cognitoHostedUiSettings,
-  });
+  const userPoolClient = createUserPoolClientResource(props, userPool, IDM.providerName);
+  addCognitoBranding(props, userPool.userPoolId, userPoolClient.userPoolClientId);
 
   return {
     userPoolId: userPool.userPoolId,
@@ -180,47 +146,13 @@ export const createUserPoolClient = (
   userPoolId: string,
   hostEnvironment: string
 ): CognitoOutputs => {
-  // Remove Cognito IDP for TEST/VAL/PROD and will be IDM. Only DEV & ephemeral will be Cognito IDP.
-  const allowNativeCognitoIdp = props.isDev || props.isEphemeral;
   const userPool = aws_cognito.UserPool.fromUserPoolId(props.scope, "importedUserPool", userPoolId);
-
-  const callbackUrls = getCallbackUrls(props);
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
-  const logoutUrls = getLogoutUrls(props, callbackUrls);
-
-  const userPoolClient = new aws_cognito.UserPoolClient(props.scope, "UserPoolClient", {
-    userPoolClientName: `${props.project}-${props.stage}-user-pool-client`,
-    userPool,
-    authFlows: {
-      adminUserPassword: true,
-    },
-    oAuth: {
-      flows: {
-        authorizationCodeGrant: true,
-      },
-      scopes: [aws_cognito.OAuthScope.EMAIL, aws_cognito.OAuthScope.OPENID, aws_cognito.OAuthScope.PROFILE],
-      callbackUrls,
-      defaultRedirectUri: getHttpsCloudfront(props),
-      logoutUrls,
-    },
-    accessTokenValidity: Duration.minutes(30),
-    idTokenValidity: Duration.minutes(30),
-    refreshTokenValidity: Duration.hours(24),
-    supportedIdentityProviders: [
-      UserPoolClientIdentityProvider.custom(IDM.providerName),
-      ...(allowNativeCognitoIdp ? [UserPoolClientIdentityProvider.COGNITO] : []),
-    ],
-    generateSecret: false,
-  });
+  const userPoolClient = createUserPoolClientResource(props, userPool, IDM.providerName);
 
   const domainPrefix = getCognitoDomainPrefix(props.project, hostEnvironment);
 
-  new aws_cognito.CfnManagedLoginBranding(props.scope, "CognitoBranding", {
-    userPoolId: userPool.userPoolId,
-    clientId: userPoolClient.userPoolClientId,
-    assets: cognitoHostedUiAssets,
-    settings: cognitoHostedUiSettings,
-  });
+  addCognitoBranding(props, userPool.userPoolId, userPoolClient.userPoolClientId);
 
   return {
     userPool,
@@ -232,3 +164,44 @@ export const createUserPoolClient = (
 };
 
 const getCognitoDomainPrefix = (project: string, stage: string): string => `${project}-${stage}-login-user-pool-client`;
+
+// ---- Internal helpers for CDK resources ----
+const allowNativeCognitoIdp = (props: CognitoProps): boolean => props.isDev || props.isEphemeral;
+
+const createUserPoolClientResource = (
+  props: CognitoProps,
+  userPool: aws_cognito.IUserPool,
+  idmProviderName: string
+) => {
+  const callbackUrls = getCallbackUrls(props);
+  const logoutUrls = getLogoutUrls(props, callbackUrls);
+  return new aws_cognito.UserPoolClient(props.scope, "UserPoolClient", {
+    userPoolClientName: `${props.project}-${props.stage}-user-pool-client`,
+    userPool,
+    authFlows: { adminUserPassword: true },
+    oAuth: {
+      flows: { authorizationCodeGrant: true },
+      scopes: [aws_cognito.OAuthScope.EMAIL, aws_cognito.OAuthScope.OPENID, aws_cognito.OAuthScope.PROFILE],
+      callbackUrls,
+      defaultRedirectUri: getHttpsCloudfront(props),
+      logoutUrls,
+    },
+    accessTokenValidity: Duration.minutes(30),
+    idTokenValidity: Duration.minutes(30),
+    refreshTokenValidity: Duration.hours(24),
+    supportedIdentityProviders: [
+      UserPoolClientIdentityProvider.custom(idmProviderName),
+      ...(allowNativeCognitoIdp(props) ? [UserPoolClientIdentityProvider.COGNITO] : []),
+    ],
+    generateSecret: false,
+  });
+};
+
+const addCognitoBranding = (props: CognitoProps, userPoolId: string, clientId: string) => {
+  new aws_cognito.CfnManagedLoginBranding(props.scope, "CognitoBranding", {
+    userPoolId,
+    assets: cognitoHostedUiAssets,
+    clientId,
+    settings: cognitoHostedUiSettings,
+  });
+};
