@@ -6,6 +6,7 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
+import { PERSON_TYPES } from "../constants";
 
 const config = getAuthConfig();
 
@@ -26,6 +27,10 @@ type DecodedJWT = {
   email?: string;
   token_use?: "id" | "access";
   role: string;
+  givenName?: string;
+  familyName?: string;
+  name?: string;
+  externalUserId?: string;
 };
 
 const verifyOpts: VerifyOptions = {
@@ -50,6 +55,63 @@ function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void
   });
 }
 
+// Check if role is demos-admin, demos-cms-user, or demos-state-user
+function verifyRole(role: string): void {
+  const validRoles = (PERSON_TYPES as readonly string[]).filter(r => r !== "non-user-contact");
+  if (!validRoles.includes(role)) {
+    throw new GraphQLError(`Invalid user role: '${role}'`, {
+      extensions: {
+        code: "UNAUTHORIZED",
+        http: { status: 403 },
+      },
+    });
+  }
+}
+
+// Extract external userId from Cognito identities claim when available
+function extractExternalUserIdFromIdentities(identities: unknown): string | undefined {
+  try {
+    const arr = typeof identities === "string" ? JSON.parse(identities) : identities;
+    if (Array.isArray(arr) && arr.length > 0) {
+      const first = arr[0] as { userId?: string };
+      if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
+        return first.userId.trim();
+      }
+    }
+  } catch {
+    console.log("Failed to parse identities json claim (probably a local user)");
+  }
+  return undefined;
+}
+
+// Normalize raw Cognito payload (token or authorizer-claims) into our Claims shape and verify role
+function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
+  const role = (raw["custom:roles"] as string) ?? (raw["role"] as string);
+  if (!role) {
+    console.error("User Missing custom:roles value in token");
+    throw new GraphQLError("Missing role in token", {
+      extensions: { code: "UNAUTHORIZED", http: { status: 403 } },
+    });
+  }
+  verifyRole(role);
+
+  const sub = String(raw["sub"] ?? "");
+  if (!sub) {
+    console.error("User Missing sub value in token");
+    throw new GraphQLError("Missing subject in token", {
+      extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+    });
+  }
+
+  const email = (raw["email"] as string | undefined) ?? undefined;
+  const givenName = (raw["given_name"] as string | undefined) ?? undefined;
+  const familyName = (raw["family_name"] as string | undefined) ?? undefined;
+  const name = (raw["name"] as string | undefined) ?? undefined;
+  const externalUserId = extractExternalUserIdFromIdentities(raw["identities"]);
+
+  return { sub, email, role, givenName, familyName, name, externalUserId };
+}
+
 function decodeToken(token: string): Promise<DecodedJWT> {
   return new Promise((resolve, reject) => {
     jwt.verify(token, getKey, verifyOpts, (err, decoded) => {
@@ -60,24 +122,40 @@ function decodeToken(token: string): Promise<DecodedJWT> {
           })
         );
       }
-
-      const rawDecoded = decoded as {
-        sub: string;
-        email: string;
-        token_use?: "id" | "access";
-        "custom:roles": string;
-      };
+      const rawDecoded = decoded as Record<string, unknown>;
+      let claims: Claims;
+      try {
+        claims = normalizeClaimsFromRaw(rawDecoded);
+      } catch (error) {
+        console.error("Token claims error:", error);
+        return reject(error);
+      }
 
       resolve({
-        ...rawDecoded,
-        role: rawDecoded["custom:roles"],
+        sub: claims.sub,
+        email: claims.email,
+        token_use: (rawDecoded["token_use"] as DecodedJWT["token_use"]) ?? undefined,
+        role: claims.role,
+        givenName: claims.givenName,
+        familyName: claims.familyName,
+        name: claims.name,
+        externalUserId: claims.externalUserId,
       });
     });
   });
 }
 
 /* -----------------------  HELPERS  ----------------------- */
-type Claims = { sub: string; email?: string; role: string };
+type Claims = {
+  sub: string;
+  email?: string;
+  role: string;
+  givenName?: string;
+  familyName?: string;
+  name?: string;
+  externalUserId?: string;
+};
+
 type HeaderGetter = (name: string) => string | undefined;
 
 function createHeaderGetter(obj: Record<string, unknown> | undefined | null): HeaderGetter {
@@ -114,11 +192,14 @@ function extractToken(getHeader: HeaderGetter): string {
   return token;
 }
 
-function deriveUserFields({ sub, email }: Claims) {
-  const username = email?.includes("@") ? email.split("@")[0] : sub;
-  const displayName = username;
+function deriveUserFields({ sub, email, givenName, familyName, name, externalUserId }: Claims) {
+  const usernameFromEmail = email?.includes("@") ? email.split("@")[0] : undefined;
+  const username = externalUserId || usernameFromEmail || sub;
+  const displayName = (givenName && givenName.trim()) || username;
   const emailForCreate = email ?? `${sub}@no-email.local`;
-  const fullName = email ?? username;
+  const fullNameFromParts = [givenName, familyName].filter(Boolean).join(" ").trim();
+  const fullName = (name && name.trim()) || fullNameFromParts || email || username;
+  console.log("username:", username);
   return { username, displayName, emailForCreate, fullName };
 }
 
@@ -135,7 +216,7 @@ async function ensureUserFromClaims(claims: Claims) {
   if (existingUser) {
     return existingUser;
   }
-
+  console.log(`Creating new user: ${username}`);
   const person = await prisma().person.create({
     data: {
       personTypeId: role,
@@ -171,14 +252,11 @@ export async function buildLambdaContext(
   const rawClaims = headers["x-authorizer-claims"] ?? headers["X-Authorizer-Claims"];
   if (rawClaims) {
     try {
-      const { sub, email, role } = JSON.parse(rawClaims as string) as {
-        sub: string;
-        email?: string;
-        role: string;
-      };
-      return buildContextFromClaims({ sub, email, role });
+      const parsed = JSON.parse(rawClaims as string) as Record<string, unknown>;
+      const claims = normalizeClaimsFromRaw(parsed);
+      return buildContextFromClaims(claims);
     } catch {
-      // fall through to JWT verify
+      console.warn("[auth] Attempt to parse x-authorizer-claims failed");
     }
   }
 
@@ -187,8 +265,8 @@ export async function buildLambdaContext(
   if (!token) return { user: null };
 
   try {
-    const { sub, email, role } = await decodeToken(token);
-    return buildContextFromClaims({ sub, email, role });
+    const { sub, email, role, givenName, familyName, name, externalUserId } = await decodeToken(token);
+    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
     console.error("[auth] lambda context error:", err);
     return { user: null };
@@ -198,12 +276,12 @@ export async function buildLambdaContext(
 /* -----------------------  HTTP Context  ----------------------- */
 export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLContext> {
   const token = extractToken(createHeaderGetter(req.headers as Record<string, unknown>));
-  if (!token) return { user: null };
 
+  if (!token) return { user: null };
   try {
     const decodedToken = await decodeToken(token);
-    const { sub, email, role } = decodedToken;
-    return buildContextFromClaims({ sub, email, role });
+    const { sub, email, role, givenName, familyName, name, externalUserId } = decodedToken;
+    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
     console.error("[auth] context error:", err);
     return { user: null };

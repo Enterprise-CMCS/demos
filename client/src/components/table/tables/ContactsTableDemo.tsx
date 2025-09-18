@@ -1,6 +1,10 @@
 import React, { useState } from "react";
-import { ContactsTable, Contact } from "components/table/tables/ContactsTable";
+
 import { Button } from "components/button";
+import {
+  Contact,
+  ContactsTable,
+} from "components/table/tables/ContactsTable";
 
 type ContactType =
   | "Primary Project Officer"
@@ -46,18 +50,6 @@ export const ContactsTableDemo: React.FC = () => {
     console.log(`Updated contact ${contactId} to type: ${contactType}`);
   };
 
-  const handleDeleteContacts = async (contactIds: string[]) => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Remove the contacts from state
-    setContacts((prevContacts) =>
-      prevContacts.filter((contact) => !contactIds.includes(contact.id))
-    );
-
-    console.log(`Deleted contacts: ${contactIds.join(", ")}`);
-  };
-
   const resetContacts = () => {
     setContacts(mockContacts);
   };
@@ -71,11 +63,7 @@ export const ContactsTableDemo: React.FC = () => {
         </Button>
       </div>
       <div className="bg-white p-4 border rounded">
-        <ContactsTable
-          contacts={contacts}
-          onUpdateContact={handleUpdateContact}
-          onDeleteContacts={handleDeleteContacts}
-        />
+        <ContactsTable contacts={contacts} onUpdateContact={handleUpdateContact} />
       </div>
       <div className="mt-4 text-sm text-gray-600">
         <p>
@@ -86,7 +74,10 @@ export const ContactsTableDemo: React.FC = () => {
           <li>For editing: Select exactly one contact and click &quot;Edit Contact&quot;</li>
           <li>For deleting: Select one or more contacts and click &quot;Remove Contact&quot;</li>
           <li>Change the contact type in the edit dialog and click &quot;Submit&quot;</li>
-          <li>The table will update with changes or remove deleted contacts</li>
+          <li>
+            The table will update with contact type changes. Deletion shows confirmation toast but
+            contacts remain in demo for testing purposes.
+          </li>
         </ol>
       </div>
     </div>

@@ -68,6 +68,7 @@ describe("buildClient", () => {
           VITE_COGNITO_DOMAIN: "cognitoDomain",
           VITE_COGNITO_CLIENT_ID: "cognitoClientId",
           VITE_API_URL_PREFIX: "/api/graphql",
+          VITE_IDM_LOGOUT_URI: "",
         }),
       })
     );
@@ -86,10 +87,7 @@ describe("buildClient", () => {
     const rc = runCommand as jest.Mock;
     rc.mockResolvedValue(1);
 
-    //@ts-expect-error ignore invalid mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
-
-    await buildClient(mockStageName, true);
+    const exitCode = await buildClient(mockStageName, true);
     expect(rc).toHaveBeenCalled();
     expect(rc).toHaveBeenCalledWith(
       "deploy-core-no-execute",
@@ -97,6 +95,6 @@ describe("buildClient", () => {
       expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`])
     );
 
-    expect(process.exit).toHaveBeenCalled();
+    expect(exitCode).toBe(1);
   });
 });
