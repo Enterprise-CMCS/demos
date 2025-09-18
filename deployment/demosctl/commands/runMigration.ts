@@ -29,7 +29,7 @@ export async function runMigration(environment: string, dbname: string = "demos"
 
   const dbUrl = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${dbname}?schema=demos_app`;
   const serverPath = path.join("..", "server");
-  return await runShell("server-build", "npm run migrate:deploy", {
+  return await runShell("migrate-deploy", "npm run migrate:deploy", {
     cwd: serverPath,
     env: {
       ...process.env,
