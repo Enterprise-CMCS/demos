@@ -5,7 +5,7 @@ model DemonstrationHistory {
   id                   String       @db.Uuid
   bundle_type_id       String
   name                 String
-  description          String
+  description          String?
   effectiveDate        DateTime?    @map("effective_date") @db.Date
   expirationDate       DateTime?    @map("expiration_date") @db.Date
   cmcsDivisionId       String?      @map("cmcs_division_id")

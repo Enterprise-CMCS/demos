@@ -26,19 +26,23 @@ ALTER TABLE "demos_app"."modification_status" DROP CONSTRAINT "modification_stat
 
 -- AlterTable
 ALTER TABLE "demos_app"."demonstration" DROP COLUMN "demonstration_status_id",
-ADD COLUMN     "status_id" TEXT NOT NULL;
+ADD COLUMN     "status_id" TEXT NOT NULL,
+ALTER COLUMN "description" DROP NOT NULL;
 
 -- AlterTable
 ALTER TABLE "demos_app"."demonstration_history" DROP COLUMN "demonstration_status_id",
-ADD COLUMN     "status_id" TEXT NOT NULL;
+ADD COLUMN     "status_id" TEXT NOT NULL,
+ALTER COLUMN "description" DROP NOT NULL;
 
 -- AlterTable
 ALTER TABLE "demos_app"."modification" DROP COLUMN "modification_status_id",
-ADD COLUMN     "status_id" TEXT NOT NULL;
+ADD COLUMN     "status_id" TEXT NOT NULL,
+ALTER COLUMN "description" DROP NOT NULL;
 
 -- AlterTable
 ALTER TABLE "demos_app"."modification_history" DROP COLUMN "modification_status_id",
-ADD COLUMN     "status_id" TEXT NOT NULL;
+ADD COLUMN     "status_id" TEXT NOT NULL,
+ALTER COLUMN "description" DROP NOT NULL;
 
 -- DropTable
 DROP TABLE "demos_app"."demonstration_status";

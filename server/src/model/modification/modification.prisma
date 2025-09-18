@@ -3,7 +3,7 @@ model Modification {
   bundleTypeId         String    @map("bundle_type_id")
   demonstrationId      String    @map("demonstration_id") @db.Uuid
   name                 String
-  description          String
+  description          String?
   effectiveDate        DateTime? @map("effective_date") @db.Date
   expirationDate       DateTime? @map("expiration_date") @db.Date
   statusId             String    @map("status_id")

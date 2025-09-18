@@ -11,6 +11,7 @@ import {
 } from "./modificationSchema.js";
 import { findUniqueUser } from "../user/userResolvers.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -88,7 +89,7 @@ async function createModification(
         bundleTypeId: bundle.bundleTypeId,
         demonstrationId: input.demonstrationId,
         name: input.name,
-        description: input.description ?? "",
+        description: input.description,
         statusId: newBundleStatusId,
         currentPhaseId: conceptPhaseId,
         projectOfficerUserId: input.projectOfficerUserId,
@@ -120,20 +121,24 @@ async function updateModification(
   info: undefined,
   bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
 ) {
+  checkOptionalNotNullFields(
+    ["demonstrationId", "name", "status", "currentPhase", "projectOfficerUserId"],
+    input
+  );
   return await prisma().modification.update({
     where: {
       id: id,
       bundleTypeId: bundleTypeId,
     },
     data: {
-      demonstrationId: input.demonstrationId ?? undefined,
-      name: input.name ?? undefined,
-      description: input.description ?? undefined,
-      effectiveDate: input.effectiveDate ?? undefined,
-      expirationDate: input.expirationDate ?? undefined,
-      statusId: input.status ?? undefined,
-      currentPhaseId: input.currentPhase ?? undefined,
-      projectOfficerUserId: input.projectOfficerUserId ?? undefined,
+      demonstrationId: input.demonstrationId,
+      name: input.name,
+      description: input.description,
+      effectiveDate: input.effectiveDate,
+      expirationDate: input.expirationDate,
+      statusId: input.status,
+      currentPhaseId: input.currentPhase,
+      projectOfficerUserId: input.projectOfficerUserId,
     },
   });
 }

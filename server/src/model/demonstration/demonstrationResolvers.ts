@@ -6,6 +6,7 @@ import { BundleType, Phase, BundleStatus } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { findUniqueUser } from "../user/userResolvers.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -42,9 +43,9 @@ export async function createDemonstration(
           id: bundle.id,
           bundleTypeId: bundle.bundleTypeId,
           name: input.name,
-          description: input.description ?? "",
-          cmcsDivisionId: input.cmcsDivision ?? undefined,
-          signatureLevelId: input.signatureLevel ?? undefined,
+          description: input.description,
+          cmcsDivisionId: input.cmcsDivision,
+          signatureLevelId: input.signatureLevel,
           statusId: newBundleStatusId,
           stateId: input.stateId,
           currentPhaseId: conceptPhaseId,
@@ -70,19 +71,23 @@ export async function updateDemonstration(
   parent: undefined,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ) {
+  checkOptionalNotNullFields(
+    ["name", "status", "currentPhase", "stateId", "projectOfficerUserId"],
+    input
+  );
   return await prisma().demonstration.update({
     where: { id },
     data: {
-      name: input.name ?? undefined,
-      description: input.description ?? undefined,
-      effectiveDate: input.effectiveDate ?? undefined,
-      expirationDate: input.expirationDate ?? undefined,
-      cmcsDivisionId: input.cmcsDivision ?? undefined,
-      signatureLevelId: input.signatureLevel ?? undefined,
-      statusId: input.status ?? undefined,
-      currentPhaseId: input.currentPhase ?? undefined,
-      stateId: input.stateId ?? undefined,
-      projectOfficerUserId: input.projectOfficerUserId ?? undefined,
+      name: input.name,
+      description: input.description,
+      effectiveDate: input.effectiveDate,
+      expirationDate: input.expirationDate,
+      cmcsDivisionId: input.cmcsDivision,
+      signatureLevelId: input.signatureLevel,
+      statusId: input.status,
+      currentPhaseId: input.currentPhase,
+      stateId: input.stateId,
+      projectOfficerUserId: input.projectOfficerUserId,
     },
   });
 }
