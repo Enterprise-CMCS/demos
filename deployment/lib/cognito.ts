@@ -98,14 +98,15 @@ export function create(props: CognitoProps): CognitoOutputs {
   // Set up SAML IdP for IDM
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
   const httpsCloudfront = `https://${props.cloudfrontHost}/`;
-  const idmLogout = `https://test.idp.idm.cms.gov/login/signout`;
   const localhost = "http://localhost:3000/";
   const callbackUrls =
     props.isEphemeral || ["dev", "test"].includes(props.stage)
       ? [httpsCloudfront, localhost]
       : [httpsCloudfront];
+  const idmLogout = `https://test.idp.idm.cms.gov/login/signout`;
   const logoutUrls = [
     ...callbackUrls,
+    // Allow redirecting to IDM signout page in dev/test/ephemeral
     ...(["dev", "test"].includes(props.stage) || props.isEphemeral ? [idmLogout] : []),
   ];
 
@@ -185,6 +186,12 @@ export const createUserPoolClient = (
       : [httpsCloudfront]; //This will be a static, public url once available
 
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
+  const idmLogout = `https://test.idp.idm.cms.gov/login/signout`;
+  const logoutUrls = [
+    ...callbackUrls,
+    // Allow redirecting to IDM signout page in dev/test/ephemeral
+    ...(["dev", "test"].includes(props.stage) || props.isEphemeral ? [idmLogout] : []),
+  ];
 
   const userPoolClient = new aws_cognito.UserPoolClient(props.scope, "UserPoolClient", {
     userPoolClientName: `${props.project}-${props.stage}-user-pool-client`,
@@ -199,7 +206,7 @@ export const createUserPoolClient = (
       scopes: [aws_cognito.OAuthScope.EMAIL, aws_cognito.OAuthScope.OPENID, aws_cognito.OAuthScope.PROFILE],
       callbackUrls,
       defaultRedirectUri: httpsCloudfront,
-      logoutUrls: callbackUrls.flatMap((url) => [url, `${url}sign-out`, `${url}signed-out`]),
+      logoutUrls,
     },
     accessTokenValidity: Duration.minutes(30),
     idTokenValidity: Duration.minutes(30),
