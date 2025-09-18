@@ -22,13 +22,13 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
 
     if (cmd != 0) {
       console.error(`deploy-no-execute command failed with code ${cmd}`);
-      return process.exit(cmd);
+      return cmd;
     }
   }
 
   const coreOutputData = readOutputs("core-outputs.json");
 
-  await runShell("client-build", "npm ci && npm run build", {
+  return await runShell("client-build", "npm ci && npm run build", {
     cwd: clientPath,
     env: {
       ...process.env,

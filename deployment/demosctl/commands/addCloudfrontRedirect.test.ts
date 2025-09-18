@@ -11,15 +11,11 @@ jest.mock("../lib/readOutputs");
 
 describe("addCloudfrontRedirect", () => {
   beforeEach(() => {
-    //@ts-expect-error ignore invalid mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
     jest.spyOn(console, "log").mockImplementation(() => true);
     jest.spyOn(console, "error").mockImplementation(() => true);
   });
 
   afterEach(() => {
-    // @ts-expect-error ignore invalid mock
-    (process.exit as jest.Mock).mockRestore();
     (console.log as jest.Mock).mockRestore();
     (console.error as jest.Mock).mockRestore();
   });
@@ -59,11 +55,12 @@ describe("addCloudfrontRedirect", () => {
     const rc = runCommand as jest.Mock;
     rc.mockResolvedValue(1);
     const mockStageName = "unit-test";
+    let exitCode;
     try {
-      await addCloudfrontRedirect(mockStageName);
+      exitCode = await addCloudfrontRedirect(mockStageName);
     } finally {
       expect(console.error).toHaveBeenCalledTimes(1);
-      expect(process.exit).toHaveBeenCalledWith(1);
+      expect(exitCode).toBe(1);
     }
   });
 });
