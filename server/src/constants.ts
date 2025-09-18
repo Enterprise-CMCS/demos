@@ -67,7 +67,7 @@ export const DATE_TYPES = [
   "State Application Deemed Complete",
   "Federal Comment Period Start Date",
   "Federal Comment Period End Date",
-];
+] as const;
 
 // US States and Territories
 export const STATES_AND_TERRITORIES = [

@@ -5,7 +5,7 @@ import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
-import { DemonstrationStatus, State, User } from "demos-server";
+import { BundleStatus, State, User } from "demos-server";
 import {
   Demonstration,
   DemonstrationAmendment,
@@ -17,13 +17,13 @@ export type GenericDemonstrationTableRow =
   | (DemonstrationAmendment & {
       type: "amendment";
       state: Pick<State, "name">;
-      status: Pick<DemonstrationStatus, "name">;
+      status: BundleStatus;
       parentId: string;
     })
   | (DemonstrationExtension & {
       type: "extension";
       state: Pick<State, "name">;
-      status: Pick<DemonstrationStatus, "name">;
+      status: BundleStatus;
       parentId: string;
     });
 
@@ -38,7 +38,7 @@ const getSubRows = (
           ...amendment,
           type: "amendment",
           state: row.state,
-          status: amendment.amendmentStatus,
+          status: amendment.status,
           parentId: row.id,
         }) as GenericDemonstrationTableRow
     ),
@@ -48,7 +48,7 @@ const getSubRows = (
           ...extension,
           type: "extension",
           state: row.state,
-          status: extension.extensionStatus,
+          status: extension.status,
           parentId: row.id,
         }) as GenericDemonstrationTableRow
     ),
@@ -59,15 +59,10 @@ export const DemonstrationTable: React.FC<{
   demonstrations: Demonstration[];
   projectOfficerOptions: Pick<User, "fullName">[];
   stateOptions: Pick<State, "name" | "id">[];
-  statusOptions: Pick<DemonstrationStatus, "name">[];
-}> = ({ demonstrations, stateOptions, projectOfficerOptions, statusOptions }) => {
+}> = ({ demonstrations, stateOptions, projectOfficerOptions }) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  const demonstrationColumns = DemonstrationColumns(
-    stateOptions,
-    projectOfficerOptions,
-    statusOptions
-  );
+  const demonstrationColumns = DemonstrationColumns(stateOptions, projectOfficerOptions);
 
   const currentUserId = "1"; // Replace with actual current user ID from auth context
 
@@ -109,7 +104,7 @@ export const DemonstrationTable: React.FC<{
           data={dataToShow.map((demonstration) => ({
             ...demonstration,
             type: "demonstration",
-            status: demonstration.demonstrationStatus,
+            status: demonstration.status,
           }))}
           columns={demonstrationColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}

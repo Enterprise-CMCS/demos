@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 
-import { AddExtensionInput } from "demos-server";
+import { CreateExtensionInput } from "demos-server";
 
 import { MockedProvider } from "@apollo/client/testing";
 import { renderHook } from "@testing-library/react";
@@ -14,7 +14,7 @@ const mockExtensionInput = {
   description: "Test extension description",
   effectiveDate: new Date(2025, 0, 1),
   expirationDate: new Date(2025, 11, 1),
-  extensionStatusId: "EXTENSION_NEW",
+  status: "Pre-Submission",
   projectOfficerUserId: "test-user-id",
 };
 
@@ -28,10 +28,7 @@ const mockExtensionResponse = {
     id: "test-demo-id",
     name: "Test Demonstration",
   },
-  extensionStatus: {
-    id: "EXTENSION_NEW",
-    name: "New",
-  },
+  status: "Pre-Submission",
   projectOfficer: {
     id: "test-user-id",
     fullName: "Test User",
@@ -74,7 +71,7 @@ describe("useExtension", () => {
 
       // Use type assertion to match the actual usage pattern
       const mutationResult = await result.current.addExtension.trigger(
-        mockExtensionInput as unknown as AddExtensionInput
+        mockExtensionInput as unknown as CreateExtensionInput
       );
 
       // Check the mutation result directly

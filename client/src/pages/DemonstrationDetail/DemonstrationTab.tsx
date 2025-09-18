@@ -8,7 +8,7 @@ import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { TabItem, Tabs } from "layout/Tabs";
-import { Demonstration, DemonstrationStatus, Document, State, User } from "demos-server";
+import { BundleStatus, Demonstration, Document, State, User } from "demos-server";
 import { Contact } from "./DemonstrationDetail";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
@@ -24,7 +24,7 @@ export type DemonstrationTabDemonstration = Pick<
   contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
   state: Pick<State, "id" | "name">;
   projectOfficer: Pick<User, "fullName" | "id">;
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  status: BundleStatus;
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
@@ -56,7 +56,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "DEMONSTRATION_UNDER_REVIEW" }} />
+      <ApplicationWorkflow demonstration={{ status: "Under Review" }} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}

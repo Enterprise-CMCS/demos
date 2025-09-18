@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { SecondaryButton } from "components/button";
 import { EditDemonstrationDialog } from "components/dialog/DemonstrationDialog";
 import { EditIcon } from "components/icons";
-import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
+import { Demonstration, BundleStatus, State, User } from "demos-server";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
@@ -13,7 +13,7 @@ type SummaryDetailsDemonstration = Pick<
 > & {
   state: Pick<State, "name" | "id">;
   projectOfficer: Pick<User, "id" | "fullName">;
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  status: BundleStatus;
 };
 
 type Props = {
@@ -69,7 +69,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
         <div>
           <div className={LABEL_CLASSES}>Status</div>
-          <div className={VALUE_CLASSES}>{demonstration.demonstrationStatus.name}</div>
+          <div className={VALUE_CLASSES}>{demonstration.status}</div>
         </div>
 
         <div>
