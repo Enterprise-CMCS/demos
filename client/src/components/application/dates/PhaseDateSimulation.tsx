@@ -94,6 +94,7 @@ const BusinessRules = () => {
   );
 };
 
+// NOSONAR - This file is a testing and simulation tool only, not part of production code
 export const PhaseDatesSimulation: React.FC = () => {
   const [simulationState, setSimulationState] = useState<SimulationState>(DEFAULT_SIMULATION_STATE);
   const [demonstrationCreated, setDemonstrationCreated] = useState(false);

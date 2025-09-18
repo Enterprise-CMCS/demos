@@ -19,7 +19,5 @@ export function formatDateTime(date: Date, granularity: DateTimeGranularity): st
       return format(date, "MM/dd/yyyy HH:mm:ss");
     case "millisecond":
       return format(date, "MM/dd/yyyy HH:mm:ss.SSS");
-    default:
-      throw new Error("Invalid granularity");
   }
 }
