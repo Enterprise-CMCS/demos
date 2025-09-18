@@ -7,8 +7,9 @@ import {
   CmcsDivision,
   SignatureLevel,
   Phase,
-  Role,
+  BundlePhase,
   DemonstrationRoleAssignment,
+  Role,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
@@ -36,6 +37,7 @@ export const demonstrationSchema = gql`
     demonstrationStatus: DemonstrationStatus!
     state: State!
     currentPhase: Phase!
+    phases: [BundlePhase!]!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
@@ -93,6 +95,7 @@ export interface Demonstration {
   demonstrationStatus: DemonstrationStatus;
   state: State;
   currentPhase: Phase;
+  phases: BundlePhase[];
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];

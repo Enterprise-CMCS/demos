@@ -10,20 +10,18 @@ const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
 
-export function findUniqueDemonstration(id: string) {
-  return prisma().demonstration.findUnique({
+export async function getDemonstration(_: undefined, { id }: { id: string }) {
+  return await prisma().demonstration.findUnique({
     where: { id: id },
   });
 }
 
-export function findManyDemonstrations() {
-  return prisma().demonstration.findMany();
-}
-
 export const demonstrationResolvers = {
   Query: {
-    demonstration: findUniqueDemonstration,
-    demonstrations: findManyDemonstrations,
+    demonstration: getDemonstration,
+    demonstrations: async () => {
+      return await prisma().demonstration.findMany();
+    },
   },
 
   Mutation: {
@@ -192,6 +190,13 @@ export const demonstrationResolvers = {
         ...assignment,
         isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
       }));
+    },
+    phases: async (parent: Demonstration) => {
+      return await prisma().bundlePhase.findMany({
+        where: {
+          bundleId: parent.id,
+        },
+      });
     },
   },
 };

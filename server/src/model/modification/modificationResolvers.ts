@@ -14,7 +14,27 @@ const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
 
-async function getDemonstration(parent: Modification) {
+// This is a little redundant having both of these here right now
+// However, I think we'll rewrite this soon anyway when we move to applications vs. bundles
+export async function getAmendment(_: undefined, { id }: { id: string }) {
+  return await prisma().modification.findUnique({
+    where: {
+      id: id,
+      bundleTypeId: amendmentBundleTypeId,
+    },
+  });
+}
+
+export async function getExtension(_: undefined, { id }: { id: string }) {
+  return await prisma().modification.findUnique({
+    where: {
+      id: id,
+      bundleTypeId: extensionBundleTypeId,
+    },
+  });
+}
+
+async function getParentDemonstration(parent: Modification) {
   return await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
@@ -34,14 +54,7 @@ async function getCurrentPhase(parent: Modification) {
 
 export const modificationResolvers = {
   Query: {
-    amendment: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().modification.findUnique({
-        where: {
-          id: id,
-          bundleTypeId: amendmentBundleTypeId,
-        },
-      });
-    },
+    amendment: getAmendment,
     amendments: async () => {
       return await prisma().modification.findMany({
         where: {
@@ -49,14 +62,7 @@ export const modificationResolvers = {
         },
       });
     },
-    extension: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().modification.findUnique({
-        where: {
-          id: id,
-          bundleTypeId: extensionBundleTypeId,
-        },
-      });
-    },
+    extension: getExtension,
     extensions: async () => {
       return await prisma().modification.findMany({
         where: {
@@ -243,7 +249,7 @@ export const modificationResolvers = {
   },
 
   Amendment: {
-    demonstration: getDemonstration,
+    demonstration: getParentDemonstration,
 
     amendmentStatus: async (parent: Modification) => {
       return await prisma().modificationStatus.findUnique({
@@ -261,7 +267,7 @@ export const modificationResolvers = {
   },
 
   Extension: {
-    demonstration: getDemonstration,
+    demonstration: getParentDemonstration,
 
     extensionStatus: async (parent: Modification) => {
       return await prisma().modificationStatus.findUnique({

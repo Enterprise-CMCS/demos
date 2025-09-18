@@ -1,21 +1,30 @@
 // Import DOM testing library for Jest, to be used by all test files
 import "@testing-library/jest-dom";
+
 import React from "react";
+
 import { vi } from "vitest";
 
 // Mock HTML dialog element for tests
+// HTMLDialogElement API is not fully supported in jsdom yet, so we need these mocks
 Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
-  value: vi.fn(),
+  value: vi.fn(function (this: HTMLDialogElement) {
+    this.open = true;
+  }),
   writable: true,
 });
 
 Object.defineProperty(HTMLDialogElement.prototype, "show", {
-  value: vi.fn(),
+  value: vi.fn(function (this: HTMLDialogElement) {
+    this.open = true;
+  }),
   writable: true,
 });
 
 Object.defineProperty(HTMLDialogElement.prototype, "close", {
-  value: vi.fn(),
+  value: vi.fn(function (this: HTMLDialogElement) {
+    this.open = false;
+  }),
   writable: true,
 });
 

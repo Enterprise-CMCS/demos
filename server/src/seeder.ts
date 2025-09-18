@@ -5,7 +5,7 @@ import {
   PERSON_TYPES,
   SIGNATURE_LEVEL,
   PHASE,
-  DEMONSTRATION_STATUSES
+  DEMONSTRATION_STATUSES,
 } from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
@@ -67,6 +67,7 @@ async function clearDatabase() {
     prisma().bundlePhaseDate.deleteMany(),
 
     // Phases and accompanying items
+    prisma().bundlePhaseDate.deleteMany(),
     prisma().bundlePhase.deleteMany(),
 
     // Documents, which are attached to bundles
