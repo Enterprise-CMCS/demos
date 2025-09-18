@@ -171,7 +171,7 @@ async function seedDatabase() {
       stateId: (await prisma().state.findRandom())!.id,
       projectOfficerUserId: (await prisma().user.findRandom())!.id,
     };
-    createDemonstration(undefined, { input: createInput });
+    await createDemonstration(undefined, { input: createInput });
   }
   const demonstrations = await getManyDemonstrations();
   for (const demonstration of demonstrations) {
@@ -183,7 +183,7 @@ async function seedDatabase() {
       id: demonstration.id,
       input: updatePayload,
     };
-    updateDemonstration(undefined, updateInput);
+    await updateDemonstration(undefined, updateInput);
   }
 
   console.log("🌱 Seeding amendments...");
@@ -194,7 +194,7 @@ async function seedDatabase() {
       description: faker.lorem.sentence(),
       projectOfficerUserId: (await prisma().user.findRandom())!.id,
     };
-    createAmendment(undefined, { input: createInput });
+    await createAmendment(undefined, { input: createInput });
   }
   const amendments = await getManyAmendments();
   for (const amendment of amendments) {
@@ -206,7 +206,7 @@ async function seedDatabase() {
       id: amendment.id,
       input: updatePayload,
     };
-    updateAmendment(undefined, updateInput);
+    await updateAmendment(undefined, updateInput);
   }
 
   console.log("🌱 Seeding extensions...");
@@ -217,7 +217,7 @@ async function seedDatabase() {
       description: faker.lorem.sentence(),
       projectOfficerUserId: (await prisma().user.findRandom())!.id,
     };
-    createExtension(undefined, { input: createInput });
+    await createExtension(undefined, { input: createInput });
   }
   const extensions = await getManyExtensions();
   for (const extension of extensions) {
@@ -229,7 +229,7 @@ async function seedDatabase() {
       id: extension.id,
       input: updatePayload,
     };
-    updateExtension(undefined, updateInput);
+    await updateExtension(undefined, updateInput);
   }
 
   console.log("🌱 Seeding documents...");
