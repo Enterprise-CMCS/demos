@@ -59,8 +59,8 @@ export const PHASE = ["None", "Concept", "State Application", "Completeness"] as
 export const PHASE_STATUS = ["Not Started", "Started", "Completed", "Skipped"] as const;
 
 export const DATE_TYPES = [
-  "Start Date", // Concept Start Date
-  "Pre-Submission Submitted Date", // Concept End Date
+  "Start Date",
+  "Pre-Submission Submitted Date",
   "State Application Submitted Date",
   "State Application Deemed Complete",
   "Completeness Review Due Date",

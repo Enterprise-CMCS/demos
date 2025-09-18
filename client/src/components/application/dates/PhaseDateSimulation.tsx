@@ -15,7 +15,7 @@ type SimulationState = SimplePhase[];
 
 const DEFAULT_SIMULATION_STATE: SimulationState = [
   { phase: "Concept", phaseStatus: "Not Started", phaseDates: [] },
-  { phase: "State Application", phaseStatus: "Started", phaseDates: [] },
+  { phase: "State Application", phaseStatus: "Not Started", phaseDates: [] },
   { phase: "Completeness", phaseStatus: "Not Started", phaseDates: [] },
 ];
 const STYLES = {
@@ -132,9 +132,6 @@ export const PhaseDatesSimulation: React.FC = () => {
     let updatedState = setStatusForPhase(simulationState, "Concept", "Started");
     updatedState = updatePhaseDate(updatedState, "Concept", "Start Date", now);
 
-    // Business Rule: State Application is also started by default
-    updatedState = updatePhaseDate(updatedState, "State Application", "Start Date", now);
-
     setSimulationState(updatedState);
     setDemonstrationCreated(true);
   };
@@ -171,10 +168,17 @@ export const PhaseDatesSimulation: React.FC = () => {
   const submitChangeOnStateApplication = () => {
     const now = new Date();
 
-    // Business Rule: If Concept is still "Not Started" or "Started", mark it as completed
-    const conceptStatus = getStatusForPhase(simulationState, "Concept");
     let updatedState = simulationState;
 
+    // Business Rule: If State Application is "Not Started", start it
+    const stateApplicationStatus = getStatusForPhase(simulationState, "State Application");
+    if (stateApplicationStatus === "Not Started") {
+      updatedState = setStatusForPhase(updatedState, "State Application", "Started");
+      updatedState = updatePhaseDate(updatedState, "State Application", "Start Date", now);
+    }
+
+    // Business Rule: If Concept is still "Not Started" or "Started", mark it as completed
+    const conceptStatus = getStatusForPhase(updatedState, "Concept");
     if (conceptStatus === "Not Started" || conceptStatus === "Started") {
       updatedState = setStatusForPhase(updatedState, "Concept", "Completed");
       updatedState = updatePhaseDate(updatedState, "Concept", "Completion Date", now);
@@ -225,6 +229,24 @@ export const PhaseDatesSimulation: React.FC = () => {
     setSimulationState(updatedState);
   };
 
+  // Business Rule: Submit change on Completeness Phase can start the phase
+  const submitChangeOnCompletenessPhase = () => {
+    const now = new Date();
+    let updatedState = simulationState;
+
+    // Business Rule: If Completeness is "Not Started", start it and set start date
+    const completenessStatus = getStatusForPhase(simulationState, "Completeness");
+    if (completenessStatus === "Not Started") {
+      updatedState = setStatusForPhase(updatedState, "Completeness", "Started");
+      updatedState = updatePhaseDate(updatedState, "Completeness", "Start Date", now);
+    }
+
+    // This represents any change (document upload, date update, etc.) on Completeness
+    // For simulation purposes, we could add a specific date type if needed
+
+    setSimulationState(updatedState);
+  };
+
   const resetSimulation = () => {
     setSimulationState(DEFAULT_SIMULATION_STATE);
     setDemonstrationCreated(false);
@@ -233,6 +255,17 @@ export const PhaseDatesSimulation: React.FC = () => {
   const getDateDisplay = (phase: SimplePhase, dateType: DateType) => {
     const date = getDateFromPhaseDates(phase.phaseDates, dateType);
     return date ? formatDateTime(date, "millisecond") : "Not set";
+  };
+
+  const isStateApplicationSubmittedDateSet = () => {
+    const stateApplicationPhase = simulationState.find((p) => p.phase === "State Application");
+    if (!stateApplicationPhase) return false;
+
+    const submittedDate = getDateFromPhaseDates(
+      stateApplicationPhase.phaseDates,
+      "State Application Submitted Date"
+    );
+    return submittedDate !== null;
   };
 
   return (
@@ -338,15 +371,19 @@ export const PhaseDatesSimulation: React.FC = () => {
                 </div>
               </div>
 
-              {getStatusForPhase(simulationState, "State Application") === "Started" && (
+              {(getStatusForPhase(simulationState, "State Application") === "Started" ||
+                getStatusForPhase(simulationState, "State Application") === "Not Started") && (
                 <div className="flex gap-2 mt-4">
-                  <Button
-                    name="finish-state-app"
-                    onClick={finishStateApplicationPhase}
-                    size="small"
-                  >
-                    Finish
-                  </Button>
+                  {getStatusForPhase(simulationState, "State Application") === "Started" && (
+                    <Button
+                      name="finish-state-app"
+                      onClick={finishStateApplicationPhase}
+                      size="small"
+                      disabled={!isStateApplicationSubmittedDateSet()}
+                    >
+                      Finish
+                    </Button>
+                  )}
                   <SecondaryButton
                     name="submit-change"
                     onClick={submitChangeOnStateApplication}
@@ -389,11 +426,25 @@ export const PhaseDatesSimulation: React.FC = () => {
                 </div>
               </div>
 
-              {getStatusForPhase(simulationState, "Completeness") === "Started" && (
+              {(getStatusForPhase(simulationState, "Completeness") === "Started" ||
+                getStatusForPhase(simulationState, "Completeness") === "Not Started") && (
                 <div className="flex gap-2 mt-4">
-                  <Button name="finish-completeness" onClick={finishCompletenessPhase} size="small">
-                    Finish
-                  </Button>
+                  {getStatusForPhase(simulationState, "Completeness") === "Started" && (
+                    <Button
+                      name="finish-completeness"
+                      onClick={finishCompletenessPhase}
+                      size="small"
+                    >
+                      Finish
+                    </Button>
+                  )}
+                  <SecondaryButton
+                    name="submit-change-completeness"
+                    onClick={submitChangeOnCompletenessPhase}
+                    size="small"
+                  >
+                    Submit Change (Document/Date)
+                  </SecondaryButton>
                 </div>
               )}
             </div>
