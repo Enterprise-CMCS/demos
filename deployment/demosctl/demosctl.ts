@@ -8,7 +8,7 @@ import { down } from "./commands/down";
 import { runMigration } from "./commands/runMigration";
 import { testMigration } from "./commands/testMigration";
 
-export async function main() {
+export async function main(): Promise<number | null> {
   const args = process.argv.slice(2);
   if (args.length < 2) {
     console.log("command and environment must be specified");
