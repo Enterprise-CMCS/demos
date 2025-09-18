@@ -494,7 +494,7 @@ describe("Demonstrations", () => {
       await switchToAllDemonstrationsTab(user);
 
       // Apply a filter that matches only one amendment
-      await applyProjectOfficerFilter(user, "Jim Smith"); // Adjust officer name as needed for your data
+      await applyProjectOfficerFilter(user, "Jane Smith"); // Adjust officer name as needed for your data
 
       await waitFor(() => {
         // Parent demonstration is visible

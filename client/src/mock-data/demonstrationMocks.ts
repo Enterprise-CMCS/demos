@@ -87,7 +87,7 @@ export const mockDemonstrations = [
     contacts: [mockContacts[1], mockContacts[2]],
     demonstrationTypes: [],
     documents: [] as MockDocument[],
-    roles: [demonstrationRoleAssignmentMocks[2], demonstrationRoleAssignmentMocks[5]],
+    roles: [demonstrationRoleAssignmentMocks[0], demonstrationRoleAssignmentMocks[5]],
   },
 ] as const satisfies MockDemonstration[];
 

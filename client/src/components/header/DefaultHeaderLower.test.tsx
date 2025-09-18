@@ -8,13 +8,16 @@ import { vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
-import { PersonType } from "demos-server";
 import { mockUsers } from "mock-data/userMocks";
 
 // Mock UserContext
-vi.mock("components/user/UserContext", () => ({
-  getCurrentUser: vi.fn(),
-}));
+vi.mock("components/user/UserContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof UserContext>();
+  return {
+    ...actual,
+    getCurrentUser: vi.fn(),
+  };
+});
 
 // Stub modals
 vi.mock("components/dialog/document/DocumentDialog", () => ({
@@ -116,7 +119,7 @@ describe("DefaultHeaderLower", () => {
       hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
-    expect(screen.getByText("Hello John Test")).toBeInTheDocument();
+    expect(screen.getByText("Hello john.doe")).toBeInTheDocument();
   });
 
   it("opens and closes the dropdown", () => {

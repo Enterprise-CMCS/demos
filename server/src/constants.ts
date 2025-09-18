@@ -4,7 +4,6 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
-  "All Users",
 ] as const;
 
 export const PERSON_TYPES = [
@@ -37,7 +36,6 @@ export const DEMONSTRATION_STATUSES = [
   { id: "DEMONSTRATION_WITHDRAWN", name: "Withdrawn" },
   { id: "DEMONSTRATION_ON-HOLD", name: "On-hold" },
 ] as const;
-
 
 export const DOCUMENT_TYPES = [
   "Application Completeness Letter",

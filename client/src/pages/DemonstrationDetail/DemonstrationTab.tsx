@@ -17,10 +17,12 @@ import {
 } from "demos-server";
 import { TabItem, Tabs } from "layout/Tabs";
 
-import { Contact } from "./DemonstrationDetail";
-
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
+
+type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+  person: Pick<Person, "fullName" | "id" | "email">;
+};
 
 export type DemonstrationTabDemonstration = Pick<
   Demonstration,
@@ -31,11 +33,8 @@ export type DemonstrationTabDemonstration = Pick<
       person: Pick<Person, "fullName">;
     };
   })[];
-  contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
   state: Pick<State, "id" | "name">;
-  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-    person: Pick<Person, "fullName">;
-  })[];
+  roles: Role[];
   demonstrationStatus: Pick<DemonstrationStatus, "name">;
 };
 
@@ -45,9 +44,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
-  const handleUpdateContact = async (contactId: string, contactType: string) => {
+  const handleUpdateContact = async (contact: Role, contactType: string) => {
     // TODO: Implement actual API call to update contact
-    console.log("Updating contact:", { contactId, contactType });
+    console.log("Updating contact:", { contact, contactType });
     // This would typically call a mutation/API to update the contact in the database
     // await updateContactMutation({ variables: { id: contactId, contactType } });
   };
@@ -56,7 +55,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
     { value: "summary", label: "Summary" },
     { value: "types", label: "Types", count: 0 },
     { value: "documents", label: "Documents", count: demonstration.documents.length },
-    { value: "contacts", label: "Contacts", count: demonstration.contacts.length },
+    { value: "contacts", label: "Contacts", count: demonstration.roles.length },
   ];
 
   return (
@@ -115,10 +114,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <ContactsTable
-              contacts={demonstration.contacts}
-              onUpdateContact={handleUpdateContact}
-            />
+            <ContactsTable roles={demonstration.roles} onUpdateContact={handleUpdateContact} />
           </>
         )}
       </div>

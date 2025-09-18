@@ -56,31 +56,23 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         documentType
         createdAt
         owner {
-          fullName
+          person {
+            fullName
+          }
         }
       }
-      contacts {
-        id
-        fullName
-        email
-        contactType
+      roles {
+        isPrimary
+        role
+        person {
+          id
+          fullName
+          email
+        }
       }
     }
   }
 `;
-
-export type Contact = {
-  id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: ContactType | null;
-};
-
-export type ContactType =
-  | "Primary Project Officer"
-  | "Secondary Project Officer"
-  | "State Representative"
-  | "Subject Matter Expert";
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationDialogDetails &
@@ -88,7 +80,6 @@ export type DemonstrationDetail = DemonstrationHeaderDetails &
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
   } & {
-    contacts: Contact[];
     documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
       owner: { person: Pick<Person, "fullName"> };
     })[];
