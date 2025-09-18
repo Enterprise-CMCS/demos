@@ -22,10 +22,26 @@ export interface CognitoOutputs {
   domain: string;
 }
 
+// Shared helpers to avoid duplication
+const NON_PROD_STAGES = ["dev", "test"] as const;
+const LOCALHOST_URL = "http://localhost:3000/";
+const IDM_LOGOUT_URL = "https://test.idp.idm.cms.gov/login/signout";
+
+const getHttpsCloudfront = (props: CognitoProps): string => `https://${props.cloudfrontHost}/`;
+const getCallbackUrls = (props: CognitoProps): string[] => {
+  const httpsCloudfront = getHttpsCloudfront(props);
+  return props.isEphemeral || NON_PROD_STAGES.includes(props.stage as any)
+    ? [httpsCloudfront, LOCALHOST_URL]
+    : [httpsCloudfront];
+};
+const getLogoutUrls = (props: CognitoProps, callbackUrls: string[]): string[] => [
+  ...callbackUrls,
+  ...(props.isEphemeral || NON_PROD_STAGES.includes(props.stage as any) ? [IDM_LOGOUT_URL] : []),
+];
+
 export function create(props: CognitoProps): CognitoOutputs {
   // Remove Cognito IDP for TEST/VAL/PROD and will be IDM. Only DEV & ephemeral will be Cognito IDP.
   const allowNativeCognitoIdp = props.isDev || props.isEphemeral;
-
   const userPool = new aws_cognito.UserPool(props.scope, "UserPool", {
     userPoolName: `${props.project}-${props.stage}-user-pool`,
     signInAliases: {
@@ -97,18 +113,8 @@ export function create(props: CognitoProps): CognitoOutputs {
 
   // Set up SAML IdP for IDM
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
-  const httpsCloudfront = `https://${props.cloudfrontHost}/`;
-  const localhost = "http://localhost:3000/";
-  const callbackUrls =
-    props.isEphemeral || ["dev", "test"].includes(props.stage)
-      ? [httpsCloudfront, localhost]
-      : [httpsCloudfront];
-  const idmLogout = `https://test.idp.idm.cms.gov/login/signout`;
-  const logoutUrls = [
-    ...callbackUrls,
-    // Allow redirecting to IDM signout page in dev/test/ephemeral
-    ...(["dev", "test"].includes(props.stage) || props.isEphemeral ? [idmLogout] : []),
-  ];
+  const callbackUrls = getCallbackUrls(props);
+  const logoutUrls = getLogoutUrls(props, callbackUrls);
 
   const userPoolClient = new aws_cognito.UserPoolClient(props.scope, "UserPoolClient", {
     userPoolClientName: `${props.project}-${props.stage}-user-pool-client`,
@@ -122,7 +128,7 @@ export function create(props: CognitoProps): CognitoOutputs {
       },
       scopes: [aws_cognito.OAuthScope.EMAIL, aws_cognito.OAuthScope.OPENID, aws_cognito.OAuthScope.PROFILE],
       callbackUrls,
-      defaultRedirectUri: httpsCloudfront,
+      defaultRedirectUri: getHttpsCloudfront(props),
       logoutUrls,
     },
     accessTokenValidity: Duration.minutes(30),
@@ -175,23 +181,11 @@ export const createUserPoolClient = (
 ): CognitoOutputs => {
   // Remove Cognito IDP for TEST/VAL/PROD and will be IDM. Only DEV & ephemeral will be Cognito IDP.
   const allowNativeCognitoIdp = props.isDev || props.isEphemeral;
-
   const userPool = aws_cognito.UserPool.fromUserPoolId(props.scope, "importedUserPool", userPoolId);
 
-  const httpsCloudfront = `https://${props.cloudfrontHost}/`;
-
-  const callbackUrls =
-    props.isEphemeral || ["dev", "test"].includes(props.stage)
-      ? [httpsCloudfront, "http://localhost:3000/"]
-      : [httpsCloudfront]; //This will be a static, public url once available
-
+  const callbackUrls = getCallbackUrls(props);
   const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
-  const idmLogout = `https://test.idp.idm.cms.gov/login/signout`;
-  const logoutUrls = [
-    ...callbackUrls,
-    // Allow redirecting to IDM signout page in dev/test/ephemeral
-    ...(["dev", "test"].includes(props.stage) || props.isEphemeral ? [idmLogout] : []),
-  ];
+  const logoutUrls = getLogoutUrls(props, callbackUrls);
 
   const userPoolClient = new aws_cognito.UserPoolClient(props.scope, "UserPoolClient", {
     userPoolClientName: `${props.project}-${props.stage}-user-pool-client`,
@@ -205,7 +199,7 @@ export const createUserPoolClient = (
       },
       scopes: [aws_cognito.OAuthScope.EMAIL, aws_cognito.OAuthScope.OPENID, aws_cognito.OAuthScope.PROFILE],
       callbackUrls,
-      defaultRedirectUri: httpsCloudfront,
+      defaultRedirectUri: getHttpsCloudfront(props),
       logoutUrls,
     },
     accessTokenValidity: Duration.minutes(30),
