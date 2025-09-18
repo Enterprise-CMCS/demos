@@ -9,7 +9,6 @@ import {
   Phase,
   BundlePhase,
   DemonstrationRoleAssignment,
-  Role,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
@@ -125,15 +124,4 @@ export interface UpdateDemonstrationInput {
   demonstrationStatusId?: string;
   currentPhase?: Phase;
   stateId?: string;
-}
-
-export interface AddPeopleToDemonstrationInput {
-  personId: string;
-  role: Role;
-  isPrimary?: boolean;
-}
-
-export interface RemovePeopleFromDemonstrationInput {
-  personId: string;
-  role: Role;
 }
