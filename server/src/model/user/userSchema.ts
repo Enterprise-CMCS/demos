@@ -1,6 +1,5 @@
 import { gql } from "graphql-tag";
-import { Person } from "@prisma/client";
-import { Document, PersonType, Event } from "../../types.js";
+import { Document, PersonType, Event, Person } from "../../types.js";
 
 export const userSchema = gql`
   type User {
