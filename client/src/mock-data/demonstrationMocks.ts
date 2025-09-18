@@ -6,7 +6,6 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { DEMONSTRATIONS_PAGE_QUERY } from "pages/Demonstrations";
 import { MockedResponse } from "@apollo/client/testing";
 import { MockState, mockStates } from "./stateMocks";
 import { MockUser, mockUsers } from "./userMocks";
@@ -25,6 +24,8 @@ import { DOCUMENT_TABLE_QUERY } from "components/table/tables/DocumentTable";
 import { CONTACTS_TABLE_QUERY } from "components/table/tables/ContactsTable";
 import { DEMONSTRATION_TAB_QUERY } from "pages/DemonstrationDetail/DemonstrationTab";
 import { DEMONSTRATION_DETAIL_HEADER_QUERY } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DEMONSTRATION_TABLE_QUERY } from "components/table/tables/DemonstrationTable";
+import { DocumentNode } from "@apollo/client";
 
 const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] =
   DEMONSTRATION_STATUSES.map((s) => ({ id: s.id, name: s.name }));
@@ -102,152 +103,64 @@ export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   projectOfficerUserId: mockUsers[0].id,
 };
 
-export const demonstrationMocks: MockedResponse[] = [
-  {
+function mockDemonstrationQuery(query: DocumentNode) {
+  return {
     request: {
-      query: DEMONSTRATIONS_PAGE_QUERY,
+      query: query,
+    },
+    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
+      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
+    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
+      return {
+        data: {
+          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
+        },
+      };
+    },
+  };
+}
+
+function mockDemonstrationsQuery(query: DocumentNode) {
+  return {
+    request: {
+      query: query,
     },
     result: {
       data: {
         demonstrations: mockDemonstrations,
-        projectOfficerOptions: mockUsers,
-        stateOptions: mockStates,
-        statusOptions: demonstrationStatuses,
       },
     },
-  },
+  };
+}
+
+const singleDemonstrationQueries = [
+  AMENDMENTS_TABLE_QUERY,
+  EXTENSIONS_TABLE_QUERY,
+  DEMONSTRATION_SUMMARY_DETAILS_QUERY,
+  APPLICATION_WORKFLOW_QUERY,
+  DOCUMENT_TABLE_QUERY,
+  CONTACTS_TABLE_QUERY,
+  DEMONSTRATION_DETAIL_QUERY,
+  DEMONSTRATION_DETAIL_HEADER_QUERY,
+  DEMONSTRATION_TAB_QUERY,
+];
+
+const manyDemonstrationQueries = [GET_ALL_DEMONSTRATIONS_QUERY, GET_DEMONSTRATION_OPTIONS_QUERY];
+
+export const demonstrationMocks: MockedResponse[] = [
+  ...singleDemonstrationQueries.map(mockDemonstrationQuery),
+  ...manyDemonstrationQueries.map(mockDemonstrationsQuery),
   {
     request: {
-      query: AMENDMENTS_TABLE_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
-    },
-  },
-  {
-    request: {
-      query: EXTENSIONS_TABLE_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
-    },
-  },
-  {
-    request: {
-      query: DEMONSTRATION_SUMMARY_DETAILS_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
-    },
-  },
-  {
-    request: {
-      query: APPLICATION_WORKFLOW_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
-    },
-  },
-  {
-    request: {
-      query: DOCUMENT_TABLE_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
-    },
-  },
-  {
-    request: {
-      query: CONTACTS_TABLE_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
-    },
-  },
-  {
-    request: {
-      query: GET_ALL_DEMONSTRATIONS_QUERY,
+      query: DEMONSTRATION_TABLE_QUERY,
     },
     result: {
-      data: { demonstrations: mockDemonstrations },
-    },
-  },
-  {
-    request: {
-      query: DEMONSTRATION_DETAIL_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
-    },
-  },
-  {
-    request: {
-      query: DEMONSTRATION_DETAIL_HEADER_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
-    },
-  },
-  {
-    request: {
-      query: DEMONSTRATION_TAB_QUERY,
-    },
-    variableMatcher: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) =>
-      mockDemonstrations.map((demo) => demo.id).includes(variables.demonstrationId),
-    result: (variables: { demonstrationId: (typeof mockDemonstrations)[number]["id"] }) => {
-      return {
-        data: {
-          demonstration: mockDemonstrations.find((demo) => demo.id === variables.demonstrationId)!,
-        },
-      };
+      data: {
+        demonstrations: mockDemonstrations,
+        states: mockStates,
+        users: mockUsers,
+        demonstrationStatuses: demonstrationStatuses,
+      },
     },
   },
   {
@@ -284,16 +197,6 @@ export const demonstrationMocks: MockedResponse[] = [
           effectiveDate: new Date(2025, 0, 1),
           expirationDate: new Date(2025, 11, 1),
         },
-      },
-    },
-  },
-  {
-    request: {
-      query: GET_DEMONSTRATION_OPTIONS_QUERY,
-    },
-    result: {
-      data: {
-        demonstrations: mockDemonstrations,
       },
     },
   },
