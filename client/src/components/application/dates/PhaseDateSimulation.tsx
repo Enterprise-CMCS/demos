@@ -15,7 +15,7 @@ type SimulationState = SimplePhase[];
 
 const DEFAULT_SIMULATION_STATE: SimulationState = [
   { phase: "Concept", phaseStatus: "Not Started", phaseDates: [] },
-  { phase: "State Application", phaseStatus: "Not Started", phaseDates: [] },
+  { phase: "State Application", phaseStatus: "Started", phaseDates: [] },
   { phase: "Completeness", phaseStatus: "Not Started", phaseDates: [] },
 ];
 const STYLES = {
@@ -62,15 +62,16 @@ const BusinessRules = () => {
           <h3 className="font-semibold">State Application Phase:</h3>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>
-              <strong>Start Date:</strong> Can start in one of two ways, whichever comes first:
-            </li>
-            <li className="ml-4">User clicked Skip/Finish on Concept Phase</li>
-            <li className="ml-4">
-              When a change is submitted on this phase - document or date update.
+              <strong>Start Date:</strong> Starts by default when demonstration is created, or when
+              a change is submitted on this phase - document or date update.
             </li>
             <li>
               <strong>Completion Date:</strong> Completed when user clicks Finish to progress to the
               next phase.
+            </li>
+            <li>
+              <strong>Note:</strong> Any change submitted on this phase will implicitly mark the
+              Concept phase as completed if it hasn&apos;t been explicitly finished or skipped.
             </li>
           </ul>
         </div>
@@ -131,6 +132,9 @@ export const PhaseDatesSimulation: React.FC = () => {
     let updatedState = setStatusForPhase(simulationState, "Concept", "Started");
     updatedState = updatePhaseDate(updatedState, "Concept", "Start Date", now);
 
+    // Business Rule: State Application is also started by default
+    updatedState = updatePhaseDate(updatedState, "State Application", "Start Date", now);
+
     setSimulationState(updatedState);
     setDemonstrationCreated(true);
   };
@@ -163,12 +167,23 @@ export const PhaseDatesSimulation: React.FC = () => {
     setSimulationState(updatedState);
   };
 
-  // Business Rule: Submit State Application Date (triggers Completeness start)
-  const submitStateApplicationDate = () => {
+  // Business Rule: Any change submitted on State Application Phase implicitly completes Concept
+  const submitChangeOnStateApplication = () => {
     const now = new Date();
 
-    let updatedState = updatePhaseDate(
-      simulationState,
+    // Business Rule: If Concept is still "Not Started" or "Started", mark it as completed
+    const conceptStatus = getStatusForPhase(simulationState, "Concept");
+    let updatedState = simulationState;
+
+    if (conceptStatus === "Not Started" || conceptStatus === "Started") {
+      updatedState = setStatusForPhase(updatedState, "Concept", "Completed");
+      updatedState = updatePhaseDate(updatedState, "Concept", "Completion Date", now);
+    }
+
+    // This represents any change (document upload, date update, etc.) on State Application
+    // For simulation purposes, we'll update the submitted date
+    updatedState = updatePhaseDate(
+      updatedState,
       "State Application",
       "State Application Submitted Date",
       now
@@ -333,11 +348,11 @@ export const PhaseDatesSimulation: React.FC = () => {
                     Finish
                   </Button>
                   <SecondaryButton
-                    name="submit-date"
-                    onClick={submitStateApplicationDate}
+                    name="submit-change"
+                    onClick={submitChangeOnStateApplication}
                     size="small"
                   >
-                    Submit Date
+                    Submit Change (Document/Date)
                   </SecondaryButton>
                 </div>
               )}
