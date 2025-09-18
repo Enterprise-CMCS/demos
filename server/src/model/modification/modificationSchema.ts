@@ -24,7 +24,7 @@ export const modificationSchema = gql`
   input CreateAmendmentInput {
     demonstrationId: ID!
     name: String!
-    description: String!
+    description: String
     projectOfficerUserId: String!
   }
 
@@ -57,7 +57,7 @@ export const modificationSchema = gql`
   input CreateExtensionInput {
     demonstrationId: ID!
     name: String!
-    description: String!
+    description: String
     projectOfficerUserId: String!
   }
 
@@ -107,7 +107,7 @@ export interface Amendment {
 export interface CreateAmendmentInput {
   demonstrationId: string;
   name: string;
-  description: string;
+  description: string | null;
   projectOfficerUserId: string;
 }
 
@@ -140,7 +140,7 @@ export interface Extension {
 export interface CreateExtensionInput {
   demonstrationId: string;
   name: string;
-  description: string;
+  description: string | null;
   projectOfficerUserId: string;
 }
 

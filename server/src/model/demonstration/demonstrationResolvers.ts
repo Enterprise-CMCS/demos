@@ -5,6 +5,7 @@ import { prisma } from "../../prismaClient.js";
 import { BundleType, Phase, BundleStatus } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { findUniqueUser } from "../user/userResolvers.js";
+import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
@@ -150,6 +151,8 @@ export const demonstrationResolvers = {
     currentPhase: async (parent: Demonstration) => {
       return parent.currentPhaseId;
     },
+
+    status: resolveBundleStatus,
 
     phases: async (parent: Demonstration) => {
       return await prisma().bundlePhase.findMany({

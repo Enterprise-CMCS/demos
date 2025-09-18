@@ -10,6 +10,7 @@ import {
   UpdateExtensionInput,
 } from "./modificationSchema.js";
 import { findUniqueUser } from "../user/userResolvers.js";
+import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -87,7 +88,7 @@ async function createModification(
         bundleTypeId: bundle.bundleTypeId,
         demonstrationId: input.demonstrationId,
         name: input.name,
-        description: input.description ?? undefined,
+        description: input.description ?? "",
         statusId: newBundleStatusId,
         currentPhaseId: conceptPhaseId,
         projectOfficerUserId: input.projectOfficerUserId,
@@ -212,6 +213,7 @@ export const modificationResolvers = {
     projectOfficer: getProjectOfficer,
     documents: getDocuments,
     currentPhase: getCurrentPhase,
+    status: resolveBundleStatus,
   },
 
   Extension: {
@@ -219,5 +221,6 @@ export const modificationResolvers = {
     projectOfficer: getProjectOfficer,
     documents: getDocuments,
     currentPhase: getCurrentPhase,
+    status: resolveBundleStatus,
   },
 };
