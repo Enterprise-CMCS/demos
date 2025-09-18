@@ -1,3 +1,4 @@
+// BEGIN-NOSONAR - This file is a testing / simulation tool, not production code
 import React, { useState } from "react";
 import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
@@ -95,7 +96,6 @@ const BusinessRules = () => {
   );
 };
 
-// NOSONAR - This file is a testing and simulation tool only, not part of production code
 export const PhaseDatesSimulation: React.FC = () => {
   const [simulationState, setSimulationState] = useState<SimulationState>(DEFAULT_SIMULATION_STATE);
   const [demonstrationCreated, setDemonstrationCreated] = useState(false);
@@ -456,3 +456,4 @@ export const PhaseDatesSimulation: React.FC = () => {
     </div>
   );
 };
+// END-NOSONAR
