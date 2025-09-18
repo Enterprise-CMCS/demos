@@ -9,15 +9,13 @@ import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import {
   Demonstration,
+  DemonstrationRoleAssignment,
   DemonstrationStatus,
   Document,
+  Person,
   State,
-  User,
 } from "demos-server";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
+import { TabItem, Tabs } from "layout/Tabs";
 
 import { Contact } from "./DemonstrationDetail";
 
@@ -29,11 +27,15 @@ export type DemonstrationTabDemonstration = Pick<
   "id" | "name" | "description" | "effectiveDate" | "expirationDate"
 > & {
   documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
-    owner: Pick<User, "fullName">;
+    owner: {
+      person: Pick<Person, "fullName">;
+    };
   })[];
   contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
   state: Pick<State, "id" | "name">;
-  projectOfficer: Pick<User, "fullName" | "id">;
+  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+    person: Pick<Person, "fullName">;
+  })[];
   demonstrationStatus: Pick<DemonstrationStatus, "name">;
 };
 

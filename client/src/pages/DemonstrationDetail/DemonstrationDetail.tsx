@@ -16,7 +16,7 @@ import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
-import { Document, User } from "demos-server";
+import { Document, Person } from "demos-server";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
@@ -32,9 +32,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       }
       demonstrationStatus {
         name
-      }
-      projectOfficer {
-        fullName
       }
       amendments {
         id
@@ -93,7 +90,7 @@ export type DemonstrationDetail = DemonstrationHeaderDetails &
   } & {
     contacts: Contact[];
     documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
-      owner: Pick<User, "fullName">;
+      owner: { person: Pick<Person, "fullName"> };
     })[];
   };
 

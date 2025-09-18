@@ -4,7 +4,7 @@ import { SecondaryButton } from "components/button";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import React from "react";
 import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
-import { DemonstrationStatus, State, User } from "demos-server";
+import { DemonstrationStatus, Person, State } from "demos-server";
 import { createSelectColumnDef } from "./selectColumn";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
@@ -12,7 +12,7 @@ import { createSelectColumnDef } from "./selectColumn";
 
 export function DemonstrationColumns(
   stateOptions: Pick<State, "id" | "name">[],
-  userOptions: Pick<User, "fullName">[],
+  projectOfficerOptions: Pick<Person, "fullName">[],
   statusOptions: Pick<DemonstrationStatus, "name">[]
 ) {
   const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
@@ -40,7 +40,7 @@ export function DemonstrationColumns(
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("projectOfficer.fullName", {
+    columnHelper.accessor((row) => row.roles[0].person.fullName, {
       id: "projectOfficer",
       header: "Project Officer",
       cell: highlightCell,
@@ -49,7 +49,7 @@ export function DemonstrationColumns(
         filterConfig: {
           filterType: "select",
           options:
-            userOptions.map((officer) => ({
+            projectOfficerOptions.map((officer) => ({
               label: officer.fullName,
               value: officer.fullName,
             })) ?? [],

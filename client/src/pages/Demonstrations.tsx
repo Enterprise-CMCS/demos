@@ -1,7 +1,14 @@
 import React from "react";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import { gql, useQuery } from "@apollo/client";
-import { Amendment, DemonstrationStatus, Extension, State, User } from "demos-server";
+import {
+  Amendment,
+  DemonstrationStatus,
+  Extension,
+  State,
+  Person,
+  DemonstrationRoleAssignment,
+} from "demos-server";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
   query GetDemonstrationsPage {
@@ -14,16 +21,17 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
       state {
         name
       }
-      projectOfficer {
-        fullName
-        id
+      roles {
+        role
+        isPrimary
+        person {
+          id
+          fullName
+        }
       }
       amendments {
         id
         name
-        projectOfficer {
-          fullName
-        }
         amendmentStatus {
           name
         }
@@ -31,9 +39,6 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
       extensions {
         id
         name
-        projectOfficer {
-          fullName
-        }
         extensionStatus {
           name
         }
@@ -56,11 +61,9 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
 `;
 
 export type DemonstrationAmendment = Pick<Amendment, "id" | "name"> & {
-  projectOfficer: Pick<User, "fullName">;
   amendmentStatus: Pick<DemonstrationStatus, "name">;
 };
 export type DemonstrationExtension = Pick<Extension, "id" | "name"> & {
-  projectOfficer: Pick<User, "fullName">;
   extensionStatus: Pick<DemonstrationStatus, "name">;
 };
 
@@ -68,7 +71,9 @@ export type Demonstration = {
   id: string;
   name: string;
   state: Pick<State, "name">;
-  projectOfficer: Pick<User, "fullName" | "id">;
+  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+    person: Pick<Person, "fullName" | "id">;
+  })[];
   demonstrationStatus: Pick<DemonstrationStatus, "name">;
   amendments: DemonstrationAmendment[];
   extensions: DemonstrationExtension[];
@@ -76,7 +81,7 @@ export type Demonstration = {
 
 export type DemonstrationsPageQueryResult = {
   demonstrations: Demonstration[];
-  projectOfficerOptions: Pick<User, "fullName">[];
+  projectOfficerOptions: Pick<Person, "fullName">[];
   stateOptions: Pick<State, "name" | "id">[];
   statusOptions: Pick<DemonstrationStatus, "name">[];
 };

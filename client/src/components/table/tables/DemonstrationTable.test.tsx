@@ -2,11 +2,11 @@ import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { userOptions } from "mock-data/userMocks";
 import { DemonstrationTable } from "./DemonstrationTable";
 import { DEMONSTRATION_STATUSES } from "demos-server-constants";
 import { mockStates } from "mock-data/stateMocks";
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
+import { mockPeople } from "mock-data/personMocks";
 
 const demonstrationStatuses = DEMONSTRATION_STATUSES.map((s) => ({ name: s.name }));
 
@@ -14,7 +14,7 @@ const demonstrationStatuses = DEMONSTRATION_STATUSES.map((s) => ({ name: s.name 
 const renderDemonstrations = () => {
   return render(
     <DemonstrationTable
-      projectOfficerOptions={userOptions}
+      projectOfficerOptions={mockPeople}
       statusOptions={demonstrationStatuses}
       stateOptions={mockStates}
       demonstrations={mockDemonstrations}
@@ -169,7 +169,7 @@ describe("Demonstrations", () => {
     it("passes correct empty message for My Demonstrations tab", async () => {
       render(
         <DemonstrationTable
-          projectOfficerOptions={userOptions}
+          projectOfficerOptions={mockPeople}
           statusOptions={demonstrationStatuses}
           stateOptions={mockStates}
           demonstrations={[]}
@@ -185,7 +185,7 @@ describe("Demonstrations", () => {
     it("passes correct empty message for All Demonstrations tab", async () => {
       render(
         <DemonstrationTable
-          projectOfficerOptions={userOptions}
+          projectOfficerOptions={mockPeople}
           statusOptions={demonstrationStatuses}
           stateOptions={mockStates}
           demonstrations={[]}
