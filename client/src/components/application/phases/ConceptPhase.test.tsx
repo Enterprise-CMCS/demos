@@ -56,7 +56,7 @@ describe("ConceptPhase", () => {
     description: "Test pre-submission document",
     documentType: "Pre-Submission",
     createdAt: new Date("2024-01-15"),
-    owner: { fullName: "Test User" },
+    owner: { person: { fullName: "Test User" } },
   };
 
   const mockOtherDocument: DocumentTableDocument = {
@@ -65,7 +65,7 @@ describe("ConceptPhase", () => {
     description: "Test other document",
     documentType: "General File",
     createdAt: new Date("2024-01-16"),
-    owner: { fullName: "Test User" },
+    owner: { person: { fullName: "Test User" } },
   };
 
   const setup = (props = {}) => {

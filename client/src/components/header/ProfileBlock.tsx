@@ -24,18 +24,22 @@ export const ProfileBlock: React.FC = () => {
     signOut();
   }
   // These fields are not nullable in DB. So they can't be missing.
-  const name = currentUser ? (currentUser.displayName ?? currentUser.fullName) : "";
+  const name = currentUser ? (currentUser.person.displayName ?? currentUser.person.fullName) : "";
   const firstCharacter = (name?.trim()?.[0] ?? "?").toUpperCase();
 
   return (
     <div
       id="profile-container"
       className="relative flex items-center gap-x-1 mr-2 cursor-pointer select-none"
-      onClick={() => setOpen(value => !value)}
+      onClick={() => setOpen((value) => !value)}
     >
       <Avatar character={firstCharacter} />
-      <span id="profile-name" className="text-lg font-semibold">{name}</span>
-      <span><ChevronDownIcon className={open ? "rotate-180" : ""} /></span>
+      <span id="profile-name" className="text-lg font-semibold">
+        {name}
+      </span>
+      <span>
+        <ChevronDownIcon className={open ? "rotate-180" : ""} />
+      </span>
 
       {open && (
         <ul className="absolute top-12 right-0 min-w-full bg-white border border-gray-300 rounded shadow-lg z-50">

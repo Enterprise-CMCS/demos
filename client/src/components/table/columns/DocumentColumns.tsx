@@ -41,7 +41,7 @@ export function DocumentColumns() {
         },
       },
     }),
-    columnHelper.accessor("owner.fullName", {
+    columnHelper.accessor("owner.person.fullName", {
       header: "Uploaded By",
       cell: highlightCell,
       enableColumnFilter: false,

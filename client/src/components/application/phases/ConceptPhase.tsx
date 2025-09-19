@@ -126,7 +126,7 @@ export const ConceptPhase: React.FC<Props> = ({
       description: "Mock pre-submission document for testing",
       documentType: "Pre-Submission",
       createdAt: new Date(),
-      owner: { fullName: "Test User" },
+      owner: { person: { fullName: "Test User" } },
     };
     setMockDocuments((prev) => [...prev, newDoc]);
   };

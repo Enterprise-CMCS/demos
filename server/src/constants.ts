@@ -13,7 +13,6 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
-  "All Users",
 ] as const;
 
 export const PERSON_TYPES = [

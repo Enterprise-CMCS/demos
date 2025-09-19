@@ -5,9 +5,9 @@ model BundleType {
   name        String
   description String
 
-  bundle                  Bundle[]
-  demonstrationBundleType DemonstrationBundleType[]
-  modificationBundleType  ModificationBundleType[]
+  bundles                  Bundle[]
+  demonstrationBundleTypes DemonstrationBundleType[]
+  modificationBundleTypes  ModificationBundleType[]
 
   @@map("bundle_type")
 }

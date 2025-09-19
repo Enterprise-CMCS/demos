@@ -14,13 +14,13 @@ import { DocumentColumns } from "../columns/DocumentColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
-import { Document, User } from "demos-server";
+import { Document, Person } from "demos-server";
 
 export type DocumentTableDocument = Pick<
   Document,
   "id" | "title" | "description" | "documentType" | "createdAt"
 > & {
-  owner: Pick<User, "fullName">;
+  owner: { person: Pick<Person, "fullName"> };
 };
 
 type DisplayedModal = null | "add" | "edit" | "remove";
