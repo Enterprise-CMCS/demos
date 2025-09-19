@@ -6,6 +6,7 @@ import {
   AnalyticsIcon,
   CommentIcon,
   CompareIcon,
+  DateIcon,
   FavoriteIcon,
   FolderIcon,
   ListIcon,
@@ -38,6 +39,7 @@ const debugNavLinks: NavLink[] = [
   { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
   { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
   { label: "Events", href: "/events", icon: <CommentIcon /> },
+  { label: "Dates", href: "/dates", icon: <DateIcon /> },
 ];
 
 interface NavLinkProps {

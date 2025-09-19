@@ -6,7 +6,7 @@ import { EditIcon } from "components/icons";
 import {
   Demonstration,
   DemonstrationRoleAssignment,
-  DemonstrationStatus,
+  BundleStatus,
   Person,
   State,
 } from "demos-server";
@@ -21,7 +21,7 @@ type SummaryDetailsDemonstration = Pick<
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "fullName">;
   })[];
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  status: BundleStatus;
 };
 
 type Props = {
@@ -91,7 +91,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
         <div>
           <div className={LABEL_CLASSES}>Status</div>
-          <div className={VALUE_CLASSES}>{demonstration.demonstrationStatus.name}</div>
+          <div className={VALUE_CLASSES}>{demonstration.status}</div>
         </div>
 
         <div>

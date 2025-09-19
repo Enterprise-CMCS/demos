@@ -7,14 +7,7 @@ import { AddNewIcon } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import {
-  Demonstration,
-  DemonstrationRoleAssignment,
-  DemonstrationStatus,
-  Document,
-  Person,
-  State,
-} from "demos-server";
+import { Demonstration, DemonstrationRoleAssignment, Document, Person, State } from "demos-server";
 import { TabItem, Tabs } from "layout/Tabs";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
@@ -26,7 +19,7 @@ type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
 
 export type DemonstrationTabDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "effectiveDate" | "expirationDate"
+  "id" | "name" | "description" | "effectiveDate" | "expirationDate" | "status"
 > & {
   documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
     owner: {
@@ -35,7 +28,6 @@ export type DemonstrationTabDemonstration = Pick<
   })[];
   state: Pick<State, "id" | "name">;
   roles: Role[];
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
@@ -60,7 +52,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "DEMONSTRATION_UNDER_REVIEW" }} />
+      <ApplicationWorkflow demonstration={{ status: "Under Review" }} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}

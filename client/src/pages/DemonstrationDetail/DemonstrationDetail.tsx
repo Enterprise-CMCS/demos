@@ -30,24 +30,18 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         id
         name
       }
-      demonstrationStatus {
-        name
-      }
+      status
       amendments {
         id
         name
         effectiveDate
-        status: amendmentStatus {
-          name
-        }
+        status
       }
       extensions {
         id
         name
         effectiveDate
-        status: extensionStatus {
-          name
-        }
+        status
       }
       documents {
         id

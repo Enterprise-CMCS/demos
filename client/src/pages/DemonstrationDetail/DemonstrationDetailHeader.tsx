@@ -2,26 +2,19 @@ import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button/CircleButton";
 import { AddNewIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
-import {
-  Demonstration,
-  DemonstrationRoleAssignment,
-  DemonstrationStatus,
-  Person,
-  State,
-} from "demos-server";
+import { Demonstration, DemonstrationRoleAssignment, Person, State } from "demos-server";
 import { ApolloError } from "@apollo/client";
 import { formatDate } from "util/formatDate";
 import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
-  "id" | "name" | "expirationDate" | "effectiveDate"
+  "id" | "name" | "expirationDate" | "effectiveDate" | "status"
 > & {
   state: Pick<State, "id">;
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "fullName">;
   })[];
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
 };
 
 interface DemonstrationDetailHeaderProps {
@@ -87,7 +80,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
         return primaryProjectOfficer.person.fullName;
       })(),
     },
-    { label: "Status", value: demonstration.demonstrationStatus.name },
+    { label: "Status", value: demonstration.status },
     {
       label: "Effective",
       value: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----",

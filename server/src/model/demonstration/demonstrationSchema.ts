@@ -1,15 +1,8 @@
 import { gql } from "graphql-tag";
-import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusSchema.js";
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
-import {
-  CmcsDivision,
-  SignatureLevel,
-  Phase,
-  BundlePhase,
-  DemonstrationRoleAssignment,
-} from "../../types.js";
+import { CmcsDivision, SignatureLevel, Phase, BundlePhase, BundleStatus, DemonstrationRoleAssignment } from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
@@ -33,7 +26,7 @@ export const demonstrationSchema = gql`
     expirationDate: Date
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
-    demonstrationStatus: DemonstrationStatus!
+    status: BundleStatus!
     state: State!
     currentPhase: Phase!
     phases: [BundlePhase!]!
@@ -61,7 +54,7 @@ export const demonstrationSchema = gql`
     expirationDate: Date
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
-    demonstrationStatusId: ID
+    status: BundleStatus
     currentPhase: Phase
     stateId: ID
   }
@@ -91,7 +84,7 @@ export interface Demonstration {
   expirationDate: Date | null;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  demonstrationStatus: DemonstrationStatus;
+  status: BundleStatus;
   state: State;
   currentPhase: Phase;
   phases: BundlePhase[];
@@ -121,7 +114,7 @@ export interface UpdateDemonstrationInput {
   expirationDate?: Date;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  demonstrationStatusId?: string;
+  status?: BundleStatus;
   currentPhase?: Phase;
   stateId?: string;
 }

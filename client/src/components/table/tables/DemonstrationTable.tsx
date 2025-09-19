@@ -5,7 +5,7 @@ import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
-import { DemonstrationRoleAssignment, DemonstrationStatus, Person, State } from "demos-server";
+import { DemonstrationRoleAssignment, BundleStatus, Person, State } from "demos-server";
 import {
   Demonstration,
   DemonstrationAmendment,
@@ -17,7 +17,7 @@ export type GenericDemonstrationTableRow =
   | (DemonstrationAmendment & {
       type: "amendment";
       state: Pick<State, "name">;
-      status: Pick<DemonstrationStatus, "name">;
+      status: BundleStatus;
       parentId: string;
       roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
         person: Pick<Person, "fullName" | "id">;
@@ -26,7 +26,7 @@ export type GenericDemonstrationTableRow =
   | (DemonstrationExtension & {
       type: "extension";
       state: Pick<State, "name">;
-      status: Pick<DemonstrationStatus, "name">;
+      status: BundleStatus;
       parentId: string;
       roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
         person: Pick<Person, "fullName" | "id">;
@@ -44,7 +44,6 @@ const getSubRows = (
           ...amendment,
           type: "amendment",
           state: row.state,
-          status: amendment.amendmentStatus,
           parentId: row.id,
           roles: row.roles,
         }) as GenericDemonstrationTableRow
@@ -55,7 +54,6 @@ const getSubRows = (
           ...extension,
           type: "extension",
           state: row.state,
-          status: extension.extensionStatus,
           parentId: row.id,
           roles: row.roles,
         }) as GenericDemonstrationTableRow
@@ -66,16 +64,10 @@ const getSubRows = (
 export const DemonstrationTable: React.FC<{
   demonstrations: Demonstration[];
   projectOfficerOptions: Pick<Person, "fullName">[];
-  stateOptions: Pick<State, "name" | "id">[];
-  statusOptions: Pick<DemonstrationStatus, "name">[];
-}> = ({ demonstrations, stateOptions, projectOfficerOptions, statusOptions }) => {
+}> = ({ demonstrations, projectOfficerOptions }) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  const demonstrationColumns = DemonstrationColumns(
-    stateOptions,
-    projectOfficerOptions,
-    statusOptions
-  );
+  const demonstrationColumns = DemonstrationColumns(projectOfficerOptions);
 
   demonstrations = demonstrations.map((demo) => ({
     ...demo,
@@ -123,7 +115,6 @@ export const DemonstrationTable: React.FC<{
           data={dataToShow.map((demonstration) => ({
             ...demonstration,
             type: "demonstration",
-            status: demonstration.demonstrationStatus,
           }))}
           columns={demonstrationColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}
