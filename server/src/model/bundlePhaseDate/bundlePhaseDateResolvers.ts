@@ -1,41 +1,33 @@
 import { BundlePhaseDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { Phase, DateType } from "../../types.js";
+import { SetPhaseDateInput } from "../../types.js";
 import { getBundle } from "../bundle/bundleResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
-async function setPhaseDate(
-  _: undefined,
-  {
-    bundleId,
-    phase,
-    dateType,
-    dateValue,
-  }: { bundleId: string; phase: Phase; dateType: DateType; dateValue: Date }
-) {
+async function setPhaseDate(_: undefined, { input }: { input: SetPhaseDateInput }) {
   try {
     await prisma().bundlePhaseDate.upsert({
       where: {
         bundleId_phaseId_dateTypeId: {
-          bundleId: bundleId,
-          phaseId: phase,
-          dateTypeId: dateType,
+          bundleId: input.bundleId,
+          phaseId: input.phase,
+          dateTypeId: input.dateType,
         },
       },
       update: {
-        dateValue: dateValue,
+        dateValue: input.dateValue,
       },
       create: {
-        bundleId: bundleId,
-        phaseId: phase,
-        dateTypeId: dateType,
-        dateValue: dateValue,
+        bundleId: input.bundleId,
+        phaseId: input.phase,
+        dateTypeId: input.dateType,
+        dateValue: input.dateValue,
       },
     });
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getBundle(bundleId);
+  return await getBundle(input.bundleId);
 }
 
 export const bundlePhaseDateResolvers = {
