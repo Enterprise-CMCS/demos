@@ -27,14 +27,14 @@ export async function createDemonstration(
   parent: undefined,
   { input }: { input: CreateDemonstrationInput }
 ) {
-  return await prisma().$transaction(async (tx) => {
-    const bundle = await tx.bundle.create({
-      data: {
-        bundleTypeId: demonstrationBundleTypeId,
-      },
-    });
+  try {
+    await prisma().$transaction(async (tx) => {
+      const bundle = await tx.bundle.create({
+        data: {
+          bundleTypeId: demonstrationBundleTypeId,
+        },
+      });
 
-    try {
       await tx.demonstration.create({
         data: {
           id: bundle.id,
@@ -48,30 +48,47 @@ export async function createDemonstration(
           currentPhaseId: conceptPhaseId,
         },
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return {
-        success: false,
-        message: "Error creating demonstration: " + errorMessage,
-      };
-    }
 
-    await tx.demonstrationRoleAssignment.create({
-      data: {
-        demonstrationId: bundle.id,
-        personId: input.projectOfficerUserId,
-        roleId: "Project Officer",
-        stateId: input.stateId,
-        personTypeId: "Project Officer",
-        grantLevelId: "Demonstration",
-      },
+      const person = await tx.person.findUnique({
+        where: { id: input.projectOfficerUserId },
+        select: { personTypeId: true },
+      });
+
+      if (!person) {
+        throw new Error(`Person with id ${input.projectOfficerUserId} not found`);
+      }
+
+      await tx.demonstrationRoleAssignment.create({
+        data: {
+          demonstrationId: bundle.id,
+          personId: input.projectOfficerUserId,
+          personTypeId: person.personTypeId,
+          roleId: "Project Officer",
+          stateId: input.stateId,
+          grantLevelId: "Demonstration",
+        },
+      });
+
+      await tx.primaryDemonstrationRoleAssignment.create({
+        data: {
+          demonstrationId: bundle.id,
+          personId: input.projectOfficerUserId,
+          roleId: "Project Officer",
+        },
+      });
     });
-
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
-      success: true,
-      message: "Demonstration created successfully!",
+      success: false,
+      message: "Error creating demonstration: " + errorMessage,
     };
-  });
+  }
+
+  return {
+    success: true,
+    message: "Demonstration created successfully!",
+  };
 }
 
 export async function updateDemonstration(

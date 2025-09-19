@@ -20,6 +20,8 @@ import {
   MockDemonstrationRoleAssignment,
 } from "./demonstrationRoleAssignmentMocks";
 import { mockPeople } from "./personMocks";
+import { mockUsers } from "./userMocks";
+import { STATES_AND_TERRITORIES } from "demos-server-constants";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -91,7 +93,7 @@ export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
   stateId: "CA",
-  projectOfficerUserId: "1",
+  projectOfficerUserId: mockUsers[0].id,
 };
 
 export const demonstrationMocks: MockedResponse[] = [
@@ -176,7 +178,7 @@ export const demonstrationMocks: MockedResponse[] = [
           effectiveDate: new Date(2025, 0, 1),
           expirationDate: new Date(2025, 11, 1),
           status: "Pre-Submission",
-          stateId: "1",
+          stateId: STATES_AND_TERRITORIES.find((state) => state.id === "MT")!.id,
         },
       },
     },

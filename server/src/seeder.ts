@@ -84,6 +84,8 @@ async function clearDatabase() {
     // delete system role assignments before roles and users
     prisma().systemRoleAssignment.deleteMany(),
 
+    prisma().personState.deleteMany(),
+
     // Finally, roles and users
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
@@ -182,15 +184,31 @@ async function seedDatabase() {
       });
     }
   }
+  // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < demonstrationCount; i++) {
+    const person = await prisma().person.create({
+      data: {
+        personTypeId: "demos-cms-user",
+        email: faker.internet.email(),
+        fullName: faker.person.fullName(),
+        displayName: faker.internet.username(),
+      },
+    });
+    const state = await prisma().state.findRandom();
+    const personState = await prisma().personState.create({
+      data: {
+        personId: person.id,
+        stateId: state!.id,
+      },
+    });
     const createInput: CreateDemonstrationInput = {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
       cmcsDivision: sampleFromArray([...CMCS_DIVISION, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-      stateId: (await prisma().state.findRandom())!.id,
-      projectOfficerUserId: (await prisma().user.findRandom())!.id,
+      stateId: state!.id,
+      projectOfficerUserId: personState.personId,
     };
     await createDemonstration(undefined, { input: createInput });
   }
