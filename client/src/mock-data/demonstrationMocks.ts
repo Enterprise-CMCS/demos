@@ -102,7 +102,7 @@ export const demonstrationMocks: MockedResponse[] = [
     result: {
       data: {
         demonstrations: mockDemonstrations,
-        projectOfficerOptions: mockPeople,
+        people: mockPeople,
       },
     },
   },
