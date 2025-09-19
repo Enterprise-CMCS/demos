@@ -25,7 +25,7 @@ describe("buildClient", () => {
 
     expect(rs).toHaveBeenCalledWith(
       "client-build",
-      "npm ci && npm run build",
+      "npm ci && npm run build:ci",
       expect.objectContaining({
         env: expect.objectContaining({
           VITE_COGNITO_AUTHORITY: "cognitoAuthority",
@@ -56,12 +56,15 @@ describe("buildClient", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-core-no-execute",
       "npx",
-      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`])
+      expect.arrayContaining([
+        `stage=${mockStageName}`,
+        `demos-${mockStageName}-core`,
+      ])
     );
 
     expect(rs).toHaveBeenCalledWith(
       "client-build",
-      "npm ci && npm run build",
+      "npm ci && npm run build:ci",
       expect.objectContaining({
         env: expect.objectContaining({
           VITE_COGNITO_AUTHORITY: "cognitoAuthority",
@@ -92,7 +95,10 @@ describe("buildClient", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-core-no-execute",
       "npx",
-      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`])
+      expect.arrayContaining([
+        `stage=${mockStageName}`,
+        `demos-${mockStageName}-core`,
+      ])
     );
 
     expect(exitCode).toBe(1);

@@ -28,7 +28,7 @@ export async function buildClient(environment: string, refreshOutputs: boolean =
 
   const coreOutputData = readOutputs("core-outputs.json");
 
-  return await runShell("client-build", "npm ci && npm run build", {
+  return await runShell("client-build", "npm ci && npm run build:ci", {
     cwd: clientPath,
     env: {
       ...process.env,
