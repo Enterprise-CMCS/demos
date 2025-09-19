@@ -38,7 +38,6 @@ const getSubRows = (
           ...amendment,
           type: "amendment",
           state: row.state,
-          status: amendment.status,
           parentId: row.id,
         }) as GenericDemonstrationTableRow
     ),
@@ -48,7 +47,6 @@ const getSubRows = (
           ...extension,
           type: "extension",
           state: row.state,
-          status: extension.status,
           parentId: row.id,
         }) as GenericDemonstrationTableRow
     ),
@@ -104,7 +102,6 @@ export const DemonstrationTable: React.FC<{
           data={dataToShow.map((demonstration) => ({
             ...demonstration,
             type: "demonstration",
-            status: demonstration.status,
           }))}
           columns={demonstrationColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}
