@@ -97,6 +97,22 @@ export class CoreStack extends Stack {
       vpc.addGatewayEndpoint("s3GatewayEndpoint", {
         service: aws_ec2.GatewayVpcEndpointAwsService.S3,
       });
+
+      const ssmEndpointSecurityGroupName = `${commonProps.project}-${commonProps.hostEnvironment}-ssm-vpce`;
+      const ssmEndpoint = securityGroup.create({
+        ...commonProps,
+        vpc,
+        scope: this,
+        name: ssmEndpointSecurityGroupName,
+      }).securityGroup;
+
+      vpc.addInterfaceEndpoint("ssmEndpoint", {
+        service: aws_ec2.InterfaceVpcEndpointAwsService.SSM,
+        subnets: {
+          subnets: vpc.privateSubnets,
+        },
+        securityGroups: [ssmEndpoint],
+      });
     } else {
       // Ephemeral Environments
       secretsManagerEndpointSG = aws_ec2.SecurityGroup.fromLookupByName(

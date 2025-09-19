@@ -1,65 +1,73 @@
-/* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
+import { formatDate, formatDateTime, formatDateAsIsoString } from "./formatDate";
+import { UTCDate } from "@date-fns/utc";
 
-import { formatDate, formatTimestamp, formatDateTime } from "./formatDate";
+// Test date constants as ISO strings
+const TEST_DATE_ISO = "2023-04-15T13:45:30.000Z";
+const LEAP_YEAR_DATE_ISO = "2024-02-29T23:59:59.000Z";
+const START_OF_YEAR_ISO = "2022-01-01T00:00:00.000Z";
+const END_OF_YEAR_ISO = "2022-12-31T23:59:59.000Z";
+const NOON_ISO = "2023-07-04T12:00:00.000Z";
+const MIDNIGHT_ISO = "2023-07-04T00:00:00.000Z";
+const SINGLE_DIGIT_MONTH_DAY_ISO = "2023-03-05T07:08:09.000Z";
+const UTC_TEST_DATE_ISO = "2023-01-02T00:00:00.000Z";
 
 describe("formatDate utilities", () => {
-  const testDate = new Date(2023, 3, 15, 13, 45, 30);
-  const leapYearDate = new Date(2024, 1, 29, 23, 59, 59);
-  const startOfYear = new Date(2022, 0, 1, 0, 0, 0);
-  const endOfYear = new Date(2022, 11, 31, 23, 59, 59);
-  const noon = new Date(2023, 6, 4, 12, 0, 0);
-  const midnight = new Date(2023, 6, 4, 0, 0, 0);
-  const singleDigitMonthDay = new Date(2023, 2, 5, 7, 8, 9);
+  // Using UTCDate for timezone-independent test dates
+  const testDate = new UTCDate(TEST_DATE_ISO);
+  const leapYearDate = new UTCDate(LEAP_YEAR_DATE_ISO);
+  const startOfYear = new UTCDate(START_OF_YEAR_ISO);
+  const endOfYear = new UTCDate(END_OF_YEAR_ISO);
+  const noon = new UTCDate(NOON_ISO);
+  const midnight = new UTCDate(MIDNIGHT_ISO);
 
   it("formats date as MM/dd/yyyy", () => {
-    expect(formatDate(testDate)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(formatDate(leapYearDate)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(formatDate(startOfYear)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(formatDate(endOfYear)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(formatDate(noon)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(formatDate(midnight)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(formatDate(singleDigitMonthDay)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+    expect(formatDate(testDate)).toBe("04/15/2023");
+    expect(formatDate(leapYearDate)).toBe("02/29/2024");
+    expect(formatDate(startOfYear)).toBe("01/01/2022");
+    expect(formatDate(endOfYear)).toBe("12/31/2022");
+    expect(formatDate(noon)).toBe("07/04/2023");
+    expect(formatDate(midnight)).toBe("07/04/2023");
   });
 
-  it("formats timestamp as ISO string", () => {
-    expect(formatTimestamp(testDate)).toBe(testDate.toISOString());
-    expect(formatTimestamp(leapYearDate)).toBe(leapYearDate.toISOString());
-    expect(formatTimestamp(startOfYear)).toBe(startOfYear.toISOString());
-    expect(formatTimestamp(endOfYear)).toBe(endOfYear.toISOString());
-    expect(formatTimestamp(noon)).toBe(noon.toISOString());
-    expect(formatTimestamp(midnight)).toBe(midnight.toISOString());
-    expect(formatTimestamp(singleDigitMonthDay)).toBe(singleDigitMonthDay.toISOString());
+  it("formatDateAsIsoString formats as ISO strings", () => {
+    expect(formatDateAsIsoString(testDate)).toBe(TEST_DATE_ISO);
+    expect(formatDateAsIsoString(leapYearDate)).toBe(LEAP_YEAR_DATE_ISO);
+    expect(formatDateAsIsoString(startOfYear)).toBe(START_OF_YEAR_ISO);
+    expect(formatDateAsIsoString(endOfYear)).toBe(END_OF_YEAR_ISO);
+    expect(formatDateAsIsoString(noon)).toBe(NOON_ISO);
+    expect(formatDateAsIsoString(midnight)).toBe(MIDNIGHT_ISO);
   });
 
-  it("formats date and time as MM/dd/yyyy HH:mm", () => {
-    expect(formatDateTime(testDate)).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
-    expect(formatDateTime(leapYearDate)).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
-    expect(formatDateTime(startOfYear)).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
-    expect(formatDateTime(endOfYear)).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
-    expect(formatDateTime(noon)).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
-    expect(formatDateTime(midnight)).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
-    expect(formatDateTime(singleDigitMonthDay)).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
+  it("formats datetimes correctly with minute granularity", () => {
+    expect(formatDateTime(testDate, "minute")).toBe("04/15/2023 13:45");
+    expect(formatDateTime(leapYearDate, "minute")).toBe("02/29/2024 23:59");
+    expect(formatDateTime(startOfYear, "minute")).toBe("01/01/2022 00:00");
+  });
+
+  it("formats datetimes correctly with second granularity", () => {
+    expect(formatDateTime(testDate, "second")).toBe("04/15/2023 13:45:30");
+    expect(formatDateTime(leapYearDate, "second")).toBe("02/29/2024 23:59:59");
+    expect(formatDateTime(startOfYear, "second")).toBe("01/01/2022 00:00:00");
+  });
+
+  it("formats datetimes correctly with millisecond granularity", () => {
+    expect(formatDateTime(testDate, "millisecond")).toBe("04/15/2023 13:45:30.000");
+    expect(formatDateTime(leapYearDate, "millisecond")).toBe("02/29/2024 23:59:59.000");
+    expect(formatDateTime(startOfYear, "millisecond")).toBe("01/01/2022 00:00:00.000");
   });
 
   it("handles single-digit months and days", () => {
-    expect(formatDate(singleDigitMonthDay)).toMatch(/^03\/05\/2023$/);
-    expect(formatDateTime(singleDigitMonthDay)).toMatch(/^03\/05\/2023 07:08$/);
+    const singleDigitMonthDay = new UTCDate(SINGLE_DIGIT_MONTH_DAY_ISO);
+
+    expect(formatDate(singleDigitMonthDay)).toBe("03/05/2023");
+    expect(formatDateTime(singleDigitMonthDay, "minute")).toBe("03/05/2023 07:08");
   });
 
-  it("displays UTC dates in local time", () => {
-    const utcDate = new Date(Date.UTC(2023, 0, 2, 0, 0, 0)); // Jan 2, 2023, 00:00:00 UTC
+  it("displays UTC dates consistently", () => {
+    const utcDate = new UTCDate(UTC_TEST_DATE_ISO); // Jan 2, 2023, 00:00:00 UTC
 
-    // The rendered date should match the local date for that UTC instant
-    // (e.g., if your local timezone is GMT-5, this will be Jan 1, 2023, 19:00:00 local)
-    const localDateString = utcDate.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-    expect(formatDate(utcDate)).toBe(localDateString);
-
-    // The rendered datetime should match the local time for that UTC instant
-    const localDateTimeString = `${localDateString} ${utcDate.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}`;
-    expect(formatDateTime(utcDate)).toBe(localDateTimeString);
+    // The rendered date should stay in UTC (not convert to local time)
+    expect(formatDate(utcDate)).toBe("01/02/2023");
+    expect(formatDateTime(utcDate, "minute")).toBe("01/02/2023 00:00");
   });
 });

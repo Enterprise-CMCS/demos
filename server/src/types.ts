@@ -40,8 +40,11 @@ export type {
 } from "./model/document/documentSchema.js";
 
 export type { BundlePhase } from "./model/bundlePhase/bundlePhaseSchema.js";
-export type { BundlePhaseDate } from "./model/bundlePhaseDate/bundlePhaseDateSchema.js";
 export type { Bundle } from "./model/bundle/bundleSchema.js";
+export type {
+  BundlePhaseDate,
+  SetPhaseDateInput,
+} from "./model/bundlePhaseDate/bundlePhaseDateSchema.js";
 
 export type BundleStatus = (typeof BUNDLE_STATUS)[number];
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
