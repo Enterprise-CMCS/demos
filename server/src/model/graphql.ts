@@ -2,6 +2,8 @@ import { gql } from "graphql-tag";
 
 import { bundleSchema } from "./bundle/bundleSchema.js";
 
+import { bundleStatusSchema } from "./bundleStatus/bundleStatusSchema.js";
+
 import { bundlePhaseSchema } from "./bundlePhase/bundlePhaseSchema.js";
 import { bundlePhaseResolvers } from "./bundlePhase/bundlePhaseResolvers.js";
 
@@ -13,9 +15,6 @@ import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
 
-import { demonstrationStatusSchema } from "./demonstrationStatus/demonstrationStatusSchema.js";
-import { demonstrationStatusResolvers } from "./demonstrationStatus/demonstrationStatusResolvers.js";
-
 import { documentSchema } from "./document/documentSchema.js";
 import { documentResolvers } from "./document/documentResolvers.js";
 
@@ -24,10 +23,7 @@ import { documentTypeSchema } from "./documentType/documentTypeSchema.js";
 import { eventSchema, eventResolvers } from "./event/index.js";
 
 import { modificationSchema } from "./modification/modificationSchema.js";
-import { modificationStatusSchema } from "./modificationStatus/modificationStatusSchema.js";
-
 import { modificationResolvers } from "./modification/modificationResolvers.js";
-import { modificationStatusResolvers } from "./modificationStatus/modificationStatusResolvers.js";
 
 import { phaseSchema } from "./phase/phaseSchema.js";
 
@@ -76,16 +72,15 @@ const mockDemonstrationResolverExtension = {
 
 export const typeDefs = [
   bundleSchema,
+  bundleStatusSchema,
   bundlePhaseSchema,
   bundlePhaseDateSchema,
   dateTypeSchema,
   demonstrationSchema,
-  demonstrationStatusSchema,
   documentSchema,
   documentTypeSchema,
   eventSchema,
   modificationSchema,
-  modificationStatusSchema,
   phaseSchema,
   phaseStatusSchema,
   stateSchema,
@@ -100,11 +95,9 @@ export const resolvers = [
   bundlePhaseResolvers,
   bundlePhaseDateResolvers,
   demonstrationResolvers,
-  demonstrationStatusResolvers,
   documentResolvers,
   eventResolvers,
   modificationResolvers,
-  modificationStatusResolvers,
   stateResolvers,
   userResolvers,
   mockDemonstrationResolverExtension,

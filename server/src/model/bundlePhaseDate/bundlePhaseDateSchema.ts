@@ -9,7 +9,7 @@ export const bundlePhaseDateSchema = gql`
     updatedAt: DateTime!
   }
 
-  type SetPhaseDateInput {
+  input SetPhaseDateInput {
     bundleId: ID!
     phase: Phase!
     dateType: DateType!

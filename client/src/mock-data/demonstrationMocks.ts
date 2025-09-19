@@ -15,18 +15,13 @@ import { MockExtension, mockExtensions } from "./extensionMocks";
 import { MockContact, mockContacts } from "./contactMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
-import { DEMONSTRATION_STATUSES } from "demos-server-constants";
-import type { DemonstrationStatus } from "demos-server";
-
-const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] = DEMONSTRATION_STATUSES.map(
-  (s) => ({ id: s.id, name: s.name })
-);
+import type { BundleStatus } from "demos-server";
 
 export type MockDemonstration = Pick<
   Demonstration,
   "id" | "name" | "description" | "effectiveDate" | "expirationDate"
 > & {
-  demonstrationStatus: Pick<DemonstrationStatus, "id" | "name">;
+  status: BundleStatus;
   state: MockState;
   projectOfficer: MockUser;
   amendments: MockAmendment[];
@@ -44,7 +39,7 @@ export const mockDemonstrations = [
     effectiveDate: new Date(2025, 0, 1),
     expirationDate: new Date(2025, 11, 1),
     projectOfficer: mockUsers[0],
-    demonstrationStatus: demonstrationStatuses.find((s) => s.name === "Approved")!,
+    status: "Approved",
     state: mockStates.find((state) => state.id === "MT")!,
     amendments: [mockAmendments[0], mockAmendments[1], mockAmendments[5]],
     extensions: [mockExtensions[0], mockExtensions[1], mockExtensions[2]],
@@ -58,7 +53,7 @@ export const mockDemonstrations = [
     description: "A health innovation project in Florida.",
     effectiveDate: new Date(2025, 0, 2),
     expirationDate: new Date(2025, 11, 2),
-    demonstrationStatus: demonstrationStatuses.find((s) => s.name === "Pre-Submission")!,
+    status: "Pre-Submission",
     state: mockStates.find((state) => state.id === "FL")!,
     projectOfficer: mockUsers[1],
     amendments: [mockAmendments[2], mockAmendments[3], mockAmendments[4]],
@@ -73,7 +68,7 @@ export const mockDemonstrations = [
     effectiveDate: new Date(2025, 0, 3),
     expirationDate: new Date(2025, 11, 3),
     description: "A reform initiative in Texas.",
-    demonstrationStatus: demonstrationStatuses.find((s) => s.name === "On-hold")!,
+    status: "On-hold",
     state: mockStates.find((state) => state.id === "TX")!,
     projectOfficer: mockUsers[0],
     amendments: [] as MockAmendment[],
@@ -101,7 +96,6 @@ export const demonstrationMocks: MockedResponse[] = [
         demonstrations: mockDemonstrations,
         projectOfficerOptions: mockUsers,
         stateOptions: mockStates,
-        statusOptions: demonstrationStatuses,
       },
     },
   },
@@ -129,23 +123,7 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[0];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
+        demonstration: mockDemonstrations[0],
       },
     },
   },
@@ -156,23 +134,7 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[1];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
+        demonstration: mockDemonstrations[1],
       },
     },
   },
@@ -183,23 +145,7 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[2];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
+        demonstration: mockDemonstrations[2],
       },
     },
   },
@@ -222,7 +168,7 @@ export const demonstrationMocks: MockedResponse[] = [
           description: "Updated description",
           effectiveDate: new Date(2025, 0, 1),
           expirationDate: new Date(2025, 11, 1),
-          demonstrationStatusId: "1",
+          status: "Pre-Submission",
           stateId: "1",
           projectOfficerUserId: "1",
         },
