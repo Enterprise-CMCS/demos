@@ -7,6 +7,7 @@ import { up } from "./commands/up";
 import { down } from "./commands/down";
 import { runMigration } from "./commands/runMigration";
 import { testMigration } from "./commands/testMigration";
+import { dbReset } from "./commands/dbReset";
 
 export async function main(): Promise<number | null> {
   const args = process.argv.slice(2);
@@ -36,6 +37,8 @@ export async function main(): Promise<number | null> {
       return await runMigration(environment, args[2]);
     case "test-migration":
       return await testMigration(environment, args[2]);
+    case "db-reset":
+      return await dbReset(environment, args[2]);
     default:
       console.error(`Unknown command: ${command}`);
       return 1;

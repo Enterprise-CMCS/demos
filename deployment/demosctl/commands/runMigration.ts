@@ -17,13 +17,13 @@ export async function runMigration(environment: string, dbname: string = "demos"
     const secretDataRaw = await getSecret(`demos-${environment}-rds-admin`);
     if (!secretDataRaw) {
       console.error(`unable to retrieve secret data for demos-${environment}-rds-admin`);
-      process.exit(1);
+      return 1;
     }
     console.log("secret retrieved successfully");
     secretData = { ...JSON.parse(secretDataRaw), dbname } as DBData;
     if (!["username", "password", "host", "port", "dbname"].every((key) => Object.hasOwn(secretData!, key))) {
       console.error("db secret data not found");
-      process.exit(1);
+      return 1;
     }
   }
 
