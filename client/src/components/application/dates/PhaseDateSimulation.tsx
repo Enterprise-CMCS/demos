@@ -1,4 +1,3 @@
-// BEGIN-NOSONAR - This file is a testing / simulation tool, not production code
 import React, { useState } from "react";
 import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
@@ -456,4 +455,3 @@ export const PhaseDatesSimulation: React.FC = () => {
     </div>
   );
 };
-// END-NOSONAR
