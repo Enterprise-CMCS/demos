@@ -5,6 +5,8 @@
   "type": "module",
   "devDependencies": {
     "@apollo/client": "^3.13.8",
+    "@date-fns/tz": "^1.4.1",
+    "@date-fns/utc": "^2.1.1",
     "@eslint/js": "^9.33.0",
     "@faker-js/faker": "^9.8.0",
     "@tailwindcss/vite": "^4.1.4",
@@ -62,7 +64,7 @@
     "test:serial": "vitest --mode test --run --no-file-parallelism",
     "test:debug": "vitest --mode test --run --inspect-brk --no-file-parallelism",
     "tsc": "tsc --noEmit --skipLibCheck",
-    "lint": "eslint src",
+    "lint": "eslint src; npx tsc --noEmit --skipLibCheck",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
