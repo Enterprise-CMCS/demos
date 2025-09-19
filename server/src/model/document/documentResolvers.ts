@@ -1,7 +1,6 @@
 import { GraphQLError } from "graphql";
 
-import { Bundle, Document, DocumentPendingUpload } from "@prisma/client";
-
+import { Document, DocumentPendingUpload } from "@prisma/client";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType } from "../../types.js";
@@ -9,12 +8,11 @@ import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GraphQLContext } from "../../auth/auth.util.js";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
+import { getBundle } from "../bundle/bundleResolvers.js";
+import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
-const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
-const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
-const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
-
-// TODO: We should look into caching this
+// We should look into caching this
 // Otherwise, there are duplicative DB calls if requesting bundle and bundleType
 async function getBundleTypeId(bundleId: string) {
   const result = await prisma().bundle.findUnique({
@@ -35,14 +33,14 @@ async function getPresignedUploadUrl(
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
-      region: "us-east-1",
-      endpoint: process.env.S3_ENDPOINT_LOCAL,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: "",
-        secretAccessKey: "",
-      },
-    }
+        region: "us-east-1",
+        endpoint: process.env.S3_ENDPOINT_LOCAL,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: "",
+          secretAccessKey: "",
+        },
+      }
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const uploadBucket = process.env.UPLOAD_BUCKET;
@@ -59,14 +57,14 @@ async function getPresignedUploadUrl(
 async function getPresignedDownloadUrl(document: Document): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
-      region: "us-east-1",
-      endpoint: process.env.S3_ENDPOINT_LOCAL,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: "",
-        secretAccessKey: "",
-      },
-    }
+        region: "us-east-1",
+        endpoint: process.env.S3_ENDPOINT_LOCAL,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: "",
+          secretAccessKey: "",
+        },
+      }
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const cleanBucket = process.env.CLEAN_BUCKET;
@@ -80,7 +78,6 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
   });
   return s3Url;
 }
-
 
 export const documentResolvers = {
   Query: {
@@ -114,15 +111,23 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    uploadDocument: async (context: GraphQLContext, { input }: { input: UploadDocumentInput }) => {
-      const { documentType, bundleId, ...rest } = input;
-
+    uploadDocument: async (
+      parent: undefined,
+      { input }: { input: UploadDocumentInput },
+      context: GraphQLContext
+    ) => {
+      if (context.user === null) {
+        throw new Error(
+          "The GraphQL context does not have user information. Are you properly authenticated?"
+        );
+      }
       const documentPendingUpload = await prisma().documentPendingUpload.create({
         data: {
-          ...rest,
-          owner: { connect: { id: context.user?.id } },
-          documentType: { connect: { id: documentType } },
-          bundle: { connect: { id: bundleId } },
+          title: input.title,
+          description: input.description,
+          ownerUserId: context.user.id,
+          documentTypeId: input.documentType,
+          bundleId: input.bundleId,
         },
       });
 
@@ -130,10 +135,7 @@ export const documentResolvers = {
       return { presignedURL };
     },
 
-    downloadDocument: async (
-      _: undefined,
-      { id }: { id: string }
-    ) => {
+    downloadDocument: async (_: undefined, { id }: { id: string }) => {
       const document = await prisma().document.findUnique({
         where: { id: id },
       });
@@ -152,23 +154,20 @@ export const documentResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
-      const { documentType, bundleId, ...rest } = input;
-      return await prisma().document.update({
-        where: { id: id },
-        data: {
-          ...rest,
-          ...(documentType && {
-            documentType: {
-              connect: { id: documentType },
-            },
-          }),
-          ...(bundleId && {
-            bundle: {
-              connect: { id: bundleId },
-            },
-          }),
-        },
-      });
+      checkOptionalNotNullFields(["title", "description", "documentType", "bundleId"], input);
+      try {
+        return await prisma().document.update({
+          where: { id: id },
+          data: {
+            title: input.title,
+            description: input.description,
+            documentTypeId: input.documentType,
+            bundleId: input.bundleId,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
     },
 
     deleteDocuments: async (_: undefined, { ids }: { ids: string[] }) => {
@@ -194,49 +193,13 @@ export const documentResolvers = {
       });
     },
 
-    // NOTE: Not checking for the bundle type being implemented here
-    // This means if we add a bundle type to the DB and leave this untouched
-    // It will fail silently
     bundle: async (parent: Document) => {
-      const bundleTypeId = await getBundleTypeId(parent.bundleId);
-      if (bundleTypeId === demonstrationBundleTypeId) {
-        return await prisma().demonstration.findUnique({
-          where: { id: parent.bundleId },
-        });
-      } else if (bundleTypeId === amendmentBundleTypeId) {
-        return await prisma().modification.findUnique({
-          where: {
-            id: parent.bundleId,
-            bundleTypeId: amendmentBundleTypeId,
-          },
-        });
-      } else if (bundleTypeId === extensionBundleTypeId) {
-        return await prisma().modification.findUnique({
-          where: {
-            id: parent.bundleId,
-            bundleTypeId: extensionBundleTypeId,
-          },
-        });
-      } else {
-        return null;
-      }
+      return await getBundle(parent.bundleId);
     },
 
     bundleType: async (parent: Document) => {
       const bundleTypeId = await getBundleTypeId(parent.bundleId);
       return bundleTypeId;
-    },
-  },
-
-  Bundle: {
-    __resolveType(obj: Bundle) {
-      if (obj.bundleTypeId === demonstrationBundleTypeId) {
-        return "Demonstration";
-      } else if (obj.bundleTypeId === amendmentBundleTypeId) {
-        return "Amendment";
-      } else if (obj.bundleTypeId === extensionBundleTypeId) {
-        return "Extension";
-      }
     },
   },
 };
