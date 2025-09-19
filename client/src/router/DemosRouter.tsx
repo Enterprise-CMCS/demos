@@ -15,6 +15,7 @@ import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
 import { isLocalDevelopment } from "config/env";
+import { PhaseDatesSimulation } from "components/application/dates/PhaseDateSimulation";
 
 // 1) Shell that provides the layout and outlet for child routes
 function ProtectedShell() {
@@ -43,6 +44,7 @@ export const DemosRouter: React.FC = () => {
             <Routes>
               {/* Everything below is protected */}
               <Route element={<AuthGuard />}>
+                <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<LandingPage />} />
                 <Route path="demonstrations" element={<Demonstrations />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
@@ -54,7 +56,7 @@ export const DemosRouter: React.FC = () => {
                     <Route path="icons" element={<IconLibrary />} />
                     <Route path="events" element={<EventSandbox />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
-                    <Route path="*" element={<div>404: Page Not Found</div>} />
+                    <Route path="dates" element={<PhaseDatesSimulation />} />
                   </>
                 )}
               </Route>

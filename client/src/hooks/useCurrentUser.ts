@@ -9,7 +9,7 @@ export const GET_CURRENT_USER_QUERY = gql`
       email
       fullName
       displayName
-      roles { id name }
+      personTypeId
     }
   }
 `;

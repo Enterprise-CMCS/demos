@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const ADD_EXTENSION_QUERY = gql`
-  mutation AddExtension($input: AddExtensionInput!) {
+  mutation AddExtension($input: CreateExtensionInput!) {
     addExtension(input: $input) {
       id
       name
@@ -12,10 +12,7 @@ export const ADD_EXTENSION_QUERY = gql`
         id
         name
       }
-      extensionStatus {
-        id
-        name
-      }
+      status
       projectOfficer {
         id
         fullName
@@ -36,10 +33,7 @@ export const GET_ALL_EXTENSIONS_QUERY = gql`
         id
         name
       }
-      extensionStatus {
-        id
-        name
-      }
+      status
       projectOfficer {
         id
         fullName
@@ -60,10 +54,7 @@ export const GET_EXTENSION_BY_ID_QUERY = gql`
         id
         name
       }
-      extensionStatus {
-        id
-        name
-      }
+      status
       projectOfficer {
         id
         fullName
@@ -84,10 +75,7 @@ export const UPDATE_EXTENSION_MUTATION = gql`
         id
         name
       }
-      extensionStatus {
-        id
-        name
-      }
+      status
       projectOfficer {
         id
         fullName

@@ -25,6 +25,7 @@ interface ImportMetaEnv {
   readonly VITE_APPLICATION_HOSTNAME: EnvironmentVariable;
   readonly VITE_API_URL_PREFIX: EnvironmentVariable;
   readonly VITE_IDLE_TIMEOUT: EnvironmentVariable;
+  readonly VITE_IDM_LOGOUT_URI: EnvironmentVariable;
 }
 
 interface ImportMeta {

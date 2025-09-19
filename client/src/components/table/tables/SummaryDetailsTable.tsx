@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
 import { SecondaryButton } from "components/button";
-import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { EditDemonstrationDialog } from "components/dialog/DemonstrationDialog";
 import { EditIcon } from "components/icons";
-import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
+import { Demonstration, BundleStatus, State, User } from "demos-server";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
@@ -13,7 +13,7 @@ type SummaryDetailsDemonstration = Pick<
 > & {
   state: Pick<State, "name" | "id">;
   projectOfficer: Pick<User, "id" | "fullName">;
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  status: BundleStatus;
 };
 
 type Props = {
@@ -43,7 +43,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
     <div className="border border-gray-300 bg-white p-2 shadow-sm">
       <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
         <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
-        <SecondaryButton name="edit-details" size="small" onClick={handleEditClick}>
+        <SecondaryButton name="button-edit-details" size="small" onClick={handleEditClick}>
           <div className="flex items-center gap-1">
             <EditIcon className="w-2 h-2" />
             Edit Details
@@ -69,7 +69,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
         <div>
           <div className={LABEL_CLASSES}>Status</div>
-          <div className={VALUE_CLASSES}>{demonstration.demonstrationStatus.name}</div>
+          <div className={VALUE_CLASSES}>{demonstration.status}</div>
         </div>
 
         <div>
@@ -95,7 +95,11 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
       </div>
 
       {isEditModalOpen && demonstration && (
-        <DemonstrationDialog mode="edit" demonstration={demonstration} onClose={handleCloseModal} />
+        <EditDemonstrationDialog
+          isOpen={true}
+          demonstrationId={demonstration.id}
+          onClose={handleCloseModal}
+        />
       )}
     </div>
   );

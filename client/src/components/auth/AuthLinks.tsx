@@ -4,31 +4,33 @@ import { useAuthActions } from "./AuthActions";
 export function SigninLink() {
   const { signIn } = useAuthActions();
   return (
-    <a
-      href="#"
-      onClick={(signInEvent) => {
-        signInEvent.preventDefault();
-        signInEvent.stopPropagation();
+    <button
+      type="button"
+      className="w-full text-left cursor-pointer"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
         signIn();
       }}
     >
       Sign In
-    </a>
+    </button>
   );
 }
 
 export function SignoutLink() {
   const { signOut } = useAuthActions();
   return (
-    <a
-      href="#"
-      onClick={(signOutEvent) => {
-        signOutEvent.preventDefault();
-        signOutEvent.stopPropagation();
+    <button
+      type="button"
+      className="w-full text-left cursor-pointer"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
         signOut();
       }}
     >
       Sign Out
-    </a>
+    </button>
   );
 }

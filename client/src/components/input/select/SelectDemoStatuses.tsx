@@ -1,15 +1,8 @@
 import React from "react";
 import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
-import statuses from "faker_data/demonstrationStatuses.json";
+import { BUNDLE_STATUS } from "demos-server-constants";
 
-// This may not be the final type. This is more of just an exmaple of the select.
-export interface DemonstrationStatus {
-  id: number;
-  name: string;
-  deletedAt: Date | null;
-  createdAt: string;
-  updatedAt: string;
-}
+// This may not be the final type. This is more of just an example of the select.
 
 interface SelectDemoStatusesProps {
   onStatusChange: (status: string) => void;
@@ -22,10 +15,9 @@ export const SelectDemoStatuses: React.FC<SelectDemoStatusesProps> = ({
   isRequired = false,
   isDisabled = false,
 }) => {
-
-  const options: Option[] = (statuses as DemonstrationStatus[]).map((state) => ({
-    label: state.name,
-    value: state.name,
+  const options: Option[] = BUNDLE_STATUS.map((status) => ({
+    label: status,
+    value: status,
   }));
 
   return (

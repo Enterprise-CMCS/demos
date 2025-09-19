@@ -13,13 +13,9 @@ jest.mock("./getCoreOutputs");
 describe("up", () => {
   beforeEach(() => {
     jest.spyOn(console, "error");
-    //@ts-expect-error ignore invalid mock type
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
   });
 
   afterEach(() => {
-    // @ts-expect-error ignore invalid mock type
-    (process.exit as jest.Mock).mockRestore();
     (console.error as jest.Mock).mockRestore();
   });
 
@@ -40,12 +36,14 @@ describe("up", () => {
   test("should prevent users from running on any main environments", async () => {
     const mockStageNames = ["dev", "test", "impl", "prod"];
 
+    const exitCodes: number[] = [];
+
     for (const mockStageName of mockStageNames) {
-      await up(mockStageName);
+      exitCodes.push(await up(mockStageName));
     }
 
     expect(console.error).toHaveBeenCalledTimes(mockStageNames.length);
-    expect(process.exit).toHaveBeenCalledTimes(mockStageNames.length);
+    expect(exitCodes).toEqual(Array(mockStageNames.length).fill(1));
   });
 
   test("should log if the deploy fails", async () => {
@@ -53,10 +51,10 @@ describe("up", () => {
 
     (buildServer as jest.Mock).mockRejectedValue(1);
 
-    await up(mockStageName);
+    const exitCode = await up(mockStageName);
 
     expect(console.error).toHaveBeenCalledTimes(1);
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("deployment failed"));
-    expect(process.exit).toHaveBeenCalledTimes(1);
+    expect(exitCode).toBe(1);
   });
 });

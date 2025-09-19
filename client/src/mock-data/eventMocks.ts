@@ -1,18 +1,16 @@
-import { Event } from "demos-server";
+import { Event, Role } from "demos-server";
 import { LogEventArguments } from "hooks/event/useEvent";
 import { GET_EVENTS_QUERY, LOG_EVENT_MUTATION } from "queries/eventQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
 
 import { johnDoe, MockUser } from "./userMocks";
-import { MockRole, mockRoles } from "./roleMocks";
 
 export type MockEvent = Pick<
   Event,
-  "id" | "eventType" | "logLevel" | "route" | "createdAt" | "eventData"
+  "id" | "eventType" | "logLevel" | "route" | "createdAt" | "eventData" | "withRole"
 > & {
   user: MockUser;
-  withRole: MockRole;
 };
 
 const mockEvents = [
@@ -21,7 +19,7 @@ const mockEvents = [
     user: johnDoe,
     eventType: "LOGIN_SUCCEEDED",
     logLevel: "INFO",
-    withRole: mockRoles[0],
+    withRole: "demos-cms-user" as Role,
     route: "/events",
     createdAt: new Date(2025, 0, 1),
     eventData: {
@@ -33,7 +31,7 @@ const mockEvents = [
     user: johnDoe,
     eventType: "LOGIN_FAILED",
     logLevel: "ERROR",
-    withRole: mockRoles[0],
+    withRole: "demos-cms-user" as Role,
     route: "/demonstrations",
     createdAt: new Date(2025, 0, 1),
     eventData: {},

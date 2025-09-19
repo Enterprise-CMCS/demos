@@ -5,13 +5,10 @@ import * as UserContext from "components/user/UserContext";
 import { DemosApolloProvider } from "router/DemosApolloProvider";
 import { vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
+import { PersonType } from "demos-server";
 
 // Mock UserContext
 vi.mock("components/user/UserContext", () => ({
@@ -29,7 +26,8 @@ vi.mock("components/dialog/document/DocumentDialog", () => ({
 }));
 
 vi.mock("components/dialog/DemonstrationDialog", () => ({
-  DemonstrationDialog: () => <div>DemonstrationDialog</div>,
+  EditDemonstrationDialog: () => <div>EditDemonstrationDialog</div>,
+  CreateDemonstrationDialog: () => <div>CreateDemonstrationDialog</div>,
 }));
 
 vi.mock("components/dialog/AmendmentDialog", () => ({
@@ -62,7 +60,7 @@ describe("DefaultHeaderLower", () => {
     email: "john@test.com",
     fullName: "John Test",
     displayName: "John Test",
-    roles: [],
+    personTypeId: "demos-cms-user" as PersonType,
   };
 
   afterEach(() => {
@@ -145,7 +143,7 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByText("Demonstration")).not.toBeInTheDocument();
   });
 
-  it("opens DemonstrationDialog when demonstration modal is clicked", () => {
+  it("opens CreateDemonstrationDialog when demonstration modal is clicked", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUser,
       loading: false,
@@ -161,23 +159,7 @@ describe("DefaultHeaderLower", () => {
     );
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
-    expect(screen.queryByText("DemonstrationDialog")).toBeInTheDocument();
-  });
-
-  it("opens AddDocumentDialog", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUser,
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
-    });
-    render(<DefaultHeaderLower />);
-    fireEvent.click(screen.getByText("Create New"));
-    fireEvent.click(screen.getByText("Add New Document"));
-    expect(screen.getByText("AddDocumentDialog")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Close"));
-    expect(screen.queryByText("AddDocumentDialog")).not.toBeInTheDocument();
+    expect(screen.queryByText("CreateDemonstrationDialog")).toBeInTheDocument();
   });
 
   it("opens AmendmentDialog for amendment", () => {

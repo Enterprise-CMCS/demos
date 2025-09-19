@@ -2,6 +2,7 @@ import React, { createContext, useContext, useMemo, useEffect } from "react";
 import { useQuery, ApolloError, ApolloQueryResult } from "@apollo/client";
 import { useAuth } from "react-oidc-context";
 import { GET_CURRENT_USER_QUERY } from "../../hooks/useCurrentUser";
+import { PersonType } from "demos-server";
 
 type CurrentUser = {
   id: string;
@@ -9,7 +10,7 @@ type CurrentUser = {
   email: string;
   fullName: string;
   displayName: string;
-  roles: { id: string; name: string }[];
+  personTypeId: PersonType;
 };
 
 type UserContextValue = {
@@ -53,13 +54,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       error,
       refresh: () => refetch(),
       // Setting the ground work for roles
-      hasRole: (name) => !!currentUser?.roles?.some((role) => role.name === name),
+      hasRole: (name) => currentUser?.personTypeId === name,
     }),
     [currentUser, loading, error, refetch]
   );
   return <Ctx.Provider value={userContextValues}>{children}</Ctx.Provider>;
 }
-
 
 export function getCurrentUser() {
   const ctx = useContext(Ctx);

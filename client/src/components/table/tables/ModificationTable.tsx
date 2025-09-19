@@ -9,15 +9,15 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
-import { Amendment, DemonstrationStatus, Extension } from "demos-server";
+import { Amendment, BundleStatus, Extension } from "demos-server";
 import { formatDate } from "util/formatDate";
 
 export type ModificationTableRow =
   | (Pick<Amendment, "id" | "name" | "effectiveDate"> & {
-      status: Pick<DemonstrationStatus, "name">;
+      status: BundleStatus;
     })
   | (Pick<Extension, "id" | "name" | "effectiveDate"> & {
-      status: Pick<DemonstrationStatus, "name">;
+      status: BundleStatus;
     });
 
 export function ModificationTable({
@@ -68,7 +68,7 @@ export function ModificationTable({
 
                 <div className="h-1" />
 
-                <div>{renderStatus(status.name)}</div>
+                <div>{renderStatus(status)}</div>
 
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-800">

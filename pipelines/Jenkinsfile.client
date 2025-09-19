@@ -21,9 +21,9 @@ pipeline {
         dirCon('client', 'node') {
             sh '''
             npm ci
-            npm run lint
-            npx tsc --noEmit --skipLibCheck
-            npm run build
+            npm run tsc:ci
+            npm run lint:ci
+            npm run build:ci
             '''
         }
       }
@@ -52,11 +52,17 @@ pipeline {
               "pullrequest.key": env.CHANGE_ID ?: null,
               "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
               "pullrequest.base": env.CHANGE_TARGET ?: null,
-              "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**"
+              "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**,**/PhaseDateSimulation.tsx"
             ]
           )
         }
       }
+    }
+  }
+
+  post {
+    failure {
+      slackPipelineFail("Client")
     }
   }
 }

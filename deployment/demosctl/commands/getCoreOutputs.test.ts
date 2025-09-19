@@ -1,10 +1,8 @@
 import { getCoreOutputs } from "./getCoreOutputs";
 
 import { runCommand } from "../lib/runCommand";
-import { readOutputs } from "../lib/readOutputs";
 
 jest.mock("../lib/runCommand");
-jest.mock("../lib/readOutputs");
 jest.mock("../lib/addCognitoRedirect");
 
 describe("getCoreOutputs", () => {
@@ -16,7 +14,7 @@ describe("getCoreOutputs", () => {
 
     jest.spyOn(console, "log");
 
-    await getCoreOutputs(mockStageName);
+    const exitCode = await getCoreOutputs(mockStageName);
 
     expect(rc).toHaveBeenCalledWith(
       "core-deploy",
@@ -24,7 +22,7 @@ describe("getCoreOutputs", () => {
       expect.arrayContaining(["deploy", `demos-${mockStageName}-core`, `stage=${mockStageName}`])
     );
 
-    expect(readOutputs).toHaveBeenCalled();
+    expect(exitCode).toBe(0);
   });
   test("should exit on error", async () => {
     const mockStageName = "unit-test";
@@ -33,10 +31,8 @@ describe("getCoreOutputs", () => {
     rc.mockResolvedValue(1);
 
     jest.spyOn(console, "error");
-    // @ts-expect-error ignore invalid mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
 
-    await getCoreOutputs(mockStageName);
+    const exitCode = await getCoreOutputs(mockStageName);
 
     expect(rc).toHaveBeenCalledWith(
       "core-deploy",
@@ -45,6 +41,6 @@ describe("getCoreOutputs", () => {
     );
 
     expect(console.error).toHaveBeenCalledWith("core output command failed with code 1");
-    expect(process.exit).toHaveBeenCalledWith(1);
+    expect(exitCode).toBe(1);
   });
 });

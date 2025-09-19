@@ -1,11 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import { LogEventInput } from "./eventSchema.js";
 import { Event } from "@prisma/client";
-import {
-  GraphQLContext,
-  getCurrentUserId,
-  getCurrentUserRoleId,
-} from "../../auth/auth.util.js";
+import { GraphQLContext, getCurrentUserId, getCurrentUserRoleId } from "../../auth/auth.util.js";
 export const eventResolvers = {
   Query: {
     events: async () => {
@@ -19,7 +15,7 @@ export const eventResolvers = {
     logEvent: async (
       _: undefined,
       { input }: { input: LogEventInput },
-      context: GraphQLContext,
+      context: GraphQLContext
     ) => {
       const { eventType, logLevel, route, eventData: clientEventData } = input;
 
@@ -58,13 +54,7 @@ export const eventResolvers = {
     },
 
     withRole: async (parent: Event) => {
-      if (!parent.withRoleId) {
-        return null;
-      } else {
-        return await prisma().role.findUnique({
-          where: { id: parent.withRoleId },
-        });
-      }
+      return parent.withRoleId;
     },
   },
 };

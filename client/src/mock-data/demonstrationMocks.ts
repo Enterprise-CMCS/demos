@@ -1,17 +1,13 @@
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import {
-  ADD_DEMONSTRATION_MUTATION,
+  CREATE_DEMONSTRATION_MUTATION,
   GET_ALL_DEMONSTRATIONS_QUERY,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
-
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/Demonstrations";
-
 import { MockedResponse } from "@apollo/client/testing";
-
-import { MockDemonstrationStatus, mockDemonstrationStatuses } from "./demonstrationStatusMocks";
 import { MockState, mockStates } from "./stateMocks";
 import { MockUser, mockUsers } from "./userMocks";
 import { MockAmendment, mockAmendments } from "./amendmentMocks";
@@ -19,15 +15,15 @@ import { MockExtension, mockExtensions } from "./extensionMocks";
 import { MockContact, mockContacts } from "./contactMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
+import type { BundleStatus } from "demos-server";
 
 export type MockDemonstration = Pick<
   Demonstration,
   "id" | "name" | "description" | "effectiveDate" | "expirationDate"
 > & {
-  demonstrationStatus: MockDemonstrationStatus;
+  status: BundleStatus;
   state: MockState;
   projectOfficer: MockUser;
-  users: MockUser[];
   amendments: MockAmendment[];
   extensions: MockExtension[];
   contacts: MockContact[];
@@ -43,9 +39,8 @@ export const mockDemonstrations = [
     effectiveDate: new Date(2025, 0, 1),
     expirationDate: new Date(2025, 11, 1),
     projectOfficer: mockUsers[0],
-    demonstrationStatus: mockDemonstrationStatuses[1],
+    status: "Approved",
     state: mockStates.find((state) => state.id === "MT")!,
-    users: [mockUsers[0]],
     amendments: [mockAmendments[0], mockAmendments[1], mockAmendments[5]],
     extensions: [mockExtensions[0], mockExtensions[1], mockExtensions[2]],
     contacts: [mockContacts[0], mockContacts[1], mockContacts[2]],
@@ -58,10 +53,9 @@ export const mockDemonstrations = [
     description: "A health innovation project in Florida.",
     effectiveDate: new Date(2025, 0, 2),
     expirationDate: new Date(2025, 11, 2),
-    demonstrationStatus: mockDemonstrationStatuses[5],
+    status: "Pre-Submission",
     state: mockStates.find((state) => state.id === "FL")!,
     projectOfficer: mockUsers[1],
-    users: [mockUsers[1]],
     amendments: [mockAmendments[2], mockAmendments[3], mockAmendments[4]],
     extensions: [] as MockExtension[],
     contacts: [mockContacts[1], mockContacts[2]],
@@ -74,10 +68,9 @@ export const mockDemonstrations = [
     effectiveDate: new Date(2025, 0, 3),
     expirationDate: new Date(2025, 11, 3),
     description: "A reform initiative in Texas.",
-    demonstrationStatus: mockDemonstrationStatuses[6],
+    status: "On-hold",
     state: mockStates.find((state) => state.id === "TX")!,
-    projectOfficer: mockUsers[4],
-    users: [mockUsers[0]],
+    projectOfficer: mockUsers[0],
     amendments: [] as MockAmendment[],
     extensions: [] as MockExtension[],
     contacts: [mockContacts[1], mockContacts[2]],
@@ -89,9 +82,7 @@ export const mockDemonstrations = [
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
-  demonstrationStatusId: mockDemonstrationStatuses[0].id,
   stateId: "CA",
-  userIds: [mockUsers[0].id],
   projectOfficerUserId: mockUsers[0].id,
 };
 
@@ -105,7 +96,6 @@ export const demonstrationMocks: MockedResponse[] = [
         demonstrations: mockDemonstrations,
         projectOfficerOptions: mockUsers,
         stateOptions: mockStates,
-        statusOptions: mockDemonstrationStatuses,
       },
     },
   },
@@ -133,23 +123,7 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[0];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
+        demonstration: mockDemonstrations[0],
       },
     },
   },
@@ -160,23 +134,7 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[1];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
+        demonstration: mockDemonstrations[1],
       },
     },
   },
@@ -187,33 +145,17 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: {
-        demonstration: (() => {
-          const demo = mockDemonstrations[2];
-          const newDemo = {
-            ...demo,
-            amendments: demo.amendments.map((a) => ({
-              ...a,
-              status: a.amendmentStatus,
-              amendmentStatus: undefined,
-            })),
-            extensions: demo.extensions.map((e) => ({
-              ...e,
-              status: e.extensionStatus,
-              extensionStatus: undefined,
-            })),
-          };
-          return newDemo;
-        })(),
+        demonstration: mockDemonstrations[2],
       },
     },
   },
   {
     request: {
-      query: ADD_DEMONSTRATION_MUTATION,
+      query: CREATE_DEMONSTRATION_MUTATION,
       variables: { input: mockAddDemonstrationInput },
     },
     result: {
-      data: { addDemonstration: mockDemonstrations[0] },
+      data: { createDemonstration: { success: true, message: "Created" } },
     },
   },
   {
@@ -226,9 +168,8 @@ export const demonstrationMocks: MockedResponse[] = [
           description: "Updated description",
           effectiveDate: new Date(2025, 0, 1),
           expirationDate: new Date(2025, 11, 1),
-          demonstrationStatusId: "1",
+          status: "Pre-Submission",
           stateId: "1",
-          userIds: ["1"],
           projectOfficerUserId: "1",
         },
       },
@@ -279,7 +220,7 @@ export const demonstrationMocks: MockedResponse[] = [
   // Error mock for ADD_DEMONSTRATION_MUTATION with invalid data
   {
     request: {
-      query: ADD_DEMONSTRATION_MUTATION,
+      query: CREATE_DEMONSTRATION_MUTATION,
       variables: { input: { name: "bad add demonstration" } },
     },
     error: new Error("Failed to add demonstration"),

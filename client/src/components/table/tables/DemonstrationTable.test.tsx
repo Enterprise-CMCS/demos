@@ -2,10 +2,8 @@ import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-
 import { userOptions } from "mock-data/userMocks";
 import { DemonstrationTable } from "./DemonstrationTable";
-import { mockDemonstrationStatuses } from "mock-data/demonstrationStatusMocks";
 import { mockStates } from "mock-data/stateMocks";
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
 
@@ -14,7 +12,6 @@ const renderDemonstrations = () => {
   return render(
     <DemonstrationTable
       projectOfficerOptions={userOptions}
-      statusOptions={mockDemonstrationStatuses}
       stateOptions={mockStates}
       demonstrations={mockDemonstrations}
     />
@@ -169,7 +166,6 @@ describe("Demonstrations", () => {
       render(
         <DemonstrationTable
           projectOfficerOptions={userOptions}
-          statusOptions={mockDemonstrationStatuses}
           stateOptions={mockStates}
           demonstrations={[]}
         />
@@ -185,7 +181,6 @@ describe("Demonstrations", () => {
       render(
         <DemonstrationTable
           projectOfficerOptions={userOptions}
-          statusOptions={mockDemonstrationStatuses}
           stateOptions={mockStates}
           demonstrations={[]}
         />
@@ -228,10 +223,9 @@ describe("Demonstrations", () => {
     it("renders demonstration data correctly in table cells", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getByText("Montana")).toBeInTheDocument();
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
+      expect(screen.getAllByText("John Doe")).toHaveLength(2);
       expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
       expect(screen.getByText("Texas")).toBeInTheDocument();
-      expect(screen.getByText("Bob Johnson")).toBeInTheDocument();
     });
 
     it("renders action buttons for each demonstration", () => {
@@ -415,7 +409,7 @@ describe("Demonstrations", () => {
       expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getAllByRole("cell", { name: /John Doe/i }).length).toBeGreaterThan(0);
-      expect(screen.getAllByRole("cell", { name: /Approved/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("cell", { name: /Under Review/i }).length).toBeGreaterThan(0);
     });
 
     it("pagination applies only to demonstration records, not to nested amendments/extensions", async () => {

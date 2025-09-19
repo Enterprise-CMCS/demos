@@ -17,16 +17,17 @@ export async function fullDeploy(environment: string) {
 
   if (completeDeployCmd != 0) {
     console.error(`complete deploy command failed with code ${completeDeployCmd}`);
-    return process.exit(completeDeployCmd);
+    return completeDeployCmd;
   }
 
   // Add cloudfront url to list of redirect urls
   const outputData = readOutputs("all-outputs.json");
-  addCognitoRedirect(
+  await addCognitoRedirect(
     getOutputValue(outputData, `demos-${environment}-core`, "cognitoAuthority").split("/").pop()!,
     getOutputValue(outputData, `demos-${environment}-core`, "cognitoClientId"),
     getOutputValue(outputData, `demos-${environment}-ui`, "CloudfrontURL")
   );
 
   console.log(`\n======\ncomplete deploy command succeeded\n======\n`);
+  return 0;
 }

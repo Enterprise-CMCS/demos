@@ -44,10 +44,8 @@ describe("fullDeploy", () => {
     rc.mockResolvedValue(1);
 
     jest.spyOn(console, "error");
-    // @ts-expect-error ignore invalid mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
 
-    await fullDeploy(mockStageName);
+    const exitCode = await fullDeploy(mockStageName);
 
     expect(rc).toHaveBeenCalledWith(
       "deploy-all",
@@ -56,6 +54,6 @@ describe("fullDeploy", () => {
     );
 
     expect(console.error).toHaveBeenCalledWith("complete deploy command failed with code 1");
-    expect(process.exit).toHaveBeenCalledWith(1);
+    expect(exitCode).toBe(1);
   });
 });

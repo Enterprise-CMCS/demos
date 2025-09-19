@@ -6,16 +6,6 @@ jest.mock("../lib/runCommand");
 jest.mock("../lib/confirm");
 
 describe("down", () => {
-  beforeEach(() => {
-    //@ts-expect-error ignore invalid mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
-  });
-
-  afterEach(() => {
-    // @ts-expect-error ignore invalid mock
-    (process.exit as jest.Mock).mockRestore();
-  });
-
   test("should run the cdk destroy command on the proper env", async () => {
     const mockStageName = "unit-test";
 
@@ -31,10 +21,12 @@ describe("down", () => {
 
   test("should prevent running against main envs", async () => {
     const mockStageNames = ["prod", "impl", "test", "dev"];
+
+    const exitCodes = [];
     for (const stage of mockStageNames) {
-      await down(stage);
+      exitCodes.push(await down(stage));
     }
-    expect(process.exit).toHaveBeenCalledTimes(4);
+    expect(exitCodes).toEqual(Array(mockStageNames.length).fill(1));
   });
 
   test("should exit if user doesn't confirm with 'yes'", async () => {
@@ -43,9 +35,9 @@ describe("down", () => {
     const c = confirm as jest.Mock;
     c.mockResolvedValue(false);
 
-    await down(mockStageName);
+    const exitCode = await down(mockStageName);
 
-    expect(process.exit).toHaveBeenCalledTimes(1);
+    expect(exitCode).toBe(1);
   });
 
   test("should show error when destroy fails", async () => {

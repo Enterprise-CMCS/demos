@@ -1,0 +1,10 @@
+// Flags: STATIC_CONSTRAINT
+model BundleStatus {
+  id            String
+
+  Demonstration Demonstration[]
+  Modification  Modification[]
+
+  @@id([id])
+  @@map("bundle_status")
+}

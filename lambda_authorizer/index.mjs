@@ -19,7 +19,7 @@ export const handler = async (event) => {
 
   if (!token) {
     console.log("no token");
-    return generatePolicy("unknown", "Deny", event.methodArn, {});
+    throw new Error("Unauthorized");
   }
 
   console.log("token found");
@@ -30,20 +30,20 @@ export const handler = async (event) => {
   } catch (decoded) {
     const sub = decoded?.sub || "unknown";
     console.log(`user sub [${sub}] rejected with invalid token`);
-    return generatePolicy(sub, "Deny", event.methodArn, {});
+    throw new Error("Unauthorized");
   }
   const roles = decoded["custom:roles"];
 
   if (!roles) {
     console.log(`user sub [${decoded.sub}] rejected with no roles`);
-    return generatePolicy(decoded.sub, "Deny", event.methodArn, {});
+    throw new Error("Unauthorized");
   }
 
   const validRoles = ["demos-admin", "demos-cms-user", "demos-state-user"];
 
   if (!validRoles.some((role) => roles.includes(role))) {
     console.log(`user sub [${decoded.sub}] rejected with invalid roles [${roles}]`);
-    return generatePolicy(decoded.sub, "Deny", event.methodArn, {});
+    throw new Error("Unauthorized");
   }
 
   console.log(`user sub [${decoded.sub}] authorized with role [${roles}]`);

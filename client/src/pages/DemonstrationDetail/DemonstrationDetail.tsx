@@ -30,9 +30,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         id
         name
       }
-      demonstrationStatus {
-        name
-      }
+      status
       projectOfficer {
         fullName
       }
@@ -40,17 +38,13 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         id
         name
         effectiveDate
-        status: amendmentStatus {
-          name
-        }
+        status
       }
       extensions {
         id
         name
         effectiveDate
-        status: extensionStatus {
-          name
-        }
+        status
       }
       documents {
         id

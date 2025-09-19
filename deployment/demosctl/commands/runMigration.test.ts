@@ -22,7 +22,7 @@ describe("runMigration", () => {
     await runMigration(mockStageName, targetDB, mockDBData);
 
     expect(runShell).toHaveBeenCalledWith(
-      "server-build",
+      "migrate-deploy",
       "npm run migrate:deploy",
       expect.objectContaining({
         cwd: "../server",
@@ -45,7 +45,7 @@ describe("runMigration", () => {
     await runMigration(mockStageName, targetDB);
 
     expect(runShell).toHaveBeenCalledWith(
-      "server-build",
+      "migrate-deploy",
       "npm run migrate:deploy",
       expect.objectContaining({
         cwd: "../server",

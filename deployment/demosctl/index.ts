@@ -1,4 +1,6 @@
 #!/usr/bin/env tsx
 import { main } from "./demosctl";
 
-main();
+(async () => {
+  process.exit(await main());
+})();

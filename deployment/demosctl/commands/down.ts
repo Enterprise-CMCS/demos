@@ -4,7 +4,7 @@ import { runCommand } from "../lib/runCommand";
 export async function down(environment: string) {
   if (["prod", "impl", "test", "dev"].includes(environment)) {
     console.log("'down' can only be used for ephemeral environments");
-    return process.exit(1);
+    return 1;
   }
 
   const confirmed = await confirm(
@@ -14,11 +14,13 @@ export async function down(environment: string) {
   );
   if (!confirmed) {
     console.log("Only 'yes' (case-sensitive) is accepted as a confirmation. Cancelling...");
-    return process.exit(1);
+    return 1;
   }
 
+  let exitCode: number = 0;
+
   try {
-    await runCommand("down", "npx", [
+    exitCode = await runCommand("down", "npx", [
       "cdk",
       "destroy",
       "--context",
@@ -30,6 +32,8 @@ export async function down(environment: string) {
     ]);
   } catch (err) {
     console.error(`deployment failed: ${err}`);
-    return process.exit(1);
+    return 1;
   }
+
+  return exitCode;
 }

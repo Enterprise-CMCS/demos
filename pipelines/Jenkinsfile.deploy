@@ -98,4 +98,13 @@ pipeline {
       }
     }
   }
+
+    post {
+      success {
+        slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+      }
+      failure {
+        slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+      }
+    }
 }

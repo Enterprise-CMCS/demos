@@ -24,12 +24,12 @@ export function fetchCACert(url: string): Promise<string> {
 export async function testMigration(environment: string, dbname?: string) {
   if (!dbname) {
     console.error("you must specify a database name");
-    return process.exit(1);
+    return 1;
   }
 
   if (dbname == "demos") {
     console.error("testMigration cannot be run against 'demos' db");
-    return process.exit(1);
+    return 1;
   }
 
   console.log("test-migration:", environment);
@@ -37,7 +37,7 @@ export async function testMigration(environment: string, dbname?: string) {
   const secretDataRaw = await getSecret(`demos-${environment}-rds-admin`);
   if (!secretDataRaw) {
     console.error(`unable to retrieve secret data for demos-${environment}-rds-admin`);
-    return process.exit(1);
+    return 1;
   }
 
   console.log("secret retrieved successfully");
@@ -51,7 +51,7 @@ export async function testMigration(environment: string, dbname?: string) {
     migrationStatus = await runMigration(environment, dbname, secretData);
   } catch (err) {
     console.error("migrationStatus error", err);
-    return process.exit(1);
+    return 1;
   }
 
   // clean up
@@ -76,6 +76,8 @@ export async function testMigration(environment: string, dbname?: string) {
   }
   if (migrationStatus != 0) {
     console.error("\n\n`prisma migration deploy` exited with a non-zero exit code");
-    return process.exit(1);
+    return migrationStatus;
   }
+
+  return 0;
 }

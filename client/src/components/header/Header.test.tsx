@@ -53,26 +53,26 @@ describe("Header", () => {
 
   it("toggles menu under Profile Block (Top right corner)", async () => {
     renderWithProviders(<ProfileBlock />);
-    const profileName = await screen.findByText("John Doe");
+    const profileName = await screen.findByText("John");
 
     fireEvent.click(profileName);
     // NOW an anchor with text "Sign Out"
-    const signOutLink = await screen.findByRole("link", { name: /Sign Out/i });
+    const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });
     expect(signOutLink).toBeVisible();
 
     fireEvent.click(profileName);
-    expect(screen.queryByRole("link", { name: /Sign Out/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Sign Out/i })).not.toBeInTheDocument();
   });
 
   it("toggles menu under Profile Block", async () => {
     renderWithProviders(<ProfileBlock />);
-    const profileName = await screen.findByText("John Doe");
+    const profileName = await screen.findByText("John");
 
     fireEvent.click(profileName);
-    const signOutLink = await screen.findByRole("link", { name: /Sign Out/i });
+    const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });
     expect(signOutLink).toBeVisible();
 
     fireEvent.click(profileName);
-    expect(screen.queryByRole("link", { name: /Sign Out/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Sign Out/i })).not.toBeInTheDocument();
   });
 });

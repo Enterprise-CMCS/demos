@@ -8,7 +8,7 @@ import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { TabItem, Tabs } from "layout/Tabs";
-import { Demonstration, DemonstrationStatus, Document, State, User } from "demos-server";
+import { BundleStatus, Demonstration, Document, State, User } from "demos-server";
 import { Contact } from "./DemonstrationDetail";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
@@ -24,7 +24,7 @@ export type DemonstrationTabDemonstration = Pick<
   contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
   state: Pick<State, "id" | "name">;
   projectOfficer: Pick<User, "fullName" | "id">;
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  status: BundleStatus;
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
@@ -32,6 +32,13 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 }) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
+
+  const handleUpdateContact = async (contactId: string, contactType: string) => {
+    // TODO: Implement actual API call to update contact
+    console.log("Updating contact:", { contactId, contactType });
+    // This would typically call a mutation/API to update the contact in the database
+    // await updateContactMutation({ variables: { id: contactId, contactType } });
+  };
 
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
@@ -42,7 +49,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "under_review" }} />
+      <ApplicationWorkflow demonstration={{ status: "Under Review" }} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}
@@ -96,7 +103,10 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <ContactsTable contacts={demonstration.contacts} />
+            <ContactsTable
+              contacts={demonstration.contacts}
+              onUpdateContact={handleUpdateContact}
+            />
           </>
         )}
       </div>
