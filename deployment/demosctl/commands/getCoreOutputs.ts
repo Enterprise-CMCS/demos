@@ -7,6 +7,7 @@ export async function getCoreOutputs(environment: string) {
     "--context",
     `stage=${environment}`,
     `demos-${environment}-core`,
+    "--require-approval=never",
     "--outputs-file",
     "core-outputs.json",
   ]);
