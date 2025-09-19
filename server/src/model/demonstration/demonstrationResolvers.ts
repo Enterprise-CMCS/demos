@@ -73,7 +73,7 @@ export const demonstrationResolvers = {
                 },
               }),
               demonstrationStatus: {
-                connect: { id: "DEMONSTRATION_NEW" },
+                connect: { id: "DEMONSTRATION_PRE-SUBMISSION" },
               },
               state: {
                 connect: { id: stateId },

@@ -6,6 +6,7 @@ import {
   SIGNATURE_LEVEL,
   PHASE,
   DEMONSTRATION_STATUSES,
+  STATES_AND_TERRITORIES,
 } from "./constants.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType } from "./types.js";
@@ -115,17 +116,10 @@ async function seedDatabase() {
   });
 
   console.log("🌱 Seeding states...");
-  const states = [
-    { name: "Alaska", abbreviation: "AK" },
-    { name: "Georgia", abbreviation: "GA" },
-    { name: "Hawaii", abbreviation: "HI" },
-    { name: "Maryland", abbreviation: "MD" },
-    { name: "Vermont", abbreviation: "VT" },
-  ];
-  for (const state of states) {
+  for (const state of STATES_AND_TERRITORIES) {
     await prisma().state.create({
       data: {
-        id: state.abbreviation,
+        id: state.id,
         name: state.name,
       },
     });

@@ -5,6 +5,7 @@ import { ExportIcon, DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 import { isLocalDevelopment } from "config/env";
+import { Notice } from "components/notice";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessUploadDialog } from "components/dialog/document/CompletenessUploadDialog";
@@ -19,12 +20,16 @@ const STYLES = {
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
-  actions: tw`mt-8 flex justify-end gap-3`,
+  actions: tw`mt-8 flex justify-end gap-3 text-left`,
 };
 
 // A minimal starter for the Completeness phase UI with two sections
 export const CompletenessPhase: React.FC = () => {
   const [isUploadOpen, setUploadOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [isNoticeDismissed, setNoticeDismissed] = useState(false);
+  const [noticeDaysRemaining, setNoticeDaysRemaining] = useState<string>("29");
+  const [noticeDueDate, setNoticeDueDate] = useState<string>("2025-09-19");
 
   // local-only state for a basic starting point
   const [mockDocuments, setMockDocuments] = useState<DocumentTableDocument[]>([]);
@@ -33,9 +38,23 @@ export const CompletenessPhase: React.FC = () => {
   const [federalEndDate, setFederalEndDate] = useState<string>("");
 
   const completenessDocs = mockDocuments.filter(
-    (d) => d.documentType === "Application Completeness Letter"
+    (doc) => doc.documentType === "Application Completeness Letter"
   );
   const hasDocs = completenessDocs.length > 0;
+
+  const trimmedNoticeDays = noticeDaysRemaining.trim();
+  const parsedNoticeDays = trimmedNoticeDays === "" ? NaN : Number.parseInt(trimmedNoticeDays, 10);
+  const noticeDaysValue = Number.isNaN(parsedNoticeDays) ? null : Math.max(parsedNoticeDays, 0);
+  const noticeTitle = noticeDaysValue !== null
+    ? `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`
+    : "Federal Comment Period notice";
+
+  const dueDateCandidate = noticeDueDate ? new Date(noticeDueDate) : undefined;
+  const isDueDateValid = dueDateCandidate instanceof Date && !Number.isNaN(dueDateCandidate.getTime());
+  const formattedNoticeDate = isDueDateValid ? formatDate(dueDateCandidate) : null;
+  const noticeDescription = formattedNoticeDate
+    ? `This Amendment must be declared complete by ${formattedNoticeDate}`
+    : "Add a mock due date in the testing panel to update this message.";
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
   const datesAreValid = !federalStartDate || !federalEndDate
@@ -99,7 +118,7 @@ export const CompletenessPhase: React.FC = () => {
 
   const VerifyCompleteSection = () => (
     <div aria-labelledby="completeness-verify-title">
-      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
+      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Completeeee</div>
       <h4 id="completeness-verify-title" className={STYLES.title}>
         VERIFY/COMPLETE
       </h4>
@@ -152,7 +171,7 @@ export const CompletenessPhase: React.FC = () => {
       </div>
 
       <div className={STYLES.actions}>
-        <SecondaryButton name="declare-incomplete" size="small" disabled>
+        <SecondaryButton name="declare-incomplete" size="small" disabled onClick={() => console.log("DECLARE INCOMPLETE")}>
           Declare Incomplete
         </SecondaryButton>
         <SecondaryButton
@@ -171,43 +190,93 @@ export const CompletenessPhase: React.FC = () => {
 
   // Simple testing aid while building the UI (dev only)
   const TestingPanel = () => (
-    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-      <div className="flex gap-2 flex-wrap items-center text-xs">
+    <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+      <div className="flex flex-wrap items-center gap-3 text-xs">
         <button
           onClick={addMockDoc}
-          className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+          className="rounded bg-blue-100 px-3 py-1 text-blue-700 transition-colors hover:bg-blue-200"
         >
           Add Mock Completeness Doc
         </button>
         <span className="text-gray-600">Docs: {completenessDocs.length}</span>
+        <label className="flex items-center gap-2 text-gray-700">
+          <span className="font-semibold">Notice days left</span>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={noticeDaysRemaining}
+            onChange={(event) => setNoticeDaysRemaining(event.target.value)}
+            className="w-16 rounded border border-border-fields px-2 py-1 text-xs"
+          />
+        </label>
+        <label className="flex items-center gap-2 text-gray-700">
+          <span className="font-semibold">Notice due date</span>
+          <input
+            type="date"
+            value={noticeDueDate}
+            onChange={(event) => setNoticeDueDate(event.target.value)}
+            className="rounded border border-border-fields px-2 py-1 text-xs"
+          />
+        </label>
+        <span className="text-gray-600">Displayed days: {noticeDaysValue ?? "--"}</span>
+        <button
+          onClick={() => setNoticeDismissed(false)}
+          className="rounded border border-action px-3 py-1 text-action transition-colors hover:bg-action hover:text-white"
+        >
+          Reset Notice
+        </button>
       </div>
     </div>
   );
 
   return (
     <div>
-      {isLocalDevelopment() && <TestingPanel />}
-
-      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">COMPLETENESS</h3>
-      <p className="text-sm text-text-placeholder mb-4">
+      {!isNoticeDismissed && (
+        <Notice
+          variant="warning"
+          title={noticeTitle}
+          description={noticeDescription}
+          onDismiss={() => setNoticeDismissed(true)}
+          className="mb-6"
+        />
+      )}
+      <button
+        className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
+        onClick={() => setCollapsed((prev) => !prev)}
+        aria-expanded={!collapsed}
+        aria-controls="completeness-phase-content"
+      >
+      COMPLETENESS
+      </button>
+      {!collapsed && (
+        <div id="completeness-phase-content">
+          <p className="text-sm text-text-placeholder mb-4">
         Completeness Checklist – Find completeness guidelines online at
-        {" "}
-        <a className="text-blue-700 underline" href="https://www.medicaid.gov" target="_blank" rel="noreferrer">
+            {" "}
+            <a className="text-blue-700 underline" href="https://www.medicaid.gov" target="_blank" rel="noreferrer">
           Medicaid.gov
-        </a>
+            </a>
         .
-      </p>
+          </p>
 
-      <section className={STYLES.pane}>
-        <div className={STYLES.grid}>
-          <span aria-hidden className={STYLES.divider} />
-          <UploadSection />
-          <VerifyCompleteSection />
+          <section className={STYLES.pane}>
+            <div className={STYLES.grid}>
+              <span aria-hidden className={STYLES.divider} />
+              <UploadSection />
+              <VerifyCompleteSection />
+            </div>
+          </section>
+
+          {/* Minimal dialog wrapper; safe to remove when wired to real data */}
+          <CompletenessUploadDialog
+            isOpen={isUploadOpen}
+            onClose={() => setUploadOpen(false)}
+            onUploaded={addMockDoc}
+          />
         </div>
-      </section>
-
-      {/* Minimal dialog wrapper; safe to remove when wired to real data */}
-      <CompletenessUploadDialog isOpen={isUploadOpen} onClose={() => setUploadOpen(false)} />
+      )}
+      {isLocalDevelopment() && <TestingPanel />}
     </div>
   );
 };
