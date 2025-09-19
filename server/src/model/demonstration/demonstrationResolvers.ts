@@ -31,9 +31,7 @@ export async function createDemonstration(
   return await prisma().$transaction(async (tx) => {
     const bundle = await tx.bundle.create({
       data: {
-        bundleType: {
-          connect: { id: demonstrationBundleTypeId },
-        },
+        bundleTypeId: demonstrationBundleTypeId,
       },
     });
 
