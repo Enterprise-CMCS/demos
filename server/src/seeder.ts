@@ -122,9 +122,7 @@ async function seedDatabase() {
   for (let i = 0; i < userCount; i++) {
     const person = await prisma().person.create({
       data: {
-        personType: {
-          connect: { id: PERSON_TYPES[i % (PERSON_TYPES.length - 1)] },
-        },
+        personTypeId: PERSON_TYPES[i % (PERSON_TYPES.length - 1)],
         email: faker.internet.email(),
         fullName: faker.person.fullName(),
         displayName: faker.internet.username(),
