@@ -6,6 +6,8 @@ import {
 } from "@as-integrations/aws-lambda";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import { authGatePlugin } from "./auth/auth.plugin.js";
+import { loggingPlugin } from "./plugins/logging.plugin.js";
+import { setRequestContext, addToRequestContext, log } from "./logger.js";
 import {
   GraphQLContext,
   buildLambdaContext,
@@ -47,7 +49,7 @@ const databaseUrlPromise = getDatabaseUrl().then((url) => {
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
-  plugins: [authGatePlugin],
+  plugins: [authGatePlugin, loggingPlugin],
 });
 
 export const graphqlHandler = startServerAndCreateLambdaHandler(
@@ -60,7 +62,18 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
       const claims = extractAuthorizerClaims(restEvent);
       // Pass claims to the existing builder via a header so we don't change its signature
       const headersWithClaims = withAuthorizerHeader(restEvent.headers, claims);
+      // Seed request logging context early
+      const requestId = restEvent?.requestContext?.requestId;
+      const correlationId = restEvent?.headers?.["x-correlation-id"] || requestId;
+      setRequestContext({ requestId, correlationId });
+      if (claims?.sub) addToRequestContext({ userId: claims.sub });
+
       const gqlCtx = await buildLambdaContext(headersWithClaims);
+
+      // Enrich context with resolved user id
+      if (gqlCtx?.user?.id) addToRequestContext({ userId: gqlCtx.user.id });
+
+      log.debug("lambda.context.built");
 
       return {
         ...gqlCtx,

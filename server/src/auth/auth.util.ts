@@ -7,6 +7,7 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
 import { PERSON_TYPES } from "../constants";
+import { log } from "../logger.js";
 
 const config = getAuthConfig();
 
@@ -79,7 +80,7 @@ function extractExternalUserIdFromIdentities(identities: unknown): string | unde
       }
     }
   } catch {
-    console.log("Failed to parse identities json claim (probably a local user)");
+    log.debug("auth.identities.parse_failed");
   }
   return undefined;
 }
@@ -88,7 +89,7 @@ function extractExternalUserIdFromIdentities(identities: unknown): string | unde
 function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
   const role = (raw["custom:roles"] as string) ?? (raw["role"] as string);
   if (!role) {
-    console.error("User Missing custom:roles value in token");
+    log.error("auth.claims.missing_role");
     throw new GraphQLError("Missing role in token", {
       extensions: { code: "UNAUTHORIZED", http: { status: 403 } },
     });
@@ -97,7 +98,7 @@ function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
 
   const sub = String(raw["sub"] ?? "");
   if (!sub) {
-    console.error("User Missing sub value in token");
+    log.error("auth.claims.missing_sub");
     throw new GraphQLError("Missing subject in token", {
       extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
     });
@@ -127,7 +128,7 @@ function decodeToken(token: string): Promise<DecodedJWT> {
       try {
         claims = normalizeClaimsFromRaw(rawDecoded);
       } catch (error) {
-        console.error("Token claims error:", error);
+        log.error("auth.token.claims_error", { errorName: (error as Error).name, message: (error as Error).message });
         return reject(error);
       }
 
@@ -199,7 +200,7 @@ function deriveUserFields({ sub, email, givenName, familyName, name, externalUse
   const emailForCreate = email ?? `${sub}@no-email.local`;
   const fullNameFromParts = [givenName, familyName].filter(Boolean).join(" ").trim();
   const fullName = (name && name.trim()) || fullNameFromParts || email || username;
-  console.log("username:", username);
+  log.debug("auth.user.derived", { username });
   return { username, displayName, emailForCreate, fullName };
 }
 
@@ -216,7 +217,7 @@ async function ensureUserFromClaims(claims: Claims) {
   if (existingUser) {
     return existingUser;
   }
-  console.log(`Creating new user: ${username}`);
+  log.info("auth.user.create", { username });
   const person = await prisma().person.create({
     data: {
       personTypeId: role,
@@ -268,7 +269,7 @@ export async function buildLambdaContext(
     const { sub, email, role, givenName, familyName, name, externalUserId } = await decodeToken(token);
     return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
-    console.error("[auth] lambda context error:", err);
+    log.error("auth.lambda_context.error", { errorName: (err as Error).name, message: (err as Error).message });
     return { user: null };
   }
 }
@@ -283,7 +284,7 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
     const { sub, email, role, givenName, familyName, name, externalUserId } = decodedToken;
     return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
-    console.error("[auth] context error:", err);
+    log.error("auth.http_context.error", { errorName: (err as Error).name, message: (err as Error).message });
     return { user: null };
   }
 }
