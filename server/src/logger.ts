@@ -11,10 +11,13 @@ const levelOrder: Record<LogLevel, number> = {
   error: 40,
 };
 
-const envLevel = (process.env.LOG_LEVEL || 'info').toLowerCase() as LogLevel;
+// Default local to debug
+const stage = process.env.STAGE || process.env.NODE_ENV || 'dev';
+const defaultLevel: LogLevel = stage === 'development' || stage === 'dev' ? 'debug' : 'info';
+const envLevel = (process.env.LOG_LEVEL || defaultLevel).toLowerCase() as LogLevel;
 const currentLevel: LogLevel = (['debug', 'info', 'warn', 'error'] as LogLevel[]).includes(envLevel)
   ? envLevel
-  : 'info';
+  : defaultLevel;
 
 const base = {
   service: process.env.SERVICE_NAME || 'demos-server',
