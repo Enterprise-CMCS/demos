@@ -1,109 +1,161 @@
--- CreateTable
-CREATE TABLE "demos_app"."demonstration_grant_level_limit" (
-    "id" TEXT NOT NULL,
+CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.demonstration_history (
+            revision_type,
+            id,
+            bundle_type_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            cmcs_division_id,
+            signature_level_id,
+            status_id,
+            state_id,
+            current_phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.bundle_type_id,
+            NEW.name,
+            NEW.description,
+            NEW.effective_date,
+            NEW.expiration_date,
+            NEW.cmcs_division_id,
+            NEW.signature_level_id,
+            NEW.status_id,
+            NEW.state_id,
+            NEW.current_phase_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.demonstration_history (
+            revision_type,
+            id,
+            bundle_type_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            cmcs_division_id,
+            signature_level_id,
+            status_id,
+            state_id,
+            current_phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.bundle_type_id,
+            OLD.name,
+            OLD.description,
+            OLD.effective_date,
+            OLD.expiration_date,
+            OLD.cmcs_division_id,
+            OLD.signature_level_id,
+            OLD.status_id,
+            OLD.state_id,
+            OLD.current_phase_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
-    CONSTRAINT "demonstration_grant_level_limit_pkey" PRIMARY KEY ("id")
-);
+CREATE OR REPLACE TRIGGER log_changes_demonstration_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration();
 
--- CreateTable
-CREATE TABLE "demos_app"."demonstration_role_assignment" (
-    "person_id" UUID NOT NULL,
-    "demonstration_id" UUID NOT NULL,
-    "role_id" TEXT NOT NULL,
-    "state_id" TEXT NOT NULL,
-    "person_type_id" TEXT NOT NULL,
-    "grant_level_id" TEXT NOT NULL,
+CREATE OR REPLACE FUNCTION demos_app.log_changes_modification()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.modification_history (
+            revision_type,
+            id,
+            bundle_type_id,
+            demonstration_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            status_id,
+            current_phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.bundle_type_id,
+            NEW.demonstration_id,
+            NEW.name,
+            NEW.description,
+            NEW.effective_date,
+            NEW.expiration_date,
+            NEW.status_id,
+            NEW.current_phase_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.modification_history (
+            revision_type,
+            id,
+            bundle_type_id,
+            demonstration_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            status_id,
+            current_phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.bundle_type_id,
+            OLD.demonstration_id,
+            OLD.name,
+            OLD.description,
+            OLD.effective_date,
+            OLD.expiration_date,
+            OLD.status_id,
+            OLD.current_phase_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
-    CONSTRAINT "demonstration_role_assignment_pkey" PRIMARY KEY ("person_id","demonstration_id","role_id")
-);
+CREATE OR REPLACE TRIGGER log_changes_modification_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.modification
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_modification();
 
--- CreateTable
-CREATE TABLE "demos_app"."demonstration_role_assignment_history" (
-    "revision_id" SERIAL NOT NULL,
-    "revision_type" "demos_app"."revision_type_enum" NOT NULL,
-    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "person_id" UUID NOT NULL,
-    "demonstration_id" UUID NOT NULL,
-    "role_id" TEXT NOT NULL,
-    "state_id" TEXT NOT NULL,
-    "person_type_id" TEXT NOT NULL,
-    "grant_level_id" TEXT NOT NULL,
-
-    CONSTRAINT "demonstration_role_assignment_history_pkey" PRIMARY KEY ("revision_id")
-);
-
--- CreateTable
-CREATE TABLE "demos_app"."person_state" (
-    "person_id" UUID NOT NULL,
-    "state_id" TEXT NOT NULL,
-
-    CONSTRAINT "person_state_pkey" PRIMARY KEY ("person_id","state_id")
-);
-
--- CreateTable
-CREATE TABLE "demos_app"."person_state_history" (
-    "revision_id" SERIAL NOT NULL,
-    "revision_type" "demos_app"."revision_type_enum" NOT NULL,
-    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "person_id" UUID NOT NULL,
-    "state_id" TEXT NOT NULL,
-
-    CONSTRAINT "person_state_history_pkey" PRIMARY KEY ("revision_id")
-);
-
--- CreateTable
-CREATE TABLE "demos_app"."primary_demonstration_role_assignment" (
-    "person_id" UUID NOT NULL,
-    "demonstration_id" UUID NOT NULL,
-    "role_id" TEXT NOT NULL,
-
-    CONSTRAINT "primary_demonstration_role_assignment_pkey" PRIMARY KEY ("demonstration_id","role_id")
-);
-
--- CreateTable
-CREATE TABLE "demos_app"."primary_demonstration_role_assignment_history" (
-    "revision_id" SERIAL NOT NULL,
-    "revision_type" "demos_app"."revision_type_enum" NOT NULL,
-    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "person_id" UUID NOT NULL,
-    "demonstration_id" UUID NOT NULL,
-    "role_id" TEXT NOT NULL,
-
-    CONSTRAINT "primary_demonstration_role_assignment_history_pkey" PRIMARY KEY ("revision_id")
-);
-
--- CreateIndex
-CREATE UNIQUE INDEX "primary_demonstration_role_assignment_person_id_demonstrati_key" ON "demos_app"."primary_demonstration_role_assignment"("person_id", "demonstration_id", "role_id");
-
--- AddForeignKey
-ALTER TABLE "demos_app"."demonstration_grant_level_limit" ADD CONSTRAINT "demonstration_grant_level_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "demos_app"."grant_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."demonstration_role_assignment" ADD CONSTRAINT "demonstration_role_assignment_person_id_state_id_fkey" FOREIGN KEY ("person_id", "state_id") REFERENCES "demos_app"."person_state"("person_id", "state_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."demonstration_role_assignment" ADD CONSTRAINT "demonstration_role_assignment_person_id_person_type_id_fkey" FOREIGN KEY ("person_id", "person_type_id") REFERENCES "demos_app"."person"("id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."demonstration_role_assignment" ADD CONSTRAINT "demonstration_role_assignment_demonstration_id_state_id_fkey" FOREIGN KEY ("demonstration_id", "state_id") REFERENCES "demos_app"."demonstration"("id", "state_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."demonstration_role_assignment" ADD CONSTRAINT "demonstration_role_assignment_role_id_person_type_id_fkey" FOREIGN KEY ("role_id", "person_type_id") REFERENCES "demos_app"."role_person_type"("role_id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."demonstration_role_assignment" ADD CONSTRAINT "demonstration_role_assignment_role_id_grant_level_id_fkey" FOREIGN KEY ("role_id", "grant_level_id") REFERENCES "demos_app"."role"("id", "grant_level_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."demonstration_role_assignment" ADD CONSTRAINT "demonstration_role_assignment_grant_level_id_fkey" FOREIGN KEY ("grant_level_id") REFERENCES "demos_app"."demonstration_grant_level_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."person_state" ADD CONSTRAINT "person_state_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "demos_app"."person"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."person_state" ADD CONSTRAINT "person_state_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "demos_app"."state"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."primary_demonstration_role_assignment" ADD CONSTRAINT "primary_demonstration_role_assignment_person_id_demonstrat_fkey" FOREIGN KEY ("person_id", "demonstration_id", "role_id") REFERENCES "demos_app"."demonstration_role_assignment"("person_id", "demonstration_id", "role_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration_role_assignment()
 RETURNS TRIGGER AS $$
 BEGIN

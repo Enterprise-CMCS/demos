@@ -2,11 +2,13 @@ import { Demonstration } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType, Phase, BundleStatus } from "../../types.js";
+import { BundleType, Phase, BundleStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
+const grantLevelDemonstration: GrantLevel = "Demonstration";
+const roleProjectOfficer: Role = "Project Officer";
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -63,9 +65,9 @@ export async function createDemonstration(
           demonstrationId: bundle.id,
           personId: input.projectOfficerUserId,
           personTypeId: person.personTypeId,
-          roleId: "Project Officer",
+          roleId: roleProjectOfficer,
           stateId: input.stateId,
-          grantLevelId: "Demonstration",
+          grantLevelId: grantLevelDemonstration,
         },
       });
 
