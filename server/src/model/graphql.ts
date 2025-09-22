@@ -1,6 +1,7 @@
 import { gql } from "graphql-tag";
 
 import { bundleSchema } from "./bundle/bundleSchema.js";
+import { bundleResolvers } from "./bundle/bundleResolvers.js";
 
 import { bundleStatusSchema } from "./bundleStatus/bundleStatusSchema.js";
 
@@ -99,6 +100,7 @@ export const typeDefs = [
 ];
 
 export const resolvers = [
+  bundleResolvers,
   bundlePhaseResolvers,
   bundlePhaseDateResolvers,
   demonstrationResolvers,
