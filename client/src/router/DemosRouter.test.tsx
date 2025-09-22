@@ -23,9 +23,9 @@ vi.mock("react-oidc-context", () => {
   // Simple passthrough HOC so routes render without real auth logic
 
   type WithAuthenticationRequired = <P extends object>(
-  Component: React.ComponentType<P>,
-  options?: unknown
-) => React.ComponentType<P>;
+    Component: React.ComponentType<P>,
+    options?: unknown
+  ) => React.ComponentType<P>;
 
   const withAuthenticationRequired: WithAuthenticationRequired = (Component) => {
     const Wrapped: React.FC<React.ComponentProps<typeof Component>> = (props) => (
@@ -43,7 +43,7 @@ vi.mock("react-oidc-context", () => {
     AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     withAuthenticationRequired,
     useAuth: () => ({
-      isAuthenticated: true,   // so protected routes render
+      isAuthenticated: true, // so protected routes render
       isLoading: false,
       user: { id_token: "fake" },
       signinRedirect,
@@ -67,7 +67,6 @@ vi.mock("./DemosApolloProvider", async () => {
   return { DemosApolloProvider };
 });
 
-vi.mock("pages", () => ({ LandingPage: () => <div>LandingPage</div> }));
 vi.mock("pages/debug", () => ({
   ComponentLibrary: () => <div>ComponentLibrary</div>,
   TestHooks: () => <div>TestHooks</div>,
@@ -81,22 +80,22 @@ vi.mock("layout/PrimaryLayout", () => ({
   ),
 }));
 vi.mock("pages/Demonstrations", () => ({
-  Demonstrations: () => <div>Demonstrations</div>,
+  DemonstrationsPage: () => <div>DemonstrationsPage</div>,
   DEMONSTRATIONS_PAGE_QUERY: {},
 }));
 
 describe("DemosRouter", () => {
-  it("renders the LandingPage at root path", () => {
+  it("renders the DemonstrationsPage at root path", () => {
     window.history.pushState({}, "Home", "/");
     render(<DemosRouter />);
-    expect(screen.getByText("LandingPage")).toBeInTheDocument();
+    expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument();
     expect(screen.getByText("PrimaryLayout")).toBeInTheDocument();
   });
 
   it("renders the Demonstrations page at /demonstrations", () => {
     window.history.pushState({}, "Demonstrations", "/demonstrations");
     render(<DemosRouter />);
-    expect(screen.getByText("Demonstrations")).toBeInTheDocument();
+    expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument();
   });
 
   it("renders debug routes in development mode", () => {

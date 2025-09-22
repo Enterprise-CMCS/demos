@@ -81,7 +81,7 @@ export type DemonstrationsPageQueryResult = {
   statusOptions: Pick<DemonstrationStatus, "name">[];
 };
 
-export const Demonstrations: React.FC = () => {
+export const DemonstrationsPage: React.FC = () => {
   const { data, loading, error } =
     useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
 
