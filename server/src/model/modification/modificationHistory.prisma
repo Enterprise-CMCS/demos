@@ -1,18 +1,18 @@
 model ModificationHistory {
-  revisionId           Int          @id @default(autoincrement()) @map("revision_id")
-  revisionType         RevisionType @map("revision_type")
-  modifiedAt           DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
-  id                   String       @db.Uuid
-  bundleTypeId         String       @map("bundle_type_id")
-  demonstrationId      String       @map("demonstration_id") @db.Uuid
-  name                 String
-  description          String?
-  effectiveDate        DateTime?    @map("effective_date") @db.Date
-  expirationDate       DateTime?    @map("expiration_date") @db.Date
-  statusId             String       @map("status_id")
-  currentPhaseId       String       @map("current_phase_id")
-  createdAt            DateTime     @map("created_at") @db.Timestamptz()
-  updatedAt            DateTime     @map("updated_at") @db.Timestamptz()
+  revisionId      Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType    RevisionType @map("revision_type")
+  modifiedAt      DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  id              String       @db.Uuid
+  bundleTypeId    String       @map("bundle_type_id")
+  demonstrationId String       @map("demonstration_id") @db.Uuid
+  name            String
+  description     String?
+  effectiveDate   DateTime?    @map("effective_date") @db.Date
+  expirationDate  DateTime?    @map("expiration_date") @db.Date
+  statusId        String       @map("status_id")
+  currentPhaseId  String       @map("current_phase_id")
+  createdAt       DateTime     @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime     @map("updated_at") @db.Timestamptz()
 
   @@map("modification_history")
 }

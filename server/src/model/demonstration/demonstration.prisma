@@ -1,17 +1,17 @@
 model Demonstration {
-  id                    String    @db.Uuid
-  bundleTypeId          String    @map("bundle_type_id")
-  name                  String
-  description           String?
-  effectiveDate         DateTime? @map("effective_date") @db.Date
-  expirationDate        DateTime? @map("expiration_date") @db.Date
-  cmcsDivisionId        String?   @map("cmcs_division_id")
-  signatureLevelId      String?   @map("signature_level_id")
-  statusId              String    @map("status_id")
-  stateId               String    @map("state_id")
-  currentPhaseId        String    @map("current_phase_id")
-  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  id               String    @db.Uuid
+  bundleTypeId     String    @map("bundle_type_id")
+  name             String
+  description      String?
+  effectiveDate    DateTime? @map("effective_date") @db.Date
+  expirationDate   DateTime? @map("expiration_date") @db.Date
+  cmcsDivisionId   String?   @map("cmcs_division_id")
+  signatureLevelId String?   @map("signature_level_id")
+  statusId         String    @map("status_id")
+  stateId          String    @map("state_id")
+  currentPhaseId   String    @map("current_phase_id")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
   bundle                       Bundle                        @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
   bundleType                   DemonstrationBundleType       @relation(fields: [bundleTypeId], references: [id])
