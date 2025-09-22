@@ -28,7 +28,7 @@ vi.mock("react-router-dom", () => ({
  */
 describe("useEvent", () => {
   beforeEach(() => {
-    mockLogEvent.mockClear(); // ✅ Added: Clear the mock before each test
+    mockLogEvent.mockClear();
   });
 
   it("should provide logEvent function", () => {
