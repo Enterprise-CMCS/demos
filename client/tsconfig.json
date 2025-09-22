@@ -17,6 +17,7 @@
       "mock-data/*": ["mock-data/*"],
       "queries/*": ["queries/*"],
       "icons": ["components/icons/index.ts"],
+      "dates": ["components/application/dates/index.ts"],
       "demos-server": ["../../server/src/types.ts"],
       "demos-server-constants": ["../../server/src/constants.ts"]
     }

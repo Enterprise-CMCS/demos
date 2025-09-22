@@ -14,7 +14,7 @@ describe("ExtensionTable", () => {
       <ModificationTable
         modifications={mockExtensions.map((extension) => ({
           ...extension,
-          status: extension.extensionStatus,
+          status: extension.status,
         }))}
       />
     );
@@ -53,7 +53,7 @@ describe("AmendmentTable", () => {
       <ModificationTable
         modifications={mockAmendments.map((amendment) => ({
           ...amendment,
-          status: amendment.amendmentStatus,
+          status: amendment.status,
         }))}
       />
     );
@@ -86,42 +86,13 @@ describe("AmendmentTable", () => {
   });
 });
 
-describe("Status rendering", () => {
-  it("renders unknown status without an icon", () => {
-    render(
-      <ModificationTable
-        modifications={[
-          {
-            id: "3",
-            name: "Test Item",
-            status: {
-              name: "Unknown Status",
-            },
-            effectiveDate: new Date(2025, 0, 1),
-          },
-        ]}
-      />
-    );
-
-    const statusElement = screen.getByText("Unknown Status");
-    expect(statusElement).toBeInTheDocument();
-
-    // Check that it's a simple span, not a div with icons
-    expect(statusElement.tagName).toBe("SPAN");
-    expect(statusElement).toHaveClass("text-sm", "text-gray-700");
-
-    // Ensure no SVG icons are present in the status element
-    expect(statusElement.querySelector("svg")).toBeNull();
-  });
-});
-
 describe("Initially expanded row", () => {
   it("automatically expands a row if initiallyExpandedId is provided", () => {
     render(
       <ModificationTable
         modifications={mockExtensions.map((extension) => ({
           ...extension,
-          status: extension.extensionStatus,
+          status: extension.status,
         }))}
         initiallyExpandedId="1"
       />
@@ -139,7 +110,7 @@ describe("Date formatting", () => {
         modifications={[
           {
             ...mockAmendments[5],
-            status: mockAmendments[5].amendmentStatus,
+            status: mockAmendments[5].status,
           },
         ]}
       />
@@ -154,7 +125,7 @@ describe("Date formatting", () => {
         modifications={[
           {
             ...mockExtensions[2],
-            status: mockExtensions[2].extensionStatus,
+            status: mockExtensions[2].status,
           },
         ]}
       />

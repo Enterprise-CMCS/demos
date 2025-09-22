@@ -1,5 +1,5 @@
 import { gql } from "graphql-tag";
-import { DateType } from "../../types.js";
+import { DateType, Phase } from "../../types.js";
 
 export const bundlePhaseDateSchema = gql`
   type BundlePhaseDate {
@@ -9,10 +9,24 @@ export const bundlePhaseDateSchema = gql`
     updatedAt: DateTime!
   }
 
+  input SetPhaseDateInput {
+    bundleId: ID!
+    phase: Phase!
+    dateType: DateType!
+    dateValue: DateTime!
+  }
+
   type Mutation {
-    setPhaseDate(bundleId: ID!, phase: Phase!, dateType: DateType!, dateValue: DateTime!): Bundle
+    setPhaseDate(input: SetPhaseDateInput): Bundle
   }
 `;
+
+export interface SetPhaseDateInput {
+  bundleId: string;
+  phase: Phase;
+  dateType: DateType;
+  dateValue: Date;
+}
 
 export interface BundlePhaseDate {
   dateType: DateType;

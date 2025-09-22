@@ -1,21 +1,21 @@
 model DemonstrationHistory {
-  revisionId            Int          @id @default(autoincrement()) @map("revision_id")
-  revisionType          RevisionType @map("revision_type")
-  modifiedAt            DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
-  id                    String       @db.Uuid
-  bundle_type_id        String
-  name                  String
-  description           String
-  effectiveDate         DateTime?    @map("effective_date") @db.Date
-  expirationDate        DateTime?    @map("expiration_date") @db.Date
-  cmcsDivisionId        String?      @map("cmcs_division_id")
-  signatureLevelId      String?      @map("signature_level_id")
-  demonstrationStatusId String       @map("demonstration_status_id")
-  stateId               String       @map("state_id")
-  currentPhaseId        String       @map("current_phase_id")
-  projectOfficerUserId  String       @map("project_officer_user_id") @db.Uuid
-  createdAt             DateTime     @map("created_at") @db.Timestamptz()
-  updatedAt             DateTime     @map("updated_at") @db.Timestamptz()
+  revisionId           Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType         RevisionType @map("revision_type")
+  modifiedAt           DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  id                   String       @db.Uuid
+  bundle_type_id       String
+  name                 String
+  description          String?
+  effectiveDate        DateTime?    @map("effective_date") @db.Date
+  expirationDate       DateTime?    @map("expiration_date") @db.Date
+  cmcsDivisionId       String?      @map("cmcs_division_id")
+  signatureLevelId     String?      @map("signature_level_id")
+  statusId             String       @map("status_id")
+  stateId              String       @map("state_id")
+  currentPhaseId       String       @map("current_phase_id")
+  projectOfficerUserId String       @map("project_officer_user_id") @db.Uuid
+  createdAt            DateTime     @map("created_at") @db.Timestamptz()
+  updatedAt            DateTime     @map("updated_at") @db.Timestamptz()
 
   @@map("demonstration_history")
 }

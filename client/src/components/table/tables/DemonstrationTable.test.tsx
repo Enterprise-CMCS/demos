@@ -4,18 +4,14 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { userOptions } from "mock-data/userMocks";
 import { DemonstrationTable } from "./DemonstrationTable";
-import { DEMONSTRATION_STATUSES } from "demos-server-constants";
 import { mockStates } from "mock-data/stateMocks";
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
-
-const demonstrationStatuses = DEMONSTRATION_STATUSES.map((s) => ({ name: s.name }));
 
 // Helper functions
 const renderDemonstrations = () => {
   return render(
     <DemonstrationTable
       projectOfficerOptions={userOptions}
-      statusOptions={demonstrationStatuses}
       stateOptions={mockStates}
       demonstrations={mockDemonstrations}
     />
@@ -170,7 +166,6 @@ describe("Demonstrations", () => {
       render(
         <DemonstrationTable
           projectOfficerOptions={userOptions}
-          statusOptions={demonstrationStatuses}
           stateOptions={mockStates}
           demonstrations={[]}
         />
@@ -186,7 +181,6 @@ describe("Demonstrations", () => {
       render(
         <DemonstrationTable
           projectOfficerOptions={userOptions}
-          statusOptions={demonstrationStatuses}
           stateOptions={mockStates}
           demonstrations={[]}
         />
@@ -415,7 +409,7 @@ describe("Demonstrations", () => {
       expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getAllByRole("cell", { name: /John Doe/i }).length).toBeGreaterThan(0);
-      expect(screen.getAllByRole("cell", { name: /Approved/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("cell", { name: /Under Review/i }).length).toBeGreaterThan(0);
     });
 
     it("pagination applies only to demonstration records, not to nested amendments/extensions", async () => {
