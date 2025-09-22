@@ -1,6 +1,6 @@
 // Flags: STATIC_CONSTRAINT
 model BundleStatus {
-  id            String
+  id String
 
   Demonstration Demonstration[]
   Modification  Modification[]

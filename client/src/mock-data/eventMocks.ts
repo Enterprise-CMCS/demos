@@ -4,7 +4,7 @@ import { GET_EVENTS_QUERY, LOG_EVENT_MUTATION } from "queries/eventQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
 
-import { johnDoe, MockUser } from "./userMocks";
+import { MockUser, mockUsers } from "./userMocks";
 
 export type MockEvent = Pick<
   Event,
@@ -16,7 +16,7 @@ export type MockEvent = Pick<
 const mockEvents = [
   {
     id: "1",
-    user: johnDoe,
+    user: mockUsers[0],
     eventType: "LOGIN_SUCCEEDED",
     logLevel: "INFO",
     withRole: "demos-cms-user" as Role,
@@ -28,7 +28,7 @@ const mockEvents = [
   },
   {
     id: "2",
-    user: johnDoe,
+    user: mockUsers[0],
     eventType: "LOGIN_FAILED",
     logLevel: "ERROR",
     withRole: "demos-cms-user" as Role,

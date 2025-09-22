@@ -47,11 +47,11 @@ function sampleFromArray<T>(arrayToSample: T[], recordsToSample: number): T[] {
   return shuffledArray.slice(0, recordsToSample);
 }
 
-function clearDatabase() {
+async function clearDatabase() {
   // Note: the history tables are not truncated in this process
   // Almost always, this runs via npm run seed which empties the DB anyway
   // However, if this does not happen, the history tables will contain the truncates
-  return prisma().$transaction([
+  return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
     // Start with join tables
     prisma().rolePermission.deleteMany(),
@@ -61,7 +61,12 @@ function clearDatabase() {
 
     // Delete various bundle types
     prisma().modification.deleteMany(),
+    prisma().primaryDemonstrationRoleAssignment.deleteMany(),
+    prisma().demonstrationRoleAssignment.deleteMany(),
+
     prisma().demonstration.deleteMany(),
+
+    prisma().bundlePhaseDate.deleteMany(),
 
     // Phases and accompanying items
     prisma().bundlePhaseDate.deleteMany(),
@@ -78,6 +83,8 @@ function clearDatabase() {
 
     // delete system role assignments before roles and users
     prisma().systemRoleAssignment.deleteMany(),
+
+    prisma().personState.deleteMany(),
 
     // Finally, roles and users
     prisma().user.deleteMany(),
@@ -122,9 +129,7 @@ async function seedDatabase() {
   for (let i = 0; i < userCount; i++) {
     const person = await prisma().person.create({
       data: {
-        personType: {
-          connect: { id: PERSON_TYPES[i % (PERSON_TYPES.length - 1)] },
-        },
+        personTypeId: PERSON_TYPES[i % (PERSON_TYPES.length - 1)],
         email: faker.internet.email(),
         fullName: faker.person.fullName(),
         displayName: faker.internet.username(),
@@ -136,6 +141,22 @@ async function seedDatabase() {
         personTypeId: person.personTypeId,
         cognitoSubject: faker.string.uuid(),
         username: faker.internet.username(),
+      },
+    });
+  }
+
+  console.log("🌱 Seeding person states...");
+  const allPeople = await prisma().person.findMany();
+  for (const person of allPeople) {
+    // for now, just adding one state to each person
+    const state = await prisma().state.findRandom();
+    if (!state) {
+      throw new Error("No states found to assign to person");
+    }
+    await prisma().personState.create({
+      data: {
+        personId: person.id,
+        stateId: state.id,
       },
     });
   }
@@ -161,15 +182,31 @@ async function seedDatabase() {
       });
     }
   }
+  // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < demonstrationCount; i++) {
+    const person = await prisma().person.create({
+      data: {
+        personTypeId: "demos-cms-user",
+        email: faker.internet.email(),
+        fullName: faker.person.fullName(),
+        displayName: faker.internet.username(),
+      },
+    });
+    const state = await prisma().state.findRandom();
+    const personState = await prisma().personState.create({
+      data: {
+        personId: person.id,
+        stateId: state!.id,
+      },
+    });
     const createInput: CreateDemonstrationInput = {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
       cmcsDivision: sampleFromArray([...CMCS_DIVISION, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-      stateId: (await prisma().state.findRandom())!.id,
-      projectOfficerUserId: (await prisma().user.findRandom())!.id,
+      stateId: state!.id,
+      projectOfficerUserId: personState.personId,
     };
     await createDemonstration(undefined, { input: createInput });
   }
@@ -192,7 +229,6 @@ async function seedDatabase() {
       demonstrationId: (await prisma().demonstration.findRandom())!.id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      projectOfficerUserId: (await prisma().user.findRandom())!.id,
     };
     await createAmendment(undefined, { input: createInput });
   }
@@ -215,7 +251,6 @@ async function seedDatabase() {
       demonstrationId: (await prisma().demonstration.findRandom())!.id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      projectOfficerUserId: (await prisma().user.findRandom())!.id,
     };
     await createExtension(undefined, { input: createInput });
   }

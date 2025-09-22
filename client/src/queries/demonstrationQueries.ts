@@ -73,10 +73,6 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
         id
         name
       }
-      users {
-        id
-        fullName
-      }
     }
   }
 `;
