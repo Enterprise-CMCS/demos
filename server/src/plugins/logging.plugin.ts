@@ -1,16 +1,22 @@
-import type {
-  ApolloServerPlugin,
-  GraphQLRequestListener,
-} from '@apollo/server';
+import type { ApolloServerPlugin, GraphQLRequestListener } from '@apollo/server';
+import type { GraphQLContext } from '../auth/auth.util.js';
 import { log, setRequestContext, addToRequestContext } from '../logger.js';
 
-export const loggingPlugin: ApolloServerPlugin<any> = {
-  async requestDidStart(requestContext): Promise<GraphQLRequestListener<any>> {
+type ExtendedGraphQLContext = GraphQLContext & {
+  lambdaEvent?: {
+    requestContext?: {
+      requestId?: string;
+    };
+  };
+};
+
+export const loggingPlugin: ApolloServerPlugin<GraphQLContext> = {
+  async requestDidStart(requestContext): Promise<GraphQLRequestListener<GraphQLContext>> {
     const start = process.hrtime.bigint();
 
     // Try to pull identifiers from context or HTTP headers
-    const ctx: any = requestContext.contextValue || {};
-    const lambdaEvent = ctx.lambdaEvent as any | undefined;
+    const ctx = (requestContext.contextValue ?? {}) as ExtendedGraphQLContext;
+    const lambdaEvent = ctx.lambdaEvent;
     const httpHeaders = requestContext.request.http?.headers;
 
     const header = (name: string) => {
@@ -57,4 +63,3 @@ export const loggingPlugin: ApolloServerPlugin<any> = {
     };
   },
 };
-

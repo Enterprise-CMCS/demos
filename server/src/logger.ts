@@ -47,10 +47,8 @@ function write(level: LogLevel, msg: string, meta?: LogMeta) {
   };
   // Ensure it is a single line JSON for CloudWatch Insights
   try {
-    // eslint-disable-next-line no-console
     console.log(JSON.stringify(line));
-  } catch (e) {
-    // eslint-disable-next-line no-console
+  } catch {
     console.log(JSON.stringify({ level, msg, time: new Date().toISOString(), ...base }));
   }
 }
