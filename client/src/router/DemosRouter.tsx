@@ -8,7 +8,7 @@ import { DemosApolloProvider } from "./DemosApolloProvider";
 import { IdleSessionHandler } from "./IdleSessionHandler";
 import { UserProvider } from "components/user/UserContext";
 import { PrimaryLayout } from "layout/PrimaryLayout";
-import { DemonstrationsPage } from "pages/Demonstrations";
+import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary, TestHooks } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";

@@ -79,7 +79,7 @@ vi.mock("layout/PrimaryLayout", () => ({
     <div>PrimaryLayout{children}</div>
   ),
 }));
-vi.mock("pages/Demonstrations", () => ({
+vi.mock("pages/DemonstrationsPage", () => ({
   DemonstrationsPage: () => <div>DemonstrationsPage</div>,
   DEMONSTRATIONS_PAGE_QUERY: {},
 }));

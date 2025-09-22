@@ -10,7 +10,7 @@ import {
   Demonstration,
   DemonstrationAmendment,
   DemonstrationExtension,
-} from "pages/Demonstrations";
+} from "pages/DemonstrationsPage";
 
 export type GenericDemonstrationTableRow =
   | (Demonstration & { type: "demonstration" })

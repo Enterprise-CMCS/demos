@@ -6,7 +6,7 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { DEMONSTRATIONS_PAGE_QUERY } from "pages/Demonstrations";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 import { MockedResponse } from "@apollo/client/testing";
 import { MockState, mockStates } from "./stateMocks";
 import { MockUser, mockUsers } from "./userMocks";
@@ -18,9 +18,8 @@ import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_STATUSES } from "demos-server-constants";
 import type { DemonstrationStatus } from "demos-server";
 
-const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] = DEMONSTRATION_STATUSES.map(
-  (s) => ({ id: s.id, name: s.name })
-);
+const demonstrationStatuses: Pick<DemonstrationStatus, "id" | "name">[] =
+  DEMONSTRATION_STATUSES.map((s) => ({ id: s.id, name: s.name }));
 
 export type MockDemonstration = Pick<
   Demonstration,
