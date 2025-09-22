@@ -1,57 +1,33 @@
 import React, { useState } from "react";
 
 import { Button } from "components/button";
-import {
-  Contact,
-  ContactsTable,
-} from "components/table/tables/ContactsTable";
-
-type ContactType =
-  | "Primary Project Officer"
-  | "Secondary Project Officer"
-  | "State Representative"
-  | "Subject Matter Expert";
-
-const mockContacts: Contact[] = [
-  {
-    id: "1",
-    fullName: "John Doe",
-    email: "john@example.com",
-    contactType: "Primary Project Officer" as ContactType,
-  },
-  {
-    id: "2",
-    fullName: "Jane Smith",
-    email: "jane@example.com",
-    contactType: "State Representative" as ContactType,
-  },
-  {
-    id: "3",
-    fullName: "Bob Johnson",
-    email: "bob@example.com",
-    contactType: "Subject Matter Expert" as ContactType,
-  },
-];
+import { ContactsTable, DemonstrationRoleAssignment } from "components/table/tables/ContactsTable";
+import { demonstrationRoleAssignmentMocks } from "mock-data/demonstrationRoleAssignmentMocks";
+import { Role } from "demos-server";
 
 export const ContactsTableDemo: React.FC = () => {
-  const [contacts, setContacts] = useState<Contact[]>(mockContacts);
+  const [roles, setRoles] = useState<DemonstrationRoleAssignment[]>(
+    demonstrationRoleAssignmentMocks
+  );
 
-  const handleUpdateContact = async (contactId: string, contactType: string) => {
+  const handleUpdateContact = async (role: DemonstrationRoleAssignment, contactType: string) => {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Update the contact in state
-    setContacts((prevContacts) =>
+    setRoles((prevContacts) =>
       prevContacts.map((contact) =>
-        contact.id === contactId ? { ...contact, contactType: contactType as ContactType } : contact
+        contact.person === role.person && contact.isPrimary === role.isPrimary
+          ? { ...contact, contactType: contactType as Role }
+          : contact
       )
     );
 
-    console.log(`Updated contact ${contactId} to type: ${contactType}`);
+    console.log(`Updated contact of ${role.person.fullName} to type: ${contactType}`);
   };
 
   const resetContacts = () => {
-    setContacts(mockContacts);
+    setRoles(demonstrationRoleAssignmentMocks);
   };
 
   return (
@@ -63,7 +39,7 @@ export const ContactsTableDemo: React.FC = () => {
         </Button>
       </div>
       <div className="bg-white p-4 border rounded">
-        <ContactsTable contacts={contacts} onUpdateContact={handleUpdateContact} />
+        <ContactsTable roles={roles} onUpdateContact={handleUpdateContact} />
       </div>
       <div className="mt-4 text-sm text-gray-600">
         <p>

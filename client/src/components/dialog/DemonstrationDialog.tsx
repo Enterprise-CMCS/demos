@@ -350,7 +350,6 @@ export const EditDemonstrationDialog: React.FC<{
     name: demonstration.name,
     description: demonstration.description,
     stateId: demonstration.stateId,
-    projectOfficerUserId: demonstration.projectOfficerId,
     cmcsDivision: demonstration.cmcsDivision,
     signatureLevel: demonstration.signatureLevel,
     // effectiveDate: demonstration.effectiveDate,

@@ -2,8 +2,7 @@ import { gql } from "graphql-tag";
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
-import { User } from "../user/userSchema.js";
-import { CmcsDivision, SignatureLevel, Phase, BundlePhase, BundleStatus } from "../../types.js";
+import { CmcsDivision, SignatureLevel, Phase, BundlePhase, BundleStatus, DemonstrationRoleAssignment } from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
@@ -31,12 +30,12 @@ export const demonstrationSchema = gql`
     state: State!
     currentPhase: Phase!
     phases: [BundlePhase!]!
-    projectOfficer: User!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+    roles: [DemonstrationRoleAssignment!]!
   }
 
   input CreateDemonstrationInput {
@@ -58,7 +57,6 @@ export const demonstrationSchema = gql`
     status: BundleStatus
     currentPhase: Phase
     stateId: ID
-    projectOfficerUserId: String
   }
 
   type CreateDemonstrationResponse {
@@ -90,12 +88,12 @@ export interface Demonstration {
   state: State;
   currentPhase: Phase;
   phases: BundlePhase[];
-  projectOfficer: User;
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
   createdAt: Date;
   updatedAt: Date;
+  roles: DemonstrationRoleAssignment[];
 }
 
 // Used in creating a demonstration from the F/E dialog.
@@ -119,5 +117,4 @@ export interface UpdateDemonstrationInput {
   status?: BundleStatus;
   currentPhase?: Phase;
   stateId?: string;
-  projectOfficerUserId?: string;
 }

@@ -18,32 +18,30 @@ import {
 import { createSelectColumnDef } from "../columns/selectColumn";
 import { PaginationControls } from "../PaginationControls";
 import { TableHead } from "../Table";
+import {
+  Person,
+  DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
+} from "demos-server";
 
-type ContactType =
-  | "Primary Project Officer"
-  | "Secondary Project Officer"
-  | "State Representative"
-  | "Subject Matter Expert";
-
-export type Contact = {
-  id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: ContactType | null;
+export type DemonstrationRoleAssignment = Pick<
+  ServerDemonstrationRoleAssignment,
+  "role" | "isPrimary"
+> & {
+  person: Pick<Person, "id" | "fullName" | "email">;
 };
 
-const contactsColumnHelper = createColumnHelper<Contact>();
+const contactsColumnHelper = createColumnHelper<DemonstrationRoleAssignment>();
 const contactsColumns = [
   createSelectColumnDef(contactsColumnHelper),
-  contactsColumnHelper.accessor("fullName", {
+  contactsColumnHelper.accessor("person.fullName", {
     id: "fullName",
     header: "Name",
   }),
-  contactsColumnHelper.accessor("email", {
+  contactsColumnHelper.accessor("person.email", {
     id: "email",
     header: "Email",
   }),
-  contactsColumnHelper.accessor("contactType", {
+  contactsColumnHelper.accessor("role", {
     id: "contactType",
     header: "Contact Type",
   }),
@@ -80,20 +78,22 @@ function DocumentActionButtons({
 }
 
 type ContactsTableProps = {
-  contacts?: Contact[];
-  onUpdateContact?: (contactId: string, contactType: string) => Promise<void>;
+  roles: DemonstrationRoleAssignment[] | null;
+  onUpdateContact?: (contact: DemonstrationRoleAssignment, contactType: string) => Promise<void>;
 };
 
 type ContactDialogMode = "edit" | "remove" | null;
 
-export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [], onUpdateContact }) => {
+export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [], onUpdateContact }) => {
   const [rowSelection, setRowSelection] = React.useState({});
   const [dialogMode, setDialogMode] = React.useState<ContactDialogMode>(null);
-  const [selectedContact, setSelectedContact] = React.useState<Contact | null>(null);
+  const [selectedContact, setSelectedContact] = React.useState<DemonstrationRoleAssignment | null>(
+    null
+  );
   const { showError } = useToast();
 
-  const contactsTable = useReactTable<Contact>({
-    data: contacts || [],
+  const contactsTable = useReactTable<DemonstrationRoleAssignment>({
+    data: roles || [],
     columns: contactsColumns,
     state: { rowSelection },
     getCoreRowModel: getCoreRowModel(),
@@ -136,16 +136,16 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [], onU
     setSelectedContact(null);
   };
 
-  const handleSubmitContact = async (contactId: string, contactType: string) => {
+  const handleSubmitContact = async (contact: DemonstrationRoleAssignment, contactType: string) => {
     if (onUpdateContact) {
-      await onUpdateContact(contactId, contactType);
+      await onUpdateContact(contact, contactType);
     }
     // TODO: Add actual API call here when available
-    console.log("Updating contact:", { contactId, contactType });
+    console.log("Updating contact:", { contact, contactType });
   };
 
   const selectedRows = contactsTable.getSelectedRowModel().rows;
-  const selectedContactIds = selectedRows.map((row) => row.original.id);
+  const selectedContactIds = selectedRows.map((row) => row.original.person.id);
   const hasSelectedContact = selectedRows.length === 1;
   const hasSelectedContacts = selectedRows.length > 0;
 

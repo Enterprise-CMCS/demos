@@ -9,7 +9,6 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
-import { findUniqueUser } from "../user/userResolvers.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
@@ -92,7 +91,6 @@ async function createModification(
         description: input.description,
         statusId: newBundleStatusId,
         currentPhaseId: conceptPhaseId,
-        projectOfficerUserId: input.projectOfficerUserId,
       },
     });
   });
@@ -121,10 +119,7 @@ async function updateModification(
   info: undefined,
   bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
 ) {
-  checkOptionalNotNullFields(
-    ["demonstrationId", "name", "status", "currentPhase", "projectOfficerUserId"],
-    input
-  );
+  checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhase"], input);
   return await prisma().modification.update({
     where: {
       id: id,
@@ -138,7 +133,6 @@ async function updateModification(
       expirationDate: input.expirationDate,
       statusId: input.status,
       currentPhaseId: input.currentPhase,
-      projectOfficerUserId: input.projectOfficerUserId,
     },
   });
 }
@@ -163,10 +157,6 @@ async function getParentDemonstration(parent: Modification) {
   return await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
-}
-
-async function getProjectOfficer(parent: Modification) {
-  return await findUniqueUser(parent.projectOfficerUserId);
 }
 
 async function getDocuments(parent: Modification) {
@@ -215,7 +205,6 @@ export const modificationResolvers = {
 
   Amendment: {
     demonstration: getParentDemonstration,
-    projectOfficer: getProjectOfficer,
     documents: getDocuments,
     currentPhase: getCurrentPhase,
     status: resolveBundleStatus,
@@ -223,7 +212,6 @@ export const modificationResolvers = {
 
   Extension: {
     demonstration: getParentDemonstration,
-    projectOfficer: getProjectOfficer,
     documents: getDocuments,
     currentPhase: getCurrentPhase,
     status: resolveBundleStatus,
