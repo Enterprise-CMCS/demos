@@ -23,7 +23,6 @@ import {
   updateAmendment,
   updateExtension,
 } from "./model/modification/modificationResolvers.js";
-import { log } from "./logger";
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
@@ -97,7 +96,7 @@ async function seedDatabase() {
   const extensionCount = 8;
   const documentCount = 130;
 
-  log.info("🌱 Generating bypassed user and accompanying records...");
+  console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
 
@@ -119,11 +118,13 @@ async function seedDatabase() {
     },
   });
 
-  log.info("🌱 Seeding people and users...");
+  console.log("🌱 Seeding people and users...");
   for (let i = 0; i < userCount; i++) {
     const person = await prisma().person.create({
       data: {
-        personTypeId: PERSON_TYPES[i % (PERSON_TYPES.length - 1)],
+        personType: {
+          connect: { id: PERSON_TYPES[i % (PERSON_TYPES.length - 1)] },
+        },
         email: faker.internet.email(),
         fullName: faker.person.fullName(),
         displayName: faker.internet.username(),
@@ -139,7 +140,7 @@ async function seedDatabase() {
     });
   }
 
-  log.info("🌱 Seeding system role assignments...");
+  console.log("🌱 Seeding system role assignments...");
   // for each user, assign a random set of roles from the system roles
   const systemRoles = await prisma().role.findMany({
     where: { grantLevelId: "System" },
@@ -160,7 +161,7 @@ async function seedDatabase() {
       });
     }
   }
-  log.info("🌱 Seeding demonstrations...");
+  console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < demonstrationCount; i++) {
     const createInput: CreateDemonstrationInput = {
       name: faker.lorem.words(3),
@@ -185,7 +186,7 @@ async function seedDatabase() {
     await updateDemonstration(undefined, updateInput);
   }
 
-  log.info("🌱 Seeding amendments...");
+  console.log("🌱 Seeding amendments...");
   for (let i = 0; i < amendmentCount; i++) {
     const createInput: CreateAmendmentInput = {
       demonstrationId: (await prisma().demonstration.findRandom())!.id,
@@ -208,7 +209,7 @@ async function seedDatabase() {
     await updateAmendment(undefined, updateInput);
   }
 
-  log.info("🌱 Seeding extensions...");
+  console.log("🌱 Seeding extensions...");
   for (let i = 0; i < extensionCount; i++) {
     const createInput: CreateExtensionInput = {
       demonstrationId: (await prisma().demonstration.findRandom())!.id,
@@ -231,7 +232,7 @@ async function seedDatabase() {
     await updateExtension(undefined, updateInput);
   }
 
-  log.info("🌱 Seeding documents...");
+  console.log("🌱 Seeding documents...");
   // Get the application document type
   const applicationDocumentType: DocumentType = "State Application";
   for (const demonstration of demonstrations) {
@@ -306,9 +307,9 @@ async function seedDatabase() {
     });
   }
 
-  log.info("✨ Database seeding complete.");
+  console.log("✨ Database seeding complete.");
 }
 
 seedDatabase().catch((error) => {
-  log.error("❌ An error occurred while seeding the database:", error);
+  console.error("❌ An error occurred while seeding the database:", error);
 });
