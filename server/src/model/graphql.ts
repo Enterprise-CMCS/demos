@@ -1,6 +1,7 @@
 import { gql } from "graphql-tag";
 
 import { bundleSchema } from "./bundle/bundleSchema.js";
+import { bundleResolvers } from "./bundle/bundleResolvers.js";
 
 import { bundleStatusSchema } from "./bundleStatus/bundleStatusSchema.js";
 
@@ -38,6 +39,11 @@ import { userResolvers } from "./user/userResolvers.js";
 import { JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition } from "graphql-scalars";
 import { personTypeSchema } from "./personType/personTypeSchema.js";
 import { roleSchema } from "./role/roleSchema.js";
+
+import { personSchema } from "./person/personSchema.js";
+import { personResolvers } from "./person/personResolvers.js";
+import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
+import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
 
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
@@ -88,10 +94,13 @@ export const typeDefs = [
   personTypeSchema,
   mockDemonstrationSchemaExtension,
   roleSchema,
+  personSchema,
+  demonstrationRoleAssignmentSchema,
   ...scalarTypes,
 ];
 
 export const resolvers = [
+  bundleResolvers,
   bundlePhaseResolvers,
   bundlePhaseDateResolvers,
   demonstrationResolvers,
@@ -101,4 +110,6 @@ export const resolvers = [
   stateResolvers,
   userResolvers,
   mockDemonstrationResolverExtension,
+  personResolvers,
+  demonstrationRoleAssigmentResolvers,
 ];

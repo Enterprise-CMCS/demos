@@ -10,10 +10,13 @@ TBL_FOLDERS = [
     "bundlePhase",
     "bundlePhaseDate",
     "demonstration",
+    "demonstrationRoleAssignment",
     "document",
     "documentPendingUpload",
     "modification",
     "person",
+    "personState",
+    "primaryDemonstrationRoleAssignment",
     "rolePermission",
     "systemRoleAssignment",
     "user"
