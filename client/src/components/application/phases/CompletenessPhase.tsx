@@ -72,10 +72,11 @@ export const CompletenessPhase: React.FC = () => {
         description: "Mock file for layout",
         documentType: "Application Completeness Letter",
         createdAt: new Date(),
-        owner: { fullName: "Test User" },
+        owner: { person: { fullName: "Test User" } },
       },
     ]);
   };
+
   const removeMockDoc = (id: string) => setMockDocuments((p) => p.filter((d) => d.id !== id));
 
   const UploadSection = () => (
@@ -272,7 +273,7 @@ export const CompletenessPhase: React.FC = () => {
           <CompletenessUploadDialog
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
-            onUploaded={addMockDoc}
+            // onUploaded={addMockDoc}
           />
         </div>
       )}
