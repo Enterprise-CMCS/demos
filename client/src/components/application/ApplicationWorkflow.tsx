@@ -1,10 +1,10 @@
 import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
 import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
-import type { DemonstrationStatusId } from "demos-server";
+import type { BundleStatus } from "demos-server";
 
 export interface ApplicationWorkflowDemonstration {
-  status: DemonstrationStatusId;
+  status: BundleStatus;
 }
 
 export const ApplicationWorkflow = ({

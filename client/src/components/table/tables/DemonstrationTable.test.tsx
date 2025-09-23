@@ -2,23 +2,14 @@ import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { userOptions } from "mock-data/userMocks";
 import { DemonstrationTable } from "./DemonstrationTable";
-import { DEMONSTRATION_STATUSES } from "demos-server-constants";
-import { mockStates } from "mock-data/stateMocks";
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
-
-const demonstrationStatuses = DEMONSTRATION_STATUSES.map((s) => ({ name: s.name }));
+import { mockPeople } from "mock-data/personMocks";
 
 // Helper functions
 const renderDemonstrations = () => {
   return render(
-    <DemonstrationTable
-      projectOfficerOptions={userOptions}
-      statusOptions={demonstrationStatuses}
-      stateOptions={mockStates}
-      demonstrations={mockDemonstrations}
-    />
+    <DemonstrationTable projectOfficerOptions={mockPeople} demonstrations={mockDemonstrations} />
   );
 };
 
@@ -167,14 +158,7 @@ describe("Demonstrations", () => {
 
   describe("Empty states", () => {
     it("passes correct empty message for My Demonstrations tab", async () => {
-      render(
-        <DemonstrationTable
-          projectOfficerOptions={userOptions}
-          statusOptions={demonstrationStatuses}
-          stateOptions={mockStates}
-          demonstrations={[]}
-        />
-      );
+      render(<DemonstrationTable projectOfficerOptions={mockPeople} demonstrations={[]} />);
       await waitFor(() => {
         expect(
           screen.getByText("You have no assigned demonstrations at this time.")
@@ -183,14 +167,7 @@ describe("Demonstrations", () => {
     });
 
     it("passes correct empty message for All Demonstrations tab", async () => {
-      render(
-        <DemonstrationTable
-          projectOfficerOptions={userOptions}
-          statusOptions={demonstrationStatuses}
-          stateOptions={mockStates}
-          demonstrations={[]}
-        />
-      );
+      render(<DemonstrationTable projectOfficerOptions={mockPeople} demonstrations={[]} />);
       await waitFor(() => {
         expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();
       });
@@ -415,7 +392,7 @@ describe("Demonstrations", () => {
       expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getAllByRole("cell", { name: /John Doe/i }).length).toBeGreaterThan(0);
-      expect(screen.getAllByRole("cell", { name: /Approved/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("cell", { name: /Under Review/i }).length).toBeGreaterThan(0);
     });
 
     it("pagination applies only to demonstration records, not to nested amendments/extensions", async () => {
@@ -494,7 +471,7 @@ describe("Demonstrations", () => {
       await switchToAllDemonstrationsTab(user);
 
       // Apply a filter that matches only one amendment
-      await applyProjectOfficerFilter(user, "Jim Smith"); // Adjust officer name as needed for your data
+      await applyProjectOfficerFilter(user, "Jane Smith"); // Adjust officer name as needed for your data
 
       await waitFor(() => {
         // Parent demonstration is visible

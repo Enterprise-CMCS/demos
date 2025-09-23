@@ -105,10 +105,6 @@ describe("DemosRouter", () => {
     render(<DemosRouter />);
     expect(screen.getByText("ComponentLibrary")).toBeInTheDocument();
 
-    window.history.pushState({}, "Hooks", "/hooks");
-    render(<DemosRouter />);
-    expect(screen.getByText("TestHooks")).toBeInTheDocument();
-
     window.history.pushState({}, "Auth", "/auth");
     render(<DemosRouter />);
     expect(screen.getByText("AuthDebugComponent")).toBeInTheDocument();

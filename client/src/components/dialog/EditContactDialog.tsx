@@ -5,25 +5,18 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { TextInput } from "components/input/TextInput";
 import { Select } from "components/input/select/Select";
 import { useDialogForm } from "hooks/useDialogForm";
+import { DemonstrationRoleAssignment, Person } from "demos-server";
+import { ROLES } from "demos-server-constants";
 
-// Contact types based on the existing system types (these may need to be updated to match acceptance criteria)
-const CONTACT_TYPE_OPTIONS = [
-  { label: "Primary Project Officer", value: "Primary Project Officer" },
-  { label: "Secondary Project Officer", value: "Secondary Project Officer" },
-  { label: "State Representative", value: "State Representative" },
-  { label: "Subject Matter Expert", value: "Subject Matter Expert" },
-];
+type Role = Pick<DemonstrationRoleAssignment, "isPrimary" | "role"> & {
+  person: Pick<Person, "fullName" | "email" | "id">;
+};
 
 export type EditContactDialogProps = {
   isOpen: boolean;
   onClose: () => void;
-  contact: {
-    id: string;
-    fullName: string | null;
-    email: string | null;
-    contactType: string | null;
-  };
-  onSubmit: (contactId: string, contactType: string) => Promise<void>;
+  contact: Role;
+  onSubmit: (contact: Role, contactType: string) => Promise<void>;
 };
 
 export const EditContactDialog: React.FC<EditContactDialogProps> = ({
@@ -32,7 +25,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
   contact,
   onSubmit,
 }) => {
-  const [contactType, setContactType] = useState(contact.contactType || "");
+  const [contactType, setContactType] = useState<string>(contact.role || "");
 
   const { formStatus, showWarning, showCancelConfirm, setShowCancelConfirm, handleSubmit } =
     useDialogForm({
@@ -41,7 +34,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
       validateForm: () => Boolean(contactType),
       getFormData: () => ({ contactType }),
       onSubmit: async (formData) => {
-        await onSubmit(contact.id, formData.contactType as string);
+        await onSubmit(contact, formData.contactType as string); // TODO, demonstrationRoleAssignment does not have an ID
       },
       successMessage: {
         add: "Contact created successfully!",
@@ -87,7 +80,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
           <TextInput
             name="contact-name"
             label="Name"
-            value={contact.fullName || ""}
+            value={contact.person.fullName || ""}
             isDisabled={true}
             placeholder="Contact name"
             isRequired={true}
@@ -102,7 +95,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
           <TextInput
             name="contact-email"
             label="Email"
-            value={contact.email || ""}
+            value={contact.person.email || ""}
             isDisabled={true}
             placeholder="Contact email"
             isRequired={true}
@@ -117,7 +110,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
           <Select
             id="contact-type"
             label="Contact Type"
-            options={CONTACT_TYPE_OPTIONS}
+            options={ROLES.map((role) => ({ label: role, value: role }))}
             value={contactType}
             onSelect={setContactType}
             isRequired={true}

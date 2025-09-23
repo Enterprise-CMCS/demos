@@ -1,84 +1,65 @@
 import React from "react";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import { gql, useQuery } from "@apollo/client";
-import { Amendment, DemonstrationStatus, Extension, State, User } from "demos-server";
+import {
+  Demonstration as ServerDemonstration,
+  Amendment,
+  Extension,
+  State,
+  Person,
+  DemonstrationRoleAssignment,
+} from "demos-server";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
   query GetDemonstrationsPage {
     demonstrations {
       id
       name
-      demonstrationStatus {
-        name
-      }
+      status
       state {
         name
       }
-      projectOfficer {
-        fullName
-        id
+      roles {
+        role
+        isPrimary
+        person {
+          id
+          fullName
+        }
       }
       amendments {
         id
         name
-        projectOfficer {
-          fullName
-        }
-        amendmentStatus {
-          name
-        }
+        status
       }
       extensions {
         id
         name
-        projectOfficer {
-          fullName
-        }
-        extensionStatus {
-          name
-        }
+        status
       }
     }
 
-    stateOptions: states {
-      id
-      name
-    }
-
-    projectOfficerOptions: users {
+    people {
       fullName
-    }
-
-    statusOptions: demonstrationStatuses {
-      name
     }
   }
 `;
 
-export type DemonstrationAmendment = Pick<Amendment, "id" | "name"> & {
-  projectOfficer: Pick<User, "fullName">;
-  amendmentStatus: Pick<DemonstrationStatus, "name">;
-};
-export type DemonstrationExtension = Pick<Extension, "id" | "name"> & {
-  projectOfficer: Pick<User, "fullName">;
-  extensionStatus: Pick<DemonstrationStatus, "name">;
-};
+export type DemonstrationAmendment = Pick<Amendment, "id" | "name" | "status">;
+export type DemonstrationExtension = Pick<Extension, "id" | "name" | "status">;
 
-export type Demonstration = {
-  id: string;
-  name: string;
+export type Demonstration = Pick<ServerDemonstration, "id" | "name" | "status"> & {
   state: Pick<State, "name">;
-  projectOfficer: Pick<User, "fullName" | "id">;
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+    person: Pick<Person, "fullName" | "id">;
+  })[];
   amendments: DemonstrationAmendment[];
   extensions: DemonstrationExtension[];
 };
 
 export type DemonstrationsPageQueryResult = {
   demonstrations: Demonstration[];
-  projectOfficerOptions: Pick<User, "fullName">[];
-  stateOptions: Pick<State, "name" | "id">[];
-  statusOptions: Pick<DemonstrationStatus, "name">[];
+  people: Pick<Person, "fullName">[];
 };
 
 export const DemonstrationsPage: React.FC = () => {
@@ -93,9 +74,7 @@ export const DemonstrationsPage: React.FC = () => {
       {data && (
         <DemonstrationTable
           demonstrations={data.demonstrations}
-          stateOptions={data.stateOptions}
-          projectOfficerOptions={data.projectOfficerOptions}
-          statusOptions={data.statusOptions}
+          projectOfficerOptions={data.people}
         />
       )}
     </div>

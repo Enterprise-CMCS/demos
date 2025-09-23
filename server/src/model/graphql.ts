@@ -1,6 +1,9 @@
 import { gql } from "graphql-tag";
 
 import { bundleSchema } from "./bundle/bundleSchema.js";
+import { bundleResolvers } from "./bundle/bundleResolvers.js";
+
+import { bundleStatusSchema } from "./bundleStatus/bundleStatusSchema.js";
 
 import { bundlePhaseSchema } from "./bundlePhase/bundlePhaseSchema.js";
 import { bundlePhaseResolvers } from "./bundlePhase/bundlePhaseResolvers.js";
@@ -13,9 +16,6 @@ import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
 
-import { demonstrationStatusSchema } from "./demonstrationStatus/demonstrationStatusSchema.js";
-import { demonstrationStatusResolvers } from "./demonstrationStatus/demonstrationStatusResolvers.js";
-
 import { documentSchema } from "./document/documentSchema.js";
 import { documentResolvers } from "./document/documentResolvers.js";
 
@@ -24,10 +24,7 @@ import { documentTypeSchema } from "./documentType/documentTypeSchema.js";
 import { eventSchema, eventResolvers } from "./event/index.js";
 
 import { modificationSchema } from "./modification/modificationSchema.js";
-import { modificationStatusSchema } from "./modificationStatus/modificationStatusSchema.js";
-
 import { modificationResolvers } from "./modification/modificationResolvers.js";
-import { modificationStatusResolvers } from "./modificationStatus/modificationStatusResolvers.js";
 
 import { phaseSchema } from "./phase/phaseSchema.js";
 
@@ -42,6 +39,11 @@ import { userResolvers } from "./user/userResolvers.js";
 import { JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition } from "graphql-scalars";
 import { personTypeSchema } from "./personType/personTypeSchema.js";
 import { roleSchema } from "./role/roleSchema.js";
+
+import { personSchema } from "./person/personSchema.js";
+import { personResolvers } from "./person/personResolvers.js";
+import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
+import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
 
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
@@ -76,16 +78,15 @@ const mockDemonstrationResolverExtension = {
 
 export const typeDefs = [
   bundleSchema,
+  bundleStatusSchema,
   bundlePhaseSchema,
   bundlePhaseDateSchema,
   dateTypeSchema,
   demonstrationSchema,
-  demonstrationStatusSchema,
   documentSchema,
   documentTypeSchema,
   eventSchema,
   modificationSchema,
-  modificationStatusSchema,
   phaseSchema,
   phaseStatusSchema,
   stateSchema,
@@ -93,19 +94,22 @@ export const typeDefs = [
   personTypeSchema,
   mockDemonstrationSchemaExtension,
   roleSchema,
+  personSchema,
+  demonstrationRoleAssignmentSchema,
   ...scalarTypes,
 ];
 
 export const resolvers = [
+  bundleResolvers,
   bundlePhaseResolvers,
   bundlePhaseDateResolvers,
   demonstrationResolvers,
-  demonstrationStatusResolvers,
   documentResolvers,
   eventResolvers,
   modificationResolvers,
-  modificationStatusResolvers,
   stateResolvers,
   userResolvers,
   mockDemonstrationResolverExtension,
+  personResolvers,
+  demonstrationRoleAssigmentResolvers,
 ];

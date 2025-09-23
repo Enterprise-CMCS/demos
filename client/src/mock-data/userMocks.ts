@@ -1,99 +1,40 @@
 import { User } from "demos-server";
-import { GET_CURRENT_USER_QUERY } from "hooks/useCurrentUser";
-import { GET_ALL_USERS, GET_USER_BY_ID } from "hooks/useUserOperations";
 
-export type MockUser = Pick<User, "id" | "fullName">;
+export type MockUser = Pick<User, "id" | "username"> & {
+  person: MockPerson;
+};
+import { MockedResponse } from "@apollo/client/testing";
+import { GET_CURRENT_USER_QUERY } from "components/user/UserContext";
+import { mockPeople, MockPerson } from "./personMocks";
 
 export const mockUsers: MockUser[] = [
-  { id: "1", fullName: "John Doe" },
-  { id: "2", fullName: "Jane Smith" },
-  { id: "3", fullName: "Jim Smith" },
-  { id: "4", fullName: "Darth Smith" },
-  { id: "5", fullName: "Bob Johnson" },
-  { id: "6", fullName: "Alice Brown" },
-  { id: "7", fullName: "Carlos Rivera" },
-  { id: "8", fullName: "Emily Clark" },
-  { id: "9", fullName: "Cara Lee" },
-  { id: "10", fullName: "David Chen" },
+  { id: "1", username: "john.doe", person: mockPeople[0] },
+  { id: "2", username: "jane.smith", person: mockPeople[1] },
+  { id: "3", username: "jim.smith", person: mockPeople[2] },
+  { id: "4", username: "darth.smith", person: mockPeople[3] },
+  { id: "5", username: "bob.johnson", person: mockPeople[4] },
+  { id: "6", username: "alice.brown", person: mockPeople[5] },
+  { id: "7", username: "carlos.rivera", person: mockPeople[6] },
+  { id: "8", username: "emily.clark", person: mockPeople[7] },
+  { id: "9", username: "cara.lee", person: mockPeople[8] },
+  { id: "10", username: "david.chen", person: mockPeople[9] },
 ];
-
-import { MockedResponse } from "@apollo/client/testing";
-
-export const johnDoe: User = {
-  id: "1",
-  personTypeId: "demos-cms-user",
-  fullName: "John Doe",
-  cognitoSubject: "1234567890",
-  username: "johndoe",
-  email: "johndoe@example.com",
-  displayName: "John",
-  events: [],
-  ownedDocuments: [],
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  roles: ["All Users"],
-};
-
-export const userOptions: Pick<User, "fullName">[] = [
-  { fullName: "John Doe" },
-  { fullName: "Jane Smith" },
-  { fullName: "Jim Smith" },
-  { fullName: "Darth Smith" },
-  { fullName: "Bob Johnson" },
-  { fullName: "Alice Brown" },
-  { fullName: "Carlos Rivera" },
-  { fullName: "Emily Clark" },
-  { fullName: "Samantha Lee" },
-  { fullName: "Michael Chen" },
-  { fullName: "Linda Park" },
-  { fullName: "David Kim" },
-  { fullName: "Olivia Turner" },
-  { fullName: "Henry Adams" },
-  { fullName: "Sophia Martinez" },
-  { fullName: "James Lee" },
-];
-
-export const spongebob: Partial<User> = { fullName: "spongebob squarepants" };
-export const squidward: Partial<User> = { fullName: " squidward tentacles" };
-export const patrick: Partial<User> = { fullName: "patrick star" };
-
-export const bypassUserGUID = "00000000-1111-2222-3333-123abc123abc";
-
-const currentUserResult = {
-  data: {
-    currentUser: {
-      __typename: "User",
-      id: bypassUserGUID,
-      cognitoSubject: "fake-sub-1",
-      username: "johndoe",
-      email: "johndoe@example.com",
-      fullName: "John Doe",
-      displayName: "John",
-      personTypeId: "demos-cms-user",
-    },
-  },
-};
 
 export const userMocks: MockedResponse[] = [
-  // It takes two of these apparently to hydrate the Profile block. If load it refetches.
-  // TODO: figure out why refetch is so eager.
-  { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
-  { request: { query: GET_CURRENT_USER_QUERY }, result: currentUserResult },
-
   {
-    request: { query: GET_ALL_USERS },
-    result: { data: { users: [spongebob, squidward, patrick] } },
+    request: {
+      query: GET_CURRENT_USER_QUERY,
+    },
+    result: {
+      data: { currentUser: mockUsers[0] },
+    },
   },
   {
-    request: { query: GET_USER_BY_ID, variables: { id: "ss" } },
-    result: { data: { user: spongebob } },
-  },
-  {
-    request: { query: GET_USER_BY_ID, variables: { id: "ps" } },
-    result: { data: { user: patrick } },
-  },
-  {
-    request: { query: GET_USER_BY_ID, variables: { id: "st" } },
-    result: { data: { user: squidward } },
+    request: {
+      query: GET_CURRENT_USER_QUERY,
+    },
+    result: {
+      data: { currentUser: mockUsers[0] },
+    },
   },
 ];
