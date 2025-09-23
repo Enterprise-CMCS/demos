@@ -65,12 +65,10 @@ describe("runMigration", () => {
     gs.mockResolvedValueOnce(null);
 
     jest.spyOn(console, "error");
-    // @ts-expect-error ignore invalid mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
 
-    await runMigration(mockStageName, targetDB);
+    const exitCode = await runMigration(mockStageName, targetDB);
 
-    expect(process.exit).toHaveBeenCalled();
+    expect(exitCode).toBe(1);
   });
 
   test("should exit if secretData is empty", async () => {
@@ -80,11 +78,9 @@ describe("runMigration", () => {
     gs.mockResolvedValueOnce("{}");
 
     jest.spyOn(console, "error");
-    // @ts-expect-error ignore invalid mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
 
-    await runMigration(mockStageName);
+    const exitCode = await runMigration(mockStageName);
 
-    expect(process.exit).toHaveBeenCalled();
+    expect(exitCode).toBe(1);
   });
 });
