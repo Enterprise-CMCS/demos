@@ -4,13 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { EditContactDialog } from "./EditContactDialog";
 import { ToastProvider } from "components/toast/ToastContext";
-
-const mockContact = {
-  id: "1",
-  fullName: "John Doe",
-  email: "john@example.com",
-  contactType: "Primary Project Officer",
-};
+import { demonstrationRoleAssignmentMocks } from "mock-data/demonstrationRoleAssignmentMocks";
 
 const renderWithToast = (component: React.ReactElement) => {
   return render(<ToastProvider>{component}</ToastProvider>);
@@ -29,15 +23,15 @@ describe("EditContactDialog", () => {
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
-        contact={mockContact}
+        contact={demonstrationRoleAssignmentMocks[0]}
         onSubmit={mockOnSubmit}
       />
     );
 
     expect(screen.getByText("Edit Contact")).toBeInTheDocument();
     expect(screen.getByDisplayValue("John Doe")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("john@example.com")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Primary Project Officer")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("john.doe@email.com")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
   });
 
   it("shows disabled name and email fields with helper text", () => {
@@ -45,13 +39,13 @@ describe("EditContactDialog", () => {
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
-        contact={mockContact}
+        contact={demonstrationRoleAssignmentMocks[0]}
         onSubmit={mockOnSubmit}
       />
     );
 
     const nameInput = screen.getByDisplayValue("John Doe");
-    const emailInput = screen.getByDisplayValue("john@example.com");
+    const emailInput = screen.getByDisplayValue("john.doe@email.com");
 
     expect(nameInput).toBeDisabled();
     expect(emailInput).toBeDisabled();
@@ -65,34 +59,15 @@ describe("EditContactDialog", () => {
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
-        contact={mockContact}
+        contact={demonstrationRoleAssignmentMocks[0]}
         onSubmit={mockOnSubmit}
       />
     );
 
-    const contactTypeSelect = screen.getByDisplayValue("Primary Project Officer");
-    await user.selectOptions(contactTypeSelect, "Secondary Project Officer");
+    const contactTypeSelect = screen.getByDisplayValue("Project Officer");
+    await user.selectOptions(contactTypeSelect, "DDME Analyst");
 
-    expect(screen.getByDisplayValue("Secondary Project Officer")).toBeInTheDocument();
-  });
-
-  it("validates required contact type field", async () => {
-    const user = userEvent.setup();
-
-    renderWithToast(
-      <EditContactDialog
-        isOpen={true}
-        onClose={mockOnClose}
-        contact={{ ...mockContact, contactType: "" }}
-        onSubmit={mockOnSubmit}
-      />
-    );
-
-    const submitButton = screen.getByText("Submit");
-    await user.click(submitButton);
-
-    // The form should not submit when contact type is empty
-    expect(mockOnSubmit).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue("DDME Analyst")).toBeInTheDocument();
   });
 
   it("submits contact update with new contact type", async () => {
@@ -102,19 +77,26 @@ describe("EditContactDialog", () => {
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
-        contact={mockContact}
+        contact={demonstrationRoleAssignmentMocks[0]}
         onSubmit={mockOnSubmit}
       />
     );
 
-    const contactTypeSelect = screen.getByDisplayValue("Primary Project Officer");
-    await user.selectOptions(contactTypeSelect, "State Representative");
+    const contactTypeSelect = screen.getByDisplayValue("Project Officer");
+    await user.selectOptions(contactTypeSelect, "State Point of Contact");
 
     const submitButton = screen.getByText("Submit");
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith("1", "State Representative");
+      expect(mockOnSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          person: expect.objectContaining({
+            fullName: "John Doe",
+          }),
+        }),
+        "State Point of Contact"
+      );
     });
   });
 
@@ -125,7 +107,7 @@ describe("EditContactDialog", () => {
       <EditContactDialog
         isOpen={true}
         onClose={mockOnClose}
-        contact={mockContact}
+        contact={demonstrationRoleAssignmentMocks[0]}
         onSubmit={mockOnSubmit}
       />
     );

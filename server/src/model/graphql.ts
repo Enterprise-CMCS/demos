@@ -40,6 +40,11 @@ import { JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition } from
 import { personTypeSchema } from "./personType/personTypeSchema.js";
 import { roleSchema } from "./role/roleSchema.js";
 
+import { personSchema } from "./person/personSchema.js";
+import { personResolvers } from "./person/personResolvers.js";
+import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
+import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
+
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
 const mockDemonstrationSchemaExtension = gql`
@@ -89,6 +94,8 @@ export const typeDefs = [
   personTypeSchema,
   mockDemonstrationSchemaExtension,
   roleSchema,
+  personSchema,
+  demonstrationRoleAssignmentSchema,
   ...scalarTypes,
 ];
 
@@ -103,4 +110,6 @@ export const resolvers = [
   stateResolvers,
   userResolvers,
   mockDemonstrationResolverExtension,
+  personResolvers,
+  demonstrationRoleAssigmentResolvers,
 ];
