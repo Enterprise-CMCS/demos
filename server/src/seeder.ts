@@ -129,7 +129,9 @@ async function seedDatabase() {
   for (let i = 0; i < userCount; i++) {
     const person = await prisma().person.create({
       data: {
-        personTypeId: PERSON_TYPES[i % (PERSON_TYPES.length - 1)],
+        personType: {
+          connect: { id: PERSON_TYPES[i % (PERSON_TYPES.length - 1)] },
+        },
         email: faker.internet.email(),
         fullName: faker.person.fullName(),
         displayName: faker.internet.username(),
@@ -148,6 +150,9 @@ async function seedDatabase() {
   console.log("🌱 Seeding person states...");
   const allPeople = await prisma().person.findMany();
   for (const person of allPeople) {
+    // demos-cms-users already belong to every state, so this applies only to state users
+    if (person.personTypeId !== "demos-state-user") continue;
+
     // for now, just adding one state to each person
     const state = await prisma().state.findRandom();
     if (!state) {
@@ -185,28 +190,27 @@ async function seedDatabase() {
   // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
   for (let i = 0; i < demonstrationCount; i++) {
-    const person = await prisma().person.create({
-      data: {
-        personTypeId: "demos-cms-user",
-        email: faker.internet.email(),
-        fullName: faker.person.fullName(),
-        displayName: faker.internet.username(),
+    // get a random cms-user
+    const person = await prisma().person.findRandom({
+      where: { personTypeId: "demos-cms-user" },
+      include: {
+        personStates: {
+          include: { state: true },
+        },
       },
     });
-    const state = await prisma().state.findRandom();
-    const personState = await prisma().personState.create({
-      data: {
-        personId: person.id,
-        stateId: state!.id,
-      },
-    });
+
+    if (!person) {
+      throw new Error("No cms users found to assign as project officers");
+    }
+
     const createInput: CreateDemonstrationInput = {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
       cmcsDivision: sampleFromArray([...CMCS_DIVISION, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-      stateId: state!.id,
-      projectOfficerUserId: personState.personId,
+      stateId: person.personStates[0].stateId,
+      projectOfficerUserId: person.id,
     };
     await createDemonstration(undefined, { input: createInput });
   }

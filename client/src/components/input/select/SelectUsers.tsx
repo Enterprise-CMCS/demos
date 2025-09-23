@@ -7,15 +7,12 @@ export const GET_USER_SELECT_OPTIONS_QUERY = gql`
     people {
       id
       fullName
-      states {
-        id
-      }
     }
   }
 `;
 
 interface UserSelectQueryResult {
-  people: { id: string; fullName: string; states: { id: string }[] }[];
+  people: { id: string; fullName: string }[];
 }
 
 export interface SelectUsersProps {
@@ -28,7 +25,7 @@ export interface SelectUsersProps {
 
 const getOptionsFromQueryResult = (queryResult: UserSelectQueryResult): Option[] => {
   return queryResult.people.map((user) => ({
-    label: `${user.fullName} - ${user.states.map((state) => state.id).join(", ")}`,
+    label: user.fullName,
     value: user.id,
   }));
 };
