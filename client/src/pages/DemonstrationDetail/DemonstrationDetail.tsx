@@ -151,6 +151,7 @@ export const DemonstrationDetail: React.FC = () => {
     [demonstration, loading, error, handleEdit, handleDelete]
   );
   usePageHeader(headerContent);
+
   return (
     <div>
       {isTestMode() && headerContent}
