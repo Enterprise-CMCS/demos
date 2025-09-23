@@ -1,0 +1,25 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node"])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds()
+  }
+
+  stages {
+    stage('Get PR type') {
+      steps {
+        container("node") {
+          sh "apk add curl"
+          sh "apk add jq"
+          sh "curl -s https://api.github.com/repos/Enterprise-CMCS/demos/pulls/${env.CHANGE_ID} | jq '.draft'"
+        }
+      }
+    }
+
+  }
+
+}
