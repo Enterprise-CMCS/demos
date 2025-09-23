@@ -243,6 +243,7 @@ const DemonstrationDialog: React.FC<{
               onSelect={(userId) =>
                 setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }))
               }
+              personTypes={["demos-admin", "demos-cms-user"]}
             />
           </div>
           {mode === "edit" && (
