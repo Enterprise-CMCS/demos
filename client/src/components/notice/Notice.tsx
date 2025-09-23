@@ -13,13 +13,12 @@ interface NoticeProps {
   className?: string;
 }
 
-const BASE_NOTICE = tw`flex items-center gap-2 border-l-[10px] border px-1 py-1 text-sm w-1/2`;
-
+const COMMON_CLASSES = tw`bg-white text-text-font flex items-center gap-2 border-l-[10px] border px-1 py-1 text-sm w-1/2`;
 const VARIANT_TO_CLASSNAME: Record<NoticeVariant, string> = {
-  info: tw`bg-blue-50 border-brand text-text-font`,
-  success: tw`bg-green-50 border-border-success text-text-font`,
-  warning: tw`bg-white border-border-alert text-text-font`,
-  error: tw`bg-red-50 border-border-warn text-text-font`,
+  info: `${COMMON_CLASSES} ${tw`border-border-brand`}`,
+  success: `${COMMON_CLASSES} ${tw`border-border-success`}`,
+  warning: `${COMMON_CLASSES} ${tw`border-border-alert`}`,
+  error: `${COMMON_CLASSES} ${tw`border-border-warn`}`,
 };
 
 const VARIANT_TO_ICON: Record<NoticeVariant, React.ReactNode> = {
@@ -43,7 +42,7 @@ export const Notice: React.FC<NoticeProps> = ({
     <div
       role="status"
       aria-live="polite"
-      className={`${BASE_NOTICE} ${variantClasses} ${className ?? ""}`.trim()}
+      className={`${variantClasses} ${className ?? ""}`.trim()}
     >
       <span className="shrink-0" aria-hidden="true">
         {icon}
