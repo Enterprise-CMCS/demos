@@ -20,7 +20,7 @@ pipeline {
           // sh "curl -s https://api.github.com/repos/Enterprise-CMCS/demos/pulls/${env.CHANGE_ID} | jq '.draft'"
           sh '''
           git config --global --add safe.directory $PWD
-          git log $GIT_PREVIOUS_COMMIT..HEAD | grep "DEMOS-[0-9]\+" -i -o | tr '[:lower:]' '[:upper:]' | sort -u
+          git log $GIT_PREVIOUS_COMMIT..HEAD | grep "DEMOS-[0-9]\\+" -i -o | tr '[:lower:]' '[:upper:]' | sort -u
           '''
           echo "done"
         }
