@@ -17,6 +17,106 @@ import {
 } from "@tanstack/react-table";
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
 
+const STYLES = {
+  table: "w-full table-fixed",
+  th: "bg-gray-lighter p-1 font-semibold text-left border-b cursor-pointer select-none",
+  tr: "h-[56px] border-b p-1",
+  td: "p-1",
+  subrow: "h-[56px] px-4 py-2 bg-gray-lighter border-b",
+};
+
+// We probably shouldn't export this, but we need it in the ContactsTable for now
+export function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
+  return (
+    <thead>
+      {headerGroups.map((hg) => (
+        <tr key={hg.id} className={STYLES.tr}>
+          {hg.headers.map((header) => (
+            <th
+              key={header.id}
+              className={STYLES.th}
+              onClick={header.column.getToggleSortingHandler()}
+            >
+              {flexRender(header.column.columnDef.header, header.getContext())}
+              {{
+                asc: " ↑",
+                desc: " ↓",
+              }[header.column.getIsSorted() as string] ?? null}
+            </th>
+          ))}
+        </tr>
+      ))}
+    </thead>
+  );
+}
+
+function TableBody<T>({
+  data,
+  table,
+  emptyRowsMessage = "No data available.",
+  noResultsFoundMessage = "No results found.",
+}: {
+  data: T[];
+  table: TanstackTable<T>;
+  emptyRowsMessage?: string;
+  noResultsFoundMessage?: string;
+}) {
+  const hasDataInitially = data.length > 0;
+  const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
+  const filtersClearedOutData = hasDataInitially && !hasDataAfterFiltering;
+
+  return (
+    <tbody>
+      {filtersClearedOutData ? (
+        <tr>
+          <td colSpan={table.getAllLeafColumns().length} className={STYLES.td}>
+            {noResultsFoundMessage}
+          </td>
+        </tr>
+      ) : !hasDataInitially ? (
+        <tr>
+          <td colSpan={table.getAllLeafColumns().length} className={STYLES.td}>
+            {emptyRowsMessage}
+          </td>
+        </tr>
+      ) : (
+        table.getRowModel().rows.map((row) => (
+          <tr
+            onClick={row.getToggleSelectedHandler()}
+            key={row.id}
+            className={row.depth > 0 ? STYLES.subrow : STYLES.tr}
+          >
+            {row.getVisibleCells().map((cell) => {
+              return (
+                <td key={cell.id} className={STYLES.td}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              );
+            })}
+          </tr>
+        ))
+      )}
+    </tbody>
+  );
+}
+
+function TableSearch<T>({
+  table,
+  keywordSearch,
+  columnFilter,
+}: {
+  table: TanstackTable<T>;
+  keywordSearch?: (table: TanstackTable<T>) => React.ReactNode;
+  columnFilter?: (table: TanstackTable<T>) => React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center">
+      {keywordSearch && keywordSearch(table)}
+      {columnFilter && columnFilter(table)}
+    </div>
+  );
+}
+
 export interface TableProps<T> {
   data: T[];
   // explicitly allowing any because the column definitions intentionally allow for flexibility in types
@@ -34,40 +134,12 @@ export interface TableProps<T> {
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
 }
 
-type TableHeadProps<T> = {
-  headerGroups: HeaderGroup<T>[];
-};
-
-export function TableHead<T>({ headerGroups }: TableHeadProps<T>) {
-  return (
-    <thead>
-      {headerGroups.map((hg) => (
-        <tr key={hg.id} className="bg-gray-200">
-          {hg.headers.map((header) => (
-            <th
-              key={header.id}
-              className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
-              onClick={header.column.getToggleSortingHandler()}
-            >
-              {flexRender(header.column.columnDef.header, header.getContext())}
-              {{
-                asc: " ↑",
-                desc: " ↓",
-              }[header.column.getIsSorted() as string] ?? null}
-            </th>
-          ))}
-        </tr>
-      ))}
-    </thead>
-  );
-}
-
 export function Table<T>({
   data,
   columns,
   className,
-  emptyRowsMessage = "No data available.",
-  noResultsFoundMessage = "No results found.",
+  emptyRowsMessage,
+  noResultsFoundMessage,
   getSubRows,
   initialState,
   keywordSearch,
@@ -96,15 +168,10 @@ export function Table<T>({
     onRowSelectionChange: setRowSelection,
   });
 
-  const hasDataInitially = data.length > 0;
-  const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
-  const filtersClearedOutData = hasDataInitially && !hasDataAfterFiltering;
-
   // Auto-expand parents with visible children after filtering
   React.useEffect(() => {
     const isFiltering =
-      table.getState().columnFilters?.length > 0 ||
-      !!table.getState().globalFilter;
+      table.getState().columnFilters?.length > 0 || !!table.getState().globalFilter;
 
     if (isFiltering) {
       const filteredRows = table.getFilteredRowModel().rows;
@@ -129,85 +196,20 @@ export function Table<T>({
   return (
     <div className={`${className || ""}`}>
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center">
-          {/* Search Section */}
-          {keywordSearch && keywordSearch(table)}
-
-          {/* Filter Section */}
-          {columnFilter && columnFilter(table)}
-        </div>
-        <div className="mr-1">
-          {/* Action Buttons Section */}
-          {actionButtons && actionButtons(table)}
-        </div>
+        <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
+        <div className="mr-1">{actionButtons && actionButtons(table)}</div>
       </div>
 
       {actionModals && actionModals(table)}
 
-      {/* Table Section */}
-      <table className="w-full table-fixed text-sm">
-        <thead>
-          {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id} className="bg-gray-200">
-              {hg.headers.map((header) => (
-                <th
-                  key={header.id}
-                  className="px-2 py-1 font-semibold text-left border-b cursor-pointer select-none"
-                  onClick={header.column.getToggleSortingHandler()}
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  {{
-                    asc: " ↑",
-                    desc: " ↓",
-                  }[header.column.getIsSorted() as string] ?? null}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {filtersClearedOutData ? (
-            <tr>
-              <td
-                colSpan={table.getAllLeafColumns().length}
-                className="px-4 py-8 text-center text-gray-800 text-xl"
-              >
-                {noResultsFoundMessage}
-              </td>
-            </tr>
-          ) : !hasDataInitially ? (
-            <tr>
-              <td
-                colSpan={table.getAllLeafColumns().length}
-                className="px-4 py-8 text-center text-gray-800 text-xl"
-              >
-                {emptyRowsMessage}
-              </td>
-            </tr>
-          ) : (
-            table.getRowModel().rows.map((row) => (
-              <tr
-                onClick={row.getToggleSelectedHandler()}
-                key={row.id}
-                className={row.depth > 0 ? "bg-gray-200" : ""}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  return (
-                    <td key={cell.id} className="px-2 py-1 border-b">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))
-          )}
-        </tbody>
+      <table className={STYLES.table}>
+        <TableHead headerGroups={table.getHeaderGroups()} />
+        <TableBody
+          data={data}
+          table={table}
+          emptyRowsMessage={emptyRowsMessage}
+          noResultsFoundMessage={noResultsFoundMessage}
+        />
       </table>
       {pagination && pagination(table)}
     </div>

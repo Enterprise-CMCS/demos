@@ -29,8 +29,8 @@ const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
   }
   return {
     large: "text-[1.6rem] font-semibold px-6 py-3 leading-tight tracking-wide",
-    small: "text-[1.2rem] font-medium px-1 py-1 leading-tight tracking-wide",
-    standard: "text-[1.4rem] font-medium px-4 py-2 leading-tight tracking-wide",
+    small: "h-[40px] text-[14px] p-[8px]",
+    standard: "h-[40px] text-[14px] p-[8px]",
   }[buttonSize];
 };
 
