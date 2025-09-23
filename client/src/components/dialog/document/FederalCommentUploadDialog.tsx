@@ -35,7 +35,7 @@ export const FederalCommentUploadDialog: React.FC<Props> = ({
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       initialDocument={getInitialDocument()}
-      titleOverride="Pre-Submission Document"
+      titleOverride="Internal Analysis Document"
       refetchQueries={refetchQueries}
     />
   );
