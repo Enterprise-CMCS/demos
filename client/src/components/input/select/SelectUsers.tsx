@@ -2,9 +2,9 @@ import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
 
-const GET_USER_SELECT_OPTIONS_QUERY = gql`
+export const GET_USER_SELECT_OPTIONS_QUERY = gql`
   query GetUserSelectOptions {
-    users {
+    people {
       id
       fullName
     }
@@ -12,7 +12,7 @@ const GET_USER_SELECT_OPTIONS_QUERY = gql`
 `;
 
 interface UserSelectQueryResult {
-  users: { id: string; fullName: string }[];
+  people: { id: string; fullName: string }[];
 }
 
 export interface SelectUsersProps {
@@ -24,7 +24,7 @@ export interface SelectUsersProps {
 }
 
 const getOptionsFromQueryResult = (queryResult: UserSelectQueryResult): Option[] => {
-  return queryResult.users.map((user) => ({
+  return queryResult.people.map((user) => ({
     label: user.fullName,
     value: user.id,
   }));

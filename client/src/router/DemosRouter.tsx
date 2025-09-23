@@ -10,11 +10,12 @@ import { UserProvider } from "components/user/UserContext";
 import { PrimaryLayout } from "layout/PrimaryLayout";
 import { LandingPage } from "pages";
 import { Demonstrations } from "pages/Demonstrations";
-import { ComponentLibrary, TestHooks } from "pages/debug";
+import { ComponentLibrary } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
 import { isLocalDevelopment } from "config/env";
+import { PhaseDatesSimulation } from "components/application/dates/PhaseDateSimulation";
 
 // 1) Shell that provides the layout and outlet for child routes
 function ProtectedShell() {
@@ -51,10 +52,10 @@ export const DemosRouter: React.FC = () => {
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />
-                    <Route path="hooks" element={<TestHooks />} />
                     <Route path="icons" element={<IconLibrary />} />
                     <Route path="events" element={<EventSandbox />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
+                    <Route path="dates" element={<PhaseDatesSimulation />} />
                   </>
                 )}
               </Route>

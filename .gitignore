@@ -11,3 +11,6 @@ server/localstack/demos-server.zip
 
 core-outputs.json
 all-outputs.json
+
+.devcontainer/postgres/postgres-data
+.env

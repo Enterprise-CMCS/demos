@@ -2,18 +2,19 @@ import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button/CircleButton";
 import { AddNewIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
-import { Demonstration, DemonstrationStatus, State, User } from "demos-server";
+import { Demonstration, DemonstrationRoleAssignment, Person, State } from "demos-server";
 import { ApolloError } from "@apollo/client";
 import { formatDate } from "util/formatDate";
 import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
-  "id" | "name" | "expirationDate" | "effectiveDate"
+  "id" | "name" | "expirationDate" | "effectiveDate" | "status"
 > & {
   state: Pick<State, "id">;
-  projectOfficer: Pick<User, "fullName">;
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+    person: Pick<Person, "fullName">;
+  })[];
 };
 
 interface DemonstrationDetailHeaderProps {
@@ -65,8 +66,21 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
 
   const displayFields = [
     { label: "State/Territory", value: demonstration.state.id },
-    { label: "Project Officer", value: demonstration.projectOfficer.fullName },
-    { label: "Status", value: demonstration.demonstrationStatus.name },
+    {
+      label: "Project Officer",
+      value: (() => {
+        const primaryProjectOfficer = demonstration.roles.find(
+          (role) => role.role === "Project Officer" && role.isPrimary === true
+        );
+
+        if (!primaryProjectOfficer) {
+          throw new Error(`No primary project officer found for demonstration ${demonstration.id}`);
+        }
+
+        return primaryProjectOfficer.person.fullName;
+      })(),
+    },
+    { label: "Status", value: demonstration.status },
     {
       label: "Effective",
       value: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----",
