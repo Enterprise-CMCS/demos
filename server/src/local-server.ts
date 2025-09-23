@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs, resolvers } from "./model/graphql.js";
@@ -19,7 +20,7 @@ const { url } = await startStandaloneServer<GraphQLContext>(server, {
   context: async ({ req }) => {
     log.debug("Starting server...");
     // Minimal context for local dev
-    const requestId = (req.headers["x-request-id"] as string | undefined) || Math.random().toString(36).slice(2);
+    const requestId = (req.headers["x-request-id"] as string | undefined) || randomUUID();
     const correlationId = (req.headers["x-correlation-id"] as string | undefined) || requestId;
     setRequestContext({ requestId, correlationId });
     const ctx = await buildHttpContext(req);
