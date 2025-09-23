@@ -2,7 +2,7 @@
 CREATE OR REPLACE FUNCTION assign_cms_user_to_all_states()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Check if the inserted person is a demos-cms-user
+    -- Check if the inserted person is a demos-cms-user or a demos-admin
     IF NEW.person_type_id IN ('demos-admin', 'demos-cms-user') THEN
         -- Insert a record into person_state for each state
         INSERT INTO person_state (person_id, state_id)
