@@ -1,16 +1,16 @@
 import React from "react";
 
-import { AddExtensionInput } from "demos-server";
+import { CreateExtensionInput } from "demos-server";
 import { createFormDataWithDates } from "hooks/useDialogForm";
 import { useExtension } from "hooks/useExtension";
 
-import {
-  BaseModificationDialog,
-  BaseModificationDialogProps,
-} from "./BaseModificationDialog";
+import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
-type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
+type Props = Pick<
+  BaseModificationDialogProps,
+  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
+> & {
   extensionId?: string;
 };
 
@@ -27,7 +27,7 @@ export const ExtensionDialog: React.FC<Props> = ({
   const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
     if (mode === "add") {
       // Cast to the proper type since we know the structure from BaseModificationDialog
-      await addExtension.trigger(extensionData as unknown as AddExtensionInput);
+      await addExtension.trigger(extensionData as unknown as CreateExtensionInput);
     } else {
       // TODO: Implement extension update logic when available
       console.log("Extension update not yet implemented for ID:", extensionId);
@@ -42,7 +42,7 @@ export const ExtensionDialog: React.FC<Props> = ({
     return createFormDataWithDates(
       {
         ...baseData,
-        extensionStatusId: "EXTENSION_NEW",
+        status: "Pre-Submission",
       },
       effectiveDate,
       expirationDate

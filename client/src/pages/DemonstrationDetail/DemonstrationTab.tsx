@@ -7,34 +7,27 @@ import { AddNewIcon } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import {
-  Demonstration,
-  DemonstrationStatus,
-  Document,
-  State,
-  User,
-} from "demos-server";
-import {
-  TabItem,
-  Tabs,
-} from "layout/Tabs";
-
-import { Contact } from "./DemonstrationDetail";
+import { Demonstration, DemonstrationRoleAssignment, Document, Person, State } from "demos-server";
+import { TabItem, Tabs } from "layout/Tabs";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
+type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+  person: Pick<Person, "fullName" | "id" | "email">;
+};
+
 export type DemonstrationTabDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "effectiveDate" | "expirationDate"
+  "id" | "name" | "description" | "effectiveDate" | "expirationDate" | "status"
 > & {
   documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
-    owner: Pick<User, "fullName">;
+    owner: {
+      person: Pick<Person, "fullName">;
+    };
   })[];
-  contacts: Pick<Contact, "fullName" | "email" | "contactType" | "id">[];
   state: Pick<State, "id" | "name">;
-  projectOfficer: Pick<User, "fullName" | "id">;
-  demonstrationStatus: Pick<DemonstrationStatus, "name">;
+  roles: Role[];
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
@@ -43,9 +36,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
-  const handleUpdateContact = async (contactId: string, contactType: string) => {
+  const handleUpdateContact = async (contact: Role, contactType: string) => {
     // TODO: Implement actual API call to update contact
-    console.log("Updating contact:", { contactId, contactType });
+    console.log("Updating contact:", { contact, contactType });
     // This would typically call a mutation/API to update the contact in the database
     // await updateContactMutation({ variables: { id: contactId, contactType } });
   };
@@ -54,12 +47,12 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
     { value: "summary", label: "Summary" },
     { value: "types", label: "Types", count: 0 },
     { value: "documents", label: "Documents", count: demonstration.documents.length },
-    { value: "contacts", label: "Contacts", count: demonstration.contacts.length },
+    { value: "contacts", label: "Contacts", count: demonstration.roles.length },
   ];
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "DEMONSTRATION_UNDER_REVIEW" }} />
+      <ApplicationWorkflow demonstration={{ status: "Under Review" }} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}
@@ -113,10 +106,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <ContactsTable
-              contacts={demonstration.contacts}
-              onUpdateContact={handleUpdateContact}
-            />
+            <ContactsTable roles={demonstration.roles} onUpdateContact={handleUpdateContact} />
           </>
         )}
       </div>
