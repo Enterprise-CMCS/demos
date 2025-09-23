@@ -317,7 +317,7 @@ export const CreateDemonstrationDialog: React.FC<{
       if (success) {
         showSuccess(SUCCESS_MESSAGES.create);
       } else {
-        console.log(result.data?.createDemonstration?.message || ERROR_MESSAGES.create);
+        console.error(result.data?.createDemonstration?.message || ERROR_MESSAGES.create);
         showError(
           "Create a demonstration failed - please check the console for the error message."
         );
