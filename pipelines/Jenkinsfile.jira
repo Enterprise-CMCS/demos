@@ -13,9 +13,15 @@ pipeline {
     stage('Get PR type') {
       steps {
         container("node") {
+          sh "env"
+          sh "apk add git"
           sh "apk add curl"
           sh "apk add jq"
-          sh "curl -s https://api.github.com/repos/Enterprise-CMCS/demos/pulls/${env.CHANGE_ID} | jq '.draft'"
+          // sh "curl -s https://api.github.com/repos/Enterprise-CMCS/demos/pulls/${env.CHANGE_ID} | jq '.draft'"
+          sh """
+          git config --global --add safe.directory \$PWD
+          git log -1
+          """
         }
       }
     }
