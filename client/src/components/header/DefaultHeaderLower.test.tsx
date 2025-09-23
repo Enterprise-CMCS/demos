@@ -8,12 +8,16 @@ import { vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
-import { PersonType } from "demos-server";
+import { mockUsers } from "mock-data/userMocks";
 
 // Mock UserContext
-vi.mock("components/user/UserContext", () => ({
-  getCurrentUser: vi.fn(),
-}));
+vi.mock("components/user/UserContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof UserContext>();
+  return {
+    ...actual,
+    getCurrentUser: vi.fn(),
+  };
+});
 
 // Stub modals
 vi.mock("components/dialog/document/DocumentDialog", () => ({
@@ -53,15 +57,6 @@ vi.mock("components/toast", () => ({
 
 describe("DefaultHeaderLower", () => {
   const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
-
-  const mockUser = {
-    id: "1",
-    username: "john",
-    email: "john@test.com",
-    fullName: "John Test",
-    displayName: "John Test",
-    personTypeId: "demos-cms-user" as PersonType,
-  };
 
   afterEach(() => {
     vi.resetAllMocks();
@@ -117,19 +112,19 @@ describe("DefaultHeaderLower", () => {
 
   it("displays user greeting", () => {
     mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUser,
+      currentUser: mockUsers[0],
       loading: false,
       error: null,
       refresh: vi.fn(),
       hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
-    expect(screen.getByText("Hello John Test")).toBeInTheDocument();
+    expect(screen.getByText("Hello john.doe")).toBeInTheDocument();
   });
 
   it("opens and closes the dropdown", () => {
     mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUser,
+      currentUser: mockUsers[0],
       loading: false,
       error: null,
       refresh: vi.fn(),
@@ -145,7 +140,7 @@ describe("DefaultHeaderLower", () => {
 
   it("opens CreateDemonstrationDialog when demonstration modal is clicked", () => {
     mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUser,
+      currentUser: mockUsers[0],
       loading: false,
       error: null,
       refresh: vi.fn(),
@@ -164,7 +159,7 @@ describe("DefaultHeaderLower", () => {
 
   it("opens AmendmentDialog for amendment", () => {
     mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUser,
+      currentUser: mockUsers[0],
       loading: false,
       error: null,
       refresh: vi.fn(),
@@ -178,7 +173,7 @@ describe("DefaultHeaderLower", () => {
 
   it("opens ExtensionDialog for extension", () => {
     mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUser,
+      currentUser: mockUsers[0],
       loading: false,
       error: null,
       refresh: vi.fn(),

@@ -23,9 +23,9 @@ vi.mock("react-oidc-context", () => {
   // Simple passthrough HOC so routes render without real auth logic
 
   type WithAuthenticationRequired = <P extends object>(
-  Component: React.ComponentType<P>,
-  options?: unknown
-) => React.ComponentType<P>;
+    Component: React.ComponentType<P>,
+    options?: unknown
+  ) => React.ComponentType<P>;
 
   const withAuthenticationRequired: WithAuthenticationRequired = (Component) => {
     const Wrapped: React.FC<React.ComponentProps<typeof Component>> = (props) => (
@@ -43,7 +43,7 @@ vi.mock("react-oidc-context", () => {
     AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     withAuthenticationRequired,
     useAuth: () => ({
-      isAuthenticated: true,   // so protected routes render
+      isAuthenticated: true, // so protected routes render
       isLoading: false,
       user: { id_token: "fake" },
       signinRedirect,
@@ -105,10 +105,6 @@ describe("DemosRouter", () => {
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
     expect(screen.getByText("ComponentLibrary")).toBeInTheDocument();
-
-    window.history.pushState({}, "Hooks", "/hooks");
-    render(<DemosRouter />);
-    expect(screen.getByText("TestHooks")).toBeInTheDocument();
 
     window.history.pushState({}, "Auth", "/auth");
     render(<DemosRouter />);

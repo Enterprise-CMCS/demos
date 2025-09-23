@@ -1,10 +1,18 @@
+export const BUNDLE_STATUS = [
+  "Pre-Submission",
+  "Under Review",
+  "Approved",
+  "Denied",
+  "Withdrawn",
+  "On-hold",
+] as const;
+
 export const ROLES = [
   "Project Officer",
   "State Point of Contact",
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
-  "All Users",
 ] as const;
 
 export const PERSON_TYPES = [
@@ -28,16 +36,6 @@ export const CMCS_DIVISION = [
   "Division of System Reform Demonstrations",
   "Division of Eligibility and Coverage Demonstrations",
 ] as const;
-
-export const DEMONSTRATION_STATUSES = [
-  { id: "DEMONSTRATION_PRE-SUBMISSION", name: "Pre-Submission" },
-  { id: "DEMONSTRATION_UNDER_REVIEW", name: "Under Review" },
-  { id: "DEMONSTRATION_APPROVED", name: "Approved" },
-  { id: "DEMONSTRATION_DENIED", name: "Denied" },
-  { id: "DEMONSTRATION_WITHDRAWN", name: "Withdrawn" },
-  { id: "DEMONSTRATION_ON-HOLD", name: "On-hold" },
-] as const;
-
 
 export const DOCUMENT_TYPES = [
   "Application Completeness Letter",
