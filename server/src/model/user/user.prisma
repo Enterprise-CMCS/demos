@@ -9,8 +9,6 @@ model User {
   person     Person              @relation(fields: [id, personTypeId], references: [id, personTypeId])
   personType UserPersonTypeLimit @relation(fields: [personTypeId], references: [id])
 
-  demonstrations         Demonstration[]
-  modifications          Modification[]
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]
   events                 Event[]

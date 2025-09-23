@@ -30,7 +30,6 @@ export const eventResolvers = {
             userId: userId,
             eventType: eventType,
             logLevel: logLevel,
-            withRoleId: roleId,
             route: route,
             eventData: eventData,
           },

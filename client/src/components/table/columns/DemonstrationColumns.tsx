@@ -4,17 +4,14 @@ import { SecondaryButton } from "components/button";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import React from "react";
 import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
-import { State, User } from "demos-server";
+import { Person } from "demos-server";
 import { createSelectColumnDef } from "./selectColumn";
-import { BUNDLE_STATUS } from "demos-server-constants";
+import { BUNDLE_STATUS, STATES_AND_TERRITORIES } from "demos-server-constants";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
 
-export function DemonstrationColumns(
-  stateOptions: Pick<State, "id" | "name">[],
-  userOptions: Pick<User, "fullName">[]
-) {
+export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullName">[]) {
   const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
 
   return [
@@ -28,7 +25,7 @@ export function DemonstrationColumns(
         filterConfig: {
           filterType: "select",
           options:
-            stateOptions.map((state) => ({
+            STATES_AND_TERRITORIES.map((state) => ({
               label: state.id,
               value: state.name,
             })) ?? [],
@@ -40,7 +37,7 @@ export function DemonstrationColumns(
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("projectOfficer.fullName", {
+    columnHelper.accessor((row) => row.roles[0].person.fullName, {
       id: "projectOfficer",
       header: "Project Officer",
       cell: highlightCell,
@@ -49,7 +46,7 @@ export function DemonstrationColumns(
         filterConfig: {
           filterType: "select",
           options:
-            userOptions.map((officer) => ({
+            projectOfficerOptions.map((officer) => ({
               label: officer.fullName,
               value: officer.fullName,
             })) ?? [],

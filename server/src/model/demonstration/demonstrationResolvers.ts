@@ -2,12 +2,13 @@ import { Demonstration } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType, Phase, BundleStatus } from "../../types.js";
+import { BundleType, Phase, BundleStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
-import { findUniqueUser } from "../user/userResolvers.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
+const grantLevelDemonstration: GrantLevel = "Demonstration";
+const roleProjectOfficer: Role = "Project Officer";
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
@@ -28,14 +29,14 @@ export async function createDemonstration(
   parent: undefined,
   { input }: { input: CreateDemonstrationInput }
 ) {
-  return await prisma().$transaction(async (tx) => {
-    const bundle = await tx.bundle.create({
-      data: {
-        bundleTypeId: demonstrationBundleTypeId,
-      },
-    });
+  try {
+    await prisma().$transaction(async (tx) => {
+      const bundle = await tx.bundle.create({
+        data: {
+          bundleTypeId: demonstrationBundleTypeId,
+        },
+      });
 
-    try {
       await tx.demonstration.create({
         data: {
           id: bundle.id,
@@ -47,32 +48,56 @@ export async function createDemonstration(
           statusId: newBundleStatusId,
           stateId: input.stateId,
           currentPhaseId: conceptPhaseId,
-          projectOfficerUserId: input.projectOfficerUserId,
         },
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return {
-        success: false,
-        message: "Error creating demonstration: " + errorMessage,
-      };
-    }
 
+      const person = await tx.person.findUnique({
+        where: { id: input.projectOfficerUserId },
+        select: { personTypeId: true },
+      });
+
+      if (!person) {
+        throw new Error(`Person with id ${input.projectOfficerUserId} not found`);
+      }
+
+      await tx.demonstrationRoleAssignment.create({
+        data: {
+          demonstrationId: bundle.id,
+          personId: input.projectOfficerUserId,
+          personTypeId: person.personTypeId,
+          roleId: roleProjectOfficer,
+          stateId: input.stateId,
+          grantLevelId: grantLevelDemonstration,
+        },
+      });
+
+      await tx.primaryDemonstrationRoleAssignment.create({
+        data: {
+          demonstrationId: bundle.id,
+          personId: input.projectOfficerUserId,
+          roleId: "Project Officer",
+        },
+      });
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
-      success: true,
-      message: "Demonstration created successfully!",
+      success: false,
+      message: "Error creating demonstration: " + errorMessage,
     };
-  });
+  }
+
+  return {
+    success: true,
+    message: "Demonstration created successfully!",
+  };
 }
 
 export async function updateDemonstration(
   parent: undefined,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ) {
-  checkOptionalNotNullFields(
-    ["name", "status", "currentPhase", "stateId", "projectOfficerUserId"],
-    input
-  );
+  checkOptionalNotNullFields(["name", "status", "currentPhase", "stateId"], input);
   return await prisma().demonstration.update({
     where: { id },
     data: {
@@ -85,7 +110,6 @@ export async function updateDemonstration(
       statusId: input.status,
       currentPhaseId: input.currentPhase,
       stateId: input.stateId,
-      projectOfficerUserId: input.projectOfficerUserId,
     },
   });
 }
@@ -111,10 +135,6 @@ export const demonstrationResolvers = {
       return await prisma().state.findUnique({
         where: { id: parent.stateId },
       });
-    },
-
-    projectOfficer: async (parent: Demonstration) => {
-      return await findUniqueUser(parent.projectOfficerUserId);
     },
 
     documents: async (parent: Demonstration) => {
@@ -155,6 +175,16 @@ export const demonstrationResolvers = {
       return parent.currentPhaseId;
     },
 
+    roles: async (parent: Demonstration) => {
+      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
+        where: { demonstrationId: parent.id },
+        include: { primaryDemonstrationRoleAssignment: true },
+      });
+      return roleAssignments.map((assignment) => ({
+        ...assignment,
+        isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
+      }));
+    },
     status: resolveBundleStatus,
 
     phases: async (parent: Demonstration) => {

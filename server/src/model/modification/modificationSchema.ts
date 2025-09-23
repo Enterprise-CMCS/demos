@@ -2,7 +2,6 @@ import { gql } from "graphql-tag";
 
 import { Demonstration } from "../demonstration/demonstrationSchema.js";
 import { Document } from "../document/documentSchema.js";
-import { User } from "../user/userSchema.js";
 import { Phase, BundleStatus } from "../../types.js";
 
 export const modificationSchema = gql`
@@ -15,7 +14,6 @@ export const modificationSchema = gql`
     expirationDate: Date
     status: BundleStatus!
     currentPhase: Phase!
-    projectOfficer: User!
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -25,7 +23,6 @@ export const modificationSchema = gql`
     demonstrationId: ID!
     name: String!
     description: String
-    projectOfficerUserId: String!
   }
 
   input UpdateAmendmentInput {
@@ -36,7 +33,6 @@ export const modificationSchema = gql`
     expirationDate: Date
     status: BundleStatus
     currentPhase: Phase
-    projectOfficerUserId: String
   }
 
   type Extension {
@@ -48,7 +44,6 @@ export const modificationSchema = gql`
     expirationDate: Date
     status: BundleStatus!
     currentPhase: Phase!
-    projectOfficer: User!
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -58,7 +53,6 @@ export const modificationSchema = gql`
     demonstrationId: ID!
     name: String!
     description: String
-    projectOfficerUserId: String!
   }
 
   input UpdateExtensionInput {
@@ -69,7 +63,6 @@ export const modificationSchema = gql`
     expirationDate: Date
     status: BundleStatus
     currentPhase: Phase
-    projectOfficerUserId: String
   }
 
   type Mutation {
@@ -98,7 +91,6 @@ export interface Amendment {
   expirationDate: Date | null;
   status: BundleStatus;
   currentPhase: Phase;
-  projectOfficer: User;
   documents: Document[];
   createdAt: Date;
   updatedAt: Date;
@@ -108,7 +100,6 @@ export interface CreateAmendmentInput {
   demonstrationId: string;
   name: string;
   description: string | null;
-  projectOfficerUserId: string;
 }
 
 export interface UpdateAmendmentInput {
@@ -119,7 +110,6 @@ export interface UpdateAmendmentInput {
   expirationDate?: Date;
   status?: BundleStatus;
   currentPhase?: Phase;
-  projectOfficerUserId?: string;
 }
 
 export interface Extension {
@@ -131,7 +121,6 @@ export interface Extension {
   expirationDate: Date | null;
   status: BundleStatus;
   currentPhase: Phase;
-  projectOfficer: User;
   documents: Document[];
   createdAt: Date;
   updatedAt: Date;
@@ -141,7 +130,6 @@ export interface CreateExtensionInput {
   demonstrationId: string;
   name: string;
   description: string | null;
-  projectOfficerUserId: string;
 }
 
 export interface UpdateExtensionInput {
@@ -152,5 +140,4 @@ export interface UpdateExtensionInput {
   expirationDate?: Date;
   status?: BundleStatus;
   currentPhase?: Phase;
-  projectOfficerUserId?: string;
 }

@@ -9,13 +9,19 @@ import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/Demonstrat
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/Demonstrations";
 import { MockedResponse } from "@apollo/client/testing";
 import { MockState, mockStates } from "./stateMocks";
-import { MockUser, mockUsers } from "./userMocks";
 import { MockAmendment, mockAmendments } from "./amendmentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { MockContact, mockContacts } from "./contactMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import type { BundleStatus } from "demos-server";
+import {
+  demonstrationRoleAssignmentMocks,
+  MockDemonstrationRoleAssignment,
+} from "./demonstrationRoleAssignmentMocks";
+import { mockPeople } from "./personMocks";
+import { mockUsers } from "./userMocks";
+import { STATES_AND_TERRITORIES } from "demos-server-constants";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -23,12 +29,12 @@ export type MockDemonstration = Pick<
 > & {
   status: BundleStatus;
   state: MockState;
-  projectOfficer: MockUser;
   amendments: MockAmendment[];
   extensions: MockExtension[];
   contacts: MockContact[];
   demonstrationTypes: Array<object>;
   documents: MockDocument[];
+  roles: MockDemonstrationRoleAssignment[];
 };
 
 export const mockDemonstrations = [
@@ -38,7 +44,6 @@ export const mockDemonstrations = [
     description: "A demonstration project in Montana.",
     effectiveDate: new Date(2025, 0, 1),
     expirationDate: new Date(2025, 11, 1),
-    projectOfficer: mockUsers[0],
     status: "Approved",
     state: mockStates.find((state) => state.id === "MT")!,
     amendments: [mockAmendments[0], mockAmendments[1], mockAmendments[5]],
@@ -46,6 +51,11 @@ export const mockDemonstrations = [
     contacts: [mockContacts[0], mockContacts[1], mockContacts[2]],
     demonstrationTypes: [],
     documents: [mockDocuments[0], mockDocuments[1], mockDocuments[2]],
+    roles: [
+      demonstrationRoleAssignmentMocks[0],
+      demonstrationRoleAssignmentMocks[3],
+      demonstrationRoleAssignmentMocks[4],
+    ],
   },
   {
     id: "2",
@@ -55,12 +65,12 @@ export const mockDemonstrations = [
     expirationDate: new Date(2025, 11, 2),
     status: "Pre-Submission",
     state: mockStates.find((state) => state.id === "FL")!,
-    projectOfficer: mockUsers[1],
     amendments: [mockAmendments[2], mockAmendments[3], mockAmendments[4]],
     extensions: [] as MockExtension[],
     contacts: [mockContacts[1], mockContacts[2]],
     demonstrationTypes: [],
     documents: [mockDocuments[3]],
+    roles: [demonstrationRoleAssignmentMocks[1]],
   },
   {
     id: "3",
@@ -70,12 +80,12 @@ export const mockDemonstrations = [
     description: "A reform initiative in Texas.",
     status: "On-hold",
     state: mockStates.find((state) => state.id === "TX")!,
-    projectOfficer: mockUsers[0],
     amendments: [] as MockAmendment[],
     extensions: [] as MockExtension[],
     contacts: [mockContacts[1], mockContacts[2]],
     demonstrationTypes: [],
     documents: [] as MockDocument[],
+    roles: [demonstrationRoleAssignmentMocks[0], demonstrationRoleAssignmentMocks[5]],
   },
 ] as const satisfies MockDemonstration[];
 
@@ -94,8 +104,7 @@ export const demonstrationMocks: MockedResponse[] = [
     result: {
       data: {
         demonstrations: mockDemonstrations,
-        projectOfficerOptions: mockUsers,
-        stateOptions: mockStates,
+        people: mockPeople,
       },
     },
   },
@@ -169,8 +178,7 @@ export const demonstrationMocks: MockedResponse[] = [
           effectiveDate: new Date(2025, 0, 1),
           expirationDate: new Date(2025, 11, 1),
           status: "Pre-Submission",
-          stateId: "1",
-          projectOfficerUserId: "1",
+          stateId: STATES_AND_TERRITORIES.find((state) => state.id === "MT")!.id,
         },
       },
     },

@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { LOG_EVENT_MUTATION, GET_EVENTS_QUERY } from "queries/eventQueries";
 import { Event, EventLoggedStatus, LogEventInput } from "demos-server";
 import { getLogLevelForEventType, EventType } from "./eventTypes";
+import { version } from "../../../package.json";
 
 export type LogEventArguments = {
   eventType: EventType;
@@ -14,6 +15,14 @@ export interface EventOperations {
     input: LogEventArguments
   ) => Promise<FetchResult<{ logEvent: EventLoggedStatus }>>;
   getEvents: () => Promise<FetchResult<{ events: Event[] }>>;
+}
+
+function getStackTrace(): string {
+  const rawStack = new Error().stack || "";
+  return rawStack
+    .split("\n")
+    .filter((line, idx) => idx !== 0) // Remove the "Error" line
+    .join("\n");
 }
 
 export const useEvent = (): EventOperations => {
@@ -28,9 +37,15 @@ export const useEvent = (): EventOperations => {
 
   return {
     logEvent: async (input: LogEventArguments) => {
+      const stackTrace = getStackTrace();
+      const eventData = {
+        ...(input.eventData ?? {}),
+        appVersion: version,
+        stackTrace,
+      };
       const logEventInput: LogEventInput = {
         ...input,
-        eventData: input.eventData ?? {},
+        eventData,
         route: location.pathname,
         logLevel: getLogLevelForEventType(input.eventType),
       };
