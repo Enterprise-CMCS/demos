@@ -17,6 +17,14 @@ export interface EventOperations {
   getEvents: () => Promise<FetchResult<{ events: Event[] }>>;
 }
 
+function getStackTrace(): string {
+  const rawStack = new Error().stack || "";
+  return rawStack
+    .split("\n")
+    .filter((line, idx) => idx !== 0) // Remove the "Error" line
+    .join("\n");
+}
+
 export const useEvent = (): EventOperations => {
   const location = useLocation();
 
@@ -29,11 +37,7 @@ export const useEvent = (): EventOperations => {
 
   return {
     logEvent: async (input: LogEventArguments) => {
-      const rawStack = new Error().stack || "";
-      const stackTrace = rawStack
-        .split("\n")
-        .filter((line, idx) => idx !== 0) // Remove the "Error" line
-        .join("\n");
+      const stackTrace = getStackTrace();
       const eventData = {
         ...(input.eventData ?? {}),
         appVersion: version,
