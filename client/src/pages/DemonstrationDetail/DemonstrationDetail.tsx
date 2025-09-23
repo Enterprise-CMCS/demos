@@ -64,6 +64,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           email
         }
       }
+      currentPhase
     }
   }
 `;
@@ -150,7 +151,6 @@ export const DemonstrationDetail: React.FC = () => {
     [demonstration, loading, error, handleEdit, handleDelete]
   );
   usePageHeader(headerContent);
-
   return (
     <div>
       {isTestMode() && headerContent}

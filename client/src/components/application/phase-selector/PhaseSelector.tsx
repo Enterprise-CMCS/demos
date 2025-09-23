@@ -11,6 +11,8 @@ import {
   StateApplicationPhase,
 } from "../phases";
 import { PhaseBox } from "./PhaseBox";
+import { Phase } from "demos-server";
+import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 
 const PHASE_NAMES = [
   "Concept",
@@ -25,13 +27,34 @@ const PHASE_NAMES = [
 
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
+export type PhaseSelectorPhase = Exclude<Phase, "None">;
 export type PhaseStatus = "skipped" | "not_started" | "in_progress" | "completed";
 
-const PHASE_COMPONENTS_LOOKUP: Record<PhaseName, React.ComponentType> = {
+const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
+  Concept: new Date(2024, 4, 20),
+  "State Application": new Date(2024, 4, 22),
+  Completeness: new Date(2024, 11, 31),
+  "Federal Comment": new Date(2025, 8, 24),
+};
+
+const FEDERAL_COMMENT_START_DATE = MOCK_PHASE_DATE_LOOKUP["Federal Comment"] as Date;
+
+const PHASE_COMPONENTS_LOOKUP: Record<PhaseSelectorPhase, React.ComponentType> = {
   Concept: ConceptPhase,
   "State Application": StateApplicationPhase,
   Completeness: CompletenessPhase,
-  "Federal Comment": FederalCommentPhase,
+  "Federal Comment": () => {
+    const phaseStartDate = FEDERAL_COMMENT_START_DATE;
+    const phaseEndDate = new Date(phaseStartDate);
+    phaseEndDate.setDate(phaseEndDate.getDate() + 30);
+
+    return (
+      <FederalCommentPhase
+        phaseStartDate={phaseStartDate}
+        phaseEndDate={phaseEndDate}
+      />
+    );
+  },
   "SME/FRT": SmeFrtPhase,
   "OGC & OMB": OgcOmbPhase,
   "Approval Package": ApprovalPackagePhase,
@@ -72,20 +95,18 @@ const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
   "Post Approval": "not_started",
 };
 
-const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
-  Concept: new Date(2024, 4, 20),
-  "State Application": new Date(2024, 4, 22),
-  Completeness: new Date(2024, 11, 31),
-};
-
 export type PhaseStatusLookup = Record<PhaseName, PhaseStatus>;
 interface PhaseSelectorProps {
-  initialPhase?: PhaseName;
+  demonstration: ApplicationWorkflowDemonstration;
   phaseStatusLookup?: PhaseStatusLookup;
 }
 
 export const PhaseSelector = (props: PhaseSelectorProps) => {
-  const [selectedPhase, setSelectedPhase] = useState<PhaseName>(props.initialPhase ?? "Concept");
+  console.log(props.demonstration);
+  const mappedInitialPhase = PHASE_NAMES.includes(props.demonstration.currentPhase as PhaseSelectorPhase)
+    ? (props.demonstration.currentPhase as PhaseSelectorPhase)
+    : "Concept";
+  const [selectedPhase, setSelectedPhase] = useState<PhaseSelectorPhase>(mappedInitialPhase);
   const [phaseStatusLookup] = useState<PhaseStatusLookup>(MOCK_PHASE_STATUS_LOOKUP);
 
   return (
