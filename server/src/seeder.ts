@@ -211,17 +211,31 @@ async function seedDatabase() {
     await createDemonstration(undefined, { input: createInput });
   }
   const demonstrations = await getManyDemonstrations();
-  for (const demonstration of demonstrations) {
-    const updatePayload: UpdateDemonstrationInput = {
-      effectiveDate: faker.date.future({ years: 1 }),
-      expirationDate: faker.date.future({ years: 2 }),
-    };
-    const updateInput = {
-      id: demonstration.id,
-      input: updatePayload,
-    };
-    await updateDemonstration(undefined, updateInput);
-  }
+  await Promise.all(
+    demonstrations.map((demonstration, index) => {
+      const updatePayload: UpdateDemonstrationInput = {
+        effectiveDate: faker.date.future({ years: 1 }),
+        expirationDate: faker.date.future({ years: 2 }),
+      };
+
+      /* 
+       * DEMOS-684 Test Case
+       * Need to eventually include seeding for other phases,
+       * And correctly seed valid dates, phase statuses, etc...
+       */
+      if (index === 0) {
+        updatePayload.currentPhase = "Federal Comment";
+        updatePayload.status = "Under Review";
+      }
+
+      const updateInput = {
+        id: demonstration.id,
+        input: updatePayload,
+      };
+
+      return updateDemonstration(undefined, updateInput);
+    })
+  );
 
   console.log("🌱 Seeding amendments...");
   for (let i = 0; i < amendmentCount; i++) {
