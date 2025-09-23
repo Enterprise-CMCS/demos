@@ -8,7 +8,7 @@ import {
 import { ExitIcon, WarningIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
-import { ConceptPreSubmissionUploadDialog } from "components/dialog/document/ConceptPreSubmissionUploadDialog";
+import { FederalCommentUploadDialog } from "components/dialog/document/FederalCommentUploadDialog";
 
 interface FederalCommentPhaseProps {
   demonstrationId?: string;
@@ -119,7 +119,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
         </div>
       </section>
 
-      <ConceptPreSubmissionUploadDialog
+      <FederalCommentUploadDialog
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
         bundleId={demonstrationId}
