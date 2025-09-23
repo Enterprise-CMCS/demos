@@ -22,6 +22,7 @@ pipeline {
           git config --global --add safe.directory \$PWD
           git log \$GIT_PREVIOUS_COMMIT^1..HEAD
           """
+          echo "done"
         }
       }
     }
