@@ -2,12 +2,13 @@ def updateAndComment(String statusId) {
   // Implementation for updating and commenting on JIRA tickets
   withEnv(["JIRA_STATUS_ID=${statusId}"]) {
   sh '''
+    echo "Updating JIRA ticket $TICKET_NUMBER to status $JIRA_STATUS_ID"
     curl -X POST \
     -H "Authorization: Bearer $JIRA_TOKEN" \
     -H "Content-Type: application/json" \
   --data '{
     "transition": {
-      "id": "$JIRA_STATUS_ID"
+      "id": "'$JIRA_STATUS_ID'"
     },
     "update": {
       "comment": [{
