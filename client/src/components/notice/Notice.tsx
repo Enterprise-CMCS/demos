@@ -12,8 +12,10 @@ interface NoticeProps {
   onDismiss?: () => void;
   className?: string;
 }
-
-const COMMON_CLASSES = tw`bg-white text-text-font flex items-center gap-2 border-l-[10px] border px-1 py-1 text-sm w-1/2`;
+// If these need to change, simplely remove from common and add to each variant.
+const COMMON_CLASSES = tw`bg-white text-text-font flex
+  items-center gap-2 border-l-[10px] border px-1 py-1 text-sm w-1/2
+`;
 const VARIANT_TO_CLASSNAME: Record<NoticeVariant, string> = {
   info: `${COMMON_CLASSES} ${tw`border-border-brand`}`,
   success: `${COMMON_CLASSES} ${tw`border-border-success`}`,

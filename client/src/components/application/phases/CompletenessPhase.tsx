@@ -5,7 +5,7 @@ import { ExportIcon, DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 import { isLocalDevelopment } from "config/env";
-import { Notice } from "components/notice";
+import { Notice, NoticeVariant } from "components/notice";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessUploadDialog } from "components/dialog/document/CompletenessUploadDialog";
@@ -44,10 +44,17 @@ export const CompletenessPhase: React.FC = () => {
 
   const trimmedNoticeDays = noticeDaysRemaining.trim();
   const parsedNoticeDays = trimmedNoticeDays === "" ? NaN : Number.parseInt(trimmedNoticeDays, 10);
-  const noticeDaysValue = Number.isNaN(parsedNoticeDays) ? null : Math.max(parsedNoticeDays, 0);
-  const noticeTitle = noticeDaysValue !== null
-    ? `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`
-    : "Federal Comment Period notice";
+  const noticeDaysValue = Number.isNaN(parsedNoticeDays) ? null : parsedNoticeDays;
+
+  // Manages the notice 'day left/past due" logic.
+  const noticeTitle = (() => {
+    if (noticeDaysValue === null) return "Federal Comment Period notice";
+    if (noticeDaysValue < 0) {
+      const daysPastDue = Math.abs(noticeDaysValue);
+      return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
+    }
+    return `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`;
+  })();
 
   const dueDateCandidate = noticeDueDate ? new Date(noticeDueDate) : undefined;
   const isDueDateValid = dueDateCandidate instanceof Date && !Number.isNaN(dueDateCandidate.getTime());
@@ -55,6 +62,8 @@ export const CompletenessPhase: React.FC = () => {
   const noticeDescription = formattedNoticeDate
     ? `This Amendment must be declared complete by ${formattedNoticeDate}`
     : "Add a mock due date in the testing panel to update this message.";
+  // go from yeller to red at 1 day left.
+  const noticeVariant: NoticeVariant = noticeDaysValue !== null && noticeDaysValue <= 1 ? "error" : "warning";
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
   const datesAreValid = !federalStartDate || !federalEndDate
@@ -204,11 +213,10 @@ export const CompletenessPhase: React.FC = () => {
           <span className="font-semibold">Notice days left</span>
           <input
             type="number"
-            min={0}
             step={1}
             value={noticeDaysRemaining}
             onChange={(event) => setNoticeDaysRemaining(event.target.value)}
-            className="w-16 rounded border border-border-fields px-2 py-1 text-xs"
+            className="w-24 rounded border border-border-fields px-2 py-1 text-xs"
           />
         </label>
         <label className="flex items-center gap-2 text-gray-700">
@@ -235,7 +243,7 @@ export const CompletenessPhase: React.FC = () => {
     <div>
       {!isNoticeDismissed && (
         <Notice
-          variant="warning"
+          variant={noticeVariant}
           title={noticeTitle}
           description={noticeDescription}
           onDismiss={() => setNoticeDismissed(true)}
