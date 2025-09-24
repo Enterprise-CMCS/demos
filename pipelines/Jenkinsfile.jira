@@ -61,7 +61,7 @@ pipeline {
                     TICKET_INFO=$(curl -H "Authorization: Bearer $JIRA_TOKEN" --url "https://jiraent.cms.gov/rest/api/2/issue/${TICKET_NUMBER}")
                     TICKET_STATUS=$(echo "$TICKET_INFO" | jq -r '.fields.status.name')
 
-                    if [ "$TICKET_STATUS" != "In Review" ]; then
+                    if [ "$TICKET_STATUS" != "In Review" ] && [ "$TICKET_STATUS" != "Available for Testing" ]; then
                       exit 2
                     fi
 
