@@ -2,69 +2,103 @@ import { DemonstrationRoleAssignment } from "@prisma/client";
 
 import { prisma } from "../../prismaClient.js";
 import {
-  AssignDemonstrationRoleInput,
-  UnassignDemonstrationRoleInput,
+  SetDemonstrationRoleInput,
+  UnsetDemonstrationRoleInput,
 } from "./demonstrationRoleAssignmentSchema.js";
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
-export async function assignDemonstrationRole(
+export async function unsetDemonstrationRole(
   parent: undefined,
-  { input }: { input: AssignDemonstrationRoleInput }
+  { input }: { input: UnsetDemonstrationRoleInput }
 ) {
-  const person = await prisma().person.findUnique({
-    where: { id: input.personId },
-  });
-  if (!person) {
-    throw new Error(`Person with id ${input.personId} not found`);
-  }
-
-  const demonstration = await prisma().demonstration.findUnique({
-    where: { id: input.demonstrationId },
-  });
-  if (!demonstration) {
-    throw new Error(`Demonstration with id ${input.demonstrationId} not found`);
-  }
-
-  const demonstrationRoleAssignment = await prisma().demonstrationRoleAssignment.create({
-    data: {
-      demonstrationId: demonstration.id,
-      stateId: demonstration.stateId,
-      personId: person.id,
-      personTypeId: person.personTypeId,
-      roleId: input.roleId,
-      grantLevelId: DEMONSTRATION_GRANT_LEVEL,
-    },
-  });
-
-  if (input.isPrimary) {
-    await prisma().primaryDemonstrationRoleAssignment.create({
-      data: {
+  return await prisma().$transaction(async (tx) => {
+    await tx.primaryDemonstrationRoleAssignment.deleteMany({
+      where: {
         personId: input.personId,
-        roleId: input.roleId,
         demonstrationId: input.demonstrationId,
+        roleId: input.roleId,
       },
     });
-  }
 
-  return demonstrationRoleAssignment;
+    return await tx.demonstrationRoleAssignment.delete({
+      where: {
+        personId_demonstrationId_roleId: {
+          personId: input.personId,
+          demonstrationId: input.demonstrationId,
+          roleId: input.roleId,
+        },
+      },
+    });
+  });
 }
 
-export async function unassignDemonstrationRole(
+export async function setDemonstrationRole(
   parent: undefined,
-  { input }: { input: UnassignDemonstrationRoleInput }
+  { input }: { input: SetDemonstrationRoleInput }
 ) {
-  // first attempt to delete primary indicator, if it exists
-  await prisma().primaryDemonstrationRoleAssignment.deleteMany({
-    where: {
-      personId: input.personId,
-      demonstrationId: input.demonstrationId,
-      roleId: input.roleId,
-    },
-  });
+  await prisma().$transaction(async (tx) => {
+    const person = await tx.person.findUnique({
+      where: { id: input.personId },
+    });
+    if (!person) {
+      throw new Error(`Person with id ${input.personId} not found`);
+    }
 
-  // then delete main role assignment
-  return prisma().demonstrationRoleAssignment.delete({
+    const demonstration = await tx.demonstration.findUnique({
+      where: { id: input.demonstrationId },
+    });
+    if (!demonstration) {
+      throw new Error(`Demonstration with id ${input.demonstrationId} not found`);
+    }
+
+    await prisma().demonstrationRoleAssignment.upsert({
+      where: {
+        personId_demonstrationId_roleId: {
+          personId: person.id,
+          demonstrationId: demonstration.id,
+          roleId: input.roleId,
+        },
+      },
+      update: {},
+      create: {
+        roleId: input.roleId,
+        demonstrationId: demonstration.id,
+        stateId: demonstration.stateId,
+        personId: person.id,
+        personTypeId: person.personTypeId,
+        grantLevelId: DEMONSTRATION_GRANT_LEVEL,
+      },
+    });
+
+    if (input.isPrimary === true) {
+      await prisma().primaryDemonstrationRoleAssignment.upsert({
+        where: {
+          demonstrationId_roleId: {
+            demonstrationId: demonstration.id,
+            roleId: input.roleId,
+          },
+        },
+        update: {
+          personId: person.id,
+        },
+        create: {
+          demonstrationId: demonstration.id,
+          personId: person.id,
+          roleId: input.roleId,
+        },
+      });
+    } else if (input.isPrimary === false) {
+      await prisma().primaryDemonstrationRoleAssignment.deleteMany({
+        where: {
+          demonstrationId: demonstration.id,
+          roleId: input.roleId,
+          personId: person.id,
+        },
+      });
+    }
+  });
+  return await prisma().demonstrationRoleAssignment.findUnique({
     where: {
       personId_demonstrationId_roleId: {
         personId: input.personId,
@@ -77,8 +111,8 @@ export async function unassignDemonstrationRole(
 
 export const demonstrationRoleAssigmentResolvers = {
   Mutation: {
-    assignDemonstrationRole: assignDemonstrationRole,
-    unassignDemonstrationRole: unassignDemonstrationRole,
+    setDemonstrationRole,
+    unsetDemonstrationRole,
   },
 
   DemonstrationRoleAssignment: {
