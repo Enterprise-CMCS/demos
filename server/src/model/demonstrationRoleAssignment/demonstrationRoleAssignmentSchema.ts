@@ -17,8 +17,15 @@ export const demonstrationRoleAssignmentSchema = gql`
     isPrimary: Boolean
   }
 
+  input UnassignDemonstrationRoleInput {
+    demonstrationId: ID!
+    personId: ID!
+    roleId: Role!
+  }
+
   type Mutation {
     assignDemonstrationRole(input: AssignDemonstrationRoleInput!): DemonstrationRoleAssignment!
+    unassignDemonstrationRole(input: UnassignDemonstrationRoleInput!): DemonstrationRoleAssignment!
   }
 `;
 
@@ -34,4 +41,10 @@ export type AssignDemonstrationRoleInput = {
   personId: string;
   roleId: Role;
   isPrimary?: boolean;
+};
+
+export type UnassignDemonstrationRoleInput = {
+  demonstrationId: string;
+  personId: string;
+  roleId: Role;
 };

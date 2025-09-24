@@ -1,7 +1,10 @@
 import { DemonstrationRoleAssignment } from "@prisma/client";
 
 import { prisma } from "../../prismaClient.js";
-import { AssignDemonstrationRoleInput } from "./demonstrationRoleAssignmentSchema.js";
+import {
+  AssignDemonstrationRoleInput,
+  UnassignDemonstrationRoleInput,
+} from "./demonstrationRoleAssignmentSchema.js";
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
@@ -47,9 +50,35 @@ export async function assignDemonstrationRole(
   return demonstrationRoleAssignment;
 }
 
+export async function unassignDemonstrationRole(
+  parent: undefined,
+  { input }: { input: UnassignDemonstrationRoleInput }
+) {
+  // first attempt to delete primary indicator, if it exists
+  await prisma().primaryDemonstrationRoleAssignment.deleteMany({
+    where: {
+      personId: input.personId,
+      demonstrationId: input.demonstrationId,
+      roleId: input.roleId,
+    },
+  });
+
+  // then delete main role assignment
+  return prisma().demonstrationRoleAssignment.delete({
+    where: {
+      personId_demonstrationId_roleId: {
+        personId: input.personId,
+        demonstrationId: input.demonstrationId,
+        roleId: input.roleId,
+      },
+    },
+  });
+}
+
 export const demonstrationRoleAssigmentResolvers = {
   Mutation: {
     assignDemonstrationRole: assignDemonstrationRole,
+    unassignDemonstrationRole: unassignDemonstrationRole,
   },
 
   DemonstrationRoleAssignment: {
