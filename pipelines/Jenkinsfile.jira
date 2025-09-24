@@ -37,17 +37,30 @@ pipeline {
                 withEnv(["TICKET_NUMBER=${ticket}"]) {
                 def status = sh(script: '''
                     TICKET_INFO=$(curl -H "Authorization: Bearer $JIRA_TOKEN" --url "https://jiraent.cms.gov/rest/api/2/issue/${TICKET_NUMBER}")
-                    echo "$TICKET_INFO" | jq -r '.fields.status.name'
-                    QA_REQUIRED=$(echo "$TICKET_INFO" | jq -r 'any(.fields.labels[]; . == "QA-Required")')
-                    if [ "$QA_REQUIRED" != "true" ]; then
-                      exit 3
-                    else
+                    TICKET_STATUS=$(echo "$TICKET_INFO" | jq -r '.fields.status.name')
+
+                    if [ "$TICKET_STATUS" != "In Review" ]; then
                       exit 2
                     fi
-                  ''', returnStatus: true)
 
-                echo "Ticket $ticket status: ${status}"
+                    QA_REQUIRED=$(echo "$TICKET_INFO" | jq -r 'any(.fields.labels[]; . == "QA-Required")')
+                    if [ "$QA_REQUIRED" != "true" ]; then
+                      exit 1
+                    else
+                      exit 0
+                    fi
+                  ''', returnStatus: true)
+                if (status == 2) {
+                  echo "Ticket $ticket is not in review, skipping."
+                  continue
                 }
+
+                if (status == 1) {
+                  echo "Ticket $ticket does not need QA, marking as done"
+                  continue
+                }
+
+                echo "Ticket $ticket requires QA, moving to `Ready for Test`"
               }
             }
           }
