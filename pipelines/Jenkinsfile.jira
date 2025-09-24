@@ -18,10 +18,19 @@ pipeline {
           sh "apk add curl"
           sh "apk add jq"
           // sh "curl -s https://api.github.com/repos/Enterprise-CMCS/demos/pulls/${env.CHANGE_ID} | jq '.draft'"
-          sh '''
-          git config --global --add safe.directory $PWD
-          git log $GIT_PREVIOUS_COMMIT..HEAD | grep "DEMOS-[0-9]\\+" -i -o | tr '[:lower:]' '[:upper:]' | sort -u
-          '''
+          // sh '''
+          // git config --global --add safe.directory $PWD
+          // git log $GIT_PREVIOUS_COMMIT..HEAD | grep "Closes:" | grep "DEMOS-[0-9]\\+" -i -o | tr '[:lower:]' '[:upper:]' | sort -u
+          // '''
+
+          withCredentials([string(credentialsId: 'jira-token', variable: 'JIRA_TOKEN')]) {
+            sh '''
+            curl -X GET \
+            -H "Authorization: Bearer $JIRA_TOKEN" \
+            --url "https://jiraent.cms.gov/rest/api/2/issue/DEMOS-858/transitions" | jq '.transitions[] | "\\(.name) - \\(.id)"'
+            '''
+          }
+
           echo "done"
         }
       }
