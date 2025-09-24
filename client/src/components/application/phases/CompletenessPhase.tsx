@@ -10,6 +10,7 @@ import { Notice, NoticeVariant } from "components/notice";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessUploadDialog } from "components/dialog/document/CompletenessUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
+import { CompletenessTestingPanel } from "./CompletenessTestingPanel";
 import { PhaseStatusContext } from "../phase-selector/PhaseStatusContext";
 
 const STYLES = {
@@ -221,48 +222,6 @@ export const CompletenessPhase: React.FC = () => {
     </div>
   );
 
-  // Simple testing aid while building the UI (dev only)
-  const TestingPanel = () => (
-    <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-      <div className="flex flex-wrap items-center gap-3 text-xs">
-        <button
-          onClick={addMockDoc}
-          className="rounded bg-blue-100 px-3 py-1 text-blue-700 transition-colors hover:bg-blue-200"
-          data-testid="add-mock-completeness-doc"
-        >
-          Add Mock Completeness Doc
-        </button>
-        <span className="text-gray-600">Docs: {completenessDocs.length}</span>
-        <label className="flex items-center gap-2 text-gray-700">
-          <span className="font-semibold">Notice days left</span>
-          <input
-            type="number"
-            step={1}
-            value={noticeDaysRemaining}
-            onChange={(event) => setNoticeDaysRemaining(event.target.value)}
-            className="w-24 rounded border border-border-fields px-2 py-1 text-xs"
-          />
-        </label>
-        <label className="flex items-center gap-2 text-gray-700">
-          <span className="font-semibold">Notice due date</span>
-          <input
-            type="date"
-            value={noticeDueDate}
-            onChange={(event) => setNoticeDueDate(event.target.value)}
-            className="rounded border border-border-fields px-2 py-1 text-xs"
-          />
-        </label>
-        <span className="text-gray-600">Displayed days: {noticeDaysValue ?? "--"}</span>
-        <button
-          onClick={() => setNoticeDismissed(false)}
-          className="rounded border border-action px-3 py-1 text-action transition-colors hover:bg-action hover:text-white"
-        >
-          Reset Notice
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       {!isNoticeDismissed && (
@@ -315,7 +274,19 @@ export const CompletenessPhase: React.FC = () => {
           />
         </div>
       )}
-      {isLocalDevelopment() && <TestingPanel />}
+      {/* Since this is pretty handy (pre-api hookup), let's make it easy to separate */}
+      {isLocalDevelopment() && (
+        <CompletenessTestingPanel
+          onAddMockDoc={addMockDoc}
+          completenessDocCount={completenessDocs.length}
+          noticeDaysRemaining={noticeDaysRemaining}
+          onNoticeDaysChange={setNoticeDaysRemaining}
+          noticeDueDate={noticeDueDate}
+          onNoticeDueDateChange={setNoticeDueDate}
+          noticeDaysValue={noticeDaysValue}
+          onResetNotice={() => setNoticeDismissed(false)}
+        />
+      )}
     </div>
   );
 };
