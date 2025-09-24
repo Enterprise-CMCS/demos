@@ -18,19 +18,35 @@ pipeline {
           sh "apk add curl"
           sh "apk add jq"
           // sh "curl -s https://api.github.com/repos/Enterprise-CMCS/demos/pulls/${env.CHANGE_ID} | jq '.draft'"
-          // sh '''
-          // git config --global --add safe.directory $PWD
-          // git log $GIT_PREVIOUS_COMMIT..HEAD | grep "Closes:" | grep "DEMOS-[0-9]\\+" -i -o | tr '[:lower:]' '[:upper:]' | sort -u
-          // '''
+          script {
+            def closedIssues = sh(script: '''
+            git config --global --add safe.directory $PWD
+            git log $GIT_PREVIOUS_COMMIT..HEAD | grep "Closes:" | grep "DEMOS-[0-9]\\+" -i -o | tr '[:lower:]' '[:upper:]' | sort -u
+            ''', returnStdout: true)
 
-          withCredentials([string(credentialsId: 'jira-token', variable: 'JIRA_TOKEN')]) {
-            sh '''
-            curl -X GET \
-            -H "Authorization: Bearer $JIRA_TOKEN" \
-            --url "https://jiraent.cms.gov/rest/api/2/issue/DEMOS-858/transitions" | jq '.transitions[] | "\\(.name) - \\(.id)"'
-            '''
+            withCredentials([string(credentialsId: 'jira-token', variable: 'JIRA_TOKEN')]) {
+              sh '''
+              curl -X GET \
+              -H "Authorization: Bearer $JIRA_TOKEN" \
+              --url "https://jiraent.cms.gov/rest/api/2/issue/DEMOS-858/transitions" | jq '.transitions[] | "\\(.name) - \\(.id)"'
+              '''
+
+
+              def tickets = closedIssues.readLines()
+              for (ticket in tickets) {
+                sh """
+                  TICKET_INFO=$(curl -H "Authorization: Bearer $JIRA_TOKEN" --url "https://jiraent.cms.gov/rest/api/2/issue/${ticket}")
+                  echo "$TICKET_INFO" | jq -r '.fields.status.name'
+                  QA_REQUIRED=$(echo "$TICKET_INFO" | jq -r 'any(.fields.labels[]; . == "QA-Required")')
+                  if [ "$QA_REQUIRED" != "true" ]; then
+                    echo "Ticket $ticket does not require QA"
+                  else
+                    echo "Ticket $ticket requires QA"
+                  fi
+                """
+              }
+            }
           }
-
           echo "done"
         }
       }
