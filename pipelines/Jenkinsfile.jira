@@ -37,7 +37,7 @@ pipeline {
                 withEnv(["TICKET_NUMBER=${ticket}"]) {
                   sh '''
                     TICKET_INFO=$(curl -H "Authorization: Bearer $JIRA_TOKEN" --url "https://jiraent.cms.gov/rest/api/2/issue/${TICKET_NUMBER}")
-                    echo "$TICKET_INFO" | jq -r '.fields.status.name'
+                    jq -r '.fields.status.name' <<< "$TICKET_INFO"
                     QA_REQUIRED=$(echo "$TICKET_INFO" | jq -r 'any(.fields.labels[]; . == "QA-Required")')
                     if [ "$QA_REQUIRED" != "true" ]; then
                       echo "Ticket $ticket does not require QA"
