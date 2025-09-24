@@ -1,3 +1,9 @@
+def updateAndComment() {
+  // Implementation for updating and commenting on JIRA tickets
+  sh 'echo "This is in the updateAndComment function"'
+  sh 'echo $TICKET_NUMBER'
+}
+
 pipeline {
   agent {
     kubernetes { 
@@ -54,8 +60,10 @@ pipeline {
                   echo "Ticket $ticket is not in review, skipping."
                 } else if (status == 1) {
                   echo "Ticket $ticket does not need QA, marking as done"
+                  updateAndComment()
                 } else {
                   echo "Ticket $ticket requires QA, moving to `Ready for Test`"
+                  updateAndComment()
                 }
 
               }
