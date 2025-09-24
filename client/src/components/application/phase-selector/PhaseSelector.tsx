@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import {
   ApprovalPackagePhase,
@@ -11,6 +11,7 @@ import {
   StateApplicationPhase,
 } from "../phases";
 import { PhaseBox } from "./PhaseBox";
+import { PhaseStatusContext } from "./PhaseStatusContext";
 
 const PHASE_NAMES = [
   "Concept",
@@ -86,7 +87,21 @@ interface PhaseSelectorProps {
 
 export const PhaseSelector = (props: PhaseSelectorProps) => {
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(props.initialPhase ?? "Concept");
-  const [phaseStatusLookup] = useState<PhaseStatusLookup>(MOCK_PHASE_STATUS_LOOKUP);
+  const [phaseStatusLookup, setPhaseStatusLookup] = useState<PhaseStatusLookup>(
+    props.phaseStatusLookup ?? MOCK_PHASE_STATUS_LOOKUP
+  );
+
+  const updatePhaseStatus = useCallback((phase: PhaseName, status: PhaseStatus) => {
+    setPhaseStatusLookup((prev) => {
+      if (prev[phase] === status) return prev;
+      return { ...prev, [phase]: status };
+    });
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({ phaseStatusLookup, updatePhaseStatus }),
+    [phaseStatusLookup, updatePhaseStatus]
+  );
 
   return (
     <>
@@ -104,7 +119,9 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
           />
         ))}
       </div>
-      <DisplayPhase selectedPhase={selectedPhase} />
+      <PhaseStatusContext.Provider value={contextValue}>
+        <DisplayPhase selectedPhase={selectedPhase} />
+      </PhaseStatusContext.Provider>
     </>
   );
 };

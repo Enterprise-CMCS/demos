@@ -10,6 +10,7 @@ import { Notice, NoticeVariant } from "components/notice";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessUploadDialog } from "components/dialog/document/CompletenessUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
+import { PhaseStatusContext } from "../phase-selector/PhaseStatusContext";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -26,6 +27,7 @@ const STYLES = {
 
 // A minimal starter for the Completeness phase UI with two sections
 export const CompletenessPhase: React.FC = () => {
+  const phaseStatusContext = React.useContext(PhaseStatusContext);
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -72,6 +74,10 @@ export const CompletenessPhase: React.FC = () => {
     ? true
     : new Date(federalStartDate) <= new Date(federalEndDate);
   const canFinish = hasDocs && datesFilled && datesAreValid;
+  const completenessStatus = phaseStatusContext?.phaseStatusLookup.Completeness;
+  const markCompletenessFinished = () => {
+    phaseStatusContext?.updatePhaseStatus("Completeness", "completed");
+  };
 
   // lightweight helpers to mock document activity while wiring up UI
   const addMockDoc = () => {
@@ -197,7 +203,12 @@ export const CompletenessPhase: React.FC = () => {
         >
           Save For Later
         </SecondaryButton>
-        <Button name="finish-completeness" size="small" disabled={!canFinish} onClick={() => console.log("Finish completeness phase")}>
+        <Button
+          name="finish-completeness"
+          size="small"
+          disabled={!canFinish || completenessStatus === "completed"}
+          onClick={markCompletenessFinished}
+        >
           Finish
         </Button>
       </div>
