@@ -52,12 +52,12 @@ pipeline {
                   ''', returnStatus: true)
                 if (status == 2) {
                   echo "Ticket $ticket is not in review, skipping."
-                  continue
+                  break
                 }
 
                 if (status == 1) {
                   echo "Ticket $ticket does not need QA, marking as done"
-                  continue
+                  break
                 }
 
                 echo "Ticket $ticket requires QA, moving to `Ready for Test`"
