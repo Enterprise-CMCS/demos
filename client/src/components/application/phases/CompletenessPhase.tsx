@@ -77,6 +77,7 @@ export const CompletenessPhase: React.FC = () => {
   const completenessStatus = phaseStatusContext?.phaseStatusLookup.Completeness;
   const markCompletenessFinished = () => {
     phaseStatusContext?.updatePhaseStatus("Completeness", "completed");
+    // when "complete" we do not need the notice.
     setNoticeDismissed(true);
   };
 
