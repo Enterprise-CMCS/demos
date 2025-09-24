@@ -34,17 +34,19 @@ pipeline {
 
               def tickets = closedIssues.readLines()
               for (ticket in tickets) {
-                sh """
-                  TICKET_INFO=$(curl -H "Authorization: Bearer $JIRA_TOKEN" --url "https://jiraent.cms.gov/rest/api/2/issue/${ticket}")
-                  echo "$TICKET_INFO" | jq -r '.fields.status.name'
-                  QA_REQUIRED=$(echo "$TICKET_INFO" | jq -r 'any(.fields.labels[]; . == "QA-Required")')
-                  if [ "$QA_REQUIRED" != "true" ]; then
-                    echo "Ticket $ticket does not require QA"
-                    
-                  else
-                    echo "Ticket $ticket requires QA"
-                  fi
-                """
+                withEnv(["TICKET_NUMBER=${ticket}"]) {
+                  sh '''
+                    TICKET_INFO=$(curl -H "Authorization: Bearer $JIRA_TOKEN" --url "https://jiraent.cms.gov/rest/api/2/issue/${TICKET_NUMBER}")
+                    echo "$TICKET_INFO" | jq -r '.fields.status.name'
+                    QA_REQUIRED=$(echo "$TICKET_INFO" | jq -r 'any(.fields.labels[]; . == "QA-Required")')
+                    if [ "$QA_REQUIRED" != "true" ]; then
+                      echo "Ticket $ticket does not require QA"
+
+                    else
+                      echo "Ticket $ticket requires QA"
+                    fi
+                  '''
+                }
               }
             }
           }
