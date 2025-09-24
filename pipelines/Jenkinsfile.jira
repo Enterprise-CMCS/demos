@@ -40,6 +40,7 @@ pipeline {
                   QA_REQUIRED=$(echo "$TICKET_INFO" | jq -r 'any(.fields.labels[]; . == "QA-Required")')
                   if [ "$QA_REQUIRED" != "true" ]; then
                     echo "Ticket $ticket does not require QA"
+                    
                   else
                     echo "Ticket $ticket requires QA"
                   fi
