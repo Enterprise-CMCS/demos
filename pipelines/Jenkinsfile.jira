@@ -1,6 +1,6 @@
-def updateAndComment(String statusId) {
+def updateAndComment(String statusId, String comment = "Status updated by Jenkins") {
   // Implementation for updating and commenting on JIRA tickets
-  withEnv(["JIRA_STATUS_ID=${statusId}"]) {
+  withEnv(["JIRA_STATUS_ID=${statusId}",["JIRA_COMMENT=${comment}"]]) {
   sh '''
     echo "Updating JIRA ticket $TICKET_NUMBER to status $JIRA_STATUS_ID"
     curl -X POST \
@@ -12,7 +12,7 @@ def updateAndComment(String statusId) {
     },
     "update": {
       "comment": [{
-        "add": {"body": "Status updated by Jenkins"}
+        "add": {"body": "'$JIRA_COMMENT'"}
       }]
     }
   }' "https://jiraent.cms.gov/rest/api/2/issue/$TICKET_NUMBER/transitions"
@@ -78,8 +78,11 @@ pipeline {
                   echo "Ticket $ticket does not need QA, marking as done"
                   updateAndComment("41")
                 } else {
-                  echo "Ticket $ticket requires QA, moving to `Ready for Test`"
-                  updateAndComment("71")
+                  if ("${env.BRANCH_NAME}" == "DEMOS-840-jira-jenkins") {
+                    updateAndComment("71")
+                  } else if ("${env.BRANCH_NAME}" == "DEMOS-841-mock-test") {
+                    updateAndComment("61", "Code has been merged to TEST")
+                  }
                 }
 
               }
