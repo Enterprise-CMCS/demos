@@ -107,12 +107,12 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
     <>
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
-        {PHASE_NAMES.map((phaseName, idx) => (
+        {PHASE_NAMES.map((phaseName, index) => (
           <PhaseBox
             key={phaseName}
             phaseName={phaseName}
             phaseStatus={phaseStatusLookup[phaseName]}
-            phaseNumber={idx + 1}
+            phaseNumber={index + 1}
             displayDate={MOCK_PHASE_DATE_LOOKUP[phaseName]}
             isSelectedPhase={selectedPhase === phaseName}
             setPhaseAsSelected={() => setSelectedPhase(phaseName)}

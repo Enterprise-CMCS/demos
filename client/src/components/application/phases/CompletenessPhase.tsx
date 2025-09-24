@@ -55,7 +55,6 @@ export const CompletenessPhase: React.FC = () => {
     if (noticeDaysValue < 0) {
       const daysPastDue = Math.abs(noticeDaysValue);
       return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
-
     }
     return `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`;
   })();
@@ -66,7 +65,7 @@ export const CompletenessPhase: React.FC = () => {
   const noticeDescription = formattedNoticeDate
     ? `This Amendment must be declared complete by ${formattedNoticeDate}`
     : "Add a mock due date in the testing panel to update this message.";
-  // go from yeller to red at 1 day left.
+  // go from yellow to red at 1 day left.
   const noticeVariant: NoticeVariant = noticeDaysValue !== null && noticeDaysValue <= 1 ? "error" : "warning";
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
@@ -77,6 +76,7 @@ export const CompletenessPhase: React.FC = () => {
   const completenessStatus = phaseStatusContext?.phaseStatusLookup.Completeness;
   const markCompletenessFinished = () => {
     phaseStatusContext?.updatePhaseStatus("Completeness", "completed");
+    setNoticeDismissed(true);
   };
 
   // lightweight helpers to mock document activity while wiring up UI
@@ -146,7 +146,7 @@ export const CompletenessPhase: React.FC = () => {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <label className="block text-sm font-bold mb-1">
+          <label className="block text-sm font-bold mb-1" htmlFor="state-application-deemed-complete">
             <span className="text-text-warn mr-1">*</span>
             State Application Deemed Complete
           </label>
@@ -155,11 +155,13 @@ export const CompletenessPhase: React.FC = () => {
             value={stateDeemedComplete}
             onChange={(e) => setStateDeemedComplete(e.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+            id="state-application-deemed-complete"
+            data-testid="state-application-deemed-complete"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-bold mb-1">
+          <label className="block text-sm font-bold mb-1" htmlFor="federal-comment-period-start">
             <span className="text-text-warn mr-1">*</span>
             Federal Comment Period Start Date
           </label>
@@ -168,11 +170,13 @@ export const CompletenessPhase: React.FC = () => {
             value={federalStartDate}
             onChange={(e) => setFederalStartDate(e.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+            id="federal-comment-period-start"
+            data-testid="federal-comment-period-start"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-bold mb-1">
+          <label className="block text-sm font-bold mb-1" htmlFor="federal-comment-period-end">
             <span className="text-text-warn mr-1">*</span>
             Federal Comment Period End Date
           </label>
@@ -181,6 +185,8 @@ export const CompletenessPhase: React.FC = () => {
             value={federalEndDate}
             onChange={(e) => setFederalEndDate(e.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+            id="federal-comment-period-end"
+            data-testid="federal-comment-period-end"
           />
           {federalStartDate && federalEndDate && !datesAreValid && (
             <div className="text-xs text-text-warn mt-1">End date must be after start date</div>
@@ -222,6 +228,7 @@ export const CompletenessPhase: React.FC = () => {
         <button
           onClick={addMockDoc}
           className="rounded bg-blue-100 px-3 py-1 text-blue-700 transition-colors hover:bg-blue-200"
+          data-testid="add-mock-completeness-doc"
         >
           Add Mock Completeness Doc
         </button>
@@ -272,6 +279,7 @@ export const CompletenessPhase: React.FC = () => {
         onClick={() => setCollapsed((prev) => !prev)}
         aria-expanded={!collapsed}
         aria-controls="completeness-phase-content"
+        data-testid="toggle-completeness"
       >
       COMPLETENESS
       </button>
