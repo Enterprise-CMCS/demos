@@ -4,16 +4,16 @@ import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
 import { render, screen } from "@testing-library/react";
 
 describe("DemonstrationStatusBadge", () => {
-  it("shows Under Review for under_review", () => {
-    render(<DemonstrationStatusBadge demonstrationStatus="under_review" />);
+  it("shows Under Review for DEMONSTRATION_UNDER_REVIEW", () => {
+    render(<DemonstrationStatusBadge demonstrationStatus="Under Review" />);
     expect(screen.getByText("Under Review")).toBeInTheDocument();
   });
   it("shows Approved for approved", () => {
-    render(<DemonstrationStatusBadge demonstrationStatus="approved" />);
+    render(<DemonstrationStatusBadge demonstrationStatus="Approved" />);
     expect(screen.getByText("Approved")).toBeInTheDocument();
   });
-  it("shows Rejected for rejected", () => {
-    render(<DemonstrationStatusBadge demonstrationStatus="rejected" />);
-    expect(screen.getByText("Rejected")).toBeInTheDocument();
+  it("shows Denied for DEMONSTRATION_DENIED", () => {
+    render(<DemonstrationStatusBadge demonstrationStatus="Denied" />);
+    expect(screen.getByText("Denied")).toBeInTheDocument();
   });
 });

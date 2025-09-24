@@ -1,10 +1,8 @@
 import { gql } from "graphql-tag";
-import { DemonstrationStatus } from "../demonstrationStatus/demonstrationStatusSchema.js";
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
-import { User } from "../user/userSchema.js";
-import { CmcsDivision, SignatureLevel, Phase } from "../../types.js";
+import { CmcsDivision, SignatureLevel, Phase, BundlePhase, BundleStatus, DemonstrationRoleAssignment } from "../../types.js";
 
 export const demonstrationSchema = gql`
   """
@@ -28,27 +26,25 @@ export const demonstrationSchema = gql`
     expirationDate: Date
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
-    demonstrationStatus: DemonstrationStatus!
+    status: BundleStatus!
     state: State!
     currentPhase: Phase!
-    users: [User!]!
-    projectOfficer: User!
+    phases: [BundlePhase!]!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+    roles: [DemonstrationRoleAssignment!]!
   }
 
   input CreateDemonstrationInput {
     name: String!
-    description: String!
+    stateId: ID!
+    projectOfficerUserId: String!
+    description: String
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
-    demonstrationStatusId: ID!
-    stateId: ID!
-    userIds: [ID!]
-    projectOfficerUserId: String!
   }
 
   input UpdateDemonstrationInput {
@@ -58,19 +54,19 @@ export const demonstrationSchema = gql`
     expirationDate: Date
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
-    demonstrationStatusId: ID
+    status: BundleStatus
     currentPhase: Phase
     stateId: ID
-    userIds: [ID!]
-    projectOfficerUserId: String
+  }
+
+  type CreateDemonstrationResponse {
+    success: Boolean!
+    message: String
   }
 
   type Mutation {
-    createDemonstration(input: CreateDemonstrationInput!): Demonstration
-    updateDemonstration(
-      id: ID!
-      input: UpdateDemonstrationInput!
-    ): Demonstration
+    createDemonstration(input: CreateDemonstrationInput!): CreateDemonstrationResponse
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
 
@@ -88,27 +84,27 @@ export interface Demonstration {
   expirationDate: Date | null;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  demonstrationStatus: DemonstrationStatus;
+  status: BundleStatus;
   state: State;
   currentPhase: Phase;
-  users: User[];
-  projectOfficer: User;
+  phases: BundlePhase[];
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
   createdAt: Date;
   updatedAt: Date;
+  roles: DemonstrationRoleAssignment[];
 }
 
+// Used in creating a demonstration from the F/E dialog.
+// The fields here should match the fields in that dialog.
 export interface CreateDemonstrationInput {
   name: string;
-  description: string;
+  projectOfficerUserId: string;
+  stateId: string;
+  description?: string;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  demonstrationStatusId: string;
-  stateId: string;
-  userIds?: string[];
-  projectOfficerUserId: string;
 }
 
 export interface UpdateDemonstrationInput {
@@ -118,9 +114,7 @@ export interface UpdateDemonstrationInput {
   expirationDate?: Date;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  demonstrationStatusId?: string;
+  status?: BundleStatus;
   currentPhase?: Phase;
   stateId?: string;
-  userIds?: string[];
-  projectOfficerUserId?: string;
 }

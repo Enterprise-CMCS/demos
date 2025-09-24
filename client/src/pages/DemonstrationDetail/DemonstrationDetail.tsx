@@ -16,7 +16,7 @@ import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
-import { Document, User } from "demos-server";
+import { Document, Person } from "demos-server";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
@@ -30,27 +30,18 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         id
         name
       }
-      demonstrationStatus {
-        name
-      }
-      projectOfficer {
-        fullName
-      }
+      status
       amendments {
         id
         name
         effectiveDate
-        status: amendmentStatus {
-          name
-        }
+        status
       }
       extensions {
         id
         name
         effectiveDate
-        status: extensionStatus {
-          name
-        }
+        status
       }
       documents {
         id
@@ -59,31 +50,23 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         documentType
         createdAt
         owner {
-          fullName
+          person {
+            fullName
+          }
         }
       }
-      contacts {
-        id
-        fullName
-        email
-        contactType
+      roles {
+        isPrimary
+        role
+        person {
+          id
+          fullName
+          email
+        }
       }
     }
   }
 `;
-
-export type Contact = {
-  id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: ContactType | null;
-};
-
-export type ContactType =
-  | "Primary Project Officer"
-  | "Secondary Project Officer"
-  | "State Representative"
-  | "Subject Matter Expert";
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
   DemonstrationDialogDetails &
@@ -91,9 +74,8 @@ export type DemonstrationDetail = DemonstrationHeaderDetails &
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
   } & {
-    contacts: Contact[];
     documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
-      owner: Pick<User, "fullName">;
+      owner: { person: Pick<Person, "fullName"> };
     })[];
   };
 

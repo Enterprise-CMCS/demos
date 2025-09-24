@@ -1,14 +1,16 @@
-// Flags: NATURAL_KEY
+// Flags: STATIC_CONSTRAINT
 model Role {
-  id          String   @id
-  name        String
-  description String
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  id           String
+  grantLevelId String @map("grant_level_id")
 
-  userRoles       UserRole[]
-  rolePermissions RolePermission[]
-  events          Event[]
+  grantLevel                   GrantLevel                    @relation(fields: [grantLevelId], references: [id])
+  events                       Event[]
+  rolePermissions              RolePermission[]
+  rolePersonTypes              RolePersonType[]
+  systemRoleAssignments        SystemRoleAssignment[]
+  demonstrationRoleAssignments DemonstrationRoleAssignment[]
 
+  @@id([id])
+  @@unique([id, grantLevelId])
   @@map("role")
 }

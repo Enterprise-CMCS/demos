@@ -1,174 +1,128 @@
-import { Demonstration, Person, User } from "@prisma/client";
+import { Demonstration } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType, Phase } from "../../types.js";
+import { BundleType, Phase, BundleStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
-import { resolveUser } from "../user/userResolvers.js";
+import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
+const grantLevelDemonstration: GrantLevel = "Demonstration";
+const roleProjectOfficer: Role = "Project Officer";
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
+const newBundleStatusId: BundleStatus = "Pre-Submission";
+
+export async function getDemonstration(parent: undefined, { id }: { id: string }) {
+  return await prisma().demonstration.findUnique({
+    where: { id: id },
+  });
+}
+
+export async function getManyDemonstrations() {
+  return await prisma().demonstration.findMany();
+}
+
+export async function createDemonstration(
+  parent: undefined,
+  { input }: { input: CreateDemonstrationInput }
+) {
+  try {
+    await prisma().$transaction(async (tx) => {
+      const bundle = await tx.bundle.create({
+        data: {
+          bundleTypeId: demonstrationBundleTypeId,
+        },
+      });
+
+      await tx.demonstration.create({
+        data: {
+          id: bundle.id,
+          bundleTypeId: bundle.bundleTypeId,
+          name: input.name,
+          description: input.description,
+          cmcsDivisionId: input.cmcsDivision,
+          signatureLevelId: input.signatureLevel,
+          statusId: newBundleStatusId,
+          stateId: input.stateId,
+          currentPhaseId: conceptPhaseId,
+        },
+      });
+
+      const person = await tx.person.findUnique({
+        where: { id: input.projectOfficerUserId },
+        select: { personTypeId: true },
+      });
+
+      if (!person) {
+        throw new Error(`Person with id ${input.projectOfficerUserId} not found`);
+      }
+
+      await tx.demonstrationRoleAssignment.create({
+        data: {
+          demonstrationId: bundle.id,
+          personId: input.projectOfficerUserId,
+          personTypeId: person.personTypeId,
+          roleId: roleProjectOfficer,
+          stateId: input.stateId,
+          grantLevelId: grantLevelDemonstration,
+        },
+      });
+
+      await tx.primaryDemonstrationRoleAssignment.create({
+        data: {
+          demonstrationId: bundle.id,
+          personId: input.projectOfficerUserId,
+          roleId: "Project Officer",
+        },
+      });
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return {
+      success: false,
+      message: "Error creating demonstration: " + errorMessage,
+    };
+  }
+
+  return {
+    success: true,
+    message: "Demonstration created successfully!",
+  };
+}
+
+export async function updateDemonstration(
+  parent: undefined,
+  { id, input }: { id: string; input: UpdateDemonstrationInput }
+) {
+  checkOptionalNotNullFields(["name", "status", "currentPhase", "stateId"], input);
+  return await prisma().demonstration.update({
+    where: { id },
+    data: {
+      name: input.name,
+      description: input.description,
+      effectiveDate: input.effectiveDate,
+      expirationDate: input.expirationDate,
+      cmcsDivisionId: input.cmcsDivision,
+      signatureLevelId: input.signatureLevel,
+      statusId: input.status,
+      currentPhaseId: input.currentPhase,
+      stateId: input.stateId,
+    },
+  });
+}
 
 export const demonstrationResolvers = {
   Query: {
-    demonstration: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().demonstration.findUnique({
-        where: { id: id },
-      });
-    },
-    demonstrations: async () => {
-      return await prisma().demonstration.findMany();
-    },
+    demonstration: getDemonstration,
+    demonstrations: getManyDemonstrations,
   },
 
   Mutation: {
-    createDemonstration: async (_: undefined, { input }: { input: CreateDemonstrationInput }) => {
-      const {
-        demonstrationStatusId,
-        stateId,
-        userIds,
-        projectOfficerUserId,
-        cmcsDivision,
-        signatureLevel,
-        ...rest
-      } = input;
-
-      return await prisma().$transaction(async (tx) => {
-        const bundle = await tx.bundle.create({
-          data: {
-            bundleType: {
-              connect: { id: demonstrationBundleTypeId },
-            },
-          },
-        });
-
-        return await tx.demonstration.create({
-          data: {
-            ...rest,
-            bundle: {
-              connect: { id: bundle.id },
-            },
-            bundleType: {
-              connect: { id: demonstrationBundleTypeId },
-            },
-            ...(cmcsDivision && {
-              cmcsDivision: {
-                connect: { id: cmcsDivision },
-              },
-            }),
-            ...(signatureLevel && {
-              signatureLevel: {
-                connect: { id: signatureLevel },
-              },
-            }),
-            demonstrationStatus: {
-              connect: { id: demonstrationStatusId },
-            },
-            state: {
-              connect: { id: stateId },
-            },
-            currentPhase: {
-              connect: { id: conceptPhaseId },
-            },
-            ...(userIds &&
-              stateId && {
-                userStateDemonstrations: {
-                  create: userIds.map((userId: string) => ({
-                    userId,
-                    stateId,
-                  })),
-                },
-              }),
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          },
-        });
-      });
-    },
-
-    updateDemonstration: async (
-      _: undefined,
-      { id, input }: { id: string; input: UpdateDemonstrationInput }
-    ) => {
-      const {
-        demonstrationStatusId,
-        userIds,
-        stateId,
-        projectOfficerUserId,
-        effectiveDate,
-        expirationDate,
-        cmcsDivision,
-        signatureLevel,
-        currentPhase,
-        ...rest
-      } = input;
-
-      let existingStateId = stateId;
-      if (!existingStateId) {
-        existingStateId = (
-          await prisma().demonstration.findUnique({
-            where: { id },
-            select: { stateId: true },
-          })
-        )?.stateId;
-      }
-
-      return await prisma().demonstration.update({
-        where: { id },
-        data: {
-          ...rest,
-          ...(effectiveDate && {
-            effectiveDate: new Date(effectiveDate),
-          }),
-          ...(expirationDate && {
-            expirationDate: new Date(expirationDate),
-          }),
-          ...(cmcsDivision && {
-            cmcsDivision: {
-              connect: { id: cmcsDivision },
-            },
-          }),
-          ...(signatureLevel && {
-            signatureLevel: {
-              connect: { id: signatureLevel },
-            },
-          }),
-          ...(demonstrationStatusId && {
-            demonstrationStatus: {
-              connect: { id: demonstrationStatusId },
-            },
-          }),
-          ...(stateId && {
-            state: {
-              connect: { id: stateId },
-            },
-          }),
-          ...(currentPhase && {
-            currentPhase: {
-              connect: { id: currentPhase },
-            },
-          }),
-          ...(userIds &&
-            existingStateId && {
-              userStateDemonstrations: {
-                create: userIds.map((userId: string) => ({
-                  userId,
-                  stateId: existingStateId,
-                })),
-              },
-            }),
-          ...(projectOfficerUserId && {
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          }),
-        },
-      });
-    },
-
+    createDemonstration: createDemonstration,
+    updateDemonstration: updateDemonstration,
     deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
       return await prisma().demonstration.delete({
         where: { id: id },
@@ -181,45 +135,6 @@ export const demonstrationResolvers = {
       return await prisma().state.findUnique({
         where: { id: parent.stateId },
       });
-    },
-
-    demonstrationStatus: async (parent: Demonstration) => {
-      return await prisma().demonstrationStatus.findUnique({
-        where: { id: parent.demonstrationStatusId },
-      });
-    },
-
-    users: async (parent: Demonstration) => {
-      const userStateDemonstrations = await prisma().userStateDemonstration.findMany({
-        where: { demonstrationId: parent.id, stateId: parent.stateId },
-        include: {
-          user: {
-            include: {
-              person: true,
-            },
-          },
-        },
-      });
-
-      interface UserStateDemonstrationWithUser {
-        user: User & { person: Person };
-      }
-
-      return userStateDemonstrations.map(
-        (userStateDemonstration: UserStateDemonstrationWithUser) => ({
-          ...userStateDemonstration.user,
-          ...userStateDemonstration.user.person,
-        })
-      );
-    },
-
-    projectOfficer: async (parent: Demonstration) => {
-      const user = await prisma().user.findUnique({
-        where: { id: parent.projectOfficerUserId },
-        include: { person: true },
-      });
-      if (!user) return null;
-      return resolveUser(user);
     },
 
     documents: async (parent: Demonstration) => {
@@ -258,6 +173,26 @@ export const demonstrationResolvers = {
 
     currentPhase: async (parent: Demonstration) => {
       return parent.currentPhaseId;
+    },
+
+    roles: async (parent: Demonstration) => {
+      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
+        where: { demonstrationId: parent.id },
+        include: { primaryDemonstrationRoleAssignment: true },
+      });
+      return roleAssignments.map((assignment) => ({
+        ...assignment,
+        isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
+      }));
+    },
+    status: resolveBundleStatus,
+
+    phases: async (parent: Demonstration) => {
+      return await prisma().bundlePhase.findMany({
+        where: {
+          bundleId: parent.id,
+        },
+      });
     },
   },
 };

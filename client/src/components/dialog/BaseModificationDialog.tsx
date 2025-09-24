@@ -102,11 +102,15 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
       maxWidthClass="max-w-[720px]"
       actions={
         <>
-          <SecondaryButton name="cancel" size="small" onClick={() => setShowCancelConfirm(true)}>
+          <SecondaryButton
+            name="button-cancel-modification-dialog"
+            size="small"
+            onClick={() => setShowCancelConfirm(true)}
+          >
             Cancel
           </SecondaryButton>
           <Button
-            name="submit"
+            name="button-submit-modification-dialog"
             size="small"
             type="submit"
             form={`${entityType}-form`}
@@ -164,8 +168,9 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
             <SelectUsers
               label="Project Officer"
               isRequired
-              currentUserId={projectOfficer}
-              onStateChange={setProjectOfficer}
+              initialUserId={projectOfficer}
+              onSelect={setProjectOfficer}
+              personTypes={["demos-admin", "demos-cms-user"]}
             />
           </div>
           {mode === "edit" && (

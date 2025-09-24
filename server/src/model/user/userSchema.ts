@@ -1,81 +1,32 @@
 import { gql } from "graphql-tag";
-import { State } from "../state/stateSchema.js";
-import { Role } from "../role/roleSchema.js";
-import { Demonstration } from "../demonstration/demonstrationSchema.js";
-import { Event } from "../event/eventSchema.js";
-import { Document } from "../document/documentSchema.js";
-import { PersonType } from "../../types.js";
+import { Document, PersonType, Event, Person } from "../../types.js";
 
 export const userSchema = gql`
   type User {
     id: ID!
-    personTypeId: PersonType!
     cognitoSubject: String!
     username: String!
-    email: String!
-    fullName: String!
-    displayName: String!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-    states: [State!]!
-    roles: [Role!]!
-    demonstrations: [Demonstration!]!
+    person: Person!
     events: [Event!]!
     ownedDocuments: [Document!]!
-  }
-
-  input CreateUserInput {
-    personTypeId: PersonType!
-    cognitoSubject: String!
-    username: String!
-    email: String!
-    fullName: String!
-    displayName: String!
-    stateIds: [ID!]
-    roleIds: [ID!]
-    demonstrationIds: [ID!]
-  }
-
-  input UpdateUserInput {
-    personTypeId: PersonType
-    cognitoSubject: String
-    username: String
-    email: String
-    fullName: String
-    displayName: String
-    stateIds: [ID!]
-    roleIds: [ID!]
-    demonstrationIds: [ID!]
-  }
-
-  type Mutation {
-    createUser(input: CreateUserInput!): User
-    updateUser(id: ID!, input: UpdateUserInput!): User
-    deleteUser(id: ID!): User
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   type Query {
-    users: [User!]!
-    user(id: ID!): User
     currentUser: User
   }
 `;
 
 export interface User {
   id: string;
-  personTypeId: PersonType;
   cognitoSubject: string;
   username: string;
-  email: string;
-  fullName: string;
-  displayName: string;
-  createdAt: Date;
-  updatedAt: Date;
-  states: State[];
-  roles: Role[];
-  demonstrations: Demonstration[];
+  person: Person;
   events: Event[];
   ownedDocuments: Document[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateUserInput {
@@ -85,9 +36,6 @@ export interface CreateUserInput {
   email: string;
   fullName: string;
   displayName: string;
-  stateIds?: string[];
-  roleIds?: string[];
-  demonstrationIds?: string[];
 }
 
 export interface UpdateUserInput {
@@ -97,7 +45,4 @@ export interface UpdateUserInput {
   email?: string;
   fullName?: string;
   displayName?: string;
-  stateIds?: string[];
-  roleIds?: string[];
-  demonstrationIds?: string[];
 }

@@ -1,4 +1,11 @@
 import React from "react";
+
+import { CircleButton } from "components/button/CircleButton";
+import { EditContactDialog } from "components/dialog/EditContactDialog";
+import { RemoveContactDialog } from "components/dialog/RemoveContactDialog";
+import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+import { useToast } from "components/toast";
+
 import {
   createColumnHelper,
   flexRender,
@@ -7,52 +14,63 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { PaginationControls } from "../PaginationControls";
-import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
+
 import { createSelectColumnDef } from "../columns/selectColumn";
+import { PaginationControls } from "../PaginationControls";
 import { TableHead } from "../Table";
+import {
+  Person,
+  DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
+} from "demos-server";
 
-type ContactType =
-  | "Primary Project Officer"
-  | "Secondary Project Officer"
-  | "State Representative"
-  | "Subject Matter Expert";
-
-export type Contact = {
-  id: string;
-  fullName: string | null;
-  email: string | null;
-  contactType: ContactType | null;
+export type DemonstrationRoleAssignment = Pick<
+  ServerDemonstrationRoleAssignment,
+  "role" | "isPrimary"
+> & {
+  person: Pick<Person, "id" | "fullName" | "email">;
 };
 
-const contactsColumnHelper = createColumnHelper<Contact>();
+const contactsColumnHelper = createColumnHelper<DemonstrationRoleAssignment>();
 const contactsColumns = [
   createSelectColumnDef(contactsColumnHelper),
-  contactsColumnHelper.accessor("fullName", {
+  contactsColumnHelper.accessor("person.fullName", {
     id: "fullName",
     header: "Name",
   }),
-  contactsColumnHelper.accessor("email", {
+  contactsColumnHelper.accessor("person.email", {
     id: "email",
     header: "Email",
   }),
-  contactsColumnHelper.accessor("contactType", {
+  contactsColumnHelper.accessor("role", {
     id: "contactType",
     header: "Contact Type",
   }),
 ];
 
-function DocumentActionButtons() {
+function DocumentActionButtons({
+  onEditContact,
+  onDeleteContacts,
+  hasSelectedContact,
+  hasSelectedContacts,
+}: {
+  onEditContact: () => void;
+  onDeleteContacts: () => void;
+  hasSelectedContact: boolean;
+  hasSelectedContacts: boolean;
+}) {
   return (
     <div className="flex gap-2 ml-4">
       <CircleButton name="Add Contact" onClick={() => {}}>
         <ImportIcon />
       </CircleButton>
-      <CircleButton name="Edit Contact" onClick={() => {}}>
+      <CircleButton name="Edit Contact" onClick={onEditContact} disabled={!hasSelectedContact}>
         <EditIcon />
       </CircleButton>
-      <CircleButton name="Remove Contact" onClick={() => {}}>
+      <CircleButton
+        name="Remove Contact"
+        onClick={onDeleteContacts}
+        disabled={!hasSelectedContacts}
+      >
         <DeleteIcon />
       </CircleButton>
     </div>
@@ -60,14 +78,22 @@ function DocumentActionButtons() {
 }
 
 type ContactsTableProps = {
-  contacts?: Contact[];
+  roles: DemonstrationRoleAssignment[] | null;
+  onUpdateContact?: (contact: DemonstrationRoleAssignment, contactType: string) => Promise<void>;
 };
 
-export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [] }) => {
-  const [rowSelection, setRowSelection] = React.useState({});
+type ContactDialogMode = "edit" | "remove" | null;
 
-  const contactsTable = useReactTable<Contact>({
-    data: contacts || [],
+export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [], onUpdateContact }) => {
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [dialogMode, setDialogMode] = React.useState<ContactDialogMode>(null);
+  const [selectedContact, setSelectedContact] = React.useState<DemonstrationRoleAssignment | null>(
+    null
+  );
+  const { showError } = useToast();
+
+  const contactsTable = useReactTable<DemonstrationRoleAssignment>({
+    data: roles || [],
     columns: contactsColumns,
     state: { rowSelection },
     getCoreRowModel: getCoreRowModel(),
@@ -76,11 +102,63 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [] }) =
     onRowSelectionChange: setRowSelection,
   });
 
+  const handleEditContact = () => {
+    const selectedRows = contactsTable.getSelectedRowModel().rows;
+
+    if (selectedRows.length === 0) {
+      showError("Please select a contact to edit");
+      return;
+    }
+
+    if (selectedRows.length > 1) {
+      showError("Please select one contact to edit");
+      return;
+    }
+
+    const contactToEdit = selectedRows[0].original;
+    setSelectedContact(contactToEdit);
+    setDialogMode("edit");
+  };
+
+  const handleDeleteContacts = () => {
+    const selectedRows = contactsTable.getSelectedRowModel().rows;
+
+    if (selectedRows.length === 0) {
+      showError("Please select contacts to delete");
+      return;
+    }
+
+    setDialogMode("remove");
+  };
+
+  const handleCloseDialog = () => {
+    setDialogMode(null);
+    setSelectedContact(null);
+  };
+
+  const handleSubmitContact = async (contact: DemonstrationRoleAssignment, contactType: string) => {
+    if (onUpdateContact) {
+      await onUpdateContact(contact, contactType);
+    }
+    // TODO: Add actual API call here when available
+    console.log("Updating contact:", { contact, contactType });
+  };
+
+  const selectedRows = contactsTable.getSelectedRowModel().rows;
+  const selectedContactIds = selectedRows.map((row) => row.original.person.id);
+  const hasSelectedContact = selectedRows.length === 1;
+  const hasSelectedContacts = selectedRows.length > 0;
+
   return (
     <>
       <div className="flex items-center justify-end mb-2">
         <div className="mr-1">
-          <DocumentActionButtons />
+          <DocumentActionButtons
+            onEditContact={handleEditContact}
+            onDeleteContacts={handleDeleteContacts}
+            hasSelectedContact={hasSelectedContact}
+            hasSelectedContacts={hasSelectedContacts}
+          />
         </div>
       </div>
       <table className="w-full table-fixed text-sm">
@@ -107,6 +185,23 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ contacts = [] }) =
         </tbody>
       </table>
       <PaginationControls table={contactsTable} />
+
+      {/* Edit Contact Dialog */}
+      {selectedContact && (
+        <EditContactDialog
+          isOpen={dialogMode === "edit"}
+          onClose={handleCloseDialog}
+          contact={selectedContact}
+          onSubmit={handleSubmitContact}
+        />
+      )}
+
+      {/* Remove Contact Dialog */}
+      <RemoveContactDialog
+        isOpen={dialogMode === "remove"}
+        onClose={handleCloseDialog}
+        contactIds={selectedContactIds}
+      />
     </>
   );
 };

@@ -11,7 +11,7 @@ describe("ApplicationWorkflow", () => {
   it("renders APPLICATION heading", () => {
     render(
       <TestProvider>
-        <ApplicationWorkflow demonstration={{ status: "under_review" }} />
+        <ApplicationWorkflow demonstration={{ status: "Under Review" }} />
       </TestProvider>
     );
     expect(screen.getByText("APPLICATION")).toBeInTheDocument();

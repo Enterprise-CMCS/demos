@@ -1,54 +1,71 @@
 import React from "react";
+import { gql, useQuery } from "@apollo/client";
 import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
-import users from "faker_data/users.json";
+import { Person as ServerPerson, PersonType } from "demos-server";
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  username: string;
-  role: string;
-  status: string;
-  created_at: string;
-}
+export const GET_USER_SELECT_OPTIONS_QUERY = gql`
+  query GetUserSelectOptions {
+    people {
+      id
+      fullName
+      personType
+    }
+  }
+`;
+
+type Person = Pick<ServerPerson, "id" | "fullName" | "personType">;
 
 export interface SelectUsersProps {
+  onSelect: (id: string) => void;
+  initialUserId?: string;
   label?: string;
-  onStateChange: (id: string) => void;
   isRequired?: boolean;
   isDisabled?: boolean;
-  currentUserId?: string;
-  value?: string;
+  personTypes?: PersonType[];
 }
 
+const getOptionsFromPeople = (people: Person[]): Option[] => {
+  return people.map((person) => ({
+    label: person.fullName,
+    value: person.id,
+  }));
+};
+
 export const SelectUsers: React.FC<SelectUsersProps> = ({
+  onSelect,
+  initialUserId,
   label = "Users",
-  onStateChange,
   isRequired = false,
   isDisabled = false,
-  currentUserId,
-  value,
+  personTypes,
 }) => {
-  const options: Option[] = (users as User[]).map((u) => ({
-    label: u.name,
-    value: String(u.id),
-  }));
+  const [selectedUserId, setSelectedUserId] = React.useState<string>(initialUserId || "");
+  const { data, loading, error } = useQuery<{ people: Person[] }>(GET_USER_SELECT_OPTIONS_QUERY);
 
-  const defaultLabel =
-    options.find((o) => o.value === currentUserId)?.label ?? "";
+  const handleSelect = (id: string) => {
+    setSelectedUserId(id);
+    onSelect(id);
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error loading users.</p>;
+  if (!data || !data.people) return <p>No users found.</p>;
+
+  let people = data.people;
+  if (personTypes) {
+    people = data.people.filter((person) => personTypes.includes(person.personType));
+  }
 
   return (
     <AutoCompleteSelect
       id={`users-${label.toLowerCase()}`}
       label={label}
-      options={options}
+      options={getOptionsFromPeople(people)}
       placeholder={`Select ${label.toLowerCase()}…`}
-      onSelect={onStateChange}
+      onSelect={handleSelect}
       isRequired={isRequired}
-      isDisabled={isDisabled}
-      defaultValue={defaultLabel}
-      value={value} // <-- pass controlled value
+      isDisabled={isDisabled || loading || !!error}
+      value={selectedUserId}
     />
   );
 };
-

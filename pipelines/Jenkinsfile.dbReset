@@ -1,0 +1,52 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node", "aws-cli"])
+    }
+  }
+  
+  options {
+    disableConcurrentBuilds()
+  }
+
+  parameters {
+    choice(name: 'ENVIRONMENT', choices: ['dev', 'test'], description: 'Select the environment')
+  }
+
+  stages {
+
+        stage('Reset / Reseed Database') {
+          steps {
+            // Keep this hardcoded as the nonprod account number
+            assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+            script {
+              def branch = params.ENVIRONMENT == 'dev' ? 'main' : params.ENVIRONMENT
+              checkout([
+                $class: 'GitSCM',
+                branches: [[name: "*/${branch}"]],
+                extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'other-branch']],
+                userRemoteConfigs: [[credentialsId: 'demos-git-svc-account', url: "https://github.com/Enterprise-CMCS/demos.git"]]
+              ])
+
+            def otherBranchCommit = ""
+            dir("other-branch") {
+              echo "other-branch"
+              otherBranchCommit = sh(script: "git log --oneline -1", returnStdout: true)
+            }
+            dir("deployment") {
+              container("node") {
+                sh """
+                npm ci
+                npx tsx demosctl/index db-reset ${params.ENVIRONMENT} ../other-branch
+                """
+              }
+            }
+
+            currentBuild.displayName = "#${env.BUILD_NUMBER} - ${params.ENVIRONMENT.toUpperCase()}"
+            currentBuild.description = "Reset to ${otherBranchCommit}"
+
+            }
+          }
+        }
+      }
+    }

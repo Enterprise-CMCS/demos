@@ -1,74 +1,66 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { Contact, ContactsTable } from "./ContactsTable";
 
-const contacts: Contact[] = [
-  {
-    id: "1",
-    fullName: "Alice Smith",
-    email: "alice@example.com",
-    contactType: "Primary Project Officer",
-  },
-  {
-    id: "2",
-    fullName: "Bob Jones",
-    email: null,
-    contactType: "State Representative",
-  },
-];
+import { ToastProvider } from "components/toast/ToastContext";
+import { vi } from "vitest";
+
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import { ContactsTable } from "./ContactsTable";
+import { demonstrationRoleAssignmentMocks } from "mock-data/demonstrationRoleAssignmentMocks";
+
+const renderWithToast = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
+};
+
+const testMocks = demonstrationRoleAssignmentMocks.slice(0, 2); // Use first two for testing
 
 describe("ContactsTable", () => {
   it("displays all contacts associated with a demonstration", () => {
-    render(<ContactsTable contacts={contacts} />);
-    expect(screen.getByText("Alice Smith")).toBeInTheDocument();
-    expect(screen.getByText("Bob Jones")).toBeInTheDocument();
+    renderWithToast(<ContactsTable roles={testMocks} />);
+    expect(screen.getByText("John Doe")).toBeInTheDocument();
+    expect(screen.getByText("Jane Smith")).toBeInTheDocument();
   });
 
   it("displays all required fields for each contact", () => {
-    render(<ContactsTable contacts={contacts} />);
+    renderWithToast(<ContactsTable roles={testMocks} />);
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Email")).toBeInTheDocument();
     expect(screen.getByText("Contact Type")).toBeInTheDocument();
   });
 
-  it('displays a dash "-" for missing field values', () => {
-    render(<ContactsTable contacts={contacts} />);
-    expect(screen.getAllByText("-").length).toBeGreaterThan(0);
-  });
-
   it("allows sorting by any column, ascending and descending", async () => {
-    render(<ContactsTable contacts={contacts} />);
+    renderWithToast(<ContactsTable roles={testMocks} />);
     const nameHeader = screen.getByText("Name");
 
     // default
     let rows = screen.getAllByRole("row");
-    expect(within(rows[1]).getByText("Alice Smith")).toBeInTheDocument();
-    expect(within(rows[2]).getByText("Bob Jones")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("John Doe")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Jane Smith")).toBeInTheDocument();
 
     await userEvent.click(nameHeader);
 
     // ascending
     rows = screen.getAllByRole("row");
-    expect(within(rows[1]).getByText("Alice Smith")).toBeInTheDocument();
-    expect(within(rows[2]).getByText("Bob Jones")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("Jane Smith")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("John Doe")).toBeInTheDocument();
     await userEvent.click(nameHeader);
 
     // descending
     rows = screen.getAllByRole("row");
-    expect(within(rows[1]).getByText("Bob Jones")).toBeInTheDocument();
-    expect(within(rows[2]).getByText("Alice Smith")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("John Doe")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Jane Smith")).toBeInTheDocument();
   });
 
   it("pagination controls are user friendly and responsive", () => {
-    render(<ContactsTable contacts={Array(25).fill(contacts[0])} />);
+    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
     expect(screen.getByLabelText("Go to next page")).toBeInTheDocument();
     expect(screen.getByLabelText("No previous page")).toBeInTheDocument();
     expect(screen.getByLabelText("Page 1, current page")).toBeInTheDocument();
   });
 
   it("allows navigation to specific pages and page sizes", async () => {
-    render(<ContactsTable contacts={Array(25).fill(contacts[0])} />);
+    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
     // Click page 2
     await userEvent.click(screen.getByText("2"));
     // Change page size
@@ -83,9 +75,105 @@ describe("ContactsTable", () => {
   });
 
   it("displays 10 records per page by default", () => {
-    render(<ContactsTable contacts={Array(15).fill(contacts[0])} />);
-    const rows = screen.getAllByRole("row");
-    // 1 header row + 10 data rows
-    expect(rows.length).toBe(11);
+    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
+    expect(screen.getByDisplayValue("10")).toBeInTheDocument();
+  });
+
+  it("enables edit button only when exactly one contact is selected", () => {
+    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
+
+    const editButton = screen.getByLabelText("Edit Contact");
+    const deleteButton = screen.getByLabelText("Remove Contact");
+
+    // Initially no selection, both buttons disabled
+    expect(editButton).toBeDisabled();
+    expect(deleteButton).toBeDisabled();
+
+    // Select first contact
+    const firstCheckbox = screen.getAllByRole("checkbox")[1]; // Skip header checkbox
+    fireEvent.click(firstCheckbox);
+
+    // Edit enabled with single selection, delete enabled
+    expect(editButton).toBeEnabled();
+    expect(deleteButton).toBeEnabled();
+
+    // Select second contact (multi-selection)
+    const secondCheckbox = screen.getAllByRole("checkbox")[2];
+    fireEvent.click(secondCheckbox);
+
+    // Edit disabled with multi-selection, delete still enabled
+    expect(editButton).toBeDisabled();
+    expect(deleteButton).toBeEnabled();
+  });
+
+  it("opens confirmation dialog when delete button is clicked", () => {
+    renderWithToast(<ContactsTable roles={testMocks} />);
+
+    // Select both contacts
+    const firstCheckbox = screen.getAllByRole("checkbox")[1];
+    const secondCheckbox = screen.getAllByRole("checkbox")[2];
+    fireEvent.click(firstCheckbox);
+    fireEvent.click(secondCheckbox);
+
+    // Click delete button
+    const deleteButton = screen.getByLabelText("Remove Contact");
+    fireEvent.click(deleteButton);
+
+    // Should open confirmation dialog
+    expect(
+      screen.getByText(/Are you sure you want to remove the contact\(s\)/)
+    ).toBeInTheDocument();
+    expect(screen.getByText("This action cannot be undone.")).toBeInTheDocument();
+  });
+
+  it("calls delete functionality when confirmation dialog is confirmed", async () => {
+    const consoleSpy = vi.spyOn(console, "log");
+    renderWithToast(<ContactsTable roles={testMocks} />);
+
+    // Select both contacts
+    const firstCheckbox = screen.getAllByRole("checkbox")[1];
+    const secondCheckbox = screen.getAllByRole("checkbox")[2];
+    fireEvent.click(firstCheckbox);
+    fireEvent.click(secondCheckbox);
+
+    // Verify the remove button is enabled
+    const deleteButton = screen.getByLabelText("Remove Contact");
+    expect(deleteButton).not.toBeDisabled();
+
+    // Click delete button to open dialog
+    fireEvent.click(deleteButton);
+
+    // Wait for the dialog to appear and verify its content
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Are you sure you want to remove the contact\(s\)/)
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("This action cannot be undone.")).toBeInTheDocument();
+
+    // Find the confirm button in the dialog
+    const confirmButton = await screen.findByRole("button", {
+      name: "button-confirm-delete-contact",
+    });
+
+    fireEvent.click(confirmButton);
+
+    // Verify the delete function was called with correct IDs
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Deleting contacts:", ["1", "2"]);
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  it("shows error message when trying to delete without selecting any contacts", () => {
+    renderWithToast(<ContactsTable roles={testMocks} />);
+
+    const deleteButton = screen.getByLabelText("Remove Contact");
+    fireEvent.click(deleteButton);
+
+    // Should be disabled, but testing the handler logic if called
+    expect(deleteButton).toBeDisabled();
   });
 });

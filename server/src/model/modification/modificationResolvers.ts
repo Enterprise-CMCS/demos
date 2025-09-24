@@ -2,32 +2,161 @@ import { Modification } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType, Phase } from "../../types.js";
+import { BundleStatus, BundleType, Phase } from "../../types.js";
 import {
-  AddExtensionInput,
   CreateAmendmentInput,
+  CreateExtensionInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
-import { resolveUser } from "../user/userResolvers.js";
+import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseId: Phase = "Concept";
+const newBundleStatusId: BundleStatus = "Pre-Submission";
 
-async function getDemonstration(parent: Modification) {
+async function getModification(
+  parent: undefined,
+  { id }: { id: string },
+  context: undefined,
+  info: undefined,
+  bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
+) {
+  return await prisma().modification.findUnique({
+    where: {
+      id: id,
+      bundleTypeId: bundleTypeId,
+    },
+  });
+}
+export async function getAmendment(
+  parent: undefined,
+  args: { id: string },
+  context?: undefined,
+  info?: undefined
+) {
+  return getModification(parent, args, context, info, amendmentBundleTypeId);
+}
+export async function getExtension(
+  parent: undefined,
+  args: { id: string },
+  context?: undefined,
+  info?: undefined
+) {
+  return getModification(parent, args, context, info, extensionBundleTypeId);
+}
+
+async function getManyModifications(
+  parent: undefined,
+  args: undefined,
+  context: undefined,
+  info: undefined,
+  bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
+) {
+  return await prisma().modification.findMany({
+    where: {
+      bundleTypeId: bundleTypeId,
+    },
+  });
+}
+export async function getManyAmendments() {
+  return getManyModifications(undefined, undefined, undefined, undefined, amendmentBundleTypeId);
+}
+export async function getManyExtensions() {
+  return getManyModifications(undefined, undefined, undefined, undefined, extensionBundleTypeId);
+}
+
+async function createModification(
+  parent: undefined,
+  { input }: { input: CreateAmendmentInput | CreateExtensionInput },
+  context: undefined,
+  info: undefined,
+  bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
+) {
+  return await prisma().$transaction(async (tx) => {
+    const bundle = await tx.bundle.create({
+      data: {
+        bundleTypeId: bundleTypeId,
+      },
+    });
+
+    return await tx.modification.create({
+      data: {
+        id: bundle.id,
+        bundleTypeId: bundle.bundleTypeId,
+        demonstrationId: input.demonstrationId,
+        name: input.name,
+        description: input.description,
+        statusId: newBundleStatusId,
+        currentPhaseId: conceptPhaseId,
+      },
+    });
+  });
+}
+export async function createAmendment(
+  parent: undefined,
+  args: { input: CreateAmendmentInput },
+  context?: undefined,
+  info?: undefined
+) {
+  return createModification(parent, args, context, info, amendmentBundleTypeId);
+}
+export async function createExtension(
+  parent: undefined,
+  args: { input: CreateExtensionInput },
+  context?: undefined,
+  info?: undefined
+) {
+  return createModification(parent, args, context, info, extensionBundleTypeId);
+}
+
+async function updateModification(
+  parent: undefined,
+  { id, input }: { id: string; input: UpdateAmendmentInput | UpdateExtensionInput },
+  context: undefined,
+  info: undefined,
+  bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
+) {
+  checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhase"], input);
+  return await prisma().modification.update({
+    where: {
+      id: id,
+      bundleTypeId: bundleTypeId,
+    },
+    data: {
+      demonstrationId: input.demonstrationId,
+      name: input.name,
+      description: input.description,
+      effectiveDate: input.effectiveDate,
+      expirationDate: input.expirationDate,
+      statusId: input.status,
+      currentPhaseId: input.currentPhase,
+    },
+  });
+}
+export async function updateAmendment(
+  parent: undefined,
+  args: { id: string; input: UpdateAmendmentInput },
+  context?: undefined,
+  info?: undefined
+) {
+  return updateModification(parent, args, context, info, amendmentBundleTypeId);
+}
+export async function updateExtension(
+  parent: undefined,
+  args: { id: string; input: UpdateExtensionInput },
+  context?: undefined,
+  info?: undefined
+) {
+  return updateModification(parent, args, context, info, extensionBundleTypeId);
+}
+
+async function getParentDemonstration(parent: Modification) {
   return await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
-}
-
-async function getProjectOfficer(parent: Modification) {
-  const user = await prisma().user.findUnique({
-    where: { id: parent.projectOfficerUserId },
-    include: { person: true },
-  });
-  if (!user) return null;
-  return resolveUser(user);
 }
 
 async function getDocuments(parent: Modification) {
@@ -44,125 +173,15 @@ async function getCurrentPhase(parent: Modification) {
 
 export const modificationResolvers = {
   Query: {
-    amendment: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().modification.findUnique({
-        where: {
-          id: id,
-          bundleTypeId: amendmentBundleTypeId,
-        },
-      });
-    },
-    amendments: async () => {
-      return await prisma().modification.findMany({
-        where: {
-          bundleTypeId: amendmentBundleTypeId,
-        },
-      });
-    },
-    extension: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().modification.findUnique({
-        where: {
-          id: id,
-          bundleTypeId: extensionBundleTypeId,
-        },
-      });
-    },
-    extensions: async () => {
-      return await prisma().modification.findMany({
-        where: {
-          bundleTypeId: extensionBundleTypeId,
-        },
-      });
-    },
+    amendment: getAmendment,
+    amendments: getManyAmendments,
+    extension: getExtension,
+    extensions: getManyExtensions,
   },
 
   Mutation: {
-    createAmendment: async (_: undefined, { input }: { input: CreateAmendmentInput }) => {
-      const { demonstrationId, amendmentStatusId, projectOfficerUserId, ...rest } = input;
-
-      return await prisma().$transaction(async (tx) => {
-        const bundle = await tx.bundle.create({
-          data: {
-            bundleType: {
-              connect: { id: amendmentBundleTypeId },
-            },
-          },
-        });
-
-        return await tx.modification.create({
-          data: {
-            bundle: {
-              connect: { id: bundle.id },
-            },
-            bundleType: {
-              connect: { id: amendmentBundleTypeId },
-            },
-            demonstration: {
-              connect: { id: demonstrationId },
-            },
-            modificationStatus: {
-              connect: {
-                modificationStatusId: {
-                  id: amendmentStatusId,
-                  bundleTypeId: amendmentBundleTypeId,
-                },
-              },
-            },
-            currentPhase: {
-              connect: { id: conceptPhaseId },
-            },
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-            ...rest,
-          },
-        });
-      });
-    },
-
-    updateAmendment: async (
-      _: undefined,
-      { id, input }: { id: string; input: UpdateAmendmentInput }
-    ) => {
-      const { demonstrationId, amendmentStatusId, currentPhase, projectOfficerUserId, ...rest } =
-        input;
-
-      return await prisma().modification.update({
-        where: {
-          id: id,
-          bundleTypeId: amendmentBundleTypeId,
-        },
-        data: {
-          ...(demonstrationId && {
-            demonstration: {
-              connect: { id: demonstrationId },
-            },
-          }),
-          ...(amendmentStatusId && {
-            modificationStatus: {
-              connect: {
-                modificationStatusId: {
-                  id: amendmentStatusId,
-                  bundleTypeId: amendmentBundleTypeId,
-                },
-              },
-            },
-          }),
-          ...(currentPhase && {
-            currentPhase: {
-              connect: { id: currentPhase },
-            },
-          }),
-          ...(projectOfficerUserId && {
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          }),
-          ...rest,
-        },
-      });
-    },
-
+    createAmendment: createAmendment,
+    updateAmendment: updateAmendment,
     deleteAmendment: async (_: undefined, { id }: { id: string }) => {
       return await prisma().modification.delete({
         where: {
@@ -172,92 +191,8 @@ export const modificationResolvers = {
       });
     },
 
-    addExtension: async (_: undefined, { input }: { input: AddExtensionInput }) => {
-      const { demonstrationId, extensionStatusId, projectOfficerUserId, ...rest } = input;
-
-      return await prisma().$transaction(async (tx) => {
-        const bundle = await tx.bundle.create({
-          data: {
-            bundleType: {
-              connect: { id: extensionBundleTypeId },
-            },
-          },
-        });
-
-        return await tx.modification.create({
-          data: {
-            bundle: {
-              connect: { id: bundle.id },
-            },
-            bundleType: {
-              connect: { id: extensionBundleTypeId },
-            },
-            demonstration: {
-              connect: { id: demonstrationId },
-            },
-            modificationStatus: {
-              connect: {
-                modificationStatusId: {
-                  id: extensionStatusId,
-                  bundleTypeId: extensionBundleTypeId,
-                },
-              },
-            },
-            currentPhase: {
-              connect: { id: conceptPhaseId },
-            },
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-            ...rest,
-          },
-        });
-      });
-    },
-
-    updateExtension: async (
-      _: undefined,
-      { id, input }: { id: string; input: UpdateExtensionInput }
-    ) => {
-      const { demonstrationId, extensionStatusId, currentPhase, projectOfficerUserId, ...rest } =
-        input;
-
-      return await prisma().modification.update({
-        where: {
-          id: id,
-          bundleTypeId: extensionBundleTypeId,
-        },
-        data: {
-          ...(demonstrationId && {
-            demonstration: {
-              connect: { id: demonstrationId },
-            },
-          }),
-          ...(extensionStatusId && {
-            modificationStatus: {
-              connect: {
-                modificationStatusId: {
-                  id: extensionStatusId,
-                  bundleTypeId: extensionBundleTypeId,
-                },
-              },
-            },
-          }),
-          ...(currentPhase && {
-            currentPhase: {
-              connect: { id: currentPhase },
-            },
-          }),
-          ...(projectOfficerUserId && {
-            projectOfficer: {
-              connect: { id: projectOfficerUserId },
-            },
-          }),
-          ...rest,
-        },
-      });
-    },
-
+    createExtension: createExtension,
+    updateExtension: updateExtension,
     deleteExtension: async (_: undefined, { id }: { id: string }) => {
       return await prisma().modification.delete({
         where: {
@@ -269,40 +204,16 @@ export const modificationResolvers = {
   },
 
   Amendment: {
-    demonstration: getDemonstration,
-
-    amendmentStatus: async (parent: Modification) => {
-      return await prisma().modificationStatus.findUnique({
-        where: {
-          modificationStatusId: {
-            id: parent.modificationStatusId,
-            bundleTypeId: amendmentBundleTypeId,
-          },
-        },
-      });
-    },
-
-    projectOfficer: getProjectOfficer,
+    demonstration: getParentDemonstration,
     documents: getDocuments,
     currentPhase: getCurrentPhase,
+    status: resolveBundleStatus,
   },
 
   Extension: {
-    demonstration: getDemonstration,
-
-    extensionStatus: async (parent: Modification) => {
-      return await prisma().modificationStatus.findUnique({
-        where: {
-          modificationStatusId: {
-            id: parent.modificationStatusId,
-            bundleTypeId: extensionBundleTypeId,
-          },
-        },
-      });
-    },
-
-    projectOfficer: getProjectOfficer,
+    demonstration: getParentDemonstration,
     documents: getDocuments,
     currentPhase: getCurrentPhase,
+    status: resolveBundleStatus,
   },
 };

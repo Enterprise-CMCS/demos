@@ -2,8 +2,8 @@
 model DocumentType {
   id String
 
-  document              Document[]
-  documentPendingUpload DocumentPendingUpload[]
+  documents              Document[]
+  documentsPendingUpload DocumentPendingUpload[]
 
   @@id([id])
   @@map("document_type")

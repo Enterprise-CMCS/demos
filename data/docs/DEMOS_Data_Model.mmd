@@ -16,11 +16,10 @@ erDiagram
   classDef legend stroke:black,fill:#ddd
 
   date_type ||--|{ bundle_phase_date  : "FK001"
-  bundle_phase_date }|--|| bundle : "FK002"
-  bundle_phase_date }|--|| phase : "FK003"
-  phase_status ||--|{ bundle_phase_status  : "FK004"
-  bundle_phase_status }|--|| bundle : "FK005"
-  bundle_phase_status }|--|| phase : "FK006"
+  bundle_phase_date }|--|| bundle_phase : "FK002"
+  phase_status ||--|{ bundle_phase  : "FK004"
+  bundle_phase }|--|| bundle : "FK005"
+  bundle_phase }|--|| phase : "FK006"
   bundle }|--|| bundle_type : "FK007"
   bundle ||--|| demonstration : "FK008"
   bundle ||--|| modification : "FK009"
@@ -50,19 +49,19 @@ erDiagram
   bundle ||--|{ document_pending_upload : "FK056"
   role_person_type }|--|| person_type : "FK031"
   role ||--|{ role_person_type : "FK032"
-  role ||--|{ role_permission : "FK033"
-  permission ||--|{ role_permission : "FK034"
+  role_permission }|--|| role : "FK033"
+  role_permission }|--|| permission : "FK034"
   grant_level ||--|{ role : "FK035"
   grant_level ||--|{ permission : "FK036"
   system_grant_level_limit ||--|{ system_role_assignment : "FK037"
   system_role_assignment }|--|| role_person_type : "FK038"
   system_role_assignment }|--|| person : "FK039"
   role ||--|{ system_role_assignment : "FK040"
-  grant_level ||--|| system_grant_level_limit : "FK041"
+  system_grant_level_limit ||--|| grant_level : "FK041"
   demonstration_role_assignment }|--|| person_state : "FK042"
   person_state }|--|| state : "FK043"
   person_state }|--|| person : "FK044"
-  grant_level ||--|{ demonstration_grant_level_limit : "FK045"
+  grant_level ||--|| demonstration_grant_level_limit : "FK045"
   demonstration_grant_level_limit ||--|{ demonstration_role_assignment : "FK046"
   role_person_type ||--|{ demonstration_role_assignment : "FK047"
   demonstration_role_assignment }|--|| person : "FK048"
@@ -165,15 +164,15 @@ erDiagram
   }
 
   bundle_phase_date:::dataTable {
-    uuid bundle_id PK, FK "FK002: bundle_id ∈ bundle.id"
-    text phase_id PK, FK "FK003: phase_id ∈ phase.id"
+    uuid bundle_id PK, FK "FK002: (bundle_id, phase_id) ∈ bundle_phase.(bundle_id, phase_id)"
+    text phase_id PK, FK "FK002: (bundle_id, phase_id) ∈ bundle_phase.(bundle_id, phase_id)"
     text date_type_id PK, FK "FK001: date_type_id ∈ date_type.id"
-    timestamptz value "Format DATE vs TIMESTAMPTZ?"
+    timestamptz date_value
     timestamptz created_at
     timestamptz updated_at
   }
 
-  bundle_phase_status:::dataTable {
+  bundle_phase:::dataTable {
     uuid bundle_id PK, FK "FK005: bundle_id ∈ bundle.id"
     text phase_id PK, FK "FK006: phase_id ∈ phase.id"
     text phase_status_id FK "FK004: phase_status_id ∈ phase_status.id"
@@ -294,9 +293,9 @@ erDiagram
   }
 
   primary_demonstration_role_assignment:::associativeTable {
-    uuid person_id FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
-    uuid demonstration_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
-    text role_id PK, FK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)"
+    uuid person_id FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
+    uuid demonstration_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
+    text role_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
   }
 
   role_permission:::associativeTable {

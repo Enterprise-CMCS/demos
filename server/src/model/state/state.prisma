@@ -4,8 +4,8 @@ model State {
   id   String @id
   name String
 
-  userStates     UserState[]
   demonstrations Demonstration[]
+  personStates   PersonState[]
 
   @@map("state")
 }

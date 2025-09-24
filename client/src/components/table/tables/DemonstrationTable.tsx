@@ -5,7 +5,7 @@ import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
-import { DemonstrationStatus, State, User } from "demos-server";
+import { DemonstrationRoleAssignment, BundleStatus, Person, State } from "demos-server";
 import {
   Demonstration,
   DemonstrationAmendment,
@@ -17,14 +17,20 @@ export type GenericDemonstrationTableRow =
   | (DemonstrationAmendment & {
       type: "amendment";
       state: Pick<State, "name">;
-      status: Pick<DemonstrationStatus, "name">;
+      status: BundleStatus;
       parentId: string;
+      roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+        person: Pick<Person, "fullName" | "id">;
+      })[];
     })
   | (DemonstrationExtension & {
       type: "extension";
       state: Pick<State, "name">;
-      status: Pick<DemonstrationStatus, "name">;
+      status: BundleStatus;
       parentId: string;
+      roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+        person: Pick<Person, "fullName" | "id">;
+      })[];
     });
 
 const getSubRows = (
@@ -38,8 +44,8 @@ const getSubRows = (
           ...amendment,
           type: "amendment",
           state: row.state,
-          status: amendment.amendmentStatus,
           parentId: row.id,
+          roles: row.roles,
         }) as GenericDemonstrationTableRow
     ),
     ...row.extensions.map(
@@ -48,8 +54,8 @@ const getSubRows = (
           ...extension,
           type: "extension",
           state: row.state,
-          status: extension.extensionStatus,
           parentId: row.id,
+          roles: row.roles,
         }) as GenericDemonstrationTableRow
     ),
   ];
@@ -57,26 +63,25 @@ const getSubRows = (
 
 export const DemonstrationTable: React.FC<{
   demonstrations: Demonstration[];
-  projectOfficerOptions: Pick<User, "fullName">[];
-  stateOptions: Pick<State, "name" | "id">[];
-  statusOptions: Pick<DemonstrationStatus, "name">[];
-}> = ({ demonstrations, stateOptions, projectOfficerOptions, statusOptions }) => {
+  projectOfficerOptions: Pick<Person, "fullName">[];
+}> = ({ demonstrations, projectOfficerOptions }) => {
   const [tab, setTab] = React.useState<"my" | "all">("my");
 
-  const demonstrationColumns = DemonstrationColumns(
-    stateOptions,
-    projectOfficerOptions,
-    statusOptions
-  );
+  const demonstrationColumns = DemonstrationColumns(projectOfficerOptions);
 
-  // TODO: Replace with actual current user ID from authentication context
-  const currentUserId = "1";
+  demonstrations = demonstrations.map((demo) => ({
+    ...demo,
+    roles: demo.roles.filter((role) => role.role === "Project Officer" && role.isPrimary === true),
+  }));
 
-  const myDemos: Demonstration[] = demonstrations.filter((demo: Demonstration) =>
-    demo.users.some((user) => user.id === currentUserId)
-  );
+  const currentUserId = "1"; // Replace with actual current user ID from auth context
+  const myDemos: Demonstration[] = demonstrations.filter((demo: Demonstration) => {
+    return demo.roles.some((role) => role.person.id === currentUserId);
+  });
 
   const allDemos: Demonstration[] = demonstrations;
+
+  // filter roles on demonstrations to only include primary project officer
 
   const tabList: TabItem[] = [
     {
@@ -110,7 +115,6 @@ export const DemonstrationTable: React.FC<{
           data={dataToShow.map((demonstration) => ({
             ...demonstration,
             type: "demonstration",
-            status: demonstration.demonstrationStatus,
           }))}
           columns={demonstrationColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}

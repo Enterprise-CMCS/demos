@@ -34,7 +34,7 @@ export const determineDeploymentConfig = async (
     project,
     iamPath,
     iamPermissionsBoundaryArn,
-    isDev: true,
+    isDev: stage === "dev",
     isLocalstack: process.env.CDK_DEFAULT_ACCOUNT == "000000000000",
   };
 

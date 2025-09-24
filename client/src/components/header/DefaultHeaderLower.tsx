@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AmendmentDialog } from "components/dialog/AmendmentDialog";
-import { DemonstrationDialog } from "components/dialog/DemonstrationDialog";
-import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { CreateDemonstrationDialog } from "components/dialog/DemonstrationDialog";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { AddNewIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";
@@ -43,7 +42,7 @@ export const DefaultHeaderLower: React.FC = () => {
     );
   }
 
-  const name = currentUser.displayName || currentUser.email;
+  const name = currentUser.person.displayName || currentUser.person.email;
 
   const handleSelect = (item: string) => {
     setShowDropdown(false);
@@ -108,11 +107,9 @@ export const DefaultHeaderLower: React.FC = () => {
       </div>
 
       {modalType === "demonstration" && (
-        <DemonstrationDialog mode="add" onClose={() => setModalType(null)} />
+        <CreateDemonstrationDialog isOpen={true} onClose={() => setModalType(null)} />
       )}
-      {modalType === "document" && (
-        <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
-      )}
+
       {modalType === "amendment" && (
         <AmendmentDialog mode="add" onClose={() => setModalType(null)} />
       )}
