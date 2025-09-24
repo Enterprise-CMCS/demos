@@ -22,6 +22,12 @@ import userEvent from "@testing-library/user-event";
 
 import { StateApplicationPhase } from "./StateApplicationPhase";
 
+// Test constants
+const TEST_DEMO_ID = "test-demo-id";
+const TEST_DOCUMENT_DATE = "2024-01-12";
+const TEST_OTHER_DOCUMENT_DATE = "2024-01-16";
+const TEST_USER_INPUT_DATE = "2024-01-12";
+
 const mockMutation = vi.fn();
 const mockOnDocumentsRefetch = vi.fn();
 
@@ -55,7 +61,7 @@ afterEach(() => {
 
 describe("StateApplicationPhase", () => {
   const defaultProps = {
-    demonstrationId: "test-demo-id",
+    demonstrationId: TEST_DEMO_ID,
     documents: [],
     onDocumentsRefetch: mockOnDocumentsRefetch,
   };
@@ -65,7 +71,7 @@ describe("StateApplicationPhase", () => {
     title: "State Application Document 1",
     description: "Test state application document",
     documentType: "State Application",
-    createdAt: new Date("2024-01-12"),
+    createdAt: new Date(TEST_DOCUMENT_DATE),
     owner: { person: { fullName: "Test User" } },
   };
 
@@ -74,7 +80,7 @@ describe("StateApplicationPhase", () => {
     title: "Other Document",
     description: "Test other document",
     documentType: "General File",
-    createdAt: new Date("2024-01-16"),
+    createdAt: new Date(TEST_OTHER_DOCUMENT_DATE),
     owner: { person: { fullName: "Test User" } },
   };
 
@@ -320,7 +326,7 @@ describe("StateApplicationPhase", () => {
     it("auto-populates submitted date when first document is uploaded", () => {
       const documentWithDate = {
         ...mockStateApplicationDocument,
-        createdAt: new Date("2024-01-12"),
+        createdAt: new Date(TEST_DOCUMENT_DATE),
       };
 
       setup({ documents: [documentWithDate] });
@@ -334,7 +340,7 @@ describe("StateApplicationPhase", () => {
     it("calculates completeness review due date correctly", () => {
       const documentWithDate = {
         ...mockStateApplicationDocument,
-        createdAt: new Date("2024-01-12"), // January 12, 2024
+        createdAt: new Date(TEST_DOCUMENT_DATE), // January 12, 2024
       };
 
       setup({ documents: [documentWithDate] });
@@ -366,7 +372,7 @@ describe("StateApplicationPhase", () => {
 
       // Set a date without having documents
       if (submittedDateInput) {
-        await userEvent.type(submittedDateInput, "2024-01-12");
+        await userEvent.type(submittedDateInput, TEST_USER_INPUT_DATE);
 
         expect(
           screen.getByText(/At least one State Application document is required/)
