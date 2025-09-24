@@ -2,17 +2,21 @@
 
 This is the repository for DEMOS, the Demonstration Evaluation & Management Oversight System.
 
+Change something!
+
+This change doesn't need to be tested
+
 ## About the Project
 
 **{project_statement}**
 
-
 ### Project Vision
-**{project vision}** 
 
+**{project vision}**
 
 ### Project Mission
-**{project mission}** 
+
+**{project mission}**
 
 ## Core Team
 
@@ -118,8 +122,6 @@ This project is in the public domain within the United States, and copyright and
 
 All contributions to this project will be released under the CC0 dedication. By submitting a pull request or issue, you are agreeing to comply with this waiver of copyright interest.
 
-
-
 ## Environment
 
 We make use of [devcontainers](https://containers.dev/) to manage the various aspects of the project. For local development, VSCode will be able to detect and run the devcontainer correctly if you open the root of the project.
@@ -155,7 +157,6 @@ You will need to run the server and the client.
 ### Server Side
 
 [Server Documentation](./server/README.md)
-
 
 ### Client Side
 
