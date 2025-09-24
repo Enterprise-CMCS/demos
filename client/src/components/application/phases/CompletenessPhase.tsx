@@ -9,6 +9,7 @@ import { Notice, NoticeVariant } from "components/notice";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessUploadDialog } from "components/dialog/document/CompletenessUploadDialog";
+import { DeclareIncompleteDialog } from "components/dialog";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -26,6 +27,7 @@ const STYLES = {
 // A minimal starter for the Completeness phase UI with two sections
 export const CompletenessPhase: React.FC = () => {
   const [isUploadOpen, setUploadOpen] = useState(false);
+  const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [isNoticeDismissed, setNoticeDismissed] = useState(false);
   const [noticeDaysRemaining, setNoticeDaysRemaining] = useState<string>("29");
@@ -46,12 +48,12 @@ export const CompletenessPhase: React.FC = () => {
   const parsedNoticeDays = trimmedNoticeDays === "" ? NaN : Number.parseInt(trimmedNoticeDays, 10);
   const noticeDaysValue = Number.isNaN(parsedNoticeDays) ? null : parsedNoticeDays;
 
-  // Manages the notice 'day left/past due" logic.
   const noticeTitle = (() => {
     if (noticeDaysValue === null) return "Federal Comment Period notice";
     if (noticeDaysValue < 0) {
       const daysPastDue = Math.abs(noticeDaysValue);
       return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
+
     }
     return `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`;
   })();
@@ -181,7 +183,11 @@ export const CompletenessPhase: React.FC = () => {
       </div>
 
       <div className={STYLES.actions}>
-        <SecondaryButton name="declare-incomplete" size="small" disabled onClick={() => console.log("DECLARE INCOMPLETE")}>
+        <SecondaryButton
+          name="declare-incomplete"
+          size="small"
+          onClick={() => setDeclareIncompleteOpen(true)}
+        >
           Declare Incomplete
         </SecondaryButton>
         <SecondaryButton
@@ -282,6 +288,11 @@ export const CompletenessPhase: React.FC = () => {
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
             // onUploaded={addMockDoc}
+          />
+          <DeclareIncompleteDialog
+            isOpen={isDeclareIncompleteOpen}
+            onClose={() => setDeclareIncompleteOpen(false)}
+            onConfirm={(form) => console.log("Declare incomplete submitted", form)}
           />
         </div>
       )}
