@@ -12,7 +12,7 @@ def updateAndComment(String statusId, String comment = "Status updated by Jenkin
     },
     "update": {
       "comment": [{
-        "add": {"body": '$JIRA_COMMENT'}
+        "add": {"body": "$JIRA_COMMENT"}
       }]
     }
   }' "https://jiraent.cms.gov/rest/api/2/issue/$TICKET_NUMBER/transitions"
