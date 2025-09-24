@@ -42,7 +42,7 @@ pipeline {
                     if [ "$QA_REQUIRED" != "true" ]; then
                       exit 3
                     else
-                      echo 2
+                      exit 2
                     fi
                   ''', returnStatus: true)
 
