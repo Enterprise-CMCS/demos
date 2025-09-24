@@ -1,6 +1,7 @@
-def updateAndComment(String statusId, String comment = "Status\ updated\ by\ Jenkins") {
+def updateAndComment(String statusId, String comment = "Status updated by Jenkins") {
   // Implementation for updating and commenting on JIRA tickets
-  withEnv(["JIRA_STATUS_ID=${statusId}","JIRA_COMMENT=\"${comment}\""]) {
+  def safeComment = comment.replace(' ', '\\ ')
+  withEnv(["JIRA_STATUS_ID=${statusId}","JIRA_COMMENT=\"${safeComment}\""]) {
   sh '''
     echo "Updating JIRA ticket $TICKET_NUMBER to status $JIRA_STATUS_ID"
     curl -X POST \
