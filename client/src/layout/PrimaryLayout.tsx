@@ -1,20 +1,14 @@
-// src/layout/PrimaryLayout.tsx
-import React, { useState } from "react";
+import React from "react";
 import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
 import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
 import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
 import { getCurrentUser } from "components/user/UserContext";
 
-interface PrimaryLayoutProps {
-  children: React.ReactNode;
-}
+export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
+  const { loading: currentUserLoading, error: currentUserError } = getCurrentUser();
 
-export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
-  const [collapsed, setCollapsed] = useState(false);
-  const { loading, error } = getCurrentUser();
-
-  if (loading) {
+  if (currentUserLoading) {
     return (
       <ToastProvider>
         <div className="h-screen flex flex-col">
@@ -26,25 +20,19 @@ export const PrimaryLayout: React.FC<PrimaryLayoutProps> = ({ children }) => {
     );
   }
 
-  if (error) {
-    console.error("[PrimaryLayout] currentUser error:", error);
+  if (currentUserError) {
+    console.error("[PrimaryLayout] currentUser error:", currentUserError);
   }
 
   return (
     <ToastProvider>
-      <HeaderConfigProvider
-        defaultLowerContent={<DefaultHeaderLower />}
-      >
+      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower />}>
         <div className="h-screen flex flex-col">
           <Header />
           <div className="flex flex-1 overflow-hidden bg-gray-100">
-            <div className={collapsed ? "w-20" : "w-64"}>
-              <SideNav collapsed={collapsed} setCollapsed={setCollapsed} />
-            </div>
+            <SideNav />
             <div className="flex-1 overflow-auto p-2">
-              <div className="bg-white shadow-md p-2 max-w-[1600px] mx-auto">
-                {children}
-              </div>
+              <div className="bg-white shadow-md p-2 max-w-[1600px] mx-auto">{children}</div>
             </div>
           </div>
           <Footer />
