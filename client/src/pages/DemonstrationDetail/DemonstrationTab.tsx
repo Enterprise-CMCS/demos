@@ -36,13 +36,6 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
   const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
-  const handleUpdateContact = async (contact: Role, contactType: string) => {
-    // TODO: Implement actual API call to update contact
-    console.log("Updating contact:", { contact, contactType });
-    // This would typically call a mutation/API to update the contact in the database
-    // await updateContactMutation({ variables: { id: contactId, contactType } });
-  };
-
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
     { value: "types", label: "Types", count: 0 },
@@ -106,7 +99,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <ContactsTable roles={demonstration.roles} onUpdateContact={handleUpdateContact} />
+            <ContactsTable roles={demonstration.roles} demonstrationId={demonstration.id} />
           </>
         )}
       </div>
