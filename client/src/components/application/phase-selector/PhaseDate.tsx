@@ -4,6 +4,8 @@ import { formatDate } from "util/formatDate";
 import { tw } from "tags/tw";
 
 const BASE_STYLES = tw`flex flex-col h-full items-center justify-center mt-1 text-md font-bold`;
+const PAST_DUE_TEXT_CLASS = tw`text-text-warn`;
+const PAST_DUE_DATE_CLASS = tw`italic text-text-warn`;
 
 const PHASE_DATE_TEXT_LOOKUP: Record<PhaseStatus, string> = {
   skipped: "Skipped",
@@ -26,13 +28,24 @@ const PHASE_TEXT_COLOR_LOOKUP: Record<PhaseStatus, string> = {
   completed: tw`text-success-darkest`,
 };
 
-export const PhaseDate = ({ phaseStatus, date }: { phaseStatus: PhaseStatus; date?: Date }) => {
+interface PhaseDateProps {
+  phaseStatus: PhaseStatus;
+  date?: Date;
+  isPastDue?: boolean;
+}
+
+export const PhaseDate: React.FC<PhaseDateProps> = ({ phaseStatus, date, isPastDue }) => {
+  const showPastDue = phaseStatus === "in_progress" && Boolean(isPastDue);
+  const label = showPastDue ? "Past Due" : PHASE_DATE_TEXT_LOOKUP[phaseStatus];
+  const labelClass = showPastDue ? PAST_DUE_TEXT_CLASS : PHASE_TEXT_COLOR_LOOKUP[phaseStatus];
+  const dateClass = showPastDue ? PAST_DUE_DATE_CLASS : PHASE_DATE_STYLE_LOOKUP[phaseStatus];
+
   return (
     <div className={BASE_STYLES}>
-      <span className={PHASE_TEXT_COLOR_LOOKUP[phaseStatus]}>
-        {PHASE_DATE_TEXT_LOOKUP[phaseStatus]}
+      <span className={labelClass}>
+        {label}
       </span>
-      <span className={PHASE_DATE_STYLE_LOOKUP[phaseStatus]}>
+      <span className={dateClass}>
         {date ? formatDate(date) : "--/--/----"}
       </span>
     </div>

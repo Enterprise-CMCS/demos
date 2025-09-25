@@ -3,8 +3,6 @@ import React from "react";
 type CompletenessTestingPanelProps = {
   onAddMockDoc: () => void;
   completenessDocCount: number;
-  noticeDaysRemaining: string;
-  onNoticeDaysChange: (value: string) => void;
   noticeDueDate: string;
   onNoticeDueDateChange: (value: string) => void;
   noticeDaysValue: number | null;
@@ -14,8 +12,6 @@ type CompletenessTestingPanelProps = {
 export const CompletenessTestingPanel: React.FC<CompletenessTestingPanelProps> = ({
   onAddMockDoc,
   completenessDocCount,
-  noticeDaysRemaining,
-  onNoticeDaysChange,
   noticeDueDate,
   onNoticeDueDateChange,
   noticeDaysValue,
@@ -31,16 +27,6 @@ export const CompletenessTestingPanel: React.FC<CompletenessTestingPanelProps> =
         Add Mock Completeness Doc
       </button>
       <span className="text-gray-600">Docs: {completenessDocCount}</span>
-      <label className="flex items-center gap-2 text-gray-700">
-        <span className="font-semibold">Notice days left</span>
-        <input
-          type="number"
-          step={1}
-          value={noticeDaysRemaining}
-          onChange={(event) => onNoticeDaysChange(event.target.value)}
-          className="w-24 rounded border border-border-fields px-2 py-1 text-xs"
-        />
-      </label>
       <label className="flex items-center gap-2 text-gray-700">
         <span className="font-semibold">Notice due date</span>
         <input

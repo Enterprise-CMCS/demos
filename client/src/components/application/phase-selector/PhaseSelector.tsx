@@ -14,6 +14,7 @@ import { Phase } from "demos-server";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { PhaseBox } from "./PhaseBox";
 import { PhaseStatusContext } from "./PhaseStatusContext";
+import type { PhaseMeta, PhaseMetaLookup } from "./PhaseStatusContext";
 
 const PHASE_NAMES = [
   "Concept",
@@ -78,6 +79,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
   const [phaseStatusLookup, setPhaseStatusLookup] = useState<PhaseStatusLookup>(
     initialPhaseStatus ?? MOCK_PHASE_STATUS_LOOKUP
   );
+  const [phaseMetaLookup, setPhaseMetaLookup] = useState<PhaseMetaLookup>({});
 
   const updatePhaseStatus = useCallback((phase: PhaseName, status: PhaseStatus) => {
     setPhaseStatusLookup((prev) => {
@@ -86,9 +88,48 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
     });
   }, []);
 
+  const updatePhaseMeta = useCallback((phase: PhaseName, meta: PhaseMeta | undefined) => {
+    setPhaseMetaLookup((prev) => {
+      const existing = prev[phase];
+      if (!meta) {
+        if (existing === undefined) return prev;
+        const { [phase]: _removed, ...rest } = prev;
+        return rest;
+      }
+
+      const nextMeta: PhaseMeta = {
+        ...existing,
+        ...meta,
+      };
+
+      const hasDueDate = nextMeta.dueDate !== undefined;
+      const hasPastDueFlag = nextMeta.isPastDue !== undefined;
+      if (!hasDueDate && !hasPastDueFlag) {
+        if (existing === undefined) return prev;
+        const { [phase]: _removedMeta, ...rest } = prev;
+        // I'm not sure the consequence of nuking this yet.
+        console.log(_removedMeta);
+        return rest;
+      }
+
+      const existingDueDateTime = existing?.dueDate?.getTime() ?? Number.NaN;
+      const nextDueDateTime = nextMeta.dueDate?.getTime() ?? Number.NaN;
+      const isSameDueDate = Number.isNaN(existingDueDateTime)
+        ? Number.isNaN(nextDueDateTime)
+        : existingDueDateTime === nextDueDateTime;
+      const isSamePastDue = existing?.isPastDue === nextMeta.isPastDue;
+
+      if (existing && isSameDueDate && isSamePastDue) {
+        return prev;
+      }
+
+      return { ...prev, [phase]: nextMeta };
+    });
+  }, []);
+
   const contextValue = useMemo(
-    () => ({ phaseStatusLookup, updatePhaseStatus }),
-    [phaseStatusLookup, updatePhaseStatus]
+    () => ({ phaseStatusLookup, updatePhaseStatus, phaseMetaLookup, updatePhaseMeta }),
+    [phaseStatusLookup, updatePhaseStatus, phaseMetaLookup, updatePhaseMeta]
   );
 
   const phaseComponentsLookup = useMemo<Record<PhaseSelectorPhase, React.ComponentType>>(() => {
@@ -127,24 +168,27 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
   };
 
   return (
-    <>
+    <PhaseStatusContext.Provider value={contextValue}>
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
-        {PHASE_NAMES.map((phaseName, index) => (
-          <PhaseBox
-            key={phaseName}
-            phaseName={phaseName}
-            phaseStatus={phaseStatusLookup[phaseName]}
-            phaseNumber={index + 1}
-            displayDate={MOCK_PHASE_DATE_LOOKUP[phaseName]}
-            isSelectedPhase={selectedPhase === phaseName}
-            setPhaseAsSelected={() => setSelectedPhase(phaseName as PhaseSelectorPhase)}
-          />
-        ))}
+        {PHASE_NAMES.map((phaseName, index) => {
+          const meta = phaseMetaLookup[phaseName];
+          const displayDate = meta ? meta.dueDate : MOCK_PHASE_DATE_LOOKUP[phaseName];
+          return (
+            <PhaseBox
+              key={phaseName}
+              phaseName={phaseName}
+              phaseStatus={phaseStatusLookup[phaseName]}
+              phaseNumber={index + 1}
+              displayDate={displayDate}
+              isPastDue={meta?.isPastDue ?? false}
+              isSelectedPhase={selectedPhase === phaseName}
+              setPhaseAsSelected={() => setSelectedPhase(phaseName as PhaseSelectorPhase)}
+            />
+          );
+        })}
       </div>
-      <PhaseStatusContext.Provider value={contextValue}>
-        <DisplayPhase selectedPhase={selectedPhase} />
-      </PhaseStatusContext.Provider>
-    </>
+      <DisplayPhase selectedPhase={selectedPhase} />
+    </PhaseStatusContext.Provider>
   );
 };

@@ -33,7 +33,6 @@ export const CompletenessPhase: React.FC = () => {
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [isNoticeDismissed, setNoticeDismissed] = useState(false);
-  const [noticeDaysRemaining, setNoticeDaysRemaining] = useState<string>("29");
   const [noticeDueDate, setNoticeDueDate] = useState<string>("2025-09-19");
 
   // local-only state for a basic starting point
@@ -47,9 +46,23 @@ export const CompletenessPhase: React.FC = () => {
   );
   const hasDocs = completenessDocs.length > 0;
 
-  const trimmedNoticeDays = noticeDaysRemaining.trim();
-  const parsedNoticeDays = trimmedNoticeDays === "" ? NaN : Number.parseInt(trimmedNoticeDays, 10);
-  const noticeDaysValue = Number.isNaN(parsedNoticeDays) ? null : parsedNoticeDays;
+  const noticeDueDateValue = React.useMemo(() => {
+    if (!noticeDueDate) return undefined;
+    const candidate = new Date(`${noticeDueDate}T00:00:00`);
+    return Number.isNaN(candidate.getTime()) ? undefined : candidate;
+  }, [noticeDueDate]);
+
+  const noticeDaysValue = React.useMemo(() => {
+    if (!noticeDueDateValue) return null;
+    // Compare at local midnight so “today” = 0, “tomorrow” = 1, “yesterday” = -1
+    const MS_PER_DAY = 24 * 60 * 60 * 1000;
+    const today = new Date();
+    const todayAtMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const diffDays = Math.floor(
+      (noticeDueDateValue.getTime() - todayAtMidnight.getTime()) / MS_PER_DAY
+    );
+    return diffDays;
+  }, [noticeDueDateValue]);
 
   const noticeTitle = (() => {
     if (noticeDaysValue === null) return "Federal Comment Period notice";
@@ -60,14 +73,22 @@ export const CompletenessPhase: React.FC = () => {
     return `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`;
   })();
 
-  const dueDateCandidate = noticeDueDate ? new Date(noticeDueDate) : undefined;
-  const isDueDateValid = dueDateCandidate instanceof Date && !Number.isNaN(dueDateCandidate.getTime());
-  const formattedNoticeDate = isDueDateValid ? formatDate(dueDateCandidate) : null;
+  const formattedNoticeDate = noticeDueDateValue ? formatDate(noticeDueDateValue) : null;
   const noticeDescription = formattedNoticeDate
     ? `This Amendment must be declared complete by ${formattedNoticeDate}`
     : "Add a mock due date in the testing panel to update this message.";
+
   // go from yellow to red at 1 day left.
-  const noticeVariant: NoticeVariant = noticeDaysValue !== null && noticeDaysValue <= 1 ? "error" : "warning";
+  const isNoticeUrgent = noticeDaysValue !== null && noticeDaysValue <= 1;
+  const noticeVariant: NoticeVariant = isNoticeUrgent ? "error" : "warning";
+
+  React.useEffect(() => {
+    if (!phaseStatusContext) return;
+    phaseStatusContext.updatePhaseMeta("Completeness", {
+      dueDate: noticeDueDateValue,
+      isPastDue: noticeDaysValue !== null && noticeDaysValue < 0,
+    });
+  }, [phaseStatusContext, noticeDueDateValue, noticeDaysValue]);
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
   const datesAreValid = !federalStartDate || !federalEndDate
@@ -280,11 +301,9 @@ export const CompletenessPhase: React.FC = () => {
         <CompletenessTestingPanel
           onAddMockDoc={addMockDoc}
           completenessDocCount={completenessDocs.length}
-          noticeDaysRemaining={noticeDaysRemaining}
-          onNoticeDaysChange={setNoticeDaysRemaining}
           noticeDueDate={noticeDueDate}
           onNoticeDueDateChange={setNoticeDueDate}
-          noticeDaysValue={noticeDaysValue}
+          noticeDaysValue={noticeDaysValue} // keep for display-only if you show it
           onResetNotice={() => setNoticeDismissed(false)}
         />
       )}

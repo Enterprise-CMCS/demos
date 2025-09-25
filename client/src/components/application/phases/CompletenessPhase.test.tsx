@@ -1,6 +1,6 @@
 import React from "react";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ToastProvider } from "components/toast";
@@ -22,6 +22,8 @@ const mockContextValue: PhaseStatusContextValue = {
     "Post Approval": "not_started",
   },
   updatePhaseStatus: vi.fn(),
+  phaseMetaLookup: {},
+  updatePhaseMeta: vi.fn(),
 };
 
 const renderWithContext = (ui: React.ReactNode, contextOverrides?: Partial<PhaseStatusContextValue>) => {
@@ -85,5 +87,36 @@ describe("CompletenessPhase", () => {
 
     expect(updatePhaseStatus).toHaveBeenCalledWith("Completeness", "completed");
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("publishes notice metadata for the phase badge", async () => {
+    const updatePhaseMeta = vi.fn();
+
+    renderWithContext(<CompletenessPhase />, {
+      updatePhaseMeta,
+    });
+
+    await waitFor(() => {
+      expect(updatePhaseMeta).toHaveBeenCalledWith(
+        "Completeness",
+        expect.objectContaining({
+          dueDate: expect.any(Date),
+          isPastDue: false,
+        })
+      );
+    });
+
+    fireEvent.change(screen.getByLabelText(/notice days left/i), {
+      target: { value: "0" },
+    });
+
+    await waitFor(() => {
+      expect(updatePhaseMeta).toHaveBeenCalledWith(
+        "Completeness",
+        expect.objectContaining({
+          isPastDue: true,
+        })
+      );
+    });
   });
 });
