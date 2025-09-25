@@ -83,6 +83,7 @@ export const CompletenessPhase: React.FC = () => {
   })();
 
   const formattedNoticeDate = noticeDueDateValue ? formatDate(noticeDueDateValue) : null;
+  // TODO: update when we have real data
   const noticeDescription = formattedNoticeDate
     ? `This Amendment must be declared complete by ${formattedNoticeDate}`
     : "Add a mock due date in the testing panel to update this message.";
