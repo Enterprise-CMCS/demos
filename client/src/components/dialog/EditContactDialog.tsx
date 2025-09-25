@@ -3,7 +3,10 @@ import React, { useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { Select } from "components/input/select/Select";
-import { DemonstrationRoleAssignment, Person as ServerPerson } from "demos-server";
+import {
+  DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
+  Person as ServerPerson,
+} from "demos-server";
 import { ROLES } from "demos-server-constants";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { gql, useMutation } from "@apollo/client";
@@ -12,37 +15,31 @@ import { useToast } from "components/toast";
 const SUCCESS_MESSAGE = "Contact updated successfully.";
 const ERROR_MESSAGE = "An error occurred while updating the contact. Please try again.";
 
-const SET_DEMONSTRATION_ROLE_MUTATION = gql`
+export const SET_DEMONSTRATION_ROLE_MUTATION = gql`
   mutation SetDemonstrationRole($input: SetDemonstrationRoleInput!) {
     setDemonstrationRole(input: $input) {
       role
-      isPrimary
-      person {
-        id
-        fullName
-        email
-      }
     }
   }
 `;
 
-type Person = Pick<ServerPerson, "fullName" | "email" | "id">;
-type Role = Pick<DemonstrationRoleAssignment, "isPrimary" | "role"> & {
+type Person = Pick<ServerPerson, "id">;
+type DemonstrationRoleAssignment = Pick<ServerDemonstrationRoleAssignment, "isPrimary" | "role"> & {
   person: Person;
 };
 
 export type EditContactDialogProps = {
   isOpen: boolean;
   onClose: () => void;
-  contact: Role;
+  contact?: DemonstrationRoleAssignment;
   demonstrationId: string;
 };
 
 type FormData = {
-  isPrimary: boolean;
-  roleId: string;
-  personId: string;
-  demonstrationId: string;
+  isPrimary?: boolean;
+  roleId?: string;
+  personId?: string;
+  demonstrationId?: string;
 };
 
 export const EditContactDialog: React.FC<EditContactDialogProps> = ({
@@ -53,12 +50,11 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
 }) => {
   const { showSuccess, showError } = useToast();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-
   const [formData, setFormData] = useState<FormData>({
     demonstrationId: demonstrationId,
-    personId: contact.person.id,
-    isPrimary: contact.isPrimary,
-    roleId: contact.role,
+    personId: contact?.person.id,
+    isPrimary: contact?.isPrimary,
+    roleId: contact?.role,
   });
   const [setDemonstrationRoleTrigger] = useMutation(SET_DEMONSTRATION_ROLE_MUTATION);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -74,6 +70,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
       });
       onClose();
       showSuccess(SUCCESS_MESSAGE);
+      console.log("Contact updated:", formData);
     } catch {
       showError(ERROR_MESSAGE);
     }
@@ -114,7 +111,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
         {/* Non-editable Name field */}
         <div>
           <SelectUsers
-            initialUserId={contact.person.id}
+            initialUserId={formData.personId}
             label="Person"
             onSelect={(value) =>
               setFormData({

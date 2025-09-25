@@ -8,28 +8,38 @@ import {
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
-export async function unsetDemonstrationRole(
+export async function unsetDemonstrationRoles(
   parent: undefined,
-  { input }: { input: UnsetDemonstrationRoleInput }
+  { input }: { input: UnsetDemonstrationRoleInput[] }
 ) {
   return await prisma().$transaction(async (tx) => {
-    await tx.primaryDemonstrationRoleAssignment.deleteMany({
-      where: {
-        personId: input.personId,
-        demonstrationId: input.demonstrationId,
-        roleId: input.roleId,
-      },
-    });
+    const deletedRoles: DemonstrationRoleAssignment[] = [];
 
-    return await tx.demonstrationRoleAssignment.delete({
-      where: {
-        personId_demonstrationId_roleId: {
-          personId: input.personId,
-          demonstrationId: input.demonstrationId,
-          roleId: input.roleId,
+    for (const roleInput of input) {
+      // Delete primary role assignment if it exists
+      await tx.primaryDemonstrationRoleAssignment.deleteMany({
+        where: {
+          personId: roleInput.personId,
+          demonstrationId: roleInput.demonstrationId,
+          roleId: roleInput.roleId,
         },
-      },
-    });
+      });
+
+      // Delete main role assignment and collect the result
+      const deletedRole = await tx.demonstrationRoleAssignment.delete({
+        where: {
+          personId_demonstrationId_roleId: {
+            personId: roleInput.personId,
+            demonstrationId: roleInput.demonstrationId,
+            roleId: roleInput.roleId,
+          },
+        },
+      });
+
+      deletedRoles.push(deletedRole);
+    }
+
+    return deletedRoles;
   });
 }
 
@@ -112,7 +122,7 @@ export async function setDemonstrationRole(
 export const demonstrationRoleAssigmentResolvers = {
   Mutation: {
     setDemonstrationRole,
-    unsetDemonstrationRole,
+    unsetDemonstrationRoles,
   },
 
   DemonstrationRoleAssignment: {

@@ -9,10 +9,16 @@ import { gql } from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { Role } from "demos-server";
 
-const UNSET_DEMONSTRATION_ROLE_MUTATION = gql`
-  mutation SetDemonstrationRole($input: UnsetDemonstrationRoleInput!) {
-    unsetDemonstrationRole(input: $input) {
+export const UNSET_DEMONSTRATION_ROLE_MUTATION = gql`
+  mutation UnsetDemonstrationRoles($input: [UnsetDemonstrationRoleInput!]!) {
+    unsetDemonstrationRoles(input: $input) {
       role
+      person {
+        id
+      }
+      demonstration {
+        id
+      }
     }
   }
 `;
@@ -40,26 +46,26 @@ export const RemoveContactDialog: React.FC<RemoveContactDialogProps> = ({
 }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [unsetDemonstrationRoleTrigger] = useMutation(UNSET_DEMONSTRATION_ROLE_MUTATION);
+  const [unsetDemonstrationRolesTrigger] = useMutation(UNSET_DEMONSTRATION_ROLE_MUTATION);
 
   const handleConfirm = async () => {
     try {
       setIsDeleting(true);
 
-      for (const contact of contacts) {
-        await unsetDemonstrationRoleTrigger({
-          variables: {
-            input: {
-              personId: contact.person.id,
-              demonstrationId: contact.demonstration.id,
-              roleId: contact.role,
-            },
-          },
-        });
-      }
+      const mutationInput = contacts.map((contact) => ({
+        personId: contact.person.id,
+        demonstrationId: contact.demonstration.id,
+        roleId: contact.role,
+      }));
+
+      await unsetDemonstrationRolesTrigger({ variables: { input: mutationInput } });
 
       const isMultipleContacts = contacts.length > 1;
       showSuccess(`Your contact${isMultipleContacts ? "s have" : " has"} been removed.`);
+      console.log(
+        "Deleting contacts:",
+        contacts.map((contact) => contact.person.id)
+      );
       onClose();
     } catch (error) {
       console.error("Error in handleConfirm:", error);

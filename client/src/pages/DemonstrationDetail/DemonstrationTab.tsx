@@ -9,9 +9,10 @@ import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { Demonstration, DemonstrationRoleAssignment, Document, Person, State } from "demos-server";
 import { TabItem, Tabs } from "layout/Tabs";
+import { EditContactDialog } from "components/dialog";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
-type DocumentModalType = "document" | null;
+type ModalType = "document" | "contact" | null;
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email">;
@@ -34,7 +35,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
   demonstration,
 }) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
-  const [modalType, setModalType] = useState<DocumentModalType>(null);
+  const [modalType, setModalType] = useState<ModalType>(null);
 
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
@@ -91,9 +92,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
               <SecondaryButton
-                name="add-new-document"
+                name="add-new-contact"
                 size="small"
-                onClick={() => setModalType("document")}
+                onClick={() => setModalType("contact")}
               >
                 <span>Add New</span>
                 <AddNewIcon className="w-2 h-2" />
@@ -106,6 +107,13 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
       {modalType === "document" && (
         <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
+      )}
+      {modalType === "contact" && (
+        <EditContactDialog
+          demonstrationId={demonstration.id}
+          isOpen={true}
+          onClose={() => setModalType(null)}
+        />
       )}
     </div>
   );

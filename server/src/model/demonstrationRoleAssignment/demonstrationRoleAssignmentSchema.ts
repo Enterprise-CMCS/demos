@@ -25,7 +25,7 @@ export const demonstrationRoleAssignmentSchema = gql`
 
   type Mutation {
     setDemonstrationRole(input: SetDemonstrationRoleInput!): DemonstrationRoleAssignment!
-    unsetDemonstrationRole(input: UnsetDemonstrationRoleInput!): DemonstrationRoleAssignment!
+    unsetDemonstrationRoles(input: [UnsetDemonstrationRoleInput!]!): [DemonstrationRoleAssignment!]!
   }
 `;
 
