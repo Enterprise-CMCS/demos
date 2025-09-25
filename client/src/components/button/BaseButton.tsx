@@ -22,13 +22,13 @@ disabled:cursor-not-allowed`;
 const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
   if (isCircle) {
     return {
-      large: "w-14 h-14 text-[1.4rem] font-semibold leading-none",
-      small: "w-8 h-8 text-[1rem] font-medium leading-none",
-      standard: "w-12 h-12 text-[1.2rem] font-semibold leading-none",
+      large: "w-14 h-14 text-[1.4rem]",
+      small: "w-8 h-8 text-[1rem]",
+      standard: "w-12 h-12 text-[1.2rem]",
     }[buttonSize];
   }
   return {
-    large: "text-[1.6rem] font-semibold px-6 py-3 leading-tight tracking-wide",
+    large: "h-[48px] text-[16px] p-[12px]",
     small: "h-[40px] text-[14px] p-[8px]",
     standard: "h-[40px] text-[14px] p-[8px]",
   }[buttonSize];

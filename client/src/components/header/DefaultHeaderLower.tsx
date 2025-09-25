@@ -63,7 +63,7 @@ export const DefaultHeaderLower: React.FC = () => {
         <SecondaryButton
           name="create-new"
           data-testid="create-new"
-          size="small"
+          size="large"
           onClick={() => setShowDropdown((prev) => !prev)}
         >
           <div className="flex items-center gap-1">
