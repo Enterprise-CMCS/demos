@@ -32,6 +32,7 @@ export const CompletenessTestingPanel: React.FC<CompletenessTestingPanelProps> =
         <input
           type="date"
           value={noticeDueDate}
+          data-testid="notice-due-date"
           onChange={(event) => onNoticeDueDateChange(event.target.value)}
           className="rounded border border-border-fields px-2 py-1 text-xs"
         />

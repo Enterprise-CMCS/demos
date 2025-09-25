@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "components/toast";
 import { MockedProvider } from "@apollo/client/testing";
 import * as env from "config/env";
-
+import { formatDate } from "util/formatDate";
 import { PhaseStatusContext, PhaseStatusContextValue } from "../phase-selector/PhaseStatusContext";
 import { CompletenessPhase } from "./CompletenessPhase";
 
@@ -89,12 +89,30 @@ describe("CompletenessPhase", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("publishes notice metadata for the phase badge", async () => {
+  it("publishes notice metadata for the phase badge (future vs past due)", async () => {
     const updatePhaseMeta = vi.fn();
 
     renderWithContext(<CompletenessPhase />, {
       updatePhaseMeta,
     });
+
+    // Build YYYY-MM-DD strings
+    const today = new Date();
+    const toISODate = (d: Date): string => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const future = new Date(today);
+    future.setDate(today.getDate() + 5);
+    const past = new Date(today);
+    past.setDate(today.getDate() - 1);
+
+    // Set a FUTURE due date -> isPastDue: false
+    const dueDateInput = screen.getByTestId("notice-due-date");
+    fireEvent.change(dueDateInput, { target: { value: toISODate(future) } });
 
     await waitFor(() => {
       expect(updatePhaseMeta).toHaveBeenCalledWith(
@@ -106,9 +124,8 @@ describe("CompletenessPhase", () => {
       );
     });
 
-    fireEvent.change(screen.getByLabelText(/notice days left/i), {
-      target: { value: "0" },
-    });
+    // Now set a PAST due date -> isPastDue: true
+    fireEvent.change(dueDateInput, { target: { value: toISODate(past) } });
 
     await waitFor(() => {
       expect(updatePhaseMeta).toHaveBeenCalledWith(
