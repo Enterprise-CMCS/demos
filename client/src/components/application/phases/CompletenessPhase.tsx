@@ -26,14 +26,33 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3 text-left`,
 };
 
+const toInputDate = (d: Date) => {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const parseDateInput = (input?: string) => {
+  if (!input) return undefined;
+  const [y, m, d] = input.split("-").map((value) => Number(value));
+  if (!y || !m || !d) return undefined;
+  return new Date(y, m - 1, d);
+};
+
 // A minimal starter for the Completeness phase UI with two sections
 export const CompletenessPhase: React.FC = () => {
   const phaseStatusContext = React.useContext(PhaseStatusContext);
+  const completenessMeta = phaseStatusContext?.phaseMetaLookup?.Completeness;
+  // seed once
+  const [noticeDueDate, setNoticeDueDate] = useState<string>(() => {
+    return completenessMeta?.dueDate ? toInputDate(completenessMeta.dueDate) : "";
+  });
+
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [isNoticeDismissed, setNoticeDismissed] = useState(false);
-  const [noticeDueDate, setNoticeDueDate] = useState<string>("2025-09-19");
 
   // local-only state for a basic starting point
   const [mockDocuments, setMockDocuments] = useState<DocumentTableDocument[]>([]);
@@ -46,23 +65,16 @@ export const CompletenessPhase: React.FC = () => {
   );
   const hasDocs = completenessDocs.length > 0;
 
-  const noticeDueDateValue = React.useMemo(() => {
-    if (!noticeDueDate) return undefined;
-    const candidate = new Date(`${noticeDueDate}T00:00:00`);
-    return Number.isNaN(candidate.getTime()) ? undefined : candidate;
-  }, [noticeDueDate]);
+  const noticeDueDateValue = React.useMemo(() => parseDateInput(noticeDueDate), [noticeDueDate]);
 
   const noticeDaysValue = React.useMemo(() => {
     if (!noticeDueDateValue) return null;
-    // Compare at local midnight so “today” = 0, “tomorrow” = 1, “yesterday” = -1
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
     const today = new Date();
     const todayAtMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const diffDays = Math.floor(
-      (noticeDueDateValue.getTime() - todayAtMidnight.getTime()) / MS_PER_DAY
-    );
-    return diffDays;
+    return Math.floor((noticeDueDateValue.getTime() - todayAtMidnight.getTime()) / MS_PER_DAY);
   }, [noticeDueDateValue]);
+
 
   const noticeTitle = (() => {
     if (noticeDaysValue === null) return "Federal Comment Period notice";
@@ -101,6 +113,11 @@ export const CompletenessPhase: React.FC = () => {
     // when "complete" we do not need the notice.
     setNoticeDismissed(true);
   };
+  React.useEffect(() => {
+    if (noticeDueDateValue) {
+      setNoticeDismissed(false);
+    }
+  }, [noticeDueDateValue]);
 
   // lightweight helpers to mock document activity while wiring up UI
   const addMockDoc = () => {
