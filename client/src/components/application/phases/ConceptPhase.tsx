@@ -12,7 +12,7 @@ import { isLocalDevelopment } from "config/env";
 
 import { gql, useMutation } from "@apollo/client";
 
-export const STYLES = {
+const STYLES = {
   pane: tw`bg-white p-8`,
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,

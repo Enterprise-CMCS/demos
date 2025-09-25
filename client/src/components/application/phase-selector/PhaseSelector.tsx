@@ -39,28 +39,6 @@ const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
 
 const FEDERAL_COMMENT_START_DATE = MOCK_PHASE_DATE_LOOKUP["Federal Comment"] as Date;
 
-const PHASE_COMPONENTS_LOOKUP: Record<PhaseSelectorPhase, React.ComponentType> = {
-  Concept: ConceptPhase,
-  "State Application": StateApplicationPhase,
-  Completeness: CompletenessPhase,
-  "Federal Comment": () => {
-    const phaseStartDate = FEDERAL_COMMENT_START_DATE;
-    const phaseEndDate = new Date(phaseStartDate);
-    phaseEndDate.setDate(phaseEndDate.getDate() + 30);
-
-    return (
-      <FederalCommentPhase
-        phaseStartDate={phaseStartDate}
-        phaseEndDate={phaseEndDate}
-      />
-    );
-  },
-  "SME/FRT": SmeFrtPhase,
-  "OGC & OMB": OgcOmbPhase,
-  "Approval Package": ApprovalPackagePhase,
-  "Post Approval": PostApprovalPhase,
-};
-
 const PhaseGroups = () => {
   const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
   return (
@@ -70,16 +48,6 @@ const PhaseGroups = () => {
       <span className={`col-span-3 ${leftBorderStyles}`}>Approval</span>
       <span className={`col-span-1 ${leftBorderStyles}`}>Post-Approval</span>
     </>
-  );
-};
-
-const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
-  const PhaseComponent = PHASE_COMPONENTS_LOOKUP[selectedPhase];
-
-  return (
-    <div className="w-full h-full min-h-64">
-      <PhaseComponent />
-    </div>
   );
 };
 
@@ -102,6 +70,39 @@ interface PhaseSelectorProps {
 }
 
 export const PhaseSelector = (props: PhaseSelectorProps) => {
+  const PHASE_COMPONENTS_LOOKUP: Record<PhaseSelectorPhase, React.ComponentType> = {
+    Concept: ConceptPhase,
+    "State Application": StateApplicationPhase,
+    Completeness: CompletenessPhase,
+    "Federal Comment": () => {
+      const phaseStartDate = FEDERAL_COMMENT_START_DATE;
+      const phaseEndDate = new Date(phaseStartDate);
+      phaseEndDate.setDate(phaseEndDate.getDate() + 30);
+
+      return (
+        <FederalCommentPhase
+          demonstrationId={props.demonstration.id}
+          phaseStartDate={phaseStartDate}
+          phaseEndDate={phaseEndDate}
+        />
+      );
+    },
+    "SME/FRT": SmeFrtPhase,
+    "OGC & OMB": OgcOmbPhase,
+    "Approval Package": ApprovalPackagePhase,
+    "Post Approval": PostApprovalPhase,
+  };
+
+  const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
+    const PhaseComponent = PHASE_COMPONENTS_LOOKUP[selectedPhase];
+
+    return (
+      <div className="w-full h-full min-h-64">
+        <PhaseComponent />
+      </div>
+    );
+  };
+
   const mappedInitialPhase = PHASE_NAMES.includes(props.demonstration.currentPhase as PhaseSelectorPhase)
     ? (props.demonstration.currentPhase as PhaseSelectorPhase)
     : "Concept";
