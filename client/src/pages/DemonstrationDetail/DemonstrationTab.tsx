@@ -7,9 +7,9 @@ import { AddNewIcon } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import { Demonstration, DemonstrationRoleAssignment, Document, Person, State } from "demos-server";
 import { TabItem, Tabs } from "layout/Tabs";
 import { EditContactDialog } from "components/dialog";
+import { BundleStatus, DemonstrationRoleAssignment, Demonstration, Document, Phase, Person, State, User } from "demos-server";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
 type ModalType = "document" | "contact" | null;
@@ -29,6 +29,9 @@ export type DemonstrationTabDemonstration = Pick<
   })[];
   state: Pick<State, "id" | "name">;
   roles: Role[];
+  projectOfficer: Pick<User, "id">;
+  status: BundleStatus;
+  currentPhase: Phase;
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
@@ -46,7 +49,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "Under Review" }} />
+      <ApplicationWorkflow demonstration={demonstration} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}

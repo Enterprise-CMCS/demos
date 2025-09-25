@@ -64,6 +64,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           email
         }
       }
+      currentPhase
     }
   }
 `;

@@ -56,10 +56,7 @@ describe("buildClient", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-core-no-execute",
       "npx",
-      expect.arrayContaining([
-        `stage=${mockStageName}`,
-        `demos-${mockStageName}-core`,
-      ])
+      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`])
     );
 
     expect(rs).toHaveBeenCalledWith(
@@ -71,7 +68,6 @@ describe("buildClient", () => {
           VITE_COGNITO_DOMAIN: "cognitoDomain",
           VITE_COGNITO_CLIENT_ID: "cognitoClientId",
           VITE_API_URL_PREFIX: "/api/graphql",
-          VITE_IDM_LOGOUT_URI: "",
         }),
       })
     );
@@ -95,10 +91,7 @@ describe("buildClient", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-core-no-execute",
       "npx",
-      expect.arrayContaining([
-        `stage=${mockStageName}`,
-        `demos-${mockStageName}-core`,
-      ])
+      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`])
     );
 
     expect(exitCode).toBe(1);

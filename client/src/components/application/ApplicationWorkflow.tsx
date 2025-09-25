@@ -1,11 +1,12 @@
 import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
 import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
-import type { BundleStatus } from "demos-server";
+import type { Demonstration } from "demos-server";
 
-export interface ApplicationWorkflowDemonstration {
-  status: BundleStatus;
-}
+export type ApplicationWorkflowDemonstration = Pick<
+  Demonstration,
+  "id" | "status" | "currentPhase"
+>
 
 export const ApplicationWorkflow = ({
   demonstration,
@@ -19,7 +20,7 @@ export const ApplicationWorkflow = ({
         <DemonstrationStatusBadge demonstrationStatus={demonstration.status} />
       </div>
       <hr className="text-border-rules" />
-      <PhaseSelector />
+      <PhaseSelector demonstration={demonstration}/>
     </div>
   );
 };

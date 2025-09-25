@@ -52,9 +52,9 @@ export class FileUploadStack extends Stack {
 
     const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
-      removalPolicy: props.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
-      autoDeleteObjects: props.isDev,
+      autoDeleteObjects: props.isDev || props.isEphemeral,
       enforceSSL: true,
     });
 
