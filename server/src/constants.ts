@@ -52,7 +52,17 @@ export const DOCUMENT_TYPES = [
   "State Application",
 ] as const;
 
-export const PHASE = ["None", "Concept", "State Application", "Completeness"] as const;
+export const PHASE = [
+  "None",
+  "Concept",
+  "State Application",
+  "Completeness",
+  "Federal Comment",
+  "SME/FRT",
+  "OGC & OMB",
+  "Approval Package",
+  "Post Approval",
+] as const;
 
 export const PHASE_STATUS = ["Not Started", "Started", "Completed", "Skipped"] as const;
 

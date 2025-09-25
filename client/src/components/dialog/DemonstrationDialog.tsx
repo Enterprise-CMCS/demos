@@ -243,6 +243,7 @@ const DemonstrationDialog: React.FC<{
               onSelect={(userId) =>
                 setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }))
               }
+              personTypes={["demos-admin", "demos-cms-user"]}
             />
           </div>
           {mode === "edit" && (
@@ -317,7 +318,10 @@ export const CreateDemonstrationDialog: React.FC<{
       if (success) {
         showSuccess(SUCCESS_MESSAGES.create);
       } else {
-        showError(result.data?.createDemonstration?.message || ERROR_MESSAGES.create);
+        console.error(result.data?.createDemonstration?.message || ERROR_MESSAGES.create);
+        showError(
+          "Create a demonstration failed - please check the console for the error message."
+        );
       }
     } catch {
       showError(ERROR_MESSAGES.create);
