@@ -5,7 +5,6 @@ import React from "react";
 export interface KeywordSearchProps<T> {
   table: Table<T>;
   label?: string;
-  className?: string;
   debounceMs?: number;
   storageKey?: string;
 }
@@ -60,7 +59,6 @@ export function highlightCell<TData>({
 export function KeywordSearch<T>({
   table,
   label = "Search:",
-  className = "",
   debounceMs = 300,
   storageKey = "keyword-search",
 }: KeywordSearchProps<T>) {
@@ -144,7 +142,7 @@ export function KeywordSearch<T>({
   }, []);
 
   return (
-    <div className={className}>
+    <div>
       <label htmlFor="keyword-search" className="ml-2 font-semibold block mb-1">
         {label}
       </label>
