@@ -17,7 +17,7 @@ export const CompletenessTestingPanel: React.FC<CompletenessTestingPanelProps> =
   noticeDaysValue,
   onResetNotice,
 }) => (
-  <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+  <div className="mb-4 mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
     <div className="flex flex-wrap items-center gap-3 text-xs">
       <button
         onClick={onAddMockDoc}

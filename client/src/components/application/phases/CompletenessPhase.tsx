@@ -14,7 +14,7 @@ import { CompletenessTestingPanel } from "./CompletenessTestingPanel";
 import { PhaseStatusContext } from "../phase-selector/PhaseStatusContext";
 
 const STYLES = {
-  pane: tw`bg-white p-8`,
+  pane: tw`bg-white`,
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
   stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
@@ -23,7 +23,8 @@ const STYLES = {
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
-  actions: tw`mt-8 flex justify-end gap-3 text-left`,
+  actions: tw`mt-8 flex items-center gap-3`,
+  actionsEnd: tw`ml-auto flex gap-3`,
 };
 
 const toInputDate = (d: Date) => {
@@ -32,19 +33,17 @@ const toInputDate = (d: Date) => {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 };
-
+// parser to keep the dates a string
 const parseDateInput = (input?: string) => {
   if (!input) return undefined;
-  const [y, m, d] = input.split("-").map((value) => Number(value));
-  if (!y || !m || !d) return undefined;
-  return new Date(y, m - 1, d);
+  const [year, month, day] = input.split("-").map((value) => Number(value));
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day);
 };
 
-// A minimal starter for the Completeness phase UI with two sections
 export const CompletenessPhase: React.FC = () => {
   const phaseStatusContext = React.useContext(PhaseStatusContext);
   const completenessMeta = phaseStatusContext?.phaseMetaLookup?.Completeness;
-  // seed once
   const [noticeDueDate, setNoticeDueDate] = useState<string>(() => {
     return completenessMeta?.dueDate ? toInputDate(completenessMeta.dueDate) : "";
   });
@@ -53,8 +52,6 @@ export const CompletenessPhase: React.FC = () => {
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [isNoticeDismissed, setNoticeDismissed] = useState(false);
-
-  // local-only state for a basic starting point
   const [mockDocuments, setMockDocuments] = useState<DocumentTableDocument[]>([]);
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>("");
   const [federalStartDate, setFederalStartDate] = useState<string>("");
@@ -65,8 +62,8 @@ export const CompletenessPhase: React.FC = () => {
   );
   const hasDocs = completenessDocs.length > 0;
 
+  // derive notice date and days from input string
   const noticeDueDateValue = React.useMemo(() => parseDateInput(noticeDueDate), [noticeDueDate]);
-
   const noticeDaysValue = React.useMemo(() => {
     if (!noticeDueDateValue) return null;
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -75,7 +72,7 @@ export const CompletenessPhase: React.FC = () => {
     return Math.floor((noticeDueDateValue.getTime() - todayAtMidnight.getTime()) / MS_PER_DAY);
   }, [noticeDueDateValue]);
 
-
+  // determine notice title/description from days
   const noticeTitle = (() => {
     if (noticeDaysValue === null) return "Federal Comment Period notice";
     if (noticeDaysValue < 0) {
@@ -108,9 +105,9 @@ export const CompletenessPhase: React.FC = () => {
     : new Date(federalStartDate) <= new Date(federalEndDate);
   const canFinish = hasDocs && datesFilled && datesAreValid;
   const completenessStatus = phaseStatusContext?.phaseStatusLookup.Completeness;
+  // when "complete" we do not need the notice.
   const markCompletenessFinished = () => {
     phaseStatusContext?.updatePhaseStatus("Completeness", "completed");
-    // when "complete" we do not need the notice.
     setNoticeDismissed(true);
   };
   React.useEffect(() => {
@@ -151,9 +148,6 @@ export const CompletenessPhase: React.FC = () => {
       </SecondaryButton>
 
       <div className={STYLES.list}>
-        {completenessDocs.length === 0 && (
-          <div className="text-sm text-text-placeholder">No documents yet.</div>
-        )}
         {completenessDocs.map((doc) => (
           <div key={doc.id} className={STYLES.fileRow}>
             <div>
@@ -242,21 +236,23 @@ export const CompletenessPhase: React.FC = () => {
         >
           Declare Incomplete
         </SecondaryButton>
-        <SecondaryButton
-          name="save-for-later"
-          size="small"
-          onClick={() => console.log("Saved draft of completeness phase")}
-        >
-          Save For Later
-        </SecondaryButton>
-        <Button
-          name="finish-completeness"
-          size="small"
-          disabled={!canFinish || completenessStatus === "completed"}
-          onClick={markCompletenessFinished}
-        >
-          Finish
-        </Button>
+        <div className={STYLES.actionsEnd}>
+          <SecondaryButton
+            name="save-for-later"
+            size="small"
+            onClick={() => console.log("Saved draft of completeness phase")}
+          >
+            Save For Later
+          </SecondaryButton>
+          <Button
+            name="finish-completeness"
+            size="small"
+            disabled={!canFinish || completenessStatus === "completed"}
+            onClick={markCompletenessFinished}
+          >
+            Finish
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -287,9 +283,8 @@ export const CompletenessPhase: React.FC = () => {
         Completeness Checklist – Find completeness guidelines online at
             {" "}
             <a className="text-blue-700 underline" href="https://www.medicaid.gov" target="_blank" rel="noreferrer">
-          Medicaid.gov
+          Medicaid.gov.
             </a>
-        .
           </p>
 
           <section className={STYLES.pane}>
