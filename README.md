@@ -2,10 +2,6 @@
 
 This is the repository for DEMOS, the Demonstration Evaluation & Management Oversight System.
 
-Change something!
-
-This change doesn't need to be tested
-
 ## About the Project
 
 **{project_statement}**
