@@ -28,7 +28,6 @@ export const Header: React.FC = () => {
   const { effectiveContent } = useHeaderConfig();
 
   const headerStyles = "relative top-0 left-0 w-full z-11";
-  // const headerLowerStyles = "flex w-full min-h-[6rem]";
 
   return (
     <header className={headerStyles}>

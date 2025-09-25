@@ -13,7 +13,7 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
       <ToastProvider>
         <div className="h-screen flex flex-col">
           <header className="p-3 shadow">Loading…</header>
-          <div className="flex-1 bg-gray-100" />
+          <div className="flex-1 bg-gray-primary-layout" />
           <ToastContainer />
         </div>
       </ToastProvider>
@@ -29,10 +29,10 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
       <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower />}>
         <div className="h-screen flex flex-col">
           <Header />
-          <div className="flex flex-1 overflow-hidden bg-gray-100">
+          <div className="flex flex-1 overflow-hidden bg-gray-primary-layout">
             <SideNav />
-            <div className="flex-1 overflow-auto p-2">
-              <div className="bg-white shadow-md p-2 max-w-[1600px] mx-auto">{children}</div>
+            <div className="flex-1 overflow-auto m-[16px]">
+              <div className="bg-white shadow-md p-[16px] max-w-full">{children}</div>
             </div>
           </div>
           <Footer />
