@@ -20,7 +20,6 @@ const defaultProps = {
   isOpen: true,
   onClose: vi.fn(),
   bundleId: "test-bundle-id",
-  refetchQueries: ["GetDemonstrationDocuments"],
 };
 
 function setup(props = {}) {

@@ -18,7 +18,6 @@ export const FederalCommentUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   bundleId,
-  refetchQueries = REFETCH_QUERIES,
 }) => {
   const getInitialDocument = (): DocumentDialogFields => ({
     id: bundleId,
@@ -36,7 +35,7 @@ export const FederalCommentUploadDialog: React.FC<Props> = ({
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       initialDocument={getInitialDocument()}
       titleOverride="Internal Analysis Document"
-      refetchQueries={refetchQueries}
+      refetchQueries={REFETCH_QUERIES}
     />
   );
 };
