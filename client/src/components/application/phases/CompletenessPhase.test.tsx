@@ -6,7 +6,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "components/toast";
 import { MockedProvider } from "@apollo/client/testing";
 import * as env from "config/env";
-import { formatDate } from "util/formatDate";
 import { PhaseStatusContext, PhaseStatusContextValue } from "../phase-selector/PhaseStatusContext";
 import { CompletenessPhase } from "./CompletenessPhase";
 

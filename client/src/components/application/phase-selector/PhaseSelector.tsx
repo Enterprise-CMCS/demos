@@ -93,7 +93,8 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
       const existing = prev[phase];
       if (!meta) {
         if (existing === undefined) return prev;
-        const { [phase]: _removed, ...rest } = prev;
+        const { [phase]: removed, ...rest } = prev;
+        void removed;
         return rest;
       }
 
@@ -106,9 +107,8 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
       const hasPastDueFlag = nextMeta.isPastDue !== undefined;
       if (!hasDueDate && !hasPastDueFlag) {
         if (existing === undefined) return prev;
-        const { [phase]: _removedMeta, ...rest } = prev;
-        // I'm not sure the consequence of nuking this yet.
-        console.log(_removedMeta);
+        const { [phase]: removedMeta, ...rest } = prev;
+        void removedMeta;
         return rest;
       }
 
