@@ -126,21 +126,21 @@ const CollapseToggleButton = ({
   isCollapsed: boolean;
   setIsCollapsed: (bool: boolean) => void;
 }) => {
-  const containerStyles = "h-[40px] flex items-center shrink-0 p-2";
-  const toggleIconStyles = "w-[14px] h-[14px] cursor-pointer";
-  const getJustificationStyles = () => {
-    return isCollapsed ? "flex justify-center" : "flex justify-end";
+  const iconStyles = "w-[14px] h-[14px] cursor-pointer";
+  const getCollapsedStyles = () => {
+    return isCollapsed ? "flex justify-center text-text-font" : "flex justify-end text-action";
   };
+  const containerStyles = `h-[40px] flex items-center shrink-0 p-2 ${getCollapsedStyles()} `;
 
   const CollapseButton = () => {
     return (
       <button
         data-testid="collapse-sidenav"
         onClick={() => setIsCollapsed(true)}
-        className={`${containerStyles} ${getJustificationStyles()}`}
+        className={containerStyles}
         aria-label="Collapse Menu"
       >
-        <MenuCollapseLeftIcon className={toggleIconStyles} />
+        <MenuCollapseLeftIcon className={iconStyles} />
       </button>
     );
   };
@@ -150,10 +150,10 @@ const CollapseToggleButton = ({
       <button
         data-testid="expand-sidenav"
         onClick={() => setIsCollapsed(false)}
-        className={toggleIconStyles}
+        className={containerStyles}
         aria-label="Expand Menu"
       >
-        <MenuCollapseRightIcon className={toggleIconStyles} />
+        <MenuCollapseRightIcon className={iconStyles} />
       </button>
     );
   };
