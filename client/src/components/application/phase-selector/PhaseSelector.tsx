@@ -102,7 +102,6 @@ interface PhaseSelectorProps {
 }
 
 export const PhaseSelector = (props: PhaseSelectorProps) => {
-  console.log(props.demonstration);
   const mappedInitialPhase = PHASE_NAMES.includes(props.demonstration.currentPhase as PhaseSelectorPhase)
     ? (props.demonstration.currentPhase as PhaseSelectorPhase)
     : "Concept";
