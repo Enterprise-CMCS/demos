@@ -104,7 +104,7 @@ export const DemonstrationTable: React.FC<{
   const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
 
   return (
-    <div>
+    <div className="flex flex-col gap-[24px]">
       <Tabs
         tabs={tabList}
         selectedValue={tab}

@@ -195,7 +195,7 @@ export function Table<T>({
 
   return (
     <div className={`${className || ""}`}>
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-[24px]">
         <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
         <div className="mr-1">{actionButtons && actionButtons(table)}</div>
       </div>

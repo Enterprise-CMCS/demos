@@ -15,9 +15,7 @@ export const arrIncludesAllInsensitive = <T,>(
   columnId: string,
   filterValue: (string | undefined)[]
 ) => {
-  const validFilterValues = filterValue.filter(
-    (val): val is string => val != null
-  );
+  const validFilterValues = filterValue.filter((val): val is string => val != null);
 
   if (validFilterValues.length === 0) {
     return true;
@@ -27,9 +25,7 @@ export const arrIncludesAllInsensitive = <T,>(
     const search = val.toLowerCase();
     const rowValue = row.getValue(columnId);
 
-    return !(
-      rowValue != null && rowValue.toString().toLowerCase().includes(search)
-    );
+    return !(rowValue != null && rowValue.toString().toLowerCase().includes(search));
   });
 };
 
@@ -153,7 +149,7 @@ export function KeywordSearch<T>({
         {label}
       </label>
 
-      <div className="ml-2 mb-2 mr-2 flex items-center gap-2 text-sm relative">
+      <div className="ml-2 m-2 mr-2 flex items-center gap-2 text-sm relative">
         <SearchIcon className="absolute left-1 top-1/2 transform -translate-y-1/2 text-gray-500" />
         <input
           id="keyword-search"
