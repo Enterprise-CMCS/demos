@@ -1,6 +1,5 @@
 import React from "react";
 import { Table } from "../Table";
-import { TabItem, Tabs } from "layout/Tabs";
 import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
@@ -11,6 +10,10 @@ import {
   DemonstrationAmendment,
   DemonstrationExtension,
 } from "pages/DemonstrationsPage";
+
+const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
+  "No results were returned. Adjust your search and filter criteria.";
+const DEFAULT_EMPTY_ROWS_MESSAGE = "No demonstrations are tracked.";
 
 export type GenericDemonstrationTableRow =
   | (Demonstration & { type: "demonstration" })
@@ -64,9 +67,14 @@ const getSubRows = (
 export const DemonstrationTable: React.FC<{
   demonstrations: Demonstration[];
   projectOfficerOptions: Pick<Person, "fullName">[];
-}> = ({ demonstrations, projectOfficerOptions }) => {
-  const [tab, setTab] = React.useState<"my" | "all">("my");
-
+  emptyRowsMessage?: string;
+  noResultsFoundMessage?: string;
+}> = ({
+  demonstrations,
+  projectOfficerOptions,
+  emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
+  noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
+}) => {
   const demonstrationColumns = DemonstrationColumns(projectOfficerOptions);
 
   demonstrations = demonstrations.map((demo) => ({
@@ -74,45 +82,11 @@ export const DemonstrationTable: React.FC<{
     roles: demo.roles.filter((role) => role.role === "Project Officer" && role.isPrimary === true),
   }));
 
-  const currentUserId = "1"; // Replace with actual current user ID from auth context
-  const myDemos: Demonstration[] = demonstrations.filter((demo: Demonstration) => {
-    return demo.roles.some((role) => role.person.id === currentUserId);
-  });
-
-  const allDemos: Demonstration[] = demonstrations;
-
-  // filter roles on demonstrations to only include primary project officer
-
-  const tabList: TabItem[] = [
-    {
-      value: "my",
-      label: "My Demonstrations",
-      count: myDemos.length,
-    },
-    {
-      value: "all",
-      label: "All Demonstrations",
-      count: allDemos.length,
-    },
-  ];
-
-  const dataToShow = tab === "my" ? myDemos : allDemos;
-  const emptyRowsMessage =
-    tab === "my"
-      ? "You have no assigned demonstrations at this time."
-      : "No demonstrations are tracked.";
-  const noResultsFoundMessage = "No results were returned. Adjust your search and filter criteria.";
-
   return (
     <div className="flex flex-col gap-[24px]">
-      <Tabs
-        tabs={tabList}
-        selectedValue={tab}
-        onChange={(newVal) => setTab(newVal as "my" | "all")}
-      />
       {demonstrationColumns && (
         <Table<GenericDemonstrationTableRow>
-          data={dataToShow.map((demonstration) => ({
+          data={demonstrations.map((demonstration) => ({
             ...demonstration,
             type: "demonstration",
           }))}

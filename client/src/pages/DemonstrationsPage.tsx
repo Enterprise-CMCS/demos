@@ -9,6 +9,7 @@ import {
   Person,
   DemonstrationRoleAssignment,
 } from "demos-server";
+import { Tab, Tabs } from "layout/Tabs";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
   query GetDemonstrationsPage {
@@ -62,9 +63,17 @@ export type DemonstrationsPageQueryResult = {
   people: Pick<Person, "fullName">[];
 };
 
+function isMyDemonstration(demonstration: Demonstration) {
+  const currentUserId = "1";
+  return demonstration.roles.some((role) => role.person.id === currentUserId);
+}
+
 export const DemonstrationsPage: React.FC = () => {
   const { data, loading, error } =
     useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
+
+  const demonstrations = data?.demonstrations || [];
+  const myDemonstrations: Demonstration[] = demonstrations.filter(isMyDemonstration);
 
   return (
     <div>
@@ -74,10 +83,21 @@ export const DemonstrationsPage: React.FC = () => {
       {loading && <div className="p-4">Loading demonstrations...</div>}
       {error && <div className="p-4 text-red-500">Error loading demonstrations.</div>}
       {data && (
-        <DemonstrationTable
-          demonstrations={data.demonstrations}
-          projectOfficerOptions={data.people}
-        />
+        <Tabs defaultValue="demonstrations">
+          <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">
+            <DemonstrationTable
+              demonstrations={myDemonstrations}
+              projectOfficerOptions={data.people}
+              emptyRowsMessage="You have no assigned demonstrations at this time."
+            />
+          </Tab>
+          <Tab label={`All Demonstrations (${demonstrations.length})`} value="demonstrations">
+            <DemonstrationTable
+              demonstrations={demonstrations}
+              projectOfficerOptions={data.people}
+            />
+          </Tab>
+        </Tabs>
       )}
     </div>
   );
