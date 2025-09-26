@@ -176,15 +176,11 @@ export const demonstrationResolvers = {
     },
 
     roles: async (parent: Demonstration) => {
-      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
+      return await prisma().demonstrationRoleAssignment.findMany({
         where: { demonstrationId: parent.id },
-        include: { primaryDemonstrationRoleAssignment: true },
       });
-      return roleAssignments.map((assignment) => ({
-        ...assignment,
-        isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
-      }));
     },
+
     status: resolveBundleStatus,
 
     phases: async (parent: Demonstration) => {
