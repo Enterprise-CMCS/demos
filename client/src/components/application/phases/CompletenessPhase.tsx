@@ -59,24 +59,25 @@ export const CompletenessPhase: React.FC = () => {
   }, [noticeDueDateValue]);
 
   // determine notice title/description from days
-  const noticeTitle = (() => {
-    if (noticeDaysValue === null) return "Federal Comment Period notice";
+  const noticeTitle = React.useMemo(() => {
+    if (noticeDaysValue === null) return null;
     if (noticeDaysValue < 0) {
       const daysPastDue = Math.abs(noticeDaysValue);
       return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
     }
     return `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`;
-  })();
+  }, [noticeDaysValue]);
 
   const formattedNoticeDate = noticeDueDateValue ? formatDate(noticeDueDateValue) : null;
   // TODO: update when we have real data
   const noticeDescription = formattedNoticeDate
     ? `This Amendment must be declared complete by ${formattedNoticeDate}`
-    : "Add a mock \"Notice due date\" in the testing panel to update this message.";
+    : undefined;
 
   // go from yellow to red at 1 day left.
   const isNoticeUrgent = noticeDaysValue !== null && noticeDaysValue <= 1;
   const noticeVariant: NoticeVariant = isNoticeUrgent ? "error" : "warning";
+  const shouldRenderNotice = Boolean(!isNoticeDismissed && noticeDueDateValue && noticeTitle);
 
   React.useEffect(() => {
     if (!phaseStatusContext) return;
@@ -247,7 +248,7 @@ export const CompletenessPhase: React.FC = () => {
 
   return (
     <div>
-      {!isNoticeDismissed && (
+      {shouldRenderNotice && noticeTitle && noticeDueDateValue && (
         <Notice
           variant={noticeVariant}
           title={noticeTitle}
@@ -297,14 +298,14 @@ export const CompletenessPhase: React.FC = () => {
       )}
       {/* These are all wired up, to work correctly. Add api is as simple as setting these vars */}
       {isLocalDevelopment() && (
-        <CompletenessTestingPanel
-          onAddMockDoc={addMockDoc}
-          completenessDocCount={completenessDocs.length}
-          noticeDueDate={noticeDueDate}
-          onNoticeDueDateChange={setNoticeDueDate}
-          noticeDaysValue={noticeDaysValue}
-          onResetNotice={() => setNoticeDismissed(false)}
-        />
+        // <CompletenessTestingPanel
+        //   onAddMockDoc={addMockDoc}
+        //   completenessDocCount={completenessDocs.length}
+        //   noticeDueDate={noticeDueDate}
+        //   onNoticeDueDateChange={setNoticeDueDate}
+        //   noticeDaysValue={noticeDaysValue}
+        //   onResetNotice={() => setNoticeDismissed(false)}
+        // />
       )}
     </div>
   );
