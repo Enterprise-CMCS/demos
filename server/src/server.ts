@@ -21,7 +21,7 @@ import type {
 
 type JwtClaims = { sub: string; email?: string; role?: string };
 
-function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null {
+export function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null {
   // In REST custom authorizer, requestContext.authorizer is a flat map of strings
   const auth = (event.requestContext?.authorizer ?? {}) as Record<string, unknown>;
   const sub = typeof auth.sub === "string" && auth.sub.length > 0 ? auth.sub : null;
@@ -32,7 +32,7 @@ function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null 
   return { sub, email, role };
 }
 
-function withAuthorizerHeader(
+export function withAuthorizerHeader(
   headers: APIGatewayProxyEventHeaders,
   claims: JwtClaims | null
 ): APIGatewayProxyEventHeaders {

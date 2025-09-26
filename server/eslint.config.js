@@ -3,10 +3,18 @@ import tseslint from 'typescript-eslint';
 import { validateGraphQLTypescriptMatch } from './eslint-rules/validate-graphql-typescript-match.js';
 
 const eslintConfig = tseslint.config(
+  {
+    ignores: [
+      '**/dev/*',
+      '**/dist/*',
+      '**/*.test.ts',
+      'tsconfig.json',
+    ]
+  },
   jsEslint.configs.recommended,
   tseslint.configs.recommended,
-  {
-    files: ["src/model/**/*.ts"], // Scope to model folder only
+  {    
+    files: ["src/model/**/*.ts"], // Scope to model folder only    
     plugins: {
       "validate-graphql-typescript-match": {
         rules: { "validate-graphql-typescript-match": validateGraphQLTypescriptMatch },
