@@ -128,6 +128,7 @@ export const documentResolvers = {
           ownerUserId: context.user.id,
           documentTypeId: input.documentType,
           bundleId: input.bundleId,
+          phaseId: input.phase,
         },
       });
 
@@ -154,7 +155,10 @@ export const documentResolvers = {
       _: undefined,
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
-      checkOptionalNotNullFields(["title", "description", "documentType", "bundleId"], input);
+      checkOptionalNotNullFields(
+        ["title", "description", "documentType", "bundleId", "phase"],
+        input
+      );
       try {
         return await prisma().document.update({
           where: { id: id },
@@ -163,6 +167,7 @@ export const documentResolvers = {
             description: input.description,
             documentTypeId: input.documentType,
             bundleId: input.bundleId,
+            phaseId: input.phase,
           },
         });
       } catch (error) {

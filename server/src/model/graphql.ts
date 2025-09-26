@@ -27,6 +27,7 @@ import { modificationSchema } from "./modification/modificationSchema.js";
 import { modificationResolvers } from "./modification/modificationResolvers.js";
 
 import { phaseSchema } from "./phase/phaseSchema.js";
+import { phaseResolvers } from "./phase/phaseResolvers.js";
 
 import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 
@@ -107,6 +108,7 @@ export const resolvers = [
   documentResolvers,
   eventResolvers,
   modificationResolvers,
+  phaseResolvers,
   stateResolvers,
   userResolvers,
   mockDemonstrationResolverExtension,

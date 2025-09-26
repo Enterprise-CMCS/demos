@@ -1,7 +1,7 @@
 import { gql } from "graphql-tag";
 
 import { User } from "../user/userSchema.js";
-import { DocumentType, Bundle } from "../../types.js";
+import { DocumentType, Bundle, Phase } from "../../types.js";
 
 export const documentSchema = gql`
   type Document {
@@ -22,6 +22,7 @@ export const documentSchema = gql`
     description: String!
     documentType: DocumentType!
     bundleId: ID!
+    phase: Phase!
   }
 
   input UpdateDocumentInput {
@@ -29,6 +30,7 @@ export const documentSchema = gql`
     description: String
     documentType: DocumentType
     bundleId: ID
+    phase: Phase
   }
 
   type UploadDocumentResponse {
@@ -66,6 +68,7 @@ export interface UploadDocumentInput {
   description: string;
   documentType: DocumentType;
   bundleId: string;
+  phase: Phase;
 }
 
 export interface UpdateDocumentInput {
@@ -73,4 +76,5 @@ export interface UpdateDocumentInput {
   description?: string;
   documentType?: DocumentType;
   bundleId?: string;
+  phase?: Phase;
 }
