@@ -1,5 +1,7 @@
 import * as pool from "./pool";
 
+import * as env from "../util/env";
+
 import {
   SecretsManagerClient,
   CreateSecretCommand,
@@ -26,7 +28,7 @@ describe("pool", () => {
   describe("getDatabaseSecret", () => {
     test("should return secret if it exists", async () => {
       const mockArn = "unit-test-arn";
-      process.env.DATABASE_SECRET_ARN = mockArn;
+      jest.spyOn(env, "getDBSecretArn").mockImplementation(() => mockArn);
       const mockSecret = { mockValue: "testing" };
       const sendMock = jest.fn().mockResolvedValue({ SecretString: JSON.stringify(mockSecret) });
       (SecretsManagerClient as jest.Mock).mockImplementation(() => ({ send: sendMock }));
