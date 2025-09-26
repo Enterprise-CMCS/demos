@@ -17,7 +17,6 @@ import {
 import { Link, useLocation } from "react-router-dom";
 
 type SVGIconElement = React.ReactElement<React.SVGProps<SVGSVGElement>>;
-
 interface NavLink {
   label: string;
   href: string;
@@ -34,63 +33,84 @@ const navLinks: NavLink[] = [
 ];
 
 const debugNavLinks: NavLink[] = [
-  { label: "Hooks", href: "/hooks", icon: <ListIcon /> },
   { label: "Components", href: "/components", icon: <FolderIcon /> },
   { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
   { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
   { label: "Events", href: "/events", icon: <CommentIcon /> },
-  { label: "Dates", href: "/dates", icon: <DateIcon /> },
+  { label: "Date Simulation", href: "/dates", icon: <DateIcon /> },
 ];
 
-interface NavLinkProps {
-  collapsed: boolean;
-  navLinks: NavLink[];
-}
-
-const NavLinks = (props: NavLinkProps) => {
+const NavLinks = ({ isCollapsed, navLinks }: { isCollapsed: boolean; navLinks: NavLink[] }) => {
   const location = useLocation();
 
+  const BlueIndicatorBar = ({ isActive }: { isActive: boolean }) => {
+    const styles = "absolute left-0 top-0 bottom-0 w-[6px] bg-focus rounded-r-sm";
+    return <>{isActive && <span className={styles} />}</>;
+  };
+
+  const LinkIcon = ({ isActive, icon }: { isActive: boolean; icon: SVGIconElement }) => {
+    return (
+      <span
+        className={`shrink-0 [&>svg]:w-[14px] [&>svg]:h-[14px] ${
+          isActive ? "text-text-active" : "text-text-font"
+        }`}
+      >
+        {icon}
+      </span>
+    );
+  };
+
+  const LinkLabel = ({ isActive, labelText }: { isActive: boolean; labelText: string }) => {
+    return (
+      <>
+        {!isCollapsed && (
+          <span className={`${isActive ? "font-semibold text-black" : "text-black"}`}>
+            {labelText}
+          </span>
+        )}
+      </>
+    );
+  };
+
+  const SidenavLink = ({
+    link,
+    isActive,
+    isCollapsed,
+  }: {
+    link: NavLink;
+    isActive: boolean;
+    isCollapsed: boolean;
+  }) => {
+    const getActiveStyles = () => (isActive ? "font-semibold bg-surface-selected" : "font-normal");
+
+    const getCollapsedStyles = () =>
+      isCollapsed ? "justify-center w-20" : "justify-start w-64 px-1 gap-2";
+
+    const colorStyles = "text-text-font hover:bg-surface-secondary";
+    const flexStyles = "px-[16px] relative flex gap-[8px] max-w-full items-center h-10";
+    const animationStyles = "transition-all duration-300";
+    const baseStyles = `${colorStyles} ${flexStyles} ${animationStyles}`;
+
+    return (
+      <div className={`${baseStyles} ${getCollapsedStyles()} ${getActiveStyles()}`}>
+        <BlueIndicatorBar isActive={isActive} />
+        <LinkIcon isActive={isActive} icon={link.icon} />
+        <LinkLabel isActive={isActive} labelText={link.label} />
+      </div>
+    );
+  };
+
   return (
-    <ul className="flex flex-col gap-[4px] mt-[8px]">
-      {props.navLinks.map((link) => {
+    <ul className="flex flex-col">
+      {navLinks.map((link) => {
         const isActive =
           location.pathname === link.href ||
           (link.href === "/demonstrations" && location.pathname === "/");
+
         return (
           <li key={link.href}>
-            <Link to={link.href} title={props.collapsed ? link.label : ""}>
-              <div
-                className={`
-                    relative flex items-center h-10 transition-all duration-150 ease-in-out
-                    text-black
-                    ${props.collapsed ? "justify-center w-20" : "justify-start w-64 px-4 gap-2"}
-                    hover:bg-[var(--color-surface-secondary)]
-                    ${isActive ? "font-semibold bg-[var(--color-surface-selected)] rounded-md" : "font-normal"}
-                  `}
-              >
-                {/* Blue indicator bar */}
-                {isActive && (
-                  <span className="absolute left-0 top-0 bottom-0 w-[6px] bg-[var(--color-text-active)] rounded-r-sm" />
-                )}
-
-                {/* Icon */}
-                <span
-                  className={`shrink-0 ${
-                    isActive ? "text-[var(--color-text-active)]" : "text-black"
-                  }`}
-                >
-                  {React.cloneElement(link.icon, {
-                    className: "w-[14px] h-[14px]",
-                  })}
-                </span>
-
-                {/* Label */}
-                {!props.collapsed && (
-                  <span className={`${isActive ? "font-semibold text-black" : "text-black"}`}>
-                    {link.label}
-                  </span>
-                )}
-              </div>
+            <Link to={link.href} title={link.label}>
+              <SidenavLink link={link} isActive={isActive} isCollapsed={isCollapsed}></SidenavLink>
             </Link>
           </li>
         );
@@ -99,54 +119,71 @@ const NavLinks = (props: NavLinkProps) => {
   );
 };
 
-interface SideNavProps {
-  collapsed: boolean;
-  setCollapsed: (val: boolean) => void;
-}
+const CollapseToggleButton = ({
+  isCollapsed,
+  setIsCollapsed,
+}: {
+  isCollapsed: boolean;
+  setIsCollapsed: (bool: boolean) => void;
+}) => {
+  const iconStyles = "w-[14px] h-[14px] cursor-pointer";
+  const getCollapsedStyles = () => {
+    return isCollapsed ? "flex justify-center text-text-font" : "flex justify-end text-action";
+  };
+  const containerStyles = `h-[40px] flex items-center shrink-0 p-2 ${getCollapsedStyles()} `;
 
-export const SideNav: React.FC<SideNavProps> = ({ collapsed, setCollapsed }) => {
-  return (
-    <nav
-      className={`h-full bg-white transition-all duration-300 flex flex-col z-10 ${
-        collapsed ? "w-20" : "w-64"
-      } shadow-[inset_-1px_0_0_rgba(0,0,0,0.08)]`}
-    >
-      {/* Collapse Toggle */}
-      <div className="relative h-12">
-        {!collapsed ? (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-            <button
-              data-testid="collapse-sidenav"
-              onClick={() => setCollapsed(true)}
-              className="text-text-active hover:opacity-80"
-              aria-label="Collapse Menu"
-            >
-              <div className="w-1 h-1">
-                <MenuCollapseLeftIcon />
-              </div>
-            </button>
-          </div>
-        ) : (
-          <div className="h-12 flex items-center justify-center relative">
-            <button
-              data-testid="expand-sidenav"
-              onClick={() => setCollapsed(false)}
-              className="text-black hover:opacity-80"
-              aria-label="Expand Menu"
-            >
-              <div className="w-[14px] h-[14px]">
-                <MenuCollapseRightIcon />
-              </div>
-            </button>
-          </div>
-        )}
-      </div>
+  const CollapseButton = () => {
+    return (
+      <button
+        data-testid="collapse-sidenav"
+        onClick={() => setIsCollapsed(true)}
+        className={containerStyles}
+        aria-label="Collapse Menu"
+      >
+        <MenuCollapseLeftIcon className={iconStyles} />
+      </button>
+    );
+  };
 
-      <NavLinks collapsed={collapsed} navLinks={navLinks} />
+  const ExpandButton = () => {
+    return (
+      <button
+        data-testid="expand-sidenav"
+        onClick={() => setIsCollapsed(false)}
+        className={containerStyles}
+        aria-label="Expand Menu"
+      >
+        <MenuCollapseRightIcon className={iconStyles} />
+      </button>
+    );
+  };
+
+  return <>{isCollapsed ? <ExpandButton /> : <CollapseButton />}</>;
+};
+
+export const SideNav = () => {
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
+
+  const sideNavStyles = "h-full bg-white transition-all duration-300 flex flex-col z-10";
+
+  const getNavWidthStyles = () => {
+    return isCollapsed ? "w-20" : "w-[180px]";
+  };
+
+  const DebugLinks = () => {
+    return (
       <DebugOnly>
         <hr className="my-2 border-t border-gray-200" />
-        <NavLinks collapsed={collapsed} navLinks={debugNavLinks} />
+        <NavLinks isCollapsed={isCollapsed} navLinks={debugNavLinks} />
       </DebugOnly>
+    );
+  };
+
+  return (
+    <nav className={`${sideNavStyles} ${getNavWidthStyles()}`}>
+      <CollapseToggleButton isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <NavLinks isCollapsed={isCollapsed} navLinks={navLinks} />
+      <DebugLinks />
     </nav>
   );
 };

@@ -6,7 +6,7 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "queries/demonstrationQueries";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { DEMONSTRATIONS_PAGE_QUERY } from "pages/Demonstrations";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 import { MockedResponse } from "@apollo/client/testing";
 import { MockState, mockStates } from "./stateMocks";
 import { MockAmendment, mockAmendments } from "./amendmentMocks";
