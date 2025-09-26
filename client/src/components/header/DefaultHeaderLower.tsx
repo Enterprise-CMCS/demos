@@ -53,7 +53,7 @@ export const DefaultHeaderLower: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
+    <div className="w-full bg-brand text-white p-[16px] h-[72px] flex items-center justify-between">
       <div>
         <span className="font-bold block">Hello {name}</span>
         <span className="block text-sm">Welcome to DEMOS!</span>
@@ -63,7 +63,6 @@ export const DefaultHeaderLower: React.FC = () => {
         <SecondaryButton
           name="create-new"
           data-testid="create-new"
-          size="small"
           onClick={() => setShowDropdown((prev) => !prev)}
         >
           <div className="flex items-center gap-1">
