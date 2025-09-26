@@ -3,7 +3,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { ModificationTableRow } from "components/table/tables/ModificationTable";
 import { isTestMode } from "config/env";
 import { usePageHeader } from "hooks/usePageHeader";
-import { TabItem, Tabs } from "layout/Tabs";
+import { Tab, Tabs } from "layout/Tabs";
 import {
   DemonstrationDetailHeader,
   DemonstrationHeaderDetails,
@@ -80,16 +80,8 @@ export type DemonstrationDetail = DemonstrationHeaderDetails &
     })[];
   };
 
-type TabType = "details" | "amendments" | "extensions";
-
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
 type DemonstrationActionModal = "edit" | "delete" | null;
-
-const createTabList = (amendmentCount: number, extensionCount: number): TabItem[] => [
-  { value: "details", label: "Demonstration Details" },
-  { value: "amendments", label: "Amendments", count: amendmentCount },
-  { value: "extensions", label: "Extensions", count: extensionCount },
-];
 
 const getQueryParamValue = (
   searchParams: URLSearchParams,
@@ -106,11 +98,9 @@ export const DemonstrationDetail: React.FC = () => {
   const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
   const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
-  const [tab, setTab] = useState<TabType>(() => {
-    if (amendmentParam) return "amendments";
-    if (extensionParam) return "extensions";
-    return "details";
-  });
+  // Remove the tab state since Tabs will manage it
+  // const [tab, setTab] = useState<TabType>(() => { ... });
+
   const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
   const [demonstrationActionModal, setDemonstrationActionModal] =
     useState<DemonstrationActionModal>(null);
@@ -131,12 +121,6 @@ export const DemonstrationDetail: React.FC = () => {
   );
 
   const demonstration = data?.demonstration;
-
-  const tabList = useMemo(
-    () =>
-      createTabList(demonstration?.amendments.length ?? 0, demonstration?.extensions.length ?? 0),
-    [demonstration]
-  );
 
   const headerContent = useMemo(
     () => (
@@ -162,30 +146,29 @@ export const DemonstrationDetail: React.FC = () => {
       {demonstration && (
         <>
           <Tabs
-            tabs={tabList}
-            selectedValue={tab}
-            onChange={(newVal) => setTab(newVal as typeof tab)}
-          />
+            defaultValue={amendmentParam ? "amendments" : extensionParam ? "extensions" : "details"}
+          >
+            <Tab label="Demonstration Details" value="details">
+              <DemonstrationTab demonstration={demonstration} />
+            </Tab>
 
-          <div className="mt-4 h-[60vh] overflow-y-auto">
-            {tab === "details" && <DemonstrationTab demonstration={demonstration} />}
-
-            {tab === "amendments" && (
+            <Tab label={`Amendments (${demonstration.amendments?.length ?? 0})`} value="amendments">
               <AmendmentsTab
                 amendments={demonstration.amendments || []}
                 onClick={() => setEntityCreationModal("amendment")}
                 initiallyExpandedId={amendmentParam ?? undefined}
               />
-            )}
+            </Tab>
 
-            {tab === "extensions" && (
+            <Tab label={`Extensions (${demonstration.extensions?.length ?? 0})`} value="extensions">
               <ExtensionsTab
                 extensions={demonstration.extensions || []}
                 onClick={() => setEntityCreationModal("extension")}
                 initiallyExpandedId={extensionParam ?? undefined}
               />
-            )}
-          </div>
+            </Tab>
+          </Tabs>
+
           {(entityCreationModal || demonstrationActionModal) && (
             <DemonstrationDetailModals
               entityCreationModal={entityCreationModal}

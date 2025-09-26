@@ -3,14 +3,23 @@ import React, { useState } from "react";
 import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { SecondaryButton } from "components/button";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
-import { AddNewIcon } from "components/icons";
+import { AddNewIcon, CharacteristicIcon, FolderIcon, StackIcon } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import { TabItem, Tabs } from "layout/Tabs";
-import { BundleStatus, DemonstrationRoleAssignment, Demonstration, Document, Phase, Person, State, User } from "demos-server";
+import { Tab, Tabs } from "layout/Tabs";
+import {
+  BundleStatus,
+  DemonstrationRoleAssignment,
+  Demonstration,
+  Document,
+  Phase,
+  Person,
+  State,
+  User,
+} from "demos-server";
+import { ReviewIcon } from "components/icons/Navigation/ReviewIcon";
 
-type SubTabType = "summary" | "types" | "documents" | "contacts";
 type DocumentModalType = "document" | null;
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
@@ -36,7 +45,6 @@ export type DemonstrationTabDemonstration = Pick<
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
-  const [subTab, setSubTab] = useState<SubTabType>("summary");
   const [modalType, setModalType] = useState<DocumentModalType>(null);
 
   const handleUpdateContact = async (contact: Role, contactType: string) => {
@@ -46,41 +54,27 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
     // await updateContactMutation({ variables: { id: contactId, contactType } });
   };
 
-  const subTabList: TabItem[] = [
-    { value: "summary", label: "Summary" },
-    { value: "types", label: "Types", count: 0 },
-    { value: "documents", label: "Documents", count: demonstration.documents.length },
-    { value: "contacts", label: "Contacts", count: demonstration.roles.length },
-  ];
-
   return (
     <div>
       <ApplicationWorkflow demonstration={demonstration} />
-      <Tabs
-        tabs={subTabList}
-        selectedValue={subTab}
-        onChange={(newVal) => setSubTab(newVal as typeof subTab)}
-      />
-
-      <div className="mt-2">
-        {subTab === "summary" && (
-          <div>
-            <SummaryDetailsTable demonstration={demonstration} />
-          </div>
-        )}
-
-        {subTab === "types" && (
-          <div>
+      <Tabs orientation="vertical" defaultValue="details">
+        <Tab icon={<ReviewIcon />} label="Details" value="details">
+          <SummaryDetailsTable demonstration={demonstration} />
+        </Tab>
+        <Tab icon={<StackIcon />} label="Types (0)" value="demonstrationTypes">
+          <div className="border border-gray-300 bg-white p-2 shadow-sm">
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Types</h1>
               {/* TO DO: Add New button? */}
             </div>
-            {/* TO DO: Add Table */}
           </div>
-        )}
-
-        {subTab === "documents" && (
-          <div>
+        </Tab>
+        <Tab
+          icon={<FolderIcon />}
+          label={`Documents (${demonstration.documents?.length ?? 0})`}
+          value="documents"
+        >
+          <div className="border border-gray-300 bg-white p-2 shadow-sm">
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
               <SecondaryButton
@@ -94,10 +88,13 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             </div>
             <DocumentTable documents={demonstration.documents} />
           </div>
-        )}
-
-        {subTab === "contacts" && (
-          <>
+        </Tab>
+        <Tab
+          icon={<CharacteristicIcon />}
+          label={`Contacts (${demonstration.roles?.length ?? 0})`}
+          value="contacts"
+        >
+          <div className="border border-gray-300 bg-white p-2 shadow-sm">
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
               <SecondaryButton
@@ -110,9 +107,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               </SecondaryButton>
             </div>
             <ContactsTable roles={demonstration.roles} onUpdateContact={handleUpdateContact} />
-          </>
-        )}
-      </div>
+          </div>
+        </Tab>
+      </Tabs>
 
       {modalType === "document" && (
         <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
