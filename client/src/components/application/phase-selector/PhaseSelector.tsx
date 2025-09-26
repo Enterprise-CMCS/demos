@@ -16,7 +16,7 @@ import { PhaseBox } from "./PhaseBox";
 import { PhaseStatusContext } from "./PhaseStatusContext";
 import type { PhaseMeta, PhaseMetaLookup } from "./PhaseStatusContext";
 
-const PHASE_NAMES = [
+export const PHASE_NAMES = [
   "Concept",
   "State Application",
   "Completeness",
@@ -127,9 +127,37 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
     });
   }, []);
 
+  const selectPhase = useCallback((phase: PhaseName) => {
+    if (!PHASE_NAMES.includes(phase)) return;
+    setSelectedPhase(phase as PhaseSelectorPhase);
+  }, []);
+
+  const selectNextPhase = useCallback((current: PhaseName) => {
+    const currentIndex = PHASE_NAMES.indexOf(current);
+    if (currentIndex === -1) return;
+    const nextPhase = PHASE_NAMES[Math.min(currentIndex + 1, PHASE_NAMES.length - 1)];
+    setSelectedPhase(nextPhase as PhaseSelectorPhase);
+  }, []);
+
   const contextValue = useMemo(
-    () => ({ phaseStatusLookup, updatePhaseStatus, phaseMetaLookup, updatePhaseMeta }),
-    [phaseStatusLookup, updatePhaseStatus, phaseMetaLookup, updatePhaseMeta]
+    () => ({
+      phaseStatusLookup,
+      updatePhaseStatus,
+      phaseMetaLookup,
+      updatePhaseMeta,
+      selectedPhase,
+      selectPhase,
+      selectNextPhase,
+    }),
+    [
+      phaseStatusLookup,
+      updatePhaseStatus,
+      phaseMetaLookup,
+      updatePhaseMeta,
+      selectedPhase,
+      selectPhase,
+      selectNextPhase,
+    ]
   );
 
   const phaseComponentsLookup = useMemo<Record<PhaseSelectorPhase, React.ComponentType>>(() => {

@@ -14,6 +14,9 @@ export interface PhaseStatusContextValue {
   updatePhaseStatus: (phase: PhaseName, status: PhaseStatus) => void;
   phaseMetaLookup: PhaseMetaLookup;
   updatePhaseMeta: (phase: PhaseName, meta: PhaseMeta | undefined) => void;
+  selectedPhase: PhaseName;
+  selectPhase: (phase: PhaseName) => void;
+  selectNextPhase: (current: PhaseName) => void;
 }
 
 export const PhaseStatusContext = React.createContext<PhaseStatusContextValue | undefined>(undefined);

@@ -23,6 +23,9 @@ const mockContextValue: PhaseStatusContextValue = {
   updatePhaseStatus: vi.fn(),
   phaseMetaLookup: {},
   updatePhaseMeta: vi.fn(),
+  selectedPhase: "Concept",
+  selectPhase: vi.fn(),
+  selectNextPhase: vi.fn(),
 };
 
 const renderWithContext = (ui: React.ReactNode, contextOverrides?: Partial<PhaseStatusContextValue>) => {
@@ -62,9 +65,11 @@ describe("CompletenessPhase", () => {
 
   it("marks the phase complete once documents and dates are provided", () => {
     const updatePhaseStatus = vi.fn();
+    const selectNextPhase = vi.fn();
 
     renderWithContext(<CompletenessPhase />, {
       updatePhaseStatus,
+      selectNextPhase,
     });
 
     fireEvent.click(screen.getByTestId("add-mock-completeness-doc"));
@@ -85,6 +90,7 @@ describe("CompletenessPhase", () => {
     fireEvent.click(finishButton);
 
     expect(updatePhaseStatus).toHaveBeenCalledWith("Completeness", "completed");
+    expect(selectNextPhase).toHaveBeenCalledWith("Completeness");
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 

@@ -86,7 +86,7 @@ export const CompletenessPhase: React.FC = () => {
   // TODO: update when we have real data
   const noticeDescription = formattedNoticeDate
     ? `This Amendment must be declared complete by ${formattedNoticeDate}`
-    : "Add a mock due date in the testing panel to update this message.";
+    : "Add a mock \"Notice due date\" in the testing panel to update this message.";
 
   // go from yellow to red at 1 day left.
   const isNoticeUrgent = noticeDaysValue !== null && noticeDaysValue <= 1;
@@ -106,11 +106,12 @@ export const CompletenessPhase: React.FC = () => {
     : new Date(federalStartDate) <= new Date(federalEndDate);
   const canFinish = hasDocs && datesFilled && datesAreValid;
   const completenessStatus = phaseStatusContext?.phaseStatusLookup.Completeness;
-  // when "complete" we do not need the notice.
   const markCompletenessFinished = () => {
     phaseStatusContext?.updatePhaseStatus("Completeness", "completed");
+    phaseStatusContext?.selectNextPhase("Completeness");
     setNoticeDismissed(true);
   };
+
   React.useEffect(() => {
     if (noticeDueDateValue) {
       setNoticeDismissed(false);
