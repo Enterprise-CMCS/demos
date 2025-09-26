@@ -489,4 +489,28 @@ describe.sequential("Table Component Interactions", () => {
       });
     });
   });
+
+  describe("Long Text Handling", () => {
+    it("handles long continuous strings without breaking table layout", () => {
+      const longTextData: TestType[] = [
+        {
+          name: "OneContinuousLongString.LastName@email.com",
+          description: "Normal description",
+          option: { name: "Option Alpha" },
+          date: new Date(2023, 0, 1),
+        },
+      ];
+
+      render(<Table columns={testColumns} data={longTextData} />);
+
+      expect(screen.getByText("OneContinuousLongString.LastName@email.com")).toBeInTheDocument();
+
+      // Verify table doesn't overflow its container horizontally
+      const table = screen.getByRole("table");
+      const tableRect = table.getBoundingClientRect();
+      const containerRect = table.parentElement!.getBoundingClientRect();
+
+      expect(tableRect.width).toBeLessThanOrEqual(containerRect.width);
+    });
+  });
 });
