@@ -2,26 +2,25 @@ import { HelpIcon, NotifyIcon, SettingsIcon } from "components/icons";
 import React from "react";
 
 export const QuickLinks: React.FC = () => {
+  const iconStyles = "text-action";
+  const linkStyles = "flex items-center gap-1";
+
   return (
-    <ul className="flex items-center gap-3">
-      <li>
-        <a href="#" className="flex items-center gap-1">
-          <SettingsIcon className="text-[var(--color-action)]" />
-          <span>Admin</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" className="flex items-center gap-1">
-          <NotifyIcon className="text-[var(--color-action)]" />
-          <span>Notifications</span>
-        </a>
-      </li>
-      <li>
-        <a href="#" className="flex items-center gap-1">
-          <HelpIcon className="text-[var(--color-action)]" />
-          <span>Help</span>
-        </a>
-      </li>
-    </ul>
+    <div className="flex items-center gap-3">
+      <a href="#" className={linkStyles}>
+        <SettingsIcon className={iconStyles} />
+        <span>Admin</span>
+      </a>
+
+      <a href="#" className={linkStyles}>
+        <NotifyIcon className={iconStyles} />
+        <span>Notifications</span>
+      </a>
+
+      <a href="#" className={linkStyles}>
+        <HelpIcon className={iconStyles} />
+        <span>Help</span>
+      </a>
+    </div>
   );
 };

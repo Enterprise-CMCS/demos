@@ -38,23 +38,29 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div className={isVertical ? "flex" : ""}>
       {/* Tab List */}
-      <div className={isVertical ? "" : "border-b border-gray-300 mb-2"}>
-        <ul className={isVertical ? "flex flex-col" : "flex -mb-px"}>
+      <div className={isVertical ? "" : "border-b border-gray-300 mb-6"}>
+        <ul className={isVertical ? "flex flex-col" : "flex -mb-px h-12"}>
           {tabs.map((tab) => {
             const { label, value, icon } = tab.props;
             const isSelected = value === selectedValue;
+
+            const getSelectedStyles = () => {
+              if (isSelected) {
+                return isVertical
+                  ? "border-r-4 border-brand text-brand font-semibold"
+                  : "border-b-5 text-brand font-semibold";
+              }
+              return "text-gray-600 hover:text-gray-800";
+            };
+
             return (
               <li key={value}>
                 <button
                   data-testid={`button-${value}`}
                   onClick={() => handleTabChange(value)}
                   className={
-                    "inline-block px-2 py-1 font-medium cursor-pointer " +
-                    (isSelected
-                      ? isVertical
-                        ? "border-r-4 border-brand text-brand"
-                        : "border-b-5 text-brand"
-                      : "text-gray-600 hover:text-gray-800") +
+                    "p-1 font-medium cursor-pointer " +
+                    getSelectedStyles() +
                     (isVertical ? " w-full text-left" : "")
                   }
                   aria-selected={isSelected}

@@ -5,30 +5,67 @@ import { ErrorButton } from "components/button/ErrorButton";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon } from "components/icons";
 import { useToast } from "components/toast";
+import { gql } from "graphql-tag";
+import { useMutation } from "@apollo/client";
+import { Role } from "demos-server";
+
+export const UNSET_DEMONSTRATION_ROLE_MUTATION = gql`
+  mutation UnsetDemonstrationRoles($input: [UnsetDemonstrationRoleInput!]!) {
+    unsetDemonstrationRoles(input: $input) {
+      role
+      person {
+        id
+      }
+      demonstration {
+        id
+      }
+    }
+  }
+`;
+
+type DemonstrationRoleAssignment = {
+  person: {
+    id: string;
+  };
+  demonstration: {
+    id: string;
+  };
+  role: Role;
+};
 
 export type RemoveContactDialogProps = {
   isOpen: boolean;
-  contactIds: string[];
+  contacts: DemonstrationRoleAssignment[];
   onClose: () => void;
 };
 
 export const RemoveContactDialog: React.FC<RemoveContactDialogProps> = ({
   isOpen,
-  contactIds,
+  contacts,
   onClose,
 }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [unsetDemonstrationRolesTrigger] = useMutation(UNSET_DEMONSTRATION_ROLE_MUTATION);
 
   const handleConfirm = async () => {
     try {
       setIsDeleting(true);
 
-      // TODO: Add actual API call here when available
-      console.log("Deleting contacts:", contactIds);
+      const mutationInput = contacts.map((contact) => ({
+        personId: contact.person.id,
+        demonstrationId: contact.demonstration.id,
+        roleId: contact.role,
+      }));
 
-      const isMultipleContacts = contactIds.length > 1;
+      await unsetDemonstrationRolesTrigger({ variables: { input: mutationInput } });
+
+      const isMultipleContacts = contacts.length > 1;
       showSuccess(`Your contact${isMultipleContacts ? "s have" : " has"} been removed.`);
+      console.log(
+        "Deleting contacts:",
+        contacts.map((contact) => contact.person.id)
+      );
       onClose();
     } catch (error) {
       console.error("Error in handleConfirm:", error);

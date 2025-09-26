@@ -68,7 +68,7 @@ function isMyDemonstration(demonstration: Demonstration) {
   return demonstration.roles.some((role) => role.person.id === currentUserId);
 }
 
-export const Demonstrations: React.FC = () => {
+export const DemonstrationsPage: React.FC = () => {
   const { data, loading, error } =
     useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
 
@@ -77,9 +77,11 @@ export const Demonstrations: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 text-brand uppercase border-b-1">Demonstrations</h1>
+      <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b-1 pb-[8px]">
+        Demonstrations
+      </h1>
       {loading && <div className="p-4">Loading demonstrations...</div>}
-      {error && <div className="p-4 text-red-500">Error loading</div>}
+      {error && <div className="p-4 text-red-500">Error loading demonstrations.</div>}
       {data && (
         <Tabs defaultValue="demonstrations">
           <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">

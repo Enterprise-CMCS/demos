@@ -19,8 +19,8 @@ import {
   User,
 } from "demos-server";
 import { ReviewIcon } from "components/icons/Navigation/ReviewIcon";
-
-type DocumentModalType = "document" | null;
+import { EditContactDialog } from "components/dialog";
+type ModalType = "document" | "contact" | null;
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email">;
@@ -45,14 +45,7 @@ export type DemonstrationTabDemonstration = Pick<
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
-  const [modalType, setModalType] = useState<DocumentModalType>(null);
-
-  const handleUpdateContact = async (contact: Role, contactType: string) => {
-    // TODO: Implement actual API call to update contact
-    console.log("Updating contact:", { contact, contactType });
-    // This would typically call a mutation/API to update the contact in the database
-    // await updateContactMutation({ variables: { id: contactId, contactType } });
-  };
+  const [modalType, setModalType] = useState<ModalType>(null);
 
   return (
     <div>
@@ -98,21 +91,28 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
               <SecondaryButton
-                name="add-new-document"
+                name="add-new-contact"
                 size="small"
-                onClick={() => setModalType("document")}
+                onClick={() => setModalType("contact")}
               >
                 <span>Add New</span>
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <ContactsTable roles={demonstration.roles} onUpdateContact={handleUpdateContact} />
+            <ContactsTable roles={demonstration.roles} demonstrationId={demonstration.id} />
           </div>
         </Tab>
       </Tabs>
 
       {modalType === "document" && (
         <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
+      )}
+      {modalType === "contact" && (
+        <EditContactDialog
+          demonstrationId={demonstration.id}
+          isOpen={true}
+          onClose={() => setModalType(null)}
+        />
       )}
     </div>
   );

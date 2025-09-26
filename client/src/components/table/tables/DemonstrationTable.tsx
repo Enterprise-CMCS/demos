@@ -9,7 +9,7 @@ import {
   Demonstration,
   DemonstrationAmendment,
   DemonstrationExtension,
-} from "pages/Demonstrations";
+} from "pages/DemonstrationsPage";
 
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
   "No results were returned. Adjust your search and filter criteria.";
@@ -83,7 +83,7 @@ export const DemonstrationTable: React.FC<{
   }));
 
   return (
-    <div>
+    <div className="flex flex-col gap-[24px]">
       {demonstrationColumns && (
         <Table<GenericDemonstrationTableRow>
           data={demonstrations.map((demonstration) => ({
