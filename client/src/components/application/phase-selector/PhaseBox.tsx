@@ -30,6 +30,7 @@ interface PhaseBoxProps {
   phaseNumber: number;
   phaseStatus: PhaseStatus;
   displayDate?: Date;
+  isPastDue?: boolean;
   isSelectedPhase: boolean;
   setPhaseAsSelected: () => void;
 }
@@ -39,10 +40,14 @@ export const PhaseBox = (props: PhaseBoxProps) => {
     <div className="flex flex-col justify-center col-span-1">
       <div
         key={props.phaseName}
-        className={`${BASE_STYLES.PHASE_BOX} ${PHASE_BOX_COLORS[props.phaseStatus]} ${props.isSelectedPhase ? "scale-110" : ""}`}
+        className={
+          `${BASE_STYLES.PHASE_BOX} 
+          ${PHASE_BOX_COLORS[props.phaseStatus]} 
+          ${props.isSelectedPhase ? "scale-110" : ""}`
+        }
         onClick={() => props.setPhaseAsSelected()}
       >
-        <div className={`${BASE_STYLES.PHASE_NUMBER} ${PHASE_NUMBER_COLORS[props.phaseStatus]}}`}>
+        <div className={`${BASE_STYLES.PHASE_NUMBER} ${PHASE_NUMBER_COLORS[props.phaseStatus]}`}>
           {props.phaseStatus === "completed" || props.phaseStatus === "skipped" ? (
             <SuccessIcon className="w-full h-full" />
           ) : (
@@ -51,7 +56,11 @@ export const PhaseBox = (props: PhaseBoxProps) => {
         </div>
         <span className={BASE_STYLES.PHASE_NAME}>{props.phaseName}</span>
       </div>
-      <PhaseDate phaseStatus={props.phaseStatus} date={props.displayDate} />
+      <PhaseDate
+        phaseStatus={props.phaseStatus}
+        date={props.displayDate}
+        isPastDue={props.isPastDue} // so that the phase box matches the past due date red color
+      />
     </div>
   );
 };
