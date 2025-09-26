@@ -98,9 +98,6 @@ export const DemonstrationDetail: React.FC = () => {
   const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
   const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
-  // Remove the tab state since Tabs will manage it
-  // const [tab, setTab] = useState<TabType>(() => { ... });
-
   const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
   const [demonstrationActionModal, setDemonstrationActionModal] =
     useState<DemonstrationActionModal>(null);
