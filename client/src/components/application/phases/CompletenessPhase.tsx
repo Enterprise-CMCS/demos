@@ -3,9 +3,10 @@ import React, { useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon, DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate } from "util/formatDate";
+import { formatDate, formatDateForInput, parseInputDate } from "util/formatDate";
 import { isLocalDevelopment } from "config/env";
 import { Notice, NoticeVariant } from "components/notice";
+import { differenceInCalendarDays } from "date-fns";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessUploadDialog } from "components/dialog/document/CompletenessUploadDialog";
@@ -27,19 +28,7 @@ const STYLES = {
   actionsEnd: tw`ml-auto flex gap-3`,
 };
 
-const toInputDate = (d: Date) => {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-};
-// parser to keep the dates a string
-const parseDateInput = (input?: string) => {
-  if (!input) return undefined;
-  const [year, month, day] = input.split("-").map((value) => Number(value));
-  if (!year || !month || !day) return undefined;
-  return new Date(year, month - 1, day);
-};
+const toInputDate = (d: Date) => formatDateForInput(d);
 
 export const CompletenessPhase: React.FC = () => {
   const phaseStatusContext = React.useContext(PhaseStatusContext);
@@ -63,13 +52,10 @@ export const CompletenessPhase: React.FC = () => {
   const hasDocs = completenessDocs.length > 0;
 
   // derive notice date and days from input string
-  const noticeDueDateValue = React.useMemo(() => parseDateInput(noticeDueDate), [noticeDueDate]);
+  const noticeDueDateValue = React.useMemo(() => parseInputDate(noticeDueDate), [noticeDueDate]);
   const noticeDaysValue = React.useMemo(() => {
     if (!noticeDueDateValue) return null;
-    const MS_PER_DAY = 24 * 60 * 60 * 1000;
-    const today = new Date();
-    const todayAtMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    return Math.floor((noticeDueDateValue.getTime() - todayAtMidnight.getTime()) / MS_PER_DAY);
+    return differenceInCalendarDays(noticeDueDateValue, new Date());
   }, [noticeDueDateValue]);
 
   // determine notice title/description from days
