@@ -301,7 +301,6 @@ export const CompletenessPhase: React.FC = () => {
           <CompletenessUploadDialog
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
-            // onUploaded={addMockDoc}
           />
           <DeclareIncompleteDialog
             isOpen={isDeclareIncompleteOpen}
@@ -310,14 +309,14 @@ export const CompletenessPhase: React.FC = () => {
           />
         </div>
       )}
-      {/* Since this is pretty handy (pre-api hookup), let's make it easy to separate */}
+      {/* These are all wired up, to work correctly. Add api is as simple as setting these vars */}
       {isLocalDevelopment() && (
         <CompletenessTestingPanel
           onAddMockDoc={addMockDoc}
           completenessDocCount={completenessDocs.length}
           noticeDueDate={noticeDueDate}
           onNoticeDueDateChange={setNoticeDueDate}
-          noticeDaysValue={noticeDaysValue} // keep for display-only if you show it
+          noticeDaysValue={noticeDaysValue}
           onResetNotice={() => setNoticeDismissed(false)}
         />
       )}
