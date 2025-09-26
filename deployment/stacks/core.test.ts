@@ -1,8 +1,9 @@
 import { App } from "aws-cdk-lib";
 import { CoreStack } from "./core";
 import { Template } from "aws-cdk-lib/assertions";
+import { DeploymentConfigProperties } from "../config";
 
-const mockCommonProps = {
+const mockCommonProps: DeploymentConfigProperties = {
   project: "demos",
   isDev: true,
   isLocalstack: false,
