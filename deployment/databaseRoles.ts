@@ -14,11 +14,21 @@ export const dev: Role[] = [
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: true,
   },
+  {
+    name: "demos_upload",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: true,
+  },
 ];
 
 export const test: Role[] = [
   {
     name: "demos_server",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: true,
+  },
+  {
+    name: "demos_upload",
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: true,
   },
@@ -30,11 +40,21 @@ export const impl: Role[] = [
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: true,
   },
+  {
+    name: "demos_upload",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: true,
+  },
 ];
 
 export const prod: Role[] = [
   {
     name: "demos_server",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: true,
+  },
+  {
+    name: "demos_upload",
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: true,
   },
