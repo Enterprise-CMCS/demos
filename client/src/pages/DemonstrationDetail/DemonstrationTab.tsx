@@ -7,11 +7,12 @@ import { AddNewIcon } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import { Demonstration, DemonstrationRoleAssignment, Document, Person, State } from "demos-server";
 import { TabItem, Tabs } from "layout/Tabs";
+import { EditContactDialog } from "components/dialog";
+import { BundleStatus, DemonstrationRoleAssignment, Demonstration, Document, Phase, Person, State, User } from "demos-server";
 
 type SubTabType = "summary" | "types" | "documents" | "contacts";
-type DocumentModalType = "document" | null;
+type ModalType = "document" | "contact" | null;
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email">;
@@ -28,20 +29,16 @@ export type DemonstrationTabDemonstration = Pick<
   })[];
   state: Pick<State, "id" | "name">;
   roles: Role[];
+  projectOfficer: Pick<User, "id">;
+  status: BundleStatus;
+  currentPhase: Phase;
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
   const [subTab, setSubTab] = useState<SubTabType>("summary");
-  const [modalType, setModalType] = useState<DocumentModalType>(null);
-
-  const handleUpdateContact = async (contact: Role, contactType: string) => {
-    // TODO: Implement actual API call to update contact
-    console.log("Updating contact:", { contact, contactType });
-    // This would typically call a mutation/API to update the contact in the database
-    // await updateContactMutation({ variables: { id: contactId, contactType } });
-  };
+  const [modalType, setModalType] = useState<ModalType>(null);
 
   const subTabList: TabItem[] = [
     { value: "summary", label: "Summary" },
@@ -52,7 +49,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div>
-      <ApplicationWorkflow demonstration={{ status: "Under Review" }} />
+      <ApplicationWorkflow demonstration={demonstration} />
       <Tabs
         tabs={subTabList}
         selectedValue={subTab}
@@ -98,21 +95,28 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
               <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
               <SecondaryButton
-                name="add-new-document"
+                name="add-new-contact"
                 size="small"
-                onClick={() => setModalType("document")}
+                onClick={() => setModalType("contact")}
               >
                 <span>Add New</span>
                 <AddNewIcon className="w-2 h-2" />
               </SecondaryButton>
             </div>
-            <ContactsTable roles={demonstration.roles} onUpdateContact={handleUpdateContact} />
+            <ContactsTable roles={demonstration.roles} demonstrationId={demonstration.id} />
           </>
         )}
       </div>
 
       {modalType === "document" && (
         <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
+      )}
+      {modalType === "contact" && (
+        <EditContactDialog
+          demonstrationId={demonstration.id}
+          isOpen={true}
+          onClose={() => setModalType(null)}
+        />
       )}
     </div>
   );

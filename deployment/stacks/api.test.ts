@@ -1,15 +1,16 @@
 import { App, aws_ec2, Stack } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { ApiStack } from "./api";
+import { DeploymentConfigProperties } from "../config";
 
-const mockCommonProps = {
+const mockCommonProps: DeploymentConfigProperties = {
   project: "demos",
   isDev: true,
   isLocalstack: false,
   isEphemeral: false,
   stage: "unittest",
   zScalerIps: ["0.1.2.3"],
-  hostEnvironment: "unitTestHost",
+  hostEnvironment: "unitTestHost" as "dev",
   cloudfrontHost: "unittest.demos.com",
 };
 

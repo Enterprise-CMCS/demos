@@ -11,7 +11,7 @@ export interface DeploymentConfigProperties {
   isDev: boolean;
   isLocalstack: boolean;
   isEphemeral: boolean;
-  hostEnvironment: string;
+  hostEnvironment: "dev" | "test" | "impl" | "prod";
   cloudfrontCertificateArn?: string;
   cloudfrontHost: string;
   zScalerIps: string[];

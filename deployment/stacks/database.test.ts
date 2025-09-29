@@ -1,8 +1,9 @@
 import { App, aws_ec2, Stack } from "aws-cdk-lib";
 import { Template } from "aws-cdk-lib/assertions";
 import { DatabaseStack } from "./database";
+import { DeploymentConfigProperties } from "../config";
 
-const mockCommonProps = {
+const mockCommonProps: DeploymentConfigProperties = {
   project: "demos",
   isDev: true,
   isLocalstack: false,

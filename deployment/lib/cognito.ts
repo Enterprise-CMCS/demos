@@ -133,6 +133,7 @@ function createIdmIdp(scope: Construct, stage: string, userPool: aws_cognito.IUs
     userPool,
     name: `demos-${stage}-idm`,
     metadata: UserPoolIdentityProviderSamlMetadata.url(metadataEndpoint),
+    idpSignout: true,
     attributeMapping: {
       email: ProviderAttribute.other("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"),
       familyName: ProviderAttribute.other("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"),

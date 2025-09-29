@@ -2,32 +2,32 @@ import React, { useState } from "react";
 
 import { Button } from "components/button";
 import { ContactsTable, DemonstrationRoleAssignment } from "components/table/tables/ContactsTable";
-import { demonstrationRoleAssignmentMocks } from "mock-data/demonstrationRoleAssignmentMocks";
-import { Role } from "demos-server";
+import { mockDemonstrationRoleAssignments } from "mock-data/demonstrationRoleAssignmentMocks";
+// import { Role } from "demos-server";
 
 export const ContactsTableDemo: React.FC = () => {
   const [roles, setRoles] = useState<DemonstrationRoleAssignment[]>(
-    demonstrationRoleAssignmentMocks
+    mockDemonstrationRoleAssignments
   );
 
-  const handleUpdateContact = async (role: DemonstrationRoleAssignment, contactType: string) => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  // const handleUpdateContact = async (role: DemonstrationRoleAssignment, contactType: string) => {
+  //   // Simulate API delay
+  //   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Update the contact in state
-    setRoles((prevContacts) =>
-      prevContacts.map((contact) =>
-        contact.person === role.person && contact.isPrimary === role.isPrimary
-          ? { ...contact, contactType: contactType as Role }
-          : contact
-      )
-    );
+  //   // Update the contact in state
+  //   setRoles((prevContacts) =>
+  //     prevContacts.map((contact) =>
+  //       contact.person === role.person && contact.isPrimary === role.isPrimary
+  //         ? { ...contact, contactType: contactType as Role }
+  //         : contact
+  //     )
+  //   );
 
-    console.log(`Updated contact of ${role.person.fullName} to type: ${contactType}`);
-  };
+  //   console.log(`Updated contact of ${role.person.fullName} to type: ${contactType}`);
+  // };
 
   const resetContacts = () => {
-    setRoles(demonstrationRoleAssignmentMocks);
+    setRoles(mockDemonstrationRoleAssignments);
   };
 
   return (
@@ -39,7 +39,7 @@ export const ContactsTableDemo: React.FC = () => {
         </Button>
       </div>
       <div className="bg-white p-4 border rounded">
-        <ContactsTable roles={roles} onUpdateContact={handleUpdateContact} />
+        <ContactsTable demonstrationId={"1"} roles={roles} />
       </div>
       <div className="mt-4 text-sm text-gray-600">
         <p>

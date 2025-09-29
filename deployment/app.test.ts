@@ -72,7 +72,7 @@ describe("app", () => {
     expect(dbStackExists).toBe(false);
   });
 
-  test("should create all stacks", async () => {
+  test("should create db stack", async () => {
     process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_REGION = "us-east-1";
@@ -103,5 +103,20 @@ describe("app", () => {
     const assembly = app!.synth();
 
     expect(assembly.getStackByName(`demos-bootstrap`)).toBeDefined();
+  });
+
+  test("should include the DB role stack", async () => {
+    process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_REGION = "us-east-1";
+
+    const mockStageName = "dev";
+
+    const app = await main({
+      stage: mockStageName,
+    });
+    const assembly = app!.synth();
+
+    expect(assembly.getStackByName(`demos-dev-db-role`)).toBeDefined();
   });
 });

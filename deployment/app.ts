@@ -11,10 +11,12 @@ import {
   applyApiSuppressions,
   applyCoreSuppressions,
   applyDatabaseSuppressions,
+  applyDbRoleSuppressions,
   applyFileUploadSuppressions,
   applyUISuppressions,
 } from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
+import { DBRoleStack } from "./stacks/dbRoles";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function main(passedContext?: { [key: string]: any }) {
@@ -93,6 +95,19 @@ export async function main(passedContext?: { [key: string]: any }) {
     });
     applyDatabaseSuppressions(database, stage);
     database.addDependency(core);
+  }
+
+  if (!config.isEphemeral) {
+    const dbRole = new DBRoleStack(app, `${project}-${stage}-db-role`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+      vpc: core.vpc,
+    });
+    applyDbRoleSuppressions(dbRole, stage);
+    dbRole.addDependency(core);
   }
 
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
