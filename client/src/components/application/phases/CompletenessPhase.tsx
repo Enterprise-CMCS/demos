@@ -3,16 +3,13 @@ import React, { useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon, DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForInput, parseInputDate } from "util/formatDate";
-import { isLocalDevelopment } from "config/env";
+import { formatDate, parseInputDate } from "util/formatDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { differenceInCalendarDays } from "date-fns";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessDocumentUploadDialog } from "./CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
-import { CompletenessTestingPanel } from "./CompletenessTestingPanel";
-import { PhaseStatusContext } from "../phase-selector/PhaseStatusContext";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -28,45 +25,20 @@ const STYLES = {
   actionsEnd: tw`ml-auto flex gap-3`,
 };
 
-const toInputDate = (d: Date) => formatDateForInput(d);
-
-export const CompletenessPhase: React.FC = () => {
-  const phaseStatusContext = React.useContext(PhaseStatusContext);
-  const completenessMeta = phaseStatusContext?.phaseMetaLookup?.Completeness;
-  const [noticeDueDate, setNoticeDueDate] = useState<string>(() => {
-    return completenessMeta?.dueDate ? toInputDate(completenessMeta.dueDate) : "";
-  });
-
-  const [isUploadOpen, setUploadOpen] = useState(false);
-  const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+const CompletenessNotice = ({ noticeDueDate }: { noticeDueDate: string }) => {
   const [isNoticeDismissed, setNoticeDismissed] = useState(false);
-  const [mockDocuments, setMockDocuments] = useState<DocumentTableDocument[]>([]);
-  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>("");
-  const [federalStartDate, setFederalStartDate] = useState<string>("");
-  const [federalEndDate, setFederalEndDate] = useState<string>("");
-
-  const completenessDocs = mockDocuments.filter(
-    (doc) => doc.documentType === "Application Completeness Letter"
-  );
-  const hasDocs = completenessDocs.length > 0;
-
-  // derive notice date and days from input string
-  const noticeDueDateValue = React.useMemo(() => parseInputDate(noticeDueDate), [noticeDueDate]);
-  const noticeDaysValue = React.useMemo(() => {
-    if (!noticeDueDateValue) return null;
-    return differenceInCalendarDays(noticeDueDateValue, new Date());
-  }, [noticeDueDateValue]);
+  const noticeDueDateValue = parseInputDate(noticeDueDate);
+  const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
 
   // determine notice title/description from days
-  const noticeTitle = React.useMemo(() => {
-    if (noticeDaysValue === null) return null;
-    if (noticeDaysValue < 0) {
-      const daysPastDue = Math.abs(noticeDaysValue);
+  const getNoticeTitle = () => {
+    const daysLeft = noticeDaysValue;
+    if (daysLeft < 0) {
+      const daysPastDue = Math.abs(daysLeft);
       return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
     }
-    return `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`;
-  }, [noticeDaysValue]);
+    return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
+  };
 
   const formattedNoticeDate = noticeDueDateValue ? formatDate(noticeDueDateValue) : null;
   // TODO: update when we have real data
@@ -75,51 +47,37 @@ export const CompletenessPhase: React.FC = () => {
     : undefined;
 
   // go from yellow to red at 1 day left.
-  const isNoticeUrgent = noticeDaysValue !== null && noticeDaysValue <= 1;
-  const noticeVariant: NoticeVariant = isNoticeUrgent ? "error" : "warning";
-  const shouldRenderNotice = Boolean(!isNoticeDismissed && noticeDueDateValue && noticeTitle);
+  const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
+  const shouldRenderNotice = Boolean(!isNoticeDismissed && noticeDueDateValue);
 
-  React.useEffect(() => {
-    if (!phaseStatusContext) return;
-    phaseStatusContext.updatePhaseMeta("Completeness", {
-      dueDate: noticeDueDateValue,
-    });
-  }, [phaseStatusContext, noticeDueDateValue]);
+  if (shouldRenderNotice) {
+    return (
+      <Notice
+        variant={noticeVariant}
+        title={getNoticeTitle()}
+        description={noticeDescription}
+        onDismiss={() => setNoticeDismissed(true)}
+        className="mb-6"
+      />
+    );
+  }
+};
+
+export const CompletenessPhase: React.FC = () => {
+  const [isUploadOpen, setUploadOpen] = useState(false);
+  const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [completenessDocs, setCompletenessDocs] = useState<DocumentTableDocument[]>([]);
+  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>("");
+  const [federalStartDate, setFederalStartDate] = useState<string>("");
+  const [federalEndDate, setFederalEndDate] = useState<string>("");
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
-  const datesAreValid = !federalStartDate || !federalEndDate
-    ? true
-    : new Date(federalStartDate) <= new Date(federalEndDate);
-  const canFinish = hasDocs && datesFilled && datesAreValid;
-  const completenessStatus = phaseStatusContext?.phaseStatusLookup.Completeness;
-  const markCompletenessFinished = () => {
-    phaseStatusContext?.updatePhaseStatus("Completeness", "Completed");
-    phaseStatusContext?.selectNextPhase("Completeness");
-    setNoticeDismissed(true);
-  };
-
-  React.useEffect(() => {
-    if (noticeDueDateValue) {
-      setNoticeDismissed(false);
-    }
-  }, [noticeDueDateValue]);
-
-  // lightweight helpers to mock document activity while wiring up UI
-  const addMockDoc = () => {
-    setMockDocuments((prev) => [
-      ...prev,
-      {
-        id: `mock-${Date.now()}`,
-        title: `Signed Completeness Letter ${prev.length + 1}`,
-        description: "Mock file for layout",
-        documentType: "Application Completeness Letter",
-        createdAt: new Date(),
-        owner: { person: { fullName: "Test User" } },
-      },
-    ]);
-  };
-
-  const removeMockDoc = (id: string) => setMockDocuments((p) => p.filter((d) => d.id !== id));
+  const datesAreValid =
+    !federalStartDate || !federalEndDate
+      ? true
+      : new Date(federalStartDate) <= new Date(federalEndDate);
+  const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
 
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
@@ -140,11 +98,13 @@ export const CompletenessPhase: React.FC = () => {
           <div key={doc.id} className={STYLES.fileRow}>
             <div>
               <div className="font-medium">{doc.title}</div>
-              <div className={STYLES.fileMeta}>{doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}</div>
+              <div className={STYLES.fileMeta}>
+                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
+              </div>
             </div>
             <button
               className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-              onClick={() => (doc.id.startsWith("mock-") ? removeMockDoc(doc.id) : console.log("delete", doc.id))}
+              onClick={() => console.log("delete", doc.id)}
               aria-label={`Delete ${doc.title}`}
               title={`Delete ${doc.title}`}
             >
@@ -168,7 +128,10 @@ export const CompletenessPhase: React.FC = () => {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <label className="block text-sm font-bold mb-1" htmlFor="state-application-deemed-complete">
+          <label
+            className="block text-sm font-bold mb-1"
+            htmlFor="state-application-deemed-complete"
+          >
             <span className="text-text-warn mr-1">*</span>
             State Application Deemed Complete
           </label>
@@ -235,8 +198,8 @@ export const CompletenessPhase: React.FC = () => {
           <Button
             name="finish-completeness"
             size="small"
-            disabled={!canFinish || completenessStatus === "Completed"}
-            onClick={markCompletenessFinished}
+            disabled={!canFinish}
+            onClick={() => console.log("Finish completeness phase")}
           >
             Finish
           </Button>
@@ -247,15 +210,8 @@ export const CompletenessPhase: React.FC = () => {
 
   return (
     <div>
-      {shouldRenderNotice && noticeTitle && noticeDueDateValue && (
-        <Notice
-          variant={noticeVariant}
-          title={noticeTitle}
-          description={noticeDescription}
-          onDismiss={() => setNoticeDismissed(true)}
-          className="mb-6"
-        />
-      )}
+      <CompletenessNotice noticeDueDate={"2025-01-01"} />
+
       <button
         className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
         onClick={() => setCollapsed((prev) => !prev)}
@@ -263,15 +219,19 @@ export const CompletenessPhase: React.FC = () => {
         aria-controls="completeness-phase-content"
         data-testid="toggle-completeness"
       >
-      COMPLETENESS
+        COMPLETENESS
       </button>
       {!collapsed && (
         <div id="completeness-phase-content">
           <p className="text-sm text-text-placeholder mb-4">
-        Completeness Checklist – Find completeness guidelines online at
-            {" "}
-            <a className="text-blue-700 underline" href="https://www.medicaid.gov" target="_blank" rel="noreferrer">
-          Medicaid.gov.
+            Completeness Checklist – Find completeness guidelines online at{" "}
+            <a
+              className="text-blue-700 underline"
+              href="https://www.medicaid.gov"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Medicaid.gov.
             </a>
           </p>
 
@@ -283,7 +243,6 @@ export const CompletenessPhase: React.FC = () => {
             </div>
           </section>
 
-          {/* Minimal dialog wrapper; safe to remove when wired to real data */}
           <CompletenessDocumentUploadDialog
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
@@ -294,17 +253,6 @@ export const CompletenessPhase: React.FC = () => {
             onConfirm={(form) => console.log("Declare incomplete submitted", form)}
           />
         </div>
-      )}
-      {/* These are all wired up, to work correctly. Add api is as simple as setting these vars */}
-      {isLocalDevelopment() && (
-        <CompletenessTestingPanel
-          onAddMockDoc={addMockDoc}
-          completenessDocCount={completenessDocs.length}
-          noticeDueDate={noticeDueDate}
-          onNoticeDueDateChange={setNoticeDueDate}
-          noticeDaysValue={noticeDaysValue}
-          onResetNotice={() => setNoticeDismissed(false)}
-        />
       )}
     </div>
   );

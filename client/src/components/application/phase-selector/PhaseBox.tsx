@@ -33,7 +33,8 @@ const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> =
   },
 };
 
-const isCompletionStatus = (status: PhaseStatus): boolean => status === "Completed" || status === "Skipped";
+const isCompletionStatus = (status: PhaseStatus): boolean =>
+  status === "Completed" || status === "Skipped";
 
 interface PhaseBoxProps {
   phaseName: PhaseName;
@@ -47,23 +48,18 @@ interface PhaseBoxProps {
 export const PhaseBox = (props: PhaseBoxProps) => {
   const phaseStyles = PHASE_STYLE_LOOKUP[props.phaseStatus];
   const showSuccessIcon = isCompletionStatus(props.phaseStatus);
+
   return (
     <div className="flex flex-col justify-center col-span-1">
       <div
         key={props.phaseName}
-        className={
-          `${BASE_STYLES.PHASE_BOX} 
+        className={`${BASE_STYLES.PHASE_BOX} 
           ${phaseStyles.box} 
-          ${props.isSelectedPhase ? "scale-110" : ""}`
-        }
+          ${props.isSelectedPhase ? "scale-110" : ""}`}
         onClick={() => props.setPhaseAsSelected()}
       >
         <div className={`${BASE_STYLES.PHASE_NUMBER} ${phaseStyles.number}`}>
-          {showSuccessIcon ? (
-            <SuccessIcon className="w-full h-full" />
-          ) : (
-            props.phaseNumber
-          )}
+          {showSuccessIcon ? <SuccessIcon className="w-full h-full" /> : props.phaseNumber}
         </div>
         <span className={BASE_STYLES.PHASE_NAME}>{props.phaseName}</span>
       </div>
