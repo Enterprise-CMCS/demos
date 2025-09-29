@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { SecondaryButton } from "components/button";
-import { EditDemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { EditDemonstrationDialog } from "components/dialog";
 import { EditIcon } from "components/icons";
 import {
   Demonstration,
