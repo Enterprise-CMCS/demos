@@ -12,7 +12,11 @@ import {
   DATE_TYPES,
 } from "./constants.js";
 
-export type { DemonstrationRoleAssignment } from "./model/demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
+export type {
+  DemonstrationRoleAssignment,
+  SetDemonstrationRoleInput,
+  UnsetDemonstrationRoleInput,
+} from "./model/demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
 
 export type { User } from "./model/user/userSchema.js";
 

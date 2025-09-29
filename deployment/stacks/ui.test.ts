@@ -2,15 +2,16 @@
 import { App } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { UiStack } from "./ui";
+import { DeploymentConfigProperties } from "../config";
 
-const mockCommonProps = {
+const mockCommonProps: DeploymentConfigProperties = {
   project: "demos",
   isDev: true,
   isLocalstack: false,
   isEphemeral: false,
   stage: "unittest",
   zScalerIps: ["0.1.2.3"],
-  hostEnvironment: "unitTestHost",
+  hostEnvironment: "unitTestHost" as "dev",
   cloudfrontWafHeaderValue: "cloudfront-header-for-api",
   cloudfrontHost: "unittest.demos.com",
 };

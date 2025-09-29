@@ -11,12 +11,11 @@ import { MockedResponse } from "@apollo/client/testing";
 import { MockState, mockStates } from "./stateMocks";
 import { MockAmendment, mockAmendments } from "./amendmentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
-import { MockContact, mockContacts } from "./contactMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import type { BundleStatus } from "demos-server";
 import {
-  demonstrationRoleAssignmentMocks,
+  mockDemonstrationRoleAssignments,
   MockDemonstrationRoleAssignment,
 } from "./demonstrationRoleAssignmentMocks";
 import { mockPeople } from "./personMocks";
@@ -31,7 +30,6 @@ export type MockDemonstration = Pick<
   state: MockState;
   amendments: MockAmendment[];
   extensions: MockExtension[];
-  contacts: MockContact[];
   demonstrationTypes: Array<object>;
   documents: MockDocument[];
   roles: MockDemonstrationRoleAssignment[];
@@ -48,13 +46,12 @@ export const mockDemonstrations = [
     state: mockStates.find((state) => state.id === "MT")!,
     amendments: [mockAmendments[0], mockAmendments[1], mockAmendments[5]],
     extensions: [mockExtensions[0], mockExtensions[1], mockExtensions[2]],
-    contacts: [mockContacts[0], mockContacts[1], mockContacts[2]],
     demonstrationTypes: [],
     documents: [mockDocuments[0], mockDocuments[1], mockDocuments[2]],
     roles: [
-      demonstrationRoleAssignmentMocks[0],
-      demonstrationRoleAssignmentMocks[3],
-      demonstrationRoleAssignmentMocks[4],
+      mockDemonstrationRoleAssignments[0],
+      mockDemonstrationRoleAssignments[3],
+      mockDemonstrationRoleAssignments[4],
     ],
   },
   {
@@ -67,10 +64,9 @@ export const mockDemonstrations = [
     state: mockStates.find((state) => state.id === "FL")!,
     amendments: [mockAmendments[2], mockAmendments[3], mockAmendments[4]],
     extensions: [] as MockExtension[],
-    contacts: [mockContacts[1], mockContacts[2]],
     demonstrationTypes: [],
     documents: [mockDocuments[3]],
-    roles: [demonstrationRoleAssignmentMocks[1]],
+    roles: [mockDemonstrationRoleAssignments[1]],
   },
   {
     id: "3",
@@ -82,10 +78,9 @@ export const mockDemonstrations = [
     state: mockStates.find((state) => state.id === "TX")!,
     amendments: [] as MockAmendment[],
     extensions: [] as MockExtension[],
-    contacts: [mockContacts[1], mockContacts[2]],
     demonstrationTypes: [],
     documents: [] as MockDocument[],
-    roles: [demonstrationRoleAssignmentMocks[0], demonstrationRoleAssignmentMocks[5]],
+    roles: [mockDemonstrationRoleAssignments[0], mockDemonstrationRoleAssignments[5]],
   },
 ] as const satisfies MockDemonstration[];
 

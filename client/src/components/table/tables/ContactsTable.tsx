@@ -45,6 +45,11 @@ const contactsColumns = [
     id: "contactType",
     header: "Contact Type",
   }),
+  contactsColumnHelper.accessor("isPrimary", {
+    id: "isPrimary",
+    header: "Is Primary",
+    cell: (info) => (info.getValue() ? "Yes" : "No"),
+  }),
 ];
 
 function DocumentActionButtons({
@@ -79,12 +84,12 @@ function DocumentActionButtons({
 
 type ContactsTableProps = {
   roles: DemonstrationRoleAssignment[] | null;
-  onUpdateContact?: (contact: DemonstrationRoleAssignment, contactType: string) => Promise<void>;
+  demonstrationId: string;
 };
 
 type ContactDialogMode = "edit" | "remove" | null;
 
-export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [], onUpdateContact }) => {
+export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [], demonstrationId }) => {
   const [rowSelection, setRowSelection] = React.useState({});
   const [dialogMode, setDialogMode] = React.useState<ContactDialogMode>(null);
   const [selectedContact, setSelectedContact] = React.useState<DemonstrationRoleAssignment | null>(
@@ -136,16 +141,8 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [], onUpda
     setSelectedContact(null);
   };
 
-  const handleSubmitContact = async (contact: DemonstrationRoleAssignment, contactType: string) => {
-    if (onUpdateContact) {
-      await onUpdateContact(contact, contactType);
-    }
-    // TODO: Add actual API call here when available
-    console.log("Updating contact:", { contact, contactType });
-  };
-
   const selectedRows = contactsTable.getSelectedRowModel().rows;
-  const selectedContactIds = selectedRows.map((row) => row.original.person.id);
+  const selectedContacts = selectedRows.map((row) => row.original);
   const hasSelectedContact = selectedRows.length === 1;
   const hasSelectedContacts = selectedRows.length > 0;
 
@@ -174,7 +171,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [], onUpda
                 const value = cell.getContext().getValue();
                 return (
                   <td key={cell.id} className="px-2 py-1 border-b">
-                    {!value && cell.column.id !== "select"
+                    {!value && cell.column.id !== "select" && cell.column.id !== "isPrimary"
                       ? "-"
                       : flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -192,7 +189,7 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [], onUpda
           isOpen={dialogMode === "edit"}
           onClose={handleCloseDialog}
           contact={selectedContact}
-          onSubmit={handleSubmitContact}
+          demonstrationId={demonstrationId}
         />
       )}
 
@@ -200,7 +197,10 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [], onUpda
       <RemoveContactDialog
         isOpen={dialogMode === "remove"}
         onClose={handleCloseDialog}
-        contactIds={selectedContactIds}
+        contacts={selectedContacts.map((contact) => ({
+          ...contact,
+          demonstration: { id: demonstrationId },
+        }))}
       />
     </>
   );
