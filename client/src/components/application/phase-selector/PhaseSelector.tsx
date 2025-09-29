@@ -10,27 +10,20 @@ import {
   SmeFrtPhase,
   StateApplicationPhase,
 } from "../phases";
-import { Phase } from "demos-server";
+import type { Phase } from "demos-server";
+import { PHASE } from "demos-server-constants";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { PhaseBox } from "./PhaseBox";
 import { PhaseStatusContext } from "./PhaseStatusContext";
 import type { PhaseMeta, PhaseMetaLookup } from "./PhaseStatusContext";
 import { BasePhaseStatus, getDisplayPhaseStatus } from "./phaseStatus";
 
-export const PHASE_NAMES = [
-  "Concept",
-  "State Application",
-  "Completeness",
-  "Federal Comment",
-  "SME/FRT",
-  "OGC & OMB",
-  "Approval Package",
-  "Post Approval",
-] as const;
-
-export type PhaseName = (typeof PHASE_NAMES)[number];
-
 export type PhaseSelectorPhase = Exclude<Phase, "None">;
+
+export const PHASE_NAMES: readonly PhaseSelectorPhase[] = PHASE.filter(
+  (phase): phase is PhaseSelectorPhase => phase !== "None"
+);
+export type PhaseName = (typeof PHASE_NAMES)[number];
 
 const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
   Concept: new Date(2024, 4, 20),
