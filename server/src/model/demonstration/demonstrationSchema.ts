@@ -50,13 +50,11 @@ export const demonstrationSchema = gql`
   input UpdateDemonstrationInput {
     name: String
     description: String
+    stateId: ID
     effectiveDate: Date
     expirationDate: Date
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
-    status: BundleStatus
-    currentPhase: Phase
-    stateId: ID
   }
 
   type CreateDemonstrationResponse {
@@ -110,11 +108,9 @@ export interface CreateDemonstrationInput {
 export interface UpdateDemonstrationInput {
   name?: string;
   description?: string;
+  stateId?: string;
   effectiveDate?: Date;
   expirationDate?: Date;
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
-  status?: BundleStatus;
-  currentPhase?: Phase;
-  stateId?: string;
 }
