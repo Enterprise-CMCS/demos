@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 
+import { Phase } from "demos-server";
+
+import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   ApprovalPackagePhase,
   CompletenessPhase,
@@ -11,8 +14,6 @@ import {
   StateApplicationPhase,
 } from "../phases";
 import { PhaseBox } from "./PhaseBox";
-import { Phase } from "demos-server";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 
 const PHASE_NAMES = [
   "Concept",
@@ -72,7 +73,7 @@ interface PhaseSelectorProps {
 export const PhaseSelector = (props: PhaseSelectorProps) => {
   const PHASE_COMPONENTS_LOOKUP: Record<PhaseSelectorPhase, React.ComponentType> = {
     Concept: ConceptPhase,
-    "State Application": StateApplicationPhase,
+    "State Application": () => <StateApplicationPhase demonstrationId={props.demonstration.id} />,
     Completeness: CompletenessPhase,
     "Federal Comment": () => {
       const phaseStartDate = FEDERAL_COMMENT_START_DATE;
@@ -103,7 +104,9 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
     );
   };
 
-  const mappedInitialPhase = PHASE_NAMES.includes(props.demonstration.currentPhase as PhaseSelectorPhase)
+  const mappedInitialPhase = PHASE_NAMES.includes(
+    props.demonstration.currentPhase as PhaseSelectorPhase
+  )
     ? (props.demonstration.currentPhase as PhaseSelectorPhase)
     : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseSelectorPhase>(mappedInitialPhase);
