@@ -1,7 +1,7 @@
 import React from "react";
 
 import { AmendmentDialog } from "components/dialog/AmendmentDialog";
-import { EditDemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { EditDemonstrationDialog } from "components/dialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { Demonstration } from "demos-server";

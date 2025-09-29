@@ -29,7 +29,7 @@ vi.mock("components/dialog/document/DocumentDialog", () => ({
   ),
 }));
 
-vi.mock("components/dialog/DemonstrationDialog", () => ({
+vi.mock("components/dialog", () => ({
   EditDemonstrationDialog: () => <div>EditDemonstrationDialog</div>,
   CreateDemonstrationDialog: () => <div>CreateDemonstrationDialog</div>,
 }));
