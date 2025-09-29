@@ -1,5 +1,5 @@
 import React from "react";
-import { PhaseStatus } from "./PhaseSelector";
+import { PhaseStatus } from "./phaseStatus";
 import { formatDate } from "util/formatDate";
 import { tw } from "tags/tw";
 
@@ -12,6 +12,7 @@ const PHASE_DATE_TEXT_LOOKUP: Record<PhaseStatus, string> = {
   in_progress: "Due",
   not_started: "Not Started",
   completed: "Completed",
+  past_due: "Past Due",
 };
 
 const PHASE_DATE_STYLE_LOOKUP: Record<PhaseStatus, string> = {
@@ -19,6 +20,7 @@ const PHASE_DATE_STYLE_LOOKUP: Record<PhaseStatus, string> = {
   in_progress: tw`italic text-brand`,
   not_started: tw`italic text-text-placeholder`,
   completed: tw`italic text-text-placeholder`,
+  past_due: PAST_DUE_DATE_CLASS,
 };
 
 const PHASE_TEXT_COLOR_LOOKUP: Record<PhaseStatus, string> = {
@@ -26,19 +28,18 @@ const PHASE_TEXT_COLOR_LOOKUP: Record<PhaseStatus, string> = {
   in_progress: tw`text-brand`,
   not_started: tw`text-text-placeholder`,
   completed: tw`text-success-darkest`,
+  past_due: PAST_DUE_TEXT_CLASS,
 };
 
 interface PhaseDateProps {
   phaseStatus: PhaseStatus;
   date?: Date;
-  isPastDue?: boolean;
 }
 
-export const PhaseDate: React.FC<PhaseDateProps> = ({ phaseStatus, date, isPastDue }) => {
-  const showPastDue = phaseStatus === "in_progress" && Boolean(isPastDue);
-  const label = showPastDue ? "Past Due" : PHASE_DATE_TEXT_LOOKUP[phaseStatus];
-  const labelClass = showPastDue ? PAST_DUE_TEXT_CLASS : PHASE_TEXT_COLOR_LOOKUP[phaseStatus];
-  const dateClass = showPastDue ? PAST_DUE_DATE_CLASS : PHASE_DATE_STYLE_LOOKUP[phaseStatus];
+export const PhaseDate: React.FC<PhaseDateProps> = ({ phaseStatus, date }) => {
+  const label = PHASE_DATE_TEXT_LOOKUP[phaseStatus];
+  const labelClass = PHASE_TEXT_COLOR_LOOKUP[phaseStatus];
+  const dateClass = PHASE_DATE_STYLE_LOOKUP[phaseStatus];
 
   return (
     <div className={BASE_STYLES}>

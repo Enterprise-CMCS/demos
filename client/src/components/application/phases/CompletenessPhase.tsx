@@ -298,14 +298,14 @@ export const CompletenessPhase: React.FC = () => {
       )}
       {/* These are all wired up, to work correctly. Add api is as simple as setting these vars */}
       {isLocalDevelopment() && (
-        // <CompletenessTestingPanel
-        //   onAddMockDoc={addMockDoc}
-        //   completenessDocCount={completenessDocs.length}
-        //   noticeDueDate={noticeDueDate}
-        //   onNoticeDueDateChange={setNoticeDueDate}
-        //   noticeDaysValue={noticeDaysValue}
-        //   onResetNotice={() => setNoticeDismissed(false)}
-        // />
+        <CompletenessTestingPanel
+          onAddMockDoc={addMockDoc}
+          completenessDocCount={completenessDocs.length}
+          noticeDueDate={noticeDueDate}
+          onNoticeDueDateChange={setNoticeDueDate}
+          noticeDaysValue={noticeDaysValue}
+          onResetNotice={() => setNoticeDismissed(false)}
+        />
       )}
     </div>
   );

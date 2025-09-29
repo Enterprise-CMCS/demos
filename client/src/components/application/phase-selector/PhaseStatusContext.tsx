@@ -1,6 +1,7 @@
 import React from "react";
 
-import type { PhaseName, PhaseStatus, PhaseStatusLookup } from "./PhaseSelector";
+import type { PhaseName, PhaseStatusLookup } from "./PhaseSelector";
+import type { BasePhaseStatus } from "./phaseStatus";
 
 export interface PhaseMeta {
   dueDate?: Date;
@@ -11,7 +12,7 @@ export type PhaseMetaLookup = Partial<Record<PhaseName, PhaseMeta>>;
 
 export interface PhaseStatusContextValue {
   phaseStatusLookup: PhaseStatusLookup;
-  updatePhaseStatus: (phase: PhaseName, status: PhaseStatus) => void;
+  updatePhaseStatus: (phase: PhaseName, status: BasePhaseStatus) => void;
   phaseMetaLookup: PhaseMetaLookup;
   updatePhaseMeta: (phase: PhaseName, meta: PhaseMeta | undefined) => void;
   selectedPhase: PhaseName;

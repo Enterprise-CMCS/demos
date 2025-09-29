@@ -15,6 +15,7 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { PhaseBox } from "./PhaseBox";
 import { PhaseStatusContext } from "./PhaseStatusContext";
 import type { PhaseMeta, PhaseMetaLookup } from "./PhaseStatusContext";
+import { BasePhaseStatus, getDisplayPhaseStatus } from "./phaseStatus";
 
 export const PHASE_NAMES = [
   "Concept",
@@ -30,7 +31,6 @@ export const PHASE_NAMES = [
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
 export type PhaseSelectorPhase = Exclude<Phase, "None">;
-export type PhaseStatus = "skipped" | "not_started" | "in_progress" | "completed";
 
 const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
   Concept: new Date(2024, 4, 20),
@@ -65,7 +65,7 @@ const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
   "Post Approval": "not_started",
 };
 
-export type PhaseStatusLookup = Record<PhaseName, PhaseStatus>;
+export type PhaseStatusLookup = Record<PhaseName, BasePhaseStatus>;
 interface PhaseSelectorProps {
   demonstration: ApplicationWorkflowDemonstration;
   phaseStatusLookup?: PhaseStatusLookup;
@@ -81,7 +81,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
   );
   const [phaseMetaLookup, setPhaseMetaLookup] = useState<PhaseMetaLookup>({});
 
-  const updatePhaseStatus = useCallback((phase: PhaseName, status: PhaseStatus) => {
+  const updatePhaseStatus = useCallback((phase: PhaseName, status: BasePhaseStatus) => {
     setPhaseStatusLookup((prev) => {
       if (prev[phase] === status) return prev;
       return { ...prev, [phase]: status };
@@ -202,14 +202,16 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
         {PHASE_NAMES.map((phaseName, index) => {
           const meta = phaseMetaLookup[phaseName];
           const displayDate = meta ? meta.dueDate : MOCK_PHASE_DATE_LOOKUP[phaseName];
+          const displayStatus = getDisplayPhaseStatus(phaseStatusLookup[phaseName], {
+            isPastDue: meta?.isPastDue,
+          });
           return (
             <PhaseBox
               key={phaseName}
               phaseName={phaseName}
-              phaseStatus={phaseStatusLookup[phaseName]}
+              phaseStatus={displayStatus}
               phaseNumber={index + 1}
               displayDate={displayDate}
-              isPastDue={meta?.isPastDue ?? false}
               isSelectedPhase={selectedPhase === phaseName}
               setPhaseAsSelected={() => setSelectedPhase(phaseName as PhaseSelectorPhase)}
             />

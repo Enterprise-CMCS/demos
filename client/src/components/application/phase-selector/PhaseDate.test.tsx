@@ -11,7 +11,7 @@ describe("PhaseDate", () => {
   });
 
   it("renders past due messaging when flagged", () => {
-    render(<PhaseDate phaseStatus="in_progress" date={new Date(2024, 0, 2)} isPastDue />);
+    render(<PhaseDate phaseStatus="past_due" date={new Date(2024, 0, 2)} />);
     expect(screen.getByText("Past Due")).toBeInTheDocument();
     expect(screen.getByText("01/02/2024")).toBeInTheDocument();
   });
