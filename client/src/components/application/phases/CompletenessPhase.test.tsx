@@ -21,8 +21,6 @@ const mockContextValue: PhaseStatusContextValue = {
     "Post Approval": "not_started",
   },
   updatePhaseStatus: vi.fn(),
-  phaseMetaLookup: {},
-  updatePhaseMeta: vi.fn(),
   selectedPhase: "Concept",
   selectPhase: vi.fn(),
   selectNextPhase: vi.fn(),
@@ -94,51 +92,37 @@ describe("CompletenessPhase", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("publishes notice metadata for the phase badge (future vs past due)", async () => {
-    const updatePhaseMeta = vi.fn();
+  it("marks the phase past due when the notice date is in the past", async () => {
+    const updatePhaseStatus = vi.fn();
 
     renderWithContext(<CompletenessPhase />, {
-      updatePhaseMeta,
+      updatePhaseStatus,
     });
 
-    // Build YYYY-MM-DD strings
+    const dueDateInput = screen.getByTestId("notice-due-date");
     const today = new Date();
-    const toISODate = (d: Date): string => {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
+
+    const formatForInput = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     };
 
     const future = new Date(today);
-    future.setDate(today.getDate() + 5);
-    const past = new Date(today);
-    past.setDate(today.getDate() - 1);
-
-    // Set a FUTURE due date -> isPastDue: false
-    const dueDateInput = screen.getByTestId("notice-due-date");
-    fireEvent.change(dueDateInput, { target: { value: toISODate(future) } });
+    future.setDate(today.getDate() + 3);
+    fireEvent.change(dueDateInput, { target: { value: formatForInput(future) } });
 
     await waitFor(() => {
-      expect(updatePhaseMeta).toHaveBeenCalledWith(
-        "Completeness",
-        expect.objectContaining({
-          dueDate: expect.any(Date),
-          isPastDue: false,
-        })
-      );
+      expect(updatePhaseStatus).not.toHaveBeenCalled();
     });
 
-    // Now set a PAST due date -> isPastDue: true
-    fireEvent.change(dueDateInput, { target: { value: toISODate(past) } });
+    const past = new Date(today);
+    past.setDate(today.getDate() - 1);
+    fireEvent.change(dueDateInput, { target: { value: formatForInput(past) } });
 
     await waitFor(() => {
-      expect(updatePhaseMeta).toHaveBeenCalledWith(
-        "Completeness",
-        expect.objectContaining({
-          isPastDue: true,
-        })
-      );
+      expect(updatePhaseStatus).toHaveBeenCalledWith("Completeness", "past_due");
     });
   });
 });

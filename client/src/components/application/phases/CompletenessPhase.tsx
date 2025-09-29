@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon, DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForInput, parseInputDate } from "util/formatDate";
+import { formatDate, parseInputDate } from "util/formatDate";
 import { isLocalDevelopment } from "config/env";
 import { Notice, NoticeVariant } from "components/notice";
 import { differenceInCalendarDays } from "date-fns";
@@ -28,14 +28,9 @@ const STYLES = {
   actionsEnd: tw`ml-auto flex gap-3`,
 };
 
-const toInputDate = (d: Date) => formatDateForInput(d);
-
 export const CompletenessPhase: React.FC = () => {
   const phaseStatusContext = React.useContext(PhaseStatusContext);
-  const completenessMeta = phaseStatusContext?.phaseMetaLookup?.Completeness;
-  const [noticeDueDate, setNoticeDueDate] = useState<string>(() => {
-    return completenessMeta?.dueDate ? toInputDate(completenessMeta.dueDate) : "";
-  });
+  const [noticeDueDate, setNoticeDueDate] = useState<string>("");
 
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
@@ -68,6 +63,7 @@ export const CompletenessPhase: React.FC = () => {
     return `${noticeDaysValue} day${noticeDaysValue === 1 ? "" : "s"} left in Federal Comment Period`;
   }, [noticeDaysValue]);
 
+  console.log("noticeDaysValue", noticeDaysValue, noticeDueDateValue, noticeDueDate);
   const formattedNoticeDate = noticeDueDateValue ? formatDate(noticeDueDateValue) : null;
   // TODO: update when we have real data
   const noticeDescription = formattedNoticeDate
@@ -81,10 +77,20 @@ export const CompletenessPhase: React.FC = () => {
 
   React.useEffect(() => {
     if (!phaseStatusContext) return;
-    phaseStatusContext.updatePhaseMeta("Completeness", {
-      dueDate: noticeDueDateValue,
-      isPastDue: noticeDaysValue !== null && noticeDaysValue < 0,
-    });
+    const currentStatus = phaseStatusContext.phaseStatusLookup.Completeness;
+    if (currentStatus === "completed") return;
+
+    if (!noticeDueDateValue || noticeDaysValue === null) {
+      if (currentStatus === "past_due") {
+        phaseStatusContext.updatePhaseStatus("Completeness", "in_progress");
+      }
+      return;
+    }
+
+    const nextStatus: typeof currentStatus = noticeDaysValue < 0 ? "past_due" : "in_progress";
+    if (nextStatus !== currentStatus) {
+      phaseStatusContext.updatePhaseStatus("Completeness", nextStatus);
+    }
   }, [phaseStatusContext, noticeDueDateValue, noticeDaysValue]);
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
@@ -298,14 +304,14 @@ export const CompletenessPhase: React.FC = () => {
       )}
       {/* These are all wired up, to work correctly. Add api is as simple as setting these vars */}
       {isLocalDevelopment() && (
-        // <CompletenessTestingPanel
-        //   onAddMockDoc={addMockDoc}
-        //   completenessDocCount={completenessDocs.length}
-        //   noticeDueDate={noticeDueDate}
-        //   onNoticeDueDateChange={setNoticeDueDate}
-        //   noticeDaysValue={noticeDaysValue}
-        //   onResetNotice={() => setNoticeDismissed(false)}
-        // />
+        <CompletenessTestingPanel
+          onAddMockDoc={addMockDoc}
+          completenessDocCount={completenessDocs.length}
+          noticeDueDate={noticeDueDate}
+          onNoticeDueDateChange={setNoticeDueDate}
+          noticeDaysValue={noticeDaysValue}
+          onResetNotice={() => setNoticeDismissed(false)}
+        />
       )}
     </div>
   );

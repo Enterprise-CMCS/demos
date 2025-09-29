@@ -1,4 +1,4 @@
-import { formatDate, formatDateTime, formatDateAsIsoString } from "./formatDate";
+import { formatDate, formatDateTime, formatDateAsIsoString, parseInputDate } from "./formatDate";
 import { UTCDate } from "@date-fns/utc";
 
 // Test date constants as ISO strings
@@ -69,5 +69,12 @@ describe("formatDate utilities", () => {
     // The rendered date should stay in UTC (not convert to local time)
     expect(formatDate(utcDate)).toBe("01/02/2023");
     expect(formatDateTime(utcDate, "minute")).toBe("01/02/2023 00:00");
+  });
+
+  it("parses date input strings with hyphens or slashes", () => {
+    expect(parseInputDate("2025-09-26")?.toISOString()).toBe("2025-09-26T04:00:00.000Z");
+    expect(parseInputDate("09/26/2025")?.toISOString()).toBe("2025-09-26T04:00:00.000Z");
+    expect(parseInputDate(undefined)).toBeUndefined();
+    expect(parseInputDate("not-a-date")).toBeUndefined();
   });
 });

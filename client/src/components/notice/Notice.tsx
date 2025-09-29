@@ -62,7 +62,7 @@ export const Notice: React.FC<NoticeProps> = ({
           focus:ring-2 focus:ring-action-focus focus:ring-offset-2"
           aria-label="Dismiss notice"
         >
-          <ExitIcon />
+          <ExitIcon className="w-3 h-3" width="12" height="12" />
         </button>
       )}
     </div>

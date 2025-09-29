@@ -7,12 +7,11 @@ export function formatDate(date: Date): string {
   return format(date, "MM/dd/yyyy");
 }
 
-export function formatDateForInput(date: Date): string {
-  return format(date, "yyyy-MM-dd");
-}
-
 export function parseInputDate(value?: string): Date | undefined {
-  if (!value) return undefined;
+  if (!value) {
+    console.log("value", value);
+    return undefined;
+  }
   const parsed = parseISO(value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }

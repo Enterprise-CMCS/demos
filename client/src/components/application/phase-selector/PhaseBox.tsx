@@ -13,9 +13,9 @@ const BASE_STYLES = {
 const PHASE_NUMBER_COLORS: Record<PhaseStatus, string> = {
   in_progress: tw`text-brand border border-brand`,
   not_started: tw`text-icon-base border border-icon-base`,
-  // Currently icons are rendered here, no styles needed
   completed: tw``,
   skipped: tw``,
+  past_due: tw`text-text-warn border border-text-warn`,
 };
 
 const PHASE_BOX_COLORS: Record<PhaseStatus, string> = {
@@ -23,6 +23,7 @@ const PHASE_BOX_COLORS: Record<PhaseStatus, string> = {
   in_progress: tw`bg-white text-text-filled font-bold border border-brand`,
   not_started: tw`bg-surface-disabled2 text-text-placeholder border border-border-fields`,
   completed: tw`bg-white text-text-placeholder border border-border-fields`,
+  past_due: tw`bg-white text-text-warn font-bold border border-text-warn`,
 };
 
 interface PhaseBoxProps {
@@ -30,7 +31,6 @@ interface PhaseBoxProps {
   phaseNumber: number;
   phaseStatus: PhaseStatus;
   displayDate?: Date;
-  isPastDue?: boolean;
   isSelectedPhase: boolean;
   setPhaseAsSelected: () => void;
 }
@@ -56,11 +56,7 @@ export const PhaseBox = (props: PhaseBoxProps) => {
         </div>
         <span className={BASE_STYLES.PHASE_NAME}>{props.phaseName}</span>
       </div>
-      <PhaseDate
-        phaseStatus={props.phaseStatus}
-        date={props.displayDate}
-        isPastDue={props.isPastDue} // so that the phase box matches the past due date red color
-      />
+      <PhaseDate phaseStatus={props.phaseStatus} date={props.displayDate} />
     </div>
   );
 };

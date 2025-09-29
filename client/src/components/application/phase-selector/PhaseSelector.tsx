@@ -14,7 +14,6 @@ import { Phase } from "demos-server";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { PhaseBox } from "./PhaseBox";
 import { PhaseStatusContext } from "./PhaseStatusContext";
-import type { PhaseMeta, PhaseMetaLookup } from "./PhaseStatusContext";
 
 export const PHASE_NAMES = [
   "Concept",
@@ -30,16 +29,15 @@ export const PHASE_NAMES = [
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
 export type PhaseSelectorPhase = Exclude<Phase, "None">;
-export type PhaseStatus = "skipped" | "not_started" | "in_progress" | "completed";
+export type PhaseStatus = "skipped" | "not_started" | "in_progress" | "completed" | "past_due";
 
-const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
-  Concept: new Date(2024, 4, 20),
-  "State Application": new Date(2024, 4, 22),
-  Completeness: new Date(2024, 11, 31),
-  "Federal Comment": new Date(2025, 8, 24),
+export type PhaseDateLookupEntry = {
+  displayDate?: Date;
+  startDate?: Date;
+  endDate?: Date;
 };
 
-const FEDERAL_COMMENT_START_DATE = MOCK_PHASE_DATE_LOOKUP["Federal Comment"] as Date;
+export type PhaseDateLookup = Partial<Record<PhaseName, PhaseDateLookupEntry>>;
 
 const PhaseGroups = () => {
   const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
@@ -69,9 +67,14 @@ export type PhaseStatusLookup = Record<PhaseName, PhaseStatus>;
 interface PhaseSelectorProps {
   demonstration: ApplicationWorkflowDemonstration;
   phaseStatusLookup?: PhaseStatusLookup;
+  phaseDateLookup?: PhaseDateLookup;
 }
 
-export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseStatus }: PhaseSelectorProps) => {
+export const PhaseSelector = ({
+  demonstration,
+  phaseStatusLookup: initialPhaseStatus,
+  phaseDateLookup,
+}: PhaseSelectorProps) => {
   const mappedInitialPhase = PHASE_NAMES.includes(demonstration.currentPhase as PhaseSelectorPhase)
     ? (demonstration.currentPhase as PhaseSelectorPhase)
     : "Concept";
@@ -79,51 +82,11 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
   const [phaseStatusLookup, setPhaseStatusLookup] = useState<PhaseStatusLookup>(
     initialPhaseStatus ?? MOCK_PHASE_STATUS_LOOKUP
   );
-  const [phaseMetaLookup, setPhaseMetaLookup] = useState<PhaseMetaLookup>({});
 
   const updatePhaseStatus = useCallback((phase: PhaseName, status: PhaseStatus) => {
     setPhaseStatusLookup((prev) => {
       if (prev[phase] === status) return prev;
       return { ...prev, [phase]: status };
-    });
-  }, []);
-
-  const updatePhaseMeta = useCallback((phase: PhaseName, meta: PhaseMeta | undefined) => {
-    setPhaseMetaLookup((prev) => {
-      const existing = prev[phase];
-      if (!meta) {
-        if (existing === undefined) return prev;
-        const { [phase]: removed, ...rest } = prev;
-        void removed;
-        return rest;
-      }
-
-      const nextMeta: PhaseMeta = {
-        ...existing,
-        ...meta,
-      };
-
-      const hasDueDate = nextMeta.dueDate !== undefined;
-      const hasPastDueFlag = nextMeta.isPastDue !== undefined;
-      if (!hasDueDate && !hasPastDueFlag) {
-        if (existing === undefined) return prev;
-        const { [phase]: removedMeta, ...rest } = prev;
-        void removedMeta;
-        return rest;
-      }
-
-      const existingDueDateTime = existing?.dueDate?.getTime() ?? Number.NaN;
-      const nextDueDateTime = nextMeta.dueDate?.getTime() ?? Number.NaN;
-      const isSameDueDate = Number.isNaN(existingDueDateTime)
-        ? Number.isNaN(nextDueDateTime)
-        : existingDueDateTime === nextDueDateTime;
-      const isSamePastDue = existing?.isPastDue === nextMeta.isPastDue;
-
-      if (existing && isSameDueDate && isSamePastDue) {
-        return prev;
-      }
-
-      return { ...prev, [phase]: nextMeta };
     });
   }, []);
 
@@ -140,24 +103,8 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
   }, []);
 
   const contextValue = useMemo(
-    () => ({
-      phaseStatusLookup,
-      updatePhaseStatus,
-      phaseMetaLookup,
-      updatePhaseMeta,
-      selectedPhase,
-      selectPhase,
-      selectNextPhase,
-    }),
-    [
-      phaseStatusLookup,
-      updatePhaseStatus,
-      phaseMetaLookup,
-      updatePhaseMeta,
-      selectedPhase,
-      selectPhase,
-      selectNextPhase,
-    ]
+    () => ({ phaseStatusLookup, updatePhaseStatus, selectedPhase, selectPhase, selectNextPhase }),
+    [phaseStatusLookup, updatePhaseStatus, selectedPhase, selectPhase, selectNextPhase]
   );
 
   const phaseComponentsLookup = useMemo<Record<PhaseSelectorPhase, React.ComponentType>>(() => {
@@ -166,9 +113,9 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
       "State Application": StateApplicationPhase,
       Completeness: CompletenessPhase,
       "Federal Comment": () => {
-        const phaseStartDate = FEDERAL_COMMENT_START_DATE;
-        const phaseEndDate = new Date(phaseStartDate);
-        phaseEndDate.setDate(phaseEndDate.getDate() + 30);
+        const phaseDates = phaseDateLookup?.["Federal Comment"];
+        const phaseStartDate = phaseDates?.startDate;
+        const phaseEndDate = phaseDates?.endDate;
 
         return (
           <FederalCommentPhase
@@ -183,7 +130,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
       "Approval Package": ApprovalPackagePhase,
       "Post Approval": PostApprovalPhase,
     };
-  }, [demonstration.id]);
+  }, [demonstration.id, phaseDateLookup]);
 
   const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
     const PhaseComponent = phaseComponentsLookup[selectedPhase as PhaseSelectorPhase];
@@ -200,8 +147,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
-          const meta = phaseMetaLookup[phaseName];
-          const displayDate = meta ? meta.dueDate : MOCK_PHASE_DATE_LOOKUP[phaseName];
+          const displayDate = phaseDateLookup?.[phaseName]?.displayDate;
           return (
             <PhaseBox
               key={phaseName}
@@ -209,7 +155,6 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
               phaseStatus={phaseStatusLookup[phaseName]}
               phaseNumber={index + 1}
               displayDate={displayDate}
-              isPastDue={meta?.isPastDue ?? false}
               isSelectedPhase={selectedPhase === phaseName}
               setPhaseAsSelected={() => setSelectedPhase(phaseName as PhaseSelectorPhase)}
             />

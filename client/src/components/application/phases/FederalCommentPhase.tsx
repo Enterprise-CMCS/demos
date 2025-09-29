@@ -8,8 +8,8 @@ import { FederalCommentUploadDialog } from "components/dialog/document/FederalCo
 
 interface FederalCommentPhaseProps {
   demonstrationId: string;
-  phaseStartDate: Date;
-  phaseEndDate: Date
+  phaseStartDate?: Date | null;
+  phaseEndDate?: Date | null;
   documents?: DocumentTableDocument[];
 }
 
@@ -38,19 +38,23 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
 
   // Parse and memoize the end date
   const daysLeft = useMemo(() => {
+    if (!phaseEndDate) return null;
+    const endDate = new Date(phaseEndDate);
     const now = new Date();
 
-    // Remove time part for accurate day count
-    phaseEndDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
     now.setHours(0, 0, 0, 0);
 
-    const diffMs = phaseEndDate.getTime() - now.getTime();
-    const diffDays = Math.max(Math.ceil(diffMs / (1000 * 60 * 60 * 24)), 0);
+    const diffMs = endDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
     return diffDays;
   }, [phaseEndDate]);
 
-  const borderColorClass = daysLeft === 1 ? "border-border-warn" : "border-border-alert";
+  const safeDaysLeft = daysLeft !== null ? Math.max(daysLeft, 0) : null;
+  const dayLabel = safeDaysLeft === 1 ? "day" : "days";
+
+  const borderColorClass = daysLeft !== null && daysLeft <= 1 ? "border-border-warn" : "border-border-alert";
   const warningClasses = tw`
     w-[600px] p-sm rounded-md shadow-lg
     bg-white text-text-font border border-l-4
@@ -73,11 +77,11 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       <div className="flex gap-8 mt-4 text-sm text-text-placeholder">
         <div className="flex flex-col">
           <span className="font-bold">Federal Comment Period Start Date</span>
-          <span>{formatDate(phaseStartDate)}</span>
+          <span>{phaseStartDate ? formatDate(phaseStartDate) : "--/--/----"}</span>
         </div>
         <div className="flex flex-col">
           <span className="font-bold">Federal Comment Period End Date</span>
-          <span>{formatDate(phaseEndDate)}</span>
+          <span>{phaseEndDate ? formatDate(phaseEndDate) : "--/--/----"}</span>
         </div>
       </div>
     </div>
@@ -85,11 +89,13 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
 
   return (
     <div>
-      {showWarning && (
+      {showWarning && safeDaysLeft !== null && phaseEndDate && (
         <div className={warningClasses}>
           <div className="mx-1"><WarningIcon /></div>
           <div>
-            <h3 className="text-[18px] font-bold">{daysLeft} {daysLeft === 1 ? "day" : "days"} left</h3>
+            <h3 className="text-[18px] font-bold">
+              {safeDaysLeft} {dayLabel} left
+            </h3>
             <span>The Federal Comment Period ends on {formatDate(phaseEndDate)}</span>
           </div>
           <button
@@ -98,7 +104,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
             className="h-3 w-3 border-l border-border-rules cursor-pointer px-sm ml-auto"
             aria-label="Dismiss warning"
           >
-            <ExitIcon />
+            <ExitIcon className="w-3 h-3" width="12" height="12" />
           </button>
         </div>
       )}
