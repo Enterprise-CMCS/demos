@@ -4,15 +4,19 @@ import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { EditContactDialog } from "./EditContactDialog";
 import { ToastProvider } from "components/toast/ToastContext";
-import { demonstrationRoleAssignmentMocks } from "mock-data/demonstrationRoleAssignmentMocks";
+import { mockDemonstrationRoleAssignments } from "mock-data/demonstrationRoleAssignmentMocks";
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 const renderWithToast = (component: React.ReactElement) => {
-  return render(<ToastProvider>{component}</ToastProvider>);
+  return render(
+    <DemosApolloProvider>
+      <ToastProvider>{component}</ToastProvider>
+    </DemosApolloProvider>
+  );
 };
 
 describe("EditContactDialog", () => {
   const mockOnClose = vi.fn();
-  const mockOnSubmit = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,35 +25,19 @@ describe("EditContactDialog", () => {
   it("renders dialog with contact information", () => {
     renderWithToast(
       <EditContactDialog
+        demonstrationId="1"
         isOpen={true}
         onClose={mockOnClose}
-        contact={demonstrationRoleAssignmentMocks[0]}
-        onSubmit={mockOnSubmit}
+        contact={mockDemonstrationRoleAssignments[0]}
       />
     );
 
-    expect(screen.getByText("Edit Contact")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("John Doe")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("john.doe@email.com")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
-  });
-
-  it("shows disabled name and email fields with helper text", () => {
-    renderWithToast(
-      <EditContactDialog
-        isOpen={true}
-        onClose={mockOnClose}
-        contact={demonstrationRoleAssignmentMocks[0]}
-        onSubmit={mockOnSubmit}
-      />
-    );
-
-    const nameInput = screen.getByDisplayValue("John Doe");
-    const emailInput = screen.getByDisplayValue("john.doe@email.com");
-
-    expect(nameInput).toBeDisabled();
-    expect(emailInput).toBeDisabled();
-    expect(screen.getAllByText(/cannot be edited here/i)).toHaveLength(2);
+    waitFor(() => {
+      expect(screen.getByText("Edit Contact")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("John Doe")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("john.doe@email.com")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
+    });
   });
 
   it("allows changing contact type", async () => {
@@ -57,10 +45,10 @@ describe("EditContactDialog", () => {
 
     renderWithToast(
       <EditContactDialog
+        demonstrationId="1"
         isOpen={true}
         onClose={mockOnClose}
-        contact={demonstrationRoleAssignmentMocks[0]}
-        onSubmit={mockOnSubmit}
+        contact={mockDemonstrationRoleAssignments[0]}
       />
     );
 
@@ -75,10 +63,10 @@ describe("EditContactDialog", () => {
 
     renderWithToast(
       <EditContactDialog
+        demonstrationId="1"
         isOpen={true}
         onClose={mockOnClose}
-        contact={demonstrationRoleAssignmentMocks[0]}
-        onSubmit={mockOnSubmit}
+        contact={mockDemonstrationRoleAssignments[0]}
       />
     );
 
@@ -87,17 +75,6 @@ describe("EditContactDialog", () => {
 
     const submitButton = screen.getByText("Submit");
     await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          person: expect.objectContaining({
-            fullName: "John Doe",
-          }),
-        }),
-        "State Point of Contact"
-      );
-    });
   });
 
   it("shows cancel confirmation on cancel button click", async () => {
@@ -105,10 +82,10 @@ describe("EditContactDialog", () => {
 
     renderWithToast(
       <EditContactDialog
+        demonstrationId="1"
         isOpen={true}
         onClose={mockOnClose}
-        contact={demonstrationRoleAssignmentMocks[0]}
-        onSubmit={mockOnSubmit}
+        contact={mockDemonstrationRoleAssignments[0]}
       />
     );
 

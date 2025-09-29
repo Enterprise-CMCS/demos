@@ -7,30 +7,35 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 
 import { ContactsTable } from "./ContactsTable";
-import { demonstrationRoleAssignmentMocks } from "mock-data/demonstrationRoleAssignmentMocks";
+import { mockDemonstrationRoleAssignments } from "mock-data/demonstrationRoleAssignmentMocks";
+import { DemosApolloProvider } from "router/DemosApolloProvider";
 
 const renderWithToast = (component: React.ReactElement) => {
-  return render(<ToastProvider>{component}</ToastProvider>);
+  return render(
+    <DemosApolloProvider>
+      <ToastProvider>{component}</ToastProvider>
+    </DemosApolloProvider>
+  );
 };
 
-const testMocks = demonstrationRoleAssignmentMocks.slice(0, 2); // Use first two for testing
+const testMocks = mockDemonstrationRoleAssignments.slice(0, 2); // Use first two for testing
 
 describe("ContactsTable", () => {
   it("displays all contacts associated with a demonstration", () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={testMocks} />);
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("Jane Smith")).toBeInTheDocument();
   });
 
   it("displays all required fields for each contact", () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={testMocks} />);
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Email")).toBeInTheDocument();
     expect(screen.getByText("Contact Type")).toBeInTheDocument();
   });
 
   it("allows sorting by any column, ascending and descending", async () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={testMocks} />);
     const nameHeader = screen.getByText("Name");
 
     // default
@@ -53,14 +58,14 @@ describe("ContactsTable", () => {
   });
 
   it("pagination controls are user friendly and responsive", () => {
-    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={Array(25).fill(testMocks[0])} />);
     expect(screen.getByLabelText("Go to next page")).toBeInTheDocument();
     expect(screen.getByLabelText("No previous page")).toBeInTheDocument();
     expect(screen.getByLabelText("Page 1, current page")).toBeInTheDocument();
   });
 
   it("allows navigation to specific pages and page sizes", async () => {
-    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={Array(25).fill(testMocks[0])} />);
     // Click page 2
     await userEvent.click(screen.getByText("2"));
     // Change page size
@@ -75,12 +80,12 @@ describe("ContactsTable", () => {
   });
 
   it("displays 10 records per page by default", () => {
-    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={Array(25).fill(testMocks[0])} />);
     expect(screen.getByDisplayValue("10")).toBeInTheDocument();
   });
 
   it("enables edit button only when exactly one contact is selected", () => {
-    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={Array(25).fill(testMocks[0])} />);
 
     const editButton = screen.getByLabelText("Edit Contact");
     const deleteButton = screen.getByLabelText("Remove Contact");
@@ -107,7 +112,7 @@ describe("ContactsTable", () => {
   });
 
   it("opens confirmation dialog when delete button is clicked", () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={testMocks} />);
 
     // Select both contacts
     const firstCheckbox = screen.getAllByRole("checkbox")[1];
@@ -128,7 +133,7 @@ describe("ContactsTable", () => {
 
   it("calls delete functionality when confirmation dialog is confirmed", async () => {
     const consoleSpy = vi.spyOn(console, "log");
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={testMocks} />);
 
     // Select both contacts
     const firstCheckbox = screen.getAllByRole("checkbox")[1];
@@ -168,7 +173,7 @@ describe("ContactsTable", () => {
   });
 
   it("shows error message when trying to delete without selecting any contacts", () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={testMocks} />);
 
     const deleteButton = screen.getByLabelText("Remove Contact");
     fireEvent.click(deleteButton);
