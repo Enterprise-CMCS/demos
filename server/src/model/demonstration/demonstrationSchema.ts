@@ -2,22 +2,16 @@ import { gql } from "graphql-tag";
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
-import { CmcsDivision, SignatureLevel, Phase, BundlePhase, BundleStatus, DemonstrationRoleAssignment } from "../../types.js";
+import {
+  CmcsDivision,
+  SignatureLevel,
+  Phase,
+  BundlePhase,
+  BundleStatus,
+  DemonstrationRoleAssignment,
+} from "../../types.js";
 
 export const demonstrationSchema = gql`
-  """
-  A string representing a CMCS division. Expected values are:
-  - Division of System Reform Demonstrations
-  - Division of Eligibility and Coverage Demonstrations
-  """
-  scalar CmcsDivision
-  """
-  A string representing a signature level. Expected values are:
-  - OA
-  - OCD
-  - OGD
-  """
-  scalar SignatureLevel
   type Demonstration {
     id: ID!
     name: String!

@@ -13,6 +13,7 @@ export const documentSchema = gql`
     documentType: DocumentType!
     bundle: Bundle!
     bundleType: String!
+    phase: Phase!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -59,6 +60,7 @@ export interface Document {
   documentType: DocumentType;
   bundle: Bundle;
   bundleType: string;
+  phase: Phase;
   createdAt: Date;
   updatedAt: Date;
 }

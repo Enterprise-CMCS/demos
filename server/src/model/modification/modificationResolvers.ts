@@ -171,6 +171,14 @@ async function getCurrentPhase(parent: Modification) {
   return parent.currentPhaseId;
 }
 
+async function getPhases(parent: Modification) {
+  return await prisma().bundlePhase.findMany({
+    where: {
+      bundleId: parent.id,
+    },
+  });
+}
+
 export const modificationResolvers = {
   Query: {
     amendment: getAmendment,
@@ -208,6 +216,7 @@ export const modificationResolvers = {
     documents: getDocuments,
     currentPhase: getCurrentPhase,
     status: resolveBundleStatus,
+    phases: getPhases,
   },
 
   Extension: {
@@ -215,5 +224,6 @@ export const modificationResolvers = {
     documents: getDocuments,
     currentPhase: getCurrentPhase,
     status: resolveBundleStatus,
+    phases: getPhases,
   },
 };

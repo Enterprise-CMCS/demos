@@ -193,9 +193,7 @@ export const documentResolvers = {
     },
 
     documentType: async (parent: Document) => {
-      return await prisma().documentType.findUnique({
-        where: { id: parent.documentTypeId },
-      });
+      return parent.documentTypeId;
     },
 
     bundle: async (parent: Document) => {
@@ -205,6 +203,10 @@ export const documentResolvers = {
     bundleType: async (parent: Document) => {
       const bundleTypeId = await getBundleTypeId(parent.bundleId);
       return bundleTypeId;
+    },
+
+    phase: async (parent: Document) => {
+      return parent.phaseId;
     },
   },
 };
