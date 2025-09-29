@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon, DeleteIcon } from "components/icons";
@@ -7,12 +7,12 @@ import { formatDate, formatDateForInput, parseInputDate } from "util/formatDate"
 import { isLocalDevelopment } from "config/env";
 import { Notice, NoticeVariant } from "components/notice";
 import { differenceInCalendarDays } from "date-fns";
+import type { PhaseStatus as ServerPhaseStatus } from "demos-server";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessDocumentUploadDialog } from "./CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
 import { CompletenessTestingPanel } from "./CompletenessTestingPanel";
-import { PhaseStatusContext } from "../phase-selector/PhaseStatusContext";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -30,12 +30,22 @@ const STYLES = {
 
 const toInputDate = (d: Date) => formatDateForInput(d);
 
-export const CompletenessPhase: React.FC = () => {
-  const phaseStatusContext = React.useContext(PhaseStatusContext);
-  const completenessMeta = phaseStatusContext?.phaseMetaLookup?.Completeness;
-  const [noticeDueDate, setNoticeDueDate] = useState<string>(() => {
-    return completenessMeta?.dueDate ? toInputDate(completenessMeta.dueDate) : "";
-  });
+export interface CompletenessPhaseProps {
+  phaseStatus?: ServerPhaseStatus;
+  onPhaseStatusChange?: (status: ServerPhaseStatus) => void;
+  dueDate?: Date;
+  onDueDateChange?: (date: Date | undefined) => void;
+  onAdvancePhase?: () => void;
+}
+
+export const CompletenessPhase: React.FC<CompletenessPhaseProps> = ({
+  phaseStatus = "Not Started",
+  onPhaseStatusChange,
+  dueDate,
+  onDueDateChange,
+  onAdvancePhase,
+}) => {
+  const [noticeDueDate, setNoticeDueDate] = useState<string>(() => (dueDate ? toInputDate(dueDate) : ""));
 
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
@@ -52,14 +62,20 @@ export const CompletenessPhase: React.FC = () => {
   const hasDocs = completenessDocs.length > 0;
 
   // derive notice date and days from input string
-  const noticeDueDateValue = React.useMemo(() => parseInputDate(noticeDueDate), [noticeDueDate]);
-  const noticeDaysValue = React.useMemo(() => {
+  useEffect(() => {
+    if (!dueDate) return;
+    const formatted = toInputDate(dueDate);
+    setNoticeDueDate((current) => (current === formatted ? current : formatted));
+  }, [dueDate]);
+
+  const noticeDueDateValue = useMemo(() => parseInputDate(noticeDueDate), [noticeDueDate]);
+  const noticeDaysValue = useMemo(() => {
     if (!noticeDueDateValue) return null;
     return differenceInCalendarDays(noticeDueDateValue, new Date());
   }, [noticeDueDateValue]);
 
   // determine notice title/description from days
-  const noticeTitle = React.useMemo(() => {
+  const noticeTitle = useMemo(() => {
     if (noticeDaysValue === null) return null;
     if (noticeDaysValue < 0) {
       const daysPastDue = Math.abs(noticeDaysValue);
@@ -79,26 +95,22 @@ export const CompletenessPhase: React.FC = () => {
   const noticeVariant: NoticeVariant = isNoticeUrgent ? "error" : "warning";
   const shouldRenderNotice = Boolean(!isNoticeDismissed && noticeDueDateValue && noticeTitle);
 
-  React.useEffect(() => {
-    if (!phaseStatusContext) return;
-    phaseStatusContext.updatePhaseMeta("Completeness", {
-      dueDate: noticeDueDateValue,
-    });
-  }, [phaseStatusContext, noticeDueDateValue]);
+  useEffect(() => {
+    onDueDateChange?.(noticeDueDateValue);
+  }, [onDueDateChange, noticeDueDateValue]);
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
   const datesAreValid = !federalStartDate || !federalEndDate
     ? true
     : new Date(federalStartDate) <= new Date(federalEndDate);
   const canFinish = hasDocs && datesFilled && datesAreValid;
-  const completenessStatus = phaseStatusContext?.phaseStatusLookup.Completeness;
   const markCompletenessFinished = () => {
-    phaseStatusContext?.updatePhaseStatus("Completeness", "Completed");
-    phaseStatusContext?.selectNextPhase("Completeness");
+    onPhaseStatusChange?.("Completed");
+    onAdvancePhase?.();
     setNoticeDismissed(true);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (noticeDueDateValue) {
       setNoticeDismissed(false);
     }
@@ -235,7 +247,7 @@ export const CompletenessPhase: React.FC = () => {
           <Button
             name="finish-completeness"
             size="small"
-            disabled={!canFinish || completenessStatus === "Completed"}
+            disabled={!canFinish || phaseStatus === "Completed"}
             onClick={markCompletenessFinished}
           >
             Finish

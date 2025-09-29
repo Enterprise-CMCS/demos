@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import {
   ApprovalPackagePhase,
@@ -14,8 +14,6 @@ import type { Phase, PhaseStatus as ServerPhaseStatus } from "demos-server";
 import { PHASE } from "demos-server-constants";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { PhaseBox } from "./PhaseBox";
-import { PhaseStatusContext } from "./PhaseStatusContext";
-import type { PhaseMeta, PhaseMetaLookup } from "./PhaseStatusContext";
 import { differenceInCalendarDays } from "date-fns";
 
 export type PhaseSelectorPhase = Exclude<Phase, "None">;
@@ -81,7 +79,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
   const [phaseStatusLookup, setPhaseStatusLookup] = useState<PhaseStatusLookup>(
     initialPhaseStatus ?? MOCK_PHASE_STATUS_LOOKUP
   );
-  const [phaseMetaLookup, setPhaseMetaLookup] = useState<PhaseMetaLookup>({});
+  const [phaseDueDates, setPhaseDueDates] = useState<Partial<Record<PhaseName, Date>>>({});
 
   const updatePhaseStatus = useCallback((phase: PhaseName, status: ServerPhaseStatus) => {
     setPhaseStatusLookup((prev) => {
@@ -90,30 +88,22 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
     });
   }, []);
 
-  const updatePhaseMeta = useCallback((phase: PhaseName, meta: PhaseMeta | undefined) => {
-    setPhaseMetaLookup((prev) => {
-      const existing = prev[phase];
-      if (!meta) {
-        if (existing === undefined) return prev;
+  const updatePhaseDueDate = useCallback((phase: PhaseName, dueDate: Date | undefined) => {
+    setPhaseDueDates((prev) => {
+      if (!dueDate) {
+        if (!(phase in prev)) return prev;
         const { [phase]: removed, ...rest } = prev;
         void removed;
         return rest;
       }
 
-      if (!meta?.dueDate) {
-        if (existing === undefined) return prev;
-        const { [phase]: removedMeta, ...rest } = prev;
-        void removedMeta;
-        return rest;
-      }
-
-      const existingDueDateTime = existing?.dueDate?.getTime();
-      const nextDueDateTime = meta.dueDate.getTime();
-      if (existingDueDateTime === nextDueDateTime) {
+      const existingTime = prev[phase]?.getTime();
+      const nextTime = dueDate.getTime();
+      if (existingTime === nextTime) {
         return prev;
       }
 
-      return { ...prev, [phase]: { dueDate: meta.dueDate } };
+      return { ...prev, [phase]: dueDate };
     });
   }, []);
 
@@ -129,33 +119,23 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
     setSelectedPhase(nextPhase as PhaseSelectorPhase);
   }, []);
 
-  const contextValue = useMemo(
-    () => ({
-      phaseStatusLookup,
-      updatePhaseStatus,
-      phaseMetaLookup,
-      updatePhaseMeta,
-      selectedPhase,
-      selectPhase,
-      selectNextPhase,
-    }),
-    [
-      phaseStatusLookup,
-      updatePhaseStatus,
-      phaseMetaLookup,
-      updatePhaseMeta,
-      selectedPhase,
-      selectPhase,
-      selectNextPhase,
-    ]
-  );
-
-  const phaseComponentsLookup = useMemo<Record<PhaseSelectorPhase, React.ComponentType>>(() => {
-    return {
-      Concept: ConceptPhase,
-      "State Application": StateApplicationPhase,
-      Completeness: CompletenessPhase,
-      "Federal Comment": () => {
+  const renderSelectedPhase = (phase: PhaseName) => {
+    switch (phase) {
+      case "Concept":
+        return <ConceptPhase />;
+      case "State Application":
+        return <StateApplicationPhase />;
+      case "Completeness":
+        return (
+          <CompletenessPhase
+            phaseStatus={phaseStatusLookup.Completeness}
+            onPhaseStatusChange={(status) => updatePhaseStatus("Completeness", status)}
+            dueDate={phaseDueDates.Completeness}
+            onDueDateChange={(date) => updatePhaseDueDate("Completeness", date)}
+            onAdvancePhase={() => selectNextPhase("Completeness")}
+          />
+        );
+      case "Federal Comment": {
         const phaseStartDate = FEDERAL_COMMENT_START_DATE;
         const phaseEndDate = new Date(phaseStartDate);
         phaseEndDate.setDate(phaseEndDate.getDate() + 30);
@@ -167,32 +147,28 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
             phaseEndDate={phaseEndDate}
           />
         );
-      },
-      "SME/FRT": SmeFrtPhase,
-      "OGC & OMB": OgcOmbPhase,
-      "Approval Package": ApprovalPackagePhase,
-      "Post Approval": PostApprovalPhase,
-    };
-  }, [demonstration.id]);
-
-  const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
-    const PhaseComponent = phaseComponentsLookup[selectedPhase as PhaseSelectorPhase];
-
-    return (
-      <div className="w-full h-full min-h-64">
-        <PhaseComponent />
-      </div>
-    );
+      }
+      case "SME/FRT":
+        return <SmeFrtPhase />;
+      case "OGC & OMB":
+        return <OgcOmbPhase />;
+      case "Approval Package":
+        return <ApprovalPackagePhase />;
+      case "Post Approval":
+        return <PostApprovalPhase />;
+      default:
+        return null;
+    }
   };
 
   return (
-    <PhaseStatusContext.Provider value={contextValue}>
+    <>
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
-          const meta = phaseMetaLookup[phaseName];
-          const displayDate = meta ? meta.dueDate : MOCK_PHASE_DATE_LOOKUP[phaseName];
-          const displayStatus = getDisplayPhaseStatus(phaseStatusLookup[phaseName], meta?.dueDate);
+          const dueDate = phaseDueDates[phaseName];
+          const displayDate = dueDate ?? MOCK_PHASE_DATE_LOOKUP[phaseName];
+          const displayStatus = getDisplayPhaseStatus(phaseStatusLookup[phaseName], dueDate);
           return (
             <PhaseBox
               key={phaseName}
@@ -206,7 +182,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
           );
         })}
       </div>
-      <DisplayPhase selectedPhase={selectedPhase} />
-    </PhaseStatusContext.Provider>
+      <div className="w-full h-full min-h-64">{renderSelectedPhase(selectedPhase)}</div>
+    </>
   );
 };

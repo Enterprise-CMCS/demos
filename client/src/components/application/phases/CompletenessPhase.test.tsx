@@ -7,36 +7,23 @@ import { format } from "date-fns";
 import { ToastProvider } from "components/toast";
 import { MockedProvider } from "@apollo/client/testing";
 import * as env from "config/env";
-import { PhaseStatusContext, PhaseStatusContextValue } from "../phase-selector/PhaseStatusContext";
-import { CompletenessPhase } from "./CompletenessPhase";
+import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 
-const mockContextValue: PhaseStatusContextValue = {
-  phaseStatusLookup: {
-    Concept: "Not Started",
-    "State Application": "Completed",
-    Completeness: "Started",
-    "Federal Comment": "Not Started",
-    "SME/FRT": "Not Started",
-    "OGC & OMB": "Not Started",
-    "Approval Package": "Not Started",
-    "Post Approval": "Not Started",
-  },
-  updatePhaseStatus: vi.fn(),
-  phaseMetaLookup: {},
-  updatePhaseMeta: vi.fn(),
-  selectedPhase: "Concept",
-  selectPhase: vi.fn(),
-  selectNextPhase: vi.fn(),
-};
+const renderCompletenessPhase = (props?: Partial<CompletenessPhaseProps>) => {
+  const defaultProps: CompletenessPhaseProps = {
+    phaseStatus: "Not Started",
+    onPhaseStatusChange: vi.fn(),
+    dueDate: undefined,
+    onDueDateChange: vi.fn(),
+    onAdvancePhase: vi.fn(),
+  };
 
-const renderWithContext = (ui: React.ReactNode, contextOverrides?: Partial<PhaseStatusContextValue>) => {
-  const value = { ...mockContextValue, ...contextOverrides };
   return render(
-    <PhaseStatusContext.Provider value={value}>
-      <MockedProvider mocks={[]} addTypename={false}>
-        <ToastProvider>{ui}</ToastProvider>
-      </MockedProvider>
-    </PhaseStatusContext.Provider>
+    <MockedProvider mocks={[]} addTypename={false}>
+      <ToastProvider>
+        <CompletenessPhase {...defaultProps} {...props} />
+      </ToastProvider>
+    </MockedProvider>
   );
 };
 
@@ -50,14 +37,14 @@ afterEach(() => {
 
 describe("CompletenessPhase", () => {
   it("disables Finish until requirements are met", () => {
-    renderWithContext(<CompletenessPhase />);
+    renderCompletenessPhase();
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
   });
 
   it("opens the declare incomplete dialog when requested", () => {
-    renderWithContext(<CompletenessPhase />);
+    renderCompletenessPhase();
 
     fireEvent.click(screen.getByTestId("declare-incomplete"));
 
@@ -68,9 +55,9 @@ describe("CompletenessPhase", () => {
     const updatePhaseStatus = vi.fn();
     const selectNextPhase = vi.fn();
 
-    renderWithContext(<CompletenessPhase />, {
-      updatePhaseStatus,
-      selectNextPhase,
+    renderCompletenessPhase({
+      onPhaseStatusChange: updatePhaseStatus,
+      onAdvancePhase: selectNextPhase,
     });
 
     fireEvent.click(screen.getByTestId("add-mock-completeness-doc"));
@@ -90,17 +77,16 @@ describe("CompletenessPhase", () => {
 
     fireEvent.click(finishButton);
 
-    expect(updatePhaseStatus).toHaveBeenCalledWith("Completeness", "Completed");
-    expect(selectNextPhase).toHaveBeenCalledWith("Completeness");
+    expect(updatePhaseStatus).toHaveBeenCalledWith("Completed");
+    expect(selectNextPhase).toHaveBeenCalled();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("publishes notice metadata for the phase badge (future vs past due)", async () => {
-    const updatePhaseMeta = vi.fn();
+    const onDueDateChange = vi.fn();
 
-    renderWithContext(<CompletenessPhase />, {
-      updatePhaseMeta,
-    });
+    renderCompletenessPhase({ onDueDateChange });
+    onDueDateChange.mockClear();
 
     // Build YYYY-MM-DD strings
     const today = new Date();
@@ -113,24 +99,17 @@ describe("CompletenessPhase", () => {
     fireEvent.change(dueDateInput, { target: { value: format(future, "yyyy-MM-dd") } });
 
     await waitFor(() => {
-      expect(updatePhaseMeta).toHaveBeenCalledWith(
-        "Completeness",
-        expect.objectContaining({
-          dueDate: expect.any(Date),
-        })
-      );
+      expect(onDueDateChange).toHaveBeenCalledWith(expect.any(Date));
     });
 
     // Now set a PAST due date
     fireEvent.change(dueDateInput, { target: { value: format(past, "yyyy-MM-dd") } });
 
     await waitFor(() => {
-      expect(updatePhaseMeta).toHaveBeenCalledWith(
-        "Completeness",
-        expect.objectContaining({
-          dueDate: expect.any(Date),
-        })
-      );
+      const datesProvided = onDueDateChange.mock.calls
+        .map(([arg]) => arg)
+        .filter((arg) => arg instanceof Date);
+      expect(datesProvided.length).toBeGreaterThanOrEqual(2);
     });
   });
 });
