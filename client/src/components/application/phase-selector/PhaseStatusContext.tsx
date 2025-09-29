@@ -5,7 +5,6 @@ import type { BasePhaseStatus } from "./phaseStatus";
 
 export interface PhaseMeta {
   dueDate?: Date;
-  isPastDue?: boolean;
 }
 
 export type PhaseMetaLookup = Partial<Record<PhaseName, PhaseMeta>>;

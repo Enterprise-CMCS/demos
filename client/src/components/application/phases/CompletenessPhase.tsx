@@ -83,9 +83,8 @@ export const CompletenessPhase: React.FC = () => {
     if (!phaseStatusContext) return;
     phaseStatusContext.updatePhaseMeta("Completeness", {
       dueDate: noticeDueDateValue,
-      isPastDue: noticeDaysValue !== null && noticeDaysValue < 0,
     });
-  }, [phaseStatusContext, noticeDueDateValue, noticeDaysValue]);
+  }, [phaseStatusContext, noticeDueDateValue]);
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
   const datesAreValid = !federalStartDate || !federalEndDate

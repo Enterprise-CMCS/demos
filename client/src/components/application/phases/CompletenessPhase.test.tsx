@@ -115,7 +115,7 @@ describe("CompletenessPhase", () => {
     const past = new Date(today);
     past.setDate(today.getDate() - 1);
 
-    // Set a FUTURE due date -> isPastDue: false
+    // Set a FUTURE due date
     const dueDateInput = screen.getByTestId("notice-due-date");
     fireEvent.change(dueDateInput, { target: { value: toISODate(future) } });
 
@@ -124,19 +124,18 @@ describe("CompletenessPhase", () => {
         "Completeness",
         expect.objectContaining({
           dueDate: expect.any(Date),
-          isPastDue: false,
         })
       );
     });
 
-    // Now set a PAST due date -> isPastDue: true
+    // Now set a PAST due date
     fireEvent.change(dueDateInput, { target: { value: toISODate(past) } });
 
     await waitFor(() => {
       expect(updatePhaseMeta).toHaveBeenCalledWith(
         "Completeness",
         expect.objectContaining({
-          isPastDue: true,
+          dueDate: expect.any(Date),
         })
       );
     });

@@ -16,6 +16,7 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { PhaseBox } from "./PhaseBox";
 import { PhaseStatusContext } from "./PhaseStatusContext";
 import type { PhaseMeta, PhaseMetaLookup } from "./PhaseStatusContext";
+import { differenceInCalendarDays } from "date-fns";
 import { BasePhaseStatus, getDisplayPhaseStatus } from "./phaseStatus";
 
 export type PhaseSelectorPhase = Exclude<Phase, "None">;
@@ -91,32 +92,20 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
         return rest;
       }
 
-      const nextMeta: PhaseMeta = {
-        ...existing,
-        ...meta,
-      };
-
-      const hasDueDate = nextMeta.dueDate !== undefined;
-      const hasPastDueFlag = nextMeta.isPastDue !== undefined;
-      if (!hasDueDate && !hasPastDueFlag) {
+      if (!meta?.dueDate) {
         if (existing === undefined) return prev;
         const { [phase]: removedMeta, ...rest } = prev;
         void removedMeta;
         return rest;
       }
 
-      const existingDueDateTime = existing?.dueDate?.getTime() ?? Number.NaN;
-      const nextDueDateTime = nextMeta.dueDate?.getTime() ?? Number.NaN;
-      const isSameDueDate = Number.isNaN(existingDueDateTime)
-        ? Number.isNaN(nextDueDateTime)
-        : existingDueDateTime === nextDueDateTime;
-      const isSamePastDue = existing?.isPastDue === nextMeta.isPastDue;
-
-      if (existing && isSameDueDate && isSamePastDue) {
+      const existingDueDateTime = existing?.dueDate?.getTime();
+      const nextDueDateTime = meta.dueDate.getTime();
+      if (existingDueDateTime === nextDueDateTime) {
         return prev;
       }
 
-      return { ...prev, [phase]: nextMeta };
+      return { ...prev, [phase]: { dueDate: meta.dueDate } };
     });
   }, []);
 
@@ -195,8 +184,11 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
         {PHASE_NAMES.map((phaseName, index) => {
           const meta = phaseMetaLookup[phaseName];
           const displayDate = meta ? meta.dueDate : MOCK_PHASE_DATE_LOOKUP[phaseName];
+          const isPastDue = meta?.dueDate
+            ? differenceInCalendarDays(meta.dueDate, new Date()) < 0
+            : false;
           const displayStatus = getDisplayPhaseStatus(phaseStatusLookup[phaseName], {
-            isPastDue: meta?.isPastDue,
+            isPastDue,
           });
           return (
             <PhaseBox
