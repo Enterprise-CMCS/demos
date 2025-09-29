@@ -93,7 +93,7 @@ export const CompletenessPhase: React.FC = () => {
   const canFinish = hasDocs && datesFilled && datesAreValid;
   const completenessStatus = phaseStatusContext?.phaseStatusLookup.Completeness;
   const markCompletenessFinished = () => {
-    phaseStatusContext?.updatePhaseStatus("Completeness", "completed");
+    phaseStatusContext?.updatePhaseStatus("Completeness", "Completed");
     phaseStatusContext?.selectNextPhase("Completeness");
     setNoticeDismissed(true);
   };
@@ -235,7 +235,7 @@ export const CompletenessPhase: React.FC = () => {
           <Button
             name="finish-completeness"
             size="small"
-            disabled={!canFinish || completenessStatus === "completed"}
+            disabled={!canFinish || completenessStatus === "Completed"}
             onClick={markCompletenessFinished}
           >
             Finish

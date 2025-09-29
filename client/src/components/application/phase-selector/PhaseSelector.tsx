@@ -10,21 +10,29 @@ import {
   SmeFrtPhase,
   StateApplicationPhase,
 } from "../phases";
-import type { Phase } from "demos-server";
+import type { Phase, PhaseStatus as ServerPhaseStatus } from "demos-server";
 import { PHASE } from "demos-server-constants";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { PhaseBox } from "./PhaseBox";
 import { PhaseStatusContext } from "./PhaseStatusContext";
 import type { PhaseMeta, PhaseMetaLookup } from "./PhaseStatusContext";
 import { differenceInCalendarDays } from "date-fns";
-import { BasePhaseStatus, getDisplayPhaseStatus } from "./phaseStatus";
 
 export type PhaseSelectorPhase = Exclude<Phase, "None">;
+
+export type PhaseStatus = ServerPhaseStatus | "past-due";
 
 export const PHASE_NAMES: readonly PhaseSelectorPhase[] = PHASE.filter(
   (phase): phase is PhaseSelectorPhase => phase !== "None"
 );
 export type PhaseName = (typeof PHASE_NAMES)[number];
+
+const getDisplayPhaseStatus = (status: ServerPhaseStatus, dueDate?: Date): PhaseStatus => {
+  if (status === "Started" && dueDate) {
+    return differenceInCalendarDays(dueDate, new Date()) < 0 ? "past-due" : "Started";
+  }
+  return status;
+};
 
 const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
   Concept: new Date(2024, 4, 20),
@@ -49,17 +57,17 @@ const PhaseGroups = () => {
 
 // For testing all the different styles, Will remove in DEMOS-677
 const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
-  Concept: "skipped",
-  "State Application": "completed",
-  Completeness: "in_progress",
-  "Federal Comment": "not_started",
-  "SME/FRT": "not_started",
-  "OGC & OMB": "not_started",
-  "Approval Package": "not_started",
-  "Post Approval": "not_started",
+  Concept: "Skipped",
+  "State Application": "Completed",
+  Completeness: "Started",
+  "Federal Comment": "Not Started",
+  "SME/FRT": "Not Started",
+  "OGC & OMB": "Not Started",
+  "Approval Package": "Not Started",
+  "Post Approval": "Not Started",
 };
 
-export type PhaseStatusLookup = Record<PhaseName, BasePhaseStatus>;
+export type PhaseStatusLookup = Record<PhaseName, ServerPhaseStatus>;
 interface PhaseSelectorProps {
   demonstration: ApplicationWorkflowDemonstration;
   phaseStatusLookup?: PhaseStatusLookup;
@@ -75,7 +83,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
   );
   const [phaseMetaLookup, setPhaseMetaLookup] = useState<PhaseMetaLookup>({});
 
-  const updatePhaseStatus = useCallback((phase: PhaseName, status: BasePhaseStatus) => {
+  const updatePhaseStatus = useCallback((phase: PhaseName, status: ServerPhaseStatus) => {
     setPhaseStatusLookup((prev) => {
       if (prev[phase] === status) return prev;
       return { ...prev, [phase]: status };
@@ -184,12 +192,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
         {PHASE_NAMES.map((phaseName, index) => {
           const meta = phaseMetaLookup[phaseName];
           const displayDate = meta ? meta.dueDate : MOCK_PHASE_DATE_LOOKUP[phaseName];
-          const isPastDue = meta?.dueDate
-            ? differenceInCalendarDays(meta.dueDate, new Date()) < 0
-            : false;
-          const displayStatus = getDisplayPhaseStatus(phaseStatusLookup[phaseName], {
-            isPastDue,
-          });
+          const displayStatus = getDisplayPhaseStatus(phaseStatusLookup[phaseName], meta?.dueDate);
           return (
             <PhaseBox
               key={phaseName}

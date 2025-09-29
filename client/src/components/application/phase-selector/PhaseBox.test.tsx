@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { PhaseBox } from "./PhaseBox";
 import { render, screen, fireEvent } from "@testing-library/react";
 
@@ -9,7 +9,7 @@ describe("PhaseBox", () => {
       <PhaseBox
         phaseName="Concept"
         phaseNumber={1}
-        phaseStatus="not_started"
+        phaseStatus="Not Started"
         isSelectedPhase={false}
         setPhaseAsSelected={() => {}}
       />
@@ -24,7 +24,7 @@ describe("PhaseBox", () => {
       <PhaseBox
         phaseName="Concept"
         phaseNumber={1}
-        phaseStatus="not_started"
+        phaseStatus="Not Started"
         isSelectedPhase={false}
         setPhaseAsSelected={mockFn}
       />

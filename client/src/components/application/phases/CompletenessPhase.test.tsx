@@ -12,14 +12,14 @@ import { CompletenessPhase } from "./CompletenessPhase";
 
 const mockContextValue: PhaseStatusContextValue = {
   phaseStatusLookup: {
-    Concept: "not_started",
-    "State Application": "completed",
-    Completeness: "in_progress",
-    "Federal Comment": "not_started",
-    "SME/FRT": "not_started",
-    "OGC & OMB": "not_started",
-    "Approval Package": "not_started",
-    "Post Approval": "not_started",
+    Concept: "Not Started",
+    "State Application": "Completed",
+    Completeness: "Started",
+    "Federal Comment": "Not Started",
+    "SME/FRT": "Not Started",
+    "OGC & OMB": "Not Started",
+    "Approval Package": "Not Started",
+    "Post Approval": "Not Started",
   },
   updatePhaseStatus: vi.fn(),
   phaseMetaLookup: {},
@@ -90,7 +90,7 @@ describe("CompletenessPhase", () => {
 
     fireEvent.click(finishButton);
 
-    expect(updatePhaseStatus).toHaveBeenCalledWith("Completeness", "completed");
+    expect(updatePhaseStatus).toHaveBeenCalledWith("Completeness", "Completed");
     expect(selectNextPhase).toHaveBeenCalledWith("Completeness");
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });

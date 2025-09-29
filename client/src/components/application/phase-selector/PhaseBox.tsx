@@ -1,9 +1,8 @@
 import React from "react";
 import { tw } from "tags/tw";
-import { PhaseName } from "./PhaseSelector";
+import type { PhaseName, PhaseStatus } from "./PhaseSelector";
 import { SuccessIcon } from "components/icons";
 import { PhaseDate } from "./PhaseDate";
-import { isCompletionStatus, PhaseStatus } from "./phaseStatus";
 
 const BASE_STYLES = {
   PHASE_BOX: tw`flex flex-col items-center justify-center rounded-sm hover:cursor-pointer aspect-2/1 p-1`,
@@ -12,27 +11,29 @@ const BASE_STYLES = {
 };
 
 const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> = {
-  skipped: {
+  Skipped: {
     box: tw`bg-white text-text-placeholder border border-brand`,
-    number: tw`text-brand border border-brand`,
+    number: tw``,
   },
-  completed: {
+  Completed: {
     box: tw`bg-white text-text-placeholder border border-border-fields`,
-    number: tw`text-brand border border-brand`,
+    number: tw``,
   },
-  in_progress: {
+  Started: {
     box: tw`bg-white text-text-filled font-bold border border-brand`,
     number: tw`text-brand border border-brand`,
   },
-  not_started: {
+  "Not Started": {
     box: tw`bg-surface-disabled2 text-text-placeholder border border-border-fields`,
     number: tw`text-icon-base border border-icon-base`,
   },
-  past_due: {
+  "past-due": {
     box: tw`bg-white text-text-warn font-bold border border-text-warn`,
     number: tw`text-text-warn border border-text-warn`,
   },
 };
+
+const isCompletionStatus = (status: PhaseStatus): boolean => status === "Completed" || status === "Skipped";
 
 interface PhaseBoxProps {
   phaseName: PhaseName;
