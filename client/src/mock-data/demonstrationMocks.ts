@@ -1,10 +1,5 @@
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
-import {
-  CREATE_DEMONSTRATION_MUTATION,
-  GET_ALL_DEMONSTRATIONS_QUERY,
-  GET_DEMONSTRATION_BY_ID_QUERY,
-  UPDATE_DEMONSTRATION_MUTATION,
-} from "queries/demonstrationQueries";
+import { GET_ALL_DEMONSTRATIONS_QUERY } from "queries/demonstrationQueries";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 import { MockedResponse } from "@apollo/client/testing";
@@ -21,6 +16,11 @@ import {
 import { mockPeople } from "./personMocks";
 import { mockUsers } from "./userMocks";
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
+import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstrationDialog";
+import {
+  GET_DEMONSTRATION_BY_ID_QUERY,
+  UPDATE_DEMONSTRATION_MUTATION,
+} from "components/dialog/demonstration/EditDemonstrationDialog";
 
 export type MockDemonstration = Pick<
   Demonstration,

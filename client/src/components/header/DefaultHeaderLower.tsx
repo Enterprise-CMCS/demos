@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AmendmentDialog } from "components/dialog/AmendmentDialog";
-import { CreateDemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { CreateDemonstrationDialog } from "components/dialog/";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { AddNewIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";

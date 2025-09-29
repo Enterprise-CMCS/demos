@@ -12,7 +12,7 @@ import { mockDemonstrations } from "mock-data/demonstrationMocks";
 const EDIT_BUTTON_TEST_ID = "button-edit-details";
 
 // Mock the DemonstrationDialog component
-vi.mock("components/dialog/DemonstrationDialog", () => ({
+vi.mock("components/dialog", () => ({
   EditDemonstrationDialog: () => <div>EditDemonstrationDialog</div>,
   CreateDemonstrationDialog: () => <div>CreateDemonstrationDialog</div>,
 }));
