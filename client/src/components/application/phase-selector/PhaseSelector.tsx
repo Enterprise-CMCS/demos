@@ -183,7 +183,7 @@ export const PhaseSelector = ({ demonstration, phaseStatusLookup: initialPhaseSt
 
     return (
       <div className="w-full h-full min-h-64">
-        {PhaseComponent ? <PhaseComponent /> : null}
+        <PhaseComponent />
       </div>
     );
   };

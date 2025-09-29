@@ -9,7 +9,7 @@ import { Notice, NoticeVariant } from "components/notice";
 import { differenceInCalendarDays } from "date-fns";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
-import { CompletenessUploadDialog } from "components/dialog/document/CompletenessUploadDialog";
+import { CompletenessDocumentUploadDialog } from "./CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
 import { CompletenessTestingPanel } from "./CompletenessTestingPanel";
 import { PhaseStatusContext } from "../phase-selector/PhaseStatusContext";
@@ -285,7 +285,7 @@ export const CompletenessPhase: React.FC = () => {
           </section>
 
           {/* Minimal dialog wrapper; safe to remove when wired to real data */}
-          <CompletenessUploadDialog
+          <CompletenessDocumentUploadDialog
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
           />

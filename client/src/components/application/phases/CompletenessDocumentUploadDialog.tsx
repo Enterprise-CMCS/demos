@@ -16,7 +16,7 @@ type Props = {
   refetchQueries?: string[];
 };
 
-export const CompletenessUploadDialog: React.FC<Props> = ({
+export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   bundleId = "demo-id-placeholder",
