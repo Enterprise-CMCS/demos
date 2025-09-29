@@ -1,20 +1,9 @@
 import React from "react";
 
 import { TestProvider } from "test-utils/TestProvider";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  cleanup,
-  render,
-  screen,
-} from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 
 import { StateApplicationUploadDialog } from "./StateApplicationUploadDialog";
 
@@ -32,7 +21,6 @@ const defaultProps = {
   isOpen: true,
   onClose: vi.fn(),
   bundleId: "test-bundle-id",
-  refetchQueries: ["GetStateApplicationDocuments"],
 };
 
 function setup(props = {}) {
@@ -158,10 +146,10 @@ describe("StateApplicationUploadDialog", () => {
       expect(screen.getByText("Add State Application")).toBeInTheDocument();
     });
 
-    it("uses correct refetch queries", () => {
-      setup({ refetchQueries: ["CustomQuery1", "CustomQuery2"] });
-      // The refetchQueries are passed to the underlying AddDocumentDialog
-      // This test verifies the prop is being passed correctly
+    it("handles internal refetch queries management", () => {
+      setup();
+      // The component manages refetch queries internally without exposing as prop
+      // This test verifies the dialog renders correctly with internal query management
       expect(screen.getByText("Add State Application")).toBeInTheDocument();
     });
   });

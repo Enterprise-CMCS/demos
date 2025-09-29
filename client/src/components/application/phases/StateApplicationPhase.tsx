@@ -12,7 +12,9 @@ import {
   ExportIcon,
 } from "components/icons";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
+import { useToast } from "components/toast";
 import { isLocalDevelopment } from "config/env";
+import { addDays } from "date-fns";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
@@ -31,7 +33,7 @@ const COMPLETE_STATE_APPLICATION_PHASE = gql`
 `;
 
 type Props = {
-  demonstrationId?: string;
+  demonstrationId: string;
   documents?: DocumentTableDocument[];
   onDocumentsRefetch?: () => void;
 };
@@ -49,23 +51,16 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
-// Utility function to add 15 calendar days to a date
-const addCalendarDays = (date: Date, days: number): Date => {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-};
-
 // Format date as YYYY-MM-DD for input fields
 const formatDateForInput = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  // Use native date input format (yyyy-MM-dd)
+  // eslint-disable-next-line no-nonstandard-date-formatting/no-nonstandard-date-formatting
+  const isoString = date.toISOString();
+  return isoString.split("T")[0];
 };
 
 export const StateApplicationPhase: React.FC<Props> = ({
-  demonstrationId = "default-demo-id",
+  demonstrationId,
   documents = [],
   onDocumentsRefetch,
 }) => {
@@ -73,15 +68,16 @@ export const StateApplicationPhase: React.FC<Props> = ({
   const [submittedDate, setSubmittedDate] = useState<string>("");
 
   const [mockDocuments, setMockDocuments] = useState<DocumentTableDocument[]>([]);
+  const { showError } = useToast();
 
-  const testDocuments = documents.length > 0 ? documents : mockDocuments;
+  const allDocuments = documents.length > 0 ? documents : mockDocuments;
 
   const [completePhase, { loading: finishing }] = useMutation(COMPLETE_STATE_APPLICATION_PHASE, {
     onCompleted: () => onDocumentsRefetch?.(),
   });
 
-  const stateApplicationDocuments = testDocuments.filter(
-    (doc) =>
+  const stateApplicationDocuments = allDocuments.filter(
+    (doc: DocumentTableDocument) =>
       doc.documentType === "State Application" ||
       doc.title?.toLowerCase().includes("state application") ||
       doc.description?.toLowerCase().includes("state application")
@@ -102,19 +98,17 @@ export const StateApplicationPhase: React.FC<Props> = ({
   const hasSubmittedDate = submittedDate.length > 0;
 
   // Calculate completeness review due date (submitted date + 15 calendar days)
-  const completenessReviewDueDate = hasSubmittedDate
-    ? addCalendarDays(new Date(submittedDate), 15)
-    : null;
+  const completenessReviewDueDate = hasSubmittedDate ? addDays(new Date(submittedDate), 15) : null;
 
   const isFinishEnabled = hasStateApplicationDocuments && hasSubmittedDate && !finishing;
 
   const onFinish = async () => {
     if (!hasStateApplicationDocuments) {
-      alert("At least one State Application document is required.");
+      showError("At least one State Application document is required.");
       return;
     }
     if (!hasSubmittedDate) {
-      alert("State Application Submitted Date is required.");
+      showError("State Application Submitted Date is required.");
       return;
     }
 
@@ -131,12 +125,12 @@ export const StateApplicationPhase: React.FC<Props> = ({
     });
   };
 
-  // TEMP: Mock document helpers for testing - remove when upload is implemented
+  // Simplified mock document helpers for testing UI styles
   const addMockDocument = () => {
     const newDoc: DocumentTableDocument = {
       id: `mock-${Date.now()}`,
       title: `State Application Document ${mockDocuments.length + 1}`,
-      description: "Mock state application document for testing",
+      description: "Mock document for testing UI",
       documentType: "State Application",
       createdAt: new Date(),
       owner: { person: { fullName: "Test User" } },
@@ -144,47 +138,27 @@ export const StateApplicationPhase: React.FC<Props> = ({
     setMockDocuments((prev) => [...prev, newDoc]);
   };
 
-  const removeMockDocument = (docId: string) => {
-    setMockDocuments((prev) => prev.filter((doc) => doc.id !== docId));
-  };
-
   const clearAllMockDocuments = () => {
     setMockDocuments([]);
   };
 
-  // Testing Panel Component (Development Only)
+  // Minimal Testing Panel (Development Only) - focused on UI testing
   const TestingPanel = () => (
     <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-      <h4 className="text-sm font-bold text-yellow-800 mb-2">Testing Panel (Development Only)</h4>
-      <div className="flex gap-2 flex-wrap">
+      <h4 className="text-sm font-bold text-yellow-800 mb-2">UI Testing Panel</h4>
+      <div className="flex gap-2">
         <button
           onClick={addMockDocument}
           className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
         >
-          Add Mock State Application Doc
+          Add Mock Doc
         </button>
         <button
           onClick={clearAllMockDocuments}
           className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
         >
-          Clear All Mock Docs
+          Clear All
         </button>
-        <span className="text-xs text-gray-600 self-center">
-          Mock docs: {mockDocuments.length} | State Application docs:{" "}
-          {stateApplicationDocuments.length}
-        </span>
-      </div>
-      <div className="mt-2 text-xs text-yellow-700">
-        Use these buttons to test the validation logic without actual file upload.
-      </div>
-      <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
-        <strong>Current State:</strong>
-        <br />• Has State Application Docs: {hasStateApplicationDocuments ? "✅ Yes" : "❌ No"}
-        <br />• Submitted Date: {hasSubmittedDate ? "✅ Yes" : "❌ No"}{" "}
-        {submittedDate && `(${submittedDate})`}
-        <br />• Completeness Review Due: {completenessReviewDueDate ? "✅ Yes" : "❌ No"}{" "}
-        {completenessReviewDueDate && `(${formatDateForInput(completenessReviewDueDate)})`}
-        <br />• Finish Enabled: {isFinishEnabled ? "✅ Yes" : "❌ No"}
       </div>
     </div>
   );
@@ -211,7 +185,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
         {stateApplicationDocuments.length === 0 && (
           <div className="text-sm text-text-placeholder">No documents yet.</div>
         )}
-        {stateApplicationDocuments.map((doc) => (
+        {stateApplicationDocuments.map((doc: DocumentTableDocument) => (
           <div key={doc.id} className={STYLES.fileRow}>
             <div>
               <div className="font-medium">{doc.title}</div>
@@ -224,7 +198,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
               className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
               onClick={() => {
                 if (doc.id.startsWith("mock-")) {
-                  removeMockDocument(doc.id);
+                  setMockDocuments((prev) => prev.filter((d) => d.id !== doc.id));
                 } else {
                   // TODO: wire to RemoveDocumentDialog for real documents
                   console.log("Delete document:", doc.id);

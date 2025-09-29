@@ -223,13 +223,13 @@ describe("StateApplicationPhase", () => {
   describe("Testing Panel (Development Mode)", () => {
     it("shows testing panel in development mode", () => {
       setup();
-      expect(screen.getByText("Testing Panel (Development Only)")).toBeInTheDocument();
+      expect(screen.getByText("UI Testing Panel")).toBeInTheDocument();
     });
 
     it("adds mock documents when add button clicked", async () => {
       setup();
 
-      const addButton = screen.getByRole("button", { name: /add mock state application doc/i });
+      const addButton = screen.getByRole("button", { name: /add mock doc/i });
       await userEvent.click(addButton);
 
       // Should show the mock document in the list
@@ -240,37 +240,31 @@ describe("StateApplicationPhase", () => {
       setup();
 
       // Add a mock document first
-      const addButton = screen.getByRole("button", { name: /add mock state application doc/i });
+      const addButton = screen.getByRole("button", { name: /add mock doc/i });
       await userEvent.click(addButton);
 
       // Then clear it
-      const clearButton = screen.getByRole("button", { name: /clear all mock docs/i });
+      const clearButton = screen.getByRole("button", { name: /clear all/i });
       await userEvent.click(clearButton);
 
       // Should show no documents
       expect(screen.getByText("No documents yet.")).toBeInTheDocument();
     });
 
-    it("shows current state information", () => {
+    it("shows no documents message when empty", () => {
       setup();
 
-      expect(screen.getByText(/Has State Application Docs: ❌ No/)).toBeInTheDocument();
-      expect(screen.getByText(/Submitted Date: ❌ No/)).toBeInTheDocument();
-      expect(screen.getByText(/Completeness Review Due: ❌ No/)).toBeInTheDocument();
-      expect(screen.getByText(/Finish Enabled: ❌ No/)).toBeInTheDocument();
+      expect(screen.getByText("No documents yet.")).toBeInTheDocument();
     });
 
-    it("shows positive state when documents are added", async () => {
+    it("shows documents when documents are added", async () => {
       setup();
 
-      const addButton = screen.getByRole("button", { name: /add mock state application doc/i });
+      const addButton = screen.getByRole("button", { name: /add mock doc/i });
       await userEvent.click(addButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/Has State Application Docs: ✅ Yes/)).toBeInTheDocument();
-        expect(screen.getByText(/Submitted Date: ✅ Yes/)).toBeInTheDocument();
-        expect(screen.getByText(/Completeness Review Due: ✅ Yes/)).toBeInTheDocument();
-        expect(screen.getByText(/Finish Enabled: ✅ Yes/)).toBeInTheDocument();
+        expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
       });
     });
   });
@@ -310,7 +304,7 @@ describe("StateApplicationPhase", () => {
       setup();
 
       // Add a mock document
-      const addButton = screen.getByRole("button", { name: /add mock state application doc/i });
+      const addButton = screen.getByRole("button", { name: /add mock doc/i });
       await userEvent.click(addButton);
 
       // Delete the mock document using specific aria-label
@@ -331,10 +325,9 @@ describe("StateApplicationPhase", () => {
 
       setup({ documents: [documentWithDate] });
 
-      // Check that the testing panel shows the date was populated
-      expect(screen.getByText(/Submitted Date: ✅ Yes/)).toBeInTheDocument();
-      // Flexible date matching to handle timezone differences between local and CI
-      expect(screen.getByText(/\(2024-01-(11|12)\)/)).toBeInTheDocument();
+      // Check that the date input field has been populated
+      const dateInputs = screen.getAllByDisplayValue("2024-01-12");
+      expect(dateInputs.length).toBeGreaterThan(0);
     });
 
     it("calculates completeness review due date correctly", () => {
@@ -345,10 +338,9 @@ describe("StateApplicationPhase", () => {
 
       setup({ documents: [documentWithDate] });
 
-      // Should show completeness review due date (15 days later, timezone-flexible)
-      expect(screen.getByText(/Completeness Review Due: ✅ Yes/)).toBeInTheDocument();
-      // Flexible date matching to handle timezone differences between local and CI
-      expect(screen.getByText(/\(2024-01-(25|27)\)/)).toBeInTheDocument();
+      // Check that the due date field shows the calculated date (15 days after submitted date)
+      const dueDateInputs = screen.getAllByDisplayValue("2024-01-27");
+      expect(dueDateInputs.length).toBeGreaterThan(0);
     });
   });
 
@@ -389,7 +381,7 @@ describe("StateApplicationPhase", () => {
       expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
 
       // Add mock document
-      const addButton = screen.getByRole("button", { name: /add mock state application doc/i });
+      const addButton = screen.getByRole("button", { name: /add mock doc/i });
       await userEvent.click(addButton);
 
       // Finish should now be enabled (due to auto-populated date)
