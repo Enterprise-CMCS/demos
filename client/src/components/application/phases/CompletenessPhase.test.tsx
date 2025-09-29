@@ -2,6 +2,7 @@ import React from "react";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { format } from "date-fns";
 
 import { ToastProvider } from "components/toast";
 import { MockedProvider } from "@apollo/client/testing";
@@ -103,21 +104,13 @@ describe("CompletenessPhase", () => {
 
     // Build YYYY-MM-DD strings
     const today = new Date();
-    const toISODate = (d: Date): string => {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    };
-
     const future = new Date(today);
     future.setDate(today.getDate() + 5);
     const past = new Date(today);
     past.setDate(today.getDate() - 1);
 
-    // Set a FUTURE due date
     const dueDateInput = screen.getByTestId("notice-due-date");
-    fireEvent.change(dueDateInput, { target: { value: toISODate(future) } });
+    fireEvent.change(dueDateInput, { target: { value: format(future, "yyyy-MM-dd") } });
 
     await waitFor(() => {
       expect(updatePhaseMeta).toHaveBeenCalledWith(
@@ -129,7 +122,7 @@ describe("CompletenessPhase", () => {
     });
 
     // Now set a PAST due date
-    fireEvent.change(dueDateInput, { target: { value: toISODate(past) } });
+    fireEvent.change(dueDateInput, { target: { value: format(past, "yyyy-MM-dd") } });
 
     await waitFor(() => {
       expect(updatePhaseMeta).toHaveBeenCalledWith(
