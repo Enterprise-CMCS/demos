@@ -10,7 +10,7 @@ import {
   UpdateExtensionInput,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
-import { DocumentType, Phase } from "./types.js";
+import { DocumentType, PhaseName } from "./types.js";
 import {
   getManyDemonstrations,
   createDemonstration,
@@ -221,7 +221,7 @@ async function seedDatabase() {
       description: faker.lorem.sentence(),
       cmcsDivision: sampleFromArray([...CMCS_DIVISION, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-      stateId: person.personStates[0].stateId,
+      stateId: sampleFromArray(person.personStates, 1)[0].stateId,
       projectOfficerUserId: person.id,
     };
     await createDemonstration(undefined, { input: createInput });
@@ -240,7 +240,7 @@ async function seedDatabase() {
        * And correctly seed valid dates, phase statuses, etc...
        */
       if (index === 0) {
-        updatePayload.currentPhase = "Federal Comment";
+        updatePayload.currentPhaseName = "Federal Comment";
         updatePayload.status = "Under Review";
       }
 
@@ -300,8 +300,8 @@ async function seedDatabase() {
   console.log("🌱 Seeding documents...");
   // Get the application document type
   const stateApplicationDocumentType: DocumentType = "State Application";
-  const stateApplicationPhase: Phase = "State Application";
-  const nonePhase: Phase = "None";
+  const stateApplicationPhaseName: PhaseName = "State Application";
+  const nonePhaseName: PhaseName = "None";
   for (const demonstration of demonstrations) {
     const fakeTitle = faker.lorem.sentence(2);
     await prisma().document.create({
@@ -312,7 +312,7 @@ async function seedDatabase() {
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
         bundleId: demonstration.id,
-        phaseId: stateApplicationPhase,
+        phaseId: stateApplicationPhaseName,
       },
     });
   }
@@ -331,7 +331,7 @@ async function seedDatabase() {
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
         bundleId: amendmentId.id,
-        phaseId: stateApplicationPhase,
+        phaseId: stateApplicationPhaseName,
       },
     });
   }
@@ -349,7 +349,7 @@ async function seedDatabase() {
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
         bundleId: extensionId.id,
-        phaseId: stateApplicationPhase,
+        phaseId: stateApplicationPhaseName,
       },
     });
   }
@@ -360,7 +360,7 @@ async function seedDatabase() {
     const allowedPhaseDocumentTypes = await prisma().phaseDocumentType.findRandom({
       where: {
         NOT: {
-          OR: [{ documentTypeId: stateApplicationDocumentType }, { phaseId: nonePhase }],
+          OR: [{ documentTypeId: stateApplicationDocumentType }, { phaseId: nonePhaseName }],
         },
       },
     });

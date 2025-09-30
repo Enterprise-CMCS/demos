@@ -52,7 +52,7 @@ export const DOCUMENT_TYPES = [
   "State Application",
 ] as const;
 
-export const PHASE = [
+export const PHASE_NAME = [
   "None",
   "Concept",
   "State Application",
