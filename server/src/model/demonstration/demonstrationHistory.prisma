@@ -6,8 +6,8 @@ model DemonstrationHistory {
   bundle_type_id   String
   name             String
   description      String?
-  effectiveDate    DateTime?    @map("effective_date") @db.Date
-  expirationDate   DateTime?    @map("expiration_date") @db.Date
+  effectiveDate    DateTime?    @map("effective_date") @db.Timestamptz()
+  expirationDate   DateTime?    @map("expiration_date") @db.Timestamptz()
   cmcsDivisionId   String?      @map("cmcs_division_id")
   signatureLevelId String?      @map("signature_level_id")
   statusId         String       @map("status_id")

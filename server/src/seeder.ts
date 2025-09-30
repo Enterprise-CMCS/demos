@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { TZDate } from "@date-fns/tz";
 import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -23,6 +24,17 @@ import {
   updateAmendment,
   updateExtension,
 } from "./model/modification/modificationResolvers.js";
+
+function randomDate(yearsAhead: number, type: "start" | "end") {
+  const randomDate = faker.date.future({ years: yearsAhead });
+  const randomEasternDate = new TZDate(randomDate, "America/New_York");
+  if (type === "start") {
+    randomEasternDate.setHours(0, 0, 0, 0);
+  } else {
+    randomEasternDate.setHours(23, 59, 59, 999);
+  }
+  return randomEasternDate;
+}
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
@@ -218,8 +230,8 @@ async function seedDatabase() {
   await Promise.all(
     demonstrations.map((demonstration, index) => {
       const updatePayload: UpdateDemonstrationInput = {
-        effectiveDate: faker.date.future({ years: 1 }),
-        expirationDate: faker.date.future({ years: 2 }),
+        effectiveDate: randomDate(1, "start"),
+        expirationDate: randomDate(2, "end"),
       };
 
       /*
@@ -253,8 +265,8 @@ async function seedDatabase() {
   const amendments = await getManyAmendments();
   for (const amendment of amendments) {
     const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: faker.date.future({ years: 1 }),
-      expirationDate: faker.date.future({ years: 2 }),
+      effectiveDate: randomDate(1, "start"),
+      expirationDate: randomDate(2, "end"),
     };
     const updateInput = {
       id: amendment.id,
@@ -275,8 +287,8 @@ async function seedDatabase() {
   const extensions = await getManyExtensions();
   for (const extension of extensions) {
     const updatePayload: UpdateExtensionInput = {
-      effectiveDate: faker.date.future({ years: 1 }),
-      expirationDate: faker.date.future({ years: 2 }),
+      effectiveDate: randomDate(1, "start"),
+      expirationDate: randomDate(2, "end"),
     };
     const updateInput = {
       id: extension.id,
