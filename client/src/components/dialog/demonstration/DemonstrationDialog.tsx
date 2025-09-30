@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
+import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { TextInput } from "components/input/TextInput";
@@ -18,7 +18,7 @@ export type DemonstrationDialogMode = "create" | "edit";
 
 export type DemonstrationDialogFields = Pick<
   Demonstration,
-  "name" | "description" | "cmcsDivision" | "signatureLevel"
+  "name" | "description" | "sdgDivision" | "signatureLevel"
 > & { stateId: string; projectOfficerId: string; effectiveDate: string; expirationDate: string };
 
 const DemonstrationDescriptionTextArea: React.FC<{
@@ -245,9 +245,9 @@ export const DemonstrationDialog: React.FC<{
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <SelectCMCSDivision
-            onSelect={(cmcsDivision) =>
-              setActiveDemonstration((prev) => ({ ...prev, cmcsDivision }))
+          <SelectSdgDivision
+            onSelect={(sdgDivision) =>
+              setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))
             }
           />
           <SelectSignatureLevel

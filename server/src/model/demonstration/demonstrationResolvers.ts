@@ -43,7 +43,7 @@ export async function createDemonstration(
           bundleTypeId: bundle.bundleTypeId,
           name: input.name,
           description: input.description,
-          cmcsDivisionId: input.cmcsDivision,
+          sdgDivisionId: input.sdgDivision,
           signatureLevelId: input.signatureLevel,
           statusId: newBundleStatusId,
           stateId: input.stateId,
@@ -105,7 +105,7 @@ export async function updateDemonstration(
       description: input.description,
       effectiveDate: input.effectiveDate,
       expirationDate: input.expirationDate,
-      cmcsDivisionId: input.cmcsDivision,
+      sdgDivisionId: input.sdgDivision,
       signatureLevelId: input.signatureLevel,
       statusId: input.status,
       currentPhaseId: input.currentPhaseName,
@@ -163,8 +163,8 @@ export const demonstrationResolvers = {
       });
     },
 
-    cmcsDivision: async (parent: Demonstration) => {
-      return parent.cmcsDivisionId;
+    sdgDivision: async (parent: Demonstration) => {
+      return parent.sdgDivisionId;
     },
 
     signatureLevel: async (parent: Demonstration) => {
