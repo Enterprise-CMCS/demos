@@ -1,31 +1,38 @@
-import { CreateDemonstrationInput, Demonstration } from "demos-server";
-import { GET_ALL_DEMONSTRATIONS_QUERY } from "queries/demonstrationQueries";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
-import { MockedResponse } from "@apollo/client/testing";
-import { MockState, mockStates } from "./stateMocks";
-import { MockAmendment, mockAmendments } from "./amendmentMocks";
-import { MockExtension, mockExtensions } from "./extensionMocks";
-import { MockDocument, mockDocuments } from "./documentMocks";
-import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
-import type { BundleStatus } from "demos-server";
 import {
-  mockDemonstrationRoleAssignments,
-  MockDemonstrationRoleAssignment,
-} from "./demonstrationRoleAssignmentMocks";
-import { mockPeople } from "./personMocks";
-import { mockUsers } from "./userMocks";
-import { STATES_AND_TERRITORIES } from "demos-server-constants";
-import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstrationDialog";
+  CREATE_DEMONSTRATION_MUTATION,
+} from "components/dialog/demonstration/CreateDemonstrationDialog";
 import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
+import type { BundleStatus } from "demos-server";
+import {
+  CreateDemonstrationInput,
+  Demonstration,
+} from "demos-server";
+import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
+import { GET_ALL_DEMONSTRATIONS_QUERY } from "queries/demonstrationQueries";
+
+import { MockedResponse } from "@apollo/client/testing";
+
+import { MockAmendment } from "./amendmentMocks";
+import { MockDemonstrationRoleAssignment } from "./demonstrationRoleAssignmentMocks";
+import { MockDocument } from "./documentMocks";
+import { MockExtension } from "./extensionMocks";
+import { mockPeople } from "./personMocks";
+import {
+  MockState,
+  mockStates,
+} from "./stateMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "effectiveDate" | "expirationDate"
+  "id" | "name" | "description" | "cmcsDivision" | "signatureLevel"
 > & {
+  effectiveDate: string | null;
+  expirationDate: string | null;
   status: BundleStatus;
   state: MockState;
   amendments: MockAmendment[];
@@ -38,57 +45,77 @@ export type MockDemonstration = Pick<
 export const mockDemonstrations = [
   {
     id: "1",
-    name: "Montana Medicaid Waiver",
-    description: "A demonstration project in Montana.",
-    effectiveDate: new Date(2025, 0, 1),
-    expirationDate: new Date(2025, 11, 1),
+    name: "Test Demonstration 1",
+    description: "A test demonstration.",
+    effectiveDate: "2025-01-01T00:00:00.000Z",
+    expirationDate: "2025-12-01T00:00:00.000Z",
     status: "Approved",
-    state: mockStates.find((state) => state.id === "MT")!,
-    amendments: [mockAmendments[0], mockAmendments[1], mockAmendments[5]],
-    extensions: [mockExtensions[0], mockExtensions[1], mockExtensions[2]],
+    cmcsDivision: "Division of System Reform Demonstrations",
+    signatureLevel: "OA",
+    state: mockStates[0],
+    amendments: [],
+    extensions: [],
     demonstrationTypes: [],
-    documents: [mockDocuments[0], mockDocuments[1], mockDocuments[2]],
+    documents: [],
     roles: [
-      mockDemonstrationRoleAssignments[0],
-      mockDemonstrationRoleAssignments[3],
-      mockDemonstrationRoleAssignments[4],
+      {
+        role: "Project Officer",
+        isPrimary: true,
+        person: mockPeople[0],
+      },
     ],
   },
   {
     id: "2",
-    name: "Florida Health Innovation",
-    description: "A health innovation project in Florida.",
-    effectiveDate: new Date(2025, 0, 2),
-    expirationDate: new Date(2025, 11, 2),
+    name: "Test Demonstration 2",
+    description: "Another test demonstration.",
+    effectiveDate: "2024-06-15T00:00:00.000Z",
+    expirationDate: "2026-06-15T00:00:00.000Z",
     status: "Pre-Submission",
-    state: mockStates.find((state) => state.id === "FL")!,
-    amendments: [mockAmendments[2], mockAmendments[3], mockAmendments[4]],
-    extensions: [] as MockExtension[],
+    cmcsDivision: "Division of Eligibility and Coverage Demonstrations",
+    signatureLevel: "OCD",
+    state: mockStates[1],
+    amendments: [],
+    extensions: [],
     demonstrationTypes: [],
-    documents: [mockDocuments[3]],
-    roles: [mockDemonstrationRoleAssignments[1]],
+    documents: [],
+    roles: [
+      {
+        role: "Project Officer",
+        isPrimary: true,
+        person: mockPeople[1],
+      },
+    ],
   },
   {
     id: "3",
-    name: "Texas Reform Initiative",
-    effectiveDate: new Date(2025, 0, 3),
-    expirationDate: new Date(2025, 11, 3),
-    description: "A reform initiative in Texas.",
-    status: "On-hold",
-    state: mockStates.find((state) => state.id === "TX")!,
-    amendments: [] as MockAmendment[],
-    extensions: [] as MockExtension[],
+    name: "Test Demonstration 3",
+    description: "A third test demonstration.",
+    effectiveDate: "2024-03-01T00:00:00.000Z",
+    expirationDate: "2027-03-01T00:00:00.000Z",
+    status: "Under Review",
+    cmcsDivision: "Division of System Reform Demonstrations",
+    signatureLevel: "OGD",
+    state: mockStates[2],
+    amendments: [],
+    extensions: [],
     demonstrationTypes: [],
-    documents: [] as MockDocument[],
-    roles: [mockDemonstrationRoleAssignments[0], mockDemonstrationRoleAssignments[5]],
+    documents: [],
+    roles: [
+      {
+        role: "Project Officer",
+        isPrimary: true,
+        person: mockPeople[2],
+      },
+    ],
   },
 ] as const satisfies MockDemonstration[];
 
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   name: "New Demonstration",
   description: "New Description",
-  stateId: "CA",
-  projectOfficerUserId: mockUsers[0].id,
+  stateId: "1",
+  projectOfficerUserId: "1",
 };
 
 export const demonstrationMocks: MockedResponse[] = [
@@ -114,10 +141,28 @@ export const demonstrationMocks: MockedResponse[] = [
   {
     request: {
       query: GET_DEMONSTRATION_BY_ID_QUERY,
-      variables: { id: mockDemonstrations[0].id },
+      variables: { id: "1" },
     },
     result: {
       data: { demonstration: mockDemonstrations[0] },
+    },
+  },
+  {
+    request: {
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      variables: { id: "2" },
+    },
+    result: {
+      data: { demonstration: mockDemonstrations[1] },
+    },
+  },
+  {
+    request: {
+      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      variables: { id: "3" },
+    },
+    result: {
+      data: { demonstration: mockDemonstrations[2] },
     },
   },
   {
@@ -162,29 +207,126 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { createDemonstration: { success: true, message: "Created" } },
     },
   },
+  // Update demonstration mock - flexible for various update scenarios
   {
     request: {
       query: UPDATE_DEMONSTRATION_MUTATION,
       variables: {
         id: "1",
         input: {
-          name: "Updated Demo Name",
-          description: "Updated description",
-          effectiveDate: new Date(2025, 0, 1),
-          expirationDate: new Date(2025, 11, 1),
-          status: "Pre-Submission",
-          stateId: STATES_AND_TERRITORIES.find((state) => state.id === "MT")!.id,
+          name: "Test Demonstration 1",
+          description: "A test demonstration.",
+          stateId: "AL",
+          cmcsDivision: "Division of System Reform Demonstrations",
+          signatureLevel: "OA",
         },
       },
     },
     result: {
       data: {
         updateDemonstration: {
-          ...mockDemonstrations[0],
-          name: "Updated Demo Name",
-          description: "Updated description",
-          effectiveDate: new Date(2025, 0, 1),
-          expirationDate: new Date(2025, 11, 1),
+          id: "1",
+          name: "Test Demonstration 1",
+          description: "A test demonstration.",
+          effectiveDate: "2025-01-01T00:00:00.000Z",
+          expirationDate: "2025-12-01T00:00:00.000Z",
+          state: {
+            id: "AL",
+            name: "Alabama",
+          },
+        },
+      },
+    },
+  },
+  // Additional update demonstration mock for different field values
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "1",
+        input: {
+          name: "Test Demonstration 123",
+          description: "A test demonstration.",
+          stateId: "AL",
+          cmcsDivision: "Division of System Reform Demonstrations",
+          signatureLevel: "OA",
+        },
+      },
+    },
+    result: {
+      data: {
+        updateDemonstration: {
+          id: "1",
+          name: "Test Demonstration 123",
+          description: "A test demonstration.",
+          effectiveDate: "2025-01-01T00:00:00.000Z",
+          expirationDate: "2025-12-01T00:00:00.000Z",
+          state: {
+            id: "AL",
+            name: "Alabama",
+          },
+        },
+      },
+    },
+  },
+  // Update mock for demonstration 2
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "2",
+        input: {
+          name: "Test Demonstration 2",
+          description: "Another test demonstration.",
+          stateId: "AK",
+          cmcsDivision: "Division of Eligibility and Coverage Demonstrations",
+          signatureLevel: "OCD",
+        },
+      },
+    },
+    result: {
+      data: {
+        updateDemonstration: {
+          id: "2",
+          name: "Test Demonstration 2",
+          description: "Another test demonstration.",
+          effectiveDate: "2024-06-15T00:00:00.000Z",
+          expirationDate: "2026-06-15T00:00:00.000Z",
+          state: {
+            id: "AK",
+            name: "Alaska",
+          },
+        },
+      },
+    },
+  },
+  // Update mock for demonstration 3
+  {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "3",
+        input: {
+          name: "Test Demonstration 3",
+          description: "A third test demonstration.",
+          stateId: "AZ",
+          cmcsDivision: "Division of System Reform Demonstrations",
+          signatureLevel: "OGD",
+        },
+      },
+    },
+    result: {
+      data: {
+        updateDemonstration: {
+          id: "3",
+          name: "Test Demonstration 3",
+          description: "A third test demonstration.",
+          effectiveDate: "2024-03-01T00:00:00.000Z",
+          expirationDate: "2027-03-01T00:00:00.000Z",
+          state: {
+            id: "AZ",
+            name: "Arizona",
+          },
         },
       },
     },

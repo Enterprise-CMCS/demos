@@ -1,7 +1,12 @@
 import React from "react";
-import { SIGNATURE_LEVEL } from "demos-server-constants";
-import { Option, Select } from "./Select";
+
 import { SignatureLevel } from "demos-server";
+import { SIGNATURE_LEVEL } from "demos-server-constants";
+
+import {
+  Option,
+  Select,
+} from "./Select";
 
 const labelMap: Record<SignatureLevel, string> = {
   OA: "OA - Office of the Administrator",
@@ -16,10 +21,18 @@ const options: Option[] = SIGNATURE_LEVEL.map((level) => ({
 
 export const SelectSignatureLevel = ({
   onSelect,
+  initialValue,
 }: {
   onSelect: (value: SignatureLevel) => void;
+  initialValue?: SignatureLevel;
 }) => {
-  const [signatureLevel, setSignatureLevel] = React.useState<SignatureLevel | undefined>();
+  const [signatureLevel, setSignatureLevel] = React.useState<SignatureLevel | undefined>(
+    initialValue
+  );
+
+  React.useEffect(() => {
+    setSignatureLevel(initialValue);
+  }, [initialValue]);
   return (
     <Select
       value={signatureLevel}

@@ -1,15 +1,30 @@
 import React from "react";
-import { CMCS_DIVISION } from "demos-server-constants";
-import { Option, Select } from "./Select";
+
 import { CmcsDivision } from "demos-server";
+import { CMCS_DIVISION } from "demos-server-constants";
+
+import {
+  Option,
+  Select,
+} from "./Select";
 
 const options: Option[] = CMCS_DIVISION.map((division) => ({
   value: division,
   label: division,
 }));
 
-export const SelectCMCSDivision = ({ onSelect }: { onSelect: (value: CmcsDivision) => void }) => {
-  const [cmcsDivision, setCmcsDivision] = React.useState<CmcsDivision | undefined>();
+export const SelectCMCSDivision = ({
+  onSelect,
+  initialValue,
+}: {
+  onSelect: (value: CmcsDivision) => void;
+  initialValue?: CmcsDivision;
+}) => {
+  const [cmcsDivision, setCmcsDivision] = React.useState<CmcsDivision | undefined>(initialValue);
+
+  React.useEffect(() => {
+    setCmcsDivision(initialValue);
+  }, [initialValue]);
   return (
     <Select
       value={cmcsDivision}

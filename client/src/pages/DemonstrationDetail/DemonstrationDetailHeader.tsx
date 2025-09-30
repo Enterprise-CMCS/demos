@@ -1,11 +1,32 @@
 import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button/CircleButton";
+import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, DemonstrationRoleAssignment, Person, State } from "demos-server";
-import { ApolloError } from "@apollo/client";
 import { formatDate } from "util/formatDate";
-import { AmendmentDialog, ExtensionDialog } from "components/dialog";
+
+import { ApolloError } from "@apollo/client";
+
+const safeDateFormat = (date: Date | string | null | undefined): string => {
+  if (!date) return "--/--/----";
+
+  try {
+    if (typeof date === "string") {
+      const datePart = date.split("T")[0];
+      const [year, month, day] = datePart.split("-");
+      return `${month}/${day}/${year}`;
+    }
+
+    if (date instanceof Date) {
+      return formatDate(date);
+    }
+
+    return "--/--/----";
+  } catch {
+    return "--/--/----";
+  }
+};
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
@@ -83,11 +104,11 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     { label: "Status", value: demonstration.status },
     {
       label: "Effective",
-      value: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----",
+      value: safeDateFormat(demonstration.effectiveDate),
     },
     {
       label: "Expiration",
-      value: demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "--/--/----",
+      value: safeDateFormat(demonstration.expirationDate),
     },
   ];
 
