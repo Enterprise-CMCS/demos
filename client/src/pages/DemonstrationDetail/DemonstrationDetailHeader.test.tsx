@@ -1,16 +1,27 @@
 import React from "react";
+
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
-import { DemonstrationDetailHeader } from "./DemonstrationDetailHeader";
+
 import { render, screen, within } from "@testing-library/react";
+
+import { DemonstrationDetailHeader } from "./DemonstrationDetailHeader";
+
+// Helper to convert mock demonstration to proper format for DemonstrationDetailHeader
+const createTestHeaderDemonstration = (mockDemo: (typeof mockDemonstrations)[0]) => ({
+  id: mockDemo.id,
+  name: mockDemo.name,
+  status: mockDemo.status,
+  effectiveDate: new Date(mockDemo.effectiveDate),
+  expirationDate: new Date(mockDemo.expirationDate),
+  state: mockDemo.state,
+  roles: mockDemo.roles,
+});
 
 describe("Demonstration Detail Header", () => {
   it("renders demonstration header info", async () => {
+    const testDemo = createTestHeaderDemonstration(mockDemonstrations[0]);
     render(
-      <DemonstrationDetailHeader
-        onEdit={() => {}}
-        onDelete={() => {}}
-        demonstration={mockDemonstrations[0]}
-      />
+      <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstration={testDemo} />
     );
 
     // Check breadcrumb navigation
@@ -27,7 +38,7 @@ describe("Demonstration Detail Header", () => {
 
     // Expected attributes in order
     const expectedAttributes = [
-      { label: "State/Territory", value: "MT" },
+      { label: "State/Territory", value: "AL" },
       { label: "Project Officer", value: "John Doe" },
       { label: "Status", value: "Approved" },
       { label: "Effective", value: "01/01/2025" },

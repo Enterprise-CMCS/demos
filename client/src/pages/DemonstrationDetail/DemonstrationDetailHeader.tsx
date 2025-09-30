@@ -4,7 +4,6 @@ import { CircleButton } from "components/button/CircleButton";
 import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, DemonstrationRoleAssignment, Person, State } from "demos-server";
-import { formatDate } from "util/formatDate";
 
 import { ApolloError } from "@apollo/client";
 
@@ -19,7 +18,12 @@ const safeDateFormat = (date: Date | string | null | undefined): string => {
     }
 
     if (date instanceof Date) {
-      return formatDate(date);
+      // Use timezone-safe ISO string parsing to avoid date-fns timezone conversion
+      // eslint-disable-next-line no-nonstandard-date-formatting/no-nonstandard-date-formatting
+      const isoString = date.toISOString();
+      const datePart = isoString.split("T")[0];
+      const [year, month, day] = datePart.split("-");
+      return `${month}/${day}/${year}`;
     }
 
     return "--/--/----";
