@@ -3,7 +3,7 @@ import { prisma } from "../../prismaClient.js";
 
 export const bundlePhaseResolvers = {
   BundlePhase: {
-    phase: async (parent: BundlePhase) => {
+    phaseName: async (parent: BundlePhase) => {
       return parent.phaseId;
     },
     phaseStatus: async (parent: BundlePhase) => {

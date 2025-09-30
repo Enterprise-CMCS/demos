@@ -30,7 +30,7 @@ const mockPhaseDates: SimplePhaseDate[] = [
 
 const mockBundlePhases: SimplePhase[] = [
   {
-    phase: "Concept",
+    phaseName: "Concept",
     phaseStatus: "Started",
     phaseDates: [
       {
@@ -40,7 +40,7 @@ const mockBundlePhases: SimplePhase[] = [
     ],
   },
   {
-    phase: "State Application",
+    phaseName: "State Application",
     phaseStatus: "Not Started",
     phaseDates: [
       {
@@ -50,7 +50,7 @@ const mockBundlePhases: SimplePhase[] = [
     ],
   },
   {
-    phase: "Completeness",
+    phaseName: "Completeness",
     phaseStatus: "Not Started",
     phaseDates: [],
   },
@@ -231,12 +231,12 @@ describe("phaseDates", () => {
     it("should handle multiple phases with same date types", () => {
       const phases: SimplePhase[] = [
         {
-          phase: "Concept",
+          phaseName: "Concept",
           phaseStatus: "Started",
           phaseDates: [{ dateType: "Start Date", dateValue: new Date("2025-01-01") }],
         },
         {
-          phase: "State Application",
+          phaseName: "State Application",
           phaseStatus: "Not Started",
           phaseDates: [{ dateType: "Start Date", dateValue: new Date("2025-02-01") }],
         },
