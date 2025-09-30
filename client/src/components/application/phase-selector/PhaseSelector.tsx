@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Phase } from "demos-server";
+import type { Phase as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
@@ -13,23 +13,13 @@ import {
   SmeFrtPhase,
   StateApplicationPhase,
 } from "../phases";
+import { PHASE } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
 
-const PHASE_NAMES = [
-  "Concept",
-  "State Application",
-  "Completeness",
-  "Federal Comment",
-  "SME/FRT",
-  "OGC & OMB",
-  "Approval Package",
-  "Post Approval",
-] as const;
-
-export type PhaseName = (typeof PHASE_NAMES)[number];
-
-export type PhaseSelectorPhase = Exclude<Phase, "None">;
-export type PhaseStatus = "skipped" | "not_started" | "in_progress" | "completed";
+// TODO: get past-due added to the shared enum
+export type PhaseStatus = ServerPhaseStatus | "past-due";
+export type PhaseName = Exclude<ServerPhase, "None">;
+const PHASE_NAMES: PhaseName[] = PHASE.filter((phase): phase is PhaseName => phase !== "None");
 
 const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
   Concept: new Date(2024, 4, 20),
@@ -52,16 +42,15 @@ const PhaseGroups = () => {
   );
 };
 
-// For testing all the different styles, Will remove in DEMOS-677
 const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
-  Concept: "skipped",
-  "State Application": "completed",
-  Completeness: "in_progress",
-  "Federal Comment": "not_started",
-  "SME/FRT": "not_started",
-  "OGC & OMB": "not_started",
-  "Approval Package": "not_started",
-  "Post Approval": "not_started",
+  Concept: "Skipped",
+  "State Application": "Completed",
+  Completeness: "Started",
+  "Federal Comment": "past-due",
+  "SME/FRT": "Not Started",
+  "OGC & OMB": "Not Started",
+  "Approval Package": "Not Started",
+  "Post Approval": "Not Started",
 };
 
 export type PhaseStatusLookup = Record<PhaseName, PhaseStatus>;
@@ -70,10 +59,20 @@ interface PhaseSelectorProps {
   phaseStatusLookup?: PhaseStatusLookup;
 }
 
-export const PhaseSelector = (props: PhaseSelectorProps) => {
-  const PHASE_COMPONENTS_LOOKUP: Record<PhaseSelectorPhase, React.ComponentType> = {
+export const PhaseSelector = ({
+  demonstration,
+  phaseStatusLookup = MOCK_PHASE_STATUS_LOOKUP,
+}: PhaseSelectorProps) => {
+  const fallbackPhase: PhaseName = "Concept";
+  const initialPhase: PhaseName =
+    demonstration.currentPhase && demonstration.currentPhase !== "None"
+      ? (demonstration.currentPhase as PhaseName)
+      : fallbackPhase;
+  const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
+
+  const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: ConceptPhase,
-    "State Application": () => <StateApplicationPhase demonstrationId={props.demonstration.id} />,
+    "State Application": () => <StateApplicationPhase demonstrationId={demonstration.id} />,
     Completeness: CompletenessPhase,
     "Federal Comment": () => {
       const phaseStartDate = FEDERAL_COMMENT_START_DATE;
@@ -82,7 +81,7 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
 
       return (
         <FederalCommentPhase
-          demonstrationId={props.demonstration.id}
+          demonstrationId={demonstration.id}
           phaseStartDate={phaseStartDate}
           phaseEndDate={phaseEndDate}
         />
@@ -95,7 +94,7 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
   };
 
   const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
-    const PhaseComponent = PHASE_COMPONENTS_LOOKUP[selectedPhase];
+    const PhaseComponent = phaseComponentsLookup[selectedPhase];
 
     return (
       <div className="w-full h-full min-h-64">
@@ -104,29 +103,25 @@ export const PhaseSelector = (props: PhaseSelectorProps) => {
     );
   };
 
-  const mappedInitialPhase = PHASE_NAMES.includes(
-    props.demonstration.currentPhase as PhaseSelectorPhase
-  )
-    ? (props.demonstration.currentPhase as PhaseSelectorPhase)
-    : "Concept";
-  const [selectedPhase, setSelectedPhase] = useState<PhaseSelectorPhase>(mappedInitialPhase);
-  const [phaseStatusLookup] = useState<PhaseStatusLookup>(MOCK_PHASE_STATUS_LOOKUP);
-
   return (
     <>
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
-        {PHASE_NAMES.map((phaseName, idx) => (
-          <PhaseBox
-            key={phaseName}
-            phaseName={phaseName}
-            phaseStatus={phaseStatusLookup[phaseName]}
-            phaseNumber={idx + 1}
-            displayDate={MOCK_PHASE_DATE_LOOKUP[phaseName]}
-            isSelectedPhase={selectedPhase === phaseName}
-            setPhaseAsSelected={() => setSelectedPhase(phaseName)}
-          />
-        ))}
+        {PHASE_NAMES.map((phaseName, index) => {
+          const displayDate = MOCK_PHASE_DATE_LOOKUP[phaseName];
+          const displayStatus = phaseStatusLookup[phaseName];
+          return (
+            <PhaseBox
+              key={phaseName}
+              phaseName={phaseName}
+              phaseStatus={displayStatus}
+              phaseNumber={index + 1}
+              displayDate={displayDate}
+              isSelectedPhase={selectedPhase === phaseName}
+              setPhaseAsSelected={() => setSelectedPhase(phaseName)}
+            />
+          );
+        })}
       </div>
       <DisplayPhase selectedPhase={selectedPhase} />
     </>
