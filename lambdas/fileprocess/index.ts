@@ -1,3 +1,5 @@
+import { SQSEvent, GuardDutyScanResultNotificationEvent } from "aws-lambda";
+
 import { Client } from "pg";
 import { S3Client, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
@@ -12,7 +14,9 @@ const s3Config = process.env.AWS_ENDPOINT_URL
       endpoint: process.env.AWS_ENDPOINT_URL,
       forcePathStyle: true,
     }
-  : undefined;
+  : {
+      region: process.env.AWS_REGION,
+    };
 
 const s3 = new S3Client(s3Config);
 
@@ -51,7 +55,7 @@ export async function getDatabaseUrl() {
   return databaseUrlCache;
 }
 
-function isGuardDutyScanClean(guardDutyEvent) {
+export function isGuardDutyScanClean(guardDutyEvent: GuardDutyScanResultNotificationEvent) {
   try {
     if (guardDutyEvent["detail-type"] !== "GuardDuty Malware Protection Object Scan Result") {
       console.log("Not a GuardDuty Malware Protection scan result");
@@ -76,7 +80,7 @@ function isGuardDutyScanClean(guardDutyEvent) {
   }
 }
 
-function extractS3InfoFromGuardDuty(guardDutyEvent) {
+export function extractS3InfoFromGuardDuty(guardDutyEvent: GuardDutyScanResultNotificationEvent) {
   const s3Details = guardDutyEvent.detail?.s3ObjectDetails;
   if (!s3Details) {
     throw new Error("No S3 object details found in GuardDuty event");
@@ -88,7 +92,7 @@ function extractS3InfoFromGuardDuty(guardDutyEvent) {
   };
 }
 
-async function getBundleId(client, fileKey) {
+export async function getBundleId(client: typeof Client, fileKey: string) {
   const getBundleIdQuery = `SELECT bundle_id FROM ${dbSchema}.document_pending_upload WHERE id = $1;`;
 
   try {
@@ -100,16 +104,14 @@ async function getBundleId(client, fileKey) {
 
     return result.rows[0].bundle_id;
   } catch (error) {
-    throw new Error(`Failed to get bundle ID for key ${fileKey}: ${error.message}`);
+    throw new Error(`Failed to get bundle ID for key ${fileKey}: ${(error as Error).message}`);
   }
 }
 
-async function moveFileToCleanBucket(fileKey, bundleId, sourceBucket = uploadBucket) {
+export async function moveFileToCleanBucket(fileKey: string, bundleId: string, sourceBucket = uploadBucket) {
   const destinationKey = `${bundleId}/${fileKey}`;
 
-  console.log(
-    `Moving file from s3://${sourceBucket}/${fileKey} to s3://${cleanBucket}/${destinationKey}`
-  );
+  console.log(`Moving file from s3://${sourceBucket}/${fileKey} to s3://${cleanBucket}/${destinationKey}`);
 
   await s3.send(
     new CopyObjectCommand({
@@ -133,13 +135,16 @@ async function moveFileToCleanBucket(fileKey, bundleId, sourceBucket = uploadBuc
   return destinationKey;
 }
 
-async function updateDatabase(client, fileKey, s3Path) {
+async function updateDatabase(client: typeof Client, fileKey: string, s3Path: string) {
   const processDocumentQuery = `CALL ${dbSchema}.${MOVE_DOCUMENT_PROCEDURE}($1::UUID, $2::TEXT);`;
   console.log(`Updating database with s3Path: ${s3Path}`);
   await client.query(processDocumentQuery, [fileKey, s3Path]);
 }
 
-async function processGuardDutyResult(client, guardDutyEvent) {
+export async function processGuardDutyResult(
+  client: typeof Client,
+  guardDutyEvent: GuardDutyScanResultNotificationEvent
+) {
   const s3Info = extractS3InfoFromGuardDuty(guardDutyEvent);
   const { bucket, key } = s3Info;
 
@@ -157,12 +162,12 @@ async function processGuardDutyResult(client, guardDutyEvent) {
 
     console.log(`Successfully processed clean file ${key}`);
   } catch (error) {
-    console.error(`Failed to process clean file ${key}:`, error.message);
+    console.error(`Failed to process clean file ${key}:`, (error as Error).message);
     throw error;
   }
 }
 
-export const handler = async (event) => {
+export const handler = async (event: SQSEvent) => {
   console.log("Environment variables:", {
     AWS_REGION: process.env.AWS_REGION,
     AWS_ENDPOINT_URL: process.env.AWS_ENDPOINT_URL,
@@ -172,7 +177,21 @@ export const handler = async (event) => {
   });
 
   let client;
-  const results = {
+
+  interface FileInfo {
+    bucket: string;
+    key: string;
+    status: string;
+  }
+
+  interface Results {
+    processedRecords: number;
+    cleanFiles: FileInfo[];
+    infectedFiles: FileInfo[];
+    errors: string[];
+  }
+
+  const results: Results = {
     processedRecords: 0,
     cleanFiles: [],
     infectedFiles: [],
@@ -181,6 +200,7 @@ export const handler = async (event) => {
 
   try {
     client = new Client({ connectionString: await getDatabaseUrl() });
+    console.log("this is the client --->", client);
     await client.connect();
     const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
     await client.query(setSearchPathQuery);
@@ -188,7 +208,7 @@ export const handler = async (event) => {
     // Process each record - if any fails, the entire Lambda should fail
     for (const record of event.Records) {
       try {
-        const guardDutyEvent = JSON.parse(record.body);
+        const guardDutyEvent: GuardDutyScanResultNotificationEvent = JSON.parse(record.body);
         console.log("Received GuardDuty event:", JSON.stringify(guardDutyEvent, null, 2));
 
         const s3Info = extractS3InfoFromGuardDuty(guardDutyEvent);
@@ -214,7 +234,7 @@ export const handler = async (event) => {
         results.processedRecords++;
       } catch (error) {
         console.error("Error processing record:", error);
-        results.errors.push(error.message);
+        results.errors.push((error as Error).message);
         throw error;
       }
     }
@@ -228,7 +248,7 @@ export const handler = async (event) => {
     };
   } catch (error) {
     console.error("Lambda execution failed:", error);
-    throw new Error(`Lambda failed: ${error.message}`);
+    throw new Error(`Lambda failed: ${(error as Error).message}`);
   } finally {
     if (client) {
       try {
