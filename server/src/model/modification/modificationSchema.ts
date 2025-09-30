@@ -8,8 +8,8 @@ export const modificationSchema = gql`
     demonstration: Demonstration!
     name: String!
     description: String!
-    effectiveDate: Date
-    expirationDate: Date
+    effectiveDate: DateTime
+    expirationDate: DateTime
     status: BundleStatus!
     currentPhaseName: PhaseName!
     phases: [BundlePhase!]!
@@ -28,8 +28,8 @@ export const modificationSchema = gql`
     demonstrationId: ID
     name: String
     description: String
-    effectiveDate: Date
-    expirationDate: Date
+    effectiveDate: DateTime
+    expirationDate: DateTime
     status: BundleStatus
     currentPhaseName: PhaseName
   }

@@ -16,8 +16,8 @@ export const demonstrationSchema = gql`
     id: ID!
     name: String!
     description: String!
-    effectiveDate: Date
-    expirationDate: Date
+    effectiveDate: DateTime
+    expirationDate: DateTime
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
     status: BundleStatus!
