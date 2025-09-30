@@ -104,7 +104,9 @@ export const CompletenessPhase: React.FC = () => {
             </div>
             <button
               className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-              onClick={() => console.log("delete", doc.id)}
+              onClick={() =>
+                setCompletenessDocs((docs) => docs.filter((d) => d.id !== doc.id))
+              }
               aria-label={`Delete ${doc.title}`}
               title={`Delete ${doc.title}`}
             >
