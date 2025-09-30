@@ -4,14 +4,14 @@ import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwkClient from "jwks-rsa";
 
 const client = jwkClient({
-  jwksUri: process.env.JWKS_URI!,
+  jwksUri: process.env.JWKS_URI,
 });
 
 /* v8 ignore start - ignoring this function since its just a wrapper*/
 function getKey(header: JwtHeader, callback: SigningKeyCallback) {
   client.getSigningKey(header.kid, function (err, key) {
     if (err || !key) return callback(err || new Error("Signing key not found"));
-    var signingKey = key.getPublicKey();
+    const signingKey = key.getPublicKey();
     callback(null, signingKey);
   });
 }
@@ -76,7 +76,7 @@ const verifyToken = (token: string): Promise<jwt.JwtPayload> => {
 
       if (!decoded || typeof decoded == "string") {
         console.error("invalid decoded value");
-        return reject(decoded);
+        return reject(new Error("invalid decoded value"));
       }
       resolve(decoded);
     });

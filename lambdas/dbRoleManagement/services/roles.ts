@@ -47,9 +47,9 @@ export const provisionRoles = async (roleList: Role[]) => {
     await createRole(role, password);
 
     if (role.systemRole) {
-      await storeSecret(getStage(), role.name, password); // TODO: Modular env name
+      await storeSecret(getStage(), role.name, password);
     } else {
-      await storeSecureString(getStage(), role.name, password); // TODO: Modular env name
+      await storeSecureString(getStage(), role.name, password);
     }
   }
 };
