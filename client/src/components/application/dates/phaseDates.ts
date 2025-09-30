@@ -1,6 +1,6 @@
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
-import { BundlePhase, Phase, PhaseStatus, BundlePhaseDate, DateType } from "demos-server";
+import { BundlePhase, PhaseName, PhaseStatus, BundlePhaseDate, DateType } from "demos-server";
 
 export type SimplePhaseDate = Omit<BundlePhaseDate, "createdAt" | "updatedAt">;
 export type SimplePhase = Omit<BundlePhase, "createdAt" | "updatedAt" | "phaseDates"> & {
@@ -51,19 +51,19 @@ export const getEndOfDayEST = (year: number, month: number, day: number): EndOfD
  */
 export const getStatusForPhase = (
   bundlePhases: SimplePhase[],
-  phaseName: Phase
+  phaseName: PhaseName
 ): PhaseStatus | null => {
-  const phase = bundlePhases.find((p) => p.phase === phaseName);
+  const phase = bundlePhases.find((p) => p.phaseName === phaseName);
   return phase ? phase.phaseStatus : null;
 };
 
 export const setStatusForPhase = (
   bundlePhases: SimplePhase[],
-  phaseName: Phase,
+  phaseName: PhaseName,
   phaseStatus: PhaseStatus
 ): SimplePhase[] => {
   return bundlePhases.map((phase) => {
-    if (phase.phase === phaseName) {
+    if (phase.phaseName === phaseName) {
       return { ...phase, phaseStatus };
     }
     return phase;
@@ -96,9 +96,9 @@ export const setDateInPhaseDates = (
 
 export const getAllDatesForPhase = (
   bundlePhases: SimplePhase[],
-  phaseName: Phase
+  phaseName: PhaseName
 ): SimplePhaseDate[] | null => {
-  const phase = bundlePhases.find((p) => p.phase === phaseName);
+  const phase = bundlePhases.find((p) => p.phaseName === phaseName);
   return phase ? phase.phaseDates : null;
 };
 

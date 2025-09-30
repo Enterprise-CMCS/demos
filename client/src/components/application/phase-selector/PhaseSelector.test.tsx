@@ -47,12 +47,12 @@ describe("PhaseSelector", () => {
           contactType: "Project Officer",
         },
       ],
-      currentPhase: "Federal Comment" as const,
+      currentPhaseName: "Federal Comment" as const,
     };
 
     render(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration}/>
+        <PhaseSelector demonstration={demonstration} />
       </TestProvider>
     );
     [
