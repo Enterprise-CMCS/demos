@@ -74,11 +74,9 @@ export const AmendmentDialog: React.FC<Props> = ({
     const updateAmendmentInput: UpdateAmendmentInput = {
       ...(demonstrationId ? { demonstrationId } : {}),
       ...(name ? { name } : {}),
-      ...(description === null
-        ? { description: null }
-        : typeof description === "string"
-          ? { description: description.length === 0 ? null : (description as string) }
-          : {}),
+      ...(typeof description === "string"
+        ? { description: description.length === 0 ? undefined : (description as string) }
+        : {}),
       ...(effectiveDate instanceof Date ? { effectiveDate } : {}),
       ...(expirationDate instanceof Date ? { expirationDate } : {}),
       ...(typeof status === "string" ? { status: status as UpdateAmendmentInput["status"] } : {}),
