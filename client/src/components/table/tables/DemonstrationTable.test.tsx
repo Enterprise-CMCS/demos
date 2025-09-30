@@ -19,16 +19,6 @@ const waitForTableData = async () => {
   });
 };
 
-const switchToAllDemonstrationsTab = async (user: ReturnType<typeof userEvent.setup>) => {
-  const allDemosTab = screen.getByText(/All Demonstrations/);
-  await user.click(allDemosTab);
-};
-
-const switchToMyDemonstrationsTab = async (user: ReturnType<typeof userEvent.setup>) => {
-  const myDemosTab = screen.getByText(/My Demonstrations/);
-  await user.click(myDemosTab);
-};
-
 const clearSearchInput = async (user: ReturnType<typeof userEvent.setup>) => {
   const searchInput = screen.getByLabelText(/keyword search/i);
   await user.clear(searchInput);
@@ -95,13 +85,7 @@ const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateC
   await user.click(stateOptionToClick!);
 };
 
-const expectMyDemonstrationResults = () => {
-  expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-  expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-  expect(screen.queryByText("Florida Health Innovation")).not.toBeInTheDocument();
-};
-
-const expectAllDemonstrationResults = () => {
+const expectDemonstrationResults = () => {
   expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
   expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
   expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
@@ -115,65 +99,18 @@ describe("Demonstrations", () => {
     user = userEvent.setup();
   });
 
-  describe("Tab navigation", () => {
-    beforeEach(async () => {
-      localStorage.removeItem("keyword-search");
-      renderDemonstrations();
-      await waitForTableData();
-    });
-
-    it("renders tab navigation with correct counts", () => {
-      expect(screen.getByText(/My Demonstrations/)).toBeInTheDocument();
-      expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();
-      expect(screen.getByText(/My Demonstrations.*\(2\)/)).toBeInTheDocument();
-      expect(screen.getByText(/All Demonstrations.*\(3\)/)).toBeInTheDocument();
-    });
-
-    it("defaults to 'My Demonstrations' tab", () => {
-      const myDemosTab = screen.getByText(/My Demonstrations/);
-      expect(myDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
-    });
-
-    it("switches between tabs correctly", async () => {
-      await switchToAllDemonstrationsTab(user);
-      const allDemosTab = screen.getByText(/All Demonstrations/);
-      expect(allDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
-
-      await switchToMyDemonstrationsTab(user);
-      const myDemosTab = screen.getByText(/My Demonstrations/);
-      expect(myDemosTab.closest("button")).toHaveAttribute("aria-selected", "true");
-    });
-
-    it("maintains tab state when switching between tabs with data", async () => {
-      await waitForTableData();
-      expectMyDemonstrationResults();
-
-      await switchToAllDemonstrationsTab(user);
-      await waitFor(() => expectAllDemonstrationResults());
-
-      await switchToMyDemonstrationsTab(user);
-      await waitFor(() => expectMyDemonstrationResults());
-    });
-  });
-
   describe("Empty states", () => {
-    it("passes correct empty message for My Demonstrations tab", async () => {
-      render(<DemonstrationTable projectOfficerOptions={mockPeople} demonstrations={[]} />);
+    it("passes correct empty message when provided", async () => {
+      render(
+        <DemonstrationTable
+          emptyRowsMessage="testEmptyRowsMessage"
+          projectOfficerOptions={mockPeople}
+          demonstrations={[]}
+        />
+      );
       await waitFor(() => {
-        expect(
-          screen.getByText("You have no assigned demonstrations at this time.")
-        ).toBeInTheDocument();
+        expect(screen.getByText("testEmptyRowsMessage")).toBeInTheDocument();
       });
-    });
-
-    it("passes correct empty message for All Demonstrations tab", async () => {
-      render(<DemonstrationTable projectOfficerOptions={mockPeople} demonstrations={[]} />);
-      await waitFor(() => {
-        expect(screen.getByText(/All Demonstrations/)).toBeInTheDocument();
-      });
-
-      await switchToAllDemonstrationsTab(user);
-      expect(screen.getByText("No demonstrations are tracked.")).toBeInTheDocument();
     });
   });
 
@@ -184,13 +121,8 @@ describe("Demonstrations", () => {
       await waitForTableData();
     });
 
-    it("renders table with correct demonstrations on My Demonstrations tab", () => {
-      expectMyDemonstrationResults();
-    });
-
-    it("renders table with all demonstrations on All Demonstrations tab", async () => {
-      await switchToAllDemonstrationsTab(user);
-      await waitFor(() => expectAllDemonstrationResults());
+    it("renders table with correct demonstrations", () => {
+      expectDemonstrationResults();
     });
 
     it("renders table columns correctly", () => {
@@ -213,7 +145,7 @@ describe("Demonstrations", () => {
 
     it("renders action buttons for each demonstration", () => {
       const viewButtons = screen.getAllByText("View");
-      expect(viewButtons).toHaveLength(2);
+      expect(viewButtons).toHaveLength(3);
     });
   });
 
@@ -242,7 +174,7 @@ describe("Demonstrations", () => {
       });
     });
 
-    it("shows correct no results message when search returns no results", async () => {
+    it("shows no results message when search returns no results", async () => {
       await searchForText(user, "NonexistentDemo");
       await waitFor(() => {
         expect(
@@ -252,7 +184,6 @@ describe("Demonstrations", () => {
     });
 
     it("allows filtering demonstrations by column", async () => {
-      await switchToAllDemonstrationsTab(user);
       await clearSearchInput(user);
       await applyStateFilter(user, "TX");
 
@@ -263,7 +194,6 @@ describe("Demonstrations", () => {
     });
 
     it("allows filtering demonstrations by multiple selected options in a multiselect filter", async () => {
-      await switchToAllDemonstrationsTab(user);
       await clearSearchInput(user);
 
       // Open the column filter dropdown and select "State/Territory"
@@ -312,12 +242,7 @@ describe("Demonstrations", () => {
       await waitForTableData();
     });
 
-    it("displays the 'Applications' column for both My Demonstrations and All Demonstrations tabs", async () => {
-      // My Demonstrations tab
-      expect(screen.getByRole("columnheader", { name: "Applications" })).toBeInTheDocument();
-
-      // Switch to All Demonstrations tab
-      await switchToAllDemonstrationsTab(user);
+    it("displays the 'Applications' column", async () => {
       expect(screen.getByRole("columnheader", { name: "Applications" })).toBeInTheDocument();
     });
 
@@ -396,9 +321,6 @@ describe("Demonstrations", () => {
     });
 
     it("pagination applies only to demonstration records, not to nested amendments/extensions", async () => {
-      // Switch to All Demonstrations tab
-      await switchToAllDemonstrationsTab(user);
-
       // Set items per page to 10
       const itemsPerPageSelect = screen.getByRole("combobox", {
         name: /items per page/i,
@@ -422,9 +344,6 @@ describe("Demonstrations", () => {
     });
 
     it("sorting applies only to demonstration records, not to nested amendments/extensions", async () => {
-      // Switch to All Demonstrations tab
-      await switchToAllDemonstrationsTab(user);
-
       // Click to sort by Title
       const titleHeader = screen.getByRole("columnheader", { name: "Title" });
       await user.click(titleHeader);
@@ -467,9 +386,6 @@ describe("Demonstrations", () => {
 
     // Replace applyStateFilter with applyProjectOfficerFilter in your filtering tests, e.g.:
     it("filtering applies to all records, but always displays parent demonstration with matching children", async () => {
-      // Switch to All Demonstrations tab
-      await switchToAllDemonstrationsTab(user);
-
       // Apply a filter that matches only one amendment
       await applyProjectOfficerFilter(user, "Jane Smith"); // Adjust officer name as needed for your data
 

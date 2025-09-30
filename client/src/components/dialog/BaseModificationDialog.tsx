@@ -170,6 +170,7 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
               isRequired
               initialUserId={projectOfficer}
               onSelect={setProjectOfficer}
+              personTypes={["demos-admin", "demos-cms-user"]}
             />
           </div>
           {mode === "edit" && (

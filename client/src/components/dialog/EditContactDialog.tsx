@@ -2,46 +2,80 @@ import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { TextInput } from "components/input/TextInput";
 import { Select } from "components/input/select/Select";
-import { useDialogForm } from "hooks/useDialogForm";
-import { DemonstrationRoleAssignment, Person } from "demos-server";
+import {
+  DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
+  Person as ServerPerson,
+} from "demos-server";
 import { ROLES } from "demos-server-constants";
+import { SelectUsers } from "components/input/select/SelectUsers";
+import { gql, useMutation } from "@apollo/client";
+import { useToast } from "components/toast";
 
-type Role = Pick<DemonstrationRoleAssignment, "isPrimary" | "role"> & {
-  person: Pick<Person, "fullName" | "email" | "id">;
+const SUCCESS_MESSAGE = "Contact updated successfully.";
+const ERROR_MESSAGE = "An error occurred while updating the contact. Please try again.";
+
+export const SET_DEMONSTRATION_ROLE_MUTATION = gql`
+  mutation SetDemonstrationRole($input: SetDemonstrationRoleInput!) {
+    setDemonstrationRole(input: $input) {
+      role
+    }
+  }
+`;
+
+type Person = Pick<ServerPerson, "id">;
+type DemonstrationRoleAssignment = Pick<ServerDemonstrationRoleAssignment, "isPrimary" | "role"> & {
+  person: Person;
 };
 
 export type EditContactDialogProps = {
   isOpen: boolean;
   onClose: () => void;
-  contact: Role;
-  onSubmit: (contact: Role, contactType: string) => Promise<void>;
+  contact?: DemonstrationRoleAssignment;
+  demonstrationId: string;
+};
+
+type FormData = {
+  isPrimary?: boolean;
+  roleId?: string;
+  personId?: string;
+  demonstrationId?: string;
 };
 
 export const EditContactDialog: React.FC<EditContactDialogProps> = ({
   isOpen,
   onClose,
   contact,
-  onSubmit,
+  demonstrationId,
 }) => {
-  const [contactType, setContactType] = useState<string>(contact.role || "");
+  const { showSuccess, showError } = useToast();
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    demonstrationId: demonstrationId,
+    personId: contact?.person.id,
+    isPrimary: contact?.isPrimary,
+    roleId: contact?.role,
+  });
+  const [setDemonstrationRoleTrigger] = useMutation(SET_DEMONSTRATION_ROLE_MUTATION);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const { formStatus, showWarning, showCancelConfirm, setShowCancelConfirm, handleSubmit } =
-    useDialogForm({
-      mode: "edit",
-      onClose,
-      validateForm: () => Boolean(contactType),
-      getFormData: () => ({ contactType }),
-      onSubmit: async (formData) => {
-        await onSubmit(contact, formData.contactType as string); // TODO, demonstrationRoleAssignment does not have an ID
-      },
-      successMessage: {
-        add: "Contact created successfully!",
-        edit: "Your contact has been updated.",
-      },
-      errorMessage: "Your changes could not be saved because of an unknown problem.",
-    });
+  const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
+    formEvent.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await setDemonstrationRoleTrigger({
+        variables: {
+          input: formData,
+        },
+      });
+      onClose();
+      showSuccess(SUCCESS_MESSAGE);
+      console.log("Contact updated:", formData);
+    } catch {
+      showError(ERROR_MESSAGE);
+    }
+    setIsSubmitting(false);
+  };
 
   return (
     <BaseDialog
@@ -57,7 +91,6 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
             name="button-cancel-contact-dialog"
             size="small"
             onClick={() => setShowCancelConfirm(true)}
-            disabled={formStatus === "pending"}
           >
             Cancel
           </SecondaryButton>
@@ -66,10 +99,10 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
             size="small"
             type="submit"
             form="contact-form"
-            disabled={formStatus === "pending"}
+            disabled={isSubmitting}
             onClick={() => {}}
           >
-            {formStatus === "pending" ? "Submitting..." : "Submit"}
+            {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </>
       }
@@ -77,48 +110,49 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
       <form id="contact-form" className="space-y-4" onSubmit={handleSubmit}>
         {/* Non-editable Name field */}
         <div>
-          <TextInput
-            name="contact-name"
-            label="Name"
-            value={contact.person.fullName || ""}
-            isDisabled={true}
-            placeholder="Contact name"
+          <SelectUsers
+            initialUserId={formData.personId}
+            label="Person"
+            onSelect={(value) =>
+              setFormData({
+                ...formData,
+                personId: value,
+              })
+            }
             isRequired={true}
           />
-          <div className="text-xs text-text-placeholder mt-1">
-            Name cannot be edited here. Contact an administrator to update this information.
-          </div>
         </div>
-
-        {/* Non-editable Email field */}
-        <div>
-          <TextInput
-            name="contact-email"
-            label="Email"
-            value={contact.person.email || ""}
-            isDisabled={true}
-            placeholder="Contact email"
-            isRequired={true}
-          />
-          <div className="text-xs text-text-placeholder mt-1">
-            Email cannot be edited here. Contact an administrator to update this information.
-          </div>
-        </div>
-
-        {/* Editable Contact Type field */}
         <div>
           <Select
             id="contact-type"
             label="Contact Type"
             options={ROLES.map((role) => ({ label: role, value: role }))}
-            value={contactType}
-            onSelect={setContactType}
+            value={formData.roleId}
+            onSelect={(value) =>
+              setFormData({
+                ...formData,
+                roleId: value,
+              })
+            }
             isRequired={true}
             placeholder="Select contact type"
           />
-          {showWarning && !contactType && (
-            <div className="text-text-warn text-sm mt-1">A required field is missing.</div>
-          )}
+        </div>
+        <div>
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={formData.isPrimary}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  isPrimary: e.target.checked,
+                })
+              }
+              className="w-2 h-2 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-sm font-medium text-gray-900">Is Primary Contact</span>
+          </label>
         </div>
       </form>
     </BaseDialog>
