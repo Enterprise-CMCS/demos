@@ -44,8 +44,8 @@ export const demonstrationSchema = gql`
   input UpdateDemonstrationInput {
     name: String
     description: String
-    effectiveDate: Date
-    expirationDate: Date
+    effectiveDate: DateTime
+    expirationDate: DateTime
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
     status: BundleStatus
