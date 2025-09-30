@@ -4,7 +4,7 @@ import {
   CMCS_DIVISION,
   SIGNATURE_LEVEL,
   DOCUMENT_TYPES,
-  PHASE,
+  PHASE_NAME,
   PHASE_STATUS,
   PERSON_TYPES,
   GRANT_LEVELS,
@@ -59,7 +59,7 @@ export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
 export type CmcsDivision = (typeof CMCS_DIVISION)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
-export type Phase = (typeof PHASE)[number];
+export type PhaseName = (typeof PHASE_NAME)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];

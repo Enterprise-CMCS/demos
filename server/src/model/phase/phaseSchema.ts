@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
 
 export const phaseSchema = gql`
-  scalar Phase
+  scalar PhaseName
 `;

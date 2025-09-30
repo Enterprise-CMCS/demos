@@ -4,7 +4,7 @@ import { SetPhaseDateInput } from "demos-server";
 
 const TEST_SET_PHASE_DATE_INPUT: SetPhaseDateInput = {
   bundleId: "test-bundle-123",
-  phase: "Concept",
+  phaseName: "Concept",
   dateType: "Start Date",
   dateValue: new Date(Date.parse("2025-01-15T10:30:00.000Z")),
 };
@@ -16,7 +16,7 @@ describe("phaseDateQueries", () => {
 
       expect(result).toContain("mutation SetPhaseDate");
       expect(result).toContain('bundleId: "test-bundle-123"');
-      expect(result).toContain("phase: Concept");
+      expect(result).toContain("phaseName: Concept");
       expect(result).toContain("dateType: Start Date");
       expect(result).toContain('dateValue: "2025-01-15T10:30:00.000Z"');
     });
@@ -38,11 +38,11 @@ describe("phaseDateQueries", () => {
       phases.forEach((phase) => {
         const input: SetPhaseDateInput = {
           ...TEST_SET_PHASE_DATE_INPUT,
-          phase: phase,
+          phaseName: phase,
         };
 
         const result = getQueryForSetPhaseDate(input);
-        expect(result).toContain(`phase: ${phase}`);
+        expect(result).toContain(`phaseName: ${phase}`);
       });
     });
 
@@ -85,7 +85,7 @@ describe("phaseDateQueries", () => {
       expect(result).toMatch(/mutation SetPhaseDate\s*{/);
       expect(result).toMatch(/setPhaseDate\s*\(\s*input:\s*{/);
       expect(result).toContain("bundleId:");
-      expect(result).toContain("phase:");
+      expect(result).toContain("phaseName:");
       expect(result).toContain("dateType:");
       expect(result).toContain("dateValue:");
       expect(result).toMatch(/}\s*\)\s*}/);

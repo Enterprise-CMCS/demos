@@ -1,6 +1,6 @@
 import { gql } from "graphql-tag";
 
-import { Phase, BundleStatus, BundlePhase, Demonstration, Document } from "../../types.js";
+import { PhaseName, BundleStatus, BundlePhase, Demonstration, Document } from "../../types.js";
 
 export const modificationSchema = gql`
   type Amendment {
@@ -11,7 +11,7 @@ export const modificationSchema = gql`
     effectiveDate: Date
     expirationDate: Date
     status: BundleStatus!
-    currentPhase: Phase!
+    currentPhaseName: PhaseName!
     phases: [BundlePhase!]!
     documents: [Document!]!
     createdAt: DateTime!
@@ -31,7 +31,7 @@ export const modificationSchema = gql`
     effectiveDate: Date
     expirationDate: Date
     status: BundleStatus
-    currentPhase: Phase
+    currentPhaseName: PhaseName
   }
 
   type Extension {
@@ -42,7 +42,7 @@ export const modificationSchema = gql`
     effectiveDate: Date
     expirationDate: Date
     status: BundleStatus!
-    currentPhase: Phase!
+    currentPhaseName: PhaseName!
     phases: [BundlePhase!]!
     documents: [Document!]!
     createdAt: DateTime!
@@ -62,7 +62,7 @@ export const modificationSchema = gql`
     effectiveDate: Date
     expirationDate: Date
     status: BundleStatus
-    currentPhase: Phase
+    currentPhaseName: PhaseName
   }
 
   type Mutation {
@@ -90,7 +90,7 @@ export interface Amendment {
   effectiveDate: Date | null;
   expirationDate: Date | null;
   status: BundleStatus;
-  currentPhase: Phase;
+  currentPhaseName: PhaseName;
   phases: BundlePhase[];
   documents: Document[];
   createdAt: Date;
@@ -110,7 +110,7 @@ export interface UpdateAmendmentInput {
   effectiveDate?: Date;
   expirationDate?: Date;
   status?: BundleStatus;
-  currentPhase?: Phase;
+  currentPhaseName?: PhaseName;
 }
 
 export interface Extension {
@@ -121,7 +121,7 @@ export interface Extension {
   effectiveDate: Date | null;
   expirationDate: Date | null;
   status: BundleStatus;
-  currentPhase: Phase;
+  currentPhaseName: PhaseName;
   phases: BundlePhase[];
   documents: Document[];
   createdAt: Date;
@@ -141,5 +141,5 @@ export interface UpdateExtensionInput {
   effectiveDate?: Date;
   expirationDate?: Date;
   status?: BundleStatus;
-  currentPhase?: Phase;
+  currentPhaseName?: PhaseName;
 }
