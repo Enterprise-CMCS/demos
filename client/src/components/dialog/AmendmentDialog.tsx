@@ -26,7 +26,26 @@ export const AmendmentDialog: React.FC<Props> = ({
 
   const handleAmendmentSubmit = async (amendmentData: Record<string, unknown>) => {
     if (mode === "add") {
-      await addAmendment.trigger(amendmentData as unknown as CreateAmendmentInput);
+      const { demonstrationId, name, description } = amendmentData as {
+        demonstrationId?: string;
+        name?: string;
+        description?: unknown;
+      };
+
+      if (!demonstrationId || !name) {
+        throw new Error("Demonstration ID and name are required to create an amendment.");
+      }
+
+      const createAmendmentInput: CreateAmendmentInput = {
+        demonstrationId,
+        name,
+        description:
+          typeof description === "string" && description.length === 0
+            ? null
+            : (description as string | null) ?? null,
+      };
+
+      await addAmendment.trigger(createAmendmentInput);
       return;
     }
 
@@ -34,10 +53,41 @@ export const AmendmentDialog: React.FC<Props> = ({
       throw new Error("Amendment ID is required to update an amendment.");
     }
 
-    await updateAmendment.trigger(
-      amendmentId,
-      amendmentData as unknown as UpdateAmendmentInput
-    );
+    const {
+      demonstrationId,
+      name,
+      description,
+      effectiveDate,
+      expirationDate,
+      status,
+      currentPhase,
+    } = amendmentData as {
+      demonstrationId?: string;
+      name?: string;
+      description?: unknown;
+      effectiveDate?: unknown;
+      expirationDate?: unknown;
+      status?: unknown;
+      currentPhase?: unknown;
+    };
+
+    const updateAmendmentInput: UpdateAmendmentInput = {
+      ...(demonstrationId ? { demonstrationId } : {}),
+      ...(name ? { name } : {}),
+      ...(description === null
+        ? { description: null }
+        : typeof description === "string"
+          ? { description: description.length === 0 ? null : (description as string) }
+          : {}),
+      ...(effectiveDate instanceof Date ? { effectiveDate } : {}),
+      ...(expirationDate instanceof Date ? { expirationDate } : {}),
+      ...(typeof status === "string" ? { status: status as UpdateAmendmentInput["status"] } : {}),
+      ...(typeof currentPhase === "string"
+        ? { currentPhase: currentPhase as UpdateAmendmentInput["currentPhase"] }
+        : {}),
+    };
+
+    await updateAmendment.trigger(amendmentId, updateAmendmentInput);
   };
 
   const getAmendmentFormData = (

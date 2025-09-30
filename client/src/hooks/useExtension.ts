@@ -23,7 +23,7 @@ interface GetExtensionByIdOperation {
 }
 
 interface CreateExtensionOperation {
-  trigger: (input: CreateExtensionInput) => Promise<FetchResult<{ addExtension: Extension }>>;
+  trigger: (input: CreateExtensionInput) => Promise<FetchResult<{ createExtension: Extension }>>;
   data?: Extension;
   loading: boolean;
   error?: ApolloError;
@@ -74,12 +74,12 @@ const createGetExtensionByIdHook = (): GetExtensionByIdOperation => {
 
 const createAddExtensionHook = (): CreateExtensionOperation => {
   const [trigger, { data, loading, error }] = useMutation<{
-    addExtension: Extension;
+    createExtension: Extension;
   }>(ADD_EXTENSION_QUERY);
 
   return {
     trigger: async (input: CreateExtensionInput) => await trigger({ variables: { input } }),
-    data: data?.addExtension,
+    data: data?.createExtension,
     loading,
     error,
   };

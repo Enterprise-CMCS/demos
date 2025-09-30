@@ -26,12 +26,35 @@ export const ExtensionDialog: React.FC<Props> = ({
 
   const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
     if (mode === "add") {
-      // Cast to the proper type since we know the structure from BaseModificationDialog
-      await addExtension.trigger(extensionData as unknown as CreateExtensionInput);
-    } else {
-      // TODO: Implement extension update logic when available
-      console.log("Extension update not yet implemented for ID:", extensionId);
+      const { demonstrationId, name, description } = extensionData as {
+        demonstrationId?: string;
+        name?: string;
+        description?: unknown;
+      };
+
+      if (!demonstrationId || !name) {
+        throw new Error("Demonstration ID and name are required to create an extension.");
+      }
+
+      const createExtensionInput: CreateExtensionInput = {
+        demonstrationId,
+        name,
+        description:
+          typeof description === "string" && description.length === 0
+            ? null
+            : (description as string | null) ?? null,
+      };
+
+      await addExtension.trigger(createExtensionInput);
+      return;
     }
+
+    if (!extensionId) {
+      throw new Error("Extension ID is required to update an extension.");
+    }
+
+    // TODO: Implement extension update logic when available
+    console.log("Extension update not yet implemented for ID:", extensionId);
   };
 
   const getExtensionFormData = (
@@ -39,14 +62,7 @@ export const ExtensionDialog: React.FC<Props> = ({
     effectiveDate?: string,
     expirationDate?: string
   ) => {
-    return createFormDataWithDates(
-      {
-        ...baseData,
-        status: "Pre-Submission",
-      },
-      effectiveDate,
-      expirationDate
-    );
+    return createFormDataWithDates(baseData, effectiveDate, expirationDate);
   };
 
   return (

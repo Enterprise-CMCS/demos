@@ -12,10 +12,6 @@ const mockExtensionInput = {
   demonstrationId: "test-demo-id",
   name: "Test Extension",
   description: "Test extension description",
-  effectiveDate: new Date(2025, 0, 1),
-  expirationDate: new Date(2025, 11, 1),
-  status: "Pre-Submission",
-  projectOfficerUserId: "test-user-id",
 };
 
 const mockExtensionResponse = {
@@ -29,10 +25,6 @@ const mockExtensionResponse = {
     name: "Test Demonstration",
   },
   status: "Pre-Submission",
-  projectOfficer: {
-    id: "test-user-id",
-    fullName: "Test User",
-  },
 };
 
 const mocks = [
@@ -45,7 +37,7 @@ const mocks = [
     },
     result: {
       data: {
-        addExtension: mockExtensionResponse,
+        createExtension: mockExtensionResponse,
       },
     },
   },
@@ -75,7 +67,7 @@ describe("useExtension", () => {
       );
 
       // Check the mutation result directly
-      expect(mutationResult.data?.addExtension).toEqual(mockExtensionResponse);
+      expect(mutationResult.data?.createExtension).toEqual(mockExtensionResponse);
     });
   });
 });
