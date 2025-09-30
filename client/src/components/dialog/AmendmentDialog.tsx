@@ -1,5 +1,7 @@
 import React from "react";
 
+import { CreateAmendmentInput, UpdateAmendmentInput } from "demos-server";
+import { useAmendment } from "hooks/useAmendment";
 import { createFormDataWithDates } from "hooks/useDialogForm";
 
 import {
@@ -20,9 +22,22 @@ export const AmendmentDialog: React.FC<Props> = ({
   demonstrationId,
   data,
 }) => {
+  const { addAmendment, updateAmendment } = useAmendment();
+
   const handleAmendmentSubmit = async (amendmentData: Record<string, unknown>) => {
-    // TODO: Implement amendment creation/update logic when amendment hooks are available
-    console.log("Amendment data to be created:", amendmentData);
+    if (mode === "add") {
+      await addAmendment.trigger(amendmentData as unknown as CreateAmendmentInput);
+      return;
+    }
+
+    if (!amendmentId) {
+      throw new Error("Amendment ID is required to update an amendment.");
+    }
+
+    await updateAmendment.trigger(
+      amendmentId,
+      amendmentData as unknown as UpdateAmendmentInput
+    );
   };
 
   const getAmendmentFormData = (
