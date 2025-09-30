@@ -14,9 +14,9 @@ import { formatDateTime } from "util/formatDate";
 type SimulationState = SimplePhase[];
 
 const DEFAULT_SIMULATION_STATE: SimulationState = [
-  { phase: "Concept", phaseStatus: "Not Started", phaseDates: [] },
-  { phase: "State Application", phaseStatus: "Not Started", phaseDates: [] },
-  { phase: "Completeness", phaseStatus: "Not Started", phaseDates: [] },
+  { phaseName: "Concept", phaseStatus: "Not Started", phaseDates: [] },
+  { phaseName: "State Application", phaseStatus: "Not Started", phaseDates: [] },
+  { phaseName: "Completeness", phaseStatus: "Not Started", phaseDates: [] },
 ];
 const STYLES = {
   phaseBox: tw`p-4 border-2 rounded-lg bg-white min-h-[120px] flex flex-col justify-between`,
@@ -106,7 +106,7 @@ export const PhaseDatesSimulation: React.FC = () => {
     dateValue: Date
   ): SimulationState => {
     return phases.map((phase) => {
-      if (phase.phase === phaseName) {
+      if (phase.phaseName === phaseName) {
         const updatedDates = setDateInPhaseDates(phase.phaseDates, dateType, dateValue);
 
         // If the date doesn't exist, add it
@@ -257,7 +257,7 @@ export const PhaseDatesSimulation: React.FC = () => {
   };
 
   const isStateApplicationSubmittedDateSet = () => {
-    const stateApplicationPhase = simulationState.find((p) => p.phase === "State Application");
+    const stateApplicationPhase = simulationState.find((p) => p.phaseName === "State Application");
     if (!stateApplicationPhase) return false;
 
     const submittedDate = getDateFromPhaseDates(
@@ -307,14 +307,14 @@ export const PhaseDatesSimulation: React.FC = () => {
                 <div className={STYLES.dateDisplay}>
                   Start Date:{" "}
                   {getDateDisplay(
-                    simulationState.find((p) => p.phase === "Concept")!,
+                    simulationState.find((p) => p.phaseName === "Concept")!,
                     "Start Date"
                   )}
                 </div>
                 <div className={STYLES.dateDisplay}>
                   Completion Date:{" "}
                   {getDateDisplay(
-                    simulationState.find((p) => p.phase === "Concept")!,
+                    simulationState.find((p) => p.phaseName === "Concept")!,
                     "Completion Date"
                   )}
                 </div>
@@ -350,21 +350,21 @@ export const PhaseDatesSimulation: React.FC = () => {
                 <div className={STYLES.dateDisplay}>
                   Start Date:{" "}
                   {getDateDisplay(
-                    simulationState.find((p) => p.phase === "State Application")!,
+                    simulationState.find((p) => p.phaseName === "State Application")!,
                     "Start Date"
                   )}
                 </div>
                 <div className={STYLES.dateDisplay}>
                   Submitted Date:{" "}
                   {getDateDisplay(
-                    simulationState.find((p) => p.phase === "State Application")!,
+                    simulationState.find((p) => p.phaseName === "State Application")!,
                     "State Application Submitted Date"
                   )}
                 </div>
                 <div className={STYLES.dateDisplay}>
                   Completion Date:{" "}
                   {getDateDisplay(
-                    simulationState.find((p) => p.phase === "State Application")!,
+                    simulationState.find((p) => p.phaseName === "State Application")!,
                     "Completion Date"
                   )}
                 </div>
@@ -412,14 +412,14 @@ export const PhaseDatesSimulation: React.FC = () => {
                 <div className={STYLES.dateDisplay}>
                   Start Date:{" "}
                   {getDateDisplay(
-                    simulationState.find((p) => p.phase === "Completeness")!,
+                    simulationState.find((p) => p.phaseName === "Completeness")!,
                     "Start Date"
                   )}
                 </div>
                 <div className={STYLES.dateDisplay}>
                   Completion Date:{" "}
                   {getDateDisplay(
-                    simulationState.find((p) => p.phase === "Completeness")!,
+                    simulationState.find((p) => p.phaseName === "Completeness")!,
                     "Completion Date"
                   )}
                 </div>

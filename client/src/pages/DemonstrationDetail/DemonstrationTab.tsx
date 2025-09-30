@@ -13,7 +13,7 @@ import {
   DemonstrationRoleAssignment,
   Demonstration,
   Document,
-  Phase,
+  PhaseName,
   Person,
   State,
   User,
@@ -38,7 +38,7 @@ export type DemonstrationTabDemonstration = Pick<
   roles: Role[];
   projectOfficer: Pick<User, "id">;
   status: BundleStatus;
-  currentPhase: Phase;
+  currentPhaseName: PhaseName;
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({

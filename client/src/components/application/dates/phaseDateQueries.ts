@@ -7,7 +7,7 @@ export const getQueryForSetPhaseDate = (setPhaseDateInput: SetPhaseDateInput): s
     mutation SetPhaseDate {
       setPhaseDate(input: {
         bundleId: "${setPhaseDateInput.bundleId}",
-        phase: ${setPhaseDateInput.phase},
+        phaseName: ${setPhaseDateInput.phaseName},
         dateType: ${setPhaseDateInput.dateType},
         dateValue: "${isoDateString}"
       })

@@ -5,8 +5,8 @@ import type { Demonstration } from "demos-server";
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
-  "id" | "status" | "currentPhase"
->
+  "id" | "status" | "currentPhaseName"
+>;
 
 export const ApplicationWorkflow = ({
   demonstration,
@@ -20,7 +20,7 @@ export const ApplicationWorkflow = ({
         <DemonstrationStatusBadge demonstrationStatus={demonstration.status} />
       </div>
       <hr className="text-border-rules" />
-      <PhaseSelector demonstration={demonstration}/>
+      <PhaseSelector demonstration={demonstration} />
     </div>
   );
 };

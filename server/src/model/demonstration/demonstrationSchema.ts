@@ -5,7 +5,7 @@ import { State } from "../state/stateSchema.js";
 import {
   CmcsDivision,
   SignatureLevel,
-  Phase,
+  PhaseName,
   BundlePhase,
   BundleStatus,
   DemonstrationRoleAssignment,
@@ -22,7 +22,7 @@ export const demonstrationSchema = gql`
     signatureLevel: SignatureLevel
     status: BundleStatus!
     state: State!
-    currentPhase: Phase!
+    currentPhaseName: PhaseName!
     phases: [BundlePhase!]!
     documents: [Document!]!
     amendments: [Amendment!]!
@@ -49,7 +49,7 @@ export const demonstrationSchema = gql`
     cmcsDivision: CmcsDivision
     signatureLevel: SignatureLevel
     status: BundleStatus
-    currentPhase: Phase
+    currentPhaseName: PhaseName
     stateId: ID
   }
 
@@ -80,7 +80,7 @@ export interface Demonstration {
   signatureLevel?: SignatureLevel;
   status: BundleStatus;
   state: State;
-  currentPhase: Phase;
+  currentPhaseName: PhaseName;
   phases: BundlePhase[];
   documents: Document[];
   amendments: Amendment[];
@@ -109,6 +109,6 @@ export interface UpdateDemonstrationInput {
   cmcsDivision?: CmcsDivision;
   signatureLevel?: SignatureLevel;
   status?: BundleStatus;
-  currentPhase?: Phase;
+  currentPhaseName?: PhaseName;
   stateId?: string;
 }

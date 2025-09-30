@@ -47,7 +47,7 @@ describe("ApplicationWorkflow", () => {
           contactType: "Project Officer",
         },
       ],
-      currentPhase: "Federal Comment" as const,
+      currentPhaseName: "Federal Comment" as const,
     };
     render(
       <TestProvider>

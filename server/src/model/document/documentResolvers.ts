@@ -128,7 +128,7 @@ export const documentResolvers = {
           ownerUserId: context.user.id,
           documentTypeId: input.documentType,
           bundleId: input.bundleId,
-          phaseId: input.phase,
+          phaseId: input.phaseName,
         },
       });
 
@@ -156,7 +156,7 @@ export const documentResolvers = {
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
       checkOptionalNotNullFields(
-        ["title", "description", "documentType", "bundleId", "phase"],
+        ["title", "description", "documentType", "bundleId", "phaseName"],
         input
       );
       try {
@@ -167,7 +167,7 @@ export const documentResolvers = {
             description: input.description,
             documentTypeId: input.documentType,
             bundleId: input.bundleId,
-            phaseId: input.phase,
+            phaseId: input.phaseName,
           },
         });
       } catch (error) {
@@ -205,7 +205,7 @@ export const documentResolvers = {
       return bundleTypeId;
     },
 
-    phase: async (parent: Document) => {
+    phaseName: async (parent: Document) => {
       return parent.phaseId;
     },
   },

@@ -10,7 +10,7 @@ async function setPhaseDate(_: undefined, { input }: { input: SetPhaseDateInput 
       where: {
         bundleId_phaseId_dateTypeId: {
           bundleId: input.bundleId,
-          phaseId: input.phase,
+          phaseId: input.phaseName,
           dateTypeId: input.dateType,
         },
       },
@@ -19,7 +19,7 @@ async function setPhaseDate(_: undefined, { input }: { input: SetPhaseDateInput 
       },
       create: {
         bundleId: input.bundleId,
-        phaseId: input.phase,
+        phaseId: input.phaseName,
         dateTypeId: input.dateType,
         dateValue: input.dateValue,
       },

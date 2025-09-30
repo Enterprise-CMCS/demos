@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import type { Phase as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
@@ -13,13 +13,13 @@ import {
   SmeFrtPhase,
   StateApplicationPhase,
 } from "../phases";
-import { PHASE } from "demos-server-constants";
+import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
 
 // TODO: get past-due added to the shared enum
 export type PhaseStatus = ServerPhaseStatus | "past-due";
 export type PhaseName = Exclude<ServerPhase, "None">;
-const PHASE_NAMES: PhaseName[] = PHASE.filter((phase): phase is PhaseName => phase !== "None");
+const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName => phase !== "None");
 
 const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
   Concept: new Date(2024, 4, 20),
@@ -65,8 +65,8 @@ export const PhaseSelector = ({
 }: PhaseSelectorProps) => {
   const fallbackPhase: PhaseName = "Concept";
   const initialPhase: PhaseName =
-    demonstration.currentPhase && demonstration.currentPhase !== "None"
-      ? (demonstration.currentPhase as PhaseName)
+    demonstration.currentPhaseName && demonstration.currentPhaseName !== "None"
+      ? (demonstration.currentPhaseName as PhaseName)
       : fallbackPhase;
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
