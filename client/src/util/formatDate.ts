@@ -1,10 +1,18 @@
 /* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 type DateTimeGranularity = "minute" | "second" | "millisecond";
 
 export function formatDate(date: Date): string {
   return format(date, "MM/dd/yyyy");
+}
+
+export function formatDateForServer(date: Date): string {
+  return format(date, "yyyy-MM-dd");
+}
+
+export function parseInputDate(value: string): Date {
+  return parseISO(value);
 }
 
 export function formatDateAsIsoString(date: Date): string {
