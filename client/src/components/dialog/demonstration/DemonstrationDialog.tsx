@@ -6,45 +6,20 @@ import { SelectCMCSDivision } from "components/input/select/SelectCMCSDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { TextInput } from "components/input/TextInput";
-import { CreateDemonstrationInput, UpdateDemonstrationInput, Demonstration } from "demos-server";
+import { Demonstration } from "demos-server";
 import { useDateValidation } from "hooks/useDateValidation";
 import { tw } from "tags/tw";
-import { useMutation } from "@apollo/client";
-import {
-  CREATE_DEMONSTRATION_MUTATION,
-  UPDATE_DEMONSTRATION_MUTATION,
-} from "queries/demonstrationQueries";
-import { useToast } from "components/toast";
 import { SelectUsers } from "components/input/select/SelectUsers";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
 
-type DemonstrationDialogMode = "create" | "edit";
+export type DemonstrationDialogMode = "create" | "edit";
 
-type DemonstrationDialogFields = Pick<
+export type DemonstrationDialogFields = Pick<
   Demonstration,
   "name" | "description" | "cmcsDivision" | "signatureLevel"
 > & { stateId: string; projectOfficerId: string; effectiveDate: string; expirationDate: string };
-
-const DEFAULT_DEMONSTRATION_DIALOG_FIELDS: DemonstrationDialogFields = {
-  name: "",
-  effectiveDate: "",
-  expirationDate: "",
-  description: "",
-  stateId: "",
-  projectOfficerId: "",
-};
-
-const SUCCESS_MESSAGES: Record<DemonstrationDialogMode, string> = {
-  create: "Demonstration created successfully!",
-  edit: "Demonstration updated successfully!",
-};
-
-const ERROR_MESSAGES: Record<DemonstrationDialogMode, string> = {
-  create: "Failed to create demonstration. Please try again.",
-  edit: "Failed to update demonstration. Please try again.",
-};
 
 const DemonstrationDescriptionTextArea: React.FC<{
   description?: string;
@@ -170,7 +145,7 @@ const DateInputs: React.FC<{
   );
 };
 
-const DemonstrationDialog: React.FC<{
+export const DemonstrationDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   mode: DemonstrationDialogMode;
@@ -283,105 +258,5 @@ const DemonstrationDialog: React.FC<{
         </div>
       </form>
     </BaseDialog>
-  );
-};
-
-export const CreateDemonstrationDialog: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-}> = ({ isOpen, onClose }) => {
-  const { showSuccess, showError } = useToast();
-
-  const [createDemonstrationTrigger] = useMutation(CREATE_DEMONSTRATION_MUTATION);
-
-  const getCreateDemonstrationInput = (
-    demonstration: DemonstrationDialogFields
-  ): CreateDemonstrationInput => ({
-    name: demonstration.name,
-    description: demonstration.description,
-    stateId: demonstration.stateId,
-    projectOfficerUserId: demonstration.projectOfficerId,
-    cmcsDivision: demonstration.cmcsDivision,
-    signatureLevel: demonstration.signatureLevel,
-  });
-
-  const onSubmit = async (demonstration: DemonstrationDialogFields) => {
-    try {
-      const result = await createDemonstrationTrigger({
-        variables: {
-          input: getCreateDemonstrationInput(demonstration),
-        },
-      });
-
-      const success = result.data?.createDemonstration?.success || false;
-      onClose();
-      if (success) {
-        showSuccess(SUCCESS_MESSAGES.create);
-      } else {
-        console.error(result.data?.createDemonstration?.message || ERROR_MESSAGES.create);
-        showError(
-          "Create a demonstration failed - please check the console for the error message."
-        );
-      }
-    } catch {
-      showError(ERROR_MESSAGES.create);
-    }
-  };
-
-  return (
-    <DemonstrationDialog
-      isOpen={isOpen}
-      onClose={onClose}
-      mode="create"
-      initialDemonstration={DEFAULT_DEMONSTRATION_DIALOG_FIELDS}
-      onSubmit={onSubmit}
-    />
-  );
-};
-export const EditDemonstrationDialog: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  demonstrationId: string;
-}> = ({ isOpen, demonstrationId, onClose }) => {
-  const { showSuccess, showError } = useToast();
-
-  const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
-  // TODO: we should fetch the demonstration here using the ID
-
-  const getUpdateDemonstrationInput = (
-    demonstration: DemonstrationDialogFields
-  ): UpdateDemonstrationInput => ({
-    name: demonstration.name,
-    description: demonstration.description,
-    stateId: demonstration.stateId,
-    cmcsDivision: demonstration.cmcsDivision,
-    signatureLevel: demonstration.signatureLevel,
-    // effectiveDate: demonstration.effectiveDate,
-    // expirationDate: demonstration.expirationDate,
-  });
-
-  const onSubmit = async (demonstration: DemonstrationDialogFields) => {
-    try {
-      await updateDemonstrationTrigger({
-        variables: {
-          id: demonstrationId,
-          input: getUpdateDemonstrationInput(demonstration),
-        },
-      });
-      onClose();
-      showSuccess(SUCCESS_MESSAGES.edit);
-    } catch {
-      showError(ERROR_MESSAGES.edit);
-    }
-  };
-
-  return (
-    <DemonstrationDialog
-      isOpen={isOpen}
-      onClose={onClose}
-      mode="edit"
-      onSubmit={onSubmit}
-      initialDemonstration={DEFAULT_DEMONSTRATION_DIALOG_FIELDS}
-    />
   );
 };

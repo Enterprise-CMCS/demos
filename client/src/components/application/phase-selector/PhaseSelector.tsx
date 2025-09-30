@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 
+import type { Phase as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
+
+import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   ApprovalPackagePhase,
   CompletenessPhase,
@@ -10,15 +13,13 @@ import {
   SmeFrtPhase,
   StateApplicationPhase,
 } from "../phases";
-import type { Phase as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
 import { PHASE } from "demos-server-constants";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { PhaseBox } from "./PhaseBox";
 
 // TODO: get past-due added to the shared enum
 export type PhaseStatus = ServerPhaseStatus | "past-due";
 export type PhaseName = Exclude<ServerPhase, "None">;
-const PHASE_NAMES = PHASE.filter((p) => p !== "None");
+const PHASE_NAMES: PhaseName[] = PHASE.filter((phase): phase is PhaseName => phase !== "None");
 
 const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
   Concept: new Date(2024, 4, 20),
@@ -62,16 +63,16 @@ export const PhaseSelector = ({
   demonstration,
   phaseStatusLookup = MOCK_PHASE_STATUS_LOOKUP,
 }: PhaseSelectorProps) => {
-  const demonstrationPhase = demonstration.currentPhase ?? "Concept";
-  const initialPhase = demonstrationPhase === "None" ? "Concept" : demonstrationPhase;
+  const fallbackPhase: PhaseName = "Concept";
+  const initialPhase: PhaseName =
+    demonstration.currentPhase && demonstration.currentPhase !== "None"
+      ? (demonstration.currentPhase as PhaseName)
+      : fallbackPhase;
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
-
-  console.log("initialPhase", initialPhase);
-  console.log("selectedPhase", selectedPhase);
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: ConceptPhase,
-    "State Application": StateApplicationPhase,
+    "State Application": () => <StateApplicationPhase demonstrationId={demonstration.id} />,
     Completeness: CompletenessPhase,
     "Federal Comment": () => {
       const phaseStartDate = FEDERAL_COMMENT_START_DATE;
