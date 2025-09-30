@@ -1,8 +1,6 @@
 import { gql } from "graphql-tag";
 
-import { Demonstration } from "../demonstration/demonstrationSchema.js";
-import { Document } from "../document/documentSchema.js";
-import { Phase, BundleStatus } from "../../types.js";
+import { Phase, BundleStatus, BundlePhase, Demonstration, Document } from "../../types.js";
 
 export const modificationSchema = gql`
   type Amendment {
@@ -14,6 +12,7 @@ export const modificationSchema = gql`
     expirationDate: Date
     status: BundleStatus!
     currentPhase: Phase!
+    phases: [BundlePhase!]!
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -44,6 +43,7 @@ export const modificationSchema = gql`
     expirationDate: Date
     status: BundleStatus!
     currentPhase: Phase!
+    phases: [BundlePhase!]!
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -91,6 +91,7 @@ export interface Amendment {
   expirationDate: Date | null;
   status: BundleStatus;
   currentPhase: Phase;
+  phases: BundlePhase[];
   documents: Document[];
   createdAt: Date;
   updatedAt: Date;
@@ -121,6 +122,7 @@ export interface Extension {
   expirationDate: Date | null;
   status: BundleStatus;
   currentPhase: Phase;
+  phases: BundlePhase[];
   documents: Document[];
   createdAt: Date;
   updatedAt: Date;
