@@ -23,41 +23,34 @@ const getTextareaColors = (value: string, validationMessage: string) => {
 export interface TextareaProps {
   name: string;
   label: string;
+  initialValue: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   isRequired?: boolean;
   isDisabled?: boolean;
   placeholder?: string;
-  defaultValue?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   getValidationMessage?: (value: string) => string | undefined;
 }
 
 export const Textarea: React.FC<TextareaProps> = ({
   name,
   label,
+  initialValue,
+  onChange,
   isRequired,
   isDisabled,
   placeholder,
-  value,
-  onChange,
-  defaultValue,
   getValidationMessage,
 }) => {
-  const isControlled = value !== undefined;
-  const [internalValue, setInternalValue] = useState(defaultValue ?? "");
-
-  const currentValue = isControlled ? value : internalValue;
-  const validationMessage = getValidationMessage ? getValidationMessage(currentValue) : "";
+  const [value, setValue] = useState(initialValue);
+  const validationMessage = getValidationMessage ? getValidationMessage(value) : "";
+  const rowsToDisplay = Math.min(Math.max(value.split("\n").length, 1), MAX_ROWS);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (!isControlled) setInternalValue(e.target.value);
-    onChange?.(e);
+    setValue(e.target.value);
+    if (onChange) {
+      onChange(e);
+    }
   };
-
-  // For now, count actual line breaks, ignore text wrapping
-  // properly calculating when to wrap and show more rows is non-trivial
-  const rowsToDisplay = Math.min(Math.max(currentValue.split("\n").length, 1), MAX_ROWS);
-
   return (
     <div className="flex flex-col gap-sm">
       <label className={LABEL_CLASSES} htmlFor={name}>
@@ -68,11 +61,11 @@ export const Textarea: React.FC<TextareaProps> = ({
         id={name}
         name={name}
         data-testid={`textarea-${name}`}
-        className={`${TEXTAREA_BASE_CLASSES} ${getTextareaColors(currentValue, validationMessage ?? "")}`}
+        className={`${TEXTAREA_BASE_CLASSES} ${getTextareaColors(value, validationMessage ?? "")}`}
         placeholder={placeholder ?? ""}
         required={isRequired ?? false}
         disabled={isDisabled ?? false}
-        value={currentValue}
+        value={value}
         onChange={handleChange}
         rows={rowsToDisplay}
       />

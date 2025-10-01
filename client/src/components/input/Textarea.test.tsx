@@ -8,6 +8,8 @@ describe("Textarea", () => {
   const defaultProps = {
     name: "description",
     label: "Description",
+    initialValue: "",
+    onChange: () => {},
   };
 
   it("renders with label and textarea", () => {
@@ -100,36 +102,6 @@ describe("Textarea", () => {
     });
   });
 
-  describe("Controlled vs Uncontrolled", () => {
-    it("works as uncontrolled component with defaultValue", () => {
-      render(<Textarea {...defaultProps} defaultValue="Initial text" />);
-
-      const textarea = screen.getByTestId("textarea-description");
-      expect(textarea).toHaveValue("Initial text");
-    });
-
-    it("works as controlled component", async () => {
-      const handleChange = vi.fn();
-      const { rerender } = render(
-        <Textarea {...defaultProps} value="Controlled text" onChange={handleChange} />
-      );
-
-      const textarea = screen.getByTestId("textarea-description");
-      expect(textarea).toHaveValue("Controlled text");
-
-      // Type in textarea
-      fireEvent.change(textarea, { target: { value: "New text" } });
-      expect(handleChange).toHaveBeenCalled();
-
-      // Value shouldn't change until parent updates it
-      expect(textarea).toHaveValue("Controlled text");
-
-      // Parent updates value
-      rerender(<Textarea {...defaultProps} value="New text" onChange={handleChange} />);
-      expect(textarea).toHaveValue("New text");
-    });
-  });
-
   describe("Validation", () => {
     it("shows validation message when provided", () => {
       const getValidationMessage = (value: string) => (value.length > 10 ? "Too long!" : undefined);
@@ -137,7 +109,7 @@ describe("Textarea", () => {
       render(
         <Textarea
           {...defaultProps}
-          defaultValue="This is way too long"
+          initialValue="This is way too long"
           getValidationMessage={getValidationMessage}
         />
       );
@@ -151,7 +123,7 @@ describe("Textarea", () => {
       render(
         <Textarea
           {...defaultProps}
-          defaultValue="Short"
+          initialValue="Short"
           getValidationMessage={getValidationMessage}
         />
       );
@@ -197,7 +169,7 @@ describe("Textarea", () => {
 
   describe("Edge cases", () => {
     it("handles empty string without errors", () => {
-      render(<Textarea {...defaultProps} value="" onChange={vi.fn()} />);
+      render(<Textarea {...defaultProps} onChange={vi.fn()} />);
 
       const textarea = screen.getByTestId("textarea-description");
       expect(textarea).toHaveValue("");

@@ -38,7 +38,6 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
       isRequired={isRequired}
       isDisabled={isDisabled}
       value={selectedOption?.value}
-      autoComplete="off"
     />
   );
 };

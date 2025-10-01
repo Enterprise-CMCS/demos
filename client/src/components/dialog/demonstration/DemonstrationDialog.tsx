@@ -32,7 +32,7 @@ const DemonstrationDescriptionTextArea: React.FC<{
         name="textarea-description"
         label="Demonstration Description"
         placeholder="Enter description"
-        value={description}
+        initialValue={description ?? ""}
         onChange={(e) => setDescription(e.target.value)}
       />
     </>
