@@ -1,15 +1,10 @@
-import {
-  CREATE_DEMONSTRATION_MUTATION,
-} from "components/dialog/demonstration/CreateDemonstrationDialog";
+import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstrationDialog";
 import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
 import type { BundleStatus } from "demos-server";
-import {
-  CreateDemonstrationInput,
-  Demonstration,
-} from "demos-server";
+import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
@@ -22,10 +17,7 @@ import { MockDemonstrationRoleAssignment } from "./demonstrationRoleAssignmentMo
 import { MockDocument } from "./documentMocks";
 import { MockExtension } from "./extensionMocks";
 import { mockPeople } from "./personMocks";
-import {
-  MockState,
-  mockStates,
-} from "./stateMocks";
+import { MockState, mockStates } from "./stateMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -53,8 +45,46 @@ export const mockDemonstrations = [
     cmcsDivision: "Division of System Reform Demonstrations",
     signatureLevel: "OA",
     state: mockStates[0],
-    amendments: [],
-    extensions: [],
+    amendments: [
+      {
+        id: "1",
+        name: "Amendment 1 - Test Demonstration 1",
+        effectiveDate: new Date(2025, 0, 1),
+        status: "Under Review",
+      },
+      {
+        id: "2",
+        name: "Amendment 2 - Test Demonstration 1",
+        effectiveDate: new Date(2025, 1, 1),
+        status: "Approved",
+      },
+      {
+        id: "3",
+        name: "Amendment 3 - Test Demonstration 1",
+        effectiveDate: new Date(2025, 2, 1),
+        status: "Approved",
+      },
+    ],
+    extensions: [
+      {
+        id: "1",
+        name: "Extension 1 - Test Demonstration 1",
+        effectiveDate: new Date(2025, 0, 1),
+        status: "Under Review",
+      },
+      {
+        id: "2",
+        name: "Extension 2 - Test Demonstration 1",
+        effectiveDate: new Date(2025, 1, 1),
+        status: "Approved",
+      },
+      {
+        id: "3",
+        name: "Extension 3 - Test Demonstration 1",
+        effectiveDate: null,
+        status: "Approved",
+      },
+    ],
     demonstrationTypes: [],
     documents: [],
     roles: [
@@ -75,7 +105,26 @@ export const mockDemonstrations = [
     cmcsDivision: "Division of Eligibility and Coverage Demonstrations",
     signatureLevel: "OCD",
     state: mockStates[1],
-    amendments: [],
+    amendments: [
+      {
+        id: "4",
+        name: "Amendment 4 - Test Demonstration 2",
+        effectiveDate: new Date(2025, 3, 1),
+        status: "Under Review",
+      },
+      {
+        id: "5",
+        name: "Amendment 5 - Test Demonstration 2",
+        effectiveDate: new Date(2025, 4, 1),
+        status: "Denied",
+      },
+      {
+        id: "6",
+        name: "Amendment 6 - Test Demonstration 2",
+        effectiveDate: null,
+        status: "Denied",
+      },
+    ],
     extensions: [],
     demonstrationTypes: [],
     documents: [],
