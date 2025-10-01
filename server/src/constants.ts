@@ -32,7 +32,7 @@ export const BUNDLE_TYPE = {
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
-export const CMCS_DIVISION = [
+export const SDG_DIVISIONS = [
   "Division of System Reform Demonstrations",
   "Division of Eligibility and Coverage Demonstrations",
 ] as const;

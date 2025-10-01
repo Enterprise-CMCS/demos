@@ -128,7 +128,7 @@ describe("EditDemonstrationDialog", () => {
           id: TEST_DEMO_ID,
           name: "Test Demonstration",
           description: "Test demonstration description",
-          cmcsDivision: "Division of System Reform Demonstrations",
+          sdgDivision: "Division of System Reform Demonstrations",
           signatureLevel: "OA",
           state: {
             id: "test-state-id",

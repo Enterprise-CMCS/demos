@@ -18,7 +18,7 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
       id
       name
       description
-      cmcsDivision
+      sdgDivision
       signatureLevel
       state {
         id
@@ -42,7 +42,7 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       id
       name
       description
-      cmcsDivision
+      sdgDivision
       signatureLevel
       effectiveDate
       expirationDate
@@ -75,7 +75,7 @@ const getUpdateDemonstrationInput = (
   name: demonstration.name,
   description: demonstration.description,
   stateId: demonstration.stateId,
-  cmcsDivision: demonstration.cmcsDivision,
+  sdgDivision: demonstration.sdgDivision,
   signatureLevel: demonstration.signatureLevel,
   effectiveDate: demonstration.effectiveDate ? new Date(demonstration.effectiveDate) : undefined,
   expirationDate: demonstration.expirationDate ? new Date(demonstration.expirationDate) : undefined,

@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
+import { BUNDLE_TYPE, SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
   CreateDemonstrationInput,
   CreateAmendmentInput,
@@ -207,7 +207,7 @@ async function seedDatabase() {
     const createInput: CreateDemonstrationInput = {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      cmcsDivision: sampleFromArray([...CMCS_DIVISION, undefined], 1)[0],
+      sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
       stateId: sampleFromArray(person.personStates, 1)[0].stateId,
       projectOfficerUserId: person.id,
