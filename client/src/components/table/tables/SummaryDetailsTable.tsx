@@ -40,7 +40,7 @@ type SummaryDetailsDemonstration = Pick<
   | "description"
   | "effectiveDate"
   | "expirationDate"
-  | "cmcsDivision"
+  | "sdgDivision"
   | "signatureLevel"
 > & {
   state: Pick<State, "name" | "id">;
@@ -140,7 +140,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
         <div>
           <div className={LABEL_CLASSES}>SDG Division</div>
           <div className={VALUE_CLASSES}>
-            {demonstration.cmcsDivision ? demonstration.cmcsDivision : "--"}
+            {demonstration.sdgDivision ? demonstration.sdgDivision : "--"}
           </div>
         </div>
 

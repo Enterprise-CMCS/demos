@@ -159,7 +159,7 @@ describe("EditDemonstrationDialog", () => {
           name: "Test Demonstration 123",
           description: "A test demonstration.",
           stateId: "AL",
-          cmcsDivision: "Division of System Reform Demonstrations",
+          sdgDivision: "Division of System Reform Demonstrations",
           signatureLevel: "OA",
         },
       },
@@ -227,7 +227,7 @@ describe("EditDemonstrationDialog", () => {
             id: TEST_DEMO_ID,
             name: "", // Empty name
             description: "Test demonstration description",
-            cmcsDivision: "Division of System Reform Demonstrations",
+            sdgDivision: "Division of System Reform Demonstrations",
             signatureLevel: "OA",
             state: {
               id: "", // Empty state ID

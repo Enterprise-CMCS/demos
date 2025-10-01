@@ -25,7 +25,7 @@ const createTestDemonstration = (mockDemo: (typeof mockDemonstrations)[0]) => ({
   id: mockDemo.id,
   name: mockDemo.name,
   description: mockDemo.description,
-  cmcsDivision: mockDemo.cmcsDivision,
+  sdgDivision: mockDemo.sdgDivision,
   signatureLevel: mockDemo.signatureLevel,
   effectiveDate: new Date(mockDemo.effectiveDate),
   expirationDate: new Date(mockDemo.expirationDate),

@@ -1,21 +1,43 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 
 import { ModificationTableRow } from "components/table/tables/ModificationTable";
 import { isTestMode } from "config/env";
-import { Document, Person } from "demos-server";
+import {
+  Document,
+  Person,
+} from "demos-server";
 import { usePageHeader } from "hooks/usePageHeader";
-import { Tab, Tabs } from "layout/Tabs";
+import {
+  Tab,
+  Tabs,
+} from "layout/Tabs";
 import {
   DemonstrationDetailHeader,
   DemonstrationHeaderDetails,
 } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
-import { useLocation, useParams } from "react-router-dom";
+import {
+  useLocation,
+  useParams,
+} from "react-router-dom";
 
-import { gql, useQuery } from "@apollo/client";
+import {
+  gql,
+  useQuery,
+} from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
-import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
-import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
+import {
+  DemonstrationDetailModals,
+  DemonstrationDialogDetails,
+} from "./DemonstrationDetailModals";
+import {
+  DemonstrationTab,
+  DemonstrationTabDemonstration,
+} from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
@@ -26,7 +48,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       description
       effectiveDate
       expirationDate
-      cmcsDivision
+      sdgDivision
       signatureLevel
       state {
         id

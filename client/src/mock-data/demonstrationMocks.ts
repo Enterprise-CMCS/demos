@@ -1,10 +1,15 @@
-import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstrationDialog";
+import {
+  CREATE_DEMONSTRATION_MUTATION,
+} from "components/dialog/demonstration/CreateDemonstrationDialog";
 import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
 import type { BundleStatus } from "demos-server";
-import { CreateDemonstrationInput, Demonstration } from "demos-server";
+import {
+  CreateDemonstrationInput,
+  Demonstration,
+} from "demos-server";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
@@ -17,11 +22,14 @@ import { MockDemonstrationRoleAssignment } from "./demonstrationRoleAssignmentMo
 import { MockDocument } from "./documentMocks";
 import { MockExtension } from "./extensionMocks";
 import { mockPeople } from "./personMocks";
-import { MockState, mockStates } from "./stateMocks";
+import {
+  MockState,
+  mockStates,
+} from "./stateMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "cmcsDivision" | "signatureLevel"
+  "id" | "name" | "description" | "sdgDivision" | "signatureLevel"
 > & {
   effectiveDate: string | null;
   expirationDate: string | null;
@@ -42,7 +50,7 @@ export const mockDemonstrations = [
     effectiveDate: "2025-01-01T00:00:00.000Z",
     expirationDate: "2025-12-01T00:00:00.000Z",
     status: "Approved",
-    cmcsDivision: "Division of System Reform Demonstrations",
+    sdgDivision: "Division of System Reform Demonstrations",
     signatureLevel: "OA",
     state: mockStates[0],
     amendments: [
@@ -102,7 +110,7 @@ export const mockDemonstrations = [
     effectiveDate: "2024-06-15T00:00:00.000Z",
     expirationDate: "2026-06-15T00:00:00.000Z",
     status: "Pre-Submission",
-    cmcsDivision: "Division of Eligibility and Coverage Demonstrations",
+    sdgDivision: "Division of Eligibility and Coverage Demonstrations",
     signatureLevel: "OCD",
     state: mockStates[1],
     amendments: [
@@ -143,7 +151,7 @@ export const mockDemonstrations = [
     effectiveDate: "2024-03-01T00:00:00.000Z",
     expirationDate: "2027-03-01T00:00:00.000Z",
     status: "Under Review",
-    cmcsDivision: "Division of System Reform Demonstrations",
+    sdgDivision: "Division of System Reform Demonstrations",
     signatureLevel: "OGD",
     state: mockStates[2],
     amendments: [],
@@ -266,7 +274,7 @@ export const demonstrationMocks: MockedResponse[] = [
           name: "Test Demonstration 1",
           description: "A test demonstration.",
           stateId: "AL",
-          cmcsDivision: "Division of System Reform Demonstrations",
+          sdgDivision: "Division of System Reform Demonstrations",
           signatureLevel: "OA",
         },
       },
@@ -297,7 +305,7 @@ export const demonstrationMocks: MockedResponse[] = [
           name: "Test Demonstration 123",
           description: "A test demonstration.",
           stateId: "AL",
-          cmcsDivision: "Division of System Reform Demonstrations",
+          sdgDivision: "Division of System Reform Demonstrations",
           signatureLevel: "OA",
         },
       },
@@ -328,7 +336,7 @@ export const demonstrationMocks: MockedResponse[] = [
           name: "Test Demonstration 2",
           description: "Another test demonstration.",
           stateId: "AK",
-          cmcsDivision: "Division of Eligibility and Coverage Demonstrations",
+          sdgDivision: "Division of Eligibility and Coverage Demonstrations",
           signatureLevel: "OCD",
         },
       },
@@ -359,7 +367,7 @@ export const demonstrationMocks: MockedResponse[] = [
           name: "Test Demonstration 3",
           description: "A third test demonstration.",
           stateId: "AZ",
-          cmcsDivision: "Division of System Reform Demonstrations",
+          sdgDivision: "Division of System Reform Demonstrations",
           signatureLevel: "OGD",
         },
       },
