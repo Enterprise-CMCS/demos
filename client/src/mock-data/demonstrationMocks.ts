@@ -1,15 +1,10 @@
-import {
-  CREATE_DEMONSTRATION_MUTATION,
-} from "components/dialog/demonstration/CreateDemonstrationDialog";
+import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstrationDialog";
 import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
 import type { BundleStatus } from "demos-server";
-import {
-  CreateDemonstrationInput,
-  Demonstration,
-} from "demos-server";
+import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
@@ -17,15 +12,15 @@ import { GET_ALL_DEMONSTRATIONS_QUERY } from "queries/demonstrationQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
 
-import { MockAmendment } from "./amendmentMocks";
-import { MockDemonstrationRoleAssignment } from "./demonstrationRoleAssignmentMocks";
-import { MockDocument } from "./documentMocks";
-import { MockExtension } from "./extensionMocks";
-import { mockPeople } from "./personMocks";
+import { MockAmendment, mockAmendments } from "./amendmentMocks";
 import {
-  MockState,
-  mockStates,
-} from "./stateMocks";
+  MockDemonstrationRoleAssignment,
+  mockDemonstrationRoleAssignments,
+} from "./demonstrationRoleAssignmentMocks";
+import { MockDocument } from "./documentMocks";
+import { MockExtension, mockExtensions } from "./extensionMocks";
+import { mockPeople } from "./personMocks";
+import { MockState, mockStates } from "./stateMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -47,124 +42,55 @@ export const mockDemonstrations = [
     id: "1",
     name: "Test Demonstration 1",
     description: "A test demonstration.",
-    effectiveDate: "2025-01-01T00:00:00.000Z",
-    expirationDate: "2025-12-01T00:00:00.000Z",
-    status: "Approved",
+    status: "Approved" as BundleStatus,
+    effectiveDate: "2025-01-01",
+    expirationDate: "2025-12-01",
+    state: mockStates.find((state) => state.id === "AL")!,
     sdgDivision: "Division of System Reform Demonstrations",
     signatureLevel: "OA",
-    state: mockStates[0],
-    amendments: [
-      {
-        id: "1",
-        name: "Amendment 1 - Test Demonstration 1",
-        effectiveDate: new Date(2025, 0, 1),
-        status: "Under Review",
-      },
-      {
-        id: "2",
-        name: "Amendment 2 - Test Demonstration 1",
-        effectiveDate: new Date(2025, 1, 1),
-        status: "Approved",
-      },
-      {
-        id: "3",
-        name: "Amendment 3 - Test Demonstration 1",
-        effectiveDate: new Date(2025, 2, 1),
-        status: "Approved",
-      },
-    ],
-    extensions: [
-      {
-        id: "1",
-        name: "Extension 1 - Test Demonstration 1",
-        effectiveDate: new Date(2025, 0, 1),
-        status: "Under Review",
-      },
-      {
-        id: "2",
-        name: "Extension 2 - Test Demonstration 1",
-        effectiveDate: new Date(2025, 1, 1),
-        status: "Approved",
-      },
-      {
-        id: "3",
-        name: "Extension 3 - Test Demonstration 1",
-        effectiveDate: null,
-        status: "Approved",
-      },
-    ],
     demonstrationTypes: [],
+    amendments: mockAmendments.filter((amendment) =>
+      amendment.name.includes("Test Demonstration 1")
+    ),
+    extensions: mockExtensions.filter((extension) =>
+      extension.name.includes("Test Demonstration 1")
+    ),
     documents: [],
-    roles: [
-      {
-        role: "Project Officer",
-        isPrimary: true,
-        person: mockPeople[0],
-      },
-    ],
+    roles: [mockDemonstrationRoleAssignments[0]],
   },
   {
     id: "2",
     name: "Test Demonstration 2",
-    description: "Another test demonstration.",
-    effectiveDate: "2024-06-15T00:00:00.000Z",
-    expirationDate: "2026-06-15T00:00:00.000Z",
-    status: "Pre-Submission",
-    sdgDivision: "Division of Eligibility and Coverage Demonstrations",
-    signatureLevel: "OCD",
-    state: mockStates[1],
-    amendments: [
-      {
-        id: "4",
-        name: "Amendment 4 - Test Demonstration 2",
-        effectiveDate: new Date(2025, 3, 1),
-        status: "Under Review",
-      },
-      {
-        id: "5",
-        name: "Amendment 5 - Test Demonstration 2",
-        effectiveDate: new Date(2025, 4, 1),
-        status: "Denied",
-      },
-      {
-        id: "6",
-        name: "Amendment 6 - Test Demonstration 2",
-        effectiveDate: null,
-        status: "Denied",
-      },
-    ],
-    extensions: [],
+    description: "A test demonstration.",
+    status: "Under Review" as BundleStatus,
+    effectiveDate: "2025-03-01",
+    expirationDate: "2026-02-01",
+    state: mockStates.find((state) => state.id === "AK")!,
+    sdgDivision: "Division of System Reform Demonstrations",
+    signatureLevel: "OA",
     demonstrationTypes: [],
+    amendments: mockAmendments.filter((amendment) =>
+      amendment.name.includes("Test Demonstration 2")
+    ),
+    extensions: [],
     documents: [],
-    roles: [
-      {
-        role: "Project Officer",
-        isPrimary: true,
-        person: mockPeople[1],
-      },
-    ],
+    roles: [mockDemonstrationRoleAssignments[1]],
   },
   {
     id: "3",
     name: "Test Demonstration 3",
-    description: "A third test demonstration.",
-    effectiveDate: "2024-03-01T00:00:00.000Z",
-    expirationDate: "2027-03-01T00:00:00.000Z",
-    status: "Under Review",
+    description: "A test demonstration.",
+    status: "Denied" as BundleStatus,
+    effectiveDate: null,
+    expirationDate: null,
+    state: mockStates.find((state) => state.id === "AZ")!,
     sdgDivision: "Division of System Reform Demonstrations",
-    signatureLevel: "OGD",
-    state: mockStates[2],
+    signatureLevel: "OA",
+    demonstrationTypes: [],
     amendments: [],
     extensions: [],
-    demonstrationTypes: [],
     documents: [],
-    roles: [
-      {
-        role: "Project Officer",
-        isPrimary: true,
-        person: mockPeople[2],
-      },
-    ],
+    roles: [mockDemonstrationRoleAssignments[2]],
   },
 ] as const satisfies MockDemonstration[];
 

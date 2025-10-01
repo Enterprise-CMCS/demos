@@ -11,27 +11,7 @@ import {
   State,
 } from "demos-server";
 import { tw } from "tags/tw";
-import { formatDate } from "util/formatDate";
-
-const safeDateFormat = (date: Date | string | null | undefined): string => {
-  if (!date) return "--/--/----";
-
-  try {
-    if (typeof date === "string") {
-      const datePart = date.split("T")[0];
-      const [year, month, day] = datePart.split("-");
-      return `${month}/${day}/${year}`;
-    }
-
-    if (date instanceof Date) {
-      return formatDate(date);
-    }
-
-    return "--/--/----";
-  } catch {
-    return "--/--/----";
-  }
-};
+import { safeDateFormat } from "util/formatDate";
 
 type SummaryDetailsDemonstration = Pick<
   Demonstration,

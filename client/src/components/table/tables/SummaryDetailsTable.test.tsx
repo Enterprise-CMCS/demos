@@ -1,19 +1,10 @@
 import React from "react";
 
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
-import { formatDate } from "util/formatDate";
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { safeDateFormat } from "util/formatDate";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  render,
-  screen,
-} from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";
@@ -88,8 +79,8 @@ describe("SummaryDetailsTable", () => {
       render(<SummaryDetailsTable demonstration={testDemo} />);
 
       // Check that dates are rendered (format will depend on locale)
-      const effectiveDate = formatDate(testDemo.effectiveDate);
-      const expirationDate = formatDate(testDemo.expirationDate);
+      const effectiveDate = safeDateFormat(testDemo.effectiveDate);
+      const expirationDate = safeDateFormat(testDemo.expirationDate);
 
       expect(screen.getByText(effectiveDate)).toBeInTheDocument();
       expect(screen.getByText(expirationDate)).toBeInTheDocument();

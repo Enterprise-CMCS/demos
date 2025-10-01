@@ -2,19 +2,9 @@ import React from "react";
 
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
 import { mockPeople } from "mock-data/personMocks";
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import {
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DemonstrationTable } from "./DemonstrationTable";
