@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { CreateDemonstrationDialog, EditDemonstrationDialog } from "./";
 import { TestProvider } from "test-utils/TestProvider";
-import { GET_DEMONSTRATION_BY_ID_QUERY } from "./EditDemonstrationDialog";
+import { GET_EXISTING_DEMONSTRATION_QUERY } from "./EditDemonstrationDialog";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -64,7 +64,7 @@ describe("EditDemonstrationDialog", () => {
   const TEST_DEMO_ID = "test-demo-id";
   const GET_DEMONSTRATION_BY_ID_MOCK = {
     request: {
-      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      query: GET_EXISTING_DEMONSTRATION_QUERY,
       variables: { id: TEST_DEMO_ID },
     },
     result: {

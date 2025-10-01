@@ -2,28 +2,53 @@ import React from "react";
 import { useToast } from "components/toast";
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { UpdateDemonstrationInput } from "demos-server";
+import {
+  Demonstration,
+  DemonstrationRoleAssignment,
+  Person,
+  UpdateDemonstrationInput,
+} from "demos-server";
 import { Loading } from "components/loading/Loading";
 
 const SUCCESS_MESSAGE = "Demonstration updated successfully!";
 const ERROR_MESSAGE = "Failed to update demonstration. Please try again.";
 
-export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
-  query GetDemonstrationById($id: ID!) {
+type PersonId = Pick<Person, "id">;
+type DemonstrationRole = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & PersonId;
+type ExistingDemonstration = Pick<
+  Demonstration,
+  | "id"
+  | "name"
+  | "description"
+  | "cmcsDivision"
+  | "signatureLevel"
+  | "effectiveDate"
+  | "expirationDate"
+> & {
+  state: Pick<Demonstration["state"], "id">;
+  roles: DemonstrationRole[];
+};
+
+export const GET_EXISTING_DEMONSTRATION_QUERY = gql`
+  query GetExistingDemonstration($id: ID!) {
     demonstration(id: $id) {
       id
       name
       description
       cmcsDivision
       signatureLevel
+      effectiveDate
+      expirationDate
       state {
         id
       }
-      projectOfficer {
-        id
+      roles {
+        person {
+          id
+        }
+        role
+        isPrimary
       }
-      effectiveDate
-      expirationDate
     }
   }
 `;
@@ -38,11 +63,24 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       expirationDate
       state {
         id
-        name
       }
     }
   }
 `;
+
+const getPrimaryProjectOfficerId = (roles: DemonstrationRole[]): string => {
+  const projectOfficers = roles.filter((role) => role.role === "Project Officer");
+  if (projectOfficers.length === 0) {
+    throw new Error("No Project Officer found in roles");
+  }
+
+  const primaryProjectOfficer = projectOfficers.find((role) => role.isPrimary);
+  if (!primaryProjectOfficer) {
+    throw new Error("No primary Project Officer found in roles");
+  }
+
+  return primaryProjectOfficer.id;
+};
 
 const getUpdateDemonstrationInput = (
   demonstration: DemonstrationDialogFields
@@ -56,6 +94,17 @@ const getUpdateDemonstrationInput = (
   // expirationDate: demonstration.expirationDate,
 });
 
+const getInitialDemonstrationFields = (
+  existingDemonstration: ExistingDemonstration
+): DemonstrationDialogFields => ({
+  name: existingDemonstration.name,
+  description: existingDemonstration.description,
+  projectOfficerId: getPrimaryProjectOfficerId(existingDemonstration.roles),
+  effectiveDate: "",
+  expirationDate: "",
+  stateId: existingDemonstration.state.id,
+});
+
 export const EditDemonstrationDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
@@ -63,7 +112,11 @@ export const EditDemonstrationDialog: React.FC<{
 }> = ({ isOpen, demonstrationId, onClose }) => {
   const { showSuccess, showError } = useToast();
 
-  const { data, loading, error } = useQuery(GET_DEMONSTRATION_BY_ID_QUERY, {
+  const {
+    data: existingDemonstration,
+    loading: existingDemonstrationLoading,
+    error: existingDemonstrationError,
+  } = useQuery<{ demonstration: ExistingDemonstration }>(GET_EXISTING_DEMONSTRATION_QUERY, {
     variables: { id: demonstrationId },
   });
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
@@ -83,20 +136,22 @@ export const EditDemonstrationDialog: React.FC<{
     }
   };
 
-  if (loading) {
+  if (existingDemonstrationLoading) {
     return <Loading />;
   }
-  if (error) {
+  if (existingDemonstrationError) {
     return <div>Error loading demonstration data.</div>;
   }
 
-  return (
-    <DemonstrationDialog
-      isOpen={isOpen}
-      onClose={onClose}
-      mode="edit"
-      onSubmit={onSubmit}
-      initialDemonstration={data?.demonstration}
-    />
-  );
+  if (existingDemonstration) {
+    return (
+      <DemonstrationDialog
+        isOpen={isOpen}
+        onClose={onClose}
+        mode="edit"
+        onSubmit={onSubmit}
+        initialDemonstration={getInitialDemonstrationFields(existingDemonstration.demonstration)}
+      />
+    );
+  }
 };

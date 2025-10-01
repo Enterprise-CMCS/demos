@@ -18,7 +18,7 @@ import { mockUsers } from "./userMocks";
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
 import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstrationDialog";
 import {
-  GET_DEMONSTRATION_BY_ID_QUERY,
+  GET_EXISTING_DEMONSTRATION_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
 
@@ -113,7 +113,7 @@ export const demonstrationMocks: MockedResponse[] = [
   },
   {
     request: {
-      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      query: GET_EXISTING_DEMONSTRATION_QUERY,
       variables: { id: mockDemonstrations[0].id },
     },
     result: {
@@ -202,7 +202,7 @@ export const demonstrationMocks: MockedResponse[] = [
   // Error mock for GET_DEMONSTRATION_BY_ID_QUERY with invalid ID
   {
     request: {
-      query: GET_DEMONSTRATION_BY_ID_QUERY,
+      query: GET_EXISTING_DEMONSTRATION_QUERY,
       variables: { id: "fakeID" },
     },
     error: new Error("Demonstration not found"),
