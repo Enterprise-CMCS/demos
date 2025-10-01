@@ -1,6 +1,6 @@
 import React from "react";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, within } from "@testing-library/react";
 
@@ -55,6 +55,8 @@ describe("AmendmentTable", () => {
           ...amendment,
           status: amendment.status,
         }))}
+        onView={() => {}}
+        viewLabel="View Amendment"
       />
     );
   });
@@ -83,6 +85,54 @@ describe("AmendmentTable", () => {
 
     fireEvent.click(row);
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("View button", () => {
+  it("calls onView when the view button is clicked without collapsing the row", () => {
+    const handleView = vi.fn();
+    render(
+      <ModificationTable
+        modifications={mockAmendments.slice(0, 1).map((amendment) => ({
+          ...amendment,
+          status: amendment.status,
+        }))}
+        onView={handleView}
+        viewLabel="View Amendment"
+      />
+    );
+
+    const row = screen.getByText("Amendment 1 - Montana Medicaid Waiver").closest("div")!;
+    fireEvent.click(row);
+
+    const viewButton = screen.getByRole("button", { name: "View Amendment" });
+    fireEvent.click(viewButton);
+
+    expect(handleView).toHaveBeenCalledTimes(1);
+    // Ensure the expanded section remains visible after clicking the view button
+    expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
+  });
+
+  it("uses provided view label for extensions", () => {
+    const handleView = vi.fn();
+    render(
+      <ModificationTable
+        modifications={mockExtensions.slice(0, 1).map((extension) => ({
+          ...extension,
+          status: extension.status,
+        }))}
+        onView={handleView}
+        viewLabel="View Extension"
+      />
+    );
+
+    const row = screen.getByText("Extension 1 - Montana Medicaid Waiver").closest("div")!;
+    fireEvent.click(row);
+
+    const viewButton = screen.getByRole("button", { name: "View Extension" });
+    fireEvent.click(viewButton);
+
+    expect(handleView).toHaveBeenCalledTimes(1);
   });
 });
 

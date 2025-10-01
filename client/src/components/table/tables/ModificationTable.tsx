@@ -9,6 +9,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
+import { SecondaryButton } from "components/button";
 import { Amendment, BundleStatus, Extension } from "demos-server";
 import { formatDate } from "util/formatDate";
 
@@ -23,9 +24,13 @@ export type ModificationTableRow =
 export function ModificationTable({
   modifications,
   initiallyExpandedId,
+  onView,
+  viewLabel,
 }: {
   modifications: ModificationTableRow[];
   initiallyExpandedId?: string;
+  onView?: (modificationId: string) => void;
+  viewLabel?: string;
 }) {
   const [expanded, setExpanded] = React.useState<ExpandedState>(() =>
     initiallyExpandedId ? { [initiallyExpandedId]: true } : {}
@@ -80,8 +85,22 @@ export function ModificationTable({
                 </div>
               </div>
               {isExpanded && (
-                <div className="mt-2 px-2 py-2 bg-gray-100 text-sm italic text-gray-600 rounded-sm">
-                  Expanded details coming soon.
+                <div className="px-2 bg-gray-100 text-sm italic text-gray-600 rounded-sm">
+                  <div className="px-2 py-2 bg-gray-100 text-sm text-gray-800 rounded-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="italic text-gray-600">Expanded details coming soon.</span>
+                    {onView && (
+                      <SecondaryButton
+                        name="view-modification"
+                        size="small"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onView(row.original.id);
+                        }}
+                      >
+                        {viewLabel ?? "View"}
+                      </SecondaryButton>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

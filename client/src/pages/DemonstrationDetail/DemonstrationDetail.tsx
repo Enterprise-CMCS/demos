@@ -101,6 +101,8 @@ export const DemonstrationDetail: React.FC = () => {
   const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
   const [demonstrationActionModal, setDemonstrationActionModal] =
     useState<DemonstrationActionModal>(null);
+  const [activeAmendmentId, setActiveAmendmentId] = useState<string | null>(null);
+  const [activeExtensionId, setActiveExtensionId] = useState<string | null>(null);
 
   const handleEdit = useCallback(() => {
     setDemonstrationActionModal("edit");
@@ -118,6 +120,36 @@ export const DemonstrationDetail: React.FC = () => {
   );
 
   const demonstration = data?.demonstration;
+
+  const handleViewAmendment = useCallback(
+    (amendmentId: string) => {
+      if (!demonstration) {
+        return;
+      }
+
+      setActiveAmendmentId(amendmentId);
+    },
+    [demonstration]
+  );
+
+  const handleCloseAmendmentDialog = useCallback(() => {
+    setActiveAmendmentId(null);
+  }, []);
+
+  const handleViewExtension = useCallback(
+    (extensionId: string) => {
+      if (!demonstration) {
+        return;
+      }
+
+      setActiveExtensionId(extensionId);
+    },
+    [demonstration]
+  );
+
+  const handleCloseExtensionDialog = useCallback(() => {
+    setActiveExtensionId(null);
+  }, []);
 
   const headerContent = useMemo(
     () => (
@@ -154,6 +186,7 @@ export const DemonstrationDetail: React.FC = () => {
                 amendments={demonstration.amendments || []}
                 onClick={() => setEntityCreationModal("amendment")}
                 initiallyExpandedId={amendmentParam ?? undefined}
+                onViewAmendment={handleViewAmendment}
               />
             </Tab>
 
@@ -162,17 +195,22 @@ export const DemonstrationDetail: React.FC = () => {
                 extensions={demonstration.extensions || []}
                 onClick={() => setEntityCreationModal("extension")}
                 initiallyExpandedId={extensionParam ?? undefined}
+                onViewExtension={handleViewExtension}
               />
             </Tab>
           </Tabs>
 
-          {(entityCreationModal || demonstrationActionModal) && (
+          {(entityCreationModal || demonstrationActionModal || activeAmendmentId || activeExtensionId) && (
             <DemonstrationDetailModals
               entityCreationModal={entityCreationModal}
               demonstrationActionModal={demonstrationActionModal}
               demonstration={demonstration}
               onCloseEntityModal={() => setEntityCreationModal(null)}
               onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
+              activeAmendmentId={activeAmendmentId}
+              onCloseAmendmentDialog={handleCloseAmendmentDialog}
+              activeExtensionId={activeExtensionId}
+              onCloseExtensionDialog={handleCloseExtensionDialog}
             />
           )}
         </>

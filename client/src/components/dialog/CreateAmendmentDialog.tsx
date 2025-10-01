@@ -25,7 +25,6 @@ export const CREATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-const SUCCESS_MESSAGE = "Amendment created successfully!";
 const ERROR_MESSAGE = "Failed to create amendment. Please try again.";
 
 export const CreateAmendmentDialog: React.FC<Props> = ({
@@ -35,7 +34,7 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
   demonstrationId,
   data,
 }) => {
-  const { showSuccess, showError } = useToast();
+  const { showError } = useToast();
 
   const [createAmendmentTrigger, { loading }] = useMutation<{
     createAmendment: Pick<CreateAmendmentPayload, "success" | "message" | "amendment">;
@@ -65,18 +64,12 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
 
       const result = await createAmendmentTrigger({
         variables: { input },
-        // add cache updates or refetches if needed:
-        // refetchQueries: [{ query: GET_ALL_AMENDMENTS_QUERY, variables: { demonstrationId } }],
-        // awaitRefetchQueries: true,
       });
 
       const success = result.data?.createAmendment?.success ?? false;
 
       onClose();
-      if (success) {
-        // showSuccess(SUCCESS_MESSAGE);
-      } else {
-        // surface message if present
+      if (!success) {
         console.error(result.data?.createAmendment?.message);
         showError("Create amendment failed — check the console for details.");
       }

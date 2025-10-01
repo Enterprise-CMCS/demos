@@ -7,7 +7,8 @@ export const AmendmentsTab: React.FC<{
   amendments: ModificationTableRow[];
   onClick: () => void;
   initiallyExpandedId?: string;
-}> = ({ amendments, onClick, initiallyExpandedId }) => (
+  onViewAmendment?: (id: string) => void;
+}> = ({ amendments, onClick, initiallyExpandedId, onViewAmendment }) => (
   <div>
     <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
       <h1 className="text-xl font-bold text-brand uppercase">Amendments</h1>
@@ -18,6 +19,11 @@ export const AmendmentsTab: React.FC<{
         </div>
       </SecondaryButton>
     </div>
-    <ModificationTable modifications={amendments} initiallyExpandedId={initiallyExpandedId} />
+    <ModificationTable
+      modifications={amendments}
+      initiallyExpandedId={initiallyExpandedId}
+      onView={onViewAmendment}
+      viewLabel="View Amendment"
+    />
   </div>
 );

@@ -1,31 +1,78 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
-import { CreateExtensionInput } from "demos-server";
-import { createFormDataWithDates } from "hooks/useDialogForm";
+import { Button, SecondaryButton } from "components/button";
+import { BaseDialog } from "components/dialog/BaseDialog";
+import { TextInput } from "components/input/TextInput";
+import { useToast } from "components/toast";
+import { formatDate } from "util/formatDate";
+
+import { gql, useQuery } from "@apollo/client";
+
 import { useExtension } from "hooks/useExtension";
+import { CreateExtensionInput, UpdateExtensionInput } from "demos-server";
+import { createFormDataWithDates } from "hooks/useDialogForm";
 
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
-// Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
-type Props = Pick<
-  BaseModificationDialogProps,
-  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
-> & {
-  extensionId?: string;
+export const EXTENSION_DIALOG_QUERY = gql`
+  query ExtensionDialog($id: ID!) {
+    extension(id: $id) {
+      id
+      name
+      description
+      effectiveDate
+      expirationDate
+      status
+      currentPhaseName
+      demonstration {
+        id
+        name
+      }
+    }
+  }
+`;
+
+interface ExtensionQueryData {
+  extension: {
+    id: string;
+    name: string;
+    description: string | null;
+    effectiveDate: string | null;
+    expirationDate: string | null;
+    status: string;
+    currentPhaseName: string | null;
+    demonstration: {
+      id: string;
+      name: string | null;
+      __typename?: string;
+    } | null;
+  } | null;
+}
+
+type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
+  extensionId?: string | null;
+  mode?: "add" | "view" | "edit";
 };
+
+const FORM_ID = "extension-dialog-form";
 
 export const ExtensionDialog: React.FC<Props> = ({
   isOpen = true,
   onClose,
-  mode,
+  mode = "view",
   extensionId,
   demonstrationId,
   data,
 }) => {
-  const { addExtension } = useExtension();
+  const { showSuccess, showError } = useToast();
+  const { addExtension, updateExtension } = useExtension();
 
-  const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
-    if (mode === "add") {
+  if (mode === "add") {
+    const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
+      if (mode !== "add") {
+        return;
+      }
+
       const { demonstrationId, name, description } = extensionData as {
         demonstrationId?: string;
         name?: string;
@@ -46,36 +93,235 @@ export const ExtensionDialog: React.FC<Props> = ({
       };
 
       await addExtension.trigger(createExtensionInput);
+    };
+
+    const getExtensionFormData = (
+      baseData: Record<string, unknown>,
+      effectiveDate?: string,
+      expirationDate?: string
+    ) => createFormDataWithDates(baseData, effectiveDate, expirationDate);
+
+    return (
+      <BaseModificationDialog
+        isOpen={isOpen}
+        onClose={onClose}
+        mode={mode}
+        entityId={extensionId ?? undefined}
+        demonstrationId={demonstrationId}
+        data={data}
+        entityType="extension"
+        onSubmit={handleExtensionSubmit}
+        getFormData={getExtensionFormData}
+      />
+    );
+  }
+
+  const isReadOnly = mode !== "edit";
+  const hasExtensionId = Boolean(extensionId);
+
+  const { data: queryData, loading, error } = useQuery<ExtensionQueryData>(EXTENSION_DIALOG_QUERY, {
+    variables: { id: extensionId as string },
+    skip: !hasExtensionId,
+    fetchPolicy: "cache-first",
+  });
+
+  const extension = queryData?.extension;
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [effectiveDate, setEffectiveDate] = useState("");
+  const [expirationDate, setExpirationDate] = useState("");
+
+  useEffect(() => {
+    if (!extension) {
       return;
     }
 
+    setTitle(extension.name ?? "");
+    setDescription(extension.description ?? "");
+    setEffectiveDate(extension.effectiveDate ? extension.effectiveDate.slice(0, 10) : "");
+    setExpirationDate(extension.expirationDate ? extension.expirationDate.slice(0, 10) : "");
+  }, [extension]);
+
+  const effectiveDateDisplay = useMemo(() => {
+    if (!extension?.effectiveDate) return "--/--/----";
+    return formatDate(new Date(extension.effectiveDate));
+  }, [extension?.effectiveDate]);
+
+  const expirationDateDisplay = useMemo(() => {
+    if (!extension?.expirationDate) return "--/--/----";
+    return formatDate(new Date(extension.expirationDate));
+  }, [extension?.expirationDate]);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     if (!extensionId) {
-      throw new Error("Extension ID is required to update an extension.");
+      return;
     }
 
-    // TODO: Implement extension update logic when available
-    console.log("Extension update not yet implemented for ID:", extensionId);
+    const input: UpdateExtensionInput = {
+      name: title,
+      description: description.trim().length === 0 ? null : description,
+      effectiveDate: effectiveDate ? new Date(effectiveDate) : undefined,
+      expirationDate: expirationDate ? new Date(expirationDate) : undefined,
+    };
+
+    try {
+      await updateExtension.trigger(extensionId, input);
+      showSuccess("Extension updated successfully!");
+      onClose();
+    } catch (err) {
+      console.error(err);
+      showError("Failed to update extension. Please try again.");
+    }
   };
 
-  const getExtensionFormData = (
-    baseData: Record<string, unknown>,
-    effectiveDate?: string,
-    expirationDate?: string
-  ) => {
-    return createFormDataWithDates(baseData, effectiveDate, expirationDate);
+  const renderContent = () => {
+    if (!hasExtensionId) {
+      return <p className="text-sm text-text-font">No extension selected.</p>;
+    }
+
+    if (loading) {
+      return <p className="text-sm text-text-font">Loading extension…</p>;
+    }
+
+    if (error) {
+      return <p className="text-sm text-text-warn">Failed to load extension.</p>;
+    }
+
+    if (!extension) {
+      return <p className="text-sm text-text-font">Extension not found.</p>;
+    }
+
+    return (
+      <form id={FORM_ID} className="space-y-6" onSubmit={handleSubmit}>
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-text-font uppercase tracking-wide">Overview</h3>
+          <TextInput
+            name="extension-title"
+            label="Extension Title"
+            isRequired
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            isDisabled={isReadOnly}
+          />
+          <TextInput
+            name="extension-demonstration"
+            label="Demonstration"
+            value={extension.demonstration?.name ?? "--"}
+            isDisabled
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <TextInput
+              name="extension-status"
+              label="Status"
+              value={extension.status}
+              isDisabled
+            />
+            <TextInput
+              name="extension-phase"
+              label="Current Phase"
+              value={extension.currentPhaseName ?? "--"}
+              isDisabled
+            />
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-text-font uppercase tracking-wide">Timeline</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-sm">
+              <label className="text-text-font font-bold text-field-label flex gap-0-5" htmlFor="extension-effective-date">
+                Effective Date
+              </label>
+              {isReadOnly ? (
+                <input
+                  id="extension-effective-date"
+                  data-testid="extension-effective-date-display"
+                  value={effectiveDateDisplay}
+                  readOnly
+                  className="border border-border-fields rounded px-2 py-1 bg-surface-secondary text-text-font"
+                />
+              ) : (
+                <input
+                  id="extension-effective-date"
+                  type="date"
+                  className="border border-border-fields rounded px-2 py-1"
+                  value={effectiveDate}
+                  onChange={(event) => setEffectiveDate(event.target.value)}
+                />
+              )}
+            </div>
+            <div className="flex flex-col gap-sm">
+              <label className="text-text-font font-bold text-field-label flex gap-0-5" htmlFor="extension-expiration-date">
+                Expiration Date
+              </label>
+              {isReadOnly ? (
+                <input
+                  id="extension-expiration-date"
+                  data-testid="extension-expiration-date-display"
+                  value={expirationDateDisplay}
+                  readOnly
+                  className="border border-border-fields rounded px-2 py-1 bg-surface-secondary text-text-font"
+                />
+              ) : (
+                <input
+                  id="extension-expiration-date"
+                  type="date"
+                  className="border border-border-fields rounded px-2 py-1"
+                  value={expirationDate}
+                  onChange={(event) => setExpirationDate(event.target.value)}
+                />
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-text-font uppercase tracking-wide">Description</h3>
+          <textarea
+            id="extension-description"
+            className="w-full border border-border-fields rounded px-2 py-1 text-sm min-h-[120px]"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            readOnly={isReadOnly}
+            placeholder="Add a description"
+          />
+        </section>
+      </form>
+    );
   };
+
+  const actions = isReadOnly ? (
+    <SecondaryButton name="close-extension-dialog" size="small" onClick={onClose}>
+      Close
+    </SecondaryButton>
+  ) : (
+    <>
+      <SecondaryButton name="cancel-extension-dialog" size="small" onClick={onClose}>
+        Cancel
+      </SecondaryButton>
+      <Button
+        name="save-extension-dialog"
+        size="small"
+        type="submit"
+        form={FORM_ID}
+        disabled={updateExtension.loading || title.trim().length === 0}
+      >
+        {updateExtension.loading ? "Saving..." : "Save"}
+      </Button>
+    </>
+  );
+
+  const showInfoBanner = hasExtensionId && !loading && !error && Boolean(extension);
 
   return (
-    <BaseModificationDialog
-      isOpen={isOpen}
-      onClose={onClose}
-      mode={mode}
-      entityId={extensionId}
-      demonstrationId={demonstrationId}
-      data={data}
-      entityType="extension"
-      onSubmit={handleExtensionSubmit}
-      getFormData={getExtensionFormData}
-    />
+    <BaseDialog title={extension?.name ?? "Extension Details"} isOpen={isOpen} onClose={onClose} actions={actions}>
+      {showInfoBanner && (
+        <p className="text-sm italic text-text-placeholder mb-2">Expanded details coming soon.</p>
+      )}
+      {renderContent()}
+    </BaseDialog>
   );
 };

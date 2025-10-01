@@ -7,7 +7,8 @@ export const ExtensionsTab: React.FC<{
   extensions: ModificationTableRow[];
   onClick: () => void;
   initiallyExpandedId?: string;
-}> = ({ extensions, onClick, initiallyExpandedId }) => (
+  onViewExtension?: (id: string) => void;
+}> = ({ extensions, onClick, initiallyExpandedId, onViewExtension }) => (
   <div>
     <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
       <h1 className="text-xl font-bold text-brand uppercase">Extensions</h1>
@@ -18,6 +19,11 @@ export const ExtensionsTab: React.FC<{
         </div>
       </SecondaryButton>
     </div>
-    <ModificationTable modifications={extensions} initiallyExpandedId={initiallyExpandedId} />
+    <ModificationTable
+      modifications={extensions}
+      initiallyExpandedId={initiallyExpandedId}
+      onView={onViewExtension}
+      viewLabel="View Extension"
+    />
   </div>
 );

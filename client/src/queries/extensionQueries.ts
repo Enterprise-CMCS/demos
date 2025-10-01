@@ -8,6 +8,7 @@ export const CREATE_EXTENSION_MUTATION = gql`
       description
       effectiveDate
       expirationDate
+      currentPhaseName
       demonstration {
         id
         name
@@ -25,6 +26,7 @@ export const GET_ALL_EXTENSIONS_QUERY = gql`
       description
       effectiveDate
       expirationDate
+      currentPhaseName
       demonstration {
         id
         name
@@ -42,6 +44,7 @@ export const GET_EXTENSION_BY_ID_QUERY = gql`
       description
       effectiveDate
       expirationDate
+      currentPhaseName
       demonstration {
         id
         name

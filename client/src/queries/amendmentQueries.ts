@@ -31,7 +31,7 @@ export const GET_ALL_AMENDMENTS_QUERY = gql`
       effectiveDate
       expirationDate
       status
-      currentPhase
+      currentPhaseName
       demonstration {
         id
         name
@@ -49,7 +49,7 @@ export const GET_AMENDMENT_BY_ID_QUERY = gql`
       effectiveDate
       expirationDate
       status
-      currentPhase
+      currentPhaseName
       demonstration {
         id
         name
@@ -67,7 +67,7 @@ export const UPDATE_AMENDMENT_MUTATION = gql`
       effectiveDate
       expirationDate
       status
-      currentPhase
+      currentPhaseName
       demonstration {
         id
         name

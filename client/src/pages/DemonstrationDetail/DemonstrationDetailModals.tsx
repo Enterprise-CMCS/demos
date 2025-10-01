@@ -1,7 +1,6 @@
 import React from "react";
 
-import { CreateAmendmentDialog } from "components/dialog/CreateAmendmentDialog";
-import { EditDemonstrationDialog } from "components/dialog";
+import { AmendmentDialog, CreateAmendmentDialog, EditDemonstrationDialog } from "components/dialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { Demonstration } from "demos-server";
@@ -22,6 +21,10 @@ interface DemonstrationDetailModalsProps {
   demonstration: DemonstrationDialogDetails;
   onCloseEntityModal: () => void;
   onCloseDemonstrationDialog: () => void;
+  activeAmendmentId?: string | null;
+  onCloseAmendmentDialog?: () => void;
+  activeExtensionId?: string | null;
+  onCloseExtensionDialog?: () => void;
 }
 
 export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps> = ({
@@ -30,6 +33,10 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
   demonstration,
   onCloseEntityModal,
   onCloseDemonstrationDialog,
+  activeAmendmentId,
+  onCloseAmendmentDialog,
+  activeExtensionId,
+  onCloseExtensionDialog,
 }) => (
   <>
     {/* Entity Creation Modals */}
@@ -59,6 +66,24 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
       <div>
         <p>Delete functionality not yet implemented</p>
       </div>
+    )}
+
+    {activeAmendmentId && (
+      <AmendmentDialog
+        isOpen={true}
+        onClose={onCloseAmendmentDialog ?? onCloseEntityModal}
+        mode="view"
+        amendmentId={activeAmendmentId}
+      />
+    )}
+
+    {activeExtensionId && (
+      <ExtensionDialog
+        isOpen={true}
+        onClose={onCloseExtensionDialog ?? onCloseEntityModal}
+        mode="view"
+        extensionId={activeExtensionId}
+      />
     )}
   </>
 );
