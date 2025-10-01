@@ -1,12 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
-
 import { Option } from "./Select";
-
-// Re-export Option for components that need it
-export type { Option };
 
 export interface AutoCompleteSelectProps {
   options: Option[];
@@ -121,6 +116,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           required={isRequired}
           disabled={isDisabled}
           className={INPUT_CLASSES}
+          data-form-type="other"
         />
         <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />
