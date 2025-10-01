@@ -22,7 +22,7 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
 }) => {
   const getInitialDocument = (): DocumentDialogFields => ({
     id: bundleId,
-    title: "",
+    name: "",
     description: "",
     documentType: "Pre-Submission",
     file: null,

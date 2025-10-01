@@ -66,7 +66,7 @@ export const ConceptPhase: React.FC<Props> = ({
   const preSubmissionDocuments = testDocuments.filter(
     (doc) =>
       doc.documentType === "Pre-Submission" ||
-      doc.title?.toLowerCase().includes("pre-submission") ||
+      doc.name?.toLowerCase().includes("pre-submission") ||
       doc.description?.toLowerCase().includes("pre-submission")
   );
 
@@ -122,7 +122,7 @@ export const ConceptPhase: React.FC<Props> = ({
   const addMockDocument = () => {
     const newDoc: DocumentTableDocument = {
       id: `mock-${Date.now()}`,
-      title: `Pre-Submission Document ${mockDocuments.length + 1}`,
+      name: `Pre-Submission Document ${mockDocuments.length + 1}`,
       description: "Mock pre-submission document for testing",
       documentType: "Pre-Submission",
       createdAt: new Date(),

@@ -49,7 +49,7 @@ export const ApplicationUploadSection: React.FC<Props> = ({
         {documents.map((doc) => (
           <div key={doc.id} className={STYLES.fileRow}>
             <div>
-              <div className="font-medium">{doc.title}</div>
+              <div className="font-medium">{doc.name}</div>
               <div className={STYLES.fileMeta}>
                 {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
                 {doc.description ? ` • ${doc.description}` : ""}
@@ -58,8 +58,8 @@ export const ApplicationUploadSection: React.FC<Props> = ({
             <button
               className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
               onClick={() => onDeleteDocument(doc.id)}
-              aria-label={`Delete ${doc.title}`}
-              title={`Delete ${doc.title}`}
+              aria-label={`Delete ${doc.name}`}
+              title={`Delete ${doc.name}`}
             >
               <DeleteIcon className="w-2 h-2" />
             </button>
