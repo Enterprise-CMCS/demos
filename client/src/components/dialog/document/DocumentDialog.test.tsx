@@ -200,7 +200,7 @@ describe("RemoveDocumentDialog", () => {
 describe("EditDocumentDialog", () => {
   const existingDocument: DocumentDialogFields = {
     id: "123",
-    title: "Existing Document",
+    name: "Existing Document",
     description: "This is an existing document",
     documentType: "General File",
     file: null,

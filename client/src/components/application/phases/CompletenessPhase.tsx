@@ -97,7 +97,7 @@ export const CompletenessPhase: React.FC = () => {
         {completenessDocs.map((doc) => (
           <div key={doc.id} className={STYLES.fileRow}>
             <div>
-              <div className="font-medium">{doc.title}</div>
+              <div className="font-medium">{doc.name}</div>
               <div className={STYLES.fileMeta}>
                 {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
               </div>
@@ -107,8 +107,8 @@ export const CompletenessPhase: React.FC = () => {
               onClick={() =>
                 setCompletenessDocs((docs) => docs.filter((d) => d.id !== doc.id))
               }
-              aria-label={`Delete ${doc.title}`}
-              title={`Delete ${doc.title}`}
+              aria-label={`Delete ${doc.name}`}
+              title={`Delete ${doc.name}`}
             >
               <DeleteIcon className="w-2 h-2" />
             </button>

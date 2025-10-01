@@ -68,7 +68,7 @@ describe("StateApplicationPhase", () => {
 
   const mockStateApplicationDocument: DocumentTableDocument = {
     id: "1",
-    title: "State Application Document 1",
+    name: "State Application Document 1",
     description: "Test state application document",
     documentType: "State Application",
     createdAt: new Date(TEST_DOCUMENT_DATE),
@@ -77,7 +77,7 @@ describe("StateApplicationPhase", () => {
 
   const mockOtherDocument: DocumentTableDocument = {
     id: "doc-2",
-    title: "Other Document",
+    name: "Other Document",
     description: "Test other document",
     documentType: "General File",
     createdAt: new Date(TEST_OTHER_DOCUMENT_DATE),
@@ -288,7 +288,7 @@ describe("StateApplicationPhase", () => {
         {
           ...mockOtherDocument,
           id: "doc-3",
-          title: "Another State Application Document",
+          name: "Another State Application Document",
           documentType: "State Application" as const,
         },
       ];

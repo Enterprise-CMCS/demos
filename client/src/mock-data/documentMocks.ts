@@ -1,7 +1,7 @@
 import { Document, DocumentType } from "demos-server";
 import { MockUser, mockUsers } from "./userMocks";
 
-export type MockDocument = Pick<Document, "id" | "title" | "description" | "createdAt"> & {
+export type MockDocument = Pick<Document, "id" | "name" | "description" | "createdAt"> & {
   documentType: DocumentType;
   owner: MockUser;
 };
@@ -9,7 +9,7 @@ export type MockDocument = Pick<Document, "id" | "title" | "description" | "crea
 export const mockDocuments = [
   {
     id: "1",
-    title: "Project Plan",
+    name: "Project Plan",
     description: "Initial project planning document.",
     documentType: "Pre-Submission",
     owner: mockUsers[5],
@@ -17,7 +17,7 @@ export const mockDocuments = [
   },
   {
     id: "2",
-    title: "Final Report",
+    name: "Final Report",
     description: "Comprehensive final report.",
     documentType: "Signed Decision Memo",
     owner: mockUsers[4],
@@ -25,7 +25,7 @@ export const mockDocuments = [
   },
   {
     id: "3",
-    title: "Budget Summary",
+    name: "Budget Summary",
     description: "Q2 budget breakdown.",
     documentType: "Payment Ratio Analysis",
     owner: mockUsers[8],
@@ -33,7 +33,7 @@ export const mockDocuments = [
   },
   {
     id: "4",
-    title: "Meeting Minutes",
+    name: "Meeting Minutes",
     description: "Minutes from the July stakeholder meeting.",
     documentType: "General File",
     owner: mockUsers[7],

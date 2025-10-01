@@ -52,7 +52,7 @@ describe("ConceptPhase", () => {
 
   const mockPreSubmissionDocument: DocumentTableDocument = {
     id: "doc-1",
-    title: "Pre-Submission Document 1",
+    name: "Pre-Submission Document 1",
     description: "Test pre-submission document",
     documentType: "Pre-Submission",
     createdAt: new Date("2024-01-15"),
@@ -61,7 +61,7 @@ describe("ConceptPhase", () => {
 
   const mockOtherDocument: DocumentTableDocument = {
     id: "doc-2",
-    title: "Other Document",
+    name: "Other Document",
     description: "Test other document",
     documentType: "General File",
     createdAt: new Date("2024-01-16"),
@@ -259,7 +259,7 @@ describe("ConceptPhase", () => {
         {
           ...mockOtherDocument,
           id: "doc-3",
-          title: "Another Pre-Submission Document",
+          name: "Another Pre-Submission Document",
           documentType: "Pre-Submission" as const,
         },
       ];

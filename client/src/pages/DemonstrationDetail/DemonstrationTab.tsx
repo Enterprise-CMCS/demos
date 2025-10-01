@@ -29,7 +29,7 @@ export type DemonstrationTabDemonstration = Pick<
   Demonstration,
   "id" | "name" | "description" | "effectiveDate" | "expirationDate" | "status"
 > & {
-  documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
+  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
       person: Pick<Person, "fullName">;
     };

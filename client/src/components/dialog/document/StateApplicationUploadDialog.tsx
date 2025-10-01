@@ -19,7 +19,7 @@ type Props = {
 export const StateApplicationUploadDialog: React.FC<Props> = ({ isOpen, onClose, bundleId }) => {
   const getInitialDocument = (): DocumentDialogFields => ({
     id: bundleId,
-    title: "",
+    name: "",
     description: "",
     documentType: DOCUMENT_TYPE_SUBSET[0],
     file: null,
