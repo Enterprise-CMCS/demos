@@ -11,20 +11,6 @@ import { SummaryDetailsTable } from "./SummaryDetailsTable";
 
 const EDIT_BUTTON_TEST_ID = "button-edit-details";
 
-// Helper to convert mock demonstration to proper format for SummaryDetailsTable
-const createTestDemonstration = (mockDemo: (typeof mockDemonstrations)[0]) => ({
-  id: mockDemo.id,
-  name: mockDemo.name,
-  description: mockDemo.description,
-  sdgDivision: mockDemo.sdgDivision,
-  signatureLevel: mockDemo.signatureLevel,
-  effectiveDate: new Date(mockDemo.effectiveDate),
-  expirationDate: new Date(mockDemo.expirationDate),
-  status: mockDemo.status,
-  state: mockDemo.state,
-  roles: mockDemo.roles,
-});
-
 // Mock the DemonstrationDialog component
 vi.mock("components/dialog", () => ({
   EditDemonstrationDialog: () => <div>EditDemonstrationDialog</div>,
@@ -33,7 +19,7 @@ vi.mock("components/dialog", () => ({
 
 describe("SummaryDetailsTable", () => {
   const mockOnEdit = vi.fn();
-  const testDemo = createTestDemonstration(mockDemonstrations[0]);
+  const testDemo = mockDemonstrations[0];
 
   beforeEach(() => {
     vi.clearAllMocks();

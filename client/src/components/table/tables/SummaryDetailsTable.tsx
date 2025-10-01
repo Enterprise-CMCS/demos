@@ -15,14 +15,10 @@ import { safeDateFormat } from "util/formatDate";
 
 type SummaryDetailsDemonstration = Pick<
   Demonstration,
-  | "id"
-  | "name"
-  | "description"
-  | "effectiveDate"
-  | "expirationDate"
-  | "sdgDivision"
-  | "signatureLevel"
+  "id" | "name" | "description" | "sdgDivision" | "signatureLevel"
 > & {
+  effectiveDate: Date | string | null;
+  expirationDate: Date | string | null;
   state: Pick<State, "name" | "id">;
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "fullName">;

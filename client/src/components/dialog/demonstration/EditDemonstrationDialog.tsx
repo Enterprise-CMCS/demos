@@ -164,7 +164,7 @@ export const EditDemonstrationDialog: React.FC<{
     return <div>Error loading demonstration data.</div>;
   }
 
-  const transformedDemonstration = data?.demonstration
+  const flattenedDemonstration = data?.demonstration
     ? {
       ...data.demonstration,
       stateId: data.demonstration.state.id,
@@ -190,7 +190,7 @@ export const EditDemonstrationDialog: React.FC<{
       onClose={onClose}
       mode="edit"
       onSubmit={onSubmit}
-      initialDemonstration={transformedDemonstration}
+      initialDemonstration={flattenedDemonstration}
     />
   );
 };
