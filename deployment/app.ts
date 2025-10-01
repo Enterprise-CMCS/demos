@@ -97,19 +97,6 @@ export async function main(passedContext?: { [key: string]: any }) {
     database.addDependency(core);
   }
 
-  if (!config.isEphemeral) {
-    const dbRole = new DBRoleStack(app, `${project}-${stage}-db-role`, {
-      ...config,
-      env: {
-        account: process.env.CDK_DEFAULT_ACCOUNT,
-        region: process.env.CDK_DEFAULT_REGION,
-      },
-      vpc: core.vpc,
-    });
-    applyDbRoleSuppressions(dbRole, stage);
-    dbRole.addDependency(core);
-  }
-
   const fileUpload = new FileUploadStack(app, `${project}-${stage}-file-upload`, {
     ...config,
     env: {
@@ -144,6 +131,21 @@ export async function main(passedContext?: { [key: string]: any }) {
   });
   ui.addDependency(core);
   ui.addDependency(api);
+
+  if (!config.isEphemeral) {
+    const dbRole = new DBRoleStack(app, `${project}-${stage}-db-role`, {
+      ...config,
+      env: {
+        account: process.env.CDK_DEFAULT_ACCOUNT,
+        region: process.env.CDK_DEFAULT_REGION,
+      },
+      vpc: core.vpc,
+    });
+    applyDbRoleSuppressions(dbRole, stage);
+    dbRole.addDependency(core);
+    fileUpload.addDependency(dbRole);
+    api.addDependency(dbRole);
+  }
 
   applyCoreSuppressions(core);
   applyApiSuppressions(api, stage);

@@ -8,7 +8,7 @@ model DemonstrationHistory {
   description      String?
   effectiveDate    DateTime?    @map("effective_date") @db.Date
   expirationDate   DateTime?    @map("expiration_date") @db.Date
-  cmcsDivisionId   String?      @map("cmcs_division_id")
+  sdgDivisionId    String?      @map("sdg_division_id")
   signatureLevelId String?      @map("signature_level_id")
   statusId         String       @map("status_id")
   stateId          String       @map("state_id")

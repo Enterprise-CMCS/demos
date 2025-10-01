@@ -1,9 +1,9 @@
 // Flags: STATIC_CONSTRAINT
-model CmcsDivision {
+model SdgDivision {
   id String
 
   demonstrations Demonstration[]
 
   @@id([id])
-  @@map("cmcs_division")
+  @@map("sdg_division")
 }
