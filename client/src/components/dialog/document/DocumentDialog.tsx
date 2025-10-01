@@ -458,6 +458,7 @@ export const AddDocumentDialog: React.FC<{
       title: dialogFields.title,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
+      phaseName: "None",
     };
 
     const uploadDocumentResponse = await uploadDocumentTrigger({

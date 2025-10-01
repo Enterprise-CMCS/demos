@@ -2,7 +2,7 @@ import { Demonstration } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType, Phase, BundleStatus, GrantLevel, Role } from "../../types.js";
+import { BundleType, PhaseName, BundleStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -12,7 +12,7 @@ const roleProjectOfficer: Role = "Project Officer";
 const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
-const conceptPhaseId: Phase = "Concept";
+const conceptPhaseName: PhaseName = "Concept";
 const newBundleStatusId: BundleStatus = "Pre-Submission";
 
 export async function getDemonstration(parent: undefined, { id }: { id: string }) {
@@ -47,7 +47,7 @@ export async function createDemonstration(
           signatureLevelId: input.signatureLevel,
           statusId: newBundleStatusId,
           stateId: input.stateId,
-          currentPhaseId: conceptPhaseId,
+          currentPhaseId: conceptPhaseName,
         },
       });
 
@@ -97,7 +97,7 @@ export async function updateDemonstration(
   parent: undefined,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ) {
-  checkOptionalNotNullFields(["name", "status", "currentPhase", "stateId"], input);
+  checkOptionalNotNullFields(["name", "status", "currentPhaseName", "stateId"], input);
   return await prisma().demonstration.update({
     where: { id },
     data: {
@@ -108,7 +108,7 @@ export async function updateDemonstration(
       cmcsDivisionId: input.cmcsDivision,
       signatureLevelId: input.signatureLevel,
       statusId: input.status,
-      currentPhaseId: input.currentPhase,
+      currentPhaseId: input.currentPhaseName,
       stateId: input.stateId,
     },
   });
@@ -171,7 +171,7 @@ export const demonstrationResolvers = {
       return parent.signatureLevelId;
     },
 
-    currentPhase: async (parent: Demonstration) => {
+    currentPhaseName: async (parent: Demonstration) => {
       return parent.currentPhaseId;
     },
 

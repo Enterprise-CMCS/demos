@@ -2,7 +2,7 @@ import { Modification } from "@prisma/client";
 
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleStatus, BundleType, Phase } from "../../types.js";
+import { BundleStatus, BundleType, PhaseName } from "../../types.js";
 import {
   CreateAmendmentInput,
   CreateExtensionInput,
@@ -14,7 +14,7 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 
 const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
 const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
-const conceptPhaseId: Phase = "Concept";
+const conceptPhaseName: PhaseName = "Concept";
 const newBundleStatusId: BundleStatus = "Pre-Submission";
 
 async function getModification(
@@ -90,7 +90,7 @@ async function createModification(
         name: input.name,
         description: input.description,
         statusId: newBundleStatusId,
-        currentPhaseId: conceptPhaseId,
+        currentPhaseId: conceptPhaseName,
       },
     });
   });
@@ -119,7 +119,7 @@ async function updateModification(
   info: undefined,
   bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
 ) {
-  checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhase"], input);
+  checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
   return await prisma().modification.update({
     where: {
       id: id,
@@ -132,7 +132,7 @@ async function updateModification(
       effectiveDate: input.effectiveDate,
       expirationDate: input.expirationDate,
       statusId: input.status,
-      currentPhaseId: input.currentPhase,
+      currentPhaseId: input.currentPhaseName,
     },
   });
 }
@@ -171,6 +171,14 @@ async function getCurrentPhase(parent: Modification) {
   return parent.currentPhaseId;
 }
 
+async function getPhases(parent: Modification) {
+  return await prisma().bundlePhase.findMany({
+    where: {
+      bundleId: parent.id,
+    },
+  });
+}
+
 export const modificationResolvers = {
   Query: {
     amendment: getAmendment,
@@ -206,14 +214,16 @@ export const modificationResolvers = {
   Amendment: {
     demonstration: getParentDemonstration,
     documents: getDocuments,
-    currentPhase: getCurrentPhase,
+    currentPhaseName: getCurrentPhase,
     status: resolveBundleStatus,
+    phases: getPhases,
   },
 
   Extension: {
     demonstration: getParentDemonstration,
     documents: getDocuments,
-    currentPhase: getCurrentPhase,
+    currentPhaseName: getCurrentPhase,
     status: resolveBundleStatus,
+    phases: getPhases,
   },
 };
