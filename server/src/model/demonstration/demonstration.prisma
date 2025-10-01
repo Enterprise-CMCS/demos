@@ -3,8 +3,8 @@ model Demonstration {
   bundleTypeId     String    @map("bundle_type_id")
   name             String
   description      String?
-  effectiveDate    DateTime? @map("effective_date") @db.Date
-  expirationDate   DateTime? @map("expiration_date") @db.Date
+  effectiveDate    DateTime? @map("effective_date") @db.Timestamptz()
+  expirationDate   DateTime? @map("expiration_date") @db.Timestamptz()
   sdgDivisionId    String?   @map("sdg_division_id")
   signatureLevelId String?   @map("signature_level_id")
   statusId         String    @map("status_id")
