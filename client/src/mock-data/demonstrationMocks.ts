@@ -220,7 +220,7 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     error: new Error("Demonstration not found or invalid input"),
   },
-  // Error mock for ADD_DEMONSTRATION_MUTATION with invalid data
+  // Error mock for CREATE_DEMONSTRATION_MUTATION with invalid data
   {
     request: {
       query: CREATE_DEMONSTRATION_MUTATION,

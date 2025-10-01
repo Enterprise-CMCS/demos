@@ -1,6 +1,6 @@
 import { CreateExtensionInput, Extension, UpdateExtensionInput } from "demos-server";
 import {
-  ADD_EXTENSION_QUERY,
+  CREATE_EXTENSION_MUTATION,
   GET_ALL_EXTENSIONS_QUERY,
   GET_EXTENSION_BY_ID_QUERY,
   UPDATE_EXTENSION_MUTATION,
@@ -75,7 +75,7 @@ const createGetExtensionByIdHook = (): GetExtensionByIdOperation => {
 const createAddExtensionHook = (): CreateExtensionOperation => {
   const [trigger, { data, loading, error }] = useMutation<{
     createExtension: Extension;
-  }>(ADD_EXTENSION_QUERY);
+  }>(CREATE_EXTENSION_MUTATION);
 
   return {
     trigger: async (input: CreateExtensionInput) => await trigger({ variables: { input } }),

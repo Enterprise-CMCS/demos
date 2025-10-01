@@ -5,7 +5,7 @@ import { CreateExtensionInput } from "demos-server";
 import { MockedProvider } from "@apollo/client/testing";
 import { renderHook } from "@testing-library/react";
 
-import { ADD_EXTENSION_QUERY } from "../queries/extensionQueries";
+import { CREATE_EXTENSION_MUTATION } from "../queries/extensionQueries";
 import { useExtension } from "./useExtension";
 
 const mockExtensionInput = {
@@ -30,7 +30,7 @@ const mockExtensionResponse = {
 const mocks = [
   {
     request: {
-      query: ADD_EXTENSION_QUERY,
+      query: CREATE_EXTENSION_MUTATION,
       variables: {
         input: mockExtensionInput,
       },

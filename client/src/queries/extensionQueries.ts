@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-export const ADD_EXTENSION_QUERY = gql`
+export const CREATE_EXTENSION_MUTATION = gql`
   mutation AddExtension($input: CreateExtensionInput!) {
     createExtension(input: $input) {
       id

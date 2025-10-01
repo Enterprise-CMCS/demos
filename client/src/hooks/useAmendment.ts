@@ -1,7 +1,7 @@
 import { ApolloError, FetchResult, useLazyQuery, useMutation } from "@apollo/client";
 import { Amendment, CreateAmendmentInput, UpdateAmendmentInput } from "demos-server";
 import {
-  ADD_AMENDMENT_MUTATION,
+  CREATE_AMENDMENT_MUTATION,
   GET_ALL_AMENDMENTS_QUERY,
   GET_AMENDMENT_BY_ID_QUERY,
   UPDATE_AMENDMENT_MUTATION,
@@ -74,7 +74,7 @@ const createGetAmendmentByIdOperation = (): GetAmendmentByIdOperation => {
 const createAddAmendmentOperation = (): CreateAmendmentOperation => {
   const [trigger, { data, loading, error }] = useMutation<{
     addAmendment: Amendment;
-  }>(ADD_AMENDMENT_MUTATION);
+  }>(CREATE_AMENDMENT_MUTATION);
 
   return {
     trigger: async (input: CreateAmendmentInput) => await trigger({ variables: { input } }),
