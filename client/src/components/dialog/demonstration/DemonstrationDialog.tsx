@@ -29,7 +29,7 @@ const DemonstrationDescriptionTextArea: React.FC<{
   return (
     <>
       <Textarea
-        name="textarea-description"
+        name="description"
         label="Demonstration Description"
         placeholder="Enter description"
         initialValue={description ?? ""}
