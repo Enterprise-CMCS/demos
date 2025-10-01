@@ -24,7 +24,7 @@ export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
 }) => {
   const getInitialDocument = (): DocumentDialogFields => ({
     id: bundleId,
-    title: "",
+    name: "",
     description: "",
     documentType: "Application Completeness Letter",
     file: null,
@@ -42,4 +42,3 @@ export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
     />
   );
 };
-

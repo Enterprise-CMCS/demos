@@ -45,7 +45,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       }
       documents {
         id
-        title
+        name
         description
         documentType
         createdAt
@@ -75,7 +75,7 @@ export type DemonstrationDetail = DemonstrationHeaderDetails &
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
   } & {
-    documents: (Pick<Document, "id" | "title" | "description" | "documentType" | "createdAt"> & {
+    documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
       owner: { person: Pick<Person, "fullName"> };
     })[];
   };
