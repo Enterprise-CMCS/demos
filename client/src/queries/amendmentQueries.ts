@@ -1,18 +1,22 @@
 import { gql } from "@apollo/client";
 
 export const CREATE_AMENDMENT_MUTATION = gql`
-  mutation AddAmendment($input: CreateAmendmentInput!) {
+  mutation CreateAmendment($input: CreateAmendmentInput!) {
     createAmendment(input: $input) {
-      id
-      name
-      description
-      effectiveDate
-      expirationDate
-      status
-      currentPhaseName
-      demonstration {
+      success
+      message
+      amendment {
         id
         name
+        description
+        effectiveDate
+        expirationDate
+        status
+        currentPhaseName
+        demonstration {
+          id
+          name
+        }
       }
     }
   }

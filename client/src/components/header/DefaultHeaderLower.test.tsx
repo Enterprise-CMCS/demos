@@ -34,10 +34,10 @@ vi.mock("components/dialog", () => ({
   CreateDemonstrationDialog: () => <div>CreateDemonstrationDialog</div>,
 }));
 
-vi.mock("components/dialog/AmendmentDialog", () => ({
-  AmendmentDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+vi.mock("components/dialog/CreateAmendmentDialog", () => ({
+  CreateAmendmentDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
     <div>
-      AmendmentDialog ({mode})<button onClick={onClose}>Close</button>
+      CreateAmendmentDialog ({mode})<button onClick={onClose}>Close</button>
     </div>
   ),
 }));
@@ -157,7 +157,7 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByText("CreateDemonstrationDialog")).toBeInTheDocument();
   });
 
-  it("opens AmendmentDialog for amendment", () => {
+  it("opens CreateAmendmentDialog for amendment", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
       loading: false,
@@ -168,7 +168,7 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
-    expect(screen.getByText("AmendmentDialog (add)")).toBeInTheDocument();
+    expect(screen.getByText("CreateAmendmentDialog (add)")).toBeInTheDocument();
   });
 
   it("opens ExtensionDialog for extension", () => {

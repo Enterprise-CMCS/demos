@@ -34,6 +34,12 @@ export const modificationSchema = gql`
     currentPhaseName: PhaseName
   }
 
+  type CreateAmendmentPayload {
+    success: Boolean!
+    message: String
+    amendment: Amendment!
+  }
+
   type Extension {
     id: ID!
     demonstration: Demonstration!
@@ -66,7 +72,7 @@ export const modificationSchema = gql`
   }
 
   type Mutation {
-    createAmendment(input: CreateAmendmentInput!): Amendment
+    createAmendment(input: CreateAmendmentInput!): CreateAmendmentPayload!
     updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
     deleteAmendment(id: ID!): Amendment
     createExtension(input: CreateExtensionInput!): Extension
@@ -142,4 +148,10 @@ export interface UpdateExtensionInput {
   expirationDate?: Date;
   status?: BundleStatus;
   currentPhaseName?: PhaseName;
+}
+
+export interface CreateAmendmentPayload {
+  success: boolean;
+  message?: string | null;
+  amendment: Amendment;
 }

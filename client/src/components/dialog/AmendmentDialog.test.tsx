@@ -4,18 +4,18 @@ import { vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { AmendmentDialog } from "./AmendmentDialog";
+import { CreateAmendmentDialog } from "./CreateAmendmentDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { ModificationDialogData, ModificationDialogMode } from "./BaseModificationDialog";
 
-describe("AmendmentDialog", () => {
-  const getAmendmentDialog = (
+describe("CreateAmendmentDialog", () => {
+  const getCreateAmendmentDialog = (
     mode: ModificationDialogMode,
     data?: ModificationDialogData,
     demonstrationId?: string
   ) => (
     <TestProvider>
-      <AmendmentDialog
+      <CreateAmendmentDialog
         onClose={vi.fn()}
         mode={mode}
         data={data}
@@ -29,17 +29,17 @@ describe("AmendmentDialog", () => {
   });
 
   it("renders with correct title for add mode", () => {
-    render(getAmendmentDialog("add"));
+    render(getCreateAmendmentDialog("add"));
     expect(screen.getByText("New Amendment")).toBeInTheDocument();
   });
 
   it("renders with correct title for edit mode", () => {
-    render(getAmendmentDialog("edit"));
+    render(getCreateAmendmentDialog("edit"));
     expect(screen.getByText("Edit Amendment")).toBeInTheDocument();
   });
 
   it("renders required form fields", () => {
-    render(getAmendmentDialog("edit"));
+    render(getCreateAmendmentDialog("edit"));
 
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
     expect(screen.getByText("Amendment Title")).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe("AmendmentDialog", () => {
   });
 
   it("shows warning when demonstration is not selected", async () => {
-    render(getAmendmentDialog("add"));
+    render(getCreateAmendmentDialog("add"));
 
     // Submit the form directly by finding it in the document
     const formElement = document.querySelector('form[id="amendment-form"]');
@@ -63,7 +63,7 @@ describe("AmendmentDialog", () => {
     });
   });
   it("calls onClose when cancel is clicked", () => {
-    render(getAmendmentDialog("add"));
+    render(getCreateAmendmentDialog("add"));
 
     const cancelButton = screen.getByTestId("button-cancel-modification-dialog");
     fireEvent.click(cancelButton);
@@ -78,7 +78,7 @@ describe("AmendmentDialog", () => {
       description: "Test description",
     };
 
-    render(getAmendmentDialog("edit", data));
+    render(getCreateAmendmentDialog("edit", data));
 
     const titleInput = screen.getByDisplayValue("Test Amendment");
     const descriptionInput = screen.getByDisplayValue("Test description");
@@ -88,7 +88,7 @@ describe("AmendmentDialog", () => {
   });
 
   it("disables demonstration select when data is provided with demonstrationId", () => {
-    render(getAmendmentDialog("edit", {}, "testId"));
+    render(getCreateAmendmentDialog("edit", {}, "testId"));
 
     const demonstrationSelect = screen.getByPlaceholderText("Select demonstration");
 

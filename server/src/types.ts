@@ -36,6 +36,7 @@ export type {
   Amendment,
   Extension,
   CreateAmendmentInput,
+  CreateAmendmentPayload,
   CreateExtensionInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,

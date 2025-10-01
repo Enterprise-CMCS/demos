@@ -1,5 +1,15 @@
-import { ApolloError, FetchResult, useLazyQuery, useMutation } from "@apollo/client";
-import { Amendment, CreateAmendmentInput, UpdateAmendmentInput } from "demos-server";
+import {
+  ApolloError,
+  FetchResult,
+  useLazyQuery,
+  useMutation
+} from "@apollo/client";
+import {
+  Amendment,
+  CreateAmendmentInput,
+  CreateAmendmentPayload,
+  UpdateAmendmentInput,
+} from "demos-server";
 import {
   CREATE_AMENDMENT_MUTATION,
   GET_ALL_AMENDMENTS_QUERY,
@@ -22,8 +32,10 @@ interface GetAmendmentByIdOperation {
 }
 
 interface CreateAmendmentOperation {
-  trigger: (input: CreateAmendmentInput) => Promise<FetchResult<{ addAmendment: Amendment }>>;
-  data?: Amendment;
+  trigger: (
+    input: CreateAmendmentInput
+  ) => Promise<FetchResult<{ createAmendment: CreateAmendmentPayload }>>;
+  data?: CreateAmendmentPayload;
   loading: boolean;
   error?: ApolloError;
 }
@@ -73,12 +85,12 @@ const createGetAmendmentByIdOperation = (): GetAmendmentByIdOperation => {
 
 const createAddAmendmentOperation = (): CreateAmendmentOperation => {
   const [trigger, { data, loading, error }] = useMutation<{
-    addAmendment: Amendment;
+    createAmendment: CreateAmendmentPayload;
   }>(CREATE_AMENDMENT_MUTATION);
 
   return {
     trigger: async (input: CreateAmendmentInput) => await trigger({ variables: { input } }),
-    data: data?.addAmendment,
+    data: data?.createAmendment,
     loading,
     error,
   };

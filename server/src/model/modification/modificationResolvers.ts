@@ -5,6 +5,7 @@ import { prisma } from "../../prismaClient.js";
 import { BundleStatus, BundleType, PhaseName } from "../../types.js";
 import {
   CreateAmendmentInput,
+  CreateAmendmentPayload,
   CreateExtensionInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
@@ -100,8 +101,14 @@ export async function createAmendment(
   args: { input: CreateAmendmentInput },
   context?: undefined,
   info?: undefined
-) {
-  return createModification(parent, args, context, info, amendmentBundleTypeId);
+): Promise<CreateAmendmentPayload> {
+  const amendment = await createModification(parent, args, context, info, amendmentBundleTypeId);
+
+  return {
+    success: true,
+    message: "Amendment created successfully.",
+    amendment,
+  };
 }
 export async function createExtension(
   parent: undefined,
