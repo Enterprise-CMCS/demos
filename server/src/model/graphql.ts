@@ -10,8 +10,8 @@ import { bundleResolvers } from "./bundle/bundleResolvers.js";
 import { bundleStatusSchema } from "./bundleStatus/bundleStatusSchema.js";
 import { bundleStatusResolvers } from "./bundleStatus/bundleStatusResolvers.js";
 
-import { cmcsDivisionSchema } from "./cmcsDivision/cmcsDivisionSchema.js";
-import { cmcsDivisionResolvers } from "./cmcsDivision/cmcsDivisionResolvers.js";
+import { sdgDivisionSchema } from "./sdgDivision/sdgDivisionSchema.js";
+import { sdgDivisionResolvers } from "./sdgDivision/sdgDivisionResolvers.js";
 
 import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
 import { dateTypeResolvers } from "./dateType/dateTypeResolvers.js";
@@ -65,7 +65,7 @@ export const typeDefs = [
   bundlePhaseSchema,
   bundleSchema,
   bundleStatusSchema,
-  cmcsDivisionSchema,
+  sdgDivisionSchema,
   dateTypeSchema,
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
@@ -89,7 +89,7 @@ export const resolvers = [
   bundlePhaseResolvers,
   bundleResolvers,
   bundleStatusResolvers,
-  cmcsDivisionResolvers,
+  sdgDivisionResolvers,
   dateTypeResolvers,
   demonstrationResolvers,
   demonstrationRoleAssigmentResolvers,

@@ -34,7 +34,7 @@ describe("FederalCommentPhase", () => {
 
   const mockDoc: DocumentTableDocument = {
     id: "doc-1",
-    title: "Test Document",
+    name: "Test Document",
     description: "Some test doc",
     documentType: "General File",
     createdAt: new Date("2025-01-02"),

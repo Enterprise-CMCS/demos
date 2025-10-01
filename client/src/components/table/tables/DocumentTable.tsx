@@ -18,7 +18,7 @@ import { Document, Person } from "demos-server";
 
 export type DocumentTableDocument = Pick<
   Document,
-  "id" | "title" | "description" | "documentType" | "createdAt"
+  "id" | "name" | "description" | "documentType" | "createdAt"
 > & {
   owner: { person: Pick<Person, "fullName"> };
 };
@@ -46,7 +46,7 @@ function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModal
         onClose={onClose}
         initialDocument={{
           id: selectedDoc.id,
-          title: selectedDoc.title,
+          name: selectedDoc.name,
           description: selectedDoc.description,
           documentType: selectedDoc.documentType,
           file: null,

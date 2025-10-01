@@ -1,7 +1,7 @@
 import {
   BUNDLE_STATUS,
   BUNDLE_TYPE,
-  CMCS_DIVISION,
+  SDG_DIVISIONS,
   SIGNATURE_LEVEL,
   DOCUMENT_TYPES,
   PHASE_NAME,
@@ -56,7 +56,7 @@ export type {
 
 export type BundleStatus = (typeof BUNDLE_STATUS)[number];
 export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
-export type CmcsDivision = (typeof CMCS_DIVISION)[number];
+export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export type PhaseName = (typeof PHASE_NAME)[number];

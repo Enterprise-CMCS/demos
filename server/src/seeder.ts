@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { TZDate } from "@date-fns/tz";
-import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
+import { BUNDLE_TYPE, SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
   CreateDemonstrationInput,
   CreateAmendmentInput,
@@ -219,7 +219,7 @@ async function seedDatabase() {
     const createInput: CreateDemonstrationInput = {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      cmcsDivision: sampleFromArray([...CMCS_DIVISION, undefined], 1)[0],
+      sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
       stateId: sampleFromArray(person.personStates, 1)[0].stateId,
       projectOfficerUserId: person.id,
@@ -303,11 +303,11 @@ async function seedDatabase() {
   const stateApplicationPhaseName: PhaseName = "State Application";
   const nonePhaseName: PhaseName = "None";
   for (const demonstration of demonstrations) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
@@ -322,11 +322,11 @@ async function seedDatabase() {
     where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
   });
   for (const amendmentId of amendmentIds) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
@@ -340,11 +340,11 @@ async function seedDatabase() {
     where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
   });
   for (const extensionId of extensionIds) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
@@ -366,7 +366,7 @@ async function seedDatabase() {
     });
     await prisma().document.create({
       data: {
-        title: faker.lorem.sentence(2),
+        name: faker.lorem.sentence(2),
         description: faker.lorem.sentence(),
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,

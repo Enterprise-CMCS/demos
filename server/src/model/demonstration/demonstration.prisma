@@ -5,7 +5,7 @@ model Demonstration {
   description      String?
   effectiveDate    DateTime? @map("effective_date") @db.Timestamptz()
   expirationDate   DateTime? @map("expiration_date") @db.Timestamptz()
-  cmcsDivisionId   String?   @map("cmcs_division_id")
+  sdgDivisionId    String?   @map("sdg_division_id")
   signatureLevelId String?   @map("signature_level_id")
   statusId         String    @map("status_id")
   stateId          String    @map("state_id")
@@ -18,7 +18,7 @@ model Demonstration {
   status                       BundleStatus                  @relation(fields: [statusId], references: [id])
   state                        State                         @relation(fields: [stateId], references: [id])
   modifications                Modification[]
-  cmcsDivision                 CmcsDivision?                 @relation(fields: [cmcsDivisionId], references: [id], onDelete: Restrict)
+  sdgDivision                  SdgDivision?                 @relation(fields: [sdgDivisionId], references: [id], onDelete: Restrict)
   signatureLevel               SignatureLevel?               @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
   currentPhase                 Phase                         @relation(fields: [currentPhaseId], references: [id])
   demonstrationRoleAssignments DemonstrationRoleAssignment[]
