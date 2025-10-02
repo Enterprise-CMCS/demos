@@ -3,6 +3,7 @@ import { getDemonstration } from "../demonstration/demonstrationResolvers.js";
 import { getAmendment, getExtension } from "../modification/modificationResolvers.js";
 import { Bundle } from "@prisma/client";
 import { BUNDLE_TYPES } from "../../constants";
+import { BundleType } from "../../types";
 
 export async function getBundle(bundleId: string) {
   const bundle = await prisma().bundle.findUnique({
@@ -20,23 +21,19 @@ export async function getBundle(bundleId: string) {
 
   switch (bundle.bundleTypeId) {
     case "Demonstration":
-      getDemonstration(undefined, { id: bundleId });
-      break;
+      return await getDemonstration(undefined, { id: bundleId });
     case "Amendment":
-      getAmendment(undefined, { id: bundleId });
-      break;
+      return await getAmendment(undefined, { id: bundleId });
     case "Extension":
-      getExtension(undefined, { id: bundleId });
-      break;
-    default:
-      throw new Error(`Unknown bundle type: ${bundle.bundleTypeId}`);
+      return await getExtension(undefined, { id: bundleId });
   }
+  throw new Error(`Unknown bundle type: ${bundle.bundleTypeId}`);
 }
 
 export const bundleResolvers = {
   Bundle: {
     __resolveType: async (parent: Bundle) => {
-      if (!(parent.bundleTypeId in BUNDLE_TYPES)) {
+      if (!BUNDLE_TYPES.includes(parent.bundleTypeId as BundleType)) {
         throw new Error(`Unknown bundle type: ${parent.bundleTypeId}`);
       }
       return parent.bundleTypeId;
