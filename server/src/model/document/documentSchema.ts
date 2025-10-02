@@ -45,7 +45,7 @@ export const documentSchema = gql`
   }
 
   type Query {
-    documents(bundleTypeId: String): [Document!]!
+    documents: [Document!]!
     document(id: ID!): Document
   }
 `;
