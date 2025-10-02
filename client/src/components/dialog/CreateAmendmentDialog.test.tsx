@@ -63,13 +63,9 @@ describe("CreateAmendmentDialog", () => {
       result: {
         data: {
           createAmendment: {
-            __typename: "CreateAmendmentPayload",
+            __typename: "CreateAmendmentResponse",
             success: true,
             message: null,
-            amendment: {
-              __typename: "Amendment",
-              id: "amend-1",
-            },
           },
         },
       },
@@ -97,7 +93,7 @@ describe("CreateAmendmentDialog", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      // Refetch?
+      // Refetch
       expect(onClose).toHaveBeenCalledTimes(2);
     });
   });

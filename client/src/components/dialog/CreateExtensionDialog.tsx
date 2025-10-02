@@ -1,7 +1,7 @@
 import React from "react";
 import { useToast } from "components/toast";
 import { gql, useMutation } from "@apollo/client";
-import { CreateExtensionInput, CreateExtensionPayload } from "demos-server";
+import { CreateExtensionInput, CreateExtensionResponse } from "demos-server";
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
 type Props = Pick<BaseModificationDialogProps,
@@ -17,9 +17,6 @@ export const CREATE_EXTENSION_MUTATION = gql`
     createExtension(input: $input) {
       success
       message
-      extension {
-        id
-      }
     }
   }
 `;
@@ -35,8 +32,8 @@ export const CreateExtensionDialog: React.FC<Props> = ({
   const { showError } = useToast();
 
   const [createExtensionTrigger] = useMutation<{
-    createExtension: Pick<CreateExtensionPayload, "success" | "message" | "extension">}>
-    (CREATE_EXTENSION_MUTATION);
+    createExtension: Pick<CreateExtensionResponse, "success" | "message">}
+    >(CREATE_EXTENSION_MUTATION);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     try {

@@ -1,4 +1,3 @@
-import { Modification } from "@prisma/client";
 import {
   BUNDLE_STATUS,
   BUNDLE_TYPE,
@@ -37,8 +36,8 @@ export type {
   Amendment,
   Extension,
   CreateAmendmentInput,
-  CreateExtensionPayload,
-  CreateAmendmentPayload,
+  CreateExtensionResponse,
+  CreateAmendmentResponse,
   CreateExtensionInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,

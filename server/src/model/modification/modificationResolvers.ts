@@ -1,15 +1,17 @@
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleStatus, BundleType, PhaseName } from "../../types.js";
-
+// import type { Modification } from "../../types.js";
 
 import {
   CreateAmendmentInput,
-  CreateAmendmentPayload,
+  CreateAmendmentResponse,
   CreateExtensionInput,
   UpdateAmendmentInput,
-  CreateExtensionPayload,
+  CreateExtensionResponse,
   UpdateExtensionInput,
+  Amendment,
+  Extension
 } from "./modificationSchema.js";
 
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
@@ -103,13 +105,11 @@ export async function createAmendment(
   args: { input: CreateAmendmentInput },
   context?: undefined,
   info?: undefined
-): Promise<CreateAmendmentPayload> {
+): Promise<CreateAmendmentResponse> {
   const createdAmendment = await createModification(parent, args, context, info, amendmentBundleTypeId);
-
   return {
-    success: true,
+    success: createdAmendment ? true : false,
     message: "Amendment created successfully.",
-    amendment: createdAmendment,
   };
 }
 
@@ -118,13 +118,11 @@ export async function createExtension(
   args: { input: CreateExtensionInput },
   context?: undefined,
   info?: undefined
-): Promise<CreateExtensionPayload> {
+): Promise<CreateExtensionResponse> {
   const createdExtension = await createModification(parent, args, context, info, extensionBundleTypeId);
-
   return {
-    success: true,
+    success: createdExtension ? true : false,
     message: "Extension created successfully.",
-    extension: createdExtension,
   };
 }
 
@@ -169,13 +167,13 @@ export async function updateExtension(
   return updateModification(parent, args, context, info, extensionBundleTypeId);
 }
 
-async function getParentDemonstration(parent: Modification) {
+async function getParentDemonstration(parent: Amendment | Extension) {
   return await prisma().demonstration.findUnique({
-    where: { id: parent.demonstrationId },
+    where: { id: parent.demonstration.id },
   });
 }
 
-async function getDocuments(parent: Modification) {
+async function getDocuments(parent: Amendment | Extension) {
   return await prisma().document.findMany({
     where: {
       bundleId: parent.id,
@@ -183,11 +181,11 @@ async function getDocuments(parent: Modification) {
   });
 }
 
-async function getCurrentPhase(parent: Modification) {
-  return parent.currentPhaseId;
+async function getCurrentPhase(parent: Amendment | Extension) {
+  return parent.currentPhaseName;
 }
 
-async function getPhases(parent: Modification) {
+async function getPhases(parent: Amendment | Extension) {
   return await prisma().bundlePhase.findMany({
     where: {
       bundleId: parent.id,

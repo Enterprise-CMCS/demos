@@ -2,7 +2,7 @@ import React from "react";
 import { gql } from "@apollo/client";
 import { useToast } from "components/toast";
 import { useMutation } from "@apollo/client";
-import { CreateAmendmentInput, CreateAmendmentPayload } from "demos-server";
+import { CreateAmendmentInput, CreateAmendmentResponse } from "demos-server";
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
 type Props = Pick<
@@ -19,9 +19,6 @@ export const CREATE_AMENDMENT_MUTATION = gql`
     createAmendment(input: $input) {
       success
       message
-      amendment {
-        id
-      }
     }
   }
 `;
@@ -36,7 +33,7 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
   const { showError } = useToast();
   console.log("CreateAmendmentDialog");
   const [createAmendmentTrigger] = useMutation<{
-    createAmendment: Pick<CreateAmendmentPayload, "success" | "message" | "amendment">;
+    createAmendment: Pick<CreateAmendmentResponse, "success" | "message">;
   }>(CREATE_AMENDMENT_MUTATION);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
