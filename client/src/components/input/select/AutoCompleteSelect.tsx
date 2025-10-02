@@ -111,7 +111,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           onKeyDown={onKeyDown}
           required={isRequired}
           disabled={isDisabled}
-          className={`${INPUT_BASE_CLASSES} ${getInputColors("")}`}
+          className={`${INPUT_BASE_CLASSES} ${getInputColors("")} w-full`}
           data-form-type="other"
         />
         <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center">
