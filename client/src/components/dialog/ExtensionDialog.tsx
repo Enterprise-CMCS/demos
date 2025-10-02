@@ -64,6 +64,8 @@ interface ExtensionQueryData {
   } | null;
 }
 
+// TODO: CHOP THIS UP TO EDIT.
+
 type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
   extensionId?: string | null;
   mode?: "add" | "view" | "edit";

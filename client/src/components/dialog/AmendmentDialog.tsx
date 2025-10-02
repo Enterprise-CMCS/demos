@@ -52,6 +52,8 @@ interface AmendmentQueryData {
   } | null;
 }
 
+// TODO: CHOP THIS UP TO EDIT.
+
 interface AmendmentDialogProps {
   amendmentId?: string | null;
   isOpen: boolean;
