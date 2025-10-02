@@ -86,6 +86,13 @@ pipeline {
           }
         }
       }
+      post {
+        failure {
+          script {
+            notifyMigrationError(env.STAGE)
+          }
+        }
+      }
     }
 
     stage('Deploy') {
