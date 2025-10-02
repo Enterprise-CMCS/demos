@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { TZDate } from "@date-fns/tz";
-import { BUNDLE_TYPE, SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
+import { SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
   CreateDemonstrationInput,
   CreateAmendmentInput,
@@ -319,7 +319,7 @@ async function seedDatabase() {
   // Every amendment and extension has an application
   const amendmentIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
+    where: { bundleTypeId: "Amendment" },
   });
   for (const amendmentId of amendmentIds) {
     const fakeName = faker.lorem.sentence(2);
@@ -337,7 +337,7 @@ async function seedDatabase() {
   }
   const extensionIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
+    where: { bundleTypeId: "Extension" },
   });
   for (const extensionId of extensionIds) {
     const fakeName = faker.lorem.sentence(2);
