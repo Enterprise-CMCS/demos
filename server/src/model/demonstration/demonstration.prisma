@@ -14,7 +14,7 @@ model Demonstration {
   updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
   bundle                       Bundle                        @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
-  bundleType                   DemonstrationBundleType       @relation(fields: [bundleTypeId], references: [id])
+  bundleType                   DemonstrationBundleTypeLimit  @relation(fields: [bundleTypeId], references: [id])
   status                       BundleStatus                  @relation(fields: [statusId], references: [id])
   state                        State                         @relation(fields: [stateId], references: [id])
   modifications                Modification[]
