@@ -1,12 +1,8 @@
-// src/components/DefaultHeaderLower.test.tsx
 import React from "react";
-
 import * as UserContext from "components/user/UserContext";
 import { DemosApolloProvider } from "router/DemosApolloProvider";
 import { vi } from "vitest";
-
 import { fireEvent, render, screen } from "@testing-library/react";
-
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { mockUsers } from "mock-data/userMocks";
 
@@ -42,10 +38,10 @@ vi.mock("components/dialog/CreateAmendmentDialog", () => ({
   ),
 }));
 
-vi.mock("components/dialog/ExtensionDialog", () => ({
-  ExtensionDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
+vi.mock("components/dialog/CreateExtensionDialog", () => ({
+  CreateExtensionDialog: ({ mode, onClose }: { mode: string; onClose: () => void }) => (
     <div>
-      ExtensionDialog ({mode})<button onClick={onClose}>Close</button>
+      CreateExtensionDialog ({mode})<button onClick={onClose}>Close</button>
     </div>
   ),
 }));
@@ -171,7 +167,7 @@ describe("DefaultHeaderLower", () => {
     expect(screen.getByText("CreateAmendmentDialog (add)")).toBeInTheDocument();
   });
 
-  it("opens ExtensionDialog for extension", () => {
+  it("opens CreateExtensionDialog for extension", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
       loading: false,
@@ -182,6 +178,6 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
-    expect(screen.getByText("ExtensionDialog (add)")).toBeInTheDocument();
+    expect(screen.getByText("CreateExtensionDialog (add)")).toBeInTheDocument();
   });
 });

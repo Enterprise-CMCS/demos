@@ -1,7 +1,7 @@
 import React from "react";
+import { gql } from "@apollo/client";
 import { useToast } from "components/toast";
 import { useMutation } from "@apollo/client";
-import { gql } from "@apollo/client";
 import { CreateAmendmentInput, CreateAmendmentPayload } from "demos-server";
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
@@ -11,6 +11,8 @@ type Props = Pick<
 > & {
   amendmentId?: string;
 };
+
+const ERROR_MESSAGE = "Failed to create amendment. Please try again.";
 
 export const CREATE_AMENDMENT_MUTATION = gql`
   mutation CreateAmendment($input: CreateAmendmentInput!) {
@@ -23,8 +25,6 @@ export const CREATE_AMENDMENT_MUTATION = gql`
     }
   }
 `;
-
-const ERROR_MESSAGE = "Failed to create amendment. Please try again.";
 
 export const CreateAmendmentDialog: React.FC<Props> = ({
   isOpen = true,
@@ -41,8 +41,7 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     try {
-      // This is Create Amendment dialog; therefore we'll just sort out the "add"
-      if (mode !== "add") { // (Maybe we should swap to store or create.
+      if (mode !== "add") {
         throw new Error(`CreateAmendmentDialog expects mode="add", received "${mode}"`);
       }
 

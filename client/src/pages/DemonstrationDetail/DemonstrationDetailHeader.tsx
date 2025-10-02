@@ -5,7 +5,7 @@ import { AddNewIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons
 import { Demonstration, DemonstrationRoleAssignment, Person, State } from "demos-server";
 import { ApolloError } from "@apollo/client";
 import { formatDate } from "util/formatDate";
-import { CreateAmendmentDialog, ExtensionDialog } from "components/dialog";
+import { CreateAmendmentDialog, CreateExtensionDialog } from "components/dialog";
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
@@ -202,7 +202,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
         />
       )}
       {modalType === "extension" && (
-        <ExtensionDialog
+        <CreateExtensionDialog
           mode="add"
           onClose={() => setModalType(null)}
           demonstrationId={demonstration.id}

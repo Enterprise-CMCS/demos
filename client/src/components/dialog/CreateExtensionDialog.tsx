@@ -1,12 +1,7 @@
 import React from "react";
-
 import { useToast } from "components/toast";
-
-import { useMutation } from "@apollo/client";
-
+import { gql, useMutation } from "@apollo/client";
 import { CreateExtensionInput, Extension } from "demos-server";
-import { CREATE_EXTENSION_MUTATION } from "queries/extensionQueries";
-
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
 type Props = Pick<
@@ -17,6 +12,18 @@ type Props = Pick<
 };
 
 const ERROR_MESSAGE = "Failed to create extension. Please try again.";
+
+export const CREATE_EXTENSION_MUTATION = gql`
+  mutation AddExtension($input: CreateExtensionInput!) {
+    createAmendment(input: $input) {
+      success
+      message
+      amendment {
+        id
+      }
+    }
+  }
+`;
 
 export const CreateExtensionDialog: React.FC<Props> = ({
   isOpen = true,

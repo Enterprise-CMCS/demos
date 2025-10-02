@@ -93,7 +93,7 @@ describe("CreateExtensionDialog", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(onClose).toHaveBeenCalledTimes(2);
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
 });
