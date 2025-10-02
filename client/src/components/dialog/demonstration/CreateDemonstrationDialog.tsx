@@ -40,7 +40,7 @@ export const CreateDemonstrationDialog: React.FC<{
     description: demonstration.description,
     stateId: demonstration.stateId,
     projectOfficerUserId: demonstration.projectOfficerId,
-    cmcsDivision: demonstration.cmcsDivision,
+    sdgDivision: demonstration.sdgDivision,
     signatureLevel: demonstration.signatureLevel,
   });
 

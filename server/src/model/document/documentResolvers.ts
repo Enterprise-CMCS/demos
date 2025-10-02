@@ -123,7 +123,7 @@ export const documentResolvers = {
       }
       const documentPendingUpload = await prisma().documentPendingUpload.create({
         data: {
-          title: input.title,
+          name: input.name,
           description: input.description,
           ownerUserId: context.user.id,
           documentTypeId: input.documentType,
@@ -156,14 +156,14 @@ export const documentResolvers = {
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
       checkOptionalNotNullFields(
-        ["title", "description", "documentType", "bundleId", "phaseName"],
+        ["name", "description", "documentType", "bundleId", "phaseName"],
         input
       );
       try {
         return await prisma().document.update({
           where: { id: id },
           data: {
-            title: input.title,
+            name: input.name,
             description: input.description,
             documentTypeId: input.documentType,
             bundleId: input.bundleId,

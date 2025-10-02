@@ -23,7 +23,7 @@ erDiagram
   bundle }|--|| bundle_type : "FK007"
   bundle ||--|| demonstration : "FK008"
   bundle ||--|| modification : "FK009"
-  demonstration }|--|| cmcs_division : "FK010"
+  demonstration }|--|| sdg_division : "FK010"
   demonstration }|--|| signature_level : "FK011"
   demonstration ||--|{ modification : "FK012"
   bundle_type ||--|{ demonstration_bundle_type_limit : "FK013"
@@ -81,7 +81,7 @@ erDiagram
     text id PK
   }
 
-  cmcs_division:::staticConstraint {
+  sdg_division:::staticConstraint {
     text id PK
   }
 
@@ -187,7 +187,7 @@ erDiagram
     text description
     date effective_date
     date expiration_date
-    text cmcs_division_id FK "FK010: cmcs_division_id ∈ cmcs_division.id<br>NULLABLE"
+    text sdg_division_id FK "FK010: sdg_division_id ∈ sdg_division.id<br>NULLABLE"
     text signature_level_id FK "FK011: signature_level_id ∈ signature_level.id<br>NULLABLE"
     text bundle_status_id FK "FK017: bundle_status_id ∈ bundle_status.id"
     text state_id FK, UK "FK021: state_id ∈ state.id<br>UK: (id, state_id)"
