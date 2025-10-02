@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AmendmentDialog, CreateAmendmentDialog, EditDemonstrationDialog } from "components/dialog";
+import { AmendmentDialog, CreateAmendmentDialog, CreateExtensionDialog, EditDemonstrationDialog } from "components/dialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { Demonstration } from "demos-server";
@@ -45,7 +45,7 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
     )}
 
     {entityCreationModal === "extension" && (
-      <ExtensionDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
+      <CreateExtensionDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
     )}
 
     {entityCreationModal === "document" && (

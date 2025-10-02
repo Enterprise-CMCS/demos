@@ -82,7 +82,7 @@ export const ExtensionDialog: React.FC<Props> = ({
   const { showSuccess, showError } = useToast();
   const [createExtensionMutation] = useMutation(CREATE_EXTENSION_MUTATION);
   const [updateExtensionMutation, { loading: isSaving }] = useMutation(UPDATE_EXTENSION_MUTATION);
-
+  console.log("ExtensionDialog");
   if (mode === "add") {
     const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
       const { demonstrationId, name, description } = extensionData as {
@@ -190,7 +190,7 @@ export const ExtensionDialog: React.FC<Props> = ({
 
     const input: UpdateExtensionInput = {
       name: title,
-      description: description.trim().length === 0 ? null : description,
+      description: description.trim().length === 0 ? undefined : description,
       effectiveDate: effectiveDate ? new Date(effectiveDate) : undefined,
       expirationDate: expirationDate ? new Date(expirationDate) : undefined,
     };

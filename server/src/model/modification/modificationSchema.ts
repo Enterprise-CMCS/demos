@@ -1,6 +1,7 @@
 import { gql } from "graphql-tag";
 
-import { PhaseName, BundleStatus, BundlePhase, Demonstration, Document } from "../../types.js";
+import { PhaseName, BundleStatus, BundlePhase, Demonstration, Document, Modification } from "../../types.js";
+import { Modification } from "@prisma/client";
 
 export const modificationSchema = gql`
   type Amendment {
@@ -34,12 +35,6 @@ export const modificationSchema = gql`
     currentPhaseName: PhaseName
   }
 
-  type CreateAmendmentPayload {
-    success: Boolean!
-    message: String
-    amendment: Amendment!
-  }
-
   type Extension {
     id: ID!
     demonstration: Demonstration!
@@ -71,14 +66,28 @@ export const modificationSchema = gql`
     currentPhaseName: PhaseName
   }
 
+  type CreateAmendmentPayload {
+    success: Boolean!
+    message: String
+    amendment: Amendment!
+  }
+
+  type CreateExtensionPayload {
+    success: Boolean!
+    message: String
+    extension: Extension!
+  }
+
+
   type Mutation {
     createAmendment(input: CreateAmendmentInput!): CreateAmendmentPayload!
     updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
     deleteAmendment(id: ID!): Amendment
-    createExtension(input: CreateExtensionInput!): Extension
+    createExtension(input: CreateExtensionInput!): CreateExtensionPayload!
     updateExtension(id: ID!, input: UpdateExtensionInput!): Extension
     deleteExtension(id: ID!): Extension
   }
+
 
   type Query {
     amendments: [Amendment!]!
@@ -154,4 +163,10 @@ export interface CreateAmendmentPayload {
   success: boolean;
   message?: string | null;
   amendment: Amendment;
+}
+
+export interface CreateExtensionPayload {
+  success: boolean;
+  message?: string | null;
+  extension: Extension;
 }

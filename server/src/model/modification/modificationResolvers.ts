@@ -1,15 +1,18 @@
 import { Modification } from "@prisma/client";
-
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleStatus, BundleType, PhaseName } from "../../types.js";
+import { BundleStatus, BundleType, PhaseName, Modification } from "../../types.js";
+
+
 import {
   CreateAmendmentInput,
   CreateAmendmentPayload,
   CreateExtensionInput,
   UpdateAmendmentInput,
+  CreateExtensionPayload,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
+
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
@@ -102,21 +105,28 @@ export async function createAmendment(
   context?: undefined,
   info?: undefined
 ): Promise<CreateAmendmentPayload> {
-  const amendment = await createModification(parent, args, context, info, amendmentBundleTypeId);
+  const createdAmendment = await createModification(parent, args, context, info, amendmentBundleTypeId);
 
   return {
     success: true,
     message: "Amendment created successfully.",
-    amendment,
+    amendment: createdAmendment,
   };
 }
+
 export async function createExtension(
   parent: undefined,
   args: { input: CreateExtensionInput },
   context?: undefined,
   info?: undefined
-) {
-  return createModification(parent, args, context, info, extensionBundleTypeId);
+): Promise<CreateExtensionPayload> {
+  const createdExtension = await createModification(parent, args, context, info, extensionBundleTypeId);
+
+  return {
+    success: true,
+    message: "Extension created successfully.",
+    extension: createdExtension,
+  };
 }
 
 async function updateModification(

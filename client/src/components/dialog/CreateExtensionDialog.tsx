@@ -1,29 +1,29 @@
 import React from "react";
 import { useToast } from "components/toast";
 import { gql, useMutation } from "@apollo/client";
-import { CreateExtensionInput, Extension } from "demos-server";
+import { CreateExtensionInput, CreateExtensionPayload } from "demos-server";
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
-type Props = Pick<
-  BaseModificationDialogProps,
-  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
-> & {
+type Props = Pick<BaseModificationDialogProps,
+"isOpen" | "onClose" | "mode" | "demonstrationId" | "data">
+& {
   extensionId?: string;
 };
 
 const ERROR_MESSAGE = "Failed to create extension. Please try again.";
 
 export const CREATE_EXTENSION_MUTATION = gql`
-  mutation AddExtension($input: CreateExtensionInput!) {
-    createAmendment(input: $input) {
+  mutation CreateExtension($input: CreateExtensionInput!) {
+    createExtension(input: $input) {
       success
       message
-      amendment {
+      extension {
         id
       }
     }
   }
 `;
+
 
 export const CreateExtensionDialog: React.FC<Props> = ({
   isOpen = true,
@@ -34,9 +34,9 @@ export const CreateExtensionDialog: React.FC<Props> = ({
 }) => {
   const { showError } = useToast();
 
-  const [createExtension] = useMutation<{
-    createExtension: Extension;
-  }>(CREATE_EXTENSION_MUTATION);
+  const [createExtensionTrigger] = useMutation<{
+    createExtension: Pick<CreateExtensionPayload, "success" | "message" | "extension">}>
+    (CREATE_EXTENSION_MUTATION);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     try {
@@ -46,7 +46,7 @@ export const CreateExtensionDialog: React.FC<Props> = ({
 
       const { name, description } = formData as {
         name?: string;
-        description?: string | null;
+        description?: string | null
       };
 
       if (!demonstrationId || !name) {
@@ -59,14 +59,14 @@ export const CreateExtensionDialog: React.FC<Props> = ({
         description: (description?.length ?? 0) === 0 ? null : description ?? null,
       };
 
-      const result = await createExtension({
+      const result = await createExtensionTrigger({
         variables: { input },
       });
 
-      const createdId = result.data?.createExtension?.id;
+      const success = result.data?.createExtension?.success ?? false;
 
-      if (!createdId) {
-        console.error("createExtension returned empty payload", result.data);
+      if (!success) {
+        console.error(result.data?.createExtension?.message);
         showError("Create extension failed — check the console for details.");
       } else {
         onClose();
@@ -91,4 +91,3 @@ export const CreateExtensionDialog: React.FC<Props> = ({
     />
   );
 };
-

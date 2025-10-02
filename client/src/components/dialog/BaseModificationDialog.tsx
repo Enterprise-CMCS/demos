@@ -15,7 +15,7 @@ import { tw } from "tags/tw";
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
 
-export type ModificationDialogMode = "add" | "edit";
+export type ModificationDialogMode = "add" | "edit" | "view";
 
 export type ModificationDialogData = {
   title?: string;

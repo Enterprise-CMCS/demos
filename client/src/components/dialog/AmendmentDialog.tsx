@@ -74,7 +74,7 @@ export const AmendmentDialog: React.FC<AmendmentDialogProps> = ({
   const isReadOnly = mode !== "edit";
   const hasAmendmentId = Boolean(amendmentId);
   const { showSuccess, showError } = useToast();
-
+  console.log("AmendmentDialog");
   const { data, loading, error } = useQuery<AmendmentQueryData>(AMENDMENT_DIALOG_QUERY, {
     variables: { id: amendmentId as string },
     skip: !hasAmendmentId,
