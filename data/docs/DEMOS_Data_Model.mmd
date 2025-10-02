@@ -15,10 +15,12 @@ erDiagram
   classDef associativeTable stroke:darkmagenta,fill:plum
   classDef legend stroke:black,fill:#ddd
 
-  date_type ||--|{ bundle_phase_date  : "FK001"
-  bundle_phase_date }|--|| bundle_phase : "FK002"
   phase_status ||--|{ bundle_phase  : "FK004"
+  phase_date_type }|--|| phase : "FK003"
+  phase_date_type }|--|| date_type: "FK058"
   bundle_phase }|--|| bundle : "FK005"
+  date_type ||--|{ bundle_date  : "FK001"
+  bundle_date }|--|| bundle : "FK002"
   bundle_phase }|--|| phase : "FK006"
   bundle }|--|| bundle_type : "FK007"
   bundle ||--|| demonstration : "FK008"
@@ -163,9 +165,8 @@ erDiagram
     text bundle_type_id FK, UK "FK007: bundle_type_id ∈ bundle_type.id<br>UK: (id, bundle_type_id)"
   }
 
-  bundle_phase_date:::dataTable {
-    uuid bundle_id PK, FK "FK002: (bundle_id, phase_id) ∈ bundle_phase.(bundle_id, phase_id)"
-    text phase_id PK, FK "FK002: (bundle_id, phase_id) ∈ bundle_phase.(bundle_id, phase_id)"
+  bundle_date:::dataTable {
+    uuid bundle_id PK, FK "FK002: bundle_id ∈ bundle.id"
     text date_type_id PK, FK "FK001: date_type_id ∈ date_type.id"
     timestamptz date_value
     timestamptz created_at
@@ -285,6 +286,11 @@ erDiagram
     text role_id PK, FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id., grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
+  }
+
+  phase_date_type:::associativeTable {
+    text phase_id PK, FK "FK003: phase_id ∈ phase.id"
+    text date_type_id PK, FK "FK058: date_type_id ∈ date_type.id"
   }
 
   phase_document_type:::associativeTable {

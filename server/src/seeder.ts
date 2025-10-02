@@ -65,47 +65,26 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
-    // Start with join tables
-    prisma().rolePermission.deleteMany(),
-
-    // Permissions are only attached to rolePermission
-    prisma().permission.deleteMany(),
-
-    // Delete various bundle types
     prisma().modification.deleteMany(),
     prisma().primaryDemonstrationRoleAssignment.deleteMany(),
     prisma().demonstrationRoleAssignment.deleteMany(),
-
     prisma().demonstration.deleteMany(),
-
-    prisma().bundlePhaseDate.deleteMany(),
-
-    // Phases and accompanying items
-    prisma().bundlePhaseDate.deleteMany(),
+    prisma().bundleDate.deleteMany(),
     prisma().bundlePhase.deleteMany(),
-
-    // Documents, which are attached to bundles
     prisma().document.deleteMany(),
-
-    // Bundles themselves
     prisma().bundle.deleteMany(),
-
-    // Events, which attach to users and roles
     prisma().event.deleteMany(),
-
-    // delete system role assignments before roles and users
     prisma().systemRoleAssignment.deleteMany(),
-
     prisma().personState.deleteMany(),
-
-    // Finally, roles and users
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
   ]);
 }
 
 async function seedDatabase() {
+  console.log(process.env.ALLOW_SEED);
   checkIfAllowed();
+
   await clearDatabase();
 
   // Setting constants for record generation

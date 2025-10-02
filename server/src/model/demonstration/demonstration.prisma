@@ -18,7 +18,7 @@ model Demonstration {
   status                       BundleStatus                  @relation(fields: [statusId], references: [id])
   state                        State                         @relation(fields: [stateId], references: [id])
   modifications                Modification[]
-  sdgDivision                  SdgDivision?                 @relation(fields: [sdgDivisionId], references: [id], onDelete: Restrict)
+  sdgDivision                  SdgDivision?                  @relation(fields: [sdgDivisionId], references: [id], onDelete: Restrict)
   signatureLevel               SignatureLevel?               @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
   currentPhase                 Phase                         @relation(fields: [currentPhaseId], references: [id])
   demonstrationRoleAssignments DemonstrationRoleAssignment[]
