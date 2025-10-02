@@ -69,14 +69,3 @@ export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
 export type DateType = (typeof DATE_TYPES)[number];
 
-export type CreateAmendmentPayloadServer = {
-  success: boolean;
-  message?: string | null;
-  amendment: Modification; // raw DB row; field resolvers will hydrate
-};
-
-export type CreateExtensionPayloadServer = {
-  success: boolean;
-  message?: string | null;
-  extension: Modification; // raw DB row
-};

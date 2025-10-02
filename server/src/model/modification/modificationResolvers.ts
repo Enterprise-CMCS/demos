@@ -1,7 +1,6 @@
-import { Modification } from "@prisma/client";
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleStatus, BundleType, PhaseName, Modification } from "../../types.js";
+import { BundleStatus, BundleType, PhaseName } from "../../types.js";
 
 
 import {
