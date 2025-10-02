@@ -6,9 +6,8 @@ import { TextInput } from "components/input/TextInput";
 import { useToast } from "components/toast";
 import { formatDate } from "util/formatDate";
 
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 
-import { useExtension } from "hooks/useExtension";
 import { CreateExtensionInput, UpdateExtensionInput } from "demos-server";
 import { createFormDataWithDates } from "hooks/useDialogForm";
 
@@ -28,6 +27,22 @@ export const EXTENSION_DIALOG_QUERY = gql`
         id
         name
       }
+    }
+  }
+`;
+
+export const CREATE_EXTENSION_MUTATION = gql`
+  mutation CreateExtension($input: CreateExtensionInput!) {
+    createExtension(input: $input) {
+      id
+    }
+  }
+`;
+
+const UPDATE_EXTENSION_MUTATION = gql`
+  mutation UpdateExtension($id: ID!, $input: UpdateExtensionInput!) {
+    updateExtension(id: $id, input: $input) {
+      id
     }
   }
 `;
@@ -65,14 +80,11 @@ export const ExtensionDialog: React.FC<Props> = ({
   data,
 }) => {
   const { showSuccess, showError } = useToast();
-  const { addExtension, updateExtension } = useExtension();
+  const [createExtensionMutation] = useMutation(CREATE_EXTENSION_MUTATION);
+  const [updateExtensionMutation, { loading: isSaving }] = useMutation(UPDATE_EXTENSION_MUTATION);
 
   if (mode === "add") {
     const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
-      if (mode !== "add") {
-        return;
-      }
-
       const { demonstrationId, name, description } = extensionData as {
         demonstrationId?: string;
         name?: string;
@@ -83,7 +95,7 @@ export const ExtensionDialog: React.FC<Props> = ({
         throw new Error("Demonstration ID and name are required to create an extension.");
       }
 
-      const createExtensionInput: CreateExtensionInput = {
+      const input: CreateExtensionInput = {
         demonstrationId,
         name,
         description:
@@ -92,7 +104,23 @@ export const ExtensionDialog: React.FC<Props> = ({
             : (description as string | null) ?? null,
       };
 
-      await addExtension.trigger(createExtensionInput);
+      try {
+        const result = await createExtensionMutation({ variables: { input } });
+        const createdId = result.data?.createExtension?.id;
+
+        if (!createdId) {
+          showError("Create extension failed — check the console for details.");
+          // eslint-disable-next-line no-console
+          console.error("createExtension returned empty payload", result.data);
+          return;
+        }
+
+        showSuccess("Extension created successfully!");
+        onClose();
+      } catch (error) {
+        console.error(error);
+        showError("Failed to create extension. Please try again.");
+      }
     };
 
     const getExtensionFormData = (
@@ -168,7 +196,12 @@ export const ExtensionDialog: React.FC<Props> = ({
     };
 
     try {
-      await updateExtension.trigger(extensionId, input);
+      await updateExtensionMutation({
+        variables: {
+          id: extensionId,
+          input,
+        },
+      });
       showSuccess("Extension updated successfully!");
       onClose();
     } catch (err) {
@@ -307,9 +340,9 @@ export const ExtensionDialog: React.FC<Props> = ({
         size="small"
         type="submit"
         form={FORM_ID}
-        disabled={updateExtension.loading || title.trim().length === 0}
+        disabled={isSaving || title.trim().length === 0}
       >
-        {updateExtension.loading ? "Saving..." : "Save"}
+        {isSaving ? "Saving..." : "Save"}
       </Button>
     </>
   );

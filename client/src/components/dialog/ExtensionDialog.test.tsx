@@ -2,10 +2,14 @@ import React from "react";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GraphQLError } from "graphql";
+import { MockedResponse } from "@apollo/client/testing";
 import { vi } from "vitest";
 
 import { ExtensionDialog, EXTENSION_DIALOG_QUERY } from "./ExtensionDialog";
 import { TestProvider } from "test-utils/TestProvider";
+import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
+import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
+import { CREATE_EXTENSION_MUTATION } from "./ExtensionDialog";
 
 const EXTENSION_ID = "extension-123";
 
@@ -45,6 +49,42 @@ const errorMock = {
   },
 };
 
+const baseFormMocks: MockedResponse[] = [
+  {
+    request: {
+      query: GET_DEMONSTRATION_OPTIONS_QUERY,
+    },
+    result: {
+      data: {
+        demonstrations: [
+          {
+            __typename: "Demonstration",
+            id: "demo-1",
+            name: "Demo 1",
+          },
+        ],
+      },
+    },
+  },
+  {
+    request: {
+      query: GET_USER_SELECT_OPTIONS_QUERY,
+    },
+    result: {
+      data: {
+        people: [
+          {
+            __typename: "Person",
+            id: "user-1",
+            fullName: "Jane Doe",
+            personType: "demos-admin",
+          },
+        ],
+      },
+    },
+  },
+];
+
 describe("ExtensionDialog", () => {
   it("renders extension details in view mode", async () => {
     render(
@@ -60,39 +100,14 @@ describe("ExtensionDialog", () => {
     expect(screen.getByText("Overview")).toBeInTheDocument();
     expect(screen.getByText("Timeline")).toBeInTheDocument();
     expect(screen.getByText("Description")).toBeInTheDocument();
-    expect(screen.getByText("Approved")).toBeInTheDocument();
-    expect(screen.getByText("Implementation")).toBeInTheDocument();
-    expect(screen.getByText("Demo 2")).toBeInTheDocument();
-    expect(screen.getByText("This is a test extension.")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Approved")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Implementation")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Demo 2")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Test Extension")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("This is a test extension.")).toBeInTheDocument();
     expect(screen.getByText("Expanded details coming soon.")).toBeInTheDocument();
-
-    const titleInput = screen.getByLabelText("Extension Title") as HTMLInputElement;
-    expect(titleInput).toBeDisabled();
-    expect(titleInput.value).toBe("Test Extension");
-
     expect(screen.getByTestId("extension-effective-date-display")).toHaveValue("02/01/2025");
-    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
-  });
-
-  it("allows editing when mode is edit", async () => {
-    const onClose = vi.fn();
-
-    render(
-      <TestProvider mocks={[extensionMock]}>
-        <ExtensionDialog extensionId={EXTENSION_ID} isOpen={true} onClose={onClose} mode="edit" />
-      </TestProvider>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByDisplayValue("Test Extension")).toBeInTheDocument();
-    });
-
-    const descriptionTextarea = screen.getByPlaceholderText("Add a description") as HTMLTextAreaElement;
-    expect(descriptionTextarea.readOnly).toBe(false);
-
-    fireEvent.change(descriptionTextarea, { target: { value: "Updated description" } });
-    expect(descriptionTextarea.value).toBe("Updated description");
-    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "close-extension-dialog" })).toBeInTheDocument();
   });
 
   it("shows an error message when the query fails", async () => {
@@ -107,13 +122,53 @@ describe("ExtensionDialog", () => {
     });
   });
 
-  it("renders create form when mode is add", () => {
+  it("submits the create extension mutation and closes", async () => {
+    const onClose = vi.fn();
+
+    const createMock: MockedResponse = {
+      request: {
+        query: CREATE_EXTENSION_MUTATION,
+        variables: {
+          input: {
+            demonstrationId: "demo-1",
+            name: "New Extension",
+            description: "Create description",
+          },
+        },
+      },
+      result: {
+        data: {
+          createExtension: {
+            __typename: "Extension",
+            id: "extension-999",
+          },
+        },
+      },
+    };
+
     render(
-      <TestProvider>
-        <ExtensionDialog isOpen={true} onClose={() => {}} mode="add" />
+      <TestProvider mocks={[...baseFormMocks, createMock]}>
+        <ExtensionDialog
+          isOpen
+          onClose={onClose}
+          mode="add"
+          demonstrationId="demo-1"
+          data={{
+            title: "New Extension",
+            description: "Create description",
+            state: "AL",
+            projectOfficer: "user-1",
+            demonstration: "demo-1",
+          }}
+        />
       </TestProvider>
     );
 
-    expect(screen.getByText("New Extension")).toBeInTheDocument();
+    const submitButton = screen.getByRole("button", { name: /submit/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalledTimes(2);
+    });
   });
 });

@@ -1,4 +1,3 @@
-// components/modifications/CreateAmendmentDialog.tsx
 import React from "react";
 import { useToast } from "components/toast";
 import { useMutation } from "@apollo/client";
@@ -10,7 +9,7 @@ type Props = Pick<
   BaseModificationDialogProps,
   "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
 > & {
-  amendmentId?: string; // not used in create, but keeps prop parity
+  amendmentId?: string;
 };
 
 export const CREATE_AMENDMENT_MUTATION = gql`
@@ -36,14 +35,14 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
 }) => {
   const { showError } = useToast();
 
-  const [createAmendmentTrigger, { loading }] = useMutation<{
+  const [createAmendmentTrigger] = useMutation<{
     createAmendment: Pick<CreateAmendmentPayload, "success" | "message" | "amendment">;
   }>(CREATE_AMENDMENT_MUTATION);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     try {
-      if (mode !== "add") {
-        // Match the CreateDemonstrationDialog UX; you could also just ignore mode and always create here.
+      // This is Create Amendment dialog; therefore we'll just sort out the "add"
+      if (mode !== "add") { // (Maybe we should swap to store or create.
         throw new Error(`CreateAmendmentDialog expects mode="add", received "${mode}"`);
       }
 
@@ -79,7 +78,6 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
     }
   };
 
-  // Leverage your existing base dialog (same pattern as demo dialog wrapper)
   return (
     <BaseModificationDialog
       isOpen={isOpen}
@@ -90,8 +88,7 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
       data={data}
       entityType="amendment"
       onSubmit={onSubmit}
-      getFormData={(base) => base} // keep simple; or reuse createFormDataWithDates if you add dates later
-      submitting={loading}
+      getFormData={(base) => base}
     />
   );
 };

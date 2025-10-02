@@ -6,9 +6,7 @@ import { TextInput } from "components/input/TextInput";
 import { useToast } from "components/toast";
 import { formatDate } from "util/formatDate";
 
-import { gql, useQuery } from "@apollo/client";
-
-import { useAmendment } from "hooks/useAmendment";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { UpdateAmendmentInput } from "demos-server";
 
 export const AMENDMENT_DIALOG_QUERY = gql`
@@ -25,6 +23,14 @@ export const AMENDMENT_DIALOG_QUERY = gql`
         id
         name
       }
+    }
+  }
+`;
+
+const UPDATE_AMENDMENT_MUTATION = gql`
+  mutation UpdateAmendment($id: ID!, $input: UpdateAmendmentInput!) {
+    updateAmendment(id: $id, input: $input) {
+      id
     }
   }
 `;
@@ -55,6 +61,10 @@ interface AmendmentDialogProps {
 
 const FORM_ID = "amendment-dialog-form";
 
+// Using this for the view mode.
+// We should break down to the CreateDemonstrationDialog pattern.
+// It should be noted that EDIT IS NOT something that we have gotten to yet.
+// This is just a YOLO from AI that may or may not work.
 export const AmendmentDialog: React.FC<AmendmentDialogProps> = ({
   amendmentId,
   isOpen,
@@ -64,13 +74,14 @@ export const AmendmentDialog: React.FC<AmendmentDialogProps> = ({
   const isReadOnly = mode !== "edit";
   const hasAmendmentId = Boolean(amendmentId);
   const { showSuccess, showError } = useToast();
-  const { updateAmendment } = useAmendment();
 
   const { data, loading, error } = useQuery<AmendmentQueryData>(AMENDMENT_DIALOG_QUERY, {
     variables: { id: amendmentId as string },
     skip: !hasAmendmentId,
     fetchPolicy: "cache-first",
   });
+
+  const [updateAmendmentMutation, { loading: isSaving }] = useMutation(UPDATE_AMENDMENT_MUTATION);
 
   const amendment = data?.amendment;
 
@@ -115,7 +126,12 @@ export const AmendmentDialog: React.FC<AmendmentDialogProps> = ({
     };
 
     try {
-      await updateAmendment.trigger(amendmentId, input);
+      await updateAmendmentMutation({
+        variables: {
+          id: amendmentId,
+          input,
+        },
+      });
       showSuccess("Amendment updated successfully!");
       onClose();
     } catch (err) {
@@ -241,7 +257,12 @@ export const AmendmentDialog: React.FC<AmendmentDialogProps> = ({
   };
 
   const actions = isReadOnly ? (
-    <SecondaryButton name="close-amendment-dialog" size="small" onClick={onClose}>
+    <SecondaryButton
+      data-testid="close-amendment-dialog"
+      name="close-amendment-dialog"
+      size="small"
+      onClick={onClose}
+    >
       Close
     </SecondaryButton>
   ) : (
@@ -254,10 +275,10 @@ export const AmendmentDialog: React.FC<AmendmentDialogProps> = ({
         size="small"
         type="submit"
         form={FORM_ID}
-        disabled={updateAmendment.loading || title.trim().length === 0}
-        onClick={() => {}} // No-op handler since form submission is handled by the form
+        disabled={isSaving || title.trim().length === 0}
+        onClick={() => {}}
       >
-        {updateAmendment.loading ? "Saving..." : "Save"}
+        {isSaving ? "Saving..." : "Save"}
       </Button>
     </>
   );

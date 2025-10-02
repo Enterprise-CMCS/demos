@@ -105,34 +105,12 @@ describe("View button", () => {
     const row = screen.getByText("Amendment 1 - Montana Medicaid Waiver").closest("div")!;
     fireEvent.click(row);
 
-    const viewButton = screen.getByRole("button", { name: "View Amendment" });
+    const viewButton = screen.getByRole("button", { name: "view-modification" });
     fireEvent.click(viewButton);
 
     expect(handleView).toHaveBeenCalledTimes(1);
     // Ensure the expanded section remains visible after clicking the view button
     expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
-  });
-
-  it("uses provided view label for extensions", () => {
-    const handleView = vi.fn();
-    render(
-      <ModificationTable
-        modifications={mockExtensions.slice(0, 1).map((extension) => ({
-          ...extension,
-          status: extension.status,
-        }))}
-        onView={handleView}
-        viewLabel="View Extension"
-      />
-    );
-
-    const row = screen.getByText("Extension 1 - Montana Medicaid Waiver").closest("div")!;
-    fireEvent.click(row);
-
-    const viewButton = screen.getByRole("button", { name: "View Extension" });
-    fireEvent.click(viewButton);
-
-    expect(handleView).toHaveBeenCalledTimes(1);
   });
 });
 

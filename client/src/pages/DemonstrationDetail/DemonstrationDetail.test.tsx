@@ -25,21 +25,24 @@ describe("DemonstrationDetail", () => {
     );
   }
 
-  it("renders and switches to Amendments tab", async () => {
-    renderWithProviders();
-
+  async function goToDocumentsTab() {
     // Wait for component to load and navigate to Documents tab where table is located
     await waitFor(() => {
       expect(screen.getByText("Summary Details")).toBeInTheDocument();
     });
 
-    // Navigate to Documents tab first to access the table
     const documentsTab = screen.getByRole("button", { name: /Documents/i });
     fireEvent.click(documentsTab);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
+  }
+
+  it("renders and switches to Amendments tab", async () => {
+    renderWithProviders();
+
+    await goToDocumentsTab();
 
     expect(screen.getByRole("heading", { name: /Documents/i })).toBeInTheDocument();
 
@@ -53,18 +56,7 @@ describe("DemonstrationDetail", () => {
   it("opens Add New Amendment modal", async () => {
     renderWithProviders();
 
-    // Wait for component to load and navigate to Documents tab where table is located
-    await waitFor(() => {
-      expect(screen.getByText("Summary Details")).toBeInTheDocument();
-    });
-
-    // Navigate to Documents tab first to access the table
-    const documentsTab = screen.getByRole("button", { name: /Documents/i });
-    fireEvent.click(documentsTab);
-
-    await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
-    });
+    await goToDocumentsTab();
 
     fireEvent.click(screen.getByRole("button", { name: /Amendments/i }));
     fireEvent.click(screen.getByTestId("add-new-amendment"));
@@ -75,18 +67,7 @@ describe("DemonstrationDetail", () => {
   it("renders and switches to Extensions tab", async () => {
     renderWithProviders();
 
-    // Wait for component to load and navigate to Documents tab where table is located
-    await waitFor(() => {
-      expect(screen.getByText("Summary Details")).toBeInTheDocument();
-    });
-
-    // Navigate to Documents tab first to access the table
-    const documentsTab = screen.getByRole("button", { name: /Documents/i });
-    fireEvent.click(documentsTab);
-
-    await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
-    });
+    await goToDocumentsTab();
 
     fireEvent.click(screen.getByRole("button", { name: /Extensions/i }));
 

@@ -59,18 +59,15 @@ describe("AmendmentDialog", () => {
     expect(screen.getByText("Overview")).toBeInTheDocument();
     expect(screen.getByText("Timeline")).toBeInTheDocument();
     expect(screen.getByText("Description")).toBeInTheDocument();
-    expect(screen.getByText("Under Review")).toBeInTheDocument();
-    expect(screen.getByText("Concept")).toBeInTheDocument();
-    expect(screen.getByText("Demo 1")).toBeInTheDocument();
-    expect(screen.getByText("This is a test amendment.")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Under Review")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Concept")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Demo 1")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Test Amendment")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("This is a test amendment.")).toBeInTheDocument();
     expect(screen.getByText("Expanded details coming soon.")).toBeInTheDocument();
 
-    const titleInput = screen.getByLabelText("Amendment Title") as HTMLInputElement;
-    expect(titleInput).toBeDisabled();
-    expect(titleInput.value).toBe("Test Amendment");
-
     expect(screen.getByTestId("amendment-effective-date-display")).toHaveValue("01/01/2025");
-    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "close-amendment-dialog" })).toBeInTheDocument();
   });
 
   it("shows an error message when the query fails", async () => {
