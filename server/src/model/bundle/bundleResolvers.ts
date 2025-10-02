@@ -27,14 +27,14 @@ export async function getBundle(bundleId: string) {
     case "Extension":
       return await getExtension(undefined, { id: bundleId });
   }
-  throw new Error(`Unknown bundle type: ${bundle.bundleTypeId}`);
+  throw new Error(`Error getting bundle. Unknown bundle type: ${bundle.bundleTypeId}`);
 }
 
 export const bundleResolvers = {
   Bundle: {
     __resolveType: async (parent: Bundle) => {
       if (!BUNDLE_TYPES.includes(parent.bundleTypeId as BundleType)) {
-        throw new Error(`Unknown bundle type: ${parent.bundleTypeId}`);
+        throw new Error(`Error resolving type. Unknown bundle type: ${parent.bundleTypeId}`);
       }
       return parent.bundleTypeId;
     },
