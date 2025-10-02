@@ -64,7 +64,7 @@ export async function getManyAmendments() {
   return getManyModifications(undefined, undefined, undefined, undefined, "Amendment");
 }
 export async function getManyExtensions() {
-  return getManyModifications(undefined, undefined, undefined, undefined, "Amendment");
+  return getManyModifications(undefined, undefined, undefined, undefined, "Extension");
 }
 
 async function createModification(
