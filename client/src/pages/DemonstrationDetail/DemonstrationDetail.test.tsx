@@ -47,7 +47,7 @@ describe("DemonstrationDetail", () => {
     fireEvent.click(amendmentsTab);
 
     expect(screen.getByText("Amendments")).toBeInTheDocument();
-    expect(screen.getByText("Amendment 1 - Test Demonstration 1")).toBeInTheDocument();
+    expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
   });
 
   it("opens Add New Amendment modal", async () => {
@@ -91,7 +91,7 @@ describe("DemonstrationDetail", () => {
     fireEvent.click(screen.getByRole("button", { name: /Extensions/i }));
 
     expect(screen.getByText("Extensions")).toBeInTheDocument();
-    expect(screen.getByText("Extension 1 - Test Demonstration 1")).toBeInTheDocument();
+    expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
   });
 
   it("shows Add button and dropdown options", async () => {

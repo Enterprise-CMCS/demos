@@ -38,7 +38,7 @@ describe("Demonstration Detail Header", () => {
 
     // Expected attributes in order
     const expectedAttributes = [
-      { label: "State/Territory", value: "AL" },
+      { label: "State/Territory", value: "MT" },
       { label: "Project Officer", value: "John Doe" },
       { label: "Status", value: "Approved" },
       { label: "Effective", value: "01/01/2025" },

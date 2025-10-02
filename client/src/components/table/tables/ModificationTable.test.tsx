@@ -21,13 +21,13 @@ describe("ExtensionTable", () => {
   });
   it("renders extension rows with correct title, status, and date", () => {
     const row1 = screen
-      .getByText("Extension 1 - Test Demonstration 1")
+      .getByText("Extension 1 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
     expect(within(row1).getByText("Under Review")).toBeInTheDocument();
     expect(within(row1).getByText("01/01/2025")).toBeInTheDocument();
 
     const row2 = screen
-      .getByText("Extension 2 - Test Demonstration 1")
+      .getByText("Extension 2 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
     expect(within(row2).getByText("Approved")).toBeInTheDocument();
     expect(within(row2).getByText("02/01/2025")).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe("ExtensionTable", () => {
     // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
 
-    const row = screen.getByText("Extension 1 - Test Demonstration 1").closest("div")!;
+    const row = screen.getByText("Extension 1 - Montana Medicaid Waiver").closest("div")!;
     fireEvent.click(row);
 
     expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
@@ -60,13 +60,13 @@ describe("AmendmentTable", () => {
   });
   it("renders amendment rows with correct title, status, and date", () => {
     const row1 = screen
-      .getByText("Amendment 1 - Test Demonstration 1")
+      .getByText("Amendment 1 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
     expect(within(row1).getByText("Under Review")).toBeInTheDocument();
     expect(within(row1).getByText("01/01/2025")).toBeInTheDocument();
 
     const row2 = screen
-      .getByText("Amendment 2 - Test Demonstration 1")
+      .getByText("Amendment 2 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
     expect(within(row2).getByText("Approved")).toBeInTheDocument();
     expect(within(row2).getByText("02/01/2025")).toBeInTheDocument();
@@ -76,7 +76,7 @@ describe("AmendmentTable", () => {
     // Confirm expanded content not shown initially
     expect(screen.queryByText(/Expanded details coming soon/i)).not.toBeInTheDocument();
 
-    const row = screen.getByText("Amendment 2 - Test Demonstration 1").closest("div")!;
+    const row = screen.getByText("Amendment 2 - Montana Medicaid Waiver").closest("div")!;
     fireEvent.click(row);
 
     expect(screen.getByText(/Expanded details coming soon/i)).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe("Date formatting", () => {
       />
     );
     const amendmentRow = screen
-      .getByText("Amendment 6 - Test Demonstration 2")
+      .getByText("Amendment 6 - Florida Health Innovation")
       .closest(".grid")! as HTMLElement;
     expect(within(amendmentRow).getByText("--/--/----")).toBeInTheDocument();
 
@@ -131,7 +131,7 @@ describe("Date formatting", () => {
       />
     );
     const extensionRow = screen
-      .getByText("Extension 3 - Test Demonstration 1")
+      .getByText("Extension 3 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
     expect(within(extensionRow).getByText("--/--/----")).toBeInTheDocument();
   });

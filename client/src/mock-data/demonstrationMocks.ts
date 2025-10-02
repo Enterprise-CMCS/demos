@@ -40,37 +40,41 @@ export type MockDemonstration = Pick<
 export const mockDemonstrations = [
   {
     id: "1",
-    name: "Test Demonstration 1",
-    description: "A test demonstration.",
+    name: "Montana Medicaid Waiver",
+    description: "A demonstration project in Montana.",
     status: "Approved" as BundleStatus,
     effectiveDate: "2025-01-01",
     expirationDate: "2025-12-01",
-    state: mockStates.find((state) => state.id === "AL")!,
+    state: mockStates.find((state) => state.id === "MT")!,
     sdgDivision: "Division of System Reform Demonstrations",
     signatureLevel: "OA",
     demonstrationTypes: [],
     amendments: mockAmendments.filter((amendment) =>
-      amendment.name.includes("Test Demonstration 1")
+      amendment.name.includes("Montana Medicaid Waiver")
     ),
     extensions: mockExtensions.filter((extension) =>
-      extension.name.includes("Test Demonstration 1")
+      extension.name.includes("Montana Medicaid Waiver")
     ),
     documents: [],
-    roles: [mockDemonstrationRoleAssignments[0]],
+    roles: [
+      mockDemonstrationRoleAssignments[0],
+      mockDemonstrationRoleAssignments[3],
+      mockDemonstrationRoleAssignments[4],
+    ],
   },
   {
     id: "2",
-    name: "Test Demonstration 2",
-    description: "A test demonstration.",
+    name: "Florida Health Innovation",
+    description: "A health innovation project in Florida.",
     status: "Under Review" as BundleStatus,
     effectiveDate: "2025-03-01",
     expirationDate: "2026-02-01",
-    state: mockStates.find((state) => state.id === "AK")!,
-    sdgDivision: "Division of System Reform Demonstrations",
-    signatureLevel: "OA",
+    state: mockStates.find((state) => state.id === "FL")!,
+    sdgDivision: "Division of Eligibility and Coverage Demonstrations",
+    signatureLevel: "OCD",
     demonstrationTypes: [],
     amendments: mockAmendments.filter((amendment) =>
-      amendment.name.includes("Test Demonstration 2")
+      amendment.name.includes("Florida Health Innovation")
     ),
     extensions: [],
     documents: [],
@@ -78,14 +82,14 @@ export const mockDemonstrations = [
   },
   {
     id: "3",
-    name: "Test Demonstration 3",
-    description: "A test demonstration.",
+    name: "Texas Reform Initiative",
+    description: "A reform initiative in Texas.",
     status: "Denied" as BundleStatus,
     effectiveDate: null,
     expirationDate: null,
-    state: mockStates.find((state) => state.id === "AZ")!,
+    state: mockStates.find((state) => state.id === "TX")!,
     sdgDivision: "Division of System Reform Demonstrations",
-    signatureLevel: "OA",
+    signatureLevel: "OGD",
     demonstrationTypes: [],
     amendments: [],
     extensions: [],

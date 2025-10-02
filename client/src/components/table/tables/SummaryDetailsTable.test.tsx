@@ -30,11 +30,11 @@ describe("SummaryDetailsTable", () => {
       render(<SummaryDetailsTable demonstration={testDemo} />);
 
       expect(screen.getByText("Summary Details")).toBeInTheDocument();
-      expect(screen.getByText("Test Demonstration 1")).toBeInTheDocument();
-      expect(screen.getByText("Alabama")).toBeInTheDocument();
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getByText("Montana")).toBeInTheDocument();
       expect(screen.getByText("John Doe")).toBeInTheDocument();
       expect(screen.getByText("Approved")).toBeInTheDocument();
-      expect(screen.getByText("A test demonstration.")).toBeInTheDocument();
+      expect(screen.getByText("A demonstration project in Montana.")).toBeInTheDocument();
     });
 
     it("renders all field labels correctly", () => {
