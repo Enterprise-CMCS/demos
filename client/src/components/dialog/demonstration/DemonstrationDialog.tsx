@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 
-import {
-  Button,
-  SecondaryButton,
-} from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
@@ -250,9 +247,7 @@ export const DemonstrationDialog: React.FC<{
         <div className="grid grid-cols-2 gap-2">
           <SelectSdgDivision
             initialValue={activeDemonstration.sdgDivision}
-            onSelect={(sdgDivision) =>
-              setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))
-            }
+            onSelect={(sdgDivision) => setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))}
           />
           <SelectSignatureLevel
             initialValue={activeDemonstration.signatureLevel}

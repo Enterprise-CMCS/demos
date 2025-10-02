@@ -2,24 +2,11 @@ import React from "react";
 
 import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
 import { TestProvider } from "test-utils/TestProvider";
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import {
-  CreateDemonstrationDialog,
-  EditDemonstrationDialog,
-} from "./";
+import { CreateDemonstrationDialog, EditDemonstrationDialog } from "./";
 import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
