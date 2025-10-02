@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { tw } from "tags/tw";
-import { LABEL_CLASSES } from "./Input";
+import { getInputColors, LABEL_CLASSES } from "./Input";
 
 const MAX_ROWS = 3;
 
@@ -8,17 +8,6 @@ const TEXTAREA_BASE_CLASSES = tw`border-1 rounded-minimal p-1 outline-none focus
 bg-surface-white hover:text-text-font resize-none overflow-hidden
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
 const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
-
-const getTextareaColors = (value: string, validationMessage: string) => {
-  let classes = "";
-  classes += tw`text-text-filled`;
-  if (validationMessage) {
-    classes += tw`border-border-warn focus:border-border-warn focus:ring-border-warn`;
-  } else {
-    classes += tw`border-border-fields focus:ring-action focus:border-action`;
-  }
-  return classes;
-};
 
 export interface TextareaProps {
   name: string;
@@ -61,7 +50,7 @@ export const Textarea: React.FC<TextareaProps> = ({
         id={name}
         name={name}
         data-testid={`textarea-${name}`}
-        className={`${TEXTAREA_BASE_CLASSES} ${getTextareaColors(value, validationMessage ?? "")}`}
+        className={`${TEXTAREA_BASE_CLASSES} ${getInputColors(validationMessage ?? "")}`}
         placeholder={placeholder ?? ""}
         required={isRequired ?? false}
         disabled={isDisabled ?? false}
