@@ -3,8 +3,12 @@
 
   - You are about to drop the `bundle_phase_date` table. If the table is not empty, all the data it contains will be lost.
   - You are about to drop the `bundle_phase_date_history` table. If the table is not empty, all the data it contains will be lost.
+  - A unique constraint covering the columns `[id,bundle_type_id]` on the table `modification` will be added. If there are existing duplicate values, this will fail.
 
 */
+-- CreateIndex
+CREATE UNIQUE INDEX "modification_id_bundle_type_id_key" ON "demos_app"."modification"("id", "bundle_type_id");
+
 -- DropForeignKey
 ALTER TABLE "demos_app"."bundle_phase_date" DROP CONSTRAINT "bundle_phase_date_bundle_id_phase_id_fkey";
 

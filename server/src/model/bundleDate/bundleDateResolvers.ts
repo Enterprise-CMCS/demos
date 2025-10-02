@@ -1,16 +1,14 @@
-import { BundlePhaseDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { SetPhaseDateInput } from "../../types.js";
+import { SetBundleDateInput } from "../../types.js";
 import { getBundle } from "../bundle/bundleResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
-async function setPhaseDate(_: undefined, { input }: { input: SetPhaseDateInput }) {
+async function setBundleDate(_: undefined, { input }: { input: SetBundleDateInput }) {
   try {
-    await prisma().bundlePhaseDate.upsert({
+    await prisma().bundleDate.upsert({
       where: {
-        bundleId_phaseId_dateTypeId: {
+        bundleId_dateTypeId: {
           bundleId: input.bundleId,
-          phaseId: input.phaseName,
           dateTypeId: input.dateType,
         },
       },
@@ -19,7 +17,6 @@ async function setPhaseDate(_: undefined, { input }: { input: SetPhaseDateInput 
       },
       create: {
         bundleId: input.bundleId,
-        phaseId: input.phaseName,
         dateTypeId: input.dateType,
         dateValue: input.dateValue,
       },
@@ -30,14 +27,33 @@ async function setPhaseDate(_: undefined, { input }: { input: SetPhaseDateInput 
   return await getBundle(input.bundleId);
 }
 
-export const bundlePhaseDateResolvers = {
-  Mutation: {
-    setPhaseDate: setPhaseDate,
-  },
-
-  BundlePhaseDate: {
-    dateType: async (parent: BundlePhaseDate) => {
-      return parent.dateTypeId;
+export async function getBundleDatesForPhase(bundleId: string, phaseId: string) {
+  const rows = await prisma().bundleDate.findMany({
+    select: {
+      dateTypeId: true,
+      dateValue: true,
+      createdAt: true,
+      updatedAt: true,
     },
+    where: {
+      bundleId: bundleId,
+      dateType: {
+        phaseDateTypes: {
+          some: { phaseId: phaseId },
+        },
+      },
+    },
+  });
+  return rows.map((row) => ({
+    dateType: row.dateTypeId,
+    dateValue: row.dateValue,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }));
+}
+
+export const bundleDateResolvers = {
+  Mutation: {
+    setBundleDate: setBundleDate,
   },
 };

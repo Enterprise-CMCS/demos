@@ -232,6 +232,24 @@ async function seedDatabase() {
     })
   );
 
+  console.log("🌱 Seeding all dates for one demonstration");
+  const randomDemonstration = await prisma().demonstration.findRandom({
+    select: {
+      id: true,
+    },
+  });
+  for (const dateType of await prisma().dateType.findMany({
+    where: { NOT: { id: "Concept Start Date" } },
+  })) {
+    await prisma().bundleDate.create({
+      data: {
+        bundleId: randomDemonstration!.id,
+        dateTypeId: dateType.id,
+        dateValue: faker.date.future({ years: 1 }),
+      },
+    });
+  }
+
   console.log("🌱 Seeding amendments...");
   for (let i = 0; i < amendmentCount; i++) {
     const createInput: CreateAmendmentInput = {
