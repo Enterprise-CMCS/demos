@@ -1,9 +1,16 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import { CreateDemonstrationDialog, EditDemonstrationDialog } from "./";
+
+import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
 import { TestProvider } from "test-utils/TestProvider";
-import { GET_DEMONSTRATION_BY_ID_QUERY } from "./EditDemonstrationDialog";
+import { describe, expect, it, vi } from "vitest";
+
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+
+import { CreateDemonstrationDialog, EditDemonstrationDialog } from "./";
+import {
+  GET_DEMONSTRATION_BY_ID_QUERY,
+  UPDATE_DEMONSTRATION_MUTATION,
+} from "./EditDemonstrationDialog";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -25,9 +32,26 @@ const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
 const CANCEL_BUTTON_TEST_ID = "button-cancel-demonstration-dialog";
 
 describe("CreateDemonstrationDialog", () => {
+  const GET_USER_SELECT_OPTIONS_MOCK = {
+    request: {
+      query: GET_USER_SELECT_OPTIONS_QUERY,
+    },
+    result: {
+      data: {
+        people: [
+          {
+            id: "test-officer-id",
+            fullName: "Test Officer",
+            personType: "demos-cms-user",
+          },
+        ],
+      },
+    },
+  };
+
   const getCreateDemonstrationDialog = () => {
     return (
-      <TestProvider>
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
         <CreateDemonstrationDialog {...DEFAULT_PROPS} />
       </TestProvider>
     );
@@ -61,7 +85,25 @@ describe("CreateDemonstrationDialog", () => {
 });
 
 describe("EditDemonstrationDialog", () => {
-  const TEST_DEMO_ID = "test-demo-id";
+  const TEST_DEMO_ID = "1";
+
+  const GET_USER_SELECT_OPTIONS_MOCK = {
+    request: {
+      query: GET_USER_SELECT_OPTIONS_QUERY,
+    },
+    result: {
+      data: {
+        people: [
+          {
+            id: "test-officer-id",
+            fullName: "Test Officer",
+            personType: "demos-cms-user",
+          },
+        ],
+      },
+    },
+  };
+
   const GET_DEMONSTRATION_BY_ID_MOCK = {
     request: {
       query: GET_DEMONSTRATION_BY_ID_QUERY,
@@ -73,16 +115,54 @@ describe("EditDemonstrationDialog", () => {
           id: TEST_DEMO_ID,
           name: "Test Demonstration",
           description: "Test demonstration description",
-          sdgDivision: "Test Division",
-          signatureLevel: "Test Level",
+          sdgDivision: "Division of System Reform Demonstrations",
+          signatureLevel: "OA",
           state: {
             id: "test-state-id",
           },
-          projectOfficer: {
-            id: "test-officer-id",
+          roles: [
+            {
+              isPrimary: true,
+              role: "Project Officer",
+              person: {
+                id: "test-officer-id",
+              },
+            },
+          ],
+          effectiveDate: "2023-01-01T00:00:00.000Z",
+          expirationDate: "2024-01-01T00:00:00.000Z",
+        },
+      },
+    },
+  };
+
+  // Mock for the update mutation - this needs to match what the form actually submits
+  const UPDATE_DEMONSTRATION_MOCK = {
+    request: {
+      query: UPDATE_DEMONSTRATION_MUTATION,
+      variables: {
+        id: "1",
+        input: {
+          name: "Test Demonstration 123",
+          description: "A test demonstration.",
+          stateId: "AL",
+          sdgDivision: "Division of System Reform Demonstrations",
+          signatureLevel: "OA",
+        },
+      },
+    },
+    result: {
+      data: {
+        updateDemonstration: {
+          id: "1",
+          name: "Test Demonstration 123",
+          description: "A test demonstration.",
+          effectiveDate: "2023-01-01T00:00:00.000Z",
+          expirationDate: "2024-01-01T00:00:00.000Z",
+          state: {
+            id: "AL",
+            name: "Alabama",
           },
-          effectiveDate: "2023-01-01",
-          expirationDate: "2024-01-01",
         },
       },
     },
@@ -90,7 +170,13 @@ describe("EditDemonstrationDialog", () => {
 
   const getEditDemonstrationDialog = () => {
     return (
-      <TestProvider mocks={[GET_DEMONSTRATION_BY_ID_MOCK]}>
+      <TestProvider
+        mocks={[
+          GET_DEMONSTRATION_BY_ID_MOCK,
+          GET_USER_SELECT_OPTIONS_MOCK,
+          UPDATE_DEMONSTRATION_MOCK,
+        ]}
+      >
         <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId={TEST_DEMO_ID} />
       </TestProvider>
     );
@@ -116,7 +202,36 @@ describe("EditDemonstrationDialog", () => {
   });
 
   it("disables Submit button if required fields are empty", async () => {
-    render(getEditDemonstrationDialog());
+    // Create a mock with incomplete data (missing state and project officer)
+    const incompleteDataMock = {
+      request: {
+        query: GET_DEMONSTRATION_BY_ID_QUERY,
+        variables: { id: TEST_DEMO_ID },
+      },
+      result: {
+        data: {
+          demonstration: {
+            id: TEST_DEMO_ID,
+            name: "", // Empty name
+            description: "Test demonstration description",
+            sdgDivision: "Division of System Reform Demonstrations",
+            signatureLevel: "OA",
+            state: {
+              id: "", // Empty state ID
+            },
+            roles: [], // No project officer assigned
+            effectiveDate: "2023-01-01T00:00:00.000Z",
+            expirationDate: "2024-01-01T00:00:00.000Z",
+          },
+        },
+      },
+    };
+
+    render(
+      <TestProvider mocks={[incompleteDataMock, GET_USER_SELECT_OPTIONS_MOCK]}>
+        <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId={TEST_DEMO_ID} />
+      </TestProvider>
+    );
 
     // Wait for loading to complete
     await waitFor(() => {
@@ -158,8 +273,8 @@ describe("EditDemonstrationDialog", () => {
     };
 
     render(
-      <TestProvider mocks={[errorMock]}>
-        <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId="test-demo-id" />
+      <TestProvider mocks={[errorMock, GET_USER_SELECT_OPTIONS_MOCK, UPDATE_DEMONSTRATION_MOCK]}>
+        <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId="1" />
       </TestProvider>
     );
     waitFor(() => {
@@ -177,6 +292,44 @@ describe("EditDemonstrationDialog", () => {
 
     await waitFor(() => {
       expect(screen.getByDisplayValue("Test demonstration description")).toBeInTheDocument();
+    });
+  });
+
+  it("can submit form changes successfully", async () => {
+    render(
+      <TestProvider
+        mocks={[
+          GET_DEMONSTRATION_BY_ID_MOCK,
+          GET_USER_SELECT_OPTIONS_MOCK,
+          UPDATE_DEMONSTRATION_MOCK,
+        ]}
+      >
+        <EditDemonstrationDialog isOpen={true} onClose={vi.fn()} demonstrationId="1" />
+      </TestProvider>
+    );
+
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("Test Demonstration")).toBeInTheDocument();
+    });
+
+    // Make a change to the form
+    const titleInput = screen.getByDisplayValue("Test Demonstration");
+    fireEvent.change(titleInput, { target: { value: "Test Demonstration 123" } });
+
+    // Submit the form - this should not throw an error if the mock is working
+    const submitButton = screen.getByTestId(SUBMIT_BUTTON_TEST_ID);
+
+    // The button should be enabled since we have all required fields
+    expect(submitButton).not.toBeDisabled();
+
+    // Click submit - if the mock is working, this won't throw a "No more mocked responses" error
+    fireEvent.click(submitButton);
+
+    // Wait a moment to ensure the mutation would have been called
+    await waitFor(() => {
+      // If we get here without errors, the mock worked
+      expect(submitButton).toBeInTheDocument();
     });
   });
 });

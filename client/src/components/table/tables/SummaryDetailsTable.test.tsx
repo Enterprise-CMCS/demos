@@ -1,13 +1,13 @@
 import React from "react";
 
-import { formatDate } from "util/formatDate";
+import { mockDemonstrations } from "mock-data/demonstrationMocks";
+import { safeDateFormat } from "util/formatDate";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SummaryDetailsTable } from "./SummaryDetailsTable";
-import { mockDemonstrations } from "mock-data/demonstrationMocks";
 
 const EDIT_BUTTON_TEST_ID = "button-edit-details";
 
@@ -19,6 +19,7 @@ vi.mock("components/dialog", () => ({
 
 describe("SummaryDetailsTable", () => {
   const mockOnEdit = vi.fn();
+  const testDemo = mockDemonstrations[0];
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,7 +27,7 @@ describe("SummaryDetailsTable", () => {
 
   describe("Component Rendering", () => {
     it("renders the summary details table with demonstration data", () => {
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+      render(<SummaryDetailsTable demonstration={testDemo} />);
 
       expect(screen.getByText("Summary Details")).toBeInTheDocument();
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
@@ -37,7 +38,7 @@ describe("SummaryDetailsTable", () => {
     });
 
     it("renders all field labels correctly", () => {
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+      render(<SummaryDetailsTable demonstration={testDemo} />);
 
       expect(screen.getByText("State/Territory")).toBeInTheDocument();
       expect(screen.getByText("Demonstration (Max Limit - 128 Characters)")).toBeInTheDocument();
@@ -51,7 +52,7 @@ describe("SummaryDetailsTable", () => {
     });
 
     it("renders the edit button with correct styling", () => {
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+      render(<SummaryDetailsTable demonstration={testDemo} />);
 
       const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       expect(editButton).toBeInTheDocument();
@@ -61,11 +62,11 @@ describe("SummaryDetailsTable", () => {
 
   describe("Date Formatting", () => {
     it("formats effective and expiration dates correctly", () => {
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+      render(<SummaryDetailsTable demonstration={testDemo} />);
 
       // Check that dates are rendered (format will depend on locale)
-      const effectiveDate = formatDate(mockDemonstrations[0].effectiveDate);
-      const expirationDate = formatDate(mockDemonstrations[0].expirationDate);
+      const effectiveDate = safeDateFormat(testDemo.effectiveDate);
+      const expirationDate = safeDateFormat(testDemo.expirationDate);
 
       expect(screen.getByText(effectiveDate)).toBeInTheDocument();
       expect(screen.getByText(expirationDate)).toBeInTheDocument();
@@ -75,7 +76,7 @@ describe("SummaryDetailsTable", () => {
   describe("Edit Functionality", () => {
     it("calls onEdit prop when provided and edit button is clicked", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} onEdit={mockOnEdit} />);
+      render(<SummaryDetailsTable demonstration={testDemo} onEdit={mockOnEdit} />);
 
       const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
@@ -85,7 +86,7 @@ describe("SummaryDetailsTable", () => {
 
     it("opens modal when no onEdit prop is provided and edit button is clicked", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+      render(<SummaryDetailsTable demonstration={testDemo} />);
 
       const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
@@ -95,7 +96,7 @@ describe("SummaryDetailsTable", () => {
 
     it("does not open modal when onEdit prop is provided", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} onEdit={mockOnEdit} />);
+      render(<SummaryDetailsTable demonstration={testDemo} onEdit={mockOnEdit} />);
 
       const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
@@ -108,7 +109,7 @@ describe("SummaryDetailsTable", () => {
   describe("Modal Integration", () => {
     it("passes correct props to DemonstrationDialog", async () => {
       const user = userEvent.setup();
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+      render(<SummaryDetailsTable demonstration={testDemo} />);
 
       const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
@@ -119,14 +120,14 @@ describe("SummaryDetailsTable", () => {
 
   describe("Accessibility", () => {
     it("has proper heading structure", () => {
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+      render(<SummaryDetailsTable demonstration={testDemo} />);
 
       const heading = screen.getByText("Summary Details");
       expect(heading.tagName).toBe("H2");
     });
 
     it("has accessible button with proper content", () => {
-      render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+      render(<SummaryDetailsTable demonstration={testDemo} />);
 
       const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       expect(editButton).toHaveTextContent("Edit Details");
@@ -136,13 +137,13 @@ describe("SummaryDetailsTable", () => {
   describe("Component Props", () => {
     it("renders without onEdit prop", () => {
       expect(() => {
-        render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} />);
+        render(<SummaryDetailsTable demonstration={testDemo} />);
       }).not.toThrow();
     });
 
     it("renders with onEdit prop", () => {
       expect(() => {
-        render(<SummaryDetailsTable demonstration={mockDemonstrations[0]} onEdit={mockOnEdit} />);
+        render(<SummaryDetailsTable demonstration={testDemo} onEdit={mockOnEdit} />);
       }).not.toThrow();
     });
   });

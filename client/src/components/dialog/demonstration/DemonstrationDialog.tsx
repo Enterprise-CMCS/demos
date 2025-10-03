@@ -2,15 +2,15 @@ import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
+import { Textarea } from "components/input";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
+import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { Demonstration } from "demos-server";
 import { useDateValidation } from "hooks/useDateValidation";
 import { tw } from "tags/tw";
-import { SelectUsers } from "components/input/select/SelectUsers";
-import { Textarea } from "components/input";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
@@ -241,9 +241,11 @@ export const DemonstrationDialog: React.FC<{
 
         <div className="grid grid-cols-2 gap-2">
           <SelectSdgDivision
+            initialValue={activeDemonstration.sdgDivision}
             onSelect={(sdgDivision) => setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))}
           />
           <SelectSignatureLevel
+            initialValue={activeDemonstration.signatureLevel}
             onSelect={(signatureLevel) =>
               setActiveDemonstration((prev) => ({ ...prev, signatureLevel }))
             }
