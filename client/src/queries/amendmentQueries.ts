@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
-export const CREATE_EXTENSION_MUTATION = gql`
-  mutation CreateExtension($input: CreateExtensionInput!) {
-    createExtension(input: $input) {
+export const CREATE_AMENDMENT_MUTATION = gql`
+  mutation CreateAmendment($input: CreateAmendmentInput!) {
+    createAmendment(input: $input) {
       id
       name
       description
@@ -17,9 +17,9 @@ export const CREATE_EXTENSION_MUTATION = gql`
   }
 `;
 
-export const GET_ALL_EXTENSIONS_QUERY = gql`
-  query GetExtensions {
-    extensions {
+export const GET_ALL_AMENDMENTS_QUERY = gql`
+  query GetAmendments {
+    amendments {
       id
       name
       description
@@ -34,9 +34,9 @@ export const GET_ALL_EXTENSIONS_QUERY = gql`
   }
 `;
 
-export const GET_EXTENSION_BY_ID_QUERY = gql`
-  query GetExtension($id: ID!) {
-    extension(id: $id) {
+export const GET_AMENDMENT_BY_ID_QUERY = gql`
+  query GetAmendment($id: ID!) {
+    amendment(id: $id) {
       id
       name
       description
@@ -51,9 +51,9 @@ export const GET_EXTENSION_BY_ID_QUERY = gql`
   }
 `;
 
-export const UPDATE_EXTENSION_MUTATION = gql`
-  mutation UpdateExtension($id: ID!, $input: UpdateExtensionInput!) {
-    updateExtension(id: $id, input: $input) {
+export const UPDATE_AMENDMENT_MUTATION = gql`
+  mutation UpdateAmendment($id: ID!, $input: UpdateAmendmentInput!) {
+    updateAmendment(id: $id, input: $input) {
       id
       name
       description
