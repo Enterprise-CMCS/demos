@@ -16,8 +16,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
 
   return [
     createSelectColumnDef(columnHelper),
-    columnHelper.accessor("state.name", {
-      id: "stateName",
+    columnHelper.accessor("state.id", {
+      id: "stateId",
       header: "State/Territory",
       cell: highlightCell,
       filterFn: "arrIncludesSome",
@@ -27,7 +27,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
           options:
             STATES_AND_TERRITORIES.map((state) => ({
               label: state.id,
-              value: state.name,
+              value: state.id,
             })) ?? [],
         },
       },
@@ -53,6 +53,22 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
         },
       },
     }),
+    columnHelper.accessor("status", {
+      id: "status",
+      header: "Status",
+      cell: highlightCell,
+      filterFn: "arrIncludesSome",
+      meta: {
+        filterConfig: {
+          filterType: "select",
+          options:
+            BUNDLE_STATUS.map((status) => ({
+              label: status,
+              value: status,
+            })) ?? [],
+        },
+      },
+    }),
     columnHelper.display({
       id: "applications",
       header: "Applications",
@@ -68,22 +84,6 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
             <div>Extensions ({extensionsCount})</div>
           </div>
         );
-      },
-    }),
-    columnHelper.accessor("status", {
-      id: "status",
-      header: "Status",
-      cell: highlightCell,
-      filterFn: "arrIncludesSome",
-      meta: {
-        filterConfig: {
-          filterType: "select",
-          options:
-            BUNDLE_STATUS.map((status) => ({
-              label: status,
-              value: status,
-            })) ?? [],
-        },
       },
     }),
     columnHelper.display({

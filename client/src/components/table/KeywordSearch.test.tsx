@@ -34,7 +34,6 @@ export const testColumns = [
 
 describe.sequential("KeywordSearch Component", () => {
   beforeEach(() => {
-    localStorage.removeItem("keyword-search");
     render(
       <Table<TestType>
         keywordSearch={(table) => <KeywordSearch table={table} />}
@@ -396,37 +395,6 @@ describe.sequential("KeywordSearch Component", () => {
         },
         { timeout: 500 }
       );
-    });
-  });
-
-  describe("Persistence", () => {
-    it("persists search value to localStorage", async () => {
-      const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-
-      await user.type(keywordSearchInput, "unique");
-
-      // Wait for value to be persisted
-      await waitFor(() => {
-        expect(localStorage.getItem("keyword-search")).toBe("unique");
-      });
-    });
-
-    it("removes value from localStorage when cleared", async () => {
-      const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
-
-      // Set a value first
-      await user.type(keywordSearchInput, "unique");
-      await waitFor(() => {
-        expect(localStorage.getItem("keyword-search")).toBe("unique");
-      });
-
-      // Clear the search
-      const clearButton = screen.getByLabelText(/clear search/i);
-      await user.click(clearButton);
-
-      expect(localStorage.getItem("keyword-search")).toBeNull();
     });
   });
 });

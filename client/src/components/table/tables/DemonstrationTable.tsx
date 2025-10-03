@@ -19,7 +19,7 @@ export type GenericDemonstrationTableRow =
   | (Demonstration & { type: "demonstration" })
   | (DemonstrationAmendment & {
       type: "amendment";
-      state: Pick<State, "name">;
+      state: Pick<State, "id">;
       status: BundleStatus;
       parentId: string;
       roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
@@ -28,7 +28,7 @@ export type GenericDemonstrationTableRow =
     })
   | (DemonstrationExtension & {
       type: "extension";
-      state: Pick<State, "name">;
+      state: Pick<State, "id">;
       status: BundleStatus;
       parentId: string;
       roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {

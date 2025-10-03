@@ -140,10 +140,10 @@ describe("Demonstrations", () => {
 
     it("renders demonstration data correctly in table cells", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-      expect(screen.getByText("Montana")).toBeInTheDocument();
+      expect(screen.getByText("MT")).toBeInTheDocument();
       expect(screen.getByText("John Doe")).toBeInTheDocument();
       expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
-      expect(screen.getByText("Florida")).toBeInTheDocument();
+      expect(screen.getByText("FL")).toBeInTheDocument();
       expect(screen.getByText("Jane Smith")).toBeInTheDocument();
       expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
       expect(screen.getByText("Jim Smith")).toBeInTheDocument();
