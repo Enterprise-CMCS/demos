@@ -4,12 +4,13 @@ model Bundle {
   id           String @id @default(uuid()) @db.Uuid
   bundleTypeId String @map("bundle_type_id")
 
-  bundleType            BundleType              @relation(fields: [bundleTypeId], references: [id])
-  demonstration         Demonstration?
-  document              Document[]
-  documentPendingUpload DocumentPendingUpload[]
-  modification          Modification[]
-  bundlePhase           BundlePhase[]
+  bundleType             BundleType              @relation(fields: [bundleTypeId], references: [id])
+  demonstration          Demonstration?
+  modification           Modification?
+  documents              Document[]
+  documentsPendingUpload DocumentPendingUpload[]
+  bundlePhases           BundlePhase[]
+  bundleDates            BundleDate[]
 
   @@unique([id, bundleTypeId])
   @@map("bundle")

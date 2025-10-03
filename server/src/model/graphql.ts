@@ -1,5 +1,5 @@
-import { bundlePhaseDateSchema } from "./bundlePhaseDate/bundlePhaseDateSchema.js";
-import { bundlePhaseDateResolvers } from "./bundlePhaseDate/bundlePhaseDateResolvers.js";
+import { bundleDateSchema } from "./bundleDate/bundleDateSchema.js";
+import { bundleDateResolvers } from "./bundleDate/bundleDateResolvers.js";
 
 import { bundlePhaseSchema } from "./bundlePhase/bundlePhaseSchema.js";
 import { bundlePhaseResolvers } from "./bundlePhase/bundlePhaseResolvers.js";
@@ -61,7 +61,7 @@ import { JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition } from
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
 export const typeDefs = [
-  bundlePhaseDateSchema,
+  bundleDateSchema,
   bundlePhaseSchema,
   bundleSchema,
   bundleStatusSchema,
@@ -85,7 +85,7 @@ export const typeDefs = [
 ];
 
 export const resolvers = [
-  bundlePhaseDateResolvers,
+  bundleDateResolvers,
   bundlePhaseResolvers,
   bundleResolvers,
   bundleStatusResolvers,

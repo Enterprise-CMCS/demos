@@ -6,6 +6,6 @@ model PrimaryDemonstrationRoleAssignment {
   demonstrationRoleAssignment DemonstrationRoleAssignment @relation(fields: [personId, demonstrationId, roleId], references: [personId, demonstrationId, roleId])
 
   @@id([demonstrationId, roleId])
-  @@unique([personId, demonstrationId, roleId]) // This isnt actually required in Postgres; however prisma requires that we explicitly notate this as a unique constraint
+  @@unique([personId, demonstrationId, roleId]) // Not required by Postgres, but Prisma requires this notation
   @@map("primary_demonstration_role_assignment")
 }

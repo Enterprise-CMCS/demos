@@ -47,11 +47,11 @@ const BusinessRules = () => {
           <h3 className="font-semibold">Concept Phase:</h3>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>
-              <strong>Start Date</strong>: Begins when the demonstration, amendment or extension is
-              created.
+              <strong>Concept Start Date</strong>: Begins when the demonstration, amendment or
+              extension is created.
             </li>
             <li>
-              <strong>Completion Date</strong>: When user clicks the Finish or skip button.
+              <strong>Concept Completion Date</strong>: When user clicks the Finish or skip button.
             </li>
           </ul>
           <div className="mt-1">
@@ -62,12 +62,12 @@ const BusinessRules = () => {
           <h3 className="font-semibold">State Application Phase:</h3>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>
-              <strong>Start Date:</strong> Starts by default when demonstration is created, or when
-              a change is submitted on this phase - document or date update.
+              <strong>State Application Start Date:</strong> Starts by default when demonstration is
+              created, or when a change is submitted on this phase - document or date update.
             </li>
             <li>
-              <strong>Completion Date:</strong> Completed when user clicks Finish to progress to the
-              next phase.
+              <strong>State Application Completion Date:</strong> Completed when user clicks Finish
+              to progress to the next phase.
             </li>
             <li>
               <strong>Note:</strong> Any change submitted on this phase will implicitly mark the
@@ -79,14 +79,14 @@ const BusinessRules = () => {
           <h3 className="font-semibold">Completeness Phase:</h3>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>
-              <strong>Start Date:</strong> As soon as the State Application Submitted Date field is
-              populated on the State Application Phase. Can also start when a change is submitted on
-              this phase - document or date update. Start date is set to whichever of the dates
-              above, is first
+              <strong>Completeness Start Date:</strong> As soon as the State Application Submitted
+              Date field is populated on the State Application Phase. Can also start when a change
+              is submitted on this phase - document or date update. Start date is set to whichever
+              of the dates above, is first
             </li>
             <li>
-              <strong>Completion Date:</strong> Completed when user clicks Finish to progress to the
-              next phase. Completed Date is set to this date.
+              <strong>Completeness Completion Date:</strong> Completed when user clicks Finish to
+              progress to the next phase. Completeness Completed Date is set to this date.
             </li>
           </ul>
         </div>
@@ -129,7 +129,7 @@ export const PhaseDatesSimulation: React.FC = () => {
     const now = new Date();
 
     let updatedState = setStatusForPhase(simulationState, "Concept", "Started");
-    updatedState = updatePhaseDate(updatedState, "Concept", "Start Date", now);
+    updatedState = updatePhaseDate(updatedState, "Concept", "Concept Start Date", now);
 
     setSimulationState(updatedState);
     setDemonstrationCreated(true);
@@ -140,11 +140,16 @@ export const PhaseDatesSimulation: React.FC = () => {
     const now = new Date();
 
     let updatedState = setStatusForPhase(simulationState, "Concept", "Completed");
-    updatedState = updatePhaseDate(updatedState, "Concept", "Completion Date", now);
+    updatedState = updatePhaseDate(updatedState, "Concept", "Concept Completion Date", now);
 
     // Business Rule: State Application starts when Concept finishes
     updatedState = setStatusForPhase(updatedState, "State Application", "Started");
-    updatedState = updatePhaseDate(updatedState, "State Application", "Start Date", now);
+    updatedState = updatePhaseDate(
+      updatedState,
+      "State Application",
+      "State Application Start Date",
+      now
+    );
 
     setSimulationState(updatedState);
   };
@@ -154,11 +159,16 @@ export const PhaseDatesSimulation: React.FC = () => {
     const now = new Date();
 
     let updatedState = setStatusForPhase(simulationState, "Concept", "Skipped");
-    updatedState = updatePhaseDate(updatedState, "Concept", "Completion Date", now);
+    updatedState = updatePhaseDate(updatedState, "Concept", "Concept Completion Date", now);
 
     // Business Rule: State Application starts when Concept is skipped
     updatedState = setStatusForPhase(updatedState, "State Application", "Started");
-    updatedState = updatePhaseDate(updatedState, "State Application", "Start Date", now);
+    updatedState = updatePhaseDate(
+      updatedState,
+      "State Application",
+      "State Application Start Date",
+      now
+    );
 
     setSimulationState(updatedState);
   };
@@ -173,14 +183,19 @@ export const PhaseDatesSimulation: React.FC = () => {
     const stateApplicationStatus = getStatusForPhase(simulationState, "State Application");
     if (stateApplicationStatus === "Not Started") {
       updatedState = setStatusForPhase(updatedState, "State Application", "Started");
-      updatedState = updatePhaseDate(updatedState, "State Application", "Start Date", now);
+      updatedState = updatePhaseDate(
+        updatedState,
+        "State Application",
+        "State Application Start Date",
+        now
+      );
     }
 
     // Business Rule: If Concept is still "Not Started" or "Started", mark it as completed
     const conceptStatus = getStatusForPhase(updatedState, "Concept");
     if (conceptStatus === "Not Started" || conceptStatus === "Started") {
       updatedState = setStatusForPhase(updatedState, "Concept", "Completed");
-      updatedState = updatePhaseDate(updatedState, "Concept", "Completion Date", now);
+      updatedState = updatePhaseDate(updatedState, "Concept", "Concept Completion Date", now);
     }
 
     // This represents any change (document upload, date update, etc.) on State Application
@@ -196,7 +211,7 @@ export const PhaseDatesSimulation: React.FC = () => {
     const completenessStatus = getStatusForPhase(updatedState, "Completeness");
     if (completenessStatus === "Not Started") {
       updatedState = setStatusForPhase(updatedState, "Completeness", "Started");
-      updatedState = updatePhaseDate(updatedState, "Completeness", "Start Date", now);
+      updatedState = updatePhaseDate(updatedState, "Completeness", "Completeness Start Date", now);
     }
 
     setSimulationState(updatedState);
@@ -207,7 +222,12 @@ export const PhaseDatesSimulation: React.FC = () => {
     const now = new Date();
 
     let updatedState = setStatusForPhase(simulationState, "State Application", "Completed");
-    updatedState = updatePhaseDate(updatedState, "State Application", "Completion Date", now);
+    updatedState = updatePhaseDate(
+      updatedState,
+      "State Application",
+      "State Application Completion Date",
+      now
+    );
 
     // Business Rule: If Concept was skipped, mark it completed now
     const conceptStatus = getStatusForPhase(updatedState, "Concept");
@@ -223,7 +243,12 @@ export const PhaseDatesSimulation: React.FC = () => {
     const now = new Date();
 
     let updatedState = setStatusForPhase(simulationState, "Completeness", "Completed");
-    updatedState = updatePhaseDate(updatedState, "Completeness", "Completion Date", now);
+    updatedState = updatePhaseDate(
+      updatedState,
+      "Completeness",
+      "Completeness Completion Date",
+      now
+    );
 
     setSimulationState(updatedState);
   };
@@ -237,7 +262,7 @@ export const PhaseDatesSimulation: React.FC = () => {
     const completenessStatus = getStatusForPhase(simulationState, "Completeness");
     if (completenessStatus === "Not Started") {
       updatedState = setStatusForPhase(updatedState, "Completeness", "Started");
-      updatedState = updatePhaseDate(updatedState, "Completeness", "Start Date", now);
+      updatedState = updatePhaseDate(updatedState, "Completeness", "Completeness Start Date", now);
     }
 
     // This represents any change (document upload, date update, etc.) on Completeness
@@ -308,14 +333,14 @@ export const PhaseDatesSimulation: React.FC = () => {
                   Start Date:{" "}
                   {getDateDisplay(
                     simulationState.find((p) => p.phaseName === "Concept")!,
-                    "Start Date"
+                    "Concept Start Date"
                   )}
                 </div>
                 <div className={STYLES.dateDisplay}>
                   Completion Date:{" "}
                   {getDateDisplay(
                     simulationState.find((p) => p.phaseName === "Concept")!,
-                    "Completion Date"
+                    "Concept Completion Date"
                   )}
                 </div>
               </div>
@@ -351,7 +376,7 @@ export const PhaseDatesSimulation: React.FC = () => {
                   Start Date:{" "}
                   {getDateDisplay(
                     simulationState.find((p) => p.phaseName === "State Application")!,
-                    "Start Date"
+                    "State Application Start Date"
                   )}
                 </div>
                 <div className={STYLES.dateDisplay}>
@@ -365,7 +390,7 @@ export const PhaseDatesSimulation: React.FC = () => {
                   Completion Date:{" "}
                   {getDateDisplay(
                     simulationState.find((p) => p.phaseName === "State Application")!,
-                    "Completion Date"
+                    "State Application Completion Date"
                   )}
                 </div>
               </div>
@@ -413,14 +438,14 @@ export const PhaseDatesSimulation: React.FC = () => {
                   Start Date:{" "}
                   {getDateDisplay(
                     simulationState.find((p) => p.phaseName === "Completeness")!,
-                    "Start Date"
+                    "Completeness Start Date"
                   )}
                 </div>
                 <div className={STYLES.dateDisplay}>
                   Completion Date:{" "}
                   {getDateDisplay(
                     simulationState.find((p) => p.phaseName === "Completeness")!,
-                    "Completion Date"
+                    "Completeness Completion Date"
                   )}
                 </div>
               </div>
