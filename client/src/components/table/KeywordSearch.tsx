@@ -7,6 +7,7 @@ export interface KeywordSearchProps<T> {
   label?: string;
   debounceMs?: number;
   storageKey?: string;
+  placeholder?: string;
 }
 
 export const arrIncludesAllInsensitive = <T,>(
@@ -61,6 +62,7 @@ export function KeywordSearch<T>({
   label = "Search:",
   debounceMs = 300,
   storageKey = "keyword-search",
+  placeholder = "Search",
 }: KeywordSearchProps<T>) {
   const debounceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -125,6 +127,7 @@ export function KeywordSearch<T>({
     }
 
     table.setGlobalFilter("");
+    table.setSorting([]);
   };
 
   React.useEffect(() => {
@@ -155,6 +158,7 @@ export function KeywordSearch<T>({
           value={queryString}
           onChange={(e) => onValueChange(e.target.value)}
           aria-label="Input keyword search query"
+          placeholder={placeholder}
         />
         {queryString && (
           <button
