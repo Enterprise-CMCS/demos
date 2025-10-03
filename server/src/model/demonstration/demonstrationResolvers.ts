@@ -1,7 +1,6 @@
 import { Demonstration } from "@prisma/client";
-
 import { prisma } from "../../prismaClient.js";
-import { PhaseName, BundleStatus, GrantLevel, Role } from "../../types.js";
+import { BundleType, PhaseName, BundleStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -10,6 +9,9 @@ const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
 const conceptPhaseName: PhaseName = "Concept";
 const newBundleStatusId: BundleStatus = "Pre-Submission";
+const demonstrationBundleType: BundleType = "Demonstration";
+const amendmentBundleType: BundleType = "Amendment";
+const extensionBundleType: BundleType = "Extension";
 
 export async function getDemonstration(parent: undefined, { id }: { id: string }) {
   return await prisma().demonstration.findUnique({
@@ -29,7 +31,7 @@ export async function createDemonstration(
     await prisma().$transaction(async (tx) => {
       const bundle = await tx.bundle.create({
         data: {
-          bundleTypeId: "Demonstration",
+          bundleTypeId: demonstrationBundleType,
         },
       });
 
@@ -145,7 +147,7 @@ export const demonstrationResolvers = {
       return await prisma().modification.findMany({
         where: {
           demonstrationId: parent.id,
-          bundleTypeId: "Amendment",
+          bundleTypeId: amendmentBundleType,
         },
       });
     },
@@ -154,7 +156,7 @@ export const demonstrationResolvers = {
       return await prisma().modification.findMany({
         where: {
           demonstrationId: parent.id,
-          bundleTypeId: "Extension",
+          bundleTypeId: extensionBundleType,
         },
       });
     },

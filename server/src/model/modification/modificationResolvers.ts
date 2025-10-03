@@ -11,10 +11,11 @@ import {
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
+type ModificationType = Exclude<BundleType, "Demonstration">;
 const conceptPhaseName: PhaseName = "Concept";
 const newBundleStatusId: BundleStatus = "Pre-Submission";
-
-type ModificationType = Exclude<BundleType, "Demonstration">;
+const amendmentBundleType: ModificationType = "Amendment";
+const extensionBundleType: ModificationType = "Extension";
 
 async function getModification(
   parent: undefined,
@@ -36,7 +37,7 @@ export async function getAmendment(
   context?: undefined,
   info?: undefined
 ) {
-  return getModification(parent, args, context, info, "Amendment");
+  return getModification(parent, args, context, info, amendmentBundleType);
 }
 export async function getExtension(
   parent: undefined,
@@ -44,7 +45,7 @@ export async function getExtension(
   context?: undefined,
   info?: undefined
 ) {
-  return getModification(parent, args, context, info, "Extension");
+  return getModification(parent, args, context, info, extensionBundleType);
 }
 
 async function getManyModifications(
@@ -61,10 +62,10 @@ async function getManyModifications(
   });
 }
 export async function getManyAmendments() {
-  return getManyModifications(undefined, undefined, undefined, undefined, "Amendment");
+  return getManyModifications(undefined, undefined, undefined, undefined, amendmentBundleType);
 }
 export async function getManyExtensions() {
-  return getManyModifications(undefined, undefined, undefined, undefined, "Extension");
+  return getManyModifications(undefined, undefined, undefined, undefined, extensionBundleType);
 }
 
 async function createModification(
@@ -100,7 +101,7 @@ export async function createAmendment(
   context?: undefined,
   info?: undefined
 ) {
-  return createModification(parent, args, context, info, "Amendment");
+  return createModification(parent, args, context, info, amendmentBundleType);
 }
 export async function createExtension(
   parent: undefined,
@@ -108,7 +109,7 @@ export async function createExtension(
   context?: undefined,
   info?: undefined
 ) {
-  return createModification(parent, args, context, info, "Extension");
+  return createModification(parent, args, context, info, extensionBundleType);
 }
 
 async function updateModification(
@@ -141,7 +142,7 @@ export async function updateAmendment(
   context?: undefined,
   info?: undefined
 ) {
-  return updateModification(parent, args, context, info, "Amendment");
+  return updateModification(parent, args, context, info, amendmentBundleType);
 }
 export async function updateExtension(
   parent: undefined,
@@ -149,7 +150,7 @@ export async function updateExtension(
   context?: undefined,
   info?: undefined
 ) {
-  return updateModification(parent, args, context, info, "Extension");
+  return updateModification(parent, args, context, info, extensionBundleType);
 }
 
 async function getParentDemonstration(parent: Modification) {
@@ -193,7 +194,7 @@ export const modificationResolvers = {
       return await prisma().modification.delete({
         where: {
           id: id,
-          bundleTypeId: "Amendment",
+          bundleTypeId: amendmentBundleType,
         },
       });
     },
@@ -204,7 +205,7 @@ export const modificationResolvers = {
       return await prisma().modification.delete({
         where: {
           id: id,
-          bundleTypeId: "Extension",
+          bundleTypeId: extensionBundleType,
         },
       });
     },

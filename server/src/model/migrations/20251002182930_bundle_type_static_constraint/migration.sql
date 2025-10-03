@@ -13,5 +13,3 @@ INSERT INTO modification_bundle_type_limit (id)
 VALUES
     ('Amendment'),
     ('Extension');
-
-

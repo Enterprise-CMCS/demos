@@ -8,6 +8,7 @@ import {
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
+  BundleType,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -319,7 +320,7 @@ async function seedDatabase() {
   // Every amendment and extension has an application
   const amendmentIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: "Amendment" },
+    where: { bundleTypeId: "Amendment" satisfies BundleType },
   });
   for (const amendmentId of amendmentIds) {
     const fakeName = faker.lorem.sentence(2);
@@ -337,7 +338,7 @@ async function seedDatabase() {
   }
   const extensionIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: "Extension" },
+    where: { bundleTypeId: "Extension" satisfies BundleType },
   });
   for (const extensionId of extensionIds) {
     const fakeName = faker.lorem.sentence(2);
