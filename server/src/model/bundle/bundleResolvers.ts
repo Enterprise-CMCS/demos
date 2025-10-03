@@ -1,4 +1,5 @@
 import { prisma } from "../../prismaClient";
+import { BundleType } from "../../types";
 import { getDemonstration } from "../demonstration/demonstrationResolvers.js";
 import { getAmendment, getExtension } from "../modification/modificationResolvers.js";
 import { Bundle } from "@prisma/client";
@@ -17,7 +18,7 @@ export async function getBundle(bundleId: string) {
     throw new Error(`Bundle with ID ${bundleId} not found`);
   }
 
-  switch (bundle.bundleTypeId) {
+  switch (bundle.bundleTypeId as BundleType) {
     case "Demonstration":
       return await getDemonstration(undefined, { id: bundleId });
     case "Amendment":
