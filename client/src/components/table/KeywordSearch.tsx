@@ -111,7 +111,7 @@ export function KeywordSearch<T>({
     }
 
     table.setGlobalFilter("");
-    table.setSorting([]);
+    table.setSorting(table.initialState.sorting ?? []);
   };
 
   React.useEffect(() => {
