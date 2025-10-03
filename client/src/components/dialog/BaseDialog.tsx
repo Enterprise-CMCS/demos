@@ -17,7 +17,7 @@ interface BaseDialogProps {
 }
 
 const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative max-h-[85vh] overflow-y-auto space-y-sm backdrop:bg-black/40`;
-const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font`;
+const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font cursor-pointer`;
 const TITLE = tw`text-[18px] font-bold mb-xs`;
 const HR = tw`border-border-rules my-sm`;
 const CONFIRMATION_DIALOG = tw`bg-surface-white border border-border-rules rounded p-2 w-[400px] shadow-md text-center backdrop:bg-black/40`;
@@ -107,7 +107,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
         {actions && (
           <>
             <hr className={HR} />
-            <div className="flex justify-end gap-sm">{actions}</div>
+            <div className="flex justify-end gap-[24px]">{actions}</div>
           </>
         )}
       </dialog>
@@ -119,7 +119,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
           onClick={handleConfirmDialogClick}
         >
           <p className="text-sm font-bold mb-sm text-text-font">Are you sure you want to cancel?</p>
-          <div className="flex justify-center gap-sm">
+          <div className="flex justify-center gap-[24px]">
             <SecondaryButton
               name="cancel-no"
               size="small"

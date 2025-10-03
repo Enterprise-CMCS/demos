@@ -1,11 +1,7 @@
 import React from "react";
-
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
-
-import {
-  AutoCompleteSelect,
-  Option,
-} from "./AutoCompleteSelect";
+import { AutoCompleteSelect } from "./AutoCompleteSelect";
+import { Option } from "./Select";
 
 export interface SelectUSAStatesProps {
   onStateChange: (abbr: string) => void;

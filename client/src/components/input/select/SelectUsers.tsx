@@ -1,7 +1,8 @@
 import React from "react";
 import { gql, useQuery } from "@apollo/client";
-import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
+import { AutoCompleteSelect } from "./AutoCompleteSelect";
 import { Person as ServerPerson, PersonType } from "demos-server";
+import { Option } from "./Select";
 
 export const GET_USER_SELECT_OPTIONS_QUERY = gql`
   query GetUserSelectOptions {
