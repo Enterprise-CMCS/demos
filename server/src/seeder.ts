@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
-import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
+import { TZDate } from "@date-fns/tz";
+import { BUNDLE_TYPE, SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
   CreateDemonstrationInput,
   CreateAmendmentInput,
@@ -23,6 +24,17 @@ import {
   updateAmendment,
   updateExtension,
 } from "./model/modification/modificationResolvers.js";
+
+function randomDate(yearsAhead: number, type: "start" | "end") {
+  const randomDate = faker.date.future({ years: yearsAhead });
+  const randomEasternDate = new TZDate(randomDate, "America/New_York");
+  if (type === "start") {
+    randomEasternDate.setHours(0, 0, 0, 0);
+  } else {
+    randomEasternDate.setHours(23, 59, 59, 999);
+  }
+  return randomEasternDate;
+}
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
@@ -207,7 +219,7 @@ async function seedDatabase() {
     const createInput: CreateDemonstrationInput = {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      cmcsDivision: sampleFromArray([...CMCS_DIVISION, undefined], 1)[0],
+      sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
       stateId: sampleFromArray(person.personStates, 1)[0].stateId,
       projectOfficerUserId: person.id,
@@ -218,8 +230,8 @@ async function seedDatabase() {
   await Promise.all(
     demonstrations.map((demonstration, index) => {
       const updatePayload: UpdateDemonstrationInput = {
-        effectiveDate: faker.date.future({ years: 1 }),
-        expirationDate: faker.date.future({ years: 2 }),
+        effectiveDate: randomDate(1, "start"),
+        expirationDate: randomDate(2, "end"),
       };
 
       /*
@@ -253,8 +265,8 @@ async function seedDatabase() {
   const amendments = await getManyAmendments();
   for (const amendment of amendments) {
     const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: faker.date.future({ years: 1 }),
-      expirationDate: faker.date.future({ years: 2 }),
+      effectiveDate: randomDate(1, "start"),
+      expirationDate: randomDate(2, "end"),
     };
     const updateInput = {
       id: amendment.id,
@@ -275,8 +287,8 @@ async function seedDatabase() {
   const extensions = await getManyExtensions();
   for (const extension of extensions) {
     const updatePayload: UpdateExtensionInput = {
-      effectiveDate: faker.date.future({ years: 1 }),
-      expirationDate: faker.date.future({ years: 2 }),
+      effectiveDate: randomDate(1, "start"),
+      expirationDate: randomDate(2, "end"),
     };
     const updateInput = {
       id: extension.id,
@@ -291,11 +303,11 @@ async function seedDatabase() {
   const stateApplicationPhaseName: PhaseName = "State Application";
   const nonePhaseName: PhaseName = "None";
   for (const demonstration of demonstrations) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
@@ -310,11 +322,11 @@ async function seedDatabase() {
     where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
   });
   for (const amendmentId of amendmentIds) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
@@ -328,11 +340,11 @@ async function seedDatabase() {
     where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
   });
   for (const extensionId of extensionIds) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
@@ -354,7 +366,7 @@ async function seedDatabase() {
     });
     await prisma().document.create({
       data: {
-        title: faker.lorem.sentence(2),
+        name: faker.lorem.sentence(2),
         description: faker.lorem.sentence(),
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,

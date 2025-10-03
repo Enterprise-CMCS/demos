@@ -16,7 +16,7 @@ export function DocumentColumns() {
 
   return [
     createSelectColumnDef(columnHelper),
-    columnHelper.accessor("title", {
+    columnHelper.accessor("name", {
       header: "Title",
       cell: highlightCell,
       enableColumnFilter: false,

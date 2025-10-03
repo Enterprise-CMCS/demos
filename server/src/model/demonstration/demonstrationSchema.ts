@@ -3,7 +3,7 @@ import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
 import {
-  CmcsDivision,
+  SdgDivision,
   SignatureLevel,
   PhaseName,
   BundlePhase,
@@ -16,9 +16,9 @@ export const demonstrationSchema = gql`
     id: ID!
     name: String!
     description: String!
-    effectiveDate: Date
-    expirationDate: Date
-    cmcsDivision: CmcsDivision
+    effectiveDate: DateTime
+    expirationDate: DateTime
+    sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: BundleStatus!
     state: State!
@@ -37,16 +37,16 @@ export const demonstrationSchema = gql`
     stateId: ID!
     projectOfficerUserId: String!
     description: String
-    cmcsDivision: CmcsDivision
+    sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
   }
 
   input UpdateDemonstrationInput {
     name: String
     description: String
-    effectiveDate: Date
-    expirationDate: Date
-    cmcsDivision: CmcsDivision
+    effectiveDate: DateTime
+    expirationDate: DateTime
+    sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: BundleStatus
     currentPhaseName: PhaseName
@@ -76,7 +76,7 @@ export interface Demonstration {
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
-  cmcsDivision?: CmcsDivision;
+  sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status: BundleStatus;
   state: State;
@@ -97,7 +97,7 @@ export interface CreateDemonstrationInput {
   projectOfficerUserId: string;
   stateId: string;
   description?: string;
-  cmcsDivision?: CmcsDivision;
+  sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
 }
 
@@ -106,7 +106,7 @@ export interface UpdateDemonstrationInput {
   description?: string;
   effectiveDate?: Date;
   expirationDate?: Date;
-  cmcsDivision?: CmcsDivision;
+  sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status?: BundleStatus;
   currentPhaseName?: PhaseName;

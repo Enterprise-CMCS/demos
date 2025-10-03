@@ -84,7 +84,7 @@ export class ApiStack extends Stack {
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       commonProps.scope,
       "rdsDatabaseSecret",
-      `demos-${commonProps.hostEnvironment}-rds-admin`
+      `demos-${commonProps.hostEnvironment}-rds-demos_server`
     );
 
     const authPath = path.join("..", "lambda_authorizer");

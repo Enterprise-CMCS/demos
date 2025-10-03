@@ -4,18 +4,18 @@ model Modification {
   demonstrationId String    @map("demonstration_id") @db.Uuid
   name            String
   description     String?
-  effectiveDate   DateTime? @map("effective_date") @db.Date
-  expirationDate  DateTime? @map("expiration_date") @db.Date
+  effectiveDate   DateTime? @map("effective_date") @db.Timestamptz()
+  expirationDate  DateTime? @map("expiration_date") @db.Timestamptz()
   statusId        String    @map("status_id")
   currentPhaseId  String    @map("current_phase_id")
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
-  bundle        Bundle                 @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
-  bundleType    ModificationBundleType @relation(fields: [bundleTypeId], references: [id])
-  demonstration Demonstration          @relation(fields: [demonstrationId], references: [id])
-  status        BundleStatus           @relation(fields: [statusId], references: [id])
-  currentPhase  Phase                  @relation(fields: [currentPhaseId], references: [id])
+  bundle        Bundle                      @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
+  bundleType    ModificationBundleTypeLimit @relation(fields: [bundleTypeId], references: [id])
+  demonstration Demonstration               @relation(fields: [demonstrationId], references: [id])
+  status        BundleStatus                @relation(fields: [statusId], references: [id])
+  currentPhase  Phase                       @relation(fields: [currentPhaseId], references: [id])
 
   @@id([id])
   @@map("modification")
