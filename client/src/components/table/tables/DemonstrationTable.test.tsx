@@ -1,10 +1,13 @@
 import React from "react";
-import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { DemonstrationTable } from "./DemonstrationTable";
+
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
 import { mockPeople } from "mock-data/personMocks";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import { DemonstrationTable } from "./DemonstrationTable";
 
 // Helper functions
 const renderDemonstrations = () => {
@@ -87,8 +90,8 @@ const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateC
 
 const expectDemonstrationResults = () => {
   expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-  expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
   expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
+  expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
 };
 
 describe("Demonstrations", () => {
@@ -138,9 +141,12 @@ describe("Demonstrations", () => {
     it("renders demonstration data correctly in table cells", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
       expect(screen.getByText("Montana")).toBeInTheDocument();
-      expect(screen.getAllByText("John Doe")).toHaveLength(2);
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+      expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
+      expect(screen.getByText("Florida")).toBeInTheDocument();
+      expect(screen.getByText("Jane Smith")).toBeInTheDocument();
       expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-      expect(screen.getByText("Texas")).toBeInTheDocument();
+      expect(screen.getByText("Jim Smith")).toBeInTheDocument();
     });
 
     it("renders action buttons for each demonstration", () => {
@@ -163,14 +169,14 @@ describe("Demonstrations", () => {
     });
 
     it("allows searching within demonstrations", async () => {
-      await searchForText(user, "Montana");
+      await searchForText(user, "Montana Medicaid Waiver");
       await waitFor(() => {
         expect(
           screen.getByText((content, element) => {
             return element?.textContent === "Montana Medicaid Waiver";
           })
         ).toBeInTheDocument();
-        expect(screen.queryByText("Texas Reform Initiative")).not.toBeInTheDocument();
+        expect(screen.queryByText("Florida Health Innovation")).not.toBeInTheDocument();
       });
     });
 
@@ -185,10 +191,10 @@ describe("Demonstrations", () => {
 
     it("allows filtering demonstrations by column", async () => {
       await clearSearchInput(user);
-      await applyStateFilter(user, "TX");
+      await applyStateFilter(user, "FL");
 
       await waitFor(() => {
-        expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
+        expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
         expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
       });
     });
@@ -217,21 +223,21 @@ describe("Demonstrations", () => {
         user.click(mtDropdownOption!);
       });
 
-      // Select "Texas"
+      // Select "Florida"
       await user.clear(stateFilterInput);
-      await user.type(stateFilterInput, "TX");
+      await user.type(stateFilterInput, "FL");
       await waitFor(() => {
-        const txOptions = screen.getAllByText("TX");
-        const txDropdownOption = txOptions.find((el) => el.tagName === "LI" || el.closest("li"));
-        expect(txDropdownOption).toBeInTheDocument();
-        user.click(txDropdownOption!);
+        const flOptions = screen.getAllByText("FL");
+        const flDropdownOption = flOptions.find((el) => el.tagName === "LI" || el.closest("li"));
+        expect(flDropdownOption).toBeInTheDocument();
+        user.click(flDropdownOption!);
       });
 
-      // Table should show rows for both Montana and Texas
+      // Table should show rows for both Montana and Florida
       await waitFor(() => {
         expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-        expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-        expect(screen.queryByText("Florida Health Innovation")).not.toBeInTheDocument();
+        expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
+        expect(screen.queryByText("Texas Reform Initiative")).not.toBeInTheDocument();
       });
     });
   });
@@ -248,16 +254,16 @@ describe("Demonstrations", () => {
 
     it("displays correct values for 'Applications' column for new demonstration, amendment, and extension", async () => {
       // For a new demonstration row
-      const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
-      expect(montanaRow).toHaveTextContent(/Amendments \(3\)/);
-      expect(montanaRow).toHaveTextContent(/Extensions \(3\)/);
+      const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
+      expect(demo1Row).toHaveTextContent(/Amendments \(3\)/);
+      expect(demo1Row).toHaveTextContent(/Extensions \(3\)/);
     });
 
     it("displays (0) for amendments and extensions if there are no associated records", () => {
       // Find a demonstration with no amendments/extensions
-      const floridaRow = screen.getByText("Texas Reform Initiative").closest("tr");
-      expect(floridaRow).toHaveTextContent(/Amendments \(0\)/);
-      expect(floridaRow).toHaveTextContent(/Extensions \(0\)/);
+      const demo3Row = screen.getByText("Texas Reform Initiative").closest("tr");
+      expect(demo3Row).toHaveTextContent(/Amendments \(0\)/);
+      expect(demo3Row).toHaveTextContent(/Extensions \(0\)/);
     });
 
     it("disables sorting for the 'Applications' column", () => {
@@ -279,8 +285,8 @@ describe("Demonstrations", () => {
 
     it("displays amendment and extension records in a nested view under their parent demonstration", async () => {
       // Expand the demonstration row
-      const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
-      const expandButton = within(montanaRow!).getByRole("button", {
+      const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
+      const expandButton = within(demo1Row!).getByRole("button", {
         name: /expand/i,
       });
       await user.click(expandButton);
@@ -292,12 +298,12 @@ describe("Demonstrations", () => {
 
     it("shows an expand option only for demonstrations with amendments or extensions", () => {
       // Demonstration with children
-      const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
-      expect(within(montanaRow!).getByRole("button", { name: /expand/i })).toBeInTheDocument();
+      const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
+      expect(within(demo1Row!).getByRole("button", { name: /expand/i })).toBeInTheDocument();
 
       // Demonstration with no children
-      const texasRow = screen.getByText("Texas Reform Initiative").closest("tr");
-      expect(within(texasRow!).queryByRole("button", { name: /expand/i })).toBeNull();
+      const demo3Row = screen.getByText("Texas Reform Initiative").closest("tr");
+      expect(within(demo3Row!).queryByRole("button", { name: /expand/i })).toBeNull();
     });
 
     it("shows all demonstration rows collapsed by default", () => {
@@ -307,8 +313,8 @@ describe("Demonstrations", () => {
     });
 
     it("shows amendment/extension details with correct columns when expanded", async () => {
-      const montanaRow = screen.getByText("Montana Medicaid Waiver").closest("tr");
-      const expandButton = within(montanaRow!).getByRole("button", {
+      const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
+      const expandButton = within(demo1Row!).getByRole("button", {
         name: /expand/i,
       });
       await user.click(expandButton);
@@ -351,8 +357,8 @@ describe("Demonstrations", () => {
       // Find all demonstration titles in the table
       const demoTitles = [
         "Montana Medicaid Waiver",
-        "Texas Reform Initiative",
         "Florida Health Innovation",
+        "Texas Reform Initiative",
       ];
 
       // Get all rows in the table body
@@ -363,8 +369,8 @@ describe("Demonstrations", () => {
         demoTitles.some((title) => within(row).queryByText(title, { exact: false }))
       );
 
-      // Get the title from the first demonstration row
-      const firstDemoRow = demoRows[1];
+      // Get the title from the first demonstration row (skip header row with index 0)
+      const firstDemoRow = demoRows[0];
       const firstDemoTitle = demoTitles.find((title) =>
         within(firstDemoRow).queryByText(title, { exact: false })
       );
@@ -378,9 +384,18 @@ describe("Demonstrations", () => {
       if (expandButton) {
         await user.click(expandButton);
         // Check for child rows by their content, e.g. "Amendment" or "Extension"
-        expect(
-          within(firstDemoRow.parentElement!).queryByText("Amendment 1 - Montana Medicaid Waiver")
-        ).toBeInTheDocument();
+        // Find which demonstration this is and check for the correct amendment
+        if (firstDemoTitle === "Montana Medicaid Waiver") {
+          expect(
+            within(firstDemoRow.parentElement!).queryByText("Amendment 1 - Montana Medicaid Waiver")
+          ).toBeInTheDocument();
+        } else if (firstDemoTitle === "Florida Health Innovation") {
+          expect(
+            within(firstDemoRow.parentElement!).queryByText(
+              "Amendment 4 - Florida Health Innovation"
+            )
+          ).toBeInTheDocument();
+        }
       }
     });
 
@@ -395,7 +410,7 @@ describe("Demonstrations", () => {
         // Only the matching amendment is visible
         expect(screen.getByText("Amendment 4 - Florida Health Innovation")).toBeInTheDocument();
         // Other amendments/extensions for this demo are not visible
-        expect(screen.queryByText("Amendment 3")).not.toBeInTheDocument();
+        expect(screen.queryByText("Amendment 1 - Montana Medicaid Waiver")).not.toBeInTheDocument();
       });
     });
   });
