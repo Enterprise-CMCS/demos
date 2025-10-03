@@ -31,7 +31,6 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
   data,
 }) => {
   const { showError } = useToast();
-  console.log("CreateAmendmentDialog");
   const [createAmendmentTrigger] = useMutation<{
     createAmendment: Pick<CreateAmendmentResponse, "success" | "message">;
   }>(CREATE_AMENDMENT_MUTATION);

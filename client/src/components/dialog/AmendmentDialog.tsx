@@ -18,7 +18,9 @@ export const AMENDMENT_DIALOG_QUERY = gql`
       effectiveDate
       expirationDate
       status
-      currentPhaseName
+      currentPhase {
+        id
+      }
       demonstration {
         id
         name
@@ -52,8 +54,6 @@ interface AmendmentQueryData {
   } | null;
 }
 
-// TODO: CHOP THIS UP TO EDIT.
-
 interface AmendmentDialogProps {
   amendmentId?: string | null;
   isOpen: boolean;
@@ -63,10 +63,8 @@ interface AmendmentDialogProps {
 
 const FORM_ID = "amendment-dialog-form";
 
-// Using this for the view mode.
-// We should break down to the CreateDemonstrationDialog pattern.
-// It should be noted that EDIT IS NOT something that we have gotten to yet.
-// This is just a YOLO from AI that may or may not work.
+// Using this for the view mode only right now!
+// TODO: CHOP THIS UP TO EDITAmendmentDialog.
 export const AmendmentDialog: React.FC<AmendmentDialogProps> = ({
   amendmentId,
   isOpen,

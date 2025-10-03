@@ -64,8 +64,9 @@ interface ExtensionQueryData {
   } | null;
 }
 
-// TODO: CHOP THIS UP TO EDIT.
 
+// Using this for the view mode only right now!
+// TODO: CHOP THIS UP TO EDITExtensionDialog.
 type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
   extensionId?: string | null;
   mode?: "add" | "view" | "edit";
@@ -343,6 +344,7 @@ export const ExtensionDialog: React.FC<Props> = ({
         type="submit"
         form={FORM_ID}
         disabled={isSaving || title.trim().length === 0}
+        onClick={() => {}}
       >
         {isSaving ? "Saving..." : "Save"}
       </Button>

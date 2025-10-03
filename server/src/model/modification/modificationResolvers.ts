@@ -1,7 +1,8 @@
+import type { Modification as PrismaModification } from "@prisma/client";
+
 import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleStatus, BundleType, PhaseName } from "../../types.js";
-// import type { Modification } from "../../types.js";
 
 import {
   CreateAmendmentInput,
@@ -10,8 +11,6 @@ import {
   UpdateAmendmentInput,
   CreateExtensionResponse,
   UpdateExtensionInput,
-  Amendment,
-  Extension
 } from "./modificationSchema.js";
 
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
@@ -29,7 +28,7 @@ async function getModification(
   info: undefined,
   bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
 ) {
-  return await prisma().modification.findUnique({
+  return await prisma().modification.findFirst({
     where: {
       id: id,
       bundleTypeId: bundleTypeId,
@@ -167,13 +166,15 @@ export async function updateExtension(
   return updateModification(parent, args, context, info, extensionBundleTypeId);
 }
 
-async function getParentDemonstration(parent: Amendment | Extension) {
+async function getParentDemonstration(parent: PrismaModification | null) {
+  if (!parent) return null;
   return await prisma().demonstration.findUnique({
-    where: { id: parent.demonstration.id },
+    where: { id: parent.demonstrationId },
   });
 }
 
-async function getDocuments(parent: Amendment | Extension) {
+async function getDocuments(parent: PrismaModification | null) {
+  if (!parent) return [];
   return await prisma().document.findMany({
     where: {
       bundleId: parent.id,
@@ -181,11 +182,11 @@ async function getDocuments(parent: Amendment | Extension) {
   });
 }
 
-async function getCurrentPhase(parent: Amendment | Extension) {
-  return parent.currentPhaseName;
+async function getCurrentPhase(parent: PrismaModification | null) {
+  return parent ? parent.currentPhaseId : null;
 }
 
-async function getPhases(parent: Amendment | Extension) {
+async function getPhases(parent: PrismaModification) {
   return await prisma().bundlePhase.findMany({
     where: {
       bundleId: parent.id,

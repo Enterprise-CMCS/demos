@@ -30,10 +30,9 @@ export const CreateExtensionDialog: React.FC<Props> = ({
   data,
 }) => {
   const { showError } = useToast();
-
   const [createExtensionTrigger] = useMutation<{
-    createExtension: Pick<CreateExtensionResponse, "success" | "message">}
-    >(CREATE_EXTENSION_MUTATION);
+    createExtension: Pick<CreateExtensionResponse, "success" | "message">;
+  }>(CREATE_EXTENSION_MUTATION);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     try {
