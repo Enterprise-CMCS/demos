@@ -3,7 +3,7 @@ import { SetBundleDateInput } from "../../types.js";
 import { getBundle } from "../bundle/bundleResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
-async function setBundleDate(_: undefined, { input }: { input: SetBundleDateInput }) {
+export async function setBundleDate(_: undefined, { input }: { input: SetBundleDateInput }) {
   try {
     await prisma().bundleDate.upsert({
       where: {
