@@ -8,8 +8,14 @@ const options: Option[] = SDG_DIVISIONS.map((division) => ({
   label: division,
 }));
 
-export const SelectSdgDivision = ({ onSelect }: { onSelect: (value: SdgDivision) => void }) => {
-  const [sdgDivision, setSdgDivision] = React.useState<SdgDivision | undefined>();
+export const SelectSdgDivision = ({
+  onSelect,
+  initialValue,
+}: {
+  onSelect: (value: SdgDivision) => void;
+  initialValue?: SdgDivision;
+}) => {
+  const [sdgDivision, setSdgDivision] = React.useState<SdgDivision | undefined>(initialValue);
   return (
     <Select
       value={sdgDivision}

@@ -1,12 +1,12 @@
 import React from "react";
 
+import { mockAmendments } from "mock-data/amendmentMocks";
+import { mockExtensions } from "mock-data/extensionMocks";
 import { describe, expect, it } from "vitest";
 
 import { fireEvent, render, screen, within } from "@testing-library/react";
 
 import { ModificationTable } from "./ModificationTable";
-import { mockExtensions } from "mock-data/extensionMocks";
-import { mockAmendments } from "mock-data/amendmentMocks";
 
 describe("ExtensionTable", () => {
   beforeEach(() => {
