@@ -11,11 +11,11 @@ model Modification {
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
-  bundle        Bundle                 @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
-  bundleType    ModificationBundleType @relation(fields: [bundleTypeId], references: [id])
-  demonstration Demonstration          @relation(fields: [demonstrationId], references: [id])
-  status        BundleStatus           @relation(fields: [statusId], references: [id])
-  currentPhase  Phase                  @relation(fields: [currentPhaseId], references: [id])
+  bundle        Bundle                      @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
+  bundleType    ModificationBundleTypeLimit @relation(fields: [bundleTypeId], references: [id])
+  demonstration Demonstration               @relation(fields: [demonstrationId], references: [id])
+  status        BundleStatus                @relation(fields: [statusId], references: [id])
+  currentPhase  Phase                       @relation(fields: [currentPhaseId], references: [id])
 
   @@id([id])
   @@map("modification")
