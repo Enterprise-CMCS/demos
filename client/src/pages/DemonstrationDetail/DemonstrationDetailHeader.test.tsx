@@ -24,6 +24,10 @@ describe("Demonstration Detail Header", () => {
       <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstration={testDemo} />
     );
 
+    // Check back button navigation
+    const backButton = screen.getByTestId("Back to demonstrations");
+    expect(backButton).toBeInTheDocument();
+
     // Check breadcrumb navigation
     expect(screen.getByRole("link", { name: /demonstration list/i })).toBeInTheDocument();
 
