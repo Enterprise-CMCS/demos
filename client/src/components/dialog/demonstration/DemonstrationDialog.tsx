@@ -7,6 +7,7 @@ import { SelectSignatureLevel } from "components/input/select/SelectSignatureLev
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
+import { Textarea } from "components/input";
 import { Demonstration } from "demos-server";
 import { useDateValidation } from "hooks/useDateValidation";
 import { tw } from "tags/tw";
@@ -27,15 +28,11 @@ const DemonstrationDescriptionTextArea: React.FC<{
 }> = ({ description, setDescription }) => {
   return (
     <>
-      <label className={LABEL_CLASSES} htmlFor="description">
-        Demonstration Description
-      </label>
-      <textarea
-        data-testid="textarea-description"
-        id="description"
+      <Textarea
+        name="description"
+        label="Demonstration Description"
         placeholder="Enter description"
-        className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
-        value={description}
+        initialValue={description ?? ""}
         onChange={(e) => setDescription(e.target.value)}
       />
     </>
@@ -184,17 +181,15 @@ export const DemonstrationDialog: React.FC<{
         </>
       }
     >
-      <form id="demonstration-form" className="space-y-4" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-3 gap-5">
-          <div>
-            <SelectUSAStates
-              label="State/Territory"
-              currentState={activeDemonstration.stateId}
-              value={activeDemonstration.stateId}
-              isRequired
-              onStateChange={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
-            />
-          </div>
+      <form id="demonstration-form" className="flex flex-col gap-[24px]" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-3 gap-[24px]">
+          <SelectUSAStates
+            label="State/Territory"
+            currentState={activeDemonstration.stateId}
+            value={activeDemonstration.stateId}
+            isRequired
+            onStateChange={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
+          />
           <div className="col-span-2">
             <TextInput
               name="title"
