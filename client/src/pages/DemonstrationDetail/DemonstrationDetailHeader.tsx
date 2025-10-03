@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from "react";
 
 import { CircleButton, SecondaryButton } from "components/button";
+import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, DemonstrationRoleAssignment, Person, State } from "demos-server";
+import { safeDateFormat } from "util/formatDate";
+
 import { ApolloError } from "@apollo/client";
-import { formatDate } from "util/formatDate";
-import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
@@ -83,11 +84,11 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     { label: "Status", value: demonstration.status },
     {
       label: "Effective",
-      value: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----",
+      value: safeDateFormat(demonstration.effectiveDate),
     },
     {
       label: "Expiration",
-      value: demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "--/--/----",
+      value: safeDateFormat(demonstration.expirationDate),
     },
   ];
 

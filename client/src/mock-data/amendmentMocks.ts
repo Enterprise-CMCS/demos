@@ -1,5 +1,5 @@
-import { Amendment } from "demos-server";
 import type { BundleStatus } from "demos-server";
+import { Amendment } from "demos-server";
 
 export type MockAmendment = Pick<Amendment, "id" | "name" | "effectiveDate"> & {
   status: BundleStatus;
@@ -20,7 +20,7 @@ export const mockAmendments = [
   },
   {
     id: "3",
-    name: "Amendment 3 - Florida Health Innovation",
+    name: "Amendment 3 - Montana Medicaid Waiver",
     effectiveDate: new Date(2025, 2, 1),
     status: "Approved",
   },
