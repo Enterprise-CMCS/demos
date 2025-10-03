@@ -6,8 +6,8 @@ model BundleType {
   description String
 
   bundles                  Bundle[]
-  demonstrationBundleTypes DemonstrationBundleType[]
-  modificationBundleTypes  ModificationBundleType[]
+  demonstrationBundleTypes DemonstrationBundleTypeLimit[]
+  modificationBundleTypes  ModificationBundleTypeLimit[]
 
   @@map("bundle_type")
 }
