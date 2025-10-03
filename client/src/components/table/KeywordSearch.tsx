@@ -98,29 +98,13 @@ export function KeywordSearch<T>({
     [table, debounceMs]
   );
 
-  const updateLocalStorage = (val: string) => {
-    if (typeof window === "undefined") return;
-
-    try {
-      if (val) {
-        localStorage.setItem(storageKey, val);
-      } else {
-        localStorage.removeItem(storageKey);
-      }
-    } catch (error) {
-      console.warn("Failed to update localStorage:", error);
-    }
-  };
-
   const onValueChange = (val: string) => {
     setQueryString(val);
-    updateLocalStorage(val);
     debouncedSearch(val);
   };
 
   const clearSearch = () => {
     setQueryString("");
-    updateLocalStorage("");
 
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
