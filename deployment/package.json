@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.886.0",
-    "@aws-sdk/client-ec2": "^3.880.0",
+    "@aws-sdk/client-ec2": "^3.886.0",
     "aws-cdk": "^2.1029.0",
     "aws-cdk-lib": "^2.214.0",
     "cdk-nag": "^2.37.23",
