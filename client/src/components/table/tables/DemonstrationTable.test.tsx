@@ -137,10 +137,10 @@ describe("Demonstrations", () => {
 
     it("renders demonstration data correctly in table cells", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-      expect(screen.getByText("Montana")).toBeInTheDocument();
+      expect(screen.getByText("MT")).toBeInTheDocument();
       expect(screen.getAllByText("John Doe")).toHaveLength(2);
       expect(screen.getByText("Texas Reform Initiative")).toBeInTheDocument();
-      expect(screen.getByText("Texas")).toBeInTheDocument();
+      expect(screen.getByText("TX")).toBeInTheDocument();
     });
 
     it("renders action buttons for each demonstration", () => {
