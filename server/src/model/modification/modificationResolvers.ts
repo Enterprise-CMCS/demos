@@ -1,6 +1,5 @@
 import { Modification } from "@prisma/client";
 
-import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleStatus, BundleType, PhaseName } from "../../types.js";
 import {
@@ -12,8 +11,7 @@ import {
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
-const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
-const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
+type ModificationType = Exclude<BundleType, "Demonstration">;
 const conceptPhaseName: PhaseName = "Concept";
 const newBundleStatusId: BundleStatus = "Pre-Submission";
 
@@ -22,7 +20,7 @@ async function getModification(
   { id }: { id: string },
   context: undefined,
   info: undefined,
-  bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
+  bundleTypeId: ModificationType
 ) {
   return await prisma().modification.findUnique({
     where: {
@@ -37,7 +35,7 @@ export async function getAmendment(
   context?: undefined,
   info?: undefined
 ) {
-  return getModification(parent, args, context, info, amendmentBundleTypeId);
+  return getModification(parent, args, context, info, "Amendment");
 }
 export async function getExtension(
   parent: undefined,
@@ -45,7 +43,7 @@ export async function getExtension(
   context?: undefined,
   info?: undefined
 ) {
-  return getModification(parent, args, context, info, extensionBundleTypeId);
+  return getModification(parent, args, context, info, "Extension");
 }
 
 async function getManyModifications(
@@ -53,7 +51,7 @@ async function getManyModifications(
   args: undefined,
   context: undefined,
   info: undefined,
-  bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
+  bundleTypeId: ModificationType
 ) {
   return await prisma().modification.findMany({
     where: {
@@ -62,10 +60,10 @@ async function getManyModifications(
   });
 }
 export async function getManyAmendments() {
-  return getManyModifications(undefined, undefined, undefined, undefined, amendmentBundleTypeId);
+  return getManyModifications(undefined, undefined, undefined, undefined, "Amendment");
 }
 export async function getManyExtensions() {
-  return getManyModifications(undefined, undefined, undefined, undefined, extensionBundleTypeId);
+  return getManyModifications(undefined, undefined, undefined, undefined, "Extension");
 }
 
 async function createModification(
@@ -73,7 +71,7 @@ async function createModification(
   { input }: { input: CreateAmendmentInput | CreateExtensionInput },
   context: undefined,
   info: undefined,
-  bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
+  bundleTypeId: ModificationType
 ) {
   return await prisma().$transaction(async (tx) => {
     const bundle = await tx.bundle.create({
@@ -101,7 +99,7 @@ export async function createAmendment(
   context?: undefined,
   info?: undefined
 ) {
-  return createModification(parent, args, context, info, amendmentBundleTypeId);
+  return createModification(parent, args, context, info, "Amendment");
 }
 export async function createExtension(
   parent: undefined,
@@ -109,7 +107,7 @@ export async function createExtension(
   context?: undefined,
   info?: undefined
 ) {
-  return createModification(parent, args, context, info, extensionBundleTypeId);
+  return createModification(parent, args, context, info, "Extension");
 }
 
 async function updateModification(
@@ -117,7 +115,7 @@ async function updateModification(
   { id, input }: { id: string; input: UpdateAmendmentInput | UpdateExtensionInput },
   context: undefined,
   info: undefined,
-  bundleTypeId: typeof amendmentBundleTypeId | typeof extensionBundleTypeId
+  bundleTypeId: ModificationType
 ) {
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
   return await prisma().modification.update({
@@ -142,7 +140,7 @@ export async function updateAmendment(
   context?: undefined,
   info?: undefined
 ) {
-  return updateModification(parent, args, context, info, amendmentBundleTypeId);
+  return updateModification(parent, args, context, info, "Amendment");
 }
 export async function updateExtension(
   parent: undefined,
@@ -150,7 +148,7 @@ export async function updateExtension(
   context?: undefined,
   info?: undefined
 ) {
-  return updateModification(parent, args, context, info, extensionBundleTypeId);
+  return updateModification(parent, args, context, info, "Extension");
 }
 
 async function getParentDemonstration(parent: Modification) {
@@ -194,7 +192,7 @@ export const modificationResolvers = {
       return await prisma().modification.delete({
         where: {
           id: id,
-          bundleTypeId: amendmentBundleTypeId,
+          bundleTypeId: "Amendment" satisfies BundleType,
         },
       });
     },
@@ -205,7 +203,7 @@ export const modificationResolvers = {
       return await prisma().modification.delete({
         where: {
           id: id,
-          bundleTypeId: extensionBundleTypeId,
+          bundleTypeId: "Extension" satisfies BundleType,
         },
       });
     },

@@ -12,7 +12,6 @@ export const documentSchema = gql`
     owner: User!
     documentType: DocumentType!
     bundle: Bundle!
-    bundleType: String!
     phaseName: PhaseName!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -46,7 +45,7 @@ export const documentSchema = gql`
   }
 
   type Query {
-    documents(bundleTypeId: String): [Document!]!
+    documents: [Document!]!
     document(id: ID!): Document
   }
 `;
@@ -59,7 +58,6 @@ export interface Document {
   owner: User;
   documentType: DocumentType;
   bundle: Bundle;
-  bundleType: string;
   phaseName: PhaseName;
   createdAt: Date;
   updatedAt: Date;

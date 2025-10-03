@@ -1,6 +1,4 @@
 import { Demonstration } from "@prisma/client";
-
-import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { BundleType, PhaseName, BundleStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
@@ -9,11 +7,11 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
-const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
-const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
-const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
 const conceptPhaseName: PhaseName = "Concept";
 const newBundleStatusId: BundleStatus = "Pre-Submission";
+const demonstrationBundleType: BundleType = "Demonstration";
+const amendmentBundleType: BundleType = "Amendment";
+const extensionBundleType: BundleType = "Extension";
 
 export async function getDemonstration(parent: undefined, { id }: { id: string }) {
   return await prisma().demonstration.findUnique({
@@ -33,7 +31,7 @@ export async function createDemonstration(
     await prisma().$transaction(async (tx) => {
       const bundle = await tx.bundle.create({
         data: {
-          bundleTypeId: demonstrationBundleTypeId,
+          bundleTypeId: demonstrationBundleType,
         },
       });
 
@@ -149,7 +147,7 @@ export const demonstrationResolvers = {
       return await prisma().modification.findMany({
         where: {
           demonstrationId: parent.id,
-          bundleTypeId: amendmentBundleTypeId,
+          bundleTypeId: amendmentBundleType,
         },
       });
     },
@@ -158,7 +156,7 @@ export const demonstrationResolvers = {
       return await prisma().modification.findMany({
         where: {
           demonstrationId: parent.id,
-          bundleTypeId: extensionBundleTypeId,
+          bundleTypeId: extensionBundleType,
         },
       });
     },
