@@ -87,13 +87,13 @@ export class ApiStack extends Stack {
       `demos-${commonProps.hostEnvironment}-rds-demos_server`
     );
 
-    const authPath = path.join("..", "lambda_authorizer");
+    const authPath = path.join("..", "lambdas", "authorizer");
     const rel = path.resolve(authPath);
 
     const authorizerLambda = lambda.create(
       {
         ...commonProps,
-        entry: path.join(rel, "index.mjs"),
+        entry: path.join(rel, "index.ts"),
         handler: "index.handler",
         asCode: false,
         environment: {

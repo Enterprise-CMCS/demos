@@ -73,6 +73,11 @@ pipeline {
             build(job: "CDK/$BRANCH_NAME", propagate: true, wait: true)
           }
         }
+        stage('Test Lambdas') {
+          steps {
+            build(job: "Lambdas/$BRANCH_NAME", propagate: true, wait: true)
+          }
+        }
       }
     }
 

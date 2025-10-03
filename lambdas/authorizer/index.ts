@@ -1,48 +1,57 @@
-import jwt from "jsonwebtoken";
+import { APIGatewayTokenAuthorizerEvent } from "aws-lambda";
+
+import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwkClient from "jwks-rsa";
 
 const client = jwkClient({
   jwksUri: process.env.JWKS_URI,
 });
 
-function getKey(header, callback) {
+/* v8 ignore start - ignoring this function since its just a wrapper*/
+function getKey(header: JwtHeader, callback: SigningKeyCallback) {
   client.getSigningKey(header.kid, function (err, key) {
     if (err || !key) return callback(err || new Error("Signing key not found"));
-    var signingKey = key.getPublicKey();
+    const signingKey = key.getPublicKey();
     callback(null, signingKey);
   });
 }
+/* v8 ignore stop */
 
-export const handler = async (event) => {
+export const handler = async (event: APIGatewayTokenAuthorizerEvent) => {
   const token = event.authorizationToken.split(" ")[1];
   console.log("starting validation");
 
   if (!token) {
-    console.log("no token");
+    console.error("no token");
     throw new Error("Unauthorized");
   }
 
   console.log("token found");
 
-  let decoded;
+  let decoded: jwt.JwtPayload;
   try {
     decoded = await verifyToken(token);
-  } catch (decoded) {
-    const sub = decoded?.sub || "unknown";
-    console.log(`user sub [${sub}] rejected with invalid token`);
+  } catch (err) {
+    console.error(`user sub [unknown] rejected with invalid token: ${err}`);
     throw new Error("Unauthorized");
   }
-  const roles = decoded["custom:roles"];
+
+  if (!decoded.sub) {
+    console.error("user sub is missing");
+    throw new Error("Unauthorized");
+  }
+
+  const roles = decoded["custom:roles"] as string | undefined;
 
   if (!roles) {
-    console.log(`user sub [${decoded.sub}] rejected with no roles`);
+    console.error(`user sub [${decoded.sub}] rejected with no roles`);
     throw new Error("Unauthorized");
   }
 
   const validRoles = ["demos-admin", "demos-cms-user", "demos-state-user"];
 
   if (!validRoles.some((role) => roles.includes(role))) {
-    console.log(`user sub [${decoded.sub}] rejected with invalid roles [${roles}]`);
+    console.error(`user sub [${decoded.sub}] rejected with invalid roles [${roles}]`);
     throw new Error("Unauthorized");
   }
 
@@ -56,20 +65,33 @@ export const handler = async (event) => {
   });
 };
 
-const verifyToken = (token) => {
+const verifyToken = (token: string): Promise<jwt.JwtPayload> => {
   return new Promise((resolve, reject) => {
     console.log("verifying...");
     jwt.verify(token, getKey, {}, (err, decoded) => {
       if (err) {
-        console.log("validation error:", err);
-        return reject(decoded);
+        console.error("validation error:", err);
+        return reject(err);
+      }
+
+      if (!decoded || typeof decoded == "string") {
+        console.error("invalid decoded value");
+        return reject(new Error("invalid decoded value"));
       }
       resolve(decoded);
     });
   });
 };
 
-function generatePolicy(principalId, effect, resource, context) {
+export interface PassedContext {
+  sub: string;
+  email: string;
+  given_name: string;
+  family_name: string;
+  role: string;
+}
+
+function generatePolicy(principalId: string, effect: "Allow" | "Deny", resource: string, context: PassedContext) {
   const policy = {
     principalId,
     policyDocument: {

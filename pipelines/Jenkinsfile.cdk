@@ -14,8 +14,6 @@ pipeline {
     stage('CDK - Snyk') {
       steps {
         snykScan('deployment')
-        snykScan('lambda_authorizer')
-        snykScan('lambdas/dbRoleManagement')
       }
     }
 
