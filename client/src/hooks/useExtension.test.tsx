@@ -5,17 +5,13 @@ import { CreateExtensionInput } from "demos-server";
 import { MockedProvider } from "@apollo/client/testing";
 import { renderHook } from "@testing-library/react";
 
-import { ADD_EXTENSION_QUERY } from "../queries/extensionQueries";
+import { CREATE_EXTENSION_MUTATION } from "../queries/extensionQueries";
 import { useExtension } from "./useExtension";
 
 const mockExtensionInput = {
   demonstrationId: "test-demo-id",
   name: "Test Extension",
   description: "Test extension description",
-  effectiveDate: new Date(2025, 0, 1),
-  expirationDate: new Date(2025, 11, 1),
-  status: "Pre-Submission",
-  projectOfficerUserId: "test-user-id",
 };
 
 const mockExtensionResponse = {
@@ -29,23 +25,19 @@ const mockExtensionResponse = {
     name: "Test Demonstration",
   },
   status: "Pre-Submission",
-  projectOfficer: {
-    id: "test-user-id",
-    fullName: "Test User",
-  },
 };
 
 const mocks = [
   {
     request: {
-      query: ADD_EXTENSION_QUERY,
+      query: CREATE_EXTENSION_MUTATION,
       variables: {
         input: mockExtensionInput,
       },
     },
     result: {
       data: {
-        addExtension: mockExtensionResponse,
+        createExtension: mockExtensionResponse,
       },
     },
   },
@@ -62,20 +54,20 @@ const renderUseExtensionHook = () => {
 };
 
 describe("useExtension", () => {
-  describe("addExtension", () => {
+  describe("createExtension", () => {
     it("should create extension successfully", async () => {
       const { result } = renderUseExtensionHook();
 
-      expect(result.current.addExtension.loading).toBe(false);
-      expect(result.current.addExtension.data).toBeUndefined();
+      expect(result.current.createExtension.loading).toBe(false);
+      expect(result.current.createExtension.data).toBeUndefined();
 
       // Use type assertion to match the actual usage pattern
-      const mutationResult = await result.current.addExtension.trigger(
+      const mutationResult = await result.current.createExtension.trigger(
         mockExtensionInput as unknown as CreateExtensionInput
       );
 
       // Check the mutation result directly
-      expect(mutationResult.data?.addExtension).toEqual(mockExtensionResponse);
+      expect(mutationResult.data?.createExtension).toEqual(mockExtensionResponse);
     });
   });
 });
