@@ -76,7 +76,6 @@ describe("CreateExtensionDialog", () => {
         <CreateExtensionDialog
           isOpen
           onClose={onClose}
-          mode="add"
           demonstrationId="demo-1"
           data={{
             title: "My Extension",

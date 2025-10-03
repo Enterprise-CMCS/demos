@@ -4,10 +4,11 @@ import { gql, useMutation } from "@apollo/client";
 import { CreateExtensionInput, CreateExtensionResponse } from "demos-server";
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
-type Props = Pick<BaseModificationDialogProps,
-"isOpen" | "onClose" | "mode" | "demonstrationId" | "data">
-& {
-  extensionId?: string;
+type Props = Pick<
+  BaseModificationDialogProps,
+  "isOpen" | "onClose" | "demonstrationId" | "data"
+> & {
+  extensionId?: string; // not used for create; kept for parity/future
 };
 
 const ERROR_MESSAGE = "Failed to create extension. Please try again.";
@@ -21,28 +22,24 @@ export const CREATE_EXTENSION_MUTATION = gql`
   }
 `;
 
-
 export const CreateExtensionDialog: React.FC<Props> = ({
   isOpen = true,
   onClose,
-  mode,
   demonstrationId,
   data,
 }) => {
   const { showError } = useToast();
+
   const [createExtensionTrigger] = useMutation<{
     createExtension: Pick<CreateExtensionResponse, "success" | "message">;
   }>(CREATE_EXTENSION_MUTATION);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     try {
-      if (mode !== "add") {
-        throw new Error(`CreateExtensionDialog expects mode="add", received "${mode}"`);
-      }
-
+      // mode is implicitly "add"—no branching
       const { name, description } = formData as {
         name?: string;
-        description?: string | null
+        description?: string | null;
       };
 
       if (!demonstrationId || !name) {
@@ -55,18 +52,16 @@ export const CreateExtensionDialog: React.FC<Props> = ({
         description: (description?.length ?? 0) === 0 ? null : description ?? null,
       };
 
-      const result = await createExtensionTrigger({
-        variables: { input },
-      });
-
-      const success = result.data?.createExtension?.success ?? false;
+      const { data } = await createExtensionTrigger({ variables: { input } });
+      const success = data?.createExtension?.success ?? false;
 
       if (!success) {
-        console.error(result.data?.createExtension?.message);
+        console.error(data?.createExtension?.message);
         showError("Create extension failed — check the console for details.");
-      } else {
-        onClose();
+        return;
       }
+
+      onClose();
     } catch (error) {
       console.error(error);
       showError(ERROR_MESSAGE);

@@ -1,15 +1,14 @@
 import React from "react";
-import { gql } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
-import { useMutation } from "@apollo/client";
 import { CreateAmendmentInput, CreateAmendmentResponse } from "demos-server";
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 
 type Props = Pick<
   BaseModificationDialogProps,
-  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
+  "isOpen" | "onClose" | "demonstrationId" | "data"
 > & {
-  amendmentId?: string;
+  amendmentId?: string; // not used for create; kept for parity/forward-compat
 };
 
 const ERROR_MESSAGE = "Failed to create amendment. Please try again.";
@@ -26,21 +25,18 @@ export const CREATE_AMENDMENT_MUTATION = gql`
 export const CreateAmendmentDialog: React.FC<Props> = ({
   isOpen = true,
   onClose,
-  mode,
   demonstrationId,
   data,
 }) => {
   const { showError } = useToast();
+
   const [createAmendmentTrigger] = useMutation<{
     createAmendment: Pick<CreateAmendmentResponse, "success" | "message">;
   }>(CREATE_AMENDMENT_MUTATION);
 
   const onSubmit = async (formData: Record<string, unknown>) => {
     try {
-      if (mode !== "add") {
-        throw new Error(`CreateAmendmentDialog expects mode="add", received "${mode}"`);
-      }
-
+      // mode is implicitly "add"—no branching
       const { name, description } = formData as {
         name?: string;
         description?: string | null;
@@ -56,10 +52,7 @@ export const CreateAmendmentDialog: React.FC<Props> = ({
         description: (description?.length ?? 0) === 0 ? null : description ?? null,
       };
 
-      const result = await createAmendmentTrigger({
-        variables: { input },
-      });
-
+      const result = await createAmendmentTrigger({ variables: { input } });
       const success = result.data?.createAmendment?.success ?? false;
 
       onClose();

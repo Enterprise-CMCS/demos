@@ -119,7 +119,7 @@ export const AmendmentDialog: React.FC<AmendmentDialogProps> = ({
 
     const input: UpdateAmendmentInput = {
       name: title,
-      description: description.trim().length === 0 ? null : description,
+      description: description.trim().length === 0 ? undefined : description,
       effectiveDate: effectiveDate ? new Date(effectiveDate) : undefined,
       expirationDate: expirationDate ? new Date(expirationDate) : undefined,
     };

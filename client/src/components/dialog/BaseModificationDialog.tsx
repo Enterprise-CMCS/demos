@@ -68,9 +68,11 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
 
   const capitalizedEntityType = entityType.charAt(0).toUpperCase() + entityType.slice(1);
 
+  // Right now we only have add and view modes working
+  const dialogFormMode: "add" | "edit" = mode === "view" ? "edit" : mode;
   const { formStatus, showWarning, showCancelConfirm, setShowCancelConfirm, handleSubmit } =
     useDialogForm({
-      mode,
+      mode: dialogFormMode,
       onClose,
       validateForm: () => Boolean(demonstration && title && state && projectOfficer),
       getFormData: () =>

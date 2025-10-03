@@ -41,11 +41,11 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
   <>
     {/* Entity Creation Modals */}
     {entityCreationModal === "amendment" && (
-      <CreateAmendmentDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
+      <CreateAmendmentDialog demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
     )}
 
     {entityCreationModal === "extension" && (
-      <CreateExtensionDialog mode="add" demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
+      <CreateExtensionDialog demonstrationId={demonstration.id} onClose={onCloseEntityModal} />
     )}
 
     {entityCreationModal === "document" && (

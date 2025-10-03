@@ -196,14 +196,12 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
       </div>
       {modalType === "amendment" && (
         <CreateAmendmentDialog
-          mode="add"
           onClose={() => setModalType(null)}
           demonstrationId={demonstration.id}
         />
       )}
       {modalType === "extension" && (
         <CreateExtensionDialog
-          mode="add"
           onClose={() => setModalType(null)}
           demonstrationId={demonstration.id}
         />

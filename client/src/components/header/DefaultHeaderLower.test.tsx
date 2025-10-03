@@ -164,7 +164,7 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
-    expect(screen.getByText("CreateAmendmentDialog (add)")).toBeInTheDocument();
+    expect(screen.getByText("CreateAmendmentDialog")).toBeInTheDocument();
   });
 
   it("opens CreateExtensionDialog for extension", () => {
@@ -178,6 +178,6 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
-    expect(screen.getByText("CreateExtensionDialog (add)")).toBeInTheDocument();
+    expect(screen.getByText("CreateExtensionDialog")).toBeInTheDocument();
   });
 });

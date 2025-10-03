@@ -110,10 +110,10 @@ export const DefaultHeaderLower: React.FC = () => {
       )}
 
       {modalType === "amendment" && (
-        <CreateAmendmentDialog mode="add" onClose={() => setModalType(null)} />
+        <CreateAmendmentDialog onClose={() => setModalType(null)} />
       )}
       {modalType === "extension" && (
-        <CreateExtensionDialog mode="add" onClose={() => setModalType(null)} />
+        <CreateExtensionDialog onClose={() => setModalType(null)} />
       )}
     </div>
   );

@@ -76,7 +76,6 @@ describe("CreateAmendmentDialog", () => {
         <CreateAmendmentDialog
           isOpen
           onClose={onClose}
-          mode="add"
           demonstrationId="demo-1"
           data={{
             title: "My Amendment",
