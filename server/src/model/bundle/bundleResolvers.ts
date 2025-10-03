@@ -2,8 +2,6 @@ import { prisma } from "../../prismaClient";
 import { getDemonstration } from "../demonstration/demonstrationResolvers.js";
 import { getAmendment, getExtension } from "../modification/modificationResolvers.js";
 import { Bundle } from "@prisma/client";
-import { BUNDLE_TYPES } from "../../constants";
-import { BundleType } from "../../types";
 
 export async function getBundle(bundleId: string) {
   const bundle = await prisma().bundle.findUnique({
@@ -27,15 +25,11 @@ export async function getBundle(bundleId: string) {
     case "Extension":
       return await getExtension(undefined, { id: bundleId });
   }
-  throw new Error(`Error getting bundle. Unknown bundle type: ${bundle.bundleTypeId}`);
 }
 
 export const bundleResolvers = {
   Bundle: {
     __resolveType: async (parent: Bundle) => {
-      if (!BUNDLE_TYPES.includes(parent.bundleTypeId as BundleType)) {
-        throw new Error(`Error resolving type. Unknown bundle type: ${parent.bundleTypeId}`);
-      }
       return parent.bundleTypeId;
     },
   },
