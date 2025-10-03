@@ -24,14 +24,7 @@ export const PERSON_TYPES = [
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
-export const DEMONSTRATION_BUNDLE_TYPE = "Demonstration" as const;
-export const AMENDMENT_BUNDLE_TYPE = "Amendment" as const;
-export const EXTENSION_BUNDLE_TYPE = "Extension" as const;
-export const BUNDLE_TYPES = [
-  DEMONSTRATION_BUNDLE_TYPE,
-  AMENDMENT_BUNDLE_TYPE,
-  EXTENSION_BUNDLE_TYPE,
-] as const;
+export const BUNDLE_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
