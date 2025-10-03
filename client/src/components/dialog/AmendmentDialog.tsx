@@ -45,8 +45,9 @@ export const AmendmentDialog: React.FC<Props> = ({
     effectiveDate?: string,
     expirationDate?: string
   ) => {
-    const { projectOfficerUserId: _omitProjectOfficer, ...amendmentData } =
+    const { projectOfficerUserId, ...amendmentData } =
       baseData as Record<string, unknown> & { projectOfficerUserId?: unknown };
+    void projectOfficerUserId;
 
     return createFormDataWithDates(
       {

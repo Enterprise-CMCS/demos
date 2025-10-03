@@ -39,11 +39,15 @@ export const ExtensionDialog: React.FC<Props> = ({
     effectiveDate?: string,
     expirationDate?: string
   ) => {
-    const { projectOfficerUserId: _omitProjectOfficer, status: _omitStatus, ...extensionData } =
-      baseData as Record<string, unknown> & {
-        projectOfficerUserId?: unknown;
-        status?: unknown;
-      };
+    const { projectOfficerUserId, status, ...extensionData } = baseData as Record<
+      string,
+      unknown
+    > & {
+      projectOfficerUserId?: unknown;
+      status?: unknown;
+    };
+    void projectOfficerUserId;
+    void status;
 
     return createFormDataWithDates(
       {
