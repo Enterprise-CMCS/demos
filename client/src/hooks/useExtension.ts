@@ -1,6 +1,6 @@
 import { CreateExtensionInput, Extension, UpdateExtensionInput } from "demos-server";
 import {
-  ADD_EXTENSION_QUERY,
+  CREATE_EXTENSION_MUTATION,
   GET_ALL_EXTENSIONS_QUERY,
   GET_EXTENSION_BY_ID_QUERY,
   UPDATE_EXTENSION_MUTATION,
@@ -23,7 +23,7 @@ interface GetExtensionByIdOperation {
 }
 
 interface CreateExtensionOperation {
-  trigger: (input: CreateExtensionInput) => Promise<FetchResult<{ addExtension: Extension }>>;
+  trigger: (input: CreateExtensionInput) => Promise<FetchResult<{ createExtension: Extension }>>;
   data?: Extension;
   loading: boolean;
   error?: ApolloError;
@@ -42,7 +42,7 @@ interface UpdateExtensionOperation {
 export interface ExtensionOperations {
   getAllExtensions: GetAllExtensionsOperation;
   getExtensionById: GetExtensionByIdOperation;
-  addExtension: CreateExtensionOperation;
+  createExtension: CreateExtensionOperation;
   updateExtension: UpdateExtensionOperation;
 }
 
@@ -72,14 +72,14 @@ const createGetExtensionByIdHook = (): GetExtensionByIdOperation => {
   };
 };
 
-const createAddExtensionHook = (): CreateExtensionOperation => {
+const createCreateExtensionHook = (): CreateExtensionOperation => {
   const [trigger, { data, loading, error }] = useMutation<{
-    addExtension: Extension;
-  }>(ADD_EXTENSION_QUERY);
+    createExtension: Extension;
+  }>(CREATE_EXTENSION_MUTATION);
 
   return {
     trigger: async (input: CreateExtensionInput) => await trigger({ variables: { input } }),
-    data: data?.addExtension,
+    data: data?.createExtension,
     loading,
     error,
   };
@@ -103,7 +103,7 @@ export const useExtension = (): ExtensionOperations => {
   return {
     getAllExtensions: createGetAllExtensionsHook(),
     getExtensionById: createGetExtensionByIdHook(),
-    addExtension: createAddExtensionHook(),
+    createExtension: createCreateExtensionHook(),
     updateExtension: createUpdateExtensionHook(),
   };
 };
