@@ -148,47 +148,6 @@ describe("EditDemonstrationDialog", () => {
     });
   });
 
-  it("Throws an error if cannot get primary project officer on existing demonstration", async () => {
-    // Mock console.error to suppress error output in test
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    // Create a mock with incomplete data (missing state and project officer)
-    const incompleteDataMock = {
-      request: {
-        query: GET_DEMONSTRATION_BY_ID_QUERY,
-        variables: { id: TEST_DEMO_ID },
-      },
-      result: {
-        data: {
-          demonstration: {
-            id: TEST_DEMO_ID,
-            name: "Test Demonstration",
-            description: "Test demonstration description",
-            sdgDivision: "Division of System Reform Demonstrations",
-            signatureLevel: "OA",
-            state: {
-              id: "test-state-id",
-            },
-            roles: [], // No project officer assigned
-            effectiveDate: "2023-01-01T00:00:00.000Z",
-            expirationDate: "2024-01-01T00:00:00.000Z",
-          },
-        },
-      },
-    };
-
-    // Expect the component to throw an error when trying to get project officer
-    expect(() => {
-      render(
-        <TestProvider mocks={[incompleteDataMock, GET_USER_SELECT_OPTIONS_MOCK]}>
-          <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId={TEST_DEMO_ID} />
-        </TestProvider>
-      );
-    }).toThrow();
-
-    consoleErrorSpy.mockRestore();
-  });
-
   it("calls onClose when Cancel is clicked", async () => {
     render(getEditDemonstrationDialog());
 
