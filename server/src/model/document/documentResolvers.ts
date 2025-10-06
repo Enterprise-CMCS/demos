@@ -1,9 +1,7 @@
 import { GraphQLError } from "graphql";
 
 import { Document, DocumentPendingUpload } from "@prisma/client";
-import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType } from "../../types.js";
 import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -12,20 +10,14 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 import { getBundle } from "../bundle/bundleResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
-// We should look into caching this
-// Otherwise, there are duplicative DB calls if requesting bundle and bundleType
-async function getBundleTypeId(bundleId: string) {
-  const result = await prisma().bundle.findUnique({
-    where: { id: bundleId },
-    select: {
-      bundleType: {
-        select: {
-          id: true,
-        },
-      },
-    },
+async function getDocument(parent: undefined, { id }: { id: string }) {
+  return await prisma().document.findUnique({
+    where: { id: id },
   });
-  return result!.bundleType.id;
+}
+
+async function getManyDocuments() {
+  return await prisma().demonstration.findMany();
 }
 
 async function getPresignedUploadUrl(
@@ -81,33 +73,8 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
 
 export const documentResolvers = {
   Query: {
-    document: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().document.findUnique({
-        where: { id: id },
-      });
-    },
-    documents: async (_: undefined, { bundleTypeId }: { bundleTypeId?: string }) => {
-      if (bundleTypeId) {
-        const isValidBundleType = Object.values(BUNDLE_TYPE).includes(bundleTypeId as BundleType);
-        if (!isValidBundleType) {
-          throw new GraphQLError("The requested bundle type is not valid.", {
-            extensions: {
-              code: "UNPROCESSABLE_ENTITY",
-              http: { status: 422 },
-            },
-          });
-        }
-      }
-      return await prisma().document.findMany({
-        where: {
-          bundle: {
-            bundleType: {
-              id: bundleTypeId,
-            },
-          },
-        },
-      });
-    },
+    document: getDocument,
+    documents: getManyDocuments,
   },
 
   Mutation: {
@@ -198,11 +165,6 @@ export const documentResolvers = {
 
     bundle: async (parent: Document) => {
       return await getBundle(parent.bundleId);
-    },
-
-    bundleType: async (parent: Document) => {
-      const bundleTypeId = await getBundleTypeId(parent.bundleId);
-      return bundleTypeId;
     },
 
     phaseName: async (parent: Document) => {

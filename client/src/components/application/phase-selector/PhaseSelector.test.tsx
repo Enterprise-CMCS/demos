@@ -60,8 +60,8 @@ describe("PhaseSelector", () => {
       "State Application",
       "Completeness",
       "Federal Comment",
-      "SME/FRT",
-      "OGC & OMB",
+      "SDG Preparation",
+      "OGC & OMB Review",
       "Approval Package",
       "Post Approval",
     ].forEach((name) => {
