@@ -10,7 +10,7 @@ import {
   FederalCommentPhase,
   OgcOmbPhase,
   PostApprovalPhase,
-  SmeFrtPhase,
+  SdgPreparationPhase,
   StateApplicationPhase,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
@@ -47,8 +47,8 @@ const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
   "State Application": "Completed",
   Completeness: "Started",
   "Federal Comment": "past-due",
-  "SME/FRT": "Not Started",
-  "OGC & OMB": "Not Started",
+  "SDG Preparation": "Not Started",
+  "OGC & OMB Review": "Not Started",
   "Approval Package": "Not Started",
   "Post Approval": "Not Started",
 };
@@ -87,8 +87,8 @@ export const PhaseSelector = ({
         />
       );
     },
-    "SME/FRT": SmeFrtPhase,
-    "OGC & OMB": OgcOmbPhase,
+    "SDG Preparation": SdgPreparationPhase,
+    "OGC & OMB Review": OgcOmbPhase,
     "Approval Package": ApprovalPackagePhase,
     "Post Approval": PostApprovalPhase,
   };

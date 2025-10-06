@@ -8,18 +8,13 @@ const STYLES = {
   pane: tw`bg-white p-8`,
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
-  // stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
   title: tw`text-xl font-semibold mb-1`,
   helper: tw`text-sm text-text-placeholder mb-1`,
   header: tw`min-h-[88px]`,
   actions: tw`flex justify-end mt-2 gap-2`,
-  // list: tw`mt-4 space-y-3`,
-  // fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
-  // fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
-  // actions: tw`mt-8 flex justify-end gap-3`,
 };
 
-export const SmeFrtPhase = () => {
+export const SdgPreparationPhase = () => {
   const SdgWorkplanSection = () => (
     <div aria-labelledby="sdg-workplan-title">
       <div className={STYLES.header}>
