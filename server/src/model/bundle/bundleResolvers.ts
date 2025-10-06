@@ -1,12 +1,8 @@
 import { prisma } from "../../prismaClient";
+import { BundleType } from "../../types";
 import { getDemonstration } from "../demonstration/demonstrationResolvers.js";
 import { getAmendment, getExtension } from "../modification/modificationResolvers.js";
 import { Bundle } from "@prisma/client";
-import { BundleType } from "../../types.js";
-
-const demonstrationBundleTypeId: BundleType = "DEMONSTRATION";
-const amendmentBundleTypeId: BundleType = "AMENDMENT";
-const extensionBundleTypeId: BundleType = "EXTENSION";
 
 export async function getBundle(bundleId: string) {
   const bundle = await prisma().bundle.findUnique({
@@ -14,30 +10,28 @@ export async function getBundle(bundleId: string) {
       id: bundleId,
     },
     select: {
-      bundleType: true,
+      bundleTypeId: true,
     },
   });
-  const bundleTypeId: BundleType = bundle?.bundleType.id as BundleType;
 
-  if (bundleTypeId === "DEMONSTRATION") {
-    return getDemonstration(undefined, { id: bundleId });
-  } else if (bundleTypeId === "AMENDMENT") {
-    return getAmendment(undefined, { id: bundleId });
-  } else if (bundleTypeId === "EXTENSION") {
-    return getExtension(undefined, { id: bundleId });
+  if (!bundle) {
+    throw new Error(`Bundle with ID ${bundleId} not found`);
+  }
+
+  switch (bundle.bundleTypeId as BundleType) {
+    case "Demonstration":
+      return await getDemonstration(undefined, { id: bundleId });
+    case "Amendment":
+      return await getAmendment(undefined, { id: bundleId });
+    case "Extension":
+      return await getExtension(undefined, { id: bundleId });
   }
 }
 
 export const bundleResolvers = {
   Bundle: {
-    __resolveType(obj: Bundle) {
-      if (obj.bundleTypeId === demonstrationBundleTypeId) {
-        return "Demonstration";
-      } else if (obj.bundleTypeId === amendmentBundleTypeId) {
-        return "Amendment";
-      } else if (obj.bundleTypeId === extensionBundleTypeId) {
-        return "Extension";
-      }
+    __resolveType: async (parent: Bundle) => {
+      return parent.bundleTypeId;
     },
   },
 };

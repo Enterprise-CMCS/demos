@@ -1,11 +1,11 @@
-import { PhaseName, PhaseStatus, BundlePhaseDate } from "../../types.js";
+import { PhaseName, PhaseStatus, BundleDate } from "../../types.js";
 import { gql } from "graphql-tag";
 
 export const bundlePhaseSchema = gql`
   type BundlePhase {
     phaseName: PhaseName!
     phaseStatus: PhaseStatus!
-    phaseDates: [BundlePhaseDate!]!
+    phaseDates: [BundleDate!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -14,7 +14,7 @@ export const bundlePhaseSchema = gql`
 export interface BundlePhase {
   phaseName: PhaseName;
   phaseStatus: PhaseStatus;
-  phaseDates: BundlePhaseDate[];
+  phaseDates: BundleDate[];
   createdAt: Date;
   updatedAt: Date;
 }
