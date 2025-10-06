@@ -3,12 +3,12 @@ import React, { useState } from "react";
 import { tw } from "tags/tw";
 
 export const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
-const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-1 outline-none focus:ring-2
+export const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-1 outline-none focus:ring-2
 bg-surface-white hover:text-text-font
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
 const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 
-const getInputColors = (value: string, validationMessage: string) => {
+export const getInputColors = (validationMessage: string) => {
   let classes = "";
   classes += tw`text-text-filled`;
   if (validationMessage) {
@@ -69,7 +69,7 @@ export const Input: React.FC<InputProps> = ({
         name={name}
         data-testid={name}
         type={type}
-        className={`${INPUT_BASE_CLASSES} ${getInputColors(currentValue, validationMessage ?? "")}`}
+        className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage ?? "")}`}
         placeholder={placeholder ?? ""}
         required={isRequired ?? false}
         disabled={isDisabled ?? false}

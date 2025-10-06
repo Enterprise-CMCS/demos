@@ -6,20 +6,19 @@ import { DocumentType, Bundle, PhaseName } from "../../types.js";
 export const documentSchema = gql`
   type Document {
     id: ID!
-    title: String!
+    name: String!
     description: String!
     s3Path: String!
     owner: User!
     documentType: DocumentType!
     bundle: Bundle!
-    bundleType: String!
     phaseName: PhaseName!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
 
   input UploadDocumentInput {
-    title: String!
+    name: String!
     description: String!
     documentType: DocumentType!
     bundleId: ID!
@@ -27,7 +26,7 @@ export const documentSchema = gql`
   }
 
   input UpdateDocumentInput {
-    title: String
+    name: String
     description: String
     documentType: DocumentType
     bundleId: ID
@@ -46,27 +45,26 @@ export const documentSchema = gql`
   }
 
   type Query {
-    documents(bundleTypeId: String): [Document!]!
+    documents: [Document!]!
     document(id: ID!): Document
   }
 `;
 
 export interface Document {
   id: string;
-  title: string;
+  name: string;
   description: string;
   s3Path: string;
   owner: User;
   documentType: DocumentType;
   bundle: Bundle;
-  bundleType: string;
   phaseName: PhaseName;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface UploadDocumentInput {
-  title: string;
+  name: string;
   description: string;
   documentType: DocumentType;
   bundleId: string;
@@ -74,7 +72,7 @@ export interface UploadDocumentInput {
 }
 
 export interface UpdateDocumentInput {
-  title?: string;
+  name?: string;
   description?: string;
   documentType?: DocumentType;
   bundleId?: string;

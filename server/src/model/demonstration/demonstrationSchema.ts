@@ -16,8 +16,8 @@ export const demonstrationSchema = gql`
     id: ID!
     name: String!
     description: String!
-    effectiveDate: Date
-    expirationDate: Date
+    effectiveDate: DateTime
+    expirationDate: DateTime
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: BundleStatus!
@@ -44,8 +44,8 @@ export const demonstrationSchema = gql`
   input UpdateDemonstrationInput {
     name: String
     description: String
-    effectiveDate: Date
-    expirationDate: Date
+    effectiveDate: DateTime
+    expirationDate: DateTime
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: BundleStatus

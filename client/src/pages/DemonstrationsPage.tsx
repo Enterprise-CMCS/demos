@@ -18,6 +18,7 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
       name
       status
       state {
+        id
         name
       }
       roles {
@@ -50,7 +51,7 @@ export type DemonstrationAmendment = Pick<Amendment, "id" | "name" | "status">;
 export type DemonstrationExtension = Pick<Extension, "id" | "name" | "status">;
 
 export type Demonstration = Pick<ServerDemonstration, "id" | "name" | "status"> & {
-  state: Pick<State, "name">;
+  state: Pick<State, "id" | "name">;
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "fullName" | "id">;
   })[];

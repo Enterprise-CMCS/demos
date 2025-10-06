@@ -21,7 +21,7 @@ export const FederalCommentUploadDialog: React.FC<Props> = ({
 }) => {
   const getInitialDocument = (): DocumentDialogFields => ({
     id: bundleId,
-    title: "",
+    name: "",
     description: "",
     documentType: "General File",
     file: null,

@@ -79,7 +79,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
   const stateApplicationDocuments = allDocuments.filter(
     (doc: DocumentTableDocument) =>
       doc.documentType === "State Application" ||
-      doc.title?.toLowerCase().includes("state application") ||
+      doc.name?.toLowerCase().includes("state application") ||
       doc.description?.toLowerCase().includes("state application")
   );
 
@@ -129,7 +129,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
   const addMockDocument = () => {
     const newDoc: DocumentTableDocument = {
       id: `mock-${Date.now()}`,
-      title: `State Application Document ${mockDocuments.length + 1}`,
+      name: `State Application Document ${mockDocuments.length + 1}`,
       description: "Mock document for testing UI",
       documentType: "State Application",
       createdAt: new Date(),
@@ -188,7 +188,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
         {stateApplicationDocuments.map((doc: DocumentTableDocument) => (
           <div key={doc.id} className={STYLES.fileRow}>
             <div>
-              <div className="font-medium">{doc.title}</div>
+              <div className="font-medium">{doc.name}</div>
               <div className={STYLES.fileMeta}>
                 {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
                 {doc.description ? ` • ${doc.description}` : ""}
@@ -204,8 +204,8 @@ export const StateApplicationPhase: React.FC<Props> = ({
                   console.log("Delete document:", doc.id);
                 }
               }}
-              aria-label={`Delete ${doc.title}`}
-              title={`Delete ${doc.title}`}
+              aria-label={`Delete ${doc.name}`}
+              title={`Delete ${doc.name}`}
             >
               <DeleteIcon className="w-2 h-2" />
             </button>

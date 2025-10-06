@@ -1,6 +1,6 @@
 import {
   BUNDLE_STATUS,
-  BUNDLE_TYPE,
+  BUNDLE_TYPES,
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
   DOCUMENT_TYPES,
@@ -55,7 +55,7 @@ export type {
 } from "./model/bundlePhaseDate/bundlePhaseDateSchema.js";
 
 export type BundleStatus = (typeof BUNDLE_STATUS)[number];
-export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
+export type BundleType = (typeof BUNDLE_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];

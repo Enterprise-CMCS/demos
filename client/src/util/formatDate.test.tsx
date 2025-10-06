@@ -1,5 +1,6 @@
-import { formatDate, formatDateTime, formatDateAsIsoString } from "./formatDate";
 import { UTCDate } from "@date-fns/utc";
+
+import { formatDate, formatDateAsIsoString, formatDateTime, safeDateFormat } from "./formatDate";
 
 // Test date constants as ISO strings
 const TEST_DATE_ISO = "2023-04-15T13:45:30.000Z";
@@ -64,10 +65,37 @@ describe("formatDate utilities", () => {
   });
 
   it("displays UTC dates consistently", () => {
-    const utcDate = new UTCDate(UTC_TEST_DATE_ISO); // Jan 2, 2023, 00:00:00 UTC
-
-    // The rendered date should stay in UTC (not convert to local time)
+    const utcDate = new UTCDate(UTC_TEST_DATE_ISO);
     expect(formatDate(utcDate)).toBe("01/02/2023");
     expect(formatDateTime(utcDate, "minute")).toBe("01/02/2023 00:00");
+  });
+
+  describe("safeDateFormat", () => {
+    it("formats Date objects correctly", () => {
+      const testDate = new UTCDate(TEST_DATE_ISO);
+      expect(safeDateFormat(testDate)).toBe("04/15/2023");
+    });
+
+    it("formats ISO string dates correctly", () => {
+      expect(safeDateFormat(TEST_DATE_ISO)).toBe("04/15/2023");
+      expect(safeDateFormat("2024-02-29T23:59:59.000Z")).toBe("02/29/2024");
+      expect(safeDateFormat("2022-01-01T00:00:00.000Z")).toBe("01/01/2022");
+    });
+
+    it("handles null and undefined values", () => {
+      expect(safeDateFormat(null)).toBe("--/--/----");
+      expect(safeDateFormat(undefined)).toBe("--/--/----");
+    });
+
+    it("handles invalid date strings", () => {
+      expect(safeDateFormat("invalid-date")).toBe("--/--/----");
+      expect(safeDateFormat("")).toBe("--/--/----");
+      expect(safeDateFormat("not-a-date")).toBe("--/--/----");
+    });
+
+    it("handles single-digit months and days in ISO strings", () => {
+      expect(safeDateFormat("2023-03-05T07:08:09.000Z")).toBe("03/05/2023");
+      expect(safeDateFormat("2023-12-01T00:00:00.000Z")).toBe("12/01/2023");
+    });
   });
 });

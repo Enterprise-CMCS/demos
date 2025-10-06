@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
-export const ADD_EXTENSION_QUERY = gql`
-  mutation AddExtension($input: CreateExtensionInput!) {
-    addExtension(input: $input) {
+export const CREATE_EXTENSION_MUTATION = gql`
+  mutation CreateExtension($input: CreateExtensionInput!) {
+    createExtension(input: $input) {
       id
       name
       description
@@ -13,10 +13,6 @@ export const ADD_EXTENSION_QUERY = gql`
         name
       }
       status
-      projectOfficer {
-        id
-        fullName
-      }
     }
   }
 `;
@@ -34,10 +30,6 @@ export const GET_ALL_EXTENSIONS_QUERY = gql`
         name
       }
       status
-      projectOfficer {
-        id
-        fullName
-      }
     }
   }
 `;
@@ -55,10 +47,6 @@ export const GET_EXTENSION_BY_ID_QUERY = gql`
         name
       }
       status
-      projectOfficer {
-        id
-        fullName
-      }
     }
   }
 `;
@@ -76,10 +64,6 @@ export const UPDATE_EXTENSION_MUTATION = gql`
         name
       }
       status
-      projectOfficer {
-        id
-        fullName
-      }
     }
   }
 `;
