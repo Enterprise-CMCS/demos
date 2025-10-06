@@ -1,7 +1,7 @@
 import React from "react";
 import { LogEventArguments, useEvent } from "hooks/event/useEvent";
 import { Event } from "demos-server";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
+import { Select } from "components/input/select/Select";
 import { useToast } from "components/toast";
 import { Button } from "components/button";
 import { ALL_EVENT_TYPES, EventType } from "hooks/event/eventTypes";
@@ -54,14 +54,14 @@ const LogNewEventForm = () => {
 
   return (
     <div>
-      <AutoCompleteSelect
+      <Select
         options={ALL_EVENT_TYPES.map((type) => ({
           label: type,
           value: type,
         }))}
         id="eventType"
         label="Event Type"
-        onSelect={(eventType) => setEventType(eventType as EventType)}
+        onChange={(eventType) => setEventType(eventType as EventType)}
       />
 
       <Button name="log-event" onClick={handleLogEvent} type="submit">

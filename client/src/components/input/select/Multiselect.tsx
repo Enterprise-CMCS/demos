@@ -12,8 +12,8 @@ export interface Option<T = string> {
 
 export interface SelectProps<T = string> {
   options: Option<T>[];
-  onChange: (value: T) => void;
-  value?: T;
+  onChange: (value: T[]) => void;
+  value?: T[];
   id?: string;
   isSearchable?: boolean;
   label?: string;
@@ -22,7 +22,7 @@ export interface SelectProps<T = string> {
   isDisabled?: boolean;
 }
 
-export const Select = <T extends string = string>({
+export const Multiselect = <T extends string = string>({
   options,
   value,
   onChange,
@@ -34,11 +34,12 @@ export const Select = <T extends string = string>({
   isDisabled = false,
 }: SelectProps<T>) => {
   // Convert value to Option format for ReactSelect
-  const selectedOption = value ? options.find((option) => option.value === value) : null;
+  const selectedOptions = value ? options.filter((option) => value.includes(option.value)) : [];
 
   // Handle ReactSelect onChange and convert back to value type
-  const handleChange = (selectedOption: Option<T> | null) => {
-    onChange(selectedOption ? selectedOption.value : ("" as T));
+  const handleChange = (selectedOptions: readonly Option<T>[]) => {
+    const values = selectedOptions ? selectedOptions.map((option) => option.value) : [];
+    onChange(values);
   };
 
   return (
@@ -51,10 +52,11 @@ export const Select = <T extends string = string>({
       )}
       <div className="relative w-full">
         <ReactSelect
+          isMulti
           isSearchable={isSearchable}
           options={options}
           placeholder={placeholder}
-          value={selectedOption}
+          value={selectedOptions}
           onChange={handleChange}
           isDisabled={isDisabled}
           inputId={id}

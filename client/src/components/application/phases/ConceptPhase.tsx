@@ -5,7 +5,7 @@ import { ApplicationUploadSection } from "components/application/phases/sections
 import { Button, SecondaryButton } from "components/button";
 import { ConceptPreSubmissionUploadDialog } from "components/dialog/document/ConceptPreSubmissionUploadDialog";
 import { ChevronRightIcon } from "components/icons";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
+import { Select } from "components/input/select/Select";
 import { Option } from "components/input/select/Select";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { isLocalDevelopment } from "config/env";
@@ -210,12 +210,12 @@ export const ConceptPhase: React.FC<Props> = ({
           )}
         </div>
 
-        <AutoCompleteSelect
+        <Select
           id="demo-type"
           label="Demonstration Type(s) Requested"
           options={DEMONSTRATION_TYPE_OPTIONS}
           value={demoType}
-          onSelect={(v) => setDemoType(String(v))}
+          onChange={(v) => setDemoType(String(v))}
         />
       </div>
 

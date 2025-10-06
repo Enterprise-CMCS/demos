@@ -5,8 +5,8 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { Textarea } from "components/input";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
-import { SelectUSAStates } from "components/input/select/SelectUSAStates";
-import { SelectUsers } from "components/input/select/SelectUsers";
+import { SelectStates } from "components/input/select/SelectStates";
+import { SelectPeople } from "components/input/select/SelectPeople";
 import { TextInput } from "components/input/TextInput";
 import { Demonstration } from "demos-server";
 import { useDateValidation } from "hooks/useDateValidation";
@@ -183,12 +183,11 @@ export const DemonstrationDialog: React.FC<{
     >
       <form id="demonstration-form" className="flex flex-col gap-[24px]" onSubmit={handleSubmit}>
         <div className="grid grid-cols-3 gap-[24px]">
-          <SelectUSAStates
+          <SelectStates
             label="State/Territory"
-            currentState={activeDemonstration.stateId}
             value={activeDemonstration.stateId}
             isRequired
-            onStateChange={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
+            onChange={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
           />
           <div className="col-span-2">
             <TextInput
@@ -206,11 +205,11 @@ export const DemonstrationDialog: React.FC<{
 
         <div className="grid grid-cols-4 gap-4">
           <div className="col-span-2">
-            <SelectUsers
+            <SelectPeople
               label="Project Officer"
               isRequired={true}
-              initialUserId={activeDemonstration.projectOfficerId}
-              onSelect={(userId) =>
+              value={activeDemonstration.projectOfficerId}
+              onChange={(userId) =>
                 setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }))
               }
               personTypes={["demos-admin", "demos-cms-user"]}
@@ -241,12 +240,12 @@ export const DemonstrationDialog: React.FC<{
 
         <div className="grid grid-cols-2 gap-2">
           <SelectSdgDivision
-            initialValue={activeDemonstration.sdgDivision}
-            onSelect={(sdgDivision) => setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))}
+            value={activeDemonstration.sdgDivision}
+            onChange={(sdgDivision) => setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))}
           />
           <SelectSignatureLevel
-            initialValue={activeDemonstration.signatureLevel}
-            onSelect={(signatureLevel) =>
+            value={activeDemonstration.signatureLevel}
+            onChange={(signatureLevel) =>
               setActiveDemonstration((prev) => ({ ...prev, signatureLevel }))
             }
           />

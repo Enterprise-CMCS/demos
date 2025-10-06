@@ -2,18 +2,12 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { SelectUSAStates } from "./SelectUSAStates";
+import { SelectStates } from "./SelectStates";
 
 describe("<SelectUSAStates />", () => {
   it("filters options by input and calls onStateChange with the abbrev", async () => {
-    const onStateChange = vi.fn();
-    render(
-      <SelectUSAStates
-        onStateChange={onStateChange}
-        isRequired={false}
-        isDisabled={false}
-      />
-    );
+    const onChange = vi.fn();
+    render(<SelectStates onChange={onChange} isRequired={false} isDisabled={false} />);
 
     // Open the dropdown and type a substring unique to one state
     const input = screen.getByRole("textbox", { name: /state or territory/i });
@@ -27,12 +21,12 @@ describe("<SelectUSAStates />", () => {
     await userEvent.click(screen.getByText("Vermont"));
 
     // Should call back with “VT”
-    expect(onStateChange).toHaveBeenCalledTimes(1);
-    expect(onStateChange).toHaveBeenCalledWith("VT");
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith("VT");
   });
 
   it("shows 'No matches found' when filter yields nothing", async () => {
-    render(<SelectUSAStates onStateChange={() => {}} />);
+    render(<SelectStates onChange={() => {}} />);
 
     const input = screen.getByRole("textbox", { name: /state or territory/i });
     await userEvent.click(input);
@@ -42,13 +36,7 @@ describe("<SelectUSAStates />", () => {
   });
 
   it("applies the required and disabled props to the input", () => {
-    render(
-      <SelectUSAStates
-        onStateChange={() => {}}
-        isRequired={true}
-        isDisabled={true}
-      />
-    );
+    render(<SelectStates onChange={() => {}} isRequired={true} isDisabled={true} />);
 
     const input = screen.getByRole("textbox", { name: /state or territory/i });
     expect(input).toBeRequired();

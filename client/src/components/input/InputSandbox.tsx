@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { TextInput } from ".";
-import { SelectDemoStatuses } from "./select/SelectDemoStatuses";
-import { SelectUSAStates } from "./select/SelectUSAStates";
-import { SelectUsers } from "./select/SelectUsers";
-import { AutoCompleteMultiselect } from "./select/AutoCompleteMultiselect";
+import { SelectStates } from "./select/SelectStates";
+import { SelectPeople } from "./select/SelectPeople";
 import { Select } from "./select/Select";
 import { Button } from "components/button";
+import { Multiselect } from "./select/Multiselect";
+import { State } from "demos-server";
 
 const getValidationMessage = (value: string) => {
   if (value.includes("z")) {
@@ -19,7 +19,7 @@ export const InputSandbox: React.FC = () => {
   const [isRequired, setIsRequired] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [selectValue, setSelectValue] = useState<string>("");
-
+  const [state, setState] = useState<State["id"]>("");
   const [multiselectValues, setMultiselectValues] = useState<string[]>([]);
   // We'll wire this up to use the current cache user
   const currentUserId = 123;
@@ -43,39 +43,38 @@ export const InputSandbox: React.FC = () => {
         placeholder="Placeholder"
       />
       <div className="mt-3">
-        <SelectDemoStatuses
-          isRequired={isRequired}
-          isDisabled={disabled}
-          onStatusChange={setStatus}
-        />
-      </div>
-      <div className="mt-3">
         {multiselectValues && (
           <p className="mt-2">You have selected:{multiselectValues.join(", ")}</p>
         )}
-        <AutoCompleteMultiselect
+        <Multiselect
           options={[
             { label: "Option 1", value: "1" },
             { label: "Option 2", value: "2" },
             { label: "Option 3", value: "3" },
           ]}
+          value={multiselectValues}
           label="Autocomplete-Multiselect"
           placeholder="Select options"
-          onSelect={setMultiselectValues}
+          onChange={setMultiselectValues}
           isRequired={isRequired}
           isDisabled={disabled}
         />
       </div>
       <div className="mt-3">
-        <SelectUSAStates isRequired={isRequired} isDisabled={disabled} onStateChange={setStatus} />
+        <SelectStates
+          value={state}
+          isRequired={isRequired}
+          isDisabled={disabled}
+          onChange={setState}
+        />
       </div>
       <div className="mt-3">
-        <SelectUsers
+        <SelectPeople
           isRequired={isRequired}
           label="Project Officers (default U ID is 123)"
           isDisabled={disabled}
-          onSelect={setStatus}
-          initialUserId={String(currentUserId)}
+          onChange={setStatus}
+          value={String(currentUserId)}
         />
       </div>
       {status && (
@@ -92,7 +91,7 @@ export const InputSandbox: React.FC = () => {
             { label: "Option 3", value: "3" },
           ]}
           value={selectValue}
-          onSelect={setSelectValue}
+          onChange={setSelectValue}
         />{" "}
       </div>
       {selectValue && (

@@ -4,7 +4,7 @@ import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
-import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
+import { SelectDocumentTypes } from "components/input/select/SelectDocumentTypes";
 import { useToast } from "components/toast";
 import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
@@ -424,12 +424,12 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
         }}
       />
 
-      <DocumentTypeInput
+      <SelectDocumentTypes
         value={activeDocument.documentType}
-        onSelect={(val) => {
+        onChange={(val) => {
           setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }));
         }}
-        documentTypeSubset={documentTypeSubset}
+        options={documentTypeSubset}
       />
     </BaseDialog>
   );

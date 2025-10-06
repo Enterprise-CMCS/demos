@@ -1,6 +1,6 @@
 import React from "react";
 
-import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
+import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectPeople";
 import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 

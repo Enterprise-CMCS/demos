@@ -8,7 +8,7 @@ const onSelect = vi.fn();
 
 describe("SelectSignatureLevel", () => {
   it("renders all signature level options with explicit labels", () => {
-    render(<SelectSignatureLevel onSelect={onSelect} />);
+    render(<SelectSignatureLevel onChange={onSelect} />);
     const select = screen.getByLabelText("Signature Level");
     fireEvent.mouseDown(select);
     expect(screen.getByText("OA - Office of the Administrator")).toBeInTheDocument();
@@ -17,7 +17,7 @@ describe("SelectSignatureLevel", () => {
   });
 
   it("calls onSelect when an option is selected", () => {
-    render(<SelectSignatureLevel onSelect={onSelect} />);
+    render(<SelectSignatureLevel onChange={onSelect} />);
     const select = screen.getByLabelText("Signature Level");
     fireEvent.change(select, { target: { value: SIGNATURE_LEVEL[0] } });
     expect(select).toHaveValue(SIGNATURE_LEVEL[0]);

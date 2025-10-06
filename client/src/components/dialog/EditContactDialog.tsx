@@ -8,7 +8,7 @@ import {
   Person as ServerPerson,
 } from "demos-server";
 import { ROLES } from "demos-server-constants";
-import { SelectUsers } from "components/input/select/SelectUsers";
+import { SelectPeople } from "components/input/select/SelectPeople";
 import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
 
@@ -110,10 +110,10 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
       <form id="contact-form" className="space-y-4" onSubmit={handleSubmit}>
         {/* Non-editable Name field */}
         <div>
-          <SelectUsers
-            initialUserId={formData.personId}
+          <SelectPeople
+            value={formData.personId}
             label="Person"
-            onSelect={(value) =>
+            onChange={(value) =>
               setFormData({
                 ...formData,
                 personId: value,
@@ -128,7 +128,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
             label="Contact Type"
             options={ROLES.map((role) => ({ label: role, value: role }))}
             value={formData.roleId}
-            onSelect={(value) =>
+            onChange={(value) =>
               setFormData({
                 ...formData,
                 roleId: value,

@@ -14,10 +14,11 @@ describe("Select", () => {
   it("renders label and options", () => {
     render(
       <Select
+        value=""
         options={options}
         label="Test Label"
         placeholder="Choose one"
-        onSelect={() => {}}
+        onChange={() => {}}
         id="test-select"
       />
     );
@@ -33,9 +34,10 @@ describe("Select", () => {
     const handleSelect = vi.fn();
     render(
       <Select
+        value=""
         options={options}
         placeholder="Choose one"
-        onSelect={handleSelect}
+        onChange={handleSelect}
         id="test-select"
       />
     );
@@ -44,14 +46,7 @@ describe("Select", () => {
   });
 
   it("shows the selected value", () => {
-    render(
-      <Select
-        options={options}
-        value="gamma"
-        onSelect={() => {}}
-        id="test-select"
-      />
-    );
+    render(<Select options={options} value="gamma" onChange={() => {}} id="test-select" />);
     const select = screen.getByRole("combobox") as HTMLSelectElement;
     expect(select.value).toBe("gamma");
   });
@@ -63,7 +58,7 @@ describe("Select", () => {
       <Select
         options={options}
         value={selected}
-        onSelect={(val) => {
+        onChange={(val) => {
           selected = val;
         }}
         placeholder="Choose one"
@@ -76,7 +71,7 @@ describe("Select", () => {
       <Select
         options={options}
         value={selected}
-        onSelect={() => {}}
+        onChange={() => {}}
         placeholder="Choose one"
         id="test-select"
       />
@@ -87,26 +82,12 @@ describe("Select", () => {
   });
 
   it("disables the select when isDisabled is true", () => {
-    render(
-      <Select
-        options={options}
-        isDisabled
-        onSelect={() => {}}
-        id="test-select"
-      />
-    );
+    render(<Select value="" options={options} isDisabled onChange={() => {}} id="test-select" />);
     expect(screen.getByRole("combobox")).toBeDisabled();
   });
 
   it("requires the select when isRequired is true", () => {
-    render(
-      <Select
-        options={options}
-        isRequired
-        onSelect={() => {}}
-        id="test-select"
-      />
-    );
+    render(<Select value="" options={options} isRequired onChange={() => {}} id="test-select" />);
     expect(screen.getByRole("combobox")).toBeRequired();
   });
 });

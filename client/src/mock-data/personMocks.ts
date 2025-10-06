@@ -1,5 +1,5 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
+import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectPeople";
 import { Person } from "demos-server";
 import { MockState, mockStates } from "./stateMocks";
 

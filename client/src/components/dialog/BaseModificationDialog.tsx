@@ -2,9 +2,9 @@ import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { SelectUSAStates } from "components/input/select/SelectUSAStates";
-import { SelectUsers } from "components/input/select/SelectUsers";
+import { Select } from "components/input/select/Select";
+import { SelectStates } from "components/input/select/SelectStates";
+import { SelectPeople } from "components/input/select/SelectPeople";
 import { TextInput } from "components/input/TextInput";
 import { useDateValidation } from "hooks/useDateValidation";
 import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
@@ -126,14 +126,14 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
     >
       <form id={`${entityType}-form`} className="space-y-4" onSubmit={handleSubmit}>
         <div>
-          <AutoCompleteSelect
+          <Select
             label="Demonstration"
             placeholder="Select demonstration"
             isRequired
             isDisabled={Boolean(demonstrationId)}
             options={demoOptions}
             value={demonstration}
-            onSelect={setDemonstration}
+            onChange={setDemonstration}
           />
           {showWarning && !demonstration && (
             <p className="text-sm text-text-warn mt-0.5">
@@ -154,22 +154,17 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
             />
           </div>
           <div>
-            <SelectUSAStates
-              label="State/Territory"
-              isRequired
-              currentState={state}
-              onStateChange={setState}
-            />
+            <SelectStates label="State/Territory" isRequired value={state} onChange={setState} />
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-3">
           <div className="col-span-2">
-            <SelectUsers
+            <SelectPeople
               label="Project Officer"
               isRequired
-              initialUserId={projectOfficer}
-              onSelect={setProjectOfficer}
+              value={projectOfficer}
+              onChange={setProjectOfficer}
               personTypes={["demos-admin", "demos-cms-user"]}
             />
           </div>

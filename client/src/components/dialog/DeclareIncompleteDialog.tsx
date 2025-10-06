@@ -51,9 +51,9 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
     }
   }, [isOpen]);
   // pops the "other" explanation box
-  const isOtherReason = (reason === OTHER_REASON_VALUE);
+  const isOtherReason = reason === OTHER_REASON_VALUE;
   const trimmedOther = otherText.trim();
-  const isValid = (reason !== "" && (!isOtherReason || trimmedOther !== ""));
+  const isValid = reason !== "" && (!isOtherReason || trimmedOther !== "");
 
   const handleConfirm = () => {
     setAttemptedSubmit(true);
@@ -87,7 +87,8 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
       }
     >
       <p className="text-base">
-        Are you sure you want to declare this application process <span className="font-semibold">incomplete</span>?
+        Are you sure you want to declare this application process{" "}
+        <span className="font-semibold">incomplete</span>?
       </p>
 
       <div className={MESSAGE_ICON}>
@@ -103,7 +104,7 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
             isRequired
             options={REASON_OPTIONS}
             value={reason}
-            onSelect={(value) => setReason(value)}
+            onChange={(value) => setReason(value)}
           />
           {reasonError && <p className="mt-1 text-xs text-text-warn">Select a reason.</p>}
         </div>
@@ -117,7 +118,9 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
               placeholder="Enter reason"
               value={otherText}
               onChange={(event) => setOtherText(event.target.value)}
-              getValidationMessage={(value) => (attemptedSubmit && value.trim() === "" ? "Provide an explanation." : "")}
+              getValidationMessage={(value) =>
+                attemptedSubmit && value.trim() === "" ? "Provide an explanation." : ""
+              }
             />
           </div>
         )}
