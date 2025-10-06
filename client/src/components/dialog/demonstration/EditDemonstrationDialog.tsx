@@ -6,7 +6,7 @@ import { Demonstration, UpdateDemonstrationInput } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
-import { formatDate, parseInputDate } from "util/formatDate";
+import { formatDateForServer, parseInputDate } from "util/formatDate";
 
 const SUCCESS_MESSAGE = "Demonstration updated successfully!";
 const ERROR_MESSAGE = "Failed to update demonstration. Please try again.";
@@ -91,8 +91,12 @@ const getDemonstrationDialogFields = (demonstration: Demonstration): Demonstrati
   ...(demonstration.signatureLevel && { signatureLevel: demonstration.signatureLevel }),
   stateId: demonstration.state.id,
   projectOfficerId: getProjectOfficerId(demonstration),
-  effectiveDate: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "",
-  expirationDate: demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "",
+  effectiveDate: demonstration.effectiveDate
+    ? formatDateForServer(demonstration.effectiveDate)
+    : "",
+  expirationDate: demonstration.expirationDate
+    ? formatDateForServer(demonstration.expirationDate)
+    : "",
 });
 
 const getProjectOfficerId = (demonstration: Demonstration): string => {
