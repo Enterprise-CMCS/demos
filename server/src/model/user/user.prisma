@@ -14,7 +14,7 @@ model User {
   events                 Event[]
 
   @@id([id])
-  @@unique([id, personTypeId]) // This isnt actually required in Postgres; however prisma requires that we explicitly notate this as a unique constraint
+  @@unique([id, personTypeId]) // Not required by Postgres, but Prisma requires this notation
   @@unique([cognitoSubject])
   @@map("users")
 }
