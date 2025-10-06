@@ -6,7 +6,7 @@ import { Demonstration, UpdateDemonstrationInput } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
-import { formatDate } from "util/formatDate";
+import { formatDate, parseInputDate } from "util/formatDate";
 
 const SUCCESS_MESSAGE = "Demonstration updated successfully!";
 const ERROR_MESSAGE = "Failed to update demonstration. Please try again.";
@@ -76,8 +76,12 @@ const getUpdateDemonstrationInput = (
   ...(demonstration.stateId && { stateId: demonstration.stateId }),
   ...(demonstration.sdgDivision && { sdgDivision: demonstration.sdgDivision }),
   ...(demonstration.signatureLevel && { signatureLevel: demonstration.signatureLevel }),
-  ...(demonstration.effectiveDate && { effectiveDate: new Date(demonstration.effectiveDate) }),
-  ...(demonstration.expirationDate && { expirationDate: new Date(demonstration.expirationDate) }),
+  ...(demonstration.effectiveDate && {
+    effectiveDate: parseInputDate(demonstration.effectiveDate),
+  }),
+  ...(demonstration.expirationDate && {
+    expirationDate: parseInputDate(demonstration.expirationDate),
+  }),
 });
 
 const getDemonstrationDialogFields = (demonstration: Demonstration): DemonstrationDialogFields => ({
@@ -127,7 +131,15 @@ const useUpdateDemonstration = () => {
 const useUpdateProjectOfficer = () => {
   const [setDemonstrationRoleTrigger] = useMutation(SET_DEMONSTRATION_ROLE_MUTATION);
 
-  return async (demonstrationId: string, demonstrationDialogFields: DemonstrationDialogFields) => {
+  return async (
+    demonstrationId: string,
+    originalProjectOfficerId: string,
+    demonstrationDialogFields: DemonstrationDialogFields
+  ) => {
+    // Guard: if the project officer hasn't changed, do nothing
+    if (originalProjectOfficerId == demonstrationDialogFields.projectOfficerId) {
+      return;
+    }
     await setDemonstrationRoleTrigger({
       variables: {
         input: {
@@ -162,13 +174,12 @@ export const EditDemonstrationDialog: React.FC<{
 
   const onSubmit = async (demonstrationDialogFields: DemonstrationDialogFields) => {
     try {
-      const originalProjectOfficerId = getProjectOfficerId(data.demonstration);
-
       await updateDemonstration(demonstrationId, demonstrationDialogFields);
-
-      if (demonstrationDialogFields.projectOfficerId !== originalProjectOfficerId) {
-        await updateProjectOfficer(demonstrationId, demonstrationDialogFields);
-      }
+      await updateProjectOfficer(
+        demonstrationId,
+        getProjectOfficerId(data.demonstration),
+        demonstrationDialogFields
+      );
 
       onClose();
       showSuccess(SUCCESS_MESSAGE);
