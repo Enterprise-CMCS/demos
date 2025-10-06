@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { TZDate } from "@date-fns/tz";
-import { BUNDLE_TYPE, SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
+import { SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
   CreateDemonstrationInput,
   CreateAmendmentInput,
@@ -8,6 +8,7 @@ import {
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
+  BundleType,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -65,47 +66,26 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
-    // Start with join tables
-    prisma().rolePermission.deleteMany(),
-
-    // Permissions are only attached to rolePermission
-    prisma().permission.deleteMany(),
-
-    // Delete various bundle types
     prisma().modification.deleteMany(),
     prisma().primaryDemonstrationRoleAssignment.deleteMany(),
     prisma().demonstrationRoleAssignment.deleteMany(),
-
     prisma().demonstration.deleteMany(),
-
-    prisma().bundlePhaseDate.deleteMany(),
-
-    // Phases and accompanying items
-    prisma().bundlePhaseDate.deleteMany(),
+    prisma().bundleDate.deleteMany(),
     prisma().bundlePhase.deleteMany(),
-
-    // Documents, which are attached to bundles
     prisma().document.deleteMany(),
-
-    // Bundles themselves
     prisma().bundle.deleteMany(),
-
-    // Events, which attach to users and roles
     prisma().event.deleteMany(),
-
-    // delete system role assignments before roles and users
     prisma().systemRoleAssignment.deleteMany(),
-
     prisma().personState.deleteMany(),
-
-    // Finally, roles and users
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
   ]);
 }
 
 async function seedDatabase() {
+  console.log(process.env.ALLOW_SEED);
   checkIfAllowed();
+
   await clearDatabase();
 
   // Setting constants for record generation
@@ -253,6 +233,24 @@ async function seedDatabase() {
     })
   );
 
+  console.log("🌱 Seeding all dates for one demonstration");
+  const randomDemonstration = await prisma().demonstration.findRandom({
+    select: {
+      id: true,
+    },
+  });
+  for (const dateType of await prisma().dateType.findMany({
+    where: { NOT: { id: "Concept Start Date" } },
+  })) {
+    await prisma().bundleDate.create({
+      data: {
+        bundleId: randomDemonstration!.id,
+        dateTypeId: dateType.id,
+        dateValue: faker.date.future({ years: 1 }),
+      },
+    });
+  }
+
   console.log("🌱 Seeding amendments...");
   for (let i = 0; i < amendmentCount; i++) {
     const createInput: CreateAmendmentInput = {
@@ -319,7 +317,7 @@ async function seedDatabase() {
   // Every amendment and extension has an application
   const amendmentIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
+    where: { bundleTypeId: "Amendment" satisfies BundleType },
   });
   for (const amendmentId of amendmentIds) {
     const fakeName = faker.lorem.sentence(2);
@@ -337,7 +335,7 @@ async function seedDatabase() {
   }
   const extensionIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
+    where: { bundleTypeId: "Extension" satisfies BundleType },
   });
   for (const extensionId of extensionIds) {
     const fakeName = faker.lorem.sentence(2);

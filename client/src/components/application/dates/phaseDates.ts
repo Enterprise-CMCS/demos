@@ -1,8 +1,8 @@
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
-import { BundlePhase, PhaseName, PhaseStatus, BundlePhaseDate, DateType } from "demos-server";
+import { BundlePhase, PhaseName, PhaseStatus, BundleDate, DateType } from "demos-server";
 
-export type SimplePhaseDate = Omit<BundlePhaseDate, "createdAt" | "updatedAt">;
+export type SimplePhaseDate = Omit<BundleDate, "createdAt" | "updatedAt">;
 export type SimplePhase = Omit<BundlePhase, "createdAt" | "updatedAt" | "phaseDates"> & {
   phaseDates: SimplePhaseDate[];
 };
