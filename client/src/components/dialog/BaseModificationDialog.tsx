@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -7,6 +7,7 @@ import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { useDateValidation } from "hooks/useDateValidation";
+import { useDemonstration } from "hooks/useDemonstration";
 import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
 import { createSuccessMessages, useDialogForm } from "hooks/useDialogForm";
 import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
@@ -62,6 +63,26 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
   const [demonstration, setDemonstration] = useState(data?.demonstration || demonstrationId || "");
 
   const { demoOptions } = useDemonstrationOptions();
+  const { demonstration: demonstrationDetails, projectOfficer: demonstrationProjectOfficer } =
+    useDemonstration(demonstrationId);
+
+  useEffect(() => {
+    if (demonstrationId && demonstrationDetails && !data?.state) {
+      setState(demonstrationDetails.state.id);
+    }
+    if (demonstrationId && demonstrationProjectOfficer && !data?.projectOfficer) {
+      setProjectOfficer(demonstrationProjectOfficer.person.id);
+    }
+  }, [
+    demonstrationId,
+    demonstrationDetails,
+    demonstrationProjectOfficer,
+    data?.state,
+    data?.projectOfficer,
+  ]);
+
+  const shouldShowProjectOfficer = !demonstrationId;
+  const isStateDisabled = Boolean(demonstrationId);
 
   const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
     useDateValidation();
@@ -72,18 +93,24 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
     useDialogForm({
       mode,
       onClose,
-      validateForm: () => Boolean(demonstration && title && state && projectOfficer),
-      getFormData: () =>
-        getFormData(
-          {
-            demonstrationId: normalizeDemonstrationId(demonstration),
-            name: title,
-            description: description,
-            projectOfficerUserId: normalizeUserId(projectOfficer).toString(),
-          },
-          effectiveDate,
-          expirationDate
-        ),
+      validateForm: () => {
+        const basicValidation = Boolean(demonstration && title && state);
+        const projectOfficerValidation = shouldShowProjectOfficer ? Boolean(projectOfficer) : true;
+        return basicValidation && projectOfficerValidation;
+      },
+      getFormData: () => {
+        const baseFormData: Record<string, unknown> = {
+          demonstrationId: normalizeDemonstrationId(demonstration),
+          name: title,
+          description: description,
+        };
+
+        if (shouldShowProjectOfficer && projectOfficer) {
+          baseFormData.projectOfficerUserId = normalizeUserId(projectOfficer).toString();
+        }
+
+        return getFormData(baseFormData, effectiveDate, expirationDate);
+      },
       onSubmit,
       successMessage: createSuccessMessages(
         `${capitalizedEntityType} created successfully!`,
@@ -116,7 +143,12 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
             form={`${entityType}-form`}
             onClick={() => {}}
             disabled={
-              !(demonstration && title && state && projectOfficer) || formStatus === "pending"
+              !(
+                demonstration &&
+                title &&
+                state &&
+                (shouldShowProjectOfficer ? projectOfficer : true)
+              ) || formStatus === "pending"
             }
           >
             {formStatus === "pending" ? "Saving..." : "Submit"}
@@ -159,20 +191,23 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
               isRequired
               currentState={state}
               onStateChange={setState}
+              isDisabled={isStateDisabled}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-3">
-          <div className="col-span-2">
-            <SelectUsers
-              label="Project Officer"
-              isRequired
-              initialUserId={projectOfficer}
-              onSelect={setProjectOfficer}
-              personTypes={["demos-admin", "demos-cms-user"]}
-            />
-          </div>
+          {shouldShowProjectOfficer && (
+            <div className="col-span-2">
+              <SelectUsers
+                label="Project Officer"
+                isRequired
+                initialUserId={projectOfficer}
+                onSelect={setProjectOfficer}
+                personTypes={["demos-admin", "demos-cms-user"]}
+              />
+            </div>
+          )}
           {mode === "edit" && (
             <>
               <div className="flex flex-col gap-sm">
