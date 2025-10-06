@@ -24,7 +24,8 @@ pipeline {
           }
         }
 
-        archiveArtifacts artifacts: 'zap-output/**', allowEmptyArchive: true, fingerprint: true
+        archiveArtifacts artifacts: 'zap-output/output/**', allowEmptyArchive: true, fingerprint: true
+    
 
         }
       }

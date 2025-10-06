@@ -64,6 +64,14 @@ env:
         username: "${ZAP_EMAIL}"
   parameters: {}
 jobs:
+- type: replacer
+  rules:
+  - description: Add allow through
+    url: .*
+    matchType: req_header
+    matchString: x-allow-through
+    replacementString: test
+    initiators: null
 - type: spider
   parameters: {}
   tests:
@@ -87,11 +95,22 @@ jobs:
     endpoint: https://jesse.dev.demos.internal.cms.gov/api/graphql
     schemaUrl: https://jesse.dev.demos.internal.cms.gov/api/graphql
     schemaFile: ""
+- type: alertFilter
+  alertFilters:
+  - ruleId: 10096
+    ruleName: Timestamp Disclosure (10096)
+    newRisk: False Positive
+    url: https://jesse.dev.demos.internal.cms.gov/assets/.*.js
+    urlRegex: true
+    methods:
+    - GET
+  parameters: {}
+  enabled: false
 - type: report
   parameters:
     template: modern
-    theme: console
-    reportDir: /zap/wrk
+    theme: corporate
+    reportDir: "output"
     reportTitle: ZAP Scanning Report
     displayReport: true
   risks:
