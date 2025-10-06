@@ -25,8 +25,17 @@ const DEFAULT_PROPS = {
   mode: "create" as const,
 };
 
+// Test ID constants
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
 const CANCEL_BUTTON_TEST_ID = "button-cancel-demonstration-dialog";
+const DESCRIPTION_TEXTAREA_TEST_ID = "textarea-description";
+const TITLE_INPUT_TEST_ID = "input-demonstration-title";
+const STATE_SELECT_TEST_ID = "select-state";
+const PROJECT_OFFICER_SELECT_TEST_ID = "select-project-officer";
+const EFFECTIVE_DATE_INPUT_TEST_ID = "input-effective-date";
+const EXPIRATION_DATE_INPUT_TEST_ID = "input-expiration-date";
+const SDG_DIVISION_SELECT_TEST_ID = "select-sdg-division";
+const SIGNATURE_LEVEL_SELECT_TEST_ID = "select-signature-level";
 
 describe("DemonstrationDialog", () => {
   const GET_USER_SELECT_OPTIONS_MOCK = {
@@ -77,31 +86,46 @@ describe("DemonstrationDialog", () => {
 
   it("renders the description textarea", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
+    expect(screen.getByTestId(DESCRIPTION_TEXTAREA_TEST_ID)).toBeInTheDocument();
   });
 
-  it("renders name input field", () => {
+  it("renders title input field", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByLabelText(/Demonstration Name/i)).toBeInTheDocument();
+    expect(screen.getByTestId(TITLE_INPUT_TEST_ID)).toBeInTheDocument();
   });
 
   it("renders state select field", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByLabelText(/State/i)).toBeInTheDocument();
+    expect(screen.getByTestId(STATE_SELECT_TEST_ID)).toBeInTheDocument();
   });
 
   it("renders project officer select field", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByLabelText(/Project Officer/i)).toBeInTheDocument();
+    expect(screen.getByTestId(PROJECT_OFFICER_SELECT_TEST_ID)).toBeInTheDocument();
   });
 
-  it("renders effective date field", () => {
+  it("renders SDG division select field", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByLabelText(/Effective Date/i)).toBeInTheDocument();
+    expect(screen.getByTestId(SDG_DIVISION_SELECT_TEST_ID)).toBeInTheDocument();
   });
 
-  it("renders expiration date field", () => {
+  it("renders signature level select field", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByLabelText(/Expiration Date/i)).toBeInTheDocument();
+    expect(screen.getByTestId(SIGNATURE_LEVEL_SELECT_TEST_ID)).toBeInTheDocument();
+  });
+
+  it("renders effective date field in edit mode", () => {
+    render(getDemonstrationDialog("edit"));
+    expect(screen.getByTestId(EFFECTIVE_DATE_INPUT_TEST_ID)).toBeInTheDocument();
+  });
+
+  it("renders expiration date field in edit mode", () => {
+    render(getDemonstrationDialog("edit"));
+    expect(screen.getByTestId(EXPIRATION_DATE_INPUT_TEST_ID)).toBeInTheDocument();
+  });
+
+  it("renders the description textarea", () => {
+    render(getDemonstrationDialog());
+    expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
   });
 });

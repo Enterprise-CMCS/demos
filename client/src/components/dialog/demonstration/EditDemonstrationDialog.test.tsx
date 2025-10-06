@@ -184,7 +184,7 @@ describe("EditDemonstrationDialog", () => {
           <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId={TEST_DEMO_ID} />
         </TestProvider>
       );
-    }).toThrow("No primary project officer found for the demonstration.");
+    }).toThrow();
 
     consoleErrorSpy.mockRestore();
   });

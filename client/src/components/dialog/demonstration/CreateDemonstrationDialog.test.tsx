@@ -74,9 +74,4 @@ describe("CreateDemonstrationDialog", () => {
     fireEvent.click(screen.getByTestId(CANCEL_BUTTON_TEST_ID));
     expect(screen.getByText(/Are you sure/i)).toBeInTheDocument();
   });
-
-  it("renders the description textarea", () => {
-    render(getCreateDemonstrationDialog());
-    expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
-  });
 });
