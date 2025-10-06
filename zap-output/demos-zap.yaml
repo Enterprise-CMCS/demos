@@ -1,0 +1,114 @@
+env:
+  contexts:
+  - name: demos-test
+    urls:
+    - https://jesse.dev.demos.internal.cms.gov
+    includePaths:
+    - https://jesse.dev.demos.internal.cms.gov.*
+    excludePaths:
+    - https://content-signature-2.cdn.mozilla.net/.*
+    authentication:
+      method: browser
+      parameters:
+        loginPageUrl: https://jesse.dev.demos.internal.cms.gov
+        loginPageWait: 4
+        browserId: firefox
+        stepDelay: 3
+        diagnostics: false
+        steps: []
+      verification:
+        method: poll
+        loggedInRegex: \Q 200 OK\E
+        loggedOutRegex: \Q 401 Unauthorized\E
+        pollFrequency: 60
+        pollUnits: requests
+        pollUrl: https://jesse.dev.demos.internal.cms.gov/api/graphql
+        pollPostData: "{\"operationName\":\"GetCurrentUser\",\"variables\":{},\"query\"\
+          :\"query GetCurrentUser {\\n  currentUser {\\n    person {\\n      personType\\\
+          n      fullName\\n      displayName\\n      email\\n      __typename\\n\
+          \    }\\n    __typename\\n  }\\n}\"}"
+    sessionManagement:
+      method: headers
+      parameters:
+        authorization: "Bearer {%json:id_token%}"
+    technology:
+      exclude:
+      - C
+      - ASP
+      - IBM DB2
+      - SQLite
+      - PHP
+      - CouchDB
+      - XML
+      - Microsoft SQL Server
+      - MariaDB
+      - Oracle
+      - JSP/Servlet
+      - MongoDB
+      - Firebird
+      - HypersonicSQL
+      - MySQL
+      - SAP MaxDB
+      - SVN
+      - Ruby
+      - WS
+      - Microsoft Access
+      - Java
+      - Sybase
+      - Python
+    structure: {}
+    users:
+    - name: ${ZAP_EMAIL}
+      credentials:
+        password: "${ZAP_PASSWORD}"
+        username: "${ZAP_EMAIL}"
+  parameters: {}
+jobs:
+- type: spider
+  parameters: {}
+  tests:
+  - name: At least 100 URLs found
+    type: stats
+    onFail: INFO
+    statistic: automation.spider.urls.added
+    operator: '>='
+    value: 20
+- type: spiderAjax
+  parameters: {}
+  tests:
+  - name: At least 100 URLs found
+    type: stats
+    onFail: INFO
+    statistic: spiderAjax.urls.added
+    operator: '>='
+    value: 8
+- type: graphql
+  parameters: 
+    endpoint: https://jesse.dev.demos.internal.cms.gov/api/graphql
+    schemaUrl: https://jesse.dev.demos.internal.cms.gov/api/graphql
+    schemaFile: ""
+- type: report
+  parameters:
+    template: modern
+    theme: console
+    reportDir: /zap/wrk
+    reportTitle: ZAP Scanning Report
+    displayReport: true
+  risks:
+  - low
+  - medium
+  - high
+  confidences:
+  - low
+  - medium
+  - high
+  - confirmed
+  sections:
+  - passingrules
+  - instancecount
+  - alertdetails
+  - alertcount
+  - params
+  - chart
+  - statistics
+

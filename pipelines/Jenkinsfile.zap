@@ -15,7 +15,9 @@ pipeline {
     stage('Zap Scan') {
       steps {
         container("zap") {
-          sh "/zap/zap.sh -h"
+          withCredentials([usernamePassword(credentialsId: 'zap-credentials', usernameVariable: 'ZAP_EMAIL', passwordVariable: 'ZAP_PASSWORD')]) { // pragma: allowlist secret
+            sh "/zap/zap.sh -cmd -autorun \$(pwd)/zap-output/demos-zap.yaml"
+          }
         }
       }
     }
