@@ -54,8 +54,8 @@ export const PHASE_NAME = [
   "State Application",
   "Completeness",
   "Federal Comment",
-  "SME/FRT",
-  "OGC & OMB",
+  "SDG Preparation",
+  "OGC & OMB Review",
   "Approval Package",
   "Post Approval",
 ] as const;
@@ -63,15 +63,30 @@ export const PHASE_NAME = [
 export const PHASE_STATUS = ["Not Started", "Started", "Completed", "Skipped"] as const;
 
 export const DATE_TYPES = [
-  "Start Date",
+  "Concept Start Date",
   "Pre-Submission Submitted Date",
+  "Concept Completion Date",
+  "State Application Start Date",
   "State Application Submitted Date",
-  "State Application Deemed Complete",
   "Completeness Review Due Date",
+  "State Application Completion Date",
+  "Completeness Start Date",
   "Completeness Due Date",
+  "State Application Deemed Complete",
   "Federal Comment Period Start Date",
   "Federal Comment Period End Date",
-  "Completion Date",
+  "Completeness Completion Date",
+  "SDG Preparation Start Date",
+  "Expected Approval Date",
+  "SME Review Date",
+  "FRT Initial Meeting Date",
+  "BNPMT Initial Meeting Date",
+  "SDG Preparation Completion Date",
+  "OGC & OMB Review Start Date",
+  "OGC Review Complete",
+  "OMB Review Complete",
+  "PO & OGD Sign-Off",
+  "OGC & OMB Review Completion Date",
 ] as const;
 
 // US States and Territories
