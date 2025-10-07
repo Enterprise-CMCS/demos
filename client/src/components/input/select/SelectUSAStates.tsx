@@ -31,6 +31,7 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
   return (
     <AutoCompleteSelect
       id="us-state"
+      dataTestId="select-us-state"
       label={label}
       options={options}
       placeholder={`Select ${label.toLowerCase()}…`}

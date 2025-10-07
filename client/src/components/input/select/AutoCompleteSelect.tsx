@@ -9,6 +9,7 @@ export interface AutoCompleteSelectProps {
   placeholder?: string;
   onSelect: (value: string) => void;
   id?: string;
+  dataTestId?: string;
   label?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
@@ -27,6 +28,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   placeholder = "Select",
   onSelect,
   id,
+  dataTestId,
   label,
   isRequired = false,
   isDisabled = false,
@@ -101,7 +103,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
       <div className="relative w-full">
         <input
-          data-testid="input-autocomplete-select"
+          data-testid={dataTestId || "input-autocomplete-select"}
           id={id}
           type="text"
           placeholder={placeholder}
@@ -113,6 +115,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           disabled={isDisabled}
           className={`${INPUT_BASE_CLASSES} ${getInputColors("")} w-full`}
           data-form-type="other"
+          autoComplete="off"
         />
         <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />
