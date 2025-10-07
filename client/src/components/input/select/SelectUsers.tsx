@@ -60,6 +60,7 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
   return (
     <AutoCompleteSelect
       id={`users-${label.toLowerCase()}`}
+      dataTestId="select-users"
       label={label}
       options={getOptionsFromPeople(people)}
       placeholder={`Select ${label.toLowerCase()}…`}
