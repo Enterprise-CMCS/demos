@@ -5,7 +5,7 @@ import { createFormDataWithDates } from "hooks/useDialogForm";
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
 import { gql } from "graphql-tag";
 import { useMutation } from "@apollo/client";
-import { Extension as ServerExtension, Demonstration as ServerDemonstration } from "demos-server";
+import { Extension as ServerExtension, Demonstration } from "demos-server";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
 type Props = Pick<
@@ -27,7 +27,7 @@ export const CREATE_EXTENSION_MUTATION = gql`
 `;
 
 type Extension = Pick<ServerExtension, "id"> & {
-  demonstration: Pick<ServerDemonstration, "id">;
+  demonstration: Pick<Demonstration, "id">;
 };
 
 export const ExtensionDialog: React.FC<Props> = ({
