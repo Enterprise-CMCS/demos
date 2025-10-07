@@ -10,7 +10,7 @@ import {
   FederalCommentPhase,
   OgcOmbPhase,
   PostApprovalPhase,
-  SdgPrepartionPhase,
+  SdgPreparationPhase,
   StateApplicationPhase,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
@@ -87,7 +87,7 @@ export const PhaseSelector = ({
         />
       );
     },
-    "SDG Preparation": SdgPrepartionPhase,
+    "SDG Preparation": SdgPreparationPhase,
     "OGC & OMB Review": OgcOmbPhase,
     "Approval Package": ApprovalPackagePhase,
     "Post Approval": PostApprovalPhase,
