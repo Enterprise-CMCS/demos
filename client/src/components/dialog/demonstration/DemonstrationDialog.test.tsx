@@ -4,7 +4,7 @@ import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUse
 import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 
 import { DemonstrationDialog } from "./DemonstrationDialog";
 
@@ -30,12 +30,12 @@ const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
 const CANCEL_BUTTON_TEST_ID = "button-cancel-demonstration-dialog";
 const DESCRIPTION_TEXTAREA_TEST_ID = "textarea-description";
 const TITLE_INPUT_TEST_ID = "input-demonstration-title";
-const STATE_SELECT_TEST_ID = "select-state";
-const PROJECT_OFFICER_SELECT_TEST_ID = "select-project-officer";
+const STATE_SELECT_TEST_ID = "select-us-state";
+const SELECT_USERS_TEST_ID = "select-users";
 const EFFECTIVE_DATE_INPUT_TEST_ID = "input-effective-date";
 const EXPIRATION_DATE_INPUT_TEST_ID = "input-expiration-date";
-const SDG_DIVISION_SELECT_TEST_ID = "select-sdg-division";
-const SIGNATURE_LEVEL_SELECT_TEST_ID = "select-signature-level";
+const SDG_DIVISION_SELECT_TEST_ID = "sdg-division-select";
+const SIGNATURE_LEVEL_SELECT_TEST_ID = "signature-level-select";
 
 describe("DemonstrationDialog", () => {
   const GET_USER_SELECT_OPTIONS_MOCK = {
@@ -99,9 +99,12 @@ describe("DemonstrationDialog", () => {
     expect(screen.getByTestId(STATE_SELECT_TEST_ID)).toBeInTheDocument();
   });
 
-  it("renders project officer select field", () => {
+  it("renders project officer select field", async () => {
     render(getDemonstrationDialog());
-    expect(screen.getByTestId(PROJECT_OFFICER_SELECT_TEST_ID)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByTestId(SELECT_USERS_TEST_ID)).toBeInTheDocument();
+    });
   });
 
   it("renders SDG division select field", () => {

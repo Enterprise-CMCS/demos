@@ -183,15 +183,13 @@ export const DemonstrationDialog: React.FC<{
     >
       <form id="demonstration-form" className="flex flex-col gap-[24px]" onSubmit={handleSubmit}>
         <div className="grid grid-cols-3 gap-[24px]">
-          <div data-testid="select-state">
-            <SelectUSAStates
-              label="State/Territory"
-              currentState={activeDemonstration.stateId}
-              value={activeDemonstration.stateId}
-              isRequired
-              onStateChange={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
-            />
-          </div>
+          <SelectUSAStates
+            label="State/Territory"
+            currentState={activeDemonstration.stateId}
+            value={activeDemonstration.stateId}
+            isRequired
+            onStateChange={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
+          />
           <div className="col-span-2">
             <TextInput
               name="input-demonstration-title"
@@ -207,7 +205,7 @@ export const DemonstrationDialog: React.FC<{
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          <div className="col-span-2" data-testid="select-project-officer">
+          <div className="col-span-2">
             <SelectUsers
               label="Project Officer"
               isRequired={true}
@@ -242,22 +240,16 @@ export const DemonstrationDialog: React.FC<{
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div data-testid="select-sdg-division">
-            <SelectSdgDivision
-              initialValue={activeDemonstration.sdgDivision}
-              onSelect={(sdgDivision) =>
-                setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))
-              }
-            />
-          </div>
-          <div data-testid="select-signature-level">
-            <SelectSignatureLevel
-              initialValue={activeDemonstration.signatureLevel}
-              onSelect={(signatureLevel) =>
-                setActiveDemonstration((prev) => ({ ...prev, signatureLevel }))
-              }
-            />
-          </div>
+          <SelectSdgDivision
+            initialValue={activeDemonstration.sdgDivision}
+            onSelect={(sdgDivision) => setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))}
+          />
+          <SelectSignatureLevel
+            initialValue={activeDemonstration.signatureLevel}
+            onSelect={(signatureLevel) =>
+              setActiveDemonstration((prev) => ({ ...prev, signatureLevel }))
+            }
+          />
         </div>
       </form>
     </BaseDialog>
