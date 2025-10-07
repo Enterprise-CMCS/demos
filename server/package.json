@@ -39,7 +39,8 @@
     "migrate:deploy": "prisma migrate deploy",
     "lint:debug": "node --inspect-brk $(which eslint) .",
     "test": "vitest run",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.859.0",
@@ -50,7 +51,7 @@
     "@graphql-tools/merge": "^9.0.24",
     "@parcel/watcher": "^2.5.1",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.14.1",    
+    "@types/node": "^22.14.1",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "artillery": "^2.0.23",
@@ -68,6 +69,7 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "vitest-sonar-reporter": "^2.0.4"
   }
 }
