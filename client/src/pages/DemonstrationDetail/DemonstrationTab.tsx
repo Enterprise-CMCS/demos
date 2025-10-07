@@ -2,23 +2,24 @@ import React, { useState } from "react";
 
 import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { SecondaryButton } from "components/button";
+import { EditContactDialog } from "components/dialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { AddNewIcon } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import { Tab, Tabs } from "layout/Tabs";
 import {
   BundleStatus,
-  DemonstrationRoleAssignment,
   Demonstration,
+  DemonstrationRoleAssignment,
   Document,
-  PhaseName,
   Person,
+  PhaseName,
   State,
   User,
 } from "demos-server";
-import { EditContactDialog } from "components/dialog";
+import { Tab, Tabs } from "layout/Tabs";
+
 type ModalType = "document" | "contact" | null;
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
@@ -96,7 +97,17 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
       </Tabs>
 
       {modalType === "document" && (
-        <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
+        <AddDocumentDialog
+          isOpen={true}
+          onClose={() => setModalType(null)}
+          initialDocument={{
+            id: demonstration.id,
+            name: "",
+            description: "",
+            documentType: "General File",
+            file: null,
+          }}
+        />
       )}
       {modalType === "contact" && (
         <EditContactDialog

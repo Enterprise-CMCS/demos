@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useCallback, useContext, useState } from "react";
+
 import { ToastType } from "./BaseToast";
 
 export interface Toast {
@@ -33,36 +34,51 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  const addToast = useCallback((type: ToastType, message: string, durationMs: number = DEFAULT_TOAST_DURATION_MS) => {
-    if (durationMs <= 0) {
-      throw new Error("Toast duration must be greater than 0");
-    }
+  const addToast = useCallback(
+    (type: ToastType, message: string, durationMs: number = DEFAULT_TOAST_DURATION_MS) => {
+      if (durationMs <= 0) {
+        throw new Error("Toast duration must be greater than 0");
+      }
 
-    const newToastID = `toast-${Date.now()}`;
-    const newToast: Toast = { id: newToastID, type, message, durationMs };
+      const newToastID = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newToast: Toast = { id: newToastID, type, message, durationMs };
 
-    setToasts((prev) => [...prev, newToast]);
+      setToasts((prev) => [...prev, newToast]);
 
-    setTimeout(() => {
-      removeToast(newToastID);
-    }, durationMs);
-  }, [removeToast]);
+      setTimeout(() => {
+        removeToast(newToastID);
+      }, durationMs);
+    },
+    [removeToast]
+  );
 
-  const showInfo = useCallback((message: string, duration?: number) => {
-    addToast("info", message, duration);
-  }, [addToast]);
+  const showInfo = useCallback(
+    (message: string, duration?: number) => {
+      addToast("info", message, duration);
+    },
+    [addToast]
+  );
 
-  const showSuccess = useCallback((message: string, duration?: number) => {
-    addToast("success", message, duration);
-  }, [addToast]);
+  const showSuccess = useCallback(
+    (message: string, duration?: number) => {
+      addToast("success", message, duration);
+    },
+    [addToast]
+  );
 
-  const showWarning = useCallback((message: string, duration?: number) => {
-    addToast("warning", message, duration);
-  }, [addToast]);
+  const showWarning = useCallback(
+    (message: string, duration?: number) => {
+      addToast("warning", message, duration);
+    },
+    [addToast]
+  );
 
-  const showError = useCallback((message: string, duration?: number) => {
-    addToast("error", message, duration);
-  }, [addToast]);
+  const showError = useCallback(
+    (message: string, duration?: number) => {
+      addToast("error", message, duration);
+    },
+    [addToast]
+  );
 
   const value: ToastContextValue = {
     toasts,
@@ -74,11 +90,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     showError,
   };
 
-  return (
-    <ToastContext.Provider value={value}>
-      {children}
-    </ToastContext.Provider>
-  );
+  return <ToastContext.Provider value={value}>{children}</ToastContext.Provider>;
 };
 
 export const useToast = (): ToastContextValue => {
