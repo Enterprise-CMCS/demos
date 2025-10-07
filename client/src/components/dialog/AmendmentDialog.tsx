@@ -1,16 +1,32 @@
 import React from "react";
 
-import { CreateAmendmentInput, UpdateAmendmentInput } from "demos-server";
 import { createFormDataWithDates } from "hooks/useDialogForm";
-import { useAmendment } from "hooks/useAmendment";
 
-import {
-  BaseModificationDialog,
-  BaseModificationDialogProps,
-} from "./BaseModificationDialog";
+import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
+import { gql } from "graphql-tag";
+import { useMutation } from "@apollo/client";
+import { Amendment as ServerAmendment, Demonstration } from "demos-server";
+
+export const CREATE_AMENDMENT_MUTATION = gql`
+  mutation CreateAmendment($input: CreateAmendmentInput!) {
+    createAmendment(input: $input) {
+      id
+      demonstration {
+        id
+      }
+    }
+  }
+`;
+
+type Amendment = Pick<ServerAmendment, "id"> & {
+  demonstration: Pick<Demonstration, "id">;
+};
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to amendmentId for clarity
-type Props = Pick<BaseModificationDialogProps, "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"> & {
+type Props = Pick<
+  BaseModificationDialogProps,
+  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
+> & {
   amendmentId?: string;
 };
 
@@ -22,22 +38,41 @@ export const AmendmentDialog: React.FC<Props> = ({
   demonstrationId,
   data,
 }) => {
-  const { createAmendment, updateAmendment } = useAmendment();
+  const [createAmendmentMutation] = useMutation<{ createAmendment: Amendment }>(
+    CREATE_AMENDMENT_MUTATION,
+    {
+      update(cache, { data }) {
+        const amendment = data?.createAmendment;
+        if (!amendment) {
+          throw new Error("No amendment returned from createAmendment mutation");
+        }
+
+        cache.modify({
+          id: cache.identify({
+            __typename: "Demonstration",
+            id: amendment.demonstration.id,
+          }),
+          fields: {
+            amendments(existingAmendments = []) {
+              return [...existingAmendments, amendment];
+            },
+          },
+        });
+      },
+    }
+  );
 
   const handleAmendmentSubmit = async (amendmentData: Record<string, unknown>) => {
     if (mode === "add") {
-      await createAmendment.trigger(amendmentData as unknown as CreateAmendmentInput);
-      return;
+      await createAmendmentMutation({
+        variables: {
+          input: amendmentData,
+        },
+      });
+    } else {
+      // TODO: Implement extension update logic when available
+      console.log("Extension update not yet implemented for ID:", amendmentId);
     }
-
-    if (!amendmentId) {
-      throw new Error("Amendment ID is required to update an amendment.");
-    }
-
-    await updateAmendment.trigger(
-      amendmentId,
-      amendmentData as unknown as UpdateAmendmentInput
-    );
   };
 
   const getAmendmentFormData = (
@@ -45,8 +80,9 @@ export const AmendmentDialog: React.FC<Props> = ({
     effectiveDate?: string,
     expirationDate?: string
   ) => {
-    const { projectOfficerUserId, ...amendmentData } =
-      baseData as Record<string, unknown> & { projectOfficerUserId?: unknown };
+    const { projectOfficerUserId, ...amendmentData } = baseData as Record<string, unknown> & {
+      projectOfficerUserId?: unknown;
+    };
     void projectOfficerUserId;
 
     return createFormDataWithDates(

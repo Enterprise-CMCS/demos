@@ -1,10 +1,11 @@
 import React from "react";
 
-import { CreateExtensionInput } from "demos-server";
 import { createFormDataWithDates } from "hooks/useDialogForm";
-import { useExtension } from "hooks/useExtension";
 
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
+import { gql } from "graphql-tag";
+import { useMutation } from "@apollo/client";
+import { Extension as ServerExtension, Demonstration as ServerDemonstration } from "demos-server";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
 type Props = Pick<
@@ -12,6 +13,21 @@ type Props = Pick<
   "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
 > & {
   extensionId?: string;
+};
+
+export const CREATE_EXTENSION_MUTATION = gql`
+  mutation CreateExtension($input: CreateExtensionInput!) {
+    createExtension(input: $input) {
+      id
+      demonstration {
+        id
+      }
+    }
+  }
+`;
+
+type Extension = Pick<ServerExtension, "id"> & {
+  demonstration: Pick<ServerDemonstration, "id">;
 };
 
 export const ExtensionDialog: React.FC<Props> = ({
@@ -22,12 +38,37 @@ export const ExtensionDialog: React.FC<Props> = ({
   demonstrationId,
   data,
 }) => {
-  const { createExtension } = useExtension();
+  const [createExtensionMutation] = useMutation<{ createExtension: Extension }>(
+    CREATE_EXTENSION_MUTATION,
+    {
+      update(cache, { data }) {
+        const extension = data?.createExtension;
+        if (!extension) {
+          throw new Error("No extension returned from createExtension mutation");
+        }
+
+        cache.modify({
+          id: cache.identify({
+            __typename: "Demonstration",
+            id: extension.demonstration.id,
+          }),
+          fields: {
+            extensions(existingExtensions = []) {
+              return [...existingExtensions, extension];
+            },
+          },
+        });
+      },
+    }
+  );
 
   const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
     if (mode === "add") {
-      // Cast to the proper type since we know the structure from BaseModificationDialog
-      await createExtension.trigger(extensionData as unknown as CreateExtensionInput);
+      await createExtensionMutation({
+        variables: {
+          input: extensionData,
+        },
+      });
     } else {
       // TODO: Implement extension update logic when available
       console.log("Extension update not yet implemented for ID:", extensionId);
