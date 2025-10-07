@@ -6,6 +6,7 @@ import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModif
 import { gql } from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { Extension as ServerExtension, Demonstration } from "demos-server";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
 type Props = Pick<
@@ -39,27 +40,7 @@ export const ExtensionDialog: React.FC<Props> = ({
   data,
 }) => {
   const [createExtensionMutation] = useMutation<{ createExtension: Extension }>(
-    CREATE_EXTENSION_MUTATION,
-    {
-      update(cache, { data }) {
-        const extension = data?.createExtension;
-        if (!extension) {
-          throw new Error("No extension returned from createExtension mutation");
-        }
-
-        cache.modify({
-          id: cache.identify({
-            __typename: "Demonstration",
-            id: extension.demonstration.id,
-          }),
-          fields: {
-            extensions(existingExtensions = []) {
-              return [...existingExtensions, extension];
-            },
-          },
-        });
-      },
-    }
+    CREATE_EXTENSION_MUTATION
   );
 
   const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
@@ -68,6 +49,12 @@ export const ExtensionDialog: React.FC<Props> = ({
         variables: {
           input: extensionData,
         },
+        refetchQueries: [
+          {
+            query: DEMONSTRATION_DETAIL_QUERY,
+            variables: { id: demonstrationId },
+          },
+        ],
       });
     } else {
       // TODO: Implement extension update logic when available

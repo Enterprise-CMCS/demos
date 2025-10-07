@@ -6,6 +6,7 @@ import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModif
 import { gql } from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { Amendment as ServerAmendment, Demonstration } from "demos-server";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 export const CREATE_AMENDMENT_MUTATION = gql`
   mutation CreateAmendment($input: CreateAmendmentInput!) {
@@ -39,27 +40,7 @@ export const AmendmentDialog: React.FC<Props> = ({
   data,
 }) => {
   const [createAmendmentMutation] = useMutation<{ createAmendment: Amendment }>(
-    CREATE_AMENDMENT_MUTATION,
-    {
-      update(cache, { data }) {
-        const amendment = data?.createAmendment;
-        if (!amendment) {
-          throw new Error("No amendment returned from createAmendment mutation");
-        }
-
-        cache.modify({
-          id: cache.identify({
-            __typename: "Demonstration",
-            id: amendment.demonstration.id,
-          }),
-          fields: {
-            amendments(existingAmendments = []) {
-              return [...existingAmendments, amendment];
-            },
-          },
-        });
-      },
-    }
+    CREATE_AMENDMENT_MUTATION
   );
 
   const handleAmendmentSubmit = async (amendmentData: Record<string, unknown>) => {
@@ -68,6 +49,12 @@ export const AmendmentDialog: React.FC<Props> = ({
         variables: {
           input: amendmentData,
         },
+        refetchQueries: [
+          {
+            query: DEMONSTRATION_DETAIL_QUERY,
+            variables: { id: demonstrationId },
+          },
+        ],
       });
     } else {
       // TODO: Implement amendment update logic when available
