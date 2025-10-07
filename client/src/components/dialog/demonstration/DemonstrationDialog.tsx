@@ -192,7 +192,7 @@ export const DemonstrationDialog: React.FC<{
           />
           <div className="col-span-2">
             <TextInput
-              name="title"
+              name="input-demonstration-title"
               label="Demonstration Title"
               isRequired
               placeholder="Enter title"
