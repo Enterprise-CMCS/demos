@@ -1,11 +1,71 @@
 import React from "react";
 
+import { TestProvider } from "test-utils/TestProvider";
 import { vi } from "vitest";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 
-import { BaseModificationDialog, ModificationDialogData } from "./BaseModificationDialog";
-import { TestProvider } from "test-utils/TestProvider";
+import {
+  BaseModificationDialog,
+  ModificationDialogData,
+} from "./BaseModificationDialog";
+
+// Mock hooks for context-aware behavior tests
+vi.mock("hooks/useDemonstration", () => ({
+  useDemonstration: vi.fn(() => ({
+    demonstration: {
+      id: "demo-1",
+      name: "Test Demonstration",
+      state: { id: "CA", name: "California" },
+      roles: [
+        {
+          isPrimary: true,
+          role: "Project Officer",
+          person: { id: "officer-1", fullName: "Test Officer" },
+        },
+      ],
+    },
+    projectOfficer: {
+      isPrimary: true,
+      role: "Project Officer",
+      person: { id: "officer-1", fullName: "Test Officer" },
+    },
+    loading: false,
+    error: null,
+  })),
+}));
+
+vi.mock("hooks/useDemonstrationOptions", () => ({
+  useDemonstrationOptions: () => ({
+    demoOptions: [
+      { label: "Demo 1", value: "demo-1" },
+      { label: "Demo 2", value: "demo-2" },
+    ],
+    loading: false,
+    error: null,
+  }),
+}));
+
+// Mock SelectUsers component to avoid GraphQL dependency
+vi.mock("components/input/select/SelectUsers", () => ({
+  SelectUsers: ({ label, isRequired }: { label?: string; isRequired?: boolean }) => (
+    <div>
+      <label className="text-text-font font-bold text-field-label flex gap-0-5">
+        {isRequired && <span className="text-text-warn">*</span>}
+        {label || "Project Officer"}
+      </label>
+      <select data-testid="select-users">
+        <option value="">Select user</option>
+        <option value="officer-1">Test Officer</option>
+      </select>
+    </div>
+  ),
+}));
 
 describe("BaseModificationDialog", () => {
   const mockOnSubmit = vi.fn();
@@ -156,5 +216,120 @@ describe("BaseModificationDialog", () => {
 
     expect(screen.getByTestId("input-effective-date")).toBeInTheDocument();
     expect(screen.getByTestId("input-expiration-date")).toBeInTheDocument();
+  });
+
+  // Business Requirements Tests
+  describe("Context-Aware Behavior Requirements", () => {
+    describe("When creating from landing page (no demonstrationId)", () => {
+      it("shows project officer field and enables state selection", async () => {
+        render(getBaseModificationDialog("add", "amendment"));
+
+        // Wait for the SelectUsers component to load
+        await waitFor(() => {
+          // Project officer field should be visible and required
+          expect(screen.getByText("Project Officer")).toBeInTheDocument();
+        });
+
+        // State field should be enabled
+        const stateField = screen.getByLabelText(/State\/Territory/i);
+        expect(stateField).not.toBeDisabled();
+      });
+
+      it("requires project officer for form validation", () => {
+        render(getBaseModificationDialog("add", "amendment"));
+
+        const submitButton = screen.getByTestId("button-submit-modification-dialog");
+
+        // Should be disabled when project officer is not selected
+        expect(submitButton).toBeDisabled();
+      });
+    });
+
+    describe("When creating from within demonstration context (demonstrationId provided)", () => {
+      it("hides project officer field and disables state selection", async () => {
+        render(getBaseModificationDialog("add", "amendment", undefined, "demo-1"));
+
+        // Wait for the demonstration data to load and populate
+        await waitFor(() => {
+          // Project officer field should NOT be visible
+          expect(screen.queryByText("Project Officer")).not.toBeInTheDocument();
+        });
+
+        // State field should be disabled
+        const stateField = screen.getByLabelText(/State\/Territory/i);
+        expect(stateField).toBeDisabled();
+      });
+
+      it("pre-populates state from demonstration", async () => {
+        render(getBaseModificationDialog("add", "amendment", undefined, "demo-1"));
+
+        // Wait for the state to be populated from demonstration
+        await waitFor(() => {
+          const stateField = screen.getByLabelText(/State\/Territory/i) as HTMLInputElement;
+          // The field should display the demonstration's state name (AutoCompleteSelect shows labels)
+          expect(stateField.value).toBe("California");
+        });
+      });
+
+      it("does not require project officer for form validation", async () => {
+        render(getBaseModificationDialog("add", "amendment", undefined, "demo-1"));
+
+        // Fill in required fields (except project officer)
+        const titleField = screen.getByLabelText(/Amendment Title/i);
+        fireEvent.change(titleField, { target: { value: "Test Amendment" } });
+
+        // Wait for state to be populated
+        await waitFor(() => {
+          const stateField = screen.getByLabelText(/State\/Territory/i) as HTMLInputElement;
+          expect(stateField.value).toBe("California");
+        });
+
+        // Submit button should be enabled even without project officer
+        await waitFor(() => {
+          const submitButton = screen.getByTestId("button-submit-modification-dialog");
+          expect(submitButton).not.toBeDisabled();
+        });
+      });
+
+      it("excludes projectOfficerUserId from form data when not shown", async () => {
+        render(getBaseModificationDialog("add", "amendment", undefined, "demo-1"));
+
+        const titleField = screen.getByLabelText(/Amendment Title/i);
+        fireEvent.change(titleField, { target: { value: "Test Amendment" } });
+
+        await waitFor(() => {
+          const submitButton = screen.getByTestId("button-submit-modification-dialog");
+          expect(submitButton).not.toBeDisabled();
+        });
+
+        const submitButton = screen.getByTestId("button-submit-modification-dialog");
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+          expect(mockGetFormData).toHaveBeenCalled();
+          const formData = mockGetFormData.mock.calls[0][0];
+          expect(formData).not.toHaveProperty("projectOfficerUserId");
+        });
+      });
+    });
+
+    describe("Works for both amendments and extensions", () => {
+      it("applies the same behavior to extension dialogs", async () => {
+        render(getBaseModificationDialog("add", "extension", undefined, "demo-1"));
+
+        await waitFor(() => {
+          // Project officer field should NOT be visible
+          expect(screen.queryByText("Project Officer")).not.toBeInTheDocument();
+        });
+
+        // State field should be disabled and pre-populated
+        const stateField = screen.getByLabelText(/State\/Territory/i);
+        expect(stateField).toBeDisabled();
+
+        await waitFor(() => {
+          expect((stateField as HTMLInputElement).value).toBe("California");
+        });
+      });
+    });
   });
 });
