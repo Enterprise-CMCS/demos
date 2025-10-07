@@ -7,6 +7,7 @@ import { gql } from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { Amendment as ServerAmendment, Demonstration } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
 export const CREATE_AMENDMENT_MUTATION = gql`
   mutation CreateAmendment($input: CreateAmendmentInput!) {
@@ -53,6 +54,9 @@ export const AmendmentDialog: React.FC<Props> = ({
           {
             query: DEMONSTRATION_DETAIL_QUERY,
             variables: { id: demonstrationId },
+          },
+          {
+            query: DEMONSTRATIONS_PAGE_QUERY,
           },
         ],
       });

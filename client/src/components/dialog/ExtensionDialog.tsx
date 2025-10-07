@@ -7,6 +7,7 @@ import { gql } from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { Extension as ServerExtension, Demonstration } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
 type Props = Pick<
@@ -53,6 +54,9 @@ export const ExtensionDialog: React.FC<Props> = ({
           {
             query: DEMONSTRATION_DETAIL_QUERY,
             variables: { id: demonstrationId },
+          },
+          {
+            query: DEMONSTRATIONS_PAGE_QUERY,
           },
         ],
       });
