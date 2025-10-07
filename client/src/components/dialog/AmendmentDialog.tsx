@@ -70,7 +70,7 @@ export const AmendmentDialog: React.FC<Props> = ({
         },
       });
     } else {
-      // TODO: Implement extension update logic when available
+      // TODO: Implement amendment update logic when available
       console.log("Amendment update not yet implemented for ID:", amendmentId);
     }
   };
