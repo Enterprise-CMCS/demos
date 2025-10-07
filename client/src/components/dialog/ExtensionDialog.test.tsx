@@ -8,6 +8,7 @@ import { CREATE_EXTENSION_MUTATION, ExtensionDialog } from "./ExtensionDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { ModificationDialogData, ModificationDialogMode } from "./BaseModificationDialog";
 import { personMocks } from "mock-data/personMocks";
+import { demonstrationMocks } from "mock-data/demonstrationMocks";
 
 const mockCreateExtension = vi.fn();
 
@@ -18,7 +19,7 @@ const createExtensionMock = {
       input: {
         name: "Test Extension",
         description: "Test description",
-        demonstrationId: "demo-123",
+        demonstrationId: "1",
       },
     },
   },
@@ -29,7 +30,7 @@ const createExtensionMock = {
         createExtension: {
           id: "extension-123",
           demonstration: {
-            id: "demo-123",
+            id: "1",
           },
         },
       },
@@ -137,37 +138,17 @@ describe("ExtensionDialog", () => {
     const mockOnClose = vi.fn();
 
     render(
-      <TestProvider mocks={[createExtensionMock, ...personMocks]}>
-        <ExtensionDialog onClose={mockOnClose} mode="add" demonstrationId="demo-123" />
+      <TestProvider mocks={[createExtensionMock, ...personMocks, ...demonstrationMocks]}>
+        <ExtensionDialog onClose={mockOnClose} mode="add" demonstrationId="1" />
       </TestProvider>
     );
 
-    await waitFor(() => {
-      expect(screen.queryByText("Error loading users.")).not.toBeInTheDocument();
-    });
-
     const titleInput = screen.getByLabelText(/extension title/i);
     const descriptionTextarea = screen.getByLabelText(/extension description/i);
-    const stateInput = screen.getByLabelText(/state\/territory/i);
-    const projectOfficerInput = screen.getByLabelText(/project officer/i);
 
     fireEvent.change(titleInput, { target: { value: "Test Extension" } });
     fireEvent.change(descriptionTextarea, { target: { value: "Test description" } });
-    fireEvent.focus(stateInput);
-    fireEvent.change(stateInput, { target: { value: "CA" } });
 
-    await waitFor(() => {
-      const caOption = screen.getByText("California");
-      fireEvent.mouseDown(caOption);
-    });
-
-    fireEvent.focus(projectOfficerInput);
-    fireEvent.change(projectOfficerInput, { target: { value: "John Doe" } });
-
-    await waitFor(() => {
-      const johnDoeOption = screen.getByText("John Doe");
-      fireEvent.mouseDown(johnDoeOption);
-    });
     const submitButton = screen.getByTestId("button-submit-modification-dialog");
     await waitFor(() => {
       expect(submitButton).not.toBeDisabled();
