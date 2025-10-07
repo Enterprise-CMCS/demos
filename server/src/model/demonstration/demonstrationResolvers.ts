@@ -4,6 +4,7 @@ import { BundleType, PhaseName, BundleStatus, GrantLevel, Role } from "../../typ
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
+import { GraphQLError } from "graphql";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -14,6 +15,13 @@ const amendmentBundleType: BundleType = "Amendment";
 const extensionBundleType: BundleType = "Extension";
 
 export async function getDemonstration(parent: undefined, { id }: { id: string }) {
+  if (id === "123break") {
+    throw new GraphQLError("This is not the message you will see.", {
+      extensions: {
+        code: "EXAMPLE_TEST_ERROR_CODE",
+      },
+    });
+  }
   return await prisma().demonstration.findUnique({
     where: { id: id },
   });

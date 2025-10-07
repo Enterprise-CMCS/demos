@@ -7,12 +7,26 @@ import { authGatePlugin } from "./auth/auth.plugin.js";
 import { gatedLandingPagePlugin } from "./plugins/gatedLandingPage.plugin.js";
 import { loggingPlugin } from "./plugins/logging.plugin.js";
 import { setRequestContext, addToRequestContext, log } from "./logger.js";
+import { GraphQLError, GraphQLFormattedError } from "graphql";
+
+function formatError(error: GraphQLFormattedError) {
+  if (error.extensions?.code === "EXAMPLE_TEST_ERROR_CODE") {
+    const newError = new GraphQLError("This is an example of custom error handling.", {
+      extensions: {
+        code: error.extensions.code,
+      },
+    });
+    return newError;
+  }
+  return new GraphQLError("Something went horribly awry!");
+}
 
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
   introspection: process.env.ALLOW_INTROSPECTION === "true",
   plugins: [authGatePlugin, gatedLandingPagePlugin(), loggingPlugin],
+  formatError: formatError,
 });
 
 const { url } = await startStandaloneServer<GraphQLContext>(server, {
