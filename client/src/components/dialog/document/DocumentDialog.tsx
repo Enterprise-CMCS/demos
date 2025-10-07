@@ -323,11 +323,9 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const isUploading = uploadStatus === "uploading";
 
-  const missingTitle = false;
-  const missingDesc = false;
   const missingType = !activeDocument.documentType;
   const missingFile = !file;
-  const isMissing = missingTitle || missingDesc || missingType || missingFile;
+  const isMissing = missingType || missingFile;
 
   const focusFirstMissing = () => {
     if (missingType) {
