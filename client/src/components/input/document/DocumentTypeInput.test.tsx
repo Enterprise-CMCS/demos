@@ -1,9 +1,12 @@
 import React from "react";
+
+import { DocumentType } from "demos-server";
+import { DOCUMENT_TYPES } from "demos-server-constants";
+import { describe, expect, it, vi } from "vitest";
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi } from "vitest";
-import { DOCUMENT_TYPES } from "demos-server-constants";
-import { DocumentType } from "demos-server";
+
 import { DocumentTypeInput } from "./DocumentTypeInput";
 
 describe("DocumentTypeInput", () => {
@@ -29,7 +32,7 @@ describe("DocumentTypeInput", () => {
     const user = userEvent.setup();
     render(<DocumentTypeInput {...defaultProps} />);
 
-    const input = screen.getByLabelText("Document Type");
+    const input = screen.getByTestId("input-autocomplete-select");
     await user.click(input);
 
     // Check that all document types from DOCUMENT_TYPES are present
@@ -42,7 +45,7 @@ describe("DocumentTypeInput", () => {
     const user = userEvent.setup();
     render(<DocumentTypeInput {...defaultProps} />);
 
-    const input = screen.getByLabelText("Document Type");
+    const input = screen.getByTestId("input-autocomplete-select");
     await user.click(input);
 
     const option = screen.getByText("Approval Letter");
@@ -57,7 +60,7 @@ describe("DocumentTypeInput", () => {
 
     render(<DocumentTypeInput {...defaultProps} documentTypeSubset={documentTypeSubset} />);
 
-    const input = screen.getByLabelText("Document Type");
+    const input = screen.getByTestId("input-autocomplete-select");
     await user.click(input);
 
     // Should only show the subset
@@ -75,7 +78,7 @@ describe("DocumentTypeInput", () => {
 
     render(<DocumentTypeInput {...defaultProps} documentTypeSubset={documentTypeSubset} />);
 
-    const input = screen.getByLabelText("Document Type");
+    const input = screen.getByTestId("input-autocomplete-select");
     await user.click(input);
 
     // Should show no options when subset is empty
