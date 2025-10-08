@@ -1,7 +1,8 @@
 import React from "react";
 import { gql, useQuery } from "@apollo/client";
-import { AutoCompleteSelect, Option } from "./AutoCompleteSelect";
+import { AutoCompleteSelect } from "./AutoCompleteSelect";
 import { Person as ServerPerson, PersonType } from "demos-server";
+import { Option } from "./Select";
 
 export const GET_USER_SELECT_OPTIONS_QUERY = gql`
   query GetUserSelectOptions {
@@ -59,6 +60,7 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
   return (
     <AutoCompleteSelect
       id={`users-${label.toLowerCase()}`}
+      dataTestId="select-users"
       label={label}
       options={getOptionsFromPeople(people)}
       placeholder={`Select ${label.toLowerCase()}…`}

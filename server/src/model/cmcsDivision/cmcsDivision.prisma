@@ -1,9 +1,0 @@
-// Flags: STATIC_CONSTRAINT
-model CmcsDivision {
-  id String
-
-  demonstrations Demonstration[]
-
-  @@id([id])
-  @@map("cmcs_division")
-}

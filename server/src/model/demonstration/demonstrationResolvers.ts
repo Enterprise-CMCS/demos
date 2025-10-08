@@ -1,19 +1,17 @@
 import { Demonstration } from "@prisma/client";
-
-import { BUNDLE_TYPE } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { BundleType, Phase, BundleStatus, GrantLevel, Role } from "../../types.js";
+import { BundleType, PhaseName, BundleStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
-const demonstrationBundleTypeId: BundleType = BUNDLE_TYPE.DEMONSTRATION;
-const amendmentBundleTypeId: BundleType = BUNDLE_TYPE.AMENDMENT;
-const extensionBundleTypeId: BundleType = BUNDLE_TYPE.EXTENSION;
-const conceptPhaseId: Phase = "Concept";
+const conceptPhaseName: PhaseName = "Concept";
 const newBundleStatusId: BundleStatus = "Pre-Submission";
+const demonstrationBundleType: BundleType = "Demonstration";
+const amendmentBundleType: BundleType = "Amendment";
+const extensionBundleType: BundleType = "Extension";
 
 export async function getDemonstration(parent: undefined, { id }: { id: string }) {
   return await prisma().demonstration.findUnique({
@@ -33,7 +31,7 @@ export async function createDemonstration(
     await prisma().$transaction(async (tx) => {
       const bundle = await tx.bundle.create({
         data: {
-          bundleTypeId: demonstrationBundleTypeId,
+          bundleTypeId: demonstrationBundleType,
         },
       });
 
@@ -43,11 +41,11 @@ export async function createDemonstration(
           bundleTypeId: bundle.bundleTypeId,
           name: input.name,
           description: input.description,
-          cmcsDivisionId: input.cmcsDivision,
+          sdgDivisionId: input.sdgDivision,
           signatureLevelId: input.signatureLevel,
           statusId: newBundleStatusId,
           stateId: input.stateId,
-          currentPhaseId: conceptPhaseId,
+          currentPhaseId: conceptPhaseName,
         },
       });
 
@@ -97,7 +95,7 @@ export async function updateDemonstration(
   parent: undefined,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ) {
-  checkOptionalNotNullFields(["name", "status", "currentPhase", "stateId"], input);
+  checkOptionalNotNullFields(["name", "status", "currentPhaseName", "stateId"], input);
   return await prisma().demonstration.update({
     where: { id },
     data: {
@@ -105,10 +103,10 @@ export async function updateDemonstration(
       description: input.description,
       effectiveDate: input.effectiveDate,
       expirationDate: input.expirationDate,
-      cmcsDivisionId: input.cmcsDivision,
+      sdgDivisionId: input.sdgDivision,
       signatureLevelId: input.signatureLevel,
       statusId: input.status,
-      currentPhaseId: input.currentPhase,
+      currentPhaseId: input.currentPhaseName,
       stateId: input.stateId,
     },
   });
@@ -149,7 +147,7 @@ export const demonstrationResolvers = {
       return await prisma().modification.findMany({
         where: {
           demonstrationId: parent.id,
-          bundleTypeId: amendmentBundleTypeId,
+          bundleTypeId: amendmentBundleType,
         },
       });
     },
@@ -158,33 +156,29 @@ export const demonstrationResolvers = {
       return await prisma().modification.findMany({
         where: {
           demonstrationId: parent.id,
-          bundleTypeId: extensionBundleTypeId,
+          bundleTypeId: extensionBundleType,
         },
       });
     },
 
-    cmcsDivision: async (parent: Demonstration) => {
-      return parent.cmcsDivisionId;
+    sdgDivision: async (parent: Demonstration) => {
+      return parent.sdgDivisionId;
     },
 
     signatureLevel: async (parent: Demonstration) => {
       return parent.signatureLevelId;
     },
 
-    currentPhase: async (parent: Demonstration) => {
+    currentPhaseName: async (parent: Demonstration) => {
       return parent.currentPhaseId;
     },
 
     roles: async (parent: Demonstration) => {
-      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
+      return await prisma().demonstrationRoleAssignment.findMany({
         where: { demonstrationId: parent.id },
-        include: { primaryDemonstrationRoleAssignment: true },
       });
-      return roleAssignments.map((assignment) => ({
-        ...assignment,
-        isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
-      }));
     },
+
     status: resolveBundleStatus,
 
     phases: async (parent: Demonstration) => {

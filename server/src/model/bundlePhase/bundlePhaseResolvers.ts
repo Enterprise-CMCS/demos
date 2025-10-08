@@ -1,21 +1,16 @@
 import { BundlePhase } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { getBundleDatesForPhase } from "../bundleDate/bundleDateResolvers.js";
 
 export const bundlePhaseResolvers = {
   BundlePhase: {
-    phase: async (parent: BundlePhase) => {
+    phaseName: (parent: BundlePhase) => {
       return parent.phaseId;
     },
-    phaseStatus: async (parent: BundlePhase) => {
+    phaseStatus: (parent: BundlePhase) => {
       return parent.phaseStatusId;
     },
     phaseDates: async (parent: BundlePhase) => {
-      return await prisma().bundlePhaseDate.findMany({
-        where: {
-          bundleId: parent.bundleId,
-          phaseId: parent.phaseId,
-        },
-      });
+      return getBundleDatesForPhase(parent.bundleId, parent.phaseId);
     },
   },
 };

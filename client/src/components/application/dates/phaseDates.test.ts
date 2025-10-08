@@ -15,11 +15,11 @@ import {
 // Mock data for testing
 const mockPhaseDates: SimplePhaseDate[] = [
   {
-    dateType: "Start Date",
+    dateType: "Concept Start Date",
     dateValue: new Date("2025-01-01T05:00:00.000Z"), // 00:00 EST
   },
   {
-    dateType: "Completion Date",
+    dateType: "Concept Completion Date",
     dateValue: new Date("2025-01-31T04:59:59.999Z"), // 23:59 EST
   },
   {
@@ -30,17 +30,17 @@ const mockPhaseDates: SimplePhaseDate[] = [
 
 const mockBundlePhases: SimplePhase[] = [
   {
-    phase: "Concept",
+    phaseName: "Concept",
     phaseStatus: "Started",
     phaseDates: [
       {
-        dateType: "Start Date",
+        dateType: "Concept Start Date",
         dateValue: new Date("2025-01-01T05:00:00.000Z"),
       },
     ],
   },
   {
-    phase: "State Application",
+    phaseName: "State Application",
     phaseStatus: "Not Started",
     phaseDates: [
       {
@@ -50,7 +50,7 @@ const mockBundlePhases: SimplePhase[] = [
     ],
   },
   {
-    phase: "Completeness",
+    phaseName: "Completeness",
     phaseStatus: "Not Started",
     phaseDates: [],
   },
@@ -126,7 +126,7 @@ describe("phaseDates", () => {
 
   describe("Phase date operations", () => {
     it("should get existing date from phase dates", () => {
-      const date = getDateFromPhaseDates(mockPhaseDates, "Start Date");
+      const date = getDateFromPhaseDates(mockPhaseDates, "Concept Start Date");
 
       expect(date).toEqual(new Date("2025-01-01T05:00:00.000Z"));
     });
@@ -139,7 +139,7 @@ describe("phaseDates", () => {
 
     it("should set date in phase dates for existing date type", () => {
       const newDate = new Date("2025-02-01T05:00:00.000Z");
-      const updatedDates = setDateInPhaseDates(mockPhaseDates, "Start Date", newDate);
+      const updatedDates = setDateInPhaseDates(mockPhaseDates, "Concept Start Date", newDate);
 
       expect(updatedDates).toHaveLength(3);
       expect(updatedDates[0].dateValue).toEqual(newDate);
@@ -149,7 +149,7 @@ describe("phaseDates", () => {
     it("should not modify original array when setting date", () => {
       const originalDates = [...mockPhaseDates];
       const newDate = new Date("2025-02-01T05:00:00.000Z");
-      setDateInPhaseDates(mockPhaseDates, "Start Date", newDate);
+      setDateInPhaseDates(mockPhaseDates, "Concept Start Date", newDate);
 
       expect(mockPhaseDates).toEqual(originalDates);
     });
@@ -169,7 +169,7 @@ describe("phaseDates", () => {
       const dates = getAllDatesForPhase(mockBundlePhases, "Concept");
 
       expect(dates).toHaveLength(1);
-      expect(dates![0].dateType).toBe("Start Date");
+      expect(dates![0].dateType).toBe("Concept Start Date");
     });
 
     it("should return null for non-existent phase", () => {
@@ -186,7 +186,7 @@ describe("phaseDates", () => {
 
     it("should set all dates for phase (same as setDateInPhaseDates)", () => {
       const newDate = new Date("2025-03-01T05:00:00.000Z");
-      const updatedDates = setAllDatesForPhase(mockPhaseDates, "Completion Date", newDate);
+      const updatedDates = setAllDatesForPhase(mockPhaseDates, "Concept Completion Date", newDate);
 
       expect(updatedDates).toHaveLength(3);
       expect(updatedDates[1].dateValue).toEqual(newDate);
@@ -198,10 +198,10 @@ describe("phaseDates", () => {
     it("should handle empty phase dates array", () => {
       const emptyDates: SimplePhaseDate[] = [];
 
-      const date = getDateFromPhaseDates(emptyDates, "Start Date");
+      const date = getDateFromPhaseDates(emptyDates, "Concept Start Date");
       expect(date).toBeNull();
 
-      const updatedDates = setDateInPhaseDates(emptyDates, "Start Date", new Date());
+      const updatedDates = setDateInPhaseDates(emptyDates, "Concept Start Date", new Date());
       expect(updatedDates).toEqual([]);
     });
 
@@ -220,25 +220,27 @@ describe("phaseDates", () => {
 
     it("should maintain object structure when updating", () => {
       const newDate = new Date("2025-04-01T05:00:00.000Z");
-      const updatedDates = setDateInPhaseDates(mockPhaseDates, "Start Date", newDate);
+      const updatedDates = setDateInPhaseDates(mockPhaseDates, "Concept Start Date", newDate);
 
       // Check that the structure is maintained
       expect(updatedDates[0]).toHaveProperty("dateType");
       expect(updatedDates[0]).toHaveProperty("dateValue");
-      expect(updatedDates[0].dateType).toBe("Start Date");
+      expect(updatedDates[0].dateType).toBe("Concept Start Date");
     });
 
     it("should handle multiple phases with same date types", () => {
       const phases: SimplePhase[] = [
         {
-          phase: "Concept",
+          phaseName: "Concept",
           phaseStatus: "Started",
-          phaseDates: [{ dateType: "Start Date", dateValue: new Date("2025-01-01") }],
+          phaseDates: [{ dateType: "Concept Start Date", dateValue: new Date("2025-01-01") }],
         },
         {
-          phase: "State Application",
+          phaseName: "State Application",
           phaseStatus: "Not Started",
-          phaseDates: [{ dateType: "Start Date", dateValue: new Date("2025-02-01") }],
+          phaseDates: [
+            { dateType: "State Application Start Date", dateValue: new Date("2025-02-01") },
+          ],
         },
       ];
 

@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model SdgDivision {
+  id String
+
+  demonstrations Demonstration[]
+
+  @@id([id])
+  @@map("sdg_division")
+}

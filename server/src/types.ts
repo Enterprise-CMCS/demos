@@ -1,10 +1,10 @@
 import {
   BUNDLE_STATUS,
-  BUNDLE_TYPE,
-  CMCS_DIVISION,
+  BUNDLE_TYPES,
+  SDG_DIVISIONS,
   SIGNATURE_LEVEL,
   DOCUMENT_TYPES,
-  PHASE,
+  PHASE_NAME,
   PHASE_STATUS,
   PERSON_TYPES,
   GRANT_LEVELS,
@@ -12,7 +12,11 @@ import {
   DATE_TYPES,
 } from "./constants.js";
 
-export type { DemonstrationRoleAssignment } from "./model/demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
+export type {
+  DemonstrationRoleAssignment,
+  SetDemonstrationRoleInput,
+  UnsetDemonstrationRoleInput,
+} from "./model/demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
 
 export type { User } from "./model/user/userSchema.js";
 
@@ -45,17 +49,14 @@ export type {
 
 export type { BundlePhase } from "./model/bundlePhase/bundlePhaseSchema.js";
 export type { Bundle } from "./model/bundle/bundleSchema.js";
-export type {
-  BundlePhaseDate,
-  SetPhaseDateInput,
-} from "./model/bundlePhaseDate/bundlePhaseDateSchema.js";
+export type { BundleDate, SetBundleDateInput } from "./model/bundleDate/bundleDateSchema.js";
 
 export type BundleStatus = (typeof BUNDLE_STATUS)[number];
-export type BundleType = (typeof BUNDLE_TYPE)[keyof typeof BUNDLE_TYPE];
-export type CmcsDivision = (typeof CMCS_DIVISION)[number];
+export type BundleType = (typeof BUNDLE_TYPES)[number];
+export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
-export type Phase = (typeof PHASE)[number];
+export type PhaseName = (typeof PHASE_NAME)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];

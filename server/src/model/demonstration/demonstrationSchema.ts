@@ -2,33 +2,27 @@ import { gql } from "graphql-tag";
 import { Document } from "../document/documentSchema.js";
 import { Amendment, Extension } from "../modification/modificationSchema.js";
 import { State } from "../state/stateSchema.js";
-import { CmcsDivision, SignatureLevel, Phase, BundlePhase, BundleStatus, DemonstrationRoleAssignment } from "../../types.js";
+import {
+  SdgDivision,
+  SignatureLevel,
+  PhaseName,
+  BundlePhase,
+  BundleStatus,
+  DemonstrationRoleAssignment,
+} from "../../types.js";
 
 export const demonstrationSchema = gql`
-  """
-  A string representing a CMCS division. Expected values are:
-  - Division of System Reform Demonstrations
-  - Division of Eligibility and Coverage Demonstrations
-  """
-  scalar CmcsDivision
-  """
-  A string representing a signature level. Expected values are:
-  - OA
-  - OCD
-  - OGD
-  """
-  scalar SignatureLevel
   type Demonstration {
     id: ID!
     name: String!
     description: String!
-    effectiveDate: Date
-    expirationDate: Date
-    cmcsDivision: CmcsDivision
+    effectiveDate: DateTime
+    expirationDate: DateTime
+    sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: BundleStatus!
     state: State!
-    currentPhase: Phase!
+    currentPhaseName: PhaseName!
     phases: [BundlePhase!]!
     documents: [Document!]!
     amendments: [Amendment!]!
@@ -43,19 +37,19 @@ export const demonstrationSchema = gql`
     stateId: ID!
     projectOfficerUserId: String!
     description: String
-    cmcsDivision: CmcsDivision
+    sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
   }
 
   input UpdateDemonstrationInput {
     name: String
     description: String
-    effectiveDate: Date
-    expirationDate: Date
-    cmcsDivision: CmcsDivision
+    effectiveDate: DateTime
+    expirationDate: DateTime
+    sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: BundleStatus
-    currentPhase: Phase
+    currentPhaseName: PhaseName
     stateId: ID
   }
 
@@ -82,11 +76,11 @@ export interface Demonstration {
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
-  cmcsDivision?: CmcsDivision;
+  sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status: BundleStatus;
   state: State;
-  currentPhase: Phase;
+  currentPhaseName: PhaseName;
   phases: BundlePhase[];
   documents: Document[];
   amendments: Amendment[];
@@ -103,7 +97,7 @@ export interface CreateDemonstrationInput {
   projectOfficerUserId: string;
   stateId: string;
   description?: string;
-  cmcsDivision?: CmcsDivision;
+  sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
 }
 
@@ -112,9 +106,9 @@ export interface UpdateDemonstrationInput {
   description?: string;
   effectiveDate?: Date;
   expirationDate?: Date;
-  cmcsDivision?: CmcsDivision;
+  sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status?: BundleStatus;
-  currentPhase?: Phase;
+  currentPhaseName?: PhaseName;
   stateId?: string;
 }

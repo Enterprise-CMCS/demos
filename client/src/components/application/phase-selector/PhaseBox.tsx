@@ -1,6 +1,6 @@
 import React from "react";
 import { tw } from "tags/tw";
-import { PhaseName, PhaseStatus } from "./PhaseSelector";
+import type { PhaseName, PhaseStatus } from "./PhaseSelector";
 import { SuccessIcon } from "components/icons";
 import { PhaseDate } from "./PhaseDate";
 
@@ -10,20 +10,31 @@ const BASE_STYLES = {
   PHASE_NAME: tw`text-md font-bold truncate max-w-full`,
 };
 
-const PHASE_NUMBER_COLORS: Record<PhaseStatus, string> = {
-  in_progress: tw`text-brand border border-brand`,
-  not_started: tw`text-icon-base border border-icon-base`,
-  // Currently icons are rendered here, no styles needed
-  completed: tw``,
-  skipped: tw``,
+const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> = {
+  Skipped: {
+    box: tw`bg-white text-text-placeholder border border-brand`,
+    number: tw``,
+  },
+  Completed: {
+    box: tw`bg-white text-text-placeholder border border-border-fields`,
+    number: tw``,
+  },
+  Started: {
+    box: tw`bg-white text-text-filled font-bold border border-brand`,
+    number: tw`text-brand border border-brand`,
+  },
+  "Not Started": {
+    box: tw`bg-surface-disabled2 text-text-placeholder border border-border-fields`,
+    number: tw`text-icon-base border border-icon-base`,
+  },
+  "past-due": {
+    box: tw`bg-white text-text-warn font-bold border border-text-warn`,
+    number: tw`text-text-warn border border-text-warn`,
+  },
 };
 
-const PHASE_BOX_COLORS: Record<PhaseStatus, string> = {
-  skipped: tw`bg-white text-text-placeholder border border-brand`,
-  in_progress: tw`bg-white text-text-filled font-bold border border-brand`,
-  not_started: tw`bg-surface-disabled2 text-text-placeholder border border-border-fields`,
-  completed: tw`bg-white text-text-placeholder border border-border-fields`,
-};
+const isCompletionStatus = (status: PhaseStatus): boolean =>
+  status === "Completed" || status === "Skipped";
 
 interface PhaseBoxProps {
   phaseName: PhaseName;
@@ -35,19 +46,20 @@ interface PhaseBoxProps {
 }
 
 export const PhaseBox = (props: PhaseBoxProps) => {
+  const phaseStyles = PHASE_STYLE_LOOKUP[props.phaseStatus];
+  const showSuccessIcon = isCompletionStatus(props.phaseStatus);
+
   return (
     <div className="flex flex-col justify-center col-span-1">
       <div
         key={props.phaseName}
-        className={`${BASE_STYLES.PHASE_BOX} ${PHASE_BOX_COLORS[props.phaseStatus]} ${props.isSelectedPhase ? "scale-110" : ""}`}
+        className={`${BASE_STYLES.PHASE_BOX} 
+          ${phaseStyles.box} 
+          ${props.isSelectedPhase ? "scale-110" : ""}`}
         onClick={() => props.setPhaseAsSelected()}
       >
-        <div className={`${BASE_STYLES.PHASE_NUMBER} ${PHASE_NUMBER_COLORS[props.phaseStatus]}}`}>
-          {props.phaseStatus === "completed" || props.phaseStatus === "skipped" ? (
-            <SuccessIcon className="w-full h-full" />
-          ) : (
-            props.phaseNumber
-          )}
+        <div className={`${BASE_STYLES.PHASE_NUMBER} ${phaseStyles.number}`}>
+          {showSuccessIcon ? <SuccessIcon className="w-full h-full" /> : props.phaseNumber}
         </div>
         <span className={BASE_STYLES.PHASE_NAME}>{props.phaseName}</span>
       </div>

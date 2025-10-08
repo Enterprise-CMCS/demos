@@ -8,8 +8,7 @@ import { DemosApolloProvider } from "./DemosApolloProvider";
 import { IdleSessionHandler } from "./IdleSessionHandler";
 import { UserProvider } from "components/user/UserContext";
 import { PrimaryLayout } from "layout/PrimaryLayout";
-import { LandingPage } from "pages";
-import { Demonstrations } from "pages/Demonstrations";
+import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
@@ -45,8 +44,8 @@ export const DemosRouter: React.FC = () => {
               {/* Everything below is protected */}
               <Route element={<AuthGuard />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
-                <Route path="/" element={<LandingPage />} />
-                <Route path="demonstrations" element={<Demonstrations />} />
+                <Route path="/" element={<DemonstrationsPage />} />
+                <Route path="demonstrations" element={<DemonstrationsPage />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
 
                 {isLocalDevelopment() && (

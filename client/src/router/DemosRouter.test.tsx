@@ -67,7 +67,6 @@ vi.mock("./DemosApolloProvider", async () => {
   return { DemosApolloProvider };
 });
 
-vi.mock("pages", () => ({ LandingPage: () => <div>LandingPage</div> }));
 vi.mock("pages/debug", () => ({
   ComponentLibrary: () => <div>ComponentLibrary</div>,
   TestHooks: () => <div>TestHooks</div>,
@@ -80,23 +79,23 @@ vi.mock("layout/PrimaryLayout", () => ({
     <div>PrimaryLayout{children}</div>
   ),
 }));
-vi.mock("pages/Demonstrations", () => ({
-  Demonstrations: () => <div>Demonstrations</div>,
+vi.mock("pages/DemonstrationsPage", () => ({
+  DemonstrationsPage: () => <div>DemonstrationsPage</div>,
   DEMONSTRATIONS_PAGE_QUERY: {},
 }));
 
 describe("DemosRouter", () => {
-  it("renders the LandingPage at root path", () => {
+  it("renders the DemonstrationsPage at root path", () => {
     window.history.pushState({}, "Home", "/");
     render(<DemosRouter />);
-    expect(screen.getByText("LandingPage")).toBeInTheDocument();
+    expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument();
     expect(screen.getByText("PrimaryLayout")).toBeInTheDocument();
   });
 
   it("renders the Demonstrations page at /demonstrations", () => {
     window.history.pushState({}, "Demonstrations", "/demonstrations");
     render(<DemosRouter />);
-    expect(screen.getByText("Demonstrations")).toBeInTheDocument();
+    expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument();
   });
 
   it("renders debug routes in development mode", () => {

@@ -1,18 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
-
 import { Option } from "./Select";
-
-// Re-export Option for components that need it
-export type { Option };
+import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
 
 export interface AutoCompleteSelectProps {
   options: Option[];
   placeholder?: string;
   onSelect: (value: string) => void;
   id?: string;
+  dataTestId?: string;
   label?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
@@ -20,11 +17,6 @@ export interface AutoCompleteSelectProps {
   value?: string;
 }
 
-const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
-const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1
-  text-text-font bg-surface-white disabled:bg-surface-disabled
-  disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none 
-  focus:border-border-focus focus:ring-1 focus:ring-border-focus appearance-none text-sm`;
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
 const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
 const ITEM_CLASSES = tw`px-1 py-1 text-sm text-text-font cursor-pointer hover:bg-surface-focus`;
@@ -36,6 +28,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   placeholder = "Select",
   onSelect,
   id,
+  dataTestId,
   label,
   isRequired = false,
   isDisabled = false,
@@ -110,7 +103,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
       <div className="relative w-full">
         <input
-          data-testid="input-autocomplete-select"
+          data-testid={dataTestId || "input-autocomplete-select"}
           id={id}
           type="text"
           placeholder={placeholder}
@@ -120,7 +113,9 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           onKeyDown={onKeyDown}
           required={isRequired}
           disabled={isDisabled}
-          className={INPUT_CLASSES}
+          className={`${INPUT_BASE_CLASSES} ${getInputColors("")} w-full`}
+          data-form-type="other"
+          autoComplete="off"
         />
         <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />

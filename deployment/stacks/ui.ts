@@ -52,8 +52,8 @@ export class UiStack extends Stack {
       publicReadAccess: false,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
       objectOwnership: aws_s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
-      removalPolicy: commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
-      autoDeleteObjects: commonProps.isDev,
+      removalPolicy: commonProps.isDev || commonProps.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      autoDeleteObjects: commonProps.isDev || commonProps.isEphemeral,
       enforceSSL: true,
       bucketName: `demos-${commonProps.stage}-ui-server-access`,
     });

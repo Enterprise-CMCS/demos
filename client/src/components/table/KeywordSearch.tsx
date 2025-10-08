@@ -5,9 +5,9 @@ import React from "react";
 export interface KeywordSearchProps<T> {
   table: Table<T>;
   label?: string;
-  className?: string;
   debounceMs?: number;
   storageKey?: string;
+  placeholder?: string;
 }
 
 export const arrIncludesAllInsensitive = <T,>(
@@ -15,9 +15,7 @@ export const arrIncludesAllInsensitive = <T,>(
   columnId: string,
   filterValue: (string | undefined)[]
 ) => {
-  const validFilterValues = filterValue.filter(
-    (val): val is string => val != null
-  );
+  const validFilterValues = filterValue.filter((val): val is string => val != null);
 
   if (validFilterValues.length === 0) {
     return true;
@@ -27,9 +25,7 @@ export const arrIncludesAllInsensitive = <T,>(
     const search = val.toLowerCase();
     const rowValue = row.getValue(columnId);
 
-    return !(
-      rowValue != null && rowValue.toString().toLowerCase().includes(search)
-    );
+    return !(rowValue != null && rowValue.toString().toLowerCase().includes(search));
   });
 };
 
@@ -64,9 +60,9 @@ export function highlightCell<TData>({
 export function KeywordSearch<T>({
   table,
   label = "Search:",
-  className = "",
   debounceMs = 300,
   storageKey = "keyword-search",
+  placeholder = "Search",
 }: KeywordSearchProps<T>) {
   const debounceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -102,29 +98,13 @@ export function KeywordSearch<T>({
     [table, debounceMs]
   );
 
-  const updateLocalStorage = (val: string) => {
-    if (typeof window === "undefined") return;
-
-    try {
-      if (val) {
-        localStorage.setItem(storageKey, val);
-      } else {
-        localStorage.removeItem(storageKey);
-      }
-    } catch (error) {
-      console.warn("Failed to update localStorage:", error);
-    }
-  };
-
   const onValueChange = (val: string) => {
     setQueryString(val);
-    updateLocalStorage(val);
     debouncedSearch(val);
   };
 
   const clearSearch = () => {
     setQueryString("");
-    updateLocalStorage("");
 
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
@@ -148,12 +128,12 @@ export function KeywordSearch<T>({
   }, []);
 
   return (
-    <div className={className}>
+    <div>
       <label htmlFor="keyword-search" className="ml-2 font-semibold block mb-1">
         {label}
       </label>
 
-      <div className="ml-2 mb-2 mr-2 flex items-center gap-2 text-sm relative">
+      <div className="ml-2 m-2 mr-2 flex items-center gap-2 text-sm relative">
         <SearchIcon className="absolute left-1 top-1/2 transform -translate-y-1/2 text-gray-500" />
         <input
           id="keyword-search"
@@ -161,6 +141,7 @@ export function KeywordSearch<T>({
           value={queryString}
           onChange={(e) => onValueChange(e.target.value)}
           aria-label="Input keyword search query"
+          placeholder={placeholder}
         />
         {queryString && (
           <button

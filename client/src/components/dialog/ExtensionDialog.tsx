@@ -1,10 +1,13 @@
 import React from "react";
 
-import { CreateExtensionInput } from "demos-server";
 import { createFormDataWithDates } from "hooks/useDialogForm";
-import { useExtension } from "hooks/useExtension";
 
 import { BaseModificationDialog, BaseModificationDialogProps } from "./BaseModificationDialog";
+import { gql } from "graphql-tag";
+import { useMutation } from "@apollo/client";
+import { Extension as ServerExtension, Demonstration } from "demos-server";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
 type Props = Pick<
@@ -12,6 +15,21 @@ type Props = Pick<
   "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
 > & {
   extensionId?: string;
+};
+
+export const CREATE_EXTENSION_MUTATION = gql`
+  mutation CreateExtension($input: CreateExtensionInput!) {
+    createExtension(input: $input) {
+      id
+      demonstration {
+        id
+      }
+    }
+  }
+`;
+
+type Extension = Pick<ServerExtension, "id"> & {
+  demonstration: Pick<Demonstration, "id">;
 };
 
 export const ExtensionDialog: React.FC<Props> = ({
@@ -22,12 +40,26 @@ export const ExtensionDialog: React.FC<Props> = ({
   demonstrationId,
   data,
 }) => {
-  const { addExtension } = useExtension();
+  const [createExtensionMutation] = useMutation<{ createExtension: Extension }>(
+    CREATE_EXTENSION_MUTATION
+  );
 
   const handleExtensionSubmit = async (extensionData: Record<string, unknown>) => {
     if (mode === "add") {
-      // Cast to the proper type since we know the structure from BaseModificationDialog
-      await addExtension.trigger(extensionData as unknown as CreateExtensionInput);
+      await createExtensionMutation({
+        variables: {
+          input: extensionData,
+        },
+        refetchQueries: [
+          {
+            query: DEMONSTRATION_DETAIL_QUERY,
+            variables: { id: demonstrationId },
+          },
+          {
+            query: DEMONSTRATIONS_PAGE_QUERY,
+          },
+        ],
+      });
     } else {
       // TODO: Implement extension update logic when available
       console.log("Extension update not yet implemented for ID:", extensionId);
@@ -39,10 +71,19 @@ export const ExtensionDialog: React.FC<Props> = ({
     effectiveDate?: string,
     expirationDate?: string
   ) => {
+    const { projectOfficerUserId, status, ...extensionData } = baseData as Record<
+      string,
+      unknown
+    > & {
+      projectOfficerUserId?: unknown;
+      status?: unknown;
+    };
+    void projectOfficerUserId;
+    void status;
+
     return createFormDataWithDates(
       {
-        ...baseData,
-        status: "Pre-Submission",
+        ...extensionData,
       },
       effectiveDate,
       expirationDate

@@ -1,14 +1,13 @@
-import { SetPhaseDateInput } from "demos-server";
+import { SetBundleDateInput } from "demos-server";
 import { formatDateAsIsoString } from "util/formatDate";
 
-export const getQueryForSetPhaseDate = (setPhaseDateInput: SetPhaseDateInput): string => {
-  const isoDateString = formatDateAsIsoString(setPhaseDateInput.dateValue);
+export const getQueryForSetBundleDate = (setBundleDateInput: SetBundleDateInput): string => {
+  const isoDateString = formatDateAsIsoString(setBundleDateInput.dateValue);
   return `
-    mutation SetPhaseDate {
-      setPhaseDate(input: {
-        bundleId: "${setPhaseDateInput.bundleId}",
-        phase: ${setPhaseDateInput.phase},
-        dateType: ${setPhaseDateInput.dateType},
+    mutation SetBundleDate {
+      setBundleDate(input: {
+        bundleId: "${setBundleDateInput.bundleId}",
+        dateType: ${setBundleDateInput.dateType},
         dateValue: "${isoDateString}"
       })
     }

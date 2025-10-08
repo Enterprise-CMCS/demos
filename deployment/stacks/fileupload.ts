@@ -52,9 +52,9 @@ export class FileUploadStack extends Stack {
 
     const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
-      removalPolicy: props.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
-      autoDeleteObjects: props.isDev,
+      autoDeleteObjects: props.isDev || props.isEphemeral,
       enforceSSL: true,
     });
 
@@ -131,6 +131,12 @@ export class FileUploadStack extends Stack {
       "Allow traffic to S3"
     );
 
+    const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "rdsDatabaseSecret",
+      `demos-${props.hostEnvironment}-rds-demos_upload`
+    );
+
     const fileProcessLambda = new lambda.Lambda(this, "fileProcess", {
       ...props,
       scope: this,
@@ -145,7 +151,7 @@ export class FileUploadStack extends Stack {
       environment: {
         UPLOAD_BUCKET: uploadBucket.bucketName,
         CLEAN_BUCKET: cleanBucket.bucketName,
-        DATABASE_SECRET_ARN: `demos-${props.hostEnvironment}-rds-admin`, // pragma: allowlist secret
+        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
       },
     });
 
@@ -159,12 +165,6 @@ export class FileUploadStack extends Stack {
     uploadBucket.grantDelete(fileProcessLambda.lambda);
     cleanBucket.grantWrite(fileProcessLambda.lambda);
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
-
-    const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
-      this,
-      "rdsDatabaseSecret",
-      `demos-${props.hostEnvironment}-rds-admin`
-    );
     dbSecret.grantRead(fileProcessLambda.lambda);
 
     new CfnOutput(this, "cleanBucketName", {

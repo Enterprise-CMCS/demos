@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
-import { BUNDLE_TYPE, CMCS_DIVISION, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
+import { TZDate } from "@date-fns/tz";
+import { SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
   CreateDemonstrationInput,
   CreateAmendmentInput,
@@ -7,9 +8,10 @@ import {
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
+  BundleType,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
-import { DocumentType } from "./types.js";
+import { DocumentType, PhaseName } from "./types.js";
 import {
   getManyDemonstrations,
   createDemonstration,
@@ -23,6 +25,17 @@ import {
   updateAmendment,
   updateExtension,
 } from "./model/modification/modificationResolvers.js";
+
+function randomDate(yearsAhead: number, type: "start" | "end") {
+  const randomDate = faker.date.future({ years: yearsAhead });
+  const randomEasternDate = new TZDate(randomDate, "America/New_York");
+  if (type === "start") {
+    randomEasternDate.setHours(0, 0, 0, 0);
+  } else {
+    randomEasternDate.setHours(23, 59, 59, 999);
+  }
+  return randomEasternDate;
+}
 
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
@@ -53,47 +66,26 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
-    // Start with join tables
-    prisma().rolePermission.deleteMany(),
-
-    // Permissions are only attached to rolePermission
-    prisma().permission.deleteMany(),
-
-    // Delete various bundle types
     prisma().modification.deleteMany(),
     prisma().primaryDemonstrationRoleAssignment.deleteMany(),
     prisma().demonstrationRoleAssignment.deleteMany(),
-
     prisma().demonstration.deleteMany(),
-
-    prisma().bundlePhaseDate.deleteMany(),
-
-    // Phases and accompanying items
-    prisma().bundlePhaseDate.deleteMany(),
+    prisma().bundleDate.deleteMany(),
     prisma().bundlePhase.deleteMany(),
-
-    // Documents, which are attached to bundles
     prisma().document.deleteMany(),
-
-    // Bundles themselves
     prisma().bundle.deleteMany(),
-
-    // Events, which attach to users and roles
     prisma().event.deleteMany(),
-
-    // delete system role assignments before roles and users
     prisma().systemRoleAssignment.deleteMany(),
-
     prisma().personState.deleteMany(),
-
-    // Finally, roles and users
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
   ]);
 }
 
 async function seedDatabase() {
+  console.log(process.env.ALLOW_SEED);
   checkIfAllowed();
+
   await clearDatabase();
 
   // Setting constants for record generation
@@ -207,24 +199,56 @@ async function seedDatabase() {
     const createInput: CreateDemonstrationInput = {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      cmcsDivision: sampleFromArray([...CMCS_DIVISION, undefined], 1)[0],
+      sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-      stateId: person.personStates[0].stateId,
+      stateId: sampleFromArray(person.personStates, 1)[0].stateId,
       projectOfficerUserId: person.id,
     };
     await createDemonstration(undefined, { input: createInput });
   }
   const demonstrations = await getManyDemonstrations();
-  for (const demonstration of demonstrations) {
-    const updatePayload: UpdateDemonstrationInput = {
-      effectiveDate: faker.date.future({ years: 1 }),
-      expirationDate: faker.date.future({ years: 2 }),
-    };
-    const updateInput = {
-      id: demonstration.id,
-      input: updatePayload,
-    };
-    await updateDemonstration(undefined, updateInput);
+  await Promise.all(
+    demonstrations.map((demonstration, index) => {
+      const updatePayload: UpdateDemonstrationInput = {
+        effectiveDate: randomDate(1, "start"),
+        expirationDate: randomDate(2, "end"),
+      };
+
+      /*
+       * DEMOS-684 Test Case
+       * Need to eventually include seeding for other phases,
+       * And correctly seed valid dates, phase statuses, etc...
+       */
+      if (index === 0) {
+        updatePayload.currentPhaseName = "Federal Comment";
+        updatePayload.status = "Under Review";
+      }
+
+      const updateInput = {
+        id: demonstration.id,
+        input: updatePayload,
+      };
+
+      return updateDemonstration(undefined, updateInput);
+    })
+  );
+
+  console.log("🌱 Seeding all dates for one demonstration");
+  const randomDemonstration = await prisma().demonstration.findRandom({
+    select: {
+      id: true,
+    },
+  });
+  for (const dateType of await prisma().dateType.findMany({
+    where: { NOT: { id: "Concept Start Date" } },
+  })) {
+    await prisma().bundleDate.create({
+      data: {
+        bundleId: randomDemonstration!.id,
+        dateTypeId: dateType.id,
+        dateValue: faker.date.future({ years: 1 }),
+      },
+    });
   }
 
   console.log("🌱 Seeding amendments...");
@@ -239,8 +263,8 @@ async function seedDatabase() {
   const amendments = await getManyAmendments();
   for (const amendment of amendments) {
     const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: faker.date.future({ years: 1 }),
-      expirationDate: faker.date.future({ years: 2 }),
+      effectiveDate: randomDate(1, "start"),
+      expirationDate: randomDate(2, "end"),
     };
     const updateInput = {
       id: amendment.id,
@@ -261,8 +285,8 @@ async function seedDatabase() {
   const extensions = await getManyExtensions();
   for (const extension of extensions) {
     const updatePayload: UpdateExtensionInput = {
-      effectiveDate: faker.date.future({ years: 1 }),
-      expirationDate: faker.date.future({ years: 2 }),
+      effectiveDate: randomDate(1, "start"),
+      expirationDate: randomDate(2, "end"),
     };
     const updateInput = {
       id: extension.id,
@@ -273,52 +297,57 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding documents...");
   // Get the application document type
-  const applicationDocumentType: DocumentType = "State Application";
+  const stateApplicationDocumentType: DocumentType = "State Application";
+  const stateApplicationPhaseName: PhaseName = "State Application";
+  const nonePhaseName: PhaseName = "None";
   for (const demonstration of demonstrations) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: applicationDocumentType,
+        documentTypeId: stateApplicationDocumentType,
         bundleId: demonstration.id,
+        phaseId: stateApplicationPhaseName,
       },
     });
   }
   // Every amendment and extension has an application
   const amendmentIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: BUNDLE_TYPE.AMENDMENT },
+    where: { bundleTypeId: "Amendment" satisfies BundleType },
   });
   for (const amendmentId of amendmentIds) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: applicationDocumentType,
+        documentTypeId: stateApplicationDocumentType,
         bundleId: amendmentId.id,
+        phaseId: stateApplicationPhaseName,
       },
     });
   }
   const extensionIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: BUNDLE_TYPE.EXTENSION },
+    where: { bundleTypeId: "Extension" satisfies BundleType },
   });
   for (const extensionId of extensionIds) {
-    const fakeTitle = faker.lorem.sentence(2);
+    const fakeName = faker.lorem.sentence(2);
     await prisma().document.create({
       data: {
-        title: fakeTitle,
-        description: "Application for " + fakeTitle,
+        name: fakeName,
+        description: "Application for " + fakeName,
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: applicationDocumentType,
+        documentTypeId: stateApplicationDocumentType,
         bundleId: extensionId.id,
+        phaseId: stateApplicationPhaseName,
       },
     });
   }
@@ -326,22 +355,22 @@ async function seedDatabase() {
   // Now, the rest can be largely randomized
   for (let i = 0; i < documentCount; i++) {
     // It is easier to just pull from the DB than to sample randomly from the constant
-    const documentTypeId = await prisma().documentType.findRandom({
-      select: {
-        id: true,
-      },
+    const allowedPhaseDocumentTypes = await prisma().phaseDocumentType.findRandom({
       where: {
-        NOT: { id: applicationDocumentType },
+        NOT: {
+          OR: [{ documentTypeId: stateApplicationDocumentType }, { phaseId: nonePhaseName }],
+        },
       },
     });
     await prisma().document.create({
       data: {
-        title: faker.lorem.sentence(2),
+        name: faker.lorem.sentence(2),
         description: faker.lorem.sentence(),
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: documentTypeId!.id,
+        documentTypeId: allowedPhaseDocumentTypes!.documentTypeId,
         bundleId: (await prisma().bundle.findRandom())!.id,
+        phaseId: allowedPhaseDocumentTypes!.phaseId,
       },
     });
   }

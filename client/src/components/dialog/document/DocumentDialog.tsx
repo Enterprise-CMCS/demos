@@ -254,13 +254,13 @@ const DropTarget: React.FC<{
 
 export type DocumentDialogFields = Pick<
   Document,
-  "id" | "title" | "description" | "documentType"
+  "id" | "name" | "description" | "documentType"
 > & { file: File | null };
 
 const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
   file: null,
   id: "",
-  title: "",
+  name: "",
   description: "",
   documentType: "General File",
 };
@@ -310,15 +310,15 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   }, [initialDocument]);
 
   useEffect(() => {
-    if (mode === "add" && file && !titleManuallyEdited && !activeDocument.title.trim()) {
+    if (mode === "add" && file && !titleManuallyEdited && !activeDocument.name.trim()) {
       const base = file.name.replace(/\.[^.]+$/, "");
       setActiveDocument((prev) => ({ ...prev, title: base }));
     }
-  }, [mode, file, titleManuallyEdited, activeDocument.title]);
+  }, [mode, file, titleManuallyEdited, activeDocument.name]);
 
   const isUploading = uploadStatus === "uploading";
 
-  const missingTitle = mode === "edit" ? !activeDocument.title.trim() : false;
+  const missingTitle = mode === "edit" ? !activeDocument.name.trim() : false;
   const missingDesc = !activeDocument.description.trim();
   const missingType = !activeDocument.documentType;
   const missingFile = !file;
@@ -409,9 +409,9 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
       />
 
       <TitleInput
-        value={activeDocument.title}
+        value={activeDocument.name}
         onChange={(val) => {
-          setActiveDocument((prev) => ({ ...prev, title: val }));
+          setActiveDocument((prev) => ({ ...prev, name: val }));
           setTitleManuallyEdited(true);
         }}
       />
@@ -455,9 +455,10 @@ export const AddDocumentDialog: React.FC<{
 
     const uploadDocumentInput: UploadDocumentInput = {
       bundleId: dialogFields.id,
-      title: dialogFields.title,
+      name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
+      phaseName: "None",
     };
 
     const uploadDocumentResponse = await uploadDocumentTrigger({
@@ -501,7 +502,7 @@ export const EditDocumentDialog: React.FC<{
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
     const updateDocumentInput: UpdateDocumentInput = {
       bundleId: dialogFields.id,
-      title: dialogFields.title,
+      name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
     };

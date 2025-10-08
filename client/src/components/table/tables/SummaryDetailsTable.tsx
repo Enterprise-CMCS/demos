@@ -1,22 +1,24 @@
 import React, { useState } from "react";
 
 import { SecondaryButton } from "components/button";
-import { EditDemonstrationDialog } from "components/dialog/DemonstrationDialog";
+import { EditDemonstrationDialog } from "components/dialog";
 import { EditIcon } from "components/icons";
 import {
+  BundleStatus,
   Demonstration,
   DemonstrationRoleAssignment,
-  BundleStatus,
   Person,
   State,
 } from "demos-server";
 import { tw } from "tags/tw";
-import { formatDate } from "util/formatDate";
+import { safeDateFormat } from "util/formatDate";
 
 type SummaryDetailsDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "effectiveDate" | "expirationDate"
+  "id" | "name" | "description" | "sdgDivision" | "signatureLevel"
 > & {
+  effectiveDate: Date | string | null;
+  expirationDate: Date | string | null;
   state: Pick<State, "name" | "id">;
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "fullName">;
@@ -29,7 +31,7 @@ type Props = {
   onEdit?: () => void;
 };
 
-const LABEL_CLASSES = tw`text-text-font font-bold text-xs uppercase tracking-wide`;
+const LABEL_CLASSES = tw`text-text-font font-bold text-xs tracking-wide`;
 const VALUE_CLASSES = tw`text-text-font text-sm leading-relaxed`;
 
 export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) => {
@@ -96,16 +98,12 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
         <div>
           <div className={LABEL_CLASSES}>Effective Date</div>
-          <div className={VALUE_CLASSES}>
-            {demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----"}
-          </div>
+          <div className={VALUE_CLASSES}>{safeDateFormat(demonstration.effectiveDate)}</div>
         </div>
 
         <div>
           <div className={LABEL_CLASSES}>Expiration Date</div>
-          <div className={VALUE_CLASSES}>
-            {demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "--/--/----"}
-          </div>
+          <div className={VALUE_CLASSES}>{safeDateFormat(demonstration.expirationDate)}</div>
         </div>
 
         <div className="col-span-2">
@@ -113,6 +111,20 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
             Demonstration Description (Max Limit - 2048 Characters)
           </div>
           <div className={VALUE_CLASSES}>{demonstration.description}</div>
+        </div>
+
+        <div>
+          <div className={LABEL_CLASSES}>SDG Division</div>
+          <div className={VALUE_CLASSES}>
+            {demonstration.sdgDivision ? demonstration.sdgDivision : "--"}
+          </div>
+        </div>
+
+        <div>
+          <div className={LABEL_CLASSES}>Signature Level</div>
+          <div className={VALUE_CLASSES}>
+            {demonstration.signatureLevel ? demonstration.signatureLevel : "--"}
+          </div>
         </div>
       </div>
 
