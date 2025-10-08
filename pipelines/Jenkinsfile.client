@@ -13,14 +13,13 @@ pipeline {
 
   stages {
     stage('Client - Snyk') {
-      when {
-        expression {
-          return hasChange(["lambdas", "spikes"])
-        }
-      }
       steps {
-        echo "Ran"
-        // snykScan('client')
+        script {
+          if (hasChange(["lambdas", "spikes"])) {
+            echo "Ran"
+            // snykScan('client')
+          }
+        }
       }
     }
 
