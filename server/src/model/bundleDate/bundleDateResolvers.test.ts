@@ -1,20 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setBundleDate, getBundleDatesForPhase } from "./bundleDateResolvers.js";
+import { SetBundleDateInput, DateType, PhaseName } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getBundle } from "../bundle/bundleResolvers.js";
-import { SetBundleDateInput, DateType, PhaseName } from "../../types.js";
+import { validateInputDate } from "./validateInputDate.js";
 
-vi.mock("../../prismaClient", () => ({
+vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../../errors/handlePrismaError", () => ({
-  handlePrismaError: vi.fn(),
+const testHandlePrismaError = new Error("Test handlePrismaError!");
+vi.mock("../../errors/handlePrismaError.js", () => ({
+  handlePrismaError: vi.fn(() => {
+    throw testHandlePrismaError;
+  }),
 }));
 
-vi.mock("../bundle/bundleResolvers", () => ({
+vi.mock("../bundle/bundleResolvers.js", () => ({
   getBundle: vi.fn(),
+}));
+
+vi.mock("./validateInputDate.js", () => ({
+  validateInputDate: vi.fn(),
 }));
 
 describe("bundleDateResolvers", () => {
@@ -27,7 +35,8 @@ describe("bundleDateResolvers", () => {
     },
   };
   const testDateType: DateType = "Concept Start Date";
-  const testDateValue: Date = new Date("2025-01-01T00:00:00-04:00");
+  const testDateValue: Date = new Date("2025-01-01T00:00:00Z");
+  const testBundleId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -43,7 +52,6 @@ describe("bundleDateResolvers", () => {
   });
 
   describe("setBundleDate", () => {
-    const testBundleId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
     const testData: SetBundleDateInput = {
       bundleId: testBundleId,
       dateType: testDateType,
@@ -69,14 +77,19 @@ describe("bundleDateResolvers", () => {
         },
       };
       await setBundleDate(undefined, { input: testData });
+      expect(validateInputDate).toHaveBeenCalledExactlyOnceWith(testData);
       expect(mockUpsert).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(getBundle).toHaveBeenCalledExactlyOnceWith(testBundleId);
     });
 
     it("should handle an error appropriately if it occurs", async () => {
       mockUpsert.mockRejectedValueOnce(testError);
-      await setBundleDate(undefined, { input: testData });
+      await expect(setBundleDate(undefined, { input: testData })).rejects.toThrowError(
+        testHandlePrismaError
+      );
+      expect(validateInputDate).toHaveBeenCalledExactlyOnceWith(testData);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
+      expect(getBundle).not.toHaveBeenCalled();
     });
   });
   describe("getBundleDatesForPhase", () => {
