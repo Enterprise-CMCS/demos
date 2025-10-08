@@ -95,20 +95,73 @@ export async function updateDemonstration(
   parent: undefined,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ) {
-  checkOptionalNotNullFields(["name", "status", "currentPhaseName", "stateId"], input);
-  return await prisma().demonstration.update({
-    where: { id },
-    data: {
-      name: input.name,
-      description: input.description,
-      effectiveDate: input.effectiveDate,
-      expirationDate: input.expirationDate,
-      sdgDivisionId: input.sdgDivision,
-      signatureLevelId: input.signatureLevel,
-      statusId: input.status,
-      currentPhaseId: input.currentPhaseName,
-      stateId: input.stateId,
-    },
+  checkOptionalNotNullFields(
+    ["name", "status", "currentPhaseName", "stateId", "projectOfficerUserId"],
+    input
+  );
+  return await prisma().$transaction(async (tx) => {
+    const demonstration = await prisma().demonstration.update({
+      where: { id },
+      data: {
+        name: input.name,
+        description: input.description,
+        effectiveDate: input.effectiveDate,
+        expirationDate: input.expirationDate,
+        sdgDivisionId: input.sdgDivision,
+        signatureLevelId: input.signatureLevel,
+        statusId: input.status,
+        currentPhaseId: input.currentPhaseName,
+        stateId: input.stateId,
+      },
+    });
+
+    if (input.projectOfficerUserId) {
+      const person = await tx.person.findUnique({
+        where: { id: input.projectOfficerUserId },
+        select: { personTypeId: true },
+      });
+      if (!person) {
+        throw new Error(`Person with id ${input.projectOfficerUserId} not found`);
+      }
+
+      await tx.demonstrationRoleAssignment.upsert({
+        where: {
+          personId_demonstrationId_roleId: {
+            demonstrationId: id,
+            personId: input.projectOfficerUserId,
+            roleId: roleProjectOfficer,
+          },
+        },
+        update: {},
+        create: {
+          demonstrationId: id,
+          personId: input.projectOfficerUserId,
+          personTypeId: person.personTypeId,
+          roleId: roleProjectOfficer,
+          stateId: demonstration.stateId,
+          grantLevelId: grantLevelDemonstration,
+        },
+      });
+
+      await tx.primaryDemonstrationRoleAssignment.upsert({
+        where: {
+          demonstrationId_roleId: {
+            demonstrationId: id,
+            roleId: roleProjectOfficer,
+          },
+        },
+        update: {
+          personId: input.projectOfficerUserId,
+        },
+        create: {
+          demonstrationId: id,
+          personId: input.projectOfficerUserId,
+          roleId: roleProjectOfficer,
+        },
+      });
+    }
+
+    return demonstration;
   });
 }
 

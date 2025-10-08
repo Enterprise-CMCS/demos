@@ -51,6 +51,7 @@ export const demonstrationSchema = gql`
     status: BundleStatus
     currentPhaseName: PhaseName
     stateId: ID
+    projectOfficerUserId: String
   }
 
   type CreateDemonstrationResponse {
@@ -111,4 +112,5 @@ export interface UpdateDemonstrationInput {
   status?: BundleStatus;
   currentPhaseName?: PhaseName;
   stateId?: string;
+  projectOfficerUserId?: string;
 }
