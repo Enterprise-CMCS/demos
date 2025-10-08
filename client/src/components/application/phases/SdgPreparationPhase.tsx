@@ -21,8 +21,7 @@ export const SdgPreparationPhase = () => {
           SDG WORKPLAN
         </h4>
         <p className={STYLES.helper}>
-          Ensure the expected approval date is reasonable based on required reviews and the
-          complexity of the application
+          Ensure the expected approval date is reasonable based on required reviews and the complexity of the application
         </p>
       </div>
       <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
@@ -38,19 +37,6 @@ export const SdgPreparationPhase = () => {
           aria-required={true}
           placeholder="Expected Approval Date"
         />
-        {/* <DatePicker
-          className="w-1/2"
-          slotProps={{
-            textField: {
-              placeholder: "Expected Approval Date",
-              name: "expected-approval-date",
-            },
-          }}
-          required
-          name="expected-approval-date"
-        >
-          Expected Approval Date
-        </DatePicker> */}
       </div>
     </div>
   );
@@ -76,19 +62,6 @@ export const SdgPreparationPhase = () => {
           aria-required={true}
           placeholder="SME Initial Review Date"
         />
-        {/* <DatePicker
-          className="w-1/2"
-          slotProps={{
-            textField: {
-              placeholder: "SME Initial Review Date",
-              name: "sme-initial-review-date",
-            },
-          }}
-          required
-          name="sme-initial-review-date"
-        >
-          SME Initial Review Date
-        </DatePicker> */}
         <label className="block text-sm font-bold mb-1">
           <span className="text-text-warn mr-1">*</span>
           FRT Initial Meeting Date
@@ -101,19 +74,6 @@ export const SdgPreparationPhase = () => {
           aria-required={true}
           placeholder="FRT Initial Meeting Date"
         />
-        {/* <DatePicker
-          className="w-1/2"
-          slotProps={{
-            textField: {
-              placeholder: "FRT Initial Meeting Date",
-              name: "frt-initial-meeting-date",
-            },
-          }}
-          required
-          name="frt-intial-meeting-date"
-        >
-          FRT Initial Meeting Date
-        </DatePicker> */}
         <label className="block text-sm font-bold mb-1">
           <span className="text-text-warn mr-1">*</span>
           BNPMT Initial Meeting Date
@@ -126,19 +86,6 @@ export const SdgPreparationPhase = () => {
           aria-required={true}
           placeholder="BNPMT Initial Meeting Date"
         />
-        {/* <DatePicker
-          className="w-1/2"
-          slotProps={{
-            textField: {
-              placeholder: "BNPMT Initial Meeting Date",
-              name: "bnpmt-intial-meeting-date",
-            },
-          }}
-          required
-          name="bnpmt-intial-meeting-date"
-        >
-          BNPMT Initial Meeting Date
-        </DatePicker> */}
       </div>
 
       <div className={STYLES.actions}>
