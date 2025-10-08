@@ -1,6 +1,5 @@
 import React from "react";
 
-import { pickDateInCalendar } from "components/input/DatePicker/DatePicker.test";
 import { ToastProvider } from "components/toast";
 import { ALL_MOCKS } from "mock-data/index";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -97,18 +96,8 @@ describe("DocumentTable", () => {
     const startInput = document.body.querySelector('input[name="date-filter-start"]');
     const endInput = document.body.querySelector('input[name="date-filter-end"]');
     // Open the start date picker calendar popup by clicking the calendar button
-    await pickDateInCalendar({
-      datePickerRoot: startInput!.closest("[role='group']")!,
-      year: 2025,
-      month: 1,
-      day: 1,
-    });
-    await pickDateInCalendar({
-      datePickerRoot: endInput!.closest("[role='group']")!,
-      year: 2025,
-      month: 1,
-      day: 2,
-    });
+    await user.type(startInput!, "1/1/2025");
+    await user.type(endInput!, "1/2/2025");
 
     const table = screen.getByRole("table");
     // Should show only documents within the range (inclusive)

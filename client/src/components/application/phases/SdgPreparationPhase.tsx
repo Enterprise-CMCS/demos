@@ -1,7 +1,6 @@
 import React from "react";
 import { tw } from "tags/tw";
 
-import { DatePicker } from "components/input/DatePicker/DatePicker";
 import { Button, SecondaryButton } from "components/button";
 
 const STYLES = {
@@ -22,11 +21,21 @@ export const SdgPreparationPhase = () => {
           SDG WORKPLAN
         </h4>
         <p className={STYLES.helper}>
-          Ensure the expected approval date is reasonable based on required reviews and the complexity of the application
+          Ensure the expected approval date is reasonable based on required reviews and the
+          complexity of the application
         </p>
       </div>
       <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-        <DatePicker
+        <label className="block text-sm font-bold mb-1">
+          <span className="text-text-warn mr-1">*</span>
+          Expected Approval Date
+        </label>
+        <input
+          type="date"
+          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          aria-required={true}
+        />
+        {/* <DatePicker
           className="w-1/2"
           slotProps={{
             textField: {
@@ -38,7 +47,7 @@ export const SdgPreparationPhase = () => {
           name="expected-approval-date"
         >
           Expected Approval Date
-        </DatePicker>
+        </DatePicker> */}
       </div>
     </div>
   );
@@ -49,12 +58,19 @@ export const SdgPreparationPhase = () => {
         <h4 id="sdg-reviews-title" className={STYLES.title}>
           INTERNAL REVIEWS
         </h4>
-        <p className={STYLES.helper}>
-          Record the occurrence of the key review meetings
-        </p>
+        <p className={STYLES.helper}>Record the occurrence of the key review meetings</p>
       </div>
       <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-        <DatePicker
+        <label className="block text-sm font-bold mb-1">
+          <span className="text-text-warn mr-1">*</span>
+          SME Initial Review Date
+        </label>
+        <input
+          type="date"
+          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          aria-required={true}
+        />
+        {/* <DatePicker
           className="w-1/2"
           slotProps={{
             textField: {
@@ -66,8 +82,17 @@ export const SdgPreparationPhase = () => {
           name="sme-initial-review-date"
         >
           SME Initial Review Date
-        </DatePicker>
-        <DatePicker
+        </DatePicker> */}
+        <label className="block text-sm font-bold mb-1">
+          <span className="text-text-warn mr-1">*</span>
+          FRT Initial Meeting Date
+        </label>
+        <input
+          type="date"
+          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          aria-required={true}
+        />
+        {/* <DatePicker
           className="w-1/2"
           slotProps={{
             textField: {
@@ -79,8 +104,17 @@ export const SdgPreparationPhase = () => {
           name="frt-intial-meeting-date"
         >
           FRT Initial Meeting Date
-        </DatePicker>
-        <DatePicker
+        </DatePicker> */}
+        <label className="block text-sm font-bold mb-1">
+          <span className="text-text-warn mr-1">*</span>
+          BNPMT Initial Meeting Date
+        </label>
+        <input
+          type="date"
+          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          aria-required={true}
+        />
+        {/* <DatePicker
           className="w-1/2"
           slotProps={{
             textField: {
@@ -92,19 +126,23 @@ export const SdgPreparationPhase = () => {
           name="bnpmt-intial-meeting-date"
         >
           BNPMT Initial Meeting Date
-        </DatePicker>
+        </DatePicker> */}
       </div>
 
       <div className={STYLES.actions}>
         <SecondaryButton
-          onClick={() => { console.log("Save For Later Clicked"); }}
+          onClick={() => {
+            console.log("Save For Later Clicked");
+          }}
           size="large"
           name="sdg-save-for-later"
         >
           Save For Later
         </SecondaryButton>
         <Button
-          onClick={() => { console.log("Finish Clicked"); }}
+          onClick={() => {
+            console.log("Finish Clicked");
+          }}
           size="large"
           name="sdg-finish"
           disabled
@@ -117,9 +155,7 @@ export const SdgPreparationPhase = () => {
 
   return (
     <div>
-      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
-        SDG PREPARATION
-      </h3>
+      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">SDG PREPARATION</h3>
       <p className="text-sm text-text-placeholder mb-4">
         Plan and conduct internal and preparation tasks
       </p>
