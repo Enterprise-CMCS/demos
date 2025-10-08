@@ -32,8 +32,11 @@ export const SdgPreparationPhase = () => {
         </label>
         <input
           type="date"
+          name="expected-approval-date"
+          data-testid="datepicker-expected-approval-date"
           className="w-full border border-border-fields px-1 py-1 text-sm rounded"
           aria-required={true}
+          placeholder="Expected Approval Date"
         />
         {/* <DatePicker
           className="w-1/2"
@@ -66,9 +69,12 @@ export const SdgPreparationPhase = () => {
           SME Initial Review Date
         </label>
         <input
+          name="sme-initial-review-date"
+          data-testid="datepicker-sme-initial-review-date"
           type="date"
           className="w-full border border-border-fields px-1 py-1 text-sm rounded"
           aria-required={true}
+          placeholder="SME Initial Review Date"
         />
         {/* <DatePicker
           className="w-1/2"
@@ -88,9 +94,12 @@ export const SdgPreparationPhase = () => {
           FRT Initial Meeting Date
         </label>
         <input
+          name="frt-initial-meeting-date"
+          data-testid="datepicker-frt-intial-meeting-date"
           type="date"
           className="w-full border border-border-fields px-1 py-1 text-sm rounded"
           aria-required={true}
+          placeholder="FRT Initial Meeting Date"
         />
         {/* <DatePicker
           className="w-1/2"
@@ -110,9 +119,12 @@ export const SdgPreparationPhase = () => {
           BNPMT Initial Meeting Date
         </label>
         <input
+          name="bnpmt-intial-meeting-date"
+          data-testid="datepicker-bnpmt-intial-meeting-date"
           type="date"
           className="w-full border border-border-fields px-1 py-1 text-sm rounded"
           aria-required={true}
+          placeholder="BNPMT Initial Meeting Date"
         />
         {/* <DatePicker
           className="w-1/2"

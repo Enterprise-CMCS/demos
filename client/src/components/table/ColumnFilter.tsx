@@ -3,6 +3,7 @@ import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
 import { Option, Select } from "components/input/select/Select";
+import { parseISO } from "date-fns";
 
 export interface ColumnFilterByDropdownProps<T> {
   table: Table<T>;
@@ -100,28 +101,37 @@ export function ColumnFilter<T>({ table, className = "" }: ColumnFilterByDropdow
 
       case "date":
         return (
-          <div className="flex gap-2">
-            <label
-              className="sr-only"
-              htmlFor="date-filter-start"
-            >{`${columnDisplayName} Start`}</label>
-            <input
-              id="date-filter-start"
-              name="date-filter-start"
-              type="date"
-              onChange={(e) => onRangeChange(new Date(e.target.value), filterRangeValue.end)}
-            />
-            <label
-              className="sr-only"
-              htmlFor="date-filter-end"
-            >{`${columnDisplayName} End`}</label>
-            <input
-              id="date-filter-end"
-              name="date-filter-end"
-              type="date"
-              onChange={(e) => onRangeChange(filterRangeValue.start, new Date(e.target.value))}
-            />
-          </div>
+          <>
+            <div>
+              <label
+                className="block text-sm font-bold mb-1"
+                htmlFor="date-filter-start"
+              >{`${columnDisplayName} Start`}</label>
+              <input
+                id="date-filter-start"
+                name="date-filter-start"
+                type="date"
+                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  onRangeChange(parseISO(value), filterRangeValue.end);
+                }}
+              />
+            </div>
+            <div>
+              <label
+                className="block text-sm font-bold mb-1"
+                htmlFor="date-filter-end"
+              >{`${columnDisplayName} End`}</label>
+              <input
+                id="date-filter-end"
+                name="date-filter-end"
+                type="date"
+                onChange={(e) => onRangeChange(filterRangeValue.start, parseISO(e.target.value))}
+                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+              />
+            </div>
+          </>
         );
 
       case "text":
