@@ -1,3 +1,5 @@
+@Library('demos-lib@pipeline-efficiency') _
+
 pipeline {
   agent {
     kubernetes { 
@@ -13,8 +15,7 @@ pipeline {
     stage('Client - Snyk') {
       when {
         expression {
-          def diffStatus = sh(script: "git diff --name-only --merge-base origin/${env.CHANGE_TARGET} -- client", returnStdout: true).trim()
-          return diffStatus != ""
+          return hasChange("client")
         }
       }
       steps {
@@ -23,48 +24,66 @@ pipeline {
       }
     }
 
-    // stage('Client - Lint') {
-    //   steps {
-    //     dirCon('client', 'node') {
-    //         sh '''
-    //         npm ci
-    //         npm run tsc:ci
-    //         npm run lint:ci
-    //         npm run build:ci
-    //         '''
-    //     }
-    //   }
-    // }
+    stage('Client - Lint') {
+      when {
+        expression {
+          return hasChange("client")
+        }
+      }
+      steps {
+          echo "Ran"
+        dirCon('client', 'node') {
+            // sh '''
+            // npm ci
+            // npm run tsc:ci
+            // npm run lint:ci
+            // npm run build:ci
+            // '''
+        }
+      }
+    }
 
-    // stage('Client - Unit Test') {
-    //   steps {
-    //     dirCon('client', 'node') {
-    //       sh '''
-    //         npm run coverage:ci
-    //         '''
-    //     }
-    //   }
-    // }
+    stage('Client - Unit Test') {
+      when {
+        expression {
+          return hasChange("client")
+        }
+      }
+      steps {
+          echo "Ran"
+        dirCon('client', 'node') {
+          // sh '''
+          //   npm run coverage:ci
+          //   '''
+        }
+      }
+    }
 
-    // stage('Client - Sonar Scan') {
-    //   steps {
-    //     script {
-    //       sonarQubeScan(
-    //         projectKey: 'demos',
-    //         credentialsId: 'sonarqube-demos-client',
-    //         projectBaseDir: 'client',
-    //         sonarqubeFlags: [
-    //           "javascript.lcov.reportPaths": "coverage/lcov.info",
-    //           "testExecutionReportPaths": "coverage/test-results.xml",
-    //           "pullrequest.key": env.CHANGE_ID ?: null,
-    //           "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-    //           "pullrequest.base": env.CHANGE_TARGET ?: null,
-    //           "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**,**/PhaseDateSimulation.tsx"
-    //         ]
-    //       )
-    //     }
-    //   }
-    // }
+    stage('Client - Sonar Scan') {
+      when {
+        expression {
+          return hasChange("client")
+        }
+      }
+      steps {
+        script {
+          echo "Ran"
+          // sonarQubeScan(
+          //   projectKey: 'demos',
+          //   credentialsId: 'sonarqube-demos-client',
+          //   projectBaseDir: 'client',
+          //   sonarqubeFlags: [
+          //     "javascript.lcov.reportPaths": "coverage/lcov.info",
+          //     "testExecutionReportPaths": "coverage/test-results.xml",
+          //     "pullrequest.key": env.CHANGE_ID ?: null,
+          //     "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
+          //     "pullrequest.base": env.CHANGE_TARGET ?: null,
+          //     "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**,**/PhaseDateSimulation.tsx"
+          //   ]
+          // )
+        }
+      }
+    }
   }
 
   // post {
