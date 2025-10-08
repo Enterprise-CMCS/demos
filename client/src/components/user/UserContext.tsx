@@ -7,7 +7,6 @@ export const GET_CURRENT_USER_QUERY = gql`
   query GetCurrentUser {
     currentUser {
       person {
-        id
         personType
         fullName
         displayName
@@ -17,9 +16,7 @@ export const GET_CURRENT_USER_QUERY = gql`
   }
 `;
 
-type CurrentUser = {
-  person: Pick<Person, "id" | "personType" | "fullName" | "displayName" | "email">;
-};
+type CurrentUser = { person: Pick<Person, "personType" | "fullName" | "displayName" | "email"> };
 
 type UserContextValue = {
   currentUser: CurrentUser | null;
