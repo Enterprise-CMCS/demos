@@ -4,9 +4,39 @@ import { vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { ExtensionDialog } from "./ExtensionDialog";
+import { CREATE_EXTENSION_MUTATION, ExtensionDialog } from "./ExtensionDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { ModificationDialogData, ModificationDialogMode } from "./BaseModificationDialog";
+import { personMocks } from "mock-data/personMocks";
+import { demonstrationMocks } from "mock-data/demonstrationMocks";
+
+const mockCreateExtension = vi.fn();
+
+const createExtensionMock = {
+  request: {
+    query: CREATE_EXTENSION_MUTATION,
+    variables: {
+      input: {
+        name: "Test Extension",
+        description: "Test description",
+        demonstrationId: "1",
+      },
+    },
+  },
+  result: () => {
+    mockCreateExtension();
+    return {
+      data: {
+        createExtension: {
+          id: "extension-123",
+          demonstration: {
+            id: "1",
+          },
+        },
+      },
+    };
+  },
+};
 
 describe("ExtensionDialog", () => {
   const getExtensionDialog = (
@@ -102,5 +132,36 @@ describe("ExtensionDialog", () => {
     const demonstrationSelect = screen.getByPlaceholderText("Select demonstration");
 
     expect(demonstrationSelect).toBeDisabled();
+  });
+
+  it("creates extension when form is submitted in add mode", async () => {
+    const mockOnClose = vi.fn();
+
+    render(
+      <TestProvider mocks={[createExtensionMock, ...personMocks, ...demonstrationMocks]}>
+        <ExtensionDialog onClose={mockOnClose} mode="add" demonstrationId="1" />
+      </TestProvider>
+    );
+
+    const titleInput = screen.getByLabelText(/extension title/i);
+    const descriptionTextarea = screen.getByLabelText(/extension description/i);
+
+    fireEvent.change(titleInput, { target: { value: "Test Extension" } });
+    fireEvent.change(descriptionTextarea, { target: { value: "Test description" } });
+
+    const submitButton = screen.getByTestId("button-submit-modification-dialog");
+    await waitFor(() => {
+      expect(submitButton).not.toBeDisabled();
+    });
+
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockCreateExtension).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(mockOnClose).toHaveBeenCalled();
+    });
   });
 });

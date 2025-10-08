@@ -50,6 +50,8 @@ vi.mock("react-oidc-context", () => ({
     user: { id_token: "fake-token" },
     signinRedirect: vi.fn(),
     signoutRedirect: vi.fn(),
+    signoutSilent: vi.fn(),
     removeUser: vi.fn(),
   }),
+  withAuthenticationRequired: (Component: React.ComponentType) => Component,
 }));
