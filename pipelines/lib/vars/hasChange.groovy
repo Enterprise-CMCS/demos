@@ -5,7 +5,6 @@ import groovy.transform.Field
 def call(String path, String target = "") {
 
   if (changes.containsKey(path)) {
-    echo "cache hit"
     return changes[path]
   }
 
@@ -16,4 +15,13 @@ def call(String path, String target = "") {
   def diffStatus = sh(script: "git diff --name-only --merge-base origin/${target} -- ${path}", returnStdout: true).trim()
   changes[path] = diffStatus != ""
   return changes[path]
+}
+
+def call(List<String> paths, String target = "") {
+  for (String path : paths) {
+    if (call(path, target)) {
+      return true
+    }
+  }
+  return false
 }

@@ -15,7 +15,7 @@ pipeline {
     stage('Client - Snyk') {
       when {
         expression {
-          return hasChange("client")
+          return hasChange(["lambdas", "spikes"])
         }
       }
       steps {
@@ -27,7 +27,7 @@ pipeline {
     stage('Client - Lint') {
       when {
         expression {
-          return hasChange("client")
+          return hasChange(["lambdas", "spikes", "client"])
         }
       }
       steps {
