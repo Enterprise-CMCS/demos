@@ -22,6 +22,10 @@ export type DemonstrationDialogFields = Pick<
   "name" | "description" | "sdgDivision" | "signatureLevel"
 > & { stateId: string; projectOfficerId: string; effectiveDate: string; expirationDate: string };
 
+type RequiredFieldKey = "stateId" | "name" | "projectOfficerId";
+
+const REQUIRED_FIELD_MESSAGE = "A required field is missing.";
+
 const DemonstrationDescriptionTextArea: React.FC<{
   description?: string;
   setDescription: (value: string) => void;
@@ -152,12 +156,41 @@ export const DemonstrationDialog: React.FC<{
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = useState<Partial<Record<RequiredFieldKey, string>>>(
+    {}
+  );
+
+  const clearValidationError = (field: RequiredFieldKey) => {
+    setValidationErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const validateRequiredFields = (): Partial<Record<RequiredFieldKey, string>> => {
+    const errors: Partial<Record<RequiredFieldKey, string>> = {};
+    if (!activeDemonstration.stateId) errors.stateId = REQUIRED_FIELD_MESSAGE;
+    if (!activeDemonstration.name) errors.name = REQUIRED_FIELD_MESSAGE;
+    if (!activeDemonstration.projectOfficerId) errors.projectOfficerId = REQUIRED_FIELD_MESSAGE;
+    return errors;
+  };
 
   const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
+    const errors = validateRequiredFields();
+    setValidationErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
-    await onSubmit(activeDemonstration);
-    setIsSubmitting(false);
+    try {
+      await onSubmit(activeDemonstration);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -188,7 +221,11 @@ export const DemonstrationDialog: React.FC<{
             currentState={activeDemonstration.stateId}
             value={activeDemonstration.stateId}
             isRequired
-            onStateChange={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
+            validationMessage={validationErrors.stateId}
+            onStateChange={(stateId) => {
+              clearValidationError("stateId");
+              setActiveDemonstration((prev) => ({ ...prev, stateId }));
+            }}
           />
           <div className="col-span-2">
             <TextInput
@@ -197,9 +234,12 @@ export const DemonstrationDialog: React.FC<{
               isRequired
               placeholder="Enter title"
               value={activeDemonstration.name}
-              onChange={(e) =>
-                setActiveDemonstration((prev) => ({ ...prev, name: e.target.value }))
-              }
+              getValidationMessage={() => validationErrors.name}
+              onChange={(e) => {
+                clearValidationError("name");
+                const value = e.target.value;
+                setActiveDemonstration((prev) => ({ ...prev, name: value }));
+              }}
             />
           </div>
         </div>
@@ -210,9 +250,11 @@ export const DemonstrationDialog: React.FC<{
               label="Project Officer"
               isRequired={true}
               initialUserId={activeDemonstration.projectOfficerId}
-              onSelect={(userId) =>
-                setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }))
-              }
+              validationMessage={validationErrors.projectOfficerId}
+              onSelect={(userId) => {
+                clearValidationError("projectOfficerId");
+                setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }));
+              }}
               personTypes={["demos-admin", "demos-cms-user"]}
             />
           </div>

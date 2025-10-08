@@ -10,6 +10,7 @@ export interface SelectUSAStatesProps {
   isDisabled?: boolean;
   currentState?: string;
   value?: string;
+  validationMessage?: string;
 }
 
 export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
@@ -19,6 +20,7 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
   isDisabled = false,
   currentState,
   value,
+  validationMessage,
 }) => {
   const options: Option[] = STATES_AND_TERRITORIES.map((state) => ({
     value: state.id,
@@ -39,6 +41,7 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
       isRequired={isRequired}
       isDisabled={isDisabled}
       value={selectedOption?.value}
+      validationMessage={validationMessage}
     />
   );
 };

@@ -23,6 +23,7 @@ export interface SelectUsersProps {
   isRequired?: boolean;
   isDisabled?: boolean;
   personTypes?: PersonType[];
+  validationMessage?: string;
 }
 
 const getOptionsFromPeople = (people: Person[]): Option[] => {
@@ -39,6 +40,7 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
   isRequired = false,
   isDisabled = false,
   personTypes,
+  validationMessage,
 }) => {
   const [selectedUserId, setSelectedUserId] = React.useState<string>(initialUserId || "");
   const { data, loading, error } = useQuery<{ people: Person[] }>(GET_USER_SELECT_OPTIONS_QUERY);
@@ -68,6 +70,7 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
       isRequired={isRequired}
       isDisabled={isDisabled || loading || !!error}
       value={selectedUserId}
+      validationMessage={validationMessage}
     />
   );
 };

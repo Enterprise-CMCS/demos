@@ -2,7 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
 import { Option } from "./Select";
-import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
+import {
+  getInputColors,
+  INPUT_BASE_CLASSES,
+  LABEL_CLASSES,
+  VALIDATION_MESSAGE_CLASSES,
+} from "../Input";
 
 export interface AutoCompleteSelectProps {
   options: Option[];
@@ -15,6 +20,7 @@ export interface AutoCompleteSelectProps {
   isDisabled?: boolean;
   defaultValue?: string;
   value?: string;
+  validationMessage?: string;
 }
 
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
@@ -34,6 +40,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   isDisabled = false,
   defaultValue = "",
   value,
+  validationMessage,
 }) => {
   const [inputValue, setInputValue] = useState(defaultValue);
   const [filtered, setFiltered] = useState<Option[]>(options);
@@ -113,9 +120,10 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           onKeyDown={onKeyDown}
           required={isRequired}
           disabled={isDisabled}
-          className={`${INPUT_BASE_CLASSES} ${getInputColors("")} w-full`}
+          className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage ?? "")} w-full`}
           data-form-type="other"
           autoComplete="off"
+          aria-invalid={Boolean(validationMessage)}
         />
         <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />
@@ -140,6 +148,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           </ul>
         )}
       </div>
+      {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
   );
 };

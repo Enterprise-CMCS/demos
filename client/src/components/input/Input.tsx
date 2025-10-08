@@ -6,13 +6,13 @@ export const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex g
 export const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-1 outline-none focus:ring-2
 bg-surface-white hover:text-text-font
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
-const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
+export const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 
 export const getInputColors = (validationMessage: string) => {
   let classes = "";
   classes += tw`text-text-filled`;
   if (validationMessage) {
-    classes += tw`border-border-warn focus:border-border-warn focus:ring-border-warn`;
+    classes += tw`border-border-warn focus:border-border-warn focus:ring-border-warn ring-1 ring-border-warn/70`;
   } else {
     classes += tw`border-border-fields focus:ring-action focus:border-action`;
   }
@@ -75,6 +75,7 @@ export const Input: React.FC<InputProps> = ({
         disabled={isDisabled ?? false}
         value={currentValue}
         onChange={handleChange}
+        aria-invalid={Boolean(validationMessage)}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
