@@ -3,6 +3,7 @@ guardduty-event-*.json
 response-*.json
 processed-*
 test-file.txt
+coverage
 
 # Lambda deployment artifacts
 fileprocess.zip

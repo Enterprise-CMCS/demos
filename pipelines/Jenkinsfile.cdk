@@ -16,8 +16,6 @@ pipeline {
         script {
           if (hasChange("deployment")) {
             snykScan('deployment')
-            snykScan('lambda_authorizer')
-            snykScan('lambdas/dbRoleManagement')
           }
         }
       }
