@@ -1,5 +1,7 @@
 # DEMOS Server
 
+mock change
+
 This is the server / back-end portion of the Demonstration Evaluation & Management Oversight System (DEMOS).
 
 # Tooling
@@ -47,14 +49,14 @@ Below is a generic version of the structure of the back-end.
 |   `-- types.ts
 ```
 
-* The `auth/` folder contains the authorization module.
-* The `model/` folder contains Prisma models and related GraphQL resolvers and schema. It also contains Prisma migrations within the `migrations` folder. Models will be discussed more below.
-* `constants.ts` stores constants for use throughout the codebase. Magic strings that are used repeatedly should be made into constants with a consistent definition found here.
-* `local-server.ts` runs Apollo Server and hosts the API. This version is strictly for local / development use, as the actual deployed version is found in `server.ts`. They are different files due to the launch configuration requirements for AWS Lambda.
-* `prismaClient.ts` is where the Prisma client instantiation is defined. You will import and use this in all your resolvers to access the Prisma models.
-* `seeder.ts` is a script for seeding synthetic data into local / development databases. It also serves as a confirmation that your models are working as expected. You should add to or update the seeder for any model changes, to ensure that the data inserts as expected.
-* `server.ts` is the deployment version of `local-server.ts`, suitable for using within AWS Lambda.
-* `types.ts` allows for exporting the types used on the server so that the client can also use them. It is also where types used within the server code (for example, derived from constants) can be defined.
+- The `auth/` folder contains the authorization module.
+- The `model/` folder contains Prisma models and related GraphQL resolvers and schema. It also contains Prisma migrations within the `migrations` folder. Models will be discussed more below.
+- `constants.ts` stores constants for use throughout the codebase. Magic strings that are used repeatedly should be made into constants with a consistent definition found here.
+- `local-server.ts` runs Apollo Server and hosts the API. This version is strictly for local / development use, as the actual deployed version is found in `server.ts`. They are different files due to the launch configuration requirements for AWS Lambda.
+- `prismaClient.ts` is where the Prisma client instantiation is defined. You will import and use this in all your resolvers to access the Prisma models.
+- `seeder.ts` is a script for seeding synthetic data into local / development databases. It also serves as a confirmation that your models are working as expected. You should add to or update the seeder for any model changes, to ensure that the data inserts as expected.
+- `server.ts` is the deployment version of `local-server.ts`, suitable for using within AWS Lambda.
+- `types.ts` allows for exporting the types used on the server so that the client can also use them. It is also where types used within the server code (for example, derived from constants) can be defined.
 
 ## Models and Resolvers
 
@@ -72,11 +74,11 @@ Models are named using PascalCase (for instance, `DocumentProcessingStep`). The 
 
 Each model folder will generally have up to four files. For the hypothetical `DocumentProcessingStep` model, these might be:
 
-* `documentProcessingStep.prisma`: The Prisma model representing the table itself in the database. This is where columns and relations are defined.
-* `documentProcessingStepHistory.prisma`: This is the history table specification; this is the file that is read by the `history_trigger_generator` script found in `data/utilities/scripts` in the project root, which automatically builds triggers to include in migration files.
-* `documentProcessingStepResolvers.ts`: These are the GraphQL resolvers relating to this model.
-  * Note that join tables will not have resolvers; the resolvers for those models should be built on either end of the joining models (e.g. changes to the `UserRole` model should be made on either the `User` or `Role` model).
-* `documentProcessingStepSchema.ts`: This is the GraphQL schema for the model. This file is linted via the custom rules found in `/server/eslint-rules` to ensure that the TypeScript and GraphQL types in this file match.
+- `documentProcessingStep.prisma`: The Prisma model representing the table itself in the database. This is where columns and relations are defined.
+- `documentProcessingStepHistory.prisma`: This is the history table specification; this is the file that is read by the `history_trigger_generator` script found in `data/utilities/scripts` in the project root, which automatically builds triggers to include in migration files.
+- `documentProcessingStepResolvers.ts`: These are the GraphQL resolvers relating to this model.
+  - Note that join tables will not have resolvers; the resolvers for those models should be built on either end of the joining models (e.g. changes to the `UserRole` model should be made on either the `User` or `Role` model).
+- `documentProcessingStepSchema.ts`: This is the GraphQL schema for the model. This file is linted via the custom rules found in `/server/eslint-rules` to ensure that the TypeScript and GraphQL types in this file match.
 
 If a model has a `Resolvers.ts` file, it should also have a `Schema.ts` file.
 
@@ -147,21 +149,21 @@ Flags can be added using the format:
 
 The flags we've identified as useful are:
 
-* `NATURAL_KEY`:
-  * Meaning: The table uses a human-readable / natural key, rather than a UUID or something similar.
-  * Explanation Comment: Not required.
-* `NO_HISTORY`:
-  * Meaning: This table does not have an accompanying history table.
-  * Explanation Comment: Required; include reason in your comment.
-* `NO_CREATED_TS`:
-  * Meaning: This table does not have a `createdAt` / `created_at` field.
-  * Explanation Comment: Required; include reason in your comment.
-* `NO_UPDATED_TS`:
-  * Meaning: This table does not have an `updatedAt` / `updated_at` field.
-  * Explanation Comment: Required; include reason in your comment.
-* `STATIC_CONSTRAINT`:
-  * Meaning: This table exists entirely as a static constraint table as discussed [above](#static-constraints-tables-vs-enums). If this is present, no other flags should be used.
-  * Explanation Comment: Not required.
+- `NATURAL_KEY`:
+  - Meaning: The table uses a human-readable / natural key, rather than a UUID or something similar.
+  - Explanation Comment: Not required.
+- `NO_HISTORY`:
+  - Meaning: This table does not have an accompanying history table.
+  - Explanation Comment: Required; include reason in your comment.
+- `NO_CREATED_TS`:
+  - Meaning: This table does not have a `createdAt` / `created_at` field.
+  - Explanation Comment: Required; include reason in your comment.
+- `NO_UPDATED_TS`:
+  - Meaning: This table does not have an `updatedAt` / `updated_at` field.
+  - Explanation Comment: Required; include reason in your comment.
+- `STATIC_CONSTRAINT`:
+  - Meaning: This table exists entirely as a static constraint table as discussed [above](#static-constraints-tables-vs-enums). If this is present, no other flags should be used.
+  - Explanation Comment: Not required.
 
 ### Scalar Fields
 
@@ -178,7 +180,7 @@ In Prisma, fields that exist on the model and in the database are known as "scal
 
 Putting these here, and then adding an empty line, means that they will be formatted as a single block when you run `prisma format`. It also helps to distinguish between the part of the Prisma file that contains strictly column definitions, from the section containing the relation fields.
 
-Table and column naming standards are described [below](#database-guidelines-and-conventions). Note that, in Prisma, you ___cannot___ have a relation field and a scalar field with the same name. This means that, barring rare exceptions, every scalar field that is constrained by a foreign key will have an `_id` suffix to avoid name collisions.
+Table and column naming standards are described [below](#database-guidelines-and-conventions). Note that, in Prisma, you **_cannot_** have a relation field and a scalar field with the same name. This means that, barring rare exceptions, every scalar field that is constrained by a foreign key will have an `_id` suffix to avoid name collisions.
 
 Fields are named using camelCase. By default, Prisma will quote the names you give in the model and put them as-written into the database. However, we use snake_case when in the database. As a result, any field which contains more than one word must have an `@map` statement, which maps the Prisma name to some alternative. So, for instance, above, `primaryReviewerUserId` has `@map("primary_reviewer_user_id")` to ensure that the database name is consistent with our naming schema.
 
@@ -246,16 +248,16 @@ export const proposalSchema = gql`
   }
 
   type Mutation {
-     createProposal(input: CreateProposalInput!): Proposal
-     updateProposal(id: ID!, input: UpdateProposalInput!): Proposal
-     deleteProposal(id: ID!): Proposal
+    createProposal(input: CreateProposalInput!): Proposal
+    updateProposal(id: ID!, input: UpdateProposalInput!): Proposal
+    deleteProposal(id: ID!): Proposal
   }
 
   type Query {
     proposals: [Proposal!]!
     proposal(id: ID!): Proposal
   }
-`
+`;
 ```
 
 Every set of GraphQL types needs a corresponding set of TypeScript types. In your `schema.ts` file, after the GQL section, you would define them as follows.
@@ -288,17 +290,18 @@ export interface UpdateProposalInput {
 
 A few notes:
 
-* GQL and TypeScript have slightly different ways of denoting optional / required fields.
-* GQL doesn't have a native DateTime type, but we are using the [GraphQL Scalars](https://the-guild.dev/graphql/scalars) package for these. The DateTime type from this package is equivalent to the Date type in TypeScript. To ensure that our custom linting works correctly and does not identify a mismatch in the types between GraphQL and TypeScript, we create the `DateTime` type as being the same as the `Date` one.
-* Note that for inputs, we accept a specific `primaryReviewerUserId`; however, for the actual `Proposal` type, the field is `primaryReviewer` and has the type `User`. This is expected; the type shows the nested nature of the object, while the inputs accept specific IDs for use in the resolver code.
-  * In general, you will use the "relational field" names and types from Prisma on the object type, and the "scalar field" names and types on the inputs.
-  * The exception for this is cases where a relational field exists to a static constraint table. In those cases, you can use the relational field name throughout, since the intent of the static constraint table is to simply constrain the display value.
-* Human-readable ID fields should be given the GraphQL type of `String`, while synthetic / meaningless keys (i.e. UUIDs) should be given the type of `ID`. This is consistent with [GraphQL documentation](https://graphql.org/learn/schema/):
+- GQL and TypeScript have slightly different ways of denoting optional / required fields.
+- GQL doesn't have a native DateTime type, but we are using the [GraphQL Scalars](https://the-guild.dev/graphql/scalars) package for these. The DateTime type from this package is equivalent to the Date type in TypeScript. To ensure that our custom linting works correctly and does not identify a mismatch in the types between GraphQL and TypeScript, we create the `DateTime` type as being the same as the `Date` one.
+- Note that for inputs, we accept a specific `primaryReviewerUserId`; however, for the actual `Proposal` type, the field is `primaryReviewer` and has the type `User`. This is expected; the type shows the nested nature of the object, while the inputs accept specific IDs for use in the resolver code.
+  - In general, you will use the "relational field" names and types from Prisma on the object type, and the "scalar field" names and types on the inputs.
+  - The exception for this is cases where a relational field exists to a static constraint table. In those cases, you can use the relational field name throughout, since the intent of the static constraint table is to simply constrain the display value.
+- Human-readable ID fields should be given the GraphQL type of `String`, while synthetic / meaningless keys (i.e. UUIDs) should be given the type of `ID`. This is consistent with [GraphQL documentation](https://graphql.org/learn/schema/):
 
   > ID: A unique identifier, often used to refetch an object or as the key for a cache. The ID type is serialized in the same way as a String; however, defining it as an ID signifies that it is not intended to be human‐readable.
 
   Within TypeScript, both are `string` types, since GraphQL treats the `ID` type as a string under the hood.
-* As described [below](#static-constraint-types), use custom types for static constraint tables.
+
+- As described [below](#static-constraint-types), use custom types for static constraint tables.
 
 ### Static Constraint Types
 
@@ -319,7 +322,7 @@ export const reviewSchema = gql`
   """
   scalar ReviewStatus
   ...
-`
+`;
 ```
 
 Later, you will want to add corresponding TypeScript types. You'll add two items: an array of the acceptable values, and a type derived from that (and having the same name as the scalar you added to the GQL). Put the array into `src/constants.ts` and the type into `src/types.ts`. Remember that any changes made here will need to be reflected in the database, and vice versa!
@@ -341,10 +344,10 @@ As a reminder, this approach is intended for cases where the constraint is rarel
 
 Every object should have a resolver and schema definition which provides for the following:
 
-* [Queries](#queries)
-* [Mutators](#mutators)
-* [Field Resolvers](#field-resolvers) (if relevant)
-* [Type Resolvers](#type-resolvers) (if relevant)
+- [Queries](#queries)
+- [Mutators](#mutators)
+- [Field Resolvers](#field-resolvers) (if relevant)
+- [Type Resolvers](#type-resolvers) (if relevant)
 
 However, as noted above, there is no need to add resolvers for associative / join tables; the resolvers relating to these should be on the objects being associated, not on the associative table itself.
 
@@ -366,23 +369,23 @@ Note that it's acceptable to have fields in a query / return type that are not o
 
 Mutators are named using a fairly standard syntax, but with flexibility. In general, the naming conventions are a guideline to try and aim for consistency, with the understanding that some cases may call for going outside these general guidelines.
 
-| Mutator | Meaning | Notes | Arguments |
-|---------|---------|-------|-----------|
-| `createX` | Create a new instance of X. | Generally, a `create` mutator is used for operations that insert into tables that have a single ID column, like demonstrations, as opposed to associative tables with multiple columns. | Generally, this mutator should accept a single argument `input` which contains all the required and optional fields necessary to create a new record. |
-| `updateX` | Update an instance of X that was created using a `create` mutator. | Like the `create` mutator, this focuses on top-level tables that have a single identifer, rather than composite / join tables. | Generally, the mutator should accept an `id` argument to identify the row to update, and an `input` argument with the updated values. The `input` object should generally have all values as optional. |
-| `deleteXs` | Delete one or more Xs that were created using a `create` mutator. | Generally, `delete` mutators should accept multiple IDs unless there is a reason not to do this. | Usually, this will accept a list of `ids` to delete. |
-| `setXYZ` | Create or update a record in an associative table, where XYZ describes the operation occurring. | The title should be descriptive of what occurs. For instance, `setDemonstrationRole` or `setDemonstrationContact` might be the name of a method that creates or updates a contact record for a user on a demonstration. | The arguments to these mutators should depend on the operation being performed. |
-| `unsetXYZ` | Remove a record in an associative table, where XYZ describes the operation occurring. This is the inverse of the `setXYZ` mutator. | For example, `unsetDemonstrationRole` or `unsetDemonstrationContact` may remove those associations. | Again, the arguments should be specific to the use case. |
+| Mutator    | Meaning                                                                                                                            | Notes                                                                                                                                                                                                                   | Arguments                                                                                                                                                                                              |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `createX`  | Create a new instance of X.                                                                                                        | Generally, a `create` mutator is used for operations that insert into tables that have a single ID column, like demonstrations, as opposed to associative tables with multiple columns.                                 | Generally, this mutator should accept a single argument `input` which contains all the required and optional fields necessary to create a new record.                                                  |
+| `updateX`  | Update an instance of X that was created using a `create` mutator.                                                                 | Like the `create` mutator, this focuses on top-level tables that have a single identifer, rather than composite / join tables.                                                                                          | Generally, the mutator should accept an `id` argument to identify the row to update, and an `input` argument with the updated values. The `input` object should generally have all values as optional. |
+| `deleteXs` | Delete one or more Xs that were created using a `create` mutator.                                                                  | Generally, `delete` mutators should accept multiple IDs unless there is a reason not to do this.                                                                                                                        | Usually, this will accept a list of `ids` to delete.                                                                                                                                                   |
+| `setXYZ`   | Create or update a record in an associative table, where XYZ describes the operation occurring.                                    | The title should be descriptive of what occurs. For instance, `setDemonstrationRole` or `setDemonstrationContact` might be the name of a method that creates or updates a contact record for a user on a demonstration. | The arguments to these mutators should depend on the operation being performed.                                                                                                                        |
+| `unsetXYZ` | Remove a record in an associative table, where XYZ describes the operation occurring. This is the inverse of the `setXYZ` mutator. | For example, `unsetDemonstrationRole` or `unsetDemonstrationContact` may remove those associations.                                                                                                                     | Again, the arguments should be specific to the use case.                                                                                                                                               |
 
 The phrase `set` was chosen over `add` to help denote that these operations are upserts (create or update). `unset` is intended to be the obvious opposite of `set`.
 
 A few general rules that apply here are outlined below.
 
-__Not All Mutators Are Required.__ You do not need to implement every possible combination of mutator for every object. The required mutators should be defined as part of the requirements. Without this, the amount of possible routes and combinations of queries rapidly become untenable.
+**Not All Mutators Are Required.** You do not need to implement every possible combination of mutator for every object. The required mutators should be defined as part of the requirements. Without this, the amount of possible routes and combinations of queries rapidly become untenable.
 
-__Associate Tables using Set/Unset.__ The `create`, `update`, and `delete` mutators are intended for records that represent independent entities, not for associating two entities together. For instance, we would not have a mutator called `createUserRoleAssignment`, even though it is necessary to assign users to roles, because such assignments are just associatons between the higher-level `User` and `Role` entities. The `set` and `unset` mutators are designed to be flexibly named to support those types of associations, with `set` explicitly being intended for upsert operations as well.
+**Associate Tables using Set/Unset.** The `create`, `update`, and `delete` mutators are intended for records that represent independent entities, not for associating two entities together. For instance, we would not have a mutator called `createUserRoleAssignment`, even though it is necessary to assign users to roles, because such assignments are just associatons between the higher-level `User` and `Role` entities. The `set` and `unset` mutators are designed to be flexibly named to support those types of associations, with `set` explicitly being intended for upsert operations as well.
 
-__Provide A Limited Set of Paths.__ It is not necessary to define mutators to perform operations in every possible direction, or in every possible operation. For instance, it's not necessary to define a mutator to create a new demonstration which allows you to assign contacts to the demonstration at the same time, and to also define a mutator to create and update new contact assignments.
+**Provide A Limited Set of Paths.** It is not necessary to define mutators to perform operations in every possible direction, or in every possible operation. For instance, it's not necessary to define a mutator to create a new demonstration which allows you to assign contacts to the demonstration at the same time, and to also define a mutator to create and update new contact assignments.
 
 ### Field Resolvers
 
@@ -462,12 +465,12 @@ This is implemented using the `__resolveType` resolver function.
 
 ## Database Standards and Conventions
 
-1. __Name Formatting__: Use snake_case for all database-related items.
-2. __Table Naming__: Tables should be named using the singular if possible (e.g. `author`, not `authors`). Exceptions to this are allowable for good reason. For instance, the word `USER` is reserved in SQL, so the table with users is called `users`. This is documented in the Prisma model. In contexts where the table name is made plural in this manner, do not make other references plural; having `user_id` in one table be constrained by `users.id` in the `users` table is correct.
-3. __ID Columns__: Most tables will have a column named `id` which represents the identifier for that table. Do not prefix the ID with the name of the table (i.e. use `state.id`, not `state.state_id`).
-4. __Foreign Keys__: When using a column in a table that references the ID column of another table, refer to it with a prefix. Ideally, you should simply use `table_name_id`. In some contexts, it is necessary to add additional context about the meaning of a column. For instance, the primary reviewer of a proposal is a user, but naming the column `user_id` is ambiguous. In those contexts, you can use the format of `meaningful_name_type_id`. So, `primary_reviewer_user_id` indicates the the column is the primary reviewer and that it is a user ID, meaning it can be looked up in `users.id`.
-5. __Static Constraint Tables__: As described [above](#static-constraints-tables-vs-enums), a static constraint table should be used in favor of an `enum` in most cases. Such contraint tables will have a single column, `id`, which contains the valid values. Denote these tables with the `STATIC_CONSTRAINT` flag on their Prisma models. Static constraint tables should not have history tables, nor will they have resolvers; they are intended to implement an `enum`-like functionality.
-5. __History Table Specifics__: Every history table should begein with three columns: `revision_id`, `revision_type`, and `modified_at`. These are expected by the Python tool which generates the triggers. Every other column should be reproduced from the source table, but no constraints or checks should be duplicated.
+1. **Name Formatting**: Use snake_case for all database-related items.
+2. **Table Naming**: Tables should be named using the singular if possible (e.g. `author`, not `authors`). Exceptions to this are allowable for good reason. For instance, the word `USER` is reserved in SQL, so the table with users is called `users`. This is documented in the Prisma model. In contexts where the table name is made plural in this manner, do not make other references plural; having `user_id` in one table be constrained by `users.id` in the `users` table is correct.
+3. **ID Columns**: Most tables will have a column named `id` which represents the identifier for that table. Do not prefix the ID with the name of the table (i.e. use `state.id`, not `state.state_id`).
+4. **Foreign Keys**: When using a column in a table that references the ID column of another table, refer to it with a prefix. Ideally, you should simply use `table_name_id`. In some contexts, it is necessary to add additional context about the meaning of a column. For instance, the primary reviewer of a proposal is a user, but naming the column `user_id` is ambiguous. In those contexts, you can use the format of `meaningful_name_type_id`. So, `primary_reviewer_user_id` indicates the the column is the primary reviewer and that it is a user ID, meaning it can be looked up in `users.id`.
+5. **Static Constraint Tables**: As described [above](#static-constraints-tables-vs-enums), a static constraint table should be used in favor of an `enum` in most cases. Such contraint tables will have a single column, `id`, which contains the valid values. Denote these tables with the `STATIC_CONSTRAINT` flag on their Prisma models. Static constraint tables should not have history tables, nor will they have resolvers; they are intended to implement an `enum`-like functionality.
+6. **History Table Specifics**: Every history table should begein with three columns: `revision_id`, `revision_type`, and `modified_at`. These are expected by the Python tool which generates the triggers. Every other column should be reproduced from the source table, but no constraints or checks should be duplicated.
 
 # How To Guides
 
@@ -484,12 +487,15 @@ npm run watch
 
 Alternatively. If you prefer to run prisma and the local code separately.
 You can use same top three instructions
+
 ```zsh
 cd server
 npm install
 npm run seed
 ```
+
 Then run this to separate prisma and the code in separate shell sessions.
+
 ```zsh
 npm run dev
 npm run prisma
@@ -516,7 +522,7 @@ API Gateway URL: http://localhost:4566/_aws/execute-api/yvbkw90rxr/local
 
 You should be able to use this URL from something like Bruno to make API calls against the database. Note that if you are making calls from _inside_ the devcontainer, you should replace `localhost` with `localstack`; this is because within the broader devcontainer environment, the DNS for the container running LocalStack is just `localstack`.
 
-There is a second local stack script located under `lambdas/fileprocess/setup.sh`  It setups up the S3 buckets for upload and the clean bucket.
+There is a second local stack script located under `lambdas/fileprocess/setup.sh` It setups up the S3 buckets for upload and the clean bucket.
 
 ## Prisma Migrations
 
@@ -524,10 +530,10 @@ Prisma has a robust system which detects drift between the current state of the 
 
 Note that all of the commands here are appropriate when working in the devcontainer against the local development instance of PostgreSQL. You should verify that your `.env` file has you pointed to the local development DB before doing any of this - if you use the provided version, this should be true, but it's always good to check!
 
-* `prisma migrate reset` drops the database and runs all the migrations found in the `migrations/` folder. You can use the `--force` flag to skip the confirmation dialogue. Oftentimes, you will have to do a `prisma migrate reset` when making changes to models; Prisma will prompt you at the terminal to do so. This is generally because the changes needed are not possible without dropping and recreating the data.
-* `prisma migrate dev` is a complex command, as it is responsible for both generating new migrations and running them, which is not intuitive. (See also [this discussion](https://github.com/prisma/prisma/issues/11184) about the issues with this command.) When you run `prisma migrate dev`, it will try to generate a new migration in the `migrations/` folder that implements the changes to the models since the last migration.
-  * If it is not possible to generate this automatically (for instance, if you need to change the type on a field that already exists, or drop a field that has data in it), Prisma will warn instead. You can use `--create-only` on this command to generate the SQL but not run it - this allows you to go edit in necessary code changes like dropping records, etc, in the SQL. Once you have the SQL the way you want, you can use `prisma migrate dev` to run it, though a `prisma migrate reset` may be necessary.
-  * Note that if you generate a new migration, make additional model changes, and then run `primsa migrate dev` again, by default it will create a new migration, not update the previous one you made. If you are trying to keep your changes contained into a single migration per PR (which is usually a good idea), you will need to delete the previous migration before running `prisma migrate dev` again.
-  * Keep in mind that you need to run the Python script found in `/data/utilities/scripts` to generate triggers for history tables. There is documentation in that folder and in the `--help` results for the script explaining how to use it. Also keep in mind that if you make changes to a table and the history table, the trigger needs to be regenerated; otherwise it will reference columns that may or may not exist.
+- `prisma migrate reset` drops the database and runs all the migrations found in the `migrations/` folder. You can use the `--force` flag to skip the confirmation dialogue. Oftentimes, you will have to do a `prisma migrate reset` when making changes to models; Prisma will prompt you at the terminal to do so. This is generally because the changes needed are not possible without dropping and recreating the data.
+- `prisma migrate dev` is a complex command, as it is responsible for both generating new migrations and running them, which is not intuitive. (See also [this discussion](https://github.com/prisma/prisma/issues/11184) about the issues with this command.) When you run `prisma migrate dev`, it will try to generate a new migration in the `migrations/` folder that implements the changes to the models since the last migration.
+  - If it is not possible to generate this automatically (for instance, if you need to change the type on a field that already exists, or drop a field that has data in it), Prisma will warn instead. You can use `--create-only` on this command to generate the SQL but not run it - this allows you to go edit in necessary code changes like dropping records, etc, in the SQL. Once you have the SQL the way you want, you can use `prisma migrate dev` to run it, though a `prisma migrate reset` may be necessary.
+  - Note that if you generate a new migration, make additional model changes, and then run `primsa migrate dev` again, by default it will create a new migration, not update the previous one you made. If you are trying to keep your changes contained into a single migration per PR (which is usually a good idea), you will need to delete the previous migration before running `prisma migrate dev` again.
+  - Keep in mind that you need to run the Python script found in `/data/utilities/scripts` to generate triggers for history tables. There is documentation in that folder and in the `--help` results for the script explaining how to use it. Also keep in mind that if you make changes to a table and the history table, the trigger needs to be regenerated; otherwise it will reference columns that may or may not exist.
 
-An important point: ___read the SQL that is generated by your model changes and make sure it makes sense.___ At the end of the day, the migration SQL is what gets run to bring the database into the state desired. While Prisma is pretty good, there have been a few places where it generated seemingly unusual items (a constraint that set the field to `NULL` on delete, when the field is `NOT NULL`, for instance). Prisma gets almost everything right, but be sure to at least skim what is generated.
+An important point: **_read the SQL that is generated by your model changes and make sure it makes sense._** At the end of the day, the migration SQL is what gets run to bring the database into the state desired. While Prisma is pretty good, there have been a few places where it generated seemingly unusual items (a constraint that set the field to `NULL` on delete, when the field is `NOT NULL`, for instance). Prisma gets almost everything right, but be sure to at least skim what is generated.
