@@ -1,3 +1,5 @@
+@Library('demos-lib@pipeline-efficiency') _
+
 pipeline {
   agent {
     kubernetes { 
@@ -12,29 +14,41 @@ pipeline {
   stages {
     stage('Server - Snyk') {
       steps {
-        snykScan('server')
+        script {
+          if (hasChange("server")) {
+            snykScan('server')
+          }
+        } 
       }
     }
 
     stage('Server - Lint') {
       steps {
-        dirCon('server', 'node') {
-          sh '''
-          npm ci
-          npm run lint
-          npx tsc --noEmit --skipLibCheck
-          npm run build:ci
-          '''
+        script {
+          if (hasChange("server")) {
+            dirCon('server', 'node') {
+              sh '''
+              npm ci
+              npm run lint
+              npx tsc --noEmit --skipLibCheck
+              npm run build:ci
+              '''
+            }
+          }
         }
       }
     }
 
     stage('Server - Unit Test') {
       steps {
-        dirCon('server', 'node') {
-          sh '''
-            npm run coverage:ci
-            '''
+        script {
+          if (hasChange("server")) {
+            dirCon('server', 'node') {
+              sh '''
+                npm run coverage:ci
+                '''
+            }
+          } 
         }
       }
     }
@@ -44,19 +58,21 @@ pipeline {
         stage('Server - Sonar Scan') {
           steps {
             script {
-              sonarQubeScan(
-                projectKey: 'demos-server',
-                credentialsId: 'sonarqube-demos-server',
-                projectBaseDir: 'server',
-                sonarqubeFlags: [
-                  "javascript.lcov.reportPaths": "coverage/lcov.info",
-                  "testExecutionReportPaths": "coverage/test-results.xml",
-                  "pullrequest.key": env.CHANGE_ID ?: null,
-                  "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-                  "pullrequest.base": env.CHANGE_TARGET ?: null,
-                  "exclusions": "**/*.test.ts,**/*.sql"
-                ]
-              )
+              if (hasChange("server")) {
+                sonarQubeScan(
+                  projectKey: 'demos-server',
+                  credentialsId: 'sonarqube-demos-server',
+                  projectBaseDir: 'server',
+                  sonarqubeFlags: [
+                    "javascript.lcov.reportPaths": "coverage/lcov.info",
+                    "testExecutionReportPaths": "coverage/test-results.xml",
+                    "pullrequest.key": env.CHANGE_ID ?: null,
+                    "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
+                    "pullrequest.base": env.CHANGE_TARGET ?: null,
+                    "exclusions": "**/*.test.ts,**/*.sql"
+                  ]
+                )
+              }
             }
           }
         }
