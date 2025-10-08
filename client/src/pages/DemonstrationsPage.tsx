@@ -76,7 +76,12 @@ export const DemonstrationsPage: React.FC = () => {
 
   const demonstrations = data?.demonstrations || [];
   const myDemonstrations: Demonstration[] = demonstrations.filter((demonstration) =>
-    demonstration.roles.some((role) => role.person.id === data?.currentUser.id)
+    demonstration.roles.some(
+      (role) =>
+        role.person.id === data?.currentUser.id &&
+        role.role === "Project Officer" &&
+        role.isPrimary === true
+    )
   );
 
   return (
