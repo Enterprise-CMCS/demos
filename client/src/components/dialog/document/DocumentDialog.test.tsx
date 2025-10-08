@@ -59,7 +59,7 @@ describe("AddDocumentDialog", () => {
   it("shows cancel confirmation dialog when cancel is clicked", () => {
     setup();
     fireEvent.click(screen.getByText("Cancel"));
-    expect(screen.getByText("Are you sure you want to cancel?")).toBeInTheDocument();
+    expect(screen.getByText("Are you sure you want to cancel? Changes you have made so far will not be saved.")).toBeInTheDocument();
   });
 
   it("has disabled button in edit when file is missing", () => {

@@ -8,8 +8,8 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
 import { formatDateForServer, parseInputDate } from "util/formatDate";
 
-const SUCCESS_MESSAGE = "Demonstration updated successfully!";
-const ERROR_MESSAGE = "Failed to update demonstration. Please try again.";
+const SUCCESS_MESSAGE = "Your demonstration has been updated.";
+const ERROR_MESSAGE = "Your demonstration was not updated because of an unknown problem.";
 
 export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
   query GetDemonstrationById($id: ID!) {
