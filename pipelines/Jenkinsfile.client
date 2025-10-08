@@ -1,3 +1,5 @@
+def changePaths =  ["client", "server/src/constants.ts", "server/src/types.ts"]
+
 pipeline {
   agent {
     kubernetes { 
@@ -6,35 +8,47 @@ pipeline {
   }
 
   options {
-    disableConcurrentBuilds()
+    disableConcurrentBuilds(abortPrevious: true)
   }
 
   stages {
     stage('Client - Snyk') {
       steps {
-        snykScan('client')
+        script {
+          if (hasChange(changePaths)) {
+            snykScan('client')
+          }
+        }
       }
     }
 
     stage('Client - Lint') {
       steps {
-        dirCon('client', 'node') {
-            sh '''
-            npm ci
-            npm run tsc:ci
-            npm run lint:ci
-            npm run build:ci
-            '''
+        script {
+          if (hasChange(changePaths)) {
+            dirCon('client', 'node') {
+              sh '''
+              npm ci
+              npm run tsc:ci
+              npm run lint:ci
+              npm run build:ci
+              '''
+            }
+          }
         }
       }
     }
 
     stage('Client - Unit Test') {
       steps {
-        dirCon('client', 'node') {
-          sh '''
-            npm run coverage:ci
-            '''
+        script {
+          if (hasChange(changePaths)) {
+            dirCon('client', 'node') {
+              sh '''
+                npm run coverage:ci
+                '''
+            }
+          }
         }
       }
     }
@@ -42,19 +56,21 @@ pipeline {
     stage('Client - Sonar Scan') {
       steps {
         script {
-          sonarQubeScan(
-            projectKey: 'demos',
-            credentialsId: 'sonarqube-demos-client',
-            projectBaseDir: 'client',
-            sonarqubeFlags: [
-              "javascript.lcov.reportPaths": "coverage/lcov.info",
-              "testExecutionReportPaths": "coverage/test-results.xml",
-              "pullrequest.key": env.CHANGE_ID ?: null,
-              "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-              "pullrequest.base": env.CHANGE_TARGET ?: null,
-              "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**,**/PhaseDateSimulation.tsx"
-            ]
-          )
+          if (hasChange(changePaths)) {
+            sonarQubeScan(
+              projectKey: 'demos',
+              credentialsId: 'sonarqube-demos-client',
+              projectBaseDir: 'client',
+              sonarqubeFlags: [
+                "javascript.lcov.reportPaths": "coverage/lcov.info",
+                "testExecutionReportPaths": "coverage/test-results.xml",
+                "pullrequest.key": env.CHANGE_ID ?: null,
+                "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
+                "pullrequest.base": env.CHANGE_TARGET ?: null,
+                "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**,**/PhaseDateSimulation.tsx"
+              ]
+            )
+          }
         }
       }
     }
