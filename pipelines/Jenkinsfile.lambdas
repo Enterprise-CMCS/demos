@@ -6,29 +6,31 @@ pipeline {
   }
 
   options {
-    disableConcurrentBuilds()
+    disableConcurrentBuilds(abortPrevious: true)
   }
 
   stages {
     stage('Lambdas - Snyk - All') {
-      script {
-        if (hasChange("lambdas")) {
-          failFast true
-          parallel {
-            stage('Snyk Scan - Authorizer') {
-              steps {
-                snykScan('lambdas/authorizer')
-              }
+      failFast true
+      parallel {
+        stage('Snyk Scan - Authorizer') {
+          steps {
+            script {
+              if (hasChange("lambdas")) { snykScan('lambdas/authorizer') }
             }
-            stage('Snyk Scan - DB Role Management') {
-              steps {
-                snykScan('lambdas/dbRoleManagement')
-              }
+          }
+        }
+        stage('Snyk Scan - DB Role Management') {
+          steps {
+            script {
+              if (hasChange("lambdas")) { snykScan('lambdas/dbRoleManagement') }
             }
-            stage('Snyk Scan - File Process') {
-              steps {
-                snykScan('lambdas/fileprocess')
-              }
+          }
+        }
+        stage('Snyk Scan - File Process') {
+          steps {
+            script {
+              if (hasChange("lambdas")) { snykScan('lambdas/fileprocess') }
             }
           }
         }
@@ -36,12 +38,12 @@ pipeline {
     }
 
     stage('Lambdas - Test - All') {
-      script {
-        if (hasChange("lambdas")) {
-          failFast true
-          parallel {
-            stage('Unit Test - Authorizer') {
-              steps {
+      failFast true
+      parallel {
+        stage('Unit Test - Authorizer') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
                 dirCon('lambdas/authorizer', 'node') {
                   sh '''
                   npm ci
@@ -51,8 +53,12 @@ pipeline {
                 }
               }
             }
-            stage('Unit Test - DB Role Management') {
-              steps {
+          }
+        }
+        stage('Unit Test - DB Role Management') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
                 dirCon('lambdas/dbRoleManagement', 'node') {
                   sh '''
                   npm ci
@@ -62,8 +68,12 @@ pipeline {
                 }
               }
             }
-            stage('Unit Test - File Process') {
-              steps {
+          }
+        }
+        stage('Unit Test - File Process') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
                 dirCon('lambdas/fileprocess', 'node') {
                   sh '''
                   npm ci
