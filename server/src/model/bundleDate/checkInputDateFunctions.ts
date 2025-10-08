@@ -1,6 +1,48 @@
 import { DateType } from "../../types.js";
 import { getTargetDateValue } from "./getTargetDateValue.js";
 import { addDays } from "date-fns";
+import { TZDate } from "@date-fns/tz";
+import { GraphQLError } from "graphql";
+
+type TZDateParts = {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
+};
+
+export function getTZDateParts(dateValue: Date): TZDateParts {
+  const tzDateValue = new TZDate(dateValue, "America/New_York");
+  return {
+    hours: tzDateValue.getHours(),
+    minutes: tzDateValue.getMinutes(),
+    seconds: tzDateValue.getSeconds(),
+    milliseconds: tzDateValue.getMilliseconds(),
+  };
+}
+
+export function checkInputDateIsStartOfDay(inputDate: {
+  dateType: DateType;
+  dateValue: Date;
+}): void {
+  const dateParts = getTZDateParts(inputDate.dateValue);
+  if (
+    dateParts.hours !== 0 ||
+    dateParts.minutes !== 0 ||
+    dateParts.seconds !== 0 ||
+    dateParts.milliseconds !== 0
+  ) {
+    throw new GraphQLError(
+      `The input ${inputDate.dateType} must be a start of day date ` +
+        `(midnight in Eastern time), but it is ${inputDate.dateValue.toISOString()}`,
+      {
+        extensions: {
+          code: "INVALID_START_OF_DAY_DATETIME",
+        },
+      }
+    );
+  }
+}
 
 export async function checkInputDateGreaterThan(
   inputDate: {

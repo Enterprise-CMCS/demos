@@ -1,5 +1,6 @@
 import { SetBundleDateInput } from "../../types.js";
 import {
+  checkInputDateIsStartOfDay,
   checkInputDateGreaterThan,
   checkInputDateGreaterThanOrEqual,
   checkInputDateMeetsOffset,
@@ -12,6 +13,9 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
   };
 
   switch (input.dateType) {
+    case "Concept Start Date":
+      checkInputDateIsStartOfDay(inputDate);
+      break;
     case "Concept Completion Date":
       await checkInputDateGreaterThan(inputDate, {
         bundleId: input.bundleId,
