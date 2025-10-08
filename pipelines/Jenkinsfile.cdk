@@ -6,44 +6,54 @@ pipeline {
   }
 
   options {
-    disableConcurrentBuilds()
+    disableConcurrentBuilds(abortPrevious: true)
   }
 
   stages {
 
     stage('CDK - Snyk') {
       steps {
-        snykScan('deployment')
-        snykScan('lambda_authorizer')
-        snykScan('lambdas/dbRoleManagement')
+        script {
+          if (hasChange("deployment")) {
+            snykScan('deployment')
+          }
+        }
       }
     }
 
     stage('CDK - Lint') {
       steps {
-        dirCon('deployment', 'node') {
-          sh '''
-          npm ci
-          npm run lint
-          '''
+        script {
+          if (hasChange("deployment")) {
+            dirCon('deployment', 'node') {
+              sh '''
+              npm ci
+              npm run lint
+              '''
+            }
+          }
         }
       }
     }
 
     stage('CDK - Test') {
       steps {
-        dirCon('deployment', 'node') {
-          sh '''
-          mkdir ../client/dist
-          mkdir ../server/build
-          touch ../server/build/server.cjs
+        script {
+          if (hasChange("deployment")) {
+            dirCon('deployment', 'node') {
+              sh '''
+              mkdir ../client/dist
+              mkdir ../server/build
+              touch ../server/build/server.cjs
 
-          # These are needed for the built-in CDK bundling
-          apk add bash
-          npm i -g esbuild
+              # These are needed for the built-in CDK bundling
+              apk add bash
+              npm i -g esbuild
 
-          npm run test:ci
-          '''
+              npm run test:ci
+              '''
+            }
+          }
         }
       }
     }
@@ -51,31 +61,37 @@ pipeline {
     stage('CDK - Sonar Scan') {
       steps {
         script {
-          sonarQubeScan(
-            projectKey: 'demos-cdk',
-            credentialsId: 'sonarqube-demos-cdk',
-            projectBaseDir: 'deployment',
-            sonarqubeFlags: [
-              "javascript.lcov.reportPaths": "coverage/lcov.info",
-              "pullrequest.key": env.CHANGE_ID ?: null,
-              "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-              "pullrequest.base": env.CHANGE_TARGET ?: null,
-              "exclusions": "**/*.test.ts,**/*.test.tsx,coverage/**,cdk.out/**,**/nag-suppressions.ts,jest.config.cjs,lib/mockLambda.js,index.ts,demosctl/index.ts",
-              "sources": "./",
-              "tests": "./"
-            ]
-          )
+          if (hasChange("deployment")) {
+            sonarQubeScan(
+              projectKey: 'demos-cdk',
+              credentialsId: 'sonarqube-demos-cdk',
+              projectBaseDir: 'deployment',
+              sonarqubeFlags: [
+                "javascript.lcov.reportPaths": "coverage/lcov.info",
+                "pullrequest.key": env.CHANGE_ID ?: null,
+                "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
+                "pullrequest.base": env.CHANGE_TARGET ?: null,
+                "exclusions": "**/*.test.ts,**/*.test.tsx,coverage/**,cdk.out/**,**/nag-suppressions.ts,jest.config.cjs,lib/mockLambda.js,index.ts,demosctl/index.ts",
+                "sources": "./",
+                "tests": "./"
+              ]
+            )
+          }
         }
       }
     }
 
     stage('CDK - Synth') {
       steps {
-        assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
-        dirCon('deployment', 'node') {
-          sh '''
-          npm run synth:dev
-          '''
+        script {
+          if (hasChange("deployment")) {
+            assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+            dirCon('deployment', 'node') {
+              sh '''
+              npm run synth:dev
+              '''
+            }
+          }
         }
       }
     }

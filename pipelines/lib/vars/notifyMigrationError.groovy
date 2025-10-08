@@ -1,4 +1,4 @@
-def call(stage: String) {
+def call(String stage) {
   def username = sh(script: '''
   curl https://api.github.com/repos/Enterprise-CMCS/demos/commits/$(git log -1 --pretty=format:"%H") | grep '"login":' | head -n1 | sed -E 's/.*"login": *"(.*)".*/\\1/'
   ''', returnStdout: true).trim()
