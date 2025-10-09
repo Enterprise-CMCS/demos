@@ -13,6 +13,7 @@
     "@aws-sdk/s3-request-presigner": "^3.859.0",
     "@date-fns/tz": "^1.4.1",
     "@prisma/client": "^6.15.0",
+    "date-fns": "^4.1.0",
     "graphql-scalars": "^1.24.2",
     "graphql-tools": "^9.0.18",
     "jsonwebtoken": "^9.0.2",

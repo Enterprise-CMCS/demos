@@ -4,6 +4,7 @@ import { BundleType, PhaseName, BundleStatus, GrantLevel, Role } from "../../typ
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
+import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -96,20 +97,24 @@ export async function updateDemonstration(
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ) {
   checkOptionalNotNullFields(["name", "status", "currentPhaseName", "stateId"], input);
-  return await prisma().demonstration.update({
-    where: { id },
-    data: {
-      name: input.name,
-      description: input.description,
-      effectiveDate: input.effectiveDate,
-      expirationDate: input.expirationDate,
-      sdgDivisionId: input.sdgDivision,
-      signatureLevelId: input.signatureLevel,
-      statusId: input.status,
-      currentPhaseId: input.currentPhaseName,
-      stateId: input.stateId,
-    },
-  });
+  try {
+    return await prisma().demonstration.update({
+      where: { id },
+      data: {
+        name: input.name,
+        description: input.description,
+        effectiveDate: input.effectiveDate,
+        expirationDate: input.expirationDate,
+        sdgDivisionId: input.sdgDivision,
+        signatureLevelId: input.signatureLevel,
+        statusId: input.status,
+        currentPhaseId: input.currentPhaseName,
+        stateId: input.stateId,
+      },
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
 }
 
 export const demonstrationResolvers = {
