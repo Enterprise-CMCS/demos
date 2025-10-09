@@ -1,4 +1,8 @@
+-- Constraining the demonstration title to be non-empty
+ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+
 -- Fixing trigger that creates records when an application is made
+-- This makes it so that the new start dates are at the start of day
 DROP TRIGGER IF EXISTS create_phases_for_new_application_trigger ON demos_app.bundle;
 DROP FUNCTION IF EXISTS demos_app.create_phases_for_new_application();
 

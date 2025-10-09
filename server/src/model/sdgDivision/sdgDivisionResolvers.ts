@@ -1,4 +1,4 @@
-import { generateCustomSetScalar } from "../../resolverFunctions.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { SDG_DIVISIONS } from "../../constants.js";
 
 export const sdgDivisionResolvers = {
