@@ -37,7 +37,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor((row) => row.roles[0].person.fullName, {
+    columnHelper.accessor((row) => row.primaryProjectOfficer.fullName, {
       id: "projectOfficer",
       header: "Project Officer",
       cell: highlightCell,

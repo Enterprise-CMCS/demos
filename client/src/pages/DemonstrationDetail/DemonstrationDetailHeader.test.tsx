@@ -14,7 +14,7 @@ const createTestHeaderDemonstration = (mockDemo: (typeof mockDemonstrations)[0])
   effectiveDate: new Date(mockDemo.effectiveDate),
   expirationDate: new Date(mockDemo.expirationDate),
   state: mockDemo.state,
-  roles: mockDemo.roles,
+  primaryProjectOfficer: mockDemo.primaryProjectOfficer,
 });
 
 describe("Demonstration Detail Header", () => {

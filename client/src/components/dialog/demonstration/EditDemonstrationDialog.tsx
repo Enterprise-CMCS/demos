@@ -3,7 +3,6 @@ import React from "react";
 import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
 import { Demonstration, UpdateDemonstrationInput } from "demos-server";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
 import { formatDateForServer, parseInputDate } from "util/formatDate";
@@ -35,19 +34,6 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
     updateDemonstration(id: $id, input: $input) {
       id
-      name
-      description
-      sdgDivision
-      signatureLevel
-      effectiveDate
-      expirationDate
-      primaryProjectOfficer {
-        id
-      }
-      state {
-        id
-        name
-      }
     }
   }
 `;
@@ -97,12 +83,9 @@ const useUpdateDemonstration = () => {
         id: demonstrationId,
         input: updateInput,
       },
-      refetchQueries: [
-        {
-          query: DEMONSTRATION_DETAIL_QUERY,
-          variables: { id: demonstrationId },
-        },
-      ],
+      update: (cache, { data }) => {
+        cache.evict({ id: cache.identify(data?.updateDemonstration) });
+      },
     });
   };
 };

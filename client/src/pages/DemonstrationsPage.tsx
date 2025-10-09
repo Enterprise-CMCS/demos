@@ -7,7 +7,6 @@ import {
   Extension,
   State,
   Person,
-  DemonstrationRoleAssignment,
   User,
 } from "demos-server";
 import { Tab, Tabs } from "layout/Tabs";
@@ -22,13 +21,9 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
         id
         name
       }
-      roles {
-        role
-        isPrimary
-        person {
-          id
-          fullName
-        }
+      primaryProjectOfficer {
+        id
+        fullName
       }
       amendments {
         id
@@ -57,9 +52,7 @@ export type DemonstrationExtension = Pick<Extension, "id" | "name" | "status">;
 
 export type Demonstration = Pick<ServerDemonstration, "id" | "name" | "status"> & {
   state: Pick<State, "id" | "name">;
-  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-    person: Pick<Person, "fullName" | "id">;
-  })[];
+  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
   amendments: DemonstrationAmendment[];
   extensions: DemonstrationExtension[];
 };
@@ -75,13 +68,8 @@ export const DemonstrationsPage: React.FC = () => {
     useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
 
   const demonstrations = data?.demonstrations || [];
-  const myDemonstrations: Demonstration[] = demonstrations.filter((demonstration) =>
-    demonstration.roles.some(
-      (role) =>
-        role.person.id === data?.currentUser.id &&
-        role.role === "Project Officer" &&
-        role.isPrimary === true
-    )
+  const myDemonstrations: Demonstration[] = demonstrations.filter(
+    (demonstration) => demonstration.primaryProjectOfficer.id === data?.currentUser.id
   );
 
   return (

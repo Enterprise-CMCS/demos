@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useMemo, useEffect } from "react";
 import { useQuery, ApolloError, ApolloQueryResult, gql } from "@apollo/client";
 import { useAuth } from "react-oidc-context";
-import { Person } from "demos-server";
+import { Person, User } from "demos-server";
 
 export const GET_CURRENT_USER_QUERY = gql`
   query GetCurrentUser {
     currentUser {
+      id
       person {
+        id
         personType
         fullName
         displayName
@@ -16,7 +18,9 @@ export const GET_CURRENT_USER_QUERY = gql`
   }
 `;
 
-type CurrentUser = { person: Pick<Person, "personType" | "fullName" | "displayName" | "email"> };
+type CurrentUser = Pick<User, "id"> & {
+  person: Pick<Person, "id" | "personType" | "fullName" | "displayName" | "email">;
+};
 
 type UserContextValue = {
   currentUser: CurrentUser | null;
