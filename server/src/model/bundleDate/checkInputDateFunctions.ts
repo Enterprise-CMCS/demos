@@ -44,6 +44,26 @@ export function checkInputDateIsStartOfDay(inputDate: {
   }
 }
 
+export function checkInputDateIsEndOfDay(inputDate: { dateType: DateType; dateValue: Date }): void {
+  const dateParts = getTZDateParts(inputDate.dateValue);
+  if (
+    dateParts.hours !== 23 ||
+    dateParts.minutes !== 59 ||
+    dateParts.seconds !== 59 ||
+    dateParts.milliseconds !== 999
+  ) {
+    throw new GraphQLError(
+      `The input ${inputDate.dateType} must be an end of day date ` +
+        `(11:59:59.999 in Eastern time), but it is ${inputDate.dateValue.toISOString()}`,
+      {
+        extensions: {
+          code: "INVALID_END_OF_DAY_DATETIME",
+        },
+      }
+    );
+  }
+}
+
 export async function checkInputDateGreaterThan(
   inputDate: {
     dateType: DateType;
