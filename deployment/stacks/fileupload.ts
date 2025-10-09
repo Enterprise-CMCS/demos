@@ -140,7 +140,7 @@ export class FileUploadStack extends Stack {
     const fileProcessLambda = new lambda.Lambda(this, "fileProcess", {
       ...props,
       scope: this,
-      entry: "../lambdas/fileprocess/index.js",
+      entry: "../lambdas/fileprocess/index.ts",
       handler: "index.handler",
       vpc: props.vpc,
       securityGroup: fileProcessLambdaSecurityGroup.securityGroup,

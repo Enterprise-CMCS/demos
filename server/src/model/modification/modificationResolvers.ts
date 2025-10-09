@@ -10,6 +10,7 @@ import {
 } from "./modificationSchema.js";
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
+import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
 type ModificationType = Exclude<BundleType, "Demonstration">;
 const conceptPhaseName: PhaseName = "Concept";
@@ -118,21 +119,25 @@ async function updateModification(
   bundleTypeId: ModificationType
 ) {
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
-  return await prisma().modification.update({
-    where: {
-      id: id,
-      bundleTypeId: bundleTypeId,
-    },
-    data: {
-      demonstrationId: input.demonstrationId,
-      name: input.name,
-      description: input.description,
-      effectiveDate: input.effectiveDate,
-      expirationDate: input.expirationDate,
-      statusId: input.status,
-      currentPhaseId: input.currentPhaseName,
-    },
-  });
+  try {
+    return await prisma().modification.update({
+      where: {
+        id: id,
+        bundleTypeId: bundleTypeId,
+      },
+      data: {
+        demonstrationId: input.demonstrationId,
+        name: input.name,
+        description: input.description,
+        effectiveDate: input.effectiveDate,
+        expirationDate: input.expirationDate,
+        statusId: input.status,
+        currentPhaseId: input.currentPhaseName,
+      },
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
 }
 export async function updateAmendment(
   parent: undefined,

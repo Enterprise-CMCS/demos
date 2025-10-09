@@ -26,15 +26,17 @@ import {
   updateExtension,
 } from "./model/modification/modificationResolvers.js";
 
-function randomDate(yearsAhead: number, type: "start" | "end") {
-  const randomDate = faker.date.future({ years: yearsAhead });
-  const randomEasternDate = new TZDate(randomDate, "America/New_York");
-  if (type === "start") {
-    randomEasternDate.setHours(0, 0, 0, 0);
-  } else {
-    randomEasternDate.setHours(23, 59, 59, 999);
-  }
-  return randomEasternDate;
+function randomDateRange() {
+  const randomStart = faker.date.future({ years: 1 });
+  const randomEnd = faker.date.future({ years: 1, refDate: randomStart });
+
+  const randomEasternStart = new TZDate(randomStart, "America/New_York");
+  const randomEasternEnd = new TZDate(randomEnd, "America/New_York");
+
+  randomEasternStart.setHours(0, 0, 0, 0);
+  randomEasternEnd.setHours(23, 59, 59, 999);
+
+  return { start: randomEasternStart, end: randomEasternEnd };
 }
 
 function checkIfAllowed() {
@@ -209,9 +211,10 @@ async function seedDatabase() {
   const demonstrations = await getManyDemonstrations();
   await Promise.all(
     demonstrations.map((demonstration, index) => {
+      const randomDates = randomDateRange();
       const updatePayload: UpdateDemonstrationInput = {
-        effectiveDate: randomDate(1, "start"),
-        expirationDate: randomDate(2, "end"),
+        effectiveDate: randomDates["start"],
+        expirationDate: randomDates["end"],
       };
 
       /*
@@ -262,9 +265,10 @@ async function seedDatabase() {
   }
   const amendments = await getManyAmendments();
   for (const amendment of amendments) {
+    const randomDates = randomDateRange();
     const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: randomDate(1, "start"),
-      expirationDate: randomDate(2, "end"),
+      effectiveDate: randomDates["start"],
+      expirationDate: randomDates["end"],
     };
     const updateInput = {
       id: amendment.id,
@@ -284,9 +288,10 @@ async function seedDatabase() {
   }
   const extensions = await getManyExtensions();
   for (const extension of extensions) {
+    const randomDates = randomDateRange();
     const updatePayload: UpdateExtensionInput = {
-      effectiveDate: randomDate(1, "start"),
-      expirationDate: randomDate(2, "end"),
+      effectiveDate: randomDates["start"],
+      expirationDate: randomDates["end"],
     };
     const updateInput = {
       id: extension.id,

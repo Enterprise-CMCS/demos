@@ -1,17 +1,39 @@
 import { Prisma } from "@prisma/client";
+import { GraphQLError } from "graphql";
 
 export function handlePrismaError(error: unknown): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
       case "P2003":
-        throw new Error(
-          "Foreign key constraint failed, please validate your input parameters. Constraint violated: " +
-            error.meta!.constraint
+        throw new GraphQLError(
+          `A foreign key constraint ${error.meta!.constraint} was violated in your input.`,
+          {
+            extensions: {
+              code: "VIOLATED_FOREIGN_KEY",
+              originalMessage: error.message,
+            },
+          }
         );
       default:
-        throw new Error("A Prisma error was encountered: " + error);
+        throw new GraphQLError("A known Prisma error was encountered with no custom handling.", {
+          extensions: {
+            code: "KNOWN_PRISMA_ERROR",
+            originalMessage: error.message,
+          },
+        });
     }
-  } else {
-    throw error;
   }
+
+  if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+    if (error.message.includes("violates check constraint")) {
+      throw new GraphQLError("A check constraint was violated in your input.", {
+        extensions: {
+          code: "VIOLATED_CHECK_CONSTRAINT",
+          originalMessage: error.message,
+        },
+      });
+    }
+  }
+
+  throw error;
 }
