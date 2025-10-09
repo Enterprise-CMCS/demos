@@ -164,9 +164,6 @@ export async function updateDemonstration(
       }
 
       return demonstration;
-    },
-    {
-      timeout: 10000000,
     }
   );
 }
