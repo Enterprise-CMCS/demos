@@ -22,12 +22,8 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
       state {
         id
       }
-      roles {
-        isPrimary
-        role
-        person {
-          id
-        }
+      primaryProjectOfficer {
+        id
       }
       effectiveDate
       expirationDate
@@ -45,25 +41,13 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
       signatureLevel
       effectiveDate
       expirationDate
+      primaryProjectOfficer {
+        id
+      }
       state {
         id
         name
       }
-    }
-  }
-`;
-
-export const SET_DEMONSTRATION_ROLE_MUTATION = gql`
-  mutation SetDemonstrationRole($input: SetDemonstrationRoleInput!) {
-    setDemonstrationRole(input: $input) {
-      demonstration {
-        id
-      }
-      person {
-        id
-      }
-      role
-      isPrimary
     }
   }
 `;
@@ -74,6 +58,9 @@ const getUpdateDemonstrationInput = (
   ...(demonstration.name && { name: demonstration.name }),
   ...(demonstration.description && { description: demonstration.description }),
   ...(demonstration.stateId && { stateId: demonstration.stateId }),
+  ...(demonstration.projectOfficerId && {
+    projectOfficerUserId: demonstration.projectOfficerId,
+  }),
   ...(demonstration.sdgDivision && { sdgDivision: demonstration.sdgDivision }),
   ...(demonstration.signatureLevel && { signatureLevel: demonstration.signatureLevel }),
   ...(demonstration.effectiveDate && {
@@ -87,10 +74,10 @@ const getUpdateDemonstrationInput = (
 const getDemonstrationDialogFields = (demonstration: Demonstration): DemonstrationDialogFields => ({
   name: demonstration.name,
   description: demonstration.description || "",
+  stateId: demonstration.state.id,
+  projectOfficerId: demonstration.primaryProjectOfficer.id,
   ...(demonstration.sdgDivision && { sdgDivision: demonstration.sdgDivision }),
   ...(demonstration.signatureLevel && { signatureLevel: demonstration.signatureLevel }),
-  stateId: demonstration.state.id,
-  projectOfficerId: getProjectOfficerId(demonstration),
   effectiveDate: demonstration.effectiveDate
     ? formatDateForServer(demonstration.effectiveDate)
     : "",
@@ -98,18 +85,6 @@ const getDemonstrationDialogFields = (demonstration: Demonstration): Demonstrati
     ? formatDateForServer(demonstration.expirationDate)
     : "",
 });
-
-const getProjectOfficerId = (demonstration: Demonstration): string => {
-  const primaryProjectOfficer = demonstration.roles.find(
-    (role) => role.role === "Project Officer" && role.isPrimary === true
-  );
-
-  if (!primaryProjectOfficer) {
-    throw new Error("No primary project officer found for the demonstration.");
-  }
-
-  return primaryProjectOfficer.person.id;
-};
 
 const useUpdateDemonstration = () => {
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
@@ -132,37 +107,6 @@ const useUpdateDemonstration = () => {
   };
 };
 
-const useUpdateProjectOfficer = () => {
-  const [setDemonstrationRoleTrigger] = useMutation(SET_DEMONSTRATION_ROLE_MUTATION);
-
-  return async (
-    demonstrationId: string,
-    originalProjectOfficerId: string,
-    demonstrationDialogFields: DemonstrationDialogFields
-  ) => {
-    // Guard: if the project officer hasn't changed, do nothing
-    if (originalProjectOfficerId == demonstrationDialogFields.projectOfficerId) {
-      return;
-    }
-    await setDemonstrationRoleTrigger({
-      variables: {
-        input: {
-          demonstrationId: demonstrationId,
-          personId: demonstrationDialogFields.projectOfficerId,
-          roleId: "Project Officer",
-          isPrimary: true,
-        },
-      },
-      refetchQueries: [
-        {
-          query: DEMONSTRATION_DETAIL_QUERY,
-          variables: { id: demonstrationId },
-        },
-      ],
-    });
-  };
-};
-
 export const EditDemonstrationDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
@@ -170,7 +114,6 @@ export const EditDemonstrationDialog: React.FC<{
 }> = ({ isOpen, demonstrationId, onClose }) => {
   const { showSuccess, showError } = useToast();
   const updateDemonstration = useUpdateDemonstration();
-  const updateProjectOfficer = useUpdateProjectOfficer();
 
   const { data, loading, error } = useQuery(GET_DEMONSTRATION_BY_ID_QUERY, {
     variables: { id: demonstrationId },
@@ -179,11 +122,6 @@ export const EditDemonstrationDialog: React.FC<{
   const onSubmit = async (demonstrationDialogFields: DemonstrationDialogFields) => {
     try {
       await updateDemonstration(demonstrationId, demonstrationDialogFields);
-      await updateProjectOfficer(
-        demonstrationId,
-        getProjectOfficerId(data.demonstration),
-        demonstrationDialogFields
-      );
 
       onClose();
       showSuccess(SUCCESS_MESSAGE);
