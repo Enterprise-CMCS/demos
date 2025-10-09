@@ -56,7 +56,16 @@ import { stateResolvers } from "./state/stateResolvers.js";
 import { userSchema } from "./user/userSchema.js";
 import { userResolvers } from "./user/userResolvers.js";
 
-import { JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition } from "graphql-scalars";
+import {
+  JSONObjectDefinition,
+  DateTimeTypeDefinition,
+  DateTypeDefinition,
+  DateTimeResolver,
+} from "graphql-scalars";
+
+const customScalarResolvers = {
+  DateTime: DateTimeResolver,
+};
 
 const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
 
@@ -65,7 +74,6 @@ export const typeDefs = [
   bundlePhaseSchema,
   bundleSchema,
   bundleStatusSchema,
-  sdgDivisionSchema,
   dateTypeSchema,
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
@@ -78,6 +86,7 @@ export const typeDefs = [
   phaseSchema,
   phaseStatusSchema,
   roleSchema,
+  sdgDivisionSchema,
   signatureLevelSchema,
   stateSchema,
   userSchema,
@@ -89,7 +98,7 @@ export const resolvers = [
   bundlePhaseResolvers,
   bundleResolvers,
   bundleStatusResolvers,
-  sdgDivisionResolvers,
+  customScalarResolvers,
   dateTypeResolvers,
   demonstrationResolvers,
   demonstrationRoleAssigmentResolvers,
@@ -100,6 +109,7 @@ export const resolvers = [
   personResolvers,
   phaseResolvers,
   phaseStatusResolvers,
+  sdgDivisionResolvers,
   signatureLevelResolvers,
   stateResolvers,
   userResolvers,
