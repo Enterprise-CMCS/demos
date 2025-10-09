@@ -9,6 +9,7 @@ import {
   BundlePhase,
   BundleStatus,
   DemonstrationRoleAssignment,
+  Person,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
@@ -30,6 +31,7 @@ export const demonstrationSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
     roles: [DemonstrationRoleAssignment!]!
+    primaryProjectOfficer: Person!
   }
 
   input CreateDemonstrationInput {
@@ -89,6 +91,7 @@ export interface Demonstration {
   createdAt: Date;
   updatedAt: Date;
   roles: DemonstrationRoleAssignment[];
+  primaryProjectOfficer: Person;
 }
 
 // Used in creating a demonstration from the F/E dialog.
