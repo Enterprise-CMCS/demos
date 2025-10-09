@@ -27,6 +27,8 @@ interface ToastProviderProps {
   children: React.ReactNode;
 }
 
+let toastCounter = 0;
+
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -40,7 +42,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
         throw new Error("Toast duration must be greater than 0");
       }
 
-      const newToastID = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      toastCounter += 1;
+      const newToastID = `toast-${Date.now()}-${toastCounter}`;
       const newToast: Toast = { id: newToastID, type, message, durationMs };
 
       setToasts((prev) => [...prev, newToast]);
