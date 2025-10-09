@@ -76,11 +76,13 @@ function extractExternalUserIdFromIdentities(identities: unknown): string | unde
     if (Array.isArray(arr) && arr.length > 0) {
       const first = arr[0] as { userId?: string };
       if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
+        console.log('USERNAME:', first?.userId);
         return first.userId.trim();
       }
     }
   } catch {
     log.debug("auth.identities.parse_failed");
+    console.log("auth.identities.parse_failed");
   }
   return undefined;
 }
@@ -104,10 +106,12 @@ function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
     });
   }
 
+  console.log("user raw", raw);
   const email = (raw["email"] as string | undefined) ?? undefined;
   const givenName = (raw["given_name"] as string | undefined) ?? undefined;
   const familyName = (raw["family_name"] as string | undefined) ?? undefined;
   const name = (raw["name"] as string | undefined) ?? undefined;
+  log.debug("auth.claims.normalized", { sub, email, role, givenName, familyName, name });
   const externalUserId = extractExternalUserIdFromIdentities(raw["identities"]);
 
   return { sub, email, role, givenName, familyName, name, externalUserId };
