@@ -26,6 +26,7 @@ describe("getTargetDateValue", () => {
   };
   const testBeforeDateValue: Date = new Date("2024-11-30T00:00:00Z");
   const testBaseDateValue: Date = new Date("2025-01-01T00:00:00Z");
+  const testAddDateValue: Date = new Date("2025-01-14T11:12:13.145Z");
   const testAfterDateValue: Date = new Date("2025-01-31T00:00:00Z");
 
   beforeEach(() => {
@@ -304,15 +305,20 @@ describe("getTargetDateValue", () => {
     const testTargetDate = {
       bundleId: testBundleId,
       dateType: testTargetDateType,
-      offsetDays: 0,
+      offset: {
+        days: 13,
+        hours: 11,
+        minutes: 12,
+        seconds: 13,
+        milliseconds: 145,
+      },
     };
 
     it("should not throw when the input matches the target plus the offset", async () => {
       const testInputDate = {
         dateType: testInputDateType,
-        dateValue: testAfterDateValue,
+        dateValue: testAddDateValue,
       };
-      testTargetDate.offsetDays = 30;
       await expect(checkInputDateMeetsOffset(testInputDate, testTargetDate)).resolves.not.toThrow();
       expect(getTargetDateValue).toHaveBeenCalledExactlyOnceWith(
         testTargetDate.bundleId,
@@ -325,7 +331,6 @@ describe("getTargetDateValue", () => {
         dateType: testInputDateType,
         dateValue: testAfterDateValue,
       };
-      testTargetDate.offsetDays = 20;
       await expect(checkInputDateMeetsOffset(testInputDate, testTargetDate)).rejects.toThrow();
       expect(getTargetDateValue).toHaveBeenCalledExactlyOnceWith(
         testTargetDate.bundleId,

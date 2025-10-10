@@ -61,3 +61,16 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER create_phases_and_dates_for_new_application_trigger
 AFTER INSERT ON demos_app.bundle
 FOR EACH ROW EXECUTE FUNCTION demos_app.create_phases_and_dates_for_new_application();
+
+-- Accidentally made two versions of completeness review due date due to a typo on the page
+UPDATE
+    "demos_app"."phase_date_type"
+SET
+    "date_type_id" = 'Completeness Review Due Date'
+WHERE
+    "date_type_id" = 'Completeness Due Date';
+
+DELETE FROM
+    "demos_app"."date_type"
+WHERE
+    "id" = 'Completeness Due Date';

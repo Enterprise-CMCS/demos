@@ -5,6 +5,7 @@ import {
   checkInputDateGreaterThanOrEqual,
   checkInputDateMeetsOffset,
   checkInputDateIsEndOfDay,
+  DateOffset,
 } from "./checkInputDateFunctions.js";
 
 export async function validateInputDate(input: SetBundleDateInput): Promise<void> {
@@ -12,6 +13,8 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
     dateType: input.dateType,
     dateValue: input.dateValue,
   };
+
+  let dateOffset: DateOffset;
 
   switch (input.dateType) {
     case "Concept Start Date":
@@ -40,10 +43,19 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
 
     case "Completeness Review Due Date":
       checkInputDateIsEndOfDay(inputDate);
+
+      dateOffset = {
+        days: 15,
+        hours: 23,
+        minutes: 59,
+        seconds: 59,
+        milliseconds: 999,
+      };
+
       await checkInputDateMeetsOffset(inputDate, {
         bundleId: input.bundleId,
         dateType: "State Application Submitted Date",
-        offsetDays: 15,
+        offset: dateOffset,
       });
       break;
 
@@ -63,10 +75,6 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
       checkInputDateIsStartOfDay(inputDate);
       break;
 
-    case "Completeness Due Date":
-      checkInputDateIsEndOfDay(inputDate);
-      break;
-
     case "State Application Deemed Complete":
       checkInputDateIsStartOfDay(inputDate);
       await checkInputDateGreaterThan(inputDate, {
@@ -77,19 +85,37 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
 
     case "Federal Comment Period Start Date":
       checkInputDateIsStartOfDay(inputDate);
+
+      dateOffset = {
+        days: 1,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      };
+
       await checkInputDateMeetsOffset(inputDate, {
         bundleId: input.bundleId,
         dateType: "State Application Deemed Complete",
-        offsetDays: 1,
+        offset: dateOffset,
       });
       break;
 
     case "Federal Comment Period End Date":
       checkInputDateIsEndOfDay(inputDate);
+
+      dateOffset = {
+        days: 30,
+        hours: 23,
+        minutes: 59,
+        seconds: 59,
+        milliseconds: 999,
+      };
+
       await checkInputDateMeetsOffset(inputDate, {
         bundleId: input.bundleId,
         dateType: "Federal Comment Period Start Date",
-        offsetDays: 30,
+        offset: dateOffset,
       });
       break;
 

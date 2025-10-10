@@ -7,6 +7,7 @@ import {
   checkInputDateGreaterThan,
   checkInputDateGreaterThanOrEqual,
   checkInputDateMeetsOffset,
+  DateOffset,
 } from "./checkInputDateFunctions.js";
 
 vi.mock("./checkInputDateFunctions.js", () => ({
@@ -71,7 +72,7 @@ async function expectGreaterThanOrEqual(testData: SetBundleDateInput, testDateTy
 async function expectMeetsOffset(
   testData: SetBundleDateInput,
   testDateType: DateType,
-  testOffsetDays: number
+  testOffset: DateOffset
 ) {
   const testInputDate = {
     dateType: testData.dateType,
@@ -81,7 +82,7 @@ async function expectMeetsOffset(
   expect(checkInputDateMeetsOffset).toHaveBeenCalledExactlyOnceWith(testInputDate, {
     bundleId: testData.bundleId,
     dateType: testDateType,
-    offsetDays: testOffsetDays,
+    offset: testOffset,
   });
 }
 
@@ -148,8 +149,14 @@ describe("validateInputDate", () => {
       expectEndOfDay(testData);
     });
 
-    it("should call checkInputDateMeetsOffset on State Application Submitted Date with offset 15", async () => {
-      await expectMeetsOffset(testData, "State Application Submitted Date", 15);
+    it("should call checkInputDateMeetsOffset on State Application Submitted Date with offset 15:23:59:59.999", async () => {
+      await expectMeetsOffset(testData, "State Application Submitted Date", {
+        days: 15,
+        hours: 23,
+        minutes: 59,
+        seconds: 59,
+        milliseconds: 999,
+      });
     });
 
     it("should have correct call counts", async () => {
@@ -183,22 +190,6 @@ describe("validateInputDate", () => {
 
   makeStartOnlySuite(testBundleId, "Completeness Start Date", testDateValue);
 
-  describe("Completeness Due Date", () => {
-    const testData: SetBundleDateInput = {
-      bundleId: testBundleId,
-      dateType: "Completeness Due Date",
-      dateValue: testDateValue,
-    };
-
-    it("should call checkInputDateIsEndOfDay", () => {
-      expectEndOfDay(testData);
-    });
-
-    it("should not call any other validators", async () => {
-      await expectRunCounts(testData, [0, 1, 0, 0, 0]);
-    });
-  });
-
   describe("State Application Deemed Complete", () => {
     const testData: SetBundleDateInput = {
       bundleId: testBundleId,
@@ -230,8 +221,14 @@ describe("validateInputDate", () => {
       expectStartOfDay(testData);
     });
 
-    it("should call checkInputDateMeetsOffset on State Application Deemed Complete with offset 1", async () => {
-      await expectMeetsOffset(testData, "State Application Deemed Complete", 1);
+    it("should call checkInputDateMeetsOffset on State Application Deemed Complete with offset 1:0:0:0.000", async () => {
+      await expectMeetsOffset(testData, "State Application Deemed Complete", {
+        days: 1,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      });
     });
 
     it("should have correct call counts", async () => {
@@ -250,8 +247,14 @@ describe("validateInputDate", () => {
       expectEndOfDay(testData);
     });
 
-    it("should call checkInputDateMeetsOffset on Federal Comment Period Start Date with offset 30", async () => {
-      await expectMeetsOffset(testData, "Federal Comment Period Start Date", 30);
+    it("should call checkInputDateMeetsOffset on Federal Comment Period Start Date with offset 30:23:59:59.999", async () => {
+      await expectMeetsOffset(testData, "Federal Comment Period Start Date", {
+        days: 30,
+        hours: 23,
+        minutes: 59,
+        seconds: 59,
+        milliseconds: 999,
+      });
     });
 
     it("should have correct call counts", async () => {
