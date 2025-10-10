@@ -6,8 +6,10 @@ export const personSchema = gql`
     id: ID!
     personType: PersonType!
     email: String!
+    firstName: String!
+    lastName: String!
+    # Synthentic type
     fullName: String!
-    displayName: String!
     createdAt: DateTime!
     updatedAt: DateTime!
     states: [State!]!
@@ -23,8 +25,9 @@ export type Person = {
   id: string;
   personType: PersonType;
   email: string;
-  fullName: string;
-  displayName: string;
+  firstName: string;
+  lastName: string;
+  fullName?: string;
   createdAt: Date;
   updatedAt: Date;
   roles: DemonstrationRoleAssignment[];

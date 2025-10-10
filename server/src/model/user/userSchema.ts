@@ -34,8 +34,8 @@ export interface CreateUserInput {
   cognitoSubject: string;
   username: string;
   email: string;
-  fullName: string;
-  displayName: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface UpdateUserInput {
@@ -43,6 +43,6 @@ export interface UpdateUserInput {
   cognitoSubject?: string;
   username?: string;
   email?: string;
-  fullName?: string;
-  displayName?: string;
+  firstName?: string;
+  lastName?: string;
 }

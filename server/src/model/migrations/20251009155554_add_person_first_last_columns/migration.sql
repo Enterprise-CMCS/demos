@@ -12,6 +12,67 @@ ALTER TABLE "demos_app"."person"
   DROP COLUMN "display_name",
   DROP COLUMN "full_name";
 
+ALTER TABLE "demos_app"."person_history"
+  ADD COLUMN "first_name" TEXT,
+  ADD COLUMN "last_name" TEXT,
+  DROP COLUMN "display_name",
+  DROP COLUMN "full_name";
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_person()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.person_history (
+            revision_type,
+            id,
+            person_type_id,
+            email,
+            first_name,
+            last_name,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.person_type_id,
+            NEW.email,
+            NEW.first_name,
+            NEW.last_name,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.person_history (
+            revision_type,
+            id,
+            person_type_id,
+            email,
+            first_name,
+            last_name,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.person_type_id,
+            OLD.email,
+            OLD.first_name,
+            OLD.last_name,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
 /*
 -- reverse
 ALTER TABLE "demos_app"."person"

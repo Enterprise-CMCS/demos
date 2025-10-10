@@ -106,7 +106,6 @@ function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
     });
   }
 
-  console.log("user raw", raw);
   const email = (raw["email"] as string | undefined) ?? undefined;
   const givenName = (raw["given_name"] as string | undefined) ?? undefined;
   const familyName = (raw["family_name"] as string | undefined) ?? undefined;
@@ -118,6 +117,7 @@ function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
 }
 
 function decodeToken(token: string): Promise<DecodedJWT> {
+  log.debug('------------ DECODING TOKEN ------------');
   return new Promise((resolve, reject) => {
     jwt.verify(token, getKey, verifyOpts, (err, decoded) => {
       if (err) {
@@ -150,7 +150,7 @@ function decodeToken(token: string): Promise<DecodedJWT> {
   });
 }
 
-/* -----------------------  HELPERS  ----------------------- */
+/* -----------------------  local functions  ----------------------- */
 type Claims = {
   sub: string;
   email?: string;
@@ -197,21 +197,35 @@ function extractToken(getHeader: HeaderGetter): string {
   return token;
 }
 
-function deriveUserFields({ sub, email, givenName, familyName, name, externalUserId }: Claims) {
-  const usernameFromEmail = email?.includes("@") ? email.split("@")[0] : undefined;
-  const username = externalUserId || usernameFromEmail || sub;
-  const displayName = (givenName && givenName.trim()) || username;
-  const emailForCreate = email ?? `${sub}@no-email.local`;
-  const fullNameFromParts = [givenName, familyName].filter(Boolean).join(" ").trim();
-  const fullName = (name && name.trim()) || fullNameFromParts || email || username;
+function deriveUserFields({ sub, email, givenName, familyName, externalUserId }: Claims) {
+  // Have a backup, just in case
+  const backupUserName = email?.includes("@") ? email : undefined;
+  const username = externalUserId || backupUserName;
+  if (!username) {
+    log.error("We need a username");
+    throw new Error("We need a username");
+  }
+
+  const firstName = givenName?.trim();
+  const lastName = familyName?.trim();
+
+  if (!firstName || !lastName || !email) {
+    log.error("Missing required name parts from claims; given_name family_name and email are required");
+    throw new Error("Missing required name parts from claims; given_name family_name and email are required");
+  }
+  const fullName = `${firstName} ${lastName}`.trim();
   log.debug("auth.user.derived", { username });
-  return { username, displayName, emailForCreate, fullName };
+
+  return { username, email, firstName, lastName, fullName };
 }
 
 /** Upsert user and return the DB row */
 async function ensureUserFromClaims(claims: Claims) {
   const { sub, role } = claims;
-  const { username, displayName, emailForCreate, fullName } = deriveUserFields(claims);
+  // Set up person on first login.
+  const { username, email, firstName, lastName, fullName } = deriveUserFields(claims);
+
+  console.log("Derived user fields:", { username, email, firstName, lastName, fullName });
 
   // Add await and handle the result properly
   const existingUser = await prisma().user.findUnique({
@@ -221,13 +235,15 @@ async function ensureUserFromClaims(claims: Claims) {
   if (existingUser) {
     return existingUser;
   }
+
   log.info("auth.user.create", { username });
+
   const person = await prisma().person.create({
     data: {
       personTypeId: role,
-      email: emailForCreate,
-      fullName,
-      displayName,
+      email: email,
+      firstName,
+      lastName,
     },
   });
 

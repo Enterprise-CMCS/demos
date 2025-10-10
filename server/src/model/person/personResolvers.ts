@@ -16,6 +16,9 @@ export const personResolvers = {
   },
 
   Person: {
+    fullName: (parent: Person) => {
+      return [parent.firstName, parent.lastName].filter(Boolean).join(" ").trim();
+    },
     personType: async (parent: Person) => {
       return parent.personTypeId;
     },
