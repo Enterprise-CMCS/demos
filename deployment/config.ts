@@ -18,6 +18,7 @@ export interface DeploymentConfigProperties {
   hostUserPoolId?: string;
   idmMetadataEndpoint?: string;
   cloudfrontWafHeaderValue?: string;
+  zapHeaderValue?: string;
 }
 
 export const determineDeploymentConfig = async (
