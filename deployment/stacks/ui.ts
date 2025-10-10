@@ -92,7 +92,7 @@ export class UiStack extends Stack {
       name: `${commonProps.stage}AllowVPNIps`,
       scope: "CLOUDFRONT",
       ipAddressVersion: "IPV4",
-      addresses: commonProps.zScalerIps,
+      addresses: [...commonProps.zScalerIps],
     });
 
     const accessDeniedBodyName = "accessDenied";
@@ -111,6 +111,54 @@ export class UiStack extends Stack {
       stage: commonProps.stage,
     });
 
+    const wafRules: aws_wafv2.CfnWebACL.RuleProperty[] = [
+      {
+        name: "AllowZScaler",
+        priority: 0,
+        action: { allow: {} },
+        visibilityConfig: {
+          cloudWatchMetricsEnabled: true,
+          metricName: "AllowZScaler",
+          sampledRequestsEnabled: true,
+        },
+        statement: {
+          ipSetReferenceStatement: {
+            arn: ipSet.attrArn,
+          },
+        },
+      },
+    ];
+
+    if (commonProps.zapHeaderValue && commonProps.zapHeaderValue.trim() != "") {
+      wafRules.push({
+        name: "AllowCMSCloudbees",
+        priority: 10,
+        action: { allow: {} },
+        visibilityConfig: {
+          cloudWatchMetricsEnabled: true,
+          metricName: "AllowCloudbees",
+          sampledRequestsEnabled: true,
+        },
+        statement: {
+          byteMatchStatement: {
+            fieldToMatch: {
+              singleHeader: {
+                name: "x-allow-through",
+              },
+            },
+            positionalConstraint: "EXACTLY",
+            searchString: commonProps.zapHeaderValue,
+            textTransformations: [
+              {
+                priority: 0,
+                type: "NONE",
+              },
+            ],
+          },
+        },
+      });
+    }
+
     const webAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "cloudfrontWafAcl", {
       scope: "CLOUDFRONT",
       defaultAction: {
@@ -127,23 +175,7 @@ export class UiStack extends Stack {
         sampledRequestsEnabled: true,
       },
       name: `${commonProps.project}-${commonProps.stage}-acl`,
-      rules: [
-        {
-          name: "AllowZScaler",
-          priority: 0,
-          action: { allow: {} },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: "AllowZScaler",
-            sampledRequestsEnabled: true,
-          },
-          statement: {
-            ipSetReferenceStatement: {
-              arn: ipSet.attrArn,
-            },
-          },
-        },
-      ],
+      rules: wafRules,
       customResponseBodies,
     });
 
@@ -213,6 +245,36 @@ export class UiStack extends Stack {
       {
         responseHeadersPolicyName: `Headers-Policy-${commonProps.stage}`,
         comment: "Add Security Headers",
+        customHeadersBehavior: {
+          customHeaders: [
+            {
+              header: "Cross-Origin-Resource-Policy",
+              value: "same-origin",
+              override: true,
+            },
+            {
+              header: "Cross-Origin-Embedder-Policy",
+              value: "require-corp",
+              override: true,
+            },
+            {
+              header: "Cross-Origin-Opener-Policy",
+              value: "same-origin",
+              override: true,
+            },
+            {
+              header: "Permissions-Policy",
+              value:
+                "accelerometer=(),autoplay=(),camera=(),display-capture=(),encrypted-media=(),fullscreen=(),geolocation=(),gyroscope=(),magnetometer=(),microphone=(),midi=(),payment=(),picture-in-picture=(),publickey-credentials-get=(),screen-wake-lock=(),sync-xhr=(self),usb=(),web-share=(),xr-spatial-tracking=()",
+              override: true,
+            },
+            {
+              header: "Server",
+              value: "",
+              override: true,
+            },
+          ],
+        },
         securityHeadersBehavior: {
           contentTypeOptions: {
             override: true,
@@ -228,7 +290,7 @@ export class UiStack extends Stack {
             override: true,
           },
           contentSecurityPolicy: {
-            contentSecurityPolicy: `default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain}; frame-ancestors 'none'; object-src 'none'`,
+            contentSecurityPolicy: `default-src 'self'; form-action 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain}; frame-ancestors 'none'; object-src 'none'; frame-src 'self' ${cognitoDomain}`,
             override: true,
           },
         },
@@ -291,11 +353,32 @@ export class UiStack extends Stack {
       },
     });
 
+    const apiResponseHeaders = new aws_cloudfront.ResponseHeadersPolicy(
+      commonProps.scope,
+      "CloudFrontAPIHeadersPolicy",
+      {
+        responseHeadersPolicyName: `Headers-Policy-API-${commonProps.stage}`,
+        comment: "Add Security Headers for API",
+        securityHeadersBehavior: {
+          contentTypeOptions: {
+            override: true,
+          },
+          strictTransportSecurity: {
+            accessControlMaxAge: Duration.days(730),
+            includeSubdomains: true,
+            preload: true,
+            override: true,
+          },
+        },
+      }
+    );
+
     distribution.addBehavior("/api/*", apiOrigin, {
       allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: aws_cloudfront.CachePolicy.CACHING_DISABLED,
       originRequestPolicy: aws_cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+      responseHeadersPolicy: apiResponseHeaders,
     });
 
     const applicationEndpointUrl = `https://${distribution.distributionDomainName}/`;

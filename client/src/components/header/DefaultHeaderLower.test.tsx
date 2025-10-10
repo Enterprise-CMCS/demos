@@ -119,7 +119,7 @@ describe("DefaultHeaderLower", () => {
       hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
-    expect(screen.getByText("Hello john.doe")).toBeInTheDocument();
+    expect(screen.getByText("Hello John Doe")).toBeInTheDocument();
   });
 
   it("opens and closes the dropdown", () => {

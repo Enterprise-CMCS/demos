@@ -106,8 +106,8 @@ async function seedDatabase() {
       id: bypassUserId,
       personTypeId: "demos-admin",
       email: "bypassedUser@email.com",
-      fullName: "Bypassed J. User",
-      displayName: "Bypass",
+      firstName: "Bypassed",
+      lastName: "User",
     },
   });
   await prisma().user.create({
@@ -121,14 +121,16 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding people and users...");
   for (let i = 0; i < userCount; i++) {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
     const person = await prisma().person.create({
       data: {
         personType: {
           connect: { id: PERSON_TYPES[i % (PERSON_TYPES.length - 1)] },
         },
         email: faker.internet.email(),
-        fullName: faker.person.fullName(),
-        displayName: faker.internet.username(),
+        firstName: firstName,
+        lastName: lastName,
       },
     });
     await prisma().user.create({
