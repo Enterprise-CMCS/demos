@@ -8,7 +8,7 @@ export const personSchema = gql`
     email: String!
     firstName: String!
     lastName: String!
-    # Synthentic type
+    # FullName is a computed field (not stored in DB)
     fullName: String!
     createdAt: DateTime!
     updatedAt: DateTime!
