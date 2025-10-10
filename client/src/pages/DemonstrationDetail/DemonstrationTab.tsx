@@ -16,7 +16,6 @@ import {
   PhaseName,
   Person,
   State,
-  User,
 } from "demos-server";
 import { EditContactDialog } from "components/dialog";
 type ModalType = "document" | "contact" | null;
@@ -36,7 +35,7 @@ export type DemonstrationTabDemonstration = Pick<
   })[];
   state: Pick<State, "id" | "name">;
   roles: Role[];
-  projectOfficer: Pick<User, "id">;
+  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
   status: BundleStatus;
   currentPhaseName: PhaseName;
 };

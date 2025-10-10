@@ -7,7 +7,7 @@ import {
   Extension,
   State,
   Person,
-  DemonstrationRoleAssignment,
+  User,
 } from "demos-server";
 import { Tab, Tabs } from "layout/Tabs";
 
@@ -21,13 +21,9 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
         id
         name
       }
-      roles {
-        role
-        isPrimary
-        person {
-          id
-          fullName
-        }
+      primaryProjectOfficer {
+        id
+        fullName
       }
       amendments {
         id
@@ -44,6 +40,10 @@ export const DEMONSTRATIONS_PAGE_QUERY = gql`
     people {
       fullName
     }
+
+    currentUser {
+      id
+    }
   }
 `;
 
@@ -52,9 +52,7 @@ export type DemonstrationExtension = Pick<Extension, "id" | "name" | "status">;
 
 export type Demonstration = Pick<ServerDemonstration, "id" | "name" | "status"> & {
   state: Pick<State, "id" | "name">;
-  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-    person: Pick<Person, "fullName" | "id">;
-  })[];
+  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
   amendments: DemonstrationAmendment[];
   extensions: DemonstrationExtension[];
 };
@@ -62,19 +60,17 @@ export type Demonstration = Pick<ServerDemonstration, "id" | "name" | "status"> 
 export type DemonstrationsPageQueryResult = {
   demonstrations: Demonstration[];
   people: Pick<Person, "fullName">[];
+  currentUser: Pick<User, "id">;
 };
-
-function isMyDemonstration(demonstration: Demonstration) {
-  const currentUserId = "1";
-  return demonstration.roles.some((role) => role.person.id === currentUserId);
-}
 
 export const DemonstrationsPage: React.FC = () => {
   const { data, loading, error } =
     useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
 
   const demonstrations = data?.demonstrations || [];
-  const myDemonstrations: Demonstration[] = demonstrations.filter(isMyDemonstration);
+  const myDemonstrations: Demonstration[] = demonstrations.filter(
+    (demonstration) => demonstration.primaryProjectOfficer.id === data?.currentUser.id
+  );
 
   return (
     <div>
