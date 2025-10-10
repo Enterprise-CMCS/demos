@@ -10,11 +10,13 @@ export const GET_USER_SELECT_OPTIONS_QUERY = gql`
       id
       fullName
       personType
+      firstName
+      lastName
     }
   }
 `;
 
-type Person = Pick<ServerPerson, "id" | "fullName" | "personType">;
+type Person = Pick<ServerPerson, "id" | "fullName" | "personType" | "firstName" | "lastName">;
 
 export interface SelectUsersProps {
   onSelect: (id: string) => void;
@@ -27,7 +29,7 @@ export interface SelectUsersProps {
 
 const getOptionsFromPeople = (people: Person[]): Option[] => {
   return people.map((person) => ({
-    label: person.fullName,
+    label: person.fullName ?? `${person.firstName} ${person.lastName}`,
     value: person.id,
   }));
 };

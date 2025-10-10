@@ -27,7 +27,7 @@ export type Person = {
   email: string;
   firstName: string;
   lastName: string;
-  fullName?: string;
+  fullName: string;
   createdAt: Date;
   updatedAt: Date;
   roles: DemonstrationRoleAssignment[];
