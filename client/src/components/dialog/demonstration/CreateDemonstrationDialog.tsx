@@ -14,8 +14,8 @@ const DEFAULT_DEMONSTRATION_DIALOG_FIELDS: DemonstrationDialogFields = {
   projectOfficerId: "",
 };
 
-const SUCCESS_MESSAGE = "Demonstration created successfully!";
-const ERROR_MESSAGE = "Failed to create demonstration. Please try again.";
+const SUCCESS_MESSAGE = "Your demonstration is ready.";
+const ERROR_MESSAGE = "Your demonstration was not created because of an unknown problem.";
 
 export const CREATE_DEMONSTRATION_MUTATION = gql`
   mutation CreateDemonstration($input: CreateDemonstrationInput!) {
@@ -59,7 +59,7 @@ export const CreateDemonstrationDialog: React.FC<{
       } else {
         console.error(result.data?.createDemonstration?.message);
         showError(
-          "Create a demonstration failed - please check the console for the error message."
+          "Your demonstration was not created because of an unknown problem."
         );
       }
     } catch {
