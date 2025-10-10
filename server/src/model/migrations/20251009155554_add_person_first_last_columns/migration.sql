@@ -72,12 +72,3 @@ BEGIN
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
-
-/*
--- reverse
-ALTER TABLE "demos_app"."person"
-  ADD COLUMN "display_name" TEXT NOT NULL,
-  ADD COLUMN "full_name" TEXT NOT NULL,
-  DROP COLUMN "first_name",
-  DROP COLUMN "last_name";
-*/
