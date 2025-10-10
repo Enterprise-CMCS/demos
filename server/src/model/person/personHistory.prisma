@@ -5,8 +5,8 @@ model PersonHistory {
   id           String       @db.Uuid
   personTypeId String       @map("person_type_id")
   email        String
-  fullName     String       @map("full_name")
-  displayName  String       @map("display_name")
+  firstName    String       @map("first_name")
+  lastName     String       @map("last_name")
   createdAt    DateTime     @map("created_at") @db.Timestamptz()
   updatedAt    DateTime     @map("updated_at") @db.Timestamptz()
 
