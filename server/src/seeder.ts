@@ -9,6 +9,7 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
   BundleType,
+  SetBundleDateInput,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -25,6 +26,7 @@ import {
   updateAmendment,
   updateExtension,
 } from "./model/modification/modificationResolvers.js";
+import { setBundleDate } from "./model/bundleDate/bundleDateResolvers.js";
 
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
@@ -244,16 +246,126 @@ async function seedDatabase() {
       id: true,
     },
   });
-  for (const dateType of await prisma().dateType.findMany({
-    where: { NOT: { id: "Concept Start Date" } },
-  })) {
-    await prisma().bundleDate.create({
-      data: {
-        bundleId: randomDemonstration!.id,
-        dateTypeId: dateType.id,
-        dateValue: faker.date.future({ years: 1 }),
-      },
-    });
+  const datesToSet: SetBundleDateInput[] = [
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Concept Start Date",
+      dateValue: new Date("2025-01-01T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Pre-Submission Submitted Date",
+      dateValue: new Date("2025-01-13T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Concept Completion Date",
+      dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "State Application Start Date",
+      dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "State Application Submitted Date",
+      dateValue: new Date("2025-01-23T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Completeness Review Due Date",
+      dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "State Application Completion Date",
+      dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Completeness Start Date",
+      dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "State Application Deemed Complete",
+      dateValue: new Date("2025-02-03T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Federal Comment Period Start Date",
+      dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Federal Comment Period End Date",
+      dateValue: new Date("2025-03-06T23:59:59.999-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Completeness Completion Date",
+      dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "SDG Preparation Start Date",
+      dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "Expected Approval Date",
+      dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "SME Review Date",
+      dateValue: new Date("2025-02-06T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "FRT Initial Meeting Date",
+      dateValue: new Date("2025-02-07T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "BNPMT Initial Meeting Date",
+      dateValue: new Date("2025-02-08T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "SDG Preparation Completion Date",
+      dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "OGC & OMB Review Start Date",
+      dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "OGC Review Complete",
+      dateValue: new Date("2025-02-10T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "OMB Review Complete",
+      dateValue: new Date("2025-02-11T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "PO & OGD Sign-Off",
+      dateValue: new Date("2025-02-12T00:00:00.000-05:00"),
+    },
+    {
+      bundleId: randomDemonstration!.id,
+      dateType: "OGC & OMB Review Completion Date",
+      dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
+    },
+  ];
+
+  for (const dateInput of datesToSet) {
+    await setBundleDate(undefined, { input: dateInput });
   }
 
   console.log("🌱 Seeding amendments...");

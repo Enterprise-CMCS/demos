@@ -5,6 +5,10 @@ import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrat
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import {
+  checkInputDateIsStartOfDay,
+  checkInputDateIsEndOfDay,
+} from "../bundleDate/checkInputDateFunctions.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -96,6 +100,12 @@ export async function updateDemonstration(
   parent: undefined,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ) {
+  if (input.effectiveDate) {
+    checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
+  }
+  if (input.expirationDate) {
+    checkInputDateIsEndOfDay({ dateType: "expirationDate", dateValue: input.expirationDate });
+  }
   checkOptionalNotNullFields(["name", "status", "currentPhaseName", "stateId"], input);
   try {
     return await prisma().demonstration.update({

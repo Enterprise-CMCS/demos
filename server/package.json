@@ -40,6 +40,7 @@
     "migrate:deploy": "prisma migrate deploy",
     "lint:debug": "node --inspect-brk $(which eslint) .",
     "test": "vitest run",
+    "test:verbose": "vitest run --reporter=verbose",
     "coverage": "vitest run --coverage",
     "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml"
   },

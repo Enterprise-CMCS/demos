@@ -1,4 +1,4 @@
-import { generateCustomSetScalar } from "../../resolverFunctions.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { PHASE_NAME } from "../../constants.js";
 
 // Note: this is being called PhaseName to avoid confusion with phase-related objects

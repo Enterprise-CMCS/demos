@@ -1,4 +1,4 @@
-import { generateCustomSetScalar } from "../../resolverFunctions.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { DATE_TYPES } from "../../constants.js";
 
 export const dateTypeResolvers = {

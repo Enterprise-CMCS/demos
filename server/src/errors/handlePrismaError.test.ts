@@ -23,6 +23,22 @@ describe("handlePrismaError", () => {
       }
     });
 
+    it("throws friendly message for P2025 (no record to update)", () => {
+      const err = new Prisma.PrismaClientKnownRequestError("no-record-found", {
+        code: "P2025",
+        clientVersion: "x",
+      });
+      try {
+        handlePrismaError(err);
+      } catch (error) {
+        expect(error).toBeInstanceOf(GraphQLError);
+        if (error instanceof GraphQLError) {
+          expect(error.message).toBe("An update was attempted on a record that does not exist.");
+          expect(error.extensions.code).toBe("NO_RECORD_FOUND_TO_UPDATE");
+        }
+      }
+    });
+
     it("throws generic message for other known request errors", () => {
       const err = new Prisma.PrismaClientKnownRequestError("other", {
         code: "P1000",

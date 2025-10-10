@@ -60,14 +60,16 @@ import {
   JSONObjectDefinition,
   DateTimeTypeDefinition,
   DateTypeDefinition,
-  DateTimeResolver,
+  NonEmptyStringTypeDefinition,
 } from "graphql-scalars";
+import { customScalarResolvers } from "../customScalarResolvers.js";
 
-const customScalarResolvers = {
-  DateTime: DateTimeResolver,
-};
-
-const scalarTypes = [JSONObjectDefinition, DateTimeTypeDefinition, DateTypeDefinition];
+const scalarTypes = [
+  JSONObjectDefinition,
+  DateTimeTypeDefinition,
+  DateTypeDefinition,
+  NonEmptyStringTypeDefinition,
+];
 
 export const typeDefs = [
   bundleDateSchema,
