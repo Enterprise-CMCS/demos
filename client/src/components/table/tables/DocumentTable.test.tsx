@@ -1,12 +1,11 @@
 import React from "react";
 
-import { pickDateInCalendar } from "components/input/DatePicker/DatePicker.test";
 import { ToastProvider } from "components/toast";
 import { ALL_MOCKS } from "mock-data/index";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DocumentTable } from "./DocumentTable";
@@ -97,19 +96,8 @@ describe("DocumentTable", () => {
     const startInput = document.body.querySelector('input[name="date-filter-start"]');
     const endInput = document.body.querySelector('input[name="date-filter-end"]');
     // Open the start date picker calendar popup by clicking the calendar button
-    await pickDateInCalendar({
-      datePickerRoot: startInput!.closest("[role='group']")!,
-      year: 2025,
-      month: 1,
-      day: 1,
-    });
-    await pickDateInCalendar({
-      datePickerRoot: endInput!.closest("[role='group']")!,
-      year: 2025,
-      month: 1,
-      day: 2,
-    });
-
+    fireEvent.change(startInput!, { target: { value: "2025-01-01" } });
+    fireEvent.change(endInput!, { target: { value: "2025-01-02" } });
     const table = screen.getByRole("table");
     // Should show only documents within the range (inclusive)
     expect(within(table).getByText("Final Report")).toBeInTheDocument();

@@ -1,7 +1,6 @@
 import React from "react";
 import { tw } from "tags/tw";
 
-import { DatePicker } from "components/input/DatePicker/DatePicker";
 import { Button, SecondaryButton } from "components/button";
 
 const STYLES = {
@@ -26,19 +25,18 @@ export const SdgPreparationPhase = () => {
         </p>
       </div>
       <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-        <DatePicker
-          className="w-1/2"
-          slotProps={{
-            textField: {
-              placeholder: "Expected Approval Date",
-              name: "expected-approval-date",
-            },
-          }}
-          required
-          name="expected-approval-date"
-        >
+        <label className="block text-sm font-bold mb-1">
+          <span className="text-text-warn mr-1">*</span>
           Expected Approval Date
-        </DatePicker>
+        </label>
+        <input
+          type="date"
+          name="expected-approval-date"
+          data-testid="datepicker-expected-approval-date"
+          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          aria-required={true}
+          placeholder="Expected Approval Date"
+        />
       </div>
     </div>
   );
@@ -49,62 +47,61 @@ export const SdgPreparationPhase = () => {
         <h4 id="sdg-reviews-title" className={STYLES.title}>
           INTERNAL REVIEWS
         </h4>
-        <p className={STYLES.helper}>
-          Record the occurrence of the key review meetings
-        </p>
+        <p className={STYLES.helper}>Record the occurrence of the key review meetings</p>
       </div>
       <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-        <DatePicker
-          className="w-1/2"
-          slotProps={{
-            textField: {
-              placeholder: "SME Initial Review Date",
-              name: "sme-initial-review-date",
-            },
-          }}
-          required
-          name="sme-initial-review-date"
-        >
+        <label className="block text-sm font-bold mb-1">
+          <span className="text-text-warn mr-1">*</span>
           SME Initial Review Date
-        </DatePicker>
-        <DatePicker
-          className="w-1/2"
-          slotProps={{
-            textField: {
-              placeholder: "FRT Initial Meeting Date",
-              name: "frt-initial-meeting-date",
-            },
-          }}
-          required
-          name="frt-intial-meeting-date"
-        >
+        </label>
+        <input
+          name="sme-initial-review-date"
+          data-testid="datepicker-sme-initial-review-date"
+          type="date"
+          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          aria-required={true}
+          placeholder="SME Initial Review Date"
+        />
+        <label className="block text-sm font-bold mb-1">
+          <span className="text-text-warn mr-1">*</span>
           FRT Initial Meeting Date
-        </DatePicker>
-        <DatePicker
-          className="w-1/2"
-          slotProps={{
-            textField: {
-              placeholder: "BNPMT Initial Meeting Date",
-              name: "bnpmt-intial-meeting-date",
-            },
-          }}
-          required
-          name="bnpmt-intial-meeting-date"
-        >
+        </label>
+        <input
+          name="frt-initial-meeting-date"
+          data-testid="datepicker-frt-intial-meeting-date"
+          type="date"
+          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          aria-required={true}
+          placeholder="FRT Initial Meeting Date"
+        />
+        <label className="block text-sm font-bold mb-1">
+          <span className="text-text-warn mr-1">*</span>
           BNPMT Initial Meeting Date
-        </DatePicker>
+        </label>
+        <input
+          name="bnpmt-intial-meeting-date"
+          data-testid="datepicker-bnpmt-intial-meeting-date"
+          type="date"
+          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          aria-required={true}
+          placeholder="BNPMT Initial Meeting Date"
+        />
       </div>
 
       <div className={STYLES.actions}>
         <SecondaryButton
-          onClick={() => { console.log("Save For Later Clicked"); }}
+          onClick={() => {
+            console.log("Save For Later Clicked");
+          }}
           size="large"
           name="sdg-save-for-later"
         >
           Save For Later
         </SecondaryButton>
         <Button
-          onClick={() => { console.log("Finish Clicked"); }}
+          onClick={() => {
+            console.log("Finish Clicked");
+          }}
           size="large"
           name="sdg-finish"
           disabled
@@ -117,9 +114,7 @@ export const SdgPreparationPhase = () => {
 
   return (
     <div>
-      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
-        SDG PREPARATION
-      </h3>
+      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">SDG PREPARATION</h3>
       <p className="text-sm text-text-placeholder mb-4">
         Plan and conduct internal and preparation tasks
       </p>

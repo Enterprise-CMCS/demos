@@ -2,7 +2,7 @@ import React from "react";
 
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
 import { testTableData, TestType } from "./Table.test";
@@ -138,9 +138,10 @@ describe("ColumnFilter Component", () => {
       // Test date filter (Date column)
       await user.selectOptions(columnSelect, "Date");
 
+      // Expect two date filter pickers (start and end)
       await waitFor(() => {
-        // Expect two date filter pickers (start and end)
-        expect(screen.getAllByPlaceholderText(/date/i)).toHaveLength(2);
+        expect(document.body.querySelector('input[name="date-filter-start"]')).toBeInTheDocument();
+        expect(document.body.querySelector('input[name="date-filter-end"]')).toBeInTheDocument();
       });
     });
 
@@ -390,12 +391,8 @@ describe("ColumnFilter Component", () => {
       await user.selectOptions(columnSelect, "Date");
 
       await waitFor(() => {
-        // Expect two date filter pickers (start and end)
-        expect(screen.getAllByPlaceholderText(/date/i)).toHaveLength(2);
-        // Check for all expected date fields for both pickers
-        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
-        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
-        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
+        expect(document.body.querySelector('input[name="date-filter-start"]')).toBeInTheDocument();
+        expect(document.body.querySelector('input[name="date-filter-end"]')).toBeInTheDocument();
       });
     });
 
@@ -406,33 +403,11 @@ describe("ColumnFilter Component", () => {
       // Select the Date column
       await user.selectOptions(columnSelect, "Date");
 
-      // Wait for both calendar pickers to appear
-      await waitFor(() => {
-        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
-        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
-        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
-      });
-
-      // Fill in the start date picker (first set of fields)
-      const yearFields = screen.getAllByLabelText("Year");
-      const monthFields = screen.getAllByLabelText("Month");
-      const dayFields = screen.getAllByLabelText("Day");
-
-      // Set start date to 2023-02-01 (Item Two)
-      await user.click(yearFields[0]);
-      await user.keyboard("2023");
-      await user.click(monthFields[0]);
-      await user.keyboard("02");
-      await user.click(dayFields[0]);
-      await user.keyboard("01");
-
-      // Set end date to 2023-04-01 (Item Four)
-      await user.click(yearFields[1]);
-      await user.keyboard("2023");
-      await user.click(monthFields[1]);
-      await user.keyboard("04");
-      await user.click(dayFields[1]);
-      await user.keyboard("01");
+      const startInput = document.body.querySelector('input[name="date-filter-start"]');
+      const endInput = document.body.querySelector('input[name="date-filter-end"]');
+      // Open the start date picker calendar popup by clicking the calendar button
+      fireEvent.change(startInput!, { target: { value: "2023-02-01" } });
+      fireEvent.change(endInput!, { target: { value: "2023-04-01" } });
 
       // Wait for the filtered results
       await waitFor(() => {
@@ -453,33 +428,11 @@ describe("ColumnFilter Component", () => {
 
       await user.selectOptions(columnSelect, "Date");
 
-      // Wait for both calendar pickers to appear
-      await waitFor(() => {
-        expect(screen.getAllByLabelText("Month")).toHaveLength(2);
-        expect(screen.getAllByLabelText("Day")).toHaveLength(2);
-        expect(screen.getAllByLabelText("Year")).toHaveLength(2);
-      });
-
-      // Fill in the start date picker (first set of fields)
-      const yearFields = screen.getAllByLabelText("Year");
-      const monthFields = screen.getAllByLabelText("Month");
-      const dayFields = screen.getAllByLabelText("Day");
-
-      await user.click(yearFields[0]);
-      await user.keyboard("2000");
-
-      await user.click(monthFields[0]);
-      await user.keyboard("01");
-
-      await user.click(dayFields[0]);
-      await user.keyboard("01");
-
-      await user.click(yearFields[1]);
-      await user.keyboard("2000");
-      await user.click(monthFields[1]);
-      await user.keyboard("01");
-      await user.click(dayFields[1]);
-      await user.keyboard("01");
+      const startInput = document.body.querySelector('input[name="date-filter-start"]');
+      const endInput = document.body.querySelector('input[name="date-filter-end"]');
+      // Open the start date picker calendar popup by clicking the calendar button
+      fireEvent.change(startInput!, { target: { value: "2000-01-01" } });
+      fireEvent.change(endInput!, { target: { value: "2000-01-02" } });
 
       await waitFor(() => {
         expect(

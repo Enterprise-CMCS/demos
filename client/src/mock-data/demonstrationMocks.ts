@@ -18,14 +18,14 @@ import {
   MockDemonstrationRoleAssignment,
   mockDemonstrationRoleAssignments,
 } from "./demonstrationRoleAssignmentMocks";
-import { MockDocument } from "./documentMocks";
+import { MockDocument, mockDocuments } from "./documentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel"
+  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName"
 > & {
   effectiveDate: string | null;
   expirationDate: string | null;
@@ -56,12 +56,13 @@ export const mockDemonstrations = [
     extensions: mockExtensions.filter((extension) =>
       extension.name.includes("Montana Medicaid Waiver")
     ),
-    documents: [],
+    documents: mockDocuments,
     roles: [
       mockDemonstrationRoleAssignments[0],
       mockDemonstrationRoleAssignments[3],
       mockDemonstrationRoleAssignments[4],
     ],
+    currentPhaseName: "Concept",
   },
   {
     id: "2",
@@ -80,6 +81,7 @@ export const mockDemonstrations = [
     extensions: [],
     documents: [],
     roles: [mockDemonstrationRoleAssignments[1]],
+    currentPhaseName: "Concept",
   },
   {
     id: "3",
@@ -96,6 +98,7 @@ export const mockDemonstrations = [
     extensions: [],
     documents: [],
     roles: [mockDemonstrationRoleAssignments[2]],
+    currentPhaseName: "Concept",
   },
 ] as const satisfies MockDemonstration[];
 
