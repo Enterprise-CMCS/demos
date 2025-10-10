@@ -9,8 +9,6 @@ import {
   checkInputDateMeetsOffset,
 } from "./checkInputDateFunctions.js";
 import { getTargetDateValue } from "./getTargetDateValue.js";
-import { _ } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
-import { milliseconds } from "date-fns";
 
 vi.mock("./getTargetDateValue", () => ({
   getTargetDateValue: vi.fn(),
