@@ -193,7 +193,7 @@ function extractToken(getHeader: HeaderGetter): string {
 }
 
 function deriveUserFields({ email, givenName, familyName, externalUserId }: Claims) {
-  // Have a backup, just in case
+  // back up "userId" (AWS terminology) / username, cognito local users only would fallback here
   const backupUserName = email?.includes("@") ? email : undefined;
   const username = externalUserId || backupUserName;
   if (!username) {
