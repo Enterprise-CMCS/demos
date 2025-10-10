@@ -49,6 +49,16 @@ const jwks = jwksClient({
   jwksRequestsPerMinute: 10,
 });
 
+type Claims = {
+  sub: string;
+  email?: string;
+  role: string;
+  givenName?: string;
+  familyName?: string;
+  name?: string;
+  externalUserId?: string;
+};
+
 function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void) {
   jwks.getSigningKey(header.kid, (err, key) => {
     if (err || !key) return cb(err || new Error("Signing key not found"));
@@ -76,13 +86,11 @@ function extractExternalUserIdFromIdentities(identities: unknown): string | unde
     if (Array.isArray(arr) && arr.length > 0) {
       const first = arr[0] as { userId?: string };
       if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
-        console.log('USERNAME:', first?.userId);
         return first.userId.trim();
       }
     }
   } catch {
-    log.debug("auth.identities.parse_failed");
-    console.log("auth.identities.parse_failed");
+    log.error("auth.identities.parse_failed");
   }
   return undefined;
 }
@@ -110,14 +118,12 @@ function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
   const givenName = (raw["given_name"] as string | undefined) ?? undefined;
   const familyName = (raw["family_name"] as string | undefined) ?? undefined;
   const name = (raw["name"] as string | undefined) ?? undefined;
-  log.debug("auth.claims.normalized", { sub, email, role, givenName, familyName, name });
   const externalUserId = extractExternalUserIdFromIdentities(raw["identities"]);
 
   return { sub, email, role, givenName, familyName, name, externalUserId };
 }
 
 function decodeToken(token: string): Promise<DecodedJWT> {
-  log.debug('------------ DECODING TOKEN ------------');
   return new Promise((resolve, reject) => {
     jwt.verify(token, getKey, verifyOpts, (err, decoded) => {
       if (err) {
@@ -149,17 +155,6 @@ function decodeToken(token: string): Promise<DecodedJWT> {
     });
   });
 }
-
-/* -----------------------  local functions  ----------------------- */
-type Claims = {
-  sub: string;
-  email?: string;
-  role: string;
-  givenName?: string;
-  familyName?: string;
-  name?: string;
-  externalUserId?: string;
-};
 
 type HeaderGetter = (name: string) => string | undefined;
 
@@ -197,35 +192,29 @@ function extractToken(getHeader: HeaderGetter): string {
   return token;
 }
 
-function deriveUserFields({ sub, email, givenName, familyName, externalUserId }: Claims) {
+function deriveUserFields({ email, givenName, familyName, externalUserId }: Claims) {
   // Have a backup, just in case
   const backupUserName = email?.includes("@") ? email : undefined;
   const username = externalUserId || backupUserName;
   if (!username) {
-    log.error("We need a username");
-    throw new Error("We need a username");
+    throw new Error("username could not be set from claims");
   }
 
   const firstName = givenName?.trim();
   const lastName = familyName?.trim();
 
   if (!firstName || !lastName || !email) {
-    log.error("Missing required name parts from claims; given_name family_name and email are required");
     throw new Error("Missing required name parts from claims; given_name family_name and email are required");
   }
-  const fullName = `${firstName} ${lastName}`.trim();
-  log.debug("auth.user.derived", { username });
 
-  return { username, email, firstName, lastName, fullName };
+  return { username, email, firstName, lastName };
 }
 
 /** Upsert user and return the DB row */
 async function ensureUserFromClaims(claims: Claims) {
   const { sub, role } = claims;
   // Set up person on first login.
-  const { username, email, firstName, lastName, fullName } = deriveUserFields(claims);
-
-  console.log("Derived user fields:", { username, email, firstName, lastName, fullName });
+  const { username, email, firstName, lastName } = deriveUserFields(claims);
 
   // Add await and handle the result properly
   const existingUser = await prisma().user.findUnique({
@@ -235,8 +224,6 @@ async function ensureUserFromClaims(claims: Claims) {
   if (existingUser) {
     return existingUser;
   }
-
-  log.info("auth.user.create", { username });
 
   const person = await prisma().person.create({
     data: {

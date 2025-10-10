@@ -42,7 +42,7 @@ export const DefaultHeaderLower: React.FC = () => {
     );
   }
 
-  const name = currentUser.person.displayName || currentUser.person.email;
+  const name = currentUser.person.fullName || currentUser.username;
 
   const handleSelect = (item: string) => {
     setShowDropdown(false);
