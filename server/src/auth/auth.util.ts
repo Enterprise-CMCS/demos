@@ -49,6 +49,16 @@ const jwks = jwksClient({
   jwksRequestsPerMinute: 10,
 });
 
+type Claims = {
+  sub: string;
+  email?: string;
+  role: string;
+  givenName?: string;
+  familyName?: string;
+  name?: string;
+  externalUserId?: string;
+};
+
 function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void) {
   jwks.getSigningKey(header.kid, (err, key) => {
     if (err || !key) return cb(err || new Error("Signing key not found"));
@@ -80,7 +90,7 @@ function extractExternalUserIdFromIdentities(identities: unknown): string | unde
       }
     }
   } catch {
-    log.debug("auth.identities.parse_failed");
+    log.error("auth.identities.parse_failed");
   }
   return undefined;
 }
@@ -146,17 +156,6 @@ function decodeToken(token: string): Promise<DecodedJWT> {
   });
 }
 
-/* -----------------------  HELPERS  ----------------------- */
-type Claims = {
-  sub: string;
-  email?: string;
-  role: string;
-  givenName?: string;
-  familyName?: string;
-  name?: string;
-  externalUserId?: string;
-};
-
 type HeaderGetter = (name: string) => string | undefined;
 
 function createHeaderGetter(obj: Record<string, unknown> | undefined | null): HeaderGetter {
@@ -193,21 +192,29 @@ function extractToken(getHeader: HeaderGetter): string {
   return token;
 }
 
-function deriveUserFields({ sub, email, givenName, familyName, name, externalUserId }: Claims) {
-  const usernameFromEmail = email?.includes("@") ? email.split("@")[0] : undefined;
-  const username = externalUserId || usernameFromEmail || sub;
-  const displayName = (givenName && givenName.trim()) || username;
-  const emailForCreate = email ?? `${sub}@no-email.local`;
-  const fullNameFromParts = [givenName, familyName].filter(Boolean).join(" ").trim();
-  const fullName = (name && name.trim()) || fullNameFromParts || email || username;
-  log.debug("auth.user.derived", { username });
-  return { username, displayName, emailForCreate, fullName };
+function deriveUserFields({ email, givenName, familyName, externalUserId }: Claims) {
+  // back up "userId" (AWS terminology) / username, cognito local users only would fallback here
+  const backupUserName = email?.includes("@") ? email : undefined;
+  const username = externalUserId || backupUserName;
+  if (!username) {
+    throw new Error("username could not be set from claims");
+  }
+
+  const firstName = givenName?.trim();
+  const lastName = familyName?.trim();
+
+  if (!firstName || !lastName || !email) {
+    throw new Error("Missing required name parts from claims; given_name family_name and email are required");
+  }
+
+  return { username, email, firstName, lastName };
 }
 
 /** Upsert user and return the DB row */
 async function ensureUserFromClaims(claims: Claims) {
   const { sub, role } = claims;
-  const { username, displayName, emailForCreate, fullName } = deriveUserFields(claims);
+  // Set up person on first login.
+  const { username, email, firstName, lastName } = deriveUserFields(claims);
 
   // Add await and handle the result properly
   const existingUser = await prisma().user.findUnique({
@@ -217,13 +224,13 @@ async function ensureUserFromClaims(claims: Claims) {
   if (existingUser) {
     return existingUser;
   }
-  log.info("auth.user.create", { username });
+
   const person = await prisma().person.create({
     data: {
       personTypeId: role,
-      email: emailForCreate,
-      fullName,
-      displayName,
+      email: email,
+      firstName,
+      lastName,
     },
   });
 

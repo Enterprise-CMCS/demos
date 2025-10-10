@@ -1,0 +1,167 @@
+env:
+  contexts:
+  - name: demos-dev
+    urls:
+    - https://${ZAP_HOSTNAME}
+    includePaths:
+    - https://${ZAP_HOSTNAME}.*
+    excludePaths:
+    - https://content-signature-2.cdn.mozilla.net/.*
+    authentication:
+      method: browser
+      parameters:
+        loginPageUrl: https://${ZAP_HOSTNAME}
+        loginPageWait: 4
+        browserId: firefox
+        stepDelay: 3
+        diagnostics: false
+        steps: []
+      verification:
+        method: poll
+        loggedInRegex: \Q 200 OK\E
+        loggedOutRegex: \Q 401 Unauthorized\E
+        pollFrequency: 60
+        pollUnits: requests
+        pollUrl: https://${ZAP_HOSTNAME}/api/graphql
+        pollPostData: "{\"operationName\":\"GetCurrentUser\",\"variables\":{},\"query\"\
+          :\"query GetCurrentUser {\\n  currentUser {\\n    person {\\n      personType\\\
+          n      fullName\\n      displayName\\n      email\\n      __typename\\n\
+          \    }\\n    __typename\\n  }\\n}\"}"
+    sessionManagement:
+      method: headers
+      parameters:
+        authorization: "Bearer {%json:id_token%}"
+    technology:
+      exclude:
+      - C
+      - ASP
+      - IBM DB2
+      - SQLite
+      - PHP
+      - CouchDB
+      - XML
+      - Microsoft SQL Server
+      - MariaDB
+      - Oracle
+      - JSP/Servlet
+      - MongoDB
+      - Firebird
+      - HypersonicSQL
+      - MySQL
+      - SAP MaxDB
+      - SVN
+      - Ruby
+      - WS
+      - Microsoft Access
+      - Java
+      - Sybase
+      - Python
+    structure: {}
+    users:
+    - name: test-user
+      credentials:
+        password: "${ZAP_PASSWORD}"
+        username: "${ZAP_EMAIL}"
+  parameters: {}
+jobs:
+- type: replacer
+  rules:
+  - description: Add allow through
+    url: .*
+    matchType: req_header
+    matchString: x-allow-through
+    replacementString: {{REPLACE_HEADER_VALUE}}
+    initiators: null
+- type: alertFilter
+  alertFilters:
+  - ruleId: 10096
+    ruleName: Timestamp Disclosure (10096)
+    newRisk: False Positive
+    url: "https://.*/assets/index-.*.js"
+    urlRegex: true
+    methods:
+    - GET
+  parameters: {}
+  enabled: true
+- type: spider
+  parameters: {}
+  tests:
+  - name: At least 20 URLs found
+    type: stats
+    onFail: INFO
+    statistic: automation.spider.urls.added
+    operator: '>='
+    value: 20
+- type: spiderAjax
+  parameters:
+    context: demos-dev
+    user: test-user
+    url: https://${ZAP_HOSTNAME}
+    maxDuration: 5
+    maxCrawlDepth: 2
+    browserId: firefox-headless
+    maxCrawlStates: 5
+    clickDefaultElems: false
+    randomInputs: false
+    elements:
+    - a
+    - button
+    logoutAvoidance: true
+  tests:
+  - name: At least 20 URLs found
+    type: stats
+    onFail: INFO
+    statistic: spiderAjax.urls.added
+    operator: '>='
+    value: 20
+- type: graphql
+  parameters: 
+    endpoint: https://${ZAP_HOSTNAME}/api/graphql
+    schemaUrl: https://${ZAP_HOSTNAME}/api/graphql
+    schemaFile: ""
+- type: report
+  parameters:
+    template: modern
+    theme: corporate
+    reportDir: "output"
+    reportFile: "{{yyyy-MM-dd}}-ZAP-Report-[[site]]"
+    reportTitle: ZAP Scanning Report
+  risks:
+  - low
+  - medium
+  - high
+  confidences:
+  - low
+  - medium
+  - high
+  - confirmed
+  - falsepositive
+  sections:
+  - passingrules
+  - instancecount
+  - alertdetails
+  - alertcount
+  - params
+  - chart
+  - statistics
+- type: report
+  parameters:
+    template: traditional-pdf
+    reportDir: "output"
+    reportFile: "{{yyyy-MM-dd}}-ZAP-Report-PDF-[[site]]"
+    reportTitle: ZAP Scanning Report
+  risks:
+  - low
+  - medium
+  - high
+  confidences:
+  - low
+  - medium
+  - high
+  - confirmed
+  - falsepositive
+  sections:
+  - instancecount
+  - alertdetails
+  - alertcount
+
