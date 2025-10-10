@@ -18,6 +18,10 @@ export const ExtensionsTab: React.FC<{
         </div>
       </SecondaryButton>
     </div>
-    <ModificationTable modifications={extensions} initiallyExpandedId={initiallyExpandedId} />
+    <ModificationTable
+      modificationType="Extension"
+      modifications={extensions}
+      initiallyExpandedId={initiallyExpandedId}
+    />
   </div>
 );

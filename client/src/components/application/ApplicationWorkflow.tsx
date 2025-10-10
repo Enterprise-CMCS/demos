@@ -1,6 +1,6 @@
 import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
-import { DemonstrationStatusBadge } from "./DemonstrationStatusBadge";
+import { DemonstrationStatusBadge } from "../badge/DemonstrationStatusBadge";
 import type { Demonstration } from "demos-server";
 
 export type ApplicationWorkflowDemonstration = Pick<
