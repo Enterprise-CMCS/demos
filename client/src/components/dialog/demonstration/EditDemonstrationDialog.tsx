@@ -6,6 +6,7 @@ import { Demonstration, UpdateDemonstrationInput } from "demos-server";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
 import { formatDateForServer, parseInputDate } from "util/formatDate";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 const SUCCESS_MESSAGE = "Demonstration updated successfully!";
 const ERROR_MESSAGE = "Failed to update demonstration. Please try again.";
@@ -34,6 +35,25 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
     updateDemonstration(id: $id, input: $input) {
       id
+      name
+      description
+      sdgDivision
+      signatureLevel
+      state {
+        id
+      }
+      roles {
+        isPrimary
+        role
+        person {
+          id
+        }
+      }
+      primaryProjectOfficer {
+        id
+      }
+      effectiveDate
+      expirationDate
     }
   }
 `;
@@ -83,9 +103,12 @@ const useUpdateDemonstration = () => {
         id: demonstrationId,
         input: updateInput,
       },
-      update: (cache, { data }) => {
-        cache.evict({ id: cache.identify(data?.updateDemonstration) });
-      },
+      refetchQueries: [
+        {
+          query: DEMONSTRATION_DETAIL_QUERY,
+          variables: { id: demonstrationId },
+        },
+      ],
     });
   };
 };
