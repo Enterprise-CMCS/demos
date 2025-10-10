@@ -1,7 +1,7 @@
 import React from "react";
 
-import { AmendmentDialog } from "components/dialog/AmendmentDialog";
 import { EditDemonstrationDialog } from "components/dialog";
+import { AmendmentDialog } from "components/dialog/AmendmentDialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { Demonstration } from "demos-server";
@@ -42,7 +42,17 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
     )}
 
     {entityCreationModal === "document" && (
-      <AddDocumentDialog isOpen={true} onClose={onCloseEntityModal} />
+      <AddDocumentDialog
+        isOpen={true}
+        onClose={onCloseEntityModal}
+        initialDocument={{
+          id: demonstration.id,
+          name: "",
+          description: "",
+          documentType: "General File",
+          file: null,
+        }}
+      />
     )}
 
     {/* Demonstration Action Modals */}

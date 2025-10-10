@@ -1,8 +1,9 @@
 import React from "react";
-import { DOCUMENT_TYPES } from "demos-server-constants";
-import { DocumentType } from "demos-server";
+
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
+import { DocumentType } from "demos-server";
+import { DOCUMENT_TYPES } from "demos-server-constants";
 
 export const DocumentTypeInput: React.FC<{
   value: string;
@@ -18,6 +19,7 @@ export const DocumentTypeInput: React.FC<{
     <AutoCompleteSelect
       id="document-type"
       label="Document Type"
+      isRequired
       options={documentTypeOptions}
       value={value}
       onSelect={(selectedValue) => onSelect(selectedValue)}

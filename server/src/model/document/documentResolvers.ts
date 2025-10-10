@@ -3,7 +3,11 @@ import { GraphQLError } from "graphql";
 import { Document, DocumentPendingUpload } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -21,7 +25,7 @@ async function getManyDocuments() {
 }
 
 async function getPresignedUploadUrl(
-  documentPendingUpload: DocumentPendingUpload
+  documentPendingUpload: DocumentPendingUpload,
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
@@ -33,7 +37,9 @@ async function getPresignedUploadUrl(
           secretAccessKey: "",
         },
       }
-    : {};
+    : {
+        region: process.env.AWS_REGION || "us-east-1",
+      };
   const s3 = new S3Client(s3ClientConfig);
   const uploadBucket = process.env.UPLOAD_BUCKET;
   const key = documentPendingUpload.id;
@@ -57,7 +63,9 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
           secretAccessKey: "",
         },
       }
-    : {};
+    : {
+        region: process.env.AWS_REGION || "us-east-1",
+      };
   const s3 = new S3Client(s3ClientConfig);
   const cleanBucket = process.env.CLEAN_BUCKET;
   const key = `${document.bundleId}/${document.id}`;
@@ -81,23 +89,25 @@ export const documentResolvers = {
     uploadDocument: async (
       parent: undefined,
       { input }: { input: UploadDocumentInput },
-      context: GraphQLContext
+      context: GraphQLContext,
     ) => {
       if (context.user === null) {
         throw new Error(
-          "The GraphQL context does not have user information. Are you properly authenticated?"
+          "The GraphQL context does not have user information. Are you properly authenticated?",
         );
       }
-      const documentPendingUpload = await prisma().documentPendingUpload.create({
-        data: {
-          name: input.name,
-          description: input.description,
-          ownerUserId: context.user.id,
-          documentTypeId: input.documentType,
-          bundleId: input.bundleId,
-          phaseId: input.phaseName,
+      const documentPendingUpload = await prisma().documentPendingUpload.create(
+        {
+          data: {
+            name: input.name,
+            description: input.description,
+            ownerUserId: context.user.id,
+            documentTypeId: input.documentType,
+            bundleId: input.bundleId,
+            phaseId: input.phaseName,
+          },
         },
-      });
+      );
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return { presignedURL };
@@ -120,11 +130,11 @@ export const documentResolvers = {
 
     updateDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDocumentInput }
+      { id, input }: { id: string; input: UpdateDocumentInput },
     ): Promise<Document> => {
       checkOptionalNotNullFields(
         ["name", "description", "documentType", "bundleId", "phaseName"],
-        input
+        input,
       );
       try {
         return await prisma().document.update({
