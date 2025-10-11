@@ -152,6 +152,7 @@ export class FileUploadStack extends Stack {
         UPLOAD_BUCKET: uploadBucket.bucketName,
         CLEAN_BUCKET: cleanBucket.bucketName,
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
     });
 
