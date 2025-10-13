@@ -3,7 +3,7 @@ import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
 import { DateType, PhaseName, PhaseStatus } from "demos-server";
 import { SimpleBundleDate, setDateInBundleDates, getDateFromBundleDates } from "./bundleDates";
-import { SimplePhase, setStatusForPhase, getStatusForPhase } from "../phases/phaseStatus";
+import { SimplePhase, setStatusForPhase, getStatusForPhase } from "../phase-status/phaseStatus";
 import { formatDateTime } from "util/formatDate";
 
 type SimulationState = {

@@ -24,8 +24,8 @@ const EST_TIMEZONE: TimeZone = "America/New_York";
  *
  * DateUTC: A date in UTC timezone - Used when the date is set by a user event
  * DateEST: A date in EST timezone - Used when the date is calculated for a deadline or beginning period
- * StartDate: A date that marks the beginning of a phase. Timestamp should be SOD - 00:00:00.000 EST.
- * EndDate: A date that marks the end of a phase. Timestamp should be EOD - 23:59:59.999 EST.
+ * StartOfDayEST - A date in EST with timestamp @ 00:00:00.000 EST.
+ * EndOfDayEST - A date in EST with timestamp @ 23:59:59.999 EST.
  *
  * This file uses branded types to prevent mixing up date types in function calls:
  * https://www.learningtypescript.com/articles/branded-types
@@ -47,7 +47,7 @@ export const getEndOfDayEST = (year: number, month: number, day: number): EndOfD
  * Get a specific date value from a list of bundle dates
  */
 export const getDateFromBundleDates = (
-  bundleDates: SimpleBundleDate[],
+  bundleDates: SimpleBundleDate[] | BundleDate[],
   dateType: DateType
 ): Date | null => {
   const dateEntry = bundleDates.find((d) => d.dateType === dateType);
@@ -59,7 +59,7 @@ export const getDateFromBundleDates = (
  * Returns a new array with the updated date
  */
 export const setDateInBundleDates = (
-  bundleDates: SimpleBundleDate[],
+  bundleDates: SimpleBundleDate[] | BundleDate[],
   dateType: DateType,
   dateValue: Date
 ): SimpleBundleDate[] => {
@@ -82,6 +82,9 @@ export const setDateInBundleDates = (
 /**
  * Check if a specific date exists in bundle dates
  */
-export const hasDate = (bundleDates: SimpleBundleDate[], dateType: DateType): boolean => {
+export const hasDate = (
+  bundleDates: SimpleBundleDate[] | BundleDate[],
+  dateType: DateType
+): boolean => {
   return bundleDates.some((d) => d.dateType === dateType);
 };
