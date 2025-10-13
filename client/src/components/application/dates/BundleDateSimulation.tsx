@@ -4,20 +4,27 @@ import { tw } from "tags/tw";
 import { PhaseStatus, DateType } from "demos-server";
 import {
   SimplePhase,
+  SimpleBundleDate,
   setStatusForPhase,
   getStatusForPhase,
-  setDateInPhaseDates,
-  getDateFromPhaseDates,
-} from "./phaseDates";
+  setDateInBundleDates,
+  getDateFromBundleDates,
+} from "./bundleDates";
 import { formatDateTime } from "util/formatDate";
 
-type SimulationState = SimplePhase[];
+type SimulationState = {
+  phases: SimplePhase[];
+  bundleDates: SimpleBundleDate[];
+};
 
-const DEFAULT_SIMULATION_STATE: SimulationState = [
-  { phaseName: "Concept", phaseStatus: "Not Started", phaseDates: [] },
-  { phaseName: "State Application", phaseStatus: "Not Started", phaseDates: [] },
-  { phaseName: "Completeness", phaseStatus: "Not Started", phaseDates: [] },
-];
+const DEFAULT_SIMULATION_STATE: SimulationState = {
+  phases: [
+    { phaseName: "Concept", phaseStatus: "Not Started" },
+    { phaseName: "State Application", phaseStatus: "Not Started" },
+    { phaseName: "Completeness", phaseStatus: "Not Started" },
+  ],
+  bundleDates: [],
+};
 const STYLES = {
   phaseBox: tw`p-4 border-2 rounded-lg bg-white min-h-[120px] flex flex-col justify-between`,
   dateDisplay: tw`text-xs text-gray-600 mt-1`,
@@ -99,39 +106,18 @@ export const PhaseDatesSimulation: React.FC = () => {
   const [simulationState, setSimulationState] = useState<SimulationState>(DEFAULT_SIMULATION_STATE);
   const [demonstrationCreated, setDemonstrationCreated] = useState(false);
 
-  const updatePhaseDate = (
-    phases: SimulationState,
-    phaseName: "Concept" | "State Application" | "Completeness",
-    dateType: DateType,
-    dateValue: Date
-  ): SimulationState => {
-    return phases.map((phase) => {
-      if (phase.phaseName === phaseName) {
-        const updatedDates = setDateInPhaseDates(phase.phaseDates, dateType, dateValue);
-
-        // If the date doesn't exist, add it
-        const existingDate = getDateFromPhaseDates(phase.phaseDates, dateType);
-        if (!existingDate) {
-          updatedDates.push({
-            dateType: dateType,
-            dateValue: dateValue,
-          });
-        }
-
-        return { ...phase, phaseDates: updatedDates };
-      }
-      return phase;
-    });
-  };
-
   // Business Rule: Create Demonstration starts Concept Phase
   const createDemonstration = () => {
     const now = new Date();
 
-    let updatedState = setStatusForPhase(simulationState, "Concept", "Started");
-    updatedState = updatePhaseDate(updatedState, "Concept", "Concept Start Date", now);
+    const updatedPhases = setStatusForPhase(simulationState.phases, "Concept", "Started");
+    const updatedDates = setDateInBundleDates(
+      simulationState.bundleDates,
+      "Concept Start Date",
+      now
+    );
 
-    setSimulationState(updatedState);
+    setSimulationState({ phases: updatedPhases, bundleDates: updatedDates });
     setDemonstrationCreated(true);
   };
 

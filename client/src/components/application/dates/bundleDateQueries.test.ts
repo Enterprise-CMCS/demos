@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getQueryForSetBundleDate } from "./phaseDateQueries";
+import { getQueryForSetBundleDate } from "./bundleDateQueries";
 import { SetBundleDateInput } from "demos-server";
 
 const TEST_SET_PHASE_DATE_INPUT: SetBundleDateInput = {

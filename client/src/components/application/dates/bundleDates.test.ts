@@ -4,16 +4,17 @@ import {
   getEndOfDayEST,
   getStatusForPhase,
   setStatusForPhase,
-  getDateFromPhaseDates,
-  setDateInPhaseDates,
-  getAllDatesForPhase,
-  setAllDatesForPhase,
+  getDateFromBundleDates,
+  setDateInBundleDates,
+  removeDateFromBundleDates,
+  hasDate,
+  getDatesByPrefix,
   type SimplePhase,
-  type SimplePhaseDate,
-} from "./phaseDates";
+  type SimpleBundleDate,
+} from "./bundleDates";
 
 // Mock data for testing
-const mockPhaseDates: SimplePhaseDate[] = [
+const mockBundleDates: SimpleBundleDate[] = [
   {
     dateType: "Concept Start Date",
     dateValue: new Date("2025-01-01T05:00:00.000Z"), // 00:00 EST
@@ -26,33 +27,24 @@ const mockPhaseDates: SimplePhaseDate[] = [
     dateType: "State Application Submitted Date",
     dateValue: new Date("2025-01-15T12:00:00.000Z"),
   },
+  {
+    dateType: "State Application Start Date",
+    dateValue: new Date("2025-02-01T05:00:00.000Z"),
+  },
 ];
 
 const mockBundlePhases: SimplePhase[] = [
   {
     phaseName: "Concept",
     phaseStatus: "Started",
-    phaseDates: [
-      {
-        dateType: "Concept Start Date",
-        dateValue: new Date("2025-01-01T05:00:00.000Z"),
-      },
-    ],
   },
   {
     phaseName: "State Application",
     phaseStatus: "Not Started",
-    phaseDates: [
-      {
-        dateType: "State Application Submitted Date",
-        dateValue: new Date("2025-02-01T12:00:00.000Z"),
-      },
-    ],
   },
   {
     phaseName: "Completeness",
     phaseStatus: "Not Started",
-    phaseDates: [],
   },
 ];
 
@@ -124,85 +116,105 @@ describe("phaseDates", () => {
     });
   });
 
-  describe("Phase date operations", () => {
-    it("should get existing date from phase dates", () => {
-      const date = getDateFromPhaseDates(mockPhaseDates, "Concept Start Date");
+  describe("Bundle date operations", () => {
+    it("should get existing date from bundle dates", () => {
+      const date = getDateFromBundleDates(mockBundleDates, "Concept Start Date");
 
       expect(date).toEqual(new Date("2025-01-01T05:00:00.000Z"));
     });
 
     it("should return null for non-existent date type", () => {
-      const date = getDateFromPhaseDates(mockPhaseDates, "Federal Comment Period Start Date");
+      const date = getDateFromBundleDates(mockBundleDates, "Federal Comment Period Start Date");
 
       expect(date).toBeNull();
     });
 
-    it("should set date in phase dates for existing date type", () => {
+    it("should update existing date in bundle dates", () => {
       const newDate = new Date("2025-02-01T05:00:00.000Z");
-      const updatedDates = setDateInPhaseDates(mockPhaseDates, "Concept Start Date", newDate);
+      const updatedDates = setDateInBundleDates(mockBundleDates, "Concept Start Date", newDate);
 
-      expect(updatedDates).toHaveLength(3);
+      expect(updatedDates).toHaveLength(4);
       expect(updatedDates[0].dateValue).toEqual(newDate);
-      expect(updatedDates[1].dateValue).toEqual(mockPhaseDates[1].dateValue); // unchanged
+      expect(updatedDates[1].dateValue).toEqual(mockBundleDates[1].dateValue); // unchanged
     });
 
-    it("should not modify original array when setting date", () => {
-      const originalDates = [...mockPhaseDates];
-      const newDate = new Date("2025-02-01T05:00:00.000Z");
-      setDateInPhaseDates(mockPhaseDates, "Concept Start Date", newDate);
-
-      expect(mockPhaseDates).toEqual(originalDates);
-    });
-
-    it("should return unchanged array when setting non-existent date type", () => {
-      const newDate = new Date("2025-02-01T05:00:00.000Z");
-      const updatedDates = setDateInPhaseDates(
-        mockPhaseDates,
-        "Federal Comment Period End Date",
+    it("should add new date if it doesn't exist", () => {
+      const newDate = new Date("2025-03-01T05:00:00.000Z");
+      const updatedDates = setDateInBundleDates(
+        mockBundleDates,
+        "Completeness Start Date",
         newDate
       );
 
-      expect(updatedDates).toEqual(mockPhaseDates);
+      expect(updatedDates).toHaveLength(5);
+      expect(updatedDates[4].dateType).toBe("Completeness Start Date");
+      expect(updatedDates[4].dateValue).toEqual(newDate);
     });
 
-    it("should get all dates for existing phase", () => {
-      const dates = getAllDatesForPhase(mockBundlePhases, "Concept");
+    it("should not modify original array when setting date", () => {
+      const originalDates = [...mockBundleDates];
+      const newDate = new Date("2025-02-01T05:00:00.000Z");
+      setDateInBundleDates(mockBundleDates, "Concept Start Date", newDate);
 
-      expect(dates).toHaveLength(1);
-      expect(dates![0].dateType).toBe("Concept Start Date");
+      expect(mockBundleDates).toEqual(originalDates);
     });
 
-    it("should return null for non-existent phase", () => {
-      const dates = getAllDatesForPhase(mockBundlePhases, "None");
-
-      expect(dates).toBeNull();
-    });
-
-    it("should return empty array for phase with no dates", () => {
-      const dates = getAllDatesForPhase(mockBundlePhases, "Completeness");
-
-      expect(dates).toEqual([]);
-    });
-
-    it("should set all dates for phase (same as setDateInPhaseDates)", () => {
-      const newDate = new Date("2025-03-01T05:00:00.000Z");
-      const updatedDates = setAllDatesForPhase(mockPhaseDates, "Concept Completion Date", newDate);
+    it("should remove date from bundle dates", () => {
+      const updatedDates = removeDateFromBundleDates(mockBundleDates, "Concept Start Date");
 
       expect(updatedDates).toHaveLength(3);
-      expect(updatedDates[1].dateValue).toEqual(newDate);
-      expect(updatedDates[0].dateValue).toEqual(mockPhaseDates[0].dateValue); // unchanged
+      expect(updatedDates.find((d) => d.dateType === "Concept Start Date")).toBeUndefined();
+    });
+
+    it("should return unchanged array when removing non-existent date", () => {
+      const updatedDates = removeDateFromBundleDates(
+        mockBundleDates,
+        "Federal Comment Period Start Date"
+      );
+
+      expect(updatedDates).toHaveLength(4);
+      expect(updatedDates).toEqual(mockBundleDates);
+    });
+
+    it("should check if date exists", () => {
+      expect(hasDate(mockBundleDates, "Concept Start Date")).toBe(true);
+      expect(hasDate(mockBundleDates, "Federal Comment Period Start Date")).toBe(false);
+    });
+
+    it("should get dates by prefix", () => {
+      const conceptDates = getDatesByPrefix(mockBundleDates, "Concept");
+
+      expect(conceptDates).toHaveLength(2);
+      expect(conceptDates[0].dateType).toBe("Concept Start Date");
+      expect(conceptDates[1].dateType).toBe("Concept Completion Date");
+    });
+
+    it("should get dates by different prefix", () => {
+      const stateAppDates = getDatesByPrefix(mockBundleDates, "State Application");
+
+      expect(stateAppDates).toHaveLength(2);
+      expect(stateAppDates[0].dateType).toBe("State Application Submitted Date");
+      expect(stateAppDates[1].dateType).toBe("State Application Start Date");
+    });
+
+    it("should return empty array for non-matching prefix", () => {
+      const completeDates = getDatesByPrefix(mockBundleDates, "Completeness");
+
+      expect(completeDates).toHaveLength(0);
     });
   });
 
   describe("Edge cases and error handling", () => {
-    it("should handle empty phase dates array", () => {
-      const emptyDates: SimplePhaseDate[] = [];
+    it("should handle empty bundle dates array", () => {
+      const emptyDates: SimpleBundleDate[] = [];
 
-      const date = getDateFromPhaseDates(emptyDates, "Concept Start Date");
+      const date = getDateFromBundleDates(emptyDates, "Concept Start Date");
       expect(date).toBeNull();
 
-      const updatedDates = setDateInPhaseDates(emptyDates, "Concept Start Date", new Date());
-      expect(updatedDates).toEqual([]);
+      const updatedDates = setDateInBundleDates(emptyDates, "Concept Start Date", new Date());
+      expect(updatedDates).toHaveLength(1);
+
+      expect(hasDate(emptyDates, "Concept Start Date")).toBe(false);
     });
 
     it("should handle empty bundle phases array", () => {
@@ -213,14 +225,11 @@ describe("phaseDates", () => {
 
       const updatedPhases = setStatusForPhase(emptyPhases, "Concept", "Started");
       expect(updatedPhases).toEqual([]);
-
-      const dates = getAllDatesForPhase(emptyPhases, "Concept");
-      expect(dates).toBeNull();
     });
 
     it("should maintain object structure when updating", () => {
       const newDate = new Date("2025-04-01T05:00:00.000Z");
-      const updatedDates = setDateInPhaseDates(mockPhaseDates, "Concept Start Date", newDate);
+      const updatedDates = setDateInBundleDates(mockBundleDates, "Concept Start Date", newDate);
 
       // Check that the structure is maintained
       expect(updatedDates[0]).toHaveProperty("dateType");
@@ -228,27 +237,24 @@ describe("phaseDates", () => {
       expect(updatedDates[0].dateType).toBe("Concept Start Date");
     });
 
-    it("should handle multiple phases with same date types", () => {
-      const phases: SimplePhase[] = [
-        {
-          phaseName: "Concept",
-          phaseStatus: "Started",
-          phaseDates: [{ dateType: "Concept Start Date", dateValue: new Date("2025-01-01") }],
-        },
-        {
-          phaseName: "State Application",
-          phaseStatus: "Not Started",
-          phaseDates: [
-            { dateType: "State Application Start Date", dateValue: new Date("2025-02-01") },
-          ],
-        },
+    it("should handle multiple dates with same prefix", () => {
+      const dates: SimpleBundleDate[] = [
+        { dateType: "Concept Start Date", dateValue: new Date("2025-01-01") },
+        { dateType: "Concept Completion Date", dateValue: new Date("2025-01-31") },
+        { dateType: "Pre-Submission Submitted Date", dateValue: new Date("2025-01-15") },
       ];
 
-      const conceptDates = getAllDatesForPhase(phases, "Concept");
-      const stateDates = getAllDatesForPhase(phases, "State Application");
+      const conceptDates = getDatesByPrefix(dates, "Concept");
+      expect(conceptDates).toHaveLength(2);
+    });
 
-      expect(conceptDates![0].dateValue).toEqual(new Date("2025-01-01"));
-      expect(stateDates![0].dateValue).toEqual(new Date("2025-02-01"));
+    it("should not modify original array with immutable operations", () => {
+      const originalDates = [...mockBundleDates];
+
+      setDateInBundleDates(mockBundleDates, "Concept Start Date", new Date());
+      removeDateFromBundleDates(mockBundleDates, "Concept Start Date");
+
+      expect(mockBundleDates).toEqual(originalDates);
     });
   });
 });

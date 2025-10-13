@@ -2,10 +2,8 @@ import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
 import { BundlePhase, PhaseName, PhaseStatus, BundleDate, DateType } from "demos-server";
 
-export type SimplePhaseDate = Omit<BundleDate, "createdAt" | "updatedAt">;
-export type SimplePhase = Omit<BundlePhase, "createdAt" | "updatedAt" | "phaseDates"> & {
-  phaseDates: SimplePhaseDate[];
-};
+export type SimpleBundleDate = Omit<BundleDate, "createdAt" | "updatedAt">;
+export type SimplePhase = Omit<BundlePhase, "createdAt" | "updatedAt" | "phaseDates">;
 
 /**
  * Application Dates Library
@@ -71,46 +69,72 @@ export const setStatusForPhase = (
 };
 
 /**
- * Phase Date Operations
+ * Bundle Date Operations
+ *
+ * Bundle dates are stored at the bundle level and are not nested within phases.
+ * Each date is associated with a bundle via bundleId and has a specific dateType.
  */
-export const getDateFromPhaseDates = (
-  phaseDates: SimplePhaseDate[],
+
+/**
+ * Get a specific date value from a list of bundle dates
+ */
+export const getDateFromBundleDates = (
+  bundleDates: SimpleBundleDate[],
   dateType: DateType
 ): Date | null => {
-  const dateEntry = phaseDates.find((d) => d.dateType === dateType);
+  const dateEntry = bundleDates.find((d) => d.dateType === dateType);
   return dateEntry ? dateEntry.dateValue : null;
 };
 
-export const setDateInPhaseDates = (
-  phaseDates: SimplePhaseDate[],
+/**
+ * Update a specific date value in a list of bundle dates
+ * Returns a new array with the updated date
+ */
+export const setDateInBundleDates = (
+  bundleDates: SimpleBundleDate[],
   dateType: DateType,
   dateValue: Date
-): SimplePhaseDate[] => {
-  return phaseDates.map((date) => {
-    if (date.dateType === dateType) {
-      return { ...date, dateValue };
-    }
-    return date;
-  });
+): SimpleBundleDate[] => {
+  const existingDate = bundleDates.find((d) => d.dateType === dateType);
+
+  if (existingDate) {
+    // Update existing date
+    return bundleDates.map((date) => {
+      if (date.dateType === dateType) {
+        return { ...date, dateValue };
+      }
+      return date;
+    });
+  } else {
+    // Add new date
+    return [...bundleDates, { dateType, dateValue }];
+  }
 };
 
-export const getAllDatesForPhase = (
-  bundlePhases: SimplePhase[],
-  phaseName: PhaseName
-): SimplePhaseDate[] | null => {
-  const phase = bundlePhases.find((p) => p.phaseName === phaseName);
-  return phase ? phase.phaseDates : null;
+/**
+ * Remove a specific date from bundle dates
+ */
+export const removeDateFromBundleDates = (
+  bundleDates: SimpleBundleDate[],
+  dateType: DateType
+): SimpleBundleDate[] => {
+  return bundleDates.filter((date) => date.dateType !== dateType);
 };
 
-export const setAllDatesForPhase = (
-  phaseDates: SimplePhaseDate[],
-  dateType: DateType,
-  dateValue: Date
-): SimplePhaseDate[] => {
-  return phaseDates.map((date) => {
-    if (date.dateType === dateType) {
-      return { ...date, dateValue };
-    }
-    return date;
-  });
+/**
+ * Check if a specific date exists in bundle dates
+ */
+export const hasDate = (bundleDates: SimpleBundleDate[], dateType: DateType): boolean => {
+  return bundleDates.some((d) => d.dateType === dateType);
+};
+
+/**
+ * Get all dates of a specific category (by prefix or pattern)
+ * For example, get all "Concept" dates or all "State Application" dates
+ */
+export const getDatesByPrefix = (
+  bundleDates: SimpleBundleDate[],
+  prefix: string
+): SimpleBundleDate[] => {
+  return bundleDates.filter((date) => date.dateType.startsWith(prefix));
 };
