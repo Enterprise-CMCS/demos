@@ -1,9 +1,5 @@
 # Bundle Date Business Rules
 
-Bundle dates are stored at the bundle level (demonstration/amendment/extension) and are not nested within phases. Each date is directly associated with a bundle via `bundleId` and has a specific `dateType`.
-
-## Date Types by Phase
-
 ### 1. Concept Phase
 
 - **Concept Start Date** - Begins when the demonstration, amendment or extension is created.
@@ -31,9 +27,3 @@ Note: If the user skips the concept phase this will be marked completed when the
 - **Completeness Review Due Date** - Optional date when completeness review is due.
 
 - **Completeness Completion Date** - Completed when user clicks "Finish" to progress to the next phase.
-
-## Implementation Notes
-
-While bundle dates are stored at the bundle level, the GraphQL API provides a convenience method `getBundleDatesForPhase(bundleId, phaseId)` that filters bundle dates to only those associated with a specific phase (via the `phase_date_type` join table).
-
-In the frontend, work with bundle dates directly as a flat array rather than nested within phase objects. Use helper functions like `getDateFromBundleDates()`, `setDateInBundleDates()`, and `getDatesByPrefix()` to manage dates.

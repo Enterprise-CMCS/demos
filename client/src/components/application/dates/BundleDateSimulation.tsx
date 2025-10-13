@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
-import { DateType, PhaseStatus } from "demos-server";
+import { DateType, PhaseName, PhaseStatus } from "demos-server";
 import { SimpleBundleDate, setDateInBundleDates, getDateFromBundleDates } from "./bundleDates";
 import { SimplePhase, setStatusForPhase, getStatusForPhase } from "../phases/phaseStatus";
 import { formatDateTime } from "util/formatDate";
@@ -100,155 +100,123 @@ export const BundleDateSimulation: React.FC = () => {
   const [simulationState, setSimulationState] = useState<SimulationState>(DEFAULT_SIMULATION_STATE);
   const [demonstrationCreated, setDemonstrationCreated] = useState(false);
 
-  // Business Rule: Create Demonstration starts Concept Phase
-  const createDemonstration = () => {
+  // Generic function to start a phase
+  const startPhase = (phaseName: PhaseName, startDateType: DateType) => {
     const now = new Date();
+    const updatedPhases = setStatusForPhase(simulationState.phases, phaseName, "Started");
+    const updatedDates = setDateInBundleDates(simulationState.bundleDates, startDateType, now);
+    setSimulationState({ phases: updatedPhases, bundleDates: updatedDates });
+  };
 
-    const updatedPhases = setStatusForPhase(simulationState.phases, "Concept", "Started");
-    const updatedDates = setDateInBundleDates(
-      simulationState.bundleDates,
-      "Concept Start Date",
-      now
-    );
+  // Generic function to complete a phase with optional completion date
+  const completePhase = (
+    phaseName: PhaseName,
+    completionDateType: DateType | null = null,
+    nextPhaseName?: PhaseName,
+    nextPhaseStartDateType?: DateType
+  ) => {
+    const now = new Date();
+    let updatedPhases = setStatusForPhase(simulationState.phases, phaseName, "Completed");
+    let updatedDates = simulationState.bundleDates;
+
+    if (completionDateType) {
+      updatedDates = setDateInBundleDates(updatedDates, completionDateType, now);
+    }
+
+    // Start next phase if specified
+    if (nextPhaseName && nextPhaseStartDateType) {
+      updatedPhases = setStatusForPhase(updatedPhases, nextPhaseName, "Started");
+      updatedDates = setDateInBundleDates(updatedDates, nextPhaseStartDateType, now);
+    }
 
     setSimulationState({ phases: updatedPhases, bundleDates: updatedDates });
+  };
+
+  // Generic function to skip a phase
+  const skipPhase = (
+    phaseName: PhaseName,
+    completionDateType: DateType,
+    nextPhaseName: PhaseName,
+    nextPhaseStartDateType: DateType
+  ) => {
+    const now = new Date();
+    let updatedPhases = setStatusForPhase(simulationState.phases, phaseName, "Skipped");
+    let updatedDates = setDateInBundleDates(simulationState.bundleDates, completionDateType, now);
+
+    // Start next phase
+    updatedPhases = setStatusForPhase(updatedPhases, nextPhaseName, "Started");
+    updatedDates = setDateInBundleDates(updatedDates, nextPhaseStartDateType, now);
+
+    setSimulationState({ phases: updatedPhases, bundleDates: updatedDates });
+  };
+
+  // Generic function to submit a change on a phase
+  const submitChange = (
+    phaseName: PhaseName,
+    dateToSet?: DateType,
+    autoStartPhase: boolean = true
+  ) => {
+    const now = new Date();
+    let updatedPhases = simulationState.phases;
+    let updatedDates = simulationState.bundleDates;
+
+    // Auto-start the phase if it's not started and autoStartPhase is true
+    const phaseStatus = getStatusForPhase(updatedPhases, phaseName);
+    if (autoStartPhase && phaseStatus === "Not Started") {
+      const startDateType = `${phaseName} Start Date` as DateType;
+      updatedPhases = setStatusForPhase(updatedPhases, phaseName, "Started");
+      updatedDates = setDateInBundleDates(updatedDates, startDateType, now);
+    }
+
+    // Set the specified date if provided
+    if (dateToSet) {
+      updatedDates = setDateInBundleDates(updatedDates, dateToSet, now);
+    }
+
+    // Business Rule: State Application submission triggers special logic
+    if (phaseName === "State Application") {
+      // If Concept is still "Not Started" or "Started", mark it as completed
+      const conceptStatus = getStatusForPhase(updatedPhases, "Concept");
+      if (conceptStatus === "Not Started" || conceptStatus === "Started") {
+        updatedPhases = setStatusForPhase(updatedPhases, "Concept", "Completed");
+        updatedDates = setDateInBundleDates(updatedDates, "Concept Completion Date", now);
+      }
+
+      // Completeness starts as soon as State Application Submitted Date is populated
+      if (dateToSet === "State Application Submitted Date") {
+        const completenessStatus = getStatusForPhase(updatedPhases, "Completeness");
+        if (completenessStatus === "Not Started") {
+          updatedPhases = setStatusForPhase(updatedPhases, "Completeness", "Started");
+          updatedDates = setDateInBundleDates(updatedDates, "Completeness Start Date", now);
+        }
+      }
+    }
+
+    setSimulationState({ phases: updatedPhases, bundleDates: updatedDates });
+  };
+
+  // Business Rule: Create Demonstration starts Concept Phase
+  const createDemonstration = () => {
+    startPhase("Concept", "Concept Start Date");
     setDemonstrationCreated(true);
-  };
-
-  // Business Rule: Finish Concept Phase
-  const finishConceptPhase = () => {
-    const now = new Date();
-
-    let updatedState = setStatusForPhase(simulationState, "Concept", "Completed");
-    updatedState = updatePhaseDate(updatedState, "Concept", "Concept Completion Date", now);
-
-    // Business Rule: State Application starts when Concept finishes
-    updatedState = setStatusForPhase(updatedState, "State Application", "Started");
-    updatedState = updatePhaseDate(
-      updatedState,
-      "State Application",
-      "State Application Start Date",
-      now
-    );
-
-    setSimulationState(updatedState);
-  };
-
-  // Business Rule: Skip Concept Phase
-  const skipConceptPhase = () => {
-    const now = new Date();
-
-    let updatedState = setStatusForPhase(simulationState, "Concept", "Skipped");
-    updatedState = updatePhaseDate(updatedState, "Concept", "Concept Completion Date", now);
-
-    // Business Rule: State Application starts when Concept is skipped
-    updatedState = setStatusForPhase(updatedState, "State Application", "Started");
-    updatedState = updatePhaseDate(
-      updatedState,
-      "State Application",
-      "State Application Start Date",
-      now
-    );
-
-    setSimulationState(updatedState);
-  };
-
-  // Business Rule: Any change submitted on State Application Phase implicitly completes Concept
-  const submitChangeOnStateApplication = () => {
-    const now = new Date();
-
-    let updatedState = simulationState;
-
-    // Business Rule: If State Application is "Not Started", start it
-    const stateApplicationStatus = getStatusForPhase(simulationState, "State Application");
-    if (stateApplicationStatus === "Not Started") {
-      updatedState = setStatusForPhase(updatedState, "State Application", "Started");
-      updatedState = updatePhaseDate(
-        updatedState,
-        "State Application",
-        "State Application Start Date",
-        now
-      );
-    }
-
-    // Business Rule: If Concept is still "Not Started" or "Started", mark it as completed
-    const conceptStatus = getStatusForPhase(updatedState, "Concept");
-    if (conceptStatus === "Not Started" || conceptStatus === "Started") {
-      updatedState = setStatusForPhase(updatedState, "Concept", "Completed");
-      updatedState = updatePhaseDate(updatedState, "Concept", "Concept Completion Date", now);
-    }
-
-    // This represents any change (document upload, date update, etc.) on State Application
-    // For simulation purposes, we'll update the submitted date
-    updatedState = updatePhaseDate(
-      updatedState,
-      "State Application",
-      "State Application Submitted Date",
-      now
-    );
-
-    // Business Rule: Completeness starts as soon as State Application Submitted Date is populated
-    const completenessStatus = getStatusForPhase(updatedState, "Completeness");
-    if (completenessStatus === "Not Started") {
-      updatedState = setStatusForPhase(updatedState, "Completeness", "Started");
-      updatedState = updatePhaseDate(updatedState, "Completeness", "Completeness Start Date", now);
-    }
-
-    setSimulationState(updatedState);
   };
 
   // Business Rule: Finish State Application Phase
   const finishStateApplicationPhase = () => {
-    const now = new Date();
-
-    let updatedState = setStatusForPhase(simulationState, "State Application", "Completed");
-    updatedState = updatePhaseDate(
-      updatedState,
-      "State Application",
+    let updatedPhases = setStatusForPhase(simulationState.phases, "State Application", "Completed");
+    const updatedDates = setDateInBundleDates(
+      simulationState.bundleDates,
       "State Application Completion Date",
-      now
+      new Date()
     );
 
     // Business Rule: If Concept was skipped, mark it completed now
-    const conceptStatus = getStatusForPhase(updatedState, "Concept");
+    const conceptStatus = getStatusForPhase(updatedPhases, "Concept");
     if (conceptStatus === "Skipped") {
-      updatedState = setStatusForPhase(updatedState, "Concept", "Completed");
+      updatedPhases = setStatusForPhase(updatedPhases, "Concept", "Completed");
     }
 
-    setSimulationState(updatedState);
-  };
-
-  // Business Rule: Finish Completeness Phase
-  const finishCompletenessPhase = () => {
-    const now = new Date();
-
-    let updatedState = setStatusForPhase(simulationState, "Completeness", "Completed");
-    updatedState = updatePhaseDate(
-      updatedState,
-      "Completeness",
-      "Completeness Completion Date",
-      now
-    );
-
-    setSimulationState(updatedState);
-  };
-
-  // Business Rule: Submit change on Completeness Phase can start the phase
-  const submitChangeOnCompletenessPhase = () => {
-    const now = new Date();
-    let updatedState = simulationState;
-
-    // Business Rule: If Completeness is "Not Started", start it and set start date
-    const completenessStatus = getStatusForPhase(simulationState, "Completeness");
-    if (completenessStatus === "Not Started") {
-      updatedState = setStatusForPhase(updatedState, "Completeness", "Started");
-      updatedState = updatePhaseDate(updatedState, "Completeness", "Completeness Start Date", now);
-    }
-
-    // This represents any change (document upload, date update, etc.) on Completeness
-    // For simulation purposes, we could add a specific date type if needed
-
-    setSimulationState(updatedState);
+    setSimulationState({ phases: updatedPhases, bundleDates: updatedDates });
   };
 
   const resetSimulation = () => {
@@ -256,17 +224,14 @@ export const BundleDateSimulation: React.FC = () => {
     setDemonstrationCreated(false);
   };
 
-  const getDateDisplay = (phase: SimplePhase, dateType: DateType) => {
-    const date = getDateFromPhaseDates(phase.phaseDates, dateType);
+  const getDateDisplay = (dateType: DateType) => {
+    const date = getDateFromBundleDates(simulationState.bundleDates, dateType);
     return date ? formatDateTime(date, "millisecond") : "Not set";
   };
 
   const isStateApplicationSubmittedDateSet = () => {
-    const stateApplicationPhase = simulationState.find((p) => p.phaseName === "State Application");
-    if (!stateApplicationPhase) return false;
-
-    const submittedDate = getDateFromPhaseDates(
-      stateApplicationPhase.phaseDates,
+    const submittedDate = getDateFromBundleDates(
+      simulationState.bundleDates,
       "State Application Submitted Date"
     );
     return submittedDate !== null;
@@ -300,37 +265,51 @@ export const BundleDateSimulation: React.FC = () => {
             {/* Concept Phase */}
             <div
               className={getPhaseBoxClasses(
-                getStatusForPhase(simulationState, "Concept") || "Not Started"
+                getStatusForPhase(simulationState.phases, "Concept") || "Not Started"
               )}
             >
               <div>
                 <div className={STYLES.phaseTitle}>Concept Phase</div>
                 <div className={STYLES.phaseStatus}>
-                  Status: {getStatusForPhase(simulationState, "Concept")}
+                  Status: {getStatusForPhase(simulationState.phases, "Concept")}
                 </div>
 
                 <div className={STYLES.dateDisplay}>
-                  Start Date:{" "}
-                  {getDateDisplay(
-                    simulationState.find((p) => p.phaseName === "Concept")!,
-                    "Concept Start Date"
-                  )}
+                  Start Date: {getDateDisplay("Concept Start Date")}
                 </div>
                 <div className={STYLES.dateDisplay}>
-                  Completion Date:{" "}
-                  {getDateDisplay(
-                    simulationState.find((p) => p.phaseName === "Concept")!,
-                    "Concept Completion Date"
-                  )}
+                  Completion Date: {getDateDisplay("Concept Completion Date")}
                 </div>
               </div>
 
-              {getStatusForPhase(simulationState, "Concept") === "Started" && (
+              {getStatusForPhase(simulationState.phases, "Concept") === "Started" && (
                 <div className="flex gap-2 mt-4">
-                  <Button name="finish-concept" onClick={finishConceptPhase} size="small">
+                  <Button
+                    name="finish-concept"
+                    onClick={() =>
+                      completePhase(
+                        "Concept",
+                        "Concept Completion Date",
+                        "State Application",
+                        "State Application Start Date"
+                      )
+                    }
+                    size="small"
+                  >
                     Finish
                   </Button>
-                  <SecondaryButton name="skip-concept" onClick={skipConceptPhase} size="small">
+                  <SecondaryButton
+                    name="skip-concept"
+                    onClick={() =>
+                      skipPhase(
+                        "Concept",
+                        "Concept Completion Date",
+                        "State Application",
+                        "State Application Start Date"
+                      )
+                    }
+                    size="small"
+                  >
                     Skip
                   </SecondaryButton>
                 </div>
@@ -343,42 +322,31 @@ export const BundleDateSimulation: React.FC = () => {
             {/* State Application Phase */}
             <div
               className={getPhaseBoxClasses(
-                getStatusForPhase(simulationState, "State Application") || "Not Started"
+                getStatusForPhase(simulationState.phases, "State Application") || "Not Started"
               )}
             >
               <div>
                 <div className={STYLES.phaseTitle}>State Application</div>
                 <div className={STYLES.phaseStatus}>
-                  Status: {getStatusForPhase(simulationState, "State Application")}
+                  Status: {getStatusForPhase(simulationState.phases, "State Application")}
                 </div>
 
                 <div className={STYLES.dateDisplay}>
-                  Start Date:{" "}
-                  {getDateDisplay(
-                    simulationState.find((p) => p.phaseName === "State Application")!,
-                    "State Application Start Date"
-                  )}
+                  Start Date: {getDateDisplay("State Application Start Date")}
                 </div>
                 <div className={STYLES.dateDisplay}>
-                  Submitted Date:{" "}
-                  {getDateDisplay(
-                    simulationState.find((p) => p.phaseName === "State Application")!,
-                    "State Application Submitted Date"
-                  )}
+                  Submitted Date: {getDateDisplay("State Application Submitted Date")}
                 </div>
                 <div className={STYLES.dateDisplay}>
-                  Completion Date:{" "}
-                  {getDateDisplay(
-                    simulationState.find((p) => p.phaseName === "State Application")!,
-                    "State Application Completion Date"
-                  )}
+                  Completion Date: {getDateDisplay("State Application Completion Date")}
                 </div>
               </div>
 
-              {(getStatusForPhase(simulationState, "State Application") === "Started" ||
-                getStatusForPhase(simulationState, "State Application") === "Not Started") && (
+              {(getStatusForPhase(simulationState.phases, "State Application") === "Started" ||
+                getStatusForPhase(simulationState.phases, "State Application") ===
+                  "Not Started") && (
                 <div className="flex gap-2 mt-4">
-                  {getStatusForPhase(simulationState, "State Application") === "Started" && (
+                  {getStatusForPhase(simulationState.phases, "State Application") === "Started" && (
                     <Button
                       name="finish-state-app"
                       onClick={finishStateApplicationPhase}
@@ -390,7 +358,9 @@ export const BundleDateSimulation: React.FC = () => {
                   )}
                   <SecondaryButton
                     name="submit-change"
-                    onClick={submitChangeOnStateApplication}
+                    onClick={() =>
+                      submitChange("State Application", "State Application Submitted Date")
+                    }
                     size="small"
                   >
                     Submit Change (Document/Date)
@@ -405,38 +375,30 @@ export const BundleDateSimulation: React.FC = () => {
             {/* Completeness Phase */}
             <div
               className={getPhaseBoxClasses(
-                getStatusForPhase(simulationState, "Completeness") || "Not Started"
+                getStatusForPhase(simulationState.phases, "Completeness") || "Not Started"
               )}
             >
               <div>
                 <div className={STYLES.phaseTitle}>Completeness</div>
                 <div className={STYLES.phaseStatus}>
-                  Status: {getStatusForPhase(simulationState, "Completeness")}
+                  Status: {getStatusForPhase(simulationState.phases, "Completeness")}
                 </div>
 
                 <div className={STYLES.dateDisplay}>
-                  Start Date:{" "}
-                  {getDateDisplay(
-                    simulationState.find((p) => p.phaseName === "Completeness")!,
-                    "Completeness Start Date"
-                  )}
+                  Start Date: {getDateDisplay("Completeness Start Date")}
                 </div>
                 <div className={STYLES.dateDisplay}>
-                  Completion Date:{" "}
-                  {getDateDisplay(
-                    simulationState.find((p) => p.phaseName === "Completeness")!,
-                    "Completeness Completion Date"
-                  )}
+                  Completion Date: {getDateDisplay("Completeness Completion Date")}
                 </div>
               </div>
 
-              {(getStatusForPhase(simulationState, "Completeness") === "Started" ||
-                getStatusForPhase(simulationState, "Completeness") === "Not Started") && (
+              {(getStatusForPhase(simulationState.phases, "Completeness") === "Started" ||
+                getStatusForPhase(simulationState.phases, "Completeness") === "Not Started") && (
                 <div className="flex gap-2 mt-4">
-                  {getStatusForPhase(simulationState, "Completeness") === "Started" && (
+                  {getStatusForPhase(simulationState.phases, "Completeness") === "Started" && (
                     <Button
                       name="finish-completeness"
-                      onClick={finishCompletenessPhase}
+                      onClick={() => completePhase("Completeness", "Completeness Completion Date")}
                       size="small"
                     >
                       Finish
@@ -444,7 +406,7 @@ export const BundleDateSimulation: React.FC = () => {
                   )}
                   <SecondaryButton
                     name="submit-change-completeness"
-                    onClick={submitChangeOnCompletenessPhase}
+                    onClick={() => submitChange("Completeness")}
                     size="small"
                   >
                     Submit Change (Document/Date)
