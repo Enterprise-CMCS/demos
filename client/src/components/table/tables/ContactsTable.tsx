@@ -40,6 +40,7 @@ const contactsColumns = [
   contactsColumnHelper.accessor("person.email", {
     id: "email",
     header: "Email",
+    sortingFn: "alphanumeric",
   }),
   contactsColumnHelper.accessor("role", {
     id: "contactType",
@@ -47,7 +48,7 @@ const contactsColumns = [
   }),
   contactsColumnHelper.accessor("isPrimary", {
     id: "isPrimary",
-    header: "Is Primary",
+    header: "Primary",
     cell: (info) => (info.getValue() ? "Yes" : "No"),
   }),
 ];
