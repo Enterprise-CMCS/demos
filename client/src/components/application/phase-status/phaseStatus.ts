@@ -1,6 +1,6 @@
 import { BundlePhase, PhaseName, PhaseStatus } from "demos-server";
 
-export type SimplePhase = Omit<BundlePhase, "createdAt" | "updatedAt" | "phaseDates">;
+export type SimplePhase = Pick<BundlePhase, "phaseName" | "phaseStatus">;
 
 export const getStatusForPhase = (
   bundlePhases: SimplePhase[],
