@@ -1,9 +1,8 @@
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
-import { BundlePhase, PhaseName, PhaseStatus, BundleDate, DateType } from "demos-server";
+import { BundleDate, DateType } from "demos-server";
 
 export type SimpleBundleDate = Omit<BundleDate, "createdAt" | "updatedAt">;
-export type SimplePhase = Omit<BundlePhase, "createdAt" | "updatedAt" | "phaseDates">;
 
 /**
  * Application Dates Library
@@ -45,37 +44,6 @@ export const getEndOfDayEST = (year: number, month: number, day: number): EndOfD
 };
 
 /**
- * Phase Status Operations
- */
-export const getStatusForPhase = (
-  bundlePhases: SimplePhase[],
-  phaseName: PhaseName
-): PhaseStatus | null => {
-  const phase = bundlePhases.find((p) => p.phaseName === phaseName);
-  return phase ? phase.phaseStatus : null;
-};
-
-export const setStatusForPhase = (
-  bundlePhases: SimplePhase[],
-  phaseName: PhaseName,
-  phaseStatus: PhaseStatus
-): SimplePhase[] => {
-  return bundlePhases.map((phase) => {
-    if (phase.phaseName === phaseName) {
-      return { ...phase, phaseStatus };
-    }
-    return phase;
-  });
-};
-
-/**
- * Bundle Date Operations
- *
- * Bundle dates are stored at the bundle level and are not nested within phases.
- * Each date is associated with a bundle via bundleId and has a specific dateType.
- */
-
-/**
  * Get a specific date value from a list of bundle dates
  */
 export const getDateFromBundleDates = (
@@ -112,29 +80,8 @@ export const setDateInBundleDates = (
 };
 
 /**
- * Remove a specific date from bundle dates
- */
-export const removeDateFromBundleDates = (
-  bundleDates: SimpleBundleDate[],
-  dateType: DateType
-): SimpleBundleDate[] => {
-  return bundleDates.filter((date) => date.dateType !== dateType);
-};
-
-/**
  * Check if a specific date exists in bundle dates
  */
 export const hasDate = (bundleDates: SimpleBundleDate[], dateType: DateType): boolean => {
   return bundleDates.some((d) => d.dateType === dateType);
-};
-
-/**
- * Get all dates of a specific category (by prefix or pattern)
- * For example, get all "Concept" dates or all "State Application" dates
- */
-export const getDatesByPrefix = (
-  bundleDates: SimpleBundleDate[],
-  prefix: string
-): SimpleBundleDate[] => {
-  return bundleDates.filter((date) => date.dateType.startsWith(prefix));
 };

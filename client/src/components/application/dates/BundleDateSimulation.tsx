@@ -1,15 +1,9 @@
 import React, { useState } from "react";
 import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
-import { PhaseStatus, DateType } from "demos-server";
-import {
-  SimplePhase,
-  SimpleBundleDate,
-  setStatusForPhase,
-  getStatusForPhase,
-  setDateInBundleDates,
-  getDateFromBundleDates,
-} from "./bundleDates";
+import { DateType, PhaseStatus } from "demos-server";
+import { SimpleBundleDate, setDateInBundleDates, getDateFromBundleDates } from "./bundleDates";
+import { SimplePhase, setStatusForPhase, getStatusForPhase } from "../phases/phaseStatus";
 import { formatDateTime } from "util/formatDate";
 
 type SimulationState = {
@@ -102,7 +96,7 @@ const BusinessRules = () => {
   );
 };
 
-export const PhaseDatesSimulation: React.FC = () => {
+export const BundleDateSimulation: React.FC = () => {
   const [simulationState, setSimulationState] = useState<SimulationState>(DEFAULT_SIMULATION_STATE);
   const [demonstrationCreated, setDemonstrationCreated] = useState(false);
 
