@@ -59,8 +59,8 @@ function makeEvent(): APIGatewayProxyEvent {
   const identitiesString = JSON.stringify([
     {
       dateCreated: "1754511350609",
-      userId: "HVGG",
-      providerName: "demos-dustin-idm",
+      userId: "ABCD",
+      providerName: "demos-obiwan-idm",
       providerType: "SAML",
       issuer: "http://www.okta.com/exky6bddrj7f9Wp7v297",
       primary: "true",
@@ -85,12 +85,12 @@ function makeEvent(): APIGatewayProxyEvent {
       authorizer: {
         "custom:roles": "demos-cms-user",
         role: "demos-cms-user", // 👈 add this for now
-        email: "Dustin.H@globalalliantinc.com",
-        family_name: "Horning",
-        given_name: "Dustin",
+        email: "somehuman@example.com",
+        family_name: "Kenobi",
+        given_name: "obiwan",
         identities: identitiesString, // JSON string
         sub: "74a88478-1081-702f-2d85-a65bf907a154",
-        "cognito:username": "HVGG",
+        "cognito:username": "somehuman@example.com",
       },
       protocol: "HTTP/1.1",
       httpMethod: "POST",
@@ -110,20 +110,20 @@ beforeEach(() => {
     id: "user-123",
     personTypeId: "demos-cms-user",
     cognitoSubject: "74a88478-1081-702f-2d85-a65bf907a154",
-    username: "HVGG",
+    username: "ABCD",
   });
   userCreate.mockReset().mockResolvedValue({
     id: "new-user-123",
     personTypeId: "demos-cms-user",
     cognitoSubject: "74a88478-1081-702f-2d85-a65bf907a154",
-    username: "HVGG",
+    username: "ABCD",
   });
   personCreate.mockReset().mockResolvedValue({
     id: "new-person-123",
     personTypeId: "demos-cms-user",
-    email: "Dustin.H@globalalliantinc.com",
-    firstName: "Dustin",
-    lastName: "Horning",
+    email: "somehuman@example.com",
+    firstName: "obiwan",
+    lastName: "Kenobi",
   });
 });
 // --- Tests ------------------------------------------------------------------
@@ -154,8 +154,8 @@ describe("Lambda entrypoint claims plumbing", () => {
     expect(claims).toBeTruthy();
     expect(claims?.sub).toBe("74a88478-1081-702f-2d85-a65bf907a154");
     expect(claims?.role).toBe("demos-cms-user");
-    expect(claims?.givenName).toBe("Dustin");
-    expect(claims?.familyName).toBe("Horning");
+    expect(claims?.givenName).toBe("obiwan");
+    expect(claims?.familyName).toBe("Kenobi");
 
     const headersWithClaims = withAuthorizerHeader(event.headers, claims);
     expect(typeof headersWithClaims["x-authorizer-claims"]).toBe("string");
@@ -198,7 +198,7 @@ describe("Lambda entrypoint claims plumbing", () => {
     expect(userCreate).toHaveBeenCalledTimes(1);
     expect(userCreate.mock.calls[0][0]).toMatchObject({
       data: {
-        username: "HVGG",
+        username: "ABCD",
         cognitoSubject: expect.stringMatching(/^74a8/)
       },
     });

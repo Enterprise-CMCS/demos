@@ -85,35 +85,35 @@ export function extractExternalUserIdFromIdentities(
   identities: unknown,
   rawAll?: Record<string, unknown>
 ): string | undefined {
-  let items: unknown[] = [];
+  let arr: unknown[] = [];
 
   try {
     if (typeof identities === "string") {
       const parsed = JSON.parse(identities);
-      items = Array.isArray(parsed) ? parsed : [parsed];
+      arr = Array.isArray(parsed) ? parsed : [parsed];
     } else if (identities && typeof identities === "object") {
-      items = Array.isArray(identities) ? identities : [identities];
+      arr = Array.isArray(identities) ? identities : [identities];
     }
   } catch {
-    // bad JSON? fall through to cognito:username
+    log.warn("auth.claims.identities_parse_failed", { identities });
   }
 
-  for (const item of items) {
-    if (!item || typeof item !== "object") continue;
-    const record = item as Record<string, unknown>;
-    const candidate =
-      (typeof record.userId === "string" && record.userId) ||
-      (typeof record.user_id === "string" && record.user_id) ||
-      (typeof record.username === "string" && record.username) ||
-      (typeof record.nameId === "string" && record.nameId) || // some SAMLs
-      (typeof record.sub === "string" && record.sub);         // fallback-ish
-    if (candidate) return candidate.trim();
+  // Scan for the first non-empty userId
+  for (const item of arr) {
+    if (item && typeof item === "object") {
+      const userId = (item as Record<string, unknown>).userId;
+      if (typeof userId === "string" && userId.trim()) {
+        return userId.trim();
+      }
+    }
   }
+
   const fallback =
     rawAll && typeof rawAll["cognito:username"] === "string"
-      ? (rawAll["cognito:username"] as string).trim()
+      ? rawAll["cognito:username"].trim()
       : undefined;
-  return fallback && fallback.length ? fallback : undefined;
+
+  return fallback || undefined;
 }
 
 // Normalize raw Cognito payload (token or authorizer-claims) into our Claims shape and verify role
