@@ -5,7 +5,6 @@ import { IncomingMessage } from "http";
 import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getAuthConfig } from "./auth.config.js";
-import { asRecord } from "./claim-utils";
 import { prisma } from "../prismaClient.js";
 import { pickString } from "./claim-utils";
 import { PERSON_TYPES } from "../constants";
