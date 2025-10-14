@@ -85,21 +85,18 @@ export function extractExternalUserIdFromIdentities(
   identities: unknown,
   rawAll?: Record<string, unknown>
 ): string | undefined {
-  let arr: unknown[] = [];
-
-  try {
-    if (typeof identities === "string") {
-      const parsed = JSON.parse(identities);
-      arr = Array.isArray(parsed) ? parsed : [parsed];
-    } else if (identities && typeof identities === "object") {
-      arr = Array.isArray(identities) ? identities : [identities];
-    }
-  } catch {
-    log.warn("auth.claims.identities_parse_failed", { identities });
+  let identityBlob: unknown[] = [];
+  if (typeof identities === "string") {
+    const parsed = JSON.parse(identities);
+    identityBlob = Array.isArray(parsed) ? parsed : [parsed];
+  } else if (identities && typeof identities === "object") {
+    identityBlob = Array.isArray(identities) ? identities : [identities];
   }
+  // Let's find out how TS treats this JSON blob once and for all.
+  console.log(typeof identityBlob, identityBlob);
 
   // Scan for the first non-empty userId
-  for (const item of arr) {
+  for (const item of identityBlob) {
     if (item && typeof item === "object") {
       const userId = (item as Record<string, unknown>).userId;
       if (typeof userId === "string" && userId.trim()) {
