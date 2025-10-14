@@ -5,11 +5,11 @@ import {
   getDateFromBundleDates,
   setDateInBundleDates,
   hasDate,
-  type SimpleBundleDate,
+  type BundleDate,
 } from "./bundleDates";
 
 // Mock data for testing
-const mockBundleDates: SimpleBundleDate[] = [
+const mockBundleDates: BundleDate[] = [
   {
     dateType: "Concept Start Date",
     dateValue: new Date("2025-01-01T05:00:00.000Z"), // 00:00 EST
@@ -108,7 +108,7 @@ describe("bundleDates", () => {
 
   describe("Edge cases and error handling", () => {
     it("should handle empty bundle dates array", () => {
-      const emptyDates: SimpleBundleDate[] = [];
+      const emptyDates: BundleDate[] = [];
 
       const date = getDateFromBundleDates(emptyDates, "Concept Start Date");
       expect(date).toBeNull();

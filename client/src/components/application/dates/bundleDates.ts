@@ -1,8 +1,8 @@
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
-import { BundleDate, DateType } from "demos-server";
+import { BundleDate as ServerBundleDate, DateType } from "demos-server";
 
-export type SimpleBundleDate = Omit<BundleDate, "createdAt" | "updatedAt">;
+export type BundleDate = Omit<ServerBundleDate, "createdAt" | "updatedAt">;
 
 /**
  * Application Dates Library
@@ -47,7 +47,7 @@ export const getEndOfDayEST = (year: number, month: number, day: number): EndOfD
  * Get a specific date value from a list of bundle dates
  */
 export const getDateFromBundleDates = (
-  bundleDates: SimpleBundleDate[] | BundleDate[],
+  bundleDates: BundleDate[],
   dateType: DateType
 ): Date | null => {
   const dateEntry = bundleDates.find((d) => d.dateType === dateType);
@@ -59,10 +59,10 @@ export const getDateFromBundleDates = (
  * Returns a new array with the updated date
  */
 export const setDateInBundleDates = (
-  bundleDates: SimpleBundleDate[] | BundleDate[],
+  bundleDates: BundleDate[],
   dateType: DateType,
   dateValue: Date
-): SimpleBundleDate[] => {
+): BundleDate[] => {
   const existingDate = bundleDates.find((d) => d.dateType === dateType);
 
   if (existingDate) {
@@ -82,9 +82,6 @@ export const setDateInBundleDates = (
 /**
  * Check if a specific date exists in bundle dates
  */
-export const hasDate = (
-  bundleDates: SimpleBundleDate[] | BundleDate[],
-  dateType: DateType
-): boolean => {
+export const hasDate = (bundleDates: BundleDate[], dateType: DateType): boolean => {
   return bundleDates.some((d) => d.dateType === dateType);
 };

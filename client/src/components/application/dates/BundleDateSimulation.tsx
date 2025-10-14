@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
 import { DateType, PhaseName, PhaseStatus } from "demos-server";
-import { SimpleBundleDate, setDateInBundleDates, getDateFromBundleDates } from "./bundleDates";
+import { BundleDate, setDateInBundleDates, getDateFromBundleDates } from "./bundleDates";
 import { SimplePhase, setStatusForPhase, getStatusForPhase } from "../phase-status/phaseStatus";
 import { formatDateTime } from "util/formatDate";
 
 type SimulationState = {
   phases: SimplePhase[];
-  bundleDates: SimpleBundleDate[];
+  bundleDates: BundleDate[];
 };
 
 const DEFAULT_SIMULATION_STATE: SimulationState = {
