@@ -125,7 +125,6 @@ export function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
   }
   verifyRole(role);
 
-  // sub is required
   const sub = pickString(raw, ["sub"]);
   if (!sub) {
     throw new GraphQLError("Missing subject in token", {
@@ -283,7 +282,7 @@ export async function buildLambdaContext(
       const parsed =
         typeof rawClaims === "string"
           ? (JSON.parse(rawClaims) as Record<string, unknown>)
-          : (rawClaims as Record<string, unknown>); // ✅ accept object too
+          : (rawClaims as Record<string, unknown>);
       const claims = normalizeClaimsFromRaw(parsed);
       return buildContextFromClaims(claims);
     } catch {
@@ -291,7 +290,7 @@ export async function buildLambdaContext(
     }
   }
 
-  // 2) Fallback: verify the Bearer token yourself
+  // Fallback: verify the Bearer token yourself if no authorizer-claims header
   const token = extractToken(createHeaderGetter(headers as unknown as Record<string, unknown>));
   if (!token) return { user: null };
 

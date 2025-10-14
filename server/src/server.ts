@@ -30,7 +30,6 @@ type JwtClaims = {
   familyName?: string;
   givenName?: string;
   identities?: unknown;
-  // identity?: Record<string, unknown>;
 };
 
 
