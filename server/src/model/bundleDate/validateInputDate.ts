@@ -18,10 +18,21 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
 
   switch (input.dateType) {
     case "Concept Start Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
     case "Pre-Submission Submitted Date":
+    case "State Application Start Date":
+    case "State Application Submitted Date":
+    case "Completeness Start Date":
+    case "SDG Preparation Start Date":
+    case "Expected Approval Date":
+    case "SME Review Date":
+    case "FRT Initial Meeting Date":
+    case "BNPMT Initial Meeting Date":
+    case "SDG Preparation Completion Date":
+    case "OGC & OMB Review Start Date":
+    case "OGC Review Complete":
+    case "OMB Review Complete":
+    case "PO & OGD Sign-Off":
+    case "OGC & OMB Review Completion Date":
       checkInputDateIsStartOfDay(inputDate);
       break;
 
@@ -31,14 +42,6 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
         bundleId: input.bundleId,
         dateType: "Concept Start Date",
       });
-      break;
-
-    case "State Application Start Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "State Application Submitted Date":
-      checkInputDateIsStartOfDay(inputDate);
       break;
 
     case "Completeness Review Due Date":
@@ -69,10 +72,6 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
         bundleId: input.bundleId,
         dateType: "Concept Completion Date",
       });
-      break;
-
-    case "Completeness Start Date":
-      checkInputDateIsStartOfDay(inputDate);
       break;
 
     case "State Application Deemed Complete":
@@ -129,50 +128,6 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
         bundleId: input.bundleId,
         dateType: "State Application Completion Date",
       });
-      break;
-
-    case "SDG Preparation Start Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "Expected Approval Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "SME Review Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "FRT Initial Meeting Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "BNPMT Initial Meeting Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "SDG Preparation Completion Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "OGC & OMB Review Start Date":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "OGC Review Complete":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "OMB Review Complete":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "PO & OGD Sign-Off":
-      checkInputDateIsStartOfDay(inputDate);
-      break;
-
-    case "OGC & OMB Review Completion Date":
-      checkInputDateIsStartOfDay(inputDate);
       break;
 
     default:
