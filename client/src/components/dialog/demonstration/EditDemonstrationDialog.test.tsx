@@ -67,15 +67,9 @@ describe("EditDemonstrationDialog", () => {
           state: {
             id: "test-state-id",
           },
-          roles: [
-            {
-              isPrimary: true,
-              role: "Project Officer",
-              person: {
-                id: "test-officer-id",
-              },
-            },
-          ],
+          primaryProjectOfficer: {
+            id: "test-officer-id",
+          },
           effectiveDate: "2023-01-01T00:00:00.000Z",
           expirationDate: "2024-01-01T00:00:00.000Z",
         },

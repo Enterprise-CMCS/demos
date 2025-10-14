@@ -21,6 +21,15 @@ const renderWithToast = (component: React.ReactElement) => {
 const testMocks = mockDemonstrationRoleAssignments.slice(0, 2); // Use first two for testing
 
 describe("ContactsTable", () => {
+  it("displays all required columns: Name, Email, Contact Type, and Primary", () => {
+    renderWithToast(<ContactsTable demonstrationId="1" roles={testMocks} />);
+
+    expect(screen.getByText("Name")).toBeInTheDocument();
+    expect(screen.getByText("Email")).toBeInTheDocument();
+    expect(screen.getByText("Contact Type")).toBeInTheDocument();
+    expect(screen.getByText("Primary")).toBeInTheDocument();
+  });
+
   it("displays all contacts associated with a demonstration", () => {
     renderWithToast(<ContactsTable demonstrationId="1" roles={testMocks} />);
     expect(screen.getByText("John Doe")).toBeInTheDocument();
@@ -55,13 +64,19 @@ describe("ContactsTable", () => {
     rows = screen.getAllByRole("row");
     expect(within(rows[1]).getByText("John Doe")).toBeInTheDocument();
     expect(within(rows[2]).getByText("Jane Smith")).toBeInTheDocument();
+
+    // Test other columns can be clicked
+    await userEvent.click(screen.getByText("Email"));
+    await userEvent.click(screen.getByText("Contact Type"));
+    await userEvent.click(screen.getByText("Primary"));
   });
 
   it("pagination controls are user friendly and responsive", () => {
-    renderWithToast(<ContactsTable demonstrationId="1" roles={Array(25).fill(testMocks[0])} />);
+    renderWithToast(<ContactsTable demonstrationId="1" roles={Array(50).fill(testMocks[0])} />);
     expect(screen.getByLabelText("Go to next page")).toBeInTheDocument();
     expect(screen.getByLabelText("No previous page")).toBeInTheDocument();
     expect(screen.getByLabelText("Page 1, current page")).toBeInTheDocument();
+    expect(screen.getByLabelText("Go to page 5")).toBeInTheDocument();
   });
 
   it("allows navigation to specific pages and page sizes", async () => {

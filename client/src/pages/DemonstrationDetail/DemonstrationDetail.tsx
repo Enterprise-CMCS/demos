@@ -67,6 +67,10 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         }
       }
       currentPhaseName
+      primaryProjectOfficer {
+        id
+        fullName
+      }
     }
   }
 `;
