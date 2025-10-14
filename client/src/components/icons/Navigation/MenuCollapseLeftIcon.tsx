@@ -6,7 +6,7 @@ export const MenuCollapseLeftIcon: React.FC<IconInput> = ({
   label = "Menu Collapse Left",
   width = "20",
   height = "20",
-  viewBox = "0 1 12 12",
+  viewBox = "0 0 14 14",
   className = "",
 }: IconInput = {}) => (
   <svg

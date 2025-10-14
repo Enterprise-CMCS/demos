@@ -53,6 +53,7 @@ export * from "./Navigation/BuildingIcon";
 export * from "./Navigation/BulletsIcon";
 export * from "./Navigation/CaratDownIcon";
 export * from "./Navigation/CharacteristicIcon";
+export * from "./Navigation/DetailsIcon";
 export * from "./Navigation/EditIcon";
 export * from "./Navigation/EmailIcon";
 export * from "./Navigation/EmptyIcon";
