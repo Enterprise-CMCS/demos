@@ -7,7 +7,11 @@ import {
 import { typeDefs, resolvers } from "./model/graphql.js";
 import { authGatePlugin } from "./auth/auth.plugin.js";
 import { loggingPlugin } from "./plugins/logging.plugin.js";
-import { setRequestContext, addToRequestContext, log } from "./logger.js";
+import {
+  setRequestContext,
+  addToRequestContext,
+  log
+} from "./logger.js";
 import {
   GraphQLContext,
   buildLambdaContext,
@@ -19,17 +23,36 @@ import type {
   APIGatewayProxyEventHeaders,
 } from "aws-lambda";
 
-type JwtClaims = { sub: string; email?: string; role?: string };
+type JwtClaims = {
+  sub: string;
+  email?: string;
+  role?: string;
+  familyName?: string;
+  givenName?: string;
+  identities?: unknown;
+};
+
 
 export function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null {
-  // In REST custom authorizer, requestContext.authorizer is a flat map of strings
   const auth = (event.requestContext?.authorizer ?? {}) as Record<string, unknown>;
-  const sub = typeof auth.sub === "string" && auth.sub.length > 0 ? auth.sub : null;
-  const email = typeof auth.email === "string" ? auth.email : undefined;
-  const role = typeof auth.role === "string" ? auth.role : undefined;
+  const sub        = typeof auth.sub === "string" && auth.sub ? auth.sub : null;
+  const email      = typeof auth.email === "string" ? auth.email : undefined;
+  const role       = typeof auth.role === "string" ? auth.role : undefined;
+  const familyName = typeof auth.family_name === "string" ? auth.family_name : undefined;
+  const givenName  = typeof auth.given_name === "string" ? auth.given_name : undefined;
   if (!sub) return null;
-
-  return { sub, email, role };
+  const identities = auth.identities;
+  const cognitoUsername =
+    typeof auth["cognito:username"] === "string" ? (auth["cognito:username"] as string) : undefined;
+  return {
+    sub,
+    email,
+    role,
+    givenName,
+    familyName,
+    identities,
+    "cognito:username": cognitoUsername,
+  } as JwtClaims & Record<string, unknown>;
 }
 
 export function withAuthorizerHeader(
