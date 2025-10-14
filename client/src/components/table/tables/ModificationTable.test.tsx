@@ -12,6 +12,7 @@ describe("ExtensionTable", () => {
   beforeEach(() => {
     render(
       <ModificationTable
+        modificationType="Extension"
         modifications={mockExtensions.map((extension) => ({
           ...extension,
           status: extension.status,
@@ -51,6 +52,7 @@ describe("AmendmentTable", () => {
   beforeEach(() => {
     render(
       <ModificationTable
+        modificationType="Amendment"
         modifications={mockAmendments.map((amendment) => ({
           ...amendment,
           status: amendment.status,
@@ -90,6 +92,7 @@ describe("Initially expanded row", () => {
   it("automatically expands a row if initiallyExpandedId is provided", () => {
     render(
       <ModificationTable
+        modificationType="Extension"
         modifications={mockExtensions.map((extension) => ({
           ...extension,
           status: extension.status,
@@ -107,6 +110,7 @@ describe("Date formatting", () => {
     // Test amendment
     const { rerender } = render(
       <ModificationTable
+        modificationType="Amendment"
         modifications={[
           {
             ...mockAmendments[5],
@@ -122,6 +126,7 @@ describe("Date formatting", () => {
 
     rerender(
       <ModificationTable
+        modificationType="Extension"
         modifications={[
           {
             ...mockExtensions[2],
@@ -134,5 +139,48 @@ describe("Date formatting", () => {
       .getByText("Extension 3 - Montana Medicaid Waiver")
       .closest(".grid")! as HTMLElement;
     expect(within(extensionRow).getByText("--/--/----")).toBeInTheDocument();
+  });
+});
+
+describe("Empty table message", () => {
+  it("displays correct empty message for amendments when no modifications are provided", () => {
+    render(<ModificationTable modificationType="Amendment" modifications={[]} />);
+
+    expect(
+      screen.getByText("There are currently no amendments for this demonstration.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('To add a new amendment, click the "Add New" button.')
+    ).toBeInTheDocument();
+  });
+
+  it("displays correct empty message for extensions when no modifications are provided", () => {
+    render(<ModificationTable modificationType="Extension" modifications={[]} />);
+
+    expect(
+      screen.getByText("There are currently no extensions for this demonstration.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('To add a new extension, click the "Add New" button.')
+    ).toBeInTheDocument();
+  });
+
+  it("does not display empty message when modifications are present", () => {
+    render(
+      <ModificationTable
+        modificationType="Amendment"
+        modifications={mockAmendments.map((amendment) => ({
+          ...amendment,
+          status: amendment.status,
+        }))}
+      />
+    );
+
+    expect(
+      screen.queryByText("There are currently no amendments for this demonstration.")
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('To add a new amendment, click the "Add New" button.')
+    ).not.toBeInTheDocument();
   });
 });

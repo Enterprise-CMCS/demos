@@ -36,7 +36,7 @@ export function create(props: CommonProps) {
       ),
     },
     defaultCorsPreflightOptions: {
-      allowOrigins: aws_apigateway.Cors.ALL_ORIGINS,
+      allowOrigins: [`https://${props.cloudfrontHost}`],
       allowMethods: aws_apigateway.Cors.ALL_METHODS,
     },
   });
@@ -44,7 +44,7 @@ export function create(props: CommonProps) {
   api.addGatewayResponse("Default4XXResponse", {
     type: aws_apigateway.ResponseType.DEFAULT_4XX,
     responseHeaders: {
-      "Access-Control-Allow-Origin": "'*'",
+      "Access-Control-Allow-Origin": `'https://${props.cloudfrontHost}'`,
       "Access-Control-Allow-Headers": "'*'",
     },
   });
@@ -52,7 +52,7 @@ export function create(props: CommonProps) {
   api.addGatewayResponse("Default5XXResponse", {
     type: aws_apigateway.ResponseType.DEFAULT_5XX,
     responseHeaders: {
-      "Access-Control-Allow-Origin": "'*'",
+      "Access-Control-Allow-Origin": `'https://${props.cloudfrontHost}'`,
       "Access-Control-Allow-Headers": "'*'",
     },
   });

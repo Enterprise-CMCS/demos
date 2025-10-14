@@ -26,15 +26,17 @@ import {
   updateExtension,
 } from "./model/modification/modificationResolvers.js";
 
-function randomDate(yearsAhead: number, type: "start" | "end") {
-  const randomDate = faker.date.future({ years: yearsAhead });
-  const randomEasternDate = new TZDate(randomDate, "America/New_York");
-  if (type === "start") {
-    randomEasternDate.setHours(0, 0, 0, 0);
-  } else {
-    randomEasternDate.setHours(23, 59, 59, 999);
-  }
-  return randomEasternDate;
+function randomDateRange() {
+  const randomStart = faker.date.future({ years: 1 });
+  const randomEnd = faker.date.future({ years: 1, refDate: randomStart });
+
+  const randomEasternStart = new TZDate(randomStart, "America/New_York");
+  const randomEasternEnd = new TZDate(randomEnd, "America/New_York");
+
+  randomEasternStart.setHours(0, 0, 0, 0);
+  randomEasternEnd.setHours(23, 59, 59, 999);
+
+  return { start: randomEasternStart, end: randomEasternEnd };
 }
 
 function checkIfAllowed() {
@@ -104,8 +106,8 @@ async function seedDatabase() {
       id: bypassUserId,
       personTypeId: "demos-admin",
       email: "bypassedUser@email.com",
-      fullName: "Bypassed J. User",
-      displayName: "Bypass",
+      firstName: "Bypassed",
+      lastName: "User",
     },
   });
   await prisma().user.create({
@@ -119,14 +121,16 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding people and users...");
   for (let i = 0; i < userCount; i++) {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
     const person = await prisma().person.create({
       data: {
         personType: {
           connect: { id: PERSON_TYPES[i % (PERSON_TYPES.length - 1)] },
         },
         email: faker.internet.email(),
-        fullName: faker.person.fullName(),
-        displayName: faker.internet.username(),
+        firstName: firstName,
+        lastName: lastName,
       },
     });
     await prisma().user.create({
@@ -209,9 +213,10 @@ async function seedDatabase() {
   const demonstrations = await getManyDemonstrations();
   await Promise.all(
     demonstrations.map((demonstration, index) => {
+      const randomDates = randomDateRange();
       const updatePayload: UpdateDemonstrationInput = {
-        effectiveDate: randomDate(1, "start"),
-        expirationDate: randomDate(2, "end"),
+        effectiveDate: randomDates["start"],
+        expirationDate: randomDates["end"],
       };
 
       /*
@@ -262,9 +267,10 @@ async function seedDatabase() {
   }
   const amendments = await getManyAmendments();
   for (const amendment of amendments) {
+    const randomDates = randomDateRange();
     const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: randomDate(1, "start"),
-      expirationDate: randomDate(2, "end"),
+      effectiveDate: randomDates["start"],
+      expirationDate: randomDates["end"],
     };
     const updateInput = {
       id: amendment.id,
@@ -284,9 +290,10 @@ async function seedDatabase() {
   }
   const extensions = await getManyExtensions();
   for (const extension of extensions) {
+    const randomDates = randomDateRange();
     const updatePayload: UpdateExtensionInput = {
-      effectiveDate: randomDate(1, "start"),
-      expirationDate: randomDate(2, "end"),
+      effectiveDate: randomDates["start"],
+      expirationDate: randomDates["end"],
     };
     const updateInput = {
       id: extension.id,

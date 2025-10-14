@@ -1,8 +1,8 @@
 import { Context } from "aws-lambda";
 
-const STAGE = process.env.STAGE as string;
-const REGION = process.env.AWS_REGION as string;
-const DB_SECRET_ARN = process.env.DATABASE_SECRET_ARN as string;
+const STAGE = process.env.STAGE;
+const REGION = process.env.AWS_REGION;
+const DB_SECRET_ARN = process.env.DATABASE_SECRET_ARN;
 let ACCOUNT_ID = "";
 
 export function loadEnvs(context: Context) {

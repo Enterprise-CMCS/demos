@@ -2,8 +2,10 @@ import { prisma } from "../../prismaClient.js";
 import { SetBundleDateInput } from "../../types.js";
 import { getBundle } from "../bundle/bundleResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { validateInputDate } from "./validateInputDate.js";
 
 export async function setBundleDate(_: undefined, { input }: { input: SetBundleDateInput }) {
+  await validateInputDate(input);
   try {
     await prisma().bundleDate.upsert({
       where: {

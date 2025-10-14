@@ -20,7 +20,7 @@ import {
 } from "./demonstrationRoleAssignmentMocks";
 import { MockDocument, mockDocuments } from "./documentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
-import { mockPeople } from "./personMocks";
+import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
 
 export type MockDemonstration = Pick<
@@ -36,6 +36,7 @@ export type MockDemonstration = Pick<
   demonstrationTypes: Array<object>;
   documents: MockDocument[];
   roles: MockDemonstrationRoleAssignment[];
+  primaryProjectOfficer: MockPerson;
 };
 
 export const mockDemonstrations = [
@@ -63,6 +64,7 @@ export const mockDemonstrations = [
       mockDemonstrationRoleAssignments[4],
     ],
     currentPhaseName: "Concept",
+    primaryProjectOfficer: mockPeople[0],
   },
   {
     id: "2",
@@ -82,6 +84,7 @@ export const mockDemonstrations = [
     documents: [],
     roles: [mockDemonstrationRoleAssignments[1]],
     currentPhaseName: "Concept",
+    primaryProjectOfficer: mockPeople[1],
   },
   {
     id: "3",
@@ -99,6 +102,7 @@ export const mockDemonstrations = [
     documents: [],
     roles: [mockDemonstrationRoleAssignments[2]],
     currentPhaseName: "Concept",
+    primaryProjectOfficer: mockPeople[2],
   },
 ] as const satisfies MockDemonstration[];
 
