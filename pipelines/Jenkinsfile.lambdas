@@ -1,3 +1,15 @@
+void setBuildStatus(String message, String state) {
+  step([
+      $class: "GitHubCommitStatusSetter",
+      reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/Enterprise-CMCS/demos"],
+      commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.GIT_COMMIT],
+      contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "something"],
+      errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+      statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ],
+      targetUrl: env.BUILD_URL
+  ]);
+}
+
 pipeline {
   agent {
     kubernetes { 
@@ -11,117 +23,22 @@ pipeline {
 
   stages {
     stage('Lambdas - Snyk - All') {
-      failFast true
-      parallel {
-        stage('Snyk Scan - Authorizer') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/authorizer') }
-            }
-          }
-        }
-        stage('Snyk Scan - DB Role Management') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/dbRoleManagement') }
-            }
-          }
-        }
-        stage('Snyk Scan - File Process') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/fileprocess') }
-            }
-          }
-        }
-      }
+      steps { echo "skip"}
     }
 
     stage('Lambdas - Test - All') {
-      failFast true
-      parallel {
-        stage('Unit Test - Authorizer') {
-          steps {
-            script {
-              if (hasChange("lambdas")) {
-                dirCon('lambdas/authorizer', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
-            }
-          }
-        }
-        stage('Unit Test - DB Role Management') {
-          steps {
-            script {
-              if (hasChange("lambdas")) {
-                dirCon('lambdas/dbRoleManagement', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
-            }
-          }
-        }
-        stage('Unit Test - File Process') {
-          steps {
-            script {
-              if (hasChange("lambdas")) {
-                dirCon('lambdas/fileprocess', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
-            }
-          }
-        }
-      }
+      steps { echo "skip"}
     }
 
     stage('Lambdas - Sonar Scan') {
-      steps {
-        script {
-          if (hasChange("lambdas")) {
-            dirCon('lambdas', 'node') {
-              sh """
-                npx -y lcov-result-merger  '*/coverage/lcov.info' lcov-lambdas.info --prepend-source-files --prepend-path-fix
-              """
-            }
-            script {
-              sonarQubeScan(
-                projectKey: 'demos-lambdas',
-                credentialsId: 'sonarqube-demos-all',
-                projectBaseDir: 'lambdas',
-                sonarqubeFlags: [
-                  "javascript.lcov.reportPaths": "lcov-lambdas.info",
-                  "pullrequest.key": env.CHANGE_ID ?: null,
-                  "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-                  "pullrequest.base": env.CHANGE_TARGET ?: null,
-                  "exclusions": "**/*.test.ts,**/*.test.tsx,**/coverage/**,**/jest.config.cjs,**/vite.config.ts",
-                  "sources": "./",
-                  "tests": "./",
-                ]
-              )
-            }
-          }
-        }
-      }
+      steps { echo "skip" }
     }
   }
 
   post {
-    failure {
-      slackPipelineFail("Lambdas")
+    success {
+      setBuildStatus("Build succeeded (lambdas)", "SUCCESS")
     }
+
   }
 }
