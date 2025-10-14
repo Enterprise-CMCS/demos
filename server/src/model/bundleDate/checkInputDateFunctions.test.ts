@@ -75,70 +75,70 @@ describe("getTargetDateValue", () => {
 
   describe("checkInputDateIsStartOfDay", () => {
     it("should not throw when given a valid start of day date in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 1, 5, 0, 0, 0]);
+      const testInputDateValue = new Date(2025, 1, 1, 5, 0, 0, 0);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).not.toThrow();
     });
 
     it("should throw when given a invalid start of day hour value in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 1, 4, 0, 0, 0]);
+      const testInputDateValue = new Date(2025, 1, 1, 4, 0, 0, 0);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid start of day minute value in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 1, 5, 1, 0, 0]);
+      const testInputDateValue = new Date(2025, 1, 1, 5, 1, 0, 0);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid start of day second value in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 1, 5, 0, 1, 0]);
+      const testInputDateValue = new Date(2025, 1, 1, 5, 0, 1, 0);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid start of day millisecond value in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 1, 5, 0, 0, 1]);
+      const testInputDateValue = new Date(2025, 1, 1, 5, 0, 0, 1);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should not throw when given a valid start of day date in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 7, 1, 4, 0, 0, 0]);
+      const testInputDateValue = new Date(2025, 7, 1, 4, 0, 0, 0);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).not.toThrow();
     });
 
     it("should throw when given a invalid start of day hour value in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 7, 1, 3, , 0, 0]);
+      const testInputDateValue = new Date(2025, 7, 1, 3, 0, 0, 0);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid start of day minute value in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 7, 1, 4, 1, 0, 0]);
+      const testInputDateValue = new Date(2025, 7, 1, 4, 1, 0, 0);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid start of day second value in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 7, 1, 4, 0, 1, 0]);
+      const testInputDateValue = new Date(2025, 7, 1, 4, 0, 1, 0);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid start of day millisecond value in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 7, 1, 4, 0, 0, 100]);
+      const testInputDateValue = new Date(2025, 7, 1, 4, 0, 0, 100);
       expect(() =>
         checkInputDateIsStartOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
@@ -147,70 +147,70 @@ describe("getTargetDateValue", () => {
 
   describe("checkInputDateIsEndOfDay", () => {
     it("should not throw when given a valid end of day date in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 3, 4, 59, 59, 999]);
+      const testInputDateValue = new Date(2025, 1, 3, 4, 59, 59, 999);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).not.toThrow();
     });
 
     it("should throw when given a invalid end of day hour value in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 3, 3, 59, 59, 999]);
+      const testInputDateValue = new Date(2025, 1, 3, 3, 59, 59, 999);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid end of day minute value in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 3, 4, 58, 59, 999]);
+      const testInputDateValue = new Date(2025, 1, 3, 4, 58, 59, 999);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid end of day second value in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 3, 4, 59, 58, 999]);
+      const testInputDateValue = new Date(2025, 1, 3, 4, 59, 58, 999);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid end of day millisecond value in EST", () => {
-      const testInputDateValue = new Date(...[2025, 1, 3, 4, 59, 59, 998]);
+      const testInputDateValue = new Date(2025, 1, 3, 4, 59, 59, 998);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should not throw when given a valid end of day date in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 8, 1, 3, 59, 59, 999]);
+      const testInputDateValue = new Date(2025, 8, 1, 3, 59, 59, 999);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).not.toThrow();
     });
 
     it("should throw when given a invalid end of day hour value in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 8, 1, 2, 59, 59, 999]);
+      const testInputDateValue = new Date(2025, 8, 1, 2, 59, 59, 999);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid end of day minute value in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 8, 1, 3, 58, 59, 999]);
+      const testInputDateValue = new Date(2025, 8, 1, 3, 58, 59, 999);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid end of day second value in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 8, 1, 3, 59, 58, 999]);
+      const testInputDateValue = new Date(2025, 8, 1, 3, 59, 58, 999);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
     });
 
     it("should throw when given a invalid end of day millisecond value in EDT", () => {
-      const testInputDateValue = new Date(...[2025, 1, 8, 3, 59, 59, 998]);
+      const testInputDateValue = new Date(2025, 1, 8, 3, 59, 59, 998);
       expect(() =>
         checkInputDateIsEndOfDay({ dateType: testInputDateType, dateValue: testInputDateValue })
       ).toThrow();
