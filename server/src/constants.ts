@@ -71,7 +71,6 @@ export const DATE_TYPES = [
   "Completeness Review Due Date",
   "State Application Completion Date",
   "Completeness Start Date",
-  "Completeness Due Date",
   "State Application Deemed Complete",
   "Federal Comment Period Start Date",
   "Federal Comment Period End Date",

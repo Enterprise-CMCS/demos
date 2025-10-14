@@ -1,4 +1,5 @@
 import { GraphQLScalarType, Kind, StringValueNode } from "graphql";
+import { DateTimeResolver, NonEmptyStringResolver } from "graphql-scalars";
 
 export function generateCustomSetScalar(
   acceptableValues: readonly string[],
@@ -42,3 +43,8 @@ export function generateCustomSetScalar(
     },
   });
 }
+
+export const customScalarResolvers = {
+  DateTime: DateTimeResolver,
+  NonEmptyString: NonEmptyStringResolver,
+};
