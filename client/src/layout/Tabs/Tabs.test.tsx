@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Tabs, Tab } from "./Tabs";
+import { Tabs, Tab } from "./";
 
 describe("Tabs Component", () => {
   const mockTabs = (
@@ -92,13 +92,13 @@ describe("Tabs Component", () => {
     expect(screen.getByTestId("button-only")).toHaveAttribute("aria-selected", "true");
   });
 
-  it("applies correct CSS classes for selected and unselected tabs", () => {
+  it("applies correct aria-selected attributes for selected and unselected tabs", () => {
     render(mockTabs);
 
     const selectedTab = screen.getByTestId("button-tab1");
     const unselectedTab = screen.getByTestId("button-tab2");
 
-    expect(selectedTab).toHaveClass("border-b-5", "text-brand");
-    expect(unselectedTab).toHaveClass("text-gray-600", "hover:text-gray-800");
+    expect(selectedTab).toHaveAttribute("aria-selected", "true");
+    expect(unselectedTab).toHaveAttribute("aria-selected", "false");
   });
 });
