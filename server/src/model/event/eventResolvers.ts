@@ -1,11 +1,26 @@
 import { prisma } from "../../prismaClient.js";
 import { LogEventInput } from "./eventSchema.js";
 import { Event } from "@prisma/client";
-import { GraphQLContext, getCurrentUserId, getCurrentUserRoleId } from "../../auth/auth.util.js";
+import {
+  GraphQLContext,
+  getCurrentUserId,
+  getCurrentUserRoleId,
+} from "../../auth/auth.util.js";
+
 export const eventResolvers = {
   Query: {
+    // Only return events that are actually associated to a bundle
     events: async () => {
-      return await prisma().event.findMany({
+      return prisma().event.findMany({
+        where: { bundleId: { not: null } },
+        orderBy: { createdAt: "desc" },
+      });
+    },
+
+    // Handy focused query for timelines on a specific bundle
+    eventsByBundle: async (_: unknown, { bundleId }: { bundleId: string }) => {
+      return prisma().event.findMany({
+        where: { bundleId },
         orderBy: { createdAt: "desc" },
       });
     },
@@ -17,21 +32,23 @@ export const eventResolvers = {
       { input }: { input: LogEventInput },
       context: GraphQLContext
     ) => {
-      const { eventType, logLevel, route, eventData: clientEventData } = input;
+      const { eventType, logLevel, route, eventData: clientEventData, bundleId } = input;
 
       const userId = await getCurrentUserId(context);
       const roleId = await getCurrentUserRoleId(context);
 
-      const eventData = { ...clientEventData, userId, roleId };
+      const eventData = { ...clientEventData, userId, roleId, bundleId };
 
       try {
         await prisma().event.create({
           data: {
-            userId: userId,
-            eventType: eventType,
-            logLevel: logLevel,
-            route: route,
-            eventData: eventData,
+            userId: userId ?? null,
+            withRoleId: roleId ?? null,
+            eventType,
+            logLevel,
+            route,
+            bundleId: bundleId ?? null, // nullable FK
+            eventData,
           },
         });
         return { success: true };
@@ -42,18 +59,16 @@ export const eventResolvers = {
   },
 
   Event: {
-    user: async (parent: Event) => {
-      if (!parent.userId) {
-        return null;
-      } else {
-        return await prisma().user.findUnique({
-          where: { id: parent.userId },
-        });
-      }
-    },
+    user: (parent: Event) =>
+      parent.userId
+        ? prisma().user.findUnique({ where: { id: parent.userId } })
+        : null,
 
-    withRole: async (parent: Event) => {
-      return parent.withRoleId;
-    },
+    withRole: (parent: Event) => parent.withRoleId ?? null,
+
+    bundle: (parent: Event) =>
+      parent.bundleId
+        ? prisma().bundle.findUnique({ where: { id: parent.bundleId } })
+        : null,
   },
 };
