@@ -3,9 +3,9 @@ import React from "react";
 import { IconInput } from "../Icon";
 export const MenuCollapseRightIcon: React.FC<IconInput> = ({
   label = "Menu Collapse Right",
-  width = "15",
-  height = "15",
-  viewBox = "0 0 15 15",
+  width = "20",
+  height = "20",
+  viewBox = "0 0 14 14",
   className = "",
 }: IconInput = {}) => (
   <svg

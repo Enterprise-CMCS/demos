@@ -226,10 +226,8 @@ export const ConceptPhase: React.FC<Props> = ({
           size="small"
           disabled={!isSkipEnabled}
         >
-          <span className="flex items-center gap-1">
-            Skip
-            <ChevronRightIcon />
-          </span>
+          Skip
+          <ChevronRightIcon />
         </SecondaryButton>
         <Button
           name="button-finish-concept"

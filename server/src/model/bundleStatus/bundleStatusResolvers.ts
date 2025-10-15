@@ -1,5 +1,5 @@
 import { Demonstration, Modification } from "@prisma/client";
-import { generateCustomSetScalar } from "../../resolverFunctions.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { BUNDLE_STATUS } from "../../constants.js";
 
 export async function resolveBundleStatus(parent: Demonstration | Modification) {

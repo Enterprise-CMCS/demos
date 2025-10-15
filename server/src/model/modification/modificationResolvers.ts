@@ -11,6 +11,10 @@ import {
 import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import {
+  checkInputDateIsStartOfDay,
+  checkInputDateIsEndOfDay,
+} from "../bundleDate/checkInputDateFunctions.js";
 
 type ModificationType = Exclude<BundleType, "Demonstration">;
 const conceptPhaseName: PhaseName = "Concept";
@@ -118,6 +122,12 @@ async function updateModification(
   info: undefined,
   bundleTypeId: ModificationType
 ) {
+  if (input.effectiveDate) {
+    checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
+  }
+  if (input.expirationDate) {
+    checkInputDateIsEndOfDay({ dateType: "expirationDate", dateValue: input.expirationDate });
+  }
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
   try {
     return await prisma().modification.update({

@@ -9,7 +9,7 @@ import {
   Person,
   User,
 } from "demos-server";
-import { Tab, Tabs } from "layout/Tabs";
+import { Tab, HorizontalSectionTabs } from "layout/Tabs";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
   query GetDemonstrationsPage {
@@ -73,14 +73,14 @@ export const DemonstrationsPage: React.FC = () => {
   );
 
   return (
-    <div>
+    <div className="shadow-md bg-white p-[16px]">
       <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b-1 pb-[8px]">
         Demonstrations
       </h1>
       {loading && <div className="p-4">Loading demonstrations...</div>}
       {error && <div className="p-4 text-red-500">Error loading demonstrations.</div>}
       {data && (
-        <Tabs defaultValue="demonstrations">
+        <HorizontalSectionTabs defaultValue="demonstrations">
           <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">
             <DemonstrationTable
               demonstrations={myDemonstrations}
@@ -94,7 +94,7 @@ export const DemonstrationsPage: React.FC = () => {
               projectOfficerOptions={data.people}
             />
           </Tab>
-        </Tabs>
+        </HorizontalSectionTabs>
       )}
     </div>
   );

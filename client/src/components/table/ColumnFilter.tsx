@@ -1,9 +1,9 @@
 import React from "react";
 import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
-import { DatePicker } from "components/input/DatePicker/DatePicker";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
 import { Option, Select } from "components/input/select/Select";
+import { parseISO } from "date-fns";
 
 export interface ColumnFilterByDropdownProps<T> {
   table: Table<T>;
@@ -27,28 +27,20 @@ export interface ColumnMetaFilterConfig {
       };
 }
 
-export function ColumnFilter<T>({
-  table,
-  className = "",
-}: ColumnFilterByDropdownProps<T>) {
+export function ColumnFilter<T>({ table, className = "" }: ColumnFilterByDropdownProps<T>) {
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
-  const [filterValue, setFilterValue] = React.useState<
-    string | string[] | null
-  >("");
+  const [filterValue, setFilterValue] = React.useState<string | string[] | null>("");
 
   const [filterRangeValue, setFilterRangeValue] = React.useState<{
     start: Date | null;
     end: Date | null;
   }>({ start: null, end: null });
 
-  const availableColumns = table
-    .getAllColumns()
-    .filter((column) => column.getCanFilter());
+  const availableColumns = table.getAllColumns().filter((column) => column.getCanFilter());
 
   const columnOptions: Option[] = availableColumns.map((col) => {
     const columnDef = col.columnDef;
-    const displayLabel =
-      typeof columnDef.header === "string" ? columnDef.header : col.id;
+    const displayLabel = typeof columnDef.header === "string" ? columnDef.header : col.id;
 
     return {
       label: displayLabel,
@@ -81,11 +73,8 @@ export function ColumnFilter<T>({
     }
   };
   // Get the selected column's filter configuration
-  const selectedColumnObj = availableColumns.find(
-    (col) => col.id === selectedColumn
-  );
-  const meta: ColumnMetaFilterConfig | undefined =
-    selectedColumnObj?.columnDef.meta;
+  const selectedColumnObj = availableColumns.find((col) => col.id === selectedColumn);
+  const meta: ColumnMetaFilterConfig | undefined = selectedColumnObj?.columnDef.meta;
   const filterConfig = meta?.filterConfig;
 
   // Render the appropriate input based on filter configuration
@@ -112,32 +101,37 @@ export function ColumnFilter<T>({
 
       case "date":
         return (
-          <div className="flex gap-2">
-            <DatePicker
-              onChange={(date) => onRangeChange(date, filterRangeValue.end)}
-              slotProps={{
-                textField: {
-                  placeholder: "Start date",
-                  name: "date-filter-start",
-                },
-              }}
-              name="date-filter-start"
-            >
-              {`${columnDisplayName} Start`}
-            </DatePicker>
-            <DatePicker
-              onChange={(date) => onRangeChange(filterRangeValue.start, date)}
-              slotProps={{
-                textField: {
-                  placeholder: "End date",
-                  name: "date-filter-end",
-                },
-              }}
-              name="date-filter-end"
-            >
-              {`${columnDisplayName} End`}
-            </DatePicker>
-          </div>
+          <>
+            <div>
+              <label
+                className="block text-sm font-bold mb-1"
+                htmlFor="date-filter-start"
+              >{`${columnDisplayName} Start`}</label>
+              <input
+                id="date-filter-start"
+                name="date-filter-start"
+                type="date"
+                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  onRangeChange(parseISO(value), filterRangeValue.end);
+                }}
+              />
+            </div>
+            <div>
+              <label
+                className="block text-sm font-bold mb-1"
+                htmlFor="date-filter-end"
+              >{`${columnDisplayName} End`}</label>
+              <input
+                id="date-filter-end"
+                name="date-filter-end"
+                type="date"
+                onChange={(e) => onRangeChange(filterRangeValue.start, parseISO(e.target.value))}
+                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+              />
+            </div>
+          </>
         );
 
       case "text":

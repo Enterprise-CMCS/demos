@@ -9,13 +9,14 @@ import {
   BundlePhase,
   BundleStatus,
   DemonstrationRoleAssignment,
+  NonEmptyString,
   Person,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
   type Demonstration {
     id: ID!
-    name: String!
+    name: NonEmptyString!
     description: String!
     effectiveDate: DateTime
     expirationDate: DateTime
@@ -35,7 +36,7 @@ export const demonstrationSchema = gql`
   }
 
   input CreateDemonstrationInput {
-    name: String!
+    name: NonEmptyString!
     stateId: ID!
     projectOfficerUserId: String!
     description: String
@@ -44,7 +45,7 @@ export const demonstrationSchema = gql`
   }
 
   input UpdateDemonstrationInput {
-    name: String
+    name: NonEmptyString
     description: String
     effectiveDate: DateTime
     expirationDate: DateTime
@@ -75,7 +76,7 @@ export const demonstrationSchema = gql`
 
 export interface Demonstration {
   id: string;
-  name: string;
+  name: NonEmptyString;
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
@@ -97,7 +98,7 @@ export interface Demonstration {
 // Used in creating a demonstration from the F/E dialog.
 // The fields here should match the fields in that dialog.
 export interface CreateDemonstrationInput {
-  name: string;
+  name: NonEmptyString;
   projectOfficerUserId: string;
   stateId: string;
   description?: string;
@@ -106,7 +107,7 @@ export interface CreateDemonstrationInput {
 }
 
 export interface UpdateDemonstrationInput {
-  name?: string;
+  name?: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
   expirationDate?: Date;

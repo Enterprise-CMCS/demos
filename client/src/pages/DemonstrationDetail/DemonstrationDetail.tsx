@@ -4,7 +4,6 @@ import { ModificationTableRow } from "components/table/tables/ModificationTable"
 import { isTestMode } from "config/env";
 import { Document, Person } from "demos-server";
 import { usePageHeader } from "hooks/usePageHeader";
-import { Tab, Tabs } from "layout/Tabs";
 import {
   DemonstrationDetailHeader,
   DemonstrationHeaderDetails,
@@ -17,6 +16,7 @@ import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
+import { Tab, Tabs } from "layout/Tabs";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
