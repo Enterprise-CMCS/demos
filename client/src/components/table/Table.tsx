@@ -110,7 +110,7 @@ function TableSearch<T>({
   columnFilter?: (table: TanstackTable<T>) => React.ReactNode;
 }) {
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-[24px]">
       {keywordSearch && keywordSearch(table)}
       {columnFilter && columnFilter(table)}
     </div>

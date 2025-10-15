@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from "components/icons";
 import React from "react";
 import { tw } from "tags/tw";
+
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
 
 export interface Option {
