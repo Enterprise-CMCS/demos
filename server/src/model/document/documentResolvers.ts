@@ -1,18 +1,19 @@
 import { GraphQLError } from "graphql";
 
-import { Document, DocumentPendingUpload } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
-import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
 import {
-  S3Client,
-  PutObjectCommand,
   GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Document, DocumentPendingUpload } from "@prisma/client";
+
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { getBundle } from "../bundle/bundleResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { prisma } from "../../prismaClient.js";
+import { getBundle } from "../bundle/bundleResolvers.js";
+import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
 
 async function getDocument(parent: undefined, { id }: { id: string }) {
   return await prisma().document.findUnique({
@@ -33,13 +34,11 @@ async function getPresignedUploadUrl(
         endpoint: process.env.S3_ENDPOINT_LOCAL,
         forcePathStyle: true,
         credentials: {
-          accessKeyId: "",
-          secretAccessKey: "",
+          accessKeyId: "test",
+          secretAccessKey: "test",
         },
       }
-    : {
-        region: process.env.AWS_REGION || "us-east-1",
-      };
+    : {};
   const s3 = new S3Client(s3ClientConfig);
   const uploadBucket = process.env.UPLOAD_BUCKET;
   const key = documentPendingUpload.id;
@@ -59,13 +58,11 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
         endpoint: process.env.S3_ENDPOINT_LOCAL,
         forcePathStyle: true,
         credentials: {
-          accessKeyId: "",
-          secretAccessKey: "",
+          accessKeyId: "test",
+          secretAccessKey: "test",
         },
       }
-    : {
-        region: process.env.AWS_REGION || "us-east-1",
-      };
+    : {};
   const s3 = new S3Client(s3ClientConfig);
   const cleanBucket = process.env.CLEAN_BUCKET;
   const key = `${document.bundleId}/${document.id}`;
