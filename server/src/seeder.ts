@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { Prisma } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 import { SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
@@ -12,7 +13,7 @@ import {
   SetBundleDateInput,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
-import { DocumentType, PhaseName } from "./types.js";
+import { DocumentType, PhaseName, PhaseStatus } from "./types.js";
 import {
   getManyDemonstrations,
   createDemonstration,
@@ -213,8 +214,11 @@ async function seedDatabase() {
     await createDemonstration(undefined, { input: createInput });
   }
   const demonstrations = await getManyDemonstrations();
+  const completenessPhase: PhaseName = "Completeness";
+  const incompletePhaseStatus: PhaseStatus = "Incomplete";
+
   await Promise.all(
-    demonstrations.map((demonstration, index) => {
+    demonstrations.map(async (demonstration, index) => {
       const randomDates = randomDateRange();
       const updatePayload: UpdateDemonstrationInput = {
         effectiveDate: randomDates["start"],
@@ -227,8 +231,7 @@ async function seedDatabase() {
        * And correctly seed valid dates, phase statuses, etc...
        */
       if (index === 0) {
-        updatePayload.currentPhaseName = "Federal Comment";
-        updatePayload.status = "Under Review";
+        updatePayload.currentPhaseName = completenessPhase;
       }
 
       const updateInput = {
@@ -236,7 +239,26 @@ async function seedDatabase() {
         input: updatePayload,
       };
 
-      return updateDemonstration(undefined, updateInput);
+      await updateDemonstration(undefined, updateInput);
+
+      if (index === 0) {
+        await prisma().bundlePhase.upsert({
+          where: {
+            bundleId_phaseId: {
+              bundleId: demonstration.id,
+              phaseId: completenessPhase,
+            },
+          },
+          update: {
+            phaseStatusId: incompletePhaseStatus,
+          },
+          create: {
+            bundleId: demonstration.id,
+            phaseId: completenessPhase,
+            phaseStatusId: incompletePhaseStatus,
+          },
+        });
+      }
     })
   );
 
@@ -493,6 +515,73 @@ async function seedDatabase() {
       },
     });
   }
+  console.log("🌱 Seeding events (with and without bundleIds)...");
+
+  // Grab some bundles for association
+  const numberOfBundleEvents = 10;
+  const bundlesForEvents = await prisma().bundle.findMany({
+    select: { id: true },
+    take: numberOfBundleEvents,
+  });
+
+  // Grab some users/roles to make events look legit
+  const usersForEvents = await prisma().user.findMany({ select: { id: true }, take: 5 });
+  const rolesForEvents = await prisma().role.findMany({ select: { id: true }, take: 5 });
+
+  function pick<T>(arr: T[]): T | null {
+    if (!arr.length) return null;
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  const totalEvents = numberOfBundleEvents + 10;
+  const eventsData: Prisma.EventCreateManyInput[] = [];
+
+  for (let i = 0; i < totalEvents; i++) {
+    // ~60% of events have a bundleId, rest are null
+    const attachBundle = Math.random() < 0.6;
+    const maybeBundle = attachBundle ? pick(bundlesForEvents)?.id ?? null : null;
+
+    const userId = pick(usersForEvents)?.id ?? null;
+    const withRoleId = pick(rolesForEvents)?.id ?? null;
+
+    const eventType = maybeBundle
+      ? faker.helpers.arrayElement(["BUNDLE_COMPLETENESS", "BUNDLE_INCOMPLETENESS"])
+      : faker.helpers.arrayElement([
+          "BUNDLE_VIEW",
+          "DOCUMENT_UPLOAD",
+          "DOCUMENT_DOWNLOAD",
+          "PHASE_CHANGE",
+          "COMMENT_ADDED",
+          "LOGIN",
+          "LOGOUT",
+        ]);
+    eventsData.push({
+      // Prisma createMany will auto-generate id/createdAt if your schema defaults are set
+      userId,
+      withRoleId,
+      eventType,
+      logLevel: faker.helpers.arrayElement(["INFO", "WARN", "ERROR"]),
+      route: faker.helpers.arrayElement([
+        "/bundles",
+        "/bundles/:id",
+        "/documents/:id",
+        "/login",
+        "/graph",
+      ]),
+      bundleId: maybeBundle, // nullable FK
+      eventData: {
+        ip: faker.internet.ipv4(),
+        ua: faker.internet.userAgent(),
+        note: faker.lorem.sentence(),
+      },
+      // If you want a random-ish createdAt in the last 30 days:
+      // createdAt: faker.date.recent({ days: 30 }),
+    });
+  }
+
+  await prisma().event.createMany({ data: eventsData });
+
+
 
   console.log("✨ Database seeding complete.");
 }
