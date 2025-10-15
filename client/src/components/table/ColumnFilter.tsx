@@ -151,7 +151,7 @@ export function ColumnFilter<T>({ table }: ColumnFilterByDropdownProps<T>) {
   const liveMessage = `Showing ${totalRows} rows`;
 
   return (
-    <div>
+    <div className="flex flex-col gap-sm">
       <Select
         label="Filter by:"
         options={columnOptions}
