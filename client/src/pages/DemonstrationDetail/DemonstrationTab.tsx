@@ -24,7 +24,10 @@ import {
   PhaseName,
   State,
 } from "demos-server";
-import { VerticalTabs, Tab } from "layout/Tabs";
+import {
+  Tab,
+  VerticalTabs,
+} from "layout/Tabs";
 
 type ModalType = "document" | "contact" | null;
 
