@@ -50,6 +50,20 @@ def call(Map params = [:]) {
   command:
   - cat
   tty: true
+""",
+      'zap': """
+- name: zap
+  image: ${opts.ZAP_IMAGE ?: 'artifactory.cloud.cms.gov/docker/zaproxy/zap-stable:latest'}
+  command:
+  - cat
+  tty: true
+  resources:
+    requests:
+      cpu: 1500m
+      memory: 2Gi
+    limits:
+      cpu: 3000m
+      memory: 4Gi
 """
     ]
 

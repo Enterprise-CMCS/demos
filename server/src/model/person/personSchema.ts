@@ -6,8 +6,10 @@ export const personSchema = gql`
     id: ID!
     personType: PersonType!
     email: String!
+    firstName: String!
+    lastName: String!
+    # FullName is a computed field (not stored in DB)
     fullName: String!
-    displayName: String!
     createdAt: DateTime!
     updatedAt: DateTime!
     states: [State!]!
@@ -23,8 +25,9 @@ export type Person = {
   id: string;
   personType: PersonType;
   email: string;
+  firstName: string;
+  lastName: string;
   fullName: string;
-  displayName: string;
   createdAt: Date;
   updatedAt: Date;
   roles: DemonstrationRoleAssignment[];

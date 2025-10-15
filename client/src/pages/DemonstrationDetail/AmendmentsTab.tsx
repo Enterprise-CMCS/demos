@@ -8,16 +8,18 @@ export const AmendmentsTab: React.FC<{
   onClick: () => void;
   initiallyExpandedId?: string;
 }> = ({ amendments, onClick, initiallyExpandedId }) => (
-  <div>
+  <div className="p-2">
     <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
       <h1 className="text-xl font-bold text-brand uppercase">Amendments</h1>
       <SecondaryButton name="add-new-amendment" size="small" onClick={onClick}>
-        <div className="flex items-center gap-1">
-          Add New
-          <AddNewIcon className="w-2 h-2" />
-        </div>
+        Add New
+        <AddNewIcon className="w-2 h-2" />
       </SecondaryButton>
     </div>
-    <ModificationTable modifications={amendments} initiallyExpandedId={initiallyExpandedId} />
+    <ModificationTable
+      modificationType="Amendment"
+      modifications={amendments}
+      initiallyExpandedId={initiallyExpandedId}
+    />
   </div>
 );

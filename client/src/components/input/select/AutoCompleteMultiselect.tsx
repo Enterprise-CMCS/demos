@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import Checkbox from "@mui/material/Checkbox";
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
 import { Option } from "./Select";
@@ -146,13 +145,13 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
                   }}
                   style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
                 >
-                  <Checkbox
+                  <input
+                    type="checkbox"
                     disabled={isDisabled}
                     checked={selected.includes(opt.value)}
                     readOnly
-                    className="mr-2"
+                    className="m-1 w-2 h-2 flex-shrink-0"
                     tabIndex={-1}
-                    size="large"
                   />
                   {opt.label}
                 </li>

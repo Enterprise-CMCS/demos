@@ -9,12 +9,14 @@ import {
   BundlePhase,
   BundleStatus,
   DemonstrationRoleAssignment,
+  NonEmptyString,
+  Person,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
   type Demonstration {
     id: ID!
-    name: String!
+    name: NonEmptyString!
     description: String!
     effectiveDate: DateTime
     expirationDate: DateTime
@@ -30,10 +32,11 @@ export const demonstrationSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
     roles: [DemonstrationRoleAssignment!]!
+    primaryProjectOfficer: Person!
   }
 
   input CreateDemonstrationInput {
-    name: String!
+    name: NonEmptyString!
     stateId: ID!
     projectOfficerUserId: String!
     description: String
@@ -42,7 +45,7 @@ export const demonstrationSchema = gql`
   }
 
   input UpdateDemonstrationInput {
-    name: String
+    name: NonEmptyString
     description: String
     effectiveDate: DateTime
     expirationDate: DateTime
@@ -51,6 +54,7 @@ export const demonstrationSchema = gql`
     status: BundleStatus
     currentPhaseName: PhaseName
     stateId: ID
+    projectOfficerUserId: String
   }
 
   type CreateDemonstrationResponse {
@@ -72,7 +76,7 @@ export const demonstrationSchema = gql`
 
 export interface Demonstration {
   id: string;
-  name: string;
+  name: NonEmptyString;
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
@@ -88,12 +92,13 @@ export interface Demonstration {
   createdAt: Date;
   updatedAt: Date;
   roles: DemonstrationRoleAssignment[];
+  primaryProjectOfficer: Person;
 }
 
 // Used in creating a demonstration from the F/E dialog.
 // The fields here should match the fields in that dialog.
 export interface CreateDemonstrationInput {
-  name: string;
+  name: NonEmptyString;
   projectOfficerUserId: string;
   stateId: string;
   description?: string;
@@ -102,7 +107,7 @@ export interface CreateDemonstrationInput {
 }
 
 export interface UpdateDemonstrationInput {
-  name?: string;
+  name?: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
   expirationDate?: Date;
@@ -111,4 +116,5 @@ export interface UpdateDemonstrationInput {
   status?: BundleStatus;
   currentPhaseName?: PhaseName;
   stateId?: string;
+  projectOfficerUserId?: string;
 }

@@ -1,16 +1,8 @@
 import React, { useState } from "react";
 
-import {
-  Button,
-  SecondaryButton,
-} from "components/button";
-import {
-  StateApplicationUploadDialog,
-} from "components/dialog/document/StateApplicationUploadDialog";
-import {
-  DeleteIcon,
-  ExportIcon,
-} from "components/icons";
+import { Button, SecondaryButton } from "components/button";
+import { StateApplicationUploadDialog } from "components/dialog/document/StateApplicationUploadDialog";
+import { DeleteIcon, ExportIcon } from "components/icons";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { useToast } from "components/toast";
 import { isLocalDevelopment } from "config/env";
@@ -18,10 +10,7 @@ import { addDays } from "date-fns";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
-import {
-  gql,
-  useMutation,
-} from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 
 const COMPLETE_STATE_APPLICATION_PHASE = gql`
   mutation CompleteStateApplicationPhase($input: CompleteStateApplicationPhaseInput!) {
@@ -175,10 +164,8 @@ export const StateApplicationPhase: React.FC<Props> = ({
         size="small"
         name="button-open-upload-modal"
       >
-        <span className="flex items-center gap-1">
-          Upload
-          <ExportIcon />
-        </span>
+        Upload
+        <ExportIcon />
       </SecondaryButton>
 
       <div className={STYLES.list}>

@@ -73,4 +73,39 @@ describe("UI Stack", () => {
     expect(cacheBehaviors.length).toEqual(1);
     expect(cacheBehaviors[0].TargetOriginId).toEqual(apiOrigin.Id);
   });
+
+  test("should include header passthrough when a zapHeaderValue exists", () => {
+    const app = new App();
+
+    const mockZapHeaderVal = "test-header-val";
+
+    const uiStack = new UiStack(app, "mockUi", {
+      ...mockCommonProps,
+      env: {
+        region: "us-east-1",
+        account: "0123456789",
+      },
+      cognitoParamNames: {
+        authority: "authority",
+        clientId: "clientId",
+      },
+      zapHeaderValue: mockZapHeaderVal,
+    });
+
+    const template = Template.fromStack(uiStack);
+    template.resourceCountIs("AWS::WAFv2::WebACL", 2);
+
+    template.hasResourceProperties("AWS::WAFv2::WebACL", {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: "AllowCMSCloudbees",
+          Statement: Match.objectLike({
+            ByteMatchStatement: Match.objectLike({
+              SearchString: mockZapHeaderVal,
+            }),
+          }),
+        }),
+      ]),
+    });
+  });
 });

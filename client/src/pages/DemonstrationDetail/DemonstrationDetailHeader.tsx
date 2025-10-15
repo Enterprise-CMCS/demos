@@ -3,7 +3,7 @@ import React, { useCallback, useState } from "react";
 import { CircleButton, SecondaryButton } from "components/button";
 import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
-import { Demonstration, DemonstrationRoleAssignment, Person, State } from "demos-server";
+import { Demonstration, Person, State } from "demos-server";
 import { safeDateFormat } from "util/formatDate";
 
 import { ApolloError } from "@apollo/client";
@@ -13,9 +13,7 @@ export type DemonstrationHeaderDetails = Pick<
   "id" | "name" | "expirationDate" | "effectiveDate" | "status"
 > & {
   state: Pick<State, "id">;
-  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-    person: Pick<Person, "fullName">;
-  })[];
+  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
 };
 
 interface DemonstrationDetailHeaderProps {
@@ -69,17 +67,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     { label: "State/Territory", value: demonstration.state.id },
     {
       label: "Project Officer",
-      value: (() => {
-        const primaryProjectOfficer = demonstration.roles.find(
-          (role) => role.role === "Project Officer" && role.isPrimary === true
-        );
-
-        if (!primaryProjectOfficer) {
-          throw new Error(`No primary project officer found for demonstration ${demonstration.id}`);
-        }
-
-        return primaryProjectOfficer.person.fullName;
-      })(),
+      value: demonstration.primaryProjectOfficer.fullName,
     },
     { label: "Status", value: demonstration.status },
     {
@@ -118,7 +106,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             <div>
               <SecondaryButton
                 name="Back to demonstrations"
-                onClick={() => window.location.href = "/demonstrations"}
+                onClick={() => (window.location.href = "/demonstrations")}
               >
                 <ChevronLeftIcon width="28" height="20" />
               </SecondaryButton>
@@ -138,9 +126,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                     <React.Fragment key={field.label}>
                       <li className="text-sm">
                         <strong>{field.label}</strong>:{" "}
-                        <span data-testid={`demonstration-${field.label}`}>
-                          {field.value}
-                        </span>
+                        <span data-testid={`demonstration-${field.label}`}>{field.value}</span>
                       </li>
                       {index < displayFields.length - 1 && (
                         <li className="text-sm mx-1" aria-hidden="true">

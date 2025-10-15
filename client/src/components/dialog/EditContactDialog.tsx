@@ -18,7 +18,15 @@ const ERROR_MESSAGE = "An error occurred while updating the contact. Please try 
 export const SET_DEMONSTRATION_ROLE_MUTATION = gql`
   mutation SetDemonstrationRole($input: SetDemonstrationRoleInput!) {
     setDemonstrationRole(input: $input) {
-      role
+      demonstration {
+        id
+        roles {
+          role
+        }
+        primaryProjectOfficer {
+          id
+        }
+      }
     }
   }
 `;

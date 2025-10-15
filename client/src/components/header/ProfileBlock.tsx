@@ -23,9 +23,9 @@ export const ProfileBlock: React.FC = () => {
     console.warn("[ProfileBlock] No currentUser found, signout");
     signOut();
   }
-  // These fields are not nullable in DB. So they can't be missing.
-  const name = currentUser ? (currentUser.person.displayName ?? currentUser.person.fullName) : "";
-  const firstCharacter = (name?.trim()?.[0] ?? "?").toUpperCase();
+
+  const resolvedName = currentUser ? currentUser.person.fullName || currentUser.username?.trim() : "";
+  const avaChar = (resolvedName.trim()[0] ?? "?").toUpperCase();
 
   return (
     <div
@@ -33,9 +33,9 @@ export const ProfileBlock: React.FC = () => {
       className="relative flex items-center gap-x-1 mr-2 cursor-pointer select-none"
       onClick={() => setOpen((value) => !value)}
     >
-      <Avatar character={firstCharacter} />
+      <Avatar character={avaChar} />
       <span id="profile-name" className="text-lg font-semibold">
-        {name}
+        {resolvedName}
       </span>
       <span>
         <ChevronDownIcon className={open ? "rotate-180" : ""} />

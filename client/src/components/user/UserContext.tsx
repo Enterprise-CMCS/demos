@@ -1,22 +1,28 @@
 import React, { createContext, useContext, useMemo, useEffect } from "react";
 import { useQuery, ApolloError, ApolloQueryResult, gql } from "@apollo/client";
 import { useAuth } from "react-oidc-context";
-import { Person } from "demos-server";
+import { Person, User } from "demos-server";
 
 export const GET_CURRENT_USER_QUERY = gql`
   query GetCurrentUser {
     currentUser {
+      id
+      username
       person {
+        id
         personType
         fullName
-        displayName
+        firstName
+        lastName
         email
       }
     }
   }
 `;
 
-type CurrentUser = { person: Pick<Person, "personType" | "fullName" | "displayName" | "email"> };
+type CurrentUser = Pick<User, "id" | "username"> & {
+  person: Pick<Person, "personType" | "fullName" | "firstName" | "lastName" | "email">;
+};
 
 type UserContextValue = {
   currentUser: CurrentUser | null;
@@ -58,7 +64,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       refresh: () => refetch(),
-      // Setting the ground work for roles
       hasRole: (name) => currentUser?.person.personType === name,
     }),
     [currentUser, loading, error, refetch]

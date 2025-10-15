@@ -1,4 +1,4 @@
-import { generateCustomSetScalar } from "../../resolverFunctions.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { PHASE_STATUS } from "../../constants.js";
 
 export const phaseStatusResolvers = {

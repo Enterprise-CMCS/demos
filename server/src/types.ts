@@ -51,6 +51,7 @@ export type { BundlePhase } from "./model/bundlePhase/bundlePhaseSchema.js";
 export type { Bundle } from "./model/bundle/bundleSchema.js";
 export type { BundleDate, SetBundleDateInput } from "./model/bundleDate/bundleDateSchema.js";
 
+export type NonEmptyString = string;
 export type BundleStatus = (typeof BUNDLE_STATUS)[number];
 export type BundleType = (typeof BUNDLE_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];

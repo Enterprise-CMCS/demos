@@ -42,8 +42,6 @@ export const DefaultHeaderLower: React.FC = () => {
     );
   }
 
-  const name = currentUser.person.displayName || currentUser.person.email;
-
   const handleSelect = (item: string) => {
     setShowDropdown(false);
     if (item === "Demonstration") setModalType("demonstration");
@@ -55,7 +53,8 @@ export const DefaultHeaderLower: React.FC = () => {
   return (
     <div className="w-full bg-brand text-white p-[16px] h-[72px] flex items-center justify-between">
       <div>
-        <span className="font-bold block">Hello {name}</span>
+        {/* Fullname should always exist. I see no reason for a fallback */}
+        <span className="font-bold block">Hello {currentUser.person.fullName}</span>
         <span className="block text-sm">Welcome to DEMOS!</span>
       </div>
 
@@ -65,10 +64,8 @@ export const DefaultHeaderLower: React.FC = () => {
           data-testid="create-new"
           onClick={() => setShowDropdown((prev) => !prev)}
         >
-          <div className="flex items-center gap-1">
-            <span>Create New</span>
-            <AddNewIcon />
-          </div>
+          <span>Create New</span>
+          <AddNewIcon />
         </SecondaryButton>
 
         {showDropdown && (

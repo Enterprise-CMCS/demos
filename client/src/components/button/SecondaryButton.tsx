@@ -8,6 +8,7 @@ bg-white
 text-action
 border
 border-action
+gap-1
 
 hover:bg-action
 hover:text-white

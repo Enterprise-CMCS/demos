@@ -20,7 +20,7 @@ pipeline {
             // Keep this hardcoded as the nonprod account number
             assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
             script {
-              def branch = params.ENVIRONMENT == 'dev' ? 'main' : params.ENVIRONMENT
+              def branch = 'main'
               checkout([
                 $class: 'GitSCM',
                 branches: [[name: "*/${branch}"]],

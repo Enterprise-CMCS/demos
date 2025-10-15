@@ -3,13 +3,7 @@ import React, { useState } from "react";
 import { SecondaryButton } from "components/button";
 import { EditDemonstrationDialog } from "components/dialog";
 import { EditIcon } from "components/icons";
-import {
-  BundleStatus,
-  Demonstration,
-  DemonstrationRoleAssignment,
-  Person,
-  State,
-} from "demos-server";
+import { BundleStatus, Demonstration, Person, State } from "demos-server";
 import { tw } from "tags/tw";
 import { safeDateFormat } from "util/formatDate";
 
@@ -20,9 +14,7 @@ type SummaryDetailsDemonstration = Pick<
   effectiveDate: Date | string | null;
   expirationDate: Date | string | null;
   state: Pick<State, "name" | "id">;
-  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-    person: Pick<Person, "fullName">;
-  })[];
+  primaryProjectOfficer: Pick<Person, "fullName">;
   status: BundleStatus;
 };
 
@@ -50,14 +42,12 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
   };
 
   return (
-    <div className="border border-gray-300 bg-white p-2 shadow-sm">
+    <>
       <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
         <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
         <SecondaryButton name="button-edit-details" size="small" onClick={handleEditClick}>
-          <div className="flex items-center gap-1">
-            <EditIcon className="w-2 h-2" />
-            Edit Details
-          </div>
+          Edit Details
+          <EditIcon className="w-2 h-2" />
         </SecondaryButton>
       </div>
 
@@ -74,21 +64,7 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
 
         <div>
           <div className={LABEL_CLASSES}>Project Officer</div>
-          <div className={VALUE_CLASSES}>
-            {(() => {
-              const primaryProjectOfficer = demonstration.roles.find(
-                (role) => role.role === "Project Officer" && role.isPrimary === true
-              );
-
-              if (!primaryProjectOfficer) {
-                throw new Error(
-                  `No primary project officer found for demonstration ${demonstration.id}`
-                );
-              }
-
-              return primaryProjectOfficer.person.fullName;
-            })()}
-          </div>
+          <div className={VALUE_CLASSES}>{demonstration.primaryProjectOfficer.fullName}</div>
         </div>
 
         <div>
@@ -135,6 +111,6 @@ export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) 
           onClose={handleCloseModal}
         />
       )}
-    </div>
+    </>
   );
 };

@@ -4,7 +4,14 @@ import { ApplicationWorkflow } from "components/application/ApplicationWorkflow"
 import { SecondaryButton } from "components/button";
 import { EditContactDialog } from "components/dialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
-import { AddNewIcon } from "components/icons";
+import {
+  AddNewIcon,
+  CharacteristicIcon,
+  DetailsIcon,
+  EditIcon,
+  OpenFolderIcon,
+  StackIcon,
+} from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
@@ -16,9 +23,8 @@ import {
   Person,
   PhaseName,
   State,
-  User,
 } from "demos-server";
-import { Tab, Tabs } from "layout/Tabs";
+import { VerticalTabs, Tab } from "layout/Tabs";
 
 type ModalType = "document" | "contact" | null;
 
@@ -37,7 +43,7 @@ export type DemonstrationTabDemonstration = Pick<
   })[];
   state: Pick<State, "id" | "name">;
   roles: Role[];
-  projectOfficer: Pick<User, "id">;
+  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
   status: BundleStatus;
   currentPhaseName: PhaseName;
 };
@@ -48,53 +54,53 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
   const [modalType, setModalType] = useState<ModalType>(null);
 
   return (
-    <div>
+    <div className="p-[16px]">
       <ApplicationWorkflow demonstration={demonstration} />
-      <Tabs defaultValue="summary">
-        <Tab label="Summary" value="summary">
+      <VerticalTabs defaultValue="details">
+        <Tab icon={<DetailsIcon />} label="Details" value="details">
           <SummaryDetailsTable demonstration={demonstration} />
         </Tab>
-        <Tab label="Types (0)" value="demonstrationTypes">
-          <div className="border border-gray-300 bg-white p-2 shadow-sm">
-            <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">Types</h1>
-              {/* TO DO: Add New button? */}
-            </div>
-          </div>
+        <Tab icon={<StackIcon />} label="Types (0)" value="demonstrationTypes">
+          <h1 className="text-xl font-bold text-brand uppercase">Types</h1>
+          {/* TO DO: Add New button? */}
         </Tab>
-        <Tab label={`Documents (${demonstration.documents?.length ?? 0})`} value="documents">
-          <div className="border border-gray-300 bg-white p-2 shadow-sm">
-            <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
-              <SecondaryButton
-                name="add-new-document"
-                size="small"
-                onClick={() => setModalType("document")}
-              >
-                <span>Add New</span>
-                <AddNewIcon className="w-2 h-2" />
-              </SecondaryButton>
-            </div>
-            <DocumentTable documents={demonstration.documents} />
+        <Tab
+          icon={<OpenFolderIcon />}
+          label={`Documents (${demonstration.documents?.length ?? 0})`}
+          value="documents"
+        >
+          <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+            <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
+            <SecondaryButton
+              name="add-new-document"
+              size="small"
+              onClick={() => setModalType("document")}
+            >
+              Add Document
+              <AddNewIcon className="w-2 h-2" />
+            </SecondaryButton>
           </div>
+          <DocumentTable documents={demonstration.documents} />
         </Tab>
-        <Tab label={`Contacts (${demonstration.roles?.length ?? 0})`} value="contacts">
-          <div className="border border-gray-300 bg-white p-2 shadow-sm">
-            <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-              <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
-              <SecondaryButton
-                name="add-new-contact"
-                size="small"
-                onClick={() => setModalType("contact")}
-              >
-                <span>Add New</span>
-                <AddNewIcon className="w-2 h-2" />
-              </SecondaryButton>
-            </div>
-            <ContactsTable roles={demonstration.roles} demonstrationId={demonstration.id} />
+        <Tab
+          icon={<CharacteristicIcon />}
+          label={`Contacts (${demonstration.roles?.length ?? 0})`}
+          value="contacts"
+        >
+          <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+            <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
+            <SecondaryButton
+              name="add-new-contact"
+              size="small"
+              onClick={() => setModalType("contact")}
+            >
+              Manage Contacts
+              <EditIcon className="w-2 h-2" />
+            </SecondaryButton>
           </div>
+          <ContactsTable roles={demonstration.roles} demonstrationId={demonstration.id} />
         </Tab>
-      </Tabs>
+      </VerticalTabs>
 
       {modalType === "document" && (
         <AddDocumentDialog
