@@ -47,7 +47,7 @@ export const eventResolvers = {
             eventType,
             logLevel,
             route,
-            bundleId: bundleId ?? null, // nullable FK
+            bundleId: bundleId ?? null,
             eventData,
           },
         });

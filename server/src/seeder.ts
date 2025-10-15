@@ -568,7 +568,7 @@ async function seedDatabase() {
         "/login",
         "/graph",
       ]),
-      bundleId: maybeBundle, // nullable FK
+      bundleId: maybeBundle,
       eventData: {
         ip: faker.internet.ipv4(),
         ua: faker.internet.userAgent(),
