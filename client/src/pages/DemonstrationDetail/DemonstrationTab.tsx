@@ -7,6 +7,7 @@ import {
   AddNewIcon,
   CharacteristicIcon,
   DetailsIcon,
+  EditIcon,
   OpenFolderIcon,
   StackIcon,
 } from "components/icons";
@@ -74,7 +75,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               size="small"
               onClick={() => setModalType("document")}
             >
-              <span>Add New</span>
+              Add Document
               <AddNewIcon className="w-2 h-2" />
             </SecondaryButton>
           </div>
@@ -92,8 +93,8 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               size="small"
               onClick={() => setModalType("contact")}
             >
-              <span>Add New</span>
-              <AddNewIcon className="w-2 h-2" />
+              Manage Contacts
+              <EditIcon className="w-2 h-2" />
             </SecondaryButton>
           </div>
           <ContactsTable roles={demonstration.roles} demonstrationId={demonstration.id} />

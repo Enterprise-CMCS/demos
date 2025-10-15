@@ -87,10 +87,8 @@ export const CompletenessPhase: React.FC = () => {
       <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
 
       <SecondaryButton onClick={() => setUploadOpen(true)} size="small" name="open-upload">
-        <span className="flex items-center gap-1">
-          Upload
-          <ExportIcon />
-        </span>
+        Upload
+        <ExportIcon />
       </SecondaryButton>
 
       <div className={STYLES.list}>
