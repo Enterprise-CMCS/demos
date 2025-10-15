@@ -64,10 +64,8 @@ export const DefaultHeaderLower: React.FC = () => {
           data-testid="create-new"
           onClick={() => setShowDropdown((prev) => !prev)}
         >
-          <div className="flex items-center gap-1">
-            <span>Create New</span>
-            <AddNewIcon />
-          </div>
+          <span>Create New</span>
+          <AddNewIcon />
         </SecondaryButton>
 
         {showDropdown && (
