@@ -3,7 +3,7 @@ import React, { Children, ReactElement, useState } from "react";
 export interface TabProps {
   label: React.ReactNode;
   value: string;
-  children?: React.ReactNode;
+  children: React.ReactNode;
   icon?: React.ReactNode;
 }
 
