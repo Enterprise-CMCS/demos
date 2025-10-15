@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { SecondaryButton } from "components/button";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { ManageContactsDialog } from "components/dialog/ManageContactsDialog";
 import {
   AddNewIcon,
   CharacteristicIcon,
@@ -16,15 +17,18 @@ import { DocumentTable } from "components/table/tables/DocumentTable";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import {
   BundleStatus,
-  DemonstrationRoleAssignment,
   Demonstration,
+  DemonstrationRoleAssignment,
   Document,
-  PhaseName,
   Person,
+  PhaseName,
   State,
 } from "demos-server";
-import { EditContactDialog } from "components/dialog";
-import { VerticalTabs, Tab } from "layout/Tabs";
+import {
+  Tab,
+  VerticalTabs,
+} from "layout/Tabs";
+
 type ModalType = "document" | "contact" | null;
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
@@ -89,15 +93,15 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
             <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
             <SecondaryButton
-              name="add-new-contact"
+              name="manage-contacts"
               size="small"
               onClick={() => setModalType("contact")}
             >
-              Manage Contacts
+              <span>Manage Contact(s)</span>
               <EditIcon className="w-2 h-2" />
             </SecondaryButton>
           </div>
-          <ContactsTable roles={demonstration.roles} demonstrationId={demonstration.id} />
+          <ContactsTable roles={demonstration.roles} />
         </Tab>
       </VerticalTabs>
 
@@ -105,10 +109,20 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
       )}
       {modalType === "contact" && (
-        <EditContactDialog
+        <ManageContactsDialog
           demonstrationId={demonstration.id}
           isOpen={true}
           onClose={() => setModalType(null)}
+          existingContacts={(demonstration.roles || []).map((c) => ({
+            person: {
+              id: c.person.id,
+              fullName: c.person.fullName,
+              email: c.person.email,
+              idmRoles: [], // unknown for existing; restrictions handled dynamically
+            },
+            role: c.role,
+            isPrimary: c.isPrimary,
+          }))}
         />
       )}
     </div>
