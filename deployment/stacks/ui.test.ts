@@ -37,7 +37,9 @@ describe("UI Stack", () => {
     // fs.writeFileSync("template-ui.json", JSON.stringify(template.toJSON(), null, 2));
 
     template.resourceCountIs("AWS::CloudFront::Distribution", 1);
-    template.resourceCountIs("Custom::CDKBucketDeployment", 1);
+    // The DeployTimeSubstitutedFile has the type Custom::CDKBucketDeployment in
+    // addition to the actual bucket deployment
+    template.resourceCountIs("Custom::CDKBucketDeployment", 2);
     template.resourceCountIs("AWS::WAFv2::WebACL", 2);
 
     template.hasResourceProperties("AWS::CloudFront::Distribution", {
