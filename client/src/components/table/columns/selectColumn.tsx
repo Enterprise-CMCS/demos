@@ -8,14 +8,14 @@ export function createSelectColumnDef<T>(columnHelper: ColumnHelper<T>) {
     header: ({ table }: { table: Table<T> }) => (
       <Checkbox
         name="select-all-rows"
-        defaultChecked={table.getIsAllPageRowsSelected()}
+        checked={table.getIsAllPageRowsSelected()}
         onChange={table.getToggleAllPageRowsSelectedHandler()}
       />
     ),
     cell: ({ row }: { row: Row<T> }) => (
       <Checkbox
         name={`select-row-${row.id}`}
-        defaultChecked={row.getIsSelected()}
+        checked={row.getIsSelected()}
         onChange={row.getToggleSelectedHandler()}
       />
     ),
