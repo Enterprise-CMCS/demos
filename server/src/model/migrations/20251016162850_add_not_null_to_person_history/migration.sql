@@ -6,4 +6,5 @@
 
 */
 -- AlterTable
-ALTER TABLE "demos_app"."event" ADD COLUMN     "bundle_id" UUID;
+ALTER TABLE "demos_app"."person_history" ALTER COLUMN "first_name" SET NOT NULL,
+ALTER COLUMN "last_name" SET NOT NULL;
