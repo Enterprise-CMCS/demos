@@ -1,12 +1,12 @@
 model Person {
-  id           String   @default(uuid()) @db.Uuid
-  personTypeId String   @map("person_type_id")
+  id           String @default(uuid()) @db.Uuid
+  personTypeId String @map("person_type_id")
   email        String
-  firstName    String   @map("first_name")
-  lastName     String   @map("last_name")
+  firstName    String @map("first_name")
+  lastName     String @map("last_name")
 
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   personType                   PersonType                    @relation(fields: [personTypeId], references: [id])
   user                         User?

@@ -60,7 +60,13 @@ export const PHASE_NAME = [
   "Post Approval",
 ] as const;
 
-export const PHASE_STATUS = ["Not Started", "Started", "Completed", "Skipped"] as const;
+export const PHASE_STATUS = [
+  "Not Started",
+  "Started",
+  "Completed",
+  "Incomplete",
+  "Skipped",
+] as const;
 
 export const DATE_TYPES = [
   "Concept Start Date",

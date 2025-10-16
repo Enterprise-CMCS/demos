@@ -12,6 +12,7 @@ const PHASE_DATE_TEXT_LOOKUP: Record<PhaseStatus, string> = {
   Started: "Due",
   "Not Started": "Not Started",
   Completed: "Completed",
+  Incomplete: "Incomplete",
   "past-due": "Past Due",
 };
 
@@ -21,6 +22,7 @@ const PHASE_DATE_STYLE_LOOKUP: Record<PhaseStatus, string> = {
   "Not Started": tw`italic text-text-placeholder`,
   Completed: tw`italic text-text-placeholder`,
   "past-due": PAST_DUE_DATE_CLASS,
+  Incomplete: PAST_DUE_DATE_CLASS,
 };
 
 const PHASE_TEXT_COLOR_LOOKUP: Record<PhaseStatus, string> = {
@@ -29,6 +31,7 @@ const PHASE_TEXT_COLOR_LOOKUP: Record<PhaseStatus, string> = {
   "Not Started": tw`text-text-placeholder`,
   Completed: tw`text-success-darkest`,
   "past-due": PAST_DUE_TEXT_CLASS,
+  Incomplete: PAST_DUE_TEXT_CLASS,
 };
 
 interface PhaseDateProps {
