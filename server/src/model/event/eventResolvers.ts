@@ -1,6 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import { LogEventInput } from "./eventSchema.js";
 import { Event } from "@prisma/client";
+import { getBundle } from "../bundle/bundleResolvers.js";
 import {
   GraphQLContext,
   getCurrentUserId,
@@ -62,9 +63,6 @@ export const eventResolvers = {
 
     withRole: (parent: Event) => parent.withRoleId ?? null,
 
-    bundle: (parent: Event) =>
-      parent.bundleId
-        ? prisma().bundle.findUnique({ where: { id: parent.bundleId } })
-        : null,
+    bundle: (parent: Event) => (parent.bundleId ? getBundle(parent.bundleId) : null),
   },
 };
