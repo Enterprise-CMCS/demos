@@ -164,7 +164,7 @@ describe("SummaryDetailsTab", () => {
     it("edit button has accessible name", () => {
       render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
 
-      const editButton = screen.getByRole("button", { name: /edit details/i });
+      const editButton = screen.getByRole("button", { name: /button-edit-details/i });
       expect(editButton).toBeInTheDocument();
     });
   });
