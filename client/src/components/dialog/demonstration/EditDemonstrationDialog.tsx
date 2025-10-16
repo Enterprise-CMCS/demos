@@ -95,10 +95,7 @@ const getDemonstrationDialogFields = (demonstration: Demonstration): Demonstrati
 const useUpdateDemonstration = () => {
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
 
-  return async (
-    demonstrationId: string,
-    demonstrationDialogFields: DemonstrationDialogFields
-  ) => {
+  return async (demonstrationId: string, demonstrationDialogFields: DemonstrationDialogFields) => {
     const updateInput = getUpdateDemonstrationInput(demonstrationDialogFields);
 
     await updateDemonstrationTrigger({
