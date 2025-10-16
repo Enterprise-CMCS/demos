@@ -1,11 +1,8 @@
 import React from "react";
-
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
 import { safeDateFormat } from "util/formatDate";
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { render, screen, waitFor } from "@testing-library/react";
-
 import { DEMONSTRATION_SUMMARY_DETAILS_QUERY, SummaryDetailsTable } from "./SummaryDetailsTable";
 import { MockedProvider } from "@apollo/client/testing";
 
@@ -76,7 +73,6 @@ describe("SummaryDetailsTable", () => {
 describe("Loading States", () => {
   it("shows loading state initially", () => {
     renderSummaryDetailsTable();
-    // You might have a loading spinner or text
     expect(screen.getByText(/loading.../i)).toBeInTheDocument();
   });
 });

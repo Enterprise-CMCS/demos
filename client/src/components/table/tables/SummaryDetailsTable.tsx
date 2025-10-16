@@ -58,16 +58,10 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
   if (loading) {
     return <div>Loading...</div>;
   }
-
-  if (error) {
+  const demonstration = data?.demonstration;
+  if (error || !demonstration) {
     return <div>Error loading demonstration details.</div>;
   }
-
-  if (!data || !data.demonstration) {
-    return <div>No demonstration details found.</div>;
-  }
-
-  const demonstration = data.demonstration;
 
   return (
     <div className="grid grid-cols-2 gap-y-4 gap-x-8">

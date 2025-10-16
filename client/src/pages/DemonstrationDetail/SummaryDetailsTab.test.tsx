@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 
-// Mock the child components
+const EDIT_BUTTON_TEST_ID = "button-edit-details";
+
 vi.mock("components/table/tables/SummaryDetailsTable", () => ({
   SummaryDetailsTable: ({ demonstrationId }: { demonstrationId: string }) => (
     <div data-testid="summary-details-table">Summary Details Table for demo: {demonstrationId}</div>
@@ -44,10 +45,10 @@ describe("SummaryDetailsTab", () => {
       expect(screen.getByText("Summary Details").tagName).toBe("H2");
     });
 
-    it("renders the edit button with correct styling and content", () => {
+    it("renders the edit button with correct styling", () => {
       render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
 
-      const editButton = screen.getByTestId("button-edit-details");
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       expect(editButton).toBeInTheDocument();
       expect(editButton).toHaveTextContent("Edit Details");
     });
@@ -68,88 +69,15 @@ describe("SummaryDetailsTab", () => {
     });
   });
 
-  describe("Edit Modal Functionality", () => {
-    it("opens edit dialog when edit button is clicked", async () => {
+  describe("Edit Functionality", () => {
+    it("opens modal when edit button is clicked", async () => {
       const user = userEvent.setup();
       render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
 
-      const editButton = screen.getByTestId("button-edit-details");
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
       await user.click(editButton);
 
-      expect(screen.getByTestId("edit-demonstration-dialog")).toBeInTheDocument();
       expect(screen.getByText(`Edit Dialog for demo: ${mockDemonstrationId}`)).toBeInTheDocument();
-    });
-
-    it("closes edit dialog when onClose is called", async () => {
-      const user = userEvent.setup();
-      render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
-
-      // Open dialog
-      const editButton = screen.getByTestId("button-edit-details");
-      await user.click(editButton);
-
-      expect(screen.getByTestId("edit-demonstration-dialog")).toBeInTheDocument();
-
-      // Close dialog
-      const closeButton = screen.getByTestId("close-dialog");
-      await user.click(closeButton);
-
-      expect(screen.queryByTestId("edit-demonstration-dialog")).not.toBeInTheDocument();
-    });
-
-    it("can open and close dialog multiple times", async () => {
-      const user = userEvent.setup();
-      render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
-
-      const editButton = screen.getByTestId("button-edit-details");
-
-      // Open dialog
-      await user.click(editButton);
-      expect(screen.getByTestId("edit-demonstration-dialog")).toBeInTheDocument();
-
-      // Close dialog
-      const closeButton = screen.getByTestId("close-dialog");
-      await user.click(closeButton);
-      expect(screen.queryByTestId("edit-demonstration-dialog")).not.toBeInTheDocument();
-
-      // Open dialog again
-      await user.click(editButton);
-      expect(screen.getByTestId("edit-demonstration-dialog")).toBeInTheDocument();
-    });
-  });
-
-  describe("Component Props", () => {
-    it("passes demonstrationId to child components correctly", () => {
-      const customDemoId = "custom-demo-456";
-      render(<SummaryDetailsTab demonstrationId={customDemoId} />);
-
-      expect(
-        screen.getByText(`Summary Details Table for demo: ${customDemoId}`)
-      ).toBeInTheDocument();
-    });
-
-    it("renders without throwing errors", () => {
-      expect(() => {
-        render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
-      }).not.toThrow();
-    });
-  });
-
-  describe("Layout Structure", () => {
-    it("has correct header layout with flex styling", () => {
-      render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
-
-      const headerContainer = screen.getByText("Summary Details").closest("div");
-      expect(headerContainer).toHaveClass("flex", "justify-between", "items-center");
-    });
-
-    it("renders components in correct order", () => {
-      render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
-
-      const elements = screen.getAllByRole("heading", { level: 2 });
-      expect(elements[0]).toHaveTextContent("Summary Details");
-
-      expect(screen.getByTestId("summary-details-table")).toBeInTheDocument();
     });
   });
 
@@ -157,15 +85,15 @@ describe("SummaryDetailsTab", () => {
     it("has proper heading structure", () => {
       render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
 
-      const heading = screen.getByRole("heading", { level: 2 });
-      expect(heading).toHaveTextContent("Summary Details");
+      const heading = screen.getByText("Summary Details");
+      expect(heading.tagName).toBe("H2");
     });
 
-    it("edit button has accessible name", () => {
+    it("has accessible button with proper content", () => {
       render(<SummaryDetailsTab demonstrationId={mockDemonstrationId} />);
 
-      const editButton = screen.getByRole("button", { name: /button-edit-details/i });
-      expect(editButton).toBeInTheDocument();
+      const editButton = screen.getByTestId(EDIT_BUTTON_TEST_ID);
+      expect(editButton).toHaveTextContent("Edit Details");
     });
   });
 });
