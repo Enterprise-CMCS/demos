@@ -9,15 +9,11 @@ import {
 
 export const eventResolvers = {
   Query: {
-    // Only return events that are actually associated to a bundle
     events: async () => {
       return prisma().event.findMany({
-        where: { bundleId: { not: null } },
         orderBy: { createdAt: "desc" },
       });
     },
-
-    // Handy focused query for timelines on a specific bundle
     eventsByBundle: async (_: unknown, { bundleId }: { bundleId: string }) => {
       return prisma().event.findMany({
         where: { bundleId },

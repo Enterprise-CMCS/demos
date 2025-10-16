@@ -574,8 +574,6 @@ async function seedDatabase() {
         ua: faker.internet.userAgent(),
         note: faker.lorem.sentence(),
       },
-      // If you want a random-ish createdAt in the last 30 days:
-      // createdAt: faker.date.recent({ days: 30 }),
     });
   }
 
