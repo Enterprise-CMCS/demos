@@ -1,0 +1,104 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node", "aws-cli"])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    NO_COLOR = 1
+    STAGE = "test"
+  }
+
+  stages {
+    stage('Validate branch state') {
+      steps {
+        script {
+          def mainStatus = sh( script: """
+            curl -s https://api.github.com/repos/Enterprise-CMCS/demos/commits/\$(git rev-parse HEAD)/status  | grep "state" | head -n1 | sed -E 's/.*"state": "(.*)".*/\\1/'
+          """, returnStdout: true).trim()
+
+          if (mainStatus != "success") {
+            error("Main branch is not in a successful state: ${mainStatus}")
+          }
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        script {
+          assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+          dirCon('deployment', 'node') {
+            sh """
+            mkdir ../client/dist
+            mkdir ../server/build
+
+            # These are needed for the built-in CDK bundling
+            apk add bash
+            npm i -g esbuild
+            npm i -g tsx
+
+            npm ci
+            npx tsx demosctl/index deploy:core ${env.STAGE}
+            """
+          }
+          parallel(
+            'Build Client': {
+              dirCon('deployment','node') {
+                  sh "npx tsx demosctl/index build:client ${env.STAGE}"
+                  
+                  
+              }
+            }, 'Build Server': {
+              dirCon('deployment', 'node') {
+                  sh "npx tsx demosctl/index build:server ${env.STAGE}"
+              }
+            }
+          )
+        }
+      }
+    }
+    stage("Run Migrations") {
+      steps {
+        script {
+          dirCon('deployment', 'node') {
+            sh """
+            npx tsx demosctl/index migrate ${env.STAGE}
+            """
+          }
+        }
+      }
+      post {
+        failure {
+          script {
+            notifyMigrationError(env.STAGE)
+          }
+        }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+          script {
+            dirCon('deployment','node') {
+              sh "npx tsx demosctl/index deploy:all ${env.STAGE}"
+            }
+          }
+      }
+    }
+  }
+
+    post {
+      success {
+        slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+      }
+      failure {
+        slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+      }
+    }
+}

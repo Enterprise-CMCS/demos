@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { SecondaryButton } from "components/button";
+import { EditContactDialog } from "components/dialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import {
   AddNewIcon,
@@ -14,7 +15,6 @@ import {
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import { Demonstration, Document, PhaseName, Person } from "demos-server";
-import { EditContactDialog } from "components/dialog";
 import { VerticalTabs, Tab } from "layout/Tabs";
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 
@@ -85,7 +85,17 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
       </VerticalTabs>
 
       {modalType === "document" && (
-        <AddDocumentDialog isOpen={true} onClose={() => setModalType(null)} />
+        <AddDocumentDialog
+          isOpen={true}
+          onClose={() => setModalType(null)}
+          initialDocument={{
+            id: demonstration.id,
+            name: "",
+            description: "",
+            documentType: "General File",
+            file: null,
+          }}
+        />
       )}
       {modalType === "contact" && (
         <EditContactDialog

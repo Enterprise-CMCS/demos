@@ -7,8 +7,6 @@ import { parseISO } from "date-fns";
 
 export interface ColumnFilterByDropdownProps<T> {
   table: Table<T>;
-  label?: string;
-  className?: string;
 }
 
 export interface ColumnMetaFilterConfig {
@@ -27,7 +25,7 @@ export interface ColumnMetaFilterConfig {
       };
 }
 
-export function ColumnFilter<T>({ table, className = "" }: ColumnFilterByDropdownProps<T>) {
+export function ColumnFilter<T>({ table }: ColumnFilterByDropdownProps<T>) {
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
   const [filterValue, setFilterValue] = React.useState<string | string[] | null>("");
 
@@ -153,19 +151,17 @@ export function ColumnFilter<T>({ table, className = "" }: ColumnFilterByDropdow
   const liveMessage = `Showing ${totalRows} rows`;
 
   return (
-    <div className={className}>
-      <div className="ml-2 mb-2 mr-2 flex items-center gap-2 text-sm">
-        <Select
-          label="Filter by:"
-          options={columnOptions}
-          placeholder="Select a Column..."
-          value={selectedColumn}
-          onSelect={(val) => setSelectedColumn(val)}
-          id="filter-by-column"
-        />
+    <div className="flex flex-col gap-sm">
+      <Select
+        label="Filter by:"
+        options={columnOptions}
+        placeholder="Select a Column..."
+        value={selectedColumn}
+        onSelect={(val) => setSelectedColumn(val)}
+        id="filter-by-column"
+      />
 
-        {renderFilterInput()}
-      </div>
+      {renderFilterInput()}
 
       <div aria-live="polite" role="status" className="sr-only">
         {liveMessage}

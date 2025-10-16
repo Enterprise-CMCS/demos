@@ -199,8 +199,12 @@ export const handler = async (event: SQSEvent) => {
   };
 
   try {
-    client = new Client({ connectionString: await getDatabaseUrl() });
-    console.log("this is the client --->", client);
+    client = new Client({
+      connectionString: await getDatabaseUrl(),
+      ssl: {
+        rejectUnauthorized: true,
+      },
+    });
     await client.connect();
     const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
     await client.query(setSearchPathQuery);

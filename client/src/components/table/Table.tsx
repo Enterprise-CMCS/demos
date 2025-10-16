@@ -18,7 +18,7 @@ import {
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
 
 const STYLES = {
-  table: "w-full table-fixed",
+  table: "w-full table-auto",
   th: "bg-gray-lighter p-1 font-semibold text-left border-b cursor-pointer select-none",
   tr: "h-[56px] border-b p-1",
   td: "p-1 text-[14px] break-words overflow-wrap",
@@ -110,9 +110,9 @@ function TableSearch<T>({
   columnFilter?: (table: TanstackTable<T>) => React.ReactNode;
 }) {
   return (
-    <div className="flex items-center">
-      {keywordSearch && keywordSearch(table)}
-      {columnFilter && columnFilter(table)}
+    <div className="grid w-full grid-cols-4 gap-[24px]">
+      <div className="col-span-1">{keywordSearch && keywordSearch(table)}</div>
+      <div className="col-span-1">{columnFilter && columnFilter(table)}</div>
     </div>
   );
 }
@@ -122,7 +122,6 @@ export interface TableProps<T> {
   // explicitly allowing any because the column definitions intentionally allow for flexibility in types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<T, any>[];
-  className?: string;
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
   getSubRows?: (originalRow: T, index: number) => T[] | undefined;
@@ -137,7 +136,6 @@ export interface TableProps<T> {
 export function Table<T>({
   data,
   columns,
-  className,
   emptyRowsMessage,
   noResultsFoundMessage,
   getSubRows,
@@ -194,7 +192,7 @@ export function Table<T>({
   ]);
 
   return (
-    <div className={`${className || ""}`}>
+    <>
       <div className="flex items-center justify-between mb-[24px]">
         <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
         <div className="mr-1">{actionButtons && actionButtons(table)}</div>
@@ -212,6 +210,6 @@ export function Table<T>({
         />
       </table>
       {pagination && pagination(table)}
-    </div>
+    </>
   );
 }
