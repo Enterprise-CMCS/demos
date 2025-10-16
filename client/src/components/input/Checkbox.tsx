@@ -1,21 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 export interface CheckboxProps {
   name: string;
   label?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  defaultChecked?: boolean;
+  checked: boolean;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
-  name,
-  label,
-  onChange,
-  defaultChecked = false,
-}) => {
-  const [checked, setChecked] = useState(defaultChecked);
-
+export const Checkbox: React.FC<CheckboxProps> = ({ name, label, onChange, checked }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setChecked(e.target.checked);
     onChange?.(e);
   };
 

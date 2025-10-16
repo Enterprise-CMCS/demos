@@ -1,17 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { Checkbox, CheckboxProps } from "./Checkbox";
 
+// Helper component for controlled checkbox testing
+const ControlledCheckbox = ({
+  initialChecked = false,
+  ...props
+}: Omit<CheckboxProps, "checked"> & { initialChecked?: boolean }) => {
+  const [checked, setChecked] = useState(initialChecked);
+  return (
+    <Checkbox
+      {...props}
+      checked={checked}
+      onChange={(e) => {
+        setChecked(e.target.checked);
+        props.onChange?.(e);
+      }}
+    />
+  );
+};
+
 describe("Checkbox component", () => {
-  const defaultProps: CheckboxProps = {
+  const defaultProps: Omit<CheckboxProps, "checked"> = {
     name: "test-checkbox",
     label: "Test Checkbox",
   };
 
   describe("Rendering", () => {
     it("renders checkbox with label", () => {
-      render(<Checkbox {...defaultProps} />);
+      render(<Checkbox {...defaultProps} checked={false} />);
 
       const checkbox = screen.getByTestId("test-checkbox");
       const label = screen.getByText("Test Checkbox");
@@ -22,7 +40,7 @@ describe("Checkbox component", () => {
     });
 
     it("has proper name and id attributes", () => {
-      render(<Checkbox {...defaultProps} name="terms-and-conditions" label="Accept Terms" />);
+      render(<Checkbox name="terms-and-conditions" label="Accept Terms" checked={false} />);
 
       const checkbox = screen.getByTestId("terms-and-conditions");
       expect(checkbox).toHaveAttribute("name", "terms-and-conditions");
@@ -30,7 +48,7 @@ describe("Checkbox component", () => {
     });
 
     it("associates label with checkbox via wrapping", () => {
-      render(<Checkbox {...defaultProps} />);
+      render(<Checkbox {...defaultProps} checked={false} />);
 
       const checkbox = screen.getByTestId("test-checkbox");
       const label = screen.getByText("Test Checkbox").closest("label");
@@ -39,23 +57,49 @@ describe("Checkbox component", () => {
     });
   });
 
-  describe("State Management", () => {
-    it("starts unchecked by default", () => {
-      render(<Checkbox {...defaultProps} />);
+  describe("Controlled State Management", () => {
+    it("renders as unchecked when checked prop is false", () => {
+      render(<Checkbox {...defaultProps} checked={false} />);
 
       const checkbox = screen.getByTestId("test-checkbox") as HTMLInputElement;
       expect(checkbox.checked).toBe(false);
     });
 
-    it("starts checked when defaultChecked is true", () => {
-      render(<Checkbox {...defaultProps} defaultChecked />);
+    it("renders as checked when checked prop is true", () => {
+      render(<Checkbox {...defaultProps} checked={true} />);
 
       const checkbox = screen.getByTestId("test-checkbox") as HTMLInputElement;
       expect(checkbox.checked).toBe(true);
     });
 
-    it("toggles checked state when clicked", () => {
-      render(<Checkbox {...defaultProps} />);
+    it("updates when checked prop changes", () => {
+      const { rerender } = render(<Checkbox {...defaultProps} checked={false} />);
+
+      const checkbox = screen.getByTestId("test-checkbox") as HTMLInputElement;
+      expect(checkbox.checked).toBe(false);
+
+      // Update the checked prop
+      rerender(<Checkbox {...defaultProps} checked={true} />);
+      expect(checkbox.checked).toBe(true);
+    });
+
+    it("calls onChange when clicked", () => {
+      const handleChange = vi.fn();
+      render(<Checkbox {...defaultProps} checked={false} onChange={handleChange} />);
+
+      const checkbox = screen.getByTestId("test-checkbox");
+      fireEvent.click(checkbox);
+
+      expect(handleChange).toHaveBeenCalledTimes(1);
+
+      // Verify the event was called with a change event
+      const callArg = handleChange.mock.calls[0][0];
+      expect(callArg.type).toBe("change");
+      expect(callArg.target).toBeDefined();
+    });
+
+    it("toggles checked state when used with controlled component pattern", () => {
+      render(<ControlledCheckbox {...defaultProps} initialChecked={false} />);
 
       const checkbox = screen.getByTestId("test-checkbox") as HTMLInputElement;
 
@@ -70,35 +114,18 @@ describe("Checkbox component", () => {
       fireEvent.click(checkbox);
       expect(checkbox.checked).toBe(false);
     });
-
-    it("calls onChange when clicked", () => {
-      const handleChange = vi.fn();
-      render(<Checkbox {...defaultProps} onChange={handleChange} />);
-
-      const checkbox = screen.getByTestId("test-checkbox");
-      fireEvent.click(checkbox);
-
-      expect(handleChange).toHaveBeenCalledTimes(1);
-      expect(handleChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          target: expect.objectContaining({
-            checked: true,
-          }),
-        })
-      );
-    });
   });
 
   describe("Edge Cases", () => {
     it("handles empty label string", () => {
-      render(<Checkbox {...defaultProps} label="" />);
+      render(<Checkbox {...defaultProps} label="" checked={false} />);
 
       const checkbox = screen.getByTestId("test-checkbox");
       expect(checkbox).toBeInTheDocument();
     });
 
     it("handles onChange being undefined", () => {
-      render(<Checkbox {...defaultProps} />);
+      render(<Checkbox {...defaultProps} checked={false} />);
 
       const checkbox = screen.getByTestId("test-checkbox");
 
@@ -106,8 +133,8 @@ describe("Checkbox component", () => {
       expect(() => fireEvent.click(checkbox)).not.toThrow();
     });
 
-    it("clicking label also toggles checkbox", () => {
-      render(<Checkbox {...defaultProps} />);
+    it("clicking label also toggles checkbox with controlled pattern", () => {
+      render(<ControlledCheckbox {...defaultProps} initialChecked={false} />);
 
       const checkbox = screen.getByTestId("test-checkbox") as HTMLInputElement;
       const label = screen.getByText("Test Checkbox");
@@ -117,6 +144,17 @@ describe("Checkbox component", () => {
       // Click label text
       fireEvent.click(label);
       expect(checkbox.checked).toBe(true);
+    });
+
+    it("does not change state without onChange handler", () => {
+      render(<Checkbox {...defaultProps} checked={false} />);
+
+      const checkbox = screen.getByTestId("test-checkbox") as HTMLInputElement;
+      expect(checkbox.checked).toBe(false);
+
+      // Click checkbox - state should not change since no onChange handler updates parent state
+      fireEvent.click(checkbox);
+      expect(checkbox.checked).toBe(false);
     });
   });
 });
