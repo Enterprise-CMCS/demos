@@ -22,7 +22,7 @@ async function getDocument(parent: undefined, { id }: { id: string }) {
 }
 
 async function getManyDocuments() {
-  return await prisma().demonstration.findMany();
+  return await prisma().document.findMany();
 }
 
 async function getPresignedUploadUrl(
