@@ -38,7 +38,7 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
         isOpen={true}
         onClose={onCloseEntityModal}
         initialDocument={{
-          id: demonstration.id,
+          id: demonstrationId,
           name: "",
           description: "",
           documentType: "General File",
