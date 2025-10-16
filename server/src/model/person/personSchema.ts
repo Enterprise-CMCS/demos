@@ -18,6 +18,7 @@ export const personSchema = gql`
   type Query {
     person(id: ID!): Person
     people: [Person!]!
+    searchPeople(search: String!): [Person!]!
   }
 `;
 

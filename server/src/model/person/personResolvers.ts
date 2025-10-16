@@ -1,4 +1,5 @@
 import { Person } from "@prisma/client";
+
 import { prisma } from "../../prismaClient";
 
 export const personResolvers = {
@@ -13,20 +14,35 @@ export const personResolvers = {
     people: async () => {
       return await prisma().person.findMany();
     },
+    searchPeople: async (_: undefined, { search }: { search: string }) => {
+      return await prisma().person.findMany({
+        where: {
+          OR: [
+            { firstName: { contains: search, mode: "insensitive" } },
+            { lastName: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        },
+      });
+    },
   },
 
   Person: {
     fullName: (parent: Person) => {
-      return [parent.firstName, parent.lastName].filter(Boolean).join(" ").trim();
+      return [parent.firstName, parent.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
     },
     personType: async (parent: Person) => {
       return parent.personTypeId;
     },
     roles: async (parent: Person) => {
-      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
-        where: { personId: parent.id },
-        include: { primaryDemonstrationRoleAssignment: true },
-      });
+      const roleAssignments =
+        await prisma().demonstrationRoleAssignment.findMany({
+          where: { personId: parent.id },
+          include: { primaryDemonstrationRoleAssignment: true },
+        });
       return roleAssignments.map((assignment) => ({
         ...assignment,
         isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
@@ -38,6 +54,6 @@ export const personResolvers = {
         include: { state: true },
       });
       return personStates.map((ps) => ps.state);
-    }
+    },
   },
 };
