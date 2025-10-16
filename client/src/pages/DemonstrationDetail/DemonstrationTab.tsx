@@ -14,40 +14,19 @@ import {
 } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
-import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
-import {
-  BundleStatus,
-  Demonstration,
-  DemonstrationRoleAssignment,
-  Document,
-  Person,
-  PhaseName,
-  State,
-} from "demos-server";
-import {
-  Tab,
-  VerticalTabs,
-} from "layout/Tabs";
+import { Demonstration, Document, PhaseName, Person } from "demos-server";
+import { VerticalTabs, Tab } from "layout/Tabs";
+import { SummaryDetailsTab } from "./SummaryDetailsTab";
 
 type ModalType = "document" | "contact" | null;
 
-type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-  person: Pick<Person, "fullName" | "id" | "email">;
-};
-
-export type DemonstrationTabDemonstration = Pick<
-  Demonstration,
-  "id" | "name" | "description" | "effectiveDate" | "expirationDate" | "status"
-> & {
+export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
       person: Pick<Person, "fullName">;
     };
   })[];
-  state: Pick<State, "id" | "name">;
-  roles: Role[];
-  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
-  status: BundleStatus;
+  roles: [];
   currentPhaseName: PhaseName;
 };
 
@@ -61,7 +40,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
       <ApplicationWorkflow demonstration={demonstration} />
       <VerticalTabs defaultValue="details">
         <Tab icon={<DetailsIcon />} label="Details" value="details">
-          <SummaryDetailsTable demonstration={demonstration} />
+          <SummaryDetailsTab demonstrationId={demonstration.id} />
         </Tab>
         <Tab icon={<StackIcon />} label="Types (0)" value="demonstrationTypes">
           <h1 className="text-xl font-bold text-brand uppercase">Types</h1>
