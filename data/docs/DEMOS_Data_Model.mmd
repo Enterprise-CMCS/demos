@@ -39,7 +39,7 @@ erDiagram
   application_status ||--|{ application : "FK018"
   phase ||--|{ application : "FK020"
   state ||--|{ demonstration : "FK021"
-  person_type ||--|{ person : "FK022"
+  person }|--|| person_type : "FK022"
   person ||--|| users : "FK023"
   person_type ||--|| user_person_type_limit : "FK024"
   user_person_type_limit ||--|{ users : "FK025"
@@ -53,26 +53,26 @@ erDiagram
   application ||--|{ document_pending_upload : "FK056"
   role_person_type }|--|| person_type : "FK031"
   role ||--|{ role_person_type : "FK032"
-  role_permission }|--|| role : "FK033"
-  role_permission }|--|| permission : "FK034"
+  role ||--|{ role_permission : "FK033"
+  permission ||--|{ role_permission : "FK034"
   grant_level ||--|{ role : "FK035"
   grant_level ||--|{ permission : "FK036"
-  system_grant_level_limit ||--|{ system_role_assignment : "FK037"
+  system_grant_level_limit ||--|{ system_role_assignment : "FK041"
   system_role_assignment }|--|| role_person_type : "FK038"
-  system_role_assignment }|--|| person : "FK039"
-  role ||--|{ system_role_assignment : "FK040"
-  system_grant_level_limit ||--|| grant_level : "FK041"
+  person ||--|{ system_role_assignment : "FK039"
+  system_role_assignment }|--|| role : "FK040"
+  grant_level ||--|| system_grant_level_limit : "FK037"
   demonstration_role_assignment }|--|| person_state : "FK042"
   person_state }|--|| state : "FK043"
-  person_state }|--|| person : "FK044"
+  person ||--|{ person_state : "FK044"
   grant_level ||--|| demonstration_grant_level_limit : "FK045"
   demonstration_grant_level_limit ||--|{ demonstration_role_assignment : "FK046"
   role_person_type ||--|{ demonstration_role_assignment : "FK047"
-  demonstration_role_assignment }|--|| person : "FK048"
+  person ||--|{ demonstration_role_assignment : "FK048"
   role ||--|{ demonstration_role_assignment : "FK049"
   demonstration_role_assignment }|--|| demonstration : "FK050"
   demonstration_role_assignment ||--|| primary_demonstration_role_assignment : "FK051"
-  event }|--|| application: "FK057"
+  event }|--|| application : "FK057"
   event }O..|| reportable_event_type : "FK052"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
@@ -243,7 +243,7 @@ erDiagram
 
   event:::dataTable {
     uuid id PK
-    uuid user_id FK "FK054: user_id ∈ user.id<br>NULLABLE"
+    uuid user_id FK "FK054: user_id ∈ users.id<br>NULLABLE"
     text with_role_id FK "FK053: with_role_id ∈ role.id<br>NULLABLE"
     uuid application_id FK "FK057: application_id ∈ application.id<br>NULLABLE"
     text event_type FK "FK052: ⊂(event_type) ∈ reportable_event_type.id (unenforced)"
@@ -262,7 +262,7 @@ erDiagram
   }
 
   person:::dataTable {
-    id uuid PK, UK "UK: (id, person_type_id)"
+    uuid id PK, UK "UK: (id, person_type_id)"
     text person_type_id FK "FK022: person_type_id ∈ person_type.id<br>UK: (id, person_type_id)"
     text email
     text first_name
@@ -299,7 +299,7 @@ erDiagram
     uuid person_id PK, FK "FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text role_id PK, FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
-    text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id., grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
+    text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
   }
 
   phase_date_type:::associativeTable {
