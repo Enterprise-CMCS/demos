@@ -13,7 +13,7 @@ import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
-import { DemonstrationDetailModals, DemonstrationDialogDetails } from "./DemonstrationDetailModals";
+import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
@@ -76,7 +76,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 `;
 
 export type DemonstrationDetail = DemonstrationHeaderDetails &
-  DemonstrationDialogDetails &
   DemonstrationTabDemonstration & {
     amendments: ModificationTableRow[];
     extensions: ModificationTableRow[];
@@ -176,7 +175,7 @@ export const DemonstrationDetail: React.FC = () => {
             <DemonstrationDetailModals
               entityCreationModal={entityCreationModal}
               demonstrationActionModal={demonstrationActionModal}
-              demonstration={demonstration}
+              demonstrationId={demonstration.id}
               onCloseEntityModal={() => setEntityCreationModal(null)}
               onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
             />
