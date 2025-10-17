@@ -105,6 +105,10 @@ export class BootstrapStack extends Stack {
           ],
           resources: ["*"],
         }),
+        new aws_iam.PolicyStatement({
+          actions: ["logs:DescribeLogGroups", "logs:PutRetentionPolicy"],
+          resources: ["*"],
+        }),
       ],
     });
 
