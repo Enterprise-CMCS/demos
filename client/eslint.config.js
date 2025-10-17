@@ -9,7 +9,15 @@ import { noNonstandardDateFormatting } from "./eslint-rules/no-nonstandard-date-
 
 export default [
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        allowDefaultProject: ["*.js", "*.mjs", "eslint.config.js"],
+      },
+    },
+  },
   reactPlugin.configs.flat.recommended,
   prettierConfig,
 
@@ -57,6 +65,20 @@ export default [
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
       "react/prop-types": "off",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+
+      //The following rules are disabled to be able to focus on the promises.
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-base-to-string": "off",
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
+      "@typescript-eslint/restrict-template-expressions": "off",
+      "@typescript-eslint/no-redundant-type-constituents": "off",
+      "@typescript-eslint/unbound-method": "off",
     },
   },
 ];
