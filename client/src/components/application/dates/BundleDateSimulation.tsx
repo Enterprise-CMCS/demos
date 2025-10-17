@@ -14,7 +14,7 @@ type SimulationState = {
 const DEFAULT_SIMULATION_STATE: SimulationState = {
   phases: [
     { phaseName: "Concept", phaseStatus: "Not Started" },
-    { phaseName: "State Application", phaseStatus: "Not Started" },
+    { phaseName: "Application Intake", phaseStatus: "Not Started" },
     { phaseName: "Completeness", phaseStatus: "Not Started" },
   ],
   bundleDates: [],
@@ -56,18 +56,18 @@ const BusinessRules = () => {
             </li>
           </ul>
           <div className="mt-1">
-            Note: If skipped, completion is marked when State Application is finished
+            Note: If skipped, completion is marked when Application Intake is finished
           </div>
         </div>
         <div>
-          <h3 className="font-semibold">State Application Phase:</h3>
+          <h3 className="font-semibold">Application Intake Phase:</h3>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>
-              <strong>State Application Start Date:</strong> Starts by default when demonstration is
-              created, or when a change is submitted on this phase - document or date update.
+              <strong>Application Intake Start Date:</strong> Starts by default when demonstration
+              is created, or when a change is submitted on this phase - document or date update.
             </li>
             <li>
-              <strong>State Application Completion Date:</strong> Completed when user clicks Finish
+              <strong>Application Intake Completion Date:</strong> Completed when user clicks Finish
               to progress to the next phase.
             </li>
             <li>
@@ -81,7 +81,7 @@ const BusinessRules = () => {
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>
               <strong>Completeness Start Date:</strong> As soon as the State Application Submitted
-              Date field is populated on the State Application Phase. Can also start when a change
+              Date field is populated on the Application Intake Phase. Can also start when a change
               is submitted on this phase - document or date update. Start date is set to whichever
               of the dates above, is first
             </li>
@@ -174,7 +174,7 @@ export const BundleDateSimulation: React.FC = () => {
     }
 
     // Business Rule: State Application submission triggers special logic
-    if (phaseName === "State Application") {
+    if (phaseName === "Application Intake") {
       // If Concept is still "Not Started" or "Started", mark it as completed
       const conceptStatus = getStatusForPhase(updatedPhases, "Concept");
       if (conceptStatus === "Not Started" || conceptStatus === "Started") {
@@ -201,12 +201,16 @@ export const BundleDateSimulation: React.FC = () => {
     setDemonstrationCreated(true);
   };
 
-  // Business Rule: Finish State Application Phase
+  // Business Rule: Finish Application Intake Phase
   const finishStateApplicationPhase = () => {
-    let updatedPhases = setStatusForPhase(simulationState.phases, "State Application", "Completed");
+    let updatedPhases = setStatusForPhase(
+      simulationState.phases,
+      "Application Intake",
+      "Completed"
+    );
     const updatedDates = setDateInBundleDates(
       simulationState.bundleDates,
-      "State Application Completion Date",
+      "Application Intake Completion Date",
       new Date()
     );
 
@@ -290,8 +294,8 @@ export const BundleDateSimulation: React.FC = () => {
                       completePhase(
                         "Concept",
                         "Concept Completion Date",
-                        "State Application",
-                        "State Application Start Date"
+                        "Application Intake",
+                        "Application Intake Start Date"
                       )
                     }
                     size="small"
@@ -304,8 +308,8 @@ export const BundleDateSimulation: React.FC = () => {
                       skipPhase(
                         "Concept",
                         "Concept Completion Date",
-                        "State Application",
-                        "State Application Start Date"
+                        "Application Intake",
+                        "Application Intake Start Date"
                       )
                     }
                     size="small"
@@ -319,34 +323,35 @@ export const BundleDateSimulation: React.FC = () => {
             {/* Arrow */}
             <div className="text-2xl text-gray-400">→</div>
 
-            {/* State Application Phase */}
+            {/* Application Intake Phase */}
             <div
               className={getPhaseBoxClasses(
-                getStatusForPhase(simulationState.phases, "State Application") || "Not Started"
+                getStatusForPhase(simulationState.phases, "Application Intake") || "Not Started"
               )}
             >
               <div>
-                <div className={STYLES.phaseTitle}>State Application</div>
+                <div className={STYLES.phaseTitle}>Application Intake</div>
                 <div className={STYLES.phaseStatus}>
-                  Status: {getStatusForPhase(simulationState.phases, "State Application")}
+                  Status: {getStatusForPhase(simulationState.phases, "Application Intake")}
                 </div>
 
                 <div className={STYLES.dateDisplay}>
-                  Start Date: {getDateDisplay("State Application Start Date")}
+                  Start Date: {getDateDisplay("Application Intake Start Date")}
                 </div>
                 <div className={STYLES.dateDisplay}>
                   Submitted Date: {getDateDisplay("State Application Submitted Date")}
                 </div>
                 <div className={STYLES.dateDisplay}>
-                  Completion Date: {getDateDisplay("State Application Completion Date")}
+                  Completion Date: {getDateDisplay("Application Intake Completion Date")}
                 </div>
               </div>
 
-              {(getStatusForPhase(simulationState.phases, "State Application") === "Started" ||
-                getStatusForPhase(simulationState.phases, "State Application") ===
+              {(getStatusForPhase(simulationState.phases, "Application Intake") === "Started" ||
+                getStatusForPhase(simulationState.phases, "Application Intake") ===
                   "Not Started") && (
                 <div className="flex gap-2 mt-4">
-                  {getStatusForPhase(simulationState.phases, "State Application") === "Started" && (
+                  {getStatusForPhase(simulationState.phases, "Application Intake") ===
+                    "Started" && (
                     <Button
                       name="finish-state-app"
                       onClick={finishStateApplicationPhase}
@@ -359,7 +364,7 @@ export const BundleDateSimulation: React.FC = () => {
                   <SecondaryButton
                     name="submit-change"
                     onClick={() =>
-                      submitChange("State Application", "State Application Submitted Date")
+                      submitChange("Application Intake", "State Application Submitted Date")
                     }
                     size="small"
                   >

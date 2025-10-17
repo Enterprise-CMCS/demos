@@ -193,7 +193,7 @@ describe("ConceptPhase", () => {
         await userEvent.click(skipButton);
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          "Skipping Concept Phase - navigate to State Application"
+          "Skipping Concept Phase - navigate to Application Intake"
         );
       });
     });
