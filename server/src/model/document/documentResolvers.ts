@@ -21,9 +21,15 @@ async function getDocument(parent: undefined, { id }: { id: string }) {
   });
 }
 
-async function getManyDocuments(_: undefined, args: { phaseId?: string }) {
+async function getManyDocuments(
+  _: undefined,
+  args: { phaseId?: string; bundleId?: string },
+) {
   return await prisma().document.findMany({
-    where: args.phaseId ? { phaseId: args.phaseId } : {},
+    where: {
+      ...(args.phaseId && { phaseId: args.phaseId }),
+      ...(args.bundleId && { bundleId: args.bundleId }),
+    },
   });
 }
 
