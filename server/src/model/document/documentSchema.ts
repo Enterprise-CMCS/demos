@@ -45,7 +45,7 @@ export const documentSchema = gql`
   }
 
   type Query {
-    documents: [Document!]!
+    documents(phaseId: ID): [Document!]!
     document(id: ID!): Document
   }
 `;

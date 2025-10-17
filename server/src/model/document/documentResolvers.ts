@@ -21,8 +21,10 @@ async function getDocument(parent: undefined, { id }: { id: string }) {
   });
 }
 
-async function getManyDocuments() {
-  return await prisma().document.findMany();
+async function getManyDocuments(_: undefined, args: { phaseId?: string }) {
+  return await prisma().document.findMany({
+    where: args.phaseId ? { phaseId: args.phaseId } : {},
+  });
 }
 
 async function getPresignedUploadUrl(
@@ -35,7 +37,7 @@ async function getPresignedUploadUrl(
         forcePathStyle: true,
         credentials: {
           accessKeyId: "test",
-          secretAccessKey: "test",
+          secretAccessKey: "test", // pragma: allowlist secret
         },
       }
     : {};
@@ -59,7 +61,7 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
         forcePathStyle: true,
         credentials: {
           accessKeyId: "test",
-          secretAccessKey: "test",
+          secretAccessKey: "test", // pragma: allowlist secret
         },
       }
     : {};
