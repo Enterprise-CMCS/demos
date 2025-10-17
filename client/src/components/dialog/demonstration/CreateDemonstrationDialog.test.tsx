@@ -58,7 +58,7 @@ describe("CreateDemonstrationDialog", () => {
       data: {
         createDemonstration: {
           success: true,
-          message: "Demonstration created successfully",
+          message: "Your demonstration is ready.",
         },
       },
     },
@@ -152,7 +152,7 @@ describe("CreateDemonstrationDialog", () => {
         data: {
           createDemonstration: {
             success: false,
-            message: "Failed to create demonstration",
+            message: "Your demonstration was not created because of an unknown problem.",
           },
         },
       },
