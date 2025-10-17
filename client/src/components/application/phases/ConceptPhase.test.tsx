@@ -44,7 +44,7 @@ afterEach(() => {
 
 describe("ConceptPhase", () => {
   const defaultProps = {
-    bundleId: "test-bundle-id",
+    applicationId: "test-application-id",
     demonstrationId: "test-demo-id",
     documents: [],
     onDocumentsRefetch: mockOnDocumentsRefetch,

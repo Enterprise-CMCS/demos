@@ -1,7 +1,7 @@
 import { gql } from "graphql-tag";
 
 import { User } from "../user/userSchema.js";
-import { DocumentType, Bundle, PhaseName } from "../../types.js";
+import { DocumentType, Application, PhaseName } from "../../types.js";
 
 export const documentSchema = gql`
   type Document {
@@ -11,7 +11,7 @@ export const documentSchema = gql`
     s3Path: String!
     owner: User!
     documentType: DocumentType!
-    bundle: Bundle!
+    application: Application!
     phaseName: PhaseName!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -21,7 +21,7 @@ export const documentSchema = gql`
     name: String!
     description: String!
     documentType: DocumentType!
-    bundleId: ID!
+    applicationId: ID!
     phaseName: PhaseName!
   }
 
@@ -29,7 +29,7 @@ export const documentSchema = gql`
     name: String
     description: String
     documentType: DocumentType
-    bundleId: ID
+    applicationId: ID
     phaseName: PhaseName
   }
 
@@ -56,7 +56,7 @@ export interface Document {
   s3Path: string;
   owner: User;
   documentType: DocumentType;
-  bundle: Bundle;
+  application: Application;
   phaseName: PhaseName;
   createdAt: Date;
   updatedAt: Date;
@@ -66,7 +66,7 @@ export interface UploadDocumentInput {
   name: string;
   description: string;
   documentType: DocumentType;
-  bundleId: string;
+  applicationId: string;
   phaseName: PhaseName;
 }
 
@@ -74,6 +74,6 @@ export interface UpdateDocumentInput {
   name?: string;
   description?: string;
   documentType?: DocumentType;
-  bundleId?: string;
+  applicationId?: string;
   phaseName?: PhaseName;
 }

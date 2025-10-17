@@ -12,14 +12,14 @@ const REFETCH_QUERIES = ["GetCompletenessDocuments", "GetDemonstrationDocuments"
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  bundleId?: string; // optional starter prop; can be wired later
+  applicationId?: string; // optional starter prop; can be wired later
   refetchQueries?: string[];
 };
 
 export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
-  bundleId = "demo-id-placeholder",
+  applicationId = "demo-id-placeholder",
   refetchQueries = REFETCH_QUERIES,
 }) => {
   return (
@@ -28,7 +28,7 @@ export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
       isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
-      bundleId={bundleId}
+      applicationId={applicationId}
       titleOverride="Add Completeness Document(s)"
       refetchQueries={refetchQueries}
     />

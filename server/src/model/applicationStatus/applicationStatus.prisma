@@ -1,0 +1,10 @@
+// Flags: STATIC_CONSTRAINT
+model ApplicationStatus {
+  id String
+
+  Demonstration Demonstration[]
+  Modification  Modification[]
+
+  @@id([id])
+  @@map("application_status")
+}

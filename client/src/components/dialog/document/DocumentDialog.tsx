@@ -434,18 +434,17 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 export const AddDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  bundleId: string;
+  applicationId: string;
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
   refetchQueries?: string[];
-}> = ({ isOpen, onClose, bundleId, documentTypeSubset, titleOverride, refetchQueries }) => {
+}> = ({ isOpen, onClose, applicationId, documentTypeSubset, titleOverride, refetchQueries }) => {
   const { showError } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
     refetchQueries,
   });
 
-  const defaultDocumentType: DocumentType =
-    documentTypeSubset?.[0] ?? "General File";
+  const defaultDocumentType: DocumentType = documentTypeSubset?.[0] ?? "General File";
 
   const defaultDocument: DocumentDialogFields = {
     file: null,
@@ -462,7 +461,7 @@ export const AddDocumentDialog: React.FC<{
     }
 
     const uploadDocumentInput: UploadDocumentInput = {
-      bundleId,
+      applicationId,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
@@ -514,7 +513,7 @@ export const EditDocumentDialog: React.FC<{
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
     const updateDocumentInput: UpdateDocumentInput = {
-      bundleId: dialogFields.id,
+      applicationId: dialogFields.id,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,

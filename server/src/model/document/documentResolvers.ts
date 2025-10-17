@@ -1,10 +1,6 @@
 import { GraphQLError } from "graphql";
 
-import {
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Document, DocumentPendingUpload } from "@prisma/client";
 
@@ -12,7 +8,7 @@ import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
-import { getBundle } from "../bundle/bundleResolvers.js";
+import { getApplication } from "../application/applicationResolvers.js";
 import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
 
 async function getDocument(parent: undefined, { id }: { id: string }) {
@@ -22,7 +18,7 @@ async function getDocument(parent: undefined, { id }: { id: string }) {
 }
 
 async function getPresignedUploadUrl(
-  documentPendingUpload: DocumentPendingUpload,
+  documentPendingUpload: DocumentPendingUpload
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
@@ -61,7 +57,7 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const cleanBucket = process.env.CLEAN_BUCKET;
-  const key = `${document.bundleId}/${document.id}`;
+  const key = `${document.applicationId}/${document.id}`;
   const getObjectCommand = new GetObjectCommand({
     Bucket: cleanBucket,
     Key: key,
@@ -81,25 +77,23 @@ export const documentResolvers = {
     uploadDocument: async (
       parent: undefined,
       { input }: { input: UploadDocumentInput },
-      context: GraphQLContext,
+      context: GraphQLContext
     ) => {
       if (context.user === null) {
         throw new Error(
-          "The GraphQL context does not have user information. Are you properly authenticated?",
+          "The GraphQL context does not have user information. Are you properly authenticated?"
         );
       }
-      const documentPendingUpload = await prisma().documentPendingUpload.create(
-        {
-          data: {
-            name: input.name,
-            description: input.description,
-            ownerUserId: context.user.id,
-            documentTypeId: input.documentType,
-            bundleId: input.bundleId,
-            phaseId: input.phaseName,
-          },
+      const documentPendingUpload = await prisma().documentPendingUpload.create({
+        data: {
+          name: input.name,
+          description: input.description,
+          ownerUserId: context.user.id,
+          documentTypeId: input.documentType,
+          applicationId: input.applicationId,
+          phaseId: input.phaseName,
         },
-      );
+      });
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return { presignedURL };
@@ -122,11 +116,11 @@ export const documentResolvers = {
 
     updateDocument: async (
       _: undefined,
-      { id, input }: { id: string; input: UpdateDocumentInput },
+      { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
       checkOptionalNotNullFields(
-        ["name", "description", "documentType", "bundleId", "phaseName"],
-        input,
+        ["name", "description", "documentType", "applicationId", "phaseName"],
+        input
       );
       try {
         return await prisma().document.update({
@@ -135,7 +129,7 @@ export const documentResolvers = {
             name: input.name,
             description: input.description,
             documentTypeId: input.documentType,
-            bundleId: input.bundleId,
+            applicationId: input.applicationId,
             phaseId: input.phaseName,
           },
         });
@@ -165,8 +159,8 @@ export const documentResolvers = {
       return parent.documentTypeId;
     },
 
-    bundle: async (parent: Document) => {
-      return await getBundle(parent.bundleId);
+    application: async (parent: Document) => {
+      return await getApplication(parent.applicationId);
     },
 
     phaseName: async (parent: Document) => {

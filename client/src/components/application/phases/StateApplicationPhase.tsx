@@ -282,7 +282,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
       <StateApplicationUploadDialog
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
-        bundleId={demonstrationId}
+        applicationId={demonstrationId}
       />
     </div>
   );

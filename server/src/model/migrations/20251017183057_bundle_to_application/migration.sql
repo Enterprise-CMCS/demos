@@ -1,0 +1,871 @@
+-- Removing old functions for bundles
+DROP FUNCTION demos_app.log_changes_bundle;
+DROP FUNCTION demos_app.log_changes_bundle_date;
+DROP FUNCTION demos_app.log_changes_bundle_phase;
+
+-- Recreating all logging functions for safety
+CREATE OR REPLACE FUNCTION demos_app.log_changes_application()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.application_history (
+            revision_type,
+            id,
+            application_type_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.application_type_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.application_history (
+            revision_type,
+            id,
+            application_type_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.application_type_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_application_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.application
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_application_phase()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.application_phase_history (
+            revision_type,
+            application_id,
+            phase_id,
+            phase_status_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.application_id,
+            NEW.phase_id,
+            NEW.phase_status_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.application_phase_history (
+            revision_type,
+            application_id,
+            phase_id,
+            phase_status_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.application_id,
+            OLD.phase_id,
+            OLD.phase_status_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_application_phase_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_phase
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_phase();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_application_date()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.application_date_history (
+            revision_type,
+            application_id,
+            date_type_id,
+            date_value,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.application_id,
+            NEW.date_type_id,
+            NEW.date_value,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.application_date_history (
+            revision_type,
+            application_id,
+            date_type_id,
+            date_value,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.application_id,
+            OLD.date_type_id,
+            OLD.date_value,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_application_date_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_date
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_date();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.demonstration_history (
+            revision_type,
+            id,
+            application_type_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            sdg_division_id,
+            signature_level_id,
+            status_id,
+            state_id,
+            current_phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.application_type_id,
+            NEW.name,
+            NEW.description,
+            NEW.effective_date,
+            NEW.expiration_date,
+            NEW.sdg_division_id,
+            NEW.signature_level_id,
+            NEW.status_id,
+            NEW.state_id,
+            NEW.current_phase_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.demonstration_history (
+            revision_type,
+            id,
+            application_type_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            sdg_division_id,
+            signature_level_id,
+            status_id,
+            state_id,
+            current_phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.application_type_id,
+            OLD.name,
+            OLD.description,
+            OLD.effective_date,
+            OLD.expiration_date,
+            OLD.sdg_division_id,
+            OLD.signature_level_id,
+            OLD.status_id,
+            OLD.state_id,
+            OLD.current_phase_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_demonstration_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration_role_assignment()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.demonstration_role_assignment_history (
+            revision_type,
+            person_id,
+            demonstration_id,
+            role_id,
+            state_id,
+            person_type_id,
+            grant_level_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.person_id,
+            NEW.demonstration_id,
+            NEW.role_id,
+            NEW.state_id,
+            NEW.person_type_id,
+            NEW.grant_level_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.demonstration_role_assignment_history (
+            revision_type,
+            person_id,
+            demonstration_id,
+            role_id,
+            state_id,
+            person_type_id,
+            grant_level_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.person_id,
+            OLD.demonstration_id,
+            OLD.role_id,
+            OLD.state_id,
+            OLD.person_type_id,
+            OLD.grant_level_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_demonstration_role_assignment_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration_role_assignment
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration_role_assignment();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_document()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.document_history (
+            revision_type,
+            id,
+            name,
+            description,
+            s3_path,
+            owner_user_id,
+            document_type_id,
+            application_id,
+            phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.name,
+            NEW.description,
+            NEW.s3_path,
+            NEW.owner_user_id,
+            NEW.document_type_id,
+            NEW.application_id,
+            NEW.phase_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.document_history (
+            revision_type,
+            id,
+            name,
+            description,
+            s3_path,
+            owner_user_id,
+            document_type_id,
+            application_id,
+            phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.name,
+            OLD.description,
+            OLD.s3_path,
+            OLD.owner_user_id,
+            OLD.document_type_id,
+            OLD.application_id,
+            OLD.phase_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_document_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.document
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_document_pending_upload()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.document_pending_upload_history (
+            revision_type,
+            id,
+            name,
+            description,
+            owner_user_id,
+            document_type_id,
+            application_id,
+            phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.name,
+            NEW.description,
+            NEW.owner_user_id,
+            NEW.document_type_id,
+            NEW.application_id,
+            NEW.phase_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.document_pending_upload_history (
+            revision_type,
+            id,
+            name,
+            description,
+            owner_user_id,
+            document_type_id,
+            application_id,
+            phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.name,
+            OLD.description,
+            OLD.owner_user_id,
+            OLD.document_type_id,
+            OLD.application_id,
+            OLD.phase_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_document_pending_upload_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_pending_upload
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_pending_upload();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_modification()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.modification_history (
+            revision_type,
+            id,
+            application_type_id,
+            demonstration_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            status_id,
+            current_phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.application_type_id,
+            NEW.demonstration_id,
+            NEW.name,
+            NEW.description,
+            NEW.effective_date,
+            NEW.expiration_date,
+            NEW.status_id,
+            NEW.current_phase_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.modification_history (
+            revision_type,
+            id,
+            application_type_id,
+            demonstration_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            status_id,
+            current_phase_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.application_type_id,
+            OLD.demonstration_id,
+            OLD.name,
+            OLD.description,
+            OLD.effective_date,
+            OLD.expiration_date,
+            OLD.status_id,
+            OLD.current_phase_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_modification_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.modification
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_modification();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_person()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.person_history (
+            revision_type,
+            id,
+            person_type_id,
+            email,
+            first_name,
+            last_name,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.person_type_id,
+            NEW.email,
+            NEW.first_name,
+            NEW.last_name,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.person_history (
+            revision_type,
+            id,
+            person_type_id,
+            email,
+            first_name,
+            last_name,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.person_type_id,
+            OLD.email,
+            OLD.first_name,
+            OLD.last_name,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_person_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.person
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_person();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_person_state()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.person_state_history (
+            revision_type,
+            person_id,
+            state_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.person_id,
+            NEW.state_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.person_state_history (
+            revision_type,
+            person_id,
+            state_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.person_id,
+            OLD.state_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_person_state_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.person_state
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_person_state();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.primary_demonstration_role_assignment_history (
+            revision_type,
+            person_id,
+            demonstration_id,
+            role_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.person_id,
+            NEW.demonstration_id,
+            NEW.role_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.primary_demonstration_role_assignment_history (
+            revision_type,
+            person_id,
+            demonstration_id,
+            role_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.person_id,
+            OLD.demonstration_id,
+            OLD.role_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_primary_demonstration_role_assignment_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_role_permission()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.role_permission_history (
+            revision_type,
+            role_id,
+            grant_level_id,
+            permission_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.role_id,
+            NEW.grant_level_id,
+            NEW.permission_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.role_permission_history (
+            revision_type,
+            role_id,
+            grant_level_id,
+            permission_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.role_id,
+            OLD.grant_level_id,
+            OLD.permission_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_role_permission_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.role_permission
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_role_permission();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_system_role_assignment()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.system_role_assignment_history (
+            revision_type,
+            person_id,
+            role_id,
+            person_type_id,
+            grant_level_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.person_id,
+            NEW.role_id,
+            NEW.person_type_id,
+            NEW.grant_level_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.system_role_assignment_history (
+            revision_type,
+            person_id,
+            role_id,
+            person_type_id,
+            grant_level_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.person_id,
+            OLD.role_id,
+            OLD.person_type_id,
+            OLD.grant_level_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_system_role_assignment_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.system_role_assignment
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_system_role_assignment();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_users()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.users_history (
+            revision_type,
+            id,
+            person_type_id,
+            cognito_subject,
+            username,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.person_type_id,
+            NEW.cognito_subject,
+            NEW.username,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.users_history (
+            revision_type,
+            id,
+            person_type_id,
+            cognito_subject,
+            username,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.person_type_id,
+            OLD.cognito_subject,
+            OLD.username,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_users_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.users
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_users();
+
+-- Populate new constraint tables
+INSERT INTO
+    demos_app.application_type
+VALUES
+    ('Demonstration'),
+    ('Amendment'),
+    ('Extension');
+
+INSERT INTO
+    demos_app.demonstration_application_type_limit
+VALUES
+    ('Demonstration');
+
+INSERT INTO
+    demos_app.modification_application_type_limit
+VALUES
+    ('Amendment'),
+    ('Extension');
+
+INSERT INTO
+    demos_app.application_status
+VALUES
+    ('Pre-Submission'),
+    ('Under Review'),
+    ('Approved'),
+    ('Denied'),
+    ('Withdrawn'),
+    ('On-hold');
+
+-- Update the application trigger to make phases and such
+DROP FUNCTION IF EXISTS demos_app.create_phases_for_new_application();
+
+CREATE OR REPLACE FUNCTION demos_app.create_phases_and_dates_for_new_application()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_phase_id TEXT;
+    v_phase_num INT;
+    v_phase_status_id TEXT;
+BEGIN
+    -- Populate all phases for the new application
+    FOR v_phase_id, v_phase_num IN
+        SELECT id, phase_number FROM demos_app.phase WHERE phase_number > 0
+    LOOP
+        -- The first phase should be set to started
+        IF v_phase_num = 1 THEN
+            v_phase_status_id := 'Started';
+        ELSE
+            v_phase_status_id := 'Not Started';
+        END IF;
+        INSERT INTO demos_app.application_phase (
+            application_id,
+            phase_id,
+            phase_status_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            NEW.id,
+            v_phase_id,
+            v_phase_status_id,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        );
+    END LOOP;
+
+    INSERT INTO
+        demos_app.application_date (
+            application_id,
+            date_type_id,
+            date_value,
+            created_at,
+            updated_at
+        )
+    VALUES (
+        NEW.id,
+        'Concept Start Date',
+        timezone('America/New_York', date_trunc('day', timezone('America/New_York', CURRENT_TIMESTAMP))),
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    );
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER create_phases_and_dates_for_new_application_trigger
+AFTER INSERT ON demos_app.application
+FOR EACH ROW EXECUTE FUNCTION demos_app.create_phases_and_dates_for_new_application();

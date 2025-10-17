@@ -19,7 +19,7 @@ vi.mock("@apollo/client", async () => {
 const defaultProps = {
   isOpen: true,
   onClose: vi.fn(),
-  bundleId: "test-bundle-id",
+  applicationId: "test-application-id",
 };
 
 function setup(props = {}) {

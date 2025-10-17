@@ -4,7 +4,7 @@ import { DemonstrationColumns } from "../columns/DemonstrationColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
-import { BundleStatus, Person, State } from "demos-server";
+import { ApplicationStatus, Person, State } from "demos-server";
 import {
   Demonstration,
   DemonstrationAmendment,
@@ -20,14 +20,14 @@ export type GenericDemonstrationTableRow =
   | (DemonstrationAmendment & {
       type: "amendment";
       state: Pick<State, "id">;
-      status: BundleStatus;
+      status: ApplicationStatus;
       parentId: string;
       primaryProjectOfficer: Pick<Person, "fullName" | "id">;
     })
   | (DemonstrationExtension & {
       type: "extension";
       state: Pick<State, "id">;
-      status: BundleStatus;
+      status: ApplicationStatus;
       parentId: string;
       primaryProjectOfficer: Pick<Person, "fullName" | "id">;
     });

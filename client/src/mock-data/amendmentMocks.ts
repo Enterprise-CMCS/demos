@@ -1,8 +1,8 @@
-import type { BundleStatus } from "demos-server";
+import type { ApplicationStatus } from "demos-server";
 import { Amendment } from "demos-server";
 
 export type MockAmendment = Pick<Amendment, "id" | "name" | "effectiveDate"> & {
-  status: BundleStatus;
+  status: ApplicationStatus;
 };
 
 export const mockAmendments = [

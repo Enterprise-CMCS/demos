@@ -6,7 +6,7 @@ import React from "react";
 import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
 import { Person } from "demos-server";
 import { createSelectColumnDef } from "./selectColumn";
-import { BUNDLE_STATUS, STATES_AND_TERRITORIES } from "demos-server-constants";
+import { APPLICATION_STATUS, STATES_AND_TERRITORIES } from "demos-server-constants";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
@@ -62,7 +62,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
         filterConfig: {
           filterType: "select",
           options:
-            BUNDLE_STATUS.map((status) => ({
+            APPLICATION_STATUS.map((status) => ({
               label: status,
               value: status,
             })) ?? [],

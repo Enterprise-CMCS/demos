@@ -1,14 +1,14 @@
-import { bundleDateSchema } from "./bundleDate/bundleDateSchema.js";
-import { bundleDateResolvers } from "./bundleDate/bundleDateResolvers.js";
+import { applicationDateSchema } from "./applicationDate/applicationDateSchema.js";
+import { applicationDateResolvers } from "./applicationDate/applicationDateResolvers.js";
 
-import { bundlePhaseSchema } from "./bundlePhase/bundlePhaseSchema.js";
-import { bundlePhaseResolvers } from "./bundlePhase/bundlePhaseResolvers.js";
+import { applicationPhaseSchema } from "./applicationPhase/applicationPhaseSchema.js";
+import { applicationPhaseResolvers } from "./applicationPhase/applicationPhaseResolvers.js";
 
-import { bundleSchema } from "./bundle/bundleSchema.js";
-import { bundleResolvers } from "./bundle/bundleResolvers.js";
+import { applicationSchema } from "./application/applicationSchema.js";
+import { applicationResolvers } from "./application/applicationResolvers.js";
 
-import { bundleStatusSchema } from "./bundleStatus/bundleStatusSchema.js";
-import { bundleStatusResolvers } from "./bundleStatus/bundleStatusResolvers.js";
+import { applicationStatusSchema } from "./applicationStatus/applicationStatusSchema.js";
+import { applicationStatusResolvers } from "./applicationStatus/applicationStatusResolvers.js";
 
 import { sdgDivisionSchema } from "./sdgDivision/sdgDivisionSchema.js";
 import { sdgDivisionResolvers } from "./sdgDivision/sdgDivisionResolvers.js";
@@ -72,10 +72,10 @@ const scalarTypes = [
 ];
 
 export const typeDefs = [
-  bundleDateSchema,
-  bundlePhaseSchema,
-  bundleSchema,
-  bundleStatusSchema,
+  applicationDateSchema,
+  applicationPhaseSchema,
+  applicationSchema,
+  applicationStatusSchema,
   dateTypeSchema,
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
@@ -96,10 +96,10 @@ export const typeDefs = [
 ];
 
 export const resolvers = [
-  bundleDateResolvers,
-  bundlePhaseResolvers,
-  bundleResolvers,
-  bundleStatusResolvers,
+  applicationDateResolvers,
+  applicationPhaseResolvers,
+  applicationResolvers,
+  applicationStatusResolvers,
   customScalarResolvers,
   dateTypeResolvers,
   demonstrationResolvers,
