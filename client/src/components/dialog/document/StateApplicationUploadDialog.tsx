@@ -1,9 +1,6 @@
 import React from "react";
 
-import {
-  AddDocumentDialog,
-  DocumentDialogFields,
-} from "components/dialog/document/DocumentDialog";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { DocumentType } from "demos-server";
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["State Application", "General File"];
@@ -17,21 +14,13 @@ type Props = {
 };
 
 export const StateApplicationUploadDialog: React.FC<Props> = ({ isOpen, onClose, bundleId }) => {
-  const getInitialDocument = (): DocumentDialogFields => ({
-    id: bundleId,
-    name: "",
-    description: "",
-    documentType: DOCUMENT_TYPE_SUBSET[0],
-    file: null,
-  });
-
   return (
     <AddDocumentDialog
       key={isOpen ? "open" : "closed"}
       isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
-      initialDocument={getInitialDocument()}
+      bundleId={bundleId}
       titleOverride="Add State Application"
       refetchQueries={REFETCH_QUERIES}
     />

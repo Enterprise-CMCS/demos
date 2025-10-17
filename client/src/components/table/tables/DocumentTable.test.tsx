@@ -16,7 +16,7 @@ describe("DocumentTable", () => {
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
         <ToastProvider>
-          <DocumentTable documents={mockDocuments} />
+          <DocumentTable bundleId="test-bundle-id" documents={mockDocuments} />
         </ToastProvider>
       </MockedProvider>
     );
