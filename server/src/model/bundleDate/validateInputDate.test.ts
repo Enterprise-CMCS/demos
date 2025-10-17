@@ -135,7 +135,7 @@ describe("validateInputDate", () => {
     });
   });
 
-  makeStartOnlySuite(testBundleId, "State Application Start Date", testDateValue);
+  makeStartOnlySuite(testBundleId, "Application Intake Start Date", testDateValue);
   makeStartOnlySuite(testBundleId, "State Application Submitted Date", testDateValue);
 
   describe("Completeness Review Due Date", () => {
@@ -164,10 +164,10 @@ describe("validateInputDate", () => {
     });
   });
 
-  describe("State Application Completion Date", () => {
+  describe("Application Intake Completion Date", () => {
     const testData: SetBundleDateInput = {
       bundleId: testBundleId,
-      dateType: "State Application Completion Date",
+      dateType: "Application Intake Completion Date",
       dateValue: testDateValue,
     };
 
@@ -175,8 +175,8 @@ describe("validateInputDate", () => {
       expectStartOfDay(testData);
     });
 
-    it("should call checkInputDateGreaterThan on State Application Start Date", async () => {
-      await expectGreaterThan(testData, "State Application Start Date");
+    it("should call checkInputDateGreaterThan on Application Intake Start Date", async () => {
+      await expectGreaterThan(testData, "Application Intake Start Date");
     });
 
     it("should call checkInputDateGreaterThanOrEqual on Concept Completion Date", async () => {
@@ -277,8 +277,8 @@ describe("validateInputDate", () => {
       await expectGreaterThan(testData, "Completeness Start Date");
     });
 
-    it("should call checkInputDateGreaterThanOrEqual on State Application Completion Date", async () => {
-      await expectGreaterThanOrEqual(testData, "State Application Completion Date");
+    it("should call checkInputDateGreaterThanOrEqual on Application Intake Completion Date", async () => {
+      await expectGreaterThanOrEqual(testData, "Application Intake Completion Date");
     });
 
     it("should have correct call counts", async () => {

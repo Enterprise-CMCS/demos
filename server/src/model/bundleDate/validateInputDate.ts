@@ -19,7 +19,7 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
   switch (input.dateType) {
     case "Concept Start Date":
     case "Pre-Submission Submitted Date":
-    case "State Application Start Date":
+    case "Application Intake Start Date":
     case "State Application Submitted Date":
     case "Completeness Start Date":
     case "SDG Preparation Start Date":
@@ -62,11 +62,11 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
       });
       break;
 
-    case "State Application Completion Date":
+    case "Application Intake Completion Date":
       checkInputDateIsStartOfDay(inputDate);
       await checkInputDateGreaterThan(inputDate, {
         bundleId: input.bundleId,
-        dateType: "State Application Start Date",
+        dateType: "Application Intake Start Date",
       });
       await checkInputDateGreaterThanOrEqual(inputDate, {
         bundleId: input.bundleId,
@@ -126,7 +126,7 @@ export async function validateInputDate(input: SetBundleDateInput): Promise<void
       });
       await checkInputDateGreaterThanOrEqual(inputDate, {
         bundleId: input.bundleId,
-        dateType: "State Application Completion Date",
+        dateType: "Application Intake Completion Date",
       });
       break;
 

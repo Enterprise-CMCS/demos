@@ -57,7 +57,7 @@ describe("PhaseSelector", () => {
     );
     [
       "Concept",
-      "State Application",
+      "Application Intake",
       "Completeness",
       "Federal Comment",
       "SDG Preparation",
