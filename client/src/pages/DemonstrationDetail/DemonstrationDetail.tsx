@@ -50,6 +50,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         name
         description
         documentType
+        phaseName
         createdAt
         owner {
           person {
