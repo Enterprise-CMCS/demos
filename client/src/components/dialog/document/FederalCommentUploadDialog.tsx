@@ -10,22 +10,18 @@ const REFETCH_QUERIES = ["GetConceptDocuments", "GetDemonstrationDocuments"];
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  bundleId: string;
+  applicationId: string;
   refetchQueries?: string[];
 };
 
-export const FederalCommentUploadDialog: React.FC<Props> = ({
-  isOpen,
-  onClose,
-  bundleId,
-}) => {
+export const FederalCommentUploadDialog: React.FC<Props> = ({ isOpen, onClose, applicationId }) => {
   return (
     <AddDocumentDialog
       key={isOpen ? "open" : "closed"}
       isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
-      bundleId={bundleId}
+      applicationId={applicationId}
       titleOverride="Internal Analysis Document"
       refetchQueries={REFETCH_QUERIES}
     />

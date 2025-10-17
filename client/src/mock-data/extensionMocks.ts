@@ -1,7 +1,7 @@
-import { BundleStatus, Extension } from "demos-server";
+import { ApplicationStatus, Extension } from "demos-server";
 
 export type MockExtension = Pick<Extension, "id" | "name" | "effectiveDate"> & {
-  status: BundleStatus;
+  status: ApplicationStatus;
 };
 
 export const mockExtensions = [

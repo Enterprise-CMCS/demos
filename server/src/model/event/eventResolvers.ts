@@ -1,12 +1,8 @@
 import { prisma } from "../../prismaClient.js";
 import { LogEventInput } from "./eventSchema.js";
 import { Event } from "@prisma/client";
-import { getBundle } from "../bundle/bundleResolvers.js";
-import {
-  GraphQLContext,
-  getCurrentUserId,
-  getCurrentUserRoleId,
-} from "../../auth/auth.util.js";
+import { getApplication } from "../application/applicationResolvers.js";
+import { GraphQLContext, getCurrentUserId, getCurrentUserRoleId } from "../../auth/auth.util.js";
 
 export const eventResolvers = {
   Query: {
@@ -15,9 +11,9 @@ export const eventResolvers = {
         orderBy: { createdAt: "desc" },
       });
     },
-    eventsByBundle: async (_: unknown, { bundleId }: { bundleId: string }) => {
+    eventsByApplication: async (_: unknown, { applicationId }: { applicationId: string }) => {
       return prisma().event.findMany({
-        where: { bundleId },
+        where: { applicationId },
         orderBy: { createdAt: "desc" },
       });
     },
@@ -29,12 +25,12 @@ export const eventResolvers = {
       { input }: { input: LogEventInput },
       context: GraphQLContext
     ) => {
-      const { eventType, logLevel, route, eventData: clientEventData, bundleId } = input;
+      const { eventType, logLevel, route, eventData: clientEventData, applicationId } = input;
 
       const userId = await getCurrentUserId(context);
       const roleId = await getCurrentUserRoleId(context);
 
-      const eventData = { ...clientEventData, userId, roleId, bundleId };
+      const eventData = { ...clientEventData, userId, roleId, applicationId };
 
       try {
         await prisma().event.create({
@@ -44,7 +40,7 @@ export const eventResolvers = {
             eventType,
             logLevel,
             route,
-            bundleId: bundleId ?? null,
+            applicationId: applicationId ?? null,
             eventData,
           },
         });
@@ -57,12 +53,11 @@ export const eventResolvers = {
 
   Event: {
     user: (parent: Event) =>
-      parent.userId
-        ? prisma().user.findUnique({ where: { id: parent.userId } })
-        : null,
+      parent.userId ? prisma().user.findUnique({ where: { id: parent.userId } }) : null,
 
     withRole: (parent: Event) => parent.withRoleId ?? null,
 
-    bundle: (parent: Event) => (parent.bundleId ? getBundle(parent.bundleId) : null),
+    application: (parent: Event) =>
+      parent.applicationId ? getApplication(parent.applicationId) : null,
   },
 };

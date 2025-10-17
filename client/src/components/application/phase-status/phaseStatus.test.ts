@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getStatusForPhase, setStatusForPhase, type SimplePhase } from "./phaseStatus";
 
-const mockBundlePhases: SimplePhase[] = [
+const mockApplicationPhases: SimplePhase[] = [
   {
     phaseName: "Concept",
     phaseStatus: "Started",
@@ -19,22 +19,22 @@ const mockBundlePhases: SimplePhase[] = [
 describe("phaseStatus", () => {
   describe("Phase status operations", () => {
     it("should get status for existing phase", () => {
-      const status = getStatusForPhase(mockBundlePhases, "Concept");
+      const status = getStatusForPhase(mockApplicationPhases, "Concept");
       expect(status).toBe("Started");
     });
 
     it("should get status for different phase", () => {
-      const status = getStatusForPhase(mockBundlePhases, "State Application");
+      const status = getStatusForPhase(mockApplicationPhases, "State Application");
       expect(status).toBe("Not Started");
     });
 
     it("should return null for non-existent phase", () => {
-      const status = getStatusForPhase(mockBundlePhases, "None");
+      const status = getStatusForPhase(mockApplicationPhases, "None");
       expect(status).toBeNull();
     });
 
     it("should set status for existing phase", () => {
-      const updatedPhases = setStatusForPhase(mockBundlePhases, "Concept", "Completed");
+      const updatedPhases = setStatusForPhase(mockApplicationPhases, "Concept", "Completed");
 
       expect(updatedPhases).toHaveLength(3);
       expect(updatedPhases[0].phaseStatus).toBe("Completed");
@@ -43,21 +43,21 @@ describe("phaseStatus", () => {
     });
 
     it("should not modify original array when setting status", () => {
-      const originalPhases = [...mockBundlePhases];
-      setStatusForPhase(mockBundlePhases, "Concept", "Completed");
+      const originalPhases = [...mockApplicationPhases];
+      setStatusForPhase(mockApplicationPhases, "Concept", "Completed");
 
-      expect(mockBundlePhases).toEqual(originalPhases);
+      expect(mockApplicationPhases).toEqual(originalPhases);
     });
 
     it("should return unchanged array when setting status for non-existent phase", () => {
-      const updatedPhases = setStatusForPhase(mockBundlePhases, "None", "Completed");
+      const updatedPhases = setStatusForPhase(mockApplicationPhases, "None", "Completed");
 
-      expect(updatedPhases).toEqual(mockBundlePhases);
+      expect(updatedPhases).toEqual(mockApplicationPhases);
     });
   });
 
   describe("Edge cases", () => {
-    it("should handle empty bundle phases array", () => {
+    it("should handle empty application phases array", () => {
       const emptyPhases: SimplePhase[] = [];
 
       const status = getStatusForPhase(emptyPhases, "Concept");

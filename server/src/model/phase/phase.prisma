@@ -3,7 +3,7 @@ model Phase {
   id          String
   phaseNumber Int    @map("phase_number")
 
-  bundlePhases       BundlePhase[]
+  applicationPhases  ApplicationPhase[]
   demonstrations     Demonstration[]
   modifications      Modification[]
   phaseDocumentTypes PhaseDocumentType[]

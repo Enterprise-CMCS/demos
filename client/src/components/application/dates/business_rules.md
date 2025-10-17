@@ -1,4 +1,4 @@
-# Bundle Date Business Rules
+# Application Date Business Rules
 
 ### 1. Concept Phase
 

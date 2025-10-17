@@ -10,14 +10,14 @@ const REFETCH_QUERIES = ["GetConceptDocuments", "GetDemonstrationDocuments"];
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  bundleId: string;
+  applicationId: string;
   refetchQueries?: string[];
 };
 
 export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
-  bundleId,
+  applicationId,
   refetchQueries = REFETCH_QUERIES,
 }) => {
   return (
@@ -26,7 +26,7 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
       isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
-      bundleId={bundleId}
+      applicationId={applicationId}
       titleOverride="Pre-Submission Document"
       refetchQueries={refetchQueries}
     />
