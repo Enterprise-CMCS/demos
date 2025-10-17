@@ -45,7 +45,6 @@ export const documentSchema = gql`
   }
 
   type Query {
-    documents: [Document!]!
     document(id: ID!): Document
   }
 `;
