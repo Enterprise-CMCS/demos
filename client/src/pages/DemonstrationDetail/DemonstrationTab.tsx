@@ -62,7 +62,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               <AddNewIcon className="w-2 h-2" />
             </SecondaryButton>
           </div>
-          <DocumentTable documents={demonstration.documents} />
+          <DocumentTable bundleId={demonstration.id} documents={demonstration.documents} />
         </Tab>
         <Tab
           icon={<CharacteristicIcon />}
@@ -88,13 +88,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         <AddDocumentDialog
           isOpen={true}
           onClose={() => setModalType(null)}
-          initialDocument={{
-            id: demonstration.id,
-            name: "",
-            description: "",
-            documentType: "General File",
-            file: null,
-          }}
+          bundleId={demonstration.id}
         />
       )}
       {modalType === "contact" && (

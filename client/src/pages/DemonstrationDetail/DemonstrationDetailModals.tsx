@@ -37,13 +37,7 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
       <AddDocumentDialog
         isOpen={true}
         onClose={onCloseEntityModal}
-        initialDocument={{
-          id: demonstrationId,
-          name: "",
-          description: "",
-          documentType: "General File",
-          file: null,
-        }}
+        bundleId={demonstrationId}
       />
     )}
 

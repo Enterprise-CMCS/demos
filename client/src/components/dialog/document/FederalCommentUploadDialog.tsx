@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AddDocumentDialog, DocumentDialogFields } from "components/dialog/document/DocumentDialog";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { DocumentType } from "demos-server";
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["General File"];
@@ -19,21 +19,13 @@ export const FederalCommentUploadDialog: React.FC<Props> = ({
   onClose,
   bundleId,
 }) => {
-  const getInitialDocument = (): DocumentDialogFields => ({
-    id: bundleId,
-    name: "",
-    description: "",
-    documentType: "General File",
-    file: null,
-  });
-
   return (
     <AddDocumentDialog
       key={isOpen ? "open" : "closed"}
       isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
-      initialDocument={getInitialDocument()}
+      bundleId={bundleId}
       titleOverride="Internal Analysis Document"
       refetchQueries={REFETCH_QUERIES}
     />
