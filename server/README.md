@@ -465,9 +465,18 @@ This is implemented using the `__resolveType` resolver function.
 1. __Name Formatting__: Use snake_case for all database-related items.
 2. __Table Naming__: Tables should be named using the singular if possible (e.g. `author`, not `authors`). Exceptions to this are allowable for good reason. For instance, the word `USER` is reserved in SQL, so the table with users is called `users`. This is documented in the Prisma model. In contexts where the table name is made plural in this manner, do not make other references plural; having `user_id` in one table be constrained by `users.id` in the `users` table is correct.
 3. __ID Columns__: Most tables will have a column named `id` which represents the identifier for that table. Do not prefix the ID with the name of the table (i.e. use `state.id`, not `state.state_id`).
-4. __Foreign Keys__: When using a column in a table that references the ID column of another table, refer to it with a prefix. Ideally, you should simply use `table_name_id`. In some contexts, it is necessary to add additional context about the meaning of a column. For instance, the primary reviewer of a proposal is a user, but naming the column `user_id` is ambiguous. In those contexts, you can use the format of `meaningful_name_type_id`. So, `primary_reviewer_user_id` indicates the the column is the primary reviewer and that it is a user ID, meaning it can be looked up in `users.id`.
-5. __Static Constraint Tables__: As described [above](#static-constraints-tables-vs-enums), a static constraint table should be used in favor of an `enum` in most cases. Such contraint tables will have a single column, `id`, which contains the valid values. Denote these tables with the `STATIC_CONSTRAINT` flag on their Prisma models. Static constraint tables should not have history tables, nor will they have resolvers; they are intended to implement an `enum`-like functionality.
-5. __History Table Specifics__: Every history table should begein with three columns: `revision_id`, `revision_type`, and `modified_at`. These are expected by the Python tool which generates the triggers. Every other column should be reproduced from the source table, but no constraints or checks should be duplicated.
+4. __Static Constraint Tables__: As described [above](#static-constraints-tables-vs-enums), a static constraint table should be used in favor of an `enum` in most cases. Such contraint tables will have a single column, `id`, which contains the valid values. Denote these tables with the `STATIC_CONSTRAINT` flag on their Prisma models. Static constraint tables should not have history tables, nor will they have resolvers; they are intended to implement an `enum`-like functionality.
+5. __Foreign Keys__: When using a column in a table that references the ID column of another table, refer to it with a prefix. Ideally, you should simply use `table_name_id`. In some contexts, it is necessary to add additional context about the meaning of a column. For instance, the primary reviewer of a proposal is a user, but naming the column `user_id` is ambiguous. In those contexts, you can use the format of `meaningful_name_type_id`. So, `primary_reviewer_user_id` indicates the the column is the primary reviewer and that it is a user ID, meaning it can be looked up in `users.id`.
+6. __Relation Exposure (API & DB)__:: When using a table with an `FK_id` inside in the structure, e.g. `Event.bundle_id` or `Demonstration.bundle_type_id`, we set up the schema and resolvers to return the Object `Event.Bundle` instead of the `Event.bundle_id`. If we consistently do this, returing the 1 to 1 relationship instead of the ID. We can maintain parity across the system.
+```TS
+  export interface Event {
+    id: string;
+    // .. etc etc ..
+    bundle?: Bundle;
+  }
+  ```
+
+7. __History Table Specifics__: Every history table should begein with three columns: `revision_id`, `revision_type`, and `modified_at`. These are expected by the Python tool which generates the triggers. Every other column should be reproduced from the source table, but no constraints or checks should be duplicated.
 
 # How To Guides
 
