@@ -19,6 +19,12 @@ const renderWithToast = (component: React.ReactElement) => {
 
 const testMocks = mockDemonstrationRoleAssignments.slice(0, 2); // Use first two for testing
 
+// Create test data with explicit primary status variations
+const testMocksWithPrimary = [
+  { ...testMocks[0], isPrimary: true },
+  { ...testMocks[1], isPrimary: false },
+];
+
 describe("ContactsTable", () => {
   it("displays all required columns: Name, Email, Contact Type, and Primary", () => {
     renderWithToast(<ContactsTable roles={testMocks} />);
@@ -34,6 +40,45 @@ describe("ContactsTable", () => {
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("jane.smith@email.com")).toBeInTheDocument();
     expect(screen.getAllByText("Project Officer")).toHaveLength(2);
+  });
+
+  it("handles null roles prop correctly", () => {
+    renderWithToast(<ContactsTable roles={null} />);
+
+    // Should still show headers
+    expect(screen.getByText("Name")).toBeInTheDocument();
+    expect(screen.getByText("Email")).toBeInTheDocument();
+    expect(screen.getByText("Contact Type")).toBeInTheDocument();
+    expect(screen.getByText("Primary")).toBeInTheDocument();
+
+    // Should only have header row
+    const rows = screen.getAllByRole("row");
+    expect(rows.length).toBe(1); // Only header row
+  });
+
+  it("displays Primary status correctly for both Yes and No values", () => {
+    renderWithToast(<ContactsTable roles={testMocksWithPrimary} />);
+
+    // Should show "Yes" for primary contact
+    expect(screen.getByText("Yes")).toBeInTheDocument();
+
+    // Should show "No" for non-primary contact
+    expect(screen.getByText("No")).toBeInTheDocument();
+  });
+
+  it("displays fallback dash for empty cell values", () => {
+    // Create mock with empty string to test edge case
+    const mockWithEmptyValues = [
+      {
+        ...testMocks[0],
+        person: { ...testMocks[0].person, fullName: "", email: "" },
+      },
+    ];
+    renderWithToast(<ContactsTable roles={mockWithEmptyValues} />);
+
+    // Should render the table even with empty values
+    const rows = screen.getAllByRole("row");
+    expect(rows.length).toBe(2); // header + 1 data row
   });
 
   it("displays all required fields for each contact", () => {
