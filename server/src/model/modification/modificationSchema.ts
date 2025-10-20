@@ -1,18 +1,25 @@
 import { gql } from "graphql-tag";
 
-import { PhaseName, BundleStatus, BundlePhase, Demonstration, Document } from "../../types.js";
+import {
+  PhaseName,
+  ApplicationStatus,
+  ApplicationPhase,
+  Demonstration,
+  Document,
+  NonEmptyString,
+} from "../../types.js";
 
 export const modificationSchema = gql`
   type Amendment {
     id: ID!
     demonstration: Demonstration!
-    name: String!
+    name: NonEmptyString!
     description: String!
     effectiveDate: DateTime
     expirationDate: DateTime
-    status: BundleStatus!
+    status: ApplicationStatus!
     currentPhaseName: PhaseName!
-    phases: [BundlePhase!]!
+    phases: [ApplicationPhase!]!
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -20,30 +27,30 @@ export const modificationSchema = gql`
 
   input CreateAmendmentInput {
     demonstrationId: ID!
-    name: String!
+    name: NonEmptyString!
     description: String
   }
 
   input UpdateAmendmentInput {
     demonstrationId: ID
-    name: String
+    name: NonEmptyString
     description: String
     effectiveDate: DateTime
     expirationDate: DateTime
-    status: BundleStatus
+    status: ApplicationStatus
     currentPhaseName: PhaseName
   }
 
   type Extension {
     id: ID!
     demonstration: Demonstration!
-    name: String!
+    name: NonEmptyString!
     description: String!
     effectiveDate: DateTime
     expirationDate: DateTime
-    status: BundleStatus!
+    status: ApplicationStatus!
     currentPhaseName: PhaseName!
-    phases: [BundlePhase!]!
+    phases: [ApplicationPhase!]!
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -51,17 +58,17 @@ export const modificationSchema = gql`
 
   input CreateExtensionInput {
     demonstrationId: ID!
-    name: String!
+    name: NonEmptyString!
     description: String
   }
 
   input UpdateExtensionInput {
     demonstrationId: ID
-    name: String
+    name: NonEmptyString
     description: String
     effectiveDate: DateTime
     expirationDate: DateTime
-    status: BundleStatus
+    status: ApplicationStatus
     currentPhaseName: PhaseName
   }
 
@@ -85,13 +92,13 @@ export const modificationSchema = gql`
 export interface Amendment {
   id: string;
   demonstration: Demonstration;
-  name: string;
+  name: NonEmptyString;
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
-  status: BundleStatus;
+  status: ApplicationStatus;
   currentPhaseName: PhaseName;
-  phases: BundlePhase[];
+  phases: ApplicationPhase[];
   documents: Document[];
   createdAt: Date;
   updatedAt: Date;
@@ -99,30 +106,30 @@ export interface Amendment {
 
 export interface CreateAmendmentInput {
   demonstrationId: string;
-  name: string;
+  name: NonEmptyString;
   description: string | null;
 }
 
 export interface UpdateAmendmentInput {
   demonstrationId?: string;
-  name?: string;
+  name?: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
   expirationDate?: Date;
-  status?: BundleStatus;
+  status?: ApplicationStatus;
   currentPhaseName?: PhaseName;
 }
 
 export interface Extension {
   id: string;
   demonstration: Demonstration;
-  name: string;
+  name: NonEmptyString;
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
-  status: BundleStatus;
+  status: ApplicationStatus;
   currentPhaseName: PhaseName;
-  phases: BundlePhase[];
+  phases: ApplicationPhase[];
   documents: Document[];
   createdAt: Date;
   updatedAt: Date;
@@ -130,16 +137,16 @@ export interface Extension {
 
 export interface CreateExtensionInput {
   demonstrationId: string;
-  name: string;
+  name: NonEmptyString;
   description: string | null;
 }
 
 export interface UpdateExtensionInput {
   demonstrationId?: string;
-  name?: string;
+  name?: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
   expirationDate?: Date;
-  status?: BundleStatus;
+  status?: ApplicationStatus;
   currentPhaseName?: PhaseName;
 }

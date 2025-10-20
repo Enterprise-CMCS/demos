@@ -1,6 +1,12 @@
 import { CellContext, Row, Table } from "@tanstack/react-table";
 import { ExitIcon, SearchIcon } from "components/icons";
+import { LABEL_CLASSES, INPUT_BASE_CLASSES, getInputColors } from "components/input/Input";
 import React from "react";
+
+export const TEST_IDS = {
+  input: "input-keyword-search",
+  clearButton: "button-clear-search",
+};
 
 export interface KeywordSearchProps<T> {
   table: Table<T>;
@@ -128,18 +134,20 @@ export function KeywordSearch<T>({
   }, []);
 
   return (
-    <div>
-      <label htmlFor="keyword-search" className="ml-2 font-semibold block mb-1">
+    <div className="flex flex-col gap-sm">
+      <label htmlFor="input-keyword-search" className={LABEL_CLASSES}>
         {label}
       </label>
-
-      <div className="ml-2 m-2 mr-2 flex items-center gap-2 text-sm relative">
-        <SearchIcon className="absolute left-1 top-1/2 transform -translate-y-1/2 text-gray-500" />
+      <div className="relative flex items-center">
+        <SearchIcon className="absolute left-1 text-gray-500 pointer-events-none" />
         <input
-          id="keyword-search"
-          className="border px-3 py-1 rounded pl-8 pr-8"
+          type="text"
+          id={TEST_IDS.input}
+          name={TEST_IDS.input}
+          data-testid={TEST_IDS.input}
           value={queryString}
           onChange={(e) => onValueChange(e.target.value)}
+          className={`${INPUT_BASE_CLASSES} ${getInputColors("")} w-full pl-10 pr-10`}
           aria-label="Input keyword search query"
           placeholder={placeholder}
         />
@@ -147,8 +155,9 @@ export function KeywordSearch<T>({
           <button
             type="button"
             onClick={clearSearch}
-            className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
+            className="absolute right-1 text-gray-500 hover:text-gray-700 cursor-pointer"
             aria-label="Clear search"
+            data-testid={TEST_IDS.clearButton}
           >
             <ExitIcon />
           </button>

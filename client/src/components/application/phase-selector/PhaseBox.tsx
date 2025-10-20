@@ -31,6 +31,10 @@ const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> =
     box: tw`bg-white text-text-warn font-bold border border-text-warn`,
     number: tw`text-text-warn border border-text-warn`,
   },
+  Incomplete: {
+    box: tw`bg-white text-text-warn font-bold border border-text-warn`,
+    number: tw`text-text-warn border border-text-warn`,
+  },
 };
 
 const isCompletionStatus = (status: PhaseStatus): boolean =>

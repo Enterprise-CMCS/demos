@@ -1,29 +1,23 @@
 import React from "react";
 import { ColumnHelper, Row, Table } from "@tanstack/react-table";
+import { Checkbox } from "components/input";
 
 export function createSelectColumnDef<T>(columnHelper: ColumnHelper<T>) {
   return columnHelper.display({
     id: "select",
     header: ({ table }: { table: Table<T> }) => (
-      <input
-        id="select-all-rows"
-        type="checkbox"
-        className="cursor-pointer"
-        aria-label="Select all rows"
+      <Checkbox
+        name="select-all-rows"
         checked={table.getIsAllPageRowsSelected()}
         onChange={table.getToggleAllPageRowsSelectedHandler()}
       />
     ),
     cell: ({ row }: { row: Row<T> }) => (
-      <input
-        id={`select-row-${row.id}`}
-        type="checkbox"
-        className="cursor-pointer"
+      <Checkbox
+        name={`select-row-${row.id}`}
         checked={row.getIsSelected()}
         onChange={row.getToggleSelectedHandler()}
-        aria-label={`Select row ${row.index + 1}`}
       />
     ),
-    size: 20,
   });
 }

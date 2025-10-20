@@ -9,7 +9,7 @@ import { FederalCommentUploadDialog } from "components/dialog/document/FederalCo
 interface FederalCommentPhaseProps {
   demonstrationId: string;
   phaseStartDate: Date;
-  phaseEndDate: Date
+  phaseEndDate: Date;
   documents?: DocumentTableDocument[];
 }
 
@@ -25,7 +25,6 @@ const STYLES = {
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
   actions: tw`mt-8 flex justify-end gap-3`,
 };
-
 
 export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   demonstrationId = "default-demo-id",
@@ -51,7 +50,8 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   }, [phaseEndDate]);
 
   const borderColorClass = daysLeft === 1 ? "border-border-warn" : "border-border-alert";
-  const warningClasses = tw`
+  const warningClasses =
+    tw`
     w-[600px] p-sm rounded-md shadow-lg
     bg-white text-text-font border border-l-4
     flex items-center
@@ -87,9 +87,13 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
     <div>
       {showWarning && (
         <div className={warningClasses}>
-          <div className="mx-1"><WarningIcon /></div>
+          <div className="mx-1">
+            <WarningIcon />
+          </div>
           <div>
-            <h3 className="text-[18px] font-bold">{daysLeft} {daysLeft === 1 ? "day" : "days"} left</h3>
+            <h3 className="text-[18px] font-bold">
+              {daysLeft} {daysLeft === 1 ? "day" : "days"} left
+            </h3>
             <span>The Federal Comment Period ends on {formatDate(phaseEndDate)}</span>
           </div>
           <button
@@ -107,11 +111,12 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
         FEDERAL COMMENT PERIOD
       </h3>
       <p className="text-sm text-text-placeholder mb-4">
-        Federal Comment Period Review. Find completeness guidelines online at <a
+        Federal Comment Period Review. Find completeness guidelines online at{" "}
+        <a
           className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
           href="https://www.medicaid.gov"
         >
-           Medicaid.gov
+          Medicaid.gov
         </a>
       </p>
 
@@ -132,7 +137,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       <FederalCommentUploadDialog
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
-        bundleId={demonstrationId}
+        applicationId={demonstrationId}
       />
     </div>
   );

@@ -16,7 +16,7 @@ describe("DocumentTable", () => {
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
         <ToastProvider>
-          <DocumentTable documents={mockDocuments} />
+          <DocumentTable applicationId="test-application-id" documents={mockDocuments} />
         </ToastProvider>
       </MockedProvider>
     );

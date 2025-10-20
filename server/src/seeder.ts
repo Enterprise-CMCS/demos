@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { Prisma } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 import { SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
@@ -8,11 +9,11 @@ import {
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
-  BundleType,
-  SetBundleDateInput,
+  ApplicationType,
+  SetApplicationDateInput,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
-import { DocumentType, PhaseName } from "./types.js";
+import { DocumentType, PhaseName, PhaseStatus } from "./types.js";
 import {
   getManyDemonstrations,
   createDemonstration,
@@ -26,7 +27,7 @@ import {
   updateAmendment,
   updateExtension,
 } from "./model/modification/modificationResolvers.js";
-import { setBundleDate } from "./model/bundleDate/bundleDateResolvers.js";
+import { setApplicationDate } from "./model/applicationDate/applicationDateResolvers.js";
 
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
@@ -74,10 +75,10 @@ async function clearDatabase() {
     prisma().primaryDemonstrationRoleAssignment.deleteMany(),
     prisma().demonstrationRoleAssignment.deleteMany(),
     prisma().demonstration.deleteMany(),
-    prisma().bundleDate.deleteMany(),
-    prisma().bundlePhase.deleteMany(),
+    prisma().applicationDate.deleteMany(),
+    prisma().applicationPhase.deleteMany(),
     prisma().document.deleteMany(),
-    prisma().bundle.deleteMany(),
+    prisma().application.deleteMany(),
     prisma().event.deleteMany(),
     prisma().systemRoleAssignment.deleteMany(),
     prisma().personState.deleteMany(),
@@ -213,8 +214,11 @@ async function seedDatabase() {
     await createDemonstration(undefined, { input: createInput });
   }
   const demonstrations = await getManyDemonstrations();
+  const completenessPhase: PhaseName = "Completeness";
+  const incompletePhaseStatus: PhaseStatus = "Incomplete";
+
   await Promise.all(
-    demonstrations.map((demonstration, index) => {
+    demonstrations.map(async (demonstration, index) => {
       const randomDates = randomDateRange();
       const updatePayload: UpdateDemonstrationInput = {
         effectiveDate: randomDates["start"],
@@ -227,8 +231,7 @@ async function seedDatabase() {
        * And correctly seed valid dates, phase statuses, etc...
        */
       if (index === 0) {
-        updatePayload.currentPhaseName = "Federal Comment";
-        updatePayload.status = "Under Review";
+        updatePayload.currentPhaseName = completenessPhase;
       }
 
       const updateInput = {
@@ -236,7 +239,26 @@ async function seedDatabase() {
         input: updatePayload,
       };
 
-      return updateDemonstration(undefined, updateInput);
+      await updateDemonstration(undefined, updateInput);
+
+      if (index === 0) {
+        await prisma().applicationPhase.upsert({
+          where: {
+            applicationId_phaseId: {
+              applicationId: demonstration.id,
+              phaseId: completenessPhase,
+            },
+          },
+          update: {
+            phaseStatusId: incompletePhaseStatus,
+          },
+          create: {
+            applicationId: demonstration.id,
+            phaseId: completenessPhase,
+            phaseStatusId: incompletePhaseStatus,
+          },
+        });
+      }
     })
   );
 
@@ -246,126 +268,126 @@ async function seedDatabase() {
       id: true,
     },
   });
-  const datesToSet: SetBundleDateInput[] = [
+  const datesToSet: SetApplicationDateInput[] = [
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Concept Start Date",
       dateValue: new Date("2025-01-01T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Pre-Submission Submitted Date",
       dateValue: new Date("2025-01-13T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Concept Completion Date",
       dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
-      dateType: "State Application Start Date",
+      applicationId: randomDemonstration!.id,
+      dateType: "Application Intake Start Date",
       dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "State Application Submitted Date",
       dateValue: new Date("2025-01-23T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Completeness Review Due Date",
       dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
-      dateType: "State Application Completion Date",
+      applicationId: randomDemonstration!.id,
+      dateType: "Application Intake Completion Date",
       dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Completeness Start Date",
       dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "State Application Deemed Complete",
       dateValue: new Date("2025-02-03T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Federal Comment Period Start Date",
       dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Federal Comment Period End Date",
       dateValue: new Date("2025-03-06T23:59:59.999-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Completeness Completion Date",
       dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "SDG Preparation Start Date",
       dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "Expected Approval Date",
       dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "SME Review Date",
       dateValue: new Date("2025-02-06T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "FRT Initial Meeting Date",
       dateValue: new Date("2025-02-07T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "BNPMT Initial Meeting Date",
       dateValue: new Date("2025-02-08T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "SDG Preparation Completion Date",
       dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "OGC & OMB Review Start Date",
       dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "OGC Review Complete",
       dateValue: new Date("2025-02-10T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "OMB Review Complete",
       dateValue: new Date("2025-02-11T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "PO & OGD Sign-Off",
       dateValue: new Date("2025-02-12T00:00:00.000-05:00"),
     },
     {
-      bundleId: randomDemonstration!.id,
+      applicationId: randomDemonstration!.id,
       dateType: "OGC & OMB Review Completion Date",
       dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
     },
   ];
 
   for (const dateInput of datesToSet) {
-    await setBundleDate(undefined, { input: dateInput });
+    await setApplicationDate(undefined, { input: dateInput });
   }
 
   console.log("🌱 Seeding amendments...");
@@ -417,7 +439,7 @@ async function seedDatabase() {
   console.log("🌱 Seeding documents...");
   // Get the application document type
   const stateApplicationDocumentType: DocumentType = "State Application";
-  const stateApplicationPhaseName: PhaseName = "State Application";
+  const applicationIntakePhaseName: PhaseName = "Application Intake";
   const nonePhaseName: PhaseName = "None";
   for (const demonstration of demonstrations) {
     const fakeName = faker.lorem.sentence(2);
@@ -428,15 +450,15 @@ async function seedDatabase() {
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
-        bundleId: demonstration.id,
-        phaseId: stateApplicationPhaseName,
+        applicationId: demonstration.id,
+        phaseId: applicationIntakePhaseName,
       },
     });
   }
   // Every amendment and extension has an application
   const amendmentIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: "Amendment" satisfies BundleType },
+    where: { applicationTypeId: "Amendment" satisfies ApplicationType },
   });
   for (const amendmentId of amendmentIds) {
     const fakeName = faker.lorem.sentence(2);
@@ -447,14 +469,14 @@ async function seedDatabase() {
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
-        bundleId: amendmentId.id,
-        phaseId: stateApplicationPhaseName,
+        applicationId: amendmentId.id,
+        phaseId: applicationIntakePhaseName,
       },
     });
   }
   const extensionIds = await prisma().modification.findMany({
     select: { id: true },
-    where: { bundleTypeId: "Extension" satisfies BundleType },
+    where: { applicationTypeId: "Extension" satisfies ApplicationType },
   });
   for (const extensionId of extensionIds) {
     const fakeName = faker.lorem.sentence(2);
@@ -465,8 +487,8 @@ async function seedDatabase() {
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
-        bundleId: extensionId.id,
-        phaseId: stateApplicationPhaseName,
+        applicationId: extensionId.id,
+        phaseId: applicationIntakePhaseName,
       },
     });
   }
@@ -488,11 +510,73 @@ async function seedDatabase() {
         s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: allowedPhaseDocumentTypes!.documentTypeId,
-        bundleId: (await prisma().bundle.findRandom())!.id,
+        applicationId: (await prisma().application.findRandom())!.id,
         phaseId: allowedPhaseDocumentTypes!.phaseId,
       },
     });
   }
+  console.log("🌱 Seeding events (with and without applicationIds)...");
+
+  // Grab some applications for association
+  const numberOfApplicationEvents = 10;
+  const applicationsForEvents = await prisma().application.findMany({
+    select: { id: true },
+    take: numberOfApplicationEvents,
+  });
+
+  // Grab some users/roles to make events look legit
+  const usersForEvents = await prisma().user.findMany({ select: { id: true }, take: 5 });
+  const rolesForEvents = await prisma().role.findMany({ select: { id: true }, take: 5 });
+
+  function pick<T>(arr: T[]): T | null {
+    if (!arr.length) return null;
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  const totalEvents = numberOfApplicationEvents + 10;
+  const eventsData: Prisma.EventCreateManyInput[] = [];
+
+  for (let i = 0; i < totalEvents; i++) {
+    // ~60% of events have a applicationId, rest are null
+    const attachApplication = Math.random() < 0.6;
+    const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
+    const userId = pick(usersForEvents)?.id ?? null;
+    const withRoleId = pick(rolesForEvents)?.id ?? null;
+
+    const eventType = maybeApplication
+      ? faker.helpers.arrayElement(["APPLICATION_COMPLETENESS", "APPLICATION_INCOMPLETENESS"])
+      : faker.helpers.arrayElement([
+          "APPLICATION_VIEW",
+          "DOCUMENT_UPLOAD",
+          "DOCUMENT_DOWNLOAD",
+          "PHASE_CHANGE",
+          "COMMENT_ADDED",
+          "LOGIN",
+          "LOGOUT",
+        ]);
+    eventsData.push({
+      // Prisma createMany will auto-generate id/createdAt if your schema defaults are set
+      userId,
+      withRoleId,
+      eventType,
+      logLevel: faker.helpers.arrayElement(["INFO", "WARN", "ERROR"]),
+      route: faker.helpers.arrayElement([
+        "/applications",
+        "/applications/:id",
+        "/documents/:id",
+        "/login",
+        "/graph",
+      ]),
+      applicationId: maybeApplication,
+      eventData: {
+        ip: faker.internet.ipv4(),
+        ua: faker.internet.userAgent(),
+        note: faker.lorem.sentence(),
+      },
+    });
+  }
+
+  await prisma().event.createMany({ data: eventsData });
 
   console.log("✨ Database seeding complete.");
 }

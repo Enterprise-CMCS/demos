@@ -4,7 +4,7 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
 import { GET_DEMONSTRATION_BY_ID_QUERY as HOOK_GET_DEMONSTRATION_BY_ID_QUERY } from "hooks/useDemonstration";
-import type { BundleStatus } from "demos-server";
+import type { ApplicationStatus } from "demos-server";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
@@ -29,7 +29,7 @@ export type MockDemonstration = Pick<
 > & {
   effectiveDate: string | null;
   expirationDate: string | null;
-  status: BundleStatus;
+  status: ApplicationStatus;
   state: MockState;
   amendments: MockAmendment[];
   extensions: MockExtension[];
@@ -44,7 +44,7 @@ export const mockDemonstrations = [
     id: "1",
     name: "Montana Medicaid Waiver",
     description: "A demonstration project in Montana.",
-    status: "Approved" as BundleStatus,
+    status: "Approved" as ApplicationStatus,
     effectiveDate: "2025-01-01",
     expirationDate: "2025-12-01",
     state: mockStates.find((state) => state.id === "MT")!,
@@ -70,7 +70,7 @@ export const mockDemonstrations = [
     id: "2",
     name: "Florida Health Innovation",
     description: "A health innovation project in Florida.",
-    status: "Under Review" as BundleStatus,
+    status: "Under Review" as ApplicationStatus,
     effectiveDate: "2025-03-01",
     expirationDate: "2026-02-01",
     state: mockStates.find((state) => state.id === "FL")!,
@@ -90,7 +90,7 @@ export const mockDemonstrations = [
     id: "3",
     name: "Texas Reform Initiative",
     description: "A reform initiative in Texas.",
-    status: "Denied" as BundleStatus,
+    status: "Denied" as ApplicationStatus,
     effectiveDate: null,
     expirationDate: null,
     state: mockStates.find((state) => state.id === "TX")!,

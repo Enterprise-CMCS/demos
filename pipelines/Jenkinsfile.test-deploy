@@ -18,9 +18,14 @@ pipeline {
     stage('Validate branch state') {
       steps {
         script {
+          // The GIT_COMMIT env set by Jenkins isn't accurate for this type of
+          // pipeline, so it needs to be parsed
+          env.MAIN_COMMIT_HASH = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+
           def mainStatus = sh( script: """
-            curl -s https://api.github.com/repos/Enterprise-CMCS/demos/commits/\$(git rev-parse HEAD)/status  | grep "state" | head -n1 | sed -E 's/.*"state": "(.*)".*/\\1/'
+            curl -s https://api.github.com/repos/Enterprise-CMCS/demos/commits/${env.MAIN_COMMIT_HASH}/status  | grep "state" | head -n1 | sed -E 's/.*"state": "(.*)".*/\\1/'
           """, returnStdout: true).trim()
+
 
           if (mainStatus != "success") {
             error("Main branch is not in a successful state: ${mainStatus}")
@@ -86,7 +91,11 @@ pipeline {
       steps {
           script {
             dirCon('deployment','node') {
-              sh "npx tsx demosctl/index deploy:all ${env.STAGE}"
+              sh """
+              export UI_COMMIT_HASH=${env.MAIN_COMMIT_HASH}
+              export API_COMMIT_HASH=${env.MAIN_COMMIT_HASH}
+              npx tsx demosctl/index deploy:all ${env.STAGE}
+              """
             }
           }
       }
@@ -95,10 +104,10 @@ pipeline {
 
     post {
       success {
-        slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+        slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL}/commit/${env.MAIN_COMMIT_HASH}|${env.MAIN_COMMIT_HASH}>")
       }
       failure {
-        slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+        slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL}/commit/${env.MAIN_COMMIT_HASH}|${env.MAIN_COMMIT_HASH}>")
       }
     }
 }

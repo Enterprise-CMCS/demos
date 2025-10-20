@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
@@ -53,6 +53,11 @@ services:
       DOCKER_HOST: unix:///var/run/docker.sock
       HOSTNAME_EXTERNAL: localstack
       SERVICES: s3,lambda,apigateway,secretsmanager,logs
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000"
+      CORS_ALLOWED_METHODS: "GET,POST,PUT,DELETE,HEAD,OPTIONS"
+      CORS_ALLOWED_HEADERS: "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent"
+      CORS_EXPOSE_HEADERS: "ETag"
+      CORS_ALLOW_CREDENTIALS: "true"
     volumes:
       - "localstack-data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"

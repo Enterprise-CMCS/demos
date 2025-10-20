@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AddDocumentDialog, DocumentDialogFields } from "components/dialog/document/DocumentDialog";
+import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { DocumentType } from "demos-server";
 
 // Minimal wrapper to seed the Completeness upload flow with sensible defaults
@@ -12,31 +12,23 @@ const REFETCH_QUERIES = ["GetCompletenessDocuments", "GetDemonstrationDocuments"
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  bundleId?: string; // optional starter prop; can be wired later
+  applicationId?: string; // optional starter prop; can be wired later
   refetchQueries?: string[];
 };
 
 export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
-  bundleId = "demo-id-placeholder",
+  applicationId = "demo-id-placeholder",
   refetchQueries = REFETCH_QUERIES,
 }) => {
-  const getInitialDocument = (): DocumentDialogFields => ({
-    id: bundleId,
-    name: "",
-    description: "",
-    documentType: "Application Completeness Letter",
-    file: null,
-  });
-
   return (
     <AddDocumentDialog
       key={isOpen ? "open" : "closed"}
       isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
-      initialDocument={getInitialDocument()}
+      applicationId={applicationId}
       titleOverride="Add Completeness Document(s)"
       refetchQueries={refetchQueries}
     />

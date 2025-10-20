@@ -1,10 +1,11 @@
-import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, ErrorButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
+import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useToast } from "components/toast";
 import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
@@ -21,7 +22,7 @@ import { useMutation } from "@apollo/client";
 type DocumentDialogType = "add" | "edit";
 
 const STYLES = {
-  label: tw`block text-sm font-bold text-text-font mb-xs`,
+  label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
   textarea: tw`w-full border border-border-fields px-xs py-xs text-sm rounded resize-y`,
   dropzone: tw`border border-dashed border-border-fields bg-surface-secondary rounded px-sm py-sm text-center`,
   dropzoneHeader: tw`text-sm font-bold text-text-font mb-xs`,
@@ -109,36 +110,37 @@ const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }>
   <TextInput
     name="title"
     label="Document Title"
-    isRequired
     placeholder="Enter document title"
     onChange={(event) => onChange(event.target.value)}
     value={value}
   />
 );
 
-// Forward ref so we can focus() the textarea when a field is missing
 type DescriptionInputProps = { value: string; onChange: (value: string) => void; error?: string };
-const DescriptionInput = forwardRef<HTMLTextAreaElement, DescriptionInputProps>(
-  function DescriptionInput({ value, onChange, error }, ref) {
-    return (
-      <div>
-        <label className={STYLES.label}>
-          <span className="text-text-warn mr-1">*</span>Document Description
-        </label>
-        <textarea
-          ref={ref}
-          rows={2}
-          placeholder="Enter"
-          className={STYLES.textarea}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          aria-invalid={!!error}
-          aria-describedby={error ? "description-error" : undefined}
-        />
-      </div>
-    );
-  }
-);
+
+const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, error }) => {
+  const validationMessage = error ?? "";
+
+  return (
+    <div className="flex flex-col gap-sm">
+      <label className={LABEL_CLASSES}>Document Description</label>
+      <textarea
+        rows={2}
+        placeholder="Enter"
+        className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage)} text-sm resize-y`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-invalid={!!validationMessage}
+        aria-describedby={validationMessage ? "description-error" : undefined}
+      />
+      {validationMessage ? (
+        <span id="description-error" className="text-error-dark">
+          {validationMessage}
+        </span>
+      ) : null}
+    </div>
+  );
+};
 
 const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({
   progress,
@@ -294,7 +296,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [isSubmitting, setSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
-  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { file, uploadProgress, uploadStatus, handleFileChange, setFile } = useFileUpload({
@@ -312,23 +313,21 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   useEffect(() => {
     if (mode === "add" && file && !titleManuallyEdited && !activeDocument.name.trim()) {
       const base = file.name.replace(/\.[^.]+$/, "");
-      setActiveDocument((prev) => ({ ...prev, title: base }));
+      setActiveDocument((prev) => ({ ...prev, name: base }));
     }
   }, [mode, file, titleManuallyEdited, activeDocument.name]);
 
+  useEffect(() => {
+    setActiveDocument((prev) => ({ ...prev, file }));
+  }, [file]);
+
   const isUploading = uploadStatus === "uploading";
 
-  const missingTitle = mode === "edit" ? !activeDocument.name.trim() : false;
-  const missingDesc = !activeDocument.description.trim();
   const missingType = !activeDocument.documentType;
   const missingFile = !file;
-  const isMissing = missingTitle || missingDesc || missingType || missingFile;
+  const isMissing = missingType || missingFile;
 
   const focusFirstMissing = () => {
-    if (missingDesc) {
-      descriptionRef.current?.focus();
-      return;
-    }
     if (missingType) {
       document.getElementById("document-type")?.focus();
       return;
@@ -417,18 +416,15 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
       />
 
       <DescriptionInput
-        ref={descriptionRef}
         value={activeDocument.description}
-        onChange={(val) => {
-          setActiveDocument((prev) => ({ ...prev, description: val }));
-        }}
+        onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
       />
 
       <DocumentTypeInput
         value={activeDocument.documentType}
-        onSelect={(val) => {
-          setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }));
-        }}
+        onSelect={(val) =>
+          setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
+        }
         documentTypeSubset={documentTypeSubset}
       />
     </BaseDialog>
@@ -438,15 +434,26 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 export const AddDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
+  applicationId: string;
   documentTypeSubset?: DocumentType[];
-  initialDocument?: DocumentDialogFields;
   titleOverride?: string;
   refetchQueries?: string[];
-}> = ({ isOpen, onClose, documentTypeSubset, initialDocument, titleOverride, refetchQueries }) => {
-  const { showError, showSuccess } = useToast();
+}> = ({ isOpen, onClose, applicationId, documentTypeSubset, titleOverride, refetchQueries }) => {
+  const { showError } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
     refetchQueries,
   });
+
+  const defaultDocumentType: DocumentType = documentTypeSubset?.[0] ?? "General File";
+
+  const defaultDocument: DocumentDialogFields = {
+    file: null,
+    id: "",
+    name: "",
+    description: "",
+    documentType: defaultDocumentType,
+  };
+
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
     if (!dialogFields.file) {
       showError("No file selected");
@@ -454,7 +461,7 @@ export const AddDocumentDialog: React.FC<{
     }
 
     const uploadDocumentInput: UploadDocumentInput = {
-      bundleId: dialogFields.id,
+      applicationId,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
@@ -465,16 +472,21 @@ export const AddDocumentDialog: React.FC<{
       variables: { input: uploadDocumentInput },
     });
 
-    const presignedURL = uploadDocumentResponse.data?.uploadDocument.presignedUrl ?? null;
+    if (uploadDocumentResponse.errors?.length) {
+      throw new Error(uploadDocumentResponse.errors[0].message);
+    }
+
+    const presignedURL = uploadDocumentResponse.data?.uploadDocument.presignedURL ?? null;
+
     if (!presignedURL) {
       throw new Error("Could not get presigned URL from the server");
     }
 
     const response: S3UploadResponse = await tryUploadingFileToS3(presignedURL, dialogFields.file);
-    if (response.success) {
-      showSuccess("Your document was uploaded successfully!");
-    } else {
+
+    if (!response.success) {
       showError(response.errorMessage);
+      throw new Error(response.errorMessage);
     }
   };
 
@@ -485,7 +497,7 @@ export const AddDocumentDialog: React.FC<{
       mode="add"
       onSubmit={handleUpload}
       documentTypeSubset={documentTypeSubset}
-      initialDocument={initialDocument}
+      initialDocument={defaultDocument}
       titleOverride={titleOverride}
     />
   );
@@ -501,7 +513,7 @@ export const EditDocumentDialog: React.FC<{
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
     const updateDocumentInput: UpdateDocumentInput = {
-      bundleId: dialogFields.id,
+      applicationId: dialogFields.id,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,

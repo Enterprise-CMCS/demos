@@ -6,7 +6,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Table } from "./Table";
 import { TestType, testTableData } from "./Table.test";
-import { highlightCell, KeywordSearch } from "./KeywordSearch";
+import { highlightCell, KeywordSearch, TEST_IDS } from "./KeywordSearch";
 import { createColumnHelper } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper<TestType>();
@@ -46,7 +46,7 @@ describe.sequential("KeywordSearch Component", () => {
 
   describe("Initial Render", () => {
     it("renders the keyword search input with correct label", () => {
-      const keywordSearchInput = screen.getByLabelText(/Search:/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       expect(keywordSearchInput).toBeInTheDocument();
       expect(keywordSearchInput).toHaveValue("");
@@ -54,7 +54,7 @@ describe.sequential("KeywordSearch Component", () => {
     });
 
     it("renders with search icon and no clear icon initially", () => {
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
       const searchContainer = keywordSearchInput.closest("div");
 
       // Search icon should be present
@@ -62,7 +62,7 @@ describe.sequential("KeywordSearch Component", () => {
       expect(searchIcon).toBeInTheDocument();
 
       // Clear button should not be present initially
-      const clearButton = screen.queryByLabelText(/clear search/i);
+      const clearButton = screen.queryByTestId(TEST_IDS.clearButton);
       expect(clearButton).not.toBeInTheDocument();
     });
 
@@ -79,25 +79,25 @@ describe.sequential("KeywordSearch Component", () => {
   describe("Input Interaction", () => {
     it("shows clear icon when text is typed", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "unique");
 
       // Clear button should now be visible
-      const clearButton = screen.getByLabelText(/clear search/i);
+      const clearButton = screen.getByTestId(TEST_IDS.clearButton);
       expect(clearButton).toBeInTheDocument();
       expect(keywordSearchInput).toHaveValue("unique");
     });
 
     it("clears input and removes clear icon when clear button is clicked", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       // Type in search input
       await user.type(keywordSearchInput, "unique");
 
       // Verify clear button appears
-      const clearButton = screen.getByLabelText(/clear search/i);
+      const clearButton = screen.getByTestId(TEST_IDS.clearButton);
       expect(clearButton).toBeInTheDocument();
 
       // Click clear button
@@ -110,7 +110,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("restores all rows when search is cleared", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       // Search for something specific
       await user.type(keywordSearchInput, "unique");
@@ -122,7 +122,7 @@ describe.sequential("KeywordSearch Component", () => {
       });
 
       // Clear search
-      const clearButton = screen.getByLabelText(/clear search/i);
+      const clearButton = screen.getByTestId(TEST_IDS.clearButton);
       await user.click(clearButton);
 
       // All items should be visible again
@@ -139,7 +139,7 @@ describe.sequential("KeywordSearch Component", () => {
   describe("Search Filtering", () => {
     it("filters table content based on single keyword in description", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "unique");
 
@@ -160,7 +160,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("filters table content based on option values", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "Beta");
 
@@ -181,7 +181,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("filters based on multiple keywords", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "fourth Alpha");
 
@@ -202,7 +202,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("shows multiple results when keyword matches multiple rows", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "Alpha");
 
@@ -223,7 +223,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("is case insensitive", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "UNIQUE");
 
@@ -238,7 +238,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("handles partial word matches", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "spec");
 
@@ -261,7 +261,7 @@ describe.sequential("KeywordSearch Component", () => {
   describe("Text Highlighting", () => {
     it("highlights matching text in search results", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "unique");
 
@@ -277,7 +277,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("highlights multiple instances of the same keyword", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "item");
 
@@ -297,7 +297,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("highlights multiple different keywords", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "fourth Alpha");
 
@@ -320,7 +320,7 @@ describe.sequential("KeywordSearch Component", () => {
   describe("No Results State", () => {
     it("shows no results message when search yields no matches", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       await user.type(keywordSearchInput, "nonexistent");
 
@@ -343,7 +343,7 @@ describe.sequential("KeywordSearch Component", () => {
 
     it("returns to showing results when valid search is entered after no results", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       // First search with no results
       await user.type(keywordSearchInput, "nonexistent");
@@ -373,7 +373,7 @@ describe.sequential("KeywordSearch Component", () => {
   describe("Debouncing", () => {
     it("debounces search input to avoid excessive filtering", async () => {
       const user = userEvent.setup();
-      const keywordSearchInput = screen.getByLabelText(/keyword search/i);
+      const keywordSearchInput = screen.getByTestId(TEST_IDS.input);
 
       // Type quickly without waiting
       await user.type(keywordSearchInput, "u");

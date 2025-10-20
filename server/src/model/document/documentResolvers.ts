@@ -1,23 +1,20 @@
 import { GraphQLError } from "graphql";
 
-import { Document, DocumentPendingUpload } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
-import { UploadDocumentInput, UpdateDocumentInput } from "./documentSchema.js";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Document, DocumentPendingUpload } from "@prisma/client";
+
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { getBundle } from "../bundle/bundleResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { prisma } from "../../prismaClient.js";
+import { getApplication } from "../application/applicationResolvers.js";
+import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
 
 async function getDocument(parent: undefined, { id }: { id: string }) {
   return await prisma().document.findUnique({
     where: { id: id },
   });
-}
-
-async function getManyDocuments() {
-  return await prisma().demonstration.findMany();
 }
 
 async function getPresignedUploadUrl(
@@ -29,8 +26,8 @@ async function getPresignedUploadUrl(
         endpoint: process.env.S3_ENDPOINT_LOCAL,
         forcePathStyle: true,
         credentials: {
-          accessKeyId: "",
-          secretAccessKey: "",
+          accessKeyId: "test",
+          secretAccessKey: "test", // pragma: allowlist secret
         },
       }
     : {};
@@ -53,14 +50,14 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
         endpoint: process.env.S3_ENDPOINT_LOCAL,
         forcePathStyle: true,
         credentials: {
-          accessKeyId: "",
-          secretAccessKey: "",
+          accessKeyId: "test",
+          secretAccessKey: "test", // pragma: allowlist secret
         },
       }
     : {};
   const s3 = new S3Client(s3ClientConfig);
   const cleanBucket = process.env.CLEAN_BUCKET;
-  const key = `${document.bundleId}/${document.id}`;
+  const key = `${document.applicationId}/${document.id}`;
   const getObjectCommand = new GetObjectCommand({
     Bucket: cleanBucket,
     Key: key,
@@ -74,7 +71,6 @@ async function getPresignedDownloadUrl(document: Document): Promise<string> {
 export const documentResolvers = {
   Query: {
     document: getDocument,
-    documents: getManyDocuments,
   },
 
   Mutation: {
@@ -94,7 +90,7 @@ export const documentResolvers = {
           description: input.description,
           ownerUserId: context.user.id,
           documentTypeId: input.documentType,
-          bundleId: input.bundleId,
+          applicationId: input.applicationId,
           phaseId: input.phaseName,
         },
       });
@@ -123,7 +119,7 @@ export const documentResolvers = {
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<Document> => {
       checkOptionalNotNullFields(
-        ["name", "description", "documentType", "bundleId", "phaseName"],
+        ["name", "description", "documentType", "applicationId", "phaseName"],
         input
       );
       try {
@@ -133,7 +129,7 @@ export const documentResolvers = {
             name: input.name,
             description: input.description,
             documentTypeId: input.documentType,
-            bundleId: input.bundleId,
+            applicationId: input.applicationId,
             phaseId: input.phaseName,
           },
         });
@@ -163,8 +159,8 @@ export const documentResolvers = {
       return parent.documentTypeId;
     },
 
-    bundle: async (parent: Document) => {
-      return await getBundle(parent.bundleId);
+    application: async (parent: Document) => {
+      return await getApplication(parent.applicationId);
     },
 
     phaseName: async (parent: Document) => {
