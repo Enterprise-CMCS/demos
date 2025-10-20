@@ -11,13 +11,14 @@ export const ProfileBlock: React.FC = () => {
   if (loading) {
     return <div className="animate-pulse h-6 w-28 bg-white/20 rounded" />;
   }
-  // Handle error state, log event, signout, return null just to be sure.
+
+  // Handle error state, log event, return null just to be sure.
   if (error) {
     console.error("[ProfileBlock] currentUser error:", error);
   }
 
   if (!currentUser) {
-    console.warn("[ProfileBlock] No currentUser found, signout");
+    console.warn("[ProfileBlock] No currentUser found");
   }
 
   const resolvedName = currentUser
