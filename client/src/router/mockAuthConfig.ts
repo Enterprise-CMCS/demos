@@ -14,6 +14,7 @@ const createMockUserStore = () => {
       email: "mock-dev-user@example.com",
       name: "Mock Dev User",
     },
+    id_token: "mock-id-token",
     access_token: "mock-access-token",
     token_type: "Bearer",
     expires_at: Math.floor(Date.now() / 1000) + 86400, // 24 hours from now
