@@ -14,8 +14,6 @@ vi.mock("config/env", async (importOriginal) => {
     isLocalDevelopment: vi.fn(() => false),
     // default: use mocks; tests flip this to false when needed
     shouldUseMocks: vi.fn(() => true),
-    // default: don't bypass auth; can override in tests
-    shouldBypassAuth: vi.fn(() => false),
   };
 });
 
@@ -37,7 +35,7 @@ vi.mock("@apollo/client", () => ({
   ApolloClient: vi.fn(),
   InMemoryCache: vi.fn(() => ({})),
   ApolloProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  createHttpLink: vi.fn(() => ({ kind: "httpLink" }) as object),
+  createHttpLink: vi.fn(() => ({ kind: "httpLink" } as object)),
   gql: vi.fn(),
   useQuery: vi.fn(() => ({ data: undefined, error: undefined, loading: false })),
 }));
