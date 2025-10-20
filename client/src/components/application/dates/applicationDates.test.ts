@@ -23,7 +23,7 @@ const mockApplicationDates: ApplicationDate[] = [
     dateValue: new Date("2025-01-15T12:00:00.000Z"),
   },
   {
-    dateType: "State Application Start Date",
+    dateType: "Application Intake Start Date",
     dateValue: new Date("2025-02-01T05:00:00.000Z"),
   },
 ];

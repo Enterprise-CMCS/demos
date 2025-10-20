@@ -286,7 +286,7 @@ async function seedDatabase() {
     },
     {
       applicationId: randomDemonstration!.id,
-      dateType: "State Application Start Date",
+      dateType: "Application Intake Start Date",
       dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
     },
     {
@@ -301,7 +301,7 @@ async function seedDatabase() {
     },
     {
       applicationId: randomDemonstration!.id,
-      dateType: "State Application Completion Date",
+      dateType: "Application Intake Completion Date",
       dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
     },
     {
@@ -439,7 +439,7 @@ async function seedDatabase() {
   console.log("🌱 Seeding documents...");
   // Get the application document type
   const stateApplicationDocumentType: DocumentType = "State Application";
-  const stateApplicationPhaseName: PhaseName = "State Application";
+  const applicationIntakePhaseName: PhaseName = "Application Intake";
   const nonePhaseName: PhaseName = "None";
   for (const demonstration of demonstrations) {
     const fakeName = faker.lorem.sentence(2);
@@ -451,7 +451,7 @@ async function seedDatabase() {
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
         applicationId: demonstration.id,
-        phaseId: stateApplicationPhaseName,
+        phaseId: applicationIntakePhaseName,
       },
     });
   }
@@ -470,7 +470,7 @@ async function seedDatabase() {
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
         applicationId: amendmentId.id,
-        phaseId: stateApplicationPhaseName,
+        phaseId: applicationIntakePhaseName,
       },
     });
   }
@@ -488,7 +488,7 @@ async function seedDatabase() {
         ownerUserId: (await prisma().user.findRandom())!.id,
         documentTypeId: stateApplicationDocumentType,
         applicationId: extensionId.id,
-        phaseId: stateApplicationPhaseName,
+        phaseId: applicationIntakePhaseName,
       },
     });
   }
@@ -540,7 +540,6 @@ async function seedDatabase() {
     // ~60% of events have a applicationId, rest are null
     const attachApplication = Math.random() < 0.6;
     const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
-
     const userId = pick(usersForEvents)?.id ?? null;
     const withRoleId = pick(rolesForEvents)?.id ?? null;
 

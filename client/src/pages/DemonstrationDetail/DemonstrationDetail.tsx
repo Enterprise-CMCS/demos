@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 
+<<<<<<< HEAD
 import {
   Amendment,
   Demonstration,
@@ -8,6 +9,9 @@ import {
   Extension,
   Person,
 } from "demos-server";
+=======
+import { Amendment, Demonstration, Document, Extension, Person } from "demos-server";
+>>>>>>> fcc3d8103416dffe7b2eac04651756d6b1fc7985
 import { usePageHeader } from "hooks/usePageHeader";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";

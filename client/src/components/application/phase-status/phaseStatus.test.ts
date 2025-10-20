@@ -7,7 +7,7 @@ const mockApplicationPhases: SimplePhase[] = [
     phaseStatus: "Started",
   },
   {
-    phaseName: "State Application",
+    phaseName: "Application Intake",
     phaseStatus: "Not Started",
   },
   {
@@ -24,7 +24,7 @@ describe("phaseStatus", () => {
     });
 
     it("should get status for different phase", () => {
-      const status = getStatusForPhase(mockApplicationPhases, "State Application");
+      const status = getStatusForPhase(mockApplicationPhases, "Application Intake");
       expect(status).toBe("Not Started");
     });
 

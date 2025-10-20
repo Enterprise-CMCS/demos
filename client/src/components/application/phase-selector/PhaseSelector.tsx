@@ -23,7 +23,7 @@ const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName =
 
 const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
   Concept: new Date(2024, 4, 20),
-  "State Application": new Date(2024, 4, 22),
+  "Application Intake": new Date(2024, 4, 22),
   Completeness: new Date(2024, 11, 31),
   "Federal Comment": new Date(2025, 8, 24),
 };
@@ -44,7 +44,7 @@ const PhaseGroups = () => {
 
 const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
   Concept: "Skipped",
-  "State Application": "Completed",
+  "Application Intake": "Completed",
   Completeness: "Started",
   "Federal Comment": "past-due",
   "SDG Preparation": "Not Started",
@@ -72,7 +72,7 @@ export const PhaseSelector = ({
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: ConceptPhase,
-    "State Application": () => <StateApplicationPhase demonstrationId={demonstration.id} />,
+    "Application Intake": () => <StateApplicationPhase demonstrationId={demonstration.id} />,
     Completeness: CompletenessPhase,
     "Federal Comment": () => {
       const phaseStartDate = FEDERAL_COMMENT_START_DATE;
