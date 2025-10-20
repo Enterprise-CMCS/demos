@@ -46,14 +46,13 @@ describe("AddDocumentDialog", () => {
         <AddDocumentDialog
           isOpen={true}
           onClose={onClose}
-          bundleId="test-bundle-id"
+          applicationId="test-application-id"
           documentTypeSubset={["General File", "Application Completeness Letter"]}
         />
       </ToastProvider>
     );
     return { onClose };
   };
-
 
   it("renders dialog with title and required fields", () => {
     setup();

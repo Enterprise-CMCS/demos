@@ -1,4 +1,4 @@
-export const BUNDLE_STATUS = [
+export const APPLICATION_STATUS = [
   "Pre-Submission",
   "Under Review",
   "Approved",
@@ -24,7 +24,7 @@ export const PERSON_TYPES = [
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
-export const BUNDLE_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
+export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 

@@ -1,15 +1,15 @@
 // Flags: NO_UPDATED_TS, NO_HISTORY
 // Table is append-only with no deletions or updates
 model Event {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String?  @map("user_id") @db.Uuid
-  withRoleId String?  @map("with_role_id")
-  eventType  String   @map("event_type")
-  logLevel   String   @map("log_level")
-  route      String
-  bundleId   String?  @map("bundle_id") @db.Uuid
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  eventData  Json     @map("event_data") @db.Json
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String?  @map("user_id") @db.Uuid
+  withRoleId    String?  @map("with_role_id")
+  eventType     String   @map("event_type")
+  logLevel      String   @map("log_level")
+  route         String
+  applicationId String?  @map("application_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  eventData     Json     @map("event_data") @db.Json
 
   role Role? @relation(fields: [withRoleId], references: [id], onDelete: SetNull)
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)

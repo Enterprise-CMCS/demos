@@ -1,22 +1,22 @@
 import { Demonstration } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { BundleType, PhaseName, BundleStatus, GrantLevel, Role } from "../../types.js";
+import { ApplicationType, PhaseName, ApplicationStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
-import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
+import { resolveApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
-} from "../bundleDate/checkInputDateFunctions.js";
+} from "../applicationDate/checkInputDateFunctions.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
 const conceptPhaseName: PhaseName = "Concept";
-const newBundleStatusId: BundleStatus = "Pre-Submission";
-const demonstrationBundleType: BundleType = "Demonstration";
-const amendmentBundleType: BundleType = "Amendment";
-const extensionBundleType: BundleType = "Extension";
+const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
+const demonstrationApplicationType: ApplicationType = "Demonstration";
+const amendmentApplicationType: ApplicationType = "Amendment";
+const extensionApplicationType: ApplicationType = "Extension";
 
 export async function getDemonstration(parent: undefined, { id }: { id: string }) {
   return await prisma().demonstration.findUnique({
@@ -34,21 +34,21 @@ export async function createDemonstration(
 ) {
   try {
     await prisma().$transaction(async (tx) => {
-      const bundle = await tx.bundle.create({
+      const application = await tx.application.create({
         data: {
-          bundleTypeId: demonstrationBundleType,
+          applicationTypeId: demonstrationApplicationType,
         },
       });
 
       await tx.demonstration.create({
         data: {
-          id: bundle.id,
-          bundleTypeId: bundle.bundleTypeId,
+          id: application.id,
+          applicationTypeId: application.applicationTypeId,
           name: input.name,
           description: input.description,
           sdgDivisionId: input.sdgDivision,
           signatureLevelId: input.signatureLevel,
-          statusId: newBundleStatusId,
+          statusId: newApplicationStatusId,
           stateId: input.stateId,
           currentPhaseId: conceptPhaseName,
         },
@@ -65,7 +65,7 @@ export async function createDemonstration(
 
       await tx.demonstrationRoleAssignment.create({
         data: {
-          demonstrationId: bundle.id,
+          demonstrationId: application.id,
           personId: input.projectOfficerUserId,
           personTypeId: person.personTypeId,
           roleId: roleProjectOfficer,
@@ -76,7 +76,7 @@ export async function createDemonstration(
 
       await tx.primaryDemonstrationRoleAssignment.create({
         data: {
-          demonstrationId: bundle.id,
+          demonstrationId: application.id,
           personId: input.projectOfficerUserId,
           roleId: "Project Officer",
         },
@@ -206,7 +206,7 @@ export const demonstrationResolvers = {
     documents: async (parent: Demonstration) => {
       return await prisma().document.findMany({
         where: {
-          bundleId: parent.id,
+          applicationId: parent.id,
         },
       });
     },
@@ -215,7 +215,7 @@ export const demonstrationResolvers = {
       return await prisma().modification.findMany({
         where: {
           demonstrationId: parent.id,
-          bundleTypeId: amendmentBundleType,
+          applicationTypeId: amendmentApplicationType,
         },
       });
     },
@@ -224,7 +224,7 @@ export const demonstrationResolvers = {
       return await prisma().modification.findMany({
         where: {
           demonstrationId: parent.id,
-          bundleTypeId: extensionBundleType,
+          applicationTypeId: extensionApplicationType,
         },
       });
     },
@@ -247,12 +247,12 @@ export const demonstrationResolvers = {
       });
     },
 
-    status: resolveBundleStatus,
+    status: resolveApplicationStatus,
 
     phases: async (parent: Demonstration) => {
-      return await prisma().bundlePhase.findMany({
+      return await prisma().applicationPhase.findMany({
         where: {
-          bundleId: parent.id,
+          applicationId: parent.id,
         },
       });
     },

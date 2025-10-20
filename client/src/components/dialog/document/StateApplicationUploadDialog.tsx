@@ -10,17 +10,21 @@ const REFETCH_QUERIES = ["GetStateApplicationDocuments", "GetDemonstrationDocume
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  bundleId: string;
+  applicationId: string;
 };
 
-export const StateApplicationUploadDialog: React.FC<Props> = ({ isOpen, onClose, bundleId }) => {
+export const StateApplicationUploadDialog: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  applicationId,
+}) => {
   return (
     <AddDocumentDialog
       key={isOpen ? "open" : "closed"}
       isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
-      bundleId={bundleId}
+      applicationId={applicationId}
       titleOverride="Add State Application"
       refetchQueries={REFETCH_QUERIES}
     />

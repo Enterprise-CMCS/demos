@@ -1,7 +1,7 @@
 import { GuardDutyScanResultNotificationEvent } from "aws-lambda";
 import {
   extractS3InfoFromGuardDuty,
-  getBundleId,
+  getApplicationId,
   handler,
   isGuardDutyScanClean,
   moveFileToCleanBucket,
@@ -102,14 +102,16 @@ describe("file-process", () => {
     });
   });
 
-  describe("getBundleId", () => {
-    it("should return a bundle id", async () => {
+  describe("getApplicationId", () => {
+    it("should return a application id", async () => {
       const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [{ bundle_id: "1" }] }),
+        query: vi.fn().mockResolvedValue({ rows: [{ application_id: "1" }] }),
       };
-      const id = await getBundleId(mockClient, "test");
+      const id = await getApplicationId(mockClient, "test");
 
-      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining("FROM demos_app"), ["test"]);
+      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining("FROM demos_app"), [
+        "test",
+      ]);
       expect(id).toEqual("1");
     });
     it("should throw when record is missing or empty", async () => {
@@ -120,15 +122,21 @@ describe("file-process", () => {
         query: vi.fn().mockResolvedValue({ rows: [] }),
       };
 
-      await expect(getBundleId(mockClient, "test")).rejects.toThrow("No document_pending_upload record found");
-      await expect(getBundleId(mockClient2, "test")).rejects.toThrow("No document_pending_upload record found");
+      await expect(getApplicationId(mockClient, "test")).rejects.toThrow(
+        "No document_pending_upload record found"
+      );
+      await expect(getApplicationId(mockClient2, "test")).rejects.toThrow(
+        "No document_pending_upload record found"
+      );
     });
     it("should return proper error if query fails", async () => {
       const mockClient = {
         query: vi.fn().mockRejectedValue("unit test error"),
       };
 
-      await expect(getBundleId(mockClient, "test")).rejects.toThrow("Failed to get bundle ID");
+      await expect(getApplicationId(mockClient, "test")).rejects.toThrow(
+        "Failed to get application ID"
+      );
     });
   });
 
@@ -140,11 +148,11 @@ describe("file-process", () => {
       const mockUploadBucket = "mock-upload-bucket";
 
       const mockKey = "mock-key";
-      const mockBundleId = "mock-bundle-id";
+      const mockApplicationId = "mock-application-id";
 
       vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
 
-      const resp = await moveFileToCleanBucket(mockKey, mockBundleId);
+      const resp = await moveFileToCleanBucket(mockKey, mockApplicationId);
 
       expect(mockSend).toHaveBeenCalledTimes(2);
 
@@ -154,7 +162,7 @@ describe("file-process", () => {
       expect(mockSend.mock.calls[0][0].input).toEqual({
         Bucket: mockCleanBucket,
         CopySource: `${mockUploadBucket}/${mockKey}`,
-        Key: `${mockBundleId}/${mockKey}`,
+        Key: `${mockApplicationId}/${mockKey}`,
       });
 
       expect(mockSend.mock.calls[1][0].input).toEqual({
@@ -162,7 +170,7 @@ describe("file-process", () => {
         Key: mockKey,
       });
 
-      expect(resp).toEqual(`${mockBundleId}/${mockKey}`);
+      expect(resp).toEqual(`${mockApplicationId}/${mockKey}`);
     });
   });
   describe("processGuardDutyResult", () => {
@@ -171,11 +179,13 @@ describe("file-process", () => {
       vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
 
       const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [{ bundle_id: "1" }] }),
+        query: vi.fn().mockResolvedValue({ rows: [{ application_id: "1" }] }),
       };
       console.log("mockEventBase", mockEventBase);
       await processGuardDutyResult(mockClient, mockEventBase);
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("Successfully processed clean file"));
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Successfully processed clean file")
+      );
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenLastCalledWith(
@@ -199,7 +209,7 @@ describe("file-process", () => {
         }),
       }));
 
-      mockQuery.mockResolvedValue({ rows: [{ bundle_id: "1" }] });
+      mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
 
       await handler({
         Records: [
@@ -239,7 +249,7 @@ describe("file-process", () => {
         }),
       }));
 
-      mockQuery.mockResolvedValue({ rows: [{ bundle_id: "1" }] });
+      mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
 
       mockEventBase.detail.scanResultDetails.scanResultStatus = "THREATS_FOUND";
 
@@ -264,7 +274,9 @@ describe("file-process", () => {
         ],
       });
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("is not clean. Skipping processing."));
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("is not clean. Skipping processing.")
+      );
       expect(consoleLogSpy).toHaveBeenCalledWith("All records processed successfully");
       expect(mockEnd).toHaveBeenCalledTimes(1);
     });
@@ -322,7 +334,7 @@ describe("file-process", () => {
         }),
       }));
 
-      mockQuery.mockResolvedValue({ rows: [{ bundle_id: "1" }] });
+      mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
 
       const handlerEvent = {
         Records: [

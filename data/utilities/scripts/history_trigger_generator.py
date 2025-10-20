@@ -6,9 +6,9 @@ from textwrap import dedent
 from typing import List
 
 TBL_FOLDERS = [
-    "bundle",
-    "bundlePhase",
-    "bundleDate",
+    "application",
+    "applicationPhase",
+    "applicationDate",
     "demonstration",
     "demonstrationRoleAssignment",
     "document",

@@ -274,7 +274,7 @@ export const ConceptPhase: React.FC<Props> = ({
       <ConceptPreSubmissionUploadDialog
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
-        bundleId={demonstrationId}
+        applicationId={demonstrationId}
       />
     </div>
   );

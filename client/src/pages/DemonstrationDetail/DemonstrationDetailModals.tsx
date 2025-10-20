@@ -37,7 +37,7 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
       <AddDocumentDialog
         isOpen={true}
         onClose={onCloseEntityModal}
-        bundleId={demonstrationId}
+        applicationId={demonstrationId}
       />
     )}
 
