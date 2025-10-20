@@ -18,7 +18,6 @@ import.meta.env.DEV: {boolean} whether the app is running in development (always
  */
 interface ImportMetaEnv {
   readonly VITE_USE_MOCKS: EnvironmentVariable;
-  readonly VITE_BYPASS_AUTH: EnvironmentVariable;
   // TODO: We may end up switching on mode to get these instead of individual vars
   readonly VITE_COGNITO_AUTHORITY: EnvironmentVariable;
   readonly VITE_COGNITO_DOMAIN: EnvironmentVariable;
