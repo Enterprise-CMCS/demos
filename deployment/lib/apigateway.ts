@@ -62,7 +62,7 @@ export function create(props: CommonProps) {
       {
         statusCode: "200",
         responseTemplates: {
-          "application/json": JSON.stringify({ message: "ok" }),
+          "application/json": JSON.stringify({ message: "ok", hash: `${process.env.API_COMMIT_HASH || "unknown"}` }),
         },
       },
     ],

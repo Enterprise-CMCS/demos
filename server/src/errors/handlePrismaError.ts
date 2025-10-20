@@ -14,6 +14,13 @@ export function handlePrismaError(error: unknown): never {
             },
           }
         );
+      case "P2025":
+        throw new GraphQLError("An update was attempted on a record that does not exist.", {
+          extensions: {
+            code: "NO_RECORD_FOUND_TO_UPDATE",
+            originalMessage: error.message,
+          },
+        });
       default:
         throw new GraphQLError("A known Prisma error was encountered with no custom handling.", {
           extensions: {

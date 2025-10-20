@@ -1,4 +1,4 @@
-export const BUNDLE_STATUS = [
+export const APPLICATION_STATUS = [
   "Pre-Submission",
   "Under Review",
   "Approved",
@@ -24,7 +24,7 @@ export const PERSON_TYPES = [
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
-export const BUNDLE_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
+export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
@@ -51,7 +51,7 @@ export const DOCUMENT_TYPES = [
 export const PHASE_NAME = [
   "None",
   "Concept",
-  "State Application",
+  "Application Intake",
   "Completeness",
   "Federal Comment",
   "SDG Preparation",
@@ -60,18 +60,23 @@ export const PHASE_NAME = [
   "Post Approval",
 ] as const;
 
-export const PHASE_STATUS = ["Not Started", "Started", "Completed", "Skipped"] as const;
+export const PHASE_STATUS = [
+  "Not Started",
+  "Started",
+  "Completed",
+  "Incomplete",
+  "Skipped",
+] as const;
 
 export const DATE_TYPES = [
   "Concept Start Date",
   "Pre-Submission Submitted Date",
   "Concept Completion Date",
-  "State Application Start Date",
+  "Application Intake Start Date",
   "State Application Submitted Date",
   "Completeness Review Due Date",
-  "State Application Completion Date",
+  "Application Intake Completion Date",
   "Completeness Start Date",
-  "Completeness Due Date",
   "State Application Deemed Complete",
   "Federal Comment Period Start Date",
   "Federal Comment Period End Date",

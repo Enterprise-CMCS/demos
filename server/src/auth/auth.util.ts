@@ -6,6 +6,7 @@ import { APIGatewayProxyEventHeaders } from "aws-lambda";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
+import { pickString } from "./claim-utils";
 import { PERSON_TYPES } from "../constants";
 import { log } from "../logger.js";
 
@@ -80,49 +81,62 @@ function verifyRole(role: string): void {
 }
 
 // Extract external userId from Cognito identities claim when available
-function extractExternalUserIdFromIdentities(identities: unknown): string | undefined {
-  try {
-    const arr = typeof identities === "string" ? JSON.parse(identities) : identities;
-    if (Array.isArray(arr) && arr.length > 0) {
-      const first = arr[0] as { userId?: string };
-      if (typeof first?.userId === "string" && first.userId.trim().length > 0) {
-        return first.userId.trim();
+export function extractExternalUserIdFromIdentities(
+  identities: unknown,
+  rawAll?: Record<string, unknown>
+): string | undefined {
+  let identityBlob: unknown[] = [];
+  if (typeof identities === "string") {
+    const parsed = JSON.parse(identities);
+    identityBlob = Array.isArray(parsed) ? parsed : [parsed];
+  } else if (identities && typeof identities === "object") {
+    identityBlob = Array.isArray(identities) ? identities : [identities];
+  }
+  // Let's find out how TS treats this JSON blob once and for all.
+  console.log(typeof identityBlob, identityBlob);
+
+  // Scan for the first non-empty userId
+  for (const item of identityBlob) {
+    if (item && typeof item === "object") {
+      const userId = (item as Record<string, unknown>).userId;
+      if (typeof userId === "string" && userId.trim()) {
+        return userId.trim();
       }
     }
-  } catch {
-    log.error("auth.identities.parse_failed");
   }
-  return undefined;
+
+  const fallback =
+    rawAll && typeof rawAll["cognito:username"] === "string"
+      ? rawAll["cognito:username"].trim()
+      : undefined;
+
+  return fallback || undefined;
 }
 
 // Normalize raw Cognito payload (token or authorizer-claims) into our Claims shape and verify role
-function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
-  const role = (raw["custom:roles"] as string) ?? (raw["role"] as string);
+export function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
+  // role from custom or flat authorizer
+  const role = pickString(raw, ["custom:roles", "role"]);
   if (!role) {
-    log.error("auth.claims.missing_role");
-    throw new GraphQLError("Missing role in token", {
-      extensions: { code: "UNAUTHORIZED", http: { status: 403 } },
-    });
+    throw new GraphQLError("Missing role in token", { extensions: { code: "UNAUTHORIZED", http: { status: 403 } } });
   }
   verifyRole(role);
 
-  const sub = String(raw["sub"] ?? "");
+  const sub = pickString(raw, ["sub"]);
   if (!sub) {
-    log.error("auth.claims.missing_sub");
     throw new GraphQLError("Missing subject in token", {
       extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
     });
   }
 
-  const email = (raw["email"] as string | undefined) ?? undefined;
-  const givenName = (raw["given_name"] as string | undefined) ?? undefined;
-  const familyName = (raw["family_name"] as string | undefined) ?? undefined;
-  const name = (raw["name"] as string | undefined) ?? undefined;
-  const externalUserId = extractExternalUserIdFromIdentities(raw["identities"]);
+  const email = pickString(raw, ["email"]);
+  const givenName = pickString(raw, ["given_name", "givenName"]);
+  const familyName = pickString(raw, ["family_name", "familyName"]);
+  const name = pickString(raw, ["name"]);
+  const externalUserId = extractExternalUserIdFromIdentities(raw["identities"], raw);
 
   return { sub, email, role, givenName, familyName, name, externalUserId };
 }
-
 function decodeToken(token: string): Promise<DecodedJWT> {
   return new Promise((resolve, reject) => {
     jwt.verify(token, getKey, verifyOpts, (err, decoded) => {
@@ -192,27 +206,30 @@ function extractToken(getHeader: HeaderGetter): string {
   return token;
 }
 
-function deriveUserFields({ email, givenName, familyName, externalUserId }: Claims) {
-  // back up "userId" (AWS terminology) / username, cognito local users only would fallback here
-  const backupUserName = email?.includes("@") ? email : undefined;
-  const username = externalUserId || backupUserName;
+function deriveUserFields(claims: Claims) {
+  const backupUserName =
+    claims.email && claims.email.includes("@") ? claims.email : undefined;
+  const username = claims.externalUserId || backupUserName;
+
   if (!username) {
     throw new Error("username could not be set from claims");
   }
 
-  const firstName = givenName?.trim();
-  const lastName = familyName?.trim();
+  const firstName = claims.givenName?.trim();
+  const lastName  = claims.familyName?.trim();
 
-  if (!firstName || !lastName || !email) {
+  if (!firstName || !lastName || !claims.email) {
     throw new Error("Missing required name parts from claims; given_name family_name and email are required");
   }
 
-  return { username, email, firstName, lastName };
+  return { username, email: claims.email, firstName, lastName };
 }
+
 
 /** Upsert user and return the DB row */
 async function ensureUserFromClaims(claims: Claims) {
   const { sub, role } = claims;
+
   // Set up person on first login.
   const { username, email, firstName, lastName } = deriveUserFields(claims);
 
@@ -256,11 +273,13 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
 export async function buildLambdaContext(
   headers: APIGatewayProxyEventHeaders
 ): Promise<GraphQLContext> {
-  // 1) Prefer claims passed from the Lambda entrypoint (authorizer output)
   const rawClaims = headers["x-authorizer-claims"] ?? headers["X-Authorizer-Claims"];
   if (rawClaims) {
     try {
-      const parsed = JSON.parse(rawClaims as string) as Record<string, unknown>;
+      const parsed =
+        typeof rawClaims === "string"
+          ? (JSON.parse(rawClaims) as Record<string, unknown>)
+          : (rawClaims as Record<string, unknown>);
       const claims = normalizeClaimsFromRaw(parsed);
       return buildContextFromClaims(claims);
     } catch {
@@ -268,7 +287,7 @@ export async function buildLambdaContext(
     }
   }
 
-  // 2) Fallback: verify the Bearer token yourself
+  // Fallback: verify the Bearer token yourself if no authorizer-claims header
   const token = extractToken(createHeaderGetter(headers as unknown as Record<string, unknown>));
   if (!token) return { user: null };
 

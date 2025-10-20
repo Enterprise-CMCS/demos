@@ -1,32 +1,36 @@
 import { Modification } from "@prisma/client";
 
 import { prisma } from "../../prismaClient.js";
-import { BundleStatus, BundleType, PhaseName } from "../../types.js";
+import { ApplicationStatus, ApplicationType, PhaseName } from "../../types.js";
 import {
   CreateAmendmentInput,
   CreateExtensionInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
 } from "./modificationSchema.js";
-import { resolveBundleStatus } from "../bundleStatus/bundleStatusResolvers.js";
+import { resolveApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import {
+  checkInputDateIsStartOfDay,
+  checkInputDateIsEndOfDay,
+} from "../applicationDate/checkInputDateFunctions.js";
 
-type ModificationType = Exclude<BundleType, "Demonstration">;
+type ModificationType = Exclude<ApplicationType, "Demonstration">;
 const conceptPhaseName: PhaseName = "Concept";
-const newBundleStatusId: BundleStatus = "Pre-Submission";
+const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 
 async function getModification(
   parent: undefined,
   { id }: { id: string },
   context: undefined,
   info: undefined,
-  bundleTypeId: ModificationType
+  applicationTypeId: ModificationType
 ) {
   return await prisma().modification.findUnique({
     where: {
       id: id,
-      bundleTypeId: bundleTypeId,
+      applicationTypeId: applicationTypeId,
     },
   });
 }
@@ -52,11 +56,11 @@ async function getManyModifications(
   args: undefined,
   context: undefined,
   info: undefined,
-  bundleTypeId: ModificationType
+  applicationTypeId: ModificationType
 ) {
   return await prisma().modification.findMany({
     where: {
-      bundleTypeId: bundleTypeId,
+      applicationTypeId: applicationTypeId,
     },
   });
 }
@@ -72,23 +76,23 @@ async function createModification(
   { input }: { input: CreateAmendmentInput | CreateExtensionInput },
   context: undefined,
   info: undefined,
-  bundleTypeId: ModificationType
+  applicationTypeId: ModificationType
 ) {
   return await prisma().$transaction(async (tx) => {
-    const bundle = await tx.bundle.create({
+    const application = await tx.application.create({
       data: {
-        bundleTypeId: bundleTypeId,
+        applicationTypeId: applicationTypeId,
       },
     });
 
     return await tx.modification.create({
       data: {
-        id: bundle.id,
-        bundleTypeId: bundle.bundleTypeId,
+        id: application.id,
+        applicationTypeId: application.applicationTypeId,
         demonstrationId: input.demonstrationId,
         name: input.name,
         description: input.description,
-        statusId: newBundleStatusId,
+        statusId: newApplicationStatusId,
         currentPhaseId: conceptPhaseName,
       },
     });
@@ -116,14 +120,20 @@ async function updateModification(
   { id, input }: { id: string; input: UpdateAmendmentInput | UpdateExtensionInput },
   context: undefined,
   info: undefined,
-  bundleTypeId: ModificationType
+  applicationTypeId: ModificationType
 ) {
+  if (input.effectiveDate) {
+    checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
+  }
+  if (input.expirationDate) {
+    checkInputDateIsEndOfDay({ dateType: "expirationDate", dateValue: input.expirationDate });
+  }
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
   try {
     return await prisma().modification.update({
       where: {
         id: id,
-        bundleTypeId: bundleTypeId,
+        applicationTypeId: applicationTypeId,
       },
       data: {
         demonstrationId: input.demonstrationId,
@@ -165,7 +175,7 @@ async function getParentDemonstration(parent: Modification) {
 async function getDocuments(parent: Modification) {
   return await prisma().document.findMany({
     where: {
-      bundleId: parent.id,
+      applicationId: parent.id,
     },
   });
 }
@@ -175,9 +185,9 @@ async function getCurrentPhase(parent: Modification) {
 }
 
 async function getPhases(parent: Modification) {
-  return await prisma().bundlePhase.findMany({
+  return await prisma().applicationPhase.findMany({
     where: {
-      bundleId: parent.id,
+      applicationId: parent.id,
     },
   });
 }
@@ -197,7 +207,7 @@ export const modificationResolvers = {
       return await prisma().modification.delete({
         where: {
           id: id,
-          bundleTypeId: "Amendment" satisfies BundleType,
+          applicationTypeId: "Amendment" satisfies ApplicationType,
         },
       });
     },
@@ -208,7 +218,7 @@ export const modificationResolvers = {
       return await prisma().modification.delete({
         where: {
           id: id,
-          bundleTypeId: "Extension" satisfies BundleType,
+          applicationTypeId: "Extension" satisfies ApplicationType,
         },
       });
     },
@@ -218,7 +228,7 @@ export const modificationResolvers = {
     demonstration: getParentDemonstration,
     documents: getDocuments,
     currentPhaseName: getCurrentPhase,
-    status: resolveBundleStatus,
+    status: resolveApplicationStatus,
     phases: getPhases,
   },
 
@@ -226,7 +236,7 @@ export const modificationResolvers = {
     demonstration: getParentDemonstration,
     documents: getDocuments,
     currentPhaseName: getCurrentPhase,
-    status: resolveBundleStatus,
+    status: resolveApplicationStatus,
     phases: getPhases,
   },
 };

@@ -1,4 +1,4 @@
-import { generateCustomSetScalar } from "../../resolverFunctions.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { SIGNATURE_LEVEL } from "../../constants.js";
 
 export const signatureLevelResolvers = {

@@ -74,14 +74,11 @@
     "tsc:ci": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/x-date-pickers": "^8.11.2",
     "@tanstack/react-table": "^8.21.3",
     "@testing-library/user-event": "^14.6.1",
     "date-fns": "^4.1.0",
     "react-oidc-context": "^3.3.0",
-    "react-router-dom": "^7.9.1"
+    "react-router-dom": "^7.9.3"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-musl": "^4.44.0",

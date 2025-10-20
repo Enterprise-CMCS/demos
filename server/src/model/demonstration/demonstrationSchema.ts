@@ -6,25 +6,26 @@ import {
   SdgDivision,
   SignatureLevel,
   PhaseName,
-  BundlePhase,
-  BundleStatus,
+  ApplicationPhase,
+  ApplicationStatus,
   DemonstrationRoleAssignment,
+  NonEmptyString,
   Person,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
   type Demonstration {
     id: ID!
-    name: String!
+    name: NonEmptyString!
     description: String!
     effectiveDate: DateTime
     expirationDate: DateTime
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
-    status: BundleStatus!
+    status: ApplicationStatus!
     state: State!
     currentPhaseName: PhaseName!
-    phases: [BundlePhase!]!
+    phases: [ApplicationPhase!]!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
@@ -35,7 +36,7 @@ export const demonstrationSchema = gql`
   }
 
   input CreateDemonstrationInput {
-    name: String!
+    name: NonEmptyString!
     stateId: ID!
     projectOfficerUserId: String!
     description: String
@@ -44,13 +45,13 @@ export const demonstrationSchema = gql`
   }
 
   input UpdateDemonstrationInput {
-    name: String
+    name: NonEmptyString
     description: String
     effectiveDate: DateTime
     expirationDate: DateTime
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
-    status: BundleStatus
+    status: ApplicationStatus
     currentPhaseName: PhaseName
     stateId: ID
     projectOfficerUserId: String
@@ -75,16 +76,16 @@ export const demonstrationSchema = gql`
 
 export interface Demonstration {
   id: string;
-  name: string;
+  name: NonEmptyString;
   description: string;
   effectiveDate: Date | null;
   expirationDate: Date | null;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
-  status: BundleStatus;
+  status: ApplicationStatus;
   state: State;
   currentPhaseName: PhaseName;
-  phases: BundlePhase[];
+  phases: ApplicationPhase[];
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
@@ -97,7 +98,7 @@ export interface Demonstration {
 // Used in creating a demonstration from the F/E dialog.
 // The fields here should match the fields in that dialog.
 export interface CreateDemonstrationInput {
-  name: string;
+  name: NonEmptyString;
   projectOfficerUserId: string;
   stateId: string;
   description?: string;
@@ -106,13 +107,13 @@ export interface CreateDemonstrationInput {
 }
 
 export interface UpdateDemonstrationInput {
-  name?: string;
+  name?: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
   expirationDate?: Date;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
-  status?: BundleStatus;
+  status?: ApplicationStatus;
   currentPhaseName?: PhaseName;
   stateId?: string;
   projectOfficerUserId?: string;

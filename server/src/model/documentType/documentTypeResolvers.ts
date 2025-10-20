@@ -1,4 +1,4 @@
-import { generateCustomSetScalar } from "../../resolverFunctions.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { DOCUMENT_TYPES } from "../../constants.js";
 
 export const documentTypeResolvers = {

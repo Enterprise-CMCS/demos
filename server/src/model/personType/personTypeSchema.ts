@@ -10,4 +10,3 @@ export const personTypeSchema = gql`
   """
   scalar PersonType
 `;
-

@@ -113,9 +113,9 @@ export const ConceptPhase: React.FC<Props> = ({
   };
 
   const onSkip = () => {
-    // TODO: Implement skip logic - navigate to State Application phase
+    // TODO: Implement skip logic - navigate to Application Intake phase
     // This should mark the phase as "Skipped" and navigate to the next phase
-    console.log("Skipping Concept Phase - navigate to State Application");
+    console.log("Skipping Concept Phase - navigate to Application Intake");
   };
 
   // TEMP: Mock document helpers for testing - remove when upload is implemented
@@ -226,10 +226,8 @@ export const ConceptPhase: React.FC<Props> = ({
           size="small"
           disabled={!isSkipEnabled}
         >
-          <span className="flex items-center gap-1">
-            Skip
-            <ChevronRightIcon />
-          </span>
+          Skip
+          <ChevronRightIcon />
         </SecondaryButton>
         <Button
           name="button-finish-concept"
@@ -276,7 +274,7 @@ export const ConceptPhase: React.FC<Props> = ({
       <ConceptPreSubmissionUploadDialog
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
-        bundleId={demonstrationId}
+        applicationId={demonstrationId}
       />
     </div>
   );

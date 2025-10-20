@@ -1,6 +1,6 @@
 import {
-  BUNDLE_STATUS,
-  BUNDLE_TYPES,
+  APPLICATION_STATUS,
+  APPLICATION_TYPES,
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
   DOCUMENT_TYPES,
@@ -47,12 +47,16 @@ export type {
   UpdateDocumentInput,
 } from "./model/document/documentSchema.js";
 
-export type { BundlePhase } from "./model/bundlePhase/bundlePhaseSchema.js";
-export type { Bundle } from "./model/bundle/bundleSchema.js";
-export type { BundleDate, SetBundleDateInput } from "./model/bundleDate/bundleDateSchema.js";
+export type { ApplicationPhase } from "./model/applicationPhase/applicationPhaseSchema.js";
+export type { Application } from "./model/application/applicationSchema.js";
+export type {
+  ApplicationDate,
+  SetApplicationDateInput,
+} from "./model/applicationDate/applicationDateSchema.js";
 
-export type BundleStatus = (typeof BUNDLE_STATUS)[number];
-export type BundleType = (typeof BUNDLE_TYPES)[number];
+export type NonEmptyString = string;
+export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
+export type ApplicationType = (typeof APPLICATION_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];

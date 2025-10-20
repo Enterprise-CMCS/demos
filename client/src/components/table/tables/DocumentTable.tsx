@@ -26,14 +26,20 @@ export type DocumentTableDocument = Pick<
 type DisplayedModal = null | "add" | "edit" | "remove";
 
 interface DocumentModalsProps {
+  applicationId: string;
   displayedModal: DisplayedModal;
   onClose: () => void;
   selectedDocs: DocumentTableDocument[];
 }
 
-function DocumentModals({ displayedModal, onClose, selectedDocs }: DocumentModalsProps) {
+function DocumentModals({
+  applicationId,
+  displayedModal,
+  onClose,
+  selectedDocs,
+}: DocumentModalsProps) {
   if (displayedModal === "add") {
-    return <AddDocumentDialog isOpen={true} onClose={onClose} />;
+    return <AddDocumentDialog applicationId={applicationId} isOpen={true} onClose={onClose} />;
   }
   if (displayedModal === "edit" && selectedDocs.length === 1) {
     const selectedDoc = selectedDocs[0];
@@ -98,9 +104,10 @@ function DocumentActionButtons({
 }
 
 export type DocumentsTableProps = {
+  applicationId: string;
   documents: DocumentTableDocument[];
 };
-export const DocumentTable: React.FC<DocumentsTableProps> = ({ documents }) => {
+export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, documents }) => {
   const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
 
   const documentColumns = DocumentColumns();
@@ -133,6 +140,7 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ documents }) => {
 
             return (
               <DocumentModals
+                applicationId={applicationId}
                 displayedModal={displayedModal}
                 onClose={() => setDisplayedModal(null)}
                 selectedDocs={selectedDocs}

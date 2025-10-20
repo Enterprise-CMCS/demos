@@ -4,7 +4,7 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
 import { GET_DEMONSTRATION_BY_ID_QUERY as HOOK_GET_DEMONSTRATION_BY_ID_QUERY } from "hooks/useDemonstration";
-import type { BundleStatus } from "demos-server";
+import type { ApplicationStatus } from "demos-server";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
@@ -18,18 +18,18 @@ import {
   MockDemonstrationRoleAssignment,
   mockDemonstrationRoleAssignments,
 } from "./demonstrationRoleAssignmentMocks";
-import { MockDocument } from "./documentMocks";
+import { MockDocument, mockDocuments } from "./documentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel"
+  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName"
 > & {
   effectiveDate: string | null;
   expirationDate: string | null;
-  status: BundleStatus;
+  status: ApplicationStatus;
   state: MockState;
   amendments: MockAmendment[];
   extensions: MockExtension[];
@@ -44,7 +44,7 @@ export const mockDemonstrations = [
     id: "1",
     name: "Montana Medicaid Waiver",
     description: "A demonstration project in Montana.",
-    status: "Approved" as BundleStatus,
+    status: "Approved" as ApplicationStatus,
     effectiveDate: "2025-01-01",
     expirationDate: "2025-12-01",
     state: mockStates.find((state) => state.id === "MT")!,
@@ -57,19 +57,20 @@ export const mockDemonstrations = [
     extensions: mockExtensions.filter((extension) =>
       extension.name.includes("Montana Medicaid Waiver")
     ),
-    documents: [],
+    documents: mockDocuments,
     roles: [
       mockDemonstrationRoleAssignments[0],
       mockDemonstrationRoleAssignments[3],
       mockDemonstrationRoleAssignments[4],
     ],
+    currentPhaseName: "Concept",
     primaryProjectOfficer: mockPeople[0],
   },
   {
     id: "2",
     name: "Florida Health Innovation",
     description: "A health innovation project in Florida.",
-    status: "Under Review" as BundleStatus,
+    status: "Under Review" as ApplicationStatus,
     effectiveDate: "2025-03-01",
     expirationDate: "2026-02-01",
     state: mockStates.find((state) => state.id === "FL")!,
@@ -82,13 +83,14 @@ export const mockDemonstrations = [
     extensions: [],
     documents: [],
     roles: [mockDemonstrationRoleAssignments[1]],
+    currentPhaseName: "Concept",
     primaryProjectOfficer: mockPeople[1],
   },
   {
     id: "3",
     name: "Texas Reform Initiative",
     description: "A reform initiative in Texas.",
-    status: "Denied" as BundleStatus,
+    status: "Denied" as ApplicationStatus,
     effectiveDate: null,
     expirationDate: null,
     state: mockStates.find((state) => state.id === "TX")!,
@@ -99,6 +101,7 @@ export const mockDemonstrations = [
     extensions: [],
     documents: [],
     roles: [mockDemonstrationRoleAssignments[2]],
+    currentPhaseName: "Concept",
     primaryProjectOfficer: mockPeople[2],
   },
 ] as const satisfies MockDemonstration[];

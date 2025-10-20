@@ -38,6 +38,6 @@ export const personResolvers = {
         include: { state: true },
       });
       return personStates.map((ps) => ps.state);
-    }
+    },
   },
 };

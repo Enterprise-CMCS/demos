@@ -42,10 +42,7 @@ export function create(props: UIDeploymentProps) {
               "s3:ListBucket",
               "s3:ListBucketVersions",
             ],
-            resources: [
-              props.uiBucket.bucketArn,
-              `${props.uiBucket.bucketArn}/*`,
-            ],
+            resources: [props.uiBucket.bucketArn, `${props.uiBucket.bucketArn}/*`],
           }),
           new aws_iam.PolicyStatement({
             actions: ["cloudfront:CreateInvalidation"],
@@ -56,53 +53,52 @@ export function create(props: UIDeploymentProps) {
     },
   });
 
-  const deployWebsite = new aws_s3_deployment.BucketDeployment(
-    props.scope,
-    "DeployWebsite",
-    {
-      sources: [aws_s3_deployment.Source.asset(buildOutputPath)],
-      destinationBucket: props.uiBucket,
-      distribution: props.distribution,
-      distributionPaths: ["/*"],
-      prune: true,
-      cacheControl: [
-        aws_s3_deployment.CacheControl.setPublic(),
-        aws_s3_deployment.CacheControl.maxAge(Duration.days(365)),
-        aws_s3_deployment.CacheControl.noCache(),
-      ],
-      role: deploymentRole,
-    }
-  );
+  const deployWebsite = new aws_s3_deployment.BucketDeployment(props.scope, "DeployWebsite", {
+    sources: [aws_s3_deployment.Source.asset(buildOutputPath)],
+    destinationBucket: props.uiBucket,
+    distribution: props.distribution,
+    distributionPaths: ["/*"],
+    prune: true,
+    cacheControl: [
+      aws_s3_deployment.CacheControl.setPublic(),
+      aws_s3_deployment.CacheControl.maxAge(Duration.days(365)),
+      aws_s3_deployment.CacheControl.noCache(),
+    ],
+    role: deploymentRole,
+  });
   const buildAsset = new aws_s3_assets.Asset(props.scope, "uiBuildAsset", {
-    path: buildOutputPath
-  })
+    path: buildOutputPath,
+  });
 
+  const gitHashFile = new aws_s3_deployment.DeployTimeSubstitutedFile(props.scope, "gitHashFile", {
+    source: path.join("assets", "version.json"),
+    destinationBucket: props.uiBucket,
+    destinationKey: "version.json",
+    substitutions: {
+      version: process.env.UI_COMMIT_HASH || "unknown",
+    },
+  });
 
-  const invalidateCloudfront = new custom_resources.AwsCustomResource(
-    props.scope,
-    "InvalidateCloudfront",
-    {
-      onCreate: undefined,
-      onDelete: undefined,
-      onUpdate: {
-        service: "CloudFront",
-        action: "createInvalidation",
-        parameters: {
-          DistributionId: props.distribution.distributionId,
-          InvalidationBatch: {
-            Paths: {
-              Quantity: 1,
-              Items: ["/*"],
-            },
-            CallerReference: `invalidate-${buildAsset.assetHash}`,
+  const invalidateCloudfront = new custom_resources.AwsCustomResource(props.scope, "InvalidateCloudfront", {
+    onCreate: undefined,
+    onDelete: undefined,
+    onUpdate: {
+      service: "CloudFront",
+      action: "createInvalidation",
+      parameters: {
+        DistributionId: props.distribution.distributionId,
+        InvalidationBatch: {
+          Paths: {
+            Quantity: 1,
+            Items: ["/*"],
           },
+          CallerReference: `invalidate-${buildAsset.assetHash}`,
         },
-        physicalResourceId: custom_resources.PhysicalResourceId.of(
-          `InvalidateCloudfront-${props.stage}`
-        ),
       },
-      role: deploymentRole,
-    }
-  );
+      physicalResourceId: custom_resources.PhysicalResourceId.of(`InvalidateCloudfront-${props.stage}`),
+    },
+    role: deploymentRole,
+  });
   invalidateCloudfront.node.addDependency(deployWebsite);
+  invalidateCloudfront.node.addDependency(gitHashFile);
 }

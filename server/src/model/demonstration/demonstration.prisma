@@ -1,30 +1,30 @@
 model Demonstration {
-  id               String    @db.Uuid
-  bundleTypeId     String    @map("bundle_type_id")
-  name             String
-  description      String?
-  effectiveDate    DateTime? @map("effective_date") @db.Timestamptz()
-  expirationDate   DateTime? @map("expiration_date") @db.Timestamptz()
-  sdgDivisionId    String?   @map("sdg_division_id")
-  signatureLevelId String?   @map("signature_level_id")
-  statusId         String    @map("status_id")
-  stateId          String    @map("state_id")
-  currentPhaseId   String    @map("current_phase_id")
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  id                String    @db.Uuid
+  applicationTypeId String    @map("application_type_id")
+  name              String
+  description       String?
+  effectiveDate     DateTime? @map("effective_date") @db.Timestamptz()
+  expirationDate    DateTime? @map("expiration_date") @db.Timestamptz()
+  sdgDivisionId     String?   @map("sdg_division_id")
+  signatureLevelId  String?   @map("signature_level_id")
+  statusId          String    @map("status_id")
+  stateId           String    @map("state_id")
+  currentPhaseId    String    @map("current_phase_id")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
-  bundle                       Bundle                        @relation(fields: [id, bundleTypeId], references: [id, bundleTypeId])
-  bundleType                   DemonstrationBundleTypeLimit  @relation(fields: [bundleTypeId], references: [id])
-  status                       BundleStatus                  @relation(fields: [statusId], references: [id])
-  state                        State                         @relation(fields: [stateId], references: [id])
+  application                  Application                       @relation(fields: [id, applicationTypeId], references: [id, applicationTypeId])
+  applicationType              DemonstrationApplicationTypeLimit @relation(fields: [applicationTypeId], references: [id])
+  status                       ApplicationStatus                 @relation(fields: [statusId], references: [id])
+  state                        State                             @relation(fields: [stateId], references: [id])
   modifications                Modification[]
-  sdgDivision                  SdgDivision?                  @relation(fields: [sdgDivisionId], references: [id], onDelete: Restrict)
-  signatureLevel               SignatureLevel?               @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
-  currentPhase                 Phase                         @relation(fields: [currentPhaseId], references: [id])
+  sdgDivision                  SdgDivision?                      @relation(fields: [sdgDivisionId], references: [id], onDelete: Restrict)
+  signatureLevel               SignatureLevel?                   @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
+  currentPhase                 Phase                             @relation(fields: [currentPhaseId], references: [id])
   demonstrationRoleAssignments DemonstrationRoleAssignment[]
 
   @@id([id])
   @@unique([id, stateId])
-  @@unique([id, bundleTypeId])
+  @@unique([id, applicationTypeId])
   @@map("demonstration")
 }

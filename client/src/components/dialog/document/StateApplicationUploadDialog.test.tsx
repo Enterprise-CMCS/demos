@@ -20,7 +20,7 @@ vi.mock("@apollo/client", async () => {
 const defaultProps = {
   isOpen: true,
   onClose: vi.fn(),
-  bundleId: "test-bundle-id",
+  applicationId: "test-application-id",
 };
 
 function setup(props = {}) {
@@ -139,9 +139,9 @@ describe("StateApplicationUploadDialog", () => {
       expect(dialog?.open).toBe(false);
     });
 
-    it("passes correct bundleId to underlying dialog", () => {
-      setup({ bundleId: "custom-bundle-id" });
-      // The bundleId is passed to the underlying AddDocumentDialog
+    it("passes correct applicationId to underlying dialog", () => {
+      setup({ applicationId: "custom-application-id" });
+      // The applicationId is passed to the underlying AddDocumentDialog
       // This test verifies the prop is being passed correctly
       expect(screen.getByText("Add State Application")).toBeInTheDocument();
     });
