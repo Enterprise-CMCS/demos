@@ -5,7 +5,7 @@ import { getCurrentUser } from "components/user/UserContext";
 import { SignoutLink } from "../auth/AuthLinks";
 import { useAuthActions } from "components/auth/AuthActions";
 
-export const ProfileBlock: React.FC = async () => {
+export const ProfileBlock: React.FC = () => {
   const { signOut } = useAuthActions();
   const [open, setOpen] = useState(false);
   const { currentUser, loading, error } = getCurrentUser();
@@ -16,12 +16,12 @@ export const ProfileBlock: React.FC = async () => {
   // Handle error state, log event, signout, return null just to be sure.
   if (error) {
     console.error("[ProfileBlock] currentUser error:", error);
-    await signOut();
+    void signOut();
   }
 
   if (!currentUser) {
     console.warn("[ProfileBlock] No currentUser found, signout");
-    await signOut();
+    void signOut();
   }
 
   const resolvedName = currentUser ? currentUser.person.fullName || currentUser.username?.trim() : "";

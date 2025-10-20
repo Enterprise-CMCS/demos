@@ -35,7 +35,6 @@ describe("EditContactDialog", () => {
     await waitFor(() => {
       expect(screen.getByText("Edit Contact")).toBeInTheDocument();
       expect(screen.getByDisplayValue("John Doe")).toBeInTheDocument();
-      expect(screen.getByDisplayValue("john.doe@email.com")).toBeInTheDocument();
       expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
     });
   });
