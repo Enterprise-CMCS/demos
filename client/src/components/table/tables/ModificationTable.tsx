@@ -8,17 +8,14 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
-import { Amendment, ApplicationStatus, Extension } from "demos-server";
+import { Amendment, Extension } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { DemonstrationStatusBadge } from "components/badge/DemonstrationStatusBadge";
 
-export type ModificationTableRow =
-  | (Pick<Amendment, "id" | "name" | "effectiveDate"> & {
-      status: ApplicationStatus;
-    })
-  | (Pick<Extension, "id" | "name" | "effectiveDate"> & {
-      status: ApplicationStatus;
-    });
+export type ModificationTableRow = Pick<
+  Amendment | Extension,
+  "id" | "name" | "effectiveDate" | "status"
+>;
 
 export function ModificationTable({
   modificationType,

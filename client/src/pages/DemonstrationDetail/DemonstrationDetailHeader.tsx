@@ -5,8 +5,26 @@ import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { safeDateFormat } from "util/formatDate";
+import { gql, useQuery } from "@apollo/client";
 
-import { ApolloError } from "@apollo/client";
+export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
+  query DemonstrationHeaderDetails($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
+      id
+      name
+      expirationDate
+      effectiveDate
+      status
+      state {
+        id
+      }
+      primaryProjectOfficer {
+        id
+        fullName
+      }
+    }
+  }
+`;
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
@@ -17,23 +35,24 @@ export type DemonstrationHeaderDetails = Pick<
 };
 
 interface DemonstrationDetailHeaderProps {
-  demonstration?: DemonstrationHeaderDetails;
-  loading?: boolean;
-  error?: ApolloError;
+  demonstrationId: string;
   onEdit: () => void;
   onDelete: () => void;
 }
 
 export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps> = ({
-  demonstration,
-  loading,
-  error,
+  demonstrationId,
   onEdit,
   onDelete,
 }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [modalType, setModalType] = useState<"amendment" | "extension" | null>(null);
+  const { data, loading, error } = useQuery<{
+    demonstration: DemonstrationHeaderDetails;
+  }>(DEMONSTRATION_HEADER_DETAILS_QUERY, {
+    variables: { demonstrationId },
+  });
 
   const handleToggleButtons = useCallback(() => {
     setShowButtons((prev) => !prev);
@@ -47,6 +66,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     onDelete();
   }, [onDelete]);
 
+  const demonstration = data?.demonstration;
   if (loading) {
     return (
       <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">

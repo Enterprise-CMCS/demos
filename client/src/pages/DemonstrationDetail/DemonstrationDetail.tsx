@@ -1,20 +1,15 @@
 import React, { useCallback, useMemo, useState } from "react";
 
-import { ModificationTableRow } from "components/table/tables/ModificationTable";
-import { isTestMode } from "config/env";
-import { Document, Person } from "demos-server";
+import { Amendment, Demonstration, Document, Extension, Person } from "demos-server";
 import { usePageHeader } from "hooks/usePageHeader";
-import {
-  DemonstrationDetailHeader,
-  DemonstrationHeaderDetails,
-} from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
 
 import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
-import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
+import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
 
@@ -22,17 +17,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
     demonstration(id: $id) {
       id
-      name
-      description
-      effectiveDate
-      expirationDate
-      sdgDivision
-      signatureLevel
-      state {
-        id
-        name
-      }
       status
+      currentPhaseName
       amendments {
         id
         name
@@ -59,32 +45,20 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         }
       }
       roles {
-        isPrimary
         role
-        person {
-          id
-          fullName
-          email
-        }
-      }
-      currentPhaseName
-      primaryProjectOfficer {
-        id
-        fullName
       }
     }
   }
 `;
 
-export type DemonstrationDetail = DemonstrationHeaderDetails &
-  DemonstrationTabDemonstration & {
-    amendments: ModificationTableRow[];
-    extensions: ModificationTableRow[];
-  } & {
-    documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
-      owner: { person: Pick<Person, "fullName"> };
-    })[];
-  };
+export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
+  amendments: Pick<Amendment, "id" | "name" | "effectiveDate" | "status">[];
+  extensions: Pick<Extension, "id" | "name" | "effectiveDate" | "status">[];
+  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
+    owner: { person: Pick<Person, "fullName"> };
+  })[];
+  roles: [];
+};
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
 type DemonstrationActionModal = "edit" | "delete" | null;
@@ -118,35 +92,36 @@ export const DemonstrationDetail: React.FC = () => {
   const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
     DEMONSTRATION_DETAIL_QUERY,
     {
-      variables: { id: id! },
-      skip: !id,
+      variables: { id: id },
     }
   );
 
   const demonstration = data?.demonstration;
 
   const headerContent = useMemo(
-    () => (
-      <DemonstrationDetailHeader
-        demonstration={demonstration}
-        loading={loading}
-        error={error}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-    ),
-    [demonstration, loading, error, handleEdit, handleDelete]
+    () =>
+      demonstration ? (
+        <DemonstrationDetailHeader
+          demonstrationId={demonstration.id}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      ) : null,
+    [demonstration, handleEdit, handleDelete]
   );
   usePageHeader(headerContent);
 
+  if (loading) {
+    return <div>Loading demonstration...</div>;
+  }
+
+  if (error || !demonstration) {
+    return <div>Failed to load demonstration.</div>;
+  }
+
   return (
     <div>
-      {isTestMode() && headerContent}
-
-      {loading && <p>Loading...</p>}
-      {error && <p>Error loading demonstration</p>}
-
-      {demonstration && (
+      {
         <>
           <Tabs
             defaultValue={amendmentParam ? "amendments" : extensionParam ? "extensions" : "details"}
@@ -182,7 +157,7 @@ export const DemonstrationDetail: React.FC = () => {
             />
           )}
         </>
-      )}
+      }
     </div>
   );
 };
