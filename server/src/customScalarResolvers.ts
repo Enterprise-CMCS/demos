@@ -1,4 +1,4 @@
-import { GraphQLScalarType, Kind, StringValueNode } from "graphql";
+import { GraphQLScalarType, Kind } from "graphql";
 import { DateTimeResolver, NonEmptyStringResolver } from "graphql-scalars";
 
 export function generateCustomSetScalar(
@@ -14,7 +14,7 @@ export function generateCustomSetScalar(
     serialize(value) {
       if (typeof value !== "string" || !acceptableValues.includes(value)) {
         throw new Error(
-          `Invalid ${name} value: ${value}. Acceptable values are: ${acceptableValues.join(", ")}`
+          `Invalid ${name} value: ${String(value)}. Acceptable values are: ${acceptableValues.join(", ")}`
         );
       }
       return value;
@@ -22,14 +22,14 @@ export function generateCustomSetScalar(
     parseValue(value) {
       if (typeof value !== "string" || !acceptableValues.includes(value)) {
         throw new Error(
-          `Invalid ${name} value: ${value}. Acceptable values are: ${acceptableValues.join(", ")}`
+          `Invalid ${name} value: ${String(value)}. Acceptable values are: ${acceptableValues.join(", ")}`
         );
       }
       return value;
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.STRING) {
-        const value = (ast as StringValueNode).value;
+        const value = ast.value;
         if (!acceptableValues.includes(value)) {
           throw new Error(
             `Invalid ${name} value: ${value}. Acceptable values are: ${acceptableValues.join(", ")}`

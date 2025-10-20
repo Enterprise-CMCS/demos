@@ -229,15 +229,15 @@ export const demonstrationResolvers = {
       });
     },
 
-    sdgDivision: async (parent: Demonstration) => {
+    sdgDivision: (parent: Demonstration) => {
       return parent.sdgDivisionId;
     },
 
-    signatureLevel: async (parent: Demonstration) => {
+    signatureLevel: (parent: Demonstration) => {
       return parent.signatureLevelId;
     },
 
-    currentPhaseName: async (parent: Demonstration) => {
+    currentPhaseName: (parent: Demonstration) => {
       return parent.currentPhaseId;
     },
 

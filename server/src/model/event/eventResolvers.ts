@@ -27,7 +27,7 @@ export const eventResolvers = {
     ) => {
       const { eventType, logLevel, route, eventData: clientEventData, applicationId } = input;
 
-      const userId = await getCurrentUserId(context);
+      const userId = getCurrentUserId(context);
       const roleId = await getCurrentUserRoleId(context);
 
       const eventData = { ...clientEventData, userId, roleId, applicationId };

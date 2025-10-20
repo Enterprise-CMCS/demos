@@ -46,11 +46,16 @@ function formatValue(value: unknown): string {
     return String(value);
   }
   if (value instanceof Error) return value.message;
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
+  if (typeof value === "object" && value !== null) {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "[object]";
+    }
   }
+  if (typeof value === "function") return "[function]";
+  if (typeof value === "symbol") return value.toString();
+  return "[unknown]";
 }
 
 function prettyPrint(line: Record<string, unknown>): void {

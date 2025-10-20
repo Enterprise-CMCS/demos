@@ -180,7 +180,7 @@ async function getDocuments(parent: Modification) {
   });
 }
 
-async function getCurrentPhase(parent: Modification) {
+function getCurrentPhase(parent: Modification) {
   return parent.currentPhaseId;
 }
 

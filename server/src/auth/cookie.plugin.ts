@@ -6,14 +6,15 @@ type Ctx = GraphQLContext & {
 };
 
 export const cookiePlugin: ApolloServerPlugin<Ctx> = {
-  async requestDidStart() {
-    return {
-      async willSendResponse(rc) {
+  requestDidStart() {
+    return Promise.resolve({
+      willSendResponse(rc) {
         const headers = rc.response.http?.headers;
-        if (!headers) return;
+        if (!headers) return Promise.resolve();
         const cookies = rc.contextValue._setCookies ?? [];
         for (const c of cookies) headers.set("set-cookie", c);
+        return Promise.resolve();
       },
-    };
+    });
   },
 };

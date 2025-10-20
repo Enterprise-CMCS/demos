@@ -1,6 +1,12 @@
 import jsEslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import { validateGraphQLTypescriptMatch } from './eslint-rules/validate-graphql-typescript-match.js';
+import parser from '@typescript-eslint/parser';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const eslintConfig = tseslint.config(
   {
@@ -8,11 +14,24 @@ const eslintConfig = tseslint.config(
       '**/dev/*',
       '**/dist/*',
       '**/*.test.ts',
-      'tsconfig.json',
-    ]
+      '**/tsconfig.json',
+      '**/build/*',
+      '**/node_modules/*',
+    ],
+  },
+  {
+    files: ['src/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    languageOptions: {
+      parser: parser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
   },
   jsEslint.configs.recommended,
-  tseslint.configs.recommended,
+  tseslint.configs.recommendedTypeChecked,
   {    
     files: ["src/model/**/*.ts"], // Scope to model folder only    
     plugins: {

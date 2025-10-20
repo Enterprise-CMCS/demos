@@ -43,7 +43,7 @@ export function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims 
   if (!sub) return null;
   const identities = auth.identities;
   const cognitoUsername =
-    typeof auth["cognito:username"] === "string" ? (auth["cognito:username"] as string) : undefined;
+    typeof auth["cognito:username"] === "string" ? (auth["cognito:username"]) : undefined;
   return {
     sub,
     email,
@@ -81,7 +81,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
   {
     context: async ({ event, context }) => {
       await databaseUrlPromise;
-      const restEvent = event as APIGatewayProxyEvent;
+      const restEvent = event;
       const claims = extractAuthorizerClaims(restEvent);
       // Pass claims to the existing builder via a header so we don't change its signature
       const headersWithClaims = withAuthorizerHeader(restEvent.headers, claims);

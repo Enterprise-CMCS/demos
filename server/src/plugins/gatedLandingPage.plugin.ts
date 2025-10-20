@@ -5,9 +5,9 @@ import type { ApolloServerPlugin } from "@apollo/server";
  * Blocks the dashboard UI if `id_token` or `access_token` cookies are missing.
  */
 export const gatedLandingPagePlugin = (): ApolloServerPlugin => ({
-  async serverWillStart() {
-    return {
-      async renderLandingPage() {
+  serverWillStart() {
+    return Promise.resolve({
+      renderLandingPage() {
         const html = `
           <!DOCTYPE html>
             <html lang="en">
@@ -60,9 +60,9 @@ export const gatedLandingPagePlugin = (): ApolloServerPlugin => ({
               </body>
             </html>
           `;
-        return { html };
+        return Promise.resolve({ html });
       },
-    };
+    });
   },
 });
 

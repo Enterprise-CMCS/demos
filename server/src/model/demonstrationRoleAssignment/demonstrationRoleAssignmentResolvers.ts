@@ -131,7 +131,7 @@ export const demonstrationRoleAssigmentResolvers = {
         where: { id: parent.personId },
       });
     },
-    role: async (parent: DemonstrationRoleAssignment) => {
+    role: (parent: DemonstrationRoleAssignment) => {
       return parent.roleId;
     },
     demonstration: async (parent: DemonstrationRoleAssignment) => {

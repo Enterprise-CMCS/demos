@@ -155,7 +155,7 @@ export const documentResolvers = {
       return { ...user, ...user?.person };
     },
 
-    documentType: async (parent: Document) => {
+    documentType: (parent: Document) => {
       return parent.documentTypeId;
     },
 
@@ -163,7 +163,7 @@ export const documentResolvers = {
       return await getApplication(parent.applicationId);
     },
 
-    phaseName: async (parent: Document) => {
+    phaseName: (parent: Document) => {
       return parent.phaseId;
     },
   },

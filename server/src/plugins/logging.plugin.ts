@@ -11,7 +11,7 @@ type ExtendedGraphQLContext = GraphQLContext & {
 };
 
 export const loggingPlugin: ApolloServerPlugin<GraphQLContext> = {
-  async requestDidStart(requestContext): Promise<GraphQLRequestListener<GraphQLContext>> {
+  requestDidStart(requestContext): Promise<GraphQLRequestListener<GraphQLContext>> {
     const start = process.hrtime.bigint();
 
     // Try to pull identifiers from context or HTTP headers
@@ -38,19 +38,21 @@ export const loggingPlugin: ApolloServerPlugin<GraphQLContext> = {
       operationName,
     });
 
-    return {
-      async didResolveOperation(rc) {
+    return Promise.resolve({
+      didResolveOperation(rc) {
         addToRequestContext({ operationName: rc.operationName || operationName });
+        return Promise.resolve();
       },
-      async didEncounterErrors(rc) {
+      didEncounterErrors(rc) {
         const errs = rc.errors || [];
         // Log only names and messages to avoid leaking sensitive details
         log.error('graphql.request.errors', {
           errorsCount: errs.length,
           errors: errs.slice(0, 3).map((e) => ({ name: e.name, message: e.message })),
         });
+        return Promise.resolve();
       },
-      async willSendResponse(rc) {
+      willSendResponse(rc) {
         const end = process.hrtime.bigint();
         const durationMs = Number(end - start) / 1_000_000;
         const errorsCount = rc.errors?.length || 0;
@@ -59,7 +61,8 @@ export const loggingPlugin: ApolloServerPlugin<GraphQLContext> = {
         } else {
           log.info('graphql.request.end', { durationMs, errorsCount });
         }
+        return Promise.resolve();
       },
-    };
+    });
   },
 };

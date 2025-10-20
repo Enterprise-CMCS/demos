@@ -87,7 +87,7 @@ export function extractExternalUserIdFromIdentities(
 ): string | undefined {
   let identityBlob: unknown[] = [];
   if (typeof identities === "string") {
-    const parsed = JSON.parse(identities);
+    const parsed: unknown = JSON.parse(identities);
     identityBlob = Array.isArray(parsed) ? parsed : [parsed];
   } else if (identities && typeof identities === "object") {
     identityBlob = Array.isArray(identities) ? identities : [identities];
@@ -153,7 +153,7 @@ function decodeToken(token: string): Promise<DecodedJWT> {
         claims = normalizeClaimsFromRaw(rawDecoded);
       } catch (error) {
         log.error("auth.token.claims_error", { errorName: (error as Error).name, message: (error as Error).message });
-        return reject(error);
+        return reject(error instanceof Error ? error : new Error(String(error)));
       }
 
       resolve({
@@ -185,7 +185,7 @@ function createHeaderGetter(obj: Record<string, unknown> | undefined | null): He
 
 function parseCookie(header: string | undefined): Record<string, string> {
   if (!header) return {};
-  const entries = header.split("; ").map((c) => {
+  const entries: [string, string][] = header.split("; ").map((c) => {
     const idx = c.indexOf("=");
     return idx === -1 ? [c, ""] : [c.slice(0, idx), decodeURIComponent(c.slice(idx + 1))];
   });
@@ -334,7 +334,7 @@ export const getCurrentUserRoleId = async (context: GraphQLContext): Promise<str
   return user.personTypeId;
 };
 
-export const getCurrentUserId = async (context: GraphQLContext): Promise<string> => {
+export const getCurrentUserId = (context: GraphQLContext): string => {
   assertContextUserExists(context);
   return context.user.id;
 };
@@ -352,7 +352,7 @@ export async function getDatabaseUrl(): Promise<string> {
   const response = await secretsManager.send(new GetSecretValueCommand({ SecretId: secretArn }));
 
   if (!response.SecretString) throw new Error("The SecretString value is undefined!");
-  const s = JSON.parse(response.SecretString);
+  const s = JSON.parse(response.SecretString) as { username: string; password: string; host: string; port: number; dbname: string };
   databaseUrlCache = `postgresql://${s.username}:${s.password}@${s.host}:${s.port}/${s.dbname}?schema=demos_app`;
   cacheExpiration = now + CACHE_MAX_AGE;
   return databaseUrlCache;

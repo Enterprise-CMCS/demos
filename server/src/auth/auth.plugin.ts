@@ -14,10 +14,10 @@ const PUBLIC_FIELDS = new Set<string>([
 ]);
 
 export const authGatePlugin: ApolloServerPlugin<GraphQLContext> = {
-  async requestDidStart(): Promise<GraphQLRequestListener<GraphQLContext>> {
-    return {
-      async executionDidStart() {
-        return {
+  requestDidStart(): Promise<GraphQLRequestListener<GraphQLContext>> {
+    return Promise.resolve({
+      executionDidStart() {
+        return Promise.resolve({
           willResolveField(fieldResolverParams) {
             const { info, contextValue } = fieldResolverParams;
             const path = `${info.parentType.name}.${info.fieldName}`;
@@ -28,8 +28,8 @@ export const authGatePlugin: ApolloServerPlugin<GraphQLContext> = {
               });
             }
           },
-        };
+        });
       },
-    };
+    });
   },
 };

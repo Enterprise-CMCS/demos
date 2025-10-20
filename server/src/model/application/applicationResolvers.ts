@@ -30,7 +30,7 @@ export async function getApplication(applicationId: string) {
 
 export const applicationResolvers = {
   Application: {
-    __resolveType: async (parent: Application) => {
+    __resolveType: (parent: Application) => {
       return parent.applicationTypeId;
     },
   },
