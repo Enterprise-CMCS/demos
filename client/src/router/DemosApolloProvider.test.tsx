@@ -14,6 +14,8 @@ vi.mock("config/env", async (importOriginal) => {
     isLocalDevelopment: vi.fn(() => false),
     // default: use mocks; tests flip this to false when needed
     shouldUseMocks: vi.fn(() => true),
+    // default: don't bypass auth; can override in tests
+    shouldBypassAuth: vi.fn(() => false),
   };
 });
 
@@ -35,7 +37,7 @@ vi.mock("@apollo/client", () => ({
   ApolloClient: vi.fn(),
   InMemoryCache: vi.fn(() => ({})),
   ApolloProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  createHttpLink: vi.fn(() => ({ kind: "httpLink" } as object)),
+  createHttpLink: vi.fn(() => ({ kind: "httpLink" }) as object),
   gql: vi.fn(),
   useQuery: vi.fn(() => ({ data: undefined, error: undefined, loading: false })),
 }));
@@ -110,6 +112,38 @@ describe("DemosApolloProvider", () => {
       { headers: { "Content-Type": "application/json" } }
     );
 
+    expect(result).toEqual({
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  });
+
+  it("skips auth headers when bypassing authentication", async () => {
+    const { shouldUseMocks, shouldBypassAuth } = await import("config/env");
+    vi.mocked(shouldUseMocks).mockReturnValue(false); // force real client
+    vi.mocked(shouldBypassAuth).mockReturnValue(true); // bypass auth
+
+    const { setContext } = await import("@apollo/client/link/context");
+    const mockSetContext = vi.mocked(setContext);
+
+    const mockAuthLink = { concat: vi.fn(() => "combined-link") } as unknown as ApolloLink;
+    mockSetContext.mockReturnValue(mockAuthLink);
+
+    render(<DemosApolloProvider>Hello</DemosApolloProvider>);
+
+    expect(mockSetContext).toHaveBeenCalledWith(expect.any(Function));
+
+    const authHeaderFn = mockSetContext.mock.calls[0][0] as (
+      op: { query: unknown },
+      ctx: { headers?: Record<string, string> }
+    ) => { headers: Record<string, string> };
+    const result = authHeaderFn(
+      { query: "test" },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    // Should not add Authorization header when bypassing
     expect(result).toEqual({
       headers: {
         "Content-Type": "application/json",

@@ -1,26 +1,34 @@
 import React, { useEffect, useMemo } from "react";
 import {
-  ApolloClient, InMemoryCache, ApolloProvider,
-  createHttpLink, ApolloLink,
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  createHttpLink,
+  ApolloLink,
 } from "@apollo/client";
 import { MockedProvider } from "@apollo/client/testing";
 import { setContext } from "@apollo/client/link/context";
 import { ALL_MOCKS } from "mock-data";
-import { shouldUseMocks, isLocalDevelopment } from "config/env";
+import { shouldUseMocks, isLocalDevelopment, shouldBypassAuth } from "config/env";
 import { useAuth } from "react-oidc-context";
 
 const GRAPHQL_ENDPOINT = import.meta.env.VITE_API_URL_PREFIX ?? "/graphql";
 
 export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const bypassAuth = shouldBypassAuth();
   const auth = useAuth();
 
   if (shouldUseMocks()) {
-    return <MockedProvider mocks={ALL_MOCKS} addTypename={false}>{children}</MockedProvider>;
+    return (
+      <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
+        {children}
+      </MockedProvider>
+    );
   }
 
   // Mirror tokens into cookies for Apollo Sandbox (local dev only)
   useEffect(() => {
-    if (!isLocalDevelopment()) return;
+    if (!isLocalDevelopment() || bypassAuth) return;
     const idToken = auth.user?.id_token ?? "";
     const accessToken = auth.user?.access_token ?? "";
     const opts = "; Path=/; SameSite=Lax";
@@ -34,12 +42,16 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } else {
       document.cookie = `access_token=; Max-Age=0${opts}`;
     }
-  }, [auth.user]);
+  }, [auth.user, bypassAuth]);
 
   // Read token per request (not just once)
+  // When bypassing auth, don't add Authorization header
   const authLink: ApolloLink = useMemo(
     () =>
       setContext((_, { headers }) => {
+        if (bypassAuth) {
+          return { headers };
+        }
         const token = auth.user?.id_token ?? auth.user?.access_token ?? null;
         return {
           headers: {
@@ -48,7 +60,7 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
           },
         };
       }),
-    [auth.user]
+    [auth.user, bypassAuth]
   );
 
   const httpLink = useMemo(() => createHttpLink({ uri: GRAPHQL_ENDPOINT }), []);
