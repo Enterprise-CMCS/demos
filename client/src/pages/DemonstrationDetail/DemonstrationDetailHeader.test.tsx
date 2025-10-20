@@ -5,6 +5,7 @@ import {
   DemonstrationDetailHeader,
 } from "./DemonstrationDetailHeader";
 import { MockedProvider } from "@apollo/client/testing";
+import { GraphQLError } from "graphql";
 
 vi.mock("components/toast/ToastContext", () => ({
   useToast: () => ({
@@ -41,6 +42,7 @@ const mockDemonstrationQuery = {
     },
   },
 };
+
 const mockDemonstrationQueryWithoutDatesQuery = {
   request: {
     query: DEMONSTRATION_HEADER_DETAILS_QUERY,
@@ -51,6 +53,15 @@ const mockDemonstrationQueryWithoutDatesQuery = {
       demonstration: testDemonstrationWithoutDates,
     },
   },
+};
+
+// Mock for GraphQL error
+const mockDemonstrationQueryError = {
+  request: {
+    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
+    variables: { demonstrationId: "1" },
+  },
+  error: new GraphQLError("Failed to fetch demonstration details"),
 };
 
 describe("Demonstration Detail Header", () => {
@@ -116,6 +127,49 @@ describe("Demonstration Detail Header", () => {
     });
     expect(screen.getByTestId("demonstration-Effective")).toHaveTextContent("--/--/----");
     expect(screen.getByTestId("demonstration-Expiration")).toHaveTextContent("--/--/----");
+  });
+
+  it("shows loading state while fetching demonstration data", async () => {
+    render(
+      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
+    );
+
+    // Should show loading state immediately
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+
+    // Should not show any demonstration-specific content while loading
+    expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("demonstration-attributes-list")).not.toBeInTheDocument();
+
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    // After loading, should show the demonstration data
+    expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+  });
+
+  it("shows error state when GraphQL query fails", async () => {
+    render(
+      <MockedProvider mocks={[mockDemonstrationQueryError]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
+    );
+
+    // Wait for error to appear
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to load demonstration/i)).toBeInTheDocument();
+    });
+
+    // Should not show demonstration-specific content
+    expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("demonstration-attributes-list")).not.toBeInTheDocument();
+
+    // Should not show loading state
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
   });
 
   it("shows Add button and dropdown options", async () => {
