@@ -1,28 +1,80 @@
 import React from "react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  DEMONSTRATION_HEADER_DETAILS_QUERY,
+  DemonstrationDetailHeader,
+} from "./DemonstrationDetailHeader";
+import { MockedProvider } from "@apollo/client/testing";
+import { GraphQLError } from "graphql";
 
-import { mockDemonstrations } from "mock-data/demonstrationMocks";
+vi.mock("components/toast/ToastContext", () => ({
+  useToast: () => ({
+    showToast: vi.fn(),
+    hideToast: vi.fn(),
+  }),
+}));
 
-import { render, screen, within } from "@testing-library/react";
+const testDemonstration = {
+  id: "1",
+  name: "Montana Medicaid Waiver",
+  status: "Approved",
+  effectiveDate: new Date("2025-01-01"),
+  expirationDate: new Date("2025-12-01"),
+  state: { id: "MT", name: "Montana" },
+  primaryProjectOfficer: { id: "po1", fullName: "John Doe" },
+};
 
-import { DemonstrationDetailHeader } from "./DemonstrationDetailHeader";
+const testDemonstrationWithoutDates = {
+  ...testDemonstration,
+  effectiveDate: null,
+  expirationDate: null,
+};
 
-// Helper to convert mock demonstration to proper format for DemonstrationDetailHeader
-const createTestHeaderDemonstration = (mockDemo: (typeof mockDemonstrations)[0]) => ({
-  id: mockDemo.id,
-  name: mockDemo.name,
-  status: mockDemo.status,
-  effectiveDate: new Date(mockDemo.effectiveDate),
-  expirationDate: new Date(mockDemo.expirationDate),
-  state: mockDemo.state,
-  primaryProjectOfficer: mockDemo.primaryProjectOfficer,
-});
+// Mock GraphQL responses
+const mockDemonstrationQuery = {
+  request: {
+    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
+    variables: { demonstrationId: "1" },
+  },
+  result: {
+    data: {
+      demonstration: testDemonstration,
+    },
+  },
+};
+
+const mockDemonstrationQueryWithoutDatesQuery = {
+  request: {
+    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
+    variables: { demonstrationId: "1" },
+  },
+  result: {
+    data: {
+      demonstration: testDemonstrationWithoutDates,
+    },
+  },
+};
+
+// Mock for GraphQL error
+const mockDemonstrationQueryError = {
+  request: {
+    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
+    variables: { demonstrationId: "1" },
+  },
+  error: new GraphQLError("Failed to fetch demonstration details"),
+};
 
 describe("Demonstration Detail Header", () => {
   it("renders demonstration header info", async () => {
-    const testDemo = createTestHeaderDemonstration(mockDemonstrations[0]);
     render(
-      <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstration={testDemo} />
+      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
     );
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
 
     // Check back button navigation
     const backButton = screen.getByTestId("Back to demonstrations");
@@ -64,20 +116,161 @@ describe("Demonstration Detail Header", () => {
   });
 
   it("renders date placeholder as --/--/---- when dates are missing", async () => {
-    const demonstrationWithMissingDates = {
-      ...mockDemonstrations[0],
-      effectiveDate: null,
-      expirationDate: null,
-    };
-
     render(
-      <DemonstrationDetailHeader
-        onEdit={() => {}}
-        onDelete={() => {}}
-        demonstration={demonstrationWithMissingDates}
-      />
+      <MockedProvider mocks={[mockDemonstrationQueryWithoutDatesQuery]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
     );
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
     expect(screen.getByTestId("demonstration-Effective")).toHaveTextContent("--/--/----");
     expect(screen.getByTestId("demonstration-Expiration")).toHaveTextContent("--/--/----");
+  });
+
+  it("shows loading state while fetching demonstration data", async () => {
+    render(
+      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
+    );
+
+    // Should show loading state immediately
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+
+    // Should not show any demonstration-specific content while loading
+    expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("demonstration-attributes-list")).not.toBeInTheDocument();
+
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    // After loading, should show the demonstration data
+    expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+  });
+
+  it("shows error state when GraphQL query fails", async () => {
+    render(
+      <MockedProvider mocks={[mockDemonstrationQueryError]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
+    );
+
+    // Wait for error to appear
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to load demonstration/i)).toBeInTheDocument();
+    });
+
+    // Should not show demonstration-specific content
+    expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("demonstration-attributes-list")).not.toBeInTheDocument();
+
+    // Should not show loading state
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+  });
+
+  it("shows Add button and dropdown options", async () => {
+    render(
+      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
+    );
+    // Wait for component to load
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    const toggleButton = screen.getByTestId("Toggle more options");
+    expect(toggleButton).toBeInTheDocument();
+    fireEvent.click(toggleButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("Create New")).toBeInTheDocument();
+    });
+
+    const addButton = screen.getByTestId("Create New");
+
+    // Click the Add button to open the dropdown
+    fireEvent.click(addButton);
+
+    // Verify Amendment and Extension options appear
+    await waitFor(() => {
+      expect(screen.getByTestId("button-create-new-amendment")).toBeInTheDocument();
+      expect(screen.getByTestId("button-create-new-extension")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Amendment")).toBeInTheDocument();
+    expect(screen.getByText("Extension")).toBeInTheDocument();
+  });
+
+  it("opens Add Amendment Modal when Amendment option is clicked", async () => {
+    render(
+      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
+    );
+    // Wait for component to load
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    const toggleButton = screen.getByTestId("Toggle more options");
+    fireEvent.click(toggleButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("Create New")).toBeInTheDocument();
+    });
+
+    const addButton = screen.getByTestId("Create New");
+    fireEvent.click(addButton);
+
+    // Wait for dropdown to appear and click Amendment
+    await waitFor(() => {
+      expect(screen.getByTestId("button-create-new-amendment")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("button-create-new-amendment"));
+
+    // Verify Amendment modal appears
+    await waitFor(() => {
+      expect(screen.getByText(/New Amendment/i)).toBeInTheDocument();
+    });
+  });
+
+  it("opens Add Extension Modal when Extension option is clicked", async () => {
+    render(
+      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+      </MockedProvider>
+    );
+    // Wait for component to load
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    const toggleButton = screen.getByTestId("Toggle more options");
+    fireEvent.click(toggleButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("Create New")).toBeInTheDocument();
+    });
+
+    const addButton = screen.getByTestId("Create New");
+    fireEvent.click(addButton);
+
+    // Wait for dropdown to appear and click Extension
+    await waitFor(() => {
+      expect(screen.getByTestId("button-create-new-extension")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("button-create-new-extension"));
+
+    // Verify Extension modal appears
+    await waitFor(() => {
+      expect(screen.getByText(/New Extension/i)).toBeInTheDocument();
+    });
   });
 });
