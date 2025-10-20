@@ -118,36 +118,4 @@ describe("DemosApolloProvider", () => {
       },
     });
   });
-
-  it("skips auth headers when bypassing authentication", async () => {
-    const { shouldUseMocks, shouldBypassAuth } = await import("config/env");
-    vi.mocked(shouldUseMocks).mockReturnValue(false); // force real client
-    vi.mocked(shouldBypassAuth).mockReturnValue(true); // bypass auth
-
-    const { setContext } = await import("@apollo/client/link/context");
-    const mockSetContext = vi.mocked(setContext);
-
-    const mockAuthLink = { concat: vi.fn(() => "combined-link") } as unknown as ApolloLink;
-    mockSetContext.mockReturnValue(mockAuthLink);
-
-    render(<DemosApolloProvider>Hello</DemosApolloProvider>);
-
-    expect(mockSetContext).toHaveBeenCalledWith(expect.any(Function));
-
-    const authHeaderFn = mockSetContext.mock.calls[0][0] as (
-      op: { query: unknown },
-      ctx: { headers?: Record<string, string> }
-    ) => { headers: Record<string, string> };
-    const result = authHeaderFn(
-      { query: "test" },
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-    // Should not add Authorization header when bypassing
-    expect(result).toEqual({
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  });
 });

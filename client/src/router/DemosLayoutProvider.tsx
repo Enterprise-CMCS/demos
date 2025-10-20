@@ -1,8 +1,7 @@
 import React from "react";
-import { PrimaryLayout } from "layout/PrimaryLayout";
 import { withAuthenticationRequired } from "react-oidc-context";
-
 import { Outlet } from "react-router-dom";
+import { PrimaryLayout } from "layout/PrimaryLayout";
 import { shouldBypassAuth } from "config/env";
 
 const ProvideLayout = () => (

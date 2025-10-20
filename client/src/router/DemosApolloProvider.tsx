@@ -9,13 +9,12 @@ import {
 import { MockedProvider } from "@apollo/client/testing";
 import { setContext } from "@apollo/client/link/context";
 import { ALL_MOCKS } from "mock-data";
-import { shouldUseMocks, isLocalDevelopment, shouldBypassAuth } from "config/env";
+import { shouldUseMocks, isLocalDevelopment } from "config/env";
 import { useAuth } from "react-oidc-context";
 
 const GRAPHQL_ENDPOINT = import.meta.env.VITE_API_URL_PREFIX ?? "/graphql";
 
 export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const bypassAuth = shouldBypassAuth();
   const auth = useAuth();
 
   if (shouldUseMocks()) {
@@ -28,7 +27,7 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Mirror tokens into cookies for Apollo Sandbox (local dev only)
   useEffect(() => {
-    if (!isLocalDevelopment() || bypassAuth) return;
+    if (!isLocalDevelopment()) return;
     const idToken = auth.user?.id_token ?? "";
     const accessToken = auth.user?.access_token ?? "";
     const opts = "; Path=/; SameSite=Lax";
@@ -42,16 +41,12 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } else {
       document.cookie = `access_token=; Max-Age=0${opts}`;
     }
-  }, [auth.user, bypassAuth]);
+  }, [auth.user]);
 
-  // Read token per request (not just once)
-  // When bypassing auth, don't add Authorization header
+  // Add Authorization header with token from auth context
   const authLink: ApolloLink = useMemo(
     () =>
       setContext((_, { headers }) => {
-        if (bypassAuth) {
-          return { headers };
-        }
         const token = auth.user?.id_token ?? auth.user?.access_token ?? null;
         return {
           headers: {
@@ -60,7 +55,7 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
           },
         };
       }),
-    [auth.user, bypassAuth]
+    [auth.user]
   );
 
   const httpLink = useMemo(() => createHttpLink({ uri: GRAPHQL_ENDPOINT }), []);
