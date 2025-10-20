@@ -7,7 +7,7 @@ model DocumentPendingUploadHistory {
   description    String
   ownerUserId    String       @map("owner_user_id") @db.Uuid
   documentTypeId String       @map("document_type_id")
-  bundleId       String       @map("bundle_id") @db.Uuid
+  applicationId  String       @map("application_id") @db.Uuid
   phaseId        String       @map("phase_id")
   createdAt      DateTime     @map("created_at") @db.Timestamptz()
   updatedAt      DateTime     @map("updated_at") @db.Timestamptz()

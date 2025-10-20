@@ -1,116 +1,118 @@
-import React, { useState } from "react";
+import React from "react";
 
-import { SecondaryButton } from "components/button";
-import { EditDemonstrationDialog } from "components/dialog";
-import { EditIcon } from "components/icons";
-import { BundleStatus, Demonstration, Person, State } from "demos-server";
+import { Demonstration as ServerDemonstration, Person, State } from "demos-server";
 import { tw } from "tags/tw";
 import { safeDateFormat } from "util/formatDate";
+import { gql } from "graphql-tag";
+import { useQuery } from "@apollo/client";
 
-type SummaryDetailsDemonstration = Pick<
-  Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel"
+export type Demonstration = Pick<
+  ServerDemonstration,
+  | "id"
+  | "name"
+  | "description"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "effectiveDate"
+  | "expirationDate"
+  | "status"
 > & {
-  effectiveDate: Date | string | null;
-  expirationDate: Date | string | null;
-  state: Pick<State, "name" | "id">;
-  primaryProjectOfficer: Pick<Person, "fullName">;
-  status: BundleStatus;
+  state: Pick<State, "id" | "name">;
+  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
 };
 
-type Props = {
-  demonstration: SummaryDetailsDemonstration;
-  onEdit?: () => void;
-};
+export const DEMONSTRATION_SUMMARY_DETAILS_QUERY = gql`
+  query GetDemonstrationSummaryDetails($id: ID!) {
+    demonstration(id: $id) {
+      id
+      name
+      description
+      sdgDivision
+      signatureLevel
+      effectiveDate
+      expirationDate
+      status
+      state {
+        id
+        name
+      }
+      primaryProjectOfficer {
+        id
+        fullName
+      }
+    }
+  }
+`;
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-xs tracking-wide`;
 const VALUE_CLASSES = tw`text-text-font text-sm leading-relaxed`;
 
-export const SummaryDetailsTable: React.FC<Props> = ({ demonstration, onEdit }) => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  const handleEditClick = () => {
-    if (onEdit) {
-      onEdit();
-    } else {
-      setIsEditModalOpen(true);
+export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ demonstrationId }) => {
+  const { data, loading, error } = useQuery<{ demonstration: Demonstration }>(
+    DEMONSTRATION_SUMMARY_DETAILS_QUERY,
+    {
+      variables: { id: demonstrationId },
     }
-  };
+  );
 
-  const handleCloseModal = () => {
-    setIsEditModalOpen(false);
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  const demonstration = data?.demonstration;
+  if (error || !demonstration) {
+    return <div>Error loading demonstration details.</div>;
+  }
 
   return (
-    <>
-      <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
-        <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
-        <SecondaryButton name="button-edit-details" size="small" onClick={handleEditClick}>
-          Edit Details
-          <EditIcon className="w-2 h-2" />
-        </SecondaryButton>
+    <div className="grid grid-cols-2 gap-y-4 gap-x-8">
+      <div>
+        <div className={LABEL_CLASSES}>State/Territory</div>
+        <div className={VALUE_CLASSES}>{demonstration.state.name}</div>
       </div>
 
-      <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-        <div>
-          <div className={LABEL_CLASSES}>State/Territory</div>
-          <div className={VALUE_CLASSES}>{demonstration.state.name}</div>
-        </div>
+      <div>
+        <div className={LABEL_CLASSES}>Demonstration (Max Limit - 128 Characters)</div>
+        <div className={VALUE_CLASSES}>{demonstration.name}</div>
+      </div>
 
-        <div>
-          <div className={LABEL_CLASSES}>Demonstration (Max Limit - 128 Characters)</div>
-          <div className={VALUE_CLASSES}>{demonstration.name}</div>
-        </div>
+      <div>
+        <div className={LABEL_CLASSES}>Project Officer</div>
+        <div className={VALUE_CLASSES}>{demonstration.primaryProjectOfficer.fullName}</div>
+      </div>
 
-        <div>
-          <div className={LABEL_CLASSES}>Project Officer</div>
-          <div className={VALUE_CLASSES}>{demonstration.primaryProjectOfficer.fullName}</div>
-        </div>
+      <div>
+        <div className={LABEL_CLASSES}>Status</div>
+        <div className={VALUE_CLASSES}>{demonstration.status}</div>
+      </div>
 
-        <div>
-          <div className={LABEL_CLASSES}>Status</div>
-          <div className={VALUE_CLASSES}>{demonstration.status}</div>
-        </div>
+      <div>
+        <div className={LABEL_CLASSES}>Effective Date</div>
+        <div className={VALUE_CLASSES}>{safeDateFormat(demonstration.effectiveDate)}</div>
+      </div>
 
-        <div>
-          <div className={LABEL_CLASSES}>Effective Date</div>
-          <div className={VALUE_CLASSES}>{safeDateFormat(demonstration.effectiveDate)}</div>
-        </div>
+      <div>
+        <div className={LABEL_CLASSES}>Expiration Date</div>
+        <div className={VALUE_CLASSES}>{safeDateFormat(demonstration.expirationDate)}</div>
+      </div>
 
-        <div>
-          <div className={LABEL_CLASSES}>Expiration Date</div>
-          <div className={VALUE_CLASSES}>{safeDateFormat(demonstration.expirationDate)}</div>
-        </div>
+      <div className="col-span-2">
+        <div className={LABEL_CLASSES}>Demonstration Description (Max Limit - 2048 Characters)</div>
+        <div className={VALUE_CLASSES}>{demonstration.description}</div>
+      </div>
 
-        <div className="col-span-2">
-          <div className={LABEL_CLASSES}>
-            Demonstration Description (Max Limit - 2048 Characters)
-          </div>
-          <div className={VALUE_CLASSES}>{demonstration.description}</div>
-        </div>
-
-        <div>
-          <div className={LABEL_CLASSES}>SDG Division</div>
-          <div className={VALUE_CLASSES}>
-            {demonstration.sdgDivision ? demonstration.sdgDivision : "--"}
-          </div>
-        </div>
-
-        <div>
-          <div className={LABEL_CLASSES}>Signature Level</div>
-          <div className={VALUE_CLASSES}>
-            {demonstration.signatureLevel ? demonstration.signatureLevel : "--"}
-          </div>
+      <div>
+        <div className={LABEL_CLASSES}>SDG Division</div>
+        <div className={VALUE_CLASSES}>
+          {demonstration.sdgDivision ? demonstration.sdgDivision : "--"}
         </div>
       </div>
 
-      {isEditModalOpen && demonstration && (
-        <EditDemonstrationDialog
-          isOpen={true}
-          demonstrationId={demonstration.id}
-          onClose={handleCloseModal}
-        />
-      )}
-    </>
+      <div>
+        <div className={LABEL_CLASSES}>Signature Level</div>
+        <div className={VALUE_CLASSES}>
+          {demonstration.signatureLevel ? demonstration.signatureLevel : "--"}
+        </div>
+      </div>
+    </div>
   );
 };

@@ -92,26 +92,32 @@ export function extractS3InfoFromGuardDuty(guardDutyEvent: GuardDutyScanResultNo
   };
 }
 
-export async function getBundleId(client: typeof Client, fileKey: string) {
-  const getBundleIdQuery = `SELECT bundle_id FROM ${dbSchema}.document_pending_upload WHERE id = $1;`;
+export async function getApplicationId(client: typeof Client, fileKey: string) {
+  const getApplicationIdQuery = `SELECT application_id FROM ${dbSchema}.document_pending_upload WHERE id = $1;`;
 
   try {
-    const result = await client.query(getBundleIdQuery, [fileKey]);
+    const result = await client.query(getApplicationIdQuery, [fileKey]);
 
-    if (result.rows.length === 0 || !result.rows[0].bundle_id) {
+    if (result.rows.length === 0 || !result.rows[0].application_id) {
       throw new Error(`No document_pending_upload record found for key: ${fileKey}`);
     }
 
-    return result.rows[0].bundle_id;
+    return result.rows[0].application_id;
   } catch (error) {
-    throw new Error(`Failed to get bundle ID for key ${fileKey}: ${(error as Error).message}`);
+    throw new Error(`Failed to get application ID for key ${fileKey}: ${(error as Error).message}`);
   }
 }
 
-export async function moveFileToCleanBucket(fileKey: string, bundleId: string, sourceBucket = uploadBucket) {
-  const destinationKey = `${bundleId}/${fileKey}`;
+export async function moveFileToCleanBucket(
+  fileKey: string,
+  applicationId: string,
+  sourceBucket = uploadBucket
+) {
+  const destinationKey = `${applicationId}/${fileKey}`;
 
-  console.log(`Moving file from s3://${sourceBucket}/${fileKey} to s3://${cleanBucket}/${destinationKey}`);
+  console.log(
+    `Moving file from s3://${sourceBucket}/${fileKey} to s3://${cleanBucket}/${destinationKey}`
+  );
 
   await s3.send(
     new CopyObjectCommand({
@@ -151,10 +157,10 @@ export async function processGuardDutyResult(
   console.log(`Processing clean file: ${bucket}/${key}`);
 
   try {
-    const bundleId = await getBundleId(client, key);
-    console.log(`Found bundleId: ${bundleId} for key: ${key}`);
+    const applicationId = await getApplicationId(client, key);
+    console.log(`Found applicationId: ${applicationId} for key: ${key}`);
 
-    const destinationKey = await moveFileToCleanBucket(key, bundleId, bucket);
+    const destinationKey = await moveFileToCleanBucket(key, applicationId, bucket);
     console.log(`File moved to ${cleanBucket}/${destinationKey}`);
 
     const s3Path = `s3://${cleanBucket}/${destinationKey}`;

@@ -434,15 +434,26 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 export const AddDocumentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
+  applicationId: string;
   documentTypeSubset?: DocumentType[];
-  initialDocument?: DocumentDialogFields;
   titleOverride?: string;
   refetchQueries?: string[];
-}> = ({ isOpen, onClose, documentTypeSubset, initialDocument, titleOverride, refetchQueries }) => {
+}> = ({ isOpen, onClose, applicationId, documentTypeSubset, titleOverride, refetchQueries }) => {
   const { showError } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
     refetchQueries,
   });
+
+  const defaultDocumentType: DocumentType = documentTypeSubset?.[0] ?? "General File";
+
+  const defaultDocument: DocumentDialogFields = {
+    file: null,
+    id: "",
+    name: "",
+    description: "",
+    documentType: defaultDocumentType,
+  };
+
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
     if (!dialogFields.file) {
       showError("No file selected");
@@ -450,7 +461,7 @@ export const AddDocumentDialog: React.FC<{
     }
 
     const uploadDocumentInput: UploadDocumentInput = {
-      bundleId: dialogFields.id,
+      applicationId,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
@@ -461,7 +472,7 @@ export const AddDocumentDialog: React.FC<{
       variables: { input: uploadDocumentInput },
     });
 
-    if (uploadDocumentResponse.errors && uploadDocumentResponse.errors.length > 0) {
+    if (uploadDocumentResponse.errors?.length) {
       throw new Error(uploadDocumentResponse.errors[0].message);
     }
 
@@ -486,7 +497,7 @@ export const AddDocumentDialog: React.FC<{
       mode="add"
       onSubmit={handleUpload}
       documentTypeSubset={documentTypeSubset}
-      initialDocument={initialDocument}
+      initialDocument={defaultDocument}
       titleOverride={titleOverride}
     />
   );
@@ -502,7 +513,7 @@ export const EditDocumentDialog: React.FC<{
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
     const updateDocumentInput: UpdateDocumentInput = {
-      bundleId: dialogFields.id,
+      applicationId: dialogFields.id,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,

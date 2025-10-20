@@ -6,8 +6,8 @@ import {
   SdgDivision,
   SignatureLevel,
   PhaseName,
-  BundlePhase,
-  BundleStatus,
+  ApplicationPhase,
+  ApplicationStatus,
   DemonstrationRoleAssignment,
   NonEmptyString,
   Person,
@@ -22,10 +22,10 @@ export const demonstrationSchema = gql`
     expirationDate: DateTime
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
-    status: BundleStatus!
+    status: ApplicationStatus!
     state: State!
     currentPhaseName: PhaseName!
-    phases: [BundlePhase!]!
+    phases: [ApplicationPhase!]!
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
@@ -51,7 +51,7 @@ export const demonstrationSchema = gql`
     expirationDate: DateTime
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
-    status: BundleStatus
+    status: ApplicationStatus
     currentPhaseName: PhaseName
     stateId: ID
     projectOfficerUserId: String
@@ -82,10 +82,10 @@ export interface Demonstration {
   expirationDate: Date | null;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
-  status: BundleStatus;
+  status: ApplicationStatus;
   state: State;
   currentPhaseName: PhaseName;
-  phases: BundlePhase[];
+  phases: ApplicationPhase[];
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
@@ -113,7 +113,7 @@ export interface UpdateDemonstrationInput {
   expirationDate?: Date;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
-  status?: BundleStatus;
+  status?: ApplicationStatus;
   currentPhaseName?: PhaseName;
   stateId?: string;
   projectOfficerUserId?: string;

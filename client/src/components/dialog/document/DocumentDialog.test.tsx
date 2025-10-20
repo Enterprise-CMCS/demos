@@ -43,7 +43,12 @@ describe("AddDocumentDialog", () => {
     const onClose = vi.fn();
     render(
       <ToastProvider>
-        <AddDocumentDialog isOpen={true} onClose={onClose} />
+        <AddDocumentDialog
+          isOpen={true}
+          onClose={onClose}
+          applicationId="test-application-id"
+          documentTypeSubset={["General File", "Application Completeness Letter"]}
+        />
       </ToastProvider>
     );
     return { onClose };
@@ -114,6 +119,16 @@ describe("AddDocumentDialog", () => {
     fireEvent.mouseDown(option);
 
     expect(input).toHaveValue("General File");
+  });
+
+  it("defaults to the first option in list for document type", async () => {
+    setup();
+    const typeInput = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+
+    // Verify that it auto-selected the first entry from the subset
+    await waitFor(() => {
+      expect(typeInput).toHaveValue("General File");
+    });
   });
 
   it("shows upload progress bar after file load", async () => {

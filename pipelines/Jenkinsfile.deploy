@@ -104,7 +104,11 @@ pipeline {
       steps {
           script {
             dirCon('deployment','node') {
-              sh "npx tsx demosctl/index deploy:all ${env.STAGE}"
+              sh """
+              export UI_COMMIT_HASH=${env.GIT_COMMIT}
+              export API_COMMIT_HASH=${env.GIT_COMMIT}
+              npx tsx demosctl/index deploy:all ${env.STAGE}
+              """
             }
           }
       }
