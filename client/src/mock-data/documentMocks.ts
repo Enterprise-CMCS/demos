@@ -26,7 +26,7 @@ export const mockDocuments = [
     documentType: "Signed Decision Memo",
     owner: mockUsers[4],
     createdAt: new Date(2025, 0, 2),
-    phaseName: "State Application",
+    phaseName: "Application Intake",
   },
   {
     id: "3",
