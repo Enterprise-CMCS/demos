@@ -1,19 +1,19 @@
 import React from "react";
 import { getCognitoConfig, getAuthProviderProps } from "./cognitoConfig";
 import { IdleSessionHandler } from "./IdleSessionHandler";
-import { shouldBypassAuth } from "config/env";
 import { getMockAuthProps } from "./mockAuthConfig";
 import { AuthProvider } from "react-oidc-context";
+import { shouldUseMocks } from "config/env";
 
 export const DemosAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const authProps = shouldBypassAuth()
+  const authProps = shouldUseMocks()
     ? getMockAuthProps()
     : getAuthProviderProps(getCognitoConfig());
 
   return (
     <AuthProvider {...authProps}>
       {children}
-      {!shouldBypassAuth() && <IdleSessionHandler />}
+      {!shouldUseMocks() && <IdleSessionHandler />}
     </AuthProvider>
   );
 };

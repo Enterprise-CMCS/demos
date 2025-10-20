@@ -2,7 +2,7 @@ import React from "react";
 import { withAuthenticationRequired } from "react-oidc-context";
 import { Outlet } from "react-router-dom";
 import { PrimaryLayout } from "layout/PrimaryLayout";
-import { shouldBypassAuth } from "config/env";
+import { shouldUseMocks } from "config/env";
 
 const ProvideLayout = () => (
   <PrimaryLayout>
@@ -17,4 +17,4 @@ const ProvideLayoutWithAuth = withAuthenticationRequired(ProvideLayout, {
   },
 });
 
-export const DemosLayoutProvider = shouldBypassAuth() ? ProvideLayout : ProvideLayoutWithAuth;
+export const DemosLayoutProvider = shouldUseMocks() ? ProvideLayout : ProvideLayoutWithAuth;
