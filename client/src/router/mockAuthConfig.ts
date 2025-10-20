@@ -11,8 +11,8 @@ const mockUser: User = {
     email: "mock-dev-user@example.com",
     name: "Mock Dev User",
   },
-  id_token: "mock-id-token", // pragma: allowlist secret
-  access_token: "mock-access-token", // pragma: allowlist secret
+  id_token: "",
+  access_token: "",
   token_type: "Bearer",
 } as User;
 
