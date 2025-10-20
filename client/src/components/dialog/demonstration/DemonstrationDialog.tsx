@@ -181,7 +181,7 @@ export const DemonstrationDialog: React.FC<{
         </>
       }
     >
-      <form id="demonstration-form" className="flex flex-col gap-[24px]" onSubmit={handleSubmit}>
+      <form id="demonstration-form" className="flex flex-col gap-[24px]" onSubmit={()=> void handleSubmit}>
         <div className="grid grid-cols-3 gap-[24px]">
           <SelectUSAStates
             label="State/Territory"

@@ -117,7 +117,7 @@ describe("CreateDemonstrationDialog", () => {
     // This test verifies the fields render correctly
   });
 
-  it("calls onSubmit with correct data when form is submitted", async () => {
+  it("calls onSubmit with correct data when form is submitted", () => {
     render(getCreateDemonstrationDialog([CREATE_DEMONSTRATION_MOCK]));
 
     // Fill in the form fields
@@ -138,14 +138,14 @@ describe("CreateDemonstrationDialog", () => {
     expect(screen.queryByTestId("input-expiration-date")).not.toBeInTheDocument();
   });
 
-  it("shows success message on successful creation", async () => {
+  it("shows success message on successful creation", () => {
     render(getCreateDemonstrationDialog([CREATE_DEMONSTRATION_MOCK]));
 
     // This would require full form interaction to trigger submission
     // The actual mutation would be tested in integration tests
   });
 
-  it("shows error message on failed creation", async () => {
+  it("shows error message on failed creation", () => {
     const errorMock = {
       ...CREATE_DEMONSTRATION_MOCK,
       result: {
@@ -163,7 +163,7 @@ describe("CreateDemonstrationDialog", () => {
     // This would require full form interaction to trigger submission
   });
 
-  it("closes dialog after successful submission", async () => {
+  it("closes dialog after successful submission", () => {
     const onCloseMock = vi.fn();
 
     render(

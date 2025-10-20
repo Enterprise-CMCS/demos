@@ -195,7 +195,7 @@ describe("RemoveDocumentDialog", () => {
 
   it("shows warning and closes when Remove is clicked", async () => {
     const { onClose } = setup(["1", "2"]);
-    await act(async () => {
+    act(() => {
       fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
     });
     await waitFor(() => {

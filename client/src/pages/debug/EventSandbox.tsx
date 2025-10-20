@@ -64,7 +64,7 @@ const LogNewEventForm = () => {
         onSelect={(eventType) => setEventType(eventType as EventType)}
       />
 
-      <Button name="log-event" onClick={handleLogEvent} type="submit">
+      <Button name="log-event" onClick={() => void handleLogEvent()} type="submit">
         Log Event
       </Button>
     </div>
@@ -85,7 +85,7 @@ export const EventSandbox: React.FC = () => {
         setError(err instanceof Error ? err.message : "Failed to fetch events");
       }
     };
-    fetchEvents();
+    void fetchEvents();
   }, []);
 
   if (error) {

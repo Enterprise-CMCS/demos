@@ -18,7 +18,7 @@ const createTestHeaderDemonstration = (mockDemo: (typeof mockDemonstrations)[0])
 });
 
 describe("Demonstration Detail Header", () => {
-  it("renders demonstration header info", async () => {
+  it("renders demonstration header info", () => {
     const testDemo = createTestHeaderDemonstration(mockDemonstrations[0]);
     render(
       <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstration={testDemo} />
@@ -63,7 +63,7 @@ describe("Demonstration Detail Header", () => {
     });
   });
 
-  it("renders date placeholder as --/--/---- when dates are missing", async () => {
+  it("renders date placeholder as --/--/---- when dates are missing", () => {
     const demonstrationWithMissingDates = {
       ...mockDemonstrations[0],
       effectiveDate: null,

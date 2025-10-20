@@ -97,7 +97,7 @@ describe("AutoCompleteSelect", () => {
     expect(screen.queryByText("Banana")).not.toBeInTheDocument();
   });
 
-  it("keyboard navigation: ArrowDown/ArrowUp moves highlight", async () => {
+  it("keyboard navigation: ArrowDown/ArrowUp moves highlight", () => {
     render(<AutoCompleteSelect options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     input.focus();

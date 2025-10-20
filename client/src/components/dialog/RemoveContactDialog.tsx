@@ -93,7 +93,7 @@ export const RemoveContactDialog: React.FC<RemoveContactDialogProps> = ({
           <ErrorButton
             name="button-confirm-delete-contact"
             size="small"
-            onClick={handleConfirm}
+            onClick={() => void handleConfirm()}
             aria-label="Confirm Remove Contact"
             disabled={isDeleting}
             aria-disabled={isDeleting}

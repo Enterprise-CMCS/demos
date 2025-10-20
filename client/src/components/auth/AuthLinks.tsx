@@ -10,7 +10,7 @@ export function SigninLink() {
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        signIn();
+        void signIn();
       }}
     >
       Sign In
@@ -27,7 +27,7 @@ export function SignoutLink() {
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        signOut();
+        void signOut();
       }}
     >
       Sign Out

@@ -216,21 +216,21 @@ describe("Demonstrations", () => {
 
       // Select "Montana"
       await user.type(stateFilterInput, "MT");
-      await waitFor(() => {
+      await waitFor(async () => {
         const mtOptions = screen.getAllByText("MT");
         const mtDropdownOption = mtOptions.find((el) => el.tagName === "LI" || el.closest("li"));
         expect(mtDropdownOption).toBeInTheDocument();
-        user.click(mtDropdownOption!);
+        await user.click(mtDropdownOption!);
       });
 
       // Select "Florida"
       await user.clear(stateFilterInput);
       await user.type(stateFilterInput, "FL");
-      await waitFor(() => {
+      await waitFor(async () => {
         const flOptions = screen.getAllByText("FL");
         const flDropdownOption = flOptions.find((el) => el.tagName === "LI" || el.closest("li"));
         expect(flDropdownOption).toBeInTheDocument();
-        user.click(flDropdownOption!);
+        await user.click(flDropdownOption!);
       });
 
       // Table should show rows for both Montana and Florida
@@ -248,11 +248,11 @@ describe("Demonstrations", () => {
       await waitForTableData();
     });
 
-    it("displays the 'Applications' column", async () => {
+    it("displays the 'Applications' column", () => {
       expect(screen.getByRole("columnheader", { name: "Applications" })).toBeInTheDocument();
     });
 
-    it("displays correct values for 'Applications' column for new demonstration, amendment, and extension", async () => {
+    it("displays correct values for 'Applications' column for new demonstration, amendment, and extension", () => {
       // For a new demonstration row
       const demo1Row = screen.getByText("Montana Medicaid Waiver").closest("tr");
       expect(demo1Row).toHaveTextContent(/Amendments \(3\)/);

@@ -14,7 +14,7 @@ export const IdleSessionHandler = () => {
 
   useIdleTimer({
     timeout: idleTimeout,
-    onIdle: () => signOut(),
+    onIdle: () => void signOut(),
     debounce: 500,
   });
 

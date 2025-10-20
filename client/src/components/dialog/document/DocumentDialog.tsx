@@ -388,7 +388,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
           <Button
             name="button-confirm-upload-document"
             size="small"
-            onClick={onUploadClick}
+            onClick={() => void onUploadClick()}
             aria-label="Upload Document"
             aria-disabled={isMissing || isUploading || isSubmitting ? "true" : "false"}
             disabled={isMissing || isUploading || isSubmitting}
@@ -583,7 +583,7 @@ export const RemoveDocumentDialog: React.FC<{
           <ErrorButton
             name="button-confirm-delete-document"
             size="small"
-            onClick={() => onConfirm(documentIds)}
+            onClick={() => void onConfirm(documentIds)}
             aria-label="Confirm Remove Document"
             disabled={isDeleting}
             aria-disabled={isDeleting}

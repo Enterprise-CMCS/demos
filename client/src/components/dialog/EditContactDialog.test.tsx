@@ -22,7 +22,7 @@ describe("EditContactDialog", () => {
     vi.clearAllMocks();
   });
 
-  it("renders dialog with contact information", () => {
+  it("renders dialog with contact information", async () => {
     renderWithToast(
       <EditContactDialog
         demonstrationId="1"
@@ -32,7 +32,7 @@ describe("EditContactDialog", () => {
       />
     );
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(screen.getByText("Edit Contact")).toBeInTheDocument();
       expect(screen.getByDisplayValue("John Doe")).toBeInTheDocument();
       expect(screen.getByDisplayValue("john.doe@email.com")).toBeInTheDocument();

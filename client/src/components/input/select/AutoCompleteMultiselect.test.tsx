@@ -101,7 +101,7 @@ describe("AutoCompleteMultiselect", () => {
     expect(onSelect).toHaveBeenCalledWith([]);
   });
 
-  it("keyboard navigation: ArrowDown/ArrowUp moves highlight", async () => {
+  it("keyboard navigation: ArrowDown/ArrowUp moves highlight", () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     input.focus();

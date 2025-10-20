@@ -71,8 +71,8 @@ describe("SummaryDetailsTable", () => {
 });
 
 describe("Loading States", () => {
-  it("shows loading state initially", () => {
-    renderSummaryDetailsTable();
+  it("shows loading state initially", async () => {
+    await renderSummaryDetailsTable();
     expect(screen.getByText(/loading.../i)).toBeInTheDocument();
   });
 });

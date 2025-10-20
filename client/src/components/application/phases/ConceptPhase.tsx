@@ -231,7 +231,7 @@ export const ConceptPhase: React.FC<Props> = ({
         </SecondaryButton>
         <Button
           name="button-finish-concept"
-          onClick={onFinish}
+          onClick={() => void onFinish()}
           disabled={!isFinishEnabled}
           size="small"
         >

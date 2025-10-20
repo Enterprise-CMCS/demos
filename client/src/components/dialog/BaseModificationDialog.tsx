@@ -156,7 +156,7 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
         </>
       }
     >
-      <form id={`${entityType}-form`} className="space-y-4" onSubmit={handleSubmit}>
+      <form id={`${entityType}-form`} className="space-y-4" onSubmit={(e: React.FormEvent) => void handleSubmit(e)}>
         <div>
           <AutoCompleteSelect
             label="Demonstration"

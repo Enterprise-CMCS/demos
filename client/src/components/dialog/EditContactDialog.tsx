@@ -115,7 +115,7 @@ export const EditContactDialog: React.FC<EditContactDialogProps> = ({
         </>
       }
     >
-      <form id="contact-form" className="space-y-4" onSubmit={handleSubmit}>
+      <form id="contact-form" className="space-y-4" onSubmit={() => void handleSubmit}>
         {/* Non-editable Name field */}
         <div>
           <SelectUsers

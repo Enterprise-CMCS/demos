@@ -251,7 +251,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
       <div className={STYLES.actions}>
         <Button
           name="button-finish-state-application"
-          onClick={onFinish}
+          onClick={() => void onFinish()}
           disabled={!isFinishEnabled}
           size="small"
         >
