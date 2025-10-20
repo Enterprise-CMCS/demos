@@ -4,17 +4,15 @@ import { WebStorageStateStore, User } from "oidc-client-ts";
 const MOCK_AUTHORITY = "https://mock-authority.local";
 const MOCK_CLIENT_ID = "mock-client-id";
 
-// Mock user with fake tokens for local development only
+// Mock user with fake tokens for local development only - NOT REAL CREDENTIALS
 const mockUser: User = {
   profile: {
     sub: "mock-user-id",
     email: "mock-dev-user@example.com",
     name: "Mock Dev User",
   },
-  // deepcode ignore HardcodedNonCryptoSecret: Mock token for local development only
-  id_token: "mock-id-token",
-  // deepcode ignore HardcodedNonCryptoSecret: Mock token for local development only
-  access_token: "mock-access-token",
+  id_token: "mock-id-token", // pragma: allowlist secret
+  access_token: "mock-access-token", // pragma: allowlist secret
   token_type: "Bearer",
 } as User;
 
