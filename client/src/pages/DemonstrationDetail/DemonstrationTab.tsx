@@ -21,7 +21,8 @@ import {
   Person,
   PhaseName,
 } from "demos-server";
-import { VerticalTabs, Tab } from "layout/Tabs";
+import { Tab, VerticalTabs } from "layout/Tabs";
+
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 
 type ModalType = "document" | "contact" | null;
