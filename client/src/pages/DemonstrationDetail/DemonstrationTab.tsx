@@ -14,7 +14,13 @@ import {
 } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
-import { Demonstration, Document, PhaseName, Person } from "demos-server";
+import {
+  Demonstration,
+  Document,
+  PhaseName,
+  Person,
+  DemonstrationRoleAssignment,
+} from "demos-server";
 import { VerticalTabs, Tab } from "layout/Tabs";
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 
@@ -26,7 +32,9 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status">
       person: Pick<Person, "fullName">;
     };
   })[];
-  roles: [];
+  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+    person: Pick<Person, "id" | "fullName" | "email">;
+  })[];
   currentPhaseName: PhaseName;
 };
 

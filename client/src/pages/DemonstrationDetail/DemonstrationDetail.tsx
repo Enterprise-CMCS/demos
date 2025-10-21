@@ -1,6 +1,13 @@
 import React, { useCallback, useMemo, useState } from "react";
 
-import { Amendment, Demonstration, Document, Extension, Person } from "demos-server";
+import {
+  Amendment,
+  Demonstration,
+  DemonstrationRoleAssignment,
+  Document,
+  Extension,
+  Person,
+} from "demos-server";
 import { usePageHeader } from "hooks/usePageHeader";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
@@ -46,6 +53,12 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       }
       roles {
         role
+        isPrimary
+        person {
+          id
+          fullName
+          email
+        }
       }
     }
   }
@@ -57,7 +70,9 @@ export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "current
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: { person: Pick<Person, "fullName"> };
   })[];
-  roles: [];
+  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+    person: Pick<Person, "id" | "fullName" | "email">;
+  })[];
 };
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
