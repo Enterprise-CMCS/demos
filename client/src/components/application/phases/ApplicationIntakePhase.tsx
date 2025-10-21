@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { StateApplicationUploadDialog } from "components/dialog/document/StateApplicationUploadDialog";
+import { ApplicationIntakeUploadDialog } from "components/dialog/document/ApplicationIntakeUploadDialog";
 import { DeleteIcon, ExportIcon } from "components/icons";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { useToast } from "components/toast";
@@ -13,8 +13,8 @@ import { formatDate } from "util/formatDate";
 import { gql, useMutation } from "@apollo/client";
 
 const COMPLETE_STATE_APPLICATION_PHASE = gql`
-  mutation CompleteStateApplicationPhase($input: CompleteStateApplicationPhaseInput!) {
-    completeStateApplicationPhase(input: $input) {
+  mutation CompleteApplicationIntakePhase($input: CompleteApplicationIntakePhaseInput!) {
+    completeApplicationIntakePhase(input: $input) {
       id
       success
     }
@@ -48,7 +48,7 @@ const formatDateForInput = (date: Date): string => {
   return isoString.split("T")[0];
 };
 
-export const StateApplicationPhase: React.FC<Props> = ({
+export const ApplicationIntakePhase: React.FC<Props> = ({
   demonstrationId,
   documents = [],
   onDocumentsRefetch,
@@ -265,7 +265,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
     <div>
       {isLocalDevelopment() && <TestingPanel />}
 
-      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">STATE APPLICATION</h3>
+      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPLICATION INTAKE</h3>
       <p className="text-sm text-text-placeholder mb-4">
         When the state submits an official application, completing this form closes the
         Pre-Submission Technical Assistance and opens the Completeness Review period
@@ -279,7 +279,7 @@ export const StateApplicationPhase: React.FC<Props> = ({
         </div>
       </section>
 
-      <StateApplicationUploadDialog
+      <ApplicationIntakeUploadDialog
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
         applicationId={demonstrationId}

@@ -1,5 +1,5 @@
 export * from "./ConceptPhase";
-export * from "./StateApplicationPhase";
+export * from "./ApplicationIntakePhase";
 export * from "./CompletenessPhase";
 export * from "./FederalCommentPhase";
 export * from "./SdgPreparationPhase";
