@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { cleanup, render, screen } from "@testing-library/react";
 
-import { StateApplicationUploadDialog } from "./StateApplicationUploadDialog";
+import { ApplicationIntakeUploadDialog } from "./ApplicationIntakeUploadDialog";
 
 // Mock Apollo Client
 const mockMutation = vi.fn();
@@ -27,12 +27,12 @@ function setup(props = {}) {
   const finalProps = { ...defaultProps, ...props };
   return render(
     <TestProvider>
-      <StateApplicationUploadDialog {...finalProps} />
+      <ApplicationIntakeUploadDialog {...finalProps} />
     </TestProvider>
   );
 }
 
-describe("StateApplicationUploadDialog", () => {
+describe("ApplicationIntakeUploadDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -111,7 +111,7 @@ describe("StateApplicationUploadDialog", () => {
     });
   });
 
-  describe("State Application Configuration", () => {
+  describe("Application Intake Configuration", () => {
     it("displays state application document type by default", () => {
       setup();
       expect(screen.getByDisplayValue("State Application")).toBeInTheDocument();
