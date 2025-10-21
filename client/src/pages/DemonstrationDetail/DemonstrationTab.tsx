@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { SecondaryButton } from "components/button";
-import { EditContactDialog } from "components/dialog";
+import { EditContactDialog, ManageContactsDialog } from "components/dialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import {
   AddNewIcon,
@@ -18,7 +18,7 @@ import { Demonstration, Document, PhaseName, Person } from "demos-server";
 import { VerticalTabs, Tab } from "layout/Tabs";
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 
-type ModalType = "document" | "contact" | null;
+type ModalType = "document" | "contact" | "manage-contacts" | null;
 
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
@@ -35,6 +35,24 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 }) => {
   const [modalType, setModalType] = useState<ModalType>(null);
 
+  const searchPeople = async (q: string) => {
+  // TODO: replace with server search
+    return [] as Array<{ id: string; fullName: string; email: string }>;
+  };
+
+  // Stub for saveAssignments - replace with actual implementation
+  const saveAssignments = async (assignments: any) => {
+    // TODO: implement save logic (e.g., API call)
+    console.log("Saving assignments:", assignments);
+    return Promise.resolve();
+  };
+
+  // --- STUB: contact type options (id/label) ---
+  const contactTypeOptions = [
+  // TODO: replace with lookup query
+    { id: "project_officer", label: "Project Officer" },
+    { id: "finance", label: "Finance" },
+  ];
   return (
     <div className="p-[16px]">
       <ApplicationWorkflow demonstration={demonstration} />
@@ -74,7 +92,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             <SecondaryButton
               name="add-new-contact"
               size="small"
-              onClick={() => setModalType("contact")}
+              onClick={() => setModalType("manage-contacts")}
             >
               Manage Contacts
               <EditIcon className="w-2 h-2" />
@@ -84,6 +102,34 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         </Tab>
       </VerticalTabs>
 
+      {modalType === "manage-contacts" && (
+        // <ManageContactsDialog
+        //   isOpen={true}
+        //   onClose={() => setModalType(null)}
+        //   // Map current roles into the dialog's expected shape
+        //   initialAssignments={(demonstration.roles ?? []).map((r: any) => ({
+        //     person: {
+        //       id: r.person.id,
+        //       fullName: r.person.fullName,
+        //       email: r.person.email,
+        //     },
+        //     roleId: r.role ?? null,
+        //     isPrimary: !!r.isPrimary,
+        //   }))}
+        //   contactTypeOptions={contactTypeOptions}
+        //   onSearchPeople={searchPeople}
+        //   onSave={async (assignments) => {
+        //     await saveAssignments(assignments);
+        //     setModalType(null);
+        //   }}
+        //   applicationId={demonstration.id}
+        // />
+        <ManageContactsDialog
+          isOpen={true}
+          applicationId={demonstration.id}
+          onClose={() => setModalType(null)}
+        />
+      )}
       {modalType === "document" && (
         <AddDocumentDialog
           isOpen={true}

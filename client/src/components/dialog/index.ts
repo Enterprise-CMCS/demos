@@ -6,6 +6,7 @@ export { CreateDemonstrationDialog, EditDemonstrationDialog } from "./demonstrat
 export { ExtensionDialog } from "./ExtensionDialog";
 export { EditContactDialog } from "./EditContactDialog";
 export { RemoveContactDialog } from "./RemoveContactDialog";
+export { ManageContactsDialog } from "./ManageContactsDialog";
 export {
   AddDocumentDialog,
   EditDocumentDialog,
