@@ -3,6 +3,7 @@ import React from "react";
 import { ToastProvider } from "components/toast";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { gql } from "@apollo/client";
 import type { MockedResponse } from "@apollo/client/testing";
 import { MockedProvider } from "@apollo/client/testing";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -10,11 +11,32 @@ import userEvent from "@testing-library/user-event";
 
 import { ManageContactsDialog, ManageContactsDialogProps } from "./ManageContactsDialog";
 
-// Mock GraphQL queries/mutations
-const SEARCH_PEOPLE_MOCK = {
+// GraphQL queries used in the component
+const SEARCH_PEOPLE_QUERY = gql`
+  query SearchPeople($search: String!) {
+    searchPeople(search: $search) {
+      id
+      firstName
+      lastName
+      email
+      personType
+    }
+  }
+`;
+
+const SET_DEMONSTRATION_ROLE_MUTATION = gql`
+  mutation SetDemonstrationRoles($input: [SetDemonstrationRoleInput!]!) {
+    setDemonstrationRoles(input: $input) {
+      role
+    }
+  }
+`;
+
+// Mock GraphQL queries/mutations - Multiple search terms
+const createSearchMock = (searchTerm: string) => ({
   request: {
-    query: expect.any(Object), // We'll match by variables instead
-    variables: { search: "john" },
+    query: SEARCH_PEOPLE_QUERY,
+    variables: { search: searchTerm },
   },
   result: {
     data: {
@@ -36,11 +58,17 @@ const SEARCH_PEOPLE_MOCK = {
       ],
     },
   },
-};
+});
+
+const SEARCH_PEOPLE_MOCKS = [
+  createSearchMock("jo"),
+  createSearchMock("joh"),
+  createSearchMock("john"),
+];
 
 const SET_ROLES_MOCK = {
   request: {
-    query: expect.any(Object),
+    query: SET_DEMONSTRATION_ROLE_MUTATION,
     variables: {
       input: [
         {
@@ -124,7 +152,7 @@ describe("ManageContactsDialog", () => {
 
   it("performs person search when typing in search field", async () => {
     const user = userEvent.setup();
-    const mocks = [SEARCH_PEOPLE_MOCK];
+    const mocks = SEARCH_PEOPLE_MOCKS;
 
     renderWithProviders(defaultProps, mocks);
 
@@ -139,7 +167,7 @@ describe("ManageContactsDialog", () => {
 
   it("adds a contact from search results", async () => {
     const user = userEvent.setup();
-    const mocks = [SEARCH_PEOPLE_MOCK];
+    const mocks = SEARCH_PEOPLE_MOCKS;
 
     renderWithProviders(defaultProps, mocks);
 
@@ -160,7 +188,7 @@ describe("ManageContactsDialog", () => {
 
   it("sets default contact type for State users", async () => {
     const user = userEvent.setup();
-    const mocks = [SEARCH_PEOPLE_MOCK];
+    const mocks = SEARCH_PEOPLE_MOCKS;
 
     renderWithProviders(defaultProps, mocks);
 
@@ -186,6 +214,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -196,7 +225,7 @@ describe("ManageContactsDialog", () => {
         },
       ],
     };
-    const mocks = [SEARCH_PEOPLE_MOCK];
+    const mocks = SEARCH_PEOPLE_MOCKS;
 
     renderWithProviders(propsWithContacts, mocks);
 
@@ -221,6 +250,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -236,14 +266,9 @@ describe("ManageContactsDialog", () => {
     renderWithProviders(propsWithContacts);
 
     const selectElement = screen.getByDisplayValue("Project Officer");
-    await user.click(selectElement);
 
-    // Should show available options for CMS users (all except State Point of Contact)
-    await waitFor(() => {
-      expect(screen.getByText("DDME Analyst")).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByText("DDME Analyst"));
+    // Change the select value directly
+    await user.selectOptions(selectElement, "DDME Analyst");
 
     expect(screen.getByDisplayValue("DDME Analyst")).toBeInTheDocument();
   });
@@ -254,6 +279,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -281,6 +307,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -290,6 +317,7 @@ describe("ManageContactsDialog", () => {
           isPrimary: true,
         },
         {
+          id: "role-2",
           person: {
             id: "person-2",
             fullName: "Jane Smith",
@@ -321,6 +349,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -350,6 +379,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -372,6 +402,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -394,6 +425,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -419,6 +451,7 @@ describe("ManageContactsDialog", () => {
       onClose: mockOnClose,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "John Doe",
@@ -458,6 +491,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "CMS User",
@@ -486,6 +520,7 @@ describe("ManageContactsDialog", () => {
       ...defaultProps,
       existingContacts: [
         {
+          id: "role-1",
           person: {
             id: "person-1",
             fullName: "State User",
@@ -510,7 +545,7 @@ describe("ManageContactsDialog", () => {
 
   it("clears search results when search term is less than 2 characters", async () => {
     const user = userEvent.setup();
-    const mocks = [SEARCH_PEOPLE_MOCK];
+    const mocks = SEARCH_PEOPLE_MOCKS;
 
     renderWithProviders(defaultProps, mocks);
 
