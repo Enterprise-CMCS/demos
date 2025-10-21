@@ -1,12 +1,14 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { MockedProvider } from "@apollo/client/testing";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { ToastProvider } from "components/toast";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { MockedResponse } from "@apollo/client/testing";
+import { MockedProvider } from "@apollo/client/testing";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { ManageContactsDialog, ManageContactsDialogProps } from "./ManageContactsDialog";
-import { ToastProvider } from "components/toast";
 
 // Mock GraphQL queries/mutations
 const SEARCH_PEOPLE_MOCK = {
@@ -383,7 +385,7 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders(propsWithContacts);
 
-    const saveButton = screen.getByRole("button", { name: "Save" });
+    const saveButton = screen.getByRole("button", { name: "button-save" });
     expect(saveButton).toBeDisabled();
   });
 
@@ -405,7 +407,7 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders(propsWithContacts);
 
-    const saveButton = screen.getByRole("button", { name: "Save" });
+    const saveButton = screen.getByRole("button", { name: "button-save" });
     expect(saveButton).not.toBeDisabled();
   });
 
@@ -431,7 +433,7 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders(propsWithContacts, mocks);
 
-    const saveButton = screen.getByRole("button", { name: "Save" });
+    const saveButton = screen.getByRole("button", { name: "button-save" });
     await user.click(saveButton);
 
     await waitFor(() => {
@@ -444,7 +446,7 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders();
 
-    const cancelButton = screen.getByRole("button", { name: "Cancel" });
+    const cancelButton = screen.getByRole("button", { name: "button-cancel" });
     await user.click(cancelButton);
 
     // This would show the cancel confirmation in BaseDialog
