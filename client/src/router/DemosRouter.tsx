@@ -1,48 +1,26 @@
-// src/router/DemosRouter.tsx
 import React from "react";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { AuthProvider, withAuthenticationRequired } from "react-oidc-context";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
-import { getCognitoConfig, getAuthProviderProps } from "./cognitoConfig";
 import { DemosApolloProvider } from "./DemosApolloProvider";
-import { IdleSessionHandler } from "./IdleSessionHandler";
+import { DemosAuthProvider } from "./DemosAuthProvider";
 import { UserProvider } from "components/user/UserContext";
-import { PrimaryLayout } from "layout/PrimaryLayout";
 import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
-import { isLocalDevelopment } from "config/env";
 import { ApplicationDateSimulation } from "components/application/dates/ApplicationDateSimulation";
-
-// 1) Shell that provides the layout and outlet for child routes
-function ProtectedShell() {
-  return (
-    <PrimaryLayout>
-      <Outlet />
-    </PrimaryLayout>
-  );
-}
-
-const AuthGuard = withAuthenticationRequired(ProtectedShell, {
-  OnRedirecting: () => <></>,
-  signinRedirectArgs: {
-    state: { returnUrl: window.location.pathname + window.location.search },
-  },
-});
+import { isLocalDevelopment } from "config/env";
+import { DemosLayoutProvider } from "./DemosLayoutProvider";
 
 export const DemosRouter: React.FC = () => {
-  const cfg = getCognitoConfig();
-
   return (
-    <AuthProvider {...getAuthProviderProps(cfg)}>
+    <DemosAuthProvider>
       <DemosApolloProvider>
         <UserProvider>
           <BrowserRouter>
             <Routes>
-              {/* Everything below is protected */}
-              <Route element={<AuthGuard />}>
+              <Route element={<DemosLayoutProvider />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<DemonstrationsPage />} />
                 <Route path="demonstrations" element={<DemonstrationsPage />} />
@@ -62,7 +40,6 @@ export const DemosRouter: React.FC = () => {
           </BrowserRouter>
         </UserProvider>
       </DemosApolloProvider>
-      <IdleSessionHandler />
-    </AuthProvider>
+    </DemosAuthProvider>
   );
 };

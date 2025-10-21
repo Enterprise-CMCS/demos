@@ -214,7 +214,7 @@ export const ApplicationDateSimulation: React.FC = () => {
   };
 
   // Business Rule: Finish Application Intake Phase
-  const finishStateApplicationPhase = () => {
+  const finishApplicationIntakePhase = () => {
     let updatedPhases = setStatusForPhase(
       simulationState.phases,
       "Application Intake",
@@ -366,7 +366,7 @@ export const ApplicationDateSimulation: React.FC = () => {
                     "Started" && (
                     <Button
                       name="finish-state-app"
-                      onClick={finishStateApplicationPhase}
+                      onClick={finishApplicationIntakePhase}
                       size="small"
                       disabled={!isStateApplicationSubmittedDateSet()}
                     >

@@ -6,6 +6,21 @@ export type MockUser = Pick<User, "id" | "username"> & {
 import { MockedResponse } from "@apollo/client/testing";
 import { GET_CURRENT_USER_QUERY } from "components/user/UserContext";
 import { mockPeople, MockPerson } from "./personMocks";
+import { mockStates } from "./stateMocks";
+
+const developmentMockUser: MockUser = {
+  id: "999",
+  username: "mock.dev.user",
+  person: {
+    id: "999",
+    firstName: "Mock",
+    lastName: "User",
+    fullName: "Mock User",
+    personType: "demos-cms-user",
+    email: "mock.user@email.com",
+    states: mockStates,
+  },
+};
 
 export const mockUsers: MockUser[] = [
   { id: "1", username: "john.doe", person: mockPeople[0] },
@@ -26,7 +41,7 @@ export const userMocks: MockedResponse[] = [
       query: GET_CURRENT_USER_QUERY,
     },
     result: {
-      data: { currentUser: mockUsers[0] },
+      data: { currentUser: developmentMockUser },
     },
   },
   {
