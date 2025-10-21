@@ -173,15 +173,16 @@ erDiagram
     uuid demonstration_id FK "FK059: demonstration_id ∈ demonstration.id"
     timestamptz created_at
     timestamptz updated_at
+    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_amendment "Before deletion, verify that no corresponding record exists in the application table."
   }
 
   application:::dataTable {
     uuid id PK, UK "UK: (id, application_type_id)"
     text application_type_id FK, UK "FK007: application_type_id ∈ application_type.id<br>UK: (id, application_type_id)"
     text name
-    text description
-    date effective_date
-    date expiration_date
+    text description "NULLABLE"
+    date effective_date "NULLABLE"
+    date expiration_date "NULLABLE"
     text application_status_id FK "FK018: application_status_id ∈ application_status.id"
     text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
@@ -214,6 +215,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_TRIGGER_DEFERRABLE check_demonstration_primary_project_officer_trigger "On insert or update, check that a primary project officer exists for this demonstration."
+    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_amendment "Before deletion, verify that no corresponding record exists in the application table."
   }
 
   document:::dataTable {
@@ -263,6 +265,7 @@ erDiagram
     uuid demonstration_id FK "FK012: demonstration_id ∈ demonstration.id"
     timestamptz created_at
     timestamptz updated_at
+    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_amendment "Before deletion, verify that no corresponding record exists in the application table."
   }
 
   person:::dataTable {
