@@ -1,25 +1,13 @@
-import React, {
-  ChangeEvent,
-  useMemo,
-  useState,
-} from "react";
+import React, { ChangeEvent, useMemo, useState } from "react";
 
-import {
-  Button,
-  CircleButton,
-  SecondaryButton,
-} from "components/button";
+import { Button, CircleButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { DeleteIcon } from "components/icons";
 import { Input } from "components/input/Input";
 import { Select } from "components/input/select/Select";
 import { useToast } from "components/toast";
 
-import {
-  gql,
-  useLazyQuery,
-  useMutation,
-} from "@apollo/client";
+import { gql, useLazyQuery, useMutation } from "@apollo/client";
 
 // ───────────────── GraphQL ─────────────────
 const SEARCH_PEOPLE_QUERY = gql`
