@@ -13,7 +13,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { createSelectColumnDef } from "../columns/selectColumn";
 import { PaginationControls } from "../PaginationControls";
 import { TableHead } from "../Table";
 
@@ -26,7 +25,6 @@ export type DemonstrationRoleAssignment = Pick<
 
 const contactsColumnHelper = createColumnHelper<DemonstrationRoleAssignment>();
 const contactsColumns = [
-  createSelectColumnDef(contactsColumnHelper),
   contactsColumnHelper.accessor("person.fullName", {
     id: "fullName",
     header: "Name",
