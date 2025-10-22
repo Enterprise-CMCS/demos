@@ -103,27 +103,6 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
       </VerticalTabs>
 
       {modalType === "manage-contacts" && (
-        // <ManageContactsDialog
-        //   isOpen={true}
-        //   onClose={() => setModalType(null)}
-        //   // Map current roles into the dialog's expected shape
-        //   initialAssignments={(demonstration.roles ?? []).map((r: any) => ({
-        //     person: {
-        //       id: r.person.id,
-        //       fullName: r.person.fullName,
-        //       email: r.person.email,
-        //     },
-        //     roleId: r.role ?? null,
-        //     isPrimary: !!r.isPrimary,
-        //   }))}
-        //   contactTypeOptions={contactTypeOptions}
-        //   onSearchPeople={searchPeople}
-        //   onSave={async (assignments) => {
-        //     await saveAssignments(assignments);
-        //     setModalType(null);
-        //   }}
-        //   applicationId={demonstration.id}
-        // />
         <ManageContactsDialog
           isOpen={true}
           applicationId={demonstration.id}
