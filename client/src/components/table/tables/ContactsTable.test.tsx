@@ -126,15 +126,17 @@ describe("ContactsTable", () => {
     expect(screen.getByDisplayValue("10")).toBeInTheDocument();
   });
 
-  it("renders checkboxes for row selection", () => {
+  it("renders table without checkboxes", () => {
     renderWithToast(<ContactsTable roles={Array(3).fill(testMocks[0])} />);
 
-    // Should have header checkbox plus one for each row
-    const checkboxes = screen.getAllByRole("checkbox");
-    expect(checkboxes.length).toBe(4); // 1 header + 3 data rows
+    // Should not have any checkboxes since this table doesn't support selection
+    const checkboxes = screen.queryAllByRole("checkbox");
+    expect(checkboxes.length).toBe(0);
 
-    // Header checkbox should be findable by test ID
-    expect(screen.getByTestId("select-all-rows")).toBeInTheDocument();
+    // Should still render the table with correct structure
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    const rows = screen.getAllByRole("row");
+    expect(rows.length).toBe(4); // 1 header + 3 data rows
   });
 
   it("displays contact data in table format", () => {
