@@ -17,17 +17,17 @@ const mockUser: User = {
 } as User;
 
 // Create a mock user store that starts with a pre-populated mock user
-const createMockUserStore = () => {
+const createMockUserStore = async () => {
   const store = new WebStorageStateStore({ store: window.sessionStorage });
-  store.set(`user:${MOCK_AUTHORITY}:${MOCK_CLIENT_ID}`, JSON.stringify(mockUser));
+  await store.set(`user:${MOCK_AUTHORITY}:${MOCK_CLIENT_ID}`, JSON.stringify(mockUser));
   return store;
 };
 
 // Mock authentication props - minimal config to bypass real OIDC flows
-export const getMockAuthProps = (): AuthProviderProps => ({
+export const getMockAuthProps = async (): Promise<AuthProviderProps> => ({
   authority: MOCK_AUTHORITY,
   client_id: MOCK_CLIENT_ID,
   redirect_uri: window.location.origin,
   automaticSilentRenew: false,
-  userStore: createMockUserStore(),
+  userStore: await createMockUserStore(),
 });

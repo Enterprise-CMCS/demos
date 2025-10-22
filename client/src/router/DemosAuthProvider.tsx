@@ -5,9 +5,9 @@ import { getMockAuthProps } from "./mockAuthConfig";
 import { AuthProvider } from "react-oidc-context";
 import { shouldUseMocks } from "config/env";
 
-export const DemosAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DemosAuthProvider: React.FC<{ children: React.ReactNode }> = async ({ children }) => {
   const authProps = shouldUseMocks()
-    ? getMockAuthProps()
+    ? await getMockAuthProps()
     : getAuthProviderProps(getCognitoConfig());
 
   return (
