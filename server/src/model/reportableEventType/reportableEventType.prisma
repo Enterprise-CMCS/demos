@@ -1,9 +1,6 @@
-// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY, NATURAL_KEY
-// Table will be updated and maintained entirely via migrations
+// Flags: STATIC_CONSTRAINT
 model ReportableEventType {
   id          String @id
-  name        String
-  description String
 
   @@map("reportable_event_type")
 }
