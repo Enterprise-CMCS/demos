@@ -168,7 +168,6 @@ export const ManageContactsTable: React.FC<ManageContactsTableProps> = ({
           return (
             <div className="flex justify-center">
               <ToggleSwitch
-                size="sm"
                 checked={local}
                 onChange={onToggle}
                 ariaLabel={`Toggle primary for ${row.original.fullName}`}
