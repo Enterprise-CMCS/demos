@@ -9,12 +9,13 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-  InitialTableState,
-  Table as TanstackTable,
-  RowSelectionState,
   HeaderGroup,
+  InitialTableState,
+  RowSelectionState,
+  Table as TanstackTable,
+  useReactTable,
 } from "@tanstack/react-table";
+
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
 
 const STYLES = {
@@ -131,6 +132,7 @@ export interface TableProps<T> {
   pagination?: (table: TanstackTable<T>) => React.ReactNode;
   actionButtons?: (table: TanstackTable<T>) => React.ReactNode;
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
+  hideSearchAndActions?: boolean;
 }
 
 export function Table<T>({
@@ -145,6 +147,7 @@ export function Table<T>({
   pagination,
   actionButtons,
   actionModals,
+  hideSearchAndActions = false,
 }: TableProps<T>) {
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
@@ -193,10 +196,12 @@ export function Table<T>({
 
   return (
     <>
-      <div className="flex items-center justify-between mb-[24px]">
-        <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
-        <div className="mr-1">{actionButtons && actionButtons(table)}</div>
-      </div>
+      {!hideSearchAndActions && (
+        <div className="flex items-center justify-between mb-[24px]">
+          <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
+          <div className="mr-1">{actionButtons && actionButtons(table)}</div>
+        </div>
+      )}
 
       {actionModals && actionModals(table)}
 

@@ -2,12 +2,15 @@ import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
 
 import { Button, CircleButton, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { ChevronDownIcon, ChevronUpIcon, DeleteIcon, SearchIcon, SortIcon } from "components/icons";
+import { DeleteIcon, SearchIcon } from "components/icons";
 import { Select } from "components/input/select/Select";
+import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
+import Switch from "react-switch";
 
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { createColumnHelper, Table as TanstackTable } from "@tanstack/react-table";
 
 const SEARCH_PEOPLE_QUERY = gql`
   query SearchPeople($search: String!) {
@@ -168,77 +171,7 @@ function useDebounced<T>(value: T, ms = 250): T {
   return debounced;
 }
 
-const SortHeader = ({
-  label,
-  active,
-  dir,
-  onClick,
-  align = "left",
-}: {
-  label: string;
-  active: boolean;
-  dir: "asc" | "desc";
-  onClick: () => void;
-  align?: "left" | "center";
-}) => {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-1 ${align === "center" ? "justify-center" : ""}`}
-      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
-    >
-      <span className="whitespace-nowrap">{label}</span>
-      {!active ? (
-        <span className="text-gray-400">
-          <SortIcon aria-hidden />
-        </span>
-      ) : dir === "asc" ? (
-        <span className="text-gray-700">
-          <ChevronUpIcon aria-hidden />
-        </span>
-      ) : (
-        <span className="text-gray-700">
-          <ChevronDownIcon aria-hidden />
-        </span>
-      )}
-    </button>
-  );
-};
-
-const Toggle = ({
-  checked,
-  onChange,
-  disabled,
-  name,
-}: {
-  checked: boolean;
-  onChange: () => void;
-  disabled?: boolean;
-  name?: string;
-}) => (
-  <button
-    type="button"
-    name={name}
-    aria-checked={checked}
-    role="switch"
-    onClick={() => !disabled && onChange()}
-    className={[
-      "relative inline-flex h-[22px] w-[40px] items-center rounded-full",
-      "transition-colors duration-150 ease-out",
-      disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
-      checked ? "bg-[#6B7280]" : "bg-[#E5E7EB]",
-      "ring-1 ring-inset ring-[#D1D5DB]",
-    ].join(" ")}
-  >
-    <span
-      className={[
-        "h-[18px] w-[18px] rounded-full bg-white shadow-sm transform transition-transform duration-150 ease-out",
-        checked ? "translate-x-[18px]" : "translate-x-[4px]",
-      ].join(" ")}
-    />
-  </button>
-);
+const contactsColumnHelper = createColumnHelper<ContactRow>();
 
 export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   isOpen,
@@ -484,12 +417,8 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
     return presentTypes.every((type) => {
       const contactsOfType = selectedContacts.filter((c) => c.contactType === type);
-      if (contactsOfType.length === 1) {
-        return true;
-      } else {
-        const primariesOfType = contactsOfType.filter((c) => c.isPrimary);
-        return primariesOfType.length === 1;
-      }
+      const primariesOfType = contactsOfType.filter((c) => c.isPrimary);
+      return primariesOfType.length <= 1;
     });
   }, [selectedContacts]);
 
@@ -536,33 +465,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     }
   };
 
-  type SortKey = "name" | "email" | "contactType" | "isPrimary";
-  const [sortKey, setSortKey] = useState<SortKey>("name");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-
-  const onSort = (key: SortKey) => {
-    if (key === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  };
-
-  const sorted = useMemo(() => {
-    const copy = [...selectedContacts];
-    copy.sort((a, b) => {
-      const dir = sortDir === "asc" ? 1 : -1;
-      const av =
-        sortKey === "isPrimary" ? (a.isPrimary ? 1 : 0) : String(a[sortKey] ?? "").toLowerCase();
-      const bv =
-        sortKey === "isPrimary" ? (b.isPrimary ? 1 : 0) : String(b[sortKey] ?? "").toLowerCase();
-      if (av < bv) return -1 * dir;
-      if (av > bv) return 1 * dir;
-      return 0;
-    });
-    return copy;
-  }, [selectedContacts, sortKey, sortDir]);
-
   const handleClose = () => {
     if (hasChanges) {
       setShowCancelConfirm(true);
@@ -570,6 +472,181 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       onClose();
     }
   };
+
+  const renderPagination = (table: TanstackTable<ContactRow>) => {
+    const pageIndex = table.getState().pagination.pageIndex;
+    const pageCount = table.getPageCount();
+    const pageSize = table.getState().pagination.pageSize;
+    const totalRows = selectedContacts.length;
+
+    if (pageCount <= 1 || totalRows === 0) return null;
+    const startRow = pageIndex * pageSize + 1;
+    const endRow = Math.min((pageIndex + 1) * pageSize, totalRows);
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-700">
+            Showing {startRow} to {endRow} of {totalRows} contacts
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-700">Show:</span>
+            <select
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+              value={pageSize}
+              onChange={(e) => {
+                table.setPageSize(Number(e.target.value));
+              }}
+            >
+              {[10, 20, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+              <option value={totalRows}>All</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="px-2 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+            >
+              First
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </button>
+
+            <span className="text-sm text-gray-700">
+              Page {pageIndex + 1} of {pageCount}
+            </span>
+
+            <button
+              type="button"
+              className="px-2 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </button>
+            <button
+              type="button"
+              className="px-2 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              onClick={() => table.setPageIndex(pageCount - 1)}
+              disabled={!table.getCanNextPage()}
+            >
+              Last
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const columns = useMemo(
+    () => [
+      contactsColumnHelper.accessor("name", {
+        header: "Name",
+        size: 180, // 18%
+        cell: (info) => <div className="whitespace-pre-line text-sm">{info.getValue()}</div>,
+      }),
+      contactsColumnHelper.accessor("email", {
+        header: "Email",
+        size: 320, // 32%
+        cell: (info) => (
+          <div className="truncate text-gray-700 text-sm" title={info.getValue()}>
+            {info.getValue()}
+          </div>
+        ),
+      }),
+      contactsColumnHelper.accessor("contactType", {
+        header: "Contact Type",
+        size: 320, // 32%
+        cell: (info) => {
+          const contact = info.row.original;
+          const rowIndex = info.row.index;
+          return (
+            <div className="w-full">
+              <Select
+                id={`contact-type-${rowIndex}`}
+                value={contact.contactType}
+                options={getFilteredContactTypeOptions(contact.idmRoles)}
+                placeholder="Select Type…"
+                onSelect={(v) => handleContactTypeChange(contact.personId, v as ContactType)}
+                isRequired
+              />
+            </div>
+          );
+        },
+      }),
+      contactsColumnHelper.accessor("isPrimary", {
+        header: "Primary",
+        size: 100, // 10%
+        cell: (info) => {
+          const contact = info.row.original;
+          return (
+            <div className="inline-flex items-center justify-center">
+              <Switch
+                checked={!!contact.isPrimary}
+                onChange={() => handlePrimaryToggle(contact.personId)}
+                onColor="#6B7280" // Dark grey when enabled
+                offColor="#E5E7EB" // Light grey when disabled
+                checkedIcon={false}
+                uncheckedIcon={false}
+                height={18}
+                width={40}
+                handleDiameter={24}
+                boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
+                activeBoxShadow="0 0 2px 3px #3bf"
+              />
+            </div>
+          );
+        },
+      }),
+      contactsColumnHelper.display({
+        id: "actions",
+        header: "",
+        size: 80, // 8%
+        cell: (info) => {
+          const contact = info.row.original;
+          return (
+            <div className="text-center">
+              <CircleButton
+                name="Delete Contact"
+                size="small"
+                onClick={() => handleRemoveContact(contact.personId)}
+                disabled={
+                  contact.contactType === "Project Officer" &&
+                  contact.isPrimary &&
+                  selectedContacts.filter((c) => c.contactType === "Project Officer").length === 1
+                }
+              >
+                <DeleteIcon />
+              </CircleButton>
+            </div>
+          );
+        },
+      }),
+    ],
+    [
+      selectedContacts,
+      getFilteredContactTypeOptions,
+      handleContactTypeChange,
+      handlePrimaryToggle,
+      handleRemoveContact,
+    ]
+  );
 
   return (
     <>
@@ -635,113 +712,20 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
           <div className="border border-gray-200 rounded-md overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-sm table-fixed">
-                <colgroup>
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "32%" }} />
-                  <col style={{ width: "32%" }} />
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "8%" }} />
-                </colgroup>
-
-                <thead className="bg-gray-50">
-                  <tr className="text-left">
-                    <th className="px-2 py-2 font-bold text-sm">
-                      <SortHeader
-                        label="Name"
-                        active={sortKey === "name"}
-                        dir={sortDir}
-                        onClick={() => onSort("name")}
-                      />
-                    </th>
-                    <th className="px-2 py-2 font-bold text-sm">
-                      <SortHeader
-                        label="Email"
-                        active={sortKey === "email"}
-                        dir={sortDir}
-                        onClick={() => onSort("email")}
-                      />
-                    </th>
-                    <th className="px-2 py-2 font-bold text-sm">
-                      <SortHeader
-                        label="Contact Type"
-                        active={sortKey === "contactType"}
-                        dir={sortDir}
-                        onClick={() => onSort("contactType")}
-                      />
-                    </th>
-                    <th className="px-2 py-2 font-bold text-sm text-center">
-                      <SortHeader
-                        label="Primary"
-                        active={sortKey === "isPrimary"}
-                        dir={sortDir}
-                        onClick={() => onSort("isPrimary")}
-                        align="center"
-                      />
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-gray-200">
-                  {sorted.map((c, i) => (
-                    <tr key={c.personId} className="bg-white">
-                      <td className="px-2 py-1 align-middle">
-                        <div className="whitespace-pre-line text-sm">{c.name}</div>
-                      </td>
-                      <td className="px-2 py-1 align-middle text-gray-700 text-sm min-w-0">
-                        <div className="truncate" title={c.email}>
-                          {c.email}
-                        </div>
-                      </td>
-                      <td className="px-2 py-1 align-middle min-w-0">
-                        <div className="w-full">
-                          <Select
-                            id={`contact-type-${i}`}
-                            value={c.contactType}
-                            options={getFilteredContactTypeOptions(c.idmRoles)}
-                            placeholder="Select Type…"
-                            onSelect={(v) => handleContactTypeChange(c.personId, v as ContactType)}
-                            isRequired
-                          />
-                        </div>
-                      </td>
-                      <td className="px-2 py-1 align-middle text-center">
-                        <div className="inline-flex items-center justify-center">
-                          <Toggle
-                            checked={!!c.isPrimary}
-                            onChange={() => handlePrimaryToggle(c.personId)}
-                            name="primary"
-                          />
-                        </div>
-                      </td>
-                      <td className="px-2 py-1 align-middle text-center">
-                        <CircleButton
-                          name="Delete Contact"
-                          size="small"
-                          onClick={() => handleRemoveContact(c.personId)}
-                          disabled={
-                            c.contactType === "Project Officer" &&
-                            c.isPrimary &&
-                            selectedContacts.filter(
-                              (contact) => contact.contactType === "Project Officer"
-                            ).length === 1
-                          }
-                        >
-                          <DeleteIcon />
-                        </CircleButton>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {sorted.length === 0 && (
-                    <tr>
-                      <td className="px-2 py-4 text-gray-500 text-sm text-center" colSpan={5}>
-                        No contacts assigned yet. Use search above to add contacts.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <Table
+                data={selectedContacts}
+                columns={columns}
+                emptyRowsMessage="No contacts assigned yet. Use search above to add contacts."
+                initialState={{
+                  sorting: [{ id: "name", desc: false }],
+                  pagination: {
+                    pageIndex: 0,
+                    pageSize: 10,
+                  },
+                }}
+                hideSearchAndActions={true}
+                pagination={renderPagination}
+              />
             </div>
           </div>
         </div>
