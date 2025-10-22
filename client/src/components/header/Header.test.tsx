@@ -53,7 +53,7 @@ describe("Header", () => {
 
   it("toggles menu under Profile Block (Top right corner)", async () => {
     renderWithProviders(<ProfileBlock />);
-    const profileName = await screen.findByText("John Doe");
+    const profileName = await screen.findByText("Mock User");
 
     fireEvent.click(profileName);
     // NOW an anchor with text "Sign Out"
@@ -66,7 +66,7 @@ describe("Header", () => {
 
   it("toggles menu under Profile Block", async () => {
     renderWithProviders(<ProfileBlock />);
-    const profileName = await screen.findByText("John Doe");
+    const profileName = await screen.findByText("Mock User");
 
     fireEvent.click(profileName);
     const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });

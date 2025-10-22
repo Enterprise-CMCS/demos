@@ -117,7 +117,9 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
           className={CONFIRMATION_DIALOG}
           onClick={handleConfirmDialogClick}
         >
-          <p className="text-sm font-bold mb-sm text-text-font">Are you sure you want to cancel?</p>
+          <p className="text-sm font-bold mb-sm text-text-font">
+            Are you sure you want to cancel? Changes you have made so far will not be saved.
+          </p>
           <div className="flex justify-center gap-[24px]">
             <SecondaryButton
               name="cancel-no"

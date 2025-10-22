@@ -15,71 +15,74 @@ erDiagram
   classDef associativeTable stroke:darkmagenta,fill:plum
   classDef legend stroke:black,fill:#ddd
 
-  phase_status ||--|{ bundle_phase  : "FK004"
+  phase_status ||--|{ application_phase  : "FK004"
   phase_date_type }|--|| phase : "FK003"
-  phase_date_type }|--|| date_type: "FK058"
-  bundle_phase }|--|| bundle : "FK005"
-  date_type ||--|{ bundle_date  : "FK001"
-  bundle_date }|--|| bundle : "FK002"
-  bundle_phase }|--|| phase : "FK006"
-  bundle }|--|| bundle_type : "FK007"
-  bundle ||--|| demonstration : "FK008"
-  bundle ||--|| modification : "FK009"
+  phase_date_type }|--|| date_type: "FK017"
+  application_phase }|--|| application : "FK005"
+  date_type ||--|{ application_date  : "FK001"
+  application_date }|--|| application : "FK002"
+  application_phase }|--|| phase : "FK006"
+  application }|--|| application_type : "FK007"
+  application ||--|| demonstration : "FK008"
+  application ||--|| extension : "FK009"
+  application ||--|| amendment : "FK058"
   demonstration }|--|| sdg_division : "FK010"
   demonstration }|--|| signature_level : "FK011"
-  demonstration ||--|{ modification : "FK012"
-  bundle_type ||--|{ demonstration_bundle_type_limit : "FK013"
-  demonstration_bundle_type_limit ||--|{ demonstration : "FK014"
-  bundle_type ||--|{ modification_bundle_type_limit : "FK015"
-  modification_bundle_type_limit ||--|{ modification : "FK016"
-  demonstration }|--|| bundle_status : "FK017"
-  bundle_status ||--|{ modification : "FK018"
-  phase ||--|{ demonstration : "FK019"
-  phase ||--|{ modification : "FK020"
+  demonstration ||--|{ extension : "FK012"
+  demonstration ||--|{ amendment : "FK059"
+  application_type ||--|{ demonstration_application_type_limit : "FK013"
+  demonstration_application_type_limit ||--|{ demonstration : "FK014"
+  application_type ||--|{ extension_application_type_limit : "FK015"
+  extension_application_type_limit ||--|{ extension : "FK016"
+  application_type ||--|{ amendment_application_type_limit : "FK060"
+  amendment_application_type_limit ||--|{ amendment : "FK061"
+  application_status ||--|{ application : "FK018"
+  phase ||--|{ application : "FK020"
   state ||--|{ demonstration : "FK021"
-  person_type ||--|{ person : "FK022"
+  person }|--|| person_type : "FK022"
   person ||--|| users : "FK023"
   person_type ||--|| user_person_type_limit : "FK024"
   user_person_type_limit ||--|{ users : "FK025"
   users ||--|{ document : "FK026"
-  users ||--|{ document_pending_upload : "FK057"
+  users ||--|{ document_pending_upload : "FK019"
   phase ||--|{ phase_document_type : "FK027"
   phase_document_type }|--|| document_type : "FK028"
   phase_document_type ||--|{ document : "FK029"
   phase_document_type ||--|{ document_pending_upload : "FK055"
-  bundle ||--|{ document : "FK030"
-  bundle ||--|{ document_pending_upload : "FK056"
+  application ||--|{ document : "FK030"
+  application ||--|{ document_pending_upload : "FK056"
   role_person_type }|--|| person_type : "FK031"
   role ||--|{ role_person_type : "FK032"
-  role_permission }|--|| role : "FK033"
-  role_permission }|--|| permission : "FK034"
+  role ||--|{ role_permission : "FK033"
+  permission ||--|{ role_permission : "FK034"
   grant_level ||--|{ role : "FK035"
   grant_level ||--|{ permission : "FK036"
-  system_grant_level_limit ||--|{ system_role_assignment : "FK037"
+  system_grant_level_limit ||--|{ system_role_assignment : "FK041"
   system_role_assignment }|--|| role_person_type : "FK038"
-  system_role_assignment }|--|| person : "FK039"
-  role ||--|{ system_role_assignment : "FK040"
-  system_grant_level_limit ||--|| grant_level : "FK041"
+  person ||--|{ system_role_assignment : "FK039"
+  system_role_assignment }|--|| role : "FK040"
+  grant_level ||--|| system_grant_level_limit : "FK037"
   demonstration_role_assignment }|--|| person_state : "FK042"
   person_state }|--|| state : "FK043"
-  person_state }|--|| person : "FK044"
+  person ||--|{ person_state : "FK044"
   grant_level ||--|| demonstration_grant_level_limit : "FK045"
   demonstration_grant_level_limit ||--|{ demonstration_role_assignment : "FK046"
   role_person_type ||--|{ demonstration_role_assignment : "FK047"
-  demonstration_role_assignment }|--|| person : "FK048"
+  person ||--|{ demonstration_role_assignment : "FK048"
   role ||--|{ demonstration_role_assignment : "FK049"
   demonstration_role_assignment }|--|| demonstration : "FK050"
   demonstration_role_assignment ||--|| primary_demonstration_role_assignment : "FK051"
+  event }|--|| application : "FK057"
   event }O..|| reportable_event_type : "FK052"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
 
   %% Static Constraints
-  bundle_status:::staticConstraint {
+  application_status:::staticConstraint {
     text id PK
   }
 
-  bundle_type:::staticConstraint {
+  application_type:::staticConstraint {
     text id PK
   }
 
@@ -139,16 +142,20 @@ erDiagram
   }
 
   %% Type Limiters
-  demonstration_bundle_type_limit:::typeLimiter {
-    text id PK, FK "FK013: id ∈ bundle_type.id"
+  amendment_application_type_limit:::typeLimiter {
+    text id PK, FK "FK060: id ∈ application_type.id"
+  }
+
+  demonstration_application_type_limit:::typeLimiter {
+    text id PK, FK "FK013: id ∈ application_type.id"
   }
 
   demonstration_grant_level_limit:::typeLimiter {
     text id PK, FK "FK045: id ∈ grant_level.id"
   }
 
-  modification_bundle_type_limit:::typeLimiter {
-    text id PK, FK "FK015: id ∈ bundle_type.id"
+  extension_application_type_limit:::typeLimiter {
+    text id PK, FK "FK015: id ∈ application_type.id"
   }
 
   system_grant_level_limit:::typeLimiter {
@@ -160,21 +167,39 @@ erDiagram
   }
 
   %% Data Tables
-  bundle:::dataTable {
-    uuid id PK, UK "UK: (id, bundle_type_id)"
-    text bundle_type_id FK, UK "FK007: bundle_type_id ∈ bundle_type.id<br>UK: (id, bundle_type_id)"
+  amendment:::dataTable {
+    uuid id PK, FK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED"
+    text application_type_id FK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>FK061: application_type_id ∈ amendment_application_type_limit.id"
+    uuid demonstration_id FK "FK059: demonstration_id ∈ demonstration.id"
+    timestamptz created_at
+    timestamptz updated_at
+    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_amendment "Before deletion, verify that no corresponding record exists in the application table."
   }
 
-  bundle_date:::dataTable {
-    uuid bundle_id PK, FK "FK002: bundle_id ∈ bundle.id"
+  application:::dataTable {
+    uuid id PK, UK "UK: (id, application_type_id)"
+    text application_type_id FK, UK "FK007: application_type_id ∈ application_type.id<br>UK: (id, application_type_id)"
+    text name
+    text description "NULLABLE"
+    date effective_date "NULLABLE"
+    date expiration_date "NULLABLE"
+    text application_status_id FK "FK018: application_status_id ∈ application_status.id"
+    text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
+    CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
+    CONSTRAINT_TRIGGER_DEFERRABLE check_application_type_record_exists_trigger "On insert or update, verify that a corresponding record exists in the demonstration, amendment, or extension tables."
+  }
+
+  application_date:::dataTable {
+    uuid application_id PK, FK "FK002: application_id ∈ application.id"
     text date_type_id PK, FK "FK001: date_type_id ∈ date_type.id"
     timestamptz date_value
     timestamptz created_at
     timestamptz updated_at
   }
 
-  bundle_phase:::dataTable {
-    uuid bundle_id PK, FK "FK005: bundle_id ∈ bundle.id"
+  application_phase:::dataTable {
+    uuid application_id PK, FK "FK005: application_id ∈ application.id"
     text phase_id PK, FK "FK006: phase_id ∈ phase.id"
     text phase_status_id FK "FK004: phase_status_id ∈ phase_status.id"
     timestamptz created_at
@@ -182,19 +207,15 @@ erDiagram
   }
 
   demonstration:::dataTable {
-    uuid id PK, FK, UK "FK008: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)<br>UK: (id, state_id)"
-    text bundle_type_id FK "FK008: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)<br>FK014: bundle_type_id ∈ demonstration_bundle_type_limit.id"
-    text name
-    text description
-    date effective_date
-    date expiration_date
+    uuid id PK, FK, UK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, state_id)"
+    text application_type_id FK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>FK014: application_type_id ∈ demonstration_application_type_limit.id"
     text sdg_division_id FK "FK010: sdg_division_id ∈ sdg_division.id<br>NULLABLE"
     text signature_level_id FK "FK011: signature_level_id ∈ signature_level.id<br>NULLABLE"
-    text bundle_status_id FK "FK017: bundle_status_id ∈ bundle_status.id"
     text state_id FK, UK "FK021: state_id ∈ state.id<br>UK: (id, state_id)"
-    text current_phase_id FK "FK019: current_phase_id ∈ phase.id"
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_TRIGGER_DEFERRABLE check_demonstration_primary_project_officer_trigger "On insert or update, check that a primary project officer exists for this demonstration."
+    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_amendment "Before deletion, verify that no corresponding record exists in the application table."
   }
 
   document:::dataTable {
@@ -204,19 +225,23 @@ erDiagram
     text s3_path
     uuid owner_user_id FK "FK026: owner_user_id ∈ users.id"
     text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid bundle_id FK "FK030: bundle_id ∈ bundle.id"
+    uuid application_id FK "FK030: application_id ∈ application.id"
     text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
+    CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
+    CONSTRAINT_CHECK check_s3_path_start "Validate that the S3 path starts with s3://."
   }
 
   document_pending_upload:::dataTable {
     uuid id PK
     text name
     text description
-    uuid owner_user_id FK "FK057: owner_user_id ∈ users.id"
+    uuid owner_user_id FK "FK019: owner_user_id ∈ users.id"
     text document_type_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid bundle_id FK "FK056: bundle_id ∈ bundle.id"
+    uuid application_id FK "FK056: application_id ∈ application.id"
     text phase_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
     timestamptz created_at
     timestamptz updated_at
@@ -224,8 +249,9 @@ erDiagram
 
   event:::dataTable {
     uuid id PK
-    uuid user_id FK "FK054: user_id ∈ user.id<br>NULLABLE"
+    uuid user_id FK "FK054: user_id ∈ users.id<br>NULLABLE"
     text with_role_id FK "FK053: with_role_id ∈ role.id<br>NULLABLE"
+    uuid application_id FK "FK057: application_id ∈ application.id<br>NULLABLE"
     text event_type FK "FK052: ⊂(event_type) ∈ reportable_event_type.id (unenforced)"
     text log_level
     text route
@@ -233,22 +259,17 @@ erDiagram
     jsonb event_data
   }
 
-  modification:::dataTable {
-    uuid id PK, FK "FK009: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)"
-    text bundle_type_id FK "FK009: (id, bundle_type_id) ∈ bundle.(id, bundle_type_id)<br>FK016: bundle_type_id ∈ modification_bundle_type_limit.id"
+  extension:::dataTable {
+    uuid id PK, FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED"
+    text application_type_id FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>FK016: application_type_id ∈ extension_application_type_limit.id"
     uuid demonstration_id FK "FK012: demonstration_id ∈ demonstration.id"
-    text name
-    text description
-    date effective_date
-    date expiration_date
-    text bundle_status_id FK "FK018: bundle_status_id ∈ bundle_status.id"
-    text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
     timestamptz created_at
     timestamptz updated_at
+    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_amendment "Before deletion, verify that no corresponding record exists in the application table."
   }
 
   person:::dataTable {
-    id uuid PK, UK "UK: (id, person_type_id)"
+    uuid id PK, UK "UK: (id, person_type_id)"
     text person_type_id FK "FK022: person_type_id ∈ person_type.id<br>UK: (id, person_type_id)"
     text email
     text first_name
@@ -285,12 +306,12 @@ erDiagram
     uuid person_id PK, FK "FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text role_id PK, FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
-    text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id., grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
+    text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
   }
 
   phase_date_type:::associativeTable {
     text phase_id PK, FK "FK003: phase_id ∈ phase.id"
-    text date_type_id PK, FK "FK058: date_type_id ∈ date_type.id"
+    text date_type_id PK, FK "FK017: date_type_id ∈ date_type.id"
   }
 
   phase_document_type:::associativeTable {
@@ -302,6 +323,7 @@ erDiagram
     uuid person_id FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
     uuid demonstration_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
     text role_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
+    CONSTRAINT_TRIGGER_DEFERRABLE check_demonstration_retains_primary_project_officer_trigger "On update or delete, check that a primary project officer still exists."
   }
 
   role_permission:::associativeTable {
