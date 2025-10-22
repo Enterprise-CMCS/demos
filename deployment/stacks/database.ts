@@ -10,6 +10,8 @@ import {
   aws_secretsmanager,
   aws_kms,
   Fn,
+  aws_lambda,
+  aws_logs,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -26,12 +28,7 @@ interface DatabaseStackProps {
 }
 
 export class DatabaseStack extends Stack {
-  constructor(
-    scope: Construct,
-    id: string,
-    props: StackProps & DeploymentConfigProperties & DatabaseStackProps
-  ) {
-
+  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties & DatabaseStackProps) {
     super(scope, id, {
       ...props,
       terminationProtection: false,
@@ -42,11 +39,7 @@ export class DatabaseStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(
-              this,
-              "iamPermissionsBoundary",
-              props.iamPermissionsBoundaryArn
-            )
+          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
           : undefined,
     };
 
@@ -80,10 +73,7 @@ export class DatabaseStack extends Stack {
         engine: aws_rds.DatabaseInstanceEngine.postgres({
           version: aws_rds.PostgresEngineVersion.VER_17_4,
         }),
-        instanceType: aws_ec2.InstanceType.of(
-          aws_ec2.InstanceClass.BURSTABLE4_GRAVITON,
-          aws_ec2.InstanceSize.MICRO
-        ),
+        instanceType: aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE4_GRAVITON, aws_ec2.InstanceSize.MICRO),
         vpc: commonProps.vpc,
         vpcSubnets: { subnets: props.vpc.privateSubnets },
         multiAz: commonProps.stage == "prod",
@@ -94,15 +84,9 @@ export class DatabaseStack extends Stack {
         credentials: aws_rds.Credentials.fromGeneratedSecret("demos_admin", {
           secretName: `${commonProps.project}-${commonProps.stage}-rds-admin`,
         }),
-        securityGroups: [
-          rdsSecurityGroup.securityGroup,
-          commonProps.cloudVpnSecurityGroup,
-          sharedServicesSg
-        ],
+        securityGroups: [rdsSecurityGroup.securityGroup, commonProps.cloudVpnSecurityGroup, sharedServicesSg],
         publiclyAccessible: false,
-        removalPolicy: ["prod", "impl"].includes(commonProps.stage)
-          ? RemovalPolicy.RETAIN
-          : RemovalPolicy.DESTROY,
+        removalPolicy: ["prod", "impl"].includes(commonProps.stage) ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
         deleteAutomatedBackups: true,
         instanceIdentifier: `${commonProps.project}-${commonProps.stage}-rds`,
         backupRetention: Duration.days(7),
@@ -113,23 +97,37 @@ export class DatabaseStack extends Stack {
       }
     );
 
+    const cmsCloudLogFunc = aws_lambda.Function.fromFunctionName(
+      commonProps.scope,
+      "CMSCloudLoggingLambda",
+      "cms-cloud-logging-cloudwatch-to-splunk"
+    );
+    for (const lg in dbInstance.cloudwatchLogGroups) {
+      // dbInstance.cloudwatchLogGroups[lg].addSubscriptionFilter cannot be used
+      // because the log group name contains a token and leads to errors.
+      // CfnSubscriptionFilter can work with the tokens
+      const lgName = dbInstance.cloudwatchLogGroups[lg].logGroupName;
+      new aws_logs.CfnSubscriptionFilter(commonProps.scope, `${lg}SubFilter`, {
+        filterName: `${lg}-to-splunk`,
+        logGroupName: lgName,
+        filterPattern: "",
+        destinationArn: cmsCloudLogFunc.functionArn,
+      });
+    }
+
     const rdsPWRotationSecurityGroup = securityGroup.create({
       ...commonProps,
       name: `${commonProps.project}-${commonProps.stage}-rds-pw-rotation-sg`,
     });
 
     rdsPWRotationSecurityGroup.securityGroup.addEgressRule(
-      aws_ec2.Peer.securityGroupId(
-        rdsSecurityGroup.securityGroup.securityGroupId
-      ),
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(dbInstance.instanceEndpoint.port),
       "Allow egress to RDS",
       true
     );
 
-    const secretsManagerVpceSgId = Fn.importValue(
-      `${commonProps.stage}SecretsManagerVpceSg`
-    );
+    const secretsManagerVpceSgId = Fn.importValue(`${commonProps.stage}SecretsManagerVpceSg`);
 
     rdsPWRotationSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
@@ -138,9 +136,7 @@ export class DatabaseStack extends Stack {
     );
 
     rdsSecurityGroup.securityGroup.addIngressRule(
-      aws_ec2.Peer.securityGroupId(
-        rdsPWRotationSecurityGroup.securityGroup.securityGroupId
-      ),
+      aws_ec2.Peer.securityGroupId(rdsPWRotationSecurityGroup.securityGroup.securityGroupId),
       aws_ec2.Port.tcp(dbInstance.instanceEndpoint.port),
       "Allow ingress from PW rotation lambda",
       true
