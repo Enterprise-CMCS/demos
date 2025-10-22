@@ -6,7 +6,8 @@ export function handlePrismaError(error: unknown): never {
     switch (error.code) {
       case "P2003":
         throw new GraphQLError(
-          `A foreign key constraint ${String(error.meta!.constraint)} was violated in your input.`,
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          `A foreign key constraint ${error.meta!.constraint} was violated in your input.`,
           {
             extensions: {
               code: "VIOLATED_FOREIGN_KEY",
