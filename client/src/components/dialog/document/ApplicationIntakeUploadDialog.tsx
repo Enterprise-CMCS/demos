@@ -5,7 +5,7 @@ import { DocumentType } from "demos-server";
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["State Application", "General File"];
 
-const REFETCH_QUERIES = ["GetStateApplicationDocuments", "GetDemonstrationDocuments"];
+const REFETCH_QUERIES = ["GetApplicationIntakeDocuments", "GetDemonstrationDocuments"];
 
 type Props = {
   isOpen: boolean;
@@ -13,7 +13,7 @@ type Props = {
   applicationId: string;
 };
 
-export const StateApplicationUploadDialog: React.FC<Props> = ({
+export const ApplicationIntakeUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   applicationId,

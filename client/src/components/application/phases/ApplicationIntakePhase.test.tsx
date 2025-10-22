@@ -4,23 +4,12 @@ import React from "react";
 
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { TestProvider } from "test-utils/TestProvider";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { StateApplicationPhase } from "./StateApplicationPhase";
+import { ApplicationIntakePhase } from "./ApplicationIntakePhase";
 
 // Test constants
 const TEST_DEMO_ID = "test-demo-id";
@@ -59,7 +48,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("StateApplicationPhase", () => {
+describe("ApplicationIntakePhase", () => {
   const defaultProps = {
     demonstrationId: TEST_DEMO_ID,
     documents: [],
@@ -89,7 +78,7 @@ describe("StateApplicationPhase", () => {
 
     render(
       <TestProvider>
-        <StateApplicationPhase {...finalProps} />
+        <ApplicationIntakePhase {...finalProps} />
       </TestProvider>
     );
 
@@ -97,9 +86,9 @@ describe("StateApplicationPhase", () => {
   };
 
   describe("Phase Header", () => {
-    it("renders STATE APPLICATION header with brand color", () => {
+    it("renders APPLICATION INTAKE header with brand color", () => {
       setup();
-      const header = screen.getByText("STATE APPLICATION");
+      const header = screen.getByText("APPLICATION INTAKE");
       expect(header).toBeInTheDocument();
       expect(header).toHaveClass("text-brand");
     });
@@ -134,7 +123,7 @@ describe("StateApplicationPhase", () => {
       expect(screen.getByText("No documents yet.")).toBeInTheDocument();
     });
 
-    it("displays State Application documents only", () => {
+    it("displays Application Intake phase documents only", () => {
       setup({
         documents: [mockStateApplicationDocument, mockOtherDocument],
       });
@@ -281,7 +270,7 @@ describe("StateApplicationPhase", () => {
   });
 
   describe("Document Management", () => {
-    it("filters documents to only show State Application type", () => {
+    it("filters documents to only show State Application document type", () => {
       const mixedDocuments = [
         mockStateApplicationDocument,
         mockOtherDocument,
@@ -289,7 +278,7 @@ describe("StateApplicationPhase", () => {
           ...mockOtherDocument,
           id: "doc-3",
           name: "Another State Application Document",
-          documentType: "State Application" as const,
+          documentType: "State Application",
         },
       ];
 

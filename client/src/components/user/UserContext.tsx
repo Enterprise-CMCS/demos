@@ -36,8 +36,7 @@ const Ctx = createContext<UserContextValue | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
-  const token = auth.user?.id_token ?? null;
-  const shouldQuery = !!token && auth.isAuthenticated && !auth.isLoading;
+  const shouldQuery = auth.isAuthenticated && !auth.isLoading;
   const {
     data,
     loading: qLoading,
@@ -54,7 +53,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (shouldQuery) {
       refetch().catch(() => {});
     }
-  }, [shouldQuery, token, refetch]);
+  }, [shouldQuery, refetch]);
 
   const currentUser = (shouldQuery ? (data?.currentUser as CurrentUser | undefined) : null) ?? null;
   const loading = auth.isLoading || (shouldQuery && qLoading);
