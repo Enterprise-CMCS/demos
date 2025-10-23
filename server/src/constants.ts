@@ -15,6 +15,12 @@ export const ROLES = [
   "Monitoring & Evaluation Technical Director",
 ] as const;
 
+export const CONTACT_TYPES = [
+  "DDME Analyst",
+  "Project Officer",
+  "State Point of Contact",
+] as const;
+
 export const PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",

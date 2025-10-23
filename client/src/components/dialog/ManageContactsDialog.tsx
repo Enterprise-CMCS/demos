@@ -1,132 +1,25 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
 
-import { Button, CircleButton, SecondaryButton } from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { DeleteIcon, SearchIcon } from "components/icons";
-import { Select } from "components/input/select/Select";
+import { SearchIcon } from "components/icons";
 import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
-import Switch from "react-switch";
 
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
-import { createColumnHelper, Table as TanstackTable } from "@tanstack/react-table";
+import { useLazyQuery, useMutation } from "@apollo/client";
 
-const SEARCH_PEOPLE_QUERY = gql`
-  query SearchPeople($search: String!) {
-    searchPeople(search: $search) {
-      id
-      firstName
-      lastName
-      email
-      personType
-    }
-  }
-`;
-
-const SET_DEMONSTRATION_ROLE_MUTATION = gql`
-  mutation SetDemonstrationRoles($input: [SetDemonstrationRoleInput!]!) {
-    setDemonstrationRoles(input: $input) {
-      role
-    }
-  }
-`;
-
-const UNSET_DEMONSTRATION_ROLES_MUTATION = gql`
-  mutation UnsetDemonstrationRoles($input: [UnsetDemonstrationRoleInput!]!) {
-    unsetDemonstrationRoles(input: $input) {
-      role
-    }
-  }
-`;
-
-const DEMONSTRATION_DETAIL_QUERY = gql`
-  query DemonstrationDetailQuery($id: ID!) {
-    demonstration(id: $id) {
-      id
-      status
-      currentPhaseName
-      amendments {
-        id
-        name
-        effectiveDate
-        status
-      }
-      extensions {
-        id
-        name
-        effectiveDate
-        status
-      }
-      documents {
-        id
-        name
-        description
-        documentType
-        phaseName
-        createdAt
-        owner {
-          person {
-            fullName
-          }
-        }
-      }
-      roles {
-        role
-        isPrimary
-        person {
-          id
-          fullName
-          email
-        }
-      }
-    }
-  }
-`;
-
-const GET_DEMONSTRATION_BY_ID_QUERY = gql`
-  query GetDemonstrationById($id: ID!) {
-    demonstration(id: $id) {
-      id
-      name
-      description
-      state {
-        id
-        name
-      }
-      roles {
-        isPrimary
-        role
-        person {
-          id
-          fullName
-        }
-      }
-    }
-  }
-`;
-
-const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
-  query DemonstrationHeaderDetails($demonstrationId: ID!) {
-    demonstration(id: $demonstrationId) {
-      id
-      name
-      expirationDate
-      effectiveDate
-      status
-      state {
-        id
-      }
-      primaryProjectOfficer {
-        id
-        fullName
-      }
-    }
-  }
-`;
-
-export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
-export type ContactType = (typeof CONTACT_TYPES)[number];
+import {
+  DEMONSTRATION_DETAIL_QUERY,
+  DEMONSTRATION_HEADER_DETAILS_QUERY,
+  GET_DEMONSTRATION_BY_ID_QUERY,
+  SEARCH_PEOPLE_QUERY,
+  SET_DEMONSTRATION_ROLE_MUTATION,
+  UNSET_DEMONSTRATION_ROLES_MUTATION,
+} from "../../queries/contactQueries";
+import type { ContactRow, ContactType } from "../table/columns/ContactColumns";
+import { CONTACT_TYPES, ContactColumns } from "../table/columns/ContactColumns";
+import { PaginationControls } from "../table/PaginationControls";
 
 const CONTACT_TYPE_OPTIONS = CONTACT_TYPES.map((v) => ({ label: v, value: v }));
 
@@ -150,16 +43,6 @@ export type ManageContactsDialogProps = {
   }[];
 };
 
-type ContactRow = {
-  id?: string;
-  personId: string;
-  name: string;
-  email: string;
-  idmRoles?: string[];
-  contactType?: ContactType;
-  isPrimary?: boolean;
-};
-
 function useDebounced<T>(value: T, ms = 250): T {
   const [debounced, setDebounced] = useState(value);
 
@@ -170,8 +53,6 @@ function useDebounced<T>(value: T, ms = 250): T {
 
   return debounced;
 }
-
-const contactsColumnHelper = createColumnHelper<ContactRow>();
 
 export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   isOpen,
@@ -511,174 +392,15 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     }
   };
 
-  const renderPagination = (table: TanstackTable<ContactRow>) => {
-    const pageIndex = table.getState().pagination.pageIndex;
-    const pageCount = table.getPageCount();
-    const pageSize = table.getState().pagination.pageSize;
-    const totalRows = selectedContacts.length;
-
-    if (pageCount <= 1 || totalRows === 0) return null;
-    const startRow = pageIndex * pageSize + 1;
-    const endRow = Math.min((pageIndex + 1) * pageSize, totalRows);
-
-    return (
-      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-700">
-            Showing {startRow} to {endRow} of {totalRows} contacts
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">Show:</span>
-            <select
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              value={pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value));
-              }}
-            >
-              {[10, 20, 50].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-              <option value={totalRows}>All</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              className="px-2 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              First
-            </button>
-            <button
-              type="button"
-              className="px-2 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </button>
-
-            <span className="text-sm text-gray-700">
-              Page {pageIndex + 1} of {pageCount}
-            </span>
-
-            <button
-              type="button"
-              className="px-2 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </button>
-            <button
-              type="button"
-              className="px-2 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              onClick={() => table.setPageIndex(pageCount - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              Last
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const columns = useMemo(
-    () => [
-      contactsColumnHelper.accessor("name", {
-        header: "Name",
-        size: 180,
-        cell: (info) => <div className="whitespace-pre-line text-sm">{info.getValue()}</div>,
+  const contactColumns = useMemo(
+    () =>
+      ContactColumns({
+        selectedContacts,
+        getFilteredContactTypeOptions,
+        onContactTypeChange: handleContactTypeChange,
+        onPrimaryToggle: handlePrimaryToggle,
+        onRemoveContact: handleRemoveContact,
       }),
-      contactsColumnHelper.accessor("email", {
-        header: "Email",
-        size: 320,
-        cell: (info) => (
-          <div className="truncate text-gray-700 text-sm" title={info.getValue()}>
-            {info.getValue()}
-          </div>
-        ),
-      }),
-      contactsColumnHelper.accessor("contactType", {
-        header: "Contact Type",
-        size: 320,
-        cell: (info) => {
-          const contact = info.row.original;
-          const rowIndex = info.row.index;
-          const isInvalid = !contact.contactType;
-          return (
-            <div className="w-full">
-              <Select
-                id={`contact-type-${rowIndex}`}
-                value={contact.contactType}
-                options={getFilteredContactTypeOptions(contact.idmRoles)}
-                placeholder="Select Type…"
-                onSelect={(v) => handleContactTypeChange(contact.personId, v as ContactType)}
-                isRequired
-                validationMessage={isInvalid ? "Contact Type is required" : ""}
-              />
-            </div>
-          );
-        },
-      }),
-      contactsColumnHelper.accessor("isPrimary", {
-        header: "Primary",
-        size: 100,
-        cell: (info) => {
-          const contact = info.row.original;
-          return (
-            <div className="inline-flex items-center justify-center">
-              <Switch
-                checked={!!contact.isPrimary}
-                onChange={() => handlePrimaryToggle(contact.personId)}
-                onColor="#6B7280"
-                offColor="#E5E7EB"
-                checkedIcon={false}
-                uncheckedIcon={false}
-                height={18}
-                width={40}
-                handleDiameter={24}
-                boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
-                activeBoxShadow="0 0 2px 3px #3bf"
-              />
-            </div>
-          );
-        },
-      }),
-      contactsColumnHelper.display({
-        id: "actions",
-        header: "",
-        size: 80,
-        cell: (info) => {
-          const contact = info.row.original;
-          return (
-            <div className="text-center">
-              <CircleButton
-                name="Delete Contact"
-                size="small"
-                onClick={() => handleRemoveContact(contact.personId)}
-                disabled={
-                  contact.contactType === "Project Officer" &&
-                  contact.isPrimary &&
-                  selectedContacts.filter((c) => c.contactType === "Project Officer").length === 1
-                }
-              >
-                <DeleteIcon />
-              </CircleButton>
-            </div>
-          );
-        },
-      }),
-    ],
     [
       selectedContacts,
       getFilteredContactTypeOptions,
@@ -686,6 +408,22 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       handlePrimaryToggle,
       handleRemoveContact,
     ]
+  );
+
+  const actions = (
+    <>
+      <SecondaryButton name="button-cancel" size="small" onClick={handleClose}>
+        Cancel
+      </SecondaryButton>
+      <Button
+        name="button-save"
+        size="small"
+        onClick={handleSubmit}
+        disabled={!allValid || !hasChanges || isSubmitting}
+      >
+        {isSubmitting ? "Saving..." : "Save"}
+      </Button>
+    </>
   );
 
   return (
@@ -697,33 +435,19 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         showCancelConfirm={showCancelConfirm}
         setShowCancelConfirm={setShowCancelConfirm}
         maxWidthClass="max-w-[1000px]"
-        actions={
-          <>
-            <SecondaryButton name="button-cancel" size="small" onClick={handleClose}>
-              Cancel
-            </SecondaryButton>
-            <Button
-              name="button-save"
-              size="small"
-              onClick={handleSubmit}
-              disabled={!allValid || !hasChanges || isSubmitting}
-            >
-              {isSubmitting ? "Saving..." : "Save"}
-            </Button>
-          </>
-        }
+        actions={actions}
       >
-        <div className="space-y-3">
+        <div className="flex flex-col gap-lg">
           <div className="relative">
-            <div className="mb-1 text-sm font-medium">
-              <span className="text-red-600 mr-1">*</span> Search
+            <div className="mb-xs text-field-label font-bold">
+              <span className="text-error mr-xs">*</span> <span className="font-bold">Search</span>
             </div>
             <div className="relative">
-              <SearchIcon className="absolute top-1/2 -translate-y-1/2 text-gray-400 h-[18px] w-[18px] pointer-events-none ml-[10px]" />
+              <SearchIcon className="absolute top-1/2 -translate-y-1/2 text-text-placeholder h-[18px] w-[18px] pointer-events-none ml-xs" />
               <input
                 name="search"
                 type="text"
-                className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-9 pr-lg py-sm border border-border-fields rounded-minimal focus:outline-none focus:ring-2 focus:ring-action focus:border-action bg-surface-white text-text-filled"
                 placeholder="Search by name or email"
                 value={searchTerm}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -731,7 +455,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
             </div>
             {searchResults.filter((p) => !selectedContacts.some((c) => c.personId === p.id))
               .length > 0 && (
-              <div className="absolute left-0 right-0 z-20 mt-2 border border-gray-200 rounded-md p-2 bg-white shadow-lg max-h-[200px] overflow-y-auto">
+              <div className="absolute left-0 right-0 z-20 mt-sm border border-gray rounded-minimal p-sm bg-surface-white shadow-lg max-h-[200px] overflow-y-auto">
                 {searchResults
                   .filter((p) => !selectedContacts.some((c) => c.personId === p.id))
                   .map((p) => (
@@ -739,11 +463,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
                       key={p.id}
                       type="button"
                       onClick={() => handleAddContact(p)}
-                      className="w-full text-left px-2 py-1 hover:bg-blue-50 rounded"
+                      className="w-full text-left px-sm py-xs hover:bg-action-hover rounded-minimal"
                     >
                       <div className="flex justify-between">
                         <span>{`${p.firstName} ${p.lastName}`}</span>
-                        <span className="text-gray-600">{p.email}</span>
+                        <span className="text-text-placeholder">{p.email}</span>
                       </div>
                     </button>
                   ))}
@@ -751,25 +475,26 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
             )}
           </div>
 
-          <div className="mt-2 text-sm font-semibold">Assigned Contacts</div>
+          <div className="text-field-label font-bold">Assigned Contacts</div>
 
-          <div className="border border-gray-200 rounded-md overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table
-                data={selectedContacts}
-                columns={columns}
-                emptyRowsMessage="No contacts assigned yet. Use search above to add contacts."
-                initialState={{
-                  sorting: [{ id: "name", desc: false }],
-                  pagination: {
-                    pageIndex: 0,
-                    pageSize: 10,
+          <div className="border border-gray rounded-minimal overflow-hidden">
+            <Table
+              data={selectedContacts}
+              columns={contactColumns}
+              initialState={{
+                pagination: {
+                  pageSize: 10,
+                },
+                sorting: [
+                  {
+                    id: "name",
+                    desc: false,
                   },
-                }}
-                hideSearchAndActions={true}
-                pagination={renderPagination}
-              />
-            </div>
+                ],
+              }}
+              hideSearchAndActions={true}
+              pagination={(table) => <PaginationControls table={table} />}
+            />
           </div>
         </div>
       </BaseDialog>

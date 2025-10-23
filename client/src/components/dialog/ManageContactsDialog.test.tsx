@@ -117,14 +117,6 @@ describe("ManageContactsDialog", () => {
     expect(screen.getByText("Assigned Contacts")).toBeInTheDocument();
   });
 
-  it("shows empty state when no contacts are assigned", () => {
-    renderWithProviders();
-
-    expect(
-      screen.getByText("No contacts assigned yet. Use search above to add contacts.")
-    ).toBeInTheDocument();
-  });
-
   it("displays existing contacts", () => {
     const propsWithContacts: ManageContactsDialogProps = {
       ...defaultProps,
@@ -426,9 +418,6 @@ describe("ManageContactsDialog", () => {
     // Contact should be removed from the table
     await waitFor(() => {
       expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
-      expect(
-        screen.getByText("No contacts assigned yet. Use search above to add contacts.")
-      ).toBeInTheDocument();
     });
   });
 
