@@ -92,6 +92,13 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
     setIsOpen(false);
   };
 
+  useEffect(() => {
+    const exactMatch = options.find((opt) => opt.label === inputValue);
+    if (exactMatch && isOpen) {
+      setFiltered(options);
+    }
+  }, [inputValue, options, isOpen]);
+
   return (
     <div className="flex flex-col gap-sm" ref={containerRef}>
       {label && (
