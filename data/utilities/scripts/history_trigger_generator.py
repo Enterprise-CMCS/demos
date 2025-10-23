@@ -1,19 +1,19 @@
 """Generate trigger functions for history tables automatically."""
 
-import argparse
 import re
 from textwrap import dedent
 from typing import List
 
 TBL_FOLDERS = [
+    "amendment",
     "application",
-    "applicationPhase",
     "applicationDate",
+    "applicationPhase",
     "demonstration",
     "demonstrationRoleAssignment",
     "document",
     "documentPendingUpload",
-    "modification",
+    "extension",
     "person",
     "personState",
     "primaryDemonstrationRoleAssignment",
@@ -22,6 +22,54 @@ TBL_FOLDERS = [
     "user"
 ]
 APP_SCHEMA = "demos_app"
+DROP_QUERY = """-- Drop existing history logging functions and triggers
+DO $$
+DECLARE
+    function_trigger_record RECORD;
+BEGIN
+    FOR function_trigger_record IN
+        SELECT
+            c.relname AS table_name,
+            t.tgname AS trigger_name,
+            p.proname AS function_name
+        FROM
+            pg_trigger AS t
+        INNER JOIN
+            pg_proc AS p ON
+                t.tgfoid = p.oid
+        INNER JOIN
+            pg_class AS c ON
+                t.tgrelid = c.oid
+        INNER JOIN
+            pg_namespace AS n ON
+                c.relnamespace = n.oid
+                AND p.pronamespace = n.oid
+        WHERE
+            p.proname LIKE 'log_changes_%'
+            AND n.nspname = 'demos_app'
+    LOOP
+        EXECUTE format(
+            'DROP TRIGGER %I ON demos_app.%I;',
+            function_trigger_record.trigger_name,
+            function_trigger_record.table_name
+        );
+        RAISE NOTICE
+            'Dropped trigger % on demos_app.%',
+            function_trigger_record.trigger_name,
+            function_trigger_record.table_name;
+
+        EXECUTE format(
+            'DROP FUNCTION demos_app.%I();',
+            function_trigger_record.function_name
+        );
+        RAISE NOTICE
+            'Dropped function demos_app.%()',
+            function_trigger_record.function_name;
+    END LOOP;
+END
+$$;
+
+"""
 
 
 def get_table_name(prisma_lines: List[str]) -> dict:
@@ -157,33 +205,20 @@ def get_prisma_lines(folder: str) -> List[str]:
     return prisma_lines
 
 
-def main(migration: str, folders: List[str] = TBL_FOLDERS) -> None:
-    """Execute main program function.
-
-    Args:
-        migration (str): The migration folder where the SQL should be placed.
-        folders (List[str]): The folders and by extension models to process.
-    """
+def main() -> None:
+    """Execute main program function."""
     queries = []
-    for x in folders:
+    for i, x in enumerate(TBL_FOLDERS):
         prisma_lines = get_prisma_lines(x)
-        queries.append(get_trigger_code(prisma_lines) + "\n\n")
+        if i == len(TBL_FOLDERS) - 1:
+            queries.append(get_trigger_code(prisma_lines) + "\n")
+        else:
+            queries.append(get_trigger_code(prisma_lines) + "\n\n")
 
-    with open(f"../../../server/src/model/migrations/{migration}/migration.sql", "a") as query_file:
+    with open("../../../server/src/sql/history_triggers.sql", "w") as query_file:
+        query_file.write(DROP_QUERY)
         query_file.writelines(queries)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Generate history table triggers from models in the server folder."
-    )
-    parser.add_argument("migration", help="The migration folder where the output should be written.")
-    parser.add_argument(
-        "-m",
-        "--models",
-        nargs="+",
-        choices=TBL_FOLDERS,
-        help="A list of models to process, which must be found in TBL_FOLDERS."
-    )
-    args = parser.parse_args()
-    main(args.migration, args.models if args.models is not None else TBL_FOLDERS)
+    main()

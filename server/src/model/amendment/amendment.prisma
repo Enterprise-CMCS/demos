@@ -1,0 +1,15 @@
+model Amendment {
+  id                String   @db.Uuid
+  applicationTypeId String   @map("application_type_id")
+  demonstrationId   String   @map("demonstration_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  application     Application                   @relation(fields: [id, applicationTypeId], references: [id, applicationTypeId])
+  applicationType AmendmentApplicationTypeLimit @relation(fields: [applicationTypeId], references: [id])
+  demonstration   Demonstration                 @relation(fields: [demonstrationId], references: [id])
+
+  @@id([id])
+  @@unique([id, applicationTypeId]) // Not required by Postgres, but Prisma requires this notation
+  @@map("amendment")
+}

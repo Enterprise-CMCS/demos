@@ -4,8 +4,7 @@ model Phase {
   phaseNumber Int    @map("phase_number")
 
   applicationPhases  ApplicationPhase[]
-  demonstrations     Demonstration[]
-  modifications      Modification[]
+  applications       Application[]
   phaseDocumentTypes PhaseDocumentType[]
   phaseDateTypes     PhaseDateType[]
 

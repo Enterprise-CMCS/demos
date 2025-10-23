@@ -80,9 +80,13 @@ VALUES
     ('Demonstration');
 
 INSERT INTO
-    demos_app.modification_application_type_limit
+    demos_app.amendment_application_type_limit
 VALUES
-    ('Amendment'),
+    ('Amendment');
+
+INSERT INTO
+    demos_app.extension_application_type_limit
+VALUES
     ('Extension');
 
 INSERT INTO
@@ -316,11 +320,38 @@ VALUES
     ('Delete Document Failed');
 
 -- Add Checks
-ALTER TABLE demos_app.demonstration ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
-ALTER TABLE demos_app.demonstration ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
+ALTER TABLE demos_app.application ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+ALTER TABLE demos_app.application ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_description CHECK (trim(description) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_s3_path CHECK (trim(s3_path) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_s3_path_start CHECK (s3_path ~ '^s3://');
-ALTER TABLE demos_app.modification ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
-ALTER TABLE demos_app.modification ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
+
+-- Fix Deferrable Constraints
+ALTER TABLE demos_app.amendment DROP CONSTRAINT amendment_id_application_type_id_fkey;
+ALTER TABLE demos_app.demonstration DROP CONSTRAINT demonstration_id_application_type_id_fkey;
+ALTER TABLE demos_app.extension DROP CONSTRAINT extension_id_application_type_id_fkey;
+
+ALTER TABLE demos_app.amendment
+ADD CONSTRAINT amendment_id_application_type_id_fkey
+FOREIGN KEY (id, application_type_id)
+REFERENCES demos_app.application(id, application_type_id)
+ON DELETE RESTRICT
+ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE demos_app.demonstration
+ADD CONSTRAINT demonstration_id_application_type_id_fkey
+FOREIGN KEY (id, application_type_id)
+REFERENCES demos_app.application(id, application_type_id)
+ON DELETE RESTRICT
+ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE demos_app.extension
+ADD CONSTRAINT extension_id_application_type_id_fkey
+FOREIGN KEY (id, application_type_id)
+REFERENCES demos_app.application(id, application_type_id)
+ON DELETE RESTRICT
+ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;
