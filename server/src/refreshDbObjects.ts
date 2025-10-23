@@ -2,7 +2,8 @@ import { spawnSync } from "child_process";
 
 function executeSqlFile(filePath: string): void {
   console.log(`Executing SQL file: ${filePath}`);
-  spawnSync("prisma", [
+  spawnSync("npx", [
+    "prisma",
     "db",
     "execute",
     "--schema",
