@@ -1,8 +1,8 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
+import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { SearchIcon } from "components/icons";
+import { SearchIcon, WarningIcon } from "components/icons";
 import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
@@ -54,6 +54,17 @@ function useDebounced<T>(value: T, ms = 250): T {
   return debounced;
 }
 
+const mapExistingContacts = (arr: ManageContactsDialogProps["existingContacts"] = []) =>
+  arr.map((c) => ({
+    id: c.id,
+    personId: c.person.id,
+    name: c.person.fullName,
+    email: c.person.email,
+    idmRoles: c.person.idmRoles ?? [],
+    contactType: c.role as ContactType,
+    isPrimary: c.isPrimary,
+  }));
+
 export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   isOpen,
   onClose,
@@ -65,34 +76,19 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<PersonSearchResult[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<ContactRow[]>(
-    existingContacts.map((c) => ({
-      id: c.id,
-      personId: c.person.id,
-      name: c.person.fullName,
-      email: c.person.email,
-      idmRoles: c.person.idmRoles ?? [],
-      contactType: c.role as ContactType,
-      isPrimary: c.isPrimary,
-    }))
+    mapExistingContacts(existingContacts)
   );
   const [savedContacts, setSavedContacts] = useState<ContactRow[]>(
-    existingContacts.map((c) => ({
-      id: c.id,
-      personId: c.person.id,
-      name: c.person.fullName,
-      email: c.person.email,
-      idmRoles: c.person.idmRoles ?? [],
-      contactType: c.role as ContactType,
-      isPrimary: c.isPrimary,
-    }))
+    mapExistingContacts(existingContacts)
   );
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPrimaryWarning, setShowPrimaryWarning] = useState(false);
 
   const [searchPeople] = useLazyQuery(SEARCH_PEOPLE_QUERY, {
-    fetchPolicy: "no-cache",
+    fetchPolicy: "network-only",
     onCompleted: (data) => {
       const rawResults = data.searchPeople || [];
       // Filter out state users to prevent foreign key constraint errors
@@ -209,129 +205,196 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     setSearchTerm("");
   };
 
-  const handleContactTypeChange = (personId: string, value: ContactType) => {
-    const updated = [...selectedContacts];
-    const contactIndex = updated.findIndex((c) => c.personId === personId);
-    if (contactIndex === -1) return;
+  const handleContactTypeChange = useCallback(
+    (personId: string, newType?: ContactType) => {
+      setSelectedContacts((prev) => {
+        const isPO = newType === "Project Officer";
 
-    const contact = updated[contactIndex];
-    const oldType = contact.contactType;
-    const wasPrimary = contact.isPrimary;
+        return prev.map((c) => {
+          if (c.personId === personId) {
+            return { ...c, contactType: newType, isPrimary: isPO };
+          }
 
-    contact.contactType = value;
+          if (isPO && c.contactType === "Project Officer") {
+            const availableOptions = getFilteredContactTypeOptions(c.idmRoles);
+            const nonProjectOfficerOptions = availableOptions.filter(
+              (opt) => opt.value !== "Project Officer"
+            );
 
-    if (value === "Project Officer") {
-      contact.isPrimary = true;
+            return {
+              ...c,
+              contactType:
+                nonProjectOfficerOptions.length > 0
+                  ? (nonProjectOfficerOptions[0].value as ContactType)
+                  : undefined,
+              isPrimary: false,
+            };
+          }
 
-      updated.forEach((c) => {
-        if (c.contactType === "Project Officer" && c.personId !== personId) {
-          c.contactType = undefined;
-          c.isPrimary = false;
-        }
+          return c;
+        });
       });
-    } else {
-      contact.isPrimary = false;
-    }
+    },
+    [getFilteredContactTypeOptions]
+  );
 
-    if (wasPrimary && oldType && oldType !== value) {
-      const remainingOfOldType = updated.filter((c) => c.contactType === oldType);
-      if (remainingOfOldType.length > 0) {
-        remainingOfOldType[0].isPrimary = true;
+  const handlePrimaryToggle = useCallback((personId: string) => {
+    setSelectedContacts((prev) => {
+      const target = prev.find((c) => c.personId === personId);
+      if (!target || !target.contactType) return prev;
+
+      const type = target.contactType;
+      const existingPrimary = prev.find(
+        (c) => c.contactType === type && c.isPrimary && c.personId !== personId
+      );
+
+      if (type === "Project Officer") {
+        const projectOfficers = prev.filter((c) => c.contactType === "Project Officer");
+        if (target.isPrimary && projectOfficers.length === 1) {
+          return prev;
+        }
+
+        if (!target.isPrimary && existingPrimary) {
+          setShowPrimaryWarning(true);
+          setTimeout(() => setShowPrimaryWarning(false), 3000);
+        }
+
+        return prev.map((c) => {
+          if (c.contactType === "Project Officer") {
+            return { ...c, isPrimary: c.personId === personId };
+          }
+          return c;
+        });
+      } else {
+        if (!target.isPrimary && existingPrimary) {
+          setShowPrimaryWarning(true);
+          setTimeout(() => setShowPrimaryWarning(false), 3000);
+        }
+
+        const willBePrimary = !target.isPrimary;
+        return prev.map((c) => {
+          if (c.personId === personId) {
+            return { ...c, isPrimary: willBePrimary };
+          }
+          if (c.contactType === type) {
+            return { ...c, isPrimary: false };
+          }
+          return c;
+        });
       }
-    }
-
-    setSelectedContacts(updated);
-  };
-
-  const handlePrimaryToggle = (personId: string) => {
-    const updated = [...selectedContacts];
-    const contactIndex = updated.findIndex((c) => c.personId === personId);
-    if (contactIndex === -1) return;
-
-    const contact = updated[contactIndex];
-    const type = contact.contactType;
-    if (!type) return;
-
-    if (type === "Project Officer" && contact.isPrimary) {
-      const projectOfficers = updated.filter((c) => c.contactType === "Project Officer");
-      if (projectOfficers.length === 1) {
-        return;
-      }
-    }
-
-    updated.forEach((c) => {
-      if (c.contactType === type && c.personId !== contact.personId) c.isPrimary = false;
     });
-    contact.isPrimary = !contact.isPrimary;
-    setSelectedContacts(updated);
-  };
+  }, []);
 
-  const handleRemoveContact = (personId: string) => {
-    const contactToRemove = selectedContacts.find((c) => c.personId === personId);
-    if (!contactToRemove) return;
+  const handleRemoveContact = useCallback(
+    (personId: string) => {
+      const contactToRemove = selectedContacts.find((c) => c.personId === personId);
+      if (!contactToRemove) return;
 
-    setContactToDelete(personId);
-    setShowDeleteConfirm(true);
-  };
+      setContactToDelete(personId);
+      setShowDeleteConfirm(true);
+    },
+    [selectedContacts]
+  );
 
   const confirmDeleteContact = async () => {
     if (!contactToDelete) return;
 
     const contactToRemove = selectedContacts.find((c) => c.personId === contactToDelete);
-    if (!contactToRemove || !contactToRemove.contactType) return;
+    if (!contactToRemove) return;
 
     const updated = selectedContacts.filter((c) => c.personId !== contactToDelete);
 
+    let finalUpdated = updated;
     if (contactToRemove.isPrimary && contactToRemove.contactType) {
       const remainingOfSameType = updated.filter(
         (c) => c.contactType === contactToRemove.contactType
       );
       if (remainingOfSameType.length > 0) {
-        remainingOfSameType[0].isPrimary = true;
+        finalUpdated = updated.map((c) => {
+          if (c.personId === remainingOfSameType[0].personId) {
+            return { ...c, isPrimary: true };
+          }
+          return c;
+        });
       }
     }
 
-    setSelectedContacts(updated);
+    setSelectedContacts(finalUpdated);
     setShowDeleteConfirm(false);
     setContactToDelete(null);
 
-    try {
-      await unsetDemonstrationRoles({
-        variables: {
-          input: [
-            {
-              demonstrationId,
-              personId: contactToRemove.personId,
-              roleId: contactToRemove.contactType,
-            },
-          ],
-        },
-      });
-      setSavedContacts(updated);
-    } catch (e) {
-      console.error(e);
-      setSelectedContacts(selectedContacts);
-      showError("Failed to remove contact. Please try again.");
+    if (!contactToRemove.contactType) {
+      const updatedSavedContacts = savedContacts.filter(
+        (c) => c.personId !== contactToRemove.personId
+      );
+      setSavedContacts(updatedSavedContacts);
+      return;
+    }
+
+    const contactExistsInDatabase = savedContacts.some(
+      (c) =>
+        c.personId === contactToRemove.personId && c.contactType === contactToRemove.contactType
+    );
+
+    if (contactExistsInDatabase) {
+      try {
+        await unsetDemonstrationRoles({
+          variables: {
+            input: [
+              {
+                demonstrationId,
+                personId: contactToRemove.personId,
+                roleId: contactToRemove.contactType,
+              },
+            ],
+          },
+        });
+        setSavedContacts(finalUpdated.map((c) => ({ ...c })));
+      } catch (e) {
+        console.error(e);
+        setSelectedContacts(selectedContacts);
+        showError("Failed to remove contact. Please try again.");
+      }
+    } else {
+      const updatedSavedContacts = savedContacts.filter(
+        (c) => c.personId !== contactToRemove.personId
+      );
+      setSavedContacts(updatedSavedContacts);
     }
   };
 
   const allValid = useMemo(() => {
-    if (selectedContacts.length === 0) return false;
+    if (selectedContacts.length === 0) {
+      return false;
+    }
 
-    if (!selectedContacts.every((c) => !!c.contactType)) return false;
+    if (!selectedContacts.every((c) => !!c.contactType)) {
+      return false;
+    }
 
     const projectOfficers = selectedContacts.filter((c) => c.contactType === "Project Officer");
-    if (projectOfficers.length !== 1 || !projectOfficers[0].isPrimary) return false;
+    if (projectOfficers.length !== 1) {
+      return false;
+    }
+
+    if (!projectOfficers[0].isPrimary) {
+      return false;
+    }
 
     const presentTypes = Array.from(
       new Set(selectedContacts.map((c) => c.contactType).filter(Boolean) as string[])
     ).filter((type) => type !== "Project Officer");
 
-    return presentTypes.every((type) => {
+    const isValidPrimaries = presentTypes.every((type) => {
       const contactsOfType = selectedContacts.filter((c) => c.contactType === type);
       const primariesOfType = contactsOfType.filter((c) => c.isPrimary);
-      return primariesOfType.length <= 1;
+      if (primariesOfType.length > 1) {
+        return false;
+      }
+      return true;
     });
+
+    return isValidPrimaries;
   }, [selectedContacts]);
 
   const hasChanges = useMemo(() => {
@@ -363,18 +426,49 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      const rolesToRemove: Array<{ demonstrationId: string; personId: string; roleId: string }> =
+        [];
+      const currentRoles = selectedContacts.filter((c) => c.contactType);
+
+      savedContacts.forEach((savedContact) => {
+        if (!savedContact.contactType) return;
+
+        const currentContact = currentRoles.find((c) => c.personId === savedContact.personId);
+
+        if (!currentContact) {
+          rolesToRemove.push({
+            demonstrationId,
+            personId: savedContact.personId,
+            roleId: savedContact.contactType,
+          });
+        } else if (currentContact.contactType !== savedContact.contactType) {
+          rolesToRemove.push({
+            demonstrationId,
+            personId: savedContact.personId,
+            roleId: savedContact.contactType,
+          });
+        }
+      });
+
       await setDemonstrationRoles({
         variables: {
-          input: selectedContacts.map((c) => ({
+          input: currentRoles.map((c) => ({
             demonstrationId,
             personId: c.personId,
-            roleId: c.contactType,
+            roleId: c.contactType!,
             isPrimary: !!c.isPrimary,
           })),
         },
       });
-      setSavedContacts([...selectedContacts]);
-      showSuccess("Contacts updated successfully.");
+
+      if (rolesToRemove.length > 0) {
+        await unsetDemonstrationRoles({
+          variables: { input: rolesToRemove },
+        });
+      }
+
+      setSavedContacts(selectedContacts.map((c) => ({ ...c })));
+      showSuccess("Contacts have been updated.");
       onClose();
     } catch (e) {
       console.error(e);
@@ -411,19 +505,31 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   );
 
   const actions = (
-    <>
-      <SecondaryButton name="button-cancel" size="small" onClick={handleClose}>
-        Cancel
-      </SecondaryButton>
-      <Button
-        name="button-save"
-        size="small"
-        onClick={handleSubmit}
-        disabled={!allValid || !hasChanges || isSubmitting}
-      >
-        {isSubmitting ? "Saving..." : "Save"}
-      </Button>
-    </>
+    <div className="flex items-center justify-between w-full">
+      <div className="flex-1">
+        {showPrimaryWarning && (
+          <div className="flex items-center gap-xs text-warning-dark">
+            <WarningIcon className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              You have just reassigned a primary contact type.
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="flex gap-sm">
+        <SecondaryButton name="button-cancel" size="small" onClick={handleClose}>
+          Cancel
+        </SecondaryButton>
+        <Button
+          name="button-save"
+          size="small"
+          onClick={handleSubmit}
+          disabled={!allValid || !hasChanges || isSubmitting}
+        >
+          {isSubmitting ? "Saving..." : "Save"}
+        </Button>
+      </div>
+    </div>
   );
 
   return (
@@ -451,11 +557,18 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
                 placeholder="Search by name or email"
                 value={searchTerm}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                aria-label="Search for contacts by name or email"
+                autoComplete="off"
               />
             </div>
             {searchResults.filter((p) => !selectedContacts.some((c) => c.personId === p.id))
               .length > 0 && (
-              <div className="absolute left-0 right-0 z-20 mt-sm border border-gray rounded-minimal p-sm bg-surface-white shadow-lg max-h-[200px] overflow-y-auto">
+              <div
+                className="absolute left-0 right-0 z-20 mt-sm border border-gray rounded-minimal p-sm bg-surface-white shadow-lg max-h-[200px] overflow-y-auto"
+                role="listbox"
+                aria-label="Search results"
+                data-testid="search-results-dropdown"
+              >
                 {searchResults
                   .filter((p) => !selectedContacts.some((c) => c.personId === p.id))
                   .map((p) => (
@@ -463,7 +576,9 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
                       key={p.id}
                       type="button"
                       onClick={() => handleAddContact(p)}
-                      className="w-full text-left px-sm py-xs hover:bg-action-hover rounded-minimal"
+                      className="w-full text-left px-sm py-xs hover:bg-action-hover rounded-minimal focus:bg-action-hover focus:outline-none"
+                      role="option"
+                      aria-label={`Add ${p.firstName} ${p.lastName} (${p.email}) as contact`}
                     >
                       <div className="flex justify-between">
                         <span>{`${p.firstName} ${p.lastName}`}</span>
@@ -477,13 +592,16 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
           <div className="text-field-label font-bold">Assigned Contacts</div>
 
-          <div className="border border-gray rounded-minimal overflow-hidden">
+          <div
+            className="border border-gray rounded-minimal overflow-hidden max-h-[400px] overflow-y-auto"
+            data-testid="contacts-table-container"
+          >
             <Table
               data={selectedContacts}
               columns={contactColumns}
               initialState={{
                 pagination: {
-                  pageSize: 10,
+                  pageSize: 50,
                 },
                 sorting: [
                   {
@@ -501,7 +619,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
       {showDeleteConfirm && contactToDelete && (
         <ConfirmationToast
-          message={`Are you sure you want to remove ${selectedContacts.find((c) => c.personId === contactToDelete)?.name} from contacts?`}
+          message="Are you sure you want to remove this contact? This action cannot be undone!"
           onConfirm={confirmDeleteContact}
           onCancel={() => {
             setShowDeleteConfirm(false);

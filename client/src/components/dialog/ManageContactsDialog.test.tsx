@@ -706,7 +706,9 @@ describe("ManageContactsDialog", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText("Are you sure you want to remove John Doe from contacts?")
+          screen.getByText(
+            "Are you sure you want to remove this contact? This action cannot be undone!"
+          )
         ).toBeInTheDocument();
       });
     });
