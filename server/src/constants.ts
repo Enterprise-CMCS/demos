@@ -154,11 +154,8 @@ export const STATES_AND_TERRITORIES = [
   { id: "WY", name: "Wyoming" },
   { id: "AS", name: "American Samoa" },
   { id: "DC", name: "District of Columbia" },
-  { id: "FM", name: "Federated States of Micronesia" },
   { id: "GU", name: "Guam" },
-  { id: "MH", name: "Marshall Islands" },
   { id: "MP", name: "Northern Mariana Islands" },
-  { id: "PW", name: "Palau" },
   { id: "PR", name: "Puerto Rico" },
   { id: "VI", name: "Virgin Islands" },
 ] as const;
