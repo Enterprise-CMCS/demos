@@ -10,14 +10,35 @@ import { useToast } from "components/toast";
 import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
-import {
-  DELETE_DOCUMENTS_QUERY,
-  UPDATE_DOCUMENT_QUERY,
-  UPLOAD_DOCUMENT_QUERY,
-} from "queries/documentQueries";
 import { tw } from "tags/tw";
 
-import { useMutation } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+
+export const DELETE_DOCUMENTS_QUERY = gql`
+  mutation DeleteDocuments($ids: [ID!]!) {
+    deleteDocuments(ids: $ids)
+  }
+`;
+
+export const UPLOAD_DOCUMENT_QUERY = gql`
+  mutation UploadDocument($input: UploadDocumentInput!) {
+    uploadDocument(input: $input) {
+      presignedURL
+    }
+  }
+`;
+
+export const UPDATE_DOCUMENT_QUERY = gql`
+  mutation UpdateDocument($input: UpdateDocumentInput!) {
+    updateDocument(input: $input) {
+      id
+      title
+      description
+      documentType
+    }
+  }
+`;
 
 type DocumentDialogType = "add" | "edit";
 
@@ -524,7 +545,10 @@ export const EditDocumentDialog: React.FC<{
       documentType: dialogFields.documentType,
     };
 
-    await updateDocumentTrigger({ variables: { input: updateDocumentInput } });
+    await updateDocumentTrigger({
+      variables: { input: updateDocumentInput },
+      refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
+    });
   };
 
   return (
@@ -554,7 +578,10 @@ export const RemoveDocumentDialog: React.FC<{
   const onConfirm = async (documentIdList: string[]) => {
     try {
       setIsDeleting(true);
-      await deleteDocumentsTrigger({ variables: { ids: documentIdList } });
+      await deleteDocumentsTrigger({
+        variables: { ids: documentIdList },
+        refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
+      });
 
       const isMultipleDocuments = documentIdList.length > 1;
       showWarning(

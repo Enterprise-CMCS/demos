@@ -4,6 +4,7 @@ import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationD
 import { useMutation } from "@apollo/client";
 import { CreateDemonstrationInput } from "demos-server";
 import { gql } from "@apollo/client";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
 const DEFAULT_DEMONSTRATION_DIALOG_FIELDS: DemonstrationDialogFields = {
   name: "",
@@ -50,6 +51,7 @@ export const CreateDemonstrationDialog: React.FC<{
         variables: {
           input: getCreateDemonstrationInput(demonstration),
         },
+        refetchQueries: [DEMONSTRATIONS_PAGE_QUERY],
       });
 
       const success = result.data?.createDemonstration?.success || false;
@@ -58,9 +60,7 @@ export const CreateDemonstrationDialog: React.FC<{
         showSuccess(SUCCESS_MESSAGE);
       } else {
         console.error(result.data?.createDemonstration?.message);
-        showError(
-          "Your demonstration was not created because of an unknown problem."
-        );
+        showError("Your demonstration was not created because of an unknown problem.");
       }
     } catch {
       showError(ERROR_MESSAGE);

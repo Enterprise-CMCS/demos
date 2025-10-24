@@ -14,6 +14,7 @@ import {
   RemoveDocumentDialog,
   tryUploadingFileToS3,
 } from "./DocumentDialog";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 const mockQuery = vi.fn();
 
@@ -64,7 +65,11 @@ describe("AddDocumentDialog", () => {
   it("shows cancel confirmation dialog when cancel is clicked", () => {
     setup();
     fireEvent.click(screen.getByText("Cancel"));
-    expect(screen.getByText("Are you sure you want to cancel? Changes you have made so far will not be saved.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Are you sure you want to cancel? Changes you have made so far will not be saved."
+      )
+    ).toBeInTheDocument();
   });
 
   it("has disabled button in edit when file is missing", () => {
@@ -207,7 +212,10 @@ describe("RemoveDocumentDialog", () => {
     setup(["test-document-id"]);
     fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
     await waitFor(() => {
-      expect(mockQuery).toHaveBeenCalledWith({ variables: { ids: ["test-document-id"] } });
+      expect(mockQuery).toHaveBeenCalledWith({
+        variables: { ids: ["test-document-id"] },
+        refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
+      });
     });
   });
 });
