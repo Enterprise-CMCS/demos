@@ -18,6 +18,7 @@ import {
 import { tw } from "tags/tw";
 
 import { useMutation } from "@apollo/client";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -519,7 +520,10 @@ export const EditDocumentDialog: React.FC<{
       documentType: dialogFields.documentType,
     };
 
-    await updateDocumentTrigger({ variables: { input: updateDocumentInput } });
+    await updateDocumentTrigger({
+      variables: { input: updateDocumentInput },
+      refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
+    });
   };
 
   return (
@@ -549,7 +553,10 @@ export const RemoveDocumentDialog: React.FC<{
   const onConfirm = async (documentIdList: string[]) => {
     try {
       setIsDeleting(true);
-      await deleteDocumentsTrigger({ variables: { ids: documentIdList } });
+      await deleteDocumentsTrigger({
+        variables: { ids: documentIdList },
+        refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
+      });
 
       const isMultipleDocuments = documentIdList.length > 1;
       showWarning(
