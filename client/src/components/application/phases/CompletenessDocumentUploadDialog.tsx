@@ -6,7 +6,11 @@ import { DocumentType } from "demos-server";
 // Minimal wrapper to seed the Completeness upload flow with sensible defaults
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["Application Completeness Letter", "General File"];
 
-const REFETCH_QUERIES = ["GetCompletenessDocuments", "GetDemonstrationDocuments"];
+const REFETCH_QUERIES = [
+  "GetCompletenessDocuments",
+  "GetDemonstrationDocuments",
+  "DemonstrationDetailQuery",
+];
 
 // This needs to be a toast. But more permanent. - not sure if this is the same.
 type Props = {

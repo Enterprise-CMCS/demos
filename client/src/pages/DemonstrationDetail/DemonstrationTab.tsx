@@ -23,6 +23,7 @@ import {
 } from "demos-server";
 import { VerticalTabs, Tab } from "layout/Tabs";
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
+import { DemonstrationPhase } from "./DemonstrationDetail";
 
 type ModalType = "document" | "contact" | null;
 
@@ -36,6 +37,7 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status">
     person: Pick<Person, "id" | "fullName" | "email">;
   })[];
   currentPhaseName: PhaseName;
+  phases: DemonstrationPhase[];
 };
 
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({

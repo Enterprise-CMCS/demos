@@ -6,6 +6,8 @@ import {
   DemonstrationRoleAssignment,
   Document,
   Extension,
+  ApplicationPhase,
+  ApplicationDate,
   Person,
 } from "demos-server";
 import { usePageHeader } from "hooks/usePageHeader";
@@ -60,9 +62,21 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           email
         }
       }
+      phases {
+        phaseName
+        phaseStatus
+        phaseDates {
+          dateType
+          dateValue
+        }
+      }
     }
   }
 `;
+
+export type DemonstrationPhase = Pick<ApplicationPhase, "phaseName" | "phaseStatus"> & {
+  phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
+};
 
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
   amendments: Pick<Amendment, "id" | "name" | "effectiveDate" | "status">[];
@@ -73,6 +87,7 @@ export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "current
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "id" | "fullName" | "email">;
   })[];
+  phases: DemonstrationPhase[];
 };
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;

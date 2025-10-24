@@ -2,11 +2,14 @@ import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
 import { DemonstrationStatusBadge } from "../badge/DemonstrationStatusBadge";
 import type { Demonstration } from "demos-server";
+import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
-  "id" | "status" | "currentPhaseName"
->;
+  "id" | "status" | "currentPhaseName" | "phases"
+> & {
+  documents: DocumentTableDocument[];
+};
 
 export const ApplicationWorkflow = ({
   demonstration,

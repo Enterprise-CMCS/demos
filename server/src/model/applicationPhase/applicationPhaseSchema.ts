@@ -9,6 +9,16 @@ export const applicationPhaseSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
   }
+
+  input SetPhaseStateInput {
+    applicationId: ID!
+    phaseName: PhaseName!
+    phaseStatus: PhaseStatus!
+  }
+
+  type Mutation {
+    setPhaseState(input: SetPhaseStateInput!): ApplicationPhase!
+  }
 `;
 
 export interface ApplicationPhase {
@@ -17,4 +27,10 @@ export interface ApplicationPhase {
   phaseDates: ApplicationDate[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface SetPhaseStateInput {
+  applicationId: string;
+  phaseName: PhaseName;
+  phaseStatus: PhaseStatus;
 }

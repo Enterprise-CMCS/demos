@@ -1,34 +1,54 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
-import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type {
+  PhaseName as ServerPhase,
+  PhaseStatus as ServerPhaseStatus,
+  ApplicationPhase,
+} from "demos-server";
+import { PHASE_NAME } from "demos-server-constants";
 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   ApprovalPackagePhase,
+  ApplicationIntakePhase,
   CompletenessPhase,
   ConceptPhase,
   FederalCommentPhase,
   OgcOmbPhase,
   PostApprovalPhase,
   SdgPreparationPhase,
-  ApplicationIntakePhase,
 } from "../phases";
-import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
+import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 
-// TODO: get past-due added to the shared enum
 export type PhaseStatus = ServerPhaseStatus | "past-due";
 export type PhaseName = Exclude<ServerPhase, "None">;
-const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName => phase !== "None");
 
-const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
-  Concept: new Date(2024, 4, 20),
-  "Application Intake": new Date(2024, 4, 22),
-  Completeness: new Date(2024, 11, 31),
-  "Federal Comment": new Date(2025, 8, 24),
+const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter(
+  (phase): phase is PhaseName => phase !== "None"
+);
+
+const DISPLAY_DATE_PRIORITY: Partial<Record<PhaseName, string[]>> = {
+  Concept: ["Concept Completion Date", "Concept Start Date"],
+  "Application Intake": [
+    "Application Intake Completion Date",
+    "Application Intake Start Date",
+    "State Application Submitted Date",
+  ],
+  Completeness: [
+    "Completeness Completion Date",
+    "Completeness Start Date",
+    "Completeness Review Due Date",
+  ],
+  "Federal Comment": [
+    "Federal Comment Period End Date",
+    "Federal Comment Period Start Date",
+  ],
+  "SDG Preparation": ["SDG Preparation Completion Date", "SDG Preparation Start Date"],
+  "OGC & OMB Review": ["OGC & OMB Review Completion Date", "OGC & OMB Review Start Date"],
+  "Approval Package": ["PO & OGD Sign-Off"],
+  "Post Approval": [],
 };
-
-const FEDERAL_COMMENT_START_DATE = MOCK_PHASE_DATE_LOOKUP["Federal Comment"] as Date;
 
 const PhaseGroups = () => {
   const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
@@ -42,27 +62,16 @@ const PhaseGroups = () => {
   );
 };
 
-const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
-  Concept: "Skipped",
-  "Application Intake": "Completed",
-  Completeness: "Started",
-  "Federal Comment": "past-due",
-  "SDG Preparation": "Not Started",
-  "OGC & OMB Review": "Not Started",
-  "Approval Package": "Not Started",
-  "Post Approval": "Not Started",
+const findPhaseDateValue = (phase: ApplicationPhase | undefined, dateType: string): Date | null => {
+  const match = phase?.phaseDates.find((date) => date.dateType === dateType);
+  return match ? match.dateValue : null;
 };
 
-export type PhaseStatusLookup = Record<PhaseName, PhaseStatus>;
-interface PhaseSelectorProps {
+type PhaseSelectorProps = {
   demonstration: ApplicationWorkflowDemonstration;
-  phaseStatusLookup?: PhaseStatusLookup;
-}
+};
 
-export const PhaseSelector = ({
-  demonstration,
-  phaseStatusLookup = MOCK_PHASE_STATUS_LOOKUP,
-}: PhaseSelectorProps) => {
+export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
   const fallbackPhase: PhaseName = "Concept";
   const initialPhase: PhaseName =
     demonstration.currentPhaseName && demonstration.currentPhaseName !== "None"
@@ -70,14 +79,83 @@ export const PhaseSelector = ({
       : fallbackPhase;
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
+  useEffect(() => {
+    if (
+      demonstration.currentPhaseName &&
+      demonstration.currentPhaseName !== "None" &&
+      demonstration.currentPhaseName !== selectedPhase
+    ) {
+      setSelectedPhase(demonstration.currentPhaseName as PhaseName);
+    }
+  }, [demonstration.currentPhaseName, selectedPhase]);
+
+  const phases = demonstration.phases ?? [];
+  const documents = (demonstration.documents as DocumentTableDocument[]) ?? [];
+
+  const phaseLookup = useMemo(() => {
+    const map = new Map<PhaseName, ApplicationPhase>();
+    phases.forEach((phase) => {
+      if (phase.phaseName !== "None") {
+        map.set(phase.phaseName as PhaseName, phase);
+      }
+    });
+    return map;
+  }, [phases]);
+
+  const statusLookup = useMemo(() => {
+    const map = new Map<PhaseName, PhaseStatus>();
+    phases.forEach((phase) => {
+      if (phase.phaseName !== "None") {
+        map.set(phase.phaseName as PhaseName, phase.phaseStatus as PhaseStatus);
+      }
+    });
+    return map;
+  }, [phases]);
+
+  const getPhaseStatus = (phaseName: PhaseName): PhaseStatus => {
+    return statusLookup.get(phaseName) ?? "Not Started";
+  };
+
+  const getPhaseDisplayDate = (phaseName: PhaseName): Date | undefined => {
+    const phase = phaseLookup.get(phaseName);
+    if (!phase) {
+      return undefined;
+    }
+
+    const priorityList = DISPLAY_DATE_PRIORITY[phaseName];
+    if (!priorityList) {
+      return undefined;
+    }
+
+    for (const dateType of priorityList) {
+      const dateValue = findPhaseDateValue(phase, dateType);
+      if (dateValue) {
+        return dateValue;
+      }
+    }
+
+    return undefined;
+  };
+
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: ConceptPhase,
     "Application Intake": () => <ApplicationIntakePhase demonstrationId={demonstration.id} />,
-    Completeness: CompletenessPhase,
+    Completeness: () => (
+      <CompletenessPhase
+        demonstrationId={demonstration.id}
+        completenessPhase={phaseLookup.get("Completeness")}
+        applicationIntakePhaseStatus={phaseLookup.get("Application Intake")?.phaseStatus ?? null}
+        documents={documents}
+        onPhaseFinished={() => setSelectedPhase("Federal Comment")}
+      />
+    ),
     "Federal Comment": () => {
-      const phaseStartDate = FEDERAL_COMMENT_START_DATE;
-      const phaseEndDate = new Date(phaseStartDate);
-      phaseEndDate.setDate(phaseEndDate.getDate() + 30);
+      const federalPhase = phaseLookup.get("Federal Comment");
+      const phaseStartDate =
+        findPhaseDateValue(federalPhase, "Federal Comment Period Start Date") ?? new Date();
+      const phaseEndDate =
+        findPhaseDateValue(federalPhase, "Federal Comment Period End Date") ??
+        addThirtyDays(phaseStartDate);
 
       return (
         <FederalCommentPhase
@@ -108,8 +186,8 @@ export const PhaseSelector = ({
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
-          const displayDate = MOCK_PHASE_DATE_LOOKUP[phaseName];
-          const displayStatus = phaseStatusLookup[phaseName];
+          const displayDate = getPhaseDisplayDate(phaseName);
+          const displayStatus = getPhaseStatus(phaseName);
           return (
             <PhaseBox
               key={phaseName}
@@ -127,3 +205,9 @@ export const PhaseSelector = ({
     </>
   );
 };
+
+function addThirtyDays(startDate: Date): Date {
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 30);
+  return endDate;
+}

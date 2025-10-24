@@ -14,11 +14,12 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
   }
 `;
 
+// title needs to be name. (TO BE DONE WITH EDITDOCUMENT UPDATES)
 export const UPDATE_DOCUMENT_QUERY = gql`
   mutation UpdateDocument($input: UpdateDocumentInput!) {
     updateDocument(input: $input) {
       id
-      title
+      name
       description
       documentType
     }

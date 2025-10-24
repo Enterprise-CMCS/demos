@@ -47,7 +47,10 @@ export type {
   UpdateDocumentInput,
 } from "./model/document/documentSchema.js";
 
-export type { ApplicationPhase } from "./model/applicationPhase/applicationPhaseSchema.js";
+export type {
+  ApplicationPhase,
+  SetPhaseStateInput,
+} from "./model/applicationPhase/applicationPhaseSchema.js";
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,

@@ -4,7 +4,8 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
 import { GET_DEMONSTRATION_BY_ID_QUERY as HOOK_GET_DEMONSTRATION_BY_ID_QUERY } from "hooks/useDemonstration";
-import type { ApplicationStatus } from "demos-server";
+import type { ApplicationStatus, PhaseName, PhaseStatus } from "demos-server";
+import type { ApplicationDate } from "demos-server";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
@@ -23,6 +24,14 @@ import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
 
+type MockPhaseDate = Pick<ApplicationDate, "dateType" | "dateValue">;
+
+type MockPhase = {
+  phaseName: PhaseName;
+  phaseStatus: PhaseStatus;
+  phaseDates: MockPhaseDate[];
+};
+
 export type MockDemonstration = Pick<
   Demonstration,
   "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName"
@@ -37,6 +46,7 @@ export type MockDemonstration = Pick<
   documents: MockDocument[];
   roles: MockDemonstrationRoleAssignment[];
   primaryProjectOfficer: MockPerson;
+  phases: MockPhase[];
 };
 
 export const mockDemonstrations = [
@@ -63,8 +73,96 @@ export const mockDemonstrations = [
       mockDemonstrationRoleAssignments[3],
       mockDemonstrationRoleAssignments[4],
     ],
-    currentPhaseName: "Concept",
+    currentPhaseName: "Completeness",
     primaryProjectOfficer: mockPeople[0],
+    phases: [
+      {
+        phaseName: "Concept",
+        phaseStatus: "Completed",
+        phaseDates: [
+          { dateType: "Concept Start Date", dateValue: new Date("2025-01-01T00:00:00.000Z") },
+          { dateType: "Concept Completion Date", dateValue: new Date("2025-01-16T00:00:00.000Z") },
+        ],
+      },
+      {
+        phaseName: "Application Intake",
+        phaseStatus: "Completed",
+        phaseDates: [
+          {
+            dateType: "Application Intake Start Date",
+            dateValue: new Date("2025-01-16T00:00:00.000Z"),
+          },
+          {
+            dateType: "State Application Submitted Date",
+            dateValue: new Date("2025-01-23T00:00:00.000Z"),
+          },
+          {
+            dateType: "Completeness Review Due Date",
+            dateValue: new Date("2025-02-08T04:59:59.999Z"),
+          },
+          {
+            dateType: "Application Intake Completion Date",
+            dateValue: new Date("2025-01-24T00:00:00.000Z"),
+          },
+        ],
+      },
+      {
+        phaseName: "Completeness",
+        phaseStatus: "Started",
+        phaseDates: [
+          {
+            dateType: "Completeness Start Date",
+            dateValue: new Date("2025-01-24T00:00:00.000Z"),
+          },
+          {
+            dateType: "State Application Deemed Complete",
+            dateValue: new Date("2025-02-03T00:00:00.000Z"),
+          },
+          {
+            dateType: "Federal Comment Period Start Date",
+            dateValue: new Date("2025-02-04T00:00:00.000Z"),
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: new Date("2025-03-06T04:59:59.999Z"),
+          },
+        ],
+      },
+      {
+        phaseName: "Federal Comment",
+        phaseStatus: "Not Started",
+        phaseDates: [
+          {
+            dateType: "Federal Comment Period Start Date",
+            dateValue: new Date("2025-02-04T00:00:00.000Z"),
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: new Date("2025-03-06T04:59:59.999Z"),
+          },
+        ],
+      },
+      {
+        phaseName: "SDG Preparation",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "OGC & OMB Review",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Approval Package",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Post Approval",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+    ],
   },
   {
     id: "2",
@@ -85,6 +183,48 @@ export const mockDemonstrations = [
     roles: [mockDemonstrationRoleAssignments[1]],
     currentPhaseName: "Concept",
     primaryProjectOfficer: mockPeople[1],
+    phases: [
+      {
+        phaseName: "Concept",
+        phaseStatus: "Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Application Intake",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Completeness",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Federal Comment",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "SDG Preparation",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "OGC & OMB Review",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Approval Package",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Post Approval",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+    ],
   },
   {
     id: "3",
@@ -103,6 +243,48 @@ export const mockDemonstrations = [
     roles: [mockDemonstrationRoleAssignments[2]],
     currentPhaseName: "Concept",
     primaryProjectOfficer: mockPeople[2],
+    phases: [
+      {
+        phaseName: "Concept",
+        phaseStatus: "Completed",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Application Intake",
+        phaseStatus: "Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Completeness",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Federal Comment",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "SDG Preparation",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "OGC & OMB Review",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Approval Package",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+      {
+        phaseName: "Post Approval",
+        phaseStatus: "Not Started",
+        phaseDates: [],
+      },
+    ],
   },
 ] as const satisfies MockDemonstration[];
 

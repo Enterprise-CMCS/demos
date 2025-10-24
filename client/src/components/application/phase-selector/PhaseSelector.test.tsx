@@ -11,44 +11,86 @@ describe("PhaseSelector", () => {
   it("renders all phase names", () => {
     const demonstration = {
       id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
-      name: "decretum sortitus strues",
-      description: "Defendo via delibero vitae umquam sufficio bestia.",
-      effectiveDate: "2026-07-18T00:00:00.000Z",
-      expirationDate: "2026-03-27T00:00:00.000Z",
-      state: {
-        id: "OR",
-        name: "Oregon",
-      },
       status: "Under Review" as const,
-      projectOfficer: {
-        fullName: "Virginia McClure",
-      },
-      amendments: [],
-      extensions: [],
+      phases: [
+        {
+          phaseName: "Concept" as const,
+          phaseStatus: "Completed" as const,
+          phaseDates: [
+            { dateType: "Concept Start Date", dateValue: new Date("2025-01-01T00:00:00.000Z") },
+            {
+              dateType: "Concept Completion Date",
+              dateValue: new Date("2025-01-16T00:00:00.000Z"),
+            },
+          ],
+        },
+        {
+          phaseName: "Application Intake" as const,
+          phaseStatus: "Completed" as const,
+          phaseDates: [
+            {
+              dateType: "Application Intake Start Date",
+              dateValue: new Date("2025-01-16T00:00:00.000Z"),
+            },
+            {
+              dateType: "Application Intake Completion Date",
+              dateValue: new Date("2025-01-24T00:00:00.000Z"),
+            },
+          ],
+        },
+        {
+          phaseName: "Completeness" as const,
+          phaseStatus: "Started" as const,
+          phaseDates: [
+            {
+              dateType: "Completeness Start Date",
+              dateValue: new Date("2025-01-24T00:00:00.000Z"),
+            },
+            {
+              dateType: "State Application Deemed Complete",
+              dateValue: new Date("2025-02-03T00:00:00.000Z"),
+            },
+            {
+              dateType: "Federal Comment Period Start Date",
+              dateValue: new Date("2025-02-04T00:00:00.000Z"),
+            },
+            {
+              dateType: "Federal Comment Period End Date",
+              dateValue: new Date("2025-03-05T23:59:59.999Z"),
+            },
+          ],
+        },
+        {
+          phaseName: "Federal Comment" as const,
+          phaseStatus: "Not Started" as const,
+          phaseDates: [
+            {
+              dateType: "Federal Comment Period Start Date",
+              dateValue: new Date("2025-02-04T00:00:00.000Z"),
+            },
+            {
+              dateType: "Federal Comment Period End Date",
+              dateValue: new Date("2025-03-05T23:59:59.999Z"),
+            },
+          ],
+        },
+      ],
       documents: [
         {
           id: "db013f55-734c-4863-92d0-322bbbd72d55",
-          title: "Curatio valeo.",
+          name: "Curatio valeo.",
           description: "Application for Curatio valeo.",
-          documentType: {
-            id: "State Application",
-          },
-          createdAt: "2025-09-19T18:05:41.071Z",
+          documentType: "Application Completeness Letter" as const,
+          createdAt: new Date("2025-09-19T18:05:41.071Z"),
           owner: {
-            fullName: "Marion Bergnaum",
+            person: {
+              fullName: "Marion Bergnaum",
+            },
           },
         },
       ],
-      contacts: [
-        {
-          id: "1",
-          fullName: "John Doe",
-          email: "john.doe@email.com",
-          contactType: "Project Officer",
-        },
-      ],
-      currentPhaseName: "Federal Comment" as const,
-    };
+      currentPhaseName: "Completeness" as const,
+    } satisfies Parameters<typeof PhaseSelector>[0]["demonstration"];
 
     render(
       <TestProvider>
