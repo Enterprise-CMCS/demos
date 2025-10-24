@@ -10,7 +10,7 @@ const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
 export async function unsetDemonstrationRoles(
   parent: undefined,
-  { input }: { input: UnsetDemonstrationRoleInput[] }
+  { input }: { input: UnsetDemonstrationRoleInput[] },
 ) {
   return await prisma().$transaction(async (tx) => {
     const deletedRoles: DemonstrationRoleAssignment[] = [];
@@ -45,7 +45,7 @@ export async function unsetDemonstrationRoles(
 
 export async function setDemonstrationRole(
   parent: undefined,
-  { input }: { input: SetDemonstrationRoleInput }
+  { input }: { input: SetDemonstrationRoleInput },
 ) {
   await prisma().$transaction(async (tx) => {
     const person = await tx.person.findUnique({
@@ -59,7 +59,9 @@ export async function setDemonstrationRole(
       where: { id: input.demonstrationId },
     });
     if (!demonstration) {
-      throw new Error(`Demonstration with id ${input.demonstrationId} not found`);
+      throw new Error(
+        `Demonstration with id ${input.demonstrationId} not found`,
+      );
     }
 
     await prisma().demonstrationRoleAssignment.upsert({
@@ -119,9 +121,24 @@ export async function setDemonstrationRole(
   });
 }
 
+export async function setDemonstrationRoles(
+  parent: undefined,
+  { input }: { input: SetDemonstrationRoleInput[] },
+) {
+  const results = [];
+
+  for (const roleInput of input) {
+    const result = await setDemonstrationRole(parent, { input: roleInput });
+    results.push(result);
+  }
+
+  return results;
+}
+
 export const demonstrationRoleAssigmentResolvers = {
   Mutation: {
     setDemonstrationRole,
+    setDemonstrationRoles,
     unsetDemonstrationRoles,
   },
 

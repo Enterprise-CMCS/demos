@@ -1,4 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, {
+  useEffect,
+  useRef,
+} from "react";
 
 import { ErrorButton } from "components/button";
 import { SecondaryButton } from "components/button/SecondaryButton";
@@ -90,11 +93,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
       >
         {!hideHeader && (
           <>
-            <button
-              onClick={() => (setShowCancelConfirm ? setShowCancelConfirm(true) : onClose())}
-              className={CLOSE_BUTTON}
-              aria-label="Close dialog"
-            >
+            <button onClick={onClose} className={CLOSE_BUTTON} aria-label="Close dialog">
               ×
             </button>
             <h2 className={TITLE}>{title}</h2>
