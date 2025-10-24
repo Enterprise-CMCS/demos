@@ -4,7 +4,7 @@ import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { DocumentType } from "demos-server";
 
 // Minimal wrapper to seed the Completeness upload flow with sensible defaults
-const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["Application Completeness Letter", "General File"];
+const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["Application Completeness Letter", "Internal Completeness Review Form", "General File"];
 
 const REFETCH_QUERIES = ["GetCompletenessDocuments", "GetDemonstrationDocuments"];
 
