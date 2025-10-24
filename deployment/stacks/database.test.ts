@@ -1,5 +1,5 @@
 import { App, aws_ec2, Stack } from "aws-cdk-lib";
-import { Template } from "aws-cdk-lib/assertions";
+import { Match, Template } from "aws-cdk-lib/assertions";
 import { DatabaseStack } from "./database";
 import { DeploymentConfigProperties } from "../config";
 
@@ -109,6 +109,19 @@ describe("Database Stack", () => {
     template.resourceCountIs("AWS::RDS::DBInstance", 1);
     template.hasResource("AWS::RDS::DBInstance", {
       DeletionPolicy: "Retain",
+    });
+    template.resourceCountIs("AWS::Logs::SubscriptionFilter", 2);
+    console.log(JSON.stringify(template.toJSON(), null, 2));
+    template.hasResourceProperties("AWS::Logs::SubscriptionFilter", {
+      LogGroupName: Match.objectLike({
+        "Fn::Join": Match.arrayWith(["", Match.arrayWith(["/upgrade"])]),
+      }),
+    });
+
+    template.hasResourceProperties("AWS::Logs::SubscriptionFilter", {
+      LogGroupName: Match.objectLike({
+        "Fn::Join": Match.arrayWith(["", Match.arrayWith(["/postgresql"])]),
+      }),
     });
   });
 });
