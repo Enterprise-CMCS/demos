@@ -256,8 +256,8 @@ const DropTarget: React.FC<{
 
 export type DocumentDialogFields = Pick<
   Document,
-  "id" | "name" | "description" | "documentType"
-> & { file: File | null };
+  "id" | "name" | "description"
+> & { file: File | null } & { documentType: DocumentType | undefined};
 
 const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
   file: null,
@@ -444,7 +444,7 @@ export const AddDocumentDialog: React.FC<{
     refetchQueries,
   });
 
-  const defaultDocumentType: DocumentType = documentTypeSubset?.[0] ?? "General File";
+  const defaultDocumentType: DocumentType | undefined = documentTypeSubset?.[0];
 
   const defaultDocument: DocumentDialogFields = {
     file: null,
@@ -457,6 +457,11 @@ export const AddDocumentDialog: React.FC<{
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
     if (!dialogFields.file) {
       showError("No file selected");
+      return;
+    }
+
+    if (!dialogFields.documentType) {
+      showError("No Document Type Selected");
       return;
     }
 
