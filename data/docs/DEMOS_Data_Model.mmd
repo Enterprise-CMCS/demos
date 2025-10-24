@@ -9,7 +9,6 @@ config:
 
 erDiagram
   classDef staticConstraint stroke:red,fill:pink
-  classDef unenforcedConstraint stroke:orange,fill:palegoldenrod
   classDef typeLimiter stroke:navy,fill:lightskyblue
   classDef dataTable stroke:green,fill:lightgreen
   classDef associativeTable stroke:darkmagenta,fill:plum
@@ -30,14 +29,18 @@ erDiagram
   demonstration }|--|| signature_level : "FK011"
   demonstration ||--|{ extension : "FK012"
   demonstration ||--|{ amendment : "FK059"
-  application_type ||--|{ demonstration_application_type_limit : "FK013"
+  application_type ||--|| demonstration_application_type_limit : "FK013"
   demonstration_application_type_limit ||--|{ demonstration : "FK014"
-  application_type ||--|{ extension_application_type_limit : "FK015"
+  application_type ||--|| extension_application_type_limit : "FK015"
   extension_application_type_limit ||--|{ extension : "FK016"
-  application_type ||--|{ amendment_application_type_limit : "FK060"
+  application_type ||--|| amendment_application_type_limit : "FK060"
   amendment_application_type_limit ||--|{ amendment : "FK061"
-  application_status ||--|{ application : "FK018"
-  phase ||--|{ application : "FK020"
+  amendment }|--|| application_status : "FK018"
+  phase ||--|{ amendment : "FK020"
+  extension }|--|| application_status : "FK062"
+  phase ||--|{ extension : "FK063"
+  demonstration }|--|| application_status : "FK064"
+  phase ||--|{ demonstration : "FK065"
   state ||--|{ demonstration : "FK021"
   person }|--|| person_type : "FK022"
   person ||--|| users : "FK023"
@@ -73,7 +76,8 @@ erDiagram
   demonstration_role_assignment }|--|| demonstration : "FK050"
   demonstration_role_assignment ||--|| primary_demonstration_role_assignment : "FK051"
   event }|--|| application : "FK057"
-  event }O..|| reportable_event_type : "FK052"
+  event }|--|| event_type : "FK052"
+  event }|--|| log_level : "FK066"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
 
@@ -83,6 +87,10 @@ erDiagram
   }
 
   application_type:::staticConstraint {
+    text id PK
+  }
+
+  event_type:::staticConstraint {
     text id PK
   }
 
@@ -100,6 +108,12 @@ erDiagram
 
   grant_level:::staticConstraint {
     text id PK
+  }
+
+  log_level:::staticConstraint {
+    text id PK
+    text severity
+    int level
   }
 
   person_type:::staticConstraint {
@@ -134,11 +148,6 @@ erDiagram
     text name
   }
 
-  %% Unenforced Constraints
-  reportable_event_type:::unenforcedConstraint {
-    text id PK
-  }
-
   %% Type Limiters
   amendment_application_type_limit:::typeLimiter {
     text id PK, FK "FK060: id ∈ application_type.id"
@@ -166,27 +175,25 @@ erDiagram
 
   %% Data Tables
   amendment:::dataTable {
-    uuid id PK, FK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED"
-    text application_type_id FK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>FK061: application_type_id ∈ amendment_application_type_limit.id"
+    uuid id PK, FK, UK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
+    text application_type_id FK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK061: application_type_id ∈ amendment_application_type_limit.id"
     uuid demonstration_id FK "FK059: demonstration_id ∈ demonstration.id"
+    text name
+    text description "NULLABLE"
+    timestamptz effective_date "NULLABLE"
+    timestamptz expiration_date "NULLABLE"
+    text status_id FK "FK018: status_id ∈ application_status.id"
+    text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
   }
 
   application:::dataTable {
     uuid id PK, UK "UK: (id, application_type_id)"
     text application_type_id FK, UK "FK007: application_type_id ∈ application_type.id<br>UK: (id, application_type_id)"
-    text name
-    text description "NULLABLE"
-    date effective_date "NULLABLE"
-    date expiration_date "NULLABLE"
-    text application_status_id FK "FK018: application_status_id ∈ application_status.id"
-    text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
-    timestamptz created_at
-    timestamptz updated_at
-    CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_TRIGGER_DEFERRABLE check_application_type_record_exists_trigger "On insert or update, verify that a corresponding record exists in the demonstration, amendment, or extension tables."
   }
 
@@ -207,13 +214,21 @@ erDiagram
   }
 
   demonstration:::dataTable {
-    uuid id PK, FK, UK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, state_id)"
-    text application_type_id FK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>FK014: application_type_id ∈ demonstration_application_type_limit.id"
+    uuid id PK, FK, UK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>UK: (id, state_id)"
+    text application_type_id FK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK014: application_type_id ∈ demonstration_application_type_limit.id"
+    text name
+    text description "NULLABLE"
+    timestamptz effective_date "NULLABLE"
+    timestamptz expiration_date "NULLABLE"
     text sdg_division_id FK "FK010: sdg_division_id ∈ sdg_division.id<br>NULLABLE"
     text signature_level_id FK "FK011: signature_level_id ∈ signature_level.id<br>NULLABLE"
+    text status_id FK "FK064: status_id ∈ application_status.id"
+    text current_phase_id FK "FK065: current_phase_id ∈ phase.id"
     text state_id FK, UK "FK021: state_id ∈ state.id<br>UK: (id, state_id)"
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_TRIGGER_DEFERRABLE check_demonstration_primary_project_officer_trigger "On insert or update, check that a primary project officer exists for this demonstration."
     BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
   }
@@ -250,21 +265,29 @@ erDiagram
   event:::dataTable {
     uuid id PK
     uuid user_id FK "FK054: user_id ∈ users.id<br>NULLABLE"
-    text with_role_id FK "FK053: with_role_id ∈ role.id<br>NULLABLE"
+    text role_id FK "FK053: role_id ∈ role.id<br>NULLABLE"
     uuid application_id FK "FK057: application_id ∈ application.id<br>NULLABLE"
-    text event_type FK "FK052: ⊂(event_type) ∈ reportable_event_type.id (unenforced)"
-    text log_level
+    text event_type_id FK "FK052: event_type_id ∈ event_type.id"
+    text log_level_id FK "FK066: log_level_id ∈ log_level.id"
     text route
     timestamptz created_at
-    jsonb event_data
+    json event_data
   }
 
   extension:::dataTable {
-    uuid id PK, FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED"
-    text application_type_id FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>FK016: application_type_id ∈ extension_application_type_limit.id"
+    uuid id PK, FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
+    text application_type_id FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK016: application_type_id ∈ extension_application_type_limit.id"
     uuid demonstration_id FK "FK012: demonstration_id ∈ demonstration.id"
+    text name
+    text description "NULLABLE"
+    timestamptz effective_date "NULLABLE"
+    timestamptz expiration_date "NULLABLE"
+    text status_id FK "FK062: status_id ∈ application_status.id"
+    text current_phase_id FK "FK063: current_phase_id ∈ phase.id"
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
   }
 
@@ -343,5 +366,4 @@ erDiagram
     text TypeLimiter "Blue"
     text AssociativeTable "Purple"
     text DataTable "Green"
-    text UnenforcedConstraint "Yellow"
   }

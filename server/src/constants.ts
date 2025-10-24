@@ -13,6 +13,7 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
+  "All Users",
 ] as const;
 
 export const PERSON_TYPES = [
@@ -94,7 +95,6 @@ export const DATE_TYPES = [
   "OGC & OMB Review Completion Date",
 ] as const;
 
-// US States and Territories
 export const STATES_AND_TERRITORIES = [
   { id: "AL", name: "Alabama" },
   { id: "AK", name: "Alaska" },
@@ -152,4 +152,32 @@ export const STATES_AND_TERRITORIES = [
   { id: "MP", name: "Northern Mariana Islands" },
   { id: "PR", name: "Puerto Rico" },
   { id: "VI", name: "Virgin Islands" },
+] as const;
+
+export const LOG_LEVELS = [
+  "emerg",
+  "alert",
+  "crit",
+  "err",
+  "warning",
+  "notice",
+  "info",
+  "debug",
+] as const;
+
+export const EVENT_TYPES = [
+  "Login Succeeded",
+  "Logout Succeeded",
+  "Create Demonstration Succeeded",
+  "Create Demonstration Failed",
+  "Create Extension Succeeded",
+  "Create Extension Failed",
+  "Create Amendment Succeeded",
+  "Create Amendment Failed",
+  "Edit Demonstration Succeeded",
+  "Edit Demonstration Failed",
+  "Delete Demonstration Succeeded",
+  "Delete Demonstration Failed",
+  "Delete Document Succeeded",
+  "Delete Document Failed",
 ] as const;

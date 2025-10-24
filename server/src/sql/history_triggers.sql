@@ -54,6 +54,12 @@ BEGIN
             id,
             application_type_id,
             demonstration_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            status_id,
+            current_phase_id,
             created_at,
             updated_at
         )
@@ -65,6 +71,12 @@ BEGIN
             NEW.id,
             NEW.application_type_id,
             NEW.demonstration_id,
+            NEW.name,
+            NEW.description,
+            NEW.effective_date,
+            NEW.expiration_date,
+            NEW.status_id,
+            NEW.current_phase_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -75,6 +87,12 @@ BEGIN
             id,
             application_type_id,
             demonstration_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            status_id,
+            current_phase_id,
             created_at,
             updated_at
         )
@@ -83,6 +101,12 @@ BEGIN
             OLD.id,
             OLD.application_type_id,
             OLD.demonstration_id,
+            OLD.name,
+            OLD.description,
+            OLD.effective_date,
+            OLD.expiration_date,
+            OLD.status_id,
+            OLD.current_phase_id,
             OLD.created_at,
             OLD.updated_at
         );
@@ -103,15 +127,7 @@ BEGIN
         INSERT INTO demos_app.application_history (
             revision_type,
             id,
-            application_type_id,
-            name,
-            description,
-            effective_date,
-            expiration_date,
-            application_status_id,
-            current_phase_id,
-            created_at,
-            updated_at
+            application_type_id
         )
         VALUES (
             CASE TG_OP
@@ -119,43 +135,19 @@ BEGIN
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
             NEW.id,
-            NEW.application_type_id,
-            NEW.name,
-            NEW.description,
-            NEW.effective_date,
-            NEW.expiration_date,
-            NEW.application_status_id,
-            NEW.current_phase_id,
-            NEW.created_at,
-            NEW.updated_at
+            NEW.application_type_id
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO demos_app.application_history (
             revision_type,
             id,
-            application_type_id,
-            name,
-            description,
-            effective_date,
-            expiration_date,
-            application_status_id,
-            current_phase_id,
-            created_at,
-            updated_at
+            application_type_id
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
             OLD.id,
-            OLD.application_type_id,
-            OLD.name,
-            OLD.description,
-            OLD.effective_date,
-            OLD.expiration_date,
-            OLD.application_status_id,
-            OLD.current_phase_id,
-            OLD.created_at,
-            OLD.updated_at
+            OLD.application_type_id
         );
         RETURN OLD;
     END IF;
@@ -277,8 +269,14 @@ BEGIN
             revision_type,
             id,
             application_type_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
             sdg_division_id,
             signature_level_id,
+            status_id,
+            current_phase_id,
             state_id,
             created_at,
             updated_at
@@ -290,8 +288,14 @@ BEGIN
             END,
             NEW.id,
             NEW.application_type_id,
+            NEW.name,
+            NEW.description,
+            NEW.effective_date,
+            NEW.expiration_date,
             NEW.sdg_division_id,
             NEW.signature_level_id,
+            NEW.status_id,
+            NEW.current_phase_id,
             NEW.state_id,
             NEW.created_at,
             NEW.updated_at
@@ -302,8 +306,14 @@ BEGIN
             revision_type,
             id,
             application_type_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
             sdg_division_id,
             signature_level_id,
+            status_id,
+            current_phase_id,
             state_id,
             created_at,
             updated_at
@@ -312,8 +322,14 @@ BEGIN
             'D'::demos_app.revision_type_enum,
             OLD.id,
             OLD.application_type_id,
+            OLD.name,
+            OLD.description,
+            OLD.effective_date,
+            OLD.expiration_date,
             OLD.sdg_division_id,
             OLD.signature_level_id,
+            OLD.status_id,
+            OLD.current_phase_id,
             OLD.state_id,
             OLD.created_at,
             OLD.updated_at
@@ -530,6 +546,12 @@ BEGIN
             id,
             application_type_id,
             demonstration_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            status_id,
+            current_phase_id,
             created_at,
             updated_at
         )
@@ -541,6 +563,12 @@ BEGIN
             NEW.id,
             NEW.application_type_id,
             NEW.demonstration_id,
+            NEW.name,
+            NEW.description,
+            NEW.effective_date,
+            NEW.expiration_date,
+            NEW.status_id,
+            NEW.current_phase_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -551,6 +579,12 @@ BEGIN
             id,
             application_type_id,
             demonstration_id,
+            name,
+            description,
+            effective_date,
+            expiration_date,
+            status_id,
+            current_phase_id,
             created_at,
             updated_at
         )
@@ -559,6 +593,12 @@ BEGIN
             OLD.id,
             OLD.application_type_id,
             OLD.demonstration_id,
+            OLD.name,
+            OLD.description,
+            OLD.effective_date,
+            OLD.expiration_date,
+            OLD.status_id,
+            OLD.current_phase_id,
             OLD.created_at,
             OLD.updated_at
         );

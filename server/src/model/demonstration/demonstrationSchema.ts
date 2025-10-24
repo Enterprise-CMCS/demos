@@ -1,6 +1,7 @@
 import { gql } from "graphql-tag";
 import { Document } from "../document/documentSchema.js";
-import { Amendment, Extension } from "../modification/modificationSchema.js";
+import { Amendment } from "../amendment/amendmentSchema.js";
+import { Extension } from "../extension/extensionSchema.js";
 import { State } from "../state/stateSchema.js";
 import {
   SdgDivision,

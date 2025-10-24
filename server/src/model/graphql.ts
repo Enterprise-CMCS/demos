@@ -1,3 +1,6 @@
+import { amendmentSchema } from "./amendment/amendmentSchema.js";
+import { amendmentResolvers } from "./amendment/amendmentResolvers.js";
+
 import { applicationDateSchema } from "./applicationDate/applicationDateSchema.js";
 import { applicationDateResolvers } from "./applicationDate/applicationDateResolvers.js";
 
@@ -31,13 +34,20 @@ import { documentTypeResolvers } from "./documentType/documentTypeResolvers.js";
 import { eventSchema } from "./event/eventSchema.js";
 import { eventResolvers } from "./event/eventResolvers.js";
 
-import { modificationSchema } from "./modification/modificationSchema.js";
-import { modificationResolvers } from "./modification/modificationResolvers.js";
+import { eventTypeSchema } from "./eventType/eventTypeSchema.js";
+import { eventTypeResolvers } from "./eventType/eventTypeResolvers.js";
+
+import { extensionSchema } from "./extension/extensionSchema.js";
+import { extensionResolvers } from "./extension/extensionResolvers.js";
+
+import { logLevelSchema } from "./logLevel/logLevelSchema.js";
+import { logLevelResolvers } from "./logLevel/logLevelResolvers.js";
 
 import { personSchema } from "./person/personSchema.js";
 import { personResolvers } from "./person/personResolvers.js";
 
 import { personTypeSchema } from "./personType/personTypeSchema.js";
+import { personTypeResolvers } from "./personType/personTypeResolvers.js";
 
 import { phaseSchema } from "./phase/phaseSchema.js";
 import { phaseResolvers } from "./phase/phaseResolvers.js";
@@ -46,6 +56,7 @@ import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 import { phaseStatusResolvers } from "./phaseStatus/phaseStatusResolvers.js";
 
 import { roleSchema } from "./role/roleSchema.js";
+import { roleResolvers } from "./role/roleResolvers.js";
 
 import { signatureLevelSchema } from "./signatureLevel/signatureLevelSchema.js";
 import { signatureLevelResolvers } from "./signatureLevel/signatureLevelResolvers.js";
@@ -72,6 +83,7 @@ const scalarTypes = [
 ];
 
 export const typeDefs = [
+  amendmentSchema,
   applicationDateSchema,
   applicationPhaseSchema,
   applicationSchema,
@@ -82,7 +94,9 @@ export const typeDefs = [
   documentSchema,
   documentTypeSchema,
   eventSchema,
-  modificationSchema,
+  eventTypeSchema,
+  extensionSchema,
+  logLevelSchema,
   personSchema,
   personTypeSchema,
   phaseSchema,
@@ -96,6 +110,7 @@ export const typeDefs = [
 ];
 
 export const resolvers = [
+  amendmentResolvers,
   applicationDateResolvers,
   applicationPhaseResolvers,
   applicationResolvers,
@@ -107,10 +122,14 @@ export const resolvers = [
   documentResolvers,
   documentTypeResolvers,
   eventResolvers,
-  modificationResolvers,
+  eventTypeResolvers,
+  extensionResolvers,
+  logLevelResolvers,
   personResolvers,
+  personTypeResolvers,
   phaseResolvers,
   phaseStatusResolvers,
+  roleResolvers,
   sdgDivisionResolvers,
   signatureLevelResolvers,
   stateResolvers,

@@ -10,6 +10,8 @@ import {
   GRANT_LEVELS,
   ROLES,
   DATE_TYPES,
+  LOG_LEVELS,
+  EVENT_TYPES,
 } from "./constants.js";
 
 export type {
@@ -30,16 +32,19 @@ export type {
 
 export type { State } from "./model/state/stateSchema.js";
 
-export type { Event, EventLoggedStatus, LogEventInput } from "./model/event/eventSchema.js";
+export type { Event, LogEventInput } from "./model/event/eventSchema.js";
 
 export type {
   Amendment,
-  Extension,
   CreateAmendmentInput,
-  CreateExtensionInput,
   UpdateAmendmentInput,
+} from "./model/amendment/amendmentSchema.js";
+
+export type {
+  Extension,
+  CreateExtensionInput,
   UpdateExtensionInput,
-} from "./model/modification/modificationSchema.js";
+} from "./model/extension/extensionSchema.js";
 
 export type {
   Document,
@@ -66,3 +71,5 @@ export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
 export type DateType = (typeof DATE_TYPES)[number];
+export type LogLevel = (typeof LOG_LEVELS)[number];
+export type EventType = (typeof EVENT_TYPES)[number];

@@ -1,6 +1,12 @@
 import { Demonstration } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { ApplicationType, PhaseName, ApplicationStatus, GrantLevel, Role } from "../../types.js";
+import {
+  ApplicationType,
+  PhaseName,
+  ApplicationStatus,
+  GrantLevel,
+  DemonstrationRole,
+} from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { resolveApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -11,12 +17,10 @@ import {
 } from "../applicationDate/checkInputDateFunctions.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
-const roleProjectOfficer: Role = "Project Officer";
+const roleProjectOfficer: DemonstrationRole = "Project Officer";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 const demonstrationApplicationType: ApplicationType = "Demonstration";
-const amendmentApplicationType: ApplicationType = "Amendment";
-const extensionApplicationType: ApplicationType = "Extension";
 
 export async function getDemonstration(parent: undefined, { id }: { id: string }) {
   return await prisma().demonstration.findUnique({
@@ -212,19 +216,17 @@ export const demonstrationResolvers = {
     },
 
     amendments: async (parent: Demonstration) => {
-      return await prisma().modification.findMany({
+      return await prisma().amendment.findMany({
         where: {
           demonstrationId: parent.id,
-          applicationTypeId: amendmentApplicationType,
         },
       });
     },
 
     extensions: async (parent: Demonstration) => {
-      return await prisma().modification.findMany({
+      return await prisma().extension.findMany({
         where: {
           demonstrationId: parent.id,
-          applicationTypeId: extensionApplicationType,
         },
       });
     },

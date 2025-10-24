@@ -6,6 +6,12 @@ CREATE TABLE "demos_app"."amendment" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
     "demonstration_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "effective_date" TIMESTAMPTZ,
+    "expiration_date" TIMESTAMPTZ,
+    "status_id" TEXT NOT NULL,
+    "current_phase_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -20,6 +26,12 @@ CREATE TABLE "demos_app"."amendment_history" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
     "demonstration_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "effective_date" TIMESTAMPTZ,
+    "expiration_date" TIMESTAMPTZ,
+    "status_id" TEXT NOT NULL,
+    "current_phase_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -37,14 +49,6 @@ CREATE TABLE "demos_app"."amendment_application_type_limit" (
 CREATE TABLE "demos_app"."application" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "effective_date" TIMESTAMPTZ,
-    "expiration_date" TIMESTAMPTZ,
-    "application_status_id" TEXT NOT NULL,
-    "current_phase_id" TEXT NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "application_pkey" PRIMARY KEY ("id")
 );
@@ -56,14 +60,6 @@ CREATE TABLE "demos_app"."application_history" (
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "effective_date" TIMESTAMPTZ,
-    "expiration_date" TIMESTAMPTZ,
-    "application_status_id" TEXT NOT NULL,
-    "current_phase_id" TEXT NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL,
-    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "application_history_pkey" PRIMARY KEY ("revision_id")
 );
@@ -143,8 +139,14 @@ CREATE TABLE "demos_app"."date_type" (
 CREATE TABLE "demos_app"."demonstration" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "effective_date" TIMESTAMPTZ,
+    "expiration_date" TIMESTAMPTZ,
     "sdg_division_id" TEXT,
     "signature_level_id" TEXT,
+    "status_id" TEXT NOT NULL,
+    "current_phase_id" TEXT NOT NULL,
     "state_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
@@ -159,8 +161,14 @@ CREATE TABLE "demos_app"."demonstration_history" (
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "effective_date" TIMESTAMPTZ,
+    "expiration_date" TIMESTAMPTZ,
     "sdg_division_id" TEXT,
     "signature_level_id" TEXT,
+    "status_id" TEXT NOT NULL,
+    "current_phase_id" TEXT NOT NULL,
     "state_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
@@ -288,11 +296,11 @@ CREATE TABLE "demos_app"."document_type" (
 CREATE TABLE "demos_app"."event" (
     "id" UUID NOT NULL,
     "user_id" UUID,
-    "with_role_id" TEXT,
-    "event_type" TEXT NOT NULL,
-    "log_level" TEXT NOT NULL,
-    "route" TEXT NOT NULL,
+    "role_id" TEXT,
     "application_id" UUID,
+    "event_type_id" TEXT NOT NULL,
+    "log_level_id" TEXT NOT NULL,
+    "route" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "event_data" JSON NOT NULL,
 
@@ -300,10 +308,23 @@ CREATE TABLE "demos_app"."event" (
 );
 
 -- CreateTable
+CREATE TABLE "demos_app"."event_type" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "event_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "demos_app"."extension" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
     "demonstration_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "effective_date" TIMESTAMPTZ,
+    "expiration_date" TIMESTAMPTZ,
+    "status_id" TEXT NOT NULL,
+    "current_phase_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -318,6 +339,12 @@ CREATE TABLE "demos_app"."extension_history" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
     "demonstration_id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "effective_date" TIMESTAMPTZ,
+    "expiration_date" TIMESTAMPTZ,
+    "status_id" TEXT NOT NULL,
+    "current_phase_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -336,6 +363,15 @@ CREATE TABLE "demos_app"."grant_level" (
     "id" TEXT NOT NULL,
 
     CONSTRAINT "grant_level_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "demos_app"."log_level" (
+    "id" TEXT NOT NULL,
+    "severity" TEXT NOT NULL,
+    "level" INTEGER NOT NULL,
+
+    CONSTRAINT "log_level_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -451,13 +487,6 @@ CREATE TABLE "demos_app"."primary_demonstration_role_assignment_history" (
     "role_id" TEXT NOT NULL,
 
     CONSTRAINT "primary_demonstration_role_assignment_history_pkey" PRIMARY KEY ("revision_id")
-);
-
--- CreateTable
-CREATE TABLE "demos_app"."reportable_event_type" (
-    "id" TEXT NOT NULL,
-
-    CONSTRAINT "reportable_event_type_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -629,16 +658,16 @@ ALTER TABLE "demos_app"."amendment" ADD CONSTRAINT "amendment_application_type_i
 ALTER TABLE "demos_app"."amendment" ADD CONSTRAINT "amendment_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demos_app"."demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "demos_app"."amendment" ADD CONSTRAINT "amendment_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "demos_app"."application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."amendment" ADD CONSTRAINT "amendment_current_phase_id_fkey" FOREIGN KEY ("current_phase_id") REFERENCES "demos_app"."phase"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "demos_app"."amendment_application_type_limit" ADD CONSTRAINT "amendment_application_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "demos_app"."application_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."application" ADD CONSTRAINT "application_application_type_id_fkey" FOREIGN KEY ("application_type_id") REFERENCES "demos_app"."application_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."application" ADD CONSTRAINT "application_application_status_id_fkey" FOREIGN KEY ("application_status_id") REFERENCES "demos_app"."application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demos_app"."application" ADD CONSTRAINT "application_current_phase_id_fkey" FOREIGN KEY ("current_phase_id") REFERENCES "demos_app"."phase"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."application_date" ADD CONSTRAINT "application_date_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "demos_app"."application"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -662,13 +691,19 @@ ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT "demonstration_id_applica
 ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT "demonstration_application_type_id_fkey" FOREIGN KEY ("application_type_id") REFERENCES "demos_app"."demonstration_application_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT "demonstration_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "demos_app"."state"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT "demonstration_sdg_division_id_fkey" FOREIGN KEY ("sdg_division_id") REFERENCES "demos_app"."sdg_division"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT "demonstration_signature_level_id_fkey" FOREIGN KEY ("signature_level_id") REFERENCES "demos_app"."signature_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT "demonstration_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "demos_app"."application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT "demonstration_current_phase_id_fkey" FOREIGN KEY ("current_phase_id") REFERENCES "demos_app"."phase"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."demonstration" ADD CONSTRAINT "demonstration_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "demos_app"."state"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."demonstration_application_type_limit" ADD CONSTRAINT "demonstration_application_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "demos_app"."application_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -713,10 +748,19 @@ ALTER TABLE "demos_app"."document_pending_upload" ADD CONSTRAINT "document_pendi
 ALTER TABLE "demos_app"."document_pending_upload" ADD CONSTRAINT "document_pending_upload_phase_id_document_type_id_fkey" FOREIGN KEY ("phase_id", "document_type_id") REFERENCES "demos_app"."phase_document_type"("phase_id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "demos_app"."event" ADD CONSTRAINT "event_with_role_id_fkey" FOREIGN KEY ("with_role_id") REFERENCES "demos_app"."role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "demos_app"."event" ADD CONSTRAINT "event_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "demos_app"."role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."event" ADD CONSTRAINT "event_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "demos_app"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."event" ADD CONSTRAINT "event_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "demos_app"."application"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."event" ADD CONSTRAINT "event_event_type_id_fkey" FOREIGN KEY ("event_type_id") REFERENCES "demos_app"."event_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."event" ADD CONSTRAINT "event_log_level_id_fkey" FOREIGN KEY ("log_level_id") REFERENCES "demos_app"."log_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."extension" ADD CONSTRAINT "extension_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "demos_app"."application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -726,6 +770,12 @@ ALTER TABLE "demos_app"."extension" ADD CONSTRAINT "extension_application_type_i
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."extension" ADD CONSTRAINT "extension_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demos_app"."demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."extension" ADD CONSTRAINT "extension_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "demos_app"."application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demos_app"."extension" ADD CONSTRAINT "extension_current_phase_id_fkey" FOREIGN KEY ("current_phase_id") REFERENCES "demos_app"."phase"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demos_app"."extension_application_type_limit" ADD CONSTRAINT "extension_application_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "demos_app"."application_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

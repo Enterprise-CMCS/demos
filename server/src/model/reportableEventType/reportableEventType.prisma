@@ -1,6 +1,0 @@
-// Flags: STATIC_CONSTRAINT
-model ReportableEventType {
-  id String @id
-
-  @@map("reportable_event_type")
-}

@@ -298,7 +298,7 @@ VALUES
     ('VI', 'Virgin Islands');
 
 INSERT INTO
-    demos_app.reportable_event_type
+    demos_app.event_type
 VALUES
 -- Authentication
     ('Login Succeeded'),
@@ -319,9 +319,25 @@ VALUES
     ('Delete Document Succeeded'),
     ('Delete Document Failed');
 
+INSERT INTO
+    demos_app.log_level
+VALUES
+    ('emerg', 'Emergency', 0),
+    ('alert', 'Alert', 1),
+    ('crit', 'Critical', 2),
+    ('err', 'Error', 3),
+    ('warning', 'Warning', 4),
+    ('notice', 'Notice', 5),
+    ('info', 'Informational', 6),
+    ('debug', 'Debug', 7);
+
 -- Add Checks
-ALTER TABLE demos_app.application ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
-ALTER TABLE demos_app.application ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
+ALTER TABLE demos_app.amendment ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+ALTER TABLE demos_app.amendment ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
+ALTER TABLE demos_app.demonstration ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+ALTER TABLE demos_app.demonstration ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
+ALTER TABLE demos_app.extension ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+ALTER TABLE demos_app.extension ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_description CHECK (trim(description) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_s3_path CHECK (trim(s3_path) != '');

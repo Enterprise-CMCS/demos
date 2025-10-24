@@ -1,8 +1,8 @@
-import { Demonstration, Modification } from "@prisma/client";
+import { Demonstration, Amendment, Extension } from "@prisma/client";
 import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { APPLICATION_STATUS } from "../../constants.js";
 
-export async function resolveApplicationStatus(parent: Demonstration | Modification) {
+export async function resolveApplicationStatus(parent: Demonstration | Amendment | Extension) {
   return parent.statusId;
 }
 

@@ -1,7 +1,8 @@
 import { prisma } from "../../prismaClient";
 import { ApplicationType } from "../../types";
 import { getDemonstration } from "../demonstration/demonstrationResolvers.js";
-import { getAmendment, getExtension } from "../modification/modificationResolvers.js";
+import { getAmendment } from "../amendment/amendmentResolvers.js";
+import { getExtension } from "../extension/extensionResolvers.js";
 import { Application } from "@prisma/client";
 
 export async function getApplication(applicationId: string) {

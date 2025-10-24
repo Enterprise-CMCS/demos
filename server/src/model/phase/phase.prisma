@@ -4,9 +4,11 @@ model Phase {
   phaseNumber Int    @map("phase_number")
 
   applicationPhases  ApplicationPhase[]
-  applications       Application[]
   phaseDocumentTypes PhaseDocumentType[]
   phaseDateTypes     PhaseDateType[]
+  amendments         Amendment[]
+  demonstrations     Demonstration[]
+  extensions         Extension[]
 
   @@id([id])
   @@unique([phaseNumber])
