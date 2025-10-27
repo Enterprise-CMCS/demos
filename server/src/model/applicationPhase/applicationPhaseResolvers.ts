@@ -2,12 +2,14 @@ import { ApplicationPhase } from "@prisma/client";
 import { getApplicationDatesForPhase } from "../applicationDate/applicationDateResolvers.js";
 import { prisma } from "../../prismaClient.js";
 import { SetApplicationPhaseStatusInput } from "./applicationPhaseSchema.js";
+import { getApplication } from "../application/applicationResolvers.js";
 
 export async function setApplicationPhaseStatus(
   _: undefined,
   { input }: { input: SetApplicationPhaseStatusInput }
 ) {
-  return await prisma().applicationPhase.update({
+  // Validate input against completion rules before updating
+  await prisma().applicationPhase.update({
     where: {
       applicationId_phaseId: {
         applicationId: input.applicationId,
@@ -18,6 +20,7 @@ export async function setApplicationPhaseStatus(
       phaseStatusId: input.phaseStatus,
     },
   });
+  return await getApplication(input.applicationId);
 }
 
 export const applicationPhaseResolvers = {
@@ -31,11 +34,6 @@ export const applicationPhaseResolvers = {
     phaseDates: async (parent: ApplicationPhase) => {
       return getApplicationDatesForPhase(parent.applicationId, parent.phaseId);
     },
-    application: async (parent: ApplicationPhase) => {
-      return await prisma().application.findUnique({
-        where: { id: parent.applicationId },
-      });
-    }
   },
 
   Mutation: {

@@ -1,4 +1,4 @@
-import { PhaseName, PhaseStatus, ApplicationDate, Application } from "../../types.js";
+import { PhaseName, PhaseStatus, ApplicationDate } from "../../types.js";
 import { gql } from "graphql-tag";
 
 export const applicationPhaseSchema = gql`
@@ -8,7 +8,6 @@ export const applicationPhaseSchema = gql`
     phaseDates: [ApplicationDate!]!
     createdAt: DateTime!
     updatedAt: DateTime!
-    application: Application!
   }
 
   input SetApplicationPhaseStatusInput {
@@ -18,7 +17,7 @@ export const applicationPhaseSchema = gql`
   }
 
   type Mutation {
-    setApplicationPhaseStatus(input: SetApplicationPhaseStatusInput!): ApplicationPhase
+    setApplicationPhaseStatus(input: SetApplicationPhaseStatusInput!): Demonstration!
   }
 `;
 
@@ -28,7 +27,6 @@ export interface ApplicationPhase {
   phaseDates: ApplicationDate[];
   createdAt: Date;
   updatedAt: Date;
-  application: Application;
 }
 
 export interface SetApplicationPhaseStatusInput {
