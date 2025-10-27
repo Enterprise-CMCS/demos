@@ -1,5 +1,6 @@
 import { gql } from "graphql-tag";
-import { PersonType, State, DemonstrationRoleAssignment } from "../../types";
+
+import { DemonstrationRoleAssignment, PersonType, State } from "../../types";
 
 export const personSchema = gql`
   type Person {
@@ -18,6 +19,7 @@ export const personSchema = gql`
   type Query {
     person(id: ID!): Person
     people: [Person!]!
+    searchPeople(search: String!, demonstrationId: ID): [Person!]!
   }
 `;
 
