@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "components/button";
 import { ContactsTable, DemonstrationRoleAssignment } from "components/table/tables/ContactsTable";
 import { mockDemonstrationRoleAssignments } from "mock-data/demonstrationRoleAssignmentMocks";
+
 // import { Role } from "demos-server";
 
 export const ContactsTableDemo: React.FC = () => {
@@ -39,7 +40,7 @@ export const ContactsTableDemo: React.FC = () => {
         </Button>
       </div>
       <div className="bg-white p-4 border rounded">
-        <ContactsTable demonstrationId={"1"} roles={roles} />
+        <ContactsTable roles={roles} />
       </div>
       <div className="mt-4 text-sm text-gray-600">
         <p>

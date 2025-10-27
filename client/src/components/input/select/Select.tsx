@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ChevronDownIcon } from "components/icons";
-import { LABEL_CLASSES, INPUT_BASE_CLASSES, getInputColors } from "components/input/Input";
+import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { tw } from "tags/tw";
 
 const SELECT_SPECIFIC_CLASSES = tw`w-full appearance-none`;
@@ -21,6 +21,7 @@ export interface SelectProps {
   isRequired?: boolean;
   isDisabled?: boolean;
   value?: string;
+  validationMessage?: string;
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -32,6 +33,7 @@ export const Select: React.FC<SelectProps> = ({
   isRequired = false,
   isDisabled = false,
   value,
+  validationMessage = "",
 }) => {
   return (
     <div className="flex flex-col gap-sm">
@@ -49,7 +51,7 @@ export const Select: React.FC<SelectProps> = ({
           disabled={isDisabled}
           value={value ?? ""}
           onChange={(e) => onSelect(e.target.value)}
-          className={`${INPUT_BASE_CLASSES} ${SELECT_SPECIFIC_CLASSES} ${getInputColors("")}`}
+          className={`${INPUT_BASE_CLASSES} ${SELECT_SPECIFIC_CLASSES} ${getInputColors(validationMessage)}`}
         >
           <option data-testid={`${id}-option-empty`} value="">
             {placeholder}
@@ -64,6 +66,7 @@ export const Select: React.FC<SelectProps> = ({
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
       </div>
+      {validationMessage && <span className="text-error-dark">{validationMessage}</span>}
     </div>
   );
 };

@@ -1,5 +1,9 @@
 import { gql } from "graphql-tag";
-import { Demonstration, Role } from "../../types";
+
+import {
+  Demonstration,
+  Role,
+} from "../../types";
 import { Person } from "../person/personSchema";
 
 export const demonstrationRoleAssignmentSchema = gql`
@@ -24,8 +28,15 @@ export const demonstrationRoleAssignmentSchema = gql`
   }
 
   type Mutation {
-    setDemonstrationRole(input: SetDemonstrationRoleInput!): DemonstrationRoleAssignment!
-    unsetDemonstrationRoles(input: [UnsetDemonstrationRoleInput!]!): [DemonstrationRoleAssignment!]!
+    setDemonstrationRole(
+      input: SetDemonstrationRoleInput!
+    ): DemonstrationRoleAssignment!
+    setDemonstrationRoles(
+      input: [SetDemonstrationRoleInput!]!
+    ): [DemonstrationRoleAssignment!]!
+    unsetDemonstrationRoles(
+      input: [UnsetDemonstrationRoleInput!]!
+    ): [DemonstrationRoleAssignment!]!
   }
 `;
 
