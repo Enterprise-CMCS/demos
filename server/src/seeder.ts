@@ -76,15 +76,20 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
-    prisma().amendment.deleteMany(),
-    prisma().extension.deleteMany(),
     prisma().primaryDemonstrationRoleAssignment.deleteMany(),
     prisma().demonstrationRoleAssignment.deleteMany(),
-    prisma().demonstration.deleteMany(),
     prisma().applicationDate.deleteMany(),
     prisma().applicationPhase.deleteMany(),
     prisma().document.deleteMany(),
+
+    // Note that we must delete from application first
+    // The foreign keys to that table from amendment/extension/demonstration are deferred
+    // Those tables have triggers that prevent deletion if the corresponding record exists in application
     prisma().application.deleteMany(),
+    prisma().amendment.deleteMany(),
+    prisma().extension.deleteMany(),
+    prisma().demonstration.deleteMany(),
+
     prisma().event.deleteMany(),
     prisma().systemRoleAssignment.deleteMany(),
     prisma().personState.deleteMany(),

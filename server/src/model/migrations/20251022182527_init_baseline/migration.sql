@@ -352,7 +352,7 @@ ALTER TABLE demos_app.amendment
 ADD CONSTRAINT amendment_id_application_type_id_fkey
 FOREIGN KEY (id, application_type_id)
 REFERENCES demos_app.application(id, application_type_id)
-ON DELETE RESTRICT
+ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
 
@@ -360,7 +360,7 @@ ALTER TABLE demos_app.demonstration
 ADD CONSTRAINT demonstration_id_application_type_id_fkey
 FOREIGN KEY (id, application_type_id)
 REFERENCES demos_app.application(id, application_type_id)
-ON DELETE RESTRICT
+ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
 
@@ -368,6 +368,6 @@ ALTER TABLE demos_app.extension
 ADD CONSTRAINT extension_id_application_type_id_fkey
 FOREIGN KEY (id, application_type_id)
 REFERENCES demos_app.application(id, application_type_id)
-ON DELETE RESTRICT
+ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
