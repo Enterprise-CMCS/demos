@@ -16,6 +16,19 @@ export const ROLES = [
   "All Users",
 ] as const;
 
+export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
+
+export const ADMIN_DEMONSTRATION_ROLES = ROLES;
+
+export const CMS_USER_DEMONSTRATION_ROLES = [
+  "Project Officer",
+  "DDME Analyst",
+  "Policy Technical Director",
+  "Monitoring & Evaluation Technical Director",
+] as const;
+
+export const STATE_USER_DEMONSTRATION_ROLES = ["State Point of Contact"] as const;
+
 export const PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",

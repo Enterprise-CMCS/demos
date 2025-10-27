@@ -2,8 +2,8 @@ import React, { useState } from "react";
 
 import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { SecondaryButton } from "components/button";
-import { EditContactDialog } from "components/dialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { ManageContactsDialog } from "components/dialog/ManageContactsDialog";
 import {
   AddNewIcon,
   CharacteristicIcon,
@@ -16,15 +16,20 @@ import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import {
   Demonstration,
-  Document,
-  PhaseName,
-  Person,
   DemonstrationRoleAssignment,
+  Document,
+  Person,
+  PhaseName,
 } from "demos-server";
-import { VerticalTabs, Tab } from "layout/Tabs";
+import { Tab, VerticalTabs } from "layout/Tabs";
+
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 
 type ModalType = "document" | "contact" | null;
+
+type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+  person: Pick<Person, "fullName" | "id" | "email">;
+};
 
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
@@ -32,9 +37,7 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status">
       person: Pick<Person, "fullName">;
     };
   })[];
-  roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-    person: Pick<Person, "id" | "fullName" | "email">;
-  })[];
+  roles: Role[];
   currentPhaseName: PhaseName;
 };
 
@@ -45,7 +48,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div className="p-[16px]">
-      <ApplicationWorkflow demonstration={demonstration} />
+      <ApplicationWorkflow demonstrationId={demonstration.id} />
       <VerticalTabs defaultValue="details">
         <Tab icon={<DetailsIcon />} label="Details" value="details">
           <SummaryDetailsTab demonstrationId={demonstration.id} />
@@ -80,15 +83,15 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
             <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
             <SecondaryButton
-              name="add-new-contact"
+              name="manage-contacts"
               size="small"
               onClick={() => setModalType("contact")}
             >
-              Manage Contacts
+              <span>Manage Contact(s)</span>
               <EditIcon className="w-2 h-2" />
             </SecondaryButton>
           </div>
-          <ContactsTable roles={demonstration.roles} demonstrationId={demonstration.id} />
+          <ContactsTable roles={demonstration.roles} />
         </Tab>
       </VerticalTabs>
 
@@ -100,10 +103,20 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         />
       )}
       {modalType === "contact" && (
-        <EditContactDialog
+        <ManageContactsDialog
           demonstrationId={demonstration.id}
           isOpen={true}
           onClose={() => setModalType(null)}
+          existingContacts={(demonstration.roles || []).map((c) => ({
+            person: {
+              id: c.person.id,
+              fullName: c.person.fullName,
+              email: c.person.email,
+              idmRoles: [], // unknown for existing; restrictions handled dynamically
+            },
+            role: c.role,
+            isPrimary: c.isPrimary,
+          }))}
         />
       )}
     </div>

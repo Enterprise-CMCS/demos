@@ -4,6 +4,7 @@ import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationD
 import { useMutation } from "@apollo/client";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { gql } from "@apollo/client";
+import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
 const DEFAULT_DEMONSTRATION_DIALOG_FIELDS: DemonstrationDialogFields = {
   name: "",
@@ -51,6 +52,7 @@ export const CreateDemonstrationDialog: React.FC<{
         variables: {
           input: getCreateDemonstrationInput(demonstration),
         },
+        refetchQueries: [DEMONSTRATIONS_PAGE_QUERY],
       });
 
       const success = !result.errors;

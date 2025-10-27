@@ -1,17 +1,20 @@
 import {
+  ADMIN_DEMONSTRATION_ROLES,
   APPLICATION_STATUS,
   APPLICATION_TYPES,
-  SDG_DIVISIONS,
-  SIGNATURE_LEVEL,
+  CMS_USER_DEMONSTRATION_ROLES,
+  DATE_TYPES,
   DOCUMENT_TYPES,
+  EVENT_TYPES,
+  GRANT_LEVELS,
+  LOG_LEVELS,
+  PERSON_TYPES,
   PHASE_NAME,
   PHASE_STATUS,
-  PERSON_TYPES,
-  GRANT_LEVELS,
   ROLES,
-  DATE_TYPES,
-  LOG_LEVELS,
-  EVENT_TYPES,
+  SDG_DIVISIONS,
+  SIGNATURE_LEVEL,
+  STATE_USER_DEMONSTRATION_ROLES,
 } from "./constants.js";
 
 export type {
@@ -48,11 +51,14 @@ export type {
 
 export type {
   Document,
-  UploadDocumentInput,
   UpdateDocumentInput,
+  UploadDocumentInput,
 } from "./model/document/documentSchema.js";
 
-export type { ApplicationPhase } from "./model/applicationPhase/applicationPhaseSchema.js";
+export type {
+  ApplicationPhase,
+  SetApplicationPhaseStatusInput,
+} from "./model/applicationPhase/applicationPhaseSchema.js";
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,
@@ -73,3 +79,6 @@ export type Role = (typeof ROLES)[number];
 export type DateType = (typeof DATE_TYPES)[number];
 export type LogLevel = (typeof LOG_LEVELS)[number];
 export type EventType = (typeof EVENT_TYPES)[number];
+export type AdminDemonstrationRole = (typeof ADMIN_DEMONSTRATION_ROLES)[number];
+export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[number];
+export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];

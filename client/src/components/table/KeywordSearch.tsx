@@ -1,7 +1,10 @@
-import { CellContext, Row, Table } from "@tanstack/react-table";
-import { ExitIcon, SearchIcon } from "components/icons";
-import { LABEL_CLASSES, INPUT_BASE_CLASSES, getInputColors } from "components/input/Input";
 import React from "react";
+
+import { ExitIcon, SearchIcon } from "components/icons";
+import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
+import { useDebounced } from "hooks/useDebounced";
+
+import { CellContext, Row, Table } from "@tanstack/react-table";
 
 export const TEST_IDS = {
   input: "input-keyword-search",
@@ -70,8 +73,6 @@ export function KeywordSearch<T>({
   storageKey = "keyword-search",
   placeholder = "Search",
 }: KeywordSearchProps<T>) {
-  const debounceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
   const [queryString, setQueryString] = React.useState<string>(() => {
     if (typeof window === "undefined") return "";
 
@@ -83,55 +84,28 @@ export function KeywordSearch<T>({
     }
   });
 
-  const debouncedSearch = React.useCallback(
-    (val: string) => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
+  const debouncedQueryString = useDebounced(queryString, debounceMs);
 
-      debounceTimeoutRef.current = setTimeout(() => {
-        if (val) {
-          const keywords = val
-            .trim()
-            .split(/\s+/)
-            .filter((word) => word.length > 0);
-          table.setGlobalFilter(keywords);
-        } else {
-          table.setGlobalFilter("");
-        }
-      }, debounceMs);
-    },
-    [table, debounceMs]
-  );
+  React.useEffect(() => {
+    if (debouncedQueryString) {
+      const keywords = debouncedQueryString
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
+      table.setGlobalFilter(keywords);
+    } else {
+      table.setGlobalFilter("");
+    }
+  }, [debouncedQueryString, table]);
 
   const onValueChange = (val: string) => {
     setQueryString(val);
-    debouncedSearch(val);
   };
 
   const clearSearch = () => {
     setQueryString("");
-
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
     table.setGlobalFilter("");
   };
-
-  React.useEffect(() => {
-    if (queryString) {
-      debouncedSearch(queryString);
-    }
-  }, [queryString, debouncedSearch]);
-
-  React.useEffect(() => {
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, []);
 
   return (
     <div className="flex flex-col gap-sm">

@@ -10,7 +10,7 @@ const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
 export async function unsetDemonstrationRoles(
   parent: undefined,
-  { input }: { input: UnsetDemonstrationRoleInput[] }
+  { input }: { input: UnsetDemonstrationRoleInput[] },
 ) {
   return await prisma().$transaction(async (tx) => {
     const deletedRoles: DemonstrationRoleAssignment[] = [];
@@ -45,7 +45,7 @@ export async function unsetDemonstrationRoles(
 
 export async function setDemonstrationRole(
   parent: undefined,
-  { input }: { input: SetDemonstrationRoleInput }
+  { input }: { input: SetDemonstrationRoleInput },
 ) {
   await prisma().$transaction(async (tx) => {
     const person = await tx.person.findUnique({
@@ -59,7 +59,9 @@ export async function setDemonstrationRole(
       where: { id: input.demonstrationId },
     });
     if (!demonstration) {
-      throw new Error(`Demonstration with id ${input.demonstrationId} not found`);
+      throw new Error(
+        `Demonstration with id ${input.demonstrationId} not found`,
+      );
     }
 
     await prisma().demonstrationRoleAssignment.upsert({
@@ -119,9 +121,107 @@ export async function setDemonstrationRole(
   });
 }
 
+export async function setDemonstrationRoles(
+  parent: undefined,
+  { input }: { input: SetDemonstrationRoleInput[] },
+) {
+  return await prisma().$transaction(async (tx) => {
+    const results = [];
+
+    for (const roleInput of input) {
+      const person = await tx.person.findUnique({
+        where: { id: roleInput.personId },
+      });
+      if (!person) {
+        throw new Error(`Person with id ${roleInput.personId} not found`);
+      }
+
+      const demonstration = await tx.demonstration.findUnique({
+        where: { id: roleInput.demonstrationId },
+      });
+      if (!demonstration) {
+        throw new Error(
+          `Demonstration with id ${roleInput.demonstrationId} not found`,
+        );
+      }
+
+      // Create or update the role assignment
+      await tx.demonstrationRoleAssignment.upsert({
+        where: {
+          personId_demonstrationId_roleId: {
+            personId: person.id,
+            demonstrationId: demonstration.id,
+            roleId: roleInput.roleId,
+          },
+        },
+        update: {},
+        create: {
+          roleId: roleInput.roleId,
+          demonstrationId: demonstration.id,
+          stateId: demonstration.stateId,
+          personId: person.id,
+          personTypeId: person.personTypeId,
+          grantLevelId: DEMONSTRATION_GRANT_LEVEL,
+        },
+      });
+
+      // Handle primary assignment
+      if (roleInput.isPrimary === true) {
+        await tx.primaryDemonstrationRoleAssignment.upsert({
+          where: {
+            demonstrationId_roleId: {
+              demonstrationId: demonstration.id,
+              roleId: roleInput.roleId,
+            },
+          },
+          update: {
+            personId: person.id,
+          },
+          create: {
+            demonstrationId: demonstration.id,
+            personId: person.id,
+            roleId: roleInput.roleId,
+          },
+        });
+      } else if (roleInput.isPrimary === false) {
+        await tx.primaryDemonstrationRoleAssignment.deleteMany({
+          where: {
+            demonstrationId: demonstration.id,
+            roleId: roleInput.roleId,
+            personId: person.id,
+          },
+        });
+      }
+
+      // Fetch the created/updated role assignment
+      const result = await tx.demonstrationRoleAssignment.findUnique({
+        where: {
+          personId_demonstrationId_roleId: {
+            personId: roleInput.personId,
+            demonstrationId: roleInput.demonstrationId,
+            roleId: roleInput.roleId,
+          },
+        },
+        include: {
+          person: true,
+          demonstration: true,
+          primaryDemonstrationRoleAssignment: true,
+        },
+      });
+
+      if (result) {
+        results.push(result);
+      }
+    }
+
+    return results;
+  });
+}
+
 export const demonstrationRoleAssigmentResolvers = {
   Mutation: {
     setDemonstrationRole,
+    setDemonstrationRoles,
     unsetDemonstrationRoles,
   },
 
