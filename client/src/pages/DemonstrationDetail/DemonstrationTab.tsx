@@ -48,7 +48,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div className="p-[16px]">
-      <ApplicationWorkflow demonstration={demonstration} />
+      <ApplicationWorkflow demonstrationId={demonstration.id} />
       <VerticalTabs defaultValue="details">
         <Tab icon={<DetailsIcon />} label="Details" value="details">
           <SummaryDetailsTab demonstrationId={demonstration.id} />

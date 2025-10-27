@@ -21,15 +21,6 @@ export type PhaseStatus = ServerPhaseStatus | "past-due";
 export type PhaseName = Exclude<ServerPhase, "None">;
 const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName => phase !== "None");
 
-const MOCK_PHASE_DATE_LOOKUP: Partial<Record<PhaseName, Date>> = {
-  Concept: new Date(2024, 4, 20),
-  "Application Intake": new Date(2024, 4, 22),
-  Completeness: new Date(2024, 11, 31),
-  "Federal Comment": new Date(2025, 8, 24),
-};
-
-const FEDERAL_COMMENT_START_DATE = MOCK_PHASE_DATE_LOOKUP["Federal Comment"] as Date;
-
 const PhaseGroups = () => {
   const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
   return (
@@ -42,32 +33,43 @@ const PhaseGroups = () => {
   );
 };
 
-const MOCK_PHASE_STATUS_LOOKUP: PhaseStatusLookup = {
-  Concept: "Skipped",
-  "Application Intake": "Completed",
-  Completeness: "Started",
-  "Federal Comment": "past-due",
-  "SDG Preparation": "Not Started",
-  "OGC & OMB Review": "Not Started",
-  "Approval Package": "Not Started",
-  "Post Approval": "Not Started",
-};
-
-export type PhaseStatusLookup = Record<PhaseName, PhaseStatus>;
 interface PhaseSelectorProps {
   demonstration: ApplicationWorkflowDemonstration;
-  phaseStatusLookup?: PhaseStatusLookup;
 }
 
-export const PhaseSelector = ({
-  demonstration,
-  phaseStatusLookup = MOCK_PHASE_STATUS_LOOKUP,
-}: PhaseSelectorProps) => {
-  const fallbackPhase: PhaseName = "Concept";
+export const getDisplayedPhaseStatus = (
+  demonstration: ApplicationWorkflowDemonstration,
+  phaseName: PhaseName
+): PhaseStatus => {
+  const phase = demonstration.phases.find((p) => p.phaseName === phaseName);
+  return phase?.phaseStatus ?? "Not Started";
+};
+
+export const getDisplayedPhaseDate = (
+  demonstration: ApplicationWorkflowDemonstration,
+  phaseName: PhaseName
+): Date | undefined => {
+  const phase = demonstration.phases.find((p) => p.phaseName === phaseName);
+  if (!phase) return undefined;
+
+  // Find the most relevant date for display
+  // Prioritize completion dates, then submitted dates, then start dates
+  const relevantDate =
+    phase.phaseDates.find(
+      (date) => date.dateType.includes("Completion Date") || date.dateType.includes("Complete")
+    ) ||
+    phase.phaseDates.find((date) => date.dateType.includes("Submitted")) ||
+    phase.phaseDates.find((date) => date.dateType.includes("Start Date")) ||
+    phase.phaseDates[0];
+
+  return relevantDate?.dateValue ? new Date(relevantDate.dateValue) : undefined;
+};
+
+export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
   const initialPhase: PhaseName =
     demonstration.currentPhaseName && demonstration.currentPhaseName !== "None"
       ? (demonstration.currentPhaseName as PhaseName)
-      : fallbackPhase;
+      : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
@@ -75,7 +77,7 @@ export const PhaseSelector = ({
     "Application Intake": () => <ApplicationIntakePhase demonstrationId={demonstration.id} />,
     Completeness: CompletenessPhase,
     "Federal Comment": () => {
-      const phaseStartDate = FEDERAL_COMMENT_START_DATE;
+      const phaseStartDate = new Date(2025, 8, 24);
       const phaseEndDate = new Date(phaseStartDate);
       phaseEndDate.setDate(phaseEndDate.getDate() + 30);
 
@@ -108,13 +110,14 @@ export const PhaseSelector = ({
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
-          const displayDate = MOCK_PHASE_DATE_LOOKUP[phaseName];
-          const displayStatus = phaseStatusLookup[phaseName];
+          const displayDate = getDisplayedPhaseDate(demonstration, phaseName);
+          const phaseStatus = getDisplayedPhaseStatus(demonstration, phaseName);
+
           return (
             <PhaseBox
               key={phaseName}
               phaseName={phaseName}
-              phaseStatus={displayStatus}
+              phaseStatus={phaseStatus}
               phaseNumber={index + 1}
               displayDate={displayDate}
               isSelectedPhase={selectedPhase === phaseName}
