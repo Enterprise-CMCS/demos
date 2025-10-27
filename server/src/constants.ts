@@ -167,7 +167,9 @@ export const LOG_LEVELS = [
 
 export const EVENT_TYPES = [
   "Login Succeeded",
+  "Login Failed",
   "Logout Succeeded",
+  "Logout Failed",
   "Create Demonstration Succeeded",
   "Create Demonstration Failed",
   "Create Extension Succeeded",

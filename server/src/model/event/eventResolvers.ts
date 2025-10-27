@@ -13,13 +13,13 @@ export async function logEvent(
   const eventData = {
     ...input.eventData,
     userId: userId,
-    roleId: input.roleId,
+    roleId: input.role,
     applicationId: input.applicationId,
   };
   return await prisma().event.create({
     data: {
       userId: userId,
-      roleId: input.roleId,
+      roleId: input.role,
       applicationId: input.applicationId,
       eventTypeId: input.eventType,
       logLevelId: input.logLevel,
@@ -67,6 +67,14 @@ export const eventResolvers = {
         return null;
       }
       return await getApplication(parent.applicationId);
+    },
+
+    eventType: async (parent: Event) => {
+      return parent.eventTypeId;
+    },
+
+    logLevel: async (parent: Event) => {
+      return parent.logLevelId;
     },
   },
 };

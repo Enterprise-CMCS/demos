@@ -1,10 +1,10 @@
 import React from "react";
 import { LogEventArguments, useEvent } from "hooks/event/useEvent";
-import { Event } from "demos-server";
+import { Event, EventType } from "demos-server";
+import { EVENT_TYPES } from "demos-server-constants";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { useToast } from "components/toast";
 import { Button } from "components/button";
-import { ALL_EVENT_TYPES, EventType } from "hooks/event/eventTypes";
 
 const EventList = ({ events }: { events: Event[] }) => {
   return (
@@ -36,7 +36,7 @@ const LogNewEventForm = () => {
   const { logEvent } = useEvent();
   const { showError, showSuccess } = useToast();
 
-  const [eventType, setEventType] = React.useState<EventType>("LOGIN_SUCCEEDED");
+  const [eventType, setEventType] = React.useState<EventType>("Login Succeeded");
 
   const handleLogEvent = async () => {
     const logEventInput: LogEventArguments = {
@@ -45,17 +45,17 @@ const LogNewEventForm = () => {
 
     const result = await logEvent(logEventInput);
 
-    if (result.data?.logEvent.success) {
+    if (!result.errors) {
       showSuccess("Event logged successfully");
     } else {
-      showError("Failed to log event: " + result.data?.logEvent.message || "Unknown error");
+      showError("Failed to log event: " + result.errors || "Unknown error");
     }
   };
 
   return (
     <div>
       <AutoCompleteSelect
-        options={ALL_EVENT_TYPES.map((type) => ({
+        options={EVENT_TYPES.map((type) => ({
           label: type,
           value: type,
         }))}

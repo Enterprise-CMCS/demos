@@ -1,12 +1,6 @@
 import { Demonstration } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import {
-  ApplicationType,
-  PhaseName,
-  ApplicationStatus,
-  GrantLevel,
-  DemonstrationRole,
-} from "../../types.js";
+import { ApplicationType, PhaseName, ApplicationStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
 import { resolveApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -17,7 +11,7 @@ import {
 } from "../applicationDate/checkInputDateFunctions.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
-const roleProjectOfficer: DemonstrationRole = "Project Officer";
+const roleProjectOfficer: Role = "Project Officer";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 const demonstrationApplicationType: ApplicationType = "Demonstration";
@@ -36,8 +30,9 @@ export async function createDemonstration(
   parent: undefined,
   { input }: { input: CreateDemonstrationInput }
 ) {
+  let newApplicationId: string;
   try {
-    await prisma().$transaction(async (tx) => {
+    newApplicationId = await prisma().$transaction(async (tx) => {
       const application = await tx.application.create({
         data: {
           applicationTypeId: demonstrationApplicationType,
@@ -85,19 +80,13 @@ export async function createDemonstration(
           roleId: "Project Officer",
         },
       });
+
+      return application.id;
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return {
-      success: false,
-      message: "Error creating demonstration: " + errorMessage,
-    };
+    handlePrismaError(error);
   }
-
-  return {
-    success: true,
-    message: "Demonstration created successfully!",
-  };
+  return await getDemonstration(undefined, { id: newApplicationId });
 }
 
 export async function updateDemonstration(

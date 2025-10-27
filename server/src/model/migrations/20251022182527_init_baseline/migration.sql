@@ -303,6 +303,8 @@ VALUES
 -- Authentication
     ('Login Succeeded'),
     ('Logout Succeeded'),
+    ('Login Failed'),
+    ('Logout Failed'),
 -- Record Creation
     ('Create Demonstration Succeeded'),
     ('Create Demonstration Failed'),
