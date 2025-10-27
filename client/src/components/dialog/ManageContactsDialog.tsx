@@ -6,22 +6,68 @@ import { SearchIcon, WarningIcon } from "components/icons";
 import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
-
-import { useLazyQuery, useMutation } from "@apollo/client";
-
+import type { DemonstrationRoleAssignment, Person } from "demos-server";
 import {
-  DEMONSTRATION_DETAIL_QUERY,
-  DEMONSTRATION_HEADER_DETAILS_QUERY,
-  GET_DEMONSTRATION_BY_ID_QUERY,
-  SEARCH_PEOPLE_QUERY,
-  SET_DEMONSTRATION_ROLE_MUTATION,
-  UNSET_DEMONSTRATION_ROLES_MUTATION,
-} from "../../queries/contactQueries";
+  ADMIN_DEMONSTRATION_ROLES,
+  CMS_USER_DEMONSTRATION_ROLES,
+  STATE_USER_DEMONSTRATION_ROLES,
+} from "demos-server";
+import { useDebounced } from "hooks/useDebounced";
+import { GET_DEMONSTRATION_BY_ID_QUERY } from "hooks/useDemonstration";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+
+import { gql, useLazyQuery, useMutation } from "@apollo/client";
+
 import type { ContactRow, ContactType } from "../table/columns/ContactColumns";
-import { CONTACT_TYPES, ContactColumns } from "../table/columns/ContactColumns";
+import { ContactColumns } from "../table/columns/ContactColumns";
 import { PaginationControls } from "../table/PaginationControls";
 
-const CONTACT_TYPE_OPTIONS = CONTACT_TYPES.map((v) => ({ label: v, value: v }));
+const SEARCH_PEOPLE_QUERY = gql`
+  query SearchPeople($search: String!, $demonstrationId: ID) {
+    searchPeople(search: $search, demonstrationId: $demonstrationId) {
+      id
+      firstName
+      lastName
+      email
+      personType
+    }
+  }
+`;
+
+const SET_DEMONSTRATION_ROLE_MUTATION = gql`
+  mutation SetDemonstrationRoles($input: [SetDemonstrationRoleInput!]!) {
+    setDemonstrationRoles(input: $input) {
+      role
+    }
+  }
+`;
+
+const UNSET_DEMONSTRATION_ROLES_MUTATION = gql`
+  mutation UnsetDemonstrationRoles($input: [UnsetDemonstrationRoleInput!]!) {
+    unsetDemonstrationRoles(input: $input) {
+      role
+    }
+  }
+`;
+
+const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
+  query DemonstrationHeaderDetails($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
+      id
+      name
+      expirationDate
+      effectiveDate
+      status
+      state {
+        id
+      }
+      primaryProjectOfficer {
+        id
+        fullName
+      }
+    }
+  }
+`;
 
 type PersonSearchResult = {
   id: string;
@@ -31,38 +77,29 @@ type PersonSearchResult = {
   personType: string;
 };
 
+type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+  id?: string;
+  person: Pick<Person, "id" | "fullName" | "email"> & {
+    idmRoles?: string[];
+  };
+};
+
 export type ManageContactsDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   demonstrationId: string;
-  existingContacts?: {
-    id?: string;
-    person: { id: string; fullName: string; email: string; idmRoles?: string[] };
-    role: string;
-    isPrimary: boolean;
-  }[];
+  existingContacts?: ExistingContactType[];
 };
 
-function useDebounced<T>(value: T, ms = 250): T {
-  const [debounced, setDebounced] = useState(value);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setDebounced(value), ms);
-    return () => clearTimeout(timeout);
-  }, [value, ms]);
-
-  return debounced;
-}
-
 const mapExistingContacts = (arr: ManageContactsDialogProps["existingContacts"] = []) =>
-  arr.map((c) => ({
-    id: c.id,
-    personId: c.person.id,
-    name: c.person.fullName,
-    email: c.person.email,
-    idmRoles: c.person.idmRoles ?? [],
-    contactType: c.role as ContactType,
-    isPrimary: c.isPrimary,
+  arr.map((contact) => ({
+    id: contact.id,
+    personId: contact.person.id,
+    name: contact.person.fullName,
+    email: contact.person.email,
+    idmRoles: contact.person.idmRoles ?? [],
+    contactType: contact.role satisfies ContactType,
+    isPrimary: contact.isPrimary,
   }));
 
 export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
@@ -90,17 +127,8 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const [searchPeople] = useLazyQuery(SEARCH_PEOPLE_QUERY, {
     fetchPolicy: "network-only",
     onCompleted: (data) => {
-      const rawResults = data.searchPeople || [];
-      // Filter out state users to prevent foreign key constraint errors
-      // State users can only be assigned to demonstrations in their own state
-      // Until the backend is updated to include state information in search results,
-      // we temporarily exclude all state users from search
-      const filteredResults = rawResults.filter((person: PersonSearchResult) => {
-        // Temporarily exclude all state users to prevent database constraint violations
-        // TODO: Update backend searchPeople resolver to filter by demonstration state
-        return person.personType !== "demos-state-user";
-      });
-      setSearchResults(filteredResults);
+      const results = data.searchPeople || [];
+      setSearchResults(results);
     },
   });
   const [setDemonstrationRoles] = useMutation(SET_DEMONSTRATION_ROLE_MUTATION, {
@@ -121,10 +149,13 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
   const optionsByRole = useMemo(
     () => ({
-      "demos-cms-user": CONTACT_TYPE_OPTIONS.filter((o) => o.value !== "State Point of Contact"),
-      "demos-state-user": CONTACT_TYPE_OPTIONS.filter((o) => o.value === "State Point of Contact"),
-      "demos-admin": CONTACT_TYPE_OPTIONS,
-      Default: CONTACT_TYPE_OPTIONS,
+      "demos-cms-user": CMS_USER_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
+      "demos-state-user": STATE_USER_DEMONSTRATION_ROLES.map((role) => ({
+        label: role,
+        value: role,
+      })),
+      "demos-admin": ADMIN_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
+      Default: ADMIN_DEMONSTRATION_ROLES.map((role) => ({ label: role, value: role })),
     }),
     []
   );
@@ -141,11 +172,16 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
   useEffect(() => {
     if (debouncedSearchTerm.length >= 2) {
-      searchPeople({ variables: { search: debouncedSearchTerm } });
+      searchPeople({
+        variables: {
+          search: debouncedSearchTerm,
+          demonstrationId: demonstrationId,
+        },
+      });
     } else {
       setSearchResults([]);
     }
-  }, [debouncedSearchTerm, searchPeople]);
+  }, [debouncedSearchTerm, searchPeople, demonstrationId]);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -155,8 +191,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     if (selectedContacts.some((c) => c.personId === person.id)) return;
 
     setSelectedContacts((prev) => {
-      const existingProjectOfficers = prev.filter((c) => c.contactType === "Project Officer");
-
       const idmRoles = [person.personType];
 
       let defaults: { contactType?: ContactType; isPrimary: boolean };
@@ -164,29 +198,23 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       const availableTypes = getFilteredContactTypeOptions(idmRoles);
 
       if (person.personType === "demos-state-user") {
+        const stateContactType: ContactType = "State Point of Contact";
         defaults = {
-          contactType: "State Point of Contact" as ContactType,
+          contactType: stateContactType,
           isPrimary: false,
         };
       } else if (person.personType === "demos-cms-user") {
-        if (existingProjectOfficers.length === 0) {
-          defaults = { contactType: "Project Officer" as ContactType, isPrimary: true };
-        } else {
-          const nonStateOptions = availableTypes.filter(
-            (opt) => opt.value !== "State Point of Contact"
-          );
-          defaults = {
-            contactType:
-              nonStateOptions.length > 0 ? (nonStateOptions[0].value as ContactType) : undefined,
-            isPrimary: false,
-          };
-        }
+        const nonStateOptions = availableTypes.filter(
+          (opt) => opt.value !== "State Point of Contact"
+        );
+        const defaultContactType =
+          nonStateOptions.length > 0 ? (nonStateOptions[0].value as ContactType) : undefined;
+        defaults = {
+          contactType: defaultContactType,
+          isPrimary: false,
+        };
       } else {
-        if (existingProjectOfficers.length === 0) {
-          defaults = { contactType: "Project Officer" as ContactType, isPrimary: true };
-        } else {
-          defaults = { isPrimary: false };
-        }
+        defaults = { isPrimary: false };
       }
 
       return [
@@ -205,38 +233,31 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     setSearchTerm("");
   };
 
-  const handleContactTypeChange = useCallback(
-    (personId: string, newType?: ContactType) => {
-      setSelectedContacts((prev) => {
-        const isPO = newType === "Project Officer";
+  const handleContactTypeChange = useCallback((personId: string, newType?: ContactType) => {
+    setSelectedContacts((previousContacts) => {
+      const existingPrimaryProjectOfficers = previousContacts.filter(
+        (c) => c.contactType === "Project Officer" && c.isPrimary && c.personId !== personId
+      );
 
-        return prev.map((c) => {
-          if (c.personId === personId) {
-            return { ...c, contactType: newType, isPrimary: isPO };
+      return previousContacts.map((contact) => {
+        if (contact.personId === personId) {
+          let newIsPrimary = false;
+
+          if (newType === "Project Officer") {
+            newIsPrimary = existingPrimaryProjectOfficers.length === 0;
+          } else if (newType === contact.contactType) {
+            newIsPrimary = contact.isPrimary ?? false;
+          } else {
+            newIsPrimary = false;
           }
 
-          if (isPO && c.contactType === "Project Officer") {
-            const availableOptions = getFilteredContactTypeOptions(c.idmRoles);
-            const nonProjectOfficerOptions = availableOptions.filter(
-              (opt) => opt.value !== "Project Officer"
-            );
+          return { ...contact, contactType: newType, isPrimary: newIsPrimary };
+        }
 
-            return {
-              ...c,
-              contactType:
-                nonProjectOfficerOptions.length > 0
-                  ? (nonProjectOfficerOptions[0].value as ContactType)
-                  : undefined,
-              isPrimary: false,
-            };
-          }
-
-          return c;
-        });
+        return contact;
       });
-    },
-    [getFilteredContactTypeOptions]
-  );
+    });
+  }, []);
 
   const handlePrimaryToggle = useCallback((personId: string) => {
     setSelectedContacts((prev) => {
@@ -250,7 +271,9 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
       if (type === "Project Officer") {
         const projectOfficers = prev.filter((c) => c.contactType === "Project Officer");
-        if (target.isPrimary && projectOfficers.length === 1) {
+        const primaryProjectOfficers = projectOfficers.filter((c) => c.isPrimary);
+
+        if (target.isPrimary && primaryProjectOfficers.length === 1) {
           return prev;
         }
 
@@ -259,11 +282,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
           setTimeout(() => setShowPrimaryWarning(false), 3000);
         }
 
-        return prev.map((c) => {
-          if (c.contactType === "Project Officer") {
-            return { ...c, isPrimary: c.personId === personId };
+        return prev.map((contact) => {
+          if (contact.contactType === "Project Officer") {
+            return { ...contact, isPrimary: contact.personId === personId };
           }
-          return c;
+          return contact;
         });
       } else {
         if (!target.isPrimary && existingPrimary) {
@@ -272,14 +295,14 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         }
 
         const willBePrimary = !target.isPrimary;
-        return prev.map((c) => {
-          if (c.personId === personId) {
-            return { ...c, isPrimary: willBePrimary };
+        return prev.map((contact) => {
+          if (contact.personId === personId) {
+            return { ...contact, isPrimary: willBePrimary };
           }
-          if (c.contactType === type) {
-            return { ...c, isPrimary: false };
+          if (contact.contactType === type) {
+            return { ...contact, isPrimary: false };
           }
-          return c;
+          return contact;
         });
       }
     });
@@ -373,16 +396,21 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     }
 
     const projectOfficers = selectedContacts.filter((c) => c.contactType === "Project Officer");
-    if (projectOfficers.length !== 1) {
+    if (projectOfficers.length === 0) {
       return false;
     }
 
-    if (!projectOfficers[0].isPrimary) {
+    const primaryProjectOfficers = projectOfficers.filter((c) => c.isPrimary);
+    if (primaryProjectOfficers.length !== 1) {
       return false;
     }
 
     const presentTypes = Array.from(
-      new Set(selectedContacts.map((c) => c.contactType).filter(Boolean) as string[])
+      new Set(
+        selectedContacts
+          .map((contact) => contact.contactType)
+          .filter((type): type is ContactType => Boolean(type))
+      )
     ).filter((type) => type !== "Project Officer");
 
     const isValidPrimaries = presentTypes.every((type) => {
@@ -450,6 +478,12 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         }
       });
 
+      if (rolesToRemove.length > 0) {
+        await unsetDemonstrationRoles({
+          variables: { input: rolesToRemove },
+        });
+      }
+
       await setDemonstrationRoles({
         variables: {
           input: currentRoles.map((c) => ({
@@ -460,12 +494,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
           })),
         },
       });
-
-      if (rolesToRemove.length > 0) {
-        await unsetDemonstrationRoles({
-          variables: { input: rolesToRemove },
-        });
-      }
 
       setSavedContacts(selectedContacts.map((c) => ({ ...c })));
       showSuccess("Contacts have been updated.");
@@ -489,14 +517,12 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const contactColumns = useMemo(
     () =>
       ContactColumns({
-        selectedContacts,
         getFilteredContactTypeOptions,
         onContactTypeChange: handleContactTypeChange,
         onPrimaryToggle: handlePrimaryToggle,
         onRemoveContact: handleRemoveContact,
       }),
     [
-      selectedContacts,
       getFilteredContactTypeOptions,
       handleContactTypeChange,
       handlePrimaryToggle,
@@ -561,8 +587,9 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
                 autoComplete="off"
               />
             </div>
-            {searchResults.filter((p) => !selectedContacts.some((c) => c.personId === p.id))
-              .length > 0 && (
+            {searchResults
+              .filter((p) => p.personType !== "demos-state-user")
+              .filter((p) => !selectedContacts.some((c) => c.personId === p.id)).length > 0 && (
               <div
                 className="absolute left-0 right-0 z-20 mt-sm border border-gray rounded-minimal p-sm bg-surface-white shadow-lg max-h-[200px] overflow-y-auto"
                 role="listbox"
@@ -570,6 +597,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
                 data-testid="search-results-dropdown"
               >
                 {searchResults
+                  .filter((p) => p.personType !== "demos-state-user")
                   .filter((p) => !selectedContacts.some((c) => c.personId === p.id))
                   .map((p) => (
                     <button

@@ -13,8 +13,8 @@ import { ManageContactsDialog, ManageContactsDialogProps } from "./ManageContact
 
 // GraphQL queries used in the component
 const SEARCH_PEOPLE_QUERY = gql`
-  query SearchPeople($search: String!) {
-    searchPeople(search: $search) {
+  query SearchPeople($search: String!, $demonstrationId: ID) {
+    searchPeople(search: $search, demonstrationId: $demonstrationId) {
       id
       firstName
       lastName
@@ -36,7 +36,7 @@ const SET_DEMONSTRATION_ROLE_MUTATION = gql`
 const createSearchMock = (searchTerm: string) => ({
   request: {
     query: SEARCH_PEOPLE_QUERY,
-    variables: { search: searchTerm },
+    variables: { search: searchTerm, demonstrationId: "demo-1" },
   },
   result: {
     data: {

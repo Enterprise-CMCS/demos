@@ -1,7 +1,6 @@
-// ContactColumns.tsx
 import * as React from "react";
 
-import type { CONTACT_TYPES } from "demos-server-constants";
+import type { Role } from "demos-server";
 import Switch from "react-switch";
 
 import { createColumnHelper } from "@tanstack/react-table";
@@ -12,7 +11,7 @@ import { Select } from "../../input/select/Select";
 
 export { CONTACT_TYPES } from "demos-server-constants";
 
-export type ContactType = (typeof CONTACT_TYPES)[number];
+export type ContactType = Role;
 
 export type ContactRow = {
   id?: string;
@@ -25,7 +24,6 @@ export type ContactRow = {
 };
 
 type ContactColumnsProps = {
-  selectedContacts: ContactRow[];
   getFilteredContactTypeOptions: (idmRoles?: string[]) => Array<{ label: string; value: string }>;
   onContactTypeChange: (personId: string, value: ContactType) => void;
   onPrimaryToggle: (personId: string) => void;
@@ -33,7 +31,6 @@ type ContactColumnsProps = {
 };
 
 export function ContactColumns({
-  selectedContacts,
   getFilteredContactTypeOptions,
   onContactTypeChange,
   onPrimaryToggle,
@@ -70,7 +67,10 @@ export function ContactColumns({
               value={contact.contactType}
               options={getFilteredContactTypeOptions(contact.idmRoles)}
               placeholder="Select Type…"
-              onSelect={(v) => onContactTypeChange(contact.personId, v as ContactType)}
+              onSelect={(value) => {
+                const typedValue = value as ContactType;
+                onContactTypeChange(contact.personId, typedValue);
+              }}
               isRequired
               validationMessage={isInvalid ? "Contact Type is required" : ""}
             />
@@ -114,11 +114,7 @@ export function ContactColumns({
               name="Delete Contact"
               size="small"
               onClick={() => onRemoveContact(contact.personId)}
-              disabled={
-                contact.contactType === "Project Officer" &&
-                contact.isPrimary &&
-                selectedContacts.filter((c) => c.contactType === "Project Officer").length === 1
-              }
+              disabled={contact.contactType === "Project Officer" && contact.isPrimary}
             >
               <DeleteIcon />
             </CircleButton>

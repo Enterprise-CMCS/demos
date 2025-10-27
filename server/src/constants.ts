@@ -21,6 +21,19 @@ export const CONTACT_TYPES = [
   "State Point of Contact",
 ] as const;
 
+export const ADMIN_DEMONSTRATION_ROLES = ROLES;
+
+export const CMS_USER_DEMONSTRATION_ROLES = [
+  "Project Officer",
+  "DDME Analyst",
+  "Policy Technical Director",
+  "Monitoring & Evaluation Technical Director",
+] as const;
+
+export const STATE_USER_DEMONSTRATION_ROLES = [
+  "State Point of Contact",
+] as const;
+
 export const PERSON_TYPES = [
   "demos-admin",
   "demos-cms-user",
@@ -30,7 +43,11 @@ export const PERSON_TYPES = [
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
-export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
+export const APPLICATION_TYPES = [
+  "Demonstration",
+  "Amendment",
+  "Extension",
+] as const;
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
