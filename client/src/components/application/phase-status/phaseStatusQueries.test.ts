@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { getQueryForSetPhaseStatus, SetPhaseStatusInput } from "./phaseStatusQueries";
+import { getQueryForSetPhaseStatus } from "./phaseStatusQueries";
+import { SetApplicationPhaseStatusInput } from "demos-server";
 
-const TEST_SET_PHASE_STATUS_INPUT: SetPhaseStatusInput = {
+const TEST_SET_PHASE_STATUS_INPUT: SetApplicationPhaseStatusInput = {
   applicationId: "test-application-123",
   phaseName: "Concept",
   phaseStatus: "Started",
@@ -19,7 +20,7 @@ describe("phaseStatusQueries", () => {
     });
 
     it("should handle special characters in applicationId", () => {
-      const input: SetPhaseStatusInput = {
+      const input: SetApplicationPhaseStatusInput = {
         ...TEST_SET_PHASE_STATUS_INPUT,
         applicationId: "application-with-special-chars-123_abc",
       };
@@ -42,7 +43,7 @@ describe("phaseStatusQueries", () => {
       ] as const;
 
       phaseNames.forEach((phaseName) => {
-        const input: SetPhaseStatusInput = {
+        const input: SetApplicationPhaseStatusInput = {
           ...TEST_SET_PHASE_STATUS_INPUT,
           phaseName: phaseName,
         };
@@ -62,7 +63,7 @@ describe("phaseStatusQueries", () => {
       ] as const;
 
       phaseStatuses.forEach((phaseStatus) => {
-        const input: SetPhaseStatusInput = {
+        const input: SetApplicationPhaseStatusInput = {
           ...TEST_SET_PHASE_STATUS_INPUT,
           phaseStatus: phaseStatus,
         };
@@ -85,7 +86,7 @@ describe("phaseStatusQueries", () => {
     });
 
     it("should handle phase names with spaces and special characters", () => {
-      const input: SetPhaseStatusInput = {
+      const input: SetApplicationPhaseStatusInput = {
         applicationId: "app-123",
         phaseName: "OGC & OMB Review",
         phaseStatus: "Completed",
@@ -98,7 +99,7 @@ describe("phaseStatusQueries", () => {
     });
 
     it("should generate mutation for a complete workflow transition", () => {
-      const input: SetPhaseStatusInput = {
+      const input: SetApplicationPhaseStatusInput = {
         applicationId: "workflow-test-456",
         phaseName: "Federal Comment",
         phaseStatus: "Completed",
