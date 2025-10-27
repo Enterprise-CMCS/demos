@@ -3,10 +3,13 @@ import React, { useEffect, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ApplicationIntakeUploadDialog } from "components/dialog/document/ApplicationIntakeUploadDialog";
 import { DeleteIcon, ExportIcon } from "components/icons";
-import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { addDays } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer } from "util/formatDate";
+import { formatDate, formatDateForServer, parseInputDate } from "util/formatDate";
+import {
+  ApplicationWorkflowDemonstration,
+  ApplicationWorkflowDocument,
+} from "../ApplicationWorkflow";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -22,24 +25,50 @@ const STYLES = {
 };
 
 // Calculate completeness review due date (submitted date + 15 calendar days)
-const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
-  const date = Date.parse(stateApplicationSubmittedDate);
+export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
+  const date = parseInputDate(stateApplicationSubmittedDate);
   return addDays(date, 15);
 };
-interface ApplicationIntakeProps {
+
+export const getApplicationIntakeComponentFromDemonstration = (
+  demonstration: ApplicationWorkflowDemonstration
+) => {
+  const applicationIntakePhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "Application Intake"
+  );
+
+  const stateApplicationSubmittedDate = applicationIntakePhase?.phaseDates.find(
+    (date) => date.dateType === "State Application Submitted Date"
+  )?.dateValue;
+
+  const stateApplicationDocuments = demonstration.documents.filter(
+    (doc) => doc.documentType === "State Application"
+  );
+
+  return (
+    <ApplicationIntakePhase
+      demonstrationId={demonstration.id}
+      initialStateApplicationDocuments={stateApplicationDocuments}
+      initialStateApplicationSubmittedDate={
+        stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
+      }
+    />
+  );
+};
+export interface ApplicationIntakeProps {
   demonstrationId: string;
-  initialStateApplicationDocuments?: DocumentTableDocument[];
-  initialStateApplicationSubmittedDate?: string;
+  initialStateApplicationDocuments: ApplicationWorkflowDocument[];
+  initialStateApplicationSubmittedDate: string;
 }
 
 export const ApplicationIntakePhase = ({
   demonstrationId,
-  initialStateApplicationDocuments = [],
+  initialStateApplicationDocuments,
   initialStateApplicationSubmittedDate,
 }: ApplicationIntakeProps) => {
   const [isUploadOpen, setUploadOpen] = useState(false);
-  const [stateApplicationDocuments] = useState<DocumentTableDocument[]>(
-    initialStateApplicationDocuments ?? []
+  const [stateApplicationDocuments] = useState<ApplicationWorkflowDocument[]>(
+    initialStateApplicationDocuments
   );
   const [stateApplicationSubmittedDate, setStateApplicationSubmittedDate] = useState<string>(
     initialStateApplicationSubmittedDate ?? ""
@@ -47,7 +76,6 @@ export const ApplicationIntakePhase = ({
   const [isFinishButtonEnabled, setIsFinishButtonEnabled] = useState(false);
 
   useEffect(() => {
-    console.log(stateApplicationDocuments, stateApplicationSubmittedDate);
     setIsFinishButtonEnabled(
       stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate)
     );
@@ -77,7 +105,7 @@ export const ApplicationIntakePhase = ({
         {stateApplicationDocuments.length == 0 && (
           <div className="text-sm text-text-placeholder">No documents yet.</div>
         )}
-        {stateApplicationDocuments.map((doc: DocumentTableDocument) => (
+        {stateApplicationDocuments.map((doc: ApplicationWorkflowDocument) => (
           <div key={doc.id} className={STYLES.fileRow}>
             <div>
               <div className="font-medium">{doc.name}</div>
