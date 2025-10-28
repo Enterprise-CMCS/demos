@@ -8,8 +8,8 @@ export function useAuthActions() {
 
   const signOut = async () => {
     try {
-      auth.signoutSilent();
-      auth.removeUser();
+      await auth.signoutSilent();
+      await auth.removeUser();
     } catch (error) {
       console.warn("[Logout] logout failed", error);
     }
