@@ -2,78 +2,36 @@ import "@testing-library/jest-dom";
 
 import React from "react";
 
-import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { TestProvider } from "test-utils/TestProvider";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { ApplicationIntakePhase } from "./ApplicationIntakePhase";
-
-// Test constants
-const TEST_DEMO_ID = "test-demo-id";
-const TEST_DOCUMENT_DATE = "2024-01-12";
-const TEST_OTHER_DOCUMENT_DATE = "2024-01-16";
-const TEST_USER_INPUT_DATE = "2024-01-12";
-
-const mockMutation = vi.fn();
-const mockOnDocumentsRefetch = vi.fn();
-
-// Mock isLocalDevelopment to return true for testing panel
-vi.mock("config/env", async () => {
-  const actual = await vi.importActual("config/env");
-  return {
-    ...actual,
-    isLocalDevelopment: vi.fn(() => true),
-  };
-});
-
-beforeEach(() => {
-  vi.mock("@apollo/client", async () => {
-    const actual = await vi.importActual("@apollo/client");
-    return {
-      ...actual,
-      useMutation: () => [mockMutation, { loading: false }],
-    };
-  });
-
-  // Mock NODE_ENV for testing panel
-  vi.stubEnv("NODE_ENV", "development");
-});
-
-afterEach(() => {
-  vi.resetModules();
-  vi.clearAllMocks();
-  vi.unstubAllEnvs();
-});
+import {
+  ApplicationIntakePhase,
+  ApplicationIntakeProps,
+  getCompletenessReviewDueDate,
+} from "./ApplicationIntakePhase";
+import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import { formatDateForServer } from "util/formatDate";
 
 describe("ApplicationIntakePhase", () => {
-  const defaultProps = {
-    demonstrationId: TEST_DEMO_ID,
-    documents: [],
-    onDocumentsRefetch: mockOnDocumentsRefetch,
+  const defaultProps: ApplicationIntakeProps = {
+    demonstrationId: "test-demo-id",
+    initialStateApplicationDocuments: [],
+    initialStateApplicationSubmittedDate: "",
   };
 
-  const mockStateApplicationDocument: DocumentTableDocument = {
+  const mockStateApplicationDocument: ApplicationWorkflowDocument = {
     id: "1",
     name: "State Application Document 1",
     description: "Test state application document",
     documentType: "State Application",
-    createdAt: new Date(TEST_DOCUMENT_DATE),
-    owner: { person: { fullName: "Test User" } },
+    createdAt: new Date("2024-01-12"),
   };
 
-  const mockOtherDocument: DocumentTableDocument = {
-    id: "doc-2",
-    name: "Other Document",
-    description: "Test other document",
-    documentType: "General File",
-    createdAt: new Date(TEST_OTHER_DOCUMENT_DATE),
-    owner: { person: { fullName: "Test User" } },
-  };
-
-  const setup = (props = {}) => {
+  const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
     const finalProps = { ...defaultProps, ...props };
 
     render(
@@ -125,15 +83,14 @@ describe("ApplicationIntakePhase", () => {
 
     it("displays Application Intake phase documents only", () => {
       setup({
-        documents: [mockStateApplicationDocument, mockOtherDocument],
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
       });
 
       expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
-      expect(screen.queryByText("Other Document")).not.toBeInTheDocument();
     });
 
     it("renders delete button for each document", () => {
-      setup({ documents: [mockStateApplicationDocument] });
+      setup({ initialStateApplicationDocuments: [mockStateApplicationDocument] });
 
       const deleteButton = screen.getByLabelText("Delete State Application Document 1");
       expect(deleteButton).toBeInTheDocument();
@@ -195,8 +152,11 @@ describe("ApplicationIntakePhase", () => {
         expect(finishButton).toBeDisabled();
       });
 
-      it("is enabled when documents are uploaded (date auto-populated)", () => {
-        setup({ documents: [mockStateApplicationDocument] });
+      it("is enabled when documents are uploaded & state application date is filled", () => {
+        setup({
+          initialStateApplicationDocuments: [mockStateApplicationDocument],
+          initialStateApplicationSubmittedDate: "2020-10-10",
+        });
         const finishButton = screen.getByRole("button", { name: /finish/i });
         expect(finishButton).toBeEnabled();
       });
@@ -205,55 +165,6 @@ describe("ApplicationIntakePhase", () => {
         setup();
         const skipButton = screen.queryByRole("button", { name: /skip/i });
         expect(skipButton).not.toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("Testing Panel (Development Mode)", () => {
-    it("shows testing panel in development mode", () => {
-      setup();
-      expect(screen.getByText("UI Testing Panel")).toBeInTheDocument();
-    });
-
-    it("adds mock documents when add button clicked", async () => {
-      setup();
-
-      const addButton = screen.getByRole("button", { name: /add mock doc/i });
-      await userEvent.click(addButton);
-
-      // Should show the mock document in the list
-      expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
-    });
-
-    it("clears mock documents when clear button clicked", async () => {
-      setup();
-
-      // Add a mock document first
-      const addButton = screen.getByRole("button", { name: /add mock doc/i });
-      await userEvent.click(addButton);
-
-      // Then clear it
-      const clearButton = screen.getByRole("button", { name: /clear all/i });
-      await userEvent.click(clearButton);
-
-      // Should show no documents
-      expect(screen.getByText("No documents yet.")).toBeInTheDocument();
-    });
-
-    it("shows no documents message when empty", () => {
-      setup();
-
-      expect(screen.getByText("No documents yet.")).toBeInTheDocument();
-    });
-
-    it("shows documents when documents are added", async () => {
-      setup();
-
-      const addButton = screen.getByRole("button", { name: /add mock doc/i });
-      await userEvent.click(addButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
       });
     });
   });
@@ -269,70 +180,6 @@ describe("ApplicationIntakePhase", () => {
     });
   });
 
-  describe("Document Management", () => {
-    it("filters documents to only show State Application document type", () => {
-      const mixedDocuments = [
-        mockStateApplicationDocument,
-        mockOtherDocument,
-        {
-          ...mockOtherDocument,
-          id: "doc-3",
-          name: "Another State Application Document",
-          documentType: "State Application",
-        },
-      ];
-
-      setup({ documents: mixedDocuments });
-
-      expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
-      expect(screen.getByText("Another State Application Document")).toBeInTheDocument();
-      expect(screen.queryByText("Other Document")).not.toBeInTheDocument();
-    });
-
-    it("handles document deletion for mock documents", async () => {
-      setup();
-
-      // Add a mock document
-      const addButton = screen.getByRole("button", { name: /add mock doc/i });
-      await userEvent.click(addButton);
-
-      // Delete the mock document using specific aria-label
-      const deleteButton = screen.getByLabelText("Delete State Application Document 1");
-      await userEvent.click(deleteButton);
-
-      // Should show no documents again
-      expect(screen.getByText("No documents yet.")).toBeInTheDocument();
-    });
-  });
-
-  describe("Date Auto-population and Calculation", () => {
-    it("auto-populates submitted date when first document is uploaded", () => {
-      const documentWithDate = {
-        ...mockStateApplicationDocument,
-        createdAt: new Date(TEST_DOCUMENT_DATE),
-      };
-
-      setup({ documents: [documentWithDate] });
-
-      // Check that the date input field has been populated
-      const dateInputs = screen.getAllByDisplayValue("2024-01-12");
-      expect(dateInputs.length).toBeGreaterThan(0);
-    });
-
-    it("calculates completeness review due date correctly", () => {
-      const documentWithDate = {
-        ...mockStateApplicationDocument,
-        createdAt: new Date(TEST_DOCUMENT_DATE), // January 12, 2024
-      };
-
-      setup({ documents: [documentWithDate] });
-
-      // Check that the due date field shows the calculated date (15 days after submitted date)
-      const dueDateInputs = screen.getAllByDisplayValue("2024-01-27");
-      expect(dueDateInputs.length).toBeGreaterThan(0);
-    });
-  });
-
   describe("Validation Logic", () => {
     it("always shows required asterisk for State Application Submitted Date", () => {
       setup();
@@ -342,71 +189,57 @@ describe("ApplicationIntakePhase", () => {
       const asterisk = labelElement?.parentElement?.querySelector(".text-text-warn");
       expect(asterisk).toBeInTheDocument();
     });
-
-    it("shows validation message when date is provided without documents", async () => {
-      setup();
-
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
-      );
-
-      // Set a date without having documents
-      if (submittedDateInput) {
-        await userEvent.type(submittedDateInput, TEST_USER_INPUT_DATE);
-
-        expect(
-          screen.getByText(/At least one State Application document is required/)
-        ).toBeInTheDocument();
-      }
-    });
   });
 
-  describe("State Management", () => {
-    it("updates button states when mock documents are added", async () => {
-      setup();
+  describe("getCompletenessReviewDueDate", () => {
+    it("adds 15 calendar days to the submitted date", () => {
+      const submittedDate = "2024-01-12"; // January 12, 2024
+      const result = getCompletenessReviewDueDate(submittedDate);
 
-      // Initially finish should be disabled
-      expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
-
-      // Add mock document
-      const addButton = screen.getByRole("button", { name: /add mock doc/i });
-      await userEvent.click(addButton);
-
-      // Finish should now be enabled (due to auto-populated date)
-      await waitFor(() => {
-        expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
-      });
-    });
-  });
-
-  describe("Mutation Handling", () => {
-    it("calls complete phase mutation with correct parameters", async () => {
-      setup({ documents: [mockStateApplicationDocument] });
-
-      const finishButton = screen.getByRole("button", { name: /finish/i });
-      await userEvent.click(finishButton);
-
-      expect(mockMutation).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variables: {
-            input: {
-              demonstrationId: "test-demo-id",
-              // Flexible matching for timezone differences
-              submittedDate: expect.stringMatching(/^2024-01-(11|12)$/),
-              completenessReviewDueDate: expect.stringMatching(/^2024-01-(25|27)$/),
-            },
-          },
-        })
-      );
+      expect(formatDateForServer(result)).toBe("2024-01-27");
     });
 
-    it("displays finish button when ready to complete phase", () => {
-      setup({ documents: [mockStateApplicationDocument] });
+    it("handles date at end of month correctly", () => {
+      const submittedDate = "2024-01-20"; // January 20, 2024
+      const result = getCompletenessReviewDueDate(submittedDate);
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
-      expect(finishButton).toBeInTheDocument();
-      expect(finishButton).toBeEnabled();
+      expect(formatDateForServer(result)).toBe("2024-02-04");
+    });
+
+    it("handles leap year correctly", () => {
+      const submittedDate = "2024-02-20"; // February 20, 2024 (leap year)
+      const result = getCompletenessReviewDueDate(submittedDate);
+
+      expect(formatDateForServer(result)).toBe("2024-03-06");
+    });
+
+    it("handles non-leap year February correctly", () => {
+      const submittedDate = "2025-02-20"; // February 20, 2025 (non-leap year)
+      const result = getCompletenessReviewDueDate(submittedDate);
+
+      expect(formatDateForServer(result)).toBe("2025-03-07");
+    });
+
+    it("handles year boundary crossing", () => {
+      const submittedDate = "2024-12-20"; // December 20, 2024
+      const result = getCompletenessReviewDueDate(submittedDate);
+
+      expect(formatDateForServer(result)).toBe("2025-01-04");
+    });
+
+    it("returns a valid Date object", () => {
+      const submittedDate = "2024-10-13";
+      const result = getCompletenessReviewDueDate(submittedDate);
+
+      expect(result).toBeInstanceOf(Date);
+      expect(result.toString()).not.toBe("Invalid Date");
+    });
+
+    it("calculates correctly for the test case: Oct 13 to Oct 28", () => {
+      const submittedDate = "2025-10-13"; // October 13, 2025
+      const result = getCompletenessReviewDueDate(submittedDate);
+
+      expect(formatDateForServer(result)).toBe("2025-10-28");
     });
   });
 });

@@ -1,7 +1,13 @@
 import React from "react";
 import { PhaseSelector } from "./phase-selector/PhaseSelector";
 import { DemonstrationStatusBadge } from "../badge/DemonstrationStatusBadge";
-import type { Demonstration, PhaseName, ApplicationDate, PhaseStatus } from "demos-server";
+import type {
+  Demonstration,
+  PhaseName,
+  ApplicationDate,
+  PhaseStatus,
+  Document,
+} from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
 
@@ -19,6 +25,13 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
           dateValue
         }
       }
+      documents {
+        id
+        name
+        description
+        documentType
+        createdAt
+      }
     }
   }
 `;
@@ -28,11 +41,18 @@ type SimplePhase = {
   phaseStatus: PhaseStatus;
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
 };
+
+export type ApplicationWorkflowDocument = Pick<
+  Document,
+  "id" | "name" | "description" | "documentType" | "createdAt"
+>;
+
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
   "id" | "status" | "currentPhaseName"
 > & {
   phases: SimplePhase[];
+  documents: ApplicationWorkflowDocument[];
 };
 
 export const ApplicationWorkflow = ({ demonstrationId }: { demonstrationId: string }) => {
