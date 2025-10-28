@@ -1,7 +1,14 @@
 import { Demonstration as PrismaDemonstration } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { ApplicationType, PhaseName, ApplicationStatus, GrantLevel, Role } from "../../types.js";
-import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
+import {
+  ApplicationStatus,
+  ApplicationType,
+  CreateDemonstrationInput,
+  GrantLevel,
+  PhaseName,
+  Role,
+  UpdateDemonstrationInput,
+} from "../../types.js";
 import { resolveApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -9,6 +16,7 @@ import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
+import { getApplication, getManyApplications } from "../application/applicationResolvers.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -16,20 +24,21 @@ const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 const demonstrationApplicationType: ApplicationType = "Demonstration";
 
-export async function getDemonstration(parent: undefined, { id }: { id: string }) {
-  return await prisma().demonstration.findUnique({
-    where: { id: id },
-  });
+export async function __getDemonstration(
+  parent: undefined,
+  { id }: { id: string }
+): Promise<PrismaDemonstration> {
+  return (await getApplication(id, "Demonstration")) as PrismaDemonstration;
 }
 
-export async function getManyDemonstrations() {
-  return await prisma().demonstration.findMany();
+export async function __getManyDemonstrations() {
+  return await getManyApplications("Demonstration");
 }
 
 export async function createDemonstration(
   parent: undefined,
   { input }: { input: CreateDemonstrationInput }
-) {
+): Promise<PrismaDemonstration> {
   let newApplicationId: string;
   try {
     newApplicationId = await prisma().$transaction(async (tx) => {
@@ -86,13 +95,13 @@ export async function createDemonstration(
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getDemonstration(undefined, { id: newApplicationId });
+  return (await getApplication(newApplicationId, "Demonstration")) as PrismaDemonstration;
 }
 
 export async function updateDemonstration(
   parent: undefined,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
-) {
+): Promise<PrismaDemonstration> {
   if (input.effectiveDate) {
     checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
   }
@@ -173,20 +182,41 @@ export async function updateDemonstration(
   }
 }
 
+export async function deleteDemonstration(
+  parent: undefined,
+  { id }: { id: string }
+): Promise<PrismaDemonstration> {
+  try {
+    return await prisma().$transaction(async (tx) => {
+      await tx.application.delete({
+        where: {
+          id: id,
+        },
+      });
+
+      const demonstration = await tx.demonstration.delete({
+        where: {
+          id: id,
+        },
+      });
+
+      return demonstration;
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export const demonstrationResolvers = {
   Query: {
-    demonstration: getDemonstration,
-    demonstrations: getManyDemonstrations,
+    demonstration: __getDemonstration,
+    demonstrations: __getManyDemonstrations,
   },
 
   Mutation: {
     createDemonstration: createDemonstration,
     updateDemonstration: updateDemonstration,
-    deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().demonstration.delete({
-        where: { id: id },
-      });
-    },
+    deleteDemonstration: deleteDemonstration,
   },
 
   Demonstration: {

@@ -16,7 +16,6 @@ import {
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName, PhaseStatus } from "./types.js";
 import {
-  getManyDemonstrations,
   createDemonstration,
   updateDemonstration,
 } from "./model/demonstration/demonstrationResolvers.js";
@@ -33,6 +32,7 @@ import {
 import { setApplicationDate } from "./model/applicationDate/applicationDateResolvers.js";
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
+import { getManyApplications } from "./model/application/applicationResolvers.js";
 
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
@@ -224,7 +224,7 @@ async function seedDatabase() {
     };
     await createDemonstration(undefined, { input: createInput });
   }
-  const demonstrations = await getManyDemonstrations();
+  const demonstrations = (await getManyApplications("Demonstration"))!;
   const completenessPhase: PhaseName = "Completeness";
   const incompletePhaseStatus: PhaseStatus = "Incomplete";
 
