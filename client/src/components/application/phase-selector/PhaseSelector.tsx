@@ -11,7 +11,7 @@ import {
   OgcOmbPhase,
   PostApprovalPhase,
   SdgPreparationPhase,
-  ApplicationIntakePhase,
+  getApplicationIntakeComponentFromDemonstration,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -74,7 +74,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: ConceptPhase,
-    "Application Intake": () => <ApplicationIntakePhase demonstrationId={demonstration.id} />,
+    "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
     Completeness: CompletenessPhase,
     "Federal Comment": () => {
       const phaseStartDate = new Date(2025, 8, 24);

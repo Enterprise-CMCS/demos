@@ -9,6 +9,7 @@ import {
   aws_secretsmanager,
   Fn,
   aws_ec2,
+  Tags,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Bucket } from "aws-cdk-lib/aws-s3";
@@ -20,6 +21,7 @@ import { DeploymentConfigProperties } from "../config";
 import * as securityGroup from "../lib/security-group";
 import { GuardDutyS3 } from "../lib/guardDutyS3";
 import importNumberValue from "../util/importNumberValue";
+import { backupTags } from "../util/backup";
 
 interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -88,6 +90,10 @@ export class FileUploadStack extends Stack {
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
+
+    if (!props.isEphemeral) {
+      Tags.of(cleanBucket).add("AWS_Backup", backupTags.d15_w90);
+    }
 
     const fileProcessLambdaSecurityGroup = securityGroup.create({
       ...props,

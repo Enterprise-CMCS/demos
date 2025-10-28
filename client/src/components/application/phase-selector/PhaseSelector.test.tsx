@@ -15,6 +15,7 @@ describe("PhaseSelector", () => {
       status: "Under Review",
       currentPhaseName: "Federal Comment",
       phases: [],
+      documents: [],
     };
 
     render(
@@ -55,6 +56,7 @@ describe("getDisplayedPhaseStatus", () => {
           phaseDates: [],
         },
       ],
+      documents: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Started");
@@ -73,6 +75,7 @@ describe("getDisplayedPhaseStatus", () => {
           phaseDates: [],
         },
       ],
+      documents: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Completeness")).toBe("Not Started");
@@ -84,6 +87,7 @@ describe("getDisplayedPhaseStatus", () => {
       status: "Under Review",
       currentPhaseName: "Concept",
       phases: [],
+      documents: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Not Started");
@@ -97,6 +101,7 @@ describe("getDisplayedPhaseDate", () => {
       status: "Under Review",
       currentPhaseName: "Concept",
       phases: [],
+      documents: [],
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -114,6 +119,7 @@ describe("getDisplayedPhaseDate", () => {
           phaseDates: [],
         },
       ],
+      documents: [],
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -148,6 +154,7 @@ describe("getDisplayedPhaseDate", () => {
           ],
         },
       ],
+      documents: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
@@ -178,6 +185,7 @@ describe("getDisplayedPhaseDate", () => {
           ],
         },
       ],
+      documents: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "OGC & OMB Review");
@@ -208,6 +216,7 @@ describe("getDisplayedPhaseDate", () => {
           ],
         },
       ],
+      documents: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Application Intake");
@@ -233,6 +242,7 @@ describe("getDisplayedPhaseDate", () => {
           ],
         },
       ],
+      documents: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Federal Comment");
@@ -263,6 +273,7 @@ describe("getDisplayedPhaseDate", () => {
           ],
         },
       ],
+      documents: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "SDG Preparation");
@@ -288,6 +299,7 @@ describe("getDisplayedPhaseDate", () => {
           ],
         },
       ],
+      documents: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
