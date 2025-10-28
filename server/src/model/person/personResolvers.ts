@@ -63,13 +63,13 @@ export const personResolvers = {
   },
 
   Person: {
-    fullName: (parent: Person) => {
+    fullName: (parent: PrismaPerson) => {
       return [parent.firstName, parent.lastName].filter(Boolean).join(" ").trim();
     },
-    personType: async (parent: Person) => {
+    personType: async (parent: PrismaPerson) => {
       return parent.personTypeId;
     },
-    roles: async (parent: Person) => {
+    roles: async (parent: PrismaPerson) => {
       const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
         where: { personId: parent.id },
         include: { primaryDemonstrationRoleAssignment: true },
@@ -79,7 +79,7 @@ export const personResolvers = {
         isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
       }));
     },
-    states: async (parent: Person) => {
+    states: async (parent: PrismaPerson) => {
       const personStates = await prisma().personState.findMany({
         where: { personId: parent.id },
         include: { state: true },
