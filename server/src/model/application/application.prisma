@@ -7,7 +7,7 @@ model Application {
   applicationType        ApplicationType         @relation(fields: [applicationTypeId], references: [id])
   amendment              Amendment?
   demonstration          Demonstration?
-  extensions             Extension?
+  extension              Extension?
   applicationDates       ApplicationDate[]
   applicationPhases      ApplicationPhase[]
   documents              Document[]

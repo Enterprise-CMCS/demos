@@ -1,4 +1,4 @@
-import { Person } from "@prisma/client";
+import { Person as PrismaPerson } from "@prisma/client";
 
 import { prisma } from "../../prismaClient";
 
@@ -16,7 +16,7 @@ export const personResolvers = {
     },
     searchPeople: async (
       _: undefined,
-      { search, demonstrationId }: { search: string; demonstrationId?: string },
+      { search, demonstrationId }: { search: string; demonstrationId?: string }
     ) => {
       const searchConditions = [
         { firstName: { contains: search, mode: "insensitive" as const } },
@@ -64,20 +64,16 @@ export const personResolvers = {
 
   Person: {
     fullName: (parent: Person) => {
-      return [parent.firstName, parent.lastName]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
+      return [parent.firstName, parent.lastName].filter(Boolean).join(" ").trim();
     },
     personType: async (parent: Person) => {
       return parent.personTypeId;
     },
     roles: async (parent: Person) => {
-      const roleAssignments =
-        await prisma().demonstrationRoleAssignment.findMany({
-          where: { personId: parent.id },
-          include: { primaryDemonstrationRoleAssignment: true },
-        });
+      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
+        where: { personId: parent.id },
+        include: { primaryDemonstrationRoleAssignment: true },
+      });
       return roleAssignments.map((assignment) => ({
         ...assignment,
         isPrimary: !!assignment.primaryDemonstrationRoleAssignment,

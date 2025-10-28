@@ -3,7 +3,7 @@ import { ApplicationType } from "../../types";
 import { getDemonstration } from "../demonstration/demonstrationResolvers.js";
 import { getAmendment } from "../amendment/amendmentResolvers.js";
 import { getExtension } from "../extension/extensionResolvers.js";
-import { Application } from "@prisma/client";
+import { Application as PrismaApplication } from "@prisma/client";
 
 export async function getApplication(applicationId: string) {
   const application = await prisma().application.findUnique({
@@ -31,7 +31,7 @@ export async function getApplication(applicationId: string) {
 
 export const applicationResolvers = {
   Application: {
-    __resolveType: async (parent: Application) => {
+    __resolveType: async (parent: PrismaApplication) => {
       return parent.applicationTypeId;
     },
   },

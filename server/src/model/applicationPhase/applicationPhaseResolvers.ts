@@ -1,4 +1,4 @@
-import { ApplicationPhase } from "@prisma/client";
+import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
 import { getApplicationDatesForPhase } from "../applicationDate/applicationDateResolvers.js";
 import { prisma } from "../../prismaClient.js";
 import { SetApplicationPhaseStatusInput } from "./applicationPhaseSchema.js";
@@ -25,13 +25,13 @@ export async function setApplicationPhaseStatus(
 
 export const applicationPhaseResolvers = {
   ApplicationPhase: {
-    phaseName: (parent: ApplicationPhase) => {
+    phaseName: (parent: PrismaApplicationPhase) => {
       return parent.phaseId;
     },
-    phaseStatus: (parent: ApplicationPhase) => {
+    phaseStatus: (parent: PrismaApplicationPhase) => {
       return parent.phaseStatusId;
     },
-    phaseDates: async (parent: ApplicationPhase) => {
+    phaseDates: async (parent: PrismaApplicationPhase) => {
       return getApplicationDatesForPhase(parent.applicationId, parent.phaseId);
     },
   },

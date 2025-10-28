@@ -1,4 +1,4 @@
-import { Amendment } from "@prisma/client";
+import { Amendment as PrismaAmendment } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types.js";
 import { CreateAmendmentInput, UpdateAmendmentInput } from "./amendmentSchema.js";
@@ -90,13 +90,13 @@ export async function deleteAmendment(parent: undefined, { id }: { id: string })
   });
 }
 
-async function getParentDemonstration(parent: Amendment) {
+async function getParentDemonstration(parent: PrismaAmendment) {
   return await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
 }
 
-async function getDocuments(parent: Amendment) {
+async function getDocuments(parent: PrismaAmendment) {
   return await prisma().document.findMany({
     where: {
       applicationId: parent.id,
@@ -104,11 +104,11 @@ async function getDocuments(parent: Amendment) {
   });
 }
 
-async function getCurrentPhase(parent: Amendment) {
+async function getCurrentPhase(parent: PrismaAmendment) {
   return parent.currentPhaseId;
 }
 
-async function getPhases(parent: Amendment) {
+async function getPhases(parent: PrismaAmendment) {
   return await prisma().applicationPhase.findMany({
     where: {
       applicationId: parent.id,

@@ -1,6 +1,6 @@
 import { prisma } from "../../prismaClient.js";
 import { LogEventInput } from "./eventSchema.js";
-import { Event } from "@prisma/client";
+import { Event as PrismaEvent } from "@prisma/client";
 import { getApplication } from "../application/applicationResolvers.js";
 import { GraphQLContext, getCurrentUserId } from "../../auth/auth.util.js";
 
@@ -49,7 +49,7 @@ export const eventResolvers = {
   },
 
   Event: {
-    user: async (parent: Event) => {
+    user: async (parent: PrismaEvent) => {
       if (!parent.userId) {
         return null;
       }
@@ -58,22 +58,22 @@ export const eventResolvers = {
       });
     },
 
-    role: async (parent: Event) => {
+    role: async (parent: PrismaEvent) => {
       return parent.roleId;
     },
 
-    application: async (parent: Event) => {
+    application: async (parent: PrismaEvent) => {
       if (!parent.applicationId) {
         return null;
       }
       return await getApplication(parent.applicationId);
     },
 
-    eventType: async (parent: Event) => {
+    eventType: async (parent: PrismaEvent) => {
       return parent.eventTypeId;
     },
 
-    logLevel: async (parent: Event) => {
+    logLevel: async (parent: PrismaEvent) => {
       return parent.logLevelId;
     },
   },

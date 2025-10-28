@@ -1,4 +1,4 @@
-import { Demonstration } from "@prisma/client";
+import { Demonstration as PrismaDemonstration } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { ApplicationType, PhaseName, ApplicationStatus, GrantLevel, Role } from "../../types.js";
 import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
@@ -190,13 +190,13 @@ export const demonstrationResolvers = {
   },
 
   Demonstration: {
-    state: async (parent: Demonstration) => {
+    state: async (parent: PrismaDemonstration) => {
       return await prisma().state.findUnique({
         where: { id: parent.stateId },
       });
     },
 
-    documents: async (parent: Demonstration) => {
+    documents: async (parent: PrismaDemonstration) => {
       return await prisma().document.findMany({
         where: {
           applicationId: parent.id,
@@ -204,7 +204,7 @@ export const demonstrationResolvers = {
       });
     },
 
-    amendments: async (parent: Demonstration) => {
+    amendments: async (parent: PrismaDemonstration) => {
       return await prisma().amendment.findMany({
         where: {
           demonstrationId: parent.id,
@@ -212,7 +212,7 @@ export const demonstrationResolvers = {
       });
     },
 
-    extensions: async (parent: Demonstration) => {
+    extensions: async (parent: PrismaDemonstration) => {
       return await prisma().extension.findMany({
         where: {
           demonstrationId: parent.id,
@@ -220,19 +220,19 @@ export const demonstrationResolvers = {
       });
     },
 
-    sdgDivision: async (parent: Demonstration) => {
+    sdgDivision: async (parent: PrismaDemonstration) => {
       return parent.sdgDivisionId;
     },
 
-    signatureLevel: async (parent: Demonstration) => {
+    signatureLevel: async (parent: PrismaDemonstration) => {
       return parent.signatureLevelId;
     },
 
-    currentPhaseName: async (parent: Demonstration) => {
+    currentPhaseName: async (parent: PrismaDemonstration) => {
       return parent.currentPhaseId;
     },
 
-    roles: async (parent: Demonstration) => {
+    roles: async (parent: PrismaDemonstration) => {
       return await prisma().demonstrationRoleAssignment.findMany({
         where: { demonstrationId: parent.id },
       });
@@ -240,7 +240,7 @@ export const demonstrationResolvers = {
 
     status: resolveApplicationStatus,
 
-    phases: async (parent: Demonstration) => {
+    phases: async (parent: PrismaDemonstration) => {
       return await prisma().applicationPhase.findMany({
         where: {
           applicationId: parent.id,
@@ -248,7 +248,7 @@ export const demonstrationResolvers = {
       });
     },
 
-    primaryProjectOfficer: async (parent: Demonstration) => {
+    primaryProjectOfficer: async (parent: PrismaDemonstration) => {
       const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUnique({
         where: {
           demonstrationId_roleId: {

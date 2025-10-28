@@ -1,4 +1,4 @@
-import { Extension } from "@prisma/client";
+import { Extension as PrismaExtension } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types.js";
 import { CreateExtensionInput, UpdateExtensionInput } from "./extensionSchema.js";
@@ -90,13 +90,13 @@ export async function deleteExtension(parent: undefined, { id }: { id: string })
   });
 }
 
-async function getParentDemonstration(parent: Extension) {
+async function getParentDemonstration(parent: PrismaExtension) {
   return await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
 }
 
-async function getDocuments(parent: Extension) {
+async function getDocuments(parent: PrismaExtension) {
   return await prisma().document.findMany({
     where: {
       applicationId: parent.id,
@@ -104,11 +104,11 @@ async function getDocuments(parent: Extension) {
   });
 }
 
-async function getCurrentPhase(parent: Extension) {
+async function getCurrentPhase(parent: PrismaExtension) {
   return parent.currentPhaseId;
 }
 
-async function getPhases(parent: Extension) {
+async function getPhases(parent: PrismaExtension) {
   return await prisma().applicationPhase.findMany({
     where: {
       applicationId: parent.id,

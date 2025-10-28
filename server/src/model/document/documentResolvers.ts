@@ -2,7 +2,10 @@ import { GraphQLError } from "graphql";
 
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { Document, DocumentPendingUpload } from "@prisma/client";
+import {
+  Document as PrismaDocument,
+  DocumentPendingUpload as PrismaDocumentPendingUpload,
+} from "@prisma/client";
 
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -18,7 +21,7 @@ async function getDocument(parent: undefined, { id }: { id: string }) {
 }
 
 async function getPresignedUploadUrl(
-  documentPendingUpload: DocumentPendingUpload
+  documentPendingUpload: PrismaDocumentPendingUpload
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
@@ -43,7 +46,7 @@ async function getPresignedUploadUrl(
   });
 }
 
-async function getPresignedDownloadUrl(document: Document): Promise<string> {
+async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
         region: "us-east-1",
@@ -117,7 +120,7 @@ export const documentResolvers = {
     updateDocument: async (
       _: undefined,
       { id, input }: { id: string; input: UpdateDocumentInput }
-    ): Promise<Document> => {
+    ): Promise<PrismaDocument> => {
       checkOptionalNotNullFields(
         ["name", "description", "documentType", "applicationId", "phaseName"],
         input
@@ -147,7 +150,7 @@ export const documentResolvers = {
   },
 
   Document: {
-    owner: async (parent: Document) => {
+    owner: async (parent: PrismaDocument) => {
       const user = await prisma().user.findUnique({
         where: { id: parent.ownerUserId },
         include: { person: true },
@@ -155,15 +158,15 @@ export const documentResolvers = {
       return { ...user, ...user?.person };
     },
 
-    documentType: async (parent: Document) => {
+    documentType: async (parent: PrismaDocument) => {
       return parent.documentTypeId;
     },
 
-    application: async (parent: Document) => {
+    application: async (parent: PrismaDocument) => {
       return await getApplication(parent.applicationId);
     },
 
-    phaseName: async (parent: Document) => {
+    phaseName: async (parent: PrismaDocument) => {
       return parent.phaseId;
     },
   },
