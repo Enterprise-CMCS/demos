@@ -74,3 +74,11 @@ dialog[open] {
   display: flex;
   flex-direction: column;
 }
+
+.p-half {
+  padding: 0.5rem;
+}
+.py-half {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}

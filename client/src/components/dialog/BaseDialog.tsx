@@ -1,7 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-} from "react";
+import React, { useEffect, useRef } from "react";
 
 import { ErrorButton } from "components/button";
 import { SecondaryButton } from "components/button/SecondaryButton";
@@ -21,7 +18,7 @@ interface BaseDialogProps {
 
 const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative max-h-[85vh] overflow-y-auto space-y-sm backdrop:bg-black/40`;
 const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font cursor-pointer`;
-const TITLE = tw`text-[18px] font-bold mb-xs`;
+const TITLE = tw`text-[18px] font-semibold mb-xs`;
 const HR = tw`border-border-rules my-sm`;
 const CONFIRMATION_DIALOG = tw`bg-surface-white border border-border-rules rounded p-2 w-[400px] shadow-md text-center backdrop:bg-black/40`;
 
