@@ -27,8 +27,8 @@ const EST_TIMEZONE: TimeZone = "America/New_York";
  * DateUTC: A date in UTC timezone - Used when the date is set by a user event
  * DateEST: A date in EST timezone - Used when the date is calculated for a deadline or beginning period
  * StartOfDayEST - A date in EST with timestamp @ 00:00:00.000 EST.
- * EndOfDayEST - A date in EST with timestamp @ 23:59:59.999 EST.\
- * DateOnlyString - A date string in "yyyy-MM-dd" format representing a date in EST timezone.
+ * EndOfDayEST - A date in EST with timestamp @ 23:59:59.999 EST.
+ * IsoDateString - A date string in "yyyy-MM-dd" format.
  *
  * This file uses branded types to prevent mixing up date types in function calls:
  * https://www.learningtypescript.com/articles/branded-types
