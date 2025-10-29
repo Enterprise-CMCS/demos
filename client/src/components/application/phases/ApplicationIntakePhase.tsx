@@ -5,13 +5,22 @@ import { ApplicationIntakeUploadDialog } from "components/dialog/document/Applic
 import { DeleteIcon, ExportIcon } from "components/icons";
 import { addDays } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer, parseInputDate } from "util/formatDate";
+import {
+  formatDate,
+  formatDateForServer,
+  formatDateAsIsoString,
+  parseInputDate,
+} from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { useSetApplicationDate } from "components/application/dates/applicationDateQueries";
+import { getQueryForSetApplicationDate } from "components/application/dates/applicationDateQueries";
+import { gql, useMutation } from "@apollo/client";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/ApplicationWorkflow";
+import { SetApplicationDateInput } from "demos-server";
+import { getIsoDateString, getStartOfDateEST } from "../dates/applicationDates";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -88,42 +97,61 @@ export const ApplicationIntakePhase = ({
   );
   const [isFinishButtonEnabled, setIsFinishButtonEnabled] = useState(false);
 
+  // Set up mutation hooks at the top level
+  const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
+    applicationId: demonstrationId,
+    phaseName: "Application Intake",
+    phaseStatus: "Completed",
+  });
+
+  // Create a mutation function that dynamically builds the query with the current date
+  const [executeSetApplicationDate] = useMutation(
+    gql`
+      mutation Placeholder {
+        __typename
+      }
+    `, // Placeholder - will use refetch approach
+    { refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY] }
+  );
+
   useEffect(() => {
     setIsFinishButtonEnabled(
       stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate)
     );
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
+  const setApplicationDate = async (
+    dateType: SetApplicationDateInput["dateType"],
+    dateValue: Date
+  ) => {
+    const mutation = gql(
+      getQueryForSetApplicationDate({
+        applicationId: demonstrationId,
+        dateType,
+        dateValue,
+      })
+    );
+
+    await executeSetApplicationDate({ mutation });
+  };
+
   const onFinishButtonClick = async () => {
     const now = new Date();
-    const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
-      applicationId: demonstrationId,
-      phaseName: "Application Intake",
-      phaseStatus: "Completed",
-    });
 
-    const { setApplicationDate: setCompletionDate } = useSetApplicationDate({
-      applicationId: demonstrationId,
-      dateType: "Application Intake Completion Date",
-      dateValue: now,
-    });
-
-    await Promise.all([completeApplicationIntake(), setCompletionDate()]);
+    await Promise.all([
+      completeApplicationIntake(),
+      setApplicationDate("Application Intake Completion Date", now),
+    ]);
   };
 
   const handleDocumentUploadSucceeded = async () => {
-    console.log("HANDLE DOCUMENT UPLOAD SUCCEED");
     const now = new Date();
-    setStateApplicationSubmittedDate(formatDateForServer(now));
+    setStateApplicationSubmittedDate(
+      formatDateAsIsoString(getStartOfDateEST(getIsoDateString(now)))
+    );
 
     // When a document is uploaded, set the State Application Submitted Date
-    const { setApplicationDate } = useSetApplicationDate({
-      applicationId: demonstrationId,
-      dateType: "State Application Submitted Date",
-      dateValue: now,
-    });
-
-    await setApplicationDate();
+    await setApplicationDate("State Application Submitted Date", now);
   };
 
   const UploadSection = () => (

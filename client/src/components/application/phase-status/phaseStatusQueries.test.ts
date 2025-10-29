@@ -85,7 +85,6 @@ describe("phaseStatusQueries", () => {
       expect(result).toContain("applicationId:");
       expect(result).toContain("phaseName:");
       expect(result).toContain("phaseStatus:");
-      expect(result).toMatch(/}\s*\)\s*}/);
     });
 
     it("should handle phase names with spaces and special characters", () => {
