@@ -16,6 +16,7 @@ import {
   getInputsForCompletenessPhase,
 } from "components/application/dates/applicationDateQueries";
 import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import { getCurrentUser } from "components/user/UserContext";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -31,36 +32,20 @@ const STYLES = {
   actionsEnd: tw`ml-auto flex gap-3`,
 };
 
-// --- helpers (top of file, under imports) ---
-const toInputDate = (value?: Date | string): string => {
-  if (!value) return "";
-  const d = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  // yyyy-mm-dd for <input type="date">
-  // Use RenderDate utility to render the date
-  return RenderDate(d);
-};
-
-type MinimalDoc = {
-  id: string;
-  name?: string | null;
-  fileName?: string | null;
-  createdAt?: string | Date | null;
-};
-
-const mapDocsToTable = (docs: MinimalDoc[]): DocumentTableDocument[] =>
-  (docs ?? []).map((d) => ({
-    id: d.id,
-    name: (d.name ?? d.fileName ?? "Document"),
-    description: "", // Provide a default or map from d if available
-    documentType: "Application Completeness Letter", // Provide a default or map from d if available
-    createdAt: d.createdAt ? new Date(typeof d.createdAt === "string" ? d.createdAt : (d.createdAt as Date)) : undefined,
-  }));
-
-
 const SET_APPLICATION_DATE_MUTATION = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {
-    setApplicationDate(input: $input)
+    setApplicationDate(input: $input) {
+      __typename
+      ... on Demonstration {
+        id
+      }
+      ... on Amendment {
+        id
+      }
+      ... on Extension {
+        id
+      }
+    }
   }
 `;
 
@@ -153,12 +138,22 @@ export const CompletenessPhase = ({
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const { currentUser } = getCurrentUser();
 
   React.useEffect(() => {
-    setStateDeemedComplete(stateDeemedCompleteDate?.toString());
-    setFederalStartDate(fedCommentStartDate?.toString());
-    setFederalEndDate(fedCommentEndDate?.toString());
-    setCompletenessDocs(mapDocsToTable(applicationCompletenessDocument));
+    setStateDeemedComplete(stateDeemedCompleteDate?.toString() ?? "");
+    setFederalStartDate(fedCommentStartDate?.toString() ?? "");
+    setFederalEndDate(fedCommentEndDate?.toString() ?? "");
+    setCompletenessDocs(
+      applicationCompletenessDocument.map((doc) => ({
+        id: doc.id,
+        name: doc.name,
+        description: doc.description ?? "",
+        documentType: doc.documentType ?? "",
+        createdAt: doc.createdAt,
+        owner: currentUser ? currentUser?.person.fullName ?? "Bob" : "Bob",
+      }))
+    );
   }, [
     stateDeemedCompleteDate,
     fedCommentStartDate,
@@ -371,12 +366,6 @@ export const CompletenessPhase = ({
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
             applicationId={applicationId}
-            onUploaded={(newDocs: MinimalDoc[]) => {
-              setCompletenessDocs((prev) => [
-                ...prev,
-                ...mapDocsToTable(newDocs),
-              ]);
-            }}
           />
 
           <DeclareIncompleteDialog
@@ -389,11 +378,3 @@ export const CompletenessPhase = ({
     </div>
   );
 };
-function RenderDate(d: Date): string {
-  // Returns yyyy-mm-dd for <input type="date">
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-

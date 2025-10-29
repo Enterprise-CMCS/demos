@@ -11,7 +11,9 @@ export const getQueryForSetApplicationDate = (
         applicationId: "${setApplicationDateInput.applicationId}",
         dateType: "${setApplicationDateInput.dateType}",
         dateValue: "${isoDateString}"
-      })
+      }) {
+        __typename
+      }
     }
   `;
 };
@@ -26,11 +28,15 @@ export const getInputsForCompletenessPhase = (
   applicationId: string,
   dateValues: Record<typeof COMPLETENESS_PHASE_DATE_TYPES[number], Date | null>
 ): SetApplicationDateInput[] => {
-
-  return COMPLETENESS_PHASE_DATE_TYPES.map((dateType) => ({
-    applicationId,
-    dateType,
-    dateValue: dateValues[dateType] as Date,
-  }));
+  return COMPLETENESS_PHASE_DATE_TYPES.reduce<SetApplicationDateInput[]>((inputs, dateType) => {
+    const dateValue = dateValues[dateType];
+    if (dateValue) {
+      inputs.push({
+        applicationId,
+        dateType,
+        dateValue,
+      });
+    }
+    return inputs;
+  }, []);
 };
-
