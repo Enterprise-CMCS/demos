@@ -5,6 +5,8 @@ import {
   Demonstration as PrismaDemonstration,
   Amendment as PrismaAmendment,
   Extension as PrismaExtension,
+  Document as PrismaDocument,
+  ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
 
 type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
@@ -16,6 +18,21 @@ type FindApplicationQueryResult = {
   amendment: PrismaAmendment | null;
   extension: PrismaExtension | null;
 };
+
+export async function getApplication(
+  applicationId: string,
+  applicationTypeId: "Demonstration"
+): Promise<PrismaDemonstration>;
+
+export async function getApplication(
+  applicationId: string,
+  applicationTypeId: "Amendment"
+): Promise<PrismaAmendment>;
+
+export async function getApplication(
+  applicationId: string,
+  applicationTypeId: "Extension"
+): Promise<PrismaExtension>;
 
 export async function getApplication(
   applicationId: string,
@@ -49,6 +66,18 @@ export async function getApplication(
 }
 
 export async function getManyApplications(
+  applicationTypeId: "Demonstration"
+): Promise<PrismaDemonstration[] | null>;
+
+export async function getManyApplications(
+  applicationTypeId: "Amendment"
+): Promise<PrismaAmendment[] | null>;
+
+export async function getManyApplications(
+  applicationTypeId: "Extension"
+): Promise<PrismaExtension[] | null>;
+
+export async function getManyApplications(
   applicationTypeId: ApplicationType
 ): Promise<PrismaApplication[] | null> {
   const applications: FindApplicationQueryResult[] | null = await prisma().application.findMany({
@@ -71,6 +100,36 @@ export async function getManyApplications(
     results.push((application.demonstration ?? application.amendment ?? application.extension)!);
   }
   return results;
+}
+
+export async function resolveApplicationDocuments(
+  parent: PrismaApplication
+): Promise<PrismaDocument[] | null> {
+  return await prisma().document.findMany({
+    where: {
+      applicationId: parent.id,
+    },
+  });
+}
+
+export function resolveApplicationCurrentPhaseName(parent: PrismaApplication): string {
+  return parent.currentPhaseId;
+}
+
+export function resolveApplicationStatus(parent: PrismaApplication): string {
+  return parent.statusId;
+}
+
+export async function resolveApplicationPhases(
+  parent: PrismaApplication
+): Promise<PrismaApplicationPhase[]> {
+  // The phases are prepopulated by the database so this is never null
+  const result = await prisma().applicationPhase.findMany({
+    where: {
+      applicationId: parent.id,
+    },
+  });
+  return result!;
 }
 
 export const applicationResolvers = {
