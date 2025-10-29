@@ -127,39 +127,26 @@ export const CompletenessPhase = ({
   applicationId,
   fedCommentStartDate,
   fedCommentEndDate,
-  stateDeemedCompleteDate,
+  stateDeemedCompleteDate, // -
   applicationCompletenessDocument,
 }: CompletenessPhaseProps ) => {
-  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>("");
-  const [completenessDocs, setCompletenessDocs] = useState<DocumentTableDocument[]>([]);
-  const [federalStartDate, setFederalStartDate] = useState<string>("");
-  const [federalEndDate, setFederalEndDate] = useState<string>("");
-
+  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
+    stateDeemedCompleteDate?.toString() ?? ""
+  );
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const { currentUser } = getCurrentUser();
 
-  React.useEffect(() => {
-    setStateDeemedComplete(stateDeemedCompleteDate?.toString() ?? "");
-    setFederalStartDate(fedCommentStartDate?.toString() ?? "");
-    setFederalEndDate(fedCommentEndDate?.toString() ?? "");
-    setCompletenessDocs(
-      applicationCompletenessDocument.map((doc) => ({
-        id: doc.id,
-        name: doc.name,
-        description: doc.description ?? "",
-        documentType: doc.documentType ?? "",
-        createdAt: doc.createdAt,
-        owner: currentUser ? currentUser?.person.fullName ?? "Bob" : "Bob",
-      }))
-    );
-  }, [
-    stateDeemedCompleteDate,
-    fedCommentStartDate,
-    fedCommentEndDate,
-    applicationCompletenessDocument,
-  ]);
+  const [federalStartDate, setFederalStartDate] = useState<string>(
+    fedCommentStartDate?.toString() ?? ""
+  );
+  const [federalEndDate, setFederalEndDate] = useState<string>(
+    fedCommentEndDate?.toString() ?? ""
+  );
+
+  const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
+    applicationCompletenessDocument
+  );
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
   const datesAreValid =
@@ -270,7 +257,7 @@ export const CompletenessPhase = ({
           <input
             type="date"
             value={federalStartDate}
-            onChange={(e) => setFederalStartDate(e.target.value)}
+            onChange={(event) => setFederalStartDate(event.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="federal-comment-period-start"
             data-testid="federal-comment-period-start"
