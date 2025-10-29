@@ -56,6 +56,11 @@ export const getEndOfDayEST = (year: number, month: number, day: number): EndOfD
   return new TZDate(year, month, day, 23, 59, 59, 999, EST_TIMEZONE) as EndOfDayEST;
 };
 
+export const getEndOfDateEST = (dateString: IsoDateString): EndOfDayEST => {
+  const [yearStr, monthStr, dayStr] = dateString.split("-");
+  return getEndOfDayEST(parseInt(yearStr, 10), parseInt(monthStr, 10), parseInt(dayStr, 10));
+};
+
 /**
  * Get a specific date value from a list of application dates
  */
