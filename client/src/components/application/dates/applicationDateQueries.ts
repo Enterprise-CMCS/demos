@@ -1,3 +1,4 @@
+import { useMutation, gql } from "@apollo/client";
 import { SetApplicationDateInput } from "demos-server";
 import { formatDateAsIsoString } from "util/formatDate";
 
@@ -14,4 +15,16 @@ export const getQueryForSetApplicationDate = (
       })
     }
   `;
+};
+
+export const useSetApplicationDate = (input: SetApplicationDateInput) => {
+  const mutation = gql(getQueryForSetApplicationDate(input));
+
+  const [mutate, { data, loading, error }] = useMutation(mutation);
+
+  const setApplicationDate = async () => {
+    return await mutate();
+  };
+
+  return { setApplicationDate, data, loading, error };
 };
