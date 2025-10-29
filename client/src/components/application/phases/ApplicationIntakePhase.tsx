@@ -95,6 +95,7 @@ export const ApplicationIntakePhase = ({
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
   const onFinishButtonClick = async () => {
+    const now = new Date();
     const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
       applicationId: demonstrationId,
       phaseName: "Application Intake",
@@ -104,10 +105,25 @@ export const ApplicationIntakePhase = ({
     const { setApplicationDate: setCompletionDate } = useSetApplicationDate({
       applicationId: demonstrationId,
       dateType: "Application Intake Completion Date",
-      dateValue: new Date(),
+      dateValue: now,
     });
 
     await Promise.all([completeApplicationIntake(), setCompletionDate()]);
+  };
+
+  const handleDocumentUploadSucceeded = async () => {
+    console.log("HANDLE DOCUMENT UPLOAD SUCCEED");
+    const now = new Date();
+    setStateApplicationSubmittedDate(formatDateForServer(now));
+
+    // When a document is uploaded, set the State Application Submitted Date
+    const { setApplicationDate } = useSetApplicationDate({
+      applicationId: demonstrationId,
+      dateType: "State Application Submitted Date",
+      dateValue: now,
+    });
+
+    await setApplicationDate();
   };
 
   const UploadSection = () => (
@@ -239,6 +255,7 @@ export const ApplicationIntakePhase = ({
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
         applicationId={demonstrationId}
+        onDocumentUploadSucceeded={handleDocumentUploadSucceeded}
       />
     </div>
   );
