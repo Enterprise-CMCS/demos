@@ -9,8 +9,21 @@ import { formatDate, formatDateForServer, parseInputDate } from "util/formatDate
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+} from "components/application/ApplicationWorkflow";
+import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
+import { useSetApplicationDate } from "components/application/dates/applicationDateQueries";
 
+/** Business Rules for this Phase:
+ * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
+  - a. User clicked Skip or Finish on the Concept Phase
+  - b. When a change is submitted on this phase - document or date update.
+
+- **State Application Submitted Date** - When the state formally submits their application.
+
+- **Application Intake Completion Date** - Completed when user clicks "Finish" to progress to the next phase.
+
+Note: If the user skips the concept phase this will be marked completed when the user clicks Finish on the Application Intake Phase.
+ */
 const STYLES = {
   pane: tw`bg-white p-8`,
   grid: tw`relative grid grid-cols-2 gap-10`,
@@ -82,7 +95,19 @@ export const ApplicationIntakePhase = ({
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
   const onFinishButtonClick = async () => {
-    // TODO: set dates and phase status
+    const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
+      applicationId: demonstrationId,
+      phaseName: "Application Intake",
+      phaseStatus: "Completed",
+    });
+
+    const { setApplicationDate: setCompletionDate } = useSetApplicationDate({
+      applicationId: demonstrationId,
+      dateType: "Application Intake Completion Date",
+      dateValue: new Date(),
+    });
+
+    await Promise.all([completeApplicationIntake(), setCompletionDate()]);
   };
 
   const UploadSection = () => (
