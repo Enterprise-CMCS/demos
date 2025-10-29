@@ -16,10 +16,6 @@ import {
   ApplicationWorkflowDocument,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { getQueryForSetApplicationDate } from "components/application/dates/applicationDateQueries";
-import { gql, useMutation } from "@apollo/client";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/ApplicationWorkflow";
-import { SetApplicationDateInput } from "demos-server";
 import { getIsoDateString, getStartOfDateEST } from "../dates/applicationDates";
 
 /** Business Rules for this Phase:
@@ -104,44 +100,14 @@ export const ApplicationIntakePhase = ({
     phaseStatus: "Completed",
   });
 
-  // Create a mutation function that dynamically builds the query with the current date
-  const [executeSetApplicationDate] = useMutation(
-    gql`
-      mutation Placeholder {
-        __typename
-      }
-    `, // Placeholder - will use refetch approach
-    { refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY] }
-  );
-
   useEffect(() => {
     setIsFinishButtonEnabled(
       stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate)
     );
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
-  const setApplicationDate = async (
-    dateType: SetApplicationDateInput["dateType"],
-    dateValue: Date
-  ) => {
-    const mutation = gql(
-      getQueryForSetApplicationDate({
-        applicationId: demonstrationId,
-        dateType,
-        dateValue,
-      })
-    );
-
-    await executeSetApplicationDate({ mutation });
-  };
-
   const onFinishButtonClick = async () => {
-    const now = new Date();
-
-    await Promise.all([
-      completeApplicationIntake(),
-      setApplicationDate("Application Intake Completion Date", now),
-    ]);
+    await Promise.all([completeApplicationIntake()]);
   };
 
   const handleDocumentUploadSucceeded = async () => {
@@ -149,9 +115,6 @@ export const ApplicationIntakePhase = ({
     setStateApplicationSubmittedDate(
       formatDateAsIsoString(getStartOfDateEST(getIsoDateString(now)))
     );
-
-    // When a document is uploaded, set the State Application Submitted Date
-    await setApplicationDate("State Application Submitted Date", now);
   };
 
   const UploadSection = () => (
