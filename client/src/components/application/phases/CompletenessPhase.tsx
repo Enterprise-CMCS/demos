@@ -15,6 +15,7 @@ import {
   COMPLETENESS_PHASE_DATE_TYPES,
   getInputsForCompletenessPhase,
 } from "components/application/dates/applicationDateQueries";
+import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -29,6 +30,34 @@ const STYLES = {
   actions: tw`mt-8 flex items-center gap-3`,
   actionsEnd: tw`ml-auto flex gap-3`,
 };
+
+// --- helpers (top of file, under imports) ---
+const toInputDate = (value?: Date | string): string => {
+  if (!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  // yyyy-mm-dd for <input type="date">
+  // Use RenderDate utility to render the date
+  return RenderDate(d);
+};
+
+type MinimalDoc = {
+  id: string;
+  name?: string | null;
+  fileName?: string | null;
+  createdAt?: string | Date | null;
+};
+
+const mapDocsToTable = (docs: MinimalDoc[]): DocumentTableDocument[] =>
+  (docs ?? []).map((d) => ({
+    id: d.id,
+    name: (d.name ?? d.fileName ?? "Document"),
+    description: "", // Provide a default or map from d if available
+    documentType: "Application Completeness Letter", // Provide a default or map from d if available
+    createdAt: d.createdAt ? new Date(typeof d.createdAt === "string" ? d.createdAt : (d.createdAt as Date)) : undefined,
+  }));
+
+
 const SET_APPLICATION_DATE_MUTATION = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {
     setApplicationDate(input: $input)
@@ -72,50 +101,93 @@ const CompletenessNotice = ({ noticeDueDate }: { noticeDueDate: string }) => {
   }
 };
 
-export const CompletenessPhase: React.FC = () => {
+export const getApplicationCompletenessFromDemonstration = (
+  demonstration: ApplicationWorkflowDemonstration
+) => {
+  const completenessPhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "Completeness"
+  );
+  const fedCommentStartDate = completenessPhase?.phaseDates.find(
+    (date) => date.dateType === "Federal Comment Period Start Date"
+  );
+  const fedCommentEndDate = completenessPhase?.phaseDates.find(
+    (date) => date.dateType === "Federal Comment Period End Date"
+  );
+  const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
+    (date) => date.dateType === "State Application Deemed Complete"
+  );
+  const applicationCompletenessDocument = demonstration?.documents.filter(
+    (doc) => doc.documentType === "Application Completeness Letter"
+  );
+
+  return (
+    <CompletenessPhase
+      applicationId={demonstration.id}
+      fedCommentStartDate={fedCommentStartDate?.dateValue}
+      fedCommentEndDate={fedCommentEndDate?.dateValue}
+      stateDeemedCompleteDate={stateDeemedCompleteDate?.dateValue}
+      applicationCompletenessDocument={applicationCompletenessDocument}
+    />
+  );
+};
+export interface CompletenessPhaseProps {
+  applicationId: string;
+  fedCommentStartDate?: Date | string;
+  fedCommentEndDate?: Date | string;
+  stateDeemedCompleteDate?: Date | string;
+  applicationCompletenessDocument: ApplicationWorkflowDocument[];
+}
+
+export const CompletenessPhase = ({
+  applicationId,
+  fedCommentStartDate,
+  fedCommentEndDate,
+  stateDeemedCompleteDate,
+  applicationCompletenessDocument,
+}: CompletenessPhaseProps ) => {
+  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>("");
+  const [completenessDocs, setCompletenessDocs] = useState<DocumentTableDocument[]>([]);
+  const [federalStartDate, setFederalStartDate] = useState<string>("");
+  const [federalEndDate, setFederalEndDate] = useState<string>("");
+
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [completenessDocs, setCompletenessDocs] = useState<DocumentTableDocument[]>([]);
-  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>("");
-  const [federalStartDate, setFederalStartDate] = useState<string>("");
-  const [federalEndDate, setFederalEndDate] = useState<string>("");
+
+  React.useEffect(() => {
+    setStateDeemedComplete(stateDeemedCompleteDate?.toString());
+    setFederalStartDate(fedCommentStartDate?.toString());
+    setFederalEndDate(fedCommentEndDate?.toString());
+    setCompletenessDocs(mapDocsToTable(applicationCompletenessDocument));
+  }, [
+    stateDeemedCompleteDate,
+    fedCommentStartDate,
+    fedCommentEndDate,
+    applicationCompletenessDocument,
+  ]);
 
   const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
   const datesAreValid =
     !federalStartDate || !federalEndDate
       ? true
       : new Date(federalStartDate) <= new Date(federalEndDate);
-  const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
-  const apolloClient = useApolloClient();
 
-  // Here's where I'm at. Need the three date and appplicationId.
+  let canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
+  canFinish = true; // TEMP OVERRIDE FOR DEV PURPOSES REPLACE WITH BELOW
+  // const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
+  const apolloClient = useApolloClient();
   const handleFinishCompleteness = useCallback(async () => {
-    const applicationId = "0af65323-9ec0-4f0e-9136-76f0dcde6ac7";
-    const dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date> = {
-      "Federal Comment Period Start Date": federalStartDate
-        ? new Date(federalStartDate)
-        : new Date("2025-10-21"),
-      "Federal Comment Period End Date": federalEndDate
-        ? new Date(federalEndDate)
-        : new Date("2025-10-29"),
+    const dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null> = {
+      "Federal Comment Period Start Date": federalStartDate ? new Date(federalStartDate) : null,
+      "Federal Comment Period End Date": federalEndDate ? new Date(federalEndDate) : null,
       "Completeness Completion Date": stateDeemedComplete
         ? new Date(stateDeemedComplete)
-        : new Date("2025-10-28"),
+        : null,
     };
 
-    if (applicationId == "0af65323-9ec0-4f0e-9136-76f0dcde6ac7") {
-      console.log("Using hardcoded application ID for testing.");
-    }
-
-    console.log("data to server: ", applicationId, dateValues);
-
     const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
-    console.log("Generated inputs for mutations:", inputs);
-
     await Promise.all(
       inputs.map(async (input) => {
-        console.log("Sending mutation:", input);
         try {
           await apolloClient.mutate({
             mutation: SET_APPLICATION_DATE_MUTATION,
@@ -126,7 +198,7 @@ export const CompletenessPhase: React.FC = () => {
         }
       })
     );
-  }, [apolloClient, federalEndDate, federalStartDate, stateDeemedComplete]);
+  }, [apolloClient, federalEndDate, federalStartDate, stateDeemedComplete, applicationId]);
 
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
@@ -134,29 +206,10 @@ export const CompletenessPhase: React.FC = () => {
         STEP 1 - UPLOAD
       </h4>
       <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
-
+      {/* TODO: DEBUG DOC NOT WORKING - prisma().documentPendingUpload.create error */}
       <SecondaryButton onClick={() => setUploadOpen(true)} size="small" name="open-upload">
         Upload
         <ExportIcon />
-      </SecondaryButton>
-      <SecondaryButton
-        name="add-mock-document"
-        size="small"
-        onClick={() =>
-          setCompletenessDocs((docs) => [
-            ...docs,
-            {
-              id: Math.random().toString(36).substr(2, 9),
-              name: "Mock Completeness Letter.pdf",
-              description: "Mock description",
-              documentType: "Internal Completeness Review Form",
-              createdAt: new Date(),
-              owner: { person: { fullName: "Mock Owner" } },
-            },
-          ])
-        }
-      >
-      Add Mock Document
       </SecondaryButton>
       <div className={STYLES.list}>
         {completenessDocs.map((doc) => (
@@ -170,7 +223,9 @@ export const CompletenessPhase: React.FC = () => {
             <button
               className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
               onClick={() =>
-                setCompletenessDocs((docs) => docs.filter((d) => d.id !== doc.id))
+                setCompletenessDocs(
+                  (docs) => docs.filter((document) => document.id !== doc.id)
+                )
               }
               aria-label={`Delete ${doc.name}`}
               title={`Delete ${doc.name}`}
@@ -315,7 +370,15 @@ export const CompletenessPhase: React.FC = () => {
           <CompletenessDocumentUploadDialog
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
+            applicationId={applicationId}
+            onUploaded={(newDocs: MinimalDoc[]) => {
+              setCompletenessDocs((prev) => [
+                ...prev,
+                ...mapDocsToTable(newDocs),
+              ]);
+            }}
           />
+
           <DeclareIncompleteDialog
             isOpen={isDeclareIncompleteOpen}
             onClose={() => setDeclareIncompleteOpen(false)}
@@ -326,3 +389,11 @@ export const CompletenessPhase: React.FC = () => {
     </div>
   );
 };
+function RenderDate(d: Date): string {
+  // Returns yyyy-mm-dd for <input type="date">
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
