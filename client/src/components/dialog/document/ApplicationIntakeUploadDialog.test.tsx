@@ -21,6 +21,7 @@ const defaultProps = {
   isOpen: true,
   onClose: vi.fn(),
   applicationId: "test-application-id",
+  onDocumentUploadSucceeded: vi.fn(),
 };
 
 function setup(props = {}) {
