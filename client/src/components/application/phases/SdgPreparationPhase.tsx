@@ -1,7 +1,25 @@
-import React from "react";
+/* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
+
+import React, { useEffect, useState } from "react";
 import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
+import { useMutation, useQuery } from "@apollo/client";
+import {
+  ApplicationPhase as ServerApplicationPhase,
+  Demonstration as ServerDemonstration,
+  ApplicationDate as ServerApplicationDate,
+  DateType,
+  PhaseStatus,
+} from "demos-server";
+import { gql } from "graphql-tag";
+import { TZDate } from "@date-fns/tz";
+import { format } from "date-fns";
+import { PhaseName } from "../phase-selector/PhaseSelector";
+import { useToast } from "components/toast";
+
+const PHASE_NAME: PhaseName = "SDG Preparation";
+const NEXT_PHASE_NAME: PhaseName = "Approval Package";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -13,15 +31,241 @@ const STYLES = {
   actions: tw`flex justify-end mt-2 gap-2`,
 };
 
-export const SdgPreparationPhase = () => {
+export const SDG_PREPARATION_PHASE_QUERY = gql`
+  query SdgPreparationPhase($demonstrationId: ID!) {
+    demonstration(id: $demonstrationId) {
+      id
+      phases {
+        phaseName
+        phaseDates {
+          dateType
+          dateValue
+        }
+      }
+    }
+  }
+`;
+
+export const SET_SDG_PREPARATION_PHASE_DATE_MUTATION = gql`
+  mutation setSDGPreparationPhaseDate($input: SetApplicationDateInput) {
+    setApplicationDate(input: $input) {
+      ... on Demonstration {
+        id
+        phases {
+          phaseName
+          phaseDates {
+            dateType
+            dateValue
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const SET_SDG_PREPARATION_PHASE_STATUS_MUTATION = gql`
+  mutation setSDGPreparationPhaseStatus($input: SetApplicationPhaseStatusInput!) {
+    setApplicationPhaseStatus(input: $input) {
+      ... on Demonstration {
+        id
+        phases {
+          phaseName
+          phaseStatus
+        }
+      }
+    }
+  }
+`;
+
+type ApplicationDate = Pick<ServerApplicationDate, "dateType"> & {
+  dateValue: string;
+};
+type ApplicationPhase = Pick<ServerApplicationPhase, "phaseName"> & {
+  phaseDates: ApplicationDate[];
+};
+type Demonstration = Pick<ServerDemonstration, "id"> & {
+  phases: ApplicationPhase[];
+};
+
+interface SdgPreparationPhaseFormData {
+  expectedApprovalDate?: string;
+  smeInitialReviewDate?: string;
+  frtInitialMeetingDate?: string;
+  bnpmtInitialMeetingDate?: string;
+}
+
+function getDateInputValue(isoString: string): string {
+  const date = new TZDate(isoString, "America/New_York");
+  return format(date, "yyyy-MM-dd");
+}
+
+function toEstStartOfDay(dateString: string): string {
+  const date = new TZDate(`${dateString}T00:00:00`, "America/New_York");
+  return date.toISOString();
+}
+
+function getFormDataFromPhase(phase: ApplicationPhase) {
+  const phaseDates = {
+    expectedApprovalDate: phase.phaseDates.find(
+      (date) => date.dateType === "Expected Approval Date"
+    )?.dateValue,
+    smeInitialReviewDate: phase.phaseDates.find((date) => date.dateType === "SME Review Date")
+      ?.dateValue,
+    frtInitialMeetingDate: phase.phaseDates.find(
+      (date) => date.dateType === "FRT Initial Meeting Date"
+    )?.dateValue,
+    bnpmtInitialMeetingDate: phase.phaseDates.find(
+      (date) => date.dateType === "BNPMT Initial Meeting Date"
+    )?.dateValue,
+  };
+
+  return {
+    expectedApprovalDate: phaseDates.expectedApprovalDate
+      ? getDateInputValue(phaseDates.expectedApprovalDate)
+      : undefined,
+    smeInitialReviewDate: phaseDates.smeInitialReviewDate
+      ? getDateInputValue(phaseDates.smeInitialReviewDate)
+      : undefined,
+    frtInitialMeetingDate: phaseDates.frtInitialMeetingDate
+      ? getDateInputValue(phaseDates.frtInitialMeetingDate)
+      : undefined,
+    bnpmtInitialMeetingDate: phaseDates.bnpmtInitialMeetingDate
+      ? getDateInputValue(phaseDates.bnpmtInitialMeetingDate)
+      : undefined,
+  };
+}
+
+export const SdgPreparationPhase = ({
+  demonstrationId,
+  setSelectedPhase,
+}: {
+  demonstrationId: string;
+  setSelectedPhase: (phaseName: PhaseName) => void;
+}) => {
+  const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
+    useState<SdgPreparationPhaseFormData>({});
+  const { data, loading, error } = useQuery<{ demonstration: Demonstration }>(
+    SDG_PREPARATION_PHASE_QUERY,
+    {
+      variables: { demonstrationId },
+    }
+  );
+  const [mutateApplicationDate] = useMutation(SET_SDG_PREPARATION_PHASE_DATE_MUTATION);
+  const [mutatePhaseStatus] = useMutation(SET_SDG_PREPARATION_PHASE_STATUS_MUTATION);
+  const { showSuccess, showError } = useToast();
+
+  const isFormComplete =
+    sdgPreparationPhaseFormData.expectedApprovalDate &&
+    sdgPreparationPhaseFormData.smeInitialReviewDate &&
+    sdgPreparationPhaseFormData.frtInitialMeetingDate &&
+    sdgPreparationPhaseFormData.bnpmtInitialMeetingDate;
+
+  useEffect(() => {
+    if (data) {
+      const sdgPreparationPhase = data.demonstration.phases.find(
+        (phase) => phase.phaseName === PHASE_NAME
+      );
+
+      if (sdgPreparationPhase) {
+        setSdgPreparationPhaseFormData(getFormDataFromPhase(sdgPreparationPhase));
+      }
+    }
+  }, [data]);
+
+  if (loading) return <p>Loading...</p>;
+  if (error || !data) return <p>Error loading SDG Preparation phase data.</p>;
+
+  const handleSave = async () => {
+    if (sdgPreparationPhaseFormData.expectedApprovalDate) {
+      await mutateApplicationDate({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            dateType: "Expected Approval Date" satisfies DateType,
+            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.expectedApprovalDate),
+          },
+        },
+      });
+    }
+
+    if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
+      await mutateApplicationDate({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            dateType: "SME Review Date" satisfies DateType,
+            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.smeInitialReviewDate),
+          },
+        },
+      });
+    }
+
+    if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
+      await mutateApplicationDate({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            dateType: "FRT Initial Meeting Date" satisfies DateType,
+            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.frtInitialMeetingDate),
+          },
+        },
+      });
+    }
+
+    if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
+      await mutateApplicationDate({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            dateType: "BNPMT Initial Meeting Date" satisfies DateType,
+            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
+          },
+        },
+      });
+    }
+  };
+
+  const handleSaveForLater = async () => {
+    try {
+      handleSave();
+    } catch {
+      showError("Failed to save SDG Workplan for later.");
+      return;
+    }
+    showSuccess("Successfully saved SDG Workplan for later.");
+  };
+
+  const handleFinish = async () => {
+    try {
+      handleSave();
+      await mutatePhaseStatus({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            phaseName: PHASE_NAME,
+            phaseStatus: "Completed" satisfies PhaseStatus,
+          },
+        },
+      });
+    } catch {
+      showError("Failed to finish SDG Preparation phase.");
+      return;
+    }
+
+    showSuccess("Successfully finished SDG Preparation phase.");
+    setSelectedPhase(NEXT_PHASE_NAME);
+  };
+
   const SdgWorkplanSection = () => (
     <div aria-labelledby="sdg-workplan-title">
+      <div>test ${sdgPreparationPhaseFormData.expectedApprovalDate}</div>
       <div className={STYLES.header}>
         <h4 id="sdg-workplan-title" className={STYLES.title}>
           SDG WORKPLAN
         </h4>
         <p className={STYLES.helper}>
-          Ensure the expected approval date is reasonable based on required reviews and the complexity of the application
+          Ensure the expected approval date is reasonable based on required reviews and the
+          complexity of the application
         </p>
       </div>
       <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
@@ -36,6 +280,13 @@ export const SdgPreparationPhase = () => {
           className="w-full border border-border-fields px-1 py-1 text-sm rounded"
           aria-required={true}
           placeholder="Expected Approval Date"
+          value={sdgPreparationPhaseFormData.expectedApprovalDate}
+          onChange={(e) => {
+            setSdgPreparationPhaseFormData({
+              ...sdgPreparationPhaseFormData,
+              expectedApprovalDate: e.target.value,
+            });
+          }}
         />
       </div>
     </div>
@@ -61,6 +312,13 @@ export const SdgPreparationPhase = () => {
           className="w-full border border-border-fields px-1 py-1 text-sm rounded"
           aria-required={true}
           placeholder="SME Initial Review Date"
+          value={sdgPreparationPhaseFormData.smeInitialReviewDate}
+          onChange={(e) => {
+            setSdgPreparationPhaseFormData({
+              ...sdgPreparationPhaseFormData,
+              smeInitialReviewDate: e.target.value,
+            });
+          }}
         />
         <label className="block text-sm font-bold mb-1">
           <span className="text-text-warn mr-1">*</span>
@@ -73,6 +331,13 @@ export const SdgPreparationPhase = () => {
           className="w-full border border-border-fields px-1 py-1 text-sm rounded"
           aria-required={true}
           placeholder="FRT Initial Meeting Date"
+          value={sdgPreparationPhaseFormData.frtInitialMeetingDate}
+          onChange={(e) => {
+            setSdgPreparationPhaseFormData({
+              ...sdgPreparationPhaseFormData,
+              frtInitialMeetingDate: e.target.value,
+            });
+          }}
         />
         <label className="block text-sm font-bold mb-1">
           <span className="text-text-warn mr-1">*</span>
@@ -85,27 +350,21 @@ export const SdgPreparationPhase = () => {
           className="w-full border border-border-fields px-1 py-1 text-sm rounded"
           aria-required={true}
           placeholder="BNPMT Initial Meeting Date"
+          value={sdgPreparationPhaseFormData.bnpmtInitialMeetingDate}
+          onChange={(e) => {
+            setSdgPreparationPhaseFormData({
+              ...sdgPreparationPhaseFormData,
+              bnpmtInitialMeetingDate: e.target.value,
+            });
+          }}
         />
       </div>
 
       <div className={STYLES.actions}>
-        <SecondaryButton
-          onClick={() => {
-            console.log("Save For Later Clicked");
-          }}
-          size="large"
-          name="sdg-save-for-later"
-        >
+        <SecondaryButton onClick={handleSaveForLater} size="large" name="sdg-save-for-later">
           Save For Later
         </SecondaryButton>
-        <Button
-          onClick={() => {
-            console.log("Finish Clicked");
-          }}
-          size="large"
-          name="sdg-finish"
-          disabled
-        >
+        <Button onClick={handleFinish} size="large" name="sdg-finish" disabled={!isFormComplete}>
           Finish
         </Button>
       </div>

@@ -89,7 +89,9 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
         />
       );
     },
-    "SDG Preparation": SdgPreparationPhase,
+    "SDG Preparation": () => (
+      <SdgPreparationPhase demonstrationId={demonstration.id} setSelectedPhase={setSelectedPhase} />
+    ),
     "OGC & OMB Review": OgcOmbPhase,
     "Approval Package": ApprovalPackagePhase,
     "Post Approval": PostApprovalPhase,
