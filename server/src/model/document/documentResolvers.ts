@@ -6,12 +6,11 @@ import {
   Document as PrismaDocument,
   DocumentPendingUpload as PrismaDocumentPendingUpload,
 } from "@prisma/client";
-
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
 
 async function getDocument(parent: undefined, { id }: { id: string }) {
@@ -162,7 +161,7 @@ export const documentResolvers = {
       return parent.documentTypeId;
     },
 
-    application: async (parent: PrismaDocument) => {
+    application: async (parent: PrismaDocument): Promise<PrismaApplication> => {
       return await getApplication(parent.applicationId);
     },
 

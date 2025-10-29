@@ -1,35 +1,47 @@
-import { Amendment as PrismaAmendment } from "@prisma/client";
+import { Amendment as PrismaAmendment, Demonstration as PrismaDemonstration } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { ApplicationStatus, ApplicationType, PhaseName } from "../../types.js";
-import { CreateAmendmentInput, UpdateAmendmentInput } from "./amendmentSchema.js";
-import { resolveApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
+import {
+  ApplicationStatus,
+  ApplicationType,
+  CreateAmendmentInput,
+  PhaseName,
+  UpdateAmendmentInput,
+} from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
+import {
+  deleteApplication,
+  getApplication,
+  getManyApplications,
+  resolveApplicationCurrentPhaseName,
+  resolveApplicationDocuments,
+  resolveApplicationPhases,
+  resolveApplicationStatus,
+} from "../application/applicationResolvers.js";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 
-export async function getAmendment(parent: undefined, { id }: { id: string }) {
-  return await prisma().amendment.findUnique({
-    where: {
-      id: id,
-    },
-  });
+export async function __getAmendment(
+  parent: undefined,
+  { id }: { id: string }
+): Promise<PrismaAmendment> {
+  return await getApplication(id, "Amendment");
 }
 
-export async function getManyAmendments() {
-  return await prisma().amendment.findMany();
+export async function __getManyAmendments(): Promise<PrismaAmendment[] | null> {
+  return await getManyApplications("Amendment");
 }
 
-export async function createAmendment(
+export async function __createAmendment(
   parent: undefined,
   { input }: { input: CreateAmendmentInput }
-) {
+): Promise<PrismaAmendment> {
   return await prisma().$transaction(async (tx) => {
     const application = await tx.application.create({
       data: {
@@ -51,10 +63,10 @@ export async function createAmendment(
   });
 }
 
-export async function updateAmendment(
+export async function __updateAmendment(
   parent: undefined,
   { id, input }: { id: string; input: UpdateAmendmentInput }
-) {
+): Promise<PrismaAmendment> {
   if (input.effectiveDate) {
     checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
   }
@@ -82,57 +94,40 @@ export async function updateAmendment(
   }
 }
 
-export async function deleteAmendment(parent: undefined, { id }: { id: string }) {
-  return await prisma().amendment.delete({
-    where: {
-      id: id,
-    },
-  });
+export async function __deleteAmendment(
+  parent: undefined,
+  { id }: { id: string }
+): Promise<PrismaAmendment> {
+  return await deleteApplication(id, "Amendment");
 }
 
-async function getParentDemonstration(parent: PrismaAmendment) {
-  return await prisma().demonstration.findUnique({
+export async function __resolveParentDemonstration(
+  parent: PrismaAmendment
+): Promise<PrismaDemonstration> {
+  // DB enforces that you cannot orphan the demonstration record
+  const result = await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
-}
-
-async function getDocuments(parent: PrismaAmendment) {
-  return await prisma().document.findMany({
-    where: {
-      applicationId: parent.id,
-    },
-  });
-}
-
-async function getCurrentPhase(parent: PrismaAmendment) {
-  return parent.currentPhaseId;
-}
-
-async function getPhases(parent: PrismaAmendment) {
-  return await prisma().applicationPhase.findMany({
-    where: {
-      applicationId: parent.id,
-    },
-  });
+  return result!;
 }
 
 export const amendmentResolvers = {
   Query: {
-    amendment: getAmendment,
-    amendments: getManyAmendments,
+    amendment: __getAmendment,
+    amendments: __getManyAmendments,
   },
 
   Mutation: {
-    createAmendment: createAmendment,
-    updateAmendment: updateAmendment,
-    deleteAmendment: deleteAmendment,
+    createAmendment: __createAmendment,
+    updateAmendment: __updateAmendment,
+    deleteAmendment: __deleteAmendment,
   },
 
   Amendment: {
-    demonstration: getParentDemonstration,
-    documents: getDocuments,
-    currentPhaseName: getCurrentPhase,
+    demonstration: __resolveParentDemonstration,
+    documents: resolveApplicationDocuments,
+    currentPhaseName: resolveApplicationCurrentPhaseName,
     status: resolveApplicationStatus,
-    phases: getPhases,
+    phases: resolveApplicationPhases,
   },
 };

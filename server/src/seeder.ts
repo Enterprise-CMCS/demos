@@ -19,17 +19,9 @@ import {
   createDemonstration,
   updateDemonstration,
 } from "./model/demonstration/demonstrationResolvers.js";
-import {
-  getManyAmendments,
-  createAmendment,
-  updateAmendment,
-} from "./model/amendment/amendmentResolvers.js";
-import {
-  getManyExtensions,
-  createExtension,
-  updateExtension,
-} from "./model/extension/extensionResolvers.js";
-import { setApplicationDate } from "./model/applicationDate/applicationDateResolvers.js";
+import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
+import { createExtension, updateExtension } from "./model/extension/extensionResolvers.js";
+import { __setApplicationDate } from "./model/applicationDate/applicationDateResolvers.js";
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application/applicationResolvers.js";
@@ -398,7 +390,7 @@ async function seedDatabase() {
   ];
 
   for (const dateInput of datesToSet) {
-    await setApplicationDate(undefined, { input: dateInput });
+    await __setApplicationDate(undefined, { input: dateInput });
   }
 
   console.log("🌱 Seeding amendments...");
@@ -408,10 +400,10 @@ async function seedDatabase() {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
     };
-    await createAmendment(undefined, { input: createInput });
+    await __createAmendment(undefined, { input: createInput });
   }
-  const amendments = await getManyAmendments();
-  for (const amendment of amendments) {
+  const amendments = await getManyApplications("Amendment");
+  for (const amendment of amendments!) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateAmendmentInput = {
       effectiveDate: randomDates["start"],
@@ -421,7 +413,7 @@ async function seedDatabase() {
       id: amendment.id,
       input: updatePayload,
     };
-    await updateAmendment(undefined, updateInput);
+    await __updateAmendment(undefined, updateInput);
   }
 
   console.log("🌱 Seeding extensions...");
@@ -433,8 +425,8 @@ async function seedDatabase() {
     };
     await createExtension(undefined, { input: createInput });
   }
-  const extensions = await getManyExtensions();
-  for (const extension of extensions) {
+  const extensions = await getManyApplications("Extension");
+  for (const extension of extensions!) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateExtensionInput = {
       effectiveDate: randomDates["start"],

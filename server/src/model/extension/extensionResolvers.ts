@@ -1,35 +1,47 @@
-import { Extension as PrismaExtension } from "@prisma/client";
+import { Extension as PrismaExtension, Demonstration as PrismaDemonstration } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { ApplicationStatus, ApplicationType, PhaseName } from "../../types.js";
-import { CreateExtensionInput, UpdateExtensionInput } from "./extensionSchema.js";
-import { resolveApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
+import {
+  ApplicationStatus,
+  ApplicationType,
+  CreateExtensionInput,
+  PhaseName,
+  UpdateExtensionInput,
+} from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
+import {
+  deleteApplication,
+  getApplication,
+  getManyApplications,
+  resolveApplicationCurrentPhaseName,
+  resolveApplicationDocuments,
+  resolveApplicationPhases,
+  resolveApplicationStatus,
+} from "../application/applicationResolvers.js";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 
-export async function getExtension(parent: undefined, { id }: { id: string }) {
-  return await prisma().extension.findUnique({
-    where: {
-      id: id,
-    },
-  });
+export async function __getExtension(
+  parent: undefined,
+  { id }: { id: string }
+): Promise<PrismaExtension> {
+  return await getApplication(id, "Extension");
 }
 
-export async function getManyExtensions() {
-  return await prisma().extension.findMany();
+export async function __getManyExtensions(): Promise<PrismaExtension[] | null> {
+  return await getManyApplications("Extension");
 }
 
 export async function createExtension(
   parent: undefined,
   { input }: { input: CreateExtensionInput }
-) {
+): Promise<PrismaExtension> {
   return await prisma().$transaction(async (tx) => {
     const application = await tx.application.create({
       data: {
@@ -54,7 +66,7 @@ export async function createExtension(
 export async function updateExtension(
   parent: undefined,
   { id, input }: { id: string; input: UpdateExtensionInput }
-) {
+): Promise<PrismaExtension> {
   if (input.effectiveDate) {
     checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
   }
@@ -82,57 +94,40 @@ export async function updateExtension(
   }
 }
 
-export async function deleteExtension(parent: undefined, { id }: { id: string }) {
-  return await prisma().extension.delete({
-    where: {
-      id: id,
-    },
-  });
+export async function __deleteExtension(
+  parent: undefined,
+  { id }: { id: string }
+): Promise<PrismaExtension> {
+  return await deleteApplication(id, "Extension");
 }
 
-async function getParentDemonstration(parent: PrismaExtension) {
-  return await prisma().demonstration.findUnique({
+export async function __resolveParentDemonstration(
+  parent: PrismaExtension
+): Promise<PrismaDemonstration> {
+  // DB enforces that you cannot orphan the demonstration record
+  const result = await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
-}
-
-async function getDocuments(parent: PrismaExtension) {
-  return await prisma().document.findMany({
-    where: {
-      applicationId: parent.id,
-    },
-  });
-}
-
-async function getCurrentPhase(parent: PrismaExtension) {
-  return parent.currentPhaseId;
-}
-
-async function getPhases(parent: PrismaExtension) {
-  return await prisma().applicationPhase.findMany({
-    where: {
-      applicationId: parent.id,
-    },
-  });
+  return result!;
 }
 
 export const extensionResolvers = {
   Query: {
-    extension: getExtension,
-    extensions: getManyExtensions,
+    extension: __getExtension,
+    extensions: __getManyExtensions,
   },
 
   Mutation: {
     createExtension: createExtension,
     updateExtension: updateExtension,
-    deleteExtension: deleteExtension,
+    deleteExtension: __deleteExtension,
   },
 
   Extension: {
-    demonstration: getParentDemonstration,
-    documents: getDocuments,
-    currentPhaseName: getCurrentPhase,
+    demonstration: __resolveParentDemonstration,
+    documents: resolveApplicationDocuments,
+    currentPhaseName: resolveApplicationCurrentPhaseName,
     status: resolveApplicationStatus,
-    phases: getPhases,
+    phases: resolveApplicationPhases,
   },
 };

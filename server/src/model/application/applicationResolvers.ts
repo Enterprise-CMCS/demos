@@ -8,8 +8,9 @@ import {
   Document as PrismaDocument,
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
+import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
-type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
+export type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
 
 type FindApplicationQueryResult = {
   id: string;
@@ -34,9 +35,11 @@ export async function getApplication(
   applicationTypeId: "Extension"
 ): Promise<PrismaExtension>;
 
+export async function getApplication(applicationId: string): Promise<PrismaApplication>;
+
 export async function getApplication(
   applicationId: string,
-  applicationTypeId: ApplicationType
+  applicationTypeId?: ApplicationType
 ): Promise<PrismaApplication> {
   const application: FindApplicationQueryResult | null = await prisma().application.findUnique({
     where: {
@@ -102,6 +105,59 @@ export async function getManyApplications(
   return results;
 }
 
+export async function deleteApplication(
+  applicationId: string,
+  applicationTypeId: "Demonstration"
+): Promise<PrismaDemonstration>;
+
+export async function deleteApplication(
+  applicationId: string,
+  applicationTypeId: "Amendment"
+): Promise<PrismaAmendment>;
+
+export async function deleteApplication(
+  applicationId: string,
+  applicationTypeId: "Extension"
+): Promise<PrismaExtension>;
+
+export async function deleteApplication(
+  applicationId: string,
+  applicationTypeId: ApplicationType
+): Promise<PrismaApplication> {
+  try {
+    return await prisma().$transaction(async (tx) => {
+      await tx.application.delete({
+        where: {
+          id: applicationId,
+        },
+      });
+
+      switch (applicationTypeId) {
+        case "Demonstration":
+          return await tx.demonstration.delete({
+            where: {
+              id: applicationId,
+            },
+          });
+        case "Amendment":
+          return await tx.amendment.delete({
+            where: {
+              id: applicationId,
+            },
+          });
+        case "Extension":
+          return await tx.extension.delete({
+            where: {
+              id: applicationId,
+            },
+          });
+      }
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export async function resolveApplicationDocuments(
   parent: PrismaApplication
 ): Promise<PrismaDocument[] | null> {
@@ -120,6 +176,10 @@ export function resolveApplicationStatus(parent: PrismaApplication): string {
   return parent.statusId;
 }
 
+export function __resolveApplicationType(parent: PrismaApplication): string {
+  return parent.applicationTypeId;
+}
+
 export async function resolveApplicationPhases(
   parent: PrismaApplication
 ): Promise<PrismaApplicationPhase[]> {
@@ -134,8 +194,6 @@ export async function resolveApplicationPhases(
 
 export const applicationResolvers = {
   Application: {
-    __resolveType: async (parent: PrismaApplication) => {
-      return parent.applicationTypeId;
-    },
+    __resolveType: __resolveApplicationType,
   },
 };

@@ -1,7 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import { LogEventInput } from "./eventSchema.js";
 import { Event as PrismaEvent } from "@prisma/client";
-import { getApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { GraphQLContext, getCurrentUserId } from "../../auth/auth.util.js";
 
 export async function logEvent(
@@ -62,7 +62,7 @@ export const eventResolvers = {
       return parent.roleId;
     },
 
-    application: async (parent: PrismaEvent) => {
+    application: async (parent: PrismaEvent): Promise<PrismaApplication | null> => {
       if (!parent.applicationId) {
         return null;
       }

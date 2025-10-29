@@ -23,6 +23,7 @@ import {
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
 import {
+  deleteApplication,
   getApplication,
   getManyApplications,
   resolveApplicationCurrentPhaseName,
@@ -195,29 +196,11 @@ export async function updateDemonstration(
   }
 }
 
-export async function deleteDemonstration(
+export async function __deleteDemonstration(
   parent: undefined,
   { id }: { id: string }
 ): Promise<PrismaDemonstration> {
-  try {
-    return await prisma().$transaction(async (tx) => {
-      await tx.application.delete({
-        where: {
-          id: id,
-        },
-      });
-
-      const demonstration = await tx.demonstration.delete({
-        where: {
-          id: id,
-        },
-      });
-
-      return demonstration;
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
+  return await deleteApplication(id, "Demonstration");
 }
 
 export async function __resolveDemonstrationState(
@@ -297,7 +280,7 @@ export const demonstrationResolvers = {
   Mutation: {
     createDemonstration: createDemonstration,
     updateDemonstration: updateDemonstration,
-    deleteDemonstration: deleteDemonstration,
+    deleteDemonstration: __deleteDemonstration,
   },
 
   Demonstration: {
