@@ -11,7 +11,7 @@ export const getQueryForSetPhaseStatus = (
         applicationId: "${setPhaseStatusInput.applicationId}",
         phaseName: "${setPhaseStatusInput.phaseName}",
         phaseStatus: "${setPhaseStatusInput.phaseStatus}"
-      })
+      }) { __typename }
     }
   `;
 };

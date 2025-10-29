@@ -13,7 +13,7 @@ export const getQueryForSetApplicationDate = (
         applicationId: "${setApplicationDateInput.applicationId}",
         dateType: "${setApplicationDateInput.dateType}",
         dateValue: "${isoDateString}"
-      })
+      }) { __typename }
     }
   `;
 };
