@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon, DeleteIcon } from "components/icons";
@@ -6,10 +6,15 @@ import { tw } from "tags/tw";
 import { formatDate, parseInputDate } from "util/formatDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { differenceInCalendarDays } from "date-fns";
-
+import { useApolloClient, gql } from "@apollo/client";
+// import { SetApplicationDateInput } from "demos-server";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessDocumentUploadDialog } from "./CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
+import {
+  COMPLETENESS_PHASE_DATE_TYPES,
+  getInputsForCompletenessPhase,
+} from "components/application/dates/applicationDateQueries";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -24,6 +29,11 @@ const STYLES = {
   actions: tw`mt-8 flex items-center gap-3`,
   actionsEnd: tw`ml-auto flex gap-3`,
 };
+const SET_APPLICATION_DATE_MUTATION = gql`
+  mutation SetApplicationDate($input: SetApplicationDateInput!) {
+    setApplicationDate(input: $input)
+  }
+`;
 
 const CompletenessNotice = ({ noticeDueDate }: { noticeDueDate: string }) => {
   const [isNoticeDismissed, setNoticeDismissed] = useState(false);
@@ -41,7 +51,6 @@ const CompletenessNotice = ({ noticeDueDate }: { noticeDueDate: string }) => {
   };
 
   const formattedNoticeDate = noticeDueDateValue ? formatDate(noticeDueDateValue) : null;
-  // TODO: update when we have real data
   const noticeDescription = formattedNoticeDate
     ? `This Amendment must be declared complete by ${formattedNoticeDate}`
     : undefined;
@@ -78,6 +87,46 @@ export const CompletenessPhase: React.FC = () => {
       ? true
       : new Date(federalStartDate) <= new Date(federalEndDate);
   const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
+  const apolloClient = useApolloClient();
+
+  // Here's where I'm at. Need the three date and appplicationId.
+  const handleFinishCompleteness = useCallback(async () => {
+    const applicationId = "0af65323-9ec0-4f0e-9136-76f0dcde6ac7";
+    const dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date> = {
+      "Federal Comment Period Start Date": federalStartDate
+        ? new Date(federalStartDate)
+        : new Date("2025-10-21"),
+      "Federal Comment Period End Date": federalEndDate
+        ? new Date(federalEndDate)
+        : new Date("2025-10-29"),
+      "Completeness Completion Date": stateDeemedComplete
+        ? new Date(stateDeemedComplete)
+        : new Date("2025-10-28"),
+    };
+
+    if (applicationId == "0af65323-9ec0-4f0e-9136-76f0dcde6ac7") {
+      console.log("Using hardcoded application ID for testing.");
+    }
+
+    console.log("data to server: ", applicationId, dateValues);
+
+    const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
+    console.log("Generated inputs for mutations:", inputs);
+
+    await Promise.all(
+      inputs.map(async (input) => {
+        console.log("Sending mutation:", input);
+        try {
+          await apolloClient.mutate({
+            mutation: SET_APPLICATION_DATE_MUTATION,
+            variables: { input },
+          });
+        } catch (error) {
+          console.error("Error executing mutation:", error);
+        }
+      })
+    );
+  }, [apolloClient, federalEndDate, federalStartDate, stateDeemedComplete]);
 
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
@@ -90,7 +139,25 @@ export const CompletenessPhase: React.FC = () => {
         Upload
         <ExportIcon />
       </SecondaryButton>
-
+      <SecondaryButton
+        name="add-mock-document"
+        size="small"
+        onClick={() =>
+          setCompletenessDocs((docs) => [
+            ...docs,
+            {
+              id: Math.random().toString(36).substr(2, 9),
+              name: "Mock Completeness Letter.pdf",
+              description: "Mock description",
+              documentType: "Internal Completeness Review Form",
+              createdAt: new Date(),
+              owner: { person: { fullName: "Mock Owner" } },
+            },
+          ])
+        }
+      >
+      Add Mock Document
+      </SecondaryButton>
       <div className={STYLES.list}>
         {completenessDocs.map((doc) => (
           <div key={doc.id} className={STYLES.fileRow}>
@@ -123,7 +190,7 @@ export const CompletenessPhase: React.FC = () => {
         VERIFY/COMPLETE
       </h4>
       <p className={STYLES.helper}>
-        Verify that the document(s) are uploaded/accurate and that all required fields are filled.
+      Verify that the document(s) are uploaded/accurate and that all required fields are filled.
       </p>
 
       <div className="grid grid-cols-2 gap-4">
@@ -199,7 +266,9 @@ export const CompletenessPhase: React.FC = () => {
             name="finish-completeness"
             size="small"
             disabled={!canFinish}
-            onClick={() => console.log("Finish completeness phase")}
+            onClick={async () => {
+              await handleFinishCompleteness();
+            }}
           >
             Finish
           </Button>
@@ -210,7 +279,7 @@ export const CompletenessPhase: React.FC = () => {
 
   return (
     <div>
-      <CompletenessNotice noticeDueDate={"2025-01-01"} />
+      <CompletenessNotice noticeDueDate={"2025-10-30"} />
 
       <button
         className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"

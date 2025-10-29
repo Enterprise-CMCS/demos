@@ -9,9 +9,28 @@ export const getQueryForSetApplicationDate = (
     mutation SetApplicationDate {
       setApplicationDate(input: {
         applicationId: "${setApplicationDateInput.applicationId}",
-        dateType: ${setApplicationDateInput.dateType},
+        dateType: "${setApplicationDateInput.dateType}",
         dateValue: "${isoDateString}"
       })
     }
   `;
 };
+
+export const COMPLETENESS_PHASE_DATE_TYPES = [
+  "Federal Comment Period Start Date",
+  "Federal Comment Period End Date",
+  "Completeness Completion Date",
+] as const;
+
+export const getInputsForCompletenessPhase = (
+  applicationId: string,
+  dateValues: Record<typeof COMPLETENESS_PHASE_DATE_TYPES[number], Date | null>
+): SetApplicationDateInput[] => {
+
+  return COMPLETENESS_PHASE_DATE_TYPES.map((dateType) => ({
+    applicationId,
+    dateType,
+    dateValue: dateValues[dateType] as Date,
+  }));
+};
+
