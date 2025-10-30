@@ -3,20 +3,22 @@ import React, { useCallback, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon, DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate, parseInputDate } from "util/formatDate";
+import { formatDate, parseInputDate, formatDateForServer } from "util/formatDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { differenceInCalendarDays } from "date-fns";
 import { useApolloClient, gql } from "@apollo/client";
-// import { SetApplicationDateInput } from "demos-server";
-import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { CompletenessDocumentUploadDialog } from "./CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
 import {
   COMPLETENESS_PHASE_DATE_TYPES,
   getInputsForCompletenessPhase,
 } from "components/application/dates/applicationDateQueries";
-import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
-import { getCurrentUser } from "components/user/UserContext";
+import {
+  ApplicationWorkflowDemonstration,
+  ApplicationWorkflowDocument,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
+} from "../ApplicationWorkflow";
+import { TZDate } from "@date-fns/tz";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -44,6 +46,23 @@ const SET_APPLICATION_DATE_MUTATION = gql`
       }
       ... on Extension {
         id
+      }
+    }
+  }
+`;
+
+const SET_PHASE_STATUS_MUTATION = gql`
+  mutation SetCompletenessPhaseStatus($input: SetApplicationPhaseStatusInput!) {
+    setApplicationPhaseStatus(input: $input) {
+      id
+      currentPhaseName
+      phases {
+        phaseName
+        phaseStatus
+        phaseDates {
+          dateType
+          dateValue
+        }
       }
     }
   }
@@ -108,18 +127,26 @@ export const getApplicationCompletenessFromDemonstration = (
   return (
     <CompletenessPhase
       applicationId={demonstration.id}
-      fedCommentStartDate={fedCommentStartDate?.dateValue}
-      fedCommentEndDate={fedCommentEndDate?.dateValue}
-      stateDeemedCompleteDate={stateDeemedCompleteDate?.dateValue}
-      applicationCompletenessDocument={applicationCompletenessDocument}
+      fedCommentStartDate={
+        fedCommentStartDate?.dateValue ? formatDateForServer(fedCommentStartDate.dateValue) : ""
+      }
+      fedCommentEndDate={
+        fedCommentEndDate?.dateValue ? formatDateForServer(fedCommentEndDate.dateValue) : ""
+      }
+      stateDeemedCompleteDate={
+        stateDeemedCompleteDate?.dateValue
+          ? formatDateForServer(stateDeemedCompleteDate.dateValue)
+          : ""
+      }
+      applicationCompletenessDocument={applicationCompletenessDocument ?? []}
     />
   );
 };
 export interface CompletenessPhaseProps {
   applicationId: string;
-  fedCommentStartDate?: Date | string;
-  fedCommentEndDate?: Date | string;
-  stateDeemedCompleteDate?: Date | string;
+  fedCommentStartDate?: string;
+  fedCommentEndDate?: string;
+  stateDeemedCompleteDate?: string;
   applicationCompletenessDocument: ApplicationWorkflowDocument[];
 }
 
@@ -127,21 +154,21 @@ export const CompletenessPhase = ({
   applicationId,
   fedCommentStartDate,
   fedCommentEndDate,
-  stateDeemedCompleteDate, // -
+  stateDeemedCompleteDate,
   applicationCompletenessDocument,
-}: CompletenessPhaseProps ) => {
+}: CompletenessPhaseProps) => {
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
-    stateDeemedCompleteDate?.toString() ?? ""
+    stateDeemedCompleteDate ?? ""
   );
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   const [federalStartDate, setFederalStartDate] = useState<string>(
-    fedCommentStartDate?.toString() ?? ""
+    fedCommentStartDate ?? ""
   );
   const [federalEndDate, setFederalEndDate] = useState<string>(
-    fedCommentEndDate?.toString() ?? ""
+    fedCommentEndDate ?? ""
   );
 
   const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
@@ -154,20 +181,54 @@ export const CompletenessPhase = ({
       ? true
       : new Date(federalStartDate) <= new Date(federalEndDate);
 
-  let canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
-  canFinish = true; // TEMP OVERRIDE FOR DEV PURPOSES REPLACE WITH BELOW
+  // seeded docs for completeness.
+  const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
   // const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
   const apolloClient = useApolloClient();
+
+  const updatePhaseStatus = useCallback(
+    async (phaseStatus: "Completed" | "Incomplete") => {
+      try {
+        await apolloClient.mutate({
+          mutation: SET_PHASE_STATUS_MUTATION,
+          variables: {
+            input: {
+              applicationId,
+              phaseName: "Completeness",
+              phaseStatus,
+            },
+          },
+          refetchQueries: [
+            {
+              query: GET_WORKFLOW_DEMONSTRATION_QUERY,
+              variables: { id: applicationId },
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("Error updating phase status:", error);
+      }
+    },
+    [apolloClient, applicationId]
+  );
+
   const handleFinishCompleteness = useCallback(async () => {
+    // Deos not work
+    const toEasternStartOfDay = (value: string): Date | null =>
+      value ? new TZDate(`${value}T00:00:00`, "America/New_York") : null;
+
+    const toEasternEndOfDay = (value: string): Date | null =>
+      value ? new TZDate(`${value}T23:59:59.999`, "America/New_York") : null;
+
     const dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null> = {
-      "Federal Comment Period Start Date": federalStartDate ? new Date(federalStartDate) : null,
-      "Federal Comment Period End Date": federalEndDate ? new Date(federalEndDate) : null,
-      "Completeness Completion Date": stateDeemedComplete
-        ? new Date(stateDeemedComplete)
-        : null,
+      "State Application Deemed Complete": toEasternStartOfDay(stateDeemedComplete),
+      "Federal Comment Period Start Date": toEasternStartOfDay(federalStartDate),
+      "Federal Comment Period End Date": toEasternEndOfDay(federalEndDate),
+      "Completeness Completion Date": toEasternStartOfDay(stateDeemedComplete),
     };
 
     const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
+
     await Promise.all(
       inputs.map(async (input) => {
         try {
@@ -180,7 +241,13 @@ export const CompletenessPhase = ({
         }
       })
     );
-  }, [apolloClient, federalEndDate, federalStartDate, stateDeemedComplete, applicationId]);
+
+    await updatePhaseStatus("Completed");
+  }, [updatePhaseStatus, federalEndDate, federalStartDate, stateDeemedComplete, applicationId]);
+
+  const handleDeclareIncomplete = useCallback(async () => {
+    await updatePhaseStatus("Incomplete");
+  }, [updatePhaseStatus]);
 
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
@@ -358,7 +425,10 @@ export const CompletenessPhase = ({
           <DeclareIncompleteDialog
             isOpen={isDeclareIncompleteOpen}
             onClose={() => setDeclareIncompleteOpen(false)}
-            onConfirm={(form) => console.log("Declare incomplete submitted", form)}
+            onConfirm={async () => {
+              await handleDeclareIncomplete();
+              setDeclareIncompleteOpen(false);
+            }}
           />
         </div>
       )}

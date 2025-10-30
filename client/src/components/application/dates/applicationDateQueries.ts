@@ -19,6 +19,7 @@ export const getQueryForSetApplicationDate = (
 };
 
 export const COMPLETENESS_PHASE_DATE_TYPES = [
+  "State Application Deemed Complete",
   "Federal Comment Period Start Date",
   "Federal Comment Period End Date",
   "Completeness Completion Date",
