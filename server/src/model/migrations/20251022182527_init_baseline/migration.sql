@@ -344,6 +344,8 @@ ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_name CHECK (trim(n
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_description CHECK (trim(description) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_s3_path CHECK (trim(s3_path) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_s3_path_start CHECK (s3_path ~ '^s3://');
+ALTER TABLE demos_app.document_pending_upload ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+ALTER TABLE demos_app.document_pending_upload ADD CONSTRAINT check_non_empty_description CHECK (trim(description) != '');
 
 -- Fix Deferrable Constraints
 ALTER TABLE demos_app.amendment DROP CONSTRAINT amendment_id_application_type_id_fkey;

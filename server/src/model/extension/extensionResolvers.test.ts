@@ -1,20 +1,20 @@
 import { describe, it, expect, vi, beforeEach, expectTypeOf } from "vitest";
 import {
-  __getAmendment,
-  __getManyAmendments,
-  __createAmendment,
-  __updateAmendment,
-  __deleteAmendment,
+  __getExtension,
+  __getManyExtensions,
+  __createExtension,
+  __updateExtension,
+  __deleteExtension,
   __resolveParentDemonstration,
-} from "./amendmentResolvers.js";
+} from "./extensionResolvers.js";
 import {
   ApplicationStatus,
   ApplicationType,
-  CreateAmendmentInput,
+  CreateExtensionInput,
   PhaseName,
-  UpdateAmendmentInput,
+  UpdateExtensionInput,
 } from "../../types.js";
-import { Amendment as PrismaAmendment } from "@prisma/client";
+import { Extension as PrismaExtension } from "@prisma/client";
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
@@ -65,9 +65,9 @@ vi.mock("../applicationDate/checkInputDateFunctions.js", () => ({
   checkInputDateIsEndOfDay: vi.fn(),
 }));
 
-describe("amendmentResolvers", () => {
+describe("extensionResolvers", () => {
   const regularMocks = {
-    amendment: {
+    extension: {
       update: vi.fn(),
     },
     demonstration: {
@@ -78,7 +78,7 @@ describe("amendmentResolvers", () => {
     application: {
       create: vi.fn(),
     },
-    amendment: {
+    extension: {
       create: vi.fn(),
     },
   };
@@ -86,26 +86,26 @@ describe("amendmentResolvers", () => {
     application: {
       create: transactionMocks.application.create,
     },
-    amendment: {
-      create: transactionMocks.amendment.create,
+    extension: {
+      create: transactionMocks.extension.create,
     },
   };
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
-    amendment: {
-      update: regularMocks.amendment.update,
+    extension: {
+      update: regularMocks.extension.update,
     },
     demonstration: {
       findUnique: regularMocks.demonstration.findUnique,
     },
   };
-  const testAmendmentId = "8167c039-9c08-4203-b7d2-9e35ec156993";
+  const testExtensionId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
-  const testAmendmentName = "The Amendment";
-  const testAmendmentDescription = "A description of an amendment";
-  const testAmendmentTypeId: ApplicationType = "Amendment";
-  const testAmendmentStatusId: ApplicationStatus = "Pre-Submission";
-  const testAmendmentPhaseId: PhaseName = "Concept";
+  const testExtensionName = "The Extension";
+  const testExtensionDescription = "A description of an extension";
+  const testExtensionTypeId: ApplicationType = "Extension";
+  const testExtensionStatusId: ApplicationStatus = "Pre-Submission";
+  const testExtensionPhaseId: PhaseName = "Concept";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -114,65 +114,65 @@ describe("amendmentResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  describe("__getAmendment", () => {
-    it("should request the amendment", async () => {
+  describe("__getExtension", () => {
+    it("should request the extension", async () => {
       const testInputData = {
-        id: testAmendmentId,
+        id: testExtensionId,
       };
-      await __getAmendment(undefined, testInputData);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, "Amendment");
+      await __getExtension(undefined, testInputData);
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, "Extension");
     });
   });
 
-  describe("__getManyAmendments", () => {
-    it("should request many amendments with the right type", async () => {
-      await __getManyAmendments();
-      expect(getManyApplications).toHaveBeenCalledExactlyOnceWith("Amendment");
+  describe("__getManyExtensions", () => {
+    it("should request many extensions with the right type", async () => {
+      await __getManyExtensions();
+      expect(getManyApplications).toHaveBeenCalledExactlyOnceWith("Extension");
     });
   });
 
-  describe("__createAmendment", () => {
+  describe("__createExtension", () => {
     it("should create an application and an amendment in a transaction", async () => {
       transactionMocks.application.create.mockResolvedValueOnce({
-        id: testAmendmentId,
-        applicationTypeId: testAmendmentTypeId,
+        id: testExtensionId,
+        applicationTypeId: testExtensionTypeId,
       });
-      const testInput: { input: CreateAmendmentInput } = {
+      const testInput: { input: CreateExtensionInput } = {
         input: {
           demonstrationId: testDemonstrationId,
-          name: testAmendmentName,
-          description: testAmendmentDescription,
+          name: testExtensionName,
+          description: testExtensionDescription,
         },
       };
       const expectedCalls = [
         {
           data: {
-            applicationTypeId: testAmendmentTypeId,
+            applicationTypeId: testExtensionTypeId,
           },
         },
         {
           data: {
-            id: testAmendmentId,
-            applicationTypeId: testAmendmentTypeId,
+            id: testExtensionId,
+            applicationTypeId: testExtensionTypeId,
             demonstrationId: testDemonstrationId,
-            name: testAmendmentName,
-            description: testAmendmentDescription,
-            statusId: testAmendmentStatusId,
-            currentPhaseId: testAmendmentPhaseId,
+            name: testExtensionName,
+            description: testExtensionDescription,
+            statusId: testExtensionStatusId,
+            currentPhaseId: testExtensionPhaseId,
           },
         },
       ];
-      await __createAmendment(undefined, testInput);
+      await __createExtension(undefined, testInput);
       expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-      expect(transactionMocks.amendment.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+      expect(transactionMocks.extension.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
     });
   });
 
-  describe("__updateAmendment", () => {
-    const testInput: { id: string; input: UpdateAmendmentInput } = {
-      id: testAmendmentId,
+  describe("__updateExtension", () => {
+    const testInput: { id: string; input: UpdateExtensionInput } = {
+      id: testExtensionId,
       input: {
-        description: testAmendmentDescription,
+        description: testExtensionDescription,
       },
     };
     const expectedCheckOptionalNotNullFieldList = [
@@ -183,17 +183,17 @@ describe("amendmentResolvers", () => {
     ];
     const testDate = new Date(2025, 1, 1, 0, 0, 0, 0);
 
-    it("should call update on the amendment", async () => {
+    it("should call update on the extension", async () => {
       const expectedCall = {
         where: {
-          id: testAmendmentId,
+          id: testExtensionId,
         },
         data: {
-          description: testAmendmentDescription,
+          description: testExtensionDescription,
         },
       };
-      await __updateAmendment(undefined, testInput);
-      expect(regularMocks.amendment.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      await __updateExtension(undefined, testInput);
+      expect(regularMocks.extension.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
         expectedCheckOptionalNotNullFieldList,
         testInput.input
@@ -202,28 +202,28 @@ describe("amendmentResolvers", () => {
     });
 
     it("should not check input dates if they don't exist", async () => {
-      await __updateAmendment(undefined, testInput);
+      await __updateExtension(undefined, testInput);
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
     it("should properly handle an error if it occurs", async () => {
       const testError = new Error("Database connection failed");
-      regularMocks.amendment.update.mockRejectedValueOnce(testError);
-      await expect(__updateAmendment(undefined, testInput)).rejects.toThrowError(
+      regularMocks.extension.update.mockRejectedValueOnce(testError);
+      await expect(__updateExtension(undefined, testInput)).rejects.toThrowError(
         testHandlePrismaError
       );
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
     });
 
     it("should check effective date if it is provided", async () => {
-      const testInput: { id: string; input: UpdateAmendmentInput } = {
-        id: testAmendmentId,
+      const testInput: { id: string; input: UpdateExtensionInput } = {
+        id: testExtensionId,
         input: {
           effectiveDate: testDate,
         },
       };
-      await __updateAmendment(undefined, testInput);
+      await __updateExtension(undefined, testInput);
       expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith({
         dateType: "effectiveDate",
         dateValue: testDate,
@@ -232,13 +232,13 @@ describe("amendmentResolvers", () => {
     });
 
     it("should check expiration date if it is provided", async () => {
-      const testInput: { id: string; input: UpdateAmendmentInput } = {
-        id: testAmendmentId,
+      const testInput: { id: string; input: UpdateExtensionInput } = {
+        id: testExtensionId,
         input: {
           expirationDate: testDate,
         },
       };
-      await __updateAmendment(undefined, testInput);
+      await __updateExtension(undefined, testInput);
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith({
         dateType: "expirationDate",
@@ -247,20 +247,20 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("__deleteAmendment", () => {
+  describe("__deleteExtension", () => {
     const testInput = {
-      id: testAmendmentId,
+      id: testExtensionId,
     };
 
     it("should call the delete function on the correct ID", async () => {
-      await __deleteAmendment(undefined, testInput);
-      expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, "Amendment");
+      await __deleteExtension(undefined, testInput);
+      expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, "Extension");
     });
   });
 
   describe("__resolveParentDemonstration", () => {
     it("should look up the relevant demonstration", async () => {
-      const input: Partial<PrismaAmendment> = {
+      const input: Partial<PrismaExtension> = {
         demonstrationId: testDemonstrationId,
       };
       const expectedCall = {
@@ -268,7 +268,7 @@ describe("amendmentResolvers", () => {
           id: testDemonstrationId,
         },
       };
-      await __resolveParentDemonstration(input as PrismaAmendment);
+      await __resolveParentDemonstration(input as PrismaExtension);
       expect(regularMocks.demonstration.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });

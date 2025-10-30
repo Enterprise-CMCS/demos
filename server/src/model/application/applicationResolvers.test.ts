@@ -11,6 +11,8 @@ import {
   PrismaApplication,
 } from "./applicationResolvers.js";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types.js";
+
+// Mock imports
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
@@ -26,39 +28,57 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
 }));
 
 describe("applicationResolvers", () => {
-  const mockApplicationFindUnique = vi.fn();
-  const mockApplicationFindMany = vi.fn();
-  const mockDocumentFindMany = vi.fn();
-  const mockApplicationPhaseFindMany = vi.fn();
-  const mockApplicationDelete = vi.fn();
-  const mockDemonstrationDelete = vi.fn();
-  const mockAmendmentDelete = vi.fn();
-  const mockExtensionDelete = vi.fn();
-  const mockTransaction = {
+  const regularMocks = {
+    document: {
+      findMany: vi.fn(),
+    },
     application: {
-      delete: mockApplicationDelete,
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+    },
+    applicationPhase: {
+      findMany: vi.fn(),
+    },
+  };
+  const transactionMocks = {
+    application: {
+      delete: vi.fn(),
     },
     demonstration: {
-      delete: mockDemonstrationDelete,
+      delete: vi.fn(),
     },
     amendment: {
-      delete: mockAmendmentDelete,
+      delete: vi.fn(),
     },
     extension: {
-      delete: mockExtensionDelete,
+      delete: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    application: {
+      delete: transactionMocks.application.delete,
+    },
+    demonstration: {
+      delete: transactionMocks.demonstration.delete,
+    },
+    amendment: {
+      delete: transactionMocks.amendment.delete,
+    },
+    extension: {
+      delete: transactionMocks.extension.delete,
     },
   };
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     document: {
-      findMany: mockDocumentFindMany,
+      findMany: regularMocks.document.findMany,
     },
     application: {
-      findUnique: mockApplicationFindUnique,
-      findMany: mockApplicationFindMany,
+      findUnique: regularMocks.application.findUnique,
+      findMany: regularMocks.application.findMany,
     },
     applicationPhase: {
-      findMany: mockApplicationPhaseFindMany,
+      findMany: regularMocks.applicationPhase.findMany,
     },
   };
   const testApplicationId = "8167c039-9c08-4203-b7d2-9e35ec156993";
@@ -90,7 +110,7 @@ describe("applicationResolvers", () => {
         },
       };
       await getApplication(testApplicationId, testDemonstrationApplicationTypeId);
-      expect(mockApplicationFindUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(regularMocks.application.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
 
     it("should throw if nothing is returned", async () => {
@@ -111,7 +131,7 @@ describe("applicationResolvers", () => {
       ).rejects.toThrowError(
         `Application of type ${testDemonstrationApplicationTypeId} with ID ${testApplicationId} not found`
       );
-      expect(mockApplicationFindUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(regularMocks.application.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 
@@ -129,7 +149,7 @@ describe("applicationResolvers", () => {
         },
       };
       await getManyApplications(testDemonstrationApplicationTypeId);
-      expect(mockApplicationFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(regularMocks.application.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
 
     it("should return null if nothing is returned", async () => {
@@ -145,7 +165,7 @@ describe("applicationResolvers", () => {
         },
       };
       const result = getManyApplications(testDemonstrationApplicationTypeId);
-      expect(mockApplicationFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(regularMocks.application.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(result).resolves.toBeNull();
     });
   });
@@ -158,10 +178,10 @@ describe("applicationResolvers", () => {
         },
       };
       await deleteApplication(testApplicationId, testDemonstrationApplicationTypeId);
-      expect(mockApplicationDelete).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(mockDemonstrationDelete).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(mockAmendmentDelete).not.toHaveBeenCalled();
-      expect(mockExtensionDelete).not.toHaveBeenCalled();
+      expect(transactionMocks.application.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(transactionMocks.demonstration.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(transactionMocks.amendment.delete).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.delete).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
@@ -172,10 +192,10 @@ describe("applicationResolvers", () => {
         },
       };
       await deleteApplication(testApplicationId, testAmendmentApplicationTypeId);
-      expect(mockApplicationDelete).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(mockDemonstrationDelete).not.toHaveBeenCalled();
-      expect(mockAmendmentDelete).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(mockExtensionDelete).not.toHaveBeenCalled();
+      expect(transactionMocks.application.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(transactionMocks.demonstration.delete).not.toHaveBeenCalled();
+      expect(transactionMocks.amendment.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(transactionMocks.extension.delete).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
@@ -186,16 +206,16 @@ describe("applicationResolvers", () => {
         },
       };
       await deleteApplication(testApplicationId, testExtensionApplicationTypeId);
-      expect(mockApplicationDelete).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(mockDemonstrationDelete).not.toHaveBeenCalled();
-      expect(mockAmendmentDelete).not.toHaveBeenCalled();
-      expect(mockExtensionDelete).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(transactionMocks.application.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(transactionMocks.demonstration.delete).not.toHaveBeenCalled();
+      expect(transactionMocks.amendment.delete).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
     it("should properly handle failures when doing a delete", async () => {
       const testError = new Error("Database connection failed");
-      mockApplicationDelete.mockRejectedValueOnce(testError);
+      transactionMocks.application.delete.mockRejectedValueOnce(testError);
       const expectedCall = {
         where: {
           id: testApplicationId,
@@ -204,10 +224,10 @@ describe("applicationResolvers", () => {
       await expect(
         deleteApplication(testApplicationId, testDemonstrationApplicationTypeId)
       ).rejects.toThrowError(testHandlePrismaError);
-      expect(mockApplicationDelete).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(mockDemonstrationDelete).not.toHaveBeenCalled();
-      expect(mockAmendmentDelete).not.toHaveBeenCalled();
-      expect(mockExtensionDelete).not.toHaveBeenCalled();
+      expect(transactionMocks.application.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(transactionMocks.demonstration.delete).not.toHaveBeenCalled();
+      expect(transactionMocks.amendment.delete).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.delete).not.toHaveBeenCalled();
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
     });
   });
@@ -223,7 +243,7 @@ describe("applicationResolvers", () => {
         },
       };
       await resolveApplicationDocuments(input as PrismaApplication);
-      expect(mockDocumentFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(regularMocks.document.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 
@@ -268,7 +288,7 @@ describe("applicationResolvers", () => {
         },
       };
       await resolveApplicationPhases(input as PrismaApplication);
-      expect(mockApplicationPhaseFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(regularMocks.applicationPhase.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 });

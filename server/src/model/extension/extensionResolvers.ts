@@ -38,7 +38,7 @@ export async function __getManyExtensions(): Promise<PrismaExtension[] | null> {
   return await getManyApplications("Extension");
 }
 
-export async function createExtension(
+export async function __createExtension(
   parent: undefined,
   { input }: { input: CreateExtensionInput }
 ): Promise<PrismaExtension> {
@@ -63,7 +63,7 @@ export async function createExtension(
   });
 }
 
-export async function updateExtension(
+export async function __updateExtension(
   parent: undefined,
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
@@ -118,8 +118,8 @@ export const extensionResolvers = {
   },
 
   Mutation: {
-    createExtension: createExtension,
-    updateExtension: updateExtension,
+    createExtension: __createExtension,
+    updateExtension: __updateExtension,
     deleteExtension: __deleteExtension,
   },
 

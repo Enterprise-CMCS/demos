@@ -16,11 +16,11 @@ import {
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName, PhaseStatus } from "./types.js";
 import {
-  createDemonstration,
-  updateDemonstration,
+  __createDemonstration,
+  __updateDemonstration,
 } from "./model/demonstration/demonstrationResolvers.js";
 import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
-import { createExtension, updateExtension } from "./model/extension/extensionResolvers.js";
+import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
 import { __setApplicationDate } from "./model/applicationDate/applicationDateResolvers.js";
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
@@ -214,7 +214,7 @@ async function seedDatabase() {
       stateId: sampleFromArray(person.personStates, 1)[0].stateId,
       projectOfficerUserId: person.id,
     };
-    await createDemonstration(undefined, { input: createInput });
+    await __createDemonstration(undefined, { input: createInput });
   }
   const demonstrations = (await getManyApplications("Demonstration"))!;
   const completenessPhase: PhaseName = "Completeness";
@@ -242,7 +242,7 @@ async function seedDatabase() {
         input: updatePayload,
       };
 
-      await updateDemonstration(undefined, updateInput);
+      await __updateDemonstration(undefined, updateInput);
 
       if (index === 0) {
         await prisma().applicationPhase.upsert({
@@ -423,7 +423,7 @@ async function seedDatabase() {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
     };
-    await createExtension(undefined, { input: createInput });
+    await __createExtension(undefined, { input: createInput });
   }
   const extensions = await getManyApplications("Extension");
   for (const extension of extensions!) {
@@ -436,7 +436,7 @@ async function seedDatabase() {
       id: extension.id,
       input: updatePayload,
     };
-    await updateExtension(undefined, updateInput);
+    await __updateExtension(undefined, updateInput);
   }
 
   console.log("🌱 Seeding documents...");

@@ -49,7 +49,7 @@ export async function __getManyDemonstrations(): Promise<PrismaDemonstration[] |
   return await getManyApplications("Demonstration");
 }
 
-export async function createDemonstration(
+export async function __createDemonstration(
   parent: undefined,
   { input }: { input: CreateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
@@ -100,7 +100,7 @@ export async function createDemonstration(
         data: {
           demonstrationId: application.id,
           personId: input.projectOfficerUserId,
-          roleId: "Project Officer",
+          roleId: roleProjectOfficer,
         },
       });
 
@@ -112,7 +112,7 @@ export async function createDemonstration(
   return await getApplication(newApplicationId, "Demonstration");
 }
 
-export async function updateDemonstration(
+export async function __updateDemonstration(
   parent: undefined,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
@@ -278,8 +278,8 @@ export const demonstrationResolvers = {
   },
 
   Mutation: {
-    createDemonstration: createDemonstration,
-    updateDemonstration: updateDemonstration,
+    createDemonstration: __createDemonstration,
+    updateDemonstration: __updateDemonstration,
     deleteDemonstration: __deleteDemonstration,
   },
 
