@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon, DeleteIcon } from "components/icons";
@@ -19,6 +19,7 @@ import {
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "../ApplicationWorkflow";
 import { TZDate } from "@date-fns/tz";
+import { useToast } from "components/toast";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -33,6 +34,10 @@ const STYLES = {
   actions: tw`mt-8 flex items-center gap-3`,
   actionsEnd: tw`ml-auto flex gap-3`,
 };
+
+const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
+const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
+const FAIL_MESSAGE = "Dates and status not saved.";
 
 const SET_APPLICATION_DATE_MUTATION = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {
@@ -68,9 +73,30 @@ const SET_PHASE_STATUS_MUTATION = gql`
   }
 `;
 
-const CompletenessNotice = ({ noticeDueDate }: { noticeDueDate: string }) => {
-  const [isNoticeDismissed, setNoticeDismissed] = useState(false);
+const CompletenessNotice = ({
+  noticeDueDate,
+  stateDeemedComplete,
+}: {
+  noticeDueDate: string,
+  stateDeemedComplete: boolean
+}) => {
+  useEffect(() => {
+    setNoticeDismissed(stateDeemedComplete === true);
+  }, [stateDeemedComplete]);
+  const [isNoticeDismissed, setNoticeDismissed] = useState(
+    stateDeemedComplete === true
+  );
+
+  useEffect(() => {
+    setNoticeDismissed(stateDeemedComplete);
+  }, [stateDeemedComplete]);
+
   const noticeDueDateValue = parseInputDate(noticeDueDate);
+
+  if (!noticeDueDateValue || isNaN(noticeDueDateValue.getTime())) {
+    return null;
+  }
+
   const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
 
   // determine notice title/description from days
@@ -83,14 +109,14 @@ const CompletenessNotice = ({ noticeDueDate }: { noticeDueDate: string }) => {
     return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
   };
 
-  const formattedNoticeDate = noticeDueDateValue ? formatDate(noticeDueDateValue) : null;
+  const formattedNoticeDate = formatDate(noticeDueDateValue);
   const noticeDescription = formattedNoticeDate
     ? `This Amendment must be declared complete by ${formattedNoticeDate}`
     : undefined;
 
   // go from yellow to red at 1 day left.
   const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
-  const shouldRenderNotice = Boolean(!isNoticeDismissed && noticeDueDateValue);
+  const shouldRenderNotice = Boolean(!isNoticeDismissed);
 
   if (shouldRenderNotice) {
     return (
@@ -142,6 +168,7 @@ export const getApplicationCompletenessFromDemonstration = (
     />
   );
 };
+
 export interface CompletenessPhaseProps {
   applicationId: string;
   fedCommentStartDate?: string;
@@ -157,6 +184,7 @@ export const CompletenessPhase = ({
   stateDeemedCompleteDate,
   applicationCompletenessDocument,
 }: CompletenessPhaseProps) => {
+  const { showSuccess, showError } = useToast();
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
     stateDeemedCompleteDate ?? ""
   );
@@ -181,9 +209,7 @@ export const CompletenessPhase = ({
       ? true
       : new Date(federalStartDate) <= new Date(federalEndDate);
 
-  // seeded docs for completeness.
   const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
-  // const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
   const apolloClient = useApolloClient();
 
   const updatePhaseStatus = useCallback(
@@ -205,45 +231,55 @@ export const CompletenessPhase = ({
             },
           ],
         });
+        showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
       } catch (error) {
+        showError(FAIL_MESSAGE);
         console.error("Error updating phase status:", error);
       }
     },
-    [apolloClient, applicationId]
+    [apolloClient, applicationId, showError, showSuccess]
   );
 
-  const handleFinishCompleteness = useCallback(async () => {
-    // Deos not work
+  const getDateValues = useCallback(() => {
     const toEasternStartOfDay = (value: string): Date | null =>
       value ? new TZDate(`${value}T00:00:00`, "America/New_York") : null;
-
     const toEasternEndOfDay = (value: string): Date | null =>
       value ? new TZDate(`${value}T23:59:59.999`, "America/New_York") : null;
 
-    const dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null> = {
+    return {
       "State Application Deemed Complete": toEasternStartOfDay(stateDeemedComplete),
       "Federal Comment Period Start Date": toEasternStartOfDay(federalStartDate),
       "Federal Comment Period End Date": toEasternEndOfDay(federalEndDate),
       "Completeness Completion Date": toEasternStartOfDay(stateDeemedComplete),
-    };
+    } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
+  }, [stateDeemedComplete, federalStartDate, federalEndDate]);
 
+  const saveTheDatesOnly = useCallback(async (options?: { suppressSuccessToast?: boolean }) => {
+    const dateValues = getDateValues();
     const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
 
-    await Promise.all(
-      inputs.map(async (input) => {
-        try {
+    try {
+      await Promise.all(
+        inputs.map(async (input) => {
           await apolloClient.mutate({
             mutation: SET_APPLICATION_DATE_MUTATION,
             variables: { input },
           });
-        } catch (error) {
-          console.error("Error executing mutation:", error);
-        }
-      })
-    );
+        })
+      );
+      if (!options?.suppressSuccessToast) {
+        showSuccess(DATES_SUCCESS_MESSAGE);
+      }
+    } catch (error) {
+      showError(FAIL_MESSAGE);
+      console.error("Error executing mutation:", error);
+    }
+  }, [apolloClient, applicationId, getDateValues, showError, showSuccess]);
 
+  const handleFinishCompleteness = useCallback(async () => {
+    await saveTheDatesOnly({ suppressSuccessToast: true });
     await updatePhaseStatus("Completed");
-  }, [updatePhaseStatus, federalEndDate, federalStartDate, stateDeemedComplete, applicationId]);
+  }, [saveTheDatesOnly, updatePhaseStatus]);
 
   const handleDeclareIncomplete = useCallback(async () => {
     await updatePhaseStatus("Incomplete");
@@ -362,7 +398,9 @@ export const CompletenessPhase = ({
           <SecondaryButton
             name="save-for-later"
             size="small"
-            onClick={() => console.log("Saved draft of completeness phase")}
+            onClick={async () => {
+              await saveTheDatesOnly();
+            }}
           >
             Save For Later
           </SecondaryButton>
@@ -383,7 +421,10 @@ export const CompletenessPhase = ({
 
   return (
     <div>
-      <CompletenessNotice noticeDueDate={"2025-10-30"} />
+      <CompletenessNotice
+        noticeDueDate={federalEndDate ?? ""}
+        stateDeemedComplete={!!stateDeemedComplete}
+      />
 
       <button
         className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
@@ -392,19 +433,19 @@ export const CompletenessPhase = ({
         aria-controls="completeness-phase-content"
         data-testid="toggle-completeness"
       >
-        COMPLETENESS
+      COMPLETENESS
       </button>
       {!collapsed && (
         <div id="completeness-phase-content">
           <p className="text-sm text-text-placeholder mb-4">
-            Completeness Checklist – Find completeness guidelines online at{" "}
+      Completeness Checklist – Find completeness guidelines online at{" "}
             <a
               className="text-blue-700 underline"
               href="https://www.medicaid.gov"
               target="_blank"
               rel="noreferrer"
             >
-              Medicaid.gov.
+        Medicaid.gov.
             </a>
           </p>
 

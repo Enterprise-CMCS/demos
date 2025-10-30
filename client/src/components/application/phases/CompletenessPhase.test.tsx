@@ -1,36 +1,184 @@
 import React from "react";
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as env from "config/env";
-import { CompletenessPhase } from "./CompletenessPhase";
+
+import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 import { TestProvider } from "test-utils/TestProvider";
 
-const renderWithContext = (ui: React.ReactNode) => {
-  return render(<TestProvider>{ui}</TestProvider>);
+const mockMutate = vi.fn();
+const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
+
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
+  return {
+    ...actual,
+    useApolloClient: () => ({ mutate: mockMutate }),
+  };
+});
+
+vi.mock("components/toast", () => {
+  return {
+    useToast: () => ({
+      showSuccess: mockShowSuccess,
+      showError: mockShowError,
+      showInfo: vi.fn(),
+      showWarning: vi.fn(),
+      addToast: vi.fn(),
+      removeToast: vi.fn(),
+      toasts: [],
+    }),
+    ToastProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
+
+vi.mock("components/input/select/Select", () => {
+  return {
+    Select: ({ id, label, options, value, onSelect }: any) => (
+      <label htmlFor={id}>
+        {label}
+        <select
+          id={id}
+          aria-label={label}
+          value={value}
+          onChange={(event) => onSelect(event.target.value)}
+        >
+          <option value="">Select</option>
+          {options.map((option: { value: string; label: string }) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    ),
+  };
+});
+
+const renderWithProviders = (ui: React.ReactElement) =>
+  render(<TestProvider>{ui}</TestProvider>);
+
+const buildComponent = (override: Partial<CompletenessPhaseProps> = {}) => {
+  const defaultProps: CompletenessPhaseProps = {
+    applicationId: "app-123",
+    fedCommentStartDate: "2025-10-01",
+    fedCommentEndDate: "2025-10-30",
+    stateDeemedCompleteDate: "",
+    applicationCompletenessDocument: [
+      {
+        id: "doc-1",
+        name: "Completeness Letter",
+        description: "Test",
+        documentType: "Application Completeness Letter",
+        createdAt: new Date("2025-10-30"),
+      },
+    ],
+  };
+
+  return <CompletenessPhase {...defaultProps} {...override} />;
 };
 
+const NOTICE_TEXT = /must be declared complete/i;
+const DATE_TOAST = "Dates saved successfully.";
+const STATUS_TOAST = "Dates and status saved successfully.";
+
 beforeEach(() => {
-  vi.spyOn(env, "isLocalDevelopment").mockReturnValue(true);
+  mockMutate.mockReset().mockResolvedValue({});
+  mockShowSuccess.mockReset();
+  mockShowError.mockReset();
 });
 
 afterEach(() => {
-  vi.restoreAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("CompletenessPhase", () => {
-  it("disables Finish until requirements are met", () => {
-    renderWithContext(<CompletenessPhase />);
+  it("hides the alert when a completion date already exists", () => {
+    renderWithProviders(
+      buildComponent({
+        stateDeemedCompleteDate: "2025-10-01",
+      })
+    );
 
-    const finishButton = screen.getByRole("button", { name: /finish/i });
-    expect(finishButton).toBeDisabled();
+    expect(screen.queryByText(NOTICE_TEXT)).not.toBeInTheDocument();
   });
 
-  it("opens the declare incomplete dialog when requested", () => {
-    renderWithContext(<CompletenessPhase />);
+  it("dismisses the alert after the user sets the completion date", async () => {
+    renderWithProviders(buildComponent());
 
-    fireEvent.click(screen.getByTestId("declare-incomplete"));
+    expect(screen.getByText(NOTICE_TEXT)).toBeInTheDocument();
 
-    expect(screen.getByRole("dialog")).toHaveTextContent("Declare Incomplete");
+    fireEvent.change(screen.getByLabelText(/State Application Deemed Complete/i), {
+      target: { value: "2025-10-15" },
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText(NOTICE_TEXT)).not.toBeInTheDocument();
+    });
+  });
+
+  it("declares the phase incomplete and requests the mutation", async () => {
+    renderWithProviders(buildComponent());
+
+    const declareBtn = await screen.findByRole("button", { name: "declare-incomplete" });
+    fireEvent.click(declareBtn);
+
+    const dialog = await screen.findByRole("dialog");
+    const reasonSelect = within(dialog).getByLabelText(/Reason/i);
+    fireEvent.change(reasonSelect, { target: { value: "missing-documentation" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: /Declare Incomplete/i }));
+
+    await waitFor(() => {
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            input: expect.objectContaining({
+              phaseStatus: "Incomplete",
+            }),
+          }),
+        })
+      );
+    });
+
+    expect(mockShowSuccess).toHaveBeenCalledWith(STATUS_TOAST);
+  });
+
+  it("emits the save toast when the user saves for later", async () => {
+    renderWithProviders(buildComponent());
+
+    fireEvent.change(screen.getByLabelText(/State Application Deemed Complete/i), {
+      target: { value: "2025-10-15" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "save-for-later" }));
+
+    await waitFor(() => {
+      expect(mockShowSuccess).toHaveBeenCalledWith(DATE_TOAST);
+    });
+    expect(mockShowSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it("only emits the status toast when finishing the completeness phase", async () => {
+    renderWithProviders(buildComponent());
+
+    fireEvent.change(screen.getByLabelText(/State Application Deemed Complete/i), {
+      target: { value: "2025-10-15" },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Finish/i })).toBeEnabled();
+    });
+
+    mockShowSuccess.mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "finish-completeness" }));
+
+    await waitFor(() => {
+      expect(mockShowSuccess).toHaveBeenCalledWith(STATUS_TOAST);
+    });
+
+    expect(mockShowSuccess).toHaveBeenCalledTimes(1);
+    expect(mockShowSuccess).not.toHaveBeenCalledWith(DATE_TOAST);
   });
 });
