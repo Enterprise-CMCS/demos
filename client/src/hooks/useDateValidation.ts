@@ -20,7 +20,7 @@ export const useDateValidation = () => {
     effectiveDate: string,
     setExpirationDate: (date: string) => void
   ) => {
-    // Only validate if we have complete, valid dates (YYYY-MM-DD format)
+    // Only validate if we have complete - valid dates (YYYY-MM-DD format)
     const isCompleteDate = /^\d{4}-\d{2}-\d{2}$/.test(expirationDate);
 
     if (effectiveDate && isCompleteDate && expirationDate < effectiveDate) {

@@ -19,7 +19,7 @@ export function parseInputDate(value: string): Date {
 export function parseInputDateAsEndOfDayEST(value: string): Date {
   const date = parseISO(value);
   const year = date.getFullYear();
-  const month = date.getMonth(); // Note: getMonth() returns 0-11, which is what getEndOfDayEST expects
+  const month = date.getMonth();
   const day = date.getDate();
   return getEndOfDayEST(year, month, day);
 }
