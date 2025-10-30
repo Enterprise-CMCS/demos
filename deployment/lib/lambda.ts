@@ -117,6 +117,7 @@ export class Lambda extends Construct {
       vpc: props.vpc,
       vpcSubnets: props.vpc ? { subnets: props.vpc.privateSubnets } : undefined,
       logGroup: logGroup.logGroup,
+      loggingFormat: aws_lambda.LoggingFormat.JSON,
     });
 
     let alias;
