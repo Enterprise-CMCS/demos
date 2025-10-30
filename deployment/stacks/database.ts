@@ -97,6 +97,9 @@ export class DatabaseStack extends Stack {
       }
     );
 
+    // Activate Datadog setting for this RDS instance
+    enableDatadogForRds(dbInstance);
+
     const cmsCloudLogFunc = aws_lambda.Function.fromFunctionName(
       commonProps.scope,
       "CMSCloudLoggingLambda",
@@ -175,4 +178,10 @@ export class DatabaseStack extends Stack {
       exportName: `${commonProps.project}-${commonProps.stage}-rds-port`,
     });
   }
+}
+
+// Datadog Postgres settings turns on Postgres CloudWatch logs, and sets enhanced monitoring interval to 60s
+export function enableDatadogForRds(instance: aws_rds.DatabaseInstance) {
+  instance.addCloudwatchLogsExports(["postgresql"]);
+  instance.node.defaultChild.addPropertyOverride("MonitoringInterval", 60);
 }

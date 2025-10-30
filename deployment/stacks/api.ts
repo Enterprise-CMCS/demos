@@ -1,3 +1,5 @@
+import { Datadog } from "datadog-cdk-constructs-v2";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import {
   CfnOutput,
   Stack,
@@ -150,4 +152,27 @@ export class ApiStack extends Stack {
       exportName: `${commonProps.stage}ApiGWUrl`,
     });
   }
+}
+
+// Datadog Integration
+export function integrateDatadog(scope: any, props: any, service: string = "demos-api") {
+  const stage = (props as any).stage ?? "dev";
+  const ddParamName =
+    stage === "prod"
+      ? "/observability/datadog/DATADOG_PROD"
+      : "/observability/datadog/DATADOG_NONPROD";
+
+  const ddApiKeyParam = ssm.StringParameter.fromStringParameterName(scope, "DatadogApiKeyRef", ddParamName);
+
+  const datadog = new Datadog(scope, "Datadog", {
+    site: "ddog-gov.com",
+    apiKey: ddApiKeyParam.stringValue,
+    enableDatadogTracing: true,
+    enableDatadogLogs: true,
+    flushMetricsToLogs: true,
+    env: stage,
+    service,
+  });
+
+  return datadog;
 }

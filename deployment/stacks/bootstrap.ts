@@ -1,3 +1,5 @@
+import { Datadog } from "datadog-cdk-constructs-v2";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Stack, StackProps, aws_iam, aws_apigateway, aws_ec2, aws_lambda, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -151,4 +153,27 @@ function createPHZ(scope: Construct, env: string) {
     zoneName: `${env}.${dnsSuffix}`,
     vpc: devVpc,
   });
+}
+
+// Datadog Integration
+export function integrateDatadog(scope: any, props: any) {
+  const stage = (props as any).stage ?? "dev";
+  const ddParamName =
+    stage === "prod"
+      ? "/observability/datadog/DATADOG_PROD"
+      : "/observability/datadog/DATADOG_NONPROD";
+
+  const ddApiKeyParam = ssm.StringParameter.fromStringParameterName(scope, "DatadogApiKeyRef", ddParamName);
+
+  const datadog = new Datadog(scope, "Datadog", {
+    site: "ddog-gov.com",
+    apiKey: ddApiKeyParam.stringValue,
+    enableDatadogTracing: true,
+    enableDatadogLogs: true,
+    flushMetricsToLogs: true,
+    env: stage,
+    service: "demos",
+  });
+
+  return datadog;
 }
