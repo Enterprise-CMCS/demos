@@ -62,11 +62,6 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     }
   }, [showCancelConfirm]);
 
-  const handleDialogClick = () => {
-    // Click-outside behavior is disabled - no action taken
-    // Users must use explicit close controls (X button or Cancel button)
-  };
-
   const handleConfirmDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     // Close confirmation dialog when clicking on backdrop
     if (e.target === e.currentTarget && setShowCancelConfirm) {
@@ -76,12 +71,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
 
   return (
     <>
-      <dialog
-        ref={dialogRef}
-        className={`${DIALOG} ${maxWidthClass}`}
-        onClick={handleDialogClick}
-        onClose={onClose}
-      >
+      <dialog ref={dialogRef} className={`${DIALOG} ${maxWidthClass}`} onClose={onClose}>
         {!hideHeader && (
           <>
             <button
