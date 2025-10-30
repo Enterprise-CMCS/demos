@@ -43,6 +43,10 @@ export const getIsoDateString = (date: Date): IsoDateString => {
   return format(date, "yyyy-MM-dd") as IsoDateString;
 };
 
+export const getTodayEst = (): DateEST => {
+  return new TZDate(EST_TIMEZONE) as DateEST;
+};
+
 export const getStartOfDayEST = (year: number, month: number, day: number): StartOfDayEST => {
   return new TZDate(year, month, day, 0, 0, 0, 0, EST_TIMEZONE) as StartOfDayEST;
 };
