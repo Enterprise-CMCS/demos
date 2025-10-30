@@ -11,12 +11,14 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   applicationId: string;
+  onDocumentUploadSucceeded: () => void;
 };
 
 export const ApplicationIntakeUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   applicationId,
+  onDocumentUploadSucceeded,
 }) => {
   return (
     <AddDocumentDialog
@@ -27,6 +29,7 @@ export const ApplicationIntakeUploadDialog: React.FC<Props> = ({
       applicationId={applicationId}
       titleOverride="Add State Application"
       refetchQueries={REFETCH_QUERIES}
+      onDocumentUploadSucceeded={onDocumentUploadSucceeded}
     />
   );
 };

@@ -5,12 +5,30 @@ import { ApplicationIntakeUploadDialog } from "components/dialog/document/Applic
 import { DeleteIcon, ExportIcon } from "components/icons";
 import { addDays } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer, parseInputDate } from "util/formatDate";
+import {
+  formatDate,
+  formatDateForServer,
+  formatDateAsIsoString,
+  parseInputDate,
+} from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+} from "components/application/ApplicationWorkflow";
+import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
+import { getIsoDateString, getStartOfDateEST } from "../dates/applicationDates";
 
+/** Business Rules for this Phase:
+ * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
+  - a. User clicked Skip or Finish on the Concept Phase
+  - b. When a change is submitted on this phase - document or date update.
+
+- **State Application Submitted Date** - When the state formally submits their application.
+
+- **Application Intake Completion Date** - Completed when user clicks "Finish" to progress to the next phase.
+
+Note: If the user skips the concept phase this will be marked completed when the user clicks Finish on the Application Intake Phase.
+ */
 const STYLES = {
   pane: tw`bg-white p-8`,
   grid: tw`relative grid grid-cols-2 gap-10`,
@@ -75,6 +93,13 @@ export const ApplicationIntakePhase = ({
   );
   const [isFinishButtonEnabled, setIsFinishButtonEnabled] = useState(false);
 
+  // Set up mutation hooks at the top level
+  const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
+    applicationId: demonstrationId,
+    phaseName: "Application Intake",
+    phaseStatus: "Completed",
+  });
+
   useEffect(() => {
     setIsFinishButtonEnabled(
       stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate)
@@ -82,7 +107,14 @@ export const ApplicationIntakePhase = ({
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
   const onFinishButtonClick = async () => {
-    // TODO: set dates and phase status
+    await Promise.all([completeApplicationIntake()]);
+  };
+
+  const handleDocumentUploadSucceeded = async () => {
+    const now = new Date();
+    setStateApplicationSubmittedDate(
+      formatDateAsIsoString(getStartOfDateEST(getIsoDateString(now)))
+    );
   };
 
   const UploadSection = () => (
@@ -214,6 +246,7 @@ export const ApplicationIntakePhase = ({
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
         applicationId={demonstrationId}
+        onDocumentUploadSucceeded={handleDocumentUploadSucceeded}
       />
     </div>
   );

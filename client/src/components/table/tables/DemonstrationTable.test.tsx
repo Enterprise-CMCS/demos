@@ -216,21 +216,21 @@ describe("Demonstrations", () => {
 
       // Select "Montana"
       await user.type(stateFilterInput, "MT");
-      await waitFor(() => {
+      await waitFor(async () => {
         const mtOptions = screen.getAllByText("MT");
         const mtDropdownOption = mtOptions.find((el) => el.tagName === "LI" || el.closest("li"));
         expect(mtDropdownOption).toBeInTheDocument();
-        user.click(mtDropdownOption!);
+        await user.click(mtDropdownOption!);
       });
 
       // Select "Florida"
       await user.clear(stateFilterInput);
       await user.type(stateFilterInput, "FL");
-      await waitFor(() => {
+      await waitFor(async () => {
         const flOptions = screen.getAllByText("FL");
         const flDropdownOption = flOptions.find((el) => el.tagName === "LI" || el.closest("li"));
         expect(flDropdownOption).toBeInTheDocument();
-        user.click(flDropdownOption!);
+        await user.click(flDropdownOption!);
       });
 
       // Table should show rows for both Montana and Florida

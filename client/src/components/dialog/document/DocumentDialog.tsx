@@ -275,10 +275,9 @@ const DropTarget: React.FC<{
   );
 };
 
-export type DocumentDialogFields = Pick<
-  Document,
-  "id" | "name" | "description"
-> & { file: File | null } & { documentType: DocumentType | undefined};
+export type DocumentDialogFields = Pick<Document, "id" | "name" | "description"> & {
+  file: File | null;
+} & { documentType: DocumentType | undefined };
 
 const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
   file: null,
@@ -452,14 +451,25 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   );
 };
 
-export const AddDocumentDialog: React.FC<{
+interface AddDocumentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   applicationId: string;
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
   refetchQueries?: string[];
-}> = ({ isOpen, onClose, applicationId, documentTypeSubset, titleOverride, refetchQueries }) => {
+  onDocumentUploadSucceeded?: () => void;
+}
+
+export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
+  isOpen,
+  onClose,
+  applicationId,
+  documentTypeSubset,
+  titleOverride,
+  refetchQueries,
+  onDocumentUploadSucceeded,
+}) => {
   const { showError } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
     refetchQueries,
@@ -514,6 +524,8 @@ export const AddDocumentDialog: React.FC<{
       showError(response.errorMessage);
       throw new Error(response.errorMessage);
     }
+
+    onDocumentUploadSucceeded?.();
   };
 
   return (

@@ -1,5 +1,7 @@
+/* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
+import { format } from "date-fns";
 import { ApplicationDate as ServerApplicationDate, DateType } from "demos-server";
 
 export type ApplicationDate = Omit<ServerApplicationDate, "createdAt" | "updatedAt">;
@@ -26,6 +28,7 @@ const EST_TIMEZONE: TimeZone = "America/New_York";
  * DateEST: A date in EST timezone - Used when the date is calculated for a deadline or beginning period
  * StartOfDayEST - A date in EST with timestamp @ 00:00:00.000 EST.
  * EndOfDayEST - A date in EST with timestamp @ 23:59:59.999 EST.
+ * IsoDateString - A date string in "yyyy-MM-dd" format.
  *
  * This file uses branded types to prevent mixing up date types in function calls:
  * https://www.learningtypescript.com/articles/branded-types
@@ -34,13 +37,28 @@ export type DateUTC = UTCDate & { readonly __utc: never };
 export type DateEST = TZDate & { readonly __est: never };
 export type StartOfDayEST = DateEST & { readonly __start: never };
 export type EndOfDayEST = DateEST & { readonly __end: never };
+export type IsoDateString = string & { readonly isoDate: never };
+
+export const getIsoDateString = (date: Date): IsoDateString => {
+  return format(date, "yyyy-MM-dd") as IsoDateString;
+};
 
 export const getStartOfDayEST = (year: number, month: number, day: number): StartOfDayEST => {
   return new TZDate(year, month, day, 0, 0, 0, 0, EST_TIMEZONE) as StartOfDayEST;
 };
 
+export const getStartOfDateEST = (dateString: IsoDateString): StartOfDayEST => {
+  const [yearStr, monthStr, dayStr] = dateString.split("-");
+  return getStartOfDayEST(parseInt(yearStr, 10), parseInt(monthStr, 10), parseInt(dayStr, 10));
+};
+
 export const getEndOfDayEST = (year: number, month: number, day: number): EndOfDayEST => {
   return new TZDate(year, month, day, 23, 59, 59, 999, EST_TIMEZONE) as EndOfDayEST;
+};
+
+export const getEndOfDateEST = (dateString: IsoDateString): EndOfDayEST => {
+  const [yearStr, monthStr, dayStr] = dateString.split("-");
+  return getEndOfDayEST(parseInt(yearStr, 10), parseInt(monthStr, 10), parseInt(dayStr, 10));
 };
 
 /**

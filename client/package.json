@@ -78,7 +78,7 @@
     "@testing-library/user-event": "^14.6.1",
     "date-fns": "^4.1.0",
     "react-oidc-context": "^3.3.0",
-    "react-router-dom": "^7.9.3",
+    "react-router-dom": "^7.9.4",
     "react-switch": "^7.1.0"
   },
   "optionalDependencies": {
