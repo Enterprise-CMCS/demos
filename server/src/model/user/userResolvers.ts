@@ -1,6 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import type { GraphQLContext } from "../../auth/auth.util.js";
 import { User as PrismaUser } from "@prisma/client";
+import { log } from "../../logger.js";
 
 export const userResolvers = {
   Query: {
@@ -14,9 +15,9 @@ export const userResolvers = {
         return await prisma().user.findUnique({
           where: { id: ctx.user.id },
         });
-      } catch (e) {
-        console.error("[currentUser] resolver error:", e);
-        throw e;
+      } catch (err) {
+        log.error({err},"[currentUser] resolver error");
+        throw err;
       }
     },
   },
