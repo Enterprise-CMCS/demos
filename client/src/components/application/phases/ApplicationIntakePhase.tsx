@@ -17,7 +17,7 @@ import {
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { getIsoDateString, getStartOfDateEST, getTodayEst } from "../dates/applicationDates";
+import { getIsoDateString, getStartOfDateEST, getNowEst } from "../dates/applicationDates";
 import { useMutation, gql } from "@apollo/client";
 
 /** Business Rules for this Phase:
@@ -120,7 +120,7 @@ export const ApplicationIntakePhase = ({
   };
 
   const handleDocumentUploadSucceeded = async () => {
-    const todayDate = getStartOfDateEST(getIsoDateString(getTodayEst()));
+    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
     setStateApplicationSubmittedDate(formatDateAsIsoString(todayDate));
 
     await setApplicationDateMutation({
