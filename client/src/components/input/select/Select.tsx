@@ -36,7 +36,7 @@ export const Select: React.FC<SelectProps> = ({
   validationMessage = "",
 }) => {
   return (
-    <div className="flex flex-col gap-sm">
+    <div className="flex flex-col gap-xs">
       {label && (
         <label htmlFor={id} className={LABEL_CLASSES}>
           {isRequired && <span className="text-text-warn">*</span>}

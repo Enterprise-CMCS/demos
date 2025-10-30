@@ -12,8 +12,12 @@ import {
   ApplicationIntakePhase,
   ApplicationIntakeProps,
   getCompletenessReviewDueDate,
+  getApplicationIntakeComponentFromDemonstration,
 } from "./ApplicationIntakePhase";
-import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import {
+  ApplicationWorkflowDocument,
+  ApplicationWorkflowDemonstration,
+} from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
 
 describe("ApplicationIntakePhase", () => {
@@ -240,6 +244,45 @@ describe("ApplicationIntakePhase", () => {
       const result = getCompletenessReviewDueDate(submittedDate);
 
       expect(formatDateForServer(result)).toBe("2025-10-28");
+    });
+  });
+
+  describe("getApplicationIntakeComponentFromDemonstration", () => {
+    it("should extract demonstration data and return ApplicationIntakePhase component", () => {
+      const mockDemonstration: ApplicationWorkflowDemonstration = {
+        id: "demo-123",
+        status: "Under Review",
+        currentPhaseName: "Application Intake",
+        phases: [
+          {
+            phaseName: "Application Intake",
+            phaseStatus: "Started",
+            phaseDates: [
+              {
+                dateType: "State Application Submitted Date",
+                dateValue: new Date(2024, 9, 13),
+              },
+            ],
+          },
+        ],
+        documents: [
+          {
+            id: "doc-1",
+            name: "State Application 1",
+            description: "Test document",
+            documentType: "State Application",
+            createdAt: new Date(2024, 10, 10),
+          },
+        ],
+      };
+
+      const component = getApplicationIntakeComponentFromDemonstration(mockDemonstration);
+
+      expect(component).toBeDefined();
+      expect(component.type).toBe(ApplicationIntakePhase);
+      expect(component.props.demonstrationId).toBe("demo-123");
+      expect(component.props.initialStateApplicationDocuments).toHaveLength(1);
+      expect(component.props.initialStateApplicationSubmittedDate).toBe("2024-10-13");
     });
   });
 });

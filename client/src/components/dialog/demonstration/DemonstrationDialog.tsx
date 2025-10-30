@@ -12,8 +12,8 @@ import { Demonstration } from "demos-server";
 import { useDateValidation } from "hooks/useDateValidation";
 import { tw } from "tags/tw";
 
-const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
-const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
+const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
+const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-half text-sm`;
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -97,7 +97,7 @@ const DateInputs: React.FC<{
 
   return (
     <>
-      <div className="flex flex-col gap-sm">
+      <div className="flex flex-col gap-xs">
         <label className={LABEL_CLASSES} htmlFor="effective-date">
           Effective Date
         </label>
@@ -117,7 +117,7 @@ const DateInputs: React.FC<{
           }
         />
       </div>
-      <div className="flex flex-col gap-sm">
+      <div className="flex flex-col gap-xs">
         <label className={LABEL_CLASSES} htmlFor="expiration-date">
           Expiration Date
         </label>
@@ -230,7 +230,7 @@ export const DemonstrationDialog: React.FC<{
           )}
         </div>
 
-        <div className="flex flex-col gap-sm">
+        <div className="flex flex-col gap-xs">
           <DemonstrationDescriptionTextArea
             description={activeDemonstration.description}
             setDescription={(value) =>

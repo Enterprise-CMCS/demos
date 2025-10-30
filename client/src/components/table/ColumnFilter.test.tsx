@@ -303,25 +303,25 @@ describe("ColumnFilter Component", () => {
 
       // Select "Option Alpha"
       await user.type(optionFilterInput, "Option Alpha");
-      await waitFor(() => {
+      await waitFor(async () => {
         const alphaOptions = screen.getAllByText("Option Alpha");
         const alphaDropdownOption = alphaOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
         expect(alphaDropdownOption).toBeInTheDocument();
-        user.click(alphaDropdownOption!);
+        await user.click(alphaDropdownOption!);
       });
 
       // Select "Option Beta"
       await user.clear(optionFilterInput);
       await user.type(optionFilterInput, "Option Beta");
-      await waitFor(() => {
+      await waitFor(async () => {
         const betaOptions = screen.getAllByText("Option Beta");
         const betaDropdownOption = betaOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
         expect(betaDropdownOption).toBeInTheDocument();
-        user.click(betaDropdownOption!);
+        await user.click(betaDropdownOption!);
       });
 
       // Table should show rows with either "Option Alpha" or "Option Beta"
@@ -349,7 +349,7 @@ describe("ColumnFilter Component", () => {
 
       // Select "Option Alpha"
       await user.type(optionFilterInput, "Option Alpha");
-      await waitFor(() => {
+      await waitFor(async () => {
         // Get all "Option Alpha" elements
         const alphaOptions = screen.getAllByText("Option Alpha");
         // Find the one inside a dropdown list item
@@ -358,17 +358,17 @@ describe("ColumnFilter Component", () => {
         );
         expect(alphaDropdownOption).toBeInTheDocument();
         // Click to select
-        user.click(alphaDropdownOption!);
+        await user.click(alphaDropdownOption!);
       });
 
       // Unselect "Option Alpha"
-      await waitFor(() => {
+      await waitFor(async () => {
         const alphaOptions = screen.getAllByText("Option Alpha");
         const alphaDropdownOption = alphaOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
         expect(alphaDropdownOption).toBeInTheDocument();
-        user.click(alphaDropdownOption!);
+        await user.click(alphaDropdownOption!);
       });
 
       // Assert checkbox is unchecked

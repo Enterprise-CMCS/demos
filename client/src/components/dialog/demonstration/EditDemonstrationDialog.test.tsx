@@ -168,7 +168,7 @@ describe("EditDemonstrationDialog", () => {
     expect(screen.getByLabelText(/Loading/i)).toBeInTheDocument();
   });
 
-  it("shows error state when query fails", () => {
+  it("shows error state when query fails", async () => {
     const errorMock = {
       ...GET_DEMONSTRATION_BY_ID_MOCK,
       error: new Error("Failed to fetch demonstration"),
@@ -180,7 +180,7 @@ describe("EditDemonstrationDialog", () => {
         <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId="1" />
       </TestProvider>
     );
-    waitFor(() => {
+    await waitFor(() => {
       expect(screen.getByText(/Error loading demonstration data/i)).toBeInTheDocument();
     });
   });
