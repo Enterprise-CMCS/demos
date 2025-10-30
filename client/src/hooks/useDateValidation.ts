@@ -25,11 +25,11 @@ export const useDateValidation = () => {
 
     if (effectiveDate && isCompleteDate && expirationDate < effectiveDate) {
       setExpirationError("Expiration Date cannot be before Effective Date.");
+      return;
     } else {
       setExpirationError("");
+      setExpirationDate(expirationDate);
     }
-
-    setExpirationDate(expirationDate);
   };
 
   return {
