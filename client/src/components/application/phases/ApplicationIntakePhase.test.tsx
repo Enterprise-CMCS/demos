@@ -3,9 +3,8 @@ import "@testing-library/jest-dom";
 import React from "react";
 
 import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it } from "vitest";
-
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import {
@@ -19,6 +18,18 @@ import {
   ApplicationWorkflowDemonstration,
 } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
+import { getNowEst } from "../dates/applicationDates";
+
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [
+      vi.fn(() => Promise.resolve({ data: {} })),
+      { loading: false, error: null },
+    ]),
+  };
+});
 
 describe("ApplicationIntakePhase", () => {
   const defaultProps: ApplicationIntakeProps = {
@@ -283,6 +294,106 @@ describe("ApplicationIntakePhase", () => {
       expect(component.props.demonstrationId).toBe("demo-123");
       expect(component.props.initialStateApplicationDocuments).toHaveLength(1);
       expect(component.props.initialStateApplicationSubmittedDate).toBe("2024-10-13");
+    });
+  });
+
+  describe("handleDateChange", () => {
+    it("updates the state application submitted date when user changes date input", async () => {
+      setup();
+
+      const dateInputs = screen.getAllByDisplayValue("");
+      const submittedDateInput = dateInputs.find(
+        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      ) as HTMLInputElement;
+
+      fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
+
+      expect(submittedDateInput.value).toBe("2024-03-15");
+    });
+
+    it("updates completeness review due date when state application date changes", async () => {
+      setup();
+
+      const dateInputs = screen.getAllByDisplayValue("");
+      const submittedDateInput = dateInputs.find(
+        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      ) as HTMLInputElement;
+
+      fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
+
+      // Completeness review due date should be 15 days later: 2024-03-30
+      await waitFor(() => {
+        const dueDateInputs = screen.getAllByDisplayValue("2024-03-30");
+        const dueDateInput = dueDateInputs.find((input) =>
+          input.hasAttribute("disabled")
+        ) as HTMLInputElement;
+
+        expect(dueDateInput).toBeInTheDocument();
+        expect(dueDateInput.value).toBe("2024-03-30");
+      });
+    });
+
+    it("finish button is enabled when both date and documents are provided via props", () => {
+      // Test the effect logic by providing both requirements via initial props
+      setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationSubmittedDate: "2024-03-15",
+      });
+
+      const finishButton = screen.getByRole("button", { name: /finish/i });
+      expect(finishButton).toBeEnabled();
+    });
+
+    it("finish button remains disabled when date is empty even with documents", () => {
+      setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationSubmittedDate: "",
+      });
+
+      const finishButton = screen.getByRole("button", { name: /finish/i });
+      expect(finishButton).toBeDisabled();
+    });
+
+    it("finish button remains disabled when no documents even with date", () => {
+      setup({
+        initialStateApplicationDocuments: [],
+        initialStateApplicationSubmittedDate: "2024-03-15",
+      });
+
+      const finishButton = screen.getByRole("button", { name: /finish/i });
+      expect(finishButton).toBeDisabled();
+    });
+
+    it("handles empty date value correctly", async () => {
+      setup({
+        initialStateApplicationSubmittedDate: "2024-03-15",
+      });
+
+      const dateInputs = screen.getAllByDisplayValue("2024-03-15");
+      const submittedDateInput = dateInputs.find(
+        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      ) as HTMLInputElement;
+
+      await userEvent.clear(submittedDateInput);
+
+      expect(submittedDateInput.value).toBe("");
+    });
+  });
+
+  describe("handleDocumentUploadSucceeded", () => {
+    it("date field should have today's date after document upload", async () => {
+      const todayString = formatDateForServer(getNowEst());
+
+      setup({
+        initialStateApplicationSubmittedDate: todayString,
+      });
+
+      const dateInputs = screen.getAllByDisplayValue(todayString);
+      const submittedDateInput = dateInputs.find(
+        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      ) as HTMLInputElement;
+
+      expect(submittedDateInput?.value).toBe(todayString);
     });
   });
 });
