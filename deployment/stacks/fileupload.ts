@@ -152,7 +152,7 @@ export class FileUploadStack extends Stack {
       securityGroup: fileProcessLambdaSecurityGroup.securityGroup,
       asCode: false,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["pg"],
+      nodeModules: ["pg", "pino"],
       timeout: Duration.seconds(30),
       environment: {
         UPLOAD_BUCKET: uploadBucket.bucketName,
@@ -160,6 +160,7 @@ export class FileUploadStack extends Stack {
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
+      depsLockFilePath: "../lambdas/fileprocess/package-lock.json",
     });
 
     fileProcessLambda.lambda.addEventSource(
