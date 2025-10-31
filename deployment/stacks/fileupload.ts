@@ -1,4 +1,4 @@
-import { Datadog } from "datadog-cdk-constructs-v2";
+import Datadog from "datadog-cdk-constructs-v2";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import {
   Stack,

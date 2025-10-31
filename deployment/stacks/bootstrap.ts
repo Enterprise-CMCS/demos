@@ -1,4 +1,4 @@
-import { Datadog } from "datadog-cdk-constructs-v2";
+import Datadog from "datadog-cdk-constructs-v2";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Stack, StackProps, aws_iam, aws_apigateway, aws_ec2, aws_lambda, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
