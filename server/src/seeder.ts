@@ -1,5 +1,4 @@
 import { faker } from "@faker-js/faker";
-import { Prisma } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 import { SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
 import {
@@ -9,25 +8,23 @@ import {
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
-  ApplicationType,
   SetApplicationDateInput,
+  EventType,
+  LogEventInput,
+  Role,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName, PhaseStatus } from "./types.js";
 import {
-  getManyDemonstrations,
-  createDemonstration,
-  updateDemonstration,
+  __createDemonstration,
+  __updateDemonstration,
 } from "./model/demonstration/demonstrationResolvers.js";
-import {
-  getManyAmendments,
-  getManyExtensions,
-  createAmendment,
-  createExtension,
-  updateAmendment,
-  updateExtension,
-} from "./model/modification/modificationResolvers.js";
-import { setApplicationDate } from "./model/applicationDate/applicationDateResolvers.js";
+import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
+import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
+import { __setApplicationDate } from "./model/applicationDate/applicationDateResolvers.js";
+import { logEvent } from "./model/event/eventResolvers.js";
+import { GraphQLContext } from "./auth/auth.util.js";
+import { getManyApplications } from "./model/application/applicationResolvers.js";
 
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
@@ -71,14 +68,20 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
-    prisma().modification.deleteMany(),
     prisma().primaryDemonstrationRoleAssignment.deleteMany(),
     prisma().demonstrationRoleAssignment.deleteMany(),
-    prisma().demonstration.deleteMany(),
     prisma().applicationDate.deleteMany(),
     prisma().applicationPhase.deleteMany(),
     prisma().document.deleteMany(),
+
+    // Note that we must delete from application first
+    // The foreign keys to that table from amendment/extension/demonstration are deferred
+    // Those tables have triggers that prevent deletion if the corresponding record exists in application
     prisma().application.deleteMany(),
+    prisma().amendment.deleteMany(),
+    prisma().extension.deleteMany(),
+    prisma().demonstration.deleteMany(),
+
     prisma().event.deleteMany(),
     prisma().systemRoleAssignment.deleteMany(),
     prisma().personState.deleteMany(),
@@ -211,9 +214,9 @@ async function seedDatabase() {
       stateId: sampleFromArray(person.personStates, 1)[0].stateId,
       projectOfficerUserId: person.id,
     };
-    await createDemonstration(undefined, { input: createInput });
+    await __createDemonstration(undefined, { input: createInput });
   }
-  const demonstrations = await getManyDemonstrations();
+  const demonstrations = (await getManyApplications("Demonstration"))!;
   const completenessPhase: PhaseName = "Completeness";
   const incompletePhaseStatus: PhaseStatus = "Incomplete";
 
@@ -239,7 +242,7 @@ async function seedDatabase() {
         input: updatePayload,
       };
 
-      await updateDemonstration(undefined, updateInput);
+      await __updateDemonstration(undefined, updateInput);
 
       if (index === 0) {
         await prisma().applicationPhase.upsert({
@@ -408,7 +411,7 @@ async function seedDatabase() {
   ];
 
   for (const dateInput of datesToSet) {
-    await setApplicationDate(undefined, { input: dateInput });
+    await __setApplicationDate(undefined, { input: dateInput });
   }
 
   console.log("🌱 Seeding amendments...");
@@ -418,10 +421,10 @@ async function seedDatabase() {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
     };
-    await createAmendment(undefined, { input: createInput });
+    await __createAmendment(undefined, { input: createInput });
   }
-  const amendments = await getManyAmendments();
-  for (const amendment of amendments) {
+  const amendments = await getManyApplications("Amendment");
+  for (const amendment of amendments!) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateAmendmentInput = {
       effectiveDate: randomDates["start"],
@@ -431,7 +434,7 @@ async function seedDatabase() {
       id: amendment.id,
       input: updatePayload,
     };
-    await updateAmendment(undefined, updateInput);
+    await __updateAmendment(undefined, updateInput);
   }
 
   console.log("🌱 Seeding extensions...");
@@ -441,10 +444,10 @@ async function seedDatabase() {
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
     };
-    await createExtension(undefined, { input: createInput });
+    await __createExtension(undefined, { input: createInput });
   }
-  const extensions = await getManyExtensions();
-  for (const extension of extensions) {
+  const extensions = await getManyApplications("Extension");
+  for (const extension of extensions!) {
     const randomDates = randomDateRange();
     const updatePayload: UpdateExtensionInput = {
       effectiveDate: randomDates["start"],
@@ -454,7 +457,7 @@ async function seedDatabase() {
       id: extension.id,
       input: updatePayload,
     };
-    await updateExtension(undefined, updateInput);
+    await __updateExtension(undefined, updateInput);
   }
 
   console.log("🌱 Seeding documents...");
@@ -477,9 +480,8 @@ async function seedDatabase() {
     });
   }
   // Every amendment and extension has an application
-  const amendmentIds = await prisma().modification.findMany({
+  const amendmentIds = await prisma().amendment.findMany({
     select: { id: true },
-    where: { applicationTypeId: "Amendment" satisfies ApplicationType },
   });
   for (const amendmentId of amendmentIds) {
     const fakeName = faker.lorem.sentence(2);
@@ -495,9 +497,8 @@ async function seedDatabase() {
       },
     });
   }
-  const extensionIds = await prisma().modification.findMany({
+  const extensionIds = await prisma().extension.findMany({
     select: { id: true },
-    where: { applicationTypeId: "Extension" satisfies ApplicationType },
   });
   for (const extensionId of extensionIds) {
     const fakeName = faker.lorem.sentence(2);
@@ -546,8 +547,10 @@ async function seedDatabase() {
   });
 
   // Grab some users/roles to make events look legit
-  const usersForEvents = await prisma().user.findMany({ select: { id: true }, take: 5 });
-  const rolesForEvents = await prisma().role.findMany({ select: { id: true }, take: 5 });
+  const usersForEvents = await prisma().user.findMany({
+    select: { id: true, personTypeId: true, cognitoSubject: true },
+    take: 5,
+  });
 
   function pick<T>(arr: T[]): T | null {
     if (!arr.length) return null;
@@ -555,32 +558,49 @@ async function seedDatabase() {
   }
 
   const totalEvents = numberOfApplicationEvents + 10;
-  const eventsData: Prisma.EventCreateManyInput[] = [];
 
   for (let i = 0; i < totalEvents; i++) {
     // ~60% of events have a applicationId, rest are null
     const attachApplication = Math.random() < 0.6;
     const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
-    const userId = pick(usersForEvents)?.id ?? null;
-    const withRoleId = pick(rolesForEvents)?.id ?? null;
+    const user = pick(usersForEvents) ?? null;
 
-    const eventType = maybeApplication
-      ? faker.helpers.arrayElement(["APPLICATION_COMPLETENESS", "APPLICATION_INCOMPLETENESS"])
-      : faker.helpers.arrayElement([
-          "APPLICATION_VIEW",
-          "DOCUMENT_UPLOAD",
-          "DOCUMENT_DOWNLOAD",
-          "PHASE_CHANGE",
-          "COMMENT_ADDED",
-          "LOGIN",
-          "LOGOUT",
-        ]);
-    eventsData.push({
-      // Prisma createMany will auto-generate id/createdAt if your schema defaults are set
-      userId,
-      withRoleId,
-      eventType,
-      logLevel: faker.helpers.arrayElement(["INFO", "WARN", "ERROR"]),
+    // Note that these don't really make sense because application is generic
+    // Should come back and be more specific as EventType evolves
+    const applicationEventTypes: EventType[] = [
+      "Create Amendment Succeeded",
+      "Create Amendment Failed",
+      "Create Demonstration Succeeded",
+      "Create Demonstration Failed",
+      "Create Extension Succeeded",
+      "Create Extension Failed",
+      "Delete Demonstration Succeeded",
+      "Delete Demonstration Failed",
+      "Edit Demonstration Succeeded",
+      "Edit Demonstration Failed",
+    ];
+    const otherEventTypes: EventType[] = ["Login Succeeded", "Logout Succeeded"];
+    const eventTypeId = maybeApplication
+      ? faker.helpers.arrayElement(applicationEventTypes)
+      : faker.helpers.arrayElement(otherEventTypes);
+
+    const systemRoles: Role[] = ["All Users"];
+    const demonstrationRoles: Role[] = [
+      "Project Officer",
+      "Policy Technical Director",
+      "Monitoring & Evaluation Technical Director",
+      "DDME Analyst",
+      "State Point of Contact",
+    ];
+    const roleId = maybeApplication
+      ? faker.helpers.arrayElement(demonstrationRoles)
+      : faker.helpers.arrayElement(systemRoles);
+
+    const eventData: LogEventInput = {
+      role: roleId,
+      applicationId: maybeApplication,
+      eventType: eventTypeId,
+      logLevel: faker.helpers.arrayElement(["err", "warning", "info"]),
       route: faker.helpers.arrayElement([
         "/applications",
         "/applications/:id",
@@ -588,16 +608,30 @@ async function seedDatabase() {
         "/login",
         "/graph",
       ]),
-      applicationId: maybeApplication,
       eventData: {
         ip: faker.internet.ipv4(),
         ua: faker.internet.userAgent(),
         note: faker.lorem.sentence(),
       },
-    });
-  }
+    };
 
-  await prisma().event.createMany({ data: eventsData });
+    let context: GraphQLContext;
+    if (!user) {
+      context = {
+        user: null,
+      };
+    } else {
+      context = {
+        user: {
+          id: user.id,
+          sub: user.cognitoSubject,
+          role: user.personTypeId,
+        },
+      };
+    }
+
+    logEvent(undefined, { input: eventData }, context);
+  }
 
   console.log("✨ Database seeding complete.");
 }

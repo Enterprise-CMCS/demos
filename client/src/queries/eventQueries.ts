@@ -3,8 +3,7 @@ import { gql } from "@apollo/client";
 export const LOG_EVENT_MUTATION = gql`
   mutation LogEvent($input: LogEventInput!) {
     logEvent(input: $input) {
-      success
-      message
+      id
     }
   }
 `;
@@ -20,11 +19,21 @@ export const GET_EVENTS_QUERY = gql`
       eventData
       user {
         id
-        fullName
+        person {
+          fullName
+        }
       }
-      withRole {
-        id
-        name
+      role
+      application {
+        ... on Demonstration {
+          id
+        }
+        ... on Amendment {
+          id
+        }
+        ... on Extension {
+          id
+        }
       }
     }
   }

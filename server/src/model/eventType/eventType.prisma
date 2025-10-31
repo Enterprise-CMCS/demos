@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model EventType {
+  id String
+
+  events Event[]
+
+  @@id([id])
+  @@map("event_type")
+}

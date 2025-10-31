@@ -13,13 +13,10 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
+  "All Users",
 ] as const;
 
-export const CONTACT_TYPES = [
-  "DDME Analyst",
-  "Project Officer",
-  "State Point of Contact",
-] as const;
+export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
 
 export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
@@ -30,9 +27,7 @@ export const CMS_USER_DEMONSTRATION_ROLES = [
   "Monitoring & Evaluation Technical Director",
 ] as const;
 
-export const STATE_USER_DEMONSTRATION_ROLES = [
-  "State Point of Contact",
-] as const;
+export const STATE_USER_DEMONSTRATION_ROLES = ["State Point of Contact"] as const;
 
 export const PERSON_TYPES = [
   "demos-admin",
@@ -43,11 +38,7 @@ export const PERSON_TYPES = [
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
-export const APPLICATION_TYPES = [
-  "Demonstration",
-  "Amendment",
-  "Extension",
-] as const;
+export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
@@ -117,7 +108,6 @@ export const DATE_TYPES = [
   "OGC & OMB Review Completion Date",
 ] as const;
 
-// US States and Territories
 export const STATES_AND_TERRITORIES = [
   { id: "AL", name: "Alabama" },
   { id: "AK", name: "Alaska" },
@@ -175,4 +165,34 @@ export const STATES_AND_TERRITORIES = [
   { id: "MP", name: "Northern Mariana Islands" },
   { id: "PR", name: "Puerto Rico" },
   { id: "VI", name: "Virgin Islands" },
+] as const;
+
+export const LOG_LEVELS = [
+  "emerg",
+  "alert",
+  "crit",
+  "err",
+  "warning",
+  "notice",
+  "info",
+  "debug",
+] as const;
+
+export const EVENT_TYPES = [
+  "Login Succeeded",
+  "Login Failed",
+  "Logout Succeeded",
+  "Logout Failed",
+  "Create Demonstration Succeeded",
+  "Create Demonstration Failed",
+  "Create Extension Succeeded",
+  "Create Extension Failed",
+  "Create Amendment Succeeded",
+  "Create Amendment Failed",
+  "Edit Demonstration Succeeded",
+  "Edit Demonstration Failed",
+  "Delete Demonstration Succeeded",
+  "Delete Demonstration Failed",
+  "Delete Document Succeeded",
+  "Delete Document Failed",
 ] as const;

@@ -80,9 +80,13 @@ VALUES
     ('Demonstration');
 
 INSERT INTO
-    demos_app.modification_application_type_limit
+    demos_app.amendment_application_type_limit
 VALUES
-    ('Amendment'),
+    ('Amendment');
+
+INSERT INTO
+    demos_app.extension_application_type_limit
+VALUES
     ('Extension');
 
 INSERT INTO
@@ -294,11 +298,13 @@ VALUES
     ('VI', 'Virgin Islands');
 
 INSERT INTO
-    demos_app.reportable_event_type
+    demos_app.event_type
 VALUES
 -- Authentication
     ('Login Succeeded'),
     ('Logout Succeeded'),
+    ('Login Failed'),
+    ('Logout Failed'),
 -- Record Creation
     ('Create Demonstration Succeeded'),
     ('Create Demonstration Failed'),
@@ -315,12 +321,57 @@ VALUES
     ('Delete Document Succeeded'),
     ('Delete Document Failed');
 
+INSERT INTO
+    demos_app.log_level
+VALUES
+    ('emerg', 'Emergency', 0),
+    ('alert', 'Alert', 1),
+    ('crit', 'Critical', 2),
+    ('err', 'Error', 3),
+    ('warning', 'Warning', 4),
+    ('notice', 'Notice', 5),
+    ('info', 'Informational', 6),
+    ('debug', 'Debug', 7);
+
 -- Add Checks
+ALTER TABLE demos_app.amendment ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+ALTER TABLE demos_app.amendment ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
 ALTER TABLE demos_app.demonstration ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
 ALTER TABLE demos_app.demonstration ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
+ALTER TABLE demos_app.extension ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+ALTER TABLE demos_app.extension ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_description CHECK (trim(description) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_non_empty_s3_path CHECK (trim(s3_path) != '');
 ALTER TABLE demos_app.document ADD CONSTRAINT check_s3_path_start CHECK (s3_path ~ '^s3://');
-ALTER TABLE demos_app.modification ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
-ALTER TABLE demos_app.modification ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
+ALTER TABLE demos_app.document_pending_upload ADD CONSTRAINT check_non_empty_name CHECK (trim(name) != '');
+ALTER TABLE demos_app.document_pending_upload ADD CONSTRAINT check_non_empty_description CHECK (trim(description) != '');
+
+-- Fix Deferrable Constraints
+ALTER TABLE demos_app.amendment DROP CONSTRAINT amendment_id_application_type_id_fkey;
+ALTER TABLE demos_app.demonstration DROP CONSTRAINT demonstration_id_application_type_id_fkey;
+ALTER TABLE demos_app.extension DROP CONSTRAINT extension_id_application_type_id_fkey;
+
+ALTER TABLE demos_app.amendment
+ADD CONSTRAINT amendment_id_application_type_id_fkey
+FOREIGN KEY (id, application_type_id)
+REFERENCES demos_app.application(id, application_type_id)
+ON DELETE NO ACTION
+ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE demos_app.demonstration
+ADD CONSTRAINT demonstration_id_application_type_id_fkey
+FOREIGN KEY (id, application_type_id)
+REFERENCES demos_app.application(id, application_type_id)
+ON DELETE NO ACTION
+ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE demos_app.extension
+ADD CONSTRAINT extension_id_application_type_id_fkey
+FOREIGN KEY (id, application_type_id)
+REFERENCES demos_app.application(id, application_type_id)
+ON DELETE NO ACTION
+ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;

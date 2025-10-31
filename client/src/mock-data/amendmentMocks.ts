@@ -39,7 +39,7 @@ export const mockAmendments = [
   {
     id: "6",
     name: "Amendment 6 - Florida Health Innovation",
-    effectiveDate: null,
+    effectiveDate: undefined,
     status: "Denied",
   },
 ] as const satisfies MockAmendment[];

@@ -11,7 +11,7 @@ import {
   ADMIN_DEMONSTRATION_ROLES,
   CMS_USER_DEMONSTRATION_ROLES,
   STATE_USER_DEMONSTRATION_ROLES,
-} from "demos-server";
+} from "demos-server-constants";
 import { useDebounced } from "hooks/useDebounced";
 import { GET_DEMONSTRATION_BY_ID_QUERY } from "hooks/useDemonstration";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";

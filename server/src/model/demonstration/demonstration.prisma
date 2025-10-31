@@ -8,23 +8,24 @@ model Demonstration {
   sdgDivisionId     String?   @map("sdg_division_id")
   signatureLevelId  String?   @map("signature_level_id")
   statusId          String    @map("status_id")
-  stateId           String    @map("state_id")
   currentPhaseId    String    @map("current_phase_id")
+  stateId           String    @map("state_id")
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
   application                  Application                       @relation(fields: [id, applicationTypeId], references: [id, applicationTypeId])
   applicationType              DemonstrationApplicationTypeLimit @relation(fields: [applicationTypeId], references: [id])
-  status                       ApplicationStatus                 @relation(fields: [statusId], references: [id])
-  state                        State                             @relation(fields: [stateId], references: [id])
-  modifications                Modification[]
   sdgDivision                  SdgDivision?                      @relation(fields: [sdgDivisionId], references: [id], onDelete: Restrict)
   signatureLevel               SignatureLevel?                   @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
+  status                       ApplicationStatus                 @relation(fields: [statusId], references: [id])
   currentPhase                 Phase                             @relation(fields: [currentPhaseId], references: [id])
+  state                        State                             @relation(fields: [stateId], references: [id])
+  amendments                   Amendment[]
+  extensions                   Extension[]
   demonstrationRoleAssignments DemonstrationRoleAssignment[]
 
   @@id([id])
   @@unique([id, stateId])
-  @@unique([id, applicationTypeId])
+  @@unique([id, applicationTypeId]) // Not required by Postgres, but Prisma requires this notation
   @@map("demonstration")
 }
