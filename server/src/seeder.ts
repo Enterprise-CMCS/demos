@@ -262,6 +262,8 @@ async function seedDatabase() {
     })
   );
 
+  // Right now, document upload is not working.
+  // This is the only way to get docs into phases to enable some submit buttons.
   console.log("🌱 Seeding completeness documents...");
   const completenessDocumentType: DocumentType = "Application Completeness Letter";
   await Promise.all(
@@ -270,7 +272,7 @@ async function seedDatabase() {
       await prisma().document.create({
         data: {
           name: `${faker.company.buzzNoun()[0].toUpperCase()}${faker.company.buzzNoun().slice(1)} completeness Letter`,
-          description: "Signed completeness letter uploaded for testing",
+          description: "**SEEDED DOC** completeness letter",
           s3Path: `s3://${faker.lorem.word()}/${faker.system.commonFileName("pdf")}`,
           ownerUserId,
           documentTypeId: completenessDocumentType,
