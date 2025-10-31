@@ -185,7 +185,6 @@ describe("demonstrationResolvers", () => {
     demonstrationGrantLevelId: "Demonstration",
     dateValue: new Date(2025, 1, 1, 0, 0, 0, 0),
   };
-  // const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
 
   beforeEach(() => {
     vi.resetAllMocks();
