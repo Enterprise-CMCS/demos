@@ -5,6 +5,7 @@ import {
   createRole,
   validateRolesExist,
 } from "../database/queries";
+import { log } from "../log";
 import { Role } from "../types";
 import { getStage } from "../util/env";
 import { generateTempPassword } from "../util/password";
@@ -32,7 +33,7 @@ export async function applyRoleChanges(roleList: Role[], oldRoleList?: Role[]) {
 
   const newRoles = await loginRolesNotInDb(roleList);
   if (newRoles.length != 0) {
-    console.log(`${newRoles.length} new roles(s) found`);
+    log.info({ count: newRoles.length }, "new role(s) found");
     await provisionRoles(newRoles);
   }
 

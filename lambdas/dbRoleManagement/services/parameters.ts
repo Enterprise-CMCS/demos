@@ -1,7 +1,8 @@
 import { PutParameterCommand, SSMClient, DeleteParametersCommand } from "@aws-sdk/client-ssm";
+import { log } from "../log";
 
 export async function storeSecureString(env: string, role: string, password: string) {
-  console.log("storing password in secure param");
+  log.debug("storing password in secure param");
   const client = new SSMClient({ region: "us-east-1" });
 
   const command = new PutParameterCommand({
@@ -15,9 +16,9 @@ export async function storeSecureString(env: string, role: string, password: str
 
   try {
     const resp = await client.send(command);
-    console.log("parameter stored:", resp);
+    log.info({ resp }, "parameter stored");
   } catch (err) {
-    console.error("error storing password", err);
+    log.error({error: (err as Error).message}, "error storing password");
   }
 }
 
@@ -25,7 +26,7 @@ export async function deleteSecureStrings(env: string, roles: string[]) {
   if (roles.length == 0) {
     return;
   }
-  console.log("deleting passwords from secure param");
+  log.debug("deleting passwords from secure param");
   const client = new SSMClient({ region: "us-east-1" });
 
   const command = new DeleteParametersCommand({
@@ -34,8 +35,8 @@ export async function deleteSecureStrings(env: string, roles: string[]) {
 
   try {
     const resp = await client.send(command);
-    console.log("parameters deleted:", resp);
+    log.info({resp},"parameters deleted");
   } catch (err) {
-    console.error("error deleting parameters", err);
+    log.error({error: (err as Error).message}, "error deleting parameters");
   }
 }
