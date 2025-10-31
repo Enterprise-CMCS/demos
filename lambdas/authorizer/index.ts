@@ -3,8 +3,7 @@ import { APIGatewayTokenAuthorizerEvent, Context } from "aws-lambda";
 import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwkClient from "jwks-rsa";
 
-import { setupLogger, addReqId } from "./log";
-const parentLogger = setupLogger("authorizer");
+import { log, reqIdChild, store, als } from "./log";
 
 const client = jwkClient({
   jwksUri: process.env.JWKS_URI,
@@ -20,79 +19,80 @@ function getKey(header: JwtHeader, callback: SigningKeyCallback) {
 }
 /* v8 ignore stop */
 
-export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Context) => {
-  const log = addReqId(parentLogger, context.awsRequestId);
+export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Context) =>
+  als.run(store, async () => {
+    reqIdChild(context.awsRequestId);
 
-  const token = event.authorizationToken.split(" ")[1];
-  log.debug("starting validation");
+    const token = event.authorizationToken.split(" ")[1];
+    log.debug("starting validation");
 
-  if (!token) {
-    log.info("unauthorized: token is not set");
-    throw new Error("Unauthorized");
-  }
+    if (!token) {
+      log.info("unauthorized: token is not set");
+      throw new Error("Unauthorized");
+    }
 
-  log.debug("token found");
+    log.debug("token found");
 
-  let decoded: jwt.JwtPayload;
-  try {
-    decoded = await verifyToken(log, token);
-  } catch (err) {
-    log.info(
-      {
-        err,
-      },
-      "unauthorized: unknown user rejected with invalid token"
-    );
-    throw new Error("Unauthorized");
-  }
+    let decoded: jwt.JwtPayload;
+    try {
+      decoded = await verifyToken(token);
+    } catch (err) {
+      log.info(
+        {
+          err,
+        },
+        "unauthorized: unknown user rejected with invalid token"
+      );
+      throw new Error("Unauthorized");
+    }
 
-  if (!decoded.sub) {
-    log.info("unauthorized: user sub is missing");
-    throw new Error("Unauthorized");
-  }
+    if (!decoded.sub) {
+      log.info("unauthorized: user sub is missing");
+      throw new Error("Unauthorized");
+    }
 
-  const roles = decoded["custom:roles"] as string | undefined;
+    const roles = decoded["custom:roles"] as string | undefined;
 
-  if (!roles) {
+    if (!roles) {
+      log.info(
+        {
+          sub: decoded.sub,
+        },
+        "unauthorized: user has no roles"
+      );
+      throw new Error("Unauthorized");
+    }
+
+    const validRoles = ["demos-admin", "demos-cms-user", "demos-state-user"];
+
+    if (!validRoles.some((role) => roles.includes(role))) {
+      log.info(
+        {
+          sub: decoded.sub,
+          roles: roles ?? "none",
+        },
+        "unauthorized: user has invalid roles"
+      );
+      throw new Error("Unauthorized");
+    }
+
     log.info(
       {
         sub: decoded.sub,
+        roles: roles,
       },
-      "unauthorized: user has no roles"
+      "success: user authorized"
     );
-    throw new Error("Unauthorized");
-  }
-
-  const validRoles = ["demos-admin", "demos-cms-user", "demos-state-user"];
-
-  if (!validRoles.some((role) => roles.includes(role))) {
-    log.info(
-      {
-        sub: decoded.sub,
-        roles: roles ?? "none",
-      },
-      "unauthorized: user has invalid roles"
-    );
-    throw new Error("Unauthorized");
-  }
-
-  log.info(
-    {
+    return generatePolicy(decoded.sub, "Allow", event.methodArn, {
       sub: decoded.sub,
-      roles: roles,
-    },
-    "success: user authorized"
-  );
-  return generatePolicy(decoded.sub, "Allow", event.methodArn, {
-    sub: decoded.sub,
-    email: decoded.email,
-    given_name: decoded.given_name,
-    family_name: decoded.family_name,
-    role: roles,
+      email: decoded.email,
+      given_name: decoded.given_name,
+      family_name: decoded.family_name,
+      role: roles,
+    });
   });
-};
 
-const verifyToken = (log: any, token: string): Promise<jwt.JwtPayload> => {
+const verifyToken = (token: string): Promise<jwt.JwtPayload> => {
   return new Promise((resolve, reject) => {
     log.debug("verifying jwt");
     jwt.verify(token, getKey, {}, (err, decoded) => {

@@ -8,7 +8,7 @@ import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
 import { pickString } from "./claim-utils";
 import { PERSON_TYPES } from "../constants";
-import { log } from "../logger";
+import { log } from "../log.js";
 
 const config = getAuthConfig();
 

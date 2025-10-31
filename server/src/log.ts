@@ -28,7 +28,7 @@ export const setupLogger = (serviceName: string) =>
       : undefined,
   });
 
-export const parentLogger = setupLogger("authorizer");
+export const parentLogger = setupLogger("graphql");
 
 export const reqIdChild = (id: string, extra?: object) => {
   const child = parentLogger.child({requestId: id, ...extra });

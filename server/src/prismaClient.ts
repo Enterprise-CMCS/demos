@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import prismaRandom from "prisma-extension-random";
-import { log } from "./logger";
+import { log } from "./log";
 
 // really annoying typescript hackiness to get the types to play well with the $extends method
 // the prisma random extension will be eventually removed.

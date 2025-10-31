@@ -1,7 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import type { GraphQLContext } from "../../auth/auth.util.js";
 import { User as PrismaUser } from "@prisma/client";
-import { log } from "../../logger.js";
+import { log } from "../../log.js";
 
 export const userResolvers = {
   Query: {

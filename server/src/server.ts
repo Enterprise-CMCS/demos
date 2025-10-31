@@ -3,8 +3,9 @@ import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateLambdaHandler, handlers } from "@as-integrations/aws-lambda";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import { authGatePlugin } from "./auth/auth.plugin.js";
+import {loggingPlugin} from "./plugins/logging.plugin"
 import { GraphQLContext, buildLambdaContext, getDatabaseUrl } from "./auth/auth.util.js";
-import { log, loggingPlugin, reqIdChild, als, store } from "./logger";
+import { log, reqIdChild, als, store } from "./log.js";
 
 import type { APIGatewayProxyEvent, APIGatewayProxyEventHeaders } from "aws-lambda";
 
@@ -90,7 +91,6 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
           }
 
           const reqLog = reqIdChild(context.awsRequestId, additionalContext);
-          als.getStore()?.set("logger", reqLog);
 
           reqLog.debug({type: "lambda.context.built"});
 
