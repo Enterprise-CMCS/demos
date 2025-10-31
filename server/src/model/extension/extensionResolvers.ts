@@ -28,7 +28,7 @@ const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 
 export async function __getExtension(
-  parent: undefined,
+  parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaExtension> {
   return await getApplication(id, "Extension");
@@ -39,7 +39,7 @@ export async function __getManyExtensions(): Promise<PrismaExtension[] | null> {
 }
 
 export async function __createExtension(
-  parent: undefined,
+  parent: unknown,
   { input }: { input: CreateExtensionInput }
 ): Promise<PrismaExtension> {
   return await prisma().$transaction(async (tx) => {
@@ -64,7 +64,7 @@ export async function __createExtension(
 }
 
 export async function __updateExtension(
-  parent: undefined,
+  parent: unknown,
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
   if (input.effectiveDate) {
@@ -95,7 +95,7 @@ export async function __updateExtension(
 }
 
 export async function __deleteExtension(
-  parent: undefined,
+  parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaExtension> {
   return await deleteApplication(id, "Extension");

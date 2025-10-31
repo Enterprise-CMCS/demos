@@ -8,7 +8,7 @@ import { getApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 
 export async function __setApplicationPhaseStatus(
-  _: undefined,
+  _: unknown,
   { input }: { input: SetApplicationPhaseStatusInput }
 ) {
   try {

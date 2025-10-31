@@ -39,7 +39,7 @@ const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 const demonstrationApplicationType: ApplicationType = "Demonstration";
 
 export async function __getDemonstration(
-  parent: undefined,
+  parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaDemonstration> {
   return await getApplication(id, "Demonstration");
@@ -50,7 +50,7 @@ export async function __getManyDemonstrations(): Promise<PrismaDemonstration[] |
 }
 
 export async function __createDemonstration(
-  parent: undefined,
+  parent: unknown,
   { input }: { input: CreateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
   let newApplicationId: string;
@@ -113,7 +113,7 @@ export async function __createDemonstration(
 }
 
 export async function __updateDemonstration(
-  parent: undefined,
+  parent: unknown,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
   if (input.effectiveDate) {
@@ -197,7 +197,7 @@ export async function __updateDemonstration(
 }
 
 export async function __deleteDemonstration(
-  parent: undefined,
+  parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaDemonstration> {
   return await deleteApplication(id, "Demonstration");

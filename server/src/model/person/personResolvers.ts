@@ -4,7 +4,7 @@ import { prisma } from "../../prismaClient";
 
 export const personResolvers = {
   Query: {
-    person: async (_: undefined, { id }: { id: string }) => {
+    person: async (_: unknown, { id }: { id: string }) => {
       return await prisma().person.findUnique({
         where: {
           id,
@@ -15,7 +15,7 @@ export const personResolvers = {
       return await prisma().person.findMany();
     },
     searchPeople: async (
-      _: undefined,
+      _: unknown,
       { search, demonstrationId }: { search: string; demonstrationId?: string }
     ) => {
       const searchConditions = [

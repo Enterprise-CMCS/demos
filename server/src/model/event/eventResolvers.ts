@@ -5,7 +5,7 @@ import { getApplication, PrismaApplication } from "../application/applicationRes
 import { GraphQLContext, getCurrentUserId } from "../../auth/auth.util.js";
 
 export async function logEvent(
-  parent: undefined,
+  parent: unknown,
   { input }: { input: LogEventInput },
   context: GraphQLContext
 ) {
@@ -36,7 +36,7 @@ export const eventResolvers = {
         orderBy: { createdAt: "desc" },
       });
     },
-    eventsByApplication: async (_: undefined, { applicationId }: { applicationId: string }) => {
+    eventsByApplication: async (_: unknown, { applicationId }: { applicationId: string }) => {
       return prisma().event.findMany({
         where: { applicationId },
         orderBy: { createdAt: "desc" },

@@ -13,7 +13,7 @@ import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
 
-async function getDocument(parent: undefined, { id }: { id: string }) {
+async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
     where: { id: id },
   });
@@ -77,7 +77,7 @@ export const documentResolvers = {
 
   Mutation: {
     uploadDocument: async (
-      parent: undefined,
+      parent: unknown,
       { input }: { input: UploadDocumentInput },
       context: GraphQLContext
     ) => {
@@ -101,7 +101,7 @@ export const documentResolvers = {
       return { presignedURL };
     },
 
-    downloadDocument: async (_: undefined, { id }: { id: string }) => {
+    downloadDocument: async (_: unknown, { id }: { id: string }) => {
       const document = await prisma().document.findUnique({
         where: { id: id },
       });
@@ -117,7 +117,7 @@ export const documentResolvers = {
     },
 
     updateDocument: async (
-      _: undefined,
+      _: unknown,
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<PrismaDocument> => {
       checkOptionalNotNullFields(
@@ -140,7 +140,7 @@ export const documentResolvers = {
       }
     },
 
-    deleteDocuments: async (_: undefined, { ids }: { ids: string[] }) => {
+    deleteDocuments: async (_: unknown, { ids }: { ids: string[] }) => {
       const deleteResult = await prisma().document.deleteMany({
         where: { id: { in: ids } },
       });

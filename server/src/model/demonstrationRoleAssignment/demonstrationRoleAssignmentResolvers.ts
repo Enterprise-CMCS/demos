@@ -9,7 +9,7 @@ import {
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
 export async function unsetDemonstrationRoles(
-  parent: undefined,
+  parent: unknown,
   { input }: { input: UnsetDemonstrationRoleInput[] }
 ) {
   return await prisma().$transaction(async (tx) => {
@@ -44,7 +44,7 @@ export async function unsetDemonstrationRoles(
 }
 
 export async function setDemonstrationRole(
-  parent: undefined,
+  parent: unknown,
   { input }: { input: SetDemonstrationRoleInput }
 ) {
   await prisma().$transaction(async (tx) => {
@@ -120,7 +120,7 @@ export async function setDemonstrationRole(
 }
 
 export async function setDemonstrationRoles(
-  parent: undefined,
+  parent: unknown,
   { input }: { input: SetDemonstrationRoleInput[] }
 ) {
   return await prisma().$transaction(async (tx) => {

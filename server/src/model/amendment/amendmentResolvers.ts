@@ -28,7 +28,7 @@ const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 
 export async function __getAmendment(
-  parent: undefined,
+  parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaAmendment> {
   return await getApplication(id, "Amendment");
@@ -39,7 +39,7 @@ export async function __getManyAmendments(): Promise<PrismaAmendment[] | null> {
 }
 
 export async function __createAmendment(
-  parent: undefined,
+  parent: unknown,
   { input }: { input: CreateAmendmentInput }
 ): Promise<PrismaAmendment> {
   return await prisma().$transaction(async (tx) => {
@@ -64,7 +64,7 @@ export async function __createAmendment(
 }
 
 export async function __updateAmendment(
-  parent: undefined,
+  parent: unknown,
   { id, input }: { id: string; input: UpdateAmendmentInput }
 ): Promise<PrismaAmendment> {
   if (input.effectiveDate) {
@@ -95,7 +95,7 @@ export async function __updateAmendment(
 }
 
 export async function __deleteAmendment(
-  parent: undefined,
+  parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaAmendment> {
   return await deleteApplication(id, "Amendment");

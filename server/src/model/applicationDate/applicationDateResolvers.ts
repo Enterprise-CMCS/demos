@@ -6,7 +6,7 @@ import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateInputDate } from "./validateInputDate.js";
 
 export async function __setApplicationDate(
-  _: undefined,
+  _: unknown,
   { input }: { input: SetApplicationDateInput }
 ): Promise<PrismaApplication> {
   await validateInputDate(input);
