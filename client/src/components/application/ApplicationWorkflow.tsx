@@ -39,9 +39,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
 export type SimplePhase = {
   phaseName: PhaseName;
   phaseStatus: PhaseStatus;
-  phaseDates: (Pick<ApplicationDate, "dateType"> & {
-    dateValue: string;
-  })[];
+  phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
 };
 
 export type ApplicationWorkflowDocument = Pick<

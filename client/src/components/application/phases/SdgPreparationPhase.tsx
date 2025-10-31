@@ -7,11 +7,10 @@ import { Button, SecondaryButton } from "components/button";
 import { useMutation } from "@apollo/client";
 import { DateType, PhaseStatus } from "demos-server";
 import { gql } from "graphql-tag";
-import { TZDate } from "@date-fns/tz";
-import { format } from "date-fns";
 import { PhaseName } from "../phase-selector/PhaseSelector";
 import { useToast } from "components/toast";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
+import { getDateInputValue, toEstStartOfDay } from "util/formatDate";
 
 const PHASE_NAME: PhaseName = "SDG Preparation";
 const NEXT_PHASE_NAME: PhaseName = "Approval Package";
@@ -64,16 +63,6 @@ interface SdgPreparationPhaseFormData {
   bnpmtInitialMeetingDate?: string;
 }
 
-function getDateInputValue(isoString: string): string {
-  const date = new TZDate(isoString, "America/New_York");
-  return format(date, "yyyy-MM-dd");
-}
-
-function toEstStartOfDay(dateString: string): string {
-  const date = new TZDate(`${dateString}T00:00:00`, "America/New_York");
-  return date.toISOString();
-}
-
 export const SdgPreparationPhase = ({
   demonstrationId,
   sdgPreparationPhase,
@@ -111,16 +100,16 @@ export const SdgPreparationPhase = ({
 
     return {
       expectedApprovalDate: phaseDates.expectedApprovalDate
-        ? getDateInputValue(phaseDates.expectedApprovalDate)
+        ? getDateInputValue(phaseDates.expectedApprovalDate as unknown as string)
         : undefined,
       smeInitialReviewDate: phaseDates.smeInitialReviewDate
-        ? getDateInputValue(phaseDates.smeInitialReviewDate)
+        ? getDateInputValue(phaseDates.smeInitialReviewDate as unknown as string)
         : undefined,
       frtInitialMeetingDate: phaseDates.frtInitialMeetingDate
-        ? getDateInputValue(phaseDates.frtInitialMeetingDate)
+        ? getDateInputValue(phaseDates.frtInitialMeetingDate as unknown as string)
         : undefined,
       bnpmtInitialMeetingDate: phaseDates.bnpmtInitialMeetingDate
-        ? getDateInputValue(phaseDates.bnpmtInitialMeetingDate)
+        ? getDateInputValue(phaseDates.bnpmtInitialMeetingDate as unknown as string)
         : undefined,
     };
   }
