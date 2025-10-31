@@ -34,7 +34,7 @@ export async function __getAmendment(
   return await getApplication(id, "Amendment");
 }
 
-export async function __getManyAmendments(): Promise<PrismaAmendment[] | null> {
+export async function __getManyAmendments(): Promise<PrismaAmendment[]> {
   return await getManyApplications("Amendment");
 }
 

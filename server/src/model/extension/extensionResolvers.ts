@@ -34,7 +34,7 @@ export async function __getExtension(
   return await getApplication(id, "Extension");
 }
 
-export async function __getManyExtensions(): Promise<PrismaExtension[] | null> {
+export async function __getManyExtensions(): Promise<PrismaExtension[]> {
   return await getManyApplications("Extension");
 }
 

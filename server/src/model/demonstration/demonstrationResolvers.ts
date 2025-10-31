@@ -45,7 +45,7 @@ export async function __getDemonstration(
   return await getApplication(id, "Demonstration");
 }
 
-export async function __getManyDemonstrations(): Promise<PrismaDemonstration[] | null> {
+export async function __getManyDemonstrations(): Promise<PrismaDemonstration[]> {
   return await getManyApplications("Demonstration");
 }
 

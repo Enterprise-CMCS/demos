@@ -152,7 +152,7 @@ describe("applicationResolvers", () => {
       expect(regularMocks.application.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
 
-    it("should return null if nothing is returned", async () => {
+    it("should return [] if nothing is returned", async () => {
       mockPrismaClient.application.findUnique.mockResolvedValue(null);
       const expectedCall = {
         where: {
@@ -166,7 +166,7 @@ describe("applicationResolvers", () => {
       };
       const result = getManyApplications(testDemonstrationApplicationTypeId);
       expect(regularMocks.application.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(result).resolves.toBeNull();
+      expect(result).resolves.toStrictEqual([]);
     });
   });
 

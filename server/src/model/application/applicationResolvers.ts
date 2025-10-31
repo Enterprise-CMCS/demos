@@ -70,19 +70,19 @@ export async function getApplication(
 
 export async function getManyApplications(
   applicationTypeId: "Demonstration"
-): Promise<PrismaDemonstration[] | null>;
+): Promise<PrismaDemonstration[]>;
 
 export async function getManyApplications(
   applicationTypeId: "Amendment"
-): Promise<PrismaAmendment[] | null>;
+): Promise<PrismaAmendment[]>;
 
 export async function getManyApplications(
   applicationTypeId: "Extension"
-): Promise<PrismaExtension[] | null>;
+): Promise<PrismaExtension[]>;
 
 export async function getManyApplications(
   applicationTypeId: ApplicationType
-): Promise<PrismaApplication[] | null> {
+): Promise<PrismaApplication[]> {
   const applications: FindApplicationQueryResult[] | null = await prisma().application.findMany({
     where: {
       applicationTypeId: applicationTypeId,
@@ -95,7 +95,7 @@ export async function getManyApplications(
   });
 
   if (!applications) {
-    return null;
+    return [];
   }
 
   const results: PrismaApplication[] = [];
