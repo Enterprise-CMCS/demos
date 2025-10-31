@@ -2,6 +2,13 @@ import { App, aws_ec2, Stack } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { ApiStack } from "./api";
 import { DeploymentConfigProperties } from "../config";
+import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
+
+const commongAppArgs = {
+      context: {
+        [BUNDLING_STACKS]: []
+      }
+    }
 
 const mockCommonProps: DeploymentConfigProperties = {
   project: "demos",
@@ -16,7 +23,7 @@ const mockCommonProps: DeploymentConfigProperties = {
 
 describe("Api Stack", () => {
   test("should create proper resources when non-ephemeral", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const mockCoreStack = new Stack(app, "mockCore");
 
     const mockPrivateSubnets = ["subnet-private1", "subnet-private2"];

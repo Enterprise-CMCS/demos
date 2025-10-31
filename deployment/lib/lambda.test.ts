@@ -2,6 +2,7 @@ import { App, aws_apigateway, aws_codedeploy, aws_ec2, Duration, Stack } from "a
 import { create } from "./lambda";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { Construct } from "constructs";
+import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
 
 const mockCommonProps = {
   project: "demos",
@@ -12,10 +13,14 @@ const mockCommonProps = {
   zScalerIps: ["0.1.2.3"],
   cloudfrontHost: "unittest.demos.com",
 };
-
+const commongAppArgs = {
+      context: {
+        [BUNDLING_STACKS]: []
+      }
+    }
 describe("lambda", () => {
   test("should create a basic lambda function and role", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const stack = new Stack(app, "TestStack");
 
     create(
@@ -75,7 +80,7 @@ describe("lambda", () => {
   });
 
   test("should create a VPC connected lambda function and role", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const stack = new Stack(app, "TestStack");
 
     const mockPrivateSubnets = ["subnet-private1", "subnet-private2"];
@@ -107,7 +112,7 @@ describe("lambda", () => {
   });
 
   test("should create a VPC connected lambda function with security group", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const stack = new Stack(app, "TestStack");
 
     const mockPrivateSubnets = ["subnet-private1", "subnet-private2"];
@@ -148,7 +153,7 @@ describe("lambda", () => {
   });
 
   test("should create a lambda with an alias and canary deploy", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const stack = new Stack(app, "TestStack");
 
     create(
@@ -172,7 +177,7 @@ describe("lambda", () => {
   });
 
   test("should create a lambda with an api gateway trigger and authorizer", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const stack = new Stack(app, "TestStack");
 
     class MockAuthorizer extends aws_apigateway.Authorizer {
@@ -224,7 +229,7 @@ describe("lambda", () => {
   });
 
   test("should create a lambda with an api gateway trigger targeting alias", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const stack = new Stack(app, "TestStack");
 
     create(
@@ -266,7 +271,7 @@ describe("lambda", () => {
   });
 
   test("should create a lambda defined by directory rather than a single file", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const stack = new Stack(app, "TestStack");
 
     create(
