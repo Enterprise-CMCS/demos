@@ -4,19 +4,6 @@ import React from "react";
 
 import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
-
-// Mock useMutation from Apollo Client
-vi.mock("@apollo/client", async () => {
-  const actual = await vi.importActual("@apollo/client");
-  return {
-    ...actual,
-    useMutation: vi.fn(() => [
-      vi.fn(() => Promise.resolve({ data: {} })),
-      { loading: false, error: null },
-    ]),
-  };
-});
-
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -32,6 +19,17 @@ import {
 } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
 import { getNowEst } from "../dates/applicationDates";
+
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [
+      vi.fn(() => Promise.resolve({ data: {} })),
+      { loading: false, error: null },
+    ]),
+  };
+});
 
 describe("ApplicationIntakePhase", () => {
   const defaultProps: ApplicationIntakeProps = {
