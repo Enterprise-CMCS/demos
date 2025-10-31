@@ -1,5 +1,3 @@
-/* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
-
 import React, { useState } from "react";
 import { tw } from "tags/tw";
 
