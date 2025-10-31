@@ -291,7 +291,7 @@ export const CompletenessPhase = ({
         STEP 1 - UPLOAD
       </h4>
       <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
-      {/* TODO: DEBUG DOC NOT WORKING - prisma().documentPendingUpload.create error */}
+      {/* TODO: DOC NOT WORKING - documentPendingUpload.create - seeded to compensate */}
       <SecondaryButton onClick={() => setUploadOpen(true)} size="small" name="open-upload">
         Upload
         <ExportIcon />

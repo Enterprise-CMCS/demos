@@ -1,9 +1,5 @@
-// You are trying to fix this stupid test.
-
 import React from "react";
-
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { formatDate } from "util/formatDate";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,6 +9,9 @@ import { TestProvider } from "test-utils/TestProvider";
 const mockMutate = vi.fn();
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
+const COMPLETENESS_SUBMIT_DATE = "2025-10-15";
+const START_FED_COMMENT_DATE = "2025-10-01";
+const END_FED_COMMENT_DATE = "2025-10-30";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
@@ -66,16 +65,16 @@ const renderWithProviders = (ui: React.ReactElement) =>
 const buildComponent = (override: Partial<CompletenessPhaseProps> = {}) => {
   const defaultProps: CompletenessPhaseProps = {
     applicationId: "app-123",
-    fedCommentStartDate: "2025-10-01",
-    fedCommentEndDate: "2025-10-30",
+    fedCommentStartDate: START_FED_COMMENT_DATE,
+    fedCommentEndDate: END_FED_COMMENT_DATE,
     stateDeemedCompleteDate: "",
     applicationCompletenessDocument: [
       {
-        id: "doc-1",
-        name: "Completeness Letter",
-        description: "Test",
+        id: "8675309B",
+        name: "Completed Completeness letter of Completeness",
+        description: "YOLO FLIM-FLAM FOMO slabba-labba-ding-dong-do 🚀",
         documentType: "Application Completeness Letter",
-        createdAt: new Date("2025-10-30"),
+        createdAt: new Date(END_FED_COMMENT_DATE),
       },
     ],
   };
@@ -101,7 +100,7 @@ describe("CompletenessPhase", () => {
   it("hides the alert when a completion date already exists", () => {
     renderWithProviders(
       buildComponent({
-        stateDeemedCompleteDate: "2025-10-01",
+        stateDeemedCompleteDate: COMPLETENESS_SUBMIT_DATE,
       })
     );
 
@@ -114,7 +113,7 @@ describe("CompletenessPhase", () => {
     expect(screen.getByText(NOTICE_TEXT)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/State Application Deemed Complete/i), {
-      target: { value: "2025-10-15" },
+      target: { value: COMPLETENESS_SUBMIT_DATE },
     });
 
     await waitFor(() => {
@@ -125,26 +124,22 @@ describe("CompletenessPhase", () => {
   it("declares the phase incomplete and the buttons work right plus requesting the mutation", async () => {
     renderWithProviders(buildComponent());
     const user = userEvent.setup();
+    const declareIncompleteOpenDialogButton = await screen.findByRole("button", { name: /declare-incomplete/i });
+    await user.click(declareIncompleteOpenDialogButton);
+    const prepopulatedCommonIncompleteSelectReasons = await screen.findByLabelText(/Reason/i);
+    await user.selectOptions(prepopulatedCommonIncompleteSelectReasons, "missing-documentation");
+    const submitDeclareCompleteAfterSelectingReason = await screen.findByRole("button", { name: /declare-incomplete-confirm/i });
+    expect(submitDeclareCompleteAfterSelectingReason).not.toBeDisabled();
+    await user.click(submitDeclareCompleteAfterSelectingReason);
 
-    // 1) Open the dialog
-    const declareBtn = await screen.findByRole("button", { name: /declare-incomplete/i });
-    await user.click(declareBtn);
-    const reasonSelect = await screen.findByLabelText(/Reason/i);
-    await user.selectOptions(reasonSelect, "missing-documentation");
-    const submitButton = await screen.findByRole("button", { name: /declare-incomplete-confirm/i });
-    expect(submitButton).not.toBeDisabled();
-    // console.log("SUBMIT BUTTON:", submitButton);
-    await user.click(submitButton);
-
-    await user.selectOptions(reasonSelect, "other");
+    await user.selectOptions(prepopulatedCommonIncompleteSelectReasons, "other");
     const otherReasonInput = await screen.findByLabelText(/Other/i);
     expect(otherReasonInput).toBeInTheDocument();
-    expect(submitButton).to.toBeDisabled();
+    expect(submitDeclareCompleteAfterSelectingReason).to.toBeDisabled();
     await user.type(otherReasonInput, "Additional reason text");
-    expect(submitButton).not.toBeDisabled();
-    await user.click(submitButton);
+    expect(submitDeclareCompleteAfterSelectingReason).not.toBeDisabled();
+    await user.click(submitDeclareCompleteAfterSelectingReason);
 
-    // // 3) Assert the mutation fired with the expected variables
     await waitFor(() => {
       expect(mockMutate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -160,9 +155,8 @@ describe("CompletenessPhase", () => {
 
   it("emits the save toast when the user saves for later", async () => {
     renderWithProviders(buildComponent());
-
     fireEvent.change(screen.getByLabelText(/State Application Deemed Complete/i), {
-      target: { value: "2025-10-15" },
+      target: { value: COMPLETENESS_SUBMIT_DATE },
     });
 
     fireEvent.click(screen.getByRole("button", { name: "save-for-later" }));
@@ -177,7 +171,7 @@ describe("CompletenessPhase", () => {
     renderWithProviders(buildComponent());
 
     fireEvent.change(screen.getByLabelText(/State Application Deemed Complete/i), {
-      target: { value: "2025-10-15" },
+      target: { value: COMPLETENESS_SUBMIT_DATE },
     });
 
     await waitFor(() => {
