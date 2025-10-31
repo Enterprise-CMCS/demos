@@ -182,6 +182,6 @@ export class DatabaseStack extends Stack {
 
 // Datadog Postgres settings turns on Postgres CloudWatch logs, and sets enhanced monitoring interval to 60s
 export function enableDatadogForRds(instance: aws_rds.DatabaseInstance) {
-  instance.addCloudwatchLogsExports(["postgresql"]);
-  instance.node.defaultChild.addPropertyOverride("MonitoringInterval", 60);
+  const cfnDb = instance.node.defaultChild as aws_rds.CfnDBInstance;
+  cfnDb.addPropertyOverride("MonitoringInterval", 60);
 }
