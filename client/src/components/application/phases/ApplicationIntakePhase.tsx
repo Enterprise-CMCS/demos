@@ -5,13 +5,20 @@ import { ApplicationIntakeUploadDialog } from "components/dialog/document/Applic
 import { DeleteIcon, ExportIcon } from "components/icons";
 import { addDays } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer, parseInputDate } from "util/formatDate";
+import {
+  formatDate,
+  formatDateForServer,
+  formatDateAsIsoString,
+  parseInputDate,
+} from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { useSetApplicationDate } from "components/application/dates/applicationDateQueries";
+import { getIsoDateString, getStartOfDateEST, getNowEst } from "../dates/applicationDates";
+import { useMutation, gql } from "@apollo/client";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -88,6 +95,20 @@ export const ApplicationIntakePhase = ({
   );
   const [isFinishButtonEnabled, setIsFinishButtonEnabled] = useState(false);
 
+  const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
+    applicationId: demonstrationId,
+    phaseName: "Application Intake",
+    phaseStatus: "Completed",
+  });
+
+  const [setApplicationDateMutation] = useMutation(gql`
+    mutation SetApplicationDate($input: SetApplicationDateInput!) {
+      setApplicationDate(input: $input) {
+        __typename
+      }
+    }
+  `);
+
   useEffect(() => {
     setIsFinishButtonEnabled(
       stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate)
@@ -95,19 +116,41 @@ export const ApplicationIntakePhase = ({
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
   const onFinishButtonClick = async () => {
-    const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
-      applicationId: demonstrationId,
-      phaseName: "Application Intake",
-      phaseStatus: "Completed",
-    });
+    await Promise.all([completeApplicationIntake()]);
+  };
 
-    const { setApplicationDate: setCompletionDate } = useSetApplicationDate({
-      applicationId: demonstrationId,
-      dateType: "Application Intake Completion Date",
-      dateValue: new Date(),
-    });
+  const handleDocumentUploadSucceeded = async () => {
+    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
+    setStateApplicationSubmittedDate(formatDateAsIsoString(todayDate));
 
-    await Promise.all([completeApplicationIntake(), setCompletionDate()]);
+    await setApplicationDateMutation({
+      variables: {
+        input: {
+          applicationId: demonstrationId,
+          dateType: "State Application Submitted Date",
+          dateValue: todayDate,
+        },
+      },
+      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    });
+  };
+
+  const handleDateChange = async (newDate: string) => {
+    setStateApplicationSubmittedDate(newDate);
+
+    if (newDate) {
+      const parsedDate = parseInputDate(newDate);
+      await setApplicationDateMutation({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            dateType: "State Application Submitted Date",
+            dateValue: parsedDate,
+          },
+        },
+        refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      });
+    }
   };
 
   const UploadSection = () => (
@@ -175,7 +218,7 @@ export const ApplicationIntakePhase = ({
           <input
             type="date"
             value={stateApplicationSubmittedDate ?? undefined}
-            onChange={(e) => setStateApplicationSubmittedDate(e.target.value)}
+            onChange={(e) => handleDateChange(e.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             required
             aria-required="true"
@@ -239,6 +282,7 @@ export const ApplicationIntakePhase = ({
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
         applicationId={demonstrationId}
+        onDocumentUploadSucceeded={handleDocumentUploadSucceeded}
       />
     </div>
   );

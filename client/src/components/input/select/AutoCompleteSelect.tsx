@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
+
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
-import { Option } from "./Select";
+
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
+import { Option } from "./Select";
 
 export interface AutoCompleteSelectProps {
   options: Option[];
@@ -100,7 +102,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   }, [inputValue, options, isOpen]);
 
   return (
-    <div className="flex flex-col gap-sm" ref={containerRef}>
+    <div className="flex flex-col gap-xs" ref={containerRef}>
       {label && (
         <label htmlFor={id} className={LABEL_CLASSES}>
           {isRequired && <span className="text-text-warn">*</span>}

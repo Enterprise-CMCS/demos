@@ -81,11 +81,10 @@ describe("phaseStatusQueries", () => {
 
       // Check that the structure follows GraphQL syntax
       expect(result).toMatch(/mutation SetPhaseStatus\s*{/);
-      expect(result).toMatch(/setPhaseStatus\s*\(\s*input:\s*{/);
+      expect(result).toMatch(/setApplicationPhaseStatus\s*\(\s*input:\s*{/);
       expect(result).toContain("applicationId:");
       expect(result).toContain("phaseName:");
       expect(result).toContain("phaseStatus:");
-      expect(result).toMatch(/}\s*\)\s*}/);
     });
 
     it("should handle phase names with spaces and special characters", () => {

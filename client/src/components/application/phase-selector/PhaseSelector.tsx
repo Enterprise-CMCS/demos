@@ -5,7 +5,7 @@ import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   ApprovalPackagePhase,
-  CompletenessPhase,
+  getApplicationCompletenessFromDemonstration,
   ConceptPhase,
   FederalCommentPhase,
   OgcOmbPhase,
@@ -72,10 +72,11 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
       : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
+
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: ConceptPhase,
     "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
-    Completeness: CompletenessPhase,
+    "Completeness": () => getApplicationCompletenessFromDemonstration(demonstration),
     "Federal Comment": () => {
       const phaseStartDate = new Date(2025, 8, 24);
       const phaseEndDate = new Date(phaseStartDate);

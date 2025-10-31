@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+
 import { tw } from "tags/tw";
+
 import { getInputColors, LABEL_CLASSES } from "./Input";
 
 const MAX_ROWS = 3;
 
-const TEXTAREA_BASE_CLASSES = tw`border-1 rounded-minimal p-1 outline-none focus:ring-2
+const TEXTAREA_BASE_CLASSES = tw`border-1 rounded-minimal p-half outline-none focus:ring-2
 bg-surface-white hover:text-text-font resize-none overflow-hidden
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
 const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
@@ -41,7 +43,7 @@ export const Textarea: React.FC<TextareaProps> = ({
     }
   };
   return (
-    <div className="flex flex-col gap-sm">
+    <div className="flex flex-col gap-xs">
       <label className={LABEL_CLASSES} htmlFor={name}>
         {isRequired && <span className="text-text-warn">*</span>}
         {label}

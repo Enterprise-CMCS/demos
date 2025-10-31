@@ -262,6 +262,27 @@ async function seedDatabase() {
     })
   );
 
+  // Right now, document upload is not working.
+  // This is the only way to get docs into phases to enable some submit buttons.
+  console.log("🌱 Seeding completeness documents...");
+  const completenessDocumentType: DocumentType = "Application Completeness Letter";
+  await Promise.all(
+    demonstrations.map(async (demonstration) => {
+      const ownerUserId = (await prisma().user.findRandom())!.id;
+      await prisma().document.create({
+        data: {
+          name: `${faker.company.buzzNoun()[0].toUpperCase()}${faker.company.buzzNoun().slice(1)} completeness Letter`,
+          description: "**SEEDED DOC** completeness letter",
+          s3Path: `s3://${faker.lorem.word()}/${faker.system.commonFileName("pdf")}`,
+          ownerUserId,
+          documentTypeId: completenessDocumentType,
+          applicationId: demonstration.id,
+          phaseId: completenessPhase,
+        },
+      });
+    })
+  );
+
   console.log("🌱 Seeding all dates for one demonstration");
   const randomDemonstration = await prisma().demonstration.findRandom({
     select: {

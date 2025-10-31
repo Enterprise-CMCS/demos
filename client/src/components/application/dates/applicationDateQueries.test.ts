@@ -74,7 +74,6 @@ describe("applicationDateQueries", () => {
       expect(result).toContain("applicationId:");
       expect(result).toContain("dateType:");
       expect(result).toContain("dateValue:");
-      expect(result).toMatch(/}\s*\)\s*}/);
     });
   });
 

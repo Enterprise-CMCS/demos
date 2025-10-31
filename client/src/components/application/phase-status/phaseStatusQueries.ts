@@ -7,11 +7,11 @@ export const getQueryForSetPhaseStatus = (
 ): string => {
   return `
     mutation SetPhaseStatus {
-      setPhaseStatus(input: {
+      setApplicationPhaseStatus(input: {
         applicationId: "${setPhaseStatusInput.applicationId}",
         phaseName: "${setPhaseStatusInput.phaseName}",
         phaseStatus: "${setPhaseStatusInput.phaseStatus}"
-      })
+      }) { __typename }
     }
   `;
 };
