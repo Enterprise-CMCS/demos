@@ -265,7 +265,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
         }
       }
 
-      log.info({ results }, "All records processed successfully");
+      log.info({ results }, "all records processed successfully");
 
       return {
         statusCode: 200,

@@ -39,7 +39,7 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
     } catch (err) {
       log.info(
         {
-          err,
+          error: (err as Error).message,
         },
         "unauthorized: unknown user rejected with invalid token"
       );
