@@ -1,0 +1,34 @@
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["aws-cli"])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    NO_COLOR = 1
+    STAGE = "test"
+  }
+
+  stages {
+    stage('Validate branch state') {
+      steps {
+        script {
+          assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+          container("aws-cli") {
+            sh """
+              aws logs describe-log-groups --query 'logGroups[?retentionInDays==`null` && !contains(logGroupName, `cms-cloud`)].logGroupName' --output json | jq -r '.[]' | while read logGroup; do
+                echo "Setting retention policy for \$logGroup"
+                aws logs put-retention-policy --log-group-name \$logGroup --retention-in-days \${DEFAULT_LOG_RETENTION_DAYS:-90}
+              done
+            """
+          }
+        }
+      }
+    }
+  }
+}
