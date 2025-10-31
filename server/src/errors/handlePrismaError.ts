@@ -15,9 +15,9 @@ export function handlePrismaError(error: unknown): never {
           }
         );
       case "P2025":
-        throw new GraphQLError("An update was attempted on a record that does not exist.", {
+        throw new GraphQLError("An operation was attempted on a record that does not exist.", {
           extensions: {
-            code: "NO_RECORD_FOUND_TO_UPDATE",
+            code: "NO_RECORD_FOUND_FOR_OPERATION",
             originalMessage: error.message,
           },
         });

@@ -1,45 +1,49 @@
-import { Event, Role } from "demos-server";
+import { Event } from "demos-server";
 import { LogEventArguments } from "hooks/event/useEvent";
 import { GET_EVENTS_QUERY, LOG_EVENT_MUTATION } from "queries/eventQueries";
 
 import { MockedResponse } from "@apollo/client/testing";
 
-import { MockUser, mockUsers } from "./userMocks";
+import { MockUser, mockUsers } from "./userMocks.js";
+import { MockDemonstration, mockDemonstrations } from "./demonstrationMocks.js";
 
 export type MockEvent = Pick<
   Event,
-  "id" | "eventType" | "logLevel" | "route" | "createdAt" | "eventData" | "withRole"
+  "id" | "eventType" | "logLevel" | "route" | "createdAt" | "eventData" | "role"
 > & {
   user: MockUser;
+  application: MockDemonstration;
 };
 
 const mockEvents = [
   {
     id: "1",
     user: mockUsers[0],
-    eventType: "LOGIN_SUCCEEDED",
-    logLevel: "INFO",
-    withRole: "demos-cms-user" as Role,
+    eventType: "Login Succeeded",
+    logLevel: "info",
+    role: "All Users",
     route: "/events",
     createdAt: new Date(2025, 0, 1),
     eventData: {
       additionalInfo: "User Created event from events page",
     },
+    application: mockDemonstrations[0],
   },
   {
     id: "2",
     user: mockUsers[0],
-    eventType: "LOGIN_FAILED",
-    logLevel: "ERROR",
-    withRole: "demos-cms-user" as Role,
+    eventType: "Login Failed",
+    logLevel: "err",
+    role: "All Users",
     route: "/demonstrations",
     createdAt: new Date(2025, 0, 1),
     eventData: {},
+    application: mockDemonstrations[0],
   },
 ] as const satisfies MockEvent[];
 
 const mockLogEventInput: LogEventArguments = {
-  eventType: "LOGIN_SUCCEEDED",
+  eventType: "Login Succeeded",
 };
 
 export const eventMocks: MockedResponse[] = [

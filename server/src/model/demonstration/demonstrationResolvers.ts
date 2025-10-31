@@ -1,39 +1,61 @@
-import { Demonstration } from "@prisma/client";
+import {
+  Demonstration as PrismaDemonstration,
+  State as PrismaState,
+  Amendment as PrismaAmendment,
+  Extension as PrismaExtension,
+  DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
+  Person as PrismaPerson,
+} from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { ApplicationType, PhaseName, ApplicationStatus, GrantLevel, Role } from "../../types.js";
-import { CreateDemonstrationInput, UpdateDemonstrationInput } from "./demonstrationSchema.js";
-import { resolveApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
+import {
+  ApplicationStatus,
+  ApplicationType,
+  CreateDemonstrationInput,
+  GrantLevel,
+  PhaseName,
+  Role,
+  UpdateDemonstrationInput,
+} from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
+import {
+  deleteApplication,
+  getApplication,
+  getManyApplications,
+  resolveApplicationCurrentPhaseName,
+  resolveApplicationDocuments,
+  resolveApplicationPhases,
+  resolveApplicationStatus,
+} from "../application/applicationResolvers.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 const demonstrationApplicationType: ApplicationType = "Demonstration";
-const amendmentApplicationType: ApplicationType = "Amendment";
-const extensionApplicationType: ApplicationType = "Extension";
 
-export async function getDemonstration(parent: undefined, { id }: { id: string }) {
-  return await prisma().demonstration.findUnique({
-    where: { id: id },
-  });
+export async function __getDemonstration(
+  parent: unknown,
+  { id }: { id: string }
+): Promise<PrismaDemonstration> {
+  return await getApplication(id, "Demonstration");
 }
 
-export async function getManyDemonstrations() {
-  return await prisma().demonstration.findMany();
+export async function __getManyDemonstrations(): Promise<PrismaDemonstration[]> {
+  return await getManyApplications("Demonstration");
 }
 
-export async function createDemonstration(
-  parent: undefined,
+export async function __createDemonstration(
+  parent: unknown,
   { input }: { input: CreateDemonstrationInput }
-) {
+): Promise<PrismaDemonstration> {
+  let newApplicationId: string;
   try {
-    await prisma().$transaction(async (tx) => {
+    newApplicationId = await prisma().$transaction(async (tx) => {
       const application = await tx.application.create({
         data: {
           applicationTypeId: demonstrationApplicationType,
@@ -78,28 +100,22 @@ export async function createDemonstration(
         data: {
           demonstrationId: application.id,
           personId: input.projectOfficerUserId,
-          roleId: "Project Officer",
+          roleId: roleProjectOfficer,
         },
       });
+
+      return application.id;
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return {
-      success: false,
-      message: "Error creating demonstration: " + errorMessage,
-    };
+    handlePrismaError(error);
   }
-
-  return {
-    success: true,
-    message: "Demonstration created successfully!",
-  };
+  return await getApplication(newApplicationId, "Demonstration");
 }
 
-export async function updateDemonstration(
-  parent: undefined,
+export async function __updateDemonstration(
+  parent: unknown,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
-) {
+): Promise<PrismaDemonstration> {
   if (input.effectiveDate) {
     checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
   }
@@ -180,103 +196,104 @@ export async function updateDemonstration(
   }
 }
 
+export async function __deleteDemonstration(
+  parent: unknown,
+  { id }: { id: string }
+): Promise<PrismaDemonstration> {
+  return await deleteApplication(id, "Demonstration");
+}
+
+export async function __resolveDemonstrationState(
+  parent: PrismaDemonstration
+): Promise<PrismaState> {
+  // State can never be null thanks to the database
+  const result = await prisma().state.findUnique({
+    where: { id: parent.stateId },
+  });
+  return result!;
+}
+
+export async function __resolveDemonstrationAmendments(
+  parent: PrismaDemonstration
+): Promise<PrismaAmendment[] | null> {
+  return await prisma().amendment.findMany({
+    where: {
+      demonstrationId: parent.id,
+    },
+  });
+}
+
+export async function __resolveDemonstrationExtensions(
+  parent: PrismaDemonstration
+): Promise<PrismaExtension[] | null> {
+  return await prisma().extension.findMany({
+    where: {
+      demonstrationId: parent.id,
+    },
+  });
+}
+
+export function __resolveDemonstrationSdgDivision(parent: PrismaDemonstration): string | null {
+  return parent.sdgDivisionId;
+}
+
+export function __resolveDemonstrationSignatureLevel(parent: PrismaDemonstration): string | null {
+  return parent.signatureLevelId;
+}
+
+export async function __resolveDemonstrationRoleAssignments(
+  parent: PrismaDemonstration
+): Promise<PrismaDemonstrationRoleAssignment[]> {
+  // There will always be at least one assignment for primary project officer
+  const result = await prisma().demonstrationRoleAssignment.findMany({
+    where: { demonstrationId: parent.id },
+  });
+  return result!;
+}
+
+export async function __resolveDemonstrationPrimaryProjectOfficer(
+  parent: PrismaDemonstration
+): Promise<PrismaPerson> {
+  // It is not possible in the DB for the primary project officer not to exist
+  const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUnique({
+    where: {
+      demonstrationId_roleId: {
+        demonstrationId: parent.id,
+        roleId: roleProjectOfficer,
+      },
+    },
+    include: {
+      demonstrationRoleAssignment: {
+        include: { person: true },
+      },
+    },
+  });
+  return primaryRoleAssignment!.demonstrationRoleAssignment!.person;
+}
+
 export const demonstrationResolvers = {
   Query: {
-    demonstration: getDemonstration,
-    demonstrations: getManyDemonstrations,
+    demonstration: __getDemonstration,
+    demonstrations: __getManyDemonstrations,
   },
 
   Mutation: {
-    createDemonstration: createDemonstration,
-    updateDemonstration: updateDemonstration,
-    deleteDemonstration: async (_: undefined, { id }: { id: string }) => {
-      return await prisma().demonstration.delete({
-        where: { id: id },
-      });
-    },
+    createDemonstration: __createDemonstration,
+    updateDemonstration: __updateDemonstration,
+    deleteDemonstration: __deleteDemonstration,
   },
 
   Demonstration: {
-    state: async (parent: Demonstration) => {
-      return await prisma().state.findUnique({
-        where: { id: parent.stateId },
-      });
-    },
-
-    documents: async (parent: Demonstration) => {
-      return await prisma().document.findMany({
-        where: {
-          applicationId: parent.id,
-        },
-      });
-    },
-
-    amendments: async (parent: Demonstration) => {
-      return await prisma().modification.findMany({
-        where: {
-          demonstrationId: parent.id,
-          applicationTypeId: amendmentApplicationType,
-        },
-      });
-    },
-
-    extensions: async (parent: Demonstration) => {
-      return await prisma().modification.findMany({
-        where: {
-          demonstrationId: parent.id,
-          applicationTypeId: extensionApplicationType,
-        },
-      });
-    },
-
-    sdgDivision: async (parent: Demonstration) => {
-      return parent.sdgDivisionId;
-    },
-
-    signatureLevel: async (parent: Demonstration) => {
-      return parent.signatureLevelId;
-    },
-
-    currentPhaseName: async (parent: Demonstration) => {
-      return parent.currentPhaseId;
-    },
-
-    roles: async (parent: Demonstration) => {
-      return await prisma().demonstrationRoleAssignment.findMany({
-        where: { demonstrationId: parent.id },
-      });
-    },
-
+    state: __resolveDemonstrationState,
+    documents: resolveApplicationDocuments,
+    amendments: __resolveDemonstrationAmendments,
+    extensions: __resolveDemonstrationExtensions,
+    sdgDivision: __resolveDemonstrationSdgDivision,
+    signatureLevel: __resolveDemonstrationSignatureLevel,
+    currentPhaseName: resolveApplicationCurrentPhaseName,
+    roles: __resolveDemonstrationRoleAssignments,
     status: resolveApplicationStatus,
-
-    phases: async (parent: Demonstration) => {
-      return await prisma().applicationPhase.findMany({
-        where: {
-          applicationId: parent.id,
-        },
-      });
-    },
-
-    primaryProjectOfficer: async (parent: Demonstration) => {
-      const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUnique({
-        where: {
-          demonstrationId_roleId: {
-            demonstrationId: parent.id,
-            roleId: roleProjectOfficer,
-          },
-        },
-        include: {
-          demonstrationRoleAssignment: {
-            include: { person: true },
-          },
-        },
-      });
-
-      if (!primaryRoleAssignment) {
-        throw new Error(`No primary project officer found for demonstration with id ${parent.id}`);
-      }
-
-      return primaryRoleAssignment.demonstrationRoleAssignment.person;
-    },
+    phases: resolveApplicationPhases,
+    primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
   },
 };

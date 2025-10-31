@@ -1,21 +1,27 @@
-export type LogLevel = "INFO" | "ERROR";
-
-export type EventType =
-  "LOGIN_SUCCEEDED"
-  | "LOGIN_FAILED"
-  | "LOGOUT_SUCCEEDED"
+import { LogLevel, EventType } from "demos-server";
 
 type EventLogLevelMap = {
   [K in EventType]: LogLevel;
 };
 
 const eventLogLevelMap: EventLogLevelMap = {
-  LOGIN_SUCCEEDED: "INFO",
-  LOGIN_FAILED: "ERROR",
-  LOGOUT_SUCCEEDED: "INFO",
+  "Login Succeeded": "info",
+  "Login Failed": "err",
+  "Logout Succeeded": "info",
+  "Logout Failed": "err",
+  "Create Demonstration Succeeded": "info",
+  "Create Demonstration Failed": "err",
+  "Create Extension Succeeded": "info",
+  "Create Extension Failed": "err",
+  "Create Amendment Succeeded": "info",
+  "Create Amendment Failed": "err",
+  "Edit Demonstration Succeeded": "info",
+  "Edit Demonstration Failed": "err",
+  "Delete Demonstration Succeeded": "info",
+  "Delete Demonstration Failed": "err",
+  "Delete Document Succeeded": "info",
+  "Delete Document Failed": "err",
 };
-
-export const ALL_EVENT_TYPES: EventType[] = Object.keys(eventLogLevelMap) as EventType[];
 
 export const getLogLevelForEventType = (eventType: EventType): LogLevel => {
   return eventLogLevelMap[eventType];

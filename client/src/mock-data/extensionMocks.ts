@@ -20,7 +20,7 @@ export const mockExtensions = [
   {
     id: "3",
     name: "Extension 3 - Montana Medicaid Waiver",
-    effectiveDate: null,
+    effectiveDate: undefined,
     status: "Approved",
   },
 ] as const satisfies MockExtension[];

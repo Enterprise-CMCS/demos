@@ -1,0 +1,10 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY, NATURAL_KEY
+// Table is a static constraint and is updated entirely via migrations
+model ExtensionApplicationTypeLimit {
+  id String @id
+
+  applicationType ApplicationType @relation(fields: [id], references: [id])
+  extensions      Extension[]
+
+  @@map("extension_application_type_limit")
+}

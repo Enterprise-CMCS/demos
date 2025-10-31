@@ -1,10 +1,10 @@
-import { Person } from "@prisma/client";
+import { Person as PrismaPerson } from "@prisma/client";
 
 import { prisma } from "../../prismaClient";
 
 export const personResolvers = {
   Query: {
-    person: async (_: undefined, { id }: { id: string }) => {
+    person: async (_: unknown, { id }: { id: string }) => {
       return await prisma().person.findUnique({
         where: {
           id,
@@ -15,8 +15,8 @@ export const personResolvers = {
       return await prisma().person.findMany();
     },
     searchPeople: async (
-      _: undefined,
-      { search, demonstrationId }: { search: string; demonstrationId?: string },
+      _: unknown,
+      { search, demonstrationId }: { search: string; demonstrationId?: string }
     ) => {
       const searchConditions = [
         { firstName: { contains: search, mode: "insensitive" as const } },
@@ -63,27 +63,23 @@ export const personResolvers = {
   },
 
   Person: {
-    fullName: (parent: Person) => {
-      return [parent.firstName, parent.lastName]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
+    fullName: (parent: PrismaPerson) => {
+      return [parent.firstName, parent.lastName].filter(Boolean).join(" ").trim();
     },
-    personType: async (parent: Person) => {
+    personType: async (parent: PrismaPerson) => {
       return parent.personTypeId;
     },
-    roles: async (parent: Person) => {
-      const roleAssignments =
-        await prisma().demonstrationRoleAssignment.findMany({
-          where: { personId: parent.id },
-          include: { primaryDemonstrationRoleAssignment: true },
-        });
+    roles: async (parent: PrismaPerson) => {
+      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
+        where: { personId: parent.id },
+        include: { primaryDemonstrationRoleAssignment: true },
+      });
       return roleAssignments.map((assignment) => ({
         ...assignment,
         isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
       }));
     },
-    states: async (parent: Person) => {
+    states: async (parent: PrismaPerson) => {
       const personStates = await prisma().personState.findMany({
         where: { personId: parent.id },
         include: { state: true },

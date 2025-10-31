@@ -2,7 +2,7 @@ import React from "react";
 import { useToast } from "components/toast";
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
 import { useMutation } from "@apollo/client";
-import { CreateDemonstrationInput } from "demos-server";
+import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { gql } from "@apollo/client";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
@@ -21,8 +21,7 @@ const ERROR_MESSAGE = "Your demonstration was not created because of an unknown 
 export const CREATE_DEMONSTRATION_MUTATION = gql`
   mutation CreateDemonstration($input: CreateDemonstrationInput!) {
     createDemonstration(input: $input) {
-      success
-      message
+      id
     }
   }
 `;
@@ -32,7 +31,9 @@ export const CreateDemonstrationDialog: React.FC<{
 }> = ({ isOpen, onClose }) => {
   const { showSuccess, showError } = useToast();
 
-  const [createDemonstrationTrigger] = useMutation(CREATE_DEMONSTRATION_MUTATION);
+  const [createDemonstrationTrigger] = useMutation<{
+    createDemonstration: Demonstration;
+  }>(CREATE_DEMONSTRATION_MUTATION);
 
   const getCreateDemonstrationInput = (
     demonstration: DemonstrationDialogFields
@@ -54,12 +55,12 @@ export const CreateDemonstrationDialog: React.FC<{
         refetchQueries: [DEMONSTRATIONS_PAGE_QUERY],
       });
 
-      const success = result.data?.createDemonstration?.success || false;
+      const success = !result.errors;
       onClose();
       if (success) {
         showSuccess(SUCCESS_MESSAGE);
       } else {
-        console.error(result.data?.createDemonstration?.message);
+        console.error(result.errors);
         showError("Your demonstration was not created because of an unknown problem.");
       }
     } catch {
