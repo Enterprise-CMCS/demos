@@ -7,7 +7,7 @@ export function formatDate(date: Date): string {
   return format(date, "MM/dd/yyyy");
 }
 
-export function formatDateForServer(date: Date): string {
+export function formatDateForServer(date: Date | string): string {
   return format(date, "yyyy-MM-dd");
 }
 

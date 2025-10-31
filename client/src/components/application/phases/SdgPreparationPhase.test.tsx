@@ -1,25 +1,16 @@
 import "@testing-library/jest-dom";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TestProvider } from "test-utils/TestProvider";
 
-import { SdgPreparationPhase } from "./SdgPreparationPhase";
-
-// Define minimal prop interfaces for mocked components
-interface DatePickerProps {
-  className?: string;
-  name: string;
-  required?: boolean;
-  slotProps?: {
-    textField?: {
-      placeholder?: string;
-      name?: string;
-    };
-  };
-  children?: React.ReactNode;
-}
+import {
+  SdgPreparationPhase,
+  SET_SDG_PREPARATION_PHASE_DATE_MUTATION,
+} from "./SdgPreparationPhase";
+import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { MockedProvider } from "@apollo/client/testing";
+import { ToastProvider } from "components/toast";
 
 interface ButtonProps {
   children?: React.ReactNode;
@@ -31,32 +22,11 @@ interface ButtonProps {
 
 // --- Mocks ---
 
-vi.mock("components/input/DatePicker/DatePicker", () => ({
-  DatePicker: (props: DatePickerProps) => {
-    const { children, slotProps, name } = props;
-    return (
-      <div data-testid={`datepicker-${name}`}>
-        <label>{children}</label>
-        <input
-          placeholder={slotProps?.textField?.placeholder}
-          name={name}
-          aria-label={children ? String(children) : name}
-        />
-      </div>
-    );
-  },
-}));
-
 vi.mock("components/button", () => ({
   Button: (props: ButtonProps) => {
     const { children, onClick, disabled, name } = props;
     return (
-      <button
-        name={name}
-        onClick={onClick}
-        disabled={disabled}
-        data-testid={name}
-      >
+      <button name={name} onClick={onClick} disabled={disabled} data-testid={name}>
         {children}
       </button>
     );
@@ -71,14 +41,76 @@ vi.mock("components/button", () => ({
   },
 }));
 
+const mockDemonstration: ApplicationWorkflowDemonstration = {
+  id: "1",
+  status: "Pre-Submission",
+  currentPhaseName: "SDG Preparation",
+  documents: [],
+  phases: [
+    {
+      phaseName: "SDG Preparation",
+      phaseStatus: "Not Started",
+      phaseDates: [
+        {
+          dateType: "Expected Approval Date",
+          dateValue: "2025-01-01T05:00:00.000Z",
+        },
+      ],
+    },
+  ],
+};
+
+const mockSetApplicationDate = {
+  request: {
+    query: SET_SDG_PREPARATION_PHASE_DATE_MUTATION,
+    variables: {
+      input: {
+        applicationId: mockDemonstration.id,
+        dateType: "Expected Approval Date",
+        dateValue: "2025-01-01T00:00:00.000-05:00",
+      },
+    },
+  },
+  result: {
+    data: {
+      setApplicationDate: {
+        id: "1",
+        status: "Pre-Submission",
+        currentPhaseName: "SDG Preparation",
+        documents: [],
+        phases: [
+          {
+            phaseName: "SDG Preparation",
+            phaseStatus: "Not Started",
+            phaseDates: [
+              {
+                dateType: "Expected Approval Date",
+                dateValue: "2025-01-02T05:00:00.000Z",
+              },
+            ],
+          },
+        ],
+      },
+    },
+  },
+};
+
 // --- Tests ---
 
 describe("SdgPreparationPhase", () => {
+  const mockSetSelectedPhase = vi.fn();
+
   const setup = (): void => {
     render(
-      <TestProvider>
-        <SdgPreparationPhase />
-      </TestProvider>
+      <ToastProvider>
+        <MockedProvider mocks={[mockSetApplicationDate]} addTypename={false}>
+          <SdgPreparationPhase
+            demonstrationId={mockDemonstration.id}
+            sdgPreparationPhase={mockDemonstration.phases[0]}
+            setSelectedPhase={mockSetSelectedPhase}
+          />
+        </MockedProvider>
+      </ToastProvider>
     );
   };
 
@@ -112,9 +144,7 @@ describe("SdgPreparationPhase", () => {
       expect(datePicker).toBeInTheDocument();
 
       expect(screen.getByText("Expected Approval Date")).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText("Expected Approval Date")
-      ).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Expected Approval Date")).toBeInTheDocument();
     });
   });
 
@@ -131,15 +161,9 @@ describe("SdgPreparationPhase", () => {
     it("renders all three DatePickers", () => {
       setup();
 
-      expect(
-        screen.getByTestId("datepicker-sme-initial-review-date")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByTestId("datepicker-frt-intial-meeting-date")
-      ).toBeInTheDocument();
-      expect(
-        screen.getByTestId("datepicker-bnpmt-intial-meeting-date")
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeInTheDocument();
+      expect(screen.getByTestId("datepicker-frt-intial-meeting-date")).toBeInTheDocument();
+      expect(screen.getByTestId("datepicker-bnpmt-intial-meeting-date")).toBeInTheDocument();
     });
 
     it("renders Save For Later and Finish buttons", () => {
@@ -152,17 +176,38 @@ describe("SdgPreparationPhase", () => {
       expect(finishButton).toBeInTheDocument();
       expect(finishButton).toBeDisabled();
     });
+  });
+
+  describe("Date field handling", () => {
+    it("prefills the Expected Approval Date DatePicker with the correct date", () => {
+      setup();
+
+      const expectedDate = "2025-01-01";
+      const dateInput = screen.getByTestId("datepicker-expected-approval-date");
+
+      expect(dateInput).toBeInTheDocument();
+      expect(dateInput).toHaveValue(expectedDate);
+    });
 
     it("calls correct handlers when buttons clicked", async () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       setup();
+
+      const expectedApprovalDateInput = screen.getByTestId("datepicker-expected-approval-date");
+      expect(expectedApprovalDateInput).toBeInTheDocument();
+
+      // Change the value to a new date
+      await userEvent.clear(expectedApprovalDateInput!);
+      await userEvent.type(expectedApprovalDateInput!, "2025-01-02");
+
+      expect(expectedApprovalDateInput).toHaveValue("2025-01-02");
 
       const saveButton = screen.getByTestId("sdg-save-for-later");
 
       await userEvent.click(saveButton);
-      expect(consoleSpy).toHaveBeenCalledWith("Save For Later Clicked");
 
-      consoleSpy.mockRestore();
+      await waitFor(() => {
+        expect(screen.getByText(/Successfully saved SDG Workplan for later./i)).toBeInTheDocument();
+      });
     });
   });
 });

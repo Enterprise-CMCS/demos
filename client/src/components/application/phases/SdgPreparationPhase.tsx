@@ -1,22 +1,17 @@
 /* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
-import { useMutation, useQuery } from "@apollo/client";
-import {
-  ApplicationPhase as ServerApplicationPhase,
-  Demonstration as ServerDemonstration,
-  ApplicationDate as ServerApplicationDate,
-  DateType,
-  PhaseStatus,
-} from "demos-server";
+import { useMutation } from "@apollo/client";
+import { DateType, PhaseStatus } from "demos-server";
 import { gql } from "graphql-tag";
 import { TZDate } from "@date-fns/tz";
 import { format } from "date-fns";
 import { PhaseName } from "../phase-selector/PhaseSelector";
 import { useToast } from "components/toast";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 
 const PHASE_NAME: PhaseName = "SDG Preparation";
 const NEXT_PHASE_NAME: PhaseName = "Approval Package";
@@ -30,21 +25,6 @@ const STYLES = {
   header: tw`min-h-[88px]`,
   actions: tw`flex justify-end mt-2 gap-2`,
 };
-
-export const SDG_PREPARATION_PHASE_QUERY = gql`
-  query SdgPreparationPhase($demonstrationId: ID!) {
-    demonstration(id: $demonstrationId) {
-      id
-      phases {
-        phaseName
-        phaseDates {
-          dateType
-          dateValue
-        }
-      }
-    }
-  }
-`;
 
 export const SET_SDG_PREPARATION_PHASE_DATE_MUTATION = gql`
   mutation setSDGPreparationPhaseDate($input: SetApplicationDateInput) {
@@ -77,16 +57,6 @@ export const SET_SDG_PREPARATION_PHASE_STATUS_MUTATION = gql`
   }
 `;
 
-type ApplicationDate = Pick<ServerApplicationDate, "dateType"> & {
-  dateValue: string;
-};
-type ApplicationPhase = Pick<ServerApplicationPhase, "phaseName"> & {
-  phaseDates: ApplicationDate[];
-};
-type Demonstration = Pick<ServerDemonstration, "id"> & {
-  phases: ApplicationPhase[];
-};
-
 interface SdgPreparationPhaseFormData {
   expectedApprovalDate?: string;
   smeInitialReviewDate?: string;
@@ -104,76 +74,62 @@ function toEstStartOfDay(dateString: string): string {
   return date.toISOString();
 }
 
-function getFormDataFromPhase(phase: ApplicationPhase) {
-  const phaseDates = {
-    expectedApprovalDate: phase.phaseDates.find(
-      (date) => date.dateType === "Expected Approval Date"
-    )?.dateValue,
-    smeInitialReviewDate: phase.phaseDates.find((date) => date.dateType === "SME Review Date")
-      ?.dateValue,
-    frtInitialMeetingDate: phase.phaseDates.find(
-      (date) => date.dateType === "FRT Initial Meeting Date"
-    )?.dateValue,
-    bnpmtInitialMeetingDate: phase.phaseDates.find(
-      (date) => date.dateType === "BNPMT Initial Meeting Date"
-    )?.dateValue,
-  };
-
-  return {
-    expectedApprovalDate: phaseDates.expectedApprovalDate
-      ? getDateInputValue(phaseDates.expectedApprovalDate)
-      : undefined,
-    smeInitialReviewDate: phaseDates.smeInitialReviewDate
-      ? getDateInputValue(phaseDates.smeInitialReviewDate)
-      : undefined,
-    frtInitialMeetingDate: phaseDates.frtInitialMeetingDate
-      ? getDateInputValue(phaseDates.frtInitialMeetingDate)
-      : undefined,
-    bnpmtInitialMeetingDate: phaseDates.bnpmtInitialMeetingDate
-      ? getDateInputValue(phaseDates.bnpmtInitialMeetingDate)
-      : undefined,
-  };
-}
-
 export const SdgPreparationPhase = ({
   demonstrationId,
+  sdgPreparationPhase,
   setSelectedPhase,
 }: {
   demonstrationId: string;
+  sdgPreparationPhase: SimplePhase;
   setSelectedPhase: (phaseName: PhaseName) => void;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
-    useState<SdgPreparationPhaseFormData>({});
-  const { data, loading, error } = useQuery<{ demonstration: Demonstration }>(
-    SDG_PREPARATION_PHASE_QUERY,
-    {
-      variables: { demonstrationId },
-    }
+    useState<SdgPreparationPhaseFormData>(getFormDataFromPhase);
+  const [mutateApplicationDate] = useMutation<{ demonstration: ApplicationWorkflowDemonstration }>(
+    SET_SDG_PREPARATION_PHASE_DATE_MUTATION
   );
-  const [mutateApplicationDate] = useMutation(SET_SDG_PREPARATION_PHASE_DATE_MUTATION);
-  const [mutatePhaseStatus] = useMutation(SET_SDG_PREPARATION_PHASE_STATUS_MUTATION);
+  const [mutatePhaseStatus] = useMutation<{ demonstration: ApplicationWorkflowDemonstration }>(
+    SET_SDG_PREPARATION_PHASE_STATUS_MUTATION
+  );
   const { showSuccess, showError } = useToast();
+
+  function getFormDataFromPhase() {
+    const phaseDates = {
+      expectedApprovalDate: sdgPreparationPhase.phaseDates.find(
+        (date) => date.dateType === "Expected Approval Date"
+      )?.dateValue,
+      smeInitialReviewDate: sdgPreparationPhase.phaseDates.find(
+        (date) => date.dateType === "SME Review Date"
+      )?.dateValue,
+      frtInitialMeetingDate: sdgPreparationPhase.phaseDates.find(
+        (date) => date.dateType === "FRT Initial Meeting Date"
+      )?.dateValue,
+      bnpmtInitialMeetingDate: sdgPreparationPhase.phaseDates.find(
+        (date) => date.dateType === "BNPMT Initial Meeting Date"
+      )?.dateValue,
+    };
+
+    return {
+      expectedApprovalDate: phaseDates.expectedApprovalDate
+        ? getDateInputValue(phaseDates.expectedApprovalDate)
+        : undefined,
+      smeInitialReviewDate: phaseDates.smeInitialReviewDate
+        ? getDateInputValue(phaseDates.smeInitialReviewDate)
+        : undefined,
+      frtInitialMeetingDate: phaseDates.frtInitialMeetingDate
+        ? getDateInputValue(phaseDates.frtInitialMeetingDate)
+        : undefined,
+      bnpmtInitialMeetingDate: phaseDates.bnpmtInitialMeetingDate
+        ? getDateInputValue(phaseDates.bnpmtInitialMeetingDate)
+        : undefined,
+    };
+  }
 
   const isFormComplete =
     sdgPreparationPhaseFormData.expectedApprovalDate &&
     sdgPreparationPhaseFormData.smeInitialReviewDate &&
     sdgPreparationPhaseFormData.frtInitialMeetingDate &&
     sdgPreparationPhaseFormData.bnpmtInitialMeetingDate;
-
-  useEffect(() => {
-    if (data) {
-      const sdgPreparationPhase = data.demonstration.phases.find(
-        (phase) => phase.phaseName === PHASE_NAME
-      );
-
-      if (sdgPreparationPhase) {
-        setSdgPreparationPhaseFormData(getFormDataFromPhase(sdgPreparationPhase));
-      }
-    }
-  }, [data]);
-
-  if (loading) return <p>Loading...</p>;
-  if (error || !data) return <p>Error loading SDG Preparation phase data.</p>;
 
   const handleSave = async () => {
     if (sdgPreparationPhaseFormData.expectedApprovalDate) {
@@ -227,7 +183,7 @@ export const SdgPreparationPhase = ({
 
   const handleSaveForLater = async () => {
     try {
-      handleSave();
+      await handleSave();
     } catch {
       showError("Failed to save SDG Workplan for later.");
       return;
@@ -237,7 +193,7 @@ export const SdgPreparationPhase = ({
 
   const handleFinish = async () => {
     try {
-      handleSave();
+      await handleSave();
       await mutatePhaseStatus({
         variables: {
           input: {
@@ -256,121 +212,6 @@ export const SdgPreparationPhase = ({
     setSelectedPhase(NEXT_PHASE_NAME);
   };
 
-  const SdgWorkplanSection = () => (
-    <div aria-labelledby="sdg-workplan-title">
-      <div>test ${sdgPreparationPhaseFormData.expectedApprovalDate}</div>
-      <div className={STYLES.header}>
-        <h4 id="sdg-workplan-title" className={STYLES.title}>
-          SDG WORKPLAN
-        </h4>
-        <p className={STYLES.helper}>
-          Ensure the expected approval date is reasonable based on required reviews and the
-          complexity of the application
-        </p>
-      </div>
-      <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-        <label className="block text-sm font-bold mb-1">
-          <span className="text-text-warn mr-1">*</span>
-          Expected Approval Date
-        </label>
-        <input
-          type="date"
-          name="expected-approval-date"
-          data-testid="datepicker-expected-approval-date"
-          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-          aria-required={true}
-          placeholder="Expected Approval Date"
-          value={sdgPreparationPhaseFormData.expectedApprovalDate}
-          onChange={(e) => {
-            setSdgPreparationPhaseFormData({
-              ...sdgPreparationPhaseFormData,
-              expectedApprovalDate: e.target.value,
-            });
-          }}
-        />
-      </div>
-    </div>
-  );
-
-  const InternalReviewsSection = () => (
-    <div aria-labelledby="sdg-reviews-title">
-      <div className={STYLES.header}>
-        <h4 id="sdg-reviews-title" className={STYLES.title}>
-          INTERNAL REVIEWS
-        </h4>
-        <p className={STYLES.helper}>Record the occurrence of the key review meetings</p>
-      </div>
-      <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-        <label className="block text-sm font-bold mb-1">
-          <span className="text-text-warn mr-1">*</span>
-          SME Initial Review Date
-        </label>
-        <input
-          name="sme-initial-review-date"
-          data-testid="datepicker-sme-initial-review-date"
-          type="date"
-          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-          aria-required={true}
-          placeholder="SME Initial Review Date"
-          value={sdgPreparationPhaseFormData.smeInitialReviewDate}
-          onChange={(e) => {
-            setSdgPreparationPhaseFormData({
-              ...sdgPreparationPhaseFormData,
-              smeInitialReviewDate: e.target.value,
-            });
-          }}
-        />
-        <label className="block text-sm font-bold mb-1">
-          <span className="text-text-warn mr-1">*</span>
-          FRT Initial Meeting Date
-        </label>
-        <input
-          name="frt-initial-meeting-date"
-          data-testid="datepicker-frt-intial-meeting-date"
-          type="date"
-          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-          aria-required={true}
-          placeholder="FRT Initial Meeting Date"
-          value={sdgPreparationPhaseFormData.frtInitialMeetingDate}
-          onChange={(e) => {
-            setSdgPreparationPhaseFormData({
-              ...sdgPreparationPhaseFormData,
-              frtInitialMeetingDate: e.target.value,
-            });
-          }}
-        />
-        <label className="block text-sm font-bold mb-1">
-          <span className="text-text-warn mr-1">*</span>
-          BNPMT Initial Meeting Date
-        </label>
-        <input
-          name="bnpmt-intial-meeting-date"
-          data-testid="datepicker-bnpmt-intial-meeting-date"
-          type="date"
-          className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-          aria-required={true}
-          placeholder="BNPMT Initial Meeting Date"
-          value={sdgPreparationPhaseFormData.bnpmtInitialMeetingDate}
-          onChange={(e) => {
-            setSdgPreparationPhaseFormData({
-              ...sdgPreparationPhaseFormData,
-              bnpmtInitialMeetingDate: e.target.value,
-            });
-          }}
-        />
-      </div>
-
-      <div className={STYLES.actions}>
-        <SecondaryButton onClick={handleSaveForLater} size="large" name="sdg-save-for-later">
-          Save For Later
-        </SecondaryButton>
-        <Button onClick={handleFinish} size="large" name="sdg-finish" disabled={!isFormComplete}>
-          Finish
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">SDG PREPARATION</h3>
@@ -381,8 +222,120 @@ export const SdgPreparationPhase = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <SdgWorkplanSection />
-          <InternalReviewsSection />
+          <div aria-labelledby="sdg-workplan-title">
+            <div>test ${sdgPreparationPhaseFormData.expectedApprovalDate}</div>
+            <div className={STYLES.header}>
+              <h4 id="sdg-workplan-title" className={STYLES.title}>
+                SDG WORKPLAN
+              </h4>
+              <p className={STYLES.helper}>
+                Ensure the expected approval date is reasonable based on required reviews and the
+                complexity of the application
+              </p>
+            </div>
+            <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
+              <label className="block text-sm font-bold mb-1">
+                <span className="text-text-warn mr-1">*</span>
+                Expected Approval Date
+              </label>
+              <input
+                type="date"
+                name="expected-approval-date"
+                data-testid="datepicker-expected-approval-date"
+                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+                aria-required={true}
+                placeholder="Expected Approval Date"
+                value={sdgPreparationPhaseFormData.expectedApprovalDate}
+                onChange={(e) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    expectedApprovalDate: e.target.value,
+                  });
+                }}
+              />
+            </div>
+          </div>{" "}
+          <div aria-labelledby="sdg-reviews-title">
+            <div className={STYLES.header}>
+              <h4 id="sdg-reviews-title" className={STYLES.title}>
+                INTERNAL REVIEWS
+              </h4>
+              <p className={STYLES.helper}>Record the occurrence of the key review meetings</p>
+            </div>
+            <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
+              <label className="block text-sm font-bold mb-1">
+                <span className="text-text-warn mr-1">*</span>
+                SME Initial Review Date
+              </label>
+              <input
+                name="sme-initial-review-date"
+                data-testid="datepicker-sme-initial-review-date"
+                type="date"
+                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+                aria-required={true}
+                placeholder="SME Initial Review Date"
+                value={sdgPreparationPhaseFormData.smeInitialReviewDate}
+                onChange={(e) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    smeInitialReviewDate: e.target.value,
+                  });
+                }}
+              />
+              <label className="block text-sm font-bold mb-1">
+                <span className="text-text-warn mr-1">*</span>
+                FRT Initial Meeting Date
+              </label>
+              <input
+                name="frt-initial-meeting-date"
+                data-testid="datepicker-frt-intial-meeting-date"
+                type="date"
+                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+                aria-required={true}
+                placeholder="FRT Initial Meeting Date"
+                value={sdgPreparationPhaseFormData.frtInitialMeetingDate}
+                onChange={(e) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    frtInitialMeetingDate: e.target.value,
+                  });
+                }}
+              />
+              <label className="block text-sm font-bold mb-1">
+                <span className="text-text-warn mr-1">*</span>
+                BNPMT Initial Meeting Date
+              </label>
+              <input
+                name="bnpmt-intial-meeting-date"
+                data-testid="datepicker-bnpmt-intial-meeting-date"
+                type="date"
+                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+                aria-required={true}
+                placeholder="BNPMT Initial Meeting Date"
+                value={sdgPreparationPhaseFormData.bnpmtInitialMeetingDate}
+                onChange={(e) => {
+                  setSdgPreparationPhaseFormData({
+                    ...sdgPreparationPhaseFormData,
+                    bnpmtInitialMeetingDate: e.target.value,
+                  });
+                }}
+              />
+            </div>
+
+            <div className={STYLES.actions}>
+              <SecondaryButton onClick={handleSaveForLater} size="large" name="sdg-save-for-later">
+                Save For Later
+              </SecondaryButton>
+              <Button
+                onClick={handleFinish}
+                size="large"
+                name="sdg-finish"
+                disabled={!isFormComplete}
+              >
+                Finish
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
     </div>
