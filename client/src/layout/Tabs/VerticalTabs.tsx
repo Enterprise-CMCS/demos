@@ -1,5 +1,7 @@
+import React, { Children, ReactElement, useState } from "react";
+
 import { MenuCollapseLeftIcon, MenuCollapseRightIcon } from "components/icons";
-import React, { useState, ReactElement, Children } from "react";
+
 import { TabProps, TabsProps } from "./Tabs";
 
 export const VerticalTabs: React.FC<Omit<TabsProps, "styles">> = ({ children, defaultValue }) => {
@@ -17,7 +19,7 @@ export const VerticalTabs: React.FC<Omit<TabsProps, "styles">> = ({ children, de
 
   return (
     <div className="flex">
-      <div className={`flex flex-col bg-gray-primary-layout ${!isCollapsed ? "w-[180px]" : ""}`}>
+      <div className={`flex flex-col bg-gray-primary-layout ${!isCollapsed ? "w-[170px]" : ""}`}>
         <div className="flex justify-end border-r border-r-gray-dark">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -39,7 +41,7 @@ export const VerticalTabs: React.FC<Omit<TabsProps, "styles">> = ({ children, de
               key={value}
               data-testid={`button-${value}`}
               onClick={() => handleTabSelect(value)}
-              className={`flex items-center font-medium cursor-pointer text-left w-full ${
+              className={`flex items-center font-medium cursor-pointer text-left w-full h-[40px] ${
                 isSelected
                   ? "border-l-4 border-l-focus border-t border-t-gray-dark border-b border-b-gray-dark bg-white font-semibold"
                   : "text-gray-600 hover:text-gray-800 border-r border-r-gray-dark"
@@ -49,12 +51,12 @@ export const VerticalTabs: React.FC<Omit<TabsProps, "styles">> = ({ children, de
             >
               {icon && (
                 <span
-                  className={`${isSelected ? "text-focus" : "ml-[4px]"} flex items-center justify-center w-4 h-4`}
+                  className={`${isSelected ? "text-focus" : ""} flex items-center w-4 h-4 ml-1`}
                 >
                   {icon}
                 </span>
               )}
-              {!isCollapsed && <span>{label}</span>}
+              {!isCollapsed && <span className="-ml-2">{label}</span>}
             </button>
           );
         })}
