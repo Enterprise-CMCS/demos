@@ -100,7 +100,7 @@ export class ApiStack extends Stack {
           JWKS_URI: `${cognitoAuthority}/.well-known/jwks.json`,
         },
         externalModules: ["aws-sdk"],
-        nodeModules: ["jsonwebtoken", "jwks-rsa"],
+        nodeModules: ["jsonwebtoken", "jwks-rsa", "pino"],
         depsLockFilePath: path.join(rel, "package-lock.json"),
       },
       "authorizer"

@@ -7,9 +7,10 @@ import {
 } from "@aws-sdk/client-secrets-manager";
 import { getDatabaseSecret } from "../database/pool";
 import { getAccountId, getRegion, getStage } from "../util/env";
+import { log } from "../log";
 
 export async function storeSecret(env: string, role: string, password: string) {
-  console.log("storing system role password in secret");
+  log.debug("storing system role password in secret");
 
   const dbSecretDetails = await getDatabaseSecret();
 
@@ -29,7 +30,7 @@ export async function storeSecret(env: string, role: string, password: string) {
       Description: `DB info for ${role} on ${env}`,
     });
     const resp = await client.send(command);
-    console.log("secret stored:", resp.ARN);
+    log.info({arn: resp.ARN}, "secret stored");
 
     const rotateCmd = new RotateSecretCommand({
       SecretId: resp.ARN || resp.Name,
@@ -41,9 +42,9 @@ export async function storeSecret(env: string, role: string, password: string) {
     });
 
     const rotateResp = await client.send(rotateCmd);
-    console.log("secret rotation initialized:", rotateResp);
+    log.info({rotateResp},"secret rotation initialized:");
   } catch (err) {
-    console.error("error storing secret: ", err);
+    log.error({error: (err as Error).message}, "error storing secret");
   }
 }
 
@@ -57,9 +58,9 @@ export async function deleteSecrets(roleList: Role[]) {
     });
     try {
       const resp = await client.send(command);
-      console.log("secret deleted:", resp);
+      log.info({resp}, "secret deleted");
     } catch (err) {
-      console.error("error deleting secret:", err);
+      log.error({error: (err as Error).message}, "error deleting secret");
     }
   }
 }
