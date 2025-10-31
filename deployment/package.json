@@ -15,7 +15,7 @@
     "lint:fix": "eslint ./ --fix",
     "synth:dev": "cdk synth --context stage=dev --all",
     "test": "jest --cache --coverage",
-    "test:ci": "jest --coverage"
+    "test:ci": "jest --coverage --ci --no-color --verbose=false --silent --runInBand"
   },
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.886.0",
