@@ -12,14 +12,14 @@ const REFETCH_QUERIES = ["GetCompletenessDocuments", "GetDemonstrationDocuments"
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  applicationId?: string; // optional starter prop; can be wired later
+  applicationId: string;
   refetchQueries?: string[];
 };
 
 export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
-  applicationId = "demo-id-placeholder",
+  applicationId,
   refetchQueries = REFETCH_QUERIES,
 }) => {
   return (
