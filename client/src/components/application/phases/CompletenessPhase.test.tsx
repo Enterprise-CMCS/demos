@@ -38,7 +38,19 @@ vi.mock("components/toast", () => {
 
 vi.mock("components/input/select/Select", () => {
   return {
-    Select: ({ id, label, options, value, onSelect }: any) => (
+    Select: ({
+      id,
+      label,
+      options,
+      value,
+      onSelect,
+    }: {
+      id: string;
+      label: string;
+      options: { value: string; label: string }[];
+      value: string;
+      onSelect: (value: string) => void;
+    }) => (
       <label htmlFor={id}>
         {label}
         <select

@@ -37,8 +37,6 @@ const STYLES = {
 
 const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
 const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
-const FAIL_MESSAGE = "Dates and status not saved.";
-
 const SET_APPLICATION_DATE_MUTATION = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {
     setApplicationDate(input: $input) {
@@ -233,8 +231,8 @@ export const CompletenessPhase = ({
         });
         showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
       } catch (error) {
-        showError(FAIL_MESSAGE);
-        console.error("Error updating phase status:", error);
+        showError(error instanceof Error ? error.message : String(error));
+        console.error("Error saving Phase: ", error);
       }
     },
     [apolloClient, applicationId, showError, showSuccess]
@@ -271,8 +269,8 @@ export const CompletenessPhase = ({
         showSuccess(DATES_SUCCESS_MESSAGE);
       }
     } catch (error) {
-      showError(FAIL_MESSAGE);
-      console.error("Error executing mutation:", error);
+      showError(error instanceof Error ? error.message : String(error));
+      console.error("Error saving Phase: ", error);
     }
   }, [apolloClient, applicationId, getDateValues, showError, showSuccess]);
 
