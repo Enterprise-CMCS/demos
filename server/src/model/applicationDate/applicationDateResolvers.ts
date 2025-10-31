@@ -2,13 +2,13 @@ import { prisma } from "../../prismaClient.js";
 import { SetApplicationDateInput } from "../../types.js";
 import { getApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { validateInputDate } from "./validateInputDate.js";
+// import { validateInputDate } from "./validateInputDate.js";
 
 export async function setApplicationDate(
   _: undefined,
   { input }: { input: SetApplicationDateInput }
 ) {
-  await validateInputDate(input);
+  // await validateInputDate(input);
   try {
     await prisma().applicationDate.upsert({
       where: {

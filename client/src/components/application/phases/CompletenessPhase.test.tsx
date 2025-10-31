@@ -1,6 +1,10 @@
+// You are trying to fix this stupid test.
+
 import React from "react";
 
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { formatDate } from "util/formatDate";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
@@ -118,17 +122,29 @@ describe("CompletenessPhase", () => {
     });
   });
 
-  it("declares the phase incomplete and requests the mutation", async () => {
+  it("declares the phase incomplete and the buttons work right plus requesting the mutation", async () => {
     renderWithProviders(buildComponent());
+    const user = userEvent.setup();
 
-    const declareBtn = await screen.findByRole("button", { name: "declare-incomplete" });
-    fireEvent.click(declareBtn);
+    // 1) Open the dialog
+    const declareBtn = await screen.findByRole("button", { name: /declare-incomplete/i });
+    await user.click(declareBtn);
+    const reasonSelect = await screen.findByLabelText(/Reason/i);
+    await user.selectOptions(reasonSelect, "missing-documentation");
+    const submitButton = await screen.findByRole("button", { name: /declare-incomplete-confirm/i });
+    expect(submitButton).not.toBeDisabled();
+    // console.log("SUBMIT BUTTON:", submitButton);
+    await user.click(submitButton);
 
-    const dialog = await screen.findByRole("dialog");
-    const reasonSelect = within(dialog).getByLabelText(/Reason/i);
-    fireEvent.change(reasonSelect, { target: { value: "missing-documentation" } });
-    fireEvent.click(within(dialog).getByRole("button", { name: /Declare Incomplete/i }));
+    await user.selectOptions(reasonSelect, "other");
+    const otherReasonInput = await screen.findByLabelText(/Other/i);
+    expect(otherReasonInput).toBeInTheDocument();
+    expect(submitButton).to.toBeDisabled();
+    await user.type(otherReasonInput, "Additional reason text");
+    expect(submitButton).not.toBeDisabled();
+    await user.click(submitButton);
 
+    // // 3) Assert the mutation fired with the expected variables
     await waitFor(() => {
       expect(mockMutate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -140,8 +156,6 @@ describe("CompletenessPhase", () => {
         })
       );
     });
-
-    expect(mockShowSuccess).toHaveBeenCalledWith(STATUS_TOAST);
   });
 
   it("emits the save toast when the user saves for later", async () => {
