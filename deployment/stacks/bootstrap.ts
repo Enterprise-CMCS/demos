@@ -1,4 +1,4 @@
-import Datadog from "datadog-cdk-constructs-v2";
+import { DatadogLambda } from "datadog-cdk-constructs-v2";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Stack, StackProps, aws_iam, aws_apigateway, aws_ec2, aws_lambda, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
@@ -165,12 +165,12 @@ export function integrateDatadog(scope: any, props: any) {
 
   const ddApiKeyParam = ssm.StringParameter.fromStringParameterName(scope, "DatadogApiKeyRef", ddParamName);
 
-  const datadog = new Datadog(scope, "Datadog", {
+  const datadog = new DatadogLambda(scope, "Datadog", {
     site: "ddog-gov.com",
     apiKey: ddApiKeyParam.stringValue,
-    enableDatadogTracing: true,
-    enableDatadogLogs: true,
-    flushMetricsToLogs: true,
+    enableDatadogTracing: false,
+    enableDatadogLogs: false,
+    flushMetricsToLogs: false,
     env: stage,
     service: "demos",
   });
