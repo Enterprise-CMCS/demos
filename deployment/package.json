@@ -37,7 +37,7 @@
     "@aws-sdk/client-ec2": "^3.888.0",
     "aws-cdk": "^2.1029.1",
     "aws-cdk-lib": "^2.214.0",
-    "cdk-nag": "^2.37.47",
+    "cdk-nag": "^2.37.49",
     "chalk": "^5.6.2",
     "constructs": "^10.4.2",
     "pg": "^8.16.3"
