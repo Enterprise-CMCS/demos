@@ -6,7 +6,7 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   ApprovalPackagePhase,
   getApplicationCompletenessFromDemonstration,
-  ConceptPhase,
+  getConceptPhaseComponentFromDemonstration,
   FederalCommentPhase,
   OgcOmbPhase,
   PostApprovalPhase,
@@ -74,7 +74,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
 
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
-    Concept: ConceptPhase,
+    Concept: () => getConceptPhaseComponentFromDemonstration(demonstration),
     "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
     "Completeness": () => getApplicationCompletenessFromDemonstration(demonstration),
     "Federal Comment": () => {

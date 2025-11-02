@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 
 import { tw } from "tags/tw";
-import { ApplicationUploadSection } from "components/application/phases/sections";
 import { Button, SecondaryButton } from "components/button";
 import { ConceptPreSubmissionUploadDialog } from "components/dialog/document/ConceptPreSubmissionUploadDialog";
-import { ChevronRightIcon } from "components/icons";
+import { ChevronRightIcon, DeleteIcon, ExportIcon } from "components/icons";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
-import { DocumentTableDocument } from "components/table/tables/DocumentTable";
-import { isLocalDevelopment } from "config/env";
 
-import { gql, useMutation } from "@apollo/client";
+import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import { formatDate, formatDateAsIsoString } from "util/formatDate";
+import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
+import { getIsoDateString, getNowEst, getStartOfDateEST } from "../dates/applicationDates";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -25,50 +25,59 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
-const COMPLETE_CONCEPT_PHASE = gql`
-  mutation CompleteConceptPhase($input: CompleteConceptPhaseInput!) {
-    completeConceptPhase(input: $input) {
-      id
-      success
-    }
-  }
-`;
-
-type Props = {
-  demonstrationId?: string;
-  documents?: DocumentTableDocument[];
-  onDocumentsRefetch?: () => void;
-};
-
 const DEMONSTRATION_TYPE_OPTIONS: Option[] = [
   { label: "Section 1115", value: "1115" },
   { label: "Section 1915(b)", value: "1915b" },
   { label: "Section 1915(c)", value: "1915c" },
 ];
 
-export const ConceptPhase: React.FC<Props> = ({
+export const getConceptPhaseComponentFromDemonstration = (
+  demonstration: ApplicationWorkflowDemonstration
+) => {
+  const preSubmissionDocuments = demonstration.documents.filter(
+    (document) => document.documentType === "Pre-Submission"
+  );
+
+  return <ConceptPhase
+    demonstrationId={demonstration.id}
+    initialPreSubmissionDocuments={preSubmissionDocuments}
+  />;
+};
+
+export interface ConceptProps {
+  demonstrationId: string;
+  initialPreSubmissionDocuments: ApplicationWorkflowDocument[];
+};
+
+export const ConceptPhase = ({
   demonstrationId = "default-demo-id",
-  documents = [],
-  onDocumentsRefetch,
-}) => {
+  initialPreSubmissionDocuments,
+}: ConceptProps) => {
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [dateSubmitted, setDateSubmitted] = useState<string>("");
   const [demoType, setDemoType] = useState<string>("");
 
-  const [mockDocuments, setMockDocuments] = useState<DocumentTableDocument[]>([]);
+  const [preSubmissionDocuments] = useState<ApplicationWorkflowDocument[]>(
+    initialPreSubmissionDocuments
+  );
 
-  const testDocuments = documents.length > 0 ? documents : mockDocuments;
-
-  const [completePhase, { loading: finishing }] = useMutation(COMPLETE_CONCEPT_PHASE, {
-    onCompleted: () => onDocumentsRefetch?.(),
+  const { setPhaseStatus: completeConcept } = useSetPhaseStatus({
+    applicationId: demonstrationId,
+    phaseName: "Concept",
+    phaseStatus: "Completed",
   });
 
-  const preSubmissionDocuments = testDocuments.filter(
-    (doc) =>
-      doc.documentType === "Pre-Submission" ||
-      doc.name?.toLowerCase().includes("pre-submission") ||
-      doc.description?.toLowerCase().includes("pre-submission")
-  );
+  const { setPhaseStatus: skipConcept } = useSetPhaseStatus({
+    applicationId: demonstrationId,
+    phaseName: "Concept",
+    phaseStatus: "Skipped",
+  });
+
+  const handleDocumentUploadSucceeded = async () => {
+    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
+    setDateSubmitted(formatDateAsIsoString(todayDate));
+  };
+
 
   React.useEffect(() => {
     if (preSubmissionDocuments.length > 0 && !dateSubmitted) {
@@ -88,89 +97,59 @@ export const ConceptPhase: React.FC<Props> = ({
   const hasDatePopulated = dateSubmitted.length > 0;
   const hasAnyActivity = hasPreSubmissionDocuments || hasDatePopulated;
 
-  const isFinishEnabled = hasPreSubmissionDocuments && hasDatePopulated && !finishing;
+  const isFinishEnabled = hasPreSubmissionDocuments && hasDatePopulated;
   const isSkipEnabled = !hasAnyActivity;
 
   const onFinish = async () => {
-    if (!hasPreSubmissionDocuments) {
-      alert("At least one Pre-Submission document is required.");
-      return;
-    }
-    if (!hasDatePopulated) {
-      alert("Pre-Submission Document Submitted Date is required.");
-      return;
-    }
-
-    await completePhase({
-      variables: {
-        input: {
-          demonstrationId,
-          dateSubmitted,
-          demonstrationTypeRequested: demoType,
-        },
-      },
-    });
+    await Promise.all([completeConcept()]);
   };
 
-  const onSkip = () => {
-    // TODO: Implement skip logic - navigate to Application Intake phase
-    // This should mark the phase as "Skipped" and navigate to the next phase
-    console.log("Skipping Concept Phase - navigate to Application Intake");
+  const onSkip = async () => {
+    await Promise.all([skipConcept()]);
   };
 
-  // TEMP: Mock document helpers for testing - remove when upload is implemented
-  const addMockDocument = () => {
-    const newDoc: DocumentTableDocument = {
-      id: `mock-${Date.now()}`,
-      name: `Pre-Submission Document ${mockDocuments.length + 1}`,
-      description: "Mock pre-submission document for testing",
-      documentType: "Pre-Submission",
-      createdAt: new Date(),
-      owner: { person: { fullName: "Test User" } },
-    };
-    setMockDocuments((prev) => [...prev, newDoc]);
-  };
+  const UploadSection = () => (
+    <div aria-labelledby="state-application-upload-title">
+      <h4 id="state-application-upload-title" className={STYLES.title}>
+        STEP 1 - UPLOAD
+      </h4>
+      <p className={STYLES.helper}>Upload the Pre-Submission Document describing your demonstration.</p>
 
-  const removeMockDocument = (docId: string) => {
-    setMockDocuments((prev) => prev.filter((doc) => doc.id !== docId));
-  };
+      <SecondaryButton
+        onClick={() => setUploadOpen(true)}
+        size="small"
+        name="button-open-upload-modal"
+      >
+        Upload
+        <ExportIcon />
+      </SecondaryButton>
 
-  const clearAllMockDocuments = () => {
-    setMockDocuments([]);
-  };
-
-  // Testing Panel Component (Development Only)
-  const TestingPanel = () => (
-    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-      <h4 className="text-sm font-bold text-yellow-800 mb-2">Testing Panel (Development Only)</h4>
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={addMockDocument}
-          className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-        >
-          Add Mock Pre-Submission Doc
-        </button>
-        <button
-          onClick={clearAllMockDocuments}
-          className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-        >
-          Clear All Mock Docs
-        </button>
-        <span className="text-xs text-gray-600 self-center">
-          Mock docs: {mockDocuments.length} | Pre-Submission docs: {preSubmissionDocuments.length}
-        </span>
-      </div>
-      <div className="mt-2 text-xs text-yellow-700">
-        Use these buttons to test the validation logic without actual file upload.
-      </div>
-      <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
-        <strong>Current State:</strong>
-        <br />• Has Pre-Submission Docs: {hasPreSubmissionDocuments ? "✅ Yes" : "❌ No"}
-        <br />• Date Populated: {hasDatePopulated ? "✅ Yes" : "❌ No"}{" "}
-        {dateSubmitted && `(${dateSubmitted})`}
-        <br />• Any Activity: {hasAnyActivity ? "✅ Yes" : "❌ No"}
-        <br />• Finish Enabled: {isFinishEnabled ? "✅ Yes" : "❌ No"}
-        <br />• Skip Enabled: {isSkipEnabled ? "✅ Yes" : "❌ No"}
+      <div className={STYLES.list}>
+        {preSubmissionDocuments.length == 0 && (
+          <div className="text-sm text-text-placeholder">No documents yet.</div>
+        )}
+        {preSubmissionDocuments.map((doc: ApplicationWorkflowDocument) => (
+          <div key={doc.id} className={STYLES.fileRow}>
+            <div>
+              <div className="font-medium">{doc.name}</div>
+              <div className={STYLES.fileMeta}>
+                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
+                {doc.description ? ` • ${doc.description}` : ""}
+              </div>
+            </div>
+            <button
+              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
+              onClick={() => {
+                // TODO: use mutator for deleting document
+                console.log("Delete document:", doc.id);
+              }}
+              aria-label={`Delete ${doc.name}`}
+              title={`Delete ${doc.name}`}
+            >
+              <DeleteIcon className="w-2 h-2" />
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -187,11 +166,12 @@ export const ConceptPhase: React.FC<Props> = ({
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-bold mb-1">
+          <label htmlFor="preSubmissionDate" className="block text-sm font-bold mb-1">
             {hasPreSubmissionDocuments && <span className="text-text-warn mr-1">*</span>}
             Pre-Submission Document Submitted Date
           </label>
           <input
+            id="preSubmissionDate"
             type="date"
             value={dateSubmitted}
             onChange={(e) => setDateSubmitted(e.target.value)}
@@ -235,7 +215,7 @@ export const ConceptPhase: React.FC<Props> = ({
           disabled={!isFinishEnabled}
           size="small"
         >
-          {finishing ? "Saving…" : "Finish"}
+          Finish
         </Button>
       </div>
     </div>
@@ -243,8 +223,6 @@ export const ConceptPhase: React.FC<Props> = ({
 
   return (
     <div>
-      {isLocalDevelopment() && <TestingPanel />}
-
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">CONCEPT</h3>
       <p className="text-sm text-text-placeholder mb-4">
         Pre-Submission Consultation and Technical Assistance – Time spent with the state prior to
@@ -254,19 +232,7 @@ export const ConceptPhase: React.FC<Props> = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <ApplicationUploadSection
-            title="STEP 1 - UPLOAD"
-            helperText="Upload the Pre-Submission Document describing your demonstration."
-            documents={preSubmissionDocuments}
-            onUploadClick={() => setUploadOpen(true)}
-            onDeleteDocument={(id) => {
-              if (id.startsWith("mock-")) {
-                removeMockDocument(id);
-              } else {
-                console.log("Delete real document:", id);
-              }
-            }}
-          />
+          <UploadSection />
           <VerifyCompleteSection />
         </div>
       </section>
@@ -275,6 +241,7 @@ export const ConceptPhase: React.FC<Props> = ({
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
         applicationId={demonstrationId}
+        onDocumentUploadSucceeded={handleDocumentUploadSucceeded}
       />
     </div>
   );
