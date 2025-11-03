@@ -23,6 +23,8 @@ interface NavLink {
   icon: SVGIconElement;
 }
 
+const SIDE_NAV_STYLES = "h-full bg-white transition-all duration-300 flex flex-col z-10";
+
 const navLinks: NavLink[] = [
   { label: "Demonstrations", href: "/demonstrations", icon: <CompareIcon /> },
   { label: "Actions", href: "#1", icon: <ActionsIcon /> },
@@ -48,14 +50,31 @@ const NavLinks = ({ isCollapsed, navLinks }: { isCollapsed: boolean; navLinks: N
     return <>{isActive && <span className={styles} />}</>;
   };
 
-  const LinkIcon = ({ isActive, icon }: { isActive: boolean; icon: SVGIconElement }) => {
+  const LinkIcon = ({
+    isActive,
+    icon,
+    size = 16,
+  }: {
+    isActive: boolean;
+    icon: SVGIconElement;
+    size?: number;
+  }) => {
     const colorStyles = isActive ? "text-text-active" : "text-text-font";
-    return <span className={`inline-block ${colorStyles}`}>{icon}</span>;
+    const sizeStyles = `w-[${size}px] h-[${size}px] my-auto`;
+    return (
+      <span className={`block ${colorStyles} ${sizeStyles}`}>
+        {React.cloneElement(icon, { width: size, height: size })}
+      </span>
+    );
   };
 
   const LinkLabel = ({ isActive, labelText }: { isActive: boolean; labelText: string }) => {
     const fontStyles = isActive ? "font-semibold text-black" : "text-black";
-    return <>{!isCollapsed && <span className={`inline-block${fontStyles}`}>{labelText}</span>}</>;
+    return (
+      <>
+        {!isCollapsed && <span className={`block leading-tight ${fontStyles}`}>{labelText}</span>}
+      </>
+    );
   };
 
   const SidenavLink = ({
@@ -72,7 +91,7 @@ const NavLinks = ({ isCollapsed, navLinks }: { isCollapsed: boolean; navLinks: N
     const getCollapsedStyles = () => (isCollapsed ? "justify-center" : "justify-start px-1 gap-2");
 
     const colorStyles = "text-text-font hover:bg-surface-secondary";
-    const flexStyles = "px-[16px] relative flex gap-[8px] items-center h-10";
+    const flexStyles = "flex items-center justify-center px-[16px] relative  gap-[8px]  h-10";
     const animationStyles = "transition-all duration-300";
     const baseStyles = `${colorStyles} ${flexStyles} ${animationStyles}`;
 
@@ -149,8 +168,6 @@ const CollapseToggleButton = ({
 export const SideNav = () => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
-  const sideNavStyles = "h-full bg-white transition-all duration-300 flex flex-col z-10";
-
   const getNavWidthStyles = () => {
     return isCollapsed ? "w-[48px]" : "w-[180px]";
   };
@@ -165,7 +182,7 @@ export const SideNav = () => {
   };
 
   return (
-    <nav className={`${sideNavStyles} ${getNavWidthStyles()}`}>
+    <nav className={`${SIDE_NAV_STYLES} ${getNavWidthStyles()}`}>
       <CollapseToggleButton isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <NavLinks isCollapsed={isCollapsed} navLinks={navLinks} />
       <DebugLinks />
