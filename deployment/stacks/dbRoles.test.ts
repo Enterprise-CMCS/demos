@@ -3,6 +3,7 @@ import { DBRoleStack } from "./dbRoles";
 import { Template } from "aws-cdk-lib/assertions";
 import { DeploymentConfigProperties } from "../config";
 import { dev } from "../databaseRoles";
+import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
 
 const mockCommonProps: DeploymentConfigProperties = {
   project: "demos",
@@ -15,9 +16,15 @@ const mockCommonProps: DeploymentConfigProperties = {
   cloudfrontHost: "unittest.demos.com",
 };
 
+const commongAppArgs = {
+      context: {
+        [BUNDLING_STACKS]: []
+      }
+    }
+
 describe("DB Roles Stack", () => {
   test("should create proper resources when non-ephemeral", () => {
-    const app = new App();
+    const app = new App(commongAppArgs);
     const mockCoreStack = new Stack(app, "mockCore");
 
     const mockPrivateSubnets = ["subnet-private1", "subnet-private2"];

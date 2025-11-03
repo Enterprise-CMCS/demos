@@ -1,3 +1,4 @@
+import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
 import { main } from "./app";
 
 import { getSecret } from "./util/getSecret";
@@ -54,6 +55,7 @@ describe("app", () => {
 
     const app = await main({
       stage: mockStageName,
+      [BUNDLING_STACKS]: []
     });
     const assembly = app!.synth();
 
@@ -82,6 +84,7 @@ describe("app", () => {
     const app = await main({
       stage: mockStageName,
       db: "include",
+      [BUNDLING_STACKS]: []
     });
     const assembly = app!.synth();
 
@@ -99,6 +102,7 @@ describe("app", () => {
 
     const app = await main({
       stage: "bootstrap",
+      [BUNDLING_STACKS]: []
     });
     const assembly = app!.synth();
 
@@ -114,6 +118,7 @@ describe("app", () => {
 
     const app = await main({
       stage: mockStageName,
+      [BUNDLING_STACKS]: []
     });
     const assembly = app!.synth();
 
