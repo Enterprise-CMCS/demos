@@ -323,9 +323,8 @@ export const CompletenessPhase = ({
 
   const VerifyCompleteSection = () => (
     <div aria-labelledby="completeness-verify-title">
-      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Completeeee</div>
       <h4 id="completeness-verify-title" className={STYLES.title}>
-        VERIFY/COMPLETE
+        Step 2 - VERIFY/COMPLETE
       </h4>
       <p className={STYLES.helper}>
       Verify that the document(s) are uploaded/accurate and that all required fields are filled.
@@ -362,6 +361,7 @@ export const CompletenessPhase = ({
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="federal-comment-period-start"
             data-testid="federal-comment-period-start"
+            readOnly
           />
         </div>
 
@@ -377,6 +377,7 @@ export const CompletenessPhase = ({
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="federal-comment-period-end"
             data-testid="federal-comment-period-end"
+            readOnly
           />
           {federalStartDate && federalEndDate && !datesAreValid && (
             <div className="text-xs text-text-warn mt-1">End date must be after start date</div>
