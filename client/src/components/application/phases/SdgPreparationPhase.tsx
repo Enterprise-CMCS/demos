@@ -210,7 +210,6 @@ export const SdgPreparationPhase = ({
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
           <div aria-labelledby="sdg-workplan-title">
-            <div>test ${sdgPreparationPhaseFormData.expectedApprovalDate}</div>
             <div className={STYLES.header}>
               <h4 id="sdg-workplan-title" className={STYLES.title}>
                 SDG WORKPLAN
