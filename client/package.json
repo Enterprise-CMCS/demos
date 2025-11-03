@@ -67,6 +67,7 @@
     "lint:fix": "eslint src --fix",
     "preview": "vite preview",
     "test": "vitest --mode test",
+    "test:ai": "vitest --mode test --run --reporter=dot --watch=false",
     "test:once": "vitest --mode test --run --reporter=dot",
     "test:serial": "vitest --mode test --run --no-file-parallelism",
     "test:debug": "vitest --mode test --run --inspect-brk --no-file-parallelism",
