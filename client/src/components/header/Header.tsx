@@ -1,7 +1,9 @@
 import React from "react";
+import { useLocation, useParams } from "react-router-dom";
 import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
-import { useHeaderConfig } from "./HeaderConfigContext";
+import { DefaultHeaderLower } from "./DefaultHeaderLower";
+import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 
 const Logo: React.FC = () => {
   return (
@@ -24,15 +26,31 @@ const HeaderUpper: React.FC = () => {
   );
 };
 
-export const Header: React.FC = () => {
-  const { effectiveContent } = useHeaderConfig();
+const HeaderLower: React.FC = () => {
+  // Get the current path and params
+  const location = useLocation();
+  const params = useParams<{ id?: string }>();
+  const path = location.pathname;
 
+  // Match /demonstrations/:id
+  if (path.match(/^\/demonstrations\/[^/]+$/)) {
+    const demonstrationId = params.id;
+    if (demonstrationId) {
+      return <DemonstrationDetailHeader demonstrationId={demonstrationId} />;
+    }
+  }
+
+  // Default header for all other routes
+  return <DefaultHeaderLower />;
+};
+
+export const Header: React.FC = () => {
   const headerStyles = "relative top-0 left-0 w-full z-11";
 
   return (
     <header className={headerStyles}>
       <HeaderUpper />
-      {effectiveContent}
+      <HeaderLower />
     </header>
   );
 };

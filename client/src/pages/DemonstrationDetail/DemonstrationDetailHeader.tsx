@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 
 import { CircleButton, SecondaryButton } from "components/button";
-import { AmendmentDialog, ExtensionDialog } from "components/dialog";
+import { AmendmentDialog, EditDemonstrationDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { safeDateFormat } from "util/formatDate";
@@ -36,18 +36,16 @@ export type DemonstrationHeaderDetails = Pick<
 
 interface DemonstrationDetailHeaderProps {
   demonstrationId: string;
-  onEdit: () => void;
-  onDelete: () => void;
 }
 
 export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps> = ({
   demonstrationId,
-  onEdit,
-  onDelete,
 }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"amendment" | "extension" | null>(null);
+  const [modalType, setModalType] = useState<"amendment" | "extension" | "edit" | "delete" | null>(
+    null
+  );
   const { data, loading, error } = useQuery<{
     demonstration: DemonstrationHeaderDetails;
   }>(DEMONSTRATION_HEADER_DETAILS_QUERY, {
@@ -57,14 +55,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   const handleToggleButtons = useCallback(() => {
     setShowButtons((prev) => !prev);
   }, []);
-
-  const handleEdit = useCallback(() => {
-    onEdit();
-  }, [onEdit]);
-
-  const handleDelete = useCallback(() => {
-    onDelete();
-  }, [onDelete]);
 
   const demonstration = data?.demonstration;
   if (loading) {
@@ -167,11 +157,15 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             <CircleButton
               name="Delete demonstration"
               data-testid="delete-button"
-              onClick={handleDelete}
+              onClick={() => setModalType("delete")}
             >
               <DeleteIcon width="24" height="24" />
             </CircleButton>
-            <CircleButton name="Edit demonstration" data-testid="edit-button" onClick={handleEdit}>
+            <CircleButton
+              name="Edit demonstration"
+              data-testid="edit-button"
+              onClick={() => setModalType("edit")}
+            >
               <EditIcon width="24" height="24" />
             </CircleButton>
             <CircleButton
@@ -228,6 +222,18 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           onClose={() => setModalType(null)}
           demonstrationId={demonstration.id}
         />
+      )}
+      {modalType === "edit" && (
+        <EditDemonstrationDialog
+          isOpen={true}
+          onClose={() => setModalType(null)}
+          demonstrationId={demonstration.id}
+        />
+      )}
+      {modalType === "delete" && (
+        <div>
+          <p>Delete functionality not yet implemented</p>
+        </div>
       )}
     </div>
   );
