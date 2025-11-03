@@ -20,8 +20,8 @@ disabled:bg-surface-disabled
 disabled:text-text-placeholder
 disabled:cursor-not-allowed
 
-px-[8px]
-py-[16px]
+py-[8px]
+px-[16px]
 `;
 
 const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {

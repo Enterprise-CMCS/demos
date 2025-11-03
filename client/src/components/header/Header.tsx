@@ -5,8 +5,10 @@ import { QuickLinks } from "./QuickLinks";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 
-const HEADER_STYLES = "relative top-0 left-0 w-full z-11";
-const HEADER_LOWER_STYLES = "w-full";
+const HEADER_STYLES = "w-full";
+const HEADER_UPPER_STYLES = "w-full flex justify-between p-[16px] h-[72px]";
+const HEADER_LOWER_STYLES =
+  "w-full bg-brand text-white px-[24px] py-[16px] flex items-center justify-between";
 
 const Logo: React.FC = () => {
   return (
@@ -17,9 +19,8 @@ const Logo: React.FC = () => {
 };
 
 const HeaderUpper: React.FC = () => {
-  const headerStyles = "w-full flex items-stretch justify-between p-[16px] h-[72px]";
   return (
-    <div className={headerStyles}>
+    <div className={HEADER_UPPER_STYLES}>
       <Logo />
       <div className="flex items-center gap-4">
         <QuickLinks />
