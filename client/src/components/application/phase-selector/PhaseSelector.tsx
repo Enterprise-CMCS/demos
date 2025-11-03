@@ -7,7 +7,7 @@ import {
   ApprovalPackagePhase,
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  FederalCommentPhase,
+  getFederalCommentPhaseFromDemonstration,
   OgcOmbPhase,
   PostApprovalPhase,
   SdgPreparationPhase,
@@ -77,19 +77,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
     Concept: () => getConceptPhaseComponentFromDemonstration(demonstration),
     "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
     "Completeness": () => getApplicationCompletenessFromDemonstration(demonstration),
-    "Federal Comment": () => {
-      const phaseStartDate = new Date(2025, 8, 24);
-      const phaseEndDate = new Date(phaseStartDate);
-      phaseEndDate.setDate(phaseEndDate.getDate() + 30);
-
-      return (
-        <FederalCommentPhase
-          demonstrationId={demonstration.id}
-          phaseStartDate={phaseStartDate}
-          phaseEndDate={phaseEndDate}
-        />
-      );
-    },
+    "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
     "SDG Preparation": SdgPreparationPhase,
     "OGC & OMB Review": OgcOmbPhase,
     "Approval Package": ApprovalPackagePhase,
