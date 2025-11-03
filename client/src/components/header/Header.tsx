@@ -5,6 +5,9 @@ import { QuickLinks } from "./QuickLinks";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 
+const HEADER_STYLES = "relative top-0 left-0 w-full z-11";
+const HEADER_LOWER_STYLES = "w-full";
+
 const Logo: React.FC = () => {
   return (
     <a href="/" className="h-[40px]">
@@ -45,12 +48,12 @@ const HeaderLower: React.FC = () => {
 };
 
 export const Header: React.FC = () => {
-  const headerStyles = "relative top-0 left-0 w-full z-11";
-
   return (
-    <header className={headerStyles}>
+    <header className={HEADER_STYLES}>
       <HeaderUpper />
-      <HeaderLower />
+      <div className={HEADER_LOWER_STYLES}>
+        <HeaderLower />
+      </div>
     </header>
   );
 };

@@ -1,16 +1,13 @@
 import React from "react";
 
-import { EditDemonstrationDialog } from "components/dialog";
 import { AmendmentDialog } from "components/dialog/AmendmentDialog";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
-type DemonstrationActionModal = "edit" | "delete" | null;
 
 interface DemonstrationDetailModalsProps {
   entityCreationModal: EntityCreationModal;
-  demonstrationActionModal: DemonstrationActionModal;
   demonstrationId: string;
   onCloseEntityModal: () => void;
   onCloseDemonstrationDialog: () => void;
@@ -18,10 +15,8 @@ interface DemonstrationDetailModalsProps {
 
 export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps> = ({
   entityCreationModal,
-  demonstrationActionModal,
   demonstrationId,
   onCloseEntityModal,
-  onCloseDemonstrationDialog,
 }) => (
   <>
     {/* Entity Creation Modals */}
@@ -39,22 +34,6 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
         onClose={onCloseEntityModal}
         applicationId={demonstrationId}
       />
-    )}
-
-    {/* Demonstration Action Modals */}
-    {demonstrationActionModal === "edit" && (
-      <EditDemonstrationDialog
-        isOpen={true}
-        onClose={onCloseDemonstrationDialog}
-        demonstrationId={demonstrationId}
-      />
-    )}
-
-    {/* TODO: Add delete confirmation modal when available */}
-    {demonstrationActionModal === "delete" && (
-      <div>
-        <p>Delete functionality not yet implemented</p>
-      </div>
     )}
   </>
 );

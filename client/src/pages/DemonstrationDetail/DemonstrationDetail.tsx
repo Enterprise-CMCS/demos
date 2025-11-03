@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useState } from "react";
 
 import {
   Amendment,
@@ -8,8 +8,6 @@ import {
   Extension,
   Person,
 } from "demos-server";
-import { usePageHeader } from "hooks/usePageHeader";
-import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
 
 import { gql, useQuery } from "@apollo/client";
@@ -76,7 +74,6 @@ export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "current
 };
 
 type EntityCreationModal = "amendment" | "extension" | "document" | null;
-type DemonstrationActionModal = "edit" | "delete" | null;
 
 const getQueryParamValue = (
   searchParams: URLSearchParams,
@@ -94,15 +91,6 @@ export const DemonstrationDetail: React.FC = () => {
   const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
   const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
-  const [demonstrationActionModal, setDemonstrationActionModal] =
-    useState<DemonstrationActionModal>(null);
-
-  const handleEdit = useCallback(() => {
-    setDemonstrationActionModal("edit");
-  }, []);
-  const handleDelete = useCallback(() => {
-    setDemonstrationActionModal("delete");
-  }, []);
 
   const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
     DEMONSTRATION_DETAIL_QUERY,
@@ -112,19 +100,6 @@ export const DemonstrationDetail: React.FC = () => {
   );
 
   const demonstration = data?.demonstration;
-
-  const headerContent = useMemo(
-    () =>
-      demonstration ? (
-        <DemonstrationDetailHeader
-          demonstrationId={demonstration.id}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      ) : null,
-    [demonstration, handleEdit, handleDelete]
-  );
-  usePageHeader(headerContent);
 
   if (loading) {
     return <div>Loading demonstration...</div>;
@@ -162,13 +137,12 @@ export const DemonstrationDetail: React.FC = () => {
             </Tab>
           </Tabs>
 
-          {(entityCreationModal || demonstrationActionModal) && (
+          {entityCreationModal && (
             <DemonstrationDetailModals
               entityCreationModal={entityCreationModal}
-              demonstrationActionModal={demonstrationActionModal}
               demonstrationId={demonstration.id}
               onCloseEntityModal={() => setEntityCreationModal(null)}
-              onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
+              onCloseDemonstrationDialog={() => {}}
             />
           )}
         </>
