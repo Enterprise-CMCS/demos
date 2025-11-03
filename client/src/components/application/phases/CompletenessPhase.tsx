@@ -5,7 +5,7 @@ import { ExportIcon, DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate, parseInputDate, formatDateForServer } from "util/formatDate";
 import { Notice, NoticeVariant } from "components/notice";
-import { differenceInCalendarDays } from "date-fns";
+import { addDays, differenceInCalendarDays } from "date-fns";
 import { useApolloClient, gql } from "@apollo/client";
 import { CompletenessDocumentUploadDialog } from "./CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
@@ -190,12 +190,62 @@ export const CompletenessPhase = ({
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
+  const federalCommentPeriodInDays = 30;
   const [federalStartDate, setFederalStartDate] = useState<string>(
     fedCommentStartDate ?? ""
   );
   const [federalEndDate, setFederalEndDate] = useState<string>(
     fedCommentEndDate ?? ""
   );
+
+  // Set's federal Comment period
+  const updateFederalCommentPeriodDates = useCallback(
+    (stateDate: string) => {
+      if (!stateDate) {
+        setFederalStartDate("");
+        setFederalEndDate("");
+        return;
+      }
+
+      try {
+        const parsedStateDate = parseInputDate(stateDate);
+        console.log("Parsed state date:", parsedStateDate);
+        if (Number.isNaN(parsedStateDate.getTime())) {
+          setFederalStartDate("");
+          setFederalEndDate("");
+          return;
+        }
+        const computedStart = formatDateForServer(parsedStateDate);
+        const computedEnd = formatDateForServer(
+          addDays(parsedStateDate, federalCommentPeriodInDays)
+        );
+        setFederalStartDate(computedStart);
+        setFederalEndDate(computedEnd);
+      } catch (error) {
+        console.error("Invalid state deemed complete date", error);
+        setFederalStartDate("");
+        setFederalEndDate("");
+      }
+    },
+    [federalCommentPeriodInDays]
+  );
+
+  useEffect(() => {
+    if (!stateDeemedComplete) {
+      setFederalStartDate("");
+      setFederalEndDate("");
+      return;
+    }
+
+    if (!federalStartDate || !federalEndDate) {
+      updateFederalCommentPeriodDates(stateDeemedComplete);
+    }
+  }, [
+    federalEndDate,
+    federalStartDate,
+    stateDeemedComplete,
+    updateFederalCommentPeriodDates,
+  ]);
 
   const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
     applicationCompletenessDocument
@@ -342,7 +392,11 @@ export const CompletenessPhase = ({
           <input
             type="date"
             value={stateDeemedComplete}
-            onChange={(e) => setStateDeemedComplete(e.target.value)}
+            onChange={(event) => {
+              const nextStateDate = event.target.value;
+              setStateDeemedComplete(nextStateDate);
+              updateFederalCommentPeriodDates(nextStateDate);
+            }}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="state-application-deemed-complete"
             data-testid="state-application-deemed-complete"
@@ -373,7 +427,7 @@ export const CompletenessPhase = ({
           <input
             type="date"
             value={federalEndDate}
-            onChange={(e) => setFederalEndDate(e.target.value)}
+            onChange={(event) => setFederalEndDate(event.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="federal-comment-period-end"
             data-testid="federal-comment-period-end"
