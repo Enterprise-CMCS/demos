@@ -10,7 +10,6 @@ interface DemonstrationDetailModalsProps {
   entityCreationModal: EntityCreationModal;
   demonstrationId: string;
   onCloseEntityModal: () => void;
-  onCloseDemonstrationDialog: () => void;
 }
 
 export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps> = ({
@@ -19,7 +18,6 @@ export const DemonstrationDetailModals: React.FC<DemonstrationDetailModalsProps>
   onCloseEntityModal,
 }) => (
   <>
-    {/* Entity Creation Modals */}
     {entityCreationModal === "amendment" && (
       <AmendmentDialog mode="add" demonstrationId={demonstrationId} onClose={onCloseEntityModal} />
     )}

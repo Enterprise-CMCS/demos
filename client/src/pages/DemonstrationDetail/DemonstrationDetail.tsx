@@ -142,7 +142,6 @@ export const DemonstrationDetail: React.FC = () => {
               entityCreationModal={entityCreationModal}
               demonstrationId={demonstration.id}
               onCloseEntityModal={() => setEntityCreationModal(null)}
-              onCloseDemonstrationDialog={() => {}}
             />
           )}
         </>

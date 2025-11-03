@@ -230,11 +230,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           demonstrationId={demonstration.id}
         />
       )}
-      {modalType === "delete" && (
-        <div>
-          <p>Delete functionality not yet implemented</p>
-        </div>
-      )}
     </div>
   );
 };
