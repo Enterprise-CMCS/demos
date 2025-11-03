@@ -2,9 +2,9 @@ import React from "react";
 
 import { UserProvider } from "components/user/UserContext";
 import { userMocks } from "mock-data/userMocks";
+import { TestProvider } from "test-utils/TestProvider";
 import { vi } from "vitest";
 
-import { MockedProvider } from "@apollo/client/testing";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
@@ -14,9 +14,9 @@ import { QuickLinks } from "./QuickLinks";
 
 function renderWithProviders(ui: React.ReactNode) {
   return render(
-    <MockedProvider mocks={userMocks} addTypename={false}>
+    <TestProvider mocks={userMocks} addTypename={false}>
       <UserProvider>{ui}</UserProvider>
-    </MockedProvider>
+    </TestProvider>
   );
 }
 
