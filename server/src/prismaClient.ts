@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import prismaRandom from "prisma-extension-random";
-import { log } from "./logger.js";
+import { log } from "./log";
 
 // really annoying typescript hackiness to get the types to play well with the $extends method
 // the prisma random extension will be eventually removed.
@@ -15,16 +15,16 @@ const createExtendedClient = () => {
 
   baseClient.$on("query", (event: Prisma.QueryEvent) => {
     if (event.duration > 500) {
-      log.warn("prisma.slow_query", { durationMs: event.duration, target: event.target });
+      log.warn({ durationMs: event.duration, target: event.target }, "prisma.slow_query");
     }
   });
 
   baseClient.$on("warn", (event: Prisma.LogEvent) => {
-    log.warn("prisma.warn", { message: event.message });
+    log.warn({ message: event.message }, "prisma.warn");
   });
 
   baseClient.$on("error", (event: Prisma.LogEvent) => {
-    log.error("prisma.error", { message: event.message });
+    log.error({ message: event.message }, "prisma.error");
   });
 
   const client = baseClient.$extends(prismaRandom());
@@ -36,8 +36,7 @@ type PrismaExtendedClient = ReturnType<typeof createExtendedClient>;
 let prismaClient: PrismaExtendedClient | undefined;
 
 export const prisma = () => {
-  if (!prismaClient) {
-    prismaClient = createExtendedClient();
-  }
+  prismaClient ??= createExtendedClient();
+
   return prismaClient;
 };

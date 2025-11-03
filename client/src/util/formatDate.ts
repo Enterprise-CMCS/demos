@@ -1,3 +1,4 @@
+import { getEndOfDayEST } from "components/application/dates/applicationDates";
 /* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
 import { TZDate } from "@date-fns/tz";
 import { format, parseISO } from "date-fns";
@@ -14,6 +15,14 @@ export function formatDateForServer(date: Date | string): string {
 
 export function parseInputDate(value: string): Date {
   return parseISO(value);
+}
+
+export function parseInputDateAsEndOfDayEST(value: string): Date {
+  const date = parseISO(value);
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  return getEndOfDayEST(year, month, day);
 }
 
 export function formatDateAsIsoString(date: Date): string {

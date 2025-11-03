@@ -11,7 +11,7 @@ def call(Map params) {
         string(credentialsId: 'demos-snyk-org-id', variable: 'SNYK_CFG_ORG')
       ]) {
         sh """
-          snyk test --severity-threshold=${severityThreshold} --strict-out-of-sync=true
+          snyk test --severity-threshold=${severityThreshold} --strict-out-of-sync=true --dev
         """
       }
     }
