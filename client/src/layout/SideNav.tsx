@@ -49,27 +49,13 @@ const NavLinks = ({ isCollapsed, navLinks }: { isCollapsed: boolean; navLinks: N
   };
 
   const LinkIcon = ({ isActive, icon }: { isActive: boolean; icon: SVGIconElement }) => {
-    return (
-      <span
-        className={`shrink-0 [&>svg]:w-[14px] [&>svg]:h-[14px] ${
-          isActive ? "text-text-active" : "text-text-font"
-        }`}
-      >
-        {icon}
-      </span>
-    );
+    const colorStyles = isActive ? "text-text-active" : "text-text-font";
+    return <span className={`inline-block ${colorStyles}`}>{icon}</span>;
   };
 
   const LinkLabel = ({ isActive, labelText }: { isActive: boolean; labelText: string }) => {
-    return (
-      <>
-        {!isCollapsed && (
-          <span className={`${isActive ? "font-semibold text-black" : "text-black"}`}>
-            {labelText}
-          </span>
-        )}
-      </>
-    );
+    const fontStyles = isActive ? "font-semibold text-black" : "text-black";
+    return <>{!isCollapsed && <span className={`inline-block${fontStyles}`}>{labelText}</span>}</>;
   };
 
   const SidenavLink = ({
@@ -83,11 +69,10 @@ const NavLinks = ({ isCollapsed, navLinks }: { isCollapsed: boolean; navLinks: N
   }) => {
     const getActiveStyles = () => (isActive ? "font-semibold bg-surface-selected" : "font-normal");
 
-    const getCollapsedStyles = () =>
-      isCollapsed ? "justify-center w-20" : "justify-start w-64 px-1 gap-2";
+    const getCollapsedStyles = () => (isCollapsed ? "justify-center" : "justify-start px-1 gap-2");
 
     const colorStyles = "text-text-font hover:bg-surface-secondary";
-    const flexStyles = "px-[16px] relative flex gap-[8px] max-w-full items-center h-10";
+    const flexStyles = "px-[16px] relative flex gap-[8px] items-center h-10";
     const animationStyles = "transition-all duration-300";
     const baseStyles = `${colorStyles} ${flexStyles} ${animationStyles}`;
 
@@ -167,7 +152,7 @@ export const SideNav = () => {
   const sideNavStyles = "h-full bg-white transition-all duration-300 flex flex-col z-10";
 
   const getNavWidthStyles = () => {
-    return isCollapsed ? "w-20" : "w-[180px]";
+    return isCollapsed ? "w-[48px]" : "w-[180px]";
   };
 
   const DebugLinks = () => {
