@@ -5,6 +5,7 @@ import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { safeDateFormat } from "util/formatDate";
+
 import { gql, useQuery } from "@apollo/client";
 
 export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
@@ -113,7 +114,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     >
       <div className="flex items-start gap-2">
         <div>
-          <span className="-ml-2 block text-sm mb-0.5">
+          <span className="-ml-2 block text-xs-12 mb-0.5">
             <a
               className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
               href="/demonstrations"
@@ -149,7 +150,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                         <span data-testid={`demonstration-${field.label}`}>{field.value}</span>
                       </li>
                       {index < displayFields.length - 1 && (
-                        <li className="text-sm mx-1" aria-hidden="true">
+                        <li className="text-sm" aria-hidden="true">
                           |
                         </li>
                       )}
@@ -169,17 +170,17 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               data-testid="delete-button"
               onClick={handleDelete}
             >
-              <DeleteIcon width="24" height="24" />
+              <DeleteIcon width="24" height="40" />
             </CircleButton>
             <CircleButton name="Edit demonstration" data-testid="edit-button" onClick={handleEdit}>
-              <EditIcon width="24" height="24" />
+              <EditIcon width="24" height="40" />
             </CircleButton>
             <CircleButton
               name="Create New"
               data-testid="create-new-button"
               onClick={() => setShowDropdown((prev) => !prev)}
             >
-              <AddNewIcon width="24" height="24" />
+              <AddNewIcon width="24" height="40" />
             </CircleButton>
             {showDropdown && (
               <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
@@ -211,7 +212,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               showButtons ? "rotate-90" : "rotate-0"
             }`}
           >
-            <EllipsisIcon width="24" height="24" />
+            <EllipsisIcon width="24" height="40" />
           </span>
         </CircleButton>
       </div>

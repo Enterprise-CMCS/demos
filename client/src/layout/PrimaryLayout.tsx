@@ -4,9 +4,14 @@ import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
 import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
 import { getCurrentUser } from "components/user/UserContext";
+import { useLocation } from "react-router-dom";
 
 export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
   const { loading: currentUserLoading, error: currentUserError } = getCurrentUser();
+  const location = useLocation();
+
+  const hideSideNav =
+    location.pathname.startsWith("/demonstrations/") && location.pathname !== "/demonstrations";
 
   if (currentUserLoading) {
     return (
@@ -29,13 +34,13 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
       <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower />}>
         <div className="h-screen flex flex-col">
           <Header />
-          <div className="flex flex-1 overflow-hidden bg-gray-primary-layout">
-            <SideNav />
-            <div className="flex-1 overflow-auto p-[16px] pb-5">
-              {children}
+          <div className="flex flex-1 overflow-hidden bg-gray-primary-layout min-h-0">
+            {!hideSideNav && <SideNav />}
+            <div className="flex-1 overflow-auto min-h-0">
+              <div className="p-[16px] pb-5">{children}</div>
+              <Footer />
             </div>
           </div>
-          <Footer />
         </div>
       </HeaderConfigProvider>
       <ToastContainer />

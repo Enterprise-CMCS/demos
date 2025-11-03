@@ -82,3 +82,11 @@ dialog[open] {
   padding-top: 0.625rem;
   padding-bottom: 0.625rem;
 }
+
+.text-xs-12 {
+  font-size: 12px;
+}
+
+.bg-disabled-tile {
+  background-color: #ecf0f5;
+}

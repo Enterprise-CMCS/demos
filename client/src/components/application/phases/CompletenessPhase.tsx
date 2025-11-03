@@ -22,7 +22,7 @@ import { TZDate } from "@date-fns/tz";
 import { useToast } from "components/toast";
 
 const STYLES = {
-  pane: tw`bg-white`,
+  pane: tw`bg-white p-8`,
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
   stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
@@ -75,15 +75,13 @@ const CompletenessNotice = ({
   noticeDueDate,
   stateDeemedComplete,
 }: {
-  noticeDueDate: string,
-  stateDeemedComplete: boolean
+  noticeDueDate: string;
+  stateDeemedComplete: boolean;
 }) => {
   useEffect(() => {
     setNoticeDismissed(stateDeemedComplete === true);
   }, [stateDeemedComplete]);
-  const [isNoticeDismissed, setNoticeDismissed] = useState(
-    stateDeemedComplete === true
-  );
+  const [isNoticeDismissed, setNoticeDismissed] = useState(stateDeemedComplete === true);
 
   useEffect(() => {
     setNoticeDismissed(stateDeemedComplete);
@@ -190,12 +188,8 @@ export const CompletenessPhase = ({
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  const [federalStartDate, setFederalStartDate] = useState<string>(
-    fedCommentStartDate ?? ""
-  );
-  const [federalEndDate, setFederalEndDate] = useState<string>(
-    fedCommentEndDate ?? ""
-  );
+  const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
+  const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
 
   const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
     applicationCompletenessDocument
@@ -252,27 +246,30 @@ export const CompletenessPhase = ({
     } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
   }, [stateDeemedComplete, federalStartDate, federalEndDate]);
 
-  const saveTheDatesOnly = useCallback(async (options?: { suppressSuccessToast?: boolean }) => {
-    const dateValues = getDateValues();
-    const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
+  const saveTheDatesOnly = useCallback(
+    async (options?: { suppressSuccessToast?: boolean }) => {
+      const dateValues = getDateValues();
+      const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
 
-    try {
-      await Promise.all(
-        inputs.map(async (input) => {
-          await apolloClient.mutate({
-            mutation: SET_APPLICATION_DATE_MUTATION,
-            variables: { input },
-          });
-        })
-      );
-      if (!options?.suppressSuccessToast) {
-        showSuccess(DATES_SUCCESS_MESSAGE);
+      try {
+        await Promise.all(
+          inputs.map(async (input) => {
+            await apolloClient.mutate({
+              mutation: SET_APPLICATION_DATE_MUTATION,
+              variables: { input },
+            });
+          })
+        );
+        if (!options?.suppressSuccessToast) {
+          showSuccess(DATES_SUCCESS_MESSAGE);
+        }
+      } catch (error) {
+        showError(error instanceof Error ? error.message : String(error));
+        console.error("Error saving Phase: ", error);
       }
-    } catch (error) {
-      showError(error instanceof Error ? error.message : String(error));
-      console.error("Error saving Phase: ", error);
-    }
-  }, [apolloClient, applicationId, getDateValues, showError, showSuccess]);
+    },
+    [apolloClient, applicationId, getDateValues, showError, showSuccess]
+  );
 
   const handleFinishCompleteness = useCallback(async () => {
     await saveTheDatesOnly({ suppressSuccessToast: true });
@@ -306,9 +303,7 @@ export const CompletenessPhase = ({
             <button
               className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
               onClick={() =>
-                setCompletenessDocs(
-                  (docs) => docs.filter((document) => document.id !== doc.id)
-                )
+                setCompletenessDocs((docs) => docs.filter((document) => document.id !== doc.id))
               }
               aria-label={`Delete ${doc.name}`}
               title={`Delete ${doc.name}`}
@@ -328,7 +323,7 @@ export const CompletenessPhase = ({
         VERIFY/COMPLETE
       </h4>
       <p className={STYLES.helper}>
-      Verify that the document(s) are uploaded/accurate and that all required fields are filled.
+        Verify that the document(s) are uploaded/accurate and that all required fields are filled.
       </p>
 
       <div className="grid grid-cols-2 gap-4">
@@ -431,19 +426,19 @@ export const CompletenessPhase = ({
         aria-controls="completeness-phase-content"
         data-testid="toggle-completeness"
       >
-      COMPLETENESS
+        COMPLETENESS
       </button>
       {!collapsed && (
         <div id="completeness-phase-content">
           <p className="text-sm text-text-placeholder mb-4">
-      Completeness Checklist – Find completeness guidelines online at{" "}
+            Completeness Checklist – Find completeness guidelines online at{" "}
             <a
               className="text-blue-700 underline"
               href="https://www.medicaid.gov"
               target="_blank"
               rel="noreferrer"
             >
-        Medicaid.gov.
+              Medicaid.gov.
             </a>
           </p>
 
