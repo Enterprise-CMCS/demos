@@ -68,7 +68,7 @@ describe("Demonstration Detail Header", () => {
   it("renders demonstration header info", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
 
@@ -118,7 +118,7 @@ describe("Demonstration Detail Header", () => {
   it("renders date placeholder as --/--/---- when dates are missing", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQueryWithoutDatesQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
 
@@ -132,7 +132,7 @@ describe("Demonstration Detail Header", () => {
   it("shows loading state while fetching demonstration data", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
 
@@ -155,7 +155,7 @@ describe("Demonstration Detail Header", () => {
   it("shows error state when GraphQL query fails", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQueryError]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
 
@@ -175,7 +175,7 @@ describe("Demonstration Detail Header", () => {
   it("shows Add button and dropdown options", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
     // Wait for component to load
@@ -209,7 +209,7 @@ describe("Demonstration Detail Header", () => {
   it("opens Add Amendment Modal when Amendment option is clicked", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
     // Wait for component to load
@@ -243,7 +243,7 @@ describe("Demonstration Detail Header", () => {
   it("opens Add Extension Modal when Extension option is clicked", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
     // Wait for component to load
