@@ -83,7 +83,7 @@ describe("DefaultHeaderLower", () => {
       hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
-    expect(screen.getByText("Loading…")).toBeInTheDocument();
+    expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
   });
 
   it("shows error message", () => {

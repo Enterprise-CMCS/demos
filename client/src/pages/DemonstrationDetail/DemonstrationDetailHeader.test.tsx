@@ -137,7 +137,7 @@ describe("Demonstration Detail Header", () => {
     );
 
     // Should show loading state immediately
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
 
     // Should not show any demonstration-specific content while loading
     expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
@@ -161,7 +161,7 @@ describe("Demonstration Detail Header", () => {
 
     // Wait for error to appear
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load demonstration/i)).toBeInTheDocument();
+      expect(screen.getByText(/Error Loading Demonstration/i)).toBeInTheDocument();
     });
 
     // Should not show demonstration-specific content
@@ -169,7 +169,7 @@ describe("Demonstration Detail Header", () => {
     expect(screen.queryByTestId("demonstration-attributes-list")).not.toBeInTheDocument();
 
     // Should not show loading state
-    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/loading/i)).not.toBeInTheDocument();
   });
 
   it("shows Add button and dropdown options", async () => {
