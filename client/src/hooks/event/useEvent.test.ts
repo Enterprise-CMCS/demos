@@ -49,7 +49,7 @@ describe("useEvent", () => {
     const { result } = renderHook(() => useEvent());
 
     const eventInput: LogEventArguments = {
-      eventType: "LOGIN_SUCCEEDED",
+      eventType: "Login Succeeded",
     };
 
     await result.current.logEvent(eventInput);
@@ -68,7 +68,7 @@ describe("useEvent", () => {
     const { result } = renderHook(() => useEvent());
 
     const eventInput: LogEventArguments = {
-      eventType: "LOGIN_SUCCEEDED",
+      eventType: "Login Succeeded",
       eventData: {
         userId: "123",
         timestamp: formatDateTime(new Date(), "millisecond"),

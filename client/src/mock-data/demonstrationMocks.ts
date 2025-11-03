@@ -24,10 +24,15 @@ import { MockState, mockStates } from "./stateMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName"
+  | "id"
+  | "name"
+  | "description"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "currentPhaseName"
+  | "effectiveDate"
+  | "expirationDate"
 > & {
-  effectiveDate: string | null;
-  expirationDate: string | null;
   status: ApplicationStatus;
   state: MockState;
   amendments: MockAmendment[];
@@ -44,8 +49,8 @@ export const mockDemonstrations = [
     name: "Montana Medicaid Waiver",
     description: "A demonstration project in Montana.",
     status: "Approved" as ApplicationStatus,
-    effectiveDate: "2025-01-01",
-    expirationDate: "2025-12-01",
+    effectiveDate: new Date(2025, 1, 1),
+    expirationDate: new Date(2025, 2, 1),
     state: mockStates.find((state) => state.id === "MT")!,
     sdgDivision: "Division of System Reform Demonstrations",
     signatureLevel: "OA",
@@ -70,8 +75,8 @@ export const mockDemonstrations = [
     name: "Florida Health Innovation",
     description: "A health innovation project in Florida.",
     status: "Under Review" as ApplicationStatus,
-    effectiveDate: "2025-03-01",
-    expirationDate: "2026-02-01",
+    effectiveDate: new Date(2025, 3, 1),
+    expirationDate: new Date(2026, 2, 1),
     state: mockStates.find((state) => state.id === "FL")!,
     sdgDivision: "Division of Eligibility and Coverage Demonstrations",
     signatureLevel: "OCD",
@@ -90,8 +95,8 @@ export const mockDemonstrations = [
     name: "Texas Reform Initiative",
     description: "A reform initiative in Texas.",
     status: "Denied" as ApplicationStatus,
-    effectiveDate: null,
-    expirationDate: null,
+    effectiveDate: undefined,
+    expirationDate: undefined,
     state: mockStates.find((state) => state.id === "TX")!,
     sdgDivision: "Division of System Reform Demonstrations",
     signatureLevel: "OGD",
@@ -208,7 +213,7 @@ export const demonstrationMocks: MockedResponse[] = [
       variables: { input: mockAddDemonstrationInput },
     },
     result: {
-      data: { createDemonstration: { success: true, message: "Created" } },
+      data: { createDemonstration: mockDemonstrations[2] },
     },
   },
   // Update demonstration mock - flexible for various update scenarios

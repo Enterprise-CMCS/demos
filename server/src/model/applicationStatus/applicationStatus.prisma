@@ -2,8 +2,9 @@
 model ApplicationStatus {
   id String
 
-  Demonstration Demonstration[]
-  Modification  Modification[]
+  amendments     Amendment[]
+  demonstrations Demonstration[]
+  extensions     Extension[]
 
   @@id([id])
   @@map("application_status")

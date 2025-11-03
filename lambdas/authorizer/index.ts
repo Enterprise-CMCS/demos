@@ -1,7 +1,9 @@
-import { APIGatewayTokenAuthorizerEvent } from "aws-lambda";
+import { APIGatewayTokenAuthorizerEvent, Context } from "aws-lambda";
 
 import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwkClient from "jwks-rsa";
+
+import { log, reqIdChild, store, als } from "./log";
 
 const client = jwkClient({
   jwksUri: process.env.JWKS_URI,
@@ -17,65 +19,95 @@ function getKey(header: JwtHeader, callback: SigningKeyCallback) {
 }
 /* v8 ignore stop */
 
-export const handler = async (event: APIGatewayTokenAuthorizerEvent) => {
-  const token = event.authorizationToken.split(" ")[1];
-  console.log("starting validation");
+export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Context) =>
+  als.run(store, async () => {
+    reqIdChild(context.awsRequestId);
 
-  if (!token) {
-    console.error("no token");
-    throw new Error("Unauthorized");
-  }
+    const token = event.authorizationToken.split(" ")[1];
+    log.debug("starting validation");
 
-  console.log("token found");
+    if (!token) {
+      log.info("unauthorized: token is not set");
+      throw new Error("Unauthorized");
+    }
 
-  let decoded: jwt.JwtPayload;
-  try {
-    decoded = await verifyToken(token);
-  } catch (err) {
-    console.error(`user sub [unknown] rejected with invalid token: ${err}`);
-    throw new Error("Unauthorized");
-  }
+    log.debug("token found");
 
-  if (!decoded.sub) {
-    console.error("user sub is missing");
-    throw new Error("Unauthorized");
-  }
+    let decoded: jwt.JwtPayload;
+    try {
+      decoded = await verifyToken(token);
+    } catch (err) {
+      log.info(
+        {
+          error: (err as Error).message,
+        },
+        "unauthorized: unknown user rejected with invalid token"
+      );
+      throw new Error("Unauthorized");
+    }
 
-  const roles = decoded["custom:roles"] as string | undefined;
+    if (!decoded.sub) {
+      log.info("unauthorized: user sub is missing");
+      throw new Error("Unauthorized");
+    }
 
-  if (!roles) {
-    console.error(`user sub [${decoded.sub}] rejected with no roles`);
-    throw new Error("Unauthorized");
-  }
+    const roles = decoded["custom:roles"] as string | undefined;
 
-  const validRoles = ["demos-admin", "demos-cms-user", "demos-state-user"];
+    if (!roles) {
+      log.info(
+        {
+          sub: decoded.sub,
+        },
+        "unauthorized: user has no roles"
+      );
+      throw new Error("Unauthorized");
+    }
 
-  if (!validRoles.some((role) => roles.includes(role))) {
-    console.error(`user sub [${decoded.sub}] rejected with invalid roles [${roles}]`);
-    throw new Error("Unauthorized");
-  }
+    const validRoles = ["demos-admin", "demos-cms-user", "demos-state-user"];
 
-  console.log(`user sub [${decoded.sub}] authorized with role [${roles}]`);
-  return generatePolicy(decoded.sub, "Allow", event.methodArn, {
-    sub: decoded.sub,
-    email: decoded.email,
-    given_name: decoded.given_name,
-    family_name: decoded.family_name,
-    role: roles,
+    if (!validRoles.some((role) => roles.includes(role))) {
+      log.info(
+        {
+          sub: decoded.sub,
+          roles: roles ?? "none",
+        },
+        "unauthorized: user has invalid roles"
+      );
+      throw new Error("Unauthorized");
+    }
+
+    log.info(
+      {
+        sub: decoded.sub,
+        roles: roles,
+      },
+      "success: user authorized"
+    );
+    return generatePolicy(decoded.sub, "Allow", event.methodArn, {
+      sub: decoded.sub,
+      email: decoded.email,
+      given_name: decoded.given_name,
+      family_name: decoded.family_name,
+      role: roles,
+    });
   });
-};
 
 const verifyToken = (token: string): Promise<jwt.JwtPayload> => {
   return new Promise((resolve, reject) => {
-    console.log("verifying...");
+    log.debug("verifying jwt");
     jwt.verify(token, getKey, {}, (err, decoded) => {
       if (err) {
-        console.error("validation error:", err);
+        log.warn(
+          {
+            err,
+          },
+          "invalid jwt"
+        );
         return reject(err);
       }
 
       if (!decoded || typeof decoded == "string") {
-        console.error("invalid decoded value");
+        log.warn("invalid decoded jwt value");
         return reject(new Error("invalid decoded value"));
       }
       resolve(decoded);

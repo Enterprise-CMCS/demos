@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { setApplicationDate, getApplicationDatesForPhase } from "./applicationDateResolvers.js";
-import { SetApplicationDateInput, DateType, PhaseName } from "../../types.js";
+import { __setApplicationDate, __resolveApplicationDateType } from "./applicationDateResolvers.js";
+import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
+import { SetApplicationDateInput, DateType } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
@@ -27,11 +28,9 @@ vi.mock("./validateInputDate.js", () => ({
 
 describe("applicationDateResolvers", () => {
   const mockUpsert = vi.fn();
-  const mockFindMany = vi.fn();
   const mockPrismaClient = {
     applicationDate: {
       upsert: mockUpsert,
-      findMany: mockFindMany,
     },
   };
   const testDateType: DateType = "Concept Start Date";
@@ -41,17 +40,9 @@ describe("applicationDateResolvers", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(mockFindMany).mockReturnValue([
-      {
-        dateTypeId: testDateType,
-        dateValue: testDateValue,
-        createdAt: testDateValue,
-        updatedAt: testDateValue,
-      },
-    ]);
   });
 
-  describe("setApplicationDate", () => {
+  describe("__setApplicationDate", () => {
     const testData: SetApplicationDateInput = {
       applicationId: testApplicationId,
       dateType: testDateType,
@@ -76,7 +67,7 @@ describe("applicationDateResolvers", () => {
           dateValue: testDateValue,
         },
       };
-      await setApplicationDate(undefined, { input: testData });
+      await __setApplicationDate(undefined, { input: testData });
       expect(validateInputDate).toHaveBeenCalledExactlyOnceWith(testData);
       expect(mockUpsert).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
@@ -84,7 +75,7 @@ describe("applicationDateResolvers", () => {
 
     it("should handle an error appropriately if it occurs", async () => {
       mockUpsert.mockRejectedValueOnce(testError);
-      await expect(setApplicationDate(undefined, { input: testData })).rejects.toThrowError(
+      await expect(__setApplicationDate(undefined, { input: testData })).rejects.toThrowError(
         testHandlePrismaError
       );
       expect(validateInputDate).toHaveBeenCalledExactlyOnceWith(testData);
@@ -92,29 +83,18 @@ describe("applicationDateResolvers", () => {
       expect(getApplication).not.toHaveBeenCalled();
     });
   });
-  describe("getApplicationDatesForPhase", () => {
-    const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
-    const testPhaseId: PhaseName = "Concept";
-    it("should retrieve the requested dates for the phase and application", async () => {
-      const expectedCall = {
-        select: {
-          dateTypeId: true,
-          dateValue: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        where: {
-          applicationId: testApplicationId,
-          dateType: {
-            phaseDateTypes: {
-              some: { phaseId: testPhaseId },
-            },
-          },
-        },
-      };
 
-      await getApplicationDatesForPhase(testApplicationId, testPhaseId);
-      expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+  describe("__resolveApplicationDateType", () => {
+    it("should retrieve the requested date type", () => {
+      const testPrismaResult: PrismaApplicationDate = {
+        applicationId: testApplicationId,
+        dateTypeId: testDateType,
+        dateValue: testDateValue,
+        createdAt: testDateValue,
+        updatedAt: testDateValue,
+      };
+      const result = __resolveApplicationDateType(testPrismaResult);
+      expect(result).toBe(testDateType);
     });
   });
 });

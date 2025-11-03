@@ -2,23 +2,25 @@ import { GraphQLError } from "graphql";
 
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { Document, DocumentPendingUpload } from "@prisma/client";
-
+import {
+  Document as PrismaDocument,
+  DocumentPendingUpload as PrismaDocumentPendingUpload,
+} from "@prisma/client";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
 
-async function getDocument(parent: undefined, { id }: { id: string }) {
+async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
     where: { id: id },
   });
 }
 
 async function getPresignedUploadUrl(
-  documentPendingUpload: DocumentPendingUpload
+  documentPendingUpload: PrismaDocumentPendingUpload
 ): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
@@ -43,7 +45,7 @@ async function getPresignedUploadUrl(
   });
 }
 
-async function getPresignedDownloadUrl(document: Document): Promise<string> {
+async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string> {
   const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
     ? {
         region: "us-east-1",
@@ -75,7 +77,7 @@ export const documentResolvers = {
 
   Mutation: {
     uploadDocument: async (
-      parent: undefined,
+      parent: unknown,
       { input }: { input: UploadDocumentInput },
       context: GraphQLContext
     ) => {
@@ -99,7 +101,7 @@ export const documentResolvers = {
       return { presignedURL };
     },
 
-    downloadDocument: async (_: undefined, { id }: { id: string }) => {
+    downloadDocument: async (_: unknown, { id }: { id: string }) => {
       const document = await prisma().document.findUnique({
         where: { id: id },
       });
@@ -115,9 +117,9 @@ export const documentResolvers = {
     },
 
     updateDocument: async (
-      _: undefined,
+      _: unknown,
       { id, input }: { id: string; input: UpdateDocumentInput }
-    ): Promise<Document> => {
+    ): Promise<PrismaDocument> => {
       checkOptionalNotNullFields(
         ["name", "description", "documentType", "applicationId", "phaseName"],
         input
@@ -138,7 +140,7 @@ export const documentResolvers = {
       }
     },
 
-    deleteDocuments: async (_: undefined, { ids }: { ids: string[] }) => {
+    deleteDocuments: async (_: unknown, { ids }: { ids: string[] }) => {
       const deleteResult = await prisma().document.deleteMany({
         where: { id: { in: ids } },
       });
@@ -147,7 +149,7 @@ export const documentResolvers = {
   },
 
   Document: {
-    owner: async (parent: Document) => {
+    owner: async (parent: PrismaDocument) => {
       const user = await prisma().user.findUnique({
         where: { id: parent.ownerUserId },
         include: { person: true },
@@ -155,15 +157,15 @@ export const documentResolvers = {
       return { ...user, ...user?.person };
     },
 
-    documentType: async (parent: Document) => {
+    documentType: async (parent: PrismaDocument) => {
       return parent.documentTypeId;
     },
 
-    application: async (parent: Document) => {
+    application: async (parent: PrismaDocument): Promise<PrismaApplication> => {
       return await getApplication(parent.applicationId);
     },
 
-    phaseName: async (parent: Document) => {
+    phaseName: async (parent: PrismaDocument) => {
       return parent.phaseId;
     },
   },

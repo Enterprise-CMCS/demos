@@ -1,8 +1,9 @@
-import { SQSEvent, GuardDutyScanResultNotificationEvent } from "aws-lambda";
+import { SQSEvent, GuardDutyScanResultNotificationEvent, Context } from "aws-lambda";
 
 import { Client } from "pg";
 import { S3Client, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { als, log, store, reqIdChild } from "./log";
 
 const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
@@ -58,24 +59,28 @@ export async function getDatabaseUrl() {
 export function isGuardDutyScanClean(guardDutyEvent: GuardDutyScanResultNotificationEvent) {
   try {
     if (guardDutyEvent["detail-type"] !== "GuardDuty Malware Protection Object Scan Result") {
-      console.log("Not a GuardDuty Malware Protection scan result");
+      log.warn("not a GuardDuty Malware Protection scan result");
       return false;
     }
 
     if (guardDutyEvent.detail?.scanStatus !== "COMPLETED") {
-      console.log(`Scan not completed. Status: ${guardDutyEvent.detail?.scanStatus}`);
+      log.debug({ status: guardDutyEvent.detail?.scanStatus }, "scan not completed");
       return false;
     }
 
     const scanResultStatus = guardDutyEvent.detail?.scanResultDetails?.scanResultStatus;
     if (scanResultStatus !== GUARDDUTY_CLEAN_STATUS) {
-      console.log(`File not clean. Scan result: ${scanResultStatus}`);
+      log.warn(
+        { status: scanResultStatus, objectKey: guardDutyEvent.detail.s3ObjectDetails.objectKey },
+        "file not clean"
+      );
       return false;
     }
 
+    log.debug({ objectKey: guardDutyEvent.detail.s3ObjectDetails.objectKey }, "file is clean");
     return true;
   } catch (error) {
-    console.error("Error parsing GuardDuty event:", error);
+    log.error({ error }, "error parsing GuardDuty event");
     return false;
   }
 }
@@ -108,15 +113,21 @@ export async function getApplicationId(client: typeof Client, fileKey: string) {
   }
 }
 
-export async function moveFileToCleanBucket(
-  fileKey: string,
-  applicationId: string,
-  sourceBucket = uploadBucket
-) {
+export async function moveFileToCleanBucket(fileKey: string, applicationId: string, sourceBucket = uploadBucket) {
   const destinationKey = `${applicationId}/${fileKey}`;
 
-  console.log(
-    `Moving file from s3://${sourceBucket}/${fileKey} to s3://${cleanBucket}/${destinationKey}`
+  log.debug(
+    {
+      from: {
+        sourceBucket,
+        fileKey,
+      },
+      to: {
+        cleanBucket,
+        destinationKey,
+      },
+    },
+    "moving file to clean bucket"
   );
 
   await s3.send(
@@ -127,7 +138,7 @@ export async function moveFileToCleanBucket(
     })
   );
 
-  console.log(`Successfully copied file to clean bucket`);
+  log.info("successfully copied file to clean bucket");
 
   await s3.send(
     new DeleteObjectCommand({
@@ -136,14 +147,14 @@ export async function moveFileToCleanBucket(
     })
   );
 
-  console.log(`Successfully deleted file from source bucket`);
+  log.info(`successfully deleted file from source bucket`);
 
   return destinationKey;
 }
 
 async function updateDatabase(client: typeof Client, fileKey: string, s3Path: string) {
   const processDocumentQuery = `CALL ${dbSchema}.${MOVE_DOCUMENT_PROCEDURE}($1::UUID, $2::TEXT);`;
-  console.log(`Updating database with s3Path: ${s3Path}`);
+  log.info({ s3Path }, "updating database with s3Path");
   await client.query(processDocumentQuery, [fileKey, s3Path]);
 }
 
@@ -154,118 +165,122 @@ export async function processGuardDutyResult(
   const s3Info = extractS3InfoFromGuardDuty(guardDutyEvent);
   const { bucket, key } = s3Info;
 
-  console.log(`Processing clean file: ${bucket}/${key}`);
+  log.info({ bucket, key }, "processing clean file");
 
   try {
     const applicationId = await getApplicationId(client, key);
-    console.log(`Found applicationId: ${applicationId} for key: ${key}`);
+    log.debug({ applicationId, key }, "found applicationId");
 
     const destinationKey = await moveFileToCleanBucket(key, applicationId, bucket);
-    console.log(`File moved to ${cleanBucket}/${destinationKey}`);
+    log.debug({cleanBucket, destinationKey}, `file moved to clean bucket`);
 
     const s3Path = `s3://${cleanBucket}/${destinationKey}`;
     await updateDatabase(client, key, s3Path);
 
-    console.log(`Successfully processed clean file ${key}`);
+    log.info({key},`successfully processed clean file`);
   } catch (error) {
-    console.error(`Failed to process clean file ${key}:`, (error as Error).message);
+    log.error({error: (error as Error).message}, `failed to process clean file ${key}:`);
     throw error;
   }
 }
 
-export const handler = async (event: SQSEvent) => {
-  console.log("Environment variables:", {
-    AWS_REGION: process.env.AWS_REGION,
-    AWS_ENDPOINT_URL: process.env.AWS_ENDPOINT_URL,
-    UPLOAD_BUCKET: uploadBucket,
-    CLEAN_BUCKET: cleanBucket,
-    DB_SCHEMA: dbSchema,
-  });
-
-  let client;
-
-  interface FileInfo {
-    bucket: string;
-    key: string;
-    status: string;
-  }
-
-  interface Results {
-    processedRecords: number;
-    cleanFiles: FileInfo[];
-    infectedFiles: FileInfo[];
-    errors: string[];
-  }
-
-  const results: Results = {
-    processedRecords: 0,
-    cleanFiles: [],
-    infectedFiles: [],
-    errors: [],
-  };
-
-  try {
-    client = new Client({
-      connectionString: await getDatabaseUrl(),
-      ssl: {
-        rejectUnauthorized: true,
+export const handler = async (event: SQSEvent, context: Context) =>
+  als.run(store, async () => {
+    reqIdChild(context.awsRequestId);
+    log.debug(
+      {
+        AWS_REGION: process.env.AWS_REGION,
+        AWS_ENDPOINT_URL: process.env.AWS_ENDPOINT_URL,
+        UPLOAD_BUCKET: uploadBucket,
+        CLEAN_BUCKET: cleanBucket,
+        DB_SCHEMA: dbSchema,
       },
-    });
-    await client.connect();
-    const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
-    await client.query(setSearchPathQuery);
+      "environment variables"
+    );
 
-    // Process each record - if any fails, the entire Lambda should fail
-    for (const record of event.Records) {
-      try {
-        const guardDutyEvent: GuardDutyScanResultNotificationEvent = JSON.parse(record.body);
-        console.log("Received GuardDuty event:", JSON.stringify(guardDutyEvent, null, 2));
+    let client;
 
-        const s3Info = extractS3InfoFromGuardDuty(guardDutyEvent);
-        const { bucket, key } = s3Info;
-        const isClean = isGuardDutyScanClean(guardDutyEvent);
-
-        if (isClean) {
-          await processGuardDutyResult(client, guardDutyEvent);
-          results.cleanFiles.push({
-            bucket,
-            key,
-            status: "processed",
-          });
-        } else {
-          console.log(`File ${key} is not clean. Skipping processing.`);
-          results.infectedFiles.push({
-            bucket,
-            key,
-            status: "skipped",
-          });
-        }
-
-        results.processedRecords++;
-      } catch (error) {
-        console.error("Error processing record:", error);
-        results.errors.push((error as Error).message);
-        throw error;
-      }
+    interface FileInfo {
+      bucket: string;
+      key: string;
+      status: string;
     }
 
-    console.log("All records processed successfully");
-    console.log("Processing summary:", results);
+    interface Results {
+      processedRecords: number;
+      cleanFiles: FileInfo[];
+      infectedFiles: FileInfo[];
+      errors: string[];
+    }
 
-    return {
-      statusCode: 200,
-      body: `Processed ${results.processedRecords} records: ${results.cleanFiles.length} clean files processed, ${results.infectedFiles.length} infected files skipped`,
+    const results: Results = {
+      processedRecords: 0,
+      cleanFiles: [],
+      infectedFiles: [],
+      errors: [],
     };
-  } catch (error) {
-    console.error("Lambda execution failed:", error);
-    throw new Error(`Lambda failed: ${(error as Error).message}`);
-  } finally {
-    if (client) {
-      try {
-        await client.end();
-      } catch (closeError) {
-        console.error("Error closing database connection:", closeError);
+
+    try {
+      client = new Client({
+        connectionString: await getDatabaseUrl(),
+        ssl: {
+          rejectUnauthorized: true,
+        },
+      });
+      await client.connect();
+      const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
+      await client.query(setSearchPathQuery);
+
+      // Process each record - if any fails, the entire Lambda should fail
+      for (const record of event.Records) {
+        try {
+          const guardDutyEvent: GuardDutyScanResultNotificationEvent = JSON.parse(record.body);
+          log.debug({ guardDutyEvent }, "Received GuardDuty event");
+
+          const s3Info = extractS3InfoFromGuardDuty(guardDutyEvent);
+          const { bucket, key } = s3Info;
+          const isClean = isGuardDutyScanClean(guardDutyEvent);
+
+          if (isClean) {
+            await processGuardDutyResult(client, guardDutyEvent);
+            results.cleanFiles.push({
+              bucket,
+              key,
+              status: "processed",
+            });
+          } else {
+            log.warn(`File ${key} is not clean. Skipping processing.`);
+            results.infectedFiles.push({
+              bucket,
+              key,
+              status: "skipped",
+            });
+          }
+
+          results.processedRecords++;
+        } catch (error) {
+          log.error({ error: error.message }, "error processing record");
+          results.errors.push((error as Error).message);
+          throw error;
+        }
+      }
+
+      log.info({ results }, "all records processed successfully");
+
+      return {
+        statusCode: 200,
+        body: `Processed ${results.processedRecords} records: ${results.cleanFiles.length} clean files processed, ${results.infectedFiles.length} infected files skipped`,
+      };
+    } catch (error) {
+      log.error({ error: error.message }, "lambda execution failed");
+      throw new Error(`Lambda failed: ${(error as Error).message}`);
+    } finally {
+      if (client) {
+        try {
+          await client.end();
+        } catch (closeError) {
+          log.error({ error: closeError }, "error closing database connection");
+        }
       }
     }
-  }
-};
+  });

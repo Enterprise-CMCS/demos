@@ -1,6 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import type { GraphQLContext } from "../../auth/auth.util.js";
-import { User } from "@prisma/client";
+import { User as PrismaUser } from "@prisma/client";
+import { log } from "../../log.js";
 
 export const userResolvers = {
   Query: {
@@ -8,35 +9,35 @@ export const userResolvers = {
       _parent: unknown,
       _args: Record<string, never>,
       ctx: GraphQLContext
-    ): Promise<User | null> => {
+    ): Promise<PrismaUser | null> => {
       if (!ctx.user) return null;
       try {
         return await prisma().user.findUnique({
           where: { id: ctx.user.id },
         });
-      } catch (e) {
-        console.error("[currentUser] resolver error:", e);
-        throw e;
+      } catch (err) {
+        log.error({err},"[currentUser] resolver error");
+        throw err;
       }
     },
   },
 
   User: {
-    person: async (parent: User) => {
+    person: async (parent: PrismaUser) => {
       return await prisma().person.findUnique({
         where: {
           id: parent.id,
         },
       });
     },
-    events: async (parent: User) => {
+    events: async (parent: PrismaUser) => {
       return await prisma().event.findMany({
         where: {
           userId: parent.id,
         },
       });
     },
-    ownedDocuments: async (parent: User) => {
+    ownedDocuments: async (parent: PrismaUser) => {
       return await prisma().document.findMany({
         where: {
           ownerUserId: parent.id,

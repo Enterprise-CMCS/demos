@@ -1,64 +1,34 @@
-import type { ApolloServerPlugin, GraphQLRequestListener } from '@apollo/server';
-import type { GraphQLContext } from '../auth/auth.util.js';
-import { log, setRequestContext, addToRequestContext } from '../logger.js';
 
-type ExtendedGraphQLContext = GraphQLContext & {
-  lambdaEvent?: {
-    requestContext?: {
-      requestId?: string;
-    };
-  };
-};
+import { ApolloServerPlugin } from "@apollo/server";
+import { GraphQLContext } from "../auth/auth.util";
+import { Logger } from "pino";
 
-export const loggingPlugin: ApolloServerPlugin<GraphQLContext> = {
-  async requestDidStart(requestContext): Promise<GraphQLRequestListener<GraphQLContext>> {
-    const start = process.hrtime.bigint();
+interface ExtendedGraphQLContext extends GraphQLContext {
+  log: Logger;
+}
 
-    // Try to pull identifiers from context or HTTP headers
+export const loggingPlugin: ApolloServerPlugin = {
+  async requestDidStart(requestContext) {
+    const start = process.hrtime.bigint()
+
+    const operationName = requestContext.request.operationName;
     const ctx = (requestContext.contextValue ?? {}) as ExtendedGraphQLContext;
-    const lambdaEvent = ctx.lambdaEvent;
-    const httpHeaders = requestContext.request.http?.headers;
 
-    const header = (name: string) => {
-      if (!httpHeaders) return undefined;
-      try {
-        return httpHeaders.get(name) ?? undefined;
-      } catch {
-        return undefined;
-      }
-    };
-
-    const requestId = lambdaEvent?.requestContext?.requestId || header('x-amzn-requestid') || header('x-request-id');
-    const correlationId = header('x-correlation-id') || requestId;
-    const operationName = requestContext.request.operationName || undefined;
-
-    setRequestContext({ requestId, correlationId, operationName, userId: ctx.user?.id });
-
-    log.info('graphql.request.start', {
-      operationName,
-    });
+    ctx.log.info({ operationName, type: "graphql.request.start" });
 
     return {
-      async didResolveOperation(rc) {
-        addToRequestContext({ operationName: rc.operationName || operationName });
-      },
       async didEncounterErrors(rc) {
-        const errs = rc.errors || [];
-        // Log only names and messages to avoid leaking sensitive details
-        log.error('graphql.request.errors', {
-          errorsCount: errs.length,
-          errors: errs.slice(0, 3).map((e) => ({ name: e.name, message: e.message })),
-        });
+        ctx.log.warn({
+          errorsCount: rc.errors.length,
+          errors: rc.errors.slice(0,3).map(e => ({name: e.name, message: e.message})),
+          type: "graphql.request.errors"
+        })
       },
       async willSendResponse(rc) {
-        const end = process.hrtime.bigint();
-        const durationMs = Number(end - start) / 1_000_000;
-        const errorsCount = rc.errors?.length || 0;
-        if (errorsCount > 0) {
-          log.warn('graphql.request.end', { durationMs, errorsCount });
-        } else {
-          log.info('graphql.request.end', { durationMs, errorsCount });
-        }
+        const end = process.hrtime.bigint()
+        const durationMs = Number(end - start) / 1_000_000
+        const errorsCount = rc.errors?.length ?? 0
+        ctx.log.info({ operationName, errorsCount, durationMs, type: "graphql.request.end" });
       },
     };
   },

@@ -8,7 +8,7 @@ import { getAuthConfig } from "./auth.config.js";
 import { prisma } from "../prismaClient.js";
 import { pickString } from "./claim-utils";
 import { PERSON_TYPES } from "../constants";
-import { log } from "../logger.js";
+import { log } from "../log.js";
 
 const config = getAuthConfig();
 
@@ -92,8 +92,6 @@ export function extractExternalUserIdFromIdentities(
   } else if (identities && typeof identities === "object") {
     identityBlob = Array.isArray(identities) ? identities : [identities];
   }
-  // Let's find out how TS treats this JSON blob once and for all.
-  console.log(typeof identityBlob, identityBlob);
 
   // Scan for the first non-empty userId
   for (const item of identityBlob) {
@@ -152,7 +150,7 @@ function decodeToken(token: string): Promise<DecodedJWT> {
       try {
         claims = normalizeClaimsFromRaw(rawDecoded);
       } catch (error) {
-        log.error("auth.token.claims_error", { errorName: (error as Error).name, message: (error as Error).message });
+        log.error({ errorName: (error as Error).name, message: (error as Error).message, type: "auth.token.claims_error" });
         return reject(error);
       }
 
@@ -225,7 +223,6 @@ function deriveUserFields(claims: Claims) {
   return { username, email: claims.email, firstName, lastName };
 }
 
-
 /** Upsert user and return the DB row */
 async function ensureUserFromClaims(claims: Claims) {
   const { sub, role } = claims;
@@ -283,7 +280,7 @@ export async function buildLambdaContext(
       const claims = normalizeClaimsFromRaw(parsed);
       return buildContextFromClaims(claims);
     } catch {
-      console.warn("[auth] Attempt to parse x-authorizer-claims failed");
+      log.warn("[auth] Attempt to parse x-authorizer-claims failed");
     }
   }
 
@@ -295,7 +292,7 @@ export async function buildLambdaContext(
     const { sub, email, role, givenName, familyName, name, externalUserId } = await decodeToken(token);
     return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
-    log.error("auth.lambda_context.error", { errorName: (err as Error).name, message: (err as Error).message });
+    log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.lambda_context.error" });
     return { user: null };
   }
 }
@@ -310,7 +307,7 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
     const { sub, email, role, givenName, familyName, name, externalUserId } = decodedToken;
     return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
-    log.error("auth.http_context.error", { errorName: (err as Error).name, message: (err as Error).message });
+    log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.http_context.error" });
     return { user: null };
   }
 }
@@ -345,6 +342,7 @@ let databaseUrlCache = "";
 let cacheExpiration = 0;
 
 export async function getDatabaseUrl(): Promise<string> {
+  log.debug({type: "graphql.db.creds_request"});
   const now = Date.now();
   if (databaseUrlCache && cacheExpiration > now) return databaseUrlCache;
 

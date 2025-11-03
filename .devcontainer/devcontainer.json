@@ -32,9 +32,10 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "tomoyukim.vscode-mermaid-editor",
                 "apollographql.vscode-apollo",
-                "esbenp.prettier-vscode"
+                "esbenp.prettier-vscode",
+                "vitest.explorer",
+                "ryanluker.vscode-coverage-gutters"
             ]
         }
     }

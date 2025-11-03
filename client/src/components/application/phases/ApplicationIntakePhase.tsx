@@ -14,9 +14,11 @@ import {
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { getIsoDateString, getStartOfDateEST } from "../dates/applicationDates";
+import { getIsoDateString, getStartOfDateEST, getNowEst } from "../dates/applicationDates";
+import { useMutation, gql } from "@apollo/client";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -93,12 +95,19 @@ export const ApplicationIntakePhase = ({
   );
   const [isFinishButtonEnabled, setIsFinishButtonEnabled] = useState(false);
 
-  // Set up mutation hooks at the top level
   const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
     applicationId: demonstrationId,
     phaseName: "Application Intake",
     phaseStatus: "Completed",
   });
+
+  const [setApplicationDateMutation] = useMutation(gql`
+    mutation SetApplicationDate($input: SetApplicationDateInput!) {
+      setApplicationDate(input: $input) {
+        __typename
+      }
+    }
+  `);
 
   useEffect(() => {
     setIsFinishButtonEnabled(
@@ -111,10 +120,37 @@ export const ApplicationIntakePhase = ({
   };
 
   const handleDocumentUploadSucceeded = async () => {
-    const now = new Date();
-    setStateApplicationSubmittedDate(
-      formatDateAsIsoString(getStartOfDateEST(getIsoDateString(now)))
-    );
+    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
+    setStateApplicationSubmittedDate(formatDateAsIsoString(todayDate));
+
+    await setApplicationDateMutation({
+      variables: {
+        input: {
+          applicationId: demonstrationId,
+          dateType: "State Application Submitted Date",
+          dateValue: todayDate,
+        },
+      },
+      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    });
+  };
+
+  const handleDateChange = async (newDate: string) => {
+    setStateApplicationSubmittedDate(newDate);
+
+    if (newDate) {
+      const parsedDate = parseInputDate(newDate);
+      await setApplicationDateMutation({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            dateType: "State Application Submitted Date",
+            dateValue: parsedDate,
+          },
+        },
+        refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      });
+    }
   };
 
   const UploadSection = () => (
@@ -182,7 +218,7 @@ export const ApplicationIntakePhase = ({
           <input
             type="date"
             value={stateApplicationSubmittedDate ?? undefined}
-            onChange={(e) => setStateApplicationSubmittedDate(e.target.value)}
+            onChange={(e) => handleDateChange(e.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             required
             aria-required="true"
