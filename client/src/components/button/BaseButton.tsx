@@ -8,6 +8,7 @@ const BASE_BUTTON_STYLES = tw`
 inline-flex
 items-center
 justify-center
+gap-xs
 
 font-semibold
 
@@ -17,7 +18,11 @@ cursor-pointer
 
 disabled:bg-surface-disabled
 disabled:text-text-placeholder
-disabled:cursor-not-allowed`;
+disabled:cursor-not-allowed
+
+px-[8px]
+py-[16px]
+`;
 
 const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
   if (isCircle) {
@@ -28,9 +33,9 @@ const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
     }[buttonSize];
   }
   return {
-    large: "h-[48px] text-[16px] p-[12px]",
-    small: "h-[40px] text-[14px] p-[8px]",
-    standard: "h-[40px] text-[14px] p-[8px]",
+    large: "h-[48px] text-[16px]",
+    small: "h-[40px] text-[14px]",
+    standard: "h-[40px] text-[14px]",
   }[buttonSize];
 };
 
