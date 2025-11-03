@@ -39,15 +39,17 @@ export function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] 
               className={STYLES.th}
               onClick={header.column.getToggleSortingHandler()}
             >
-              {flexRender(header.column.columnDef.header, header.getContext())}
-              {header.column.getCanSort() && (
-                <>
-                  {{
-                    asc: <ChevronUpIcon />,
-                    desc: <ChevronDownIcon />,
-                  }[header.column.getIsSorted() as string] ?? <SortIcon />}
-                </>
-              )}
+              <div className="flex items-center gap-1">
+                {flexRender(header.column.columnDef.header, header.getContext())}
+                {header.column.getCanSort() && (
+                  <>
+                    {{
+                      asc: <ChevronUpIcon width={10} />,
+                      desc: <ChevronDownIcon width={10} />,
+                    }[header.column.getIsSorted() as string] ?? <SortIcon width={8} />}
+                  </>
+                )}
+              </div>
             </th>
           ))}
         </tr>
