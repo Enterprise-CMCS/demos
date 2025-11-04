@@ -6,7 +6,7 @@ const umzug = new Umzug({
   context: sequelize.getQueryInterface(),
   storage: new SequelizeStorage({
     sequelize,
-    schema: "demos_app",
+    schema: "public",
     modelName: "_sequelize_umzug_migrations",
   }),
   logger: console,
