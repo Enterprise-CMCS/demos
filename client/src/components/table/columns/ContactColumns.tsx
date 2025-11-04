@@ -116,7 +116,15 @@ export function ContactColumns({
               onClick={() => onRemoveContact(contact.personId)}
               disabled={contact.contactType === "Project Officer" && contact.isPrimary}
             >
-              <DeleteIcon width="15" height="15" />
+              <DeleteIcon
+                width="15"
+                height="15"
+                fill={
+                  contact.contactType === "Project Officer" && contact.isPrimary
+                    ? "#9CA3AF"
+                    : "#CD2026"
+                }
+              />
             </CircleButton>
           </div>
         );

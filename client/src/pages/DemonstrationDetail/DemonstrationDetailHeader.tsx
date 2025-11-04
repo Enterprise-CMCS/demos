@@ -114,7 +114,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     >
       <div className="flex items-start gap-2">
         <div>
-          <span className="-ml-2 block text-xs-12 mb-0.5">
+          <span className="-ml-2 block text-[12px] mb-0.5">
             <a
               className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
               href="/demonstrations"

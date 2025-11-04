@@ -7,7 +7,7 @@ import { PhaseDate } from "./PhaseDate";
 const BASE_STYLES = {
   PHASE_BOX: tw`flex flex-col items-center justify-center rounded-sm hover:cursor-pointer aspect-2/1 p-1`,
   PHASE_NUMBER: tw`flex items-center justify-center text-lg w-3 h-3 my-1 rounded-full font-bold`,
-  PHASE_NAME: tw`text-xs-12 font-bold truncate max-w-full`,
+  PHASE_NAME: tw`text-[12px] font-bold truncate max-w-full`,
 };
 
 const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> = {
@@ -24,7 +24,7 @@ const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> =
     number: tw`text-brand border border-brand`,
   },
   "Not Started": {
-    box: tw`bg-disabled-tile text-text-placeholder border border-border-fields`,
+    box: tw`bg-[#ecf0f5] text-text-placeholder border border-border-fields`,
     number: tw`text-icon-base border border-icon-base`,
   },
   "past-due": {
