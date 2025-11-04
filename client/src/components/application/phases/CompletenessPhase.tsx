@@ -7,7 +7,7 @@ import { formatDate, parseInputDate, formatDateForServer } from "util/formatDate
 import { Notice, NoticeVariant } from "components/notice";
 import { addDays, differenceInCalendarDays } from "date-fns";
 import { gql, useMutation } from "@apollo/client";
-import { CompletenessDocumentUploadDialog } from "../../dialog/document/CompletenessDocumentUploadDialog";
+import { CompletenessDocumentUploadDialog } from "components/dialog/document/CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
 import {
   COMPLETENESS_PHASE_DATE_TYPES,
@@ -38,8 +38,8 @@ const STYLES = {
 
 const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 
-const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
-const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
+// const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
+// const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
 
 const CompletenessNotice = ({
   noticeDueDate,
@@ -185,6 +185,22 @@ export const CompletenessPhase = ({
     phaseName: "Completeness",
     phaseStatus: "Incomplete",
   });
+
+  useEffect(() => {
+    // Automatically set federal comment period dates based on state deemed complete date
+    if (stateDeemedComplete) {
+      const startDate = parseInputDate(stateDeemedComplete);
+      if (startDate && !isNaN(startDate.getTime())) {
+        const endDate = addDays(startDate, FEDERAL_COMMENT_PERIOD_DAYS - 1); // minus 1 to be inclusive
+
+        setFederalStartDate(formatDateForServer(startDate));
+        setFederalEndDate(formatDateForServer(endDate));
+      }
+    } else {
+      setFederalStartDate("");
+      setFederalEndDate("");
+    }
+  }, [stateDeemedComplete]);
 
   const finishIsEnabled = () => {
     const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
@@ -341,9 +357,6 @@ export const CompletenessPhase = ({
             readOnly
             disabled
           />
-          {federalStartDate && federalEndDate && (
-            <div className="text-xs text-text-warn mt-1">End date must be after start date</div>
-          )}
         </div>
       </div>
 
