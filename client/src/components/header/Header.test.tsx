@@ -1,12 +1,9 @@
 import React from "react";
-
+import { vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { UserProvider } from "components/user/UserContext";
 import { userMocks } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
-import { vi } from "vitest";
-
-import { fireEvent, render, screen } from "@testing-library/react";
-
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
 import { ProfileBlock } from "./ProfileBlock";
@@ -48,15 +45,14 @@ describe("Header", () => {
 
   it("renders the Create New button", async () => {
     renderWithProviders(<DefaultHeaderLower />);
-    expect(await screen.findByTestId("create-new")).toBeInTheDocument(); // ← await
+    expect(await screen.findByTestId("create-new")).toBeInTheDocument();
   });
 
-  it("toggles menu under Profile Block (Top right corner)", async () => {
+  it("opens and closes the ProfileBlock menu when toggled by clicking the name", async () => {
     renderWithProviders(<ProfileBlock />);
     const profileName = await screen.findByText("Mock User");
 
     fireEvent.click(profileName);
-    // NOW an anchor with text "Sign Out"
     const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });
     expect(signOutLink).toBeVisible();
 
@@ -64,15 +60,22 @@ describe("Header", () => {
     expect(screen.queryByRole("button", { name: /Sign Out/i })).not.toBeInTheDocument();
   });
 
-  it("toggles menu under Profile Block", async () => {
-    renderWithProviders(<ProfileBlock />);
+  it("closes the ProfileBlock menu when clicking outside", async () => {
+    renderWithProviders(
+      <>
+        <ProfileBlock />
+        <div data-testid="outside-area">Outside Area</div>
+      </>
+    );
+
     const profileName = await screen.findByText("Mock User");
 
     fireEvent.click(profileName);
     const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });
     expect(signOutLink).toBeVisible();
 
-    fireEvent.click(profileName);
+    fireEvent.mouseDown(screen.getByTestId("outside-area"));
+
     expect(screen.queryByRole("button", { name: /Sign Out/i })).not.toBeInTheDocument();
   });
 });
