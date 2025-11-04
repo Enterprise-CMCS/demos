@@ -8,6 +8,10 @@ import {
   aws_secretsmanager,
   aws_apigateway,
   aws_s3,
+  Duration,
+  aws_ssm,
+  aws_kms,
+  RemovalPolicy,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -19,6 +23,8 @@ import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import importNumberValue from "../util/importNumberValue";
 import path from "path";
+import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 interface APIStackProps {
   vpc: IVpc;
@@ -142,6 +148,115 @@ export class ApiStack extends Stack {
     );
     dbSecret.grantRead(graphqlLambda.lambda.role);
     uploadBucket.grantPut(graphqlLambda.lambda.role);
+
+    const emailerTimeout = Duration.minutes(1);
+
+    const kmsKey = new aws_kms.Key(this, "emailerQueueKey", {
+      enableKeyRotation: true,
+      alias: `alias/demos-${props.stage}-emailer-sqs`,
+    });
+
+    const deadLetterQueue = new Queue(this, "EmailerDLQ", {
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      encryption: QueueEncryption.KMS,
+      encryptionMasterKey: kmsKey,
+    });
+
+    const emailQueue = new Queue(this, "EmailerQueue", {
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      deadLetterQueue: {
+        maxReceiveCount: 5,
+        queue: deadLetterQueue,
+      },
+      encryption: QueueEncryption.KMS,
+      encryptionMasterKey: kmsKey,
+      visibilityTimeout: emailerTimeout,
+    });
+
+    const emailerLambdaSecurityGroup = securityGroup.create({
+      ...commonProps,
+      name: "emailerSecurityGroup",
+      vpc: props.vpc,
+    });
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.ipv4("10.223.128.0/20"),
+      aws_ec2.Port.tcp(587),
+      "Allow traffic to cms smtp"
+    );
+
+    const ssmSg = aws_ec2.SecurityGroup.fromLookupByName(
+      this,
+      "ssmSecurityGroup",
+      `${props.project}-${props.hostEnvironment}-${props.project}-${props.hostEnvironment}-ssm-vpce`,
+      props.vpc
+    );
+
+    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(ssmSg.securityGroupId),
+      aws_ec2.Port.HTTPS
+    );
+
+    const allowListParamName = "/demos/nonprod/email/allowlist";
+
+    // Emailer
+    const emailSuffix = commonProps.stage == "prod" ? "" : `-${commonProps.stage}`;
+    const emailerPath = path.join("..", "lambdas", "emailer");
+    const emailerLambda = new lambda.Lambda(commonProps.scope, "emailer", {
+      ...commonProps,
+      scope: commonProps.scope,
+      entry: "../lambdas/emailer/index.ts",
+      handler: "index.handler",
+      vpc: props.vpc,
+      nodeModules: ["nodemailer"],
+      securityGroup: emailerLambdaSecurityGroup.securityGroup,
+      asCode: false,
+      depsLockFilePath: path.join(emailerPath, "package-lock.json"),
+      timeout: emailerTimeout,
+      environment: {
+        EMAIL_HOST: "smtp.cloud.internal.cms.gov",
+        EMAIL_PORT: "587",
+        EMAIL_FROM: `"DEMOS${emailSuffix}" <DEMOS${emailSuffix}-no-reply@cms.hhs.gov>`,
+        NODE_EXTRA_CA_CERTS: "/var/task/cert.pem",
+        ALLOW_LIST_PARAM_NAME: commonProps.stage == "prod" ? "" : allowListParamName,
+        DISABLE_EMAIL_ALLOWLIST: commonProps.stage == "prod" ? "true" : "false",
+      },
+      commandHooks: {
+        afterBundling(inputDir: string, outputDir: string): string[] {
+          return [`cp ${inputDir}/../../deployment/cert.pem ${outputDir}/cert.pem`];
+        },
+        beforeBundling() {
+          return [];
+        },
+        beforeInstall() {
+          return [];
+        },
+      },
+    });
+
+    if (commonProps.stage != "prod") {
+      const allowListParam = aws_ssm.StringParameter.fromStringParameterName(
+        commonProps.scope,
+        "allowListParam",
+        allowListParamName
+      );
+
+      allowListParam.grantRead(emailerLambda.role);
+    }
+
+    emailerLambda.lambda.addEventSource(
+      new SqsEventSource(emailQueue, {
+        // Setting a batch size of 1 means each SQS message will be
+        // processed individually. This can be increased, but the emailer
+        // function will need to be reworked to support handling of batch
+        // events. By default, a failed processing would fail the entire
+        // batch, which means that on a retry, emails that sent out fine the
+        // first time would send again
+        batchSize: 1,
+      })
+    );
 
     // Outputs
 

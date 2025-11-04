@@ -34,6 +34,13 @@ pipeline {
             }
           }
         }
+        stage('Snyk Scan - Emailer') {
+          steps {
+            script {
+              if (hasChange("lambdas")) { snykScan('lambdas/emailer') }
+            }
+          }
+        }
       }
     }
 
@@ -75,6 +82,21 @@ pipeline {
             script {
               if (hasChange("lambdas")) {
                 dirCon('lambdas/fileprocess', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+        stage('Unit Test - Emailer') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/emailer', 'node') {
                   sh '''
                   npm ci
                   npm run lint

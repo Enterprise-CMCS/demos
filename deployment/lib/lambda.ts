@@ -1,4 +1,4 @@
-import { LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { ICommandHooks, LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
 import { Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_lambda } from "aws-cdk-lib";
@@ -26,6 +26,7 @@ interface LambdaProps extends CommonProps {
   externalModules?: string[];
   nodeModules?: string[];
   depsLockFilePath?: string;
+  commandHooks?: ICommandHooks;
 }
 
 export function create(props: LambdaProps, id: string) {
@@ -112,6 +113,7 @@ export class Lambda extends Construct {
         externalModules: props.externalModules,
         nodeModules: props.nodeModules,
         logLevel: LogLevel.VERBOSE,
+        commandHooks: props.commandHooks,
       },
       environment: props.environment,
       vpc: props.vpc,
