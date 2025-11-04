@@ -194,16 +194,14 @@ export const CompletenessPhase = ({
     const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
 
     try {
-      await Promise.all(
-        inputs.map(async (input) => {
-          await setApplicationDateMutation({
-            variables: {
-              input: input,
-            },
-            refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
-          });
-        })
-      );
+      for (const input of inputs) {
+        await setApplicationDateMutation({
+          variables: {
+            input,
+          },
+          refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+        });
+      }
     } catch (error) {
       showError(error instanceof Error ? error.message : String(error));
       console.error("Error saving Phase: ", error);
@@ -358,6 +356,11 @@ export const CompletenessPhase = ({
 
     if (federalEndDate) {
       const noticeDueDateValue = parseInputDate(federalEndDate);
+      if (! noticeDueDateValue) {
+        console.error("Error parsing federal end date for completeness notice:", federalEndDate);
+        showError("Error parsing federal end date for completeness notice.");
+      }
+
       const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
 
       // determine notice title/description from days
