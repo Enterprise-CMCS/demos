@@ -6,8 +6,8 @@
     "schema": "./src/model"
   },
   "dependencies": {
-    "@apollo/server": "^4.12.2",
-    "@as-integrations/aws-lambda": "^3.1.0",
+    "@apollo/server": "^5.1.0",
+    "@as-integrations/aws-lambda": "^4.0.1",
     "@aws-sdk/client-s3": "^3.859.0",
     "@aws-sdk/client-secrets-manager": "^3.840.0",
     "@aws-sdk/s3-request-presigner": "^3.859.0",
@@ -58,7 +58,6 @@
     "@types/node": "^22.14.1",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
-    "artillery": "^2.0.23",
     "concurrently": "^9.1.2",
     "depcheck": "^1.4.7",
     "esbuild": "^0.25.5",
