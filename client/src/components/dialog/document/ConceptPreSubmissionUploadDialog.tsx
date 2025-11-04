@@ -9,7 +9,6 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   applicationId: string;
-  refetchQueries?: string[];
   onDocumentUploadSucceeded: () => void;
 };
 
@@ -17,7 +16,6 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   applicationId,
-  refetchQueries = REFETCH_QUERIES,
   onDocumentUploadSucceeded,
 }) => {
   return (
@@ -27,7 +25,6 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       titleOverride="Pre-Submission Document"
-      refetchQueries={refetchQueries}
       onDocumentUploadSucceeded={onDocumentUploadSucceeded}
     />
   );
