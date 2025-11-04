@@ -6,8 +6,8 @@ import { tw } from "tags/tw";
 import { formatDate, parseInputDate, formatDateForServer } from "util/formatDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { addDays, differenceInCalendarDays } from "date-fns";
-import { useApolloClient, gql } from "@apollo/client";
-import { CompletenessDocumentUploadDialog } from "./CompletenessDocumentUploadDialog";
+import { gql, useMutation } from "@apollo/client";
+import { CompletenessDocumentUploadDialog } from "../../dialog/document/CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
 import {
   COMPLETENESS_PHASE_DATE_TYPES,
@@ -20,6 +20,7 @@ import {
 } from "../ApplicationWorkflow";
 import { TZDate } from "@date-fns/tz";
 import { useToast } from "components/toast";
+import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -35,55 +36,22 @@ const STYLES = {
   actionsEnd: tw`ml-auto flex gap-3`,
 };
 
+const FEDERAL_COMMENT_PERIOD_DAYS = 30;
+
 const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
 const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
-const SET_APPLICATION_DATE_MUTATION = gql`
-  mutation SetApplicationDate($input: SetApplicationDateInput!) {
-    setApplicationDate(input: $input) {
-      __typename
-      ... on Demonstration {
-        id
-      }
-      ... on Amendment {
-        id
-      }
-      ... on Extension {
-        id
-      }
-    }
-  }
-`;
-
-const SET_PHASE_STATUS_MUTATION = gql`
-  mutation SetCompletenessPhaseStatus($input: SetApplicationPhaseStatusInput!) {
-    setApplicationPhaseStatus(input: $input) {
-      id
-      currentPhaseName
-      phases {
-        phaseName
-        phaseStatus
-        phaseDates {
-          dateType
-          dateValue
-        }
-      }
-    }
-  }
-`;
 
 const CompletenessNotice = ({
   noticeDueDate,
   stateDeemedComplete,
 }: {
-  noticeDueDate: string,
-  stateDeemedComplete: boolean
+  noticeDueDate: string;
+  stateDeemedComplete: boolean;
 }) => {
   useEffect(() => {
     setNoticeDismissed(stateDeemedComplete === true);
   }, [stateDeemedComplete]);
-  const [isNoticeDismissed, setNoticeDismissed] = useState(
-    stateDeemedComplete === true
-  );
+  const [isNoticeDismissed, setNoticeDismissed] = useState(stateDeemedComplete === true);
 
   useEffect(() => {
     setNoticeDismissed(stateDeemedComplete);
@@ -183,110 +151,50 @@ export const CompletenessPhase = ({
   applicationCompletenessDocument,
 }: CompletenessPhaseProps) => {
   const { showSuccess, showError } = useToast();
-  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
-    stateDeemedCompleteDate ?? ""
-  );
+
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  const federalCommentPeriodInDays = 30;
-  const [federalStartDate, setFederalStartDate] = useState<string>(
-    fedCommentStartDate ?? ""
+  const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
+  const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
+  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
+    stateDeemedCompleteDate ?? ""
   );
-  const [federalEndDate, setFederalEndDate] = useState<string>(
-    fedCommentEndDate ?? ""
-  );
-
-  // Set's federal Comment period
-  const updateFederalCommentPeriodDates = useCallback(
-    (stateDate: string) => {
-      if (!stateDate) {
-        setFederalStartDate("");
-        setFederalEndDate("");
-        return;
-      }
-
-      try {
-        const parsedStateDate = parseInputDate(stateDate);
-        console.log("Parsed state date:", parsedStateDate);
-        if (Number.isNaN(parsedStateDate.getTime())) {
-          setFederalStartDate("");
-          setFederalEndDate("");
-          return;
-        }
-        const computedStart = formatDateForServer(parsedStateDate);
-        const computedEnd = formatDateForServer(
-          addDays(parsedStateDate, federalCommentPeriodInDays)
-        );
-        setFederalStartDate(computedStart);
-        setFederalEndDate(computedEnd);
-      } catch (error) {
-        console.error("Invalid state deemed complete date", error);
-        setFederalStartDate("");
-        setFederalEndDate("");
-      }
-    },
-    [federalCommentPeriodInDays]
-  );
-
-  useEffect(() => {
-    if (!stateDeemedComplete) {
-      setFederalStartDate("");
-      setFederalEndDate("");
-      return;
-    }
-
-    if (!federalStartDate || !federalEndDate) {
-      updateFederalCommentPeriodDates(stateDeemedComplete);
-    }
-  }, [
-    federalEndDate,
-    federalStartDate,
-    stateDeemedComplete,
-    updateFederalCommentPeriodDates,
-  ]);
 
   const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
     applicationCompletenessDocument
   );
 
-  const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
-  const datesAreValid =
-    !federalStartDate || !federalEndDate
-      ? true
-      : new Date(federalStartDate) <= new Date(federalEndDate);
-
-  const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
-  const apolloClient = useApolloClient();
-
-  const updatePhaseStatus = useCallback(
-    async (phaseStatus: "Completed" | "Incomplete") => {
-      try {
-        await apolloClient.mutate({
-          mutation: SET_PHASE_STATUS_MUTATION,
-          variables: {
-            input: {
-              applicationId,
-              phaseName: "Completeness",
-              phaseStatus,
-            },
-          },
-          refetchQueries: [
-            {
-              query: GET_WORKFLOW_DEMONSTRATION_QUERY,
-              variables: { id: applicationId },
-            },
-          ],
-        });
-        showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
-      } catch (error) {
-        showError(error instanceof Error ? error.message : String(error));
-        console.error("Error saving Phase: ", error);
+  const [setApplicationDateMutation] = useMutation(gql`
+    mutation SetApplicationDate($input: SetApplicationDateInput!) {
+      setApplicationDate(input: $input) {
+        __typename
       }
-    },
-    [apolloClient, applicationId, showError, showSuccess]
-  );
+    }
+  `);
+
+  const { setPhaseStatus: completeCompletenessPhase } = useSetPhaseStatus({
+    applicationId: applicationId,
+    phaseName: "Completeness",
+    phaseStatus: "Completed",
+  });
+
+  const { setPhaseStatus: setCompletenessIncompleted } = useSetPhaseStatus({
+    applicationId: applicationId,
+    phaseName: "Completeness",
+    phaseStatus: "Incomplete",
+  });
+
+  const finishIsEnabled = () => {
+    const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
+    const datesAreValid =
+      federalStartDate && federalEndDate
+        ? true
+        : new Date(federalStartDate) <= new Date(federalEndDate);
+
+    return completenessDocs.length > 0 && datesFilled && datesAreValid;
+  };
 
   const getDateValues = useCallback(() => {
     const toEasternStartOfDay = (value: string): Date | null =>
@@ -302,36 +210,36 @@ export const CompletenessPhase = ({
     } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
   }, [stateDeemedComplete, federalStartDate, federalEndDate]);
 
-  const saveTheDatesOnly = useCallback(async (options?: { suppressSuccessToast?: boolean }) => {
+  const saveDates = async () => {
     const dateValues = getDateValues();
     const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
 
     try {
       await Promise.all(
         inputs.map(async (input) => {
-          await apolloClient.mutate({
-            mutation: SET_APPLICATION_DATE_MUTATION,
-            variables: { input },
+          await setApplicationDateMutation({
+            variables: {
+              input: input,
+            },
+            refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
           });
         })
       );
-      if (!options?.suppressSuccessToast) {
-        showSuccess(DATES_SUCCESS_MESSAGE);
-      }
+      showSuccess(DATES_SUCCESS_MESSAGE);
     } catch (error) {
       showError(error instanceof Error ? error.message : String(error));
       console.error("Error saving Phase: ", error);
     }
-  }, [apolloClient, applicationId, getDateValues, showError, showSuccess]);
+  };
 
-  const handleFinishCompleteness = useCallback(async () => {
-    await saveTheDatesOnly({ suppressSuccessToast: true });
-    await updatePhaseStatus("Completed");
-  }, [saveTheDatesOnly, updatePhaseStatus]);
+  const handleFinishCompleteness = async () => {
+    await saveDates();
+    await completeCompletenessPhase();
+  };
 
-  const handleDeclareIncomplete = useCallback(async () => {
-    await updatePhaseStatus("Incomplete");
-  }, [updatePhaseStatus]);
+  const handleDeclareIncomplete = async () => {
+    await setCompletenessIncompleted();
+  };
 
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
@@ -356,9 +264,7 @@ export const CompletenessPhase = ({
             <button
               className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
               onClick={() =>
-                setCompletenessDocs(
-                  (docs) => docs.filter((document) => document.id !== doc.id)
-                )
+                setCompletenessDocs((docs) => docs.filter((document) => document.id !== doc.id))
               }
               aria-label={`Delete ${doc.name}`}
               title={`Delete ${doc.name}`}
@@ -377,7 +283,7 @@ export const CompletenessPhase = ({
         Step 2 - VERIFY/COMPLETE
       </h4>
       <p className={STYLES.helper}>
-      Verify that the document(s) are uploaded/accurate and that all required fields are filled.
+        Verify that the document(s) are uploaded/accurate and that all required fields are filled.
       </p>
 
       <div className="grid grid-cols-2 gap-4">
@@ -395,7 +301,7 @@ export const CompletenessPhase = ({
             onChange={(event) => {
               const nextStateDate = event.target.value;
               setStateDeemedComplete(nextStateDate);
-              updateFederalCommentPeriodDates(nextStateDate);
+              // updateFederalCommentPeriodDates(nextStateDate);
             }}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="state-application-deemed-complete"
@@ -416,6 +322,7 @@ export const CompletenessPhase = ({
             id="federal-comment-period-start"
             data-testid="federal-comment-period-start"
             readOnly
+            disabled
           />
         </div>
 
@@ -432,8 +339,9 @@ export const CompletenessPhase = ({
             id="federal-comment-period-end"
             data-testid="federal-comment-period-end"
             readOnly
+            disabled
           />
-          {federalStartDate && federalEndDate && !datesAreValid && (
+          {federalStartDate && federalEndDate && (
             <div className="text-xs text-text-warn mt-1">End date must be after start date</div>
           )}
         </div>
@@ -452,7 +360,7 @@ export const CompletenessPhase = ({
             name="save-for-later"
             size="small"
             onClick={async () => {
-              await saveTheDatesOnly();
+              await saveDates();
             }}
           >
             Save For Later
@@ -460,7 +368,7 @@ export const CompletenessPhase = ({
           <Button
             name="finish-completeness"
             size="small"
-            disabled={!canFinish}
+            disabled={!finishIsEnabled()}
             onClick={async () => {
               await handleFinishCompleteness();
             }}
@@ -486,19 +394,19 @@ export const CompletenessPhase = ({
         aria-controls="completeness-phase-content"
         data-testid="toggle-completeness"
       >
-      COMPLETENESS
+        COMPLETENESS
       </button>
       {!collapsed && (
         <div id="completeness-phase-content">
           <p className="text-sm text-text-placeholder mb-4">
-      Completeness Checklist – Find completeness guidelines online at{" "}
+            Completeness Checklist – Find completeness guidelines online at{" "}
             <a
               className="text-blue-700 underline"
               href="https://www.medicaid.gov"
               target="_blank"
               rel="noreferrer"
             >
-        Medicaid.gov.
+              Medicaid.gov.
             </a>
           </p>
 
