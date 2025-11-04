@@ -11,34 +11,13 @@ pipeline {
 
   stages {
     stage('Lambdas - Snyk - All') {
-      failFast true
-      parallel {
-        stage('Snyk Scan - Authorizer') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/authorizer') }
-            }
-          }
-        }
-        stage('Snyk Scan - DB Role Management') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/dbRoleManagement') }
-            }
-          }
-        }
-        stage('Snyk Scan - File Process') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/fileprocess') }
-            }
-          }
-        }
-        stage('Snyk Scan - Emailer') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/emailer') }
-            }
+      steps {
+        script {
+          if (hasChange("lambdas")) { 
+            snykScan('lambdas/authorizer') 
+            snykScan('lambdas/dbRoleManagement')
+            snykScan('lambdas/fileprocess')
+            snykScan('lambdas/emailer')
           }
         }
       }
