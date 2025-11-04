@@ -53,6 +53,12 @@ export const getApplicationCompletenessFromDemonstration = (
   const fedCommentEndDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "Federal Comment Period End Date"
   );
+  const applicationIntakePhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "Application Intake"
+  );
+  const applicationIntakeCompletionDate = applicationIntakePhase?.phaseDates.find(
+    (date) => date.dateType === "Application Intake Completion Date"
+  );
   const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "State Application Deemed Complete"
   );
@@ -75,6 +81,7 @@ export const getApplicationCompletenessFromDemonstration = (
           : ""
       }
       applicationCompletenessDocument={applicationCompletenessDocument ?? []}
+      hasApplicationIntakeCompletionDate={!!applicationIntakeCompletionDate}
     />
   );
 };
@@ -85,6 +92,7 @@ export interface CompletenessPhaseProps {
   fedCommentEndDate?: string;
   stateDeemedCompleteDate?: string;
   applicationCompletenessDocument: ApplicationWorkflowDocument[];
+  hasApplicationIntakeCompletionDate: boolean;
 }
 
 export const CompletenessPhase = ({
@@ -93,6 +101,7 @@ export const CompletenessPhase = ({
   fedCommentEndDate,
   stateDeemedCompleteDate,
   applicationCompletenessDocument,
+  hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
   const { showSuccess, showError } = useToast();
 
@@ -133,16 +142,20 @@ export const CompletenessPhase = ({
   // Automatically set federal comment period dates based on state deemed complete date
   useEffect(() => {
     if (!stateDeemedComplete) {
+      setFederalStartDate("");
+      setFederalEndDate("");
       return;
     }
 
-    const startDate = parseInputDate(stateDeemedComplete);
-    if (startDate) {
-      const endDate = addDays(stateDeemedComplete, FEDERAL_COMMENT_PERIOD_DAYS);
+    const parsedStateDate = parseInputDate(stateDeemedComplete);
+    const computedStartDate = addDays(parsedStateDate, 1);
+    const computedEndDate = addDays(computedStartDate, FEDERAL_COMMENT_PERIOD_DAYS);
 
-      setFederalStartDate(formatDateForServer(startDate));
-      setFederalEndDate(formatDateForServer(endDate));
-    }
+    const nextStart = formatDateForServer(computedStartDate);
+    const nextEnd = formatDateForServer(computedEndDate);
+
+    setFederalStartDate(nextStart);
+    setFederalEndDate(nextEnd);
   }, [stateDeemedComplete]);
 
   const finishIsEnabled = () => {
@@ -165,9 +178,16 @@ export const CompletenessPhase = ({
       "State Application Deemed Complete": toEasternStartOfDay(stateDeemedComplete),
       "Federal Comment Period Start Date": toEasternStartOfDay(federalStartDate),
       "Federal Comment Period End Date": toEasternEndOfDay(federalEndDate),
-      "Completeness Completion Date": toEasternStartOfDay(stateDeemedComplete),
+      "Completeness Completion Date": hasApplicationIntakeCompletionDate
+        ? toEasternStartOfDay(stateDeemedComplete)
+        : null,
     } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
-  }, [stateDeemedComplete, federalStartDate, federalEndDate]);
+  }, [
+    hasApplicationIntakeCompletionDate,
+    stateDeemedComplete,
+    federalStartDate,
+    federalEndDate,
+  ]);
 
   const saveDates = async () => {
     const dateValues = getDateValues();
@@ -337,7 +357,8 @@ export const CompletenessPhase = ({
     const [isNoticeDismissed, setNoticeDismissed] = useState(false);
 
     if (federalEndDate) {
-      const noticeDaysValue = differenceInCalendarDays(federalEndDate, new Date());
+      const noticeDueDateValue = parseInputDate(federalEndDate);
+      const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
 
       // determine notice title/description from days
       const getNoticeTitle = () => {
@@ -349,7 +370,7 @@ export const CompletenessPhase = ({
         return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
       };
 
-      const formattedNoticeDate = formatDateForServer(federalEndDate);
+      const formattedNoticeDate = formatDate(noticeDueDateValue);
       const noticeDescription = formattedNoticeDate
         ? `This Amendment must be declared complete by ${formattedNoticeDate}`
         : undefined;

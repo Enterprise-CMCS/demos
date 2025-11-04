@@ -6,7 +6,7 @@ import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 import { TestProvider } from "test-utils/TestProvider";
 
 const START_FED_COMMENT_DATE = "2025-10-01";
-const END_FED_COMMENT_DATE = "2025-10-30";
+const END_FED_COMMENT_DATE = "2025-10-31";
 
 const mockSetPhaseStatus = vi.fn(() => Promise.resolve({ data: {} }));
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
@@ -35,7 +35,7 @@ const buildComponent = (override: Partial<CompletenessPhaseProps> = {}) => {
     applicationId: "app-123",
     fedCommentStartDate: START_FED_COMMENT_DATE,
     fedCommentEndDate: END_FED_COMMENT_DATE,
-    stateDeemedCompleteDate: "",
+    stateDeemedCompleteDate: "2025-09-30",
     applicationCompletenessDocument: [
       {
         id: "8675309B",
@@ -45,6 +45,7 @@ const buildComponent = (override: Partial<CompletenessPhaseProps> = {}) => {
         createdAt: new Date(END_FED_COMMENT_DATE),
       },
     ],
+    hasApplicationIntakeCompletionDate: true,
   };
 
   return <CompletenessPhase {...defaultProps} {...override} />;
