@@ -12,32 +12,35 @@ import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
 import { ApplicationDateSimulation } from "components/application/dates/ApplicationDateSimulation";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
+import { ModalProvider } from "components/dialog/DialogContext";
 
 export const DemosRouter: React.FC = () => {
   return (
     <DemosAuthProvider>
       <DemosApolloProvider>
         <UserProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route element={<DemosLayoutProvider />}>
-                <Route path="*" element={<div>404: Page Not Found</div>} />
-                <Route path="/" element={<DemonstrationsPage />} />
-                <Route path="demonstrations" element={<DemonstrationsPage />} />
-                <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+          <ModalProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<DemosLayoutProvider />}>
+                  <Route path="*" element={<div>404: Page Not Found</div>} />
+                  <Route path="/" element={<DemonstrationsPage />} />
+                  <Route path="demonstrations" element={<DemonstrationsPage />} />
+                  <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
 
-                {isLocalDevelopment() && (
-                  <>
-                    <Route path="components" element={<ComponentLibrary />} />
-                    <Route path="icons" element={<IconLibrary />} />
-                    <Route path="events" element={<EventSandbox />} />
-                    <Route path="auth" element={<AuthDebugComponent />} />
-                    <Route path="dates" element={<ApplicationDateSimulation />} />
-                  </>
-                )}
-              </Route>
-            </Routes>
-          </BrowserRouter>
+                  {isLocalDevelopment() && (
+                    <>
+                      <Route path="components" element={<ComponentLibrary />} />
+                      <Route path="icons" element={<IconLibrary />} />
+                      <Route path="events" element={<EventSandbox />} />
+                      <Route path="auth" element={<AuthDebugComponent />} />
+                      <Route path="dates" element={<ApplicationDateSimulation />} />
+                    </>
+                  )}
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </ModalProvider>
         </UserProvider>
       </DemosApolloProvider>
     </DemosAuthProvider>

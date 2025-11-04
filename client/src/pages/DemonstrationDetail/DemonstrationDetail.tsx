@@ -147,8 +147,8 @@ export const DemonstrationDetail: React.FC = () => {
 
             <Tab label={`Amendments (${demonstration.amendments?.length ?? 0})`} value="amendments">
               <AmendmentsTab
+                demonstrationId={demonstration.id}
                 amendments={demonstration.amendments || []}
-                onClick={() => setEntityCreationModal("amendment")}
                 initiallyExpandedId={amendmentParam ?? undefined}
               />
             </Tab>
