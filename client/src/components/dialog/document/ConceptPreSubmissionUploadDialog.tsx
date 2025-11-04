@@ -9,12 +9,14 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   applicationId: string;
+  onDocumentUploadSucceeded: () => void;
 };
 
 export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   applicationId,
+  onDocumentUploadSucceeded,
 }) => {
   return (
     <AddDocumentDialog
@@ -23,6 +25,7 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       titleOverride="Pre-Submission Document"
+      onDocumentUploadSucceeded={onDocumentUploadSucceeded}
     />
   );
 };

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { ExportIcon, DeleteIcon } from "components/icons";
+import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate, parseInputDate, formatDateForServer } from "util/formatDate";
 import { Notice, NoticeVariant } from "components/notice";
@@ -20,6 +20,7 @@ import {
 } from "../ApplicationWorkflow";
 import { TZDate } from "@date-fns/tz";
 import { useToast } from "components/toast";
+import { DocumentList } from "./sections";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 
 const STYLES = {
@@ -228,28 +229,12 @@ export const CompletenessPhase = ({
         Upload
         <ExportIcon />
       </SecondaryButton>
-      <div className={STYLES.list}>
-        {completenessDocs.map((doc) => (
-          <div key={doc.id} className={STYLES.fileRow}>
-            <div>
-              <div className="font-medium">{doc.name}</div>
-              <div className={STYLES.fileMeta}>
-                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
-              </div>
-            </div>
-            <button
-              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-              onClick={() =>
-                setCompletenessDocs((docs) => docs.filter((document) => document.id !== doc.id))
-              }
-              aria-label={`Delete ${doc.name}`}
-              title={`Delete ${doc.name}`}
-            >
-              <DeleteIcon className="w-2 h-2" />
-            </button>
-          </div>
-        ))}
-      </div>
+      <DocumentList
+        documents={completenessDocs}
+        onDelete={(id) =>
+          setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))
+        }
+      />
     </div>
   );
 
