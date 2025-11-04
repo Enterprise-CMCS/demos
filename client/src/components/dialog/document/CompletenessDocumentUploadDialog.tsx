@@ -3,21 +3,23 @@ import React from "react";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
 import { DocumentType } from "demos-server";
 
-const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["Pre-Submission", "General File"];
+const DOCUMENT_TYPE_SUBSET: DocumentType[] = [
+  "Application Completeness Letter",
+  "General File",
+  "Internal Completeness Review Form",
+];
 
 type Props = {
+  applicationId: string;
   isOpen: boolean;
   onClose: () => void;
-  applicationId: string;
-  refetchQueries?: string[];
-  onDocumentUploadSucceeded: () => void;
+  onDocumentUploadSucceeded?: () => void;
 };
 
-export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
+export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
   isOpen,
   onClose,
   applicationId,
-  refetchQueries = REFETCH_QUERIES,
   onDocumentUploadSucceeded,
 }) => {
   return (
@@ -26,8 +28,7 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
       isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
-      titleOverride="Pre-Submission Document"
-      refetchQueries={refetchQueries}
+      titleOverride="Add Completeness Document(s)"
       onDocumentUploadSucceeded={onDocumentUploadSucceeded}
     />
   );

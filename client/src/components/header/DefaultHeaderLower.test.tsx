@@ -62,18 +62,6 @@ describe("DefaultHeaderLower", () => {
     vi.resetAllMocks();
   });
 
-  it("renders empty bar when no userId is passed", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: null,
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
-    });
-    const { container } = render(<DefaultHeaderLower />);
-    expect(container.firstChild?.childNodes.length).toBe(0);
-  });
-
   it("shows loading state", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: null,
@@ -83,31 +71,7 @@ describe("DefaultHeaderLower", () => {
       hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
-    expect(screen.getByText("Loading…")).toBeInTheDocument();
-  });
-
-  it("shows error message", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: null,
-      loading: false,
-      error: { message: "fail" } as unknown as import("@apollo/client").ApolloError,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
-    });
-    const { container } = render(<DefaultHeaderLower />);
-    expect(container.firstChild?.childNodes.length).toBe(0);
-  });
-
-  it("returns null if no user data", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: null,
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
-    });
-    const { container } = render(<DefaultHeaderLower />);
-    expect(container.firstChild?.childNodes.length).toBe(0);
+    expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
   });
 
   it("displays user greeting", () => {

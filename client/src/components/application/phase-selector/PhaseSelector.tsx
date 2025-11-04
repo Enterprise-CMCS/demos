@@ -90,7 +90,19 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
         />
       );
     },
-    "SDG Preparation": SdgPreparationPhase,
+    "SDG Preparation": () => {
+      const sdgPreparationPhase = demonstration.phases.find(
+        (phase) => phase.phaseName === "SDG Preparation"
+      );
+      if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
+      return (
+        <SdgPreparationPhase
+          demonstrationId={demonstration.id}
+          sdgPreparationPhase={sdgPreparationPhase}
+          setSelectedPhase={setSelectedPhase}
+        />
+      );
+    },
     "OGC & OMB Review": OgcOmbPhase,
     "Approval Package": ApprovalPackagePhase,
     "Post Approval": PostApprovalPhase,
