@@ -181,11 +181,13 @@ export class ApiStack extends Stack {
       vpc: props.vpc,
     });
 
-    emailerLambdaSecurityGroup.securityGroup.addEgressRule(
-      aws_ec2.Peer.ipv4("10.223.128.0/20"),
-      aws_ec2.Port.tcp(587),
-      "Allow traffic to cms smtp"
-    );
+    // emailerLambdaSecurityGroup.securityGroup.addEgressRule(
+    //   aws_ec2.Peer.ipv4("10.223.128.0/20"),
+    //   aws_ec2.Port.tcp(587),
+    //   "Allow traffic to cms smtp"
+    // );
+
+    const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(commonProps.scope, "cmsSharedServcices", "cmscloud-shared-services", commonProps.vpc)
 
     const ssmSg = aws_ec2.SecurityGroup.fromLookupByName(
       this,
@@ -212,7 +214,7 @@ export class ApiStack extends Stack {
       vpc: props.vpc,
       externalModules: ["@aws-sdk"],
       nodeModules: ["nodemailer", "pino"],
-      securityGroup: emailerLambdaSecurityGroup.securityGroup,
+      securityGroup: [emailerLambdaSecurityGroup.securityGroup, sharedServicesSG],
       asCode: false,
       depsLockFilePath: path.join(emailerPath, "package-lock.json"),
       timeout: emailerTimeout,

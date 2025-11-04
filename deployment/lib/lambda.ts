@@ -17,7 +17,7 @@ interface LambdaProps extends CommonProps {
   method?: string;
   apiParentResource?: aws_apigateway.IResource;
   vpc?: aws_ec2.IVpc;
-  securityGroup?: aws_ec2.ISecurityGroup;
+  securityGroup?: aws_ec2.ISecurityGroup | aws_ec2.ISecurityGroup[];
   useAlias?: boolean;
   deploymentConfig?: aws_codedeploy.ILambdaDeploymentConfig;
   authorizer?: aws_apigateway.Authorizer;
@@ -106,7 +106,12 @@ export class Lambda extends Construct {
       timeout,
       memorySize,
       role,
-      securityGroups: props.vpc && props.securityGroup ? [props.securityGroup] : undefined,
+      securityGroups:
+        props.vpc && props.securityGroup
+          ? Array.isArray(props.securityGroup)
+            ? props.securityGroup
+            : [props.securityGroup]
+          : undefined,
       bundling: {
         minify: true,
         sourceMap: true,
