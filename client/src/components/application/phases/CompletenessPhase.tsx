@@ -38,64 +38,8 @@ const STYLES = {
 
 const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 
-// const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
-// const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
-
-const CompletenessNotice = ({
-  noticeDueDate,
-  stateDeemedComplete,
-}: {
-  noticeDueDate: string;
-  stateDeemedComplete: boolean;
-}) => {
-  useEffect(() => {
-    setNoticeDismissed(stateDeemedComplete === true);
-  }, [stateDeemedComplete]);
-  const [isNoticeDismissed, setNoticeDismissed] = useState(stateDeemedComplete === true);
-
-  useEffect(() => {
-    setNoticeDismissed(stateDeemedComplete);
-  }, [stateDeemedComplete]);
-
-  const noticeDueDateValue = parseInputDate(noticeDueDate);
-
-  if (!noticeDueDateValue || isNaN(noticeDueDateValue.getTime())) {
-    return null;
-  }
-
-  const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
-
-  // determine notice title/description from days
-  const getNoticeTitle = () => {
-    const daysLeft = noticeDaysValue;
-    if (daysLeft < 0) {
-      const daysPastDue = Math.abs(daysLeft);
-      return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
-    }
-    return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
-  };
-
-  const formattedNoticeDate = formatDate(noticeDueDateValue);
-  const noticeDescription = formattedNoticeDate
-    ? `This Amendment must be declared complete by ${formattedNoticeDate}`
-    : undefined;
-
-  // go from yellow to red at 1 day left.
-  const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
-  const shouldRenderNotice = Boolean(!isNoticeDismissed);
-
-  if (shouldRenderNotice) {
-    return (
-      <Notice
-        variant={noticeVariant}
-        title={getNoticeTitle()}
-        description={noticeDescription}
-        onDismiss={() => setNoticeDismissed(true)}
-        className="mb-6"
-      />
-    );
-  }
-};
+const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
+const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
 
 export const getApplicationCompletenessFromDemonstration = (
   demonstration: ApplicationWorkflowDemonstration
@@ -186,19 +130,18 @@ export const CompletenessPhase = ({
     phaseStatus: "Incomplete",
   });
 
+  // Automatically set federal comment period dates based on state deemed complete date
   useEffect(() => {
-    // Automatically set federal comment period dates based on state deemed complete date
-    if (stateDeemedComplete) {
-      const startDate = parseInputDate(stateDeemedComplete);
-      if (startDate && !isNaN(startDate.getTime())) {
-        const endDate = addDays(startDate, FEDERAL_COMMENT_PERIOD_DAYS - 1); // minus 1 to be inclusive
+    if (!stateDeemedComplete) {
+      return;
+    }
 
-        setFederalStartDate(formatDateForServer(startDate));
-        setFederalEndDate(formatDateForServer(endDate));
-      }
-    } else {
-      setFederalStartDate("");
-      setFederalEndDate("");
+    const startDate = parseInputDate(stateDeemedComplete);
+    if (startDate) {
+      const endDate = addDays(stateDeemedComplete, FEDERAL_COMMENT_PERIOD_DAYS);
+
+      setFederalStartDate(formatDateForServer(startDate));
+      setFederalEndDate(formatDateForServer(endDate));
     }
   }, [stateDeemedComplete]);
 
@@ -241,7 +184,6 @@ export const CompletenessPhase = ({
           });
         })
       );
-      showSuccess(DATES_SUCCESS_MESSAGE);
     } catch (error) {
       showError(error instanceof Error ? error.message : String(error));
       console.error("Error saving Phase: ", error);
@@ -315,9 +257,7 @@ export const CompletenessPhase = ({
             type="date"
             value={stateDeemedComplete}
             onChange={(event) => {
-              const nextStateDate = event.target.value;
-              setStateDeemedComplete(nextStateDate);
-              // updateFederalCommentPeriodDates(nextStateDate);
+              setStateDeemedComplete(event.target.value);
             }}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="state-application-deemed-complete"
@@ -333,7 +273,6 @@ export const CompletenessPhase = ({
           <input
             type="date"
             value={federalStartDate}
-            onChange={(event) => setFederalStartDate(event.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="federal-comment-period-start"
             data-testid="federal-comment-period-start"
@@ -350,7 +289,6 @@ export const CompletenessPhase = ({
           <input
             type="date"
             value={federalEndDate}
-            onChange={(event) => setFederalEndDate(event.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="federal-comment-period-end"
             data-testid="federal-comment-period-end"
@@ -374,6 +312,7 @@ export const CompletenessPhase = ({
             size="small"
             onClick={async () => {
               await saveDates();
+              showSuccess(DATES_SUCCESS_MESSAGE);
             }}
           >
             Save For Later
@@ -384,6 +323,7 @@ export const CompletenessPhase = ({
             disabled={!finishIsEnabled()}
             onClick={async () => {
               await handleFinishCompleteness();
+              showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
             }}
           >
             Finish
@@ -393,13 +333,48 @@ export const CompletenessPhase = ({
     </div>
   );
 
+  const CompletenessNotice = () => {
+    const [isNoticeDismissed, setNoticeDismissed] = useState(false);
+
+    if (federalEndDate) {
+      const noticeDaysValue = differenceInCalendarDays(federalEndDate, new Date());
+
+      // determine notice title/description from days
+      const getNoticeTitle = () => {
+        const daysLeft = noticeDaysValue;
+        if (daysLeft < 0) {
+          const daysPastDue = Math.abs(daysLeft);
+          return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
+        }
+        return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
+      };
+
+      const formattedNoticeDate = formatDateForServer(federalEndDate);
+      const noticeDescription = formattedNoticeDate
+        ? `This Amendment must be declared complete by ${formattedNoticeDate}`
+        : undefined;
+
+      // go from yellow to red at 1 day left.
+      const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
+      const shouldRenderNotice = Boolean(!isNoticeDismissed);
+
+      if (shouldRenderNotice) {
+        return (
+          <Notice
+            variant={noticeVariant}
+            title={getNoticeTitle()}
+            description={noticeDescription}
+            onDismiss={() => setNoticeDismissed(true)}
+            className="mb-6"
+          />
+        );
+      }
+    }
+  };
+
   return (
     <div>
-      <CompletenessNotice
-        noticeDueDate={federalEndDate ?? ""}
-        stateDeemedComplete={!!stateDeemedComplete}
-      />
-
+      <CompletenessNotice />
       <button
         className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
         onClick={() => setCollapsed((prev) => !prev)}

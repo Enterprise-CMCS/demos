@@ -1,11 +1,10 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 import { TestProvider } from "test-utils/TestProvider";
 
-const COMPLETENESS_SUBMIT_DATE = "2025-10-15";
 const START_FED_COMMENT_DATE = "2025-10-01";
 const END_FED_COMMENT_DATE = "2025-10-30";
 
@@ -51,33 +50,7 @@ const buildComponent = (override: Partial<CompletenessPhaseProps> = {}) => {
   return <CompletenessPhase {...defaultProps} {...override} />;
 };
 
-const NOTICE_TEXT = /must be declared complete/i;
-
 describe("CompletenessPhase", () => {
-  it("hides the alert when a completion date already exists", () => {
-    renderWithProviders(
-      buildComponent({
-        stateDeemedCompleteDate: COMPLETENESS_SUBMIT_DATE,
-      })
-    );
-
-    expect(screen.queryByText(NOTICE_TEXT)).not.toBeInTheDocument();
-  });
-
-  it("dismisses the alert after the user sets the completion date", async () => {
-    renderWithProviders(buildComponent());
-
-    expect(screen.getByText(NOTICE_TEXT)).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText(/State Application Deemed Complete/i), {
-      target: { value: COMPLETENESS_SUBMIT_DATE },
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText(NOTICE_TEXT)).not.toBeInTheDocument();
-    });
-  });
-
   it("declares the phase incomplete and the buttons work right plus requesting the mutation", async () => {
     renderWithProviders(buildComponent());
     const user = userEvent.setup();
