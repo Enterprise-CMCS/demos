@@ -68,7 +68,7 @@ describe("Demonstration Detail Header", () => {
   it("renders demonstration header info", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
 
@@ -118,7 +118,7 @@ describe("Demonstration Detail Header", () => {
   it("renders date placeholder as --/--/---- when dates are missing", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQueryWithoutDatesQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
 
@@ -132,12 +132,12 @@ describe("Demonstration Detail Header", () => {
   it("shows loading state while fetching demonstration data", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
 
     // Should show loading state immediately
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
 
     // Should not show any demonstration-specific content while loading
     expect(screen.queryByText("Montana Medicaid Waiver")).not.toBeInTheDocument();
@@ -155,13 +155,13 @@ describe("Demonstration Detail Header", () => {
   it("shows error state when GraphQL query fails", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQueryError]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
 
     // Wait for error to appear
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load demonstration/i)).toBeInTheDocument();
+      expect(screen.getByText(/Error Loading Demonstration/i)).toBeInTheDocument();
     });
 
     // Should not show demonstration-specific content
@@ -169,13 +169,13 @@ describe("Demonstration Detail Header", () => {
     expect(screen.queryByTestId("demonstration-attributes-list")).not.toBeInTheDocument();
 
     // Should not show loading state
-    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/loading/i)).not.toBeInTheDocument();
   });
 
   it("shows Add button and dropdown options", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
     // Wait for component to load
@@ -209,7 +209,7 @@ describe("Demonstration Detail Header", () => {
   it("opens Add Amendment Modal when Amendment option is clicked", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
     // Wait for component to load
@@ -243,7 +243,7 @@ describe("Demonstration Detail Header", () => {
   it("opens Add Extension Modal when Extension option is clicked", async () => {
     render(
       <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader onEdit={() => {}} onDelete={() => {}} demonstrationId="1" />
+        <DemonstrationDetailHeader demonstrationId="1" />
       </MockedProvider>
     );
     // Wait for component to load

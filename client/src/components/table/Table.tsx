@@ -17,10 +17,11 @@ import {
 } from "@tanstack/react-table";
 
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
+import { ChevronDownIcon, ChevronUpIcon, SortIcon } from "components/icons";
 
 const STYLES = {
   table: "w-full table-auto",
-  th: "bg-gray-lighter p-1 font-semibold text-left border-b cursor-pointer select-none",
+  th: "bg-gray-primary-layout p-1 font-semibold text-left border-b cursor-pointer select-none",
   tr: "h-[56px] border-b p-1",
   td: "p-1 text-[14px] break-words overflow-wrap",
   subrow: "h-[56px] px-4 py-2 bg-gray-lighter border-b",
@@ -38,11 +39,17 @@ export function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] 
               className={STYLES.th}
               onClick={header.column.getToggleSortingHandler()}
             >
-              {flexRender(header.column.columnDef.header, header.getContext())}
-              {{
-                asc: " ↑",
-                desc: " ↓",
-              }[header.column.getIsSorted() as string] ?? null}
+              <div className="flex items-center gap-1">
+                {flexRender(header.column.columnDef.header, header.getContext())}
+                {header.column.getCanSort() && (
+                  <>
+                    {{
+                      asc: <ChevronUpIcon width={10} />,
+                      desc: <ChevronDownIcon width={10} />,
+                    }[header.column.getIsSorted() as string] ?? <SortIcon width={8} />}
+                  </>
+                )}
+              </div>
             </th>
           ))}
         </tr>

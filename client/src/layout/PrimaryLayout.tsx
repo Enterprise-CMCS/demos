@@ -1,6 +1,4 @@
 import React from "react";
-import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
-import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
 import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
 import { getCurrentUser } from "components/user/UserContext";
@@ -26,18 +24,14 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <ToastProvider>
-      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower />}>
-        <div className="h-screen flex flex-col">
-          <Header />
-          <div className="flex flex-1 overflow-hidden bg-gray-primary-layout">
-            <SideNav />
-            <div className="flex-1 overflow-auto p-[16px] pb-5">
-              {children}
-            </div>
-          </div>
-          <Footer />
+      <div className="h-screen flex flex-col">
+        <Header />
+        <div className="flex flex-1 overflow-hidden bg-gray-primary-layout">
+          <SideNav />
+          <div className="flex-1 overflow-auto p-[16px] pb-5">{children}</div>
         </div>
-      </HeaderConfigProvider>
+        <Footer />
+      </div>
       <ToastContainer />
     </ToastProvider>
   );

@@ -6,6 +6,7 @@ import { CreateDemonstrationDialog } from "components/dialog/";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { AddNewIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";
+import { Loading } from "components/loading/Loading";
 
 export const DefaultHeaderLower: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -28,18 +29,12 @@ export const DefaultHeaderLower: React.FC = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
-        Loading…
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error || !currentUser) {
     // render a minimal bar if unauthenticated or errored
-    return (
-      <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between" />
-    );
+    return <div>Error Getting Current User</div>;
   }
 
   const handleSelect = (item: string) => {
@@ -51,14 +46,13 @@ export const DefaultHeaderLower: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-brand text-white p-[16px] h-[72px] flex items-center justify-between">
+    <>
       <div>
-        {/* Fullname should always exist. I see no reason for a fallback */}
         <span className="font-bold block">Hello {currentUser.person.fullName}</span>
         <span className="block text-sm">Welcome to DEMOS!</span>
       </div>
 
-      <div className="relative" ref={dropdownRef}>
+      <div ref={dropdownRef}>
         <SecondaryButton
           name="create-new"
           data-testid="create-new"
@@ -112,6 +106,6 @@ export const DefaultHeaderLower: React.FC = () => {
       {modalType === "extension" && (
         <ExtensionDialog mode="add" onClose={() => setModalType(null)} />
       )}
-    </div>
+    </>
   );
 };
