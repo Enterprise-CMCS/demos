@@ -93,6 +93,4 @@ describe("DemonstrationDetail", () => {
     expect(screen.getByText("Extensions")).toBeInTheDocument();
     expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
   });
-
-
 });
