@@ -4,9 +4,9 @@ import { ErrorButton } from "components/button";
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { tw } from "tags/tw";
 
-export interface BaseDialogProps {
+interface BaseDialogProps {
   title: string;
-  isOpen?: boolean;
+  isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
   actions?: React.ReactNode;
@@ -40,15 +40,14 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (typeof isOpen === "boolean") {
-      if (isOpen) {
-        if (!dialog.open) dialog.showModal();
-      } else {
-        if (dialog.open) dialog.close();
+    if (isOpen) {
+      if (!dialog.open) {
+        dialog.showModal();
       }
     } else {
-      dialog.showModal();
-      return () => dialog.close();
+      if (dialog.open) {
+        dialog.close();
+      }
     }
   }, [isOpen]);
 
