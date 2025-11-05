@@ -6,7 +6,6 @@ import { CreateDemonstrationDialog } from "components/dialog/";
 import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { AddNewIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";
-import { Loading } from "components/loading/Loading";
 
 export const DefaultHeaderLower: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -15,7 +14,7 @@ export const DefaultHeaderLower: React.FC = () => {
   >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { currentUser, loading, error } = getCurrentUser();
+  const { currentUser } = getCurrentUser();
 
   useEffect(() => {
     // Close dropdown on outside click
@@ -27,15 +26,6 @@ export const DefaultHeaderLower: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error || !currentUser) {
-    // render a minimal bar if unauthenticated or errored
-    return <div>Error Getting Current User</div>;
-  }
 
   const handleSelect = (item: string) => {
     setShowDropdown(false);

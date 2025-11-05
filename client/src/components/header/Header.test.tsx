@@ -1,6 +1,6 @@
 import React from "react";
 import { vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { UserProvider } from "components/user/UserContext";
 import { userMocks } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
@@ -33,14 +33,14 @@ vi.mock("react-oidc-context", () => ({
 describe("Header", () => {
   it("renders the logo", () => {
     renderWithProviders(<Header />);
-    expect(screen.getByAltText("Logo")).toBeInTheDocument();
+    waitFor(() => expect(screen.getByAltText("Logo")).toBeInTheDocument());
   });
 
   it("renders all quick links", () => {
     renderWithProviders(<QuickLinks />);
-    expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument();
+    waitFor(() => expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument());
+    waitFor(() => expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument());
+    waitFor(() => expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument());
   });
 
   it("renders the Create New button", async () => {

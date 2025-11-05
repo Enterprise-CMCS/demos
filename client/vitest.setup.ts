@@ -55,3 +55,6 @@ vi.mock("react-oidc-context", () => ({
   }),
   withAuthenticationRequired: (Component: React.ComponentType) => Component,
 }));
+
+// Set default timezone for tests to UTC to avoid timezone-related test failures
+process.env.TZ = "UTC";

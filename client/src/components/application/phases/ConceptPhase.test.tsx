@@ -180,13 +180,17 @@ describe("ConceptPhase", () => {
   describe("Date Field Behavior", () => {
     it("populates date when a document with createdAt is provided", () => {
       setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
-      const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/) as HTMLInputElement;
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
       expect(dateInput.value).toBe("2024-01-15");
     });
 
     it("allows user to change date manually", async () => {
       setup();
-      const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/) as HTMLInputElement;
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
       await userEvent.type(dateInput, "2024-02-20");
       expect(dateInput.value).toBe("2024-02-20");
     });

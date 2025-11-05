@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, Mock } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 import * as envMod from "config/env";
@@ -88,14 +88,14 @@ describe("DemosRouter", () => {
   it("renders the DemonstrationsPage at root path", () => {
     window.history.pushState({}, "Home", "/");
     render(<DemosRouter />);
-    expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument();
-    expect(screen.getByText("PrimaryLayout")).toBeInTheDocument();
+    waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
+    waitFor(() => expect(screen.getByText("PrimaryLayout")).toBeInTheDocument());
   });
 
   it("renders the Demonstrations page at /demonstrations", () => {
     window.history.pushState({}, "Demonstrations", "/demonstrations");
     render(<DemosRouter />);
-    expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument();
+    waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
   });
 
   it("renders debug routes in development mode", () => {
@@ -103,11 +103,11 @@ describe("DemosRouter", () => {
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
-    expect(screen.getByText("ComponentLibrary")).toBeInTheDocument();
+    waitFor(() => expect(screen.getByText("ComponentLibrary")).toBeInTheDocument());
 
     window.history.pushState({}, "Auth", "/auth");
     render(<DemosRouter />);
-    expect(screen.getByText("AuthDebugComponent")).toBeInTheDocument();
+    waitFor(() => expect(screen.getByText("AuthDebugComponent")).toBeInTheDocument());
   });
 
   it("does not render debug routes outside development mode", () => {
