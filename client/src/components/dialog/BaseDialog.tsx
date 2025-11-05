@@ -37,11 +37,13 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
 
   if (typeof isOpen === "undefined") {
+    // if isOpen is not provided, always show the dialog
     useEffect(() => {
       dialogRef.current?.showModal();
       return () => dialogRef.current?.close();
     }, []);
   } else {
+    // if isOpen is provided, show/hide the dialog based on its value
     useEffect(() => {
       const dialog = dialogRef.current;
       if (!dialog) return;
