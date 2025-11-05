@@ -1,16 +1,13 @@
 DO $$
 DECLARE
-    trigger_proc_record RECORD;
-    orphan_proc_record RECORD;
+    trigger_record RECORD;
+    proc_record RECORD;
 BEGIN
-    FOR trigger_proc_record IN
+    -- Delete all the triggers relating to functions and procedures first
+    FOR trigger_record IN
         SELECT
             c.relname AS table_name,
-            t.tgname AS trigger_name,
-            p.proname AS function_name,
-            p.oid AS function_oid,
-            pg_get_function_identity_arguments(p.oid) AS function_args,
-            p.prokind
+            t.tgname AS trigger_name
         FROM
             pg_trigger AS t
         INNER JOIN
@@ -29,38 +26,17 @@ BEGIN
     LOOP
         EXECUTE format(
             'DROP TRIGGER %I ON demos_app.%I;',
-            trigger_proc_record.trigger_name,
-            trigger_proc_record.table_name
+            trigger_record.trigger_name,
+            trigger_record.table_name
         );
         RAISE NOTICE
             'Dropped trigger % on demos_app.%',
-            trigger_proc_record.trigger_name,
-            trigger_proc_record.table_name;
-
-        IF trigger_proc_record.prokind = 'p' THEN
-            EXECUTE format(
-                'DROP PROCEDURE demos_app.%I(%s);',
-                trigger_proc_record.function_name,
-                trigger_proc_record.function_args
-            );
-            RAISE NOTICE
-                'Dropped procedure demos_app.%(%)',
-                trigger_proc_record.function_name,
-                trigger_proc_record.function_args;
-        ELSE
-            EXECUTE format(
-                'DROP FUNCTION demos_app.%I(%s);',
-                trigger_proc_record.function_name,
-                trigger_proc_record.function_args
-            );
-            RAISE NOTICE
-                'Dropped function demos_app.%(%)',
-                trigger_proc_record.function_name,
-                trigger_proc_record.function_args;
-        END IF;
+            trigger_record.trigger_name,
+            trigger_record.table_name;
     END LOOP;
 
-    FOR orphan_proc_record IN
+    -- Then, delete all the functions and procedures themselves
+    FOR proc_record IN
         SELECT
             p.proname AS function_name,
             pg_get_function_identity_arguments(p.oid) AS function_args,
@@ -74,26 +50,26 @@ BEGIN
             n.nspname = 'demos_app'
             AND p.proname NOT LIKE 'log_changes_%'
     LOOP
-        IF orphan_proc_record.prokind = 'p' THEN
+        IF proc_record.prokind = 'p' THEN
             EXECUTE format(
                 'DROP PROCEDURE demos_app.%I(%s);',
-                orphan_proc_record.function_name,
-                orphan_proc_record.function_args
+                proc_record.function_name,
+                proc_record.function_args
             );
             RAISE NOTICE
                 'Dropped procedure demos_app.%(%)',
-                orphan_proc_record.function_name,
-                orphan_proc_record.function_args;
+                proc_record.function_name,
+                proc_record.function_args;
         ELSE
             EXECUTE format(
                 'DROP FUNCTION demos_app.%I(%s);',
-                orphan_proc_record.function_name,
-                orphan_proc_record.function_args
+                proc_record.function_name,
+                proc_record.function_args
             );
             RAISE NOTICE
                 'Dropped function demos_app.%(%)',
-                orphan_proc_record.function_name,
-                orphan_proc_record.function_args;
+                proc_record.function_name,
+                proc_record.function_args;
         END IF;
     END LOOP;
 END

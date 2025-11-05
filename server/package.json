@@ -2,9 +2,6 @@
   "name": "demos-server",
   "version": "0.1.0",
   "type": "module",
-  "prisma": {
-    "schema": "./src/model"
-  },
   "dependencies": {
     "@apollo/server": "^5.1.0",
     "@as-integrations/aws-lambda": "^4.0.1",
