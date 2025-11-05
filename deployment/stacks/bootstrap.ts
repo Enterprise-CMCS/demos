@@ -111,7 +111,14 @@ export class BootstrapStack extends Stack {
         }),
         new aws_iam.PolicyStatement({
           actions: ["ssm:GetParameter"],
-          resources: [`arn:aws:ssm:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/demos/pub-cms-cert-1`],
+          resources: [
+            `arn:aws:ssm:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/demos/pub-cms-cert-1`,
+            `arn:aws:ssm:us-east-1:${process.env.CDK_DEFAULT_ACCOUNT}:parameter/demos/cloudfront/*`
+          ],
+        }),
+        new aws_iam.PolicyStatement({
+          actions: ["cloudfront:ListDistributions"],
+          resources: ["*"],
         }),
       ],
     });
