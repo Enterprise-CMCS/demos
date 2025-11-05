@@ -62,7 +62,8 @@ export type {
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,
-  SetApplicationDateInput,
+  ApplicationDateInput,
+  SetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
 export type NonEmptyString = string;
@@ -76,7 +77,8 @@ export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
-export type DateType = (typeof DATE_TYPES)[number];
+export type DateType = keyof typeof DATE_TYPES;
+export type ExpectedTimestamp = (typeof DATE_TYPES)[DateType]["expectedTimestamp"];
 export type LogLevel = (typeof LOG_LEVELS)[number];
 export type EventType = (typeof EVENT_TYPES)[number];
 export type AdminDemonstrationRole = (typeof ADMIN_DEMONSTRATION_ROLES)[number];
