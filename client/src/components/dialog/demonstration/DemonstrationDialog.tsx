@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { BaseDialogNew } from "components/dialog/BaseDialogNew";
+import { BaseDialog } from "components/dialog/BaseDialog";
 import { Textarea } from "components/input";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
@@ -160,7 +160,7 @@ export const DemonstrationDialog: React.FC<{
   };
 
   return (
-    <BaseDialogNew
+    <BaseDialog
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
@@ -250,6 +250,6 @@ export const DemonstrationDialog: React.FC<{
           />
         </div>
       </form>
-    </BaseDialogNew>
+    </BaseDialog>
   );
 };
