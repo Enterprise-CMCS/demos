@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { BaseDialog } from "components/dialog/BaseDialog";
+import { BaseDialog } from "components/dialog/BaseDialogNew";
 import { Textarea } from "components/input";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
@@ -143,12 +143,11 @@ const DateInputs: React.FC<{
 };
 
 export const DemonstrationDialog: React.FC<{
-  isOpen: boolean;
   onClose: () => void;
   mode: DemonstrationDialogMode;
   initialDemonstration: DemonstrationDialogFields;
   onSubmit: (demonstration: DemonstrationDialogFields) => Promise<void>;
-}> = ({ isOpen, onClose, mode, initialDemonstration, onSubmit }) => {
+}> = ({ onClose, mode, initialDemonstration, onSubmit }) => {
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -163,7 +162,6 @@ export const DemonstrationDialog: React.FC<{
   return (
     <BaseDialog
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
-      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}

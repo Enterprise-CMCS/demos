@@ -1,6 +1,6 @@
 import React from "react";
 
-import { BaseDialog } from "components/dialog/BaseDialog";
+import { BaseDialog } from "components/dialog/BaseDialogNew";
 import { vi } from "vitest";
 
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -47,7 +47,11 @@ describe("BaseDialog", () => {
         setShowCancelConfirm={setShowCancelConfirm}
       />
     );
-    expect(screen.getByText("Are you sure you want to cancel? Changes you have made so far will not be saved.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Are you sure you want to cancel? Changes you have made so far will not be saved."
+      )
+    ).toBeInTheDocument();
   });
 
   it("calls setShowCancelConfirm(false) when No is clicked", () => {

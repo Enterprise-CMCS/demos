@@ -1,33 +1,51 @@
 import React, { createContext, useContext, useState } from "react";
+import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
+import { AmendmentDialog } from "./AmendmentDialog";
+import { ExtensionDialog } from "./ExtensionDialog";
+// Import your dialog component
 
-type ModalContextType = {
-  isOpen: boolean;
+type DialogContextType = {
   content: React.ReactNode | null;
-  showModal: (content: React.ReactNode) => void;
-  hideModal: () => void;
+  showDialog: (content: React.ReactNode) => void;
+  hideDialog: () => void;
 };
 
-const ModalContext = createContext<ModalContextType | null>(null);
+const DialogContext = createContext<DialogContextType | null>(null);
 
-export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [modal, setModal] = useState<{ isOpen: boolean; content: React.ReactNode | null }>({
-    isOpen: false,
-    content: null,
-  });
+export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [content, setContent] = useState<React.ReactNode | null>(null);
 
-  const showModal = (content: React.ReactNode) => setModal({ isOpen: true, content });
-  const hideModal = () => setModal({ isOpen: false, content: null });
+  const showDialog = (dialogContent: React.ReactNode) => setContent(dialogContent);
+  const hideDialog = () => setContent(null);
 
   return (
-    <ModalContext.Provider value={{ ...modal, showModal, hideModal }}>
+    <DialogContext.Provider value={{ content, showDialog, hideDialog }}>
       {children}
-      {modal.isOpen && modal.content}
-    </ModalContext.Provider>
+      {content}
+    </DialogContext.Provider>
   );
 };
 
-export const useModal = () => {
-  const context = useContext(ModalContext);
-  if (!context) throw new Error("useModal must be used within a ModalProvider");
-  return context;
+export const useDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) throw new Error("useDialog must be used within a DialogProvider");
+
+  // Custom show function for CreateDemonstrationDialog
+  const showCreateDemonstrationDialog = () => {
+    context.showDialog(<CreateDemonstrationDialog onClose={context.hideDialog} />);
+  };
+
+  const showCreateAmendmentDialog = () => {
+    context.showDialog(<AmendmentDialog mode="add" onClose={context.hideDialog} />);
+  };
+
+  const showCreateExtensionDialog = () => {
+    context.showDialog(<ExtensionDialog mode="add" onClose={context.hideDialog} />);
+  };
+
+  return {
+    showCreateDemonstrationDialog,
+    showCreateAmendmentDialog,
+    showCreateExtensionDialog,
+  };
 };
