@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { BaseDialog } from "components/dialog/BaseDialogNew";
+import { BaseDialogNew } from "components/dialog/BaseDialogNew";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
@@ -118,7 +118,7 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
     });
 
   return (
-    <BaseDialog
+    <BaseDialogNew
       title={mode === "edit" ? `Edit ${capitalizedEntityType}` : `New ${capitalizedEntityType}`}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
@@ -268,6 +268,6 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
           />
         </div>
       </form>
-    </BaseDialog>
+    </BaseDialogNew>
   );
 };

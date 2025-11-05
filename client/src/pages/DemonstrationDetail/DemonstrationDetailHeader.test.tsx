@@ -14,6 +14,17 @@ vi.mock("components/toast/ToastContext", () => ({
   }),
 }));
 
+const showCreateDemonstrationDialog = vi.fn();
+const showCreateAmendmentDialog = vi.fn();
+const showCreateExtensionDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showCreateDemonstrationDialog,
+    showCreateAmendmentDialog,
+    showCreateExtensionDialog,
+  }),
+}));
+
 const testDemonstration = {
   id: "1",
   name: "Montana Medicaid Waiver",
@@ -234,10 +245,7 @@ describe("Demonstration Detail Header", () => {
 
     fireEvent.click(screen.getByTestId("button-create-new-amendment"));
 
-    // Verify Amendment modal appears
-    await waitFor(() => {
-      expect(screen.getByText(/New Amendment/i)).toBeInTheDocument();
-    });
+    expect(showCreateAmendmentDialog).toHaveBeenCalledWith("1");
   });
 
   it("opens Add Extension Modal when Extension option is clicked", async () => {
@@ -268,9 +276,6 @@ describe("Demonstration Detail Header", () => {
 
     fireEvent.click(screen.getByTestId("button-create-new-extension"));
 
-    // Verify Extension modal appears
-    await waitFor(() => {
-      expect(screen.getByText(/New Extension/i)).toBeInTheDocument();
-    });
+    expect(showCreateExtensionDialog).toHaveBeenCalledWith("1");
   });
 });

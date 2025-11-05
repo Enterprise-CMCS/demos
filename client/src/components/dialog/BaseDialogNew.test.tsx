@@ -1,6 +1,6 @@
 import React from "react";
 
-import { BaseDialog } from "components/dialog/BaseDialog";
+import { BaseDialogNew } from "components/dialog/BaseDialogNew";
 import { vi } from "vitest";
 
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -8,7 +8,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 describe("BaseDialog", () => {
   const defaultProps = {
     title: "Test Dialog",
-    isOpen: true,
     onClose: vi.fn(),
     children: <div>Dialog content</div>,
   };
@@ -17,22 +16,15 @@ describe("BaseDialog", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the title and children when open", () => {
-    render(<BaseDialog {...defaultProps} />);
+  it("renders the title and children", () => {
+    render(<BaseDialogNew {...defaultProps} />);
     expect(screen.getByText("Test Dialog")).toBeInTheDocument();
     expect(screen.getByText("Dialog content")).toBeInTheDocument();
   });
 
-  it("does not render when closed", () => {
-    render(<BaseDialog {...defaultProps} isOpen={false} />);
-    const dialog = document.querySelector("dialog");
-    expect(dialog).toBeInTheDocument();
-    expect(dialog?.open).toBe(false);
-  });
-
   it("renders and triggers the close button", () => {
     const onClose = vi.fn();
-    render(<BaseDialog {...defaultProps} onClose={onClose} />);
+    render(<BaseDialogNew {...defaultProps} onClose={onClose} />);
     const closeBtn = screen.getByLabelText("Close dialog");
     fireEvent.click(closeBtn);
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -41,7 +33,7 @@ describe("BaseDialog", () => {
   it("renders cancel confirmation dialog when showCancelConfirm is true", () => {
     const setShowCancelConfirm = vi.fn();
     render(
-      <BaseDialog
+      <BaseDialogNew
         {...defaultProps}
         showCancelConfirm={true}
         setShowCancelConfirm={setShowCancelConfirm}
@@ -57,7 +49,7 @@ describe("BaseDialog", () => {
   it("calls setShowCancelConfirm(false) when No is clicked", () => {
     const setShowCancelConfirm = vi.fn();
     render(
-      <BaseDialog
+      <BaseDialogNew
         {...defaultProps}
         showCancelConfirm={true}
         setShowCancelConfirm={setShowCancelConfirm}
@@ -72,7 +64,7 @@ describe("BaseDialog", () => {
     const onClose = vi.fn();
     const setShowCancelConfirm = vi.fn();
     render(
-      <BaseDialog
+      <BaseDialogNew
         {...defaultProps}
         onClose={onClose}
         showCancelConfirm={true}
@@ -86,18 +78,18 @@ describe("BaseDialog", () => {
 
   it("renders custom actions when provided", () => {
     const actions = <button>Custom Action</button>;
-    render(<BaseDialog {...defaultProps} actions={actions} />);
+    render(<BaseDialogNew {...defaultProps} actions={actions} />);
     expect(screen.getByText("Custom Action")).toBeInTheDocument();
   });
 
   it("hides header when hideHeader is true", () => {
-    render(<BaseDialog {...defaultProps} hideHeader={true} />);
+    render(<BaseDialogNew {...defaultProps} hideHeader={true} />);
     expect(screen.queryByText("Test Dialog")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Close dialog")).not.toBeInTheDocument();
   });
 
   it("applies custom max width class", () => {
-    render(<BaseDialog {...defaultProps} maxWidthClass="max-w-[500px]" />);
+    render(<BaseDialogNew {...defaultProps} maxWidthClass="max-w-[500px]" />);
     const dialog = document.querySelector("dialog");
     expect(dialog).toHaveClass("max-w-[500px]");
   });

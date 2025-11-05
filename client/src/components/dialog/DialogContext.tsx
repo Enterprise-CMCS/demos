@@ -3,7 +3,6 @@ import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDi
 import { AmendmentDialog } from "./AmendmentDialog";
 import { ExtensionDialog } from "./ExtensionDialog";
 import { EditDemonstrationDialog } from "./demonstration";
-// Import your dialog component
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -31,7 +30,6 @@ export const useDialog = () => {
   const context = useContext(DialogContext);
   if (!context) throw new Error("useDialog must be used within a DialogProvider");
 
-  // Custom show function for CreateDemonstrationDialog
   const showCreateDemonstrationDialog = () => {
     context.showDialog(<CreateDemonstrationDialog onClose={context.hideDialog} />);
   };

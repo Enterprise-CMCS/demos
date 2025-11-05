@@ -10,6 +10,17 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { mockUsers } from "mock-data/userMocks";
 
+const showCreateDemonstrationDialog = vi.fn();
+const showCreateAmendmentDialog = vi.fn();
+const showCreateExtensionDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showCreateDemonstrationDialog,
+    showCreateAmendmentDialog,
+    showCreateExtensionDialog,
+  }),
+}));
+
 // Mock UserContext
 vi.mock("components/user/UserContext", async (importOriginal) => {
   const actual = await importOriginal<typeof UserContext>();
@@ -118,7 +129,7 @@ describe("DefaultHeaderLower", () => {
     );
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
-    expect(screen.queryByText("CreateDemonstrationDialog")).toBeInTheDocument();
+    expect(showCreateDemonstrationDialog).toHaveBeenCalledWith();
   });
 
   it("opens AmendmentDialog for amendment", () => {
@@ -132,7 +143,7 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
-    expect(screen.getByText("AmendmentDialog (add)")).toBeInTheDocument();
+    expect(showCreateAmendmentDialog).toHaveBeenCalledWith();
   });
 
   it("opens ExtensionDialog for extension", () => {
@@ -146,6 +157,6 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
-    expect(screen.getByText("ExtensionDialog (add)")).toBeInTheDocument();
+    expect(showCreateExtensionDialog).toHaveBeenCalledWith();
   });
 });
