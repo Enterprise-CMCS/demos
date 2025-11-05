@@ -1,12 +1,12 @@
 import React, { useCallback, useState } from "react";
 
 import { CircleButton, SecondaryButton } from "components/button";
-import { AmendmentDialog, EditDemonstrationDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { safeDateFormat } from "util/formatDate";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
+import { useDialog } from "components/dialog/DialogContext";
 
 export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
   query DemonstrationHeaderDetails($demonstrationId: ID!) {
@@ -44,14 +44,13 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
 }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"amendment" | "extension" | "edit" | "delete" | null>(
-    null
-  );
   const { data, loading, error } = useQuery<{
     demonstration: DemonstrationHeaderDetails;
   }>(DEMONSTRATION_HEADER_DETAILS_QUERY, {
     variables: { demonstrationId },
   });
+  const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
+    useDialog();
 
   const handleToggleButtons = useCallback(() => {
     setShowButtons((prev) => !prev);
@@ -82,12 +81,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
       value: safeDateFormat(demonstration.expirationDate),
     },
   ];
-
-  const handleSelect = (item: string) => {
-    setShowDropdown(false);
-    if (item === "Amendment") setModalType("amendment");
-    else if (item === "Extension") setModalType("extension");
-  };
 
   return (
     <>
@@ -145,14 +138,14 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             <CircleButton
               name="Delete demonstration"
               data-testid="delete-button"
-              onClick={() => setModalType("delete")}
+              onClick={() => {}}
             >
               <DeleteIcon className="w-[24px] h-[24px]" />
             </CircleButton>
             <CircleButton
               name="Edit demonstration"
               data-testid="edit-button"
-              onClick={() => setModalType("edit")}
+              onClick={() => showEditDemonstrationDialog(demonstrationId)}
             >
               <EditIcon width="24" height="24" />
             </CircleButton>
@@ -167,14 +160,14 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
                 <button
                   data-testid="button-create-new-amendment"
-                  onClick={() => handleSelect("Amendment")}
+                  onClick={() => showCreateAmendmentDialog(demonstrationId)}
                   className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
                 >
                   Amendment
                 </button>
                 <button
                   data-testid="button-create-new-extension"
-                  onClick={() => handleSelect("Extension")}
+                  onClick={() => showCreateExtensionDialog(demonstrationId)}
                   className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
                 >
                   Extension
@@ -197,27 +190,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           </span>
         </CircleButton>
       </div>
-      {modalType === "amendment" && (
-        <AmendmentDialog
-          mode="add"
-          onClose={() => setModalType(null)}
-          demonstrationId={demonstration.id}
-        />
-      )}
-      {modalType === "extension" && (
-        <ExtensionDialog
-          mode="add"
-          onClose={() => setModalType(null)}
-          demonstrationId={demonstration.id}
-        />
-      )}
-      {modalType === "edit" && (
-        <EditDemonstrationDialog
-          isOpen={true}
-          onClose={() => setModalType(null)}
-          demonstrationId={demonstration.id}
-        />
-      )}
     </>
   );
 };

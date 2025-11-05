@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState } from "react";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { AmendmentDialog } from "./AmendmentDialog";
 import { ExtensionDialog } from "./ExtensionDialog";
+import { EditDemonstrationDialog } from "./demonstration";
 // Import your dialog component
 
 type DialogContextType = {
@@ -35,16 +36,27 @@ export const useDialog = () => {
     context.showDialog(<CreateDemonstrationDialog onClose={context.hideDialog} />);
   };
 
-  const showCreateAmendmentDialog = () => {
-    context.showDialog(<AmendmentDialog mode="add" onClose={context.hideDialog} />);
+  const showEditDemonstrationDialog = (demonstrationId: string) => {
+    context.showDialog(
+      <EditDemonstrationDialog demonstrationId={demonstrationId} onClose={context.hideDialog} />
+    );
   };
 
-  const showCreateExtensionDialog = () => {
-    context.showDialog(<ExtensionDialog mode="add" onClose={context.hideDialog} />);
+  const showCreateAmendmentDialog = (demonstrationId?: string) => {
+    context.showDialog(
+      <AmendmentDialog demonstrationId={demonstrationId} mode="add" onClose={context.hideDialog} />
+    );
+  };
+
+  const showCreateExtensionDialog = (demonstrationId?: string) => {
+    context.showDialog(
+      <ExtensionDialog demonstrationId={demonstrationId} mode="add" onClose={context.hideDialog} />
+    );
   };
 
   return {
     showCreateDemonstrationDialog,
+    showEditDemonstrationDialog,
     showCreateAmendmentDialog,
     showCreateExtensionDialog,
   };

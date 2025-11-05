@@ -130,8 +130,8 @@ export const DemonstrationDetail: React.FC = () => {
 
             <Tab label={`Extensions (${demonstration.extensions?.length ?? 0})`} value="extensions">
               <ExtensionsTab
+                demonstrationId={demonstration.id}
                 extensions={demonstration.extensions || []}
-                onClick={() => setEntityCreationModal("extension")}
                 initiallyExpandedId={extensionParam ?? undefined}
               />
             </Tab>

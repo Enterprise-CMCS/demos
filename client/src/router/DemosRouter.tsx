@@ -12,8 +12,6 @@ import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
 import { ApplicationDateSimulation } from "components/application/dates/ApplicationDateSimulation";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
-import { DialogProvider } from "components/dialog/DialogContext";
-import { ToastProvider } from "components/toast/ToastContext";
 
 export const DemosRouter: React.FC = () => {
   return (
