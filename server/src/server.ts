@@ -52,11 +52,12 @@ export function withAuthorizerHeader(
     : headers;
 }
 
-const databaseUrlPromise = getDatabaseUrl().then((url) => {
+const setDatabaseUrl = async () => {
+  const url = await getDatabaseUrl()
   log.debug({type: "graphql.db.creds_retrieved"});
   process.env.DATABASE_URL = url;
   return url;
-});
+};
 
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
@@ -76,7 +77,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
     context: async ({ event, context }) =>
       als.run(store, async () => {
         try {
-          await databaseUrlPromise;
+          await setDatabaseUrl();
           const restEvent = event;
           const claims = extractAuthorizerClaims(restEvent);
           // Pass claims to the existing builder via a header so we don't change its signature

@@ -120,10 +120,7 @@ export const documentResolvers = {
       _: unknown,
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<PrismaDocument> => {
-      checkOptionalNotNullFields(
-        ["name", "description", "documentType", "applicationId", "phaseName"],
-        input
-      );
+      checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
       try {
         return await prisma().document.update({
           where: { id: id },
