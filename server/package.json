@@ -6,8 +6,8 @@
     "schema": "./src/model"
   },
   "dependencies": {
-    "@apollo/server": "^4.12.2",
-    "@as-integrations/aws-lambda": "^3.1.0",
+    "@apollo/server": "^5.1.0",
+    "@as-integrations/aws-lambda": "^4.0.1",
     "@aws-sdk/client-s3": "^3.859.0",
     "@aws-sdk/client-secrets-manager": "^3.840.0",
     "@aws-sdk/s3-request-presigner": "^3.859.0",
@@ -24,8 +24,8 @@
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
-    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify",
-    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify && mkdir -p build/node_modules/.prisma/client/ && cp node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node build/node_modules/.prisma/client/",
+    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform",
+    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform && mkdir -p build/node_modules/.prisma/client/ && cp node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node build/node_modules/.prisma/client/",
     "depcheck": "depcheck",
     "server": "node ./dist/server.js",
     "dev": "tsx watch --inspect=9229 --clear-screen=false src/local-server.ts",
@@ -58,7 +58,6 @@
     "@types/node": "^22.14.1",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
-    "artillery": "^2.0.23",
     "concurrently": "^9.1.2",
     "depcheck": "^1.4.7",
     "esbuild": "^0.25.5",
