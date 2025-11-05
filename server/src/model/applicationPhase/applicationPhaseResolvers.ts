@@ -1,6 +1,7 @@
 import {
   ApplicationPhase as PrismaApplicationPhase,
   ApplicationDate as PrismaApplicationDate,
+  Document as PrismaDocument,
 } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { SetApplicationPhaseStatusInput } from "./applicationPhaseSchema.js";
@@ -61,6 +62,17 @@ export async function __resolveApplicationPhaseDates(
   return rows;
 }
 
+export async function __resolveApplicationPhaseDocuments(
+  parent: PrismaApplicationPhase
+): Promise<PrismaDocument[]> {
+  return await prisma().document.findMany({
+    where: {
+      applicationId: parent.applicationId,
+      phaseId: parent.phaseId,
+    },
+  });
+}
+
 export function __resolveApplicationPhaseName(parent: PrismaApplicationPhase): string {
   return parent.phaseId;
 }
@@ -74,6 +86,7 @@ export const applicationPhaseResolvers = {
     phaseName: __resolveApplicationPhaseName,
     phaseStatus: __resolveApplicationPhaseStatus,
     phaseDates: __resolveApplicationPhaseDates,
+    documents: __resolveApplicationPhaseDocuments,
   },
 
   Mutation: {
