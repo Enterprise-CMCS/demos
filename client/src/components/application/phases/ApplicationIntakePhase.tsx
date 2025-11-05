@@ -116,7 +116,19 @@ export const ApplicationIntakePhase = ({
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
   const onFinishButtonClick = async () => {
-    await Promise.all([completeApplicationIntake()]);
+    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
+    await completeApplicationIntake();
+
+    await setApplicationDateMutation({
+      variables: {
+        input: {
+          applicationId: demonstrationId,
+          dateType: "Application Intake Completion Date",
+          dateValue: todayDate,
+        },
+      },
+      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    });
   };
 
   const handleDocumentUploadSucceeded = async () => {
@@ -128,6 +140,17 @@ export const ApplicationIntakePhase = ({
         input: {
           applicationId: demonstrationId,
           dateType: "State Application Submitted Date",
+          dateValue: todayDate,
+        },
+      },
+      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    });
+
+    await setApplicationDateMutation({
+      variables: {
+        input: {
+          applicationId: demonstrationId,
+          dateType: "Completeness Start Date",
           dateValue: todayDate,
         },
       },
@@ -145,6 +168,17 @@ export const ApplicationIntakePhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "State Application Submitted Date",
+            dateValue: parsedDate,
+          },
+        },
+        refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      });
+
+      await setApplicationDateMutation({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            dateType: "Completeness Start Date",
             dateValue: parsedDate,
           },
         },
