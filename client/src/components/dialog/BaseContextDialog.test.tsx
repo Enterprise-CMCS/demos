@@ -1,6 +1,6 @@
 import React from "react";
 
-import { BaseDialogNew } from "components/dialog/BaseDialogNew";
+import { BaseContextDialog } from "components/dialog/BaseContextDialog";
 import { vi } from "vitest";
 
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -17,14 +17,14 @@ describe("BaseDialog", () => {
   });
 
   it("renders the title and children", () => {
-    render(<BaseDialogNew {...defaultProps} />);
+    render(<BaseContextDialog {...defaultProps} />);
     expect(screen.getByText("Test Dialog")).toBeInTheDocument();
     expect(screen.getByText("Dialog content")).toBeInTheDocument();
   });
 
   it("renders and triggers the close button", () => {
     const onClose = vi.fn();
-    render(<BaseDialogNew {...defaultProps} onClose={onClose} />);
+    render(<BaseContextDialog {...defaultProps} onClose={onClose} />);
     const closeBtn = screen.getByLabelText("Close dialog");
     fireEvent.click(closeBtn);
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -33,7 +33,7 @@ describe("BaseDialog", () => {
   it("renders cancel confirmation dialog when showCancelConfirm is true", () => {
     const setShowCancelConfirm = vi.fn();
     render(
-      <BaseDialogNew
+      <BaseContextDialog
         {...defaultProps}
         showCancelConfirm={true}
         setShowCancelConfirm={setShowCancelConfirm}
@@ -49,7 +49,7 @@ describe("BaseDialog", () => {
   it("calls setShowCancelConfirm(false) when No is clicked", () => {
     const setShowCancelConfirm = vi.fn();
     render(
-      <BaseDialogNew
+      <BaseContextDialog
         {...defaultProps}
         showCancelConfirm={true}
         setShowCancelConfirm={setShowCancelConfirm}
@@ -64,7 +64,7 @@ describe("BaseDialog", () => {
     const onClose = vi.fn();
     const setShowCancelConfirm = vi.fn();
     render(
-      <BaseDialogNew
+      <BaseContextDialog
         {...defaultProps}
         onClose={onClose}
         showCancelConfirm={true}
@@ -78,18 +78,18 @@ describe("BaseDialog", () => {
 
   it("renders custom actions when provided", () => {
     const actions = <button>Custom Action</button>;
-    render(<BaseDialogNew {...defaultProps} actions={actions} />);
+    render(<BaseContextDialog {...defaultProps} actions={actions} />);
     expect(screen.getByText("Custom Action")).toBeInTheDocument();
   });
 
   it("hides header when hideHeader is true", () => {
-    render(<BaseDialogNew {...defaultProps} hideHeader={true} />);
+    render(<BaseContextDialog {...defaultProps} hideHeader={true} />);
     expect(screen.queryByText("Test Dialog")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Close dialog")).not.toBeInTheDocument();
   });
 
   it("applies custom max width class", () => {
-    render(<BaseDialogNew {...defaultProps} maxWidthClass="max-w-[500px]" />);
+    render(<BaseContextDialog {...defaultProps} maxWidthClass="max-w-[500px]" />);
     const dialog = document.querySelector("dialog");
     expect(dialog).toHaveClass("max-w-[500px]");
   });

@@ -4,7 +4,7 @@ import { ErrorButton } from "components/button";
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { tw } from "tags/tw";
 
-interface BaseDialogProps {
+interface BaseContextDialogProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
@@ -21,7 +21,7 @@ const TITLE = tw`text-[18px] font-semibold mb-xs`;
 const HR = tw`border-border-rules my-sm`;
 const CONFIRMATION_DIALOG = tw`bg-surface-white border border-border-rules rounded p-2 w-[400px] shadow-md text-center backdrop:bg-black/40`;
 
-export const BaseDialogNew: React.FC<BaseDialogProps> = ({
+export const BaseContextDialog: React.FC<BaseContextDialogProps> = ({
   title,
   onClose,
   children,

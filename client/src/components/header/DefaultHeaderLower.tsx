@@ -55,28 +55,37 @@ export const DefaultHeaderLower: React.FC = () => {
           <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
             <button
               data-testid="button-create-new-demonstration"
-              onClick={() => showCreateDemonstrationDialog()}
+              onClick={() => {
+                setShowDropdown(false);
+                showCreateDemonstrationDialog();
+              }}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Demonstration
             </button>
             <button
               data-testid="button-create-new-document"
-              onClick={() => showCreateDemonstrationDialog()}
+              onClick={() => {}}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Add New Document
             </button>
             <button
               data-testid="button-create-new-amendment"
-              onClick={() => showCreateAmendmentDialog()}
+              onClick={() => {
+                setShowDropdown(false);
+                showCreateAmendmentDialog();
+              }}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Amendment
             </button>
             <button
               data-testid="button-create-new-extension"
-              onClick={() => showCreateExtensionDialog()}
+              onClick={() => {
+                setShowDropdown(false);
+                showCreateExtensionDialog();
+              }}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Extension
