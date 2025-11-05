@@ -6,7 +6,7 @@ import { tw } from "tags/tw";
 
 interface BaseDialogProps {
   title: string;
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   children: React.ReactNode;
   actions?: React.ReactNode;
@@ -36,20 +36,27 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+  if (typeof isOpen === "undefined") {
+    useEffect(() => {
+      dialogRef.current?.showModal();
+      return () => dialogRef.current?.close();
+    }, []);
+  } else {
+    useEffect(() => {
+      const dialog = dialogRef.current;
+      if (!dialog) return;
 
-    if (isOpen) {
-      if (!dialog.open) {
-        dialog.showModal();
+      if (isOpen) {
+        if (!dialog.open) {
+          dialog.showModal();
+        }
+      } else {
+        if (dialog.open) {
+          dialog.close();
+        }
       }
-    } else {
-      if (dialog.open) {
-        dialog.close();
-      }
-    }
-  }, [isOpen]);
+    }, [isOpen]);
+  }
 
   useEffect(() => {
     const confirmDialog = confirmDialogRef.current;

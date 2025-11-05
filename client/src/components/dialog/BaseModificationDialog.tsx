@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { BaseContextDialog } from "components/dialog/BaseContextDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
@@ -12,6 +11,7 @@ import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
 import { createSuccessMessages, useDialogForm } from "hooks/useDialogForm";
 import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
 import { tw } from "tags/tw";
+import { BaseDialog } from "./BaseDialog";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
@@ -118,7 +118,7 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
     });
 
   return (
-    <BaseContextDialog
+    <BaseDialog
       title={mode === "edit" ? `Edit ${capitalizedEntityType}` : `New ${capitalizedEntityType}`}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
@@ -268,6 +268,6 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
           />
         </div>
       </form>
-    </BaseContextDialog>
+    </BaseDialog>
   );
 };

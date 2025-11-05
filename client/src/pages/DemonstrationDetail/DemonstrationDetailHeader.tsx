@@ -145,7 +145,10 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             <CircleButton
               name="Edit demonstration"
               data-testid="edit-button"
-              onClick={() => showEditDemonstrationDialog(demonstrationId)}
+              onClick={() => {
+                setShowDropdown(false);
+                showEditDemonstrationDialog(demonstrationId);
+              }}
             >
               <EditIcon width="24" height="24" />
             </CircleButton>
@@ -160,14 +163,20 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
                 <button
                   data-testid="button-create-new-amendment"
-                  onClick={() => showCreateAmendmentDialog(demonstrationId)}
+                  onClick={() => {
+                    setShowDropdown(false);
+                    showCreateAmendmentDialog(demonstrationId);
+                  }}
                   className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
                 >
                   Amendment
                 </button>
                 <button
                   data-testid="button-create-new-extension"
-                  onClick={() => showCreateExtensionDialog(demonstrationId)}
+                  onClick={() => {
+                    setShowDropdown(false);
+                    showCreateExtensionDialog(demonstrationId);
+                  }}
                   className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
                 >
                   Extension
