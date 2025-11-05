@@ -25,15 +25,11 @@ type Amendment = Pick<ServerAmendment, "id"> & {
 };
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to amendmentId for clarity
-type Props = Pick<
-  BaseModificationDialogProps,
-  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
-> & {
+type Props = Pick<BaseModificationDialogProps, "onClose" | "mode" | "demonstrationId" | "data"> & {
   amendmentId?: string;
 };
 
 export const AmendmentDialog: React.FC<Props> = ({
-  isOpen = true,
   onClose,
   mode,
   amendmentId,
@@ -88,7 +84,6 @@ export const AmendmentDialog: React.FC<Props> = ({
 
   return (
     <BaseModificationDialog
-      isOpen={isOpen}
       onClose={onClose}
       mode={mode}
       entityId={amendmentId}

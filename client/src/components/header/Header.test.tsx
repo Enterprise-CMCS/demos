@@ -17,6 +17,10 @@ function renderWithProviders(ui: React.ReactNode) {
   );
 }
 
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({}),
+}));
+
 vi.mock("react-oidc-context", () => ({
   useAuth: () => ({
     isAuthenticated: true,

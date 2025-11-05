@@ -116,10 +116,9 @@ const useUpdateDemonstration = () => {
 };
 
 export const EditDemonstrationDialog: React.FC<{
-  isOpen: boolean;
   onClose: () => void;
   demonstrationId: string;
-}> = ({ isOpen, demonstrationId, onClose }) => {
+}> = ({ demonstrationId, onClose }) => {
   const { showSuccess, showError } = useToast();
   const updateDemonstration = useUpdateDemonstration();
 
@@ -145,7 +144,6 @@ export const EditDemonstrationDialog: React.FC<{
       {error && <div>Error loading demonstration data.</div>}
       {data && (
         <DemonstrationDialog
-          isOpen={isOpen}
           onClose={onClose}
           mode="edit"
           onSubmit={onSubmit}

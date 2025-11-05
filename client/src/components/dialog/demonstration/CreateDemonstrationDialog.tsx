@@ -26,9 +26,8 @@ export const CREATE_DEMONSTRATION_MUTATION = gql`
   }
 `;
 export const CreateDemonstrationDialog: React.FC<{
-  isOpen: boolean;
   onClose: () => void;
-}> = ({ isOpen, onClose }) => {
+}> = ({ onClose }) => {
   const { showSuccess, showError } = useToast();
 
   const [createDemonstrationTrigger] = useMutation<{
@@ -70,7 +69,6 @@ export const CreateDemonstrationDialog: React.FC<{
 
   return (
     <DemonstrationDialog
-      isOpen={isOpen}
       onClose={onClose}
       mode="create"
       initialDemonstration={DEFAULT_DEMONSTRATION_DIALOG_FIELDS}
