@@ -3,16 +3,28 @@ import React, { useEffect, useRef, useState } from "react";
 import { SecondaryButton } from "components/button/SecondaryButton";
 import { AddNewIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";
-import { Loading } from "components/loading/Loading";
 import { useDialog } from "components/dialog/DialogContext";
+
+const UserGreeting = () => {
+  const { currentUser } = getCurrentUser();
+
+  if (!currentUser) {
+    return <div>Loading user...</div>;
+  }
+
+  return (
+    <div>
+      <span className="font-bold block">Hello {currentUser.person.fullName}</span>
+      <span className="block text-sm">Welcome to DEMOS!</span>
+    </div>
+  );
+};
 
 export const DefaultHeaderLower: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
     useDialog();
-
-  const { currentUser, loading, error } = getCurrentUser();
 
   useEffect(() => {
     // Close dropdown on outside click
@@ -25,21 +37,9 @@ export const DefaultHeaderLower: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error || !currentUser) {
-    // render a minimal bar if unauthenticated or errored
-    return <div>Error Getting Current User</div>;
-  }
-
   return (
     <>
-      <div>
-        <span className="font-bold block">Hello {currentUser.person.fullName}</span>
-        <span className="block text-sm">Welcome to DEMOS!</span>
-      </div>
+      <UserGreeting />
 
       <div ref={dropdownRef}>
         <SecondaryButton
