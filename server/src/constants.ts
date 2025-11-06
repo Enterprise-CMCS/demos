@@ -1,3 +1,5 @@
+import { DateType, ExpectedTimestamp } from "./types.js";
+
 export const APPLICATION_STATUS = [
   "Pre-Submission",
   "Under Review",
@@ -82,7 +84,37 @@ export const PHASE_STATUS = [
   "Skipped",
 ] as const;
 
-export const DATE_TYPES = {
+export const DATE_TYPES = [
+  "Concept Start Date",
+  "Pre-Submission Submitted Date",
+  "Concept Completion Date",
+  "Application Intake Start Date",
+  "State Application Submitted Date",
+  "Completeness Review Due Date",
+  "Application Intake Completion Date",
+  "Completeness Start Date",
+  "State Application Deemed Complete",
+  "Federal Comment Period Start Date",
+  "Federal Comment Period End Date",
+  "Completeness Completion Date",
+  "SDG Preparation Start Date",
+  "Expected Approval Date",
+  "SME Review Date",
+  "FRT Initial Meeting Date",
+  "BNPMT Initial Meeting Date",
+  "SDG Preparation Completion Date",
+  "OGC & OMB Review Start Date",
+  "OGC Review Complete",
+  "OMB Review Complete",
+  "PO & OGD Sign-Off",
+  "OGC & OMB Review Completion Date",
+] as const;
+
+export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
+
+type DateTypeExpectedTimestampRecord = Record<DateType, { expectedTimestamp: ExpectedTimestamp }>;
+
+export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecord = {
   "Concept Start Date": { expectedTimestamp: "Start of Day" },
   "Pre-Submission Submitted Date": { expectedTimestamp: "Start of Day" },
   "Concept Completion Date": { expectedTimestamp: "Start of Day" },

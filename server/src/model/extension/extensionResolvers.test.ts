@@ -116,10 +116,10 @@ describe("extensionResolvers", () => {
 
   describe("__getExtension", () => {
     it("should request the extension", async () => {
-      const testInputData = {
+      const testInput = {
         id: testExtensionId,
       };
-      await __getExtension(undefined, testInputData);
+      await __getExtension(undefined, testInput);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, "Extension");
     });
   });

@@ -116,10 +116,10 @@ describe("amendmentResolvers", () => {
 
   describe("__getAmendment", () => {
     it("should request the amendment", async () => {
-      const testInputData = {
+      const testInput = {
         id: testAmendmentId,
       };
-      await __getAmendment(undefined, testInputData);
+      await __getAmendment(undefined, testInput);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, "Amendment");
     });
   });

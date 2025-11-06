@@ -195,10 +195,10 @@ describe("demonstrationResolvers", () => {
 
   describe("__getDemonstration", () => {
     it("should request the demonstration", async () => {
-      const testInputData = {
+      const testInput = {
         id: testValues.demonstrationId,
       };
-      await __getDemonstration(undefined, testInputData);
+      await __getDemonstration(undefined, testInput);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(
         testValues.demonstrationId,
         "Demonstration"
