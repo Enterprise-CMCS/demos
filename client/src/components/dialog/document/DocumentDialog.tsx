@@ -25,6 +25,9 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
       presignedURL
+      localBypass
+      message
+      documentId
     }
   }
 `;
@@ -470,7 +473,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   refetchQueries,
   onDocumentUploadSucceeded,
 }) => {
-  const { showError } = useToast();
+  const { showSuccess, showError } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
     refetchQueries,
   });
@@ -512,10 +515,20 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error(uploadDocumentResponse.errors[0].message);
     }
 
-    const presignedURL = uploadDocumentResponse.data?.uploadDocument.presignedURL ?? null;
+    const uploadResult = uploadDocumentResponse.data?.uploadDocument;
+
+    if (!uploadResult) {
+      const message = "Upload response from server was empty.";
+      showError(message);
+      throw new Error(message);
+    }
+
+    const presignedURL = uploadResult.presignedURL ?? null;
 
     if (!presignedURL) {
-      throw new Error("Could not get presigned URL from the server");
+      const message = uploadResult.message ?? "Could not get presigned URL from the server";
+      showError(message);
+      throw new Error(message);
     }
 
     const response: S3UploadResponse = await tryUploadingFileToS3(presignedURL, dialogFields.file);
@@ -523,6 +536,11 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     if (!response.success) {
       showError(response.errorMessage);
       throw new Error(response.errorMessage);
+    }
+
+    if (uploadResult.localBypass) {
+      const successMessage = uploadResult.message ?? SUCCESS_MESSAGES.fileUploaded;
+      showSuccess(successMessage);
     }
 
     onDocumentUploadSucceeded?.();

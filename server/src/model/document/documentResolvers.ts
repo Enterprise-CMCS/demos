@@ -1,5 +1,6 @@
+import { randomUUID } from "crypto";
 import { GraphQLError } from "graphql";
-
+import { log } from "../../log.js";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
@@ -11,7 +12,11 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
-import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
+import {
+  UpdateDocumentInput,
+  UploadDocumentInput,
+  UploadDocumentResponse,
+} from "./documentSchema.js";
 
 async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
@@ -19,55 +24,39 @@ async function getDocument(parent: unknown, { id }: { id: string }) {
   });
 }
 
-async function getPresignedUploadUrl(
-  documentPendingUpload: PrismaDocumentPendingUpload
-): Promise<string> {
-  const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
-    ? {
-        region: "us-east-1",
-        endpoint: process.env.S3_ENDPOINT_LOCAL,
-        forcePathStyle: true,
-        credentials: {
-          accessKeyId: "test",
-          secretAccessKey: "test", // pragma: allowlist secret
-        },
-      }
-    : {};
-  const s3 = new S3Client(s3ClientConfig);
-  const uploadBucket = process.env.UPLOAD_BUCKET;
-  const key = documentPendingUpload.id;
-  const command = new PutObjectCommand({
-    Bucket: uploadBucket,
-    Key: key,
-  });
-  return await getSignedUrl(s3, command, {
-    expiresIn: 3600,
-  });
+function makeS3ClientForPresign() {
+  const endpoint = process.env.S3_ENDPOINT_LOCAL || process.env.S3_ENDPOINT_LOCAL;
+  const base = {
+    region: "us-east-1",
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: "test", secretAccessKey: "test" // pragma: allowlist secret
+    },
+  };
+  return endpoint ? new S3Client({ ...base, endpoint }) : new S3Client(base);
 }
 
-async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string> {
-  const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
-    ? {
-        region: "us-east-1",
-        endpoint: process.env.S3_ENDPOINT_LOCAL,
-        forcePathStyle: true,
-        credentials: {
-          accessKeyId: "test",
-          secretAccessKey: "test", // pragma: allowlist secret
-        },
-      }
-    : {};
-  const s3 = new S3Client(s3ClientConfig);
-  const cleanBucket = process.env.CLEAN_BUCKET;
-  const key = `${document.applicationId}/${document.id}`;
-  const getObjectCommand = new GetObjectCommand({
-    Bucket: cleanBucket,
+async function createPresignedUploadUrl(key: string): Promise<string> {
+  const s3 = makeS3ClientForPresign();
+  const command = new PutObjectCommand({
+    Bucket: process.env.UPLOAD_BUCKET,
     Key: key,
   });
-  const s3Url = await getSignedUrl(s3, getObjectCommand, {
-    expiresIn: 3600,
+  return await getSignedUrl(s3, command, { expiresIn: 3600 });
+}
+
+async function getPresignedUploadUrl(pending: PrismaDocumentPendingUpload): Promise<string> {
+  const uploadKey = pending.id;
+  return await createPresignedUploadUrl(uploadKey);
+}
+
+async function getPresignedDownloadUrl(doc: PrismaDocument): Promise<string> {
+  const s3 = makeS3ClientForPresign();
+  const command = new GetObjectCommand({
+    Bucket: process.env.CLEAN_BUCKET,
+    Key: `${doc.applicationId}/${doc.id}`,
   });
-  return s3Url;
+  return await getSignedUrl(s3, command, { expiresIn: 3600 });
 }
 
 export const documentResolvers = {
@@ -80,12 +69,59 @@ export const documentResolvers = {
       parent: unknown,
       { input }: { input: UploadDocumentInput },
       context: GraphQLContext
-    ) => {
+    ): Promise<UploadDocumentResponse> => {
       if (context.user === null) {
         throw new Error(
           "The GraphQL context does not have user information. Are you properly authenticated?"
         );
       }
+
+      const isLocalBypass = process.env.ENVIRONMENT ? process.env.ENVIRONMENT === "local" : false;
+      if (isLocalBypass) {
+        // Bypass S3 + queue: create a real Document immediately for local development
+        const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-upload-bucket";
+        const documentId = randomUUID();
+        const uploadKey = `${input.applicationId}/${documentId}`;
+        const s3Path = `s3://${uploadBucket}/${uploadKey}`;
+        const document = await prisma().document.create({
+          data: {
+            id: documentId,
+            name: input.name,
+            description: input.description,
+            ownerUserId: context.user.id,
+            documentTypeId: input.documentType,
+            applicationId: input.applicationId,
+            phaseId: input.phaseName,
+            s3Path,
+            // any storage/path fields can be null or a local marker
+          },
+        });
+        log.info(
+          {
+            documentId: document.id,
+            applicationId: input.applicationId,
+          },
+          "Local upload bypass: created document directly"
+        );
+        const presignedURL = await createPresignedUploadUrl(uploadKey);
+
+        return {
+          presignedURL,
+          localBypass: true,
+          message: "Local upload detected; S3/queue bypassed.",
+          documentId: document.id,
+        };
+      }
+      console.log("-- DOCUMENT DATA --");
+      console.log({
+        name: input.name ?? "name empty",
+        description: input.description ?? "description empty",
+        userId: context.user.id ?? "id empty",
+        documentType: input.documentType ?? "documentType empty",
+        applicationId: input.applicationId ?? "applicationId empty",
+        phaseName: input.phaseName ?? "phaseName empty",
+      });
+
       const documentPendingUpload = await prisma().documentPendingUpload.create({
         data: {
           name: input.name,
@@ -98,7 +134,12 @@ export const documentResolvers = {
       });
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
-      return { presignedURL };
+      return {
+        presignedURL,
+        localBypass: false,
+        message: null,
+        documentId: null,
+      };
     },
 
     downloadDocument: async (_: unknown, { id }: { id: string }) => {

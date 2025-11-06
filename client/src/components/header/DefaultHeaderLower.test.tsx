@@ -52,7 +52,7 @@ vi.mock("components/dialog/ExtensionDialog", () => ({
 
 // Mock Toast Context
 vi.mock("components/toast", () => ({
-  useToast: () => ({ showSuccess: vi.fn() }),
+  useToast: () => ({ showSuccess: vi.fn(), showError: vi.fn() }),
 }));
 
 describe("DefaultHeaderLower", () => {

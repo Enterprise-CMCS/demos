@@ -1,5 +1,15 @@
 #!/bin/bash
 
+
+
+# {
+#     "data": {
+#         "uploadDocument": {
+#             "presignedURL": "http://localstack:4566/upload-bucket/aa703fe8-8229-4281-bcc4-6c4a1a493c09?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=test%2F20251105%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251105T183851Z&X-Amz-Expires=3600&X-Amz-Signature=72f919c41909471b285512127564f088a655c433052e2b29116eceff7849029c&X-Amz-SignedHeaders=host&x-amz-checksum-crc32=AAAAAA%3D%3D&x-amz-sdk-checksum-algorithm=CRC32&x-id=PutObject",
+#             "__typename": "UploadDocumentResponse"
+#         }
+#     }
+# }
 set -e  # Exit on any error
 
 # Colors for output
@@ -137,7 +147,7 @@ if [ "$STATUS" = "clean" ]; then
     else
         echo -e "${GREEN}✅ Clean file should be moved to clean bucket${NC}"
     fi
-    
+
     # Check if file exists in clean bucket (handle broken pipe gracefully)
     if aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://clean-bucket/ --recursive --region $REGION 2>/dev/null | grep -q "$FILE_ID" 2>/dev/null; then
         if [ -n "$LAMBDA_ERROR" ]; then
@@ -145,7 +155,7 @@ if [ "$STATUS" = "clean" ]; then
         else
             echo -e "${GREEN}🎉 File successfully processed and moved to clean bucket!${NC}"
         fi
-        
+
         echo -e "${YELLOW}📋 Downloading processed file for verification${NC}"
         CLEAN_FILE=$(aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 ls s3://clean-bucket/ --recursive --region $REGION 2>/dev/null | grep "$FILE_ID" 2>/dev/null | awk '{print $4}' | head -1)
         if [ -n "$CLEAN_FILE" ]; then

@@ -40,6 +40,30 @@ echo -e "${YELLOW}📋 Step 1: Creating S3 Buckets${NC}"
 aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 mb s3://upload-bucket --region $REGION 2>/dev/null || echo -e "${YELLOW}⚠️  upload-bucket already exists${NC}"
 aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 mb s3://clean-bucket --region $REGION 2>/dev/null || echo -e "${YELLOW}⚠️  clean-bucket already exists${NC}"
 
+echo -e "${YELLOW}📋 Step 1.1: Applying S3 CORS rules for browser uploads/downloads${NC}"
+
+# IMPORTANT: AllowedOrigins must match your frontend origin (adjust if not http://localhost:3000)
+aws --endpoint-url=$LOCALSTACK_ENDPOINT s3api put-bucket-cors --bucket upload-bucket --region $REGION --cors-configuration '{
+  "CORSRules": [{
+    "AllowedOrigins": ["http://localhost:3000"],
+    "AllowedMethods": ["PUT","POST","GET","HEAD","DELETE"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3000
+  }]
+}' 2>/dev/null || echo -e "${YELLOW}⚠️  CORS already set for upload-bucket (or LocalStack not responding)${NC}"
+
+aws --endpoint-url=$LOCALSTACK_ENDPOINT s3api put-bucket-cors --bucket clean-bucket --region $REGION --cors-configuration '{
+  "CORSRules": [{
+    "AllowedOrigins": ["http://localhost:3000"],
+    "AllowedMethods": ["GET","HEAD"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3000
+  }]
+}' 2>/dev/null || echo -e "${YELLOW}⚠️  CORS already set for clean-bucket (or LocalStack not responding)${NC}"
+
+echo -e "${GREEN}✅ S3 CORS configured${NC}"
 echo -e "${GREEN}✅ S3 buckets ready${NC}"
 
 echo -e "${YELLOW}📋 Step 2: Setting up Secrets Manager${NC}"
@@ -48,7 +72,7 @@ echo -e "${YELLOW}📋 Step 2: Setting up Secrets Manager${NC}"
 if aws --endpoint-url=$LOCALSTACK_ENDPOINT secretsmanager describe-secret \
    --secret-id database-secret --region $REGION >/dev/null 2>&1; then
     echo -e "${YELLOW}⚠️  database-secret already exists, updating it${NC}"
-    
+
     # Update existing secret
     aws --endpoint-url=$LOCALSTACK_ENDPOINT secretsmanager update-secret \
       --secret-id database-secret \
@@ -79,8 +103,9 @@ echo -e "${GREEN}✅ Database secret ready${NC}"
 
 echo -e "${YELLOW}📋 Step 3: Building and deploying Lambda function${NC}"
 
-# Navigate to lambda directory
-cd /workspaces/demos/lambdas/fileprocess
+# Navigate to lambda directory relative to this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
 # Create package.json if it doesn't exist
 if [ ! -f "package.json" ]; then
@@ -106,7 +131,9 @@ fi
 
 # Create deployment package
 echo "Creating deployment package..."
-zip -r fileprocess.zip index.js package.json package-lock.json node_modules/ -x "*.git*" "*.DS_Store*" >/dev/null
+zip_sources=("index.js" "package.json" "node_modules/")
+[ -f "package-lock.json" ] && zip_sources+=("package-lock.json")
+zip -r fileprocess.zip "${zip_sources[@]}" -x "*.git*" "*.DS_Store*" >/dev/null
 
 # Delete existing function if it exists
 aws --endpoint-url=$LOCALSTACK_ENDPOINT lambda delete-function \
@@ -135,7 +162,7 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
         --region $REGION \
         --query 'Configuration.State' \
         --output text 2>/dev/null || echo "Pending")
-    
+
     if [ "$STATUS" = "Active" ]; then
         echo -e "${GREEN}✅ Lambda function is active and ready${NC}"
         break
@@ -196,13 +223,13 @@ ENV_CHECK=$(aws --endpoint-url=$LOCALSTACK_ENDPOINT lambda get-function-configur
 
 if [ "$ENV_CHECK" != "http://localstack:4566" ]; then
     echo -e "${RED}❌ AWS_ENDPOINT_URL not properly set, fixing...${NC}"
-    
+
     # Re-apply environment variables
     aws --endpoint-url=$LOCALSTACK_ENDPOINT lambda update-function-configuration \
       --function-name fileprocess \
       --environment file://lambda-env.json \
       --region $REGION >/dev/null
-    
+
     echo -e "${GREEN}✅ Environment variables re-applied${NC}"
 fi
 
