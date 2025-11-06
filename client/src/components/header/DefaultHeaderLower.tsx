@@ -1,18 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button/SecondaryButton";
-import { AmendmentDialog } from "components/dialog/AmendmentDialog";
-import { CreateDemonstrationDialog } from "components/dialog/";
-import { ExtensionDialog } from "components/dialog/ExtensionDialog";
 import { AddNewIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";
+import { useDialog } from "components/dialog/DialogContext";
 
 export const DefaultHeaderLower: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<
-    "demonstration" | "document" | "amendment" | "extension" | null
-  >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
+    useDialog();
 
   const { currentUser } = getCurrentUser();
 
@@ -26,14 +23,6 @@ export const DefaultHeaderLower: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleSelect = (item: string) => {
-    setShowDropdown(false);
-    if (item === "Demonstration") setModalType("demonstration");
-    else if (item === "AddDocument") setModalType("document");
-    else if (item === "Amendment") setModalType("amendment");
-    else if (item === "Extension") setModalType("extension");
-  };
 
   return (
     <>
@@ -56,28 +45,37 @@ export const DefaultHeaderLower: React.FC = () => {
           <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
             <button
               data-testid="button-create-new-demonstration"
-              onClick={() => handleSelect("Demonstration")}
+              onClick={() => {
+                setShowDropdown(false);
+                showCreateDemonstrationDialog();
+              }}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Demonstration
             </button>
             <button
               data-testid="button-create-new-document"
-              onClick={() => handleSelect("AddDocument")}
+              onClick={() => {}}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Add New Document
             </button>
             <button
               data-testid="button-create-new-amendment"
-              onClick={() => handleSelect("Amendment")}
+              onClick={() => {
+                setShowDropdown(false);
+                showCreateAmendmentDialog();
+              }}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Amendment
             </button>
             <button
               data-testid="button-create-new-extension"
-              onClick={() => handleSelect("Extension")}
+              onClick={() => {
+                setShowDropdown(false);
+                showCreateExtensionDialog();
+              }}
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Extension
@@ -85,17 +83,6 @@ export const DefaultHeaderLower: React.FC = () => {
           </div>
         )}
       </div>
-
-      {modalType === "demonstration" && (
-        <CreateDemonstrationDialog isOpen={true} onClose={() => setModalType(null)} />
-      )}
-
-      {modalType === "amendment" && (
-        <AmendmentDialog mode="add" onClose={() => setModalType(null)} />
-      )}
-      {modalType === "extension" && (
-        <ExtensionDialog mode="add" onClose={() => setModalType(null)} />
-      )}
     </>
   );
 };

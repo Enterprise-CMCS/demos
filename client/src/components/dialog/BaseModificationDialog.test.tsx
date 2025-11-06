@@ -80,7 +80,6 @@ describe("BaseModificationDialog", () => {
   ) => (
     <TestProvider>
       <BaseModificationDialog
-        isOpen={true}
         onClose={mockOnClose}
         mode={mode}
         data={data}

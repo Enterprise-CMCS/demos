@@ -1,4 +1,4 @@
-import { PhaseName, PhaseStatus, ApplicationDate } from "../../types.js";
+import { PhaseName, PhaseStatus, ApplicationDate, Document } from "../../types.js";
 import { gql } from "graphql-tag";
 
 export const applicationPhaseSchema = gql`
@@ -8,6 +8,7 @@ export const applicationPhaseSchema = gql`
     phaseDates: [ApplicationDate!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+    documents: [Document!]!
   }
 
   input SetApplicationPhaseStatusInput {
@@ -27,6 +28,7 @@ export interface ApplicationPhase {
   phaseDates: ApplicationDate[];
   createdAt: Date;
   updatedAt: Date;
+  documents: Document[];
 }
 
 export interface SetApplicationPhaseStatusInput {
