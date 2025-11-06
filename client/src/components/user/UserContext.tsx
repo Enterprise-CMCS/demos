@@ -38,7 +38,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     skip: !auth.isAuthenticated,
   });
 
-  // Render a loading spinner while loading.
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen w-screen">
@@ -51,9 +50,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     console.error("[UserProvider] Error fetching current user. ", error);
   }
 
-  const currentUser = data?.currentUser ?? undefined;
-
-  return <Ctx.Provider value={{ currentUser }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ currentUser: data?.currentUser }}>{children}</Ctx.Provider>;
 }
 
 export function getCurrentUser() {
