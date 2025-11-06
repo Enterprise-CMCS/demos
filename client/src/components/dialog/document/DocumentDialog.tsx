@@ -6,6 +6,7 @@ import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
+import { Select, Option as SelectOption } from "components/input/select/Select";
 import { useToast } from "components/toast";
 import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
@@ -290,6 +291,16 @@ const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
   documentType: "General File",
 };
 
+interface ApplicationSelectorProps {
+  options: SelectOption[];
+  value: string;
+  onSelect: (value: string) => void;
+  isDisabled?: boolean;
+  placeholder?: string;
+  validationMessage?: string;
+  label?: string;
+}
+
 export type DocumentDialogProps = {
   isOpen: boolean;
   onClose?: () => void;
@@ -298,6 +309,7 @@ export type DocumentDialogProps = {
   onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
+  applicationSelectorProps?: ApplicationSelectorProps;
 };
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
@@ -308,6 +320,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onSubmit,
   initialDocument,
   titleOverride,
+  applicationSelectorProps,
 }) => {
   const { showSuccess, showError } = useToast();
 
@@ -421,6 +434,22 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
         </>
       }
     >
+      {applicationSelectorProps ? (
+        <div className="mb-sm">
+          <Select
+            id="document-dialog-application"
+            label={applicationSelectorProps.label ?? "Application"}
+            options={applicationSelectorProps.options}
+            value={applicationSelectorProps.value}
+            onSelect={applicationSelectorProps.onSelect}
+            isDisabled={applicationSelectorProps.isDisabled}
+            placeholder={applicationSelectorProps.placeholder ?? "Select application"}
+            validationMessage={applicationSelectorProps.validationMessage}
+            isRequired
+          />
+        </div>
+      ) : null}
+
       <DropTarget
         file={file}
         onRemove={clearFile}
@@ -462,6 +491,7 @@ interface AddDocumentDialogProps {
   titleOverride?: string;
   refetchQueries?: string[];
   onDocumentUploadSucceeded?: () => void;
+  applicationSelectorProps?: ApplicationSelectorProps;
 }
 
 export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
@@ -472,6 +502,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   titleOverride,
   refetchQueries,
   onDocumentUploadSucceeded,
+  applicationSelectorProps,
 }) => {
   const { showError } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
@@ -540,6 +571,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       documentTypeSubset={documentTypeSubset}
       initialDocument={defaultDocument}
       titleOverride={titleOverride}
+      applicationSelectorProps={applicationSelectorProps}
     />
   );
 };

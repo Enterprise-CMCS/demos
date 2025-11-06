@@ -53,13 +53,8 @@ export const useDialog = () => {
     );
   };
 
-  const showGeneralDocumentUploadDialog = (demonstrationId?: string) => {
-    if (!demonstrationId) {
-      throw new Error("demonstrationId is required for GeneralDocumentUploadDialog");
-    }
-    context.showDialog(
-      <GeneralDocumentUploadDialog applicationId={demonstrationId} mode="add" onClose={context.hideDialog} />
-    );
+  const showGeneralDocumentUploadDialog = () => {
+    context.showDialog(<GeneralDocumentUploadDialog onClose={context.hideDialog} />);
   };
 
   return {
