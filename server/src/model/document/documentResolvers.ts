@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { GraphQLError } from "graphql";
 
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -11,7 +12,11 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
-import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
+import {
+  UpdateDocumentInput,
+  UploadDocumentInput,
+  UploadDocumentResponse,
+} from "./documentSchema.js";
 
 async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
@@ -80,11 +85,38 @@ export const documentResolvers = {
       parent: unknown,
       { input }: { input: UploadDocumentInput },
       context: GraphQLContext
-    ) => {
+    ): Promise<UploadDocumentResponse> => {
       if (context.user === null) {
         throw new Error(
           "The GraphQL context does not have user information. Are you properly authenticated?"
         );
+      }
+
+      const simpleLocalUpload =
+        process.env.LOCAL_SIMPLE_UPLOAD === "true" || process.env.ENVIRONMENT === "local";
+      if (simpleLocalUpload) {
+        const documentId = randomUUID();
+        const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
+        const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
+        const document = await prisma().document.create({
+          data: {
+            id: documentId,
+            name: input.name,
+            description: input.description,
+            ownerUserId: context.user.id,
+            documentTypeId: input.documentType,
+            applicationId: input.applicationId,
+            phaseId: input.phaseName,
+            s3Path,
+          },
+        });
+
+        return {
+          presignedURL: null,
+          localBypass: true,
+          message: "Local simple upload: document stored without file scanning.",
+          documentId: document.id,
+        };
       }
       const documentPendingUpload = await prisma().documentPendingUpload.create({
         data: {
@@ -98,7 +130,12 @@ export const documentResolvers = {
       });
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
-      return { presignedURL };
+      return {
+        presignedURL,
+        localBypass: false,
+        message: null,
+        documentId: null,
+      };
     },
 
     downloadDocument: async (_: unknown, { id }: { id: string }) => {

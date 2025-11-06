@@ -25,6 +25,9 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
       presignedURL
+      localBypass
+      message
+      documentId
     }
   }
 `;
