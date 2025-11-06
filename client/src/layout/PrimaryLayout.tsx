@@ -1,10 +1,9 @@
 import React from "react";
-import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
-import { HeaderConfigProvider } from "components/header/HeaderConfigContext";
 import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
 import { getCurrentUser } from "components/user/UserContext";
 import { useLocation } from "react-router-dom";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
   const { loading: currentUserLoading, error: currentUserError } = getCurrentUser();
@@ -31,7 +30,7 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <ToastProvider>
-      <HeaderConfigProvider defaultLowerContent={<DefaultHeaderLower />}>
+      <DialogProvider>
         <div className="h-screen flex flex-col">
           <Header />
           <div className="flex flex-1 overflow-hidden bg-gray-primary-layout min-h-0">
@@ -42,7 +41,7 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
         </div>
-      </HeaderConfigProvider>
+      </DialogProvider>
       <ToastContainer />
     </ToastProvider>
   );

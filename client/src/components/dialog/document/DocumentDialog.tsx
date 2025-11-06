@@ -436,7 +436,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
       />
 
       <DescriptionInput
-        value={activeDocument.description}
+        value={activeDocument.description ?? ""}
         onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
       />
 

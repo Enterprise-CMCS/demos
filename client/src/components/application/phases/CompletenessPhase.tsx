@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { ExportIcon, DeleteIcon } from "components/icons";
+import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate, parseInputDate, formatDateForServer } from "util/formatDate";
 import { Notice, NoticeVariant } from "components/notice";
-import { differenceInCalendarDays } from "date-fns";
-import { useApolloClient, gql } from "@apollo/client";
-import { CompletenessDocumentUploadDialog } from "./CompletenessDocumentUploadDialog";
+import { addDays, differenceInCalendarDays } from "date-fns";
+import { gql, useMutation } from "@apollo/client";
+import { CompletenessDocumentUploadDialog } from "components/dialog/document/CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
 import {
   COMPLETENESS_PHASE_DATE_TYPES,
@@ -20,112 +20,27 @@ import {
 } from "../ApplicationWorkflow";
 import { TZDate } from "@date-fns/tz";
 import { useToast } from "components/toast";
+import { DocumentList } from "./sections";
+import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 
 const STYLES = {
-  pane: tw`bg-white p-8`,
+  pane: tw`bg-white`,
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
-  stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
+  stepEyebrow: tw`text-[12px] font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
   title: tw`text-xl font-semibold mb-2`,
   helper: tw`text-sm text-text-placeholder mb-2`,
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
-  fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
+  fileMeta: tw`text-[12px] text-text-placeholder mt-0.5`,
   actions: tw`mt-8 flex items-center gap-3`,
   actionsEnd: tw`ml-auto flex gap-3`,
 };
 
+const FEDERAL_COMMENT_PERIOD_DAYS = 30;
+
 const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
 const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
-const SET_APPLICATION_DATE_MUTATION = gql`
-  mutation SetApplicationDate($input: SetApplicationDateInput!) {
-    setApplicationDate(input: $input) {
-      __typename
-      ... on Demonstration {
-        id
-      }
-      ... on Amendment {
-        id
-      }
-      ... on Extension {
-        id
-      }
-    }
-  }
-`;
-
-const SET_PHASE_STATUS_MUTATION = gql`
-  mutation SetCompletenessPhaseStatus($input: SetApplicationPhaseStatusInput!) {
-    setApplicationPhaseStatus(input: $input) {
-      id
-      currentPhaseName
-      phases {
-        phaseName
-        phaseStatus
-        phaseDates {
-          dateType
-          dateValue
-        }
-      }
-    }
-  }
-`;
-
-const CompletenessNotice = ({
-  noticeDueDate,
-  stateDeemedComplete,
-}: {
-  noticeDueDate: string;
-  stateDeemedComplete: boolean;
-}) => {
-  useEffect(() => {
-    setNoticeDismissed(stateDeemedComplete === true);
-  }, [stateDeemedComplete]);
-  const [isNoticeDismissed, setNoticeDismissed] = useState(stateDeemedComplete === true);
-
-  useEffect(() => {
-    setNoticeDismissed(stateDeemedComplete);
-  }, [stateDeemedComplete]);
-
-  const noticeDueDateValue = parseInputDate(noticeDueDate);
-
-  if (!noticeDueDateValue || isNaN(noticeDueDateValue.getTime())) {
-    return null;
-  }
-
-  const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
-
-  // determine notice title/description from days
-  const getNoticeTitle = () => {
-    const daysLeft = noticeDaysValue;
-    if (daysLeft < 0) {
-      const daysPastDue = Math.abs(daysLeft);
-      return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
-    }
-    return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
-  };
-
-  const formattedNoticeDate = formatDate(noticeDueDateValue);
-  const noticeDescription = formattedNoticeDate
-    ? `This Amendment must be declared complete by ${formattedNoticeDate}`
-    : undefined;
-
-  // go from yellow to red at 1 day left.
-  const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
-  const shouldRenderNotice = Boolean(!isNoticeDismissed);
-
-  if (shouldRenderNotice) {
-    return (
-      <Notice
-        variant={noticeVariant}
-        title={getNoticeTitle()}
-        description={noticeDescription}
-        onDismiss={() => setNoticeDismissed(true)}
-        className="mb-6"
-      />
-    );
-  }
-};
 
 export const getApplicationCompletenessFromDemonstration = (
   demonstration: ApplicationWorkflowDemonstration
@@ -138,6 +53,12 @@ export const getApplicationCompletenessFromDemonstration = (
   );
   const fedCommentEndDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "Federal Comment Period End Date"
+  );
+  const applicationIntakePhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "Application Intake"
+  );
+  const applicationIntakeCompletionDate = applicationIntakePhase?.phaseDates.find(
+    (date) => date.dateType === "Application Intake Completion Date"
   );
   const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "State Application Deemed Complete"
@@ -161,6 +82,7 @@ export const getApplicationCompletenessFromDemonstration = (
           : ""
       }
       applicationCompletenessDocument={applicationCompletenessDocument ?? []}
+      hasApplicationIntakeCompletionDate={!!applicationIntakeCompletionDate}
     />
   );
 };
@@ -171,6 +93,7 @@ export interface CompletenessPhaseProps {
   fedCommentEndDate?: string;
   stateDeemedCompleteDate?: string;
   applicationCompletenessDocument: ApplicationWorkflowDocument[];
+  hasApplicationIntakeCompletionDate: boolean;
 }
 
 export const CompletenessPhase = ({
@@ -179,58 +102,72 @@ export const CompletenessPhase = ({
   fedCommentEndDate,
   stateDeemedCompleteDate,
   applicationCompletenessDocument,
+  hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
   const { showSuccess, showError } = useToast();
-  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
-    stateDeemedCompleteDate ?? ""
-  );
+
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
   const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
+  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
+    stateDeemedCompleteDate ?? ""
+  );
 
   const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
     applicationCompletenessDocument
   );
 
-  const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
-  const datesAreValid =
-    !federalStartDate || !federalEndDate
-      ? true
-      : new Date(federalStartDate) <= new Date(federalEndDate);
-
-  const canFinish = completenessDocs.length > 0 && datesFilled && datesAreValid;
-  const apolloClient = useApolloClient();
-
-  const updatePhaseStatus = useCallback(
-    async (phaseStatus: "Completed" | "Incomplete") => {
-      try {
-        await apolloClient.mutate({
-          mutation: SET_PHASE_STATUS_MUTATION,
-          variables: {
-            input: {
-              applicationId,
-              phaseName: "Completeness",
-              phaseStatus,
-            },
-          },
-          refetchQueries: [
-            {
-              query: GET_WORKFLOW_DEMONSTRATION_QUERY,
-              variables: { id: applicationId },
-            },
-          ],
-        });
-        showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
-      } catch (error) {
-        showError(error instanceof Error ? error.message : String(error));
-        console.error("Error saving Phase: ", error);
+  const [setApplicationDateMutation] = useMutation(gql`
+    mutation SetApplicationDate($input: SetApplicationDateInput!) {
+      setApplicationDate(input: $input) {
+        __typename
       }
-    },
-    [apolloClient, applicationId, showError, showSuccess]
-  );
+    }
+  `);
+
+  const { setPhaseStatus: completeCompletenessPhase } = useSetPhaseStatus({
+    applicationId: applicationId,
+    phaseName: "Completeness",
+    phaseStatus: "Completed",
+  });
+
+  const { setPhaseStatus: setCompletenessIncompleted } = useSetPhaseStatus({
+    applicationId: applicationId,
+    phaseName: "Completeness",
+    phaseStatus: "Incomplete",
+  });
+
+  // Automatically set federal comment period dates based on state deemed complete date
+  useEffect(() => {
+    if (!stateDeemedComplete) {
+      setFederalStartDate("");
+      setFederalEndDate("");
+      return;
+    }
+
+    const parsedStateDate = parseInputDate(stateDeemedComplete);
+    const computedStartDate = addDays(parsedStateDate, 1);
+    const computedEndDate = addDays(computedStartDate, FEDERAL_COMMENT_PERIOD_DAYS);
+
+    const nextStart = formatDateForServer(computedStartDate);
+    const nextEnd = formatDateForServer(computedEndDate);
+
+    setFederalStartDate(nextStart);
+    setFederalEndDate(nextEnd);
+  }, [stateDeemedComplete]);
+
+  const finishIsEnabled = () => {
+    const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
+    const datesAreValid =
+      federalStartDate && federalEndDate
+        ? true
+        : new Date(federalStartDate) <= new Date(federalEndDate);
+
+    return completenessDocs.length > 0 && datesFilled && datesAreValid;
+  };
 
   const getDateValues = useCallback(() => {
     const toEasternStartOfDay = (value: string): Date | null =>
@@ -242,43 +179,44 @@ export const CompletenessPhase = ({
       "State Application Deemed Complete": toEasternStartOfDay(stateDeemedComplete),
       "Federal Comment Period Start Date": toEasternStartOfDay(federalStartDate),
       "Federal Comment Period End Date": toEasternEndOfDay(federalEndDate),
-      "Completeness Completion Date": toEasternStartOfDay(stateDeemedComplete),
+      "Completeness Completion Date": hasApplicationIntakeCompletionDate
+        ? toEasternStartOfDay(stateDeemedComplete)
+        : null,
     } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
-  }, [stateDeemedComplete, federalStartDate, federalEndDate]);
+  }, [
+    hasApplicationIntakeCompletionDate,
+    stateDeemedComplete,
+    federalStartDate,
+    federalEndDate,
+  ]);
 
-  const saveTheDatesOnly = useCallback(
-    async (options?: { suppressSuccessToast?: boolean }) => {
-      const dateValues = getDateValues();
-      const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
+  const saveDates = async () => {
+    const dateValues = getDateValues();
+    const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
 
-      try {
-        await Promise.all(
-          inputs.map(async (input) => {
-            await apolloClient.mutate({
-              mutation: SET_APPLICATION_DATE_MUTATION,
-              variables: { input },
-            });
-          })
-        );
-        if (!options?.suppressSuccessToast) {
-          showSuccess(DATES_SUCCESS_MESSAGE);
-        }
-      } catch (error) {
-        showError(error instanceof Error ? error.message : String(error));
-        console.error("Error saving Phase: ", error);
+    try {
+      for (const input of inputs) {
+        await setApplicationDateMutation({
+          variables: {
+            input,
+          },
+          refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+        });
       }
-    },
-    [apolloClient, applicationId, getDateValues, showError, showSuccess]
-  );
+    } catch (error) {
+      showError(error instanceof Error ? error.message : String(error));
+      console.error("Error saving Phase: ", error);
+    }
+  };
 
-  const handleFinishCompleteness = useCallback(async () => {
-    await saveTheDatesOnly({ suppressSuccessToast: true });
-    await updatePhaseStatus("Completed");
-  }, [saveTheDatesOnly, updatePhaseStatus]);
+  const handleFinishCompleteness = async () => {
+    await saveDates();
+    await completeCompletenessPhase();
+  };
 
-  const handleDeclareIncomplete = useCallback(async () => {
-    await updatePhaseStatus("Incomplete");
-  }, [updatePhaseStatus]);
+  const handleDeclareIncomplete = async () => {
+    await setCompletenessIncompleted();
+  };
 
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
@@ -291,36 +229,19 @@ export const CompletenessPhase = ({
         Upload
         <ExportIcon />
       </SecondaryButton>
-      <div className={STYLES.list}>
-        {completenessDocs.map((doc) => (
-          <div key={doc.id} className={STYLES.fileRow}>
-            <div>
-              <div className="font-medium">{doc.name}</div>
-              <div className={STYLES.fileMeta}>
-                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
-              </div>
-            </div>
-            <button
-              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-              onClick={() =>
-                setCompletenessDocs((docs) => docs.filter((document) => document.id !== doc.id))
-              }
-              aria-label={`Delete ${doc.name}`}
-              title={`Delete ${doc.name}`}
-            >
-              <DeleteIcon className="w-2 h-2" />
-            </button>
-          </div>
-        ))}
-      </div>
+      <DocumentList
+        documents={completenessDocs}
+        onDelete={(id) =>
+          setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))
+        }
+      />
     </div>
   );
 
   const VerifyCompleteSection = () => (
     <div aria-labelledby="completeness-verify-title">
-      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Completeeee</div>
       <h4 id="completeness-verify-title" className={STYLES.title}>
-        VERIFY/COMPLETE
+        Step 2 - VERIFY/COMPLETE
       </h4>
       <p className={STYLES.helper}>
         Verify that the document(s) are uploaded/accurate and that all required fields are filled.
@@ -338,7 +259,9 @@ export const CompletenessPhase = ({
           <input
             type="date"
             value={stateDeemedComplete}
-            onChange={(e) => setStateDeemedComplete(e.target.value)}
+            onChange={(event) => {
+              setStateDeemedComplete(event.target.value);
+            }}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="state-application-deemed-complete"
             data-testid="state-application-deemed-complete"
@@ -353,10 +276,11 @@ export const CompletenessPhase = ({
           <input
             type="date"
             value={federalStartDate}
-            onChange={(event) => setFederalStartDate(event.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="federal-comment-period-start"
             data-testid="federal-comment-period-start"
+            readOnly
+            disabled
           />
         </div>
 
@@ -368,14 +292,12 @@ export const CompletenessPhase = ({
           <input
             type="date"
             value={federalEndDate}
-            onChange={(e) => setFederalEndDate(e.target.value)}
             className="w-full border border-border-fields px-1 py-1 text-sm rounded"
             id="federal-comment-period-end"
             data-testid="federal-comment-period-end"
+            readOnly
+            disabled
           />
-          {federalStartDate && federalEndDate && !datesAreValid && (
-            <div className="text-xs text-text-warn mt-1">End date must be after start date</div>
-          )}
         </div>
       </div>
 
@@ -392,7 +314,8 @@ export const CompletenessPhase = ({
             name="save-for-later"
             size="small"
             onClick={async () => {
-              await saveTheDatesOnly();
+              await saveDates();
+              showSuccess(DATES_SUCCESS_MESSAGE);
             }}
           >
             Save For Later
@@ -400,9 +323,10 @@ export const CompletenessPhase = ({
           <Button
             name="finish-completeness"
             size="small"
-            disabled={!canFinish}
+            disabled={!finishIsEnabled()}
             onClick={async () => {
               await handleFinishCompleteness();
+              showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
             }}
           >
             Finish
@@ -412,13 +336,54 @@ export const CompletenessPhase = ({
     </div>
   );
 
+  const CompletenessNotice = () => {
+    const [isNoticeDismissed, setNoticeDismissed] = useState(false);
+
+    if (federalEndDate) {
+      const noticeDueDateValue = parseInputDate(federalEndDate);
+      if (! noticeDueDateValue) {
+        console.error("Error parsing federal end date for completeness notice:", federalEndDate);
+        showError("Error parsing federal end date for completeness notice.");
+      }
+
+      const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
+
+      // determine notice title/description from days
+      const getNoticeTitle = () => {
+        const daysLeft = noticeDaysValue;
+        if (daysLeft < 0) {
+          const daysPastDue = Math.abs(daysLeft);
+          return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
+        }
+        return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
+      };
+
+      const formattedNoticeDate = formatDate(noticeDueDateValue);
+      const noticeDescription = formattedNoticeDate
+        ? `This Amendment must be declared complete by ${formattedNoticeDate}`
+        : undefined;
+
+      // go from yellow to red at 1 day left.
+      const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
+      const shouldRenderNotice = Boolean(!isNoticeDismissed);
+
+      if (shouldRenderNotice) {
+        return (
+          <Notice
+            variant={noticeVariant}
+            title={getNoticeTitle()}
+            description={noticeDescription}
+            onDismiss={() => setNoticeDismissed(true)}
+            className="mb-6"
+          />
+        );
+      }
+    }
+  };
+
   return (
     <div>
-      <CompletenessNotice
-        noticeDueDate={federalEndDate ?? ""}
-        stateDeemedComplete={!!stateDeemedComplete}
-      />
-
+      <CompletenessNotice />
       <button
         className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
         onClick={() => setCollapsed((prev) => !prev)}

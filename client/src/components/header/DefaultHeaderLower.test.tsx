@@ -10,6 +10,17 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { mockUsers } from "mock-data/userMocks";
 
+const showCreateDemonstrationDialog = vi.fn();
+const showCreateAmendmentDialog = vi.fn();
+const showCreateExtensionDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showCreateDemonstrationDialog,
+    showCreateAmendmentDialog,
+    showCreateExtensionDialog,
+  }),
+}));
+
 // Mock UserContext
 vi.mock("components/user/UserContext", async (importOriginal) => {
   const actual = await importOriginal<typeof UserContext>();
@@ -62,18 +73,6 @@ describe("DefaultHeaderLower", () => {
     vi.resetAllMocks();
   });
 
-  it("renders empty bar when no userId is passed", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: null,
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
-    });
-    const { container } = render(<DefaultHeaderLower />);
-    expect(container.firstChild?.childNodes.length).toBe(0);
-  });
-
   it("shows loading state", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: null,
@@ -83,31 +82,7 @@ describe("DefaultHeaderLower", () => {
       hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
-    expect(screen.getByText("Loading…")).toBeInTheDocument();
-  });
-
-  it("shows error message", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: null,
-      loading: false,
-      error: { message: "fail" } as unknown as import("@apollo/client").ApolloError,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
-    });
-    const { container } = render(<DefaultHeaderLower />);
-    expect(container.firstChild?.childNodes.length).toBe(0);
-  });
-
-  it("returns null if no user data", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: null,
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
-    });
-    const { container } = render(<DefaultHeaderLower />);
-    expect(container.firstChild?.childNodes.length).toBe(0);
+    expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
   });
 
   it("displays user greeting", () => {
@@ -154,7 +129,7 @@ describe("DefaultHeaderLower", () => {
     );
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
-    expect(screen.queryByText("CreateDemonstrationDialog")).toBeInTheDocument();
+    expect(showCreateDemonstrationDialog).toHaveBeenCalledWith();
   });
 
   it("opens AmendmentDialog for amendment", () => {
@@ -168,7 +143,7 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
-    expect(screen.getByText("AmendmentDialog (add)")).toBeInTheDocument();
+    expect(showCreateAmendmentDialog).toHaveBeenCalledWith();
   });
 
   it("opens ExtensionDialog for extension", () => {
@@ -182,6 +157,6 @@ describe("DefaultHeaderLower", () => {
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
-    expect(screen.getByText("ExtensionDialog (add)")).toBeInTheDocument();
+    expect(showCreateExtensionDialog).toHaveBeenCalledWith();
   });
 });

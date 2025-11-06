@@ -145,12 +145,12 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 >
                   {displayFields.map((field, index) => (
                     <React.Fragment key={field.label}>
-                      <li className="text-sm">
+                      <li className="text-[12px]">
                         <strong>{field.label}</strong>:{" "}
                         <span data-testid={`demonstration-${field.label}`}>{field.value}</span>
                       </li>
                       {index < displayFields.length - 1 && (
-                        <li className="text-sm" aria-hidden="true">
+                        <li className="text-[12px]" aria-hidden="true">
                           |
                         </li>
                       )}
