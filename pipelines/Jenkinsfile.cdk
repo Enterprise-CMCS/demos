@@ -72,6 +72,7 @@ pipeline {
                 "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
                 "pullrequest.base": env.CHANGE_TARGET ?: null,
                 "exclusions": "**/*.test.ts,**/*.test.tsx,coverage/**,cdk.out/**,**/nag-suppressions.ts,jest.config.cjs,lib/mockLambda.js,index.ts,demosctl/index.ts",
+                "coverage.exclusions": "util/getParameter.ts,util/getSecret.ts",
                 "sources": "./",
                 "tests": "./"
               ]

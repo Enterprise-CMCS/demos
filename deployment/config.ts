@@ -2,6 +2,8 @@ import { Aws } from "aws-cdk-lib";
 import { getSecret } from "./util/getSecret";
 import { getZScalerIps } from "./util/zscalerIps";
 import { getUserPoolIdByName } from "./util/getUserPoolId";
+import * as fs from "fs";
+import { getParameter } from "./util/getParameter";
 
 export interface DeploymentConfigProperties {
   project: string;
@@ -53,6 +55,9 @@ export const determineDeploymentConfig = async (
   if (isEphemeral) {
     cloudfrontHost = `${stage}.${cloudfrontHost}`;
   }
+
+  const pubCertData = await getParameter("/demos/pub-cms-cert-1")
+  fs.writeFileSync("./cert.pem", `${pubCertData}`);
 
   return {
     ...config,
