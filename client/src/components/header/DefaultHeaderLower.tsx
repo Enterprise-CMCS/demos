@@ -38,7 +38,7 @@ export const DefaultHeaderLower: React.FC = () => {
   return (
     <>
       <div>
-        <span className="font-bold block">Hello {currentUser.person.fullName}</span>
+        <span className="font-bold block">Hello {currentUser?.person.fullName ?? "User"}</span>
         <span className="block text-sm">Welcome to DEMOS!</span>
       </div>
 

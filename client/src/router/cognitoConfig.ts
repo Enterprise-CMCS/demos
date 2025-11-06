@@ -1,4 +1,3 @@
-// src/router/cognitoConfig.ts
 import { getAppMode } from "config/env";
 import type { AuthProviderProps } from "react-oidc-context";
 import type { UserManagerSettings } from "oidc-client-ts";

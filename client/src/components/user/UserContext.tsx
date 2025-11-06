@@ -2,6 +2,7 @@ import React, { createContext, useContext } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { useAuth } from "react-oidc-context";
 import { Person, User } from "demos-server";
+import { Loading } from "components/loading/Loading";
 
 type CurrentUser = Pick<User, "id" | "username"> & {
   person: Pick<Person, "id" | "personType" | "fullName" | "firstName" | "lastName" | "email">;
@@ -25,38 +26,34 @@ export const GET_CURRENT_USER_QUERY = gql`
 `;
 
 interface UserContextValue {
-  currentUser: CurrentUser;
+  currentUser?: CurrentUser;
 }
 
 const Ctx = createContext<UserContextValue | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
-  const shouldQuery = auth.isAuthenticated && !auth.isLoading;
 
   const { data, loading, error } = useQuery(GET_CURRENT_USER_QUERY, {
-    fetchPolicy: "cache-first",
-    skip: !shouldQuery,
+    skip: !auth.isAuthenticated,
   });
 
-  // Don't load anything until we know auth status
-  if (loading || !shouldQuery) {
-    return null;
+  // Render a loading spinner while loading.
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-screen">
+        <Loading />
+      </div>
+    );
   }
 
   if (error) {
-    const errorMessage = "[UserProvider] Error fetching current user. ";
-    console.error(errorMessage, error);
-    return null;
+    console.error("[UserProvider] Error fetching current user. ", error);
   }
 
-  if (!data || !data.currentUser) {
-    const errorMessage = "[UserProvider] Error fetching current user. ";
-    console.error(errorMessage);
-    return null;
-  }
+  const currentUser = data?.currentUser ?? undefined;
 
-  return <Ctx.Provider value={{ currentUser: data.currentUser }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ currentUser }}>{children}</Ctx.Provider>;
 }
 
 export function getCurrentUser() {
