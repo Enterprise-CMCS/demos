@@ -12,7 +12,7 @@ import {
   Tags,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { Bucket } from "aws-cdk-lib/aws-s3";
+import { Bucket, HttpMethods } from "aws-cdk-lib/aws-s3";
 import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambda from "../lib/lambda";
@@ -70,6 +70,11 @@ export class FileUploadStack extends Stack {
       enforceSSL: true,
       eventBridgeEnabled: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+      cors: [{
+        allowedMethods: [HttpMethods.PUT],
+        allowedOrigins: [`https://${props.cloudfrontHost}`],
+        allowedHeaders: ["*"]
+      }]
     });
 
     new GuardDutyS3(this, "uploadBucketScan", {
