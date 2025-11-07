@@ -6,7 +6,7 @@ import { tw } from "tags/tw";
 import { formatDate, parseInputDate, formatDateForServer } from "util/formatDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { addDays, differenceInCalendarDays } from "date-fns";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useApolloClient, useMutation } from "@apollo/client";
 import { CompletenessDocumentUploadDialog } from "components/dialog/document/CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
 import {
@@ -104,6 +104,7 @@ export const CompletenessPhase = ({
   applicationCompletenessDocument,
   hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
+  const apolloClient = useApolloClient();
   const { showSuccess, showError } = useToast();
 
   const [isUploadOpen, setUploadOpen] = useState(false);
@@ -115,6 +116,34 @@ export const CompletenessPhase = ({
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
     stateDeemedCompleteDate ?? ""
   );
+  // Made an example of how to refetch docs after upload
+  const handleDocumentUpload = async () => {
+    try {
+      const { data } = await apolloClient.query<{
+        demonstration: ApplicationWorkflowDemonstration;
+      }>({
+        query: GET_WORKFLOW_DEMONSTRATION_QUERY,
+        variables: { id: applicationId },
+        fetchPolicy: "network-only",
+      });
+
+      const updatedDocs =
+        data?.demonstration?.documents.filter(
+          (doc) => doc.documentType === "Application Completeness Letter"
+        ) ?? [];
+
+      setCompletenessDocs(updatedDocs);
+      showSuccess("Completeness document uploaded.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to refresh documents after upload.";
+      showError(message);
+    } finally {
+      setUploadOpen(false);
+    }
+  };
 
   const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
     applicationCompletenessDocument
@@ -224,8 +253,13 @@ export const CompletenessPhase = ({
         STEP 1 - UPLOAD
       </h4>
       <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
-      {/* TODO: DOC NOT WORKING - documentPendingUpload.create - seeded to compensate */}
-      <SecondaryButton onClick={() => setUploadOpen(true)} size="small" name="open-upload">
+      <SecondaryButton
+        onClick={() => {
+          setUploadOpen(true);
+        }}
+        size="small"
+        name="open-upload"
+      >
         Upload
         <ExportIcon />
       </SecondaryButton>
@@ -396,7 +430,7 @@ export const CompletenessPhase = ({
       {!collapsed && (
         <div id="completeness-phase-content">
           <p className="text-sm text-text-placeholder mb-4">
-            Completeness Checklist – Find completeness guidelines online at{" "}
+            Completeness Checklist - Find completeness guidelines online at{" "}
             <a
               className="text-blue-700 underline"
               href="https://www.medicaid.gov"
@@ -419,6 +453,7 @@ export const CompletenessPhase = ({
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
             applicationId={applicationId}
+            onDocumentUploadSucceeded={handleDocumentUpload}
           />
 
           <DeclareIncompleteDialog
