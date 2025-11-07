@@ -93,9 +93,7 @@ export const documentResolvers = {
         );
       }
 
-      const simpleLocalUpload =
-        process.env.LOCAL_SIMPLE_DOC_UPLOAD === "true" || process.env.ENVIRONMENT === "local";
-      if (simpleLocalUpload) {
+      if (process.env.LOCAL_SIMPLE_DOC_UPLOAD === "true") {
         const documentId = randomUUID();
         const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
         const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
