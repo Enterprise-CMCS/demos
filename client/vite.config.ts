@@ -18,7 +18,6 @@ export const config = defineConfig({
     },
   },
   test: {
-    retry: 3,
     globals: true,
     environment: "jsdom",
     setupFiles: "./vitest.setup.ts",

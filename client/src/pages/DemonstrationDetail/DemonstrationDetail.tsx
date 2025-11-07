@@ -13,10 +13,10 @@ import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
-import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
+import { AddDocumentDialog } from "components/dialog";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
@@ -122,26 +122,26 @@ export const DemonstrationDetail: React.FC = () => {
 
             <Tab label={`Amendments (${demonstration.amendments?.length ?? 0})`} value="amendments">
               <AmendmentsTab
+                demonstrationId={demonstration.id}
                 amendments={demonstration.amendments || []}
-                onClick={() => setEntityCreationModal("amendment")}
                 initiallyExpandedId={amendmentParam ?? undefined}
               />
             </Tab>
 
             <Tab label={`Extensions (${demonstration.extensions?.length ?? 0})`} value="extensions">
               <ExtensionsTab
+                demonstrationId={demonstration.id}
                 extensions={demonstration.extensions || []}
-                onClick={() => setEntityCreationModal("extension")}
                 initiallyExpandedId={extensionParam ?? undefined}
               />
             </Tab>
           </Tabs>
 
-          {entityCreationModal && (
-            <DemonstrationDetailModals
-              entityCreationModal={entityCreationModal}
-              demonstrationId={demonstration.id}
-              onCloseEntityModal={() => setEntityCreationModal(null)}
+          {entityCreationModal === "document" && (
+            <AddDocumentDialog
+              isOpen={true}
+              onClose={() => setEntityCreationModal(null)}
+              applicationId={demonstration.id}
             />
           )}
         </>

@@ -36,6 +36,7 @@ jest.mock("@aws-sdk/client-ec2", () => {
   };
 });
 jest.mock("./util/getSecret");
+jest.mock("./util/getParameter");
 
 (getSecret as jest.Mock).mockImplementation(() =>
   JSON.stringify({
@@ -55,7 +56,7 @@ describe("app", () => {
 
     const app = await main({
       stage: mockStageName,
-      [BUNDLING_STACKS]: []
+      [BUNDLING_STACKS]: [],
     });
     const assembly = app!.synth();
 
@@ -84,7 +85,7 @@ describe("app", () => {
     const app = await main({
       stage: mockStageName,
       db: "include",
-      [BUNDLING_STACKS]: []
+      [BUNDLING_STACKS]: [],
     });
     const assembly = app!.synth();
 
@@ -102,7 +103,7 @@ describe("app", () => {
 
     const app = await main({
       stage: "bootstrap",
-      [BUNDLING_STACKS]: []
+      [BUNDLING_STACKS]: [],
     });
     const assembly = app!.synth();
 
@@ -118,7 +119,7 @@ describe("app", () => {
 
     const app = await main({
       stage: mockStageName,
-      [BUNDLING_STACKS]: []
+      [BUNDLING_STACKS]: [],
     });
     const assembly = app!.synth();
 

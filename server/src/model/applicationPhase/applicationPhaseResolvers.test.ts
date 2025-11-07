@@ -4,6 +4,7 @@ import {
   __resolveApplicationPhaseDates,
   __resolveApplicationPhaseName,
   __resolveApplicationPhaseStatus,
+  __resolveApplicationPhaseDocuments,
 } from "./applicationPhaseResolvers.js";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
 import { PhaseStatus, PhaseName, SetApplicationPhaseStatusInput } from "../../types.js";
@@ -35,6 +36,9 @@ describe("applicationPhaseResolvers", () => {
     },
     applicationPhase: {
       upsert: mockUpsert,
+    },
+    document: {
+      findMany: mockFindMany,
     },
   };
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
@@ -114,6 +118,20 @@ describe("applicationPhaseResolvers", () => {
       };
 
       await __resolveApplicationPhaseDates(testInput);
+      expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    });
+  });
+
+  describe("__resolveApplicationPhaseDocuments", () => {
+    it("should retrieve the requested documents for the phase and application", async () => {
+      const expectedCall = {
+        where: {
+          applicationId: testApplicationId,
+          phaseId: testPhaseId,
+        },
+      };
+
+      await __resolveApplicationPhaseDocuments(testData);
       expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });

@@ -1,4 +1,4 @@
-import { LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { ICommandHooks, LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
 import { Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_lambda } from "aws-cdk-lib";
@@ -17,7 +17,7 @@ interface LambdaProps extends CommonProps {
   method?: string;
   apiParentResource?: aws_apigateway.IResource;
   vpc?: aws_ec2.IVpc;
-  securityGroup?: aws_ec2.ISecurityGroup;
+  securityGroup?: aws_ec2.ISecurityGroup | aws_ec2.ISecurityGroup[];
   useAlias?: boolean;
   deploymentConfig?: aws_codedeploy.ILambdaDeploymentConfig;
   authorizer?: aws_apigateway.Authorizer;
@@ -26,6 +26,7 @@ interface LambdaProps extends CommonProps {
   externalModules?: string[];
   nodeModules?: string[];
   depsLockFilePath?: string;
+  commandHooks?: ICommandHooks;
 }
 
 export function create(props: LambdaProps, id: string) {
@@ -105,13 +106,19 @@ export class Lambda extends Construct {
       timeout,
       memorySize,
       role,
-      securityGroups: props.vpc && props.securityGroup ? [props.securityGroup] : undefined,
+      securityGroups:
+        props.vpc && props.securityGroup
+          ? Array.isArray(props.securityGroup)
+            ? props.securityGroup
+            : [props.securityGroup]
+          : undefined,
       bundling: {
         minify: true,
         sourceMap: true,
         externalModules: props.externalModules,
         nodeModules: props.nodeModules,
         logLevel: LogLevel.VERBOSE,
+        commandHooks: props.commandHooks,
       },
       environment: props.environment,
       vpc: props.vpc,

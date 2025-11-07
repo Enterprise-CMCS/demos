@@ -28,3 +28,6 @@ lambda:
 "lambda:fileprocess":
 - changed-files:
   - any-glob-to-any-file: lambdas/fileprocess/**
+"lambda:emailer":
+- changed-files:
+  - any-glob-to-any-file: lambdas/emailer/**

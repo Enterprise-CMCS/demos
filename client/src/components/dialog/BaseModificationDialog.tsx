@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { BaseDialog } from "components/dialog/BaseDialog";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
@@ -12,6 +11,7 @@ import { useDemonstrationOptions } from "hooks/useDemonstrationOptions";
 import { createSuccessMessages, useDialogForm } from "hooks/useDialogForm";
 import { normalizeDemonstrationId, normalizeUserId } from "hooks/user/uuidHelpers";
 import { tw } from "tags/tw";
+import { BaseDialog } from "./BaseDialog";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-1 text-sm`;
@@ -29,7 +29,6 @@ export type ModificationDialogData = {
 };
 
 export interface BaseModificationDialogProps {
-  isOpen?: boolean;
   onClose: () => void;
   mode: ModificationDialogMode;
   entityId?: string;
@@ -45,7 +44,6 @@ export interface BaseModificationDialogProps {
 }
 
 export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
-  isOpen = true,
   onClose,
   mode,
   demonstrationId,
@@ -122,7 +120,6 @@ export const BaseModificationDialog: React.FC<BaseModificationDialogProps> = ({
   return (
     <BaseDialog
       title={mode === "edit" ? `Edit ${capitalizedEntityType}` : `New ${capitalizedEntityType}`}
-      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}

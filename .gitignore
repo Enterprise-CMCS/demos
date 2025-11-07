@@ -16,3 +16,4 @@ all-outputs.json
 .env
 
 **/.scannerwork/**
+deployment/*.pem

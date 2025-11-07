@@ -10,6 +10,17 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { mockUsers } from "mock-data/userMocks";
 
+const showCreateDemonstrationDialog = vi.fn();
+const showCreateAmendmentDialog = vi.fn();
+const showCreateExtensionDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showCreateDemonstrationDialog,
+    showCreateAmendmentDialog,
+    showCreateExtensionDialog,
+  }),
+}));
+
 // Mock UserContext
 vi.mock("components/user/UserContext", async (importOriginal) => {
   const actual = await importOriginal<typeof UserContext>();
@@ -20,15 +31,6 @@ vi.mock("components/user/UserContext", async (importOriginal) => {
 });
 
 // Stub modals
-vi.mock("components/dialog/document/DocumentDialog", () => ({
-  AddDocumentDialog: ({ onClose }: { onClose: () => void }) => (
-    <div>
-      AddDocumentDialog
-      <button onClick={onClose}>Close</button>
-    </div>
-  ),
-}));
-
 vi.mock("components/dialog", () => ({
   EditDemonstrationDialog: () => <div>EditDemonstrationDialog</div>,
   CreateDemonstrationDialog: () => <div>CreateDemonstrationDialog</div>,
@@ -50,11 +52,6 @@ vi.mock("components/dialog/ExtensionDialog", () => ({
   ),
 }));
 
-// Mock Toast Context
-vi.mock("components/toast", () => ({
-  useToast: () => ({ showSuccess: vi.fn() }),
-}));
-
 describe("DefaultHeaderLower", () => {
   const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
 
@@ -62,25 +59,9 @@ describe("DefaultHeaderLower", () => {
     vi.resetAllMocks();
   });
 
-  it("shows loading state", () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: null,
-      loading: true,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
-    });
-    render(<DefaultHeaderLower />);
-    expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
-  });
-
   it("displays user greeting", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
     expect(screen.getByText("Hello John Doe")).toBeInTheDocument();
@@ -89,10 +70,6 @@ describe("DefaultHeaderLower", () => {
   it("opens and closes the dropdown", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
     const button = screen.getByText("Create New");
@@ -105,10 +82,6 @@ describe("DefaultHeaderLower", () => {
   it("opens CreateDemonstrationDialog when demonstration modal is clicked", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
     });
 
     render(
@@ -118,34 +91,26 @@ describe("DefaultHeaderLower", () => {
     );
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
-    expect(screen.queryByText("CreateDemonstrationDialog")).toBeInTheDocument();
+    expect(showCreateDemonstrationDialog).toHaveBeenCalledWith();
   });
 
   it("opens AmendmentDialog for amendment", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
-    expect(screen.getByText("AmendmentDialog (add)")).toBeInTheDocument();
+    expect(showCreateAmendmentDialog).toHaveBeenCalledWith();
   });
 
   it("opens ExtensionDialog for extension", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-      hasRole: vi.fn(),
     });
     render(<DefaultHeaderLower />);
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
-    expect(screen.getByText("ExtensionDialog (add)")).toBeInTheDocument();
+    expect(showCreateExtensionDialog).toHaveBeenCalledWith();
   });
 });
