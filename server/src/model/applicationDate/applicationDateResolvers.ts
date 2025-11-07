@@ -13,7 +13,6 @@ export async function __setApplicationDates(
   if (input.applicationDates.length === 0) {
     return await getApplication(input.applicationId);
   }
-
   const existingApplicationDates = await getExistingDates(input.applicationId);
   const updatedApplicationDates = mergeApplicationDates(
     existingApplicationDates,

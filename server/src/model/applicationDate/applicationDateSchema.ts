@@ -1,5 +1,5 @@
 import { gql } from "graphql-tag";
-import { DateType } from "../../types.js";
+import { DateTimeOrLocalDate, DateType } from "../../types.js";
 
 export const applicationDateSchema = gql`
   type ApplicationDate {
@@ -11,7 +11,7 @@ export const applicationDateSchema = gql`
 
   input ApplicationDateInput {
     dateType: DateType!
-    dateValue: DateTime!
+    dateValue: DateTimeOrLocalDate!
   }
 
   input SetApplicationDatesInput {
@@ -26,7 +26,7 @@ export const applicationDateSchema = gql`
 
 export interface ApplicationDateInput {
   dateType: DateType;
-  dateValue: Date;
+  dateValue: DateTimeOrLocalDate;
 }
 
 export interface SetApplicationDatesInput {

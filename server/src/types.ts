@@ -67,6 +67,8 @@ export type {
   SetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
+export type LocalDate = string;
+export type DateTimeOrLocalDate = Date | string;
 export type NonEmptyString = string;
 export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
 export type ApplicationType = (typeof APPLICATION_TYPES)[number];
