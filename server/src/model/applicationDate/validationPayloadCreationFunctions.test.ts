@@ -29,11 +29,11 @@ describe("validatePayloadCreationFunctions", () => {
     it("should request dates for the application from the database", async () => {
       vi.mocked(mockFindMany).mockReturnValue([
         {
-          dateTypeId: "Concept Start Date",
+          dateType: "Concept Start Date",
           dateValue: testOldDateValue,
         },
         {
-          dateTypeId: "Federal Comment Period Start Date",
+          dateType: "Federal Comment Period Start Date",
           dateValue: testOldDateValue,
         },
       ]);
@@ -56,35 +56,35 @@ describe("validatePayloadCreationFunctions", () => {
     it("should merge the two lists correctly", () => {
       const testExistingDates: ApplicationDateInput[] = [
         {
-          dateTypeId: "Concept Start Date",
+          dateType: "Concept Start Date",
           dateValue: testOldDateValue,
         },
         {
-          dateTypeId: "Federal Comment Period Start Date",
+          dateType: "Federal Comment Period Start Date",
           dateValue: testOldDateValue,
         },
       ];
       const testNewDates: ApplicationDateInput[] = [
         {
-          dateTypeId: "BNPMT Initial Meeting Date",
+          dateType: "BNPMT Initial Meeting Date",
           dateValue: testOldDateValue,
         },
         {
-          dateTypeId: "Concept Start Date",
+          dateType: "Concept Start Date",
           dateValue: testNewDateValue,
         },
       ];
       const expectedResult: ApplicationDateInput[] = [
         {
-          dateTypeId: "Concept Start Date",
+          dateType: "Concept Start Date",
           dateValue: testNewDateValue,
         },
         {
-          dateTypeId: "BNPMT Initial Meeting Date",
+          dateType: "BNPMT Initial Meeting Date",
           dateValue: testOldDateValue,
         },
         {
-          dateTypeId: "Federal Comment Period Start Date",
+          dateType: "Federal Comment Period Start Date",
           dateValue: testOldDateValue,
         },
       ];

@@ -84,7 +84,7 @@ describe("validateInputDates", () => {
       const testInput: ApplicationDateInput[] = [];
       const expectedCalls = [];
       for (const dateType of startOfDayDateTypes) {
-        testInput.push({ dateTypeId: dateType, dateValue: testDateValue });
+        testInput.push({ dateType: dateType, dateValue: testDateValue });
         expectedCalls.push([dateType, testDateValue]);
       }
 
@@ -102,7 +102,7 @@ describe("validateInputDates", () => {
       const testInput: ApplicationDateInput[] = [];
       const expectedCalls = [];
       for (const dateType of endOfDayDateTypes) {
-        testInput.push({ dateTypeId: dateType, dateValue: testDateValue });
+        testInput.push({ dateType: dateType, dateValue: testDateValue });
         expectedCalls.push([dateType, testDateValue]);
       }
 
@@ -123,8 +123,8 @@ describe("validateInputDates", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map();
       const expectedCalls = [];
       for (const dateType of greaterThanCheckTypes) {
-        testInput.push({ dateTypeId: dateType[0], dateValue: testDateValue });
-        testInput.push({ dateTypeId: dateType[1], dateValue: testDateValue });
+        testInput.push({ dateType: dateType[0], dateValue: testDateValue });
+        testInput.push({ dateType: dateType[1], dateValue: testDateValue });
         testApplicationDateMap.set(dateType[0], testDateValue);
         testApplicationDateMap.set(dateType[1], testDateValue);
       }
@@ -146,8 +146,8 @@ describe("validateInputDates", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map();
       const expectedCalls = [];
       for (const dateType of greaterThanOrEqualCheckTypes) {
-        testInput.push({ dateTypeId: dateType[0], dateValue: testDateValue });
-        testInput.push({ dateTypeId: dateType[1], dateValue: testDateValue });
+        testInput.push({ dateType: dateType[0], dateValue: testDateValue });
+        testInput.push({ dateType: dateType[1], dateValue: testDateValue });
         testApplicationDateMap.set(dateType[0], testDateValue);
         testApplicationDateMap.set(dateType[1], testDateValue);
       }
@@ -191,8 +191,8 @@ describe("validateInputDates", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map();
       const expectedCalls = [];
       for (const dateType of offsetCheckTypes) {
-        testInput.push({ dateTypeId: dateType[0], dateValue: testDateValue });
-        testInput.push({ dateTypeId: dateType[1], dateValue: testDateValue });
+        testInput.push({ dateType: dateType[0], dateValue: testDateValue });
+        testInput.push({ dateType: dateType[1], dateValue: testDateValue });
         testApplicationDateMap.set(dateType[0], testDateValue);
         testApplicationDateMap.set(dateType[1], testDateValue);
       }

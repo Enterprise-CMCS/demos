@@ -60,11 +60,11 @@ describe("applicationDateResolvers", () => {
       applicationId: testApplicationId,
       applicationDates: [
         {
-          dateTypeId: "Concept Start Date",
+          dateType: "Concept Start Date",
           dateValue: testDateValue,
         },
         {
-          dateTypeId: "Federal Comment Period End Date",
+          dateType: "Federal Comment Period End Date",
           dateValue: testDateValue,
         },
       ],

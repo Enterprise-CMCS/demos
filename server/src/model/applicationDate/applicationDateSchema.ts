@@ -25,7 +25,7 @@ export const applicationDateSchema = gql`
 `;
 
 export type ApplicationDateInput = {
-  dateTypeId: DateType;
+  dateType: DateType;
   dateValue: Date;
 };
 

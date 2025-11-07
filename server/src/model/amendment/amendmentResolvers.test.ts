@@ -224,10 +224,7 @@ describe("amendmentResolvers", () => {
         },
       };
       await __updateAmendment(undefined, testInput);
-      expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith({
-        dateType: "effectiveDate",
-        dateValue: testDate,
-      });
+      expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith("effectiveDate", testDate);
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
@@ -240,10 +237,7 @@ describe("amendmentResolvers", () => {
       };
       await __updateAmendment(undefined, testInput);
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
-      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith({
-        dateType: "expirationDate",
-        dateValue: testDate,
-      });
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("expirationDate", testDate);
     });
   });
 

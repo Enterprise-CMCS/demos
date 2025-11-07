@@ -131,7 +131,7 @@ describe("applicationPhaseResolvers", () => {
         },
       };
 
-      await __resolveApplicationPhaseDocuments(testData);
+      await __resolveApplicationPhaseDocuments(testInput);
       expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });

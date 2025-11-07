@@ -546,10 +546,10 @@ describe("demonstrationResolvers", () => {
         },
       };
       await __updateDemonstration(undefined, testInput);
-      expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith({
-        dateType: "effectiveDate",
-        dateValue: testValues.dateValue,
-      });
+      expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith(
+        "effectiveDate",
+        testValues.dateValue
+      );
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
@@ -562,10 +562,10 @@ describe("demonstrationResolvers", () => {
       };
       await __updateDemonstration(undefined, testInput);
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
-      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith({
-        dateType: "expirationDate",
-        dateValue: testValues.dateValue,
-      });
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith(
+        "expirationDate",
+        testValues.dateValue
+      );
     });
 
     it("should properly handle an error if it occurs", async () => {

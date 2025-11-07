@@ -12,7 +12,7 @@ export async function getExistingDates(applicationId: string): Promise<Applicati
     },
   });
   return result.map((row) => ({
-    dateTypeId: row.dateTypeId as DateType, // Enforced by database constraints
+    dateType: row.dateTypeId as DateType, // Enforced by database constraints
     dateValue: row.dateValue,
   }));
 }
@@ -22,8 +22,8 @@ export function mergeApplicationDates(
   newDates: ApplicationDateInput[]
 ): ApplicationDateInput[] {
   const resultDateMap = new Map(
-    existingDates.map((existingDate) => [existingDate.dateTypeId, existingDate])
+    existingDates.map((existingDate) => [existingDate.dateType, existingDate])
   );
-  newDates.forEach((newDate) => resultDateMap.set(newDate.dateTypeId, newDate));
+  newDates.forEach((newDate) => resultDateMap.set(newDate.dateType, newDate));
   return Array.from(resultDateMap.values());
 }

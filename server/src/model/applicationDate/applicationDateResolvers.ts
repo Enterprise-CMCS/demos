@@ -27,7 +27,7 @@ export async function __setApplicationDates(
       where: {
         applicationId_dateTypeId: {
           applicationId: input.applicationId,
-          dateTypeId: dateToUpdate.dateTypeId,
+          dateTypeId: dateToUpdate.dateType,
         },
       },
       update: {
@@ -35,7 +35,7 @@ export async function __setApplicationDates(
       },
       create: {
         applicationId: input.applicationId,
-        dateTypeId: dateToUpdate.dateTypeId,
+        dateTypeId: dateToUpdate.dateType,
         dateValue: dateToUpdate.dateValue,
       },
     })

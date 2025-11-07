@@ -95,7 +95,7 @@ VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanOrEqualChecks"] = 
 
 export function validateInputDates(datesToValidate: ApplicationDateInput[]): void {
   const datesToValidateMap: ApplicationDateMap = new Map(
-    datesToValidate.map((dateToValidate) => [dateToValidate.dateTypeId, dateToValidate.dateValue])
+    datesToValidate.map((dateToValidate) => [dateToValidate.dateType, dateToValidate.dateValue])
   );
   for (const [dateType, dateValue] of datesToValidateMap.entries()) {
     const checks = VALIDATION_CHECKS[dateType];
