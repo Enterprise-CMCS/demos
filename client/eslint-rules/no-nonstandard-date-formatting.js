@@ -10,6 +10,7 @@ const DISALLOWED_DATE_METHODS = [
   "toDateString",
   "toTimeString",
   "toJSON",
+  "setDate",
 ];
 
 export const noNonstandardDateFormatting = createRule({

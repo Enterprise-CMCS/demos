@@ -88,12 +88,7 @@ export const ConceptPhase = ({
     if (preSubmissionDocuments.length > 0 && !dateSubmitted) {
       const latestDoc = preSubmissionDocuments[preSubmissionDocuments.length - 1];
       if (latestDoc.createdAt) {
-        const uploadDate = new Date(latestDoc.createdAt);
-        const year = uploadDate.getFullYear();
-        const month = String(uploadDate.getMonth() + 1).padStart(2, "0");
-        const day = String(uploadDate.getDate()).padStart(2, "0");
-        const formattedDate = `${year}-${month}-${day}`;
-        setDateSubmitted(formattedDate);
+        setDateSubmitted(formatDateAsIsoString(latestDoc.createdAt));
       }
     }
   }, [preSubmissionDocuments, dateSubmitted]);
