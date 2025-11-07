@@ -12,11 +12,12 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
-import {
+import type {
   UpdateDocumentInput,
   UploadDocumentInput,
   UploadDocumentResponse,
 } from "./documentSchema.js";
+import { log } from "../../log.js";
 
 async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
@@ -93,7 +94,7 @@ export const documentResolvers = {
       }
 
       const simpleLocalUpload =
-        process.env.LOCAL_SIMPLE_UPLOAD === "true" || process.env.ENVIRONMENT === "local";
+        process.env.LOCAL_SIMPLE_DOC_UPLOAD === "true" || process.env.ENVIRONMENT === "local";
       if (simpleLocalUpload) {
         const documentId = randomUUID();
         const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
@@ -102,7 +103,7 @@ export const documentResolvers = {
           data: {
             id: documentId,
             name: input.name,
-            description: input.description,
+            description: input.description ?? "",
             ownerUserId: context.user.id,
             documentTypeId: input.documentType,
             applicationId: input.applicationId,
@@ -111,17 +112,17 @@ export const documentResolvers = {
           },
         });
 
+        const fakePresignedUrl = await getPresignedUploadUrl(document);
+        log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
         return {
-          presignedURL: null,
+          presignedURL: fakePresignedUrl,
           localBypass: true,
-          message: "Local simple upload: document stored without file scanning.",
-          documentId: document.id,
         };
       }
       const documentPendingUpload = await prisma().documentPendingUpload.create({
         data: {
           name: input.name,
-          description: input.description,
+          description: input.description ?? "",
           ownerUserId: context.user.id,
           documentTypeId: input.documentType,
           applicationId: input.applicationId,
@@ -133,8 +134,6 @@ export const documentResolvers = {
       return {
         presignedURL,
         localBypass: false,
-        message: null,
-        documentId: null,
       };
     },
 

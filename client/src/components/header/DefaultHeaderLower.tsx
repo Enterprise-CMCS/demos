@@ -69,7 +69,7 @@ export const DefaultHeaderLower: React.FC = () => {
                 setShowDropdown(false);
                 showGeneralDocumentUploadDialog();
               }}
-              className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
+              className="w-full text-left px-1 py-[10px] hover:bg-gray-100 hidden"
             >
               Add New Document
             </button>

@@ -26,8 +26,6 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
     uploadDocument(input: $input) {
       presignedURL
       localBypass
-      message
-      documentId
     }
   }
 `;
@@ -515,7 +513,18 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error(uploadDocumentResponse.errors[0].message);
     }
 
-    const presignedURL = uploadDocumentResponse.data?.uploadDocument.presignedURL ?? null;
+    const uploadResult = uploadDocumentResponse.data?.uploadDocument;
+
+    if (!uploadResult) {
+      throw new Error("Upload response from the server was empty");
+    }
+
+    if (uploadResult.localBypass) {
+      onDocumentUploadSucceeded?.();
+      return;
+    }
+
+    const presignedURL = uploadResult.presignedURL ?? null;
 
     if (!presignedURL) {
       throw new Error("Could not get presigned URL from the server");
