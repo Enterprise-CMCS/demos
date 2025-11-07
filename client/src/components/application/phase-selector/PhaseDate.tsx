@@ -1,6 +1,6 @@
 import React from "react";
 import type { PhaseStatus } from "./PhaseSelector";
-import { formatDate } from "utils/formatDate";
+import { formatDate } from "util/formatDate";
 import { tw } from "tags/tw";
 
 const BASE_STYLES = tw`flex flex-col h-full items-center justify-center mt-1 text-md font-bold`;

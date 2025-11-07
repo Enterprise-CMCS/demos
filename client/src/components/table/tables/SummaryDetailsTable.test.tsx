@@ -1,6 +1,6 @@
 import React from "react";
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
-import { formatDate } from "utils/formatDate";
+import { formatDate } from "util/formatDate";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { DEMONSTRATION_SUMMARY_DETAILS_QUERY, SummaryDetailsTable } from "./SummaryDetailsTable";

@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
 import { Amendment, Extension } from "demos-server";
-import { formatDate } from "utils/formatDate";
+import { formatDate } from "util/formatDate";
 import { DemonstrationStatusBadge } from "components/badge/DemonstrationStatusBadge";
 
 export type ModificationTableRow = Pick<

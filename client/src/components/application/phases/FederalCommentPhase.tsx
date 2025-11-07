@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { ExitIcon, WarningIcon } from "components/icons";
-import { formatDate } from "utils/formatDate";
+import { formatDate } from "util/formatDate";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { FederalCommentUploadDialog } from "components/dialog/document/FederalCommentUploadDialog";
 

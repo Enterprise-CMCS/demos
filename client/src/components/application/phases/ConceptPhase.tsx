@@ -11,7 +11,7 @@ import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
-import { formatDateAsIsoString } from "utils/formatDate";
+import { formatDateAsIsoString } from "util/formatDate";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { getIsoDateString, getNowEst, getStartOfDateEST } from "../dates/applicationDates";
 import { DocumentList } from "./sections";

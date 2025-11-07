@@ -1,7 +1,7 @@
 import React from "react";
 import { DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate } from "utils/formatDate";
+import { formatDate } from "util/formatDate";
 import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
 
 const STYLES = {

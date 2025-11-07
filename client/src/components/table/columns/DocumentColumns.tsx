@@ -6,7 +6,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
 import { isAfter, isBefore, isSameDay } from "date-fns";
-import { formatDate } from "utils/formatDate";
+import { formatDate } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { DocumentTableDocument } from "../tables/DocumentTable";

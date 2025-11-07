@@ -4,7 +4,7 @@ import { tw } from "tags/tw";
 import { DateType, PhaseName, PhaseStatus } from "demos-server";
 import { ApplicationDate } from "./applicationDates";
 import { SimplePhase, setStatusForPhase, getStatusForPhase } from "../phase-status/phaseStatus";
-import { formatDateTime } from "utils/formatDate";
+import { formatDateTime } from "util/formatDate";
 
 /**
  * Get a specific date value from a list of application dates

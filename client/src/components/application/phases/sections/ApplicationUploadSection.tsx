@@ -2,7 +2,7 @@ import React from "react";
 import { SecondaryButton } from "components/button";
 import { ExportIcon, DeleteIcon } from "components/icons";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
-import { formatDate } from "utils/formatDate";
+import { formatDate } from "util/formatDate";
 import { tw } from "tags/tw";
 
 const STYLES = {

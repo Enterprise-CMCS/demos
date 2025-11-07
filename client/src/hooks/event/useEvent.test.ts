@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { LogEventArguments, useEvent } from "./useEvent";
-import { formatDateTime } from "utils/formatDate";
+import { formatDateTime } from "util/formatDate";
 
 /**
  * MOCKS
