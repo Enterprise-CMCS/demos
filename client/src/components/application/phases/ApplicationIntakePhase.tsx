@@ -5,12 +5,8 @@ import { ApplicationIntakeUploadDialog } from "components/dialog/document/Applic
 import { DeleteIcon, ExportIcon } from "components/icons";
 import { addDays } from "date-fns";
 import { tw } from "tags/tw";
-import {
-  formatDate,
-  formatDateForServer,
-  formatDateAsIsoString,
-  parseInputDate,
-} from "util/formatDate";
+import { formatDate, formatDateForServer, formatDateAsIsoString } from "utils/formatDate";
+import { parseInputDate } from "utils/parseDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,

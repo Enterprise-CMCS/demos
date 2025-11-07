@@ -2,13 +2,45 @@ import React, { useState } from "react";
 import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
 import { DateType, PhaseName, PhaseStatus } from "demos-server";
-import {
-  ApplicationDate,
-  setDateInApplicationDates,
-  getDateFromApplicationDates,
-} from "./applicationDates";
+import { ApplicationDate } from "./applicationDates";
 import { SimplePhase, setStatusForPhase, getStatusForPhase } from "../phase-status/phaseStatus";
-import { formatDateTime } from "util/formatDate";
+import { formatDateTime } from "utils/formatDate";
+
+/**
+ * Get a specific date value from a list of application dates
+ */
+const getDateFromApplicationDates = (
+  applicationDates: ApplicationDate[],
+  dateType: DateType
+): Date | null => {
+  const dateEntry = applicationDates.find((d) => d.dateType === dateType);
+  return dateEntry ? dateEntry.dateValue : null;
+};
+
+/**
+ * Update a specific date value in a list of application dates
+ * Returns a new array with the updated date
+ */
+const setDateInApplicationDates = (
+  applicationDates: ApplicationDate[],
+  dateType: DateType,
+  dateValue: Date
+): ApplicationDate[] => {
+  const existingDate = applicationDates.find((d) => d.dateType === dateType);
+
+  if (existingDate) {
+    // Update existing date
+    return applicationDates.map((date) => {
+      if (date.dateType === dateType) {
+        return { ...date, dateValue };
+      }
+      return date;
+    });
+  } else {
+    // Add new date
+    return [...applicationDates, { dateType, dateValue }];
+  }
+};
 
 type SimulationState = {
   phases: SimplePhase[];

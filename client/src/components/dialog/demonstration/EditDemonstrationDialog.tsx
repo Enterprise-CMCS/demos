@@ -4,7 +4,8 @@ import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
 import { Demonstration, UpdateDemonstrationInput } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { formatDateForServer, parseInputDate, parseInputDateAsEndOfDayEST } from "util/formatDate";
+import { formatDateForServer } from "utils/formatDate";
+import { parseInputDate, parseInputDateAsEndOfDayEST } from "utils/parseDate";
 
 import { gql, useMutation, useQuery } from "@apollo/client";
 

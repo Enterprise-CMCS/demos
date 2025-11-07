@@ -3,7 +3,7 @@ import React, { useCallback, useState } from "react";
 import { CircleButton, SecondaryButton } from "components/button";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
-import { safeDateFormat } from "util/formatDate";
+import { formatDate } from "utils/formatDate";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
 import { useDialog } from "components/dialog/DialogContext";
@@ -74,11 +74,11 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     { label: "Status", value: demonstration.status },
     {
       label: "Effective",
-      value: safeDateFormat(demonstration.effectiveDate),
+      value: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----",
     },
     {
       label: "Expiration",
-      value: safeDateFormat(demonstration.expirationDate),
+      value: demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "--/--/----",
     },
   ];
 

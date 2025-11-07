@@ -3,16 +3,13 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate, parseInputDate, formatDateForServer } from "util/formatDate";
+import { formatDate, formatDateForServer } from "utils/formatDate";
+import { parseInputDate } from "utils/parseDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { addDays, differenceInCalendarDays } from "date-fns";
 import { gql, useMutation } from "@apollo/client";
 import { CompletenessDocumentUploadDialog } from "components/dialog/document/CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
-import {
-  COMPLETENESS_PHASE_DATE_TYPES,
-  getInputsForCompletenessPhase,
-} from "components/application/dates/applicationDateQueries";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -22,6 +19,7 @@ import { TZDate } from "@date-fns/tz";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
+import { SetApplicationDateInput } from "demos-server";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -41,6 +39,30 @@ const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 
 const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
 const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
+
+export const COMPLETENESS_PHASE_DATE_TYPES = [
+  "State Application Deemed Complete",
+  "Federal Comment Period Start Date",
+  "Federal Comment Period End Date",
+  "Completeness Completion Date",
+] as const;
+
+export const getInputsForCompletenessPhase = (
+  applicationId: string,
+  dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>
+): SetApplicationDateInput[] => {
+  return COMPLETENESS_PHASE_DATE_TYPES.reduce<SetApplicationDateInput[]>((inputs, dateType) => {
+    const dateValue = dateValues[dateType];
+    if (dateValue) {
+      inputs.push({
+        applicationId,
+        dateType,
+        dateValue,
+      });
+    }
+    return inputs;
+  }, []);
+};
 
 export const getApplicationCompletenessFromDemonstration = (
   demonstration: ApplicationWorkflowDemonstration
@@ -183,12 +205,7 @@ export const CompletenessPhase = ({
         ? toEasternStartOfDay(stateDeemedComplete)
         : null,
     } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
-  }, [
-    hasApplicationIntakeCompletionDate,
-    stateDeemedComplete,
-    federalStartDate,
-    federalEndDate,
-  ]);
+  }, [hasApplicationIntakeCompletionDate, stateDeemedComplete, federalStartDate, federalEndDate]);
 
   const saveDates = async () => {
     const dateValues = getDateValues();
@@ -231,9 +248,7 @@ export const CompletenessPhase = ({
       </SecondaryButton>
       <DocumentList
         documents={completenessDocs}
-        onDelete={(id) =>
-          setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))
-        }
+        onDelete={(id) => setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))}
       />
     </div>
   );
@@ -341,7 +356,7 @@ export const CompletenessPhase = ({
 
     if (federalEndDate) {
       const noticeDueDateValue = parseInputDate(federalEndDate);
-      if (! noticeDueDateValue) {
+      if (!noticeDueDateValue) {
         console.error("Error parsing federal end date for completeness notice:", federalEndDate);
         showError("Error parsing federal end date for completeness notice.");
       }
