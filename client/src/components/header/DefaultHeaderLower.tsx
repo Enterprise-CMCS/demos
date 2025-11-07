@@ -9,7 +9,7 @@ import { useDialog } from "components/dialog/DialogContext";
 export const DefaultHeaderLower: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog, showGeneralDocumentUploadDialog } =
+  const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
     useDialog();
 
   const { currentUser, loading, error } = getCurrentUser();
@@ -62,16 +62,6 @@ export const DefaultHeaderLower: React.FC = () => {
               className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
             >
               Demonstration
-            </button>
-            <button
-              data-testid="button-create-new-document"
-              onClick={() => {
-                setShowDropdown(false);
-                showGeneralDocumentUploadDialog();
-              }}
-              className="w-full text-left px-1 py-[10px] hover:bg-gray-100 hidden"
-            >
-              Add New Document
             </button>
             <button
               data-testid="button-create-new-amendment"

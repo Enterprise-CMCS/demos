@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { AmendmentDialog } from "./AmendmentDialog";
-import { GeneralDocumentUploadDialog } from "./document/GeneralDocumentUploadDialog";
 import { ExtensionDialog } from "./ExtensionDialog";
 import { EditDemonstrationDialog } from "./demonstration";
 
@@ -53,20 +52,10 @@ export const useDialog = () => {
     );
   };
 
-  const showGeneralDocumentUploadDialog = (demonstrationId?: string) => {
-    if (!demonstrationId) {
-      throw new Error("demonstrationId is required for GeneralDocumentUploadDialog");
-    }
-    context.showDialog(
-      <GeneralDocumentUploadDialog applicationId={demonstrationId} mode="add" onClose={context.hideDialog} />
-    );
-  };
-
   return {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
     showCreateExtensionDialog,
-    showGeneralDocumentUploadDialog,
   };
 };
