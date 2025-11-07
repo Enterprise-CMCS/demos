@@ -35,7 +35,6 @@ export const documentSchema = gql`
 
   type UploadDocumentResponse {
     presignedURL: String
-    localBypass: Boolean!
   }
 
   type Mutation {
@@ -81,5 +80,4 @@ export interface UpdateDocumentInput {
 
 export interface UploadDocumentResponse {
   presignedURL?: string | null;
-  localBypass: boolean;
 }

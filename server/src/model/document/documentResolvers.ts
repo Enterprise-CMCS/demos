@@ -92,7 +92,7 @@ export const documentResolvers = {
           "The GraphQL context does not have user information. Are you properly authenticated?"
         );
       }
-
+      // Looks for localstack pre-signed and does a simplified upload flow
       if (process.env.LOCAL_SIMPLE_DOC_UPLOAD === "true") {
         const documentId = randomUUID();
         const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
@@ -113,8 +113,7 @@ export const documentResolvers = {
         const fakePresignedUrl = await getPresignedUploadUrl(document);
         log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
         return {
-          presignedURL: fakePresignedUrl,
-          localBypass: true,
+          presignedURL: fakePresignedUrl
         };
       }
       const documentPendingUpload = await prisma().documentPendingUpload.create({
@@ -130,8 +129,7 @@ export const documentResolvers = {
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return {
-        presignedURL,
-        localBypass: false,
+        presignedURL
       };
     },
 

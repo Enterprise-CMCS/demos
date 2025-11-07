@@ -116,34 +116,6 @@ export const CompletenessPhase = ({
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
     stateDeemedCompleteDate ?? ""
   );
-  // Made an example of how to refetch docs after upload
-  const handleDocumentUpload = async () => {
-    try {
-      const { data } = await apolloClient.query<{
-        demonstration: ApplicationWorkflowDemonstration;
-      }>({
-        query: GET_WORKFLOW_DEMONSTRATION_QUERY,
-        variables: { id: applicationId },
-        fetchPolicy: "network-only",
-      });
-
-      const updatedDocs =
-        data?.demonstration?.documents.filter(
-          (doc) => doc.documentType === "Application Completeness Letter"
-        ) ?? [];
-
-      setCompletenessDocs(updatedDocs);
-      showSuccess("Completeness document uploaded.");
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unable to refresh documents after upload.";
-      showError(message);
-    } finally {
-      setUploadOpen(false);
-    }
-  };
 
   const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
     applicationCompletenessDocument
@@ -453,14 +425,12 @@ export const CompletenessPhase = ({
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
             applicationId={applicationId}
-            onDocumentUploadSucceeded={handleDocumentUpload}
           />
 
           <DeclareIncompleteDialog
             isOpen={isDeclareIncompleteOpen}
             onClose={() => setDeclareIncompleteOpen(false)}
             onConfirm={async () => {
-              await handleDeclareIncomplete();
               setDeclareIncompleteOpen(false);
             }}
           />

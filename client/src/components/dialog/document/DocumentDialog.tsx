@@ -25,7 +25,6 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
       presignedURL
-      localBypass
     }
   }
 `;
@@ -519,12 +518,15 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Upload response from the server was empty");
     }
 
-    if (uploadResult.localBypass) {
+    if (uploadResult.presignedURL.includes("http://localstack:4566/")) {
+      console.log("Local upload bypass - skipping S3 upload");
       onDocumentUploadSucceeded?.();
       return;
     }
 
     const presignedURL = uploadResult.presignedURL ?? null;
+
+    console.log("presignedURL", presignedURL);
 
     if (!presignedURL) {
       throw new Error("Could not get presigned URL from the server");
