@@ -36,11 +36,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   const [showWarning, setShowWarning] = useState(true);
   const [isUploadOpen, setUploadOpen] = useState(false);
 
-  // Parse and memoize the end date
-  const daysLeft = Math.max(
-    differenceInCalendarDays(startOfDay(phaseEndDate), endOfDay(new Date())),
-    0
-  );
+  const daysLeft = differenceInCalendarDays(startOfDay(phaseEndDate), endOfDay(new Date()));
 
   const borderColorClass = daysLeft === 1 ? "border-border-warn" : "border-border-alert";
   const warningClasses =
