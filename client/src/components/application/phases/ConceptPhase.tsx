@@ -11,7 +11,7 @@ import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
-import { formatDateAsIsoString } from "util/formatDate";
+import { formatDateForServer } from "util/formatDate";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { getIsoDateString, getNowEst, getStartOfDateEST } from "../dates/applicationDates";
 import { DocumentList } from "./sections";
@@ -81,14 +81,14 @@ export const ConceptPhase = ({
 
   const handleDocumentUploadSucceeded = async () => {
     const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
-    setDateSubmitted(formatDateAsIsoString(todayDate));
+    setDateSubmitted(formatDateForServer(todayDate));
   };
 
   React.useEffect(() => {
     if (preSubmissionDocuments.length > 0 && !dateSubmitted) {
       const latestDoc = preSubmissionDocuments[preSubmissionDocuments.length - 1];
       if (latestDoc.createdAt) {
-        setDateSubmitted(formatDateAsIsoString(latestDoc.createdAt));
+        setDateSubmitted(formatDateForServer(latestDoc.createdAt));
       }
     }
   }, [preSubmissionDocuments, dateSubmitted]);
