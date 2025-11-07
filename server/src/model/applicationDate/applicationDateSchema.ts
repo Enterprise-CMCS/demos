@@ -24,10 +24,10 @@ export const applicationDateSchema = gql`
   }
 `;
 
-export type ApplicationDateInput = {
+export interface ApplicationDateInput {
   dateType: DateType;
   dateValue: Date;
-};
+}
 
 export interface SetApplicationDatesInput {
   applicationId: string;

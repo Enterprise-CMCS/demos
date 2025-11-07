@@ -23,7 +23,7 @@ export const personSchema = gql`
   }
 `;
 
-export type Person = {
+export interface Person {
   id: string;
   personType: PersonType;
   email: string;
@@ -34,4 +34,4 @@ export type Person = {
   updatedAt: Date;
   roles: DemonstrationRoleAssignment[];
   states: State[];
-};
+}
