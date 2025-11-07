@@ -47,6 +47,17 @@ export class UiStack extends Stack {
           : undefined,
     };
 
+    if (!commonProps.srrConfigured) {
+      // STOP execution here if the cloudfront distribution has not yet been updated
+      new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
+      priceClass: aws_cloudfront.PriceClass.PRICE_CLASS_ALL,
+      defaultBehavior: {
+        origin: new aws_cloudfront_origins.HttpOrigin("example.com")
+      }
+    });
+    return 
+    }
+
     const serverAccessLogBucket = new aws_s3.Bucket(commonProps.scope, "CloudfrontLogBucket", {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
       publicReadAccess: false,

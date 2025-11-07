@@ -10,6 +10,19 @@ export function applyCoreSuppressions(core: Stack) {
   ]);
 }
 
+export function applyUISuppressionsCloudfrontOnly(ui: Stack) {
+  NagSuppressions.addStackSuppressions(ui, [
+    {
+      id: "AwsSolutions-CFR3",
+      reason: "CMS requirements say that no configuration should be applied until after SRR is enabled"
+    },
+    {
+      id: "AwsSolutions-CFR4",
+      reason: "CMS requirements say that no configuration should be applied until after SRR is enabled"
+    }
+  ])
+}
+
 export function applyUISuppressions(ui: Stack, stage: string) {
   NagSuppressions.addStackSuppressions(ui, [
     {
