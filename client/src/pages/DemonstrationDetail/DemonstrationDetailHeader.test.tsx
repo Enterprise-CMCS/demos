@@ -156,7 +156,7 @@ describe("Demonstration Detail Header", () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/loading/i)).not.toBeInTheDocument();
     });
 
     // After loading, should show the demonstration data
