@@ -47,6 +47,17 @@ export class UiStack extends Stack {
           : undefined,
     };
 
+    if (!commonProps.srrConfigured) {
+      // STOP execution here if the cloudfront distribution has not yet been updated
+      new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
+      priceClass: aws_cloudfront.PriceClass.PRICE_CLASS_ALL,
+      defaultBehavior: {
+        origin: new aws_cloudfront_origins.HttpOrigin("example.com")
+      }
+    });
+    return 
+    }
+
     const serverAccessLogBucket = new aws_s3.Bucket(commonProps.scope, "CloudfrontLogBucket", {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
       publicReadAccess: false,
@@ -239,6 +250,7 @@ export class UiStack extends Stack {
     });
 
     const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`);
+    const uploadBucketName = Fn.importValue(`${commonProps.stage}UploadBucketName`);
     const securityHeadersPolicy = new aws_cloudfront.ResponseHeadersPolicy(
       commonProps.scope,
       "CloudFormationHeadersPolicy",
@@ -290,7 +302,7 @@ export class UiStack extends Stack {
             override: true,
           },
           contentSecurityPolicy: {
-            contentSecurityPolicy: `default-src 'self'; form-action 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain}; frame-ancestors 'none'; object-src 'none'; frame-src 'self' ${cognitoDomain}`,
+            contentSecurityPolicy: `default-src 'self'; form-action 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain} https://${uploadBucketName}.s3.us-east-1.amazonaws.com; frame-ancestors 'none'; object-src 'none'; frame-src 'self' ${cognitoDomain}`,
             override: true,
           },
         },

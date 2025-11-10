@@ -8,7 +8,7 @@ import {
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
-  SetApplicationDateInput,
+  SetApplicationDatesInput,
   EventType,
   LogEventInput,
   Role,
@@ -21,7 +21,7 @@ import {
 } from "./model/demonstration/demonstrationResolvers.js";
 import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
 import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
-import { __setApplicationDate } from "./model/applicationDate/applicationDateResolvers.js";
+import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application/applicationResolvers.js";
@@ -292,127 +292,104 @@ async function seedDatabase() {
       id: true,
     },
   });
-  const datesToSet: SetApplicationDateInput[] = [
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Concept Start Date",
-      dateValue: new Date("2025-01-01T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Pre-Submission Submitted Date",
-      dateValue: new Date("2025-01-13T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Concept Completion Date",
-      dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Application Intake Start Date",
-      dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "State Application Submitted Date",
-      dateValue: new Date("2025-01-23T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Completeness Review Due Date",
-      dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Application Intake Completion Date",
-      dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Completeness Start Date",
-      dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "State Application Deemed Complete",
-      dateValue: new Date("2025-02-03T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Federal Comment Period Start Date",
-      dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Federal Comment Period End Date",
-      dateValue: new Date("2025-03-06T23:59:59.999-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Completeness Completion Date",
-      dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "SDG Preparation Start Date",
-      dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "Expected Approval Date",
-      dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "SME Review Date",
-      dateValue: new Date("2025-02-06T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "FRT Initial Meeting Date",
-      dateValue: new Date("2025-02-07T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "BNPMT Initial Meeting Date",
-      dateValue: new Date("2025-02-08T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "SDG Preparation Completion Date",
-      dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "OGC & OMB Review Start Date",
-      dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "OGC Review Complete",
-      dateValue: new Date("2025-02-10T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "OMB Review Complete",
-      dateValue: new Date("2025-02-11T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "PO & OGD Sign-Off",
-      dateValue: new Date("2025-02-12T00:00:00.000-05:00"),
-    },
-    {
-      applicationId: randomDemonstration!.id,
-      dateType: "OGC & OMB Review Completion Date",
-      dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
-    },
-  ];
-
-  for (const dateInput of datesToSet) {
-    await __setApplicationDate(undefined, { input: dateInput });
-  }
+  const dateInput: SetApplicationDatesInput = {
+    applicationId: randomDemonstration!.id,
+    applicationDates: [
+      {
+        dateType: "Concept Start Date",
+        dateValue: new Date("2025-01-01T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Pre-Submission Submitted Date",
+        dateValue: new Date("2025-01-13T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Concept Completion Date",
+        dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Application Intake Start Date",
+        dateValue: new Date("2025-01-16T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "State Application Submitted Date",
+        dateValue: new Date("2025-01-23T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Completeness Review Due Date",
+        dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
+      },
+      {
+        dateType: "Application Intake Completion Date",
+        dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Completeness Start Date",
+        dateValue: new Date("2025-01-24T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "State Application Deemed Complete",
+        dateValue: new Date("2025-02-03T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Federal Comment Period Start Date",
+        dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Federal Comment Period End Date",
+        dateValue: new Date("2025-03-06T23:59:59.999-05:00"),
+      },
+      {
+        dateType: "Completeness Completion Date",
+        dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "SDG Preparation Start Date",
+        dateValue: new Date("2025-02-04T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Expected Approval Date",
+        dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "SME Review Date",
+        dateValue: new Date("2025-02-06T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "FRT Initial Meeting Date",
+        dateValue: new Date("2025-02-07T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "BNPMT Initial Meeting Date",
+        dateValue: new Date("2025-02-08T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "SDG Preparation Completion Date",
+        dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "OGC & OMB Review Start Date",
+        dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "OGC Review Complete",
+        dateValue: new Date("2025-02-10T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "OMB Review Complete",
+        dateValue: new Date("2025-02-11T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "PO & OGD Sign-Off",
+        dateValue: new Date("2025-02-12T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "OGC & OMB Review Completion Date",
+        dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
+      },
+    ],
+  };
+  await __setApplicationDates(undefined, { input: dateInput });
 
   console.log("🌱 Seeding amendments...");
   for (let i = 0; i < amendmentCount; i++) {

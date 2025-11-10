@@ -1,5 +1,4 @@
 import { DateType } from "../../types.js";
-import { getTargetDateValue } from "./getTargetDateValue.js";
 import { addDays, addHours, addMinutes, addSeconds, addMilliseconds } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 import { GraphQLError } from "graphql";
@@ -25,11 +24,11 @@ export function getTZDateParts(dateValue: Date): TZDateParts {
   };
 }
 
-export function checkInputDateIsStartOfDay(inputDate: {
-  dateType: DateType | "effectiveDate";
-  dateValue: Date;
-}): void {
-  const dateParts = getTZDateParts(inputDate.dateValue);
+export function checkInputDateIsStartOfDay(
+  dateType: DateType | "effectiveDate",
+  dateValue: Date
+): void {
+  const dateParts = getTZDateParts(dateValue);
   if (
     dateParts.hours !== 0 ||
     dateParts.minutes !== 0 ||
@@ -37,8 +36,8 @@ export function checkInputDateIsStartOfDay(inputDate: {
     dateParts.milliseconds !== 0
   ) {
     throw new GraphQLError(
-      `The input ${inputDate.dateType} must be a start of day date ` +
-        `(midnight in Eastern time), but it is ${inputDate.dateValue.toISOString()}`,
+      `The input ${dateType} must be a start of day date ` +
+        `(midnight in Eastern time), but it is ${dateValue.toISOString()}`,
       {
         extensions: {
           code: "INVALID_START_OF_DAY_DATETIME",
@@ -48,11 +47,11 @@ export function checkInputDateIsStartOfDay(inputDate: {
   }
 }
 
-export function checkInputDateIsEndOfDay(inputDate: {
-  dateType: DateType | "expirationDate";
-  dateValue: Date;
-}): void {
-  const dateParts = getTZDateParts(inputDate.dateValue);
+export function checkInputDateIsEndOfDay(
+  dateType: DateType | "expirationDate",
+  dateValue: Date
+): void {
+  const dateParts = getTZDateParts(dateValue);
   if (
     dateParts.hours !== 23 ||
     dateParts.minutes !== 59 ||
@@ -60,8 +59,8 @@ export function checkInputDateIsEndOfDay(inputDate: {
     dateParts.milliseconds !== 999
   ) {
     throw new GraphQLError(
-      `The input ${inputDate.dateType} must be an end of day date ` +
-        `(11:59:59.999 in Eastern time), but it is ${inputDate.dateValue.toISOString()}`,
+      `The input ${dateType} must be an end of day date ` +
+        `(11:59:59.999 in Eastern time), but it is ${dateValue.toISOString()}`,
       {
         extensions: {
           code: "INVALID_END_OF_DAY_DATETIME",
@@ -71,70 +70,77 @@ export function checkInputDateIsEndOfDay(inputDate: {
   }
 }
 
-export async function checkInputDateGreaterThan(
-  inputDate: {
-    dateType: DateType;
-    dateValue: Date;
-  },
-  targetDate: {
-    applicationId: string;
-    dateType: DateType;
-  }
-): Promise<void> {
-  const targetResult = await getTargetDateValue(targetDate.applicationId, targetDate.dateType);
-  if (inputDate.dateValue.valueOf() <= targetResult.valueOf()) {
+export type ApplicationDateMap = Map<DateType, Date>;
+
+export function __getDateValueFromApplicationDateMap(
+  dateType: DateType,
+  applicationDateMap: ApplicationDateMap
+): Date {
+  const result = applicationDateMap.get(dateType);
+  if (!result) {
     throw new Error(
-      `The input ${inputDate.dateType} must be greater than ${targetDate.dateType}, ` +
-        `which is ${targetResult.toISOString()}.`
+      `The date ${dateType} was requested as part of a validation, but is undefined. ` +
+        `It must either be in the database, or part of your payload.`
+    );
+  }
+  return result;
+}
+
+export function __checkInputDateGreaterThan(
+  applicationDateMap: ApplicationDateMap,
+  inputDateType: DateType,
+  targetDateType: DateType
+): void {
+  const inputDateValue = __getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const targetDateValue = __getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
+  if (!(inputDateValue.valueOf() > targetDateValue.valueOf())) {
+    throw new Error(
+      `The input ${inputDateType} has value ${inputDateValue.toISOString()}, ` +
+        `but it must be greater than ${targetDateType}, ` +
+        `which has value ${targetDateValue.toISOString()}.`
     );
   }
 }
 
-export async function checkInputDateGreaterThanOrEqual(
-  inputDate: {
-    dateType: DateType;
-    dateValue: Date;
-  },
-  targetDate: {
-    applicationId: string;
-    dateType: DateType;
-  }
-): Promise<void> {
-  const targetResult = await getTargetDateValue(targetDate.applicationId, targetDate.dateType);
-  if (inputDate.dateValue.valueOf() < targetResult.valueOf()) {
+export function __checkInputDateGreaterThanOrEqual(
+  applicationDateMap: ApplicationDateMap,
+  inputDateType: DateType,
+  targetDateType: DateType
+): void {
+  const inputDateValue = __getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const targetDateValue = __getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
+  if (!(inputDateValue.valueOf() >= targetDateValue.valueOf())) {
     throw new Error(
-      `The input ${inputDate.dateType} must be greater than or equal to ${targetDate.dateType}, ` +
-        `which is ${targetResult.toISOString()}.`
+      `The input ${inputDateType} has value ${inputDateValue.toISOString()}, ` +
+        `but it must be greater than or equal to ${targetDateType}, ` +
+        `which has value ${targetDateValue.toISOString()}.`
     );
   }
 }
 
-export async function checkInputDateMeetsOffset(
-  inputDate: {
-    dateType: DateType;
-    dateValue: Date;
-  },
-  targetDate: {
-    applicationId: string;
-    dateType: DateType;
-    offset: DateOffset;
-  }
-): Promise<void> {
-  const targetResult = await getTargetDateValue(targetDate.applicationId, targetDate.dateType);
+export function __checkInputDateMeetsOffset(
+  applicationDateMap: ApplicationDateMap,
+  inputDateType: DateType,
+  targetDateType: DateType,
+  targetDateOffset: DateOffset
+): void {
+  const inputDateValue = __getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const targetDateValue = __getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
   let offsetDateValue: Date;
-  offsetDateValue = addDays(targetResult, targetDate.offset.days);
-  offsetDateValue = addHours(offsetDateValue, targetDate.offset.hours);
-  offsetDateValue = addMinutes(offsetDateValue, targetDate.offset.minutes);
-  offsetDateValue = addSeconds(offsetDateValue, targetDate.offset.seconds);
-  offsetDateValue = addMilliseconds(offsetDateValue, targetDate.offset.milliseconds);
-  if (inputDate.dateValue.valueOf() !== offsetDateValue.valueOf()) {
+  offsetDateValue = addDays(targetDateValue, targetDateOffset.days);
+  offsetDateValue = addHours(offsetDateValue, targetDateOffset.hours);
+  offsetDateValue = addMinutes(offsetDateValue, targetDateOffset.minutes);
+  offsetDateValue = addSeconds(offsetDateValue, targetDateOffset.seconds);
+  offsetDateValue = addMilliseconds(offsetDateValue, targetDateOffset.milliseconds);
+  if (inputDateValue.valueOf() !== offsetDateValue.valueOf()) {
     throw new Error(
-      `The input ${inputDate.dateType} must be equal to ${targetDate.dateType} + ${targetDate.offset.days} days, ` +
-        `${targetDate.offset.hours} hours, ` +
-        `${targetDate.offset.minutes} minutes, ` +
-        `${targetDate.offset.seconds} seconds, ` +
-        `and ${targetDate.offset.milliseconds} milliseconds, ` +
-        `which is ${offsetDateValue.toISOString()}.`
+      `The input ${inputDateType} must be equal to ${targetDateType} + ${targetDateOffset.days} days, ` +
+        `${targetDateOffset.hours} hours, ` +
+        `${targetDateOffset.minutes} minutes, ` +
+        `${targetDateOffset.seconds} seconds, ` +
+        `and ${targetDateOffset.milliseconds} milliseconds, ` +
+        `which is ${offsetDateValue.toISOString()}. ` +
+        `The value provided was ${inputDateValue.toISOString()}.`
     );
   }
 }

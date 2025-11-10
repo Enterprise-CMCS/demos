@@ -68,10 +68,10 @@ export async function __updateExtension(
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
   if (input.effectiveDate) {
-    checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
+    checkInputDateIsStartOfDay("effectiveDate", input.effectiveDate);
   }
   if (input.expirationDate) {
-    checkInputDateIsEndOfDay({ dateType: "expirationDate", dateValue: input.expirationDate });
+    checkInputDateIsEndOfDay("expirationDate", input.expirationDate);
   }
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
   try {

@@ -4,6 +4,7 @@ import { getZScalerIps } from "./util/zscalerIps";
 import { getUserPoolIdByName } from "./util/getUserPoolId";
 import * as fs from "fs";
 import { getParameter } from "./util/getParameter";
+import { configuredDistributionExists } from "./util/checkCloudfront";
 
 export interface DeploymentConfigProperties {
   project: string;
@@ -21,6 +22,7 @@ export interface DeploymentConfigProperties {
   idmMetadataEndpoint?: string;
   cloudfrontWafHeaderValue?: string;
   zapHeaderValue?: string;
+  srrConfigured: boolean;
 }
 
 export const determineDeploymentConfig = async (
@@ -59,6 +61,23 @@ export const determineDeploymentConfig = async (
   const pubCertData = await getParameter("/demos/pub-cms-cert-1")
   fs.writeFileSync("./cert.pem", `${pubCertData}`);
 
+  let srrConfigured = false
+  try {
+    const cloudfrontReady = await getParameter(`/demos/cloudfront/${stage}`)
+    if (cloudfrontReady.startsWith("SRR has been configured:") && stage != "bootstrap") {
+      srrConfigured = true
+    } else {
+      if (["dev", "test"].includes(stage) || await configuredDistributionExists(stage)) {
+        throw new Error("A configured distribution already exists. Running this will delete it");
+        
+      }
+    }
+  } catch (err) {
+    if (stage != "bootstrap") {
+      throw err
+    }
+  }
+
   return {
     ...config,
     ...secretConfig,
@@ -67,5 +86,6 @@ export const determineDeploymentConfig = async (
     zScalerIps,
     hostUserPoolId,
     cloudfrontHost,
+    srrConfigured
   };
 };

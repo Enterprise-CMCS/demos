@@ -1,9 +1,6 @@
 import { gql } from "graphql-tag";
 
-import {
-  Demonstration,
-  Role,
-} from "../../types";
+import { Demonstration, Role } from "../../types";
 import { Person } from "../person/personSchema";
 
 export const demonstrationRoleAssignmentSchema = gql`
@@ -28,34 +25,28 @@ export const demonstrationRoleAssignmentSchema = gql`
   }
 
   type Mutation {
-    setDemonstrationRole(
-      input: SetDemonstrationRoleInput!
-    ): DemonstrationRoleAssignment!
-    setDemonstrationRoles(
-      input: [SetDemonstrationRoleInput!]!
-    ): [DemonstrationRoleAssignment!]!
-    unsetDemonstrationRoles(
-      input: [UnsetDemonstrationRoleInput!]!
-    ): [DemonstrationRoleAssignment!]!
+    setDemonstrationRole(input: SetDemonstrationRoleInput!): DemonstrationRoleAssignment!
+    setDemonstrationRoles(input: [SetDemonstrationRoleInput!]!): [DemonstrationRoleAssignment!]!
+    unsetDemonstrationRoles(input: [UnsetDemonstrationRoleInput!]!): [DemonstrationRoleAssignment!]!
   }
 `;
 
-export type DemonstrationRoleAssignment = {
+export interface DemonstrationRoleAssignment {
   demonstration: Demonstration;
   person: Person;
   role: Role;
   isPrimary: boolean;
-};
+}
 
-export type SetDemonstrationRoleInput = {
+export interface SetDemonstrationRoleInput {
   demonstrationId: string;
   personId: string;
   roleId: Role;
   isPrimary?: boolean;
-};
+}
 
-export type UnsetDemonstrationRoleInput = {
+export interface UnsetDemonstrationRoleInput {
   demonstrationId: string;
   personId: string;
   roleId: Role;
-};
+}
