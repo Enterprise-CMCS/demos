@@ -76,14 +76,12 @@ const getUpdateDemonstrationInput = (
     }),
   };
 
-  // Handle description field - set to null to clear it
   if (demonstration.description && demonstration.description.trim() !== "") {
     input.description = demonstration.description;
   } else {
     input.description = null;
   }
 
-  // Handle date fields - set to null to clear them
   if (demonstration.effectiveDate && demonstration.effectiveDate.trim() !== "") {
     input.effectiveDate = parseInputDate(demonstration.effectiveDate);
   } else {
@@ -96,7 +94,6 @@ const getUpdateDemonstrationInput = (
     input.expirationDate = null;
   }
 
-  // Handle dropdown fields that need to be explicitly set to null to clear them
   if (demonstration.sdgDivision) {
     input.sdgDivision = demonstration.sdgDivision;
   } else {
