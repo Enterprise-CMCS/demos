@@ -7,7 +7,6 @@ export function useAuthActions() {
 
   const signOut = async () => {
     try {
-      await auth.removeUser();
       await auth.signoutRedirect({
         extraQueryParams: {
           // Cognito expects logout_uri, not post_logout_redirect_uri
