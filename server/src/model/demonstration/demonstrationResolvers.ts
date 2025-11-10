@@ -117,10 +117,10 @@ export async function __updateDemonstration(
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
   if (input.effectiveDate) {
-    checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
+    checkInputDateIsStartOfDay("effectiveDate", input.effectiveDate);
   }
   if (input.expirationDate) {
-    checkInputDateIsEndOfDay({ dateType: "expirationDate", dateValue: input.expirationDate });
+    checkInputDateIsEndOfDay("expirationDate", input.expirationDate);
   }
   checkOptionalNotNullFields(
     ["name", "status", "currentPhaseName", "stateId", "projectOfficerUserId"],

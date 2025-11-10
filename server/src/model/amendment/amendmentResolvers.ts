@@ -68,10 +68,10 @@ export async function __updateAmendment(
   { id, input }: { id: string; input: UpdateAmendmentInput }
 ): Promise<PrismaAmendment> {
   if (input.effectiveDate) {
-    checkInputDateIsStartOfDay({ dateType: "effectiveDate", dateValue: input.effectiveDate });
+    checkInputDateIsStartOfDay("effectiveDate", input.effectiveDate);
   }
   if (input.expirationDate) {
-    checkInputDateIsEndOfDay({ dateType: "expirationDate", dateValue: input.expirationDate });
+    checkInputDateIsEndOfDay("expirationDate", input.expirationDate);
   }
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
   try {

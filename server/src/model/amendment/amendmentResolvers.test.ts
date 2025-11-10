@@ -116,10 +116,10 @@ describe("amendmentResolvers", () => {
 
   describe("__getAmendment", () => {
     it("should request the amendment", async () => {
-      const testInputData = {
+      const testInput = {
         id: testAmendmentId,
       };
-      await __getAmendment(undefined, testInputData);
+      await __getAmendment(undefined, testInput);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, "Amendment");
     });
   });
@@ -224,10 +224,7 @@ describe("amendmentResolvers", () => {
         },
       };
       await __updateAmendment(undefined, testInput);
-      expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith({
-        dateType: "effectiveDate",
-        dateValue: testDate,
-      });
+      expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith("effectiveDate", testDate);
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
@@ -240,10 +237,7 @@ describe("amendmentResolvers", () => {
       };
       await __updateAmendment(undefined, testInput);
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
-      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith({
-        dateType: "expirationDate",
-        dateValue: testDate,
-      });
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("expirationDate", testDate);
     });
   });
 

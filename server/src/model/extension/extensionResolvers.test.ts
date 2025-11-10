@@ -116,10 +116,10 @@ describe("extensionResolvers", () => {
 
   describe("__getExtension", () => {
     it("should request the extension", async () => {
-      const testInputData = {
+      const testInput = {
         id: testExtensionId,
       };
-      await __getExtension(undefined, testInputData);
+      await __getExtension(undefined, testInput);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, "Extension");
     });
   });
@@ -224,10 +224,7 @@ describe("extensionResolvers", () => {
         },
       };
       await __updateExtension(undefined, testInput);
-      expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith({
-        dateType: "effectiveDate",
-        dateValue: testDate,
-      });
+      expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith("effectiveDate", testDate);
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
@@ -240,10 +237,7 @@ describe("extensionResolvers", () => {
       };
       await __updateExtension(undefined, testInput);
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
-      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith({
-        dateType: "expirationDate",
-        dateValue: testDate,
-      });
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("expirationDate", testDate);
     });
   });
 
