@@ -1,7 +1,7 @@
 import { DateTimeOrLocalDate, ExpectedTimestamp } from "./types.js";
 import { TZDate } from "@date-fns/tz";
 
-export function parseInputToDate(
+export function parseDateTimeOrLocalDateToJSDate(
   input: DateTimeOrLocalDate,
   expectedTimestamp: ExpectedTimestamp
 ): Date {

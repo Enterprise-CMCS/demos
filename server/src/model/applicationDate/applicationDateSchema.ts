@@ -17,7 +17,7 @@ export const applicationDateSchema = gql`
   input SetApplicationDateInput {
     applicationId: ID!
     dateType: DateType!
-    dateValue: DateTime!
+    dateValue: DateTimeOrLocalDate!
   }
 
   input SetApplicationDatesInput {
@@ -39,7 +39,7 @@ export interface ApplicationDateInput {
 export interface SetApplicationDateInput {
   applicationId: string;
   dateType: DateType;
-  dateValue: Date;
+  dateValue: DateTimeOrLocalDate;
 }
 
 export interface SetApplicationDatesInput {

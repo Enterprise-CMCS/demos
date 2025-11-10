@@ -69,8 +69,8 @@ export const DateTimeOrLocalDateResolver = new GraphQLScalarType({
     }
 
     throw new Error(
-      'Must be either DateTime (ISO 8601 timestamp like "2020-01-01T12:00:00.000Z") ' +
-        'or LocalDate (date like "2020-01-01"). ' +
+      'Must be either DateTime (ISO 8601 timestamp like "2020-01-15T12:00:00.000Z") ' +
+        'or LocalDate (date like "2020-01-15"). ' +
         `Received: ${value}`
     );
   },
@@ -87,8 +87,8 @@ export const DateTimeOrLocalDateResolver = new GraphQLScalarType({
     }
 
     throw new Error(
-      'Must be either DateTime (ISO 8601 timestamp like "2020-01-01T12:00:00.000Z") ' +
-        'or LocalDate (date like "2020-01-01").'
+      'Must be either DateTime (ISO 8601 timestamp like "2020-01-15T12:00:00.000Z") ' +
+        'or LocalDate (date like "2020-01-15").'
     );
   },
 });

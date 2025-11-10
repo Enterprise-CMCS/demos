@@ -1,12 +1,33 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
+import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
 import { validateInputDates } from "./validateInputDates.js";
+import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
-export async function __setApplicationDate(
+export function __parseInputApplicationDates(
+  inputApplicationDates: SetApplicationDatesInput
+): SetApplicationDatesInput {
+  const result: SetApplicationDatesInput = {
+    applicationId: inputApplicationDates.applicationId,
+    applicationDates: [],
+  };
+  for (const applicationDate of inputApplicationDates.applicationDates) {
+    result.applicationDates.push({
+      dateType: applicationDate.dateType,
+      dateValue: parseDateTimeOrLocalDateToJSDate(
+        applicationDate.dateValue,
+        DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[applicationDate.dateType].expectedTimestamp
+      ),
+    });
+  }
+  return result;
+}
+
+export function __setApplicationDate(
   _: unknown,
   { input }: { input: SetApplicationDateInput }
 ): Promise<PrismaApplication> {
@@ -29,15 +50,16 @@ export async function __setApplicationDates(
   if (input.applicationDates.length === 0) {
     return await getApplication(input.applicationId);
   }
+  const inputApplicationDates = __parseInputApplicationDates(input);
   const existingApplicationDates = await getExistingDates(input.applicationId);
   const updatedApplicationDates = mergeApplicationDates(
     existingApplicationDates,
-    input.applicationDates
+    inputApplicationDates.applicationDates
   );
 
   validateInputDates(updatedApplicationDates);
 
-  const datesToUpdate = input.applicationDates.map((dateToUpdate) =>
+  const datesToUpdate = inputApplicationDates.applicationDates.map((dateToUpdate) =>
     prisma().applicationDate.upsert({
       where: {
         applicationId_dateTypeId: {

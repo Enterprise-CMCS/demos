@@ -34,6 +34,7 @@ import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
+import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -63,6 +64,10 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
 vi.mock("../applicationDate/checkInputDateFunctions.js", () => ({
   checkInputDateIsStartOfDay: vi.fn(),
   checkInputDateIsEndOfDay: vi.fn(),
+}));
+
+vi.mock("../../dateUtilities.js", () => ({
+  parseDateTimeOrLocalDateToJSDate: vi.fn(),
 }));
 
 describe("amendmentResolvers", () => {
@@ -201,29 +206,27 @@ describe("amendmentResolvers", () => {
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
-    it("should not check input dates if they don't exist", async () => {
+    it("should not parse or check input dates if they don't exist", async () => {
       await __updateAmendment(undefined, testInput);
+      expect(parseDateTimeOrLocalDateToJSDate).not.toHaveBeenCalled();
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
-    it("should properly handle an error if it occurs", async () => {
-      const testError = new Error("Database connection failed");
-      regularMocks.amendment.update.mockRejectedValueOnce(testError);
-      await expect(__updateAmendment(undefined, testInput)).rejects.toThrowError(
-        testHandlePrismaError
-      );
-      expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
-    });
-
-    it("should check effective date if it is provided", async () => {
+    it("should parse and check effective date if it is provided", async () => {
       const testInput: { id: string; input: UpdateAmendmentInput } = {
         id: testAmendmentId,
         input: {
           effectiveDate: testDate,
         },
       };
+      vi.mocked(parseDateTimeOrLocalDateToJSDate).mockReturnValueOnce(testDate);
+
       await __updateAmendment(undefined, testInput);
+      expect(parseDateTimeOrLocalDateToJSDate).toHaveBeenCalledExactlyOnceWith(
+        testDate,
+        "Start of Day"
+      );
       expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith("effectiveDate", testDate);
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
@@ -235,9 +238,24 @@ describe("amendmentResolvers", () => {
           expirationDate: testDate,
         },
       };
+      vi.mocked(parseDateTimeOrLocalDateToJSDate).mockReturnValueOnce(testDate);
+
       await __updateAmendment(undefined, testInput);
+      expect(parseDateTimeOrLocalDateToJSDate).toHaveBeenCalledExactlyOnceWith(
+        testDate,
+        "End of Day"
+      );
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("expirationDate", testDate);
+    });
+
+    it("should properly handle an error if it occurs", async () => {
+      const testError = new Error("Database connection failed");
+      regularMocks.amendment.update.mockRejectedValueOnce(testError);
+      await expect(__updateAmendment(undefined, testInput)).rejects.toThrowError(
+        testHandlePrismaError
+      );
+      expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
     });
   });
 

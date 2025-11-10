@@ -45,7 +45,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
 } from "../application/applicationResolvers.js";
-import test from "node:test";
+import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -75,6 +75,10 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
 vi.mock("../applicationDate/checkInputDateFunctions.js", () => ({
   checkInputDateIsStartOfDay: vi.fn(),
   checkInputDateIsEndOfDay: vi.fn(),
+}));
+
+vi.mock("../../dateUtilities.js", () => ({
+  parseDateTimeOrLocalDateToJSDate: vi.fn(),
 }));
 
 describe("demonstrationResolvers", () => {
@@ -532,20 +536,27 @@ describe("demonstrationResolvers", () => {
       );
     });
 
-    it("should not check input dates if they don't exist", async () => {
+    it("should not parse or check input dates if they don't exist", async () => {
       await __updateDemonstration(undefined, testInput);
+      expect(parseDateTimeOrLocalDateToJSDate).not.toHaveBeenCalled();
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
-    it("should check effective date if it is provided", async () => {
+    it("should parse and check effective date if it is provided", async () => {
       const testInput: { id: string; input: UpdateDemonstrationInput } = {
         id: testValues.demonstrationId,
         input: {
           effectiveDate: testValues.dateValue,
         },
       };
+      vi.mocked(parseDateTimeOrLocalDateToJSDate).mockReturnValueOnce(testValues.dateValue);
+
       await __updateDemonstration(undefined, testInput);
+      expect(parseDateTimeOrLocalDateToJSDate).toHaveBeenCalledExactlyOnceWith(
+        testValues.dateValue,
+        "Start of Day"
+      );
       expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith(
         "effectiveDate",
         testValues.dateValue
@@ -553,14 +564,20 @@ describe("demonstrationResolvers", () => {
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
-    it("should check expiration date if it is provided", async () => {
+    it("should parse and check expiration date if it is provided", async () => {
       const testInput: { id: string; input: UpdateDemonstrationInput } = {
         id: testValues.demonstrationId,
         input: {
           expirationDate: testValues.dateValue,
         },
       };
+      vi.mocked(parseDateTimeOrLocalDateToJSDate).mockReturnValueOnce(testValues.dateValue);
+
       await __updateDemonstration(undefined, testInput);
+      expect(parseDateTimeOrLocalDateToJSDate).toHaveBeenCalledExactlyOnceWith(
+        testValues.dateValue,
+        "End of Day"
+      );
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith(
         "expirationDate",
