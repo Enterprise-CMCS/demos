@@ -1,12 +1,12 @@
 import React, { useCallback, useState } from "react";
 
 import { CircleButton, SecondaryButton } from "components/button";
-import { AmendmentDialog, ExtensionDialog } from "components/dialog";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { safeDateFormat } from "util/formatDate";
 
 import { gql, useQuery } from "@apollo/client";
+import { useDialog } from "components/dialog/DialogContext";
 
 export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
   query DemonstrationHeaderDetails($demonstrationId: ID!) {
@@ -37,18 +37,15 @@ export type DemonstrationHeaderDetails = Pick<
 
 interface DemonstrationDetailHeaderProps {
   demonstrationId: string;
-  onEdit: () => void;
-  onDelete: () => void;
 }
 
 export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps> = ({
   demonstrationId,
-  onEdit,
-  onDelete,
 }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [modalType, setModalType] = useState<"amendment" | "extension" | null>(null);
+  const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
+    useDialog();
   const { data, loading, error } = useQuery<{
     demonstration: DemonstrationHeaderDetails;
   }>(DEMONSTRATION_HEADER_DETAILS_QUERY, {
@@ -58,14 +55,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   const handleToggleButtons = useCallback(() => {
     setShowButtons((prev) => !prev);
   }, []);
-
-  const handleEdit = useCallback(() => {
-    onEdit();
-  }, [onEdit]);
-
-  const handleDelete = useCallback(() => {
-    onDelete();
-  }, [onDelete]);
 
   const demonstration = data?.demonstration;
   if (loading) {
@@ -100,12 +89,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
       value: safeDateFormat(demonstration.expirationDate),
     },
   ];
-
-  const handleSelect = (item: string) => {
-    setShowDropdown(false);
-    if (item === "Amendment") setModalType("amendment");
-    else if (item === "Extension") setModalType("extension");
-  };
 
   return (
     <div
@@ -168,11 +151,18 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             <CircleButton
               name="Delete demonstration"
               data-testid="delete-button"
-              onClick={handleDelete}
+              onClick={() => {}}
             >
               <DeleteIcon width="24" height="40" />
             </CircleButton>
-            <CircleButton name="Edit demonstration" data-testid="edit-button" onClick={handleEdit}>
+            <CircleButton
+              name="Edit demonstration"
+              data-testid="edit-button"
+              onClick={() => {
+                setShowDropdown(false);
+                showEditDemonstrationDialog(demonstrationId);
+              }}
+            >
               <EditIcon width="24" height="40" />
             </CircleButton>
             <CircleButton
@@ -186,14 +176,20 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
                 <button
                   data-testid="button-create-new-amendment"
-                  onClick={() => handleSelect("Amendment")}
+                  onClick={() => {
+                    setShowDropdown(false);
+                    showCreateAmendmentDialog(demonstrationId);
+                  }}
                   className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
                 >
                   Amendment
                 </button>
                 <button
                   data-testid="button-create-new-extension"
-                  onClick={() => handleSelect("Extension")}
+                  onClick={() => {
+                    setShowDropdown(false);
+                    showCreateExtensionDialog(demonstrationId);
+                  }}
                   className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
                 >
                   Extension
@@ -216,20 +212,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           </span>
         </CircleButton>
       </div>
-      {modalType === "amendment" && (
-        <AmendmentDialog
-          mode="add"
-          onClose={() => setModalType(null)}
-          demonstrationId={demonstration.id}
-        />
-      )}
-      {modalType === "extension" && (
-        <ExtensionDialog
-          mode="add"
-          onClose={() => setModalType(null)}
-          demonstrationId={demonstration.id}
-        />
-      )}
     </div>
   );
 };
