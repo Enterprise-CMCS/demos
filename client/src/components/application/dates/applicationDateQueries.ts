@@ -1,26 +1,18 @@
 import { useMutation, gql } from "@apollo/client";
-import { ApplicationDateInput, SetApplicationDatesInput } from "demos-server";
+import { SetApplicationDateInput } from "demos-server";
 import { formatDateAsIsoString } from "util/formatDate";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/ApplicationWorkflow";
 
-export const getQueryForSetApplicationDates = (
-  setApplicationDatesInput: SetApplicationDatesInput
+export const getQueryForSetApplicationDate = (
+  setApplicationDateInput: SetApplicationDateInput
 ): string => {
-  const properApplicationDateInputs = [];
-  for (const applicationDate of setApplicationDatesInput.applicationDates) {
-    properApplicationDateInputs.push({
-      dateTypeId: applicationDate.dateType,
-      dateValue: formatDateAsIsoString(applicationDate.dateValue),
-    });
-  }
-  const applicationDatesQueryList = properApplicationDateInputs
-    .map((record) => `{dateTypeId: "${record.dateTypeId}", dateValue: "${record.dateValue}"}`)
-    .join(", ");
+  const isoDateString = formatDateAsIsoString(setApplicationDateInput.dateValue);
   return `
     mutation SetApplicationDate {
       setApplicationDate(input: {
-        applicationId: "${setApplicationDatesInput.applicationId}",
-        applicationDates: [${applicationDatesQueryList}]
+        applicationId: "${setApplicationDateInput.applicationId}",
+        dateType: "${setApplicationDateInput.dateType}",
+        dateValue: "${isoDateString}"
       }) { __typename }
     }
   `;
@@ -35,26 +27,23 @@ export const COMPLETENESS_PHASE_DATE_TYPES = [
 
 export const getInputsForCompletenessPhase = (
   applicationId: string,
-  dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>
-): SetApplicationDatesInput => {
-  const applicationDateInputs: ApplicationDateInput[] = [];
-  for (const dateTypeId of COMPLETENESS_PHASE_DATE_TYPES) {
-    const dateValue = dateValues[dateTypeId];
+  dateValues: Record<typeof COMPLETENESS_PHASE_DATE_TYPES[number], Date | null>
+): SetApplicationDateInput[] => {
+  return COMPLETENESS_PHASE_DATE_TYPES.reduce<SetApplicationDateInput[]>((inputs, dateType) => {
+    const dateValue = dateValues[dateType];
     if (dateValue) {
-      applicationDateInputs.push({
-        dateType: dateTypeId,
-        dateValue: dateValue,
+      inputs.push({
+        applicationId,
+        dateType,
+        dateValue,
       });
     }
-  }
-  return {
-    applicationId: applicationId,
-    applicationDates: applicationDateInputs,
-  };
+    return inputs;
+  }, []);
 };
 
-export const useSetApplicationDate = (input: SetApplicationDatesInput) => {
-  const mutation = gql(getQueryForSetApplicationDates(input));
+export const useSetApplicationDate = (input: SetApplicationDateInput) => {
+  const mutation = gql(getQueryForSetApplicationDate(input));
 
   const [mutate, { data, loading, error }] = useMutation(mutation);
 
