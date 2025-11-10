@@ -1,12 +1,10 @@
 import React from "react";
 import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
-import { getCurrentUser } from "components/user/UserContext";
 import { useLocation } from "react-router-dom";
 import { DialogProvider } from "components/dialog/DialogContext";
 
 export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser } = getCurrentUser();
   const location = useLocation();
 
   const hideSideNav =
