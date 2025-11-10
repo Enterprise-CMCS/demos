@@ -3,14 +3,15 @@ import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
 import { ConceptPreSubmissionUploadDialog } from "components/dialog/document/ConceptPreSubmissionUploadDialog";
-import { ChevronRightIcon, DeleteIcon, ExportIcon } from "components/icons";
+import { ChevronRightIcon, ExportIcon } from "components/icons";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
 
 import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
-import { formatDate, formatDateAsIsoString } from "util/formatDate";
+import { formatDateAsIsoString } from "util/formatDate";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { getIsoDateString, getNowEst, getStartOfDateEST } from "../dates/applicationDates";
+import { DocumentList } from "./sections";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -124,33 +125,10 @@ export const ConceptPhase = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <div className={STYLES.list}>
-        {preSubmissionDocuments.length == 0 && (
-          <div className="text-sm text-text-placeholder">No documents yet.</div>
-        )}
-        {preSubmissionDocuments.map((doc: ApplicationWorkflowDocument) => (
-          <div key={doc.id} className={STYLES.fileRow}>
-            <div>
-              <div className="font-medium">{doc.name}</div>
-              <div className={STYLES.fileMeta}>
-                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
-                {doc.description ? ` • ${doc.description}` : ""}
-              </div>
-            </div>
-            <button
-              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-              onClick={() => {
-                // TODO: use mutator for deleting document
-                console.log("Delete document:", doc.id);
-              }}
-              aria-label={`Delete ${doc.name}`}
-              title={`Delete ${doc.name}`}
-            >
-              <DeleteIcon className="w-2 h-2" />
-            </button>
-          </div>
-        ))}
-      </div>
+      <DocumentList
+        documents={preSubmissionDocuments}
+        onDelete={(id) => console.log("Delete document:", id)}
+      />
     </div>
   );
 

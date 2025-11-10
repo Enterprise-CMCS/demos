@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
@@ -180,13 +180,17 @@ describe("ConceptPhase", () => {
   describe("Date Field Behavior", () => {
     it("populates date when a document with createdAt is provided", () => {
       setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
-      const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/) as HTMLInputElement;
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
       expect(dateInput.value).toBe("2024-01-15");
     });
 
     it("allows user to change date manually", async () => {
       setup();
-      const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/) as HTMLInputElement;
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
       await userEvent.type(dateInput, "2024-02-20");
       expect(dateInput.value).toBe("2024-02-20");
     });
@@ -196,7 +200,7 @@ describe("ConceptPhase", () => {
     it("should return ConceptPhase component with extracted pre-submission docs", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-111",
-        status: "In Progress",
+        status: "Pre-Submission",
         currentPhaseName: "Concept",
         phases: [],
         documents: [

@@ -36,7 +36,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
   }
 `;
 
-type SimplePhase = {
+export type SimplePhase = {
   phaseName: PhaseName;
   phaseStatus: PhaseStatus;
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];

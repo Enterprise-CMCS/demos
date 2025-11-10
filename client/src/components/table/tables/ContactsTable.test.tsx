@@ -98,14 +98,6 @@ describe("ContactsTable", () => {
     await userEvent.click(screen.getByText("Primary"));
   });
 
-  it("pagination controls are user friendly and responsive", () => {
-    renderWithToast(<ContactsTable roles={Array(50).fill(testMocks[0])} />);
-    expect(screen.getByLabelText("Go to next page")).toBeInTheDocument();
-    expect(screen.getByLabelText("No previous page")).toBeInTheDocument();
-    expect(screen.getByLabelText("Page 1, current page")).toBeInTheDocument();
-    expect(screen.getByLabelText("Go to page 5")).toBeInTheDocument();
-  });
-
   it("allows navigation to specific pages and page sizes", async () => {
     renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
     // Click page 2

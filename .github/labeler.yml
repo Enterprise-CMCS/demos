@@ -1,0 +1,33 @@
+server:
+- changed-files:
+  - any-glob-to-any-file: server/**
+client:
+- changed-files:
+  - any-glob-to-any-file: client/**
+documentation:
+- changed-files:
+  - any-glob-to-any-file: docs/**
+spike:
+- changed-files:
+  - any-glob-to-any-file: spikes/**
+pipeline:
+- changed-files:
+  - any-glob-to-any-file: pipelines/**
+infra:
+- changed-files:
+  - any-glob-to-any-file: deployment/**
+lambda:
+- changed-files:
+  - any-glob-to-any-file: lambdas/**
+"lambda:authorizer":
+- changed-files:
+  - any-glob-to-any-file: lambdas/authorizer/**
+"lambda:role-management":
+- changed-files:
+  - any-glob-to-any-file: lambdas/dbRoleManagement/**
+"lambda:fileprocess":
+- changed-files:
+  - any-glob-to-any-file: lambdas/fileprocess/**
+"lambda:emailer":
+- changed-files:
+  - any-glob-to-any-file: lambdas/emailer/**

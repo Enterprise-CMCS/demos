@@ -14,6 +14,7 @@ import {
   applyDbRoleSuppressions,
   applyFileUploadSuppressions,
   applyUISuppressions,
+  applyUISuppressionsCloudfrontOnly
 } from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
 import { DBRoleStack } from "./stacks/dbRoles";
@@ -149,7 +150,11 @@ export async function main(passedContext?: { [key: string]: any }) {
 
   applyCoreSuppressions(core);
   applyApiSuppressions(api, stage);
-  applyUISuppressions(ui, stage);
+  if (config.srrConfigured) {
+    applyUISuppressions(ui, stage);
+  } else {
+    applyUISuppressionsCloudfrontOnly(ui);
+  }
   applyFileUploadSuppressions(fileUpload, stage);
   Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
   return app;

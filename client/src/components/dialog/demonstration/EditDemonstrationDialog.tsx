@@ -3,10 +3,12 @@ import React from "react";
 import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
 import { Demonstration, UpdateDemonstrationInput } from "demos-server";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
-import { formatDateForServer, parseInputDate } from "util/formatDate";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { formatDateForServer, parseInputDate, parseInputDateAsEndOfDayEST } from "util/formatDate";
+
+import { gql, useMutation, useQuery } from "@apollo/client";
+
+import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
 
 const SUCCESS_MESSAGE = "Your demonstration has been updated.";
 const ERROR_MESSAGE = "Your demonstration was not updated because of an unknown problem.";
@@ -73,7 +75,7 @@ const getUpdateDemonstrationInput = (
     effectiveDate: parseInputDate(demonstration.effectiveDate),
   }),
   ...(demonstration.expirationDate && {
-    expirationDate: parseInputDate(demonstration.expirationDate),
+    expirationDate: parseInputDateAsEndOfDayEST(demonstration.expirationDate),
   }),
 });
 
@@ -114,10 +116,9 @@ const useUpdateDemonstration = () => {
 };
 
 export const EditDemonstrationDialog: React.FC<{
-  isOpen: boolean;
   onClose: () => void;
   demonstrationId: string;
-}> = ({ isOpen, demonstrationId, onClose }) => {
+}> = ({ demonstrationId, onClose }) => {
   const { showSuccess, showError } = useToast();
   const updateDemonstration = useUpdateDemonstration();
 
@@ -143,7 +144,6 @@ export const EditDemonstrationDialog: React.FC<{
       {error && <div>Error loading demonstration data.</div>}
       {data && (
         <DemonstrationDialog
-          isOpen={isOpen}
           onClose={onClose}
           mode="edit"
           onSubmit={onSubmit}

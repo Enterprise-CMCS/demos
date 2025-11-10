@@ -10,10 +10,7 @@ import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/Demonstrat
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
 // Pick the props we need from BaseModificationDialogProps and rename entityId to extensionId for clarity
-type Props = Pick<
-  BaseModificationDialogProps,
-  "isOpen" | "onClose" | "mode" | "demonstrationId" | "data"
-> & {
+type Props = Pick<BaseModificationDialogProps, "onClose" | "mode" | "demonstrationId" | "data"> & {
   extensionId?: string;
 };
 
@@ -33,7 +30,6 @@ type Extension = Pick<ServerExtension, "id"> & {
 };
 
 export const ExtensionDialog: React.FC<Props> = ({
-  isOpen = true,
   onClose,
   mode,
   extensionId,
@@ -92,7 +88,6 @@ export const ExtensionDialog: React.FC<Props> = ({
 
   return (
     <BaseModificationDialog
-      isOpen={isOpen}
       onClose={onClose}
       mode={mode}
       entityId={extensionId}

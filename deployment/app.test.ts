@@ -1,6 +1,8 @@
+import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
 import { main } from "./app";
 
 import { getSecret } from "./util/getSecret";
+import {getParameter} from "./util/getParameter";
 
 jest.mock("@aws-sdk/client-cognito-identity-provider", () => {
   const actual = jest.requireActual("@aws-sdk/client-cognito-identity-provider");
@@ -35,6 +37,7 @@ jest.mock("@aws-sdk/client-ec2", () => {
   };
 });
 jest.mock("./util/getSecret");
+jest.mock("./util/getParameter");
 
 (getSecret as jest.Mock).mockImplementation(() =>
   JSON.stringify({
@@ -45,6 +48,11 @@ jest.mock("./util/getSecret");
 );
 
 describe("app", () => {
+  beforeEach(() => {
+    (getParameter as jest.Mock).mockImplementation(() => {
+      return "SRR has been configured: unit testing"
+    })
+  })
   test("should create proper stacks without database", async () => {
     process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
     process.env.CDK_DEFAULT_ACCOUNT = "123456";
@@ -54,6 +62,7 @@ describe("app", () => {
 
     const app = await main({
       stage: mockStageName,
+      [BUNDLING_STACKS]: [],
     });
     const assembly = app!.synth();
 
@@ -82,6 +91,7 @@ describe("app", () => {
     const app = await main({
       stage: mockStageName,
       db: "include",
+      [BUNDLING_STACKS]: [],
     });
     const assembly = app!.synth();
 
@@ -99,6 +109,7 @@ describe("app", () => {
 
     const app = await main({
       stage: "bootstrap",
+      [BUNDLING_STACKS]: [],
     });
     const assembly = app!.synth();
 
@@ -112,11 +123,34 @@ describe("app", () => {
 
     const mockStageName = "dev";
 
+
+
     const app = await main({
       stage: mockStageName,
+      [BUNDLING_STACKS]: [],
     });
     const assembly = app!.synth();
 
     expect(assembly.getStackByName(`demos-dev-db-role`)).toBeDefined();
+  });
+
+  test("should throw an error if dev or test if srrConfigured returns false", async () => {
+    process.env.EXPECTED_DEMOS_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_ACCOUNT = "123456";
+    process.env.CDK_DEFAULT_REGION = "us-east-1";
+
+    const mockStageName = "dev";
+
+    (getParameter as jest.Mock).mockImplementation(() => {
+      return "Pending"
+    })
+
+    expect(main({
+      stage: mockStageName,
+      [BUNDLING_STACKS]: [],
+    })).rejects.toThrow("A configured distribution already exists");
+  
+
+  
   });
 });

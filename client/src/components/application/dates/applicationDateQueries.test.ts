@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { getQueryForSetApplicationDate, useSetApplicationDate } from "./applicationDateQueries";
+import {
+  getInputsForCompletenessPhase,
+  getQueryForSetApplicationDate,
+  useSetApplicationDate,
+} from "./applicationDateQueries";
 import { SetApplicationDateInput } from "demos-server";
 import { renderHook } from "@testing-library/react";
 import React from "react";
@@ -95,5 +99,47 @@ describe("applicationDateQueries", () => {
       expect(result.current).toHaveProperty("error");
       expect(typeof result.current.setApplicationDate).toBe("function");
     });
+  });
+});
+
+describe("getInputsForCompletenessPhase", () => {
+  const baseDate = new Date("2025-01-01T00:00:00.000Z");
+  const makeDate = (offsetDays: number) => new Date(baseDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+
+  it("includes all completeness dates when provided together", () => {
+    const state = baseDate;
+    const start = makeDate(1);
+    const end = makeDate(30);
+    const completion = makeDate(31);
+
+    const inputs = getInputsForCompletenessPhase("app-456", {
+      "State Application Deemed Complete": state,
+      "Federal Comment Period Start Date": start,
+      "Federal Comment Period End Date": end,
+      "Completeness Completion Date": completion,
+    });
+
+    expect(inputs).toEqual([
+      {
+        applicationId: "app-456",
+        dateType: "State Application Deemed Complete",
+        dateValue: state,
+      },
+      {
+        applicationId: "app-456",
+        dateType: "Federal Comment Period Start Date",
+        dateValue: start,
+      },
+      {
+        applicationId: "app-456",
+        dateType: "Federal Comment Period End Date",
+        dateValue: end,
+      },
+      {
+        applicationId: "app-456",
+        dateType: "Completeness Completion Date",
+        dateValue: completion,
+      },
+    ]);
   });
 });

@@ -1,26 +1,14 @@
 import React from "react";
 
 import { ToastProvider } from "components/toast";
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
-import {
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import {
-  DemonstrationTab,
-  DemonstrationTabDemonstration,
-} from "./DemonstrationTab";
+import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 // Type definitions for mock components
 interface MockDocumentTableProps {
@@ -204,7 +192,9 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 const renderWithProvider = (component: React.ReactElement) => {
   return render(
     <MockedProvider mocks={[]} addTypename={false}>
-      <ToastProvider>{component}</ToastProvider>
+      <ToastProvider>
+        <DialogProvider>{component}</DialogProvider>
+      </ToastProvider>
     </MockedProvider>
   );
 };

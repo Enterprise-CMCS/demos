@@ -1,3 +1,5 @@
+// istanbul ignore file
+// ignoring since this is just a wrapper around AWS SDK functionality
 import {
   SecretsManagerClient,
   GetSecretValueCommand,

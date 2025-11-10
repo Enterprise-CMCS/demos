@@ -6,7 +6,7 @@ import { tw } from "tags/tw";
 
 interface BaseDialogProps {
   title: string;
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   children: React.ReactNode;
   actions?: React.ReactNode;
@@ -36,20 +36,29 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+  if (typeof isOpen === "undefined") {
+    // if isOpen is not provided, always show the dialog
+    useEffect(() => {
+      dialogRef.current?.showModal();
+      return () => dialogRef.current?.close();
+    }, []);
+  } else {
+    // if isOpen is provided, show/hide the dialog based on its value
+    useEffect(() => {
+      const dialog = dialogRef.current;
+      if (!dialog) return;
 
-    if (isOpen) {
-      if (!dialog.open) {
-        dialog.showModal();
+      if (isOpen) {
+        if (!dialog.open) {
+          dialog.showModal();
+        }
+      } else {
+        if (dialog.open) {
+          dialog.close();
+        }
       }
-    } else {
-      if (dialog.open) {
-        dialog.close();
-      }
-    }
-  }, [isOpen]);
+    }, [isOpen]);
+  }
 
   useEffect(() => {
     const confirmDialog = confirmDialogRef.current;
@@ -62,17 +71,6 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     }
   }, [showCancelConfirm]);
 
-  const handleDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    // Close dialog when clicking on backdrop
-    if (e.target === e.currentTarget) {
-      if (setShowCancelConfirm) {
-        setShowCancelConfirm(true);
-      } else {
-        onClose();
-      }
-    }
-  };
-
   const handleConfirmDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     // Close confirmation dialog when clicking on backdrop
     if (e.target === e.currentTarget && setShowCancelConfirm) {
@@ -82,15 +80,20 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
 
   return (
     <>
-      <dialog
-        ref={dialogRef}
-        className={`${DIALOG} ${maxWidthClass}`}
-        onClick={handleDialogClick}
-        onClose={onClose}
-      >
+      <dialog ref={dialogRef} className={`${DIALOG} ${maxWidthClass}`} onClose={onClose}>
         {!hideHeader && (
           <>
-            <button onClick={onClose} className={CLOSE_BUTTON} aria-label="Close dialog">
+            <button
+              onClick={() => {
+                if (setShowCancelConfirm) {
+                  setShowCancelConfirm(true);
+                } else {
+                  onClose();
+                }
+              }}
+              className={CLOSE_BUTTON}
+              aria-label="Close dialog"
+            >
               ×
             </button>
             <h2 className={TITLE}>{title}</h2>

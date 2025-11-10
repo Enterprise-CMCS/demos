@@ -168,7 +168,7 @@ describe("CreateDemonstrationDialog", () => {
 
     render(
       <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK, CREATE_DEMONSTRATION_MOCK]}>
-        <CreateDemonstrationDialog isOpen={true} onClose={onCloseMock} />
+        <CreateDemonstrationDialog onClose={onCloseMock} />
       </TestProvider>
     );
 
