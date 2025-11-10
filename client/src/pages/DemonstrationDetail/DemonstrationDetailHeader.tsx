@@ -60,7 +60,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   if (loading) {
     return (
       <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
-        Loading demonstration...
+        <span aria-label="loading">Loading demonstration...</span>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   if (error || !demonstration) {
     return (
       <div className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between">
-        Failed to load demonstration
+        Error Loading Demonstration
       </div>
     );
   }
