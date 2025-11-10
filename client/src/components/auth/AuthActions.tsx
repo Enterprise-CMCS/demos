@@ -10,7 +10,7 @@ export function useAuthActions() {
       await auth.removeUser();
       await auth.signoutRedirect({
         extraQueryParams: {
-          // Cognito expect logout_uri, not post_logout_redirect_uri
+          // Cognito expects logout_uri, not post_logout_redirect_uri
           logout_uri: `${window.location.origin}/`,
           client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,
         },
