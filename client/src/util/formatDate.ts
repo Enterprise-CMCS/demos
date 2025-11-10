@@ -9,6 +9,30 @@ export function formatDate(date: Date): string {
   return format(date, "MM/dd/yyyy");
 }
 
+export function formatEndOfDayESTDate(date: Date | string | null | undefined): string {
+  if (!date) return "--/--/----";
+
+  try {
+    const dateObj = typeof date === "string" ? parseISO(date) : date;
+    const tzDate = new TZDate(dateObj, "America/New_York");
+    return format(tzDate, "MM/dd/yyyy");
+  } catch {
+    return "--/--/----";
+  }
+}
+
+export function formatEndOfDayESTForInput(date: Date | string | null | undefined): string {
+  if (!date) return "";
+
+  try {
+    const dateObj = typeof date === "string" ? parseISO(date) : date;
+    const tzDate = new TZDate(dateObj, "America/New_York");
+    return format(tzDate, "yyyy-MM-dd");
+  } catch {
+    return "";
+  }
+}
+
 export function formatDateForServer(date: Date | string): string {
   return format(date, "yyyy-MM-dd");
 }

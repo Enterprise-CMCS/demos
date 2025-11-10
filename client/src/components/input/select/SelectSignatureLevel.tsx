@@ -20,7 +20,7 @@ export const SelectSignatureLevel = ({
   onSelect,
   initialValue,
 }: {
-  onSelect: (value: SignatureLevel) => void;
+  onSelect: (value: SignatureLevel | undefined) => void;
   initialValue?: SignatureLevel;
 }) => {
   const [signatureLevel, setSignatureLevel] = React.useState<SignatureLevel | undefined>(
@@ -33,8 +33,9 @@ export const SelectSignatureLevel = ({
       options={options}
       placeholder="Select Signature Level"
       onSelect={(value) => {
-        setSignatureLevel(value as SignatureLevel);
-        onSelect(value as SignatureLevel);
+        const selectedValue = value === "" ? undefined : (value as SignatureLevel);
+        setSignatureLevel(selectedValue);
+        onSelect(selectedValue);
       }}
       id="signature-level-select"
       label="Signature Level"

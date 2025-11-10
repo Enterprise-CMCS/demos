@@ -1,6 +1,6 @@
 import React from "react";
 import { mockDemonstrations } from "mock-data/demonstrationMocks";
-import { safeDateFormat } from "util/formatDate";
+import { safeDateFormat, formatEndOfDayESTDate } from "util/formatDate";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { DEMONSTRATION_SUMMARY_DETAILS_QUERY, SummaryDetailsTable } from "./SummaryDetailsTable";
@@ -60,9 +60,9 @@ describe("SummaryDetailsTable", () => {
 
   describe("Date Formatting", () => {
     it("formats effective and expiration dates correctly", () => {
-      // Check that dates are rendered (format will depend on locale)
+      // Effective date uses safeDateFormat, expiration date uses formatEndOfDayESTDate
       const effectiveDate = safeDateFormat(testDemo.effectiveDate);
-      const expirationDate = safeDateFormat(testDemo.expirationDate);
+      const expirationDate = formatEndOfDayESTDate(testDemo.expirationDate);
 
       expect(screen.getByText(effectiveDate)).toBeInTheDocument();
       expect(screen.getByText(expirationDate)).toBeInTheDocument();

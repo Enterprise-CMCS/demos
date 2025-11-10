@@ -71,6 +71,23 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     }
   }, [showCancelConfirm]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        const dialog = dialogRef.current;
+        if (dialog && dialog.open) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown, { capture: true });
+    };
+  }, []);
+
   const handleConfirmDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     // Close confirmation dialog when clicking on backdrop
     if (e.target === e.currentTarget && setShowCancelConfirm) {
@@ -78,9 +95,17 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     }
   };
 
+  const handleDialogClose = (event: React.SyntheticEvent<HTMLDialogElement>) => {
+    event.preventDefault();
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  };
+
   return (
     <>
-      <dialog ref={dialogRef} className={`${DIALOG} ${maxWidthClass}`} onClose={onClose}>
+      <dialog ref={dialogRef} className={`${DIALOG} ${maxWidthClass}`} onClose={handleDialogClose}>
         {!hideHeader && (
           <>
             <button
