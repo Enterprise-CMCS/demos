@@ -183,12 +183,7 @@ export const CompletenessPhase = ({
         ? toEasternStartOfDay(stateDeemedComplete)
         : null,
     } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
-  }, [
-    hasApplicationIntakeCompletionDate,
-    stateDeemedComplete,
-    federalStartDate,
-    federalEndDate,
-  ]);
+  }, [hasApplicationIntakeCompletionDate, stateDeemedComplete, federalStartDate, federalEndDate]);
 
   const saveDates = async () => {
     const dateValues = getDateValues();
@@ -231,9 +226,7 @@ export const CompletenessPhase = ({
       </SecondaryButton>
       <DocumentList
         documents={completenessDocs}
-        onDelete={(id) =>
-          setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))
-        }
+        onDelete={(id) => setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))}
       />
     </div>
   );
@@ -341,7 +334,7 @@ export const CompletenessPhase = ({
 
     if (federalEndDate) {
       const noticeDueDateValue = parseInputDate(federalEndDate);
-      if (! noticeDueDateValue) {
+      if (!noticeDueDateValue) {
         console.error("Error parsing federal end date for completeness notice:", federalEndDate);
         showError("Error parsing federal end date for completeness notice.");
       }
