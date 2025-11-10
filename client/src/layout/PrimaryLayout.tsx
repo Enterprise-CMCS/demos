@@ -6,28 +6,11 @@ import { useLocation } from "react-router-dom";
 import { DialogProvider } from "components/dialog/DialogContext";
 
 export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
-  const { loading: currentUserLoading, error: currentUserError } = getCurrentUser();
+  const { currentUser } = getCurrentUser();
   const location = useLocation();
 
   const hideSideNav =
     location.pathname.startsWith("/demonstrations/") && location.pathname !== "/demonstrations";
-
-  if (currentUserLoading) {
-    return (
-      <ToastProvider>
-        <div className="h-screen flex flex-col">
-          <header className="p-3 shadow">Loading…</header>
-          <div className="flex-1 bg-gray-primary-layout" />
-          <ToastContainer />
-        </div>
-      </ToastProvider>
-    );
-  }
-
-  if (currentUserError) {
-    console.error("[PrimaryLayout] currentUser error:", currentUserError);
-  }
-
   return (
     <ToastProvider>
       <DialogProvider>

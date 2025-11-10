@@ -10,6 +10,19 @@ export function applyCoreSuppressions(core: Stack) {
   ]);
 }
 
+export function applyUISuppressionsCloudfrontOnly(ui: Stack) {
+  NagSuppressions.addStackSuppressions(ui, [
+    {
+      id: "AwsSolutions-CFR3",
+      reason: "CMS requirements say that no configuration should be applied until after SRR is enabled"
+    },
+    {
+      id: "AwsSolutions-CFR4",
+      reason: "CMS requirements say that no configuration should be applied until after SRR is enabled"
+    }
+  ])
+}
+
 export function applyUISuppressions(ui: Stack, stage: string) {
   NagSuppressions.addStackSuppressions(ui, [
     {
@@ -103,6 +116,17 @@ export function applyApiSuppressions(api: Stack, stage: string) {
   NagSuppressions.addResourceSuppressionsByPath(
     api,
     `/demos-${stage}-api/authorizer/authorizerLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    api,
+    `/demos-${stage}-api/emailer/emailerLambdaExecutionRole/Resource`,
     [
       {
         id: "AwsSolutions-IAM5",

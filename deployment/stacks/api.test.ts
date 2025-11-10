@@ -5,10 +5,10 @@ import { DeploymentConfigProperties } from "../config";
 import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
 
 const commongAppArgs = {
-      context: {
-        [BUNDLING_STACKS]: []
-      }
-    }
+  context: {
+    [BUNDLING_STACKS]: [],
+  },
+};
 
 const mockCommonProps: DeploymentConfigProperties = {
   project: "demos",
@@ -53,8 +53,8 @@ describe("Api Stack", () => {
     const template = Template.fromStack(apiStack);
     // const fs = require("fs");
     // fs.writeFileSync("template.json", JSON.stringify(template.toJSON(), null, 2));
-    template.resourceCountIs("AWS::EC2::SecurityGroup", 2);
-    template.resourceCountIs("AWS::Lambda::Function", 2);
+    template.resourceCountIs("AWS::EC2::SecurityGroup", 3);
+    template.resourceCountIs("AWS::Lambda::Function", 3);
     template.resourceCountIs("AWS::ApiGateway::RestApi", 1);
     template.resourceCountIs("AWS::ApiGateway::Authorizer", 1);
 
