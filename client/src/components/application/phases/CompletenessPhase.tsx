@@ -27,12 +27,12 @@ const STYLES = {
   pane: tw`bg-white`,
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
-  stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
+  stepEyebrow: tw`text-[12px] font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
   title: tw`text-xl font-semibold mb-2`,
   helper: tw`text-sm text-text-placeholder mb-2`,
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
-  fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
+  fileMeta: tw`text-[12px] text-text-placeholder mt-0.5`,
   actions: tw`mt-8 flex items-center gap-3`,
   actionsEnd: tw`ml-auto flex gap-3`,
 };
@@ -183,12 +183,7 @@ export const CompletenessPhase = ({
         ? toEasternStartOfDay(stateDeemedComplete)
         : null,
     } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
-  }, [
-    hasApplicationIntakeCompletionDate,
-    stateDeemedComplete,
-    federalStartDate,
-    federalEndDate,
-  ]);
+  }, [hasApplicationIntakeCompletionDate, stateDeemedComplete, federalStartDate, federalEndDate]);
 
   const saveDates = async () => {
     const dateValues = getDateValues();
@@ -231,9 +226,7 @@ export const CompletenessPhase = ({
       </SecondaryButton>
       <DocumentList
         documents={completenessDocs}
-        onDelete={(id) =>
-          setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))
-        }
+        onDelete={(id) => setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))}
       />
     </div>
   );
@@ -341,7 +334,7 @@ export const CompletenessPhase = ({
 
     if (federalEndDate) {
       const noticeDueDateValue = parseInputDate(federalEndDate);
-      if (! noticeDueDateValue) {
+      if (!noticeDueDateValue) {
         console.error("Error parsing federal end date for completeness notice:", federalEndDate);
         showError("Error parsing federal end date for completeness notice.");
       }
