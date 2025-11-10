@@ -66,6 +66,8 @@ export type {
   ApplicationDateInput,
   SetApplicationDateInput,
   SetApplicationDatesInput,
+  ParsedApplicationDateInput,
+  ParsedSetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
 export type LocalDate = string;

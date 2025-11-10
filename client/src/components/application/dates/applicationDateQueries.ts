@@ -6,13 +6,18 @@ import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/Applica
 export const getQueryForSetApplicationDate = (
   setApplicationDateInput: SetApplicationDateInput
 ): string => {
-  const isoDateString = formatDateAsIsoString(setApplicationDateInput.dateValue);
+  let dateString: string;
+  if (setApplicationDateInput.dateValue instanceof Date) {
+    dateString = formatDateAsIsoString(setApplicationDateInput.dateValue);
+  } else {
+    dateString = setApplicationDateInput.dateValue;
+  }
   return `
     mutation SetApplicationDate {
       setApplicationDate(input: {
         applicationId: "${setApplicationDateInput.applicationId}",
         dateType: "${setApplicationDateInput.dateType}",
-        dateValue: "${isoDateString}"
+        dateValue: "${dateString}"
       }) { __typename }
     }
   `;
@@ -27,7 +32,7 @@ export const COMPLETENESS_PHASE_DATE_TYPES = [
 
 export const getInputsForCompletenessPhase = (
   applicationId: string,
-  dateValues: Record<typeof COMPLETENESS_PHASE_DATE_TYPES[number], Date | null>
+  dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>
 ): SetApplicationDateInput[] => {
   return COMPLETENESS_PHASE_DATE_TYPES.reduce<SetApplicationDateInput[]>((inputs, dateType) => {
     const dateValue = dateValues[dateType];

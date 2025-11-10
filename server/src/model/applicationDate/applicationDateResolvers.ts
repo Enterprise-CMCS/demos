@@ -1,6 +1,10 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
+import {
+  SetApplicationDateInput,
+  SetApplicationDatesInput,
+  ParsedSetApplicationDatesInput,
+} from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -10,8 +14,8 @@ import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
 export function __parseInputApplicationDates(
   inputApplicationDates: SetApplicationDatesInput
-): SetApplicationDatesInput {
-  const result: SetApplicationDatesInput = {
+): ParsedSetApplicationDatesInput {
+  const result: ParsedSetApplicationDatesInput = {
     applicationId: inputApplicationDates.applicationId,
     applicationDates: [],
   };

@@ -1,4 +1,4 @@
-import { DateType, ExpectedTimestamp, ApplicationDateInput } from "../../types.js";
+import { DateType, ExpectedTimestamp, ParsedApplicationDateInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import {
   checkInputDateIsStartOfDay,
@@ -93,7 +93,7 @@ VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanOrEqualChecks"] = 
   },
 ];
 
-export function validateInputDates(datesToValidate: ApplicationDateInput[]): void {
+export function validateInputDates(datesToValidate: ParsedApplicationDateInput[]): void {
   const datesToValidateMap: ApplicationDateMap = new Map(
     datesToValidate.map((dateToValidate) => [dateToValidate.dateType, dateToValidate.dateValue])
   );

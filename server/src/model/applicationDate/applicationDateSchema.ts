@@ -31,13 +31,13 @@ export const applicationDateSchema = gql`
   }
 `;
 
-export interface ApplicationDateInput {
+export interface SetApplicationDateInput {
+  applicationId: string;
   dateType: DateType;
   dateValue: DateTimeOrLocalDate;
 }
 
-export interface SetApplicationDateInput {
-  applicationId: string;
+export interface ApplicationDateInput {
   dateType: DateType;
   dateValue: DateTimeOrLocalDate;
 }
@@ -45,6 +45,16 @@ export interface SetApplicationDateInput {
 export interface SetApplicationDatesInput {
   applicationId: string;
   applicationDates: ApplicationDateInput[];
+}
+
+export interface ParsedApplicationDateInput {
+  dateType: DateType;
+  dateValue: Date;
+}
+
+export interface ParsedSetApplicationDatesInput {
+  applicationId: string;
+  applicationDates: ParsedApplicationDateInput[];
 }
 
 export interface ApplicationDate {
