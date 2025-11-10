@@ -121,8 +121,8 @@ export const CompletenessPhase = ({
   );
 
   const [setApplicationDateMutation] = useMutation(gql`
-    mutation SetApplicationDates($input: SetApplicationDatesInput!) {
-      setApplicationDates(input: $input) {
+    mutation SetApplicationDate($input: SetApplicationDateInput!) {
+      setApplicationDate(input: $input) {
         __typename
       }
     }
@@ -183,19 +183,26 @@ export const CompletenessPhase = ({
         ? toEasternStartOfDay(stateDeemedComplete)
         : null,
     } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
-  }, [hasApplicationIntakeCompletionDate, stateDeemedComplete, federalStartDate, federalEndDate]);
+  }, [
+    hasApplicationIntakeCompletionDate,
+    stateDeemedComplete,
+    federalStartDate,
+    federalEndDate,
+  ]);
 
   const saveDates = async () => {
     const dateValues = getDateValues();
-    const input = getInputsForCompletenessPhase(applicationId, dateValues);
+    const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
 
     try {
-      await setApplicationDateMutation({
-        variables: {
-          input,
-        },
-        refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
-      });
+      for (const input of inputs) {
+        await setApplicationDateMutation({
+          variables: {
+            input,
+          },
+          refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+        });
+      }
     } catch (error) {
       showError(error instanceof Error ? error.message : String(error));
       console.error("Error saving Phase: ", error);
@@ -224,7 +231,9 @@ export const CompletenessPhase = ({
       </SecondaryButton>
       <DocumentList
         documents={completenessDocs}
-        onDelete={(id) => setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))}
+        onDelete={(id) =>
+          setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))
+        }
       />
     </div>
   );
@@ -332,7 +341,7 @@ export const CompletenessPhase = ({
 
     if (federalEndDate) {
       const noticeDueDateValue = parseInputDate(federalEndDate);
-      if (!noticeDueDateValue) {
+      if (! noticeDueDateValue) {
         console.error("Error parsing federal end date for completeness notice:", federalEndDate);
         showError("Error parsing federal end date for completeness notice.");
       }

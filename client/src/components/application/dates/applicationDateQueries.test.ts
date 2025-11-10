@@ -1,43 +1,38 @@
 import { describe, it, expect } from "vitest";
 import {
   getInputsForCompletenessPhase,
-  getQueryForSetApplicationDates,
+  getQueryForSetApplicationDate,
   useSetApplicationDate,
 } from "./applicationDateQueries";
-import { SetApplicationDatesInput } from "demos-server";
+import { SetApplicationDateInput } from "demos-server";
 import { renderHook } from "@testing-library/react";
 import React from "react";
 import { TestProvider } from "test-utils/TestProvider";
 
-const TEST_SET_PHASE_DATE_INPUT: SetApplicationDatesInput = {
+const TEST_SET_PHASE_DATE_INPUT: SetApplicationDateInput = {
   applicationId: "test-application-123",
-  applicationDates: [
-    {
-      dateType: "Concept Start Date",
-      dateValue: new Date(Date.parse("2025-01-15T10:30:00.000Z")),
-    },
-  ],
+  dateType: "Concept Start Date",
+  dateValue: new Date(Date.parse("2025-01-15T10:30:00.000Z")),
 };
 
 describe("applicationDateQueries", () => {
   describe("getQueryForSetApplicationDate", () => {
     it("should generate correct GraphQL mutation for Start Date", () => {
-      const result = getQueryForSetApplicationDates(TEST_SET_PHASE_DATE_INPUT);
+      const result = getQueryForSetApplicationDate(TEST_SET_PHASE_DATE_INPUT);
 
       expect(result).toContain("mutation SetApplicationDate");
       expect(result).toContain('applicationId: "test-application-123"');
-      expect(result).toContain(
-        'applicationDates: [{dateTypeId: "Concept Start Date", dateValue: "2025-01-15T10:30:00.000Z"}]'
-      );
+      expect(result).toContain('dateType: "Concept Start Date"');
+      expect(result).toContain('dateValue: "2025-01-15T10:30:00.000Z"');
     });
 
     it("should handle special characters in applicationId", () => {
-      const input: SetApplicationDatesInput = {
+      const input: SetApplicationDateInput = {
         ...TEST_SET_PHASE_DATE_INPUT,
         applicationId: "application-with-special-chars-123_abc",
       };
 
-      const result = getQueryForSetApplicationDates(input);
+      const result = getQueryForSetApplicationDate(input);
 
       expect(result).toContain('applicationId: "application-with-special-chars-123_abc"');
     });
@@ -51,62 +46,47 @@ describe("applicationDateQueries", () => {
       ] as const;
 
       dateTypes.forEach((dateType) => {
-        const input: SetApplicationDatesInput = {
+        const input: SetApplicationDateInput = {
           ...TEST_SET_PHASE_DATE_INPUT,
-          applicationDates: [
-            {
-              ...TEST_SET_PHASE_DATE_INPUT.applicationDates[0],
-              dateType: dateType,
-            },
-          ],
+          dateType: dateType,
         };
 
-        const result = getQueryForSetApplicationDates(input);
-        expect(result).toContain(`dateTypeId: "${dateType}"`);
+        const result = getQueryForSetApplicationDate(input);
+        expect(result).toContain(`dateType: "${dateType}"`);
       });
     });
 
     it("should preserve exact date precision", () => {
       const preciseDate = new Date("2025-02-14T14:30:45.123Z");
-      const input: SetApplicationDatesInput = {
+      const input: SetApplicationDateInput = {
         ...TEST_SET_PHASE_DATE_INPUT,
-        applicationDates: [
-          {
-            ...TEST_SET_PHASE_DATE_INPUT.applicationDates[0],
-            dateValue: preciseDate,
-          },
-        ],
+        dateValue: preciseDate,
       };
 
-      const result = getQueryForSetApplicationDates(input);
+      const result = getQueryForSetApplicationDate(input);
 
       // Verify the exact ISO string is used
       expect(result).toContain('dateValue: "2025-02-14T14:30:45.123Z"');
     });
 
     it("should maintain GraphQL mutation structure", () => {
-      const result = getQueryForSetApplicationDates(TEST_SET_PHASE_DATE_INPUT);
+      const result = getQueryForSetApplicationDate(TEST_SET_PHASE_DATE_INPUT);
 
       // Check that the structure follows GraphQL syntax
       expect(result).toMatch(/mutation SetApplicationDate\s*{/);
       expect(result).toMatch(/setApplicationDate\s*\(\s*input:\s*{/);
       expect(result).toContain("applicationId:");
-      expect(result).toMatch(/applicationDates:\s*\[/);
-      expect(result).toContain("dateTypeId:");
+      expect(result).toContain("dateType:");
       expect(result).toContain("dateValue:");
     });
   });
 
   describe("useSetApplicationDate", () => {
     it("should return an object with setApplicationDate function and mutation states", () => {
-      const testInput: SetApplicationDatesInput = {
+      const testInput: SetApplicationDateInput = {
         applicationId: "test-app-123",
-        applicationDates: [
-          {
-            dateType: "Application Intake Completion Date",
-            dateValue: new Date("2024-10-13T10:00:00.000Z"),
-          },
-        ],
+        dateType: "Application Intake Completion Date",
+        dateValue: new Date("2024-10-13T10:00:00.000Z"),
       };
 
       const { result } = renderHook(() => useSetApplicationDate(testInput), {
@@ -124,8 +104,7 @@ describe("applicationDateQueries", () => {
 
 describe("getInputsForCompletenessPhase", () => {
   const baseDate = new Date("2025-01-01T00:00:00.000Z");
-  const makeDate = (offsetDays: number) =>
-    new Date(baseDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+  const makeDate = (offsetDays: number) => new Date(baseDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
 
   it("includes all completeness dates when provided together", () => {
     const state = baseDate;
@@ -140,26 +119,27 @@ describe("getInputsForCompletenessPhase", () => {
       "Completeness Completion Date": completion,
     });
 
-    expect(inputs).toEqual({
-      applicationId: "app-456",
-      applicationDates: [
-        {
-          dateType: "State Application Deemed Complete",
-          dateValue: state,
-        },
-        {
-          dateType: "Federal Comment Period Start Date",
-          dateValue: start,
-        },
-        {
-          dateType: "Federal Comment Period End Date",
-          dateValue: end,
-        },
-        {
-          dateType: "Completeness Completion Date",
-          dateValue: completion,
-        },
-      ],
-    });
+    expect(inputs).toEqual([
+      {
+        applicationId: "app-456",
+        dateType: "State Application Deemed Complete",
+        dateValue: state,
+      },
+      {
+        applicationId: "app-456",
+        dateType: "Federal Comment Period Start Date",
+        dateValue: start,
+      },
+      {
+        applicationId: "app-456",
+        dateType: "Federal Comment Period End Date",
+        dateValue: end,
+      },
+      {
+        applicationId: "app-456",
+        dateType: "Completeness Completion Date",
+        dateValue: completion,
+      },
+    ]);
   });
 });
