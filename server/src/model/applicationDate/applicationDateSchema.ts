@@ -14,17 +14,30 @@ export const applicationDateSchema = gql`
     dateValue: DateTime!
   }
 
+  input SetApplicationDateInput {
+    applicationId: ID!
+    dateType: DateType!
+    dateValue: DateTime!
+  }
+
   input SetApplicationDatesInput {
     applicationId: ID!
     applicationDates: [ApplicationDateInput!]!
   }
 
   type Mutation {
+    setApplicationDate(input: SetApplicationDateInput): Application
     setApplicationDates(input: SetApplicationDatesInput): Application
   }
 `;
 
 export interface ApplicationDateInput {
+  dateType: DateType;
+  dateValue: Date;
+}
+
+export interface SetApplicationDateInput {
+  applicationId: string;
   dateType: DateType;
   dateValue: Date;
 }

@@ -1,10 +1,26 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { SetApplicationDatesInput } from "../../types.js";
+import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
 import { validateInputDates } from "./validateInputDates.js";
+
+export async function __setApplicationDate(
+  _: unknown,
+  { input }: { input: SetApplicationDateInput }
+): Promise<PrismaApplication> {
+  const payload: SetApplicationDatesInput = {
+    applicationId: input.applicationId,
+    applicationDates: [
+      {
+        dateType: input.dateType,
+        dateValue: input.dateValue,
+      },
+    ],
+  };
+  return __setApplicationDates(undefined, { input: payload });
+}
 
 export async function __setApplicationDates(
   _: unknown,
@@ -56,6 +72,7 @@ export function __resolveApplicationDateType(parent: PrismaApplicationDate): str
 
 export const applicationDateResolvers = {
   Mutation: {
+    setApplicationDate: __setApplicationDate,
     setApplicationDates: __setApplicationDates,
   },
   ApplicationDate: {

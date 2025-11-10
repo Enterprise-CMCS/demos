@@ -64,6 +64,7 @@ export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,
   ApplicationDateInput,
+  SetApplicationDateInput,
   SetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
