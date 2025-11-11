@@ -1,3 +1,4 @@
+/* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
 import { getEndOfDayEST } from "components/application/dates/applicationDates";
 import { parseISO } from "date-fns";
 import { TZDate } from "@date-fns/tz";
