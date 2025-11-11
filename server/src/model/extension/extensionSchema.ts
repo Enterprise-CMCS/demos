@@ -7,6 +7,7 @@ import {
   Demonstration,
   Document,
   NonEmptyString,
+  DateTimeOrLocalDate,
 } from "../../types.js";
 
 export const extensionSchema = gql`
@@ -35,8 +36,8 @@ export const extensionSchema = gql`
     demonstrationId: ID
     name: NonEmptyString
     description: String
-    effectiveDate: DateTime
-    expirationDate: DateTime
+    effectiveDate: DateTimeOrLocalDate
+    expirationDate: DateTimeOrLocalDate
     status: ApplicationStatus
     currentPhaseName: PhaseName
   }
@@ -78,8 +79,8 @@ export interface UpdateExtensionInput {
   demonstrationId?: string;
   name?: NonEmptyString;
   description?: string | null;
-  effectiveDate?: Date | null;
-  expirationDate?: Date | null;
+  effectiveDate?: DateTimeOrLocalDate | null;
+  expirationDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
   currentPhaseName?: PhaseName;
 }

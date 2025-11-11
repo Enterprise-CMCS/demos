@@ -7,8 +7,11 @@ import { ChevronRightIcon, ExportIcon } from "components/icons";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
 
-import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
-import { formatDateAsIsoString } from "util/formatDate";
+import {
+  ApplicationWorkflowDemonstration,
+  ApplicationWorkflowDocument,
+} from "../ApplicationWorkflow";
+import { formatDateForServer } from "util/formatDate";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { getIsoDateString, getNowEst, getStartOfDateEST } from "../dates/applicationDates";
 import { DocumentList } from "./sections";
@@ -39,16 +42,18 @@ export const getConceptPhaseComponentFromDemonstration = (
     (document) => document.documentType === "Pre-Submission"
   );
 
-  return <ConceptPhase
-    demonstrationId={demonstration.id}
-    initialPreSubmissionDocuments={preSubmissionDocuments}
-  />;
+  return (
+    <ConceptPhase
+      demonstrationId={demonstration.id}
+      initialPreSubmissionDocuments={preSubmissionDocuments}
+    />
+  );
 };
 
 export interface ConceptProps {
   demonstrationId: string;
   initialPreSubmissionDocuments: ApplicationWorkflowDocument[];
-};
+}
 
 export const ConceptPhase = ({
   demonstrationId = "default-demo-id",
@@ -76,20 +81,14 @@ export const ConceptPhase = ({
 
   const handleDocumentUploadSucceeded = async () => {
     const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
-    setDateSubmitted(formatDateAsIsoString(todayDate));
+    setDateSubmitted(formatDateForServer(todayDate));
   };
-
 
   React.useEffect(() => {
     if (preSubmissionDocuments.length > 0 && !dateSubmitted) {
       const latestDoc = preSubmissionDocuments[preSubmissionDocuments.length - 1];
       if (latestDoc.createdAt) {
-        const uploadDate = new Date(latestDoc.createdAt);
-        const year = uploadDate.getFullYear();
-        const month = String(uploadDate.getMonth() + 1).padStart(2, "0");
-        const day = String(uploadDate.getDate()).padStart(2, "0");
-        const formattedDate = `${year}-${month}-${day}`;
-        setDateSubmitted(formattedDate);
+        setDateSubmitted(formatDateForServer(latestDoc.createdAt));
       }
     }
   }, [preSubmissionDocuments, dateSubmitted]);
@@ -114,7 +113,9 @@ export const ConceptPhase = ({
       <h4 id="state-application-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
-      <p className={STYLES.helper}>Upload the Pre-Submission Document describing your demonstration.</p>
+      <p className={STYLES.helper}>
+        Upload the Pre-Submission Document describing your demonstration.
+      </p>
 
       <SecondaryButton
         onClick={() => setUploadOpen(true)}

@@ -68,9 +68,8 @@ import { userSchema } from "./user/userSchema.js";
 import { userResolvers } from "./user/userResolvers.js";
 
 import {
-  JSONObjectDefinition,
   DateTimeTypeDefinition,
-  DateTypeDefinition,
+  JSONObjectDefinition,
   NonEmptyStringTypeDefinition,
 } from "graphql-scalars";
 import { customScalarResolvers } from "../customScalarResolvers.js";
@@ -78,8 +77,8 @@ import { customScalarResolvers } from "../customScalarResolvers.js";
 const scalarTypes = [
   JSONObjectDefinition,
   DateTimeTypeDefinition,
-  DateTypeDefinition,
   NonEmptyStringTypeDefinition,
+  "scalar DateTimeOrLocalDate",
 ];
 
 export const typeDefs = [

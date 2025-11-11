@@ -2,7 +2,7 @@ import { ESLintUtils } from "@typescript-eslint/utils";
 
 const createRule = ESLintUtils.RuleCreator((name) => name);
 
-const DATE_METHODS = [
+const DISALLOWED_DATE_METHODS = [
   "toLocaleDateString",
   "toLocaleString",
   "toISOString",
@@ -10,6 +10,7 @@ const DATE_METHODS = [
   "toDateString",
   "toTimeString",
   "toJSON",
+  "setDate",
 ];
 
 export const noNonstandardDateFormatting = createRule({
@@ -44,10 +45,9 @@ export const noNonstandardDateFormatting = createRule({
 
     function shouldFlag(node) {
       return (
-        (node.callee.type === "Identifier" && node.callee.name === "format") ||
-        (node.callee.type === "MemberExpression" &&
-          node.callee.property.type === "Identifier" &&
-          DATE_METHODS.includes(node.callee.property.name))
+        node.callee.type === "MemberExpression" &&
+        node.callee.property.type === "Identifier" &&
+        DISALLOWED_DATE_METHODS.includes(node.callee.property.name)
       );
     }
 

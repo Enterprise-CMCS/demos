@@ -8,6 +8,7 @@ import userEvent from "@testing-library/user-event";
 
 import { FederalCommentPhase } from "./FederalCommentPhase";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
+import { addDays } from "date-fns";
 
 // Mock icons to avoid SVG rendering complexity
 vi.mock("components/icons", async (importOriginal) => {
@@ -20,13 +21,10 @@ vi.mock("components/icons", async (importOriginal) => {
 });
 
 // Mock dialog to test open/close
-vi.mock(
-  "components/dialog/document/FederalCommentUploadDialog",
-  () => ({
-    FederalCommentUploadDialog: ({ isOpen }: { isOpen: boolean }) =>
-      isOpen ? <div>Federal Comment Upload Dialog</div> : null,
-  })
-);
+vi.mock("components/dialog/document/FederalCommentUploadDialog", () => ({
+  FederalCommentUploadDialog: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div>Federal Comment Upload Dialog</div> : null,
+}));
 
 describe("FederalCommentPhase", () => {
   const defaultStart = new Date("2025-01-01");
@@ -58,26 +56,19 @@ describe("FederalCommentPhase", () => {
     it("renders warning with days left", () => {
       setup();
       expect(screen.getByTestId("warning-icon")).toBeInTheDocument();
-      expect(
-        screen.getByText(/days left/i, { exact: false })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/The Federal Comment Period ends on/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/days left/i, { exact: false })).toBeInTheDocument();
+      expect(screen.getByText(/The Federal Comment Period ends on/i)).toBeInTheDocument();
     });
 
     it("dismisses warning when close button clicked", async () => {
       setup();
       const button = screen.getByTestId("button-dismiss-warning");
       await userEvent.click(button);
-      expect(
-        screen.queryByText(/days left/i, { exact: false })
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/days left/i, { exact: false })).not.toBeInTheDocument();
     });
 
     it("uses correct singular/plural for day left", () => {
-      const oneDayEnd = new Date();
-      oneDayEnd.setDate(oneDayEnd.getDate() + 1);
+      const oneDayEnd = addDays(new Date(), 1);
 
       setup({ phaseEndDate: oneDayEnd });
       expect(screen.getByText("1 day left")).toBeInTheDocument();
@@ -103,9 +94,7 @@ describe("FederalCommentPhase", () => {
     it("renders upload section with title and helper text", () => {
       setup();
       expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Upload the Internal Analysis Document/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Upload the Internal Analysis Document/)).toBeInTheDocument();
     });
 
     it("shows 'No documents yet' when no documents", () => {
@@ -122,9 +111,7 @@ describe("FederalCommentPhase", () => {
       setup();
       const uploadButton = screen.getByRole("button", { name: /upload/i });
       await userEvent.click(uploadButton);
-      expect(
-        screen.getByText("Federal Comment Upload Dialog")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Federal Comment Upload Dialog")).toBeInTheDocument();
     });
   });
 
@@ -133,20 +120,14 @@ describe("FederalCommentPhase", () => {
       setup();
       expect(screen.getByText("STEP 2 - VERIFY/COMPLETE")).toBeInTheDocument();
       expect(
-        screen.getByText(
-          /The Federal Comment phase automatically completes after/i
-        )
+        screen.getByText(/The Federal Comment phase automatically completes after/i)
       ).toBeInTheDocument();
     });
 
     it("shows formatted start and end dates", () => {
       setup();
-      expect(
-        screen.getByText(/Federal Comment Period Start Date/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/Federal Comment Period End Date/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Federal Comment Period Start Date/i)).toBeInTheDocument();
+      expect(screen.getByText(/Federal Comment Period End Date/i)).toBeInTheDocument();
     });
   });
 });
