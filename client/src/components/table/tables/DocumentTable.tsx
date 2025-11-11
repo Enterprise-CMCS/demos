@@ -79,7 +79,7 @@ function DocumentActionButtons({
   removeDisabled,
 }: DocumentActionButtonsProps) {
   return (
-    <div className="flex gap-2 ml-4">
+    <div className="flex gap-1 ml-4">
       <CircleButton name="add-document" ariaLabel="Add Document" onClick={() => onShowModal("add")}>
         <ImportIcon />
       </CircleButton>
