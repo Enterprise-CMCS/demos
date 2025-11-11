@@ -63,22 +63,47 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
 
 const getUpdateDemonstrationInput = (
   demonstration: DemonstrationDialogFields
-): UpdateDemonstrationInput => ({
-  ...(demonstration.name && { name: demonstration.name }),
-  ...(demonstration.description && { description: demonstration.description }),
-  ...(demonstration.stateId && { stateId: demonstration.stateId }),
-  ...(demonstration.projectOfficerId && {
-    projectOfficerUserId: demonstration.projectOfficerId,
-  }),
-  ...(demonstration.sdgDivision && { sdgDivision: demonstration.sdgDivision }),
-  ...(demonstration.signatureLevel && { signatureLevel: demonstration.signatureLevel }),
-  ...(demonstration.effectiveDate && {
-    effectiveDate: parseInputDate(demonstration.effectiveDate),
-  }),
-  ...(demonstration.expirationDate && {
-    expirationDate: parseInputDateAsEndOfDayEST(demonstration.expirationDate),
-  }),
-});
+): UpdateDemonstrationInput => {
+  const input: Record<string, unknown> = {
+    ...(demonstration.name && { name: demonstration.name }),
+    ...(demonstration.stateId && { stateId: demonstration.stateId }),
+    ...(demonstration.projectOfficerId && {
+      projectOfficerUserId: demonstration.projectOfficerId,
+    }),
+  };
+
+  if (demonstration.description && demonstration.description.trim() !== "") {
+    input.description = demonstration.description;
+  } else {
+    input.description = null;
+  }
+
+  if (demonstration.effectiveDate && demonstration.effectiveDate.trim() !== "") {
+    input.effectiveDate = parseInputDate(demonstration.effectiveDate);
+  } else {
+    input.effectiveDate = null;
+  }
+
+  if (demonstration.expirationDate && demonstration.expirationDate.trim() !== "") {
+    input.expirationDate = parseInputDateAsEndOfDayEST(demonstration.expirationDate);
+  } else {
+    input.expirationDate = null;
+  }
+
+  if (demonstration.sdgDivision) {
+    input.sdgDivision = demonstration.sdgDivision;
+  } else {
+    input.sdgDivision = null;
+  }
+
+  if (demonstration.signatureLevel) {
+    input.signatureLevel = demonstration.signatureLevel;
+  } else {
+    input.signatureLevel = null;
+  }
+
+  return input as UpdateDemonstrationInput;
+};
 
 const getDemonstrationDialogFields = (demonstration: Demonstration): DemonstrationDialogFields => ({
   name: demonstration.name,

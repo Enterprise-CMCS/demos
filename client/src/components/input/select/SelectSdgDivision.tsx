@@ -12,7 +12,7 @@ export const SelectSdgDivision = ({
   onSelect,
   initialValue,
 }: {
-  onSelect: (value: SdgDivision) => void;
+  onSelect: (value: SdgDivision | undefined) => void;
   initialValue?: SdgDivision;
 }) => {
   const [sdgDivision, setSdgDivision] = React.useState<SdgDivision | undefined>(initialValue);
@@ -22,8 +22,9 @@ export const SelectSdgDivision = ({
       options={options}
       placeholder="Select SDG Division"
       onSelect={(value) => {
-        setSdgDivision(value as SdgDivision);
-        onSelect(value as SdgDivision);
+        const selectedValue = value === "" ? undefined : (value as SdgDivision);
+        setSdgDivision(selectedValue);
+        onSelect(selectedValue);
       }}
       id="sdg-division-select"
       label="SDG Division"
