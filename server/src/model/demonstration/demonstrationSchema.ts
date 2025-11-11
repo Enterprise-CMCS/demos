@@ -12,6 +12,7 @@ import {
   DemonstrationRoleAssignment,
   NonEmptyString,
   Person,
+  DateTimeOrLocalDate,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
@@ -48,8 +49,8 @@ export const demonstrationSchema = gql`
   input UpdateDemonstrationInput {
     name: NonEmptyString
     description: String
-    effectiveDate: DateTime
-    expirationDate: DateTime
+    effectiveDate: DateTimeOrLocalDate
+    expirationDate: DateTimeOrLocalDate
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: ApplicationStatus
@@ -103,8 +104,8 @@ export interface CreateDemonstrationInput {
 export interface UpdateDemonstrationInput {
   name?: NonEmptyString;
   description?: string;
-  effectiveDate?: Date;
-  expirationDate?: Date;
+  effectiveDate?: DateTimeOrLocalDate | null;
+  expirationDate?: DateTimeOrLocalDate | null;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status?: ApplicationStatus;

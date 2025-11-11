@@ -31,6 +31,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
 } from "../application/applicationResolvers.js";
+import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -117,9 +118,11 @@ export async function __updateDemonstration(
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
   if (input.effectiveDate) {
+    input.effectiveDate = parseDateTimeOrLocalDateToJSDate(input.effectiveDate, "Start of Day");
     checkInputDateIsStartOfDay("effectiveDate", input.effectiveDate);
   }
   if (input.expirationDate) {
+    input.expirationDate = parseDateTimeOrLocalDateToJSDate(input.expirationDate, "End of Day");
     checkInputDateIsEndOfDay("expirationDate", input.expirationDate);
   }
   checkOptionalNotNullFields(
