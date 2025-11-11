@@ -3,18 +3,18 @@ import { addDays, addHours, addMinutes, addSeconds, addMilliseconds } from "date
 import { TZDate } from "@date-fns/tz";
 import { GraphQLError } from "graphql";
 
-type TZDateParts = {
+type TZDateTimeParts = {
   hours: number;
   minutes: number;
   seconds: number;
   milliseconds: number;
 };
 
-export type DateOffset = TZDateParts & {
+export type DateOffset = TZDateTimeParts & {
   days: number;
 };
 
-export function getTZDateParts(dateValue: Date): TZDateParts {
+export function getTZDateTimeParts(dateValue: Date): TZDateTimeParts {
   const tzDateValue = new TZDate(dateValue, "America/New_York");
   return {
     hours: tzDateValue.getHours(),
@@ -28,7 +28,7 @@ export function checkInputDateIsStartOfDay(
   dateType: DateType | "effectiveDate",
   dateValue: Date
 ): void {
-  const dateParts = getTZDateParts(dateValue);
+  const dateParts = getTZDateTimeParts(dateValue);
   if (
     dateParts.hours !== 0 ||
     dateParts.minutes !== 0 ||
@@ -51,7 +51,7 @@ export function checkInputDateIsEndOfDay(
   dateType: DateType | "expirationDate",
   dateValue: Date
 ): void {
-  const dateParts = getTZDateParts(dateValue);
+  const dateParts = getTZDateTimeParts(dateValue);
   if (
     dateParts.hours !== 23 ||
     dateParts.minutes !== 59 ||

@@ -1,5 +1,5 @@
 import { GraphQLScalarType, Kind, StringValueNode } from "graphql";
-import { DateTimeResolver, NonEmptyStringResolver } from "graphql-scalars";
+import { DateTimeResolver, LocalDateResolver, NonEmptyStringResolver } from "graphql-scalars";
 
 export function generateCustomSetScalar(
   acceptableValues: readonly string[],
@@ -44,7 +44,57 @@ export function generateCustomSetScalar(
   });
 }
 
+export const DateTimeOrLocalDateResolver = new GraphQLScalarType({
+  name: "DateTimeOrLocalDate",
+  description:
+    "Unions together the graphql-scalar types DateTime (ISO 8601 timestamp) and LocalDate (YYYY-MM-DD date).",
+
+  serialize(value) {
+    try {
+      return DateTimeResolver.serialize(value);
+    } catch {
+      return LocalDateResolver.serialize(value);
+    }
+  },
+
+  parseValue(value) {
+    const valueParsers = [DateTimeResolver.parseValue, LocalDateResolver.parseValue];
+
+    for (const valueParser of valueParsers) {
+      try {
+        return valueParser(value);
+      } catch {
+        continue;
+      }
+    }
+
+    throw new Error(
+      'Must be either DateTime (ISO 8601 timestamp like "2020-01-15T12:00:00.000Z") ' +
+        'or LocalDate (date like "2020-01-15"). ' +
+        `Received: ${value}`
+    );
+  },
+
+  parseLiteral(ast) {
+    const literalParsers = [DateTimeResolver.parseLiteral, LocalDateResolver.parseLiteral];
+
+    for (const literalParser of literalParsers) {
+      try {
+        return literalParser(ast, null);
+      } catch {
+        continue;
+      }
+    }
+
+    throw new Error(
+      'Must be either DateTime (ISO 8601 timestamp like "2020-01-15T12:00:00.000Z") ' +
+        'or LocalDate (date like "2020-01-15").'
+    );
+  },
+});
+
 export const customScalarResolvers = {
   DateTime: DateTimeResolver,
+  DateTimeOrLocalDate: DateTimeOrLocalDateResolver,
   NonEmptyString: NonEmptyStringResolver,
 };

@@ -3,9 +3,11 @@ import {
   __setApplicationDates,
   __resolveApplicationDateType,
   __setApplicationDate,
+  __parseInputApplicationDates,
 } from "./applicationDateResolvers.js";
 import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
+import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
@@ -58,6 +60,41 @@ describe("applicationDateResolvers", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+  });
+
+  describe("__parseInputApplicationDates", () => {
+    it("should return nicely parsed Dates from LocalDate inputs", () => {
+      const testLocalDateValue = "2025-01-15";
+      const testInput: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Federal Comment Period Start Date",
+            dateValue: testLocalDateValue,
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: testLocalDateValue,
+          },
+        ],
+      };
+      const expectedOutput: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Federal Comment Period Start Date",
+            dateValue: parseDateTimeOrLocalDateToJSDate(testLocalDateValue, "Start of Day"),
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: parseDateTimeOrLocalDateToJSDate(testLocalDateValue, "End of Day"),
+          },
+        ],
+      };
+
+      const result = __parseInputApplicationDates(testInput);
+      expect(result).toEqual(expectedOutput);
+    });
   });
 
   describe("__setApplicationDates", () => {

@@ -1,7 +1,9 @@
-import { ApplicationDateInput, DateType } from "../../types.js";
+import { DateType, ParsedApplicationDateInput } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 
-export async function getExistingDates(applicationId: string): Promise<ApplicationDateInput[]> {
+export async function getExistingDates(
+  applicationId: string
+): Promise<ParsedApplicationDateInput[]> {
   const result = await prisma().applicationDate.findMany({
     select: {
       dateTypeId: true,
@@ -18,9 +20,9 @@ export async function getExistingDates(applicationId: string): Promise<Applicati
 }
 
 export function mergeApplicationDates(
-  existingDates: ApplicationDateInput[],
-  newDates: ApplicationDateInput[]
-): ApplicationDateInput[] {
+  existingDates: ParsedApplicationDateInput[],
+  newDates: ParsedApplicationDateInput[]
+): ParsedApplicationDateInput[] {
   const resultDateMap = new Map(
     existingDates.map((existingDate) => [existingDate.dateType, existingDate])
   );

@@ -22,6 +22,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
 } from "../application/applicationResolvers.js";
+import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -68,9 +69,11 @@ export async function __updateExtension(
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
   if (input.effectiveDate) {
+    input.effectiveDate = parseDateTimeOrLocalDateToJSDate(input.effectiveDate, "Start of Day");
     checkInputDateIsStartOfDay("effectiveDate", input.effectiveDate);
   }
   if (input.expirationDate) {
+    input.expirationDate = parseDateTimeOrLocalDateToJSDate(input.expirationDate, "End of Day");
     checkInputDateIsEndOfDay("expirationDate", input.expirationDate);
   }
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);

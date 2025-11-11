@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { DateType } from "../../types.js";
 import {
-  getTZDateParts,
+  getTZDateTimeParts,
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
   __checkInputDateGreaterThan,
@@ -20,11 +20,11 @@ describe("checkInputDateFunctions", () => {
   const testAddDateValue = new Date("2025-01-14T11:12:13.145Z");
   const testAfterDateValue = new Date("2025-01-31T00:00:00Z");
 
-  describe("getTZDateParts", () => {
-    const datePartsUTCToEST = getTZDateParts(new Date("2025-03-01T11:23:13.128Z"));
-    const datePartsEST = getTZDateParts(new Date("2025-03-07T04:19:19.008-05:00"));
-    const datePartsUTCToEDT = getTZDateParts(new Date("2025-08-01T17:19:32.989Z"));
-    const datePartsEDT = getTZDateParts(new Date("2025-09-11T10:07:13.082-04:00"));
+  describe("getTZDateTimeParts", () => {
+    const datePartsUTCToEST = getTZDateTimeParts(new Date("2025-03-01T11:23:13.128Z"));
+    const datePartsEST = getTZDateTimeParts(new Date("2025-03-07T04:19:19.008-05:00"));
+    const datePartsUTCToEDT = getTZDateTimeParts(new Date("2025-08-01T17:19:32.989Z"));
+    const datePartsEDT = getTZDateTimeParts(new Date("2025-09-11T10:07:13.082-04:00"));
 
     it("should return the correct hours in EST for a GMT date", () => {
       expect(datePartsUTCToEST.hours).toBe(6);
