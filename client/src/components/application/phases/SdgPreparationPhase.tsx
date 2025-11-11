@@ -8,10 +8,31 @@ import { gql } from "graphql-tag";
 import { PhaseName } from "../phase-selector/PhaseSelector";
 import { useToast } from "components/toast";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
-import { getDateInputValue, toEstStartOfDay } from "util/formatDate";
+import { TZDate } from "@date-fns/tz";
+import { format } from "date-fns";
 
 const PHASE_NAME: PhaseName = "SDG Preparation";
 const NEXT_PHASE_NAME: PhaseName = "Approval Package";
+
+export function getDateInputValue(isoString: string): string {
+  const date = new TZDate(isoString, "America/New_York");
+  return format(date, "yyyy-MM-dd");
+}
+
+export function toEstStartOfDay(dateString: string): string {
+  const [year, month, day] = dateString.split("-");
+  const date = new TZDate(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    0,
+    0,
+    0,
+    0,
+    "America/New_York"
+  );
+  return format(date, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+}
 
 const STYLES = {
   pane: tw`bg-white p-8`,

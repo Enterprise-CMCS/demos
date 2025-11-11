@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { ExitIcon, WarningIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { FederalCommentUploadDialog } from "components/dialog/document/FederalCommentUploadDialog";
+import { differenceInCalendarDays, endOfDay, startOfDay } from "date-fns";
 
 interface FederalCommentPhaseProps {
   demonstrationId: string;
@@ -35,19 +36,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   const [showWarning, setShowWarning] = useState(true);
   const [isUploadOpen, setUploadOpen] = useState(false);
 
-  // Parse and memoize the end date
-  const daysLeft = useMemo(() => {
-    const now = new Date();
-
-    // Remove time part for accurate day count
-    phaseEndDate.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
-
-    const diffMs = phaseEndDate.getTime() - now.getTime();
-    const diffDays = Math.max(Math.ceil(diffMs / (1000 * 60 * 60 * 24)), 0);
-
-    return diffDays;
-  }, [phaseEndDate]);
+  const daysLeft = differenceInCalendarDays(startOfDay(phaseEndDate), endOfDay(new Date()));
 
   const borderColorClass = daysLeft === 1 ? "border-border-warn" : "border-border-alert";
   const warningClasses =
