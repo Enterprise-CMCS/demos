@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { tw } from "tags/tw";
 
 export const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
-export const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-[8px] outline-none focus:ring-2
+export const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-[12px] outline-none focus:ring-2
 bg-surface-white hover:text-text-font
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
 const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;

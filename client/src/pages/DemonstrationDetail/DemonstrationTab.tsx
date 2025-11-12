@@ -62,7 +62,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           label={`Documents (${demonstration.documents?.length ?? 0})`}
           value="documents"
         >
-          <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+          <div className="flex justify-between items-center pb-1 mb-2 border-b border-brand">
             <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
             <SecondaryButton
               name="add-new-document"
