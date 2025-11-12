@@ -88,7 +88,6 @@ const SET_ROLES_MOCK = {
 };
 
 const defaultProps: ManageContactsDialogProps = {
-  isOpen: true,
   onClose: vi.fn(),
   demonstrationId: "demo-1",
   existingContacts: [],
