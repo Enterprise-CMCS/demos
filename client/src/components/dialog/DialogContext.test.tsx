@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
+import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -215,6 +216,29 @@ vi.mock("./document/FederalCommentUploadDialog", () => ({
   ),
 }));
 
+vi.mock("./DeclareIncompleteDialog", () => ({
+  DeclareIncompleteDialog: ({
+    onConfirm,
+    onClose,
+  }: {
+    onConfirm: (form: DeclareIncompleteForm) => void;
+    onClose: () => void;
+  }) => (
+    <div data-testid="declare-incomplete-dialog">
+      Declare Incomplete Dialog
+      <button
+        data-testid="confirm-declare-incomplete-btn"
+        onClick={() => onConfirm({ reason: "missing-documentation", otherText: undefined })}
+      >
+        Confirm
+      </button>
+      <button data-testid="close-declare-incomplete-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
 const mockRoles: ExistingContactType[] = [
   {
     role: "Project Officer",
@@ -249,6 +273,7 @@ const TestConsumer: React.FC = () => {
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
     showFederalCommentDocumentUploadDialog,
+    showDeclareIncompleteDialog,
   } = useDialog();
 
   return (
@@ -309,6 +334,12 @@ const TestConsumer: React.FC = () => {
         onClick={() => showFederalCommentDocumentUploadDialog("app-5")}
       >
         Open Federal Comment Upload Dialog
+      </button>
+      <button
+        data-testid="open-declare-incomplete-btn"
+        onClick={() => showDeclareIncompleteDialog(vi.fn())}
+      >
+        Open Declare Incomplete Dialog
       </button>
     </div>
   );
@@ -538,5 +569,21 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-federal-comment-upload-btn"));
     expect(screen.queryByTestId("federal-comment-upload-dialog")).not.toBeInTheDocument();
+  });
+  it("shows and hides DeclareIncompleteDialog via context and calls onConfirm", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("declare-incomplete-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-declare-incomplete-btn"));
+    expect(screen.getByTestId("declare-incomplete-dialog")).toBeInTheDocument();
+    
+    await user.click(screen.getByTestId("close-declare-incomplete-btn"));
+    expect(screen.queryByTestId("declare-incomplete-dialog")).not.toBeInTheDocument();
   });
 });
