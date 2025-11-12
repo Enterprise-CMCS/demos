@@ -7,7 +7,7 @@ import { formatDate, formatDateForServer } from "util/formatDate";
 import { parseInputDate } from "util/parseDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { addDays, differenceInCalendarDays } from "date-fns";
-import { gql, useApolloClient, useMutation } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 import { CompletenessDocumentUploadDialog } from "components/dialog/document/CompletenessDocumentUploadDialog";
 import { DeclareIncompleteDialog } from "components/dialog";
 import {
@@ -126,9 +126,8 @@ export const CompletenessPhase = ({
   applicationCompletenessDocument,
   hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
-  const apolloClient = useApolloClient();
-  const { showSuccess, showError } = useToast();
 
+  const { showSuccess, showError } = useToast();
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -230,10 +229,6 @@ export const CompletenessPhase = ({
   const handleFinishCompleteness = async () => {
     await saveDates();
     await completeCompletenessPhase();
-  };
-
-  const handleDeclareIncomplete = async () => {
-    await setCompletenessIncompleted();
   };
 
   const UploadSection = () => (

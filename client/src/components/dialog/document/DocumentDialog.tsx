@@ -12,7 +12,7 @@ import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
 
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, PureQueryOptions } from "@apollo/client";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 export const DELETE_DOCUMENTS_QUERY = gql`
@@ -451,13 +451,15 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   );
 };
 
+type RefetchQueries = Array<string | PureQueryOptions>;
+
 interface AddDocumentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   applicationId: string;
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
-  refetchQueries?: string[];
+  refetchQueries?: RefetchQueries;
   onDocumentUploadSucceeded?: () => void;
 }
 
@@ -518,8 +520,9 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Upload response from the server was empty");
     }
 
-    if (uploadResult.presignedURL.includes("http://localstack:4566/")) {
-      console.log("Local upload bypass - skipping S3 upload");
+    // If server/.env LOCAL_SIMPLE_UPLOAD="true" we just write to Documents table without S3 upload
+    if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
+      console.log("Local stack upload bypass - skipping S3 upload");
       onDocumentUploadSucceeded?.();
       return;
     }

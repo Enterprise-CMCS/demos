@@ -19,6 +19,32 @@ import type {
 } from "./documentSchema.js";
 import { log } from "../../log.js";
 
+const LOCAL_SIMPLE_UPLOAD_ENDPOINT = "http://localhost:4566";
+
+const resolveS3Endpoint = (): string | undefined => {
+  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
+    return LOCAL_SIMPLE_UPLOAD_ENDPOINT;
+  }
+  return process.env.S3_ENDPOINT_LOCAL;
+};
+
+const createS3Client = () => {
+  const endpoint = resolveS3Endpoint();
+  const s3ClientConfig = endpoint
+    ? {
+        region: "us-east-1",
+        endpoint,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: "test",
+          secretAccessKey: "test", // pragma: allowlist secret
+        },
+      }
+    : {};
+
+  return new S3Client(s3ClientConfig);
+};
+
 async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
     where: { id: id },
@@ -28,18 +54,7 @@ async function getDocument(parent: unknown, { id }: { id: string }) {
 async function getPresignedUploadUrl(
   documentPendingUpload: PrismaDocumentPendingUpload
 ): Promise<string> {
-  const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
-    ? {
-        region: "us-east-1",
-        endpoint: process.env.S3_ENDPOINT_LOCAL,
-        forcePathStyle: true,
-        credentials: {
-          accessKeyId: "test",
-          secretAccessKey: "test", // pragma: allowlist secret
-        },
-      }
-    : {};
-  const s3 = new S3Client(s3ClientConfig);
+  const s3 = createS3Client();
   const uploadBucket = process.env.UPLOAD_BUCKET;
   const key = documentPendingUpload.id;
   const command = new PutObjectCommand({
@@ -52,18 +67,7 @@ async function getPresignedUploadUrl(
 }
 
 async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string> {
-  const s3ClientConfig = process.env.S3_ENDPOINT_LOCAL
-    ? {
-        region: "us-east-1",
-        endpoint: process.env.S3_ENDPOINT_LOCAL,
-        forcePathStyle: true,
-        credentials: {
-          accessKeyId: "test",
-          secretAccessKey: "test", // pragma: allowlist secret
-        },
-      }
-    : {};
-  const s3 = new S3Client(s3ClientConfig);
+  const s3 = createS3Client();
   const cleanBucket = process.env.CLEAN_BUCKET;
   const key = `${document.applicationId}/${document.id}`;
   const getObjectCommand = new GetObjectCommand({
@@ -93,7 +97,7 @@ export const documentResolvers = {
         );
       }
       // Looks for localstack pre-signed and does a simplified upload flow
-      if (process.env.LOCAL_SIMPLE_DOC_UPLOAD === "true") {
+      if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
         const documentId = randomUUID();
         const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
         const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
