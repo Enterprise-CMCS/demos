@@ -11,25 +11,16 @@ const DOCUMENT_TYPE_SUBSET: DocumentType[] = [
 
 type Props = {
   applicationId: string;
-  isOpen: boolean;
   onClose: () => void;
-  onDocumentUploadSucceeded?: () => void;
 };
 
-export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
-  isOpen,
-  onClose,
-  applicationId,
-  onDocumentUploadSucceeded,
-}) => {
+export const CompletenessDocumentUploadDialog: React.FC<Props> = ({ onClose, applicationId }) => {
   return (
     <AddDocumentDialog
       applicationId={applicationId}
-      isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       titleOverride="Add Completeness Document(s)"
-      onDocumentUploadSucceeded={onDocumentUploadSucceeded}
     />
   );
 };

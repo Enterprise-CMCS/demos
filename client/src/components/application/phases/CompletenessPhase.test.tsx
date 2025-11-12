@@ -11,6 +11,13 @@ const END_FED_COMMENT_DATE = "2025-10-31";
 const mockSetPhaseStatus = vi.fn(() => Promise.resolve({ data: {} }));
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
 
+const showCompletenessDocumentUploadDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showCompletenessDocumentUploadDialog,
+  }),
+}));
+
 vi.mock("../phase-status/phaseStatusQueries", () => ({
   useSetPhaseStatus: vi.fn(() => ({
     setPhaseStatus: mockSetPhaseStatus,

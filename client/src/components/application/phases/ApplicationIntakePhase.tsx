@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { ApplicationIntakeUploadDialog } from "components/dialog/document/ApplicationIntakeUploadDialog";
 import { DeleteIcon, ExportIcon } from "components/icons";
 import { addDays } from "date-fns";
 import { tw } from "tags/tw";
@@ -15,6 +14,7 @@ import {
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { getIsoDateString, getStartOfDateEST, getNowEst } from "../dates/applicationDates";
 import { useMutation, gql } from "@apollo/client";
+import { useDialog } from "components/dialog/DialogContext";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -82,7 +82,7 @@ export const ApplicationIntakePhase = ({
   initialStateApplicationDocuments,
   initialStateApplicationSubmittedDate,
 }: ApplicationIntakeProps) => {
-  const [isUploadOpen, setUploadOpen] = useState(false);
+  const { showApplicationIntakeDocumentUploadDialog } = useDialog();
   const [stateApplicationDocuments] = useState<ApplicationWorkflowDocument[]>(
     initialStateApplicationDocuments
   );
@@ -191,7 +191,9 @@ export const ApplicationIntakePhase = ({
       <p className={STYLES.helper}>Upload the State Application file below.</p>
 
       <SecondaryButton
-        onClick={() => setUploadOpen(true)}
+        onClick={() =>
+          showApplicationIntakeDocumentUploadDialog(demonstrationId, handleDocumentUploadSucceeded)
+        }
         size="small"
         name="button-open-upload-modal"
       >
@@ -307,13 +309,6 @@ export const ApplicationIntakePhase = ({
           <VerifyCompleteSection />
         </div>
       </section>
-
-      <ApplicationIntakeUploadDialog
-        isOpen={isUploadOpen}
-        onClose={() => setUploadOpen(false)}
-        applicationId={demonstrationId}
-        onDocumentUploadSucceeded={handleDocumentUploadSucceeded}
-      />
     </div>
   );
 };
