@@ -7,7 +7,7 @@ import {
   ApprovalPackagePhase,
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  FederalCommentPhase,
+  getFederalCommentPhaseFromDemonstration,
   OgcOmbPhase,
   PostApprovalPhase,
   SdgPreparationPhase,
@@ -76,19 +76,8 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: () => getConceptPhaseComponentFromDemonstration(demonstration),
     "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
-    Completeness: () => getApplicationCompletenessFromDemonstration(demonstration),
-    "Federal Comment": () => {
-      const phaseStartDate = new Date(2025, 8, 24);
-      const phaseEndDate = addDays(phaseStartDate, 30);
-
-      return (
-        <FederalCommentPhase
-          demonstrationId={demonstration.id}
-          phaseStartDate={phaseStartDate}
-          phaseEndDate={phaseEndDate}
-        />
-      );
-    },
+    "Completeness": () => getApplicationCompletenessFromDemonstration(demonstration),
+    "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
     "SDG Preparation": () => {
       const sdgPreparationPhase = demonstration.phases.find(
         (phase) => phase.phaseName === "SDG Preparation"
