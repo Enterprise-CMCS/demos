@@ -582,7 +582,7 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("open-declare-incomplete-btn"));
     expect(screen.getByTestId("declare-incomplete-dialog")).toBeInTheDocument();
-    
+
     await user.click(screen.getByTestId("close-declare-incomplete-btn"));
     expect(screen.queryByTestId("declare-incomplete-dialog")).not.toBeInTheDocument();
   });

@@ -14,10 +14,7 @@ type Props = {
   onClose: () => void;
 };
 
-export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
-  onClose,
-  applicationId,
-}) => {
+export const CompletenessDocumentUploadDialog: React.FC<Props> = ({ onClose, applicationId }) => {
   return (
     <AddDocumentDialog
       applicationId={applicationId}
