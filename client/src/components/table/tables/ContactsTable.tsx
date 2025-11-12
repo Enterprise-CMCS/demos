@@ -55,6 +55,11 @@ export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [] }) => {
     columns: contactsColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
   });
 
   return (

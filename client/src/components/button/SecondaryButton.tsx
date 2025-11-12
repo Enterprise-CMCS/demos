@@ -46,7 +46,7 @@ const processChildren = (
       } else {
         text = child;
       }
-    } else if (typeof child === "string") {
+    } else if (typeof child === "string" || typeof child === "number") {
       text = child;
     }
   });

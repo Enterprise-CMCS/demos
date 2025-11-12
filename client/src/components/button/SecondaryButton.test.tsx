@@ -48,4 +48,18 @@ describe("SecondaryButton", () => {
     expect(button).toHaveTextContent("Cancel");
     expect(button.querySelector("svg")).toBeNull();
   });
+
+  it("handles number children correctly (pagination buttons)", () => {
+    render(
+      <SecondaryButton name="test-button" onClick={() => {}}>
+        {2}
+      </SecondaryButton>
+    );
+
+    const button = screen.getByRole("button", { name: "test-button" });
+
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveTextContent("2");
+    expect(button.querySelector("svg")).toBeNull();
+  });
 });
