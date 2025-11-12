@@ -1,39 +1,14 @@
 import React from "react";
 import { DocumentType } from "demos-server";
 import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
-import { gql, PureQueryOptions } from "@apollo/client";
+import { PureQueryOptions } from "@apollo/client";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/ApplicationWorkflow";
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = [
   "Application Completeness Letter",
   "General File",
   "Internal Completeness Review Form",
 ];
-
-export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
-  query GetApplicationWorkflow($id: ID!) {
-    demonstration(id: $id) {
-      id
-      status
-      currentPhaseName
-      phases {
-        phaseName
-        phaseStatus
-        phaseDates {
-          dateType
-          dateValue
-        }
-      }
-      documents {
-        id
-        name
-        description
-        documentType
-        createdAt
-      }
-    }
-  }
-`;
-
 
 type Props = {
   applicationId: string;
