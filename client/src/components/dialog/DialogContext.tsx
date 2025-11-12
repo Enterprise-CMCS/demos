@@ -14,6 +14,7 @@ import { ApplicationIntakeUploadDialog } from "./document/ApplicationIntakeUploa
 import { CompletenessDocumentUploadDialog } from "./document/CompletenessDocumentUploadDialog";
 import { ConceptPreSubmissionUploadDialog } from "./document/ConceptPreSubmissionUploadDialog";
 import { FederalCommentUploadDialog } from "./document/FederalCommentUploadDialog";
+import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -135,6 +136,12 @@ export const useDialog = () => {
     );
   };
 
+  const showDeclareIncompleteDialog = (onConfirm: (form: DeclareIncompleteForm) => void) => {
+    context.showDialog(
+      <DeclareIncompleteDialog onConfirm={onConfirm} onClose={context.hideDialog} />
+    );
+  };
+
   return {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
@@ -148,5 +155,6 @@ export const useDialog = () => {
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
     showFederalCommentDocumentUploadDialog,
+    showDeclareIncompleteDialog,
   };
 };

@@ -8,7 +8,6 @@ import { parseInputDate } from "util/parseDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { addDays, differenceInCalendarDays } from "date-fns";
 import { gql, useMutation } from "@apollo/client";
-import { DeclareIncompleteDialog } from "components/dialog";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -128,8 +127,7 @@ export const CompletenessPhase = ({
 }: CompletenessPhaseProps) => {
   const { showSuccess, showError } = useToast();
 
-  const { showCompletenessDocumentUploadDialog } = useDialog();
-  const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
+  const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const [collapsed, setCollapsed] = useState(false);
 
   const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
@@ -324,7 +322,11 @@ export const CompletenessPhase = ({
         <SecondaryButton
           name="declare-incomplete"
           size="small"
-          onClick={() => setDeclareIncompleteOpen(true)}
+          onClick={() =>
+            showDeclareIncompleteDialog(async () => {
+              await handleDeclareIncomplete();
+            })
+          }
         >
           Declare Incomplete
         </SecondaryButton>
@@ -433,15 +435,6 @@ export const CompletenessPhase = ({
               <VerifyCompleteSection />
             </div>
           </section>
-
-          <DeclareIncompleteDialog
-            isOpen={isDeclareIncompleteOpen}
-            onClose={() => setDeclareIncompleteOpen(false)}
-            onConfirm={async () => {
-              await handleDeclareIncomplete();
-              setDeclareIncompleteOpen(false);
-            }}
-          />
         </div>
       )}
     </div>

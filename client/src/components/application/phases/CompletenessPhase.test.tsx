@@ -12,9 +12,11 @@ const mockSetPhaseStatus = vi.fn(() => Promise.resolve({ data: {} }));
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
 
 const showCompletenessDocumentUploadDialog = vi.fn();
+const showDeclareIncompleteDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showCompletenessDocumentUploadDialog,
+    showDeclareIncompleteDialog,
   }),
 }));
 
@@ -66,24 +68,7 @@ describe("CompletenessPhase", () => {
       name: /declare-incomplete/i,
     });
     await user.click(declareIncompleteOpenDialogButton);
-    const prepopulatedCommonIncompleteSelectReasons = await screen.findByLabelText(/Reason/i);
-    await user.selectOptions(prepopulatedCommonIncompleteSelectReasons, "missing-documentation");
-    const submitDeclareCompleteAfterSelectingReason = await screen.findByRole("button", {
-      name: /declare-incomplete-confirm/i,
-    });
-    expect(submitDeclareCompleteAfterSelectingReason).not.toBeDisabled();
-    await user.click(submitDeclareCompleteAfterSelectingReason);
 
-    await user.selectOptions(prepopulatedCommonIncompleteSelectReasons, "other");
-    const otherReasonInput = await screen.findByLabelText(/Other/i);
-    expect(otherReasonInput).toBeInTheDocument();
-    expect(submitDeclareCompleteAfterSelectingReason).to.toBeDisabled();
-    await user.type(otherReasonInput, "Additional reason text");
-    expect(submitDeclareCompleteAfterSelectingReason).not.toBeDisabled();
-    await user.click(submitDeclareCompleteAfterSelectingReason);
-
-    await waitFor(() => {
-      expect(mockSetPhaseStatus).toHaveBeenCalled();
-    });
+    expect(showDeclareIncompleteDialog).toHaveBeenCalled();
   });
 });
