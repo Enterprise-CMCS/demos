@@ -77,7 +77,7 @@ type PersonSearchResult = {
   personType: string;
 };
 
-type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+export type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   id?: string;
   person: Pick<Person, "id" | "fullName" | "email"> & {
     idmRoles?: string[];
@@ -85,7 +85,6 @@ type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary
 };
 
 export type ManageContactsDialogProps = {
-  isOpen: boolean;
   onClose: () => void;
   demonstrationId: string;
   existingContacts?: ExistingContactType[];
@@ -103,7 +102,6 @@ const mapExistingContacts = (arr: ManageContactsDialogProps["existingContacts"] 
   }));
 
 export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
-  isOpen,
   onClose,
   demonstrationId,
   existingContacts = [],
@@ -562,7 +560,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     <>
       <BaseDialog
         title="Manage Contact(s)"
-        isOpen={isOpen}
         onClose={onClose}
         showCancelConfirm={showCancelConfirm}
         setShowCancelConfirm={setShowCancelConfirm}

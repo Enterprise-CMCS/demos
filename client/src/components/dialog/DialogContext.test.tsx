@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DialogProvider, useDialog } from "./DialogContext";
+import { ExistingContactType } from "./ManageContactsDialog";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -72,12 +73,45 @@ vi.mock("./ExtensionDialog", () => ({
   ),
 }));
 
+vi.mock("./ManageContactsDialog", () => ({
+  ManageContactsDialog: ({
+    demonstrationId,
+    existingContacts,
+    onClose,
+  }: {
+    demonstrationId: string;
+    existingContacts?: ExistingContactType[];
+    onClose: () => void;
+  }) => (
+    <div data-testid="manage-contacts-dialog">
+      Manage Contacts Dialog {demonstrationId} {existingContacts?.length ?? 0}
+      <button data-testid="close-contacts-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
+const mockRoles: ExistingContactType[] = [
+  {
+    role: "Project Officer",
+    isPrimary: true,
+    person: { id: "person-1", fullName: "Person One", email: "person.one@email.com" },
+  },
+  {
+    role: "DDME Analyst",
+    isPrimary: false,
+    person: { id: "person-2", fullName: "Person Two", email: "person.two@email.com" },
+  },
+];
+
 const TestConsumer: React.FC = () => {
   const {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
     showCreateExtensionDialog,
+    showManageContactsDialog,
   } = useDialog();
 
   return (
@@ -93,6 +127,12 @@ const TestConsumer: React.FC = () => {
       </button>
       <button data-testid="open-extension-btn" onClick={() => showCreateExtensionDialog("demo-id")}>
         Open Extension Dialog
+      </button>
+      <button
+        data-testid="open-contacts-btn"
+        onClick={() => showManageContactsDialog("demo-id", mockRoles)}
+      >
+        Open Manage Contacts Dialog
       </button>
     </div>
   );
@@ -178,5 +218,23 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-extension-btn"));
     expect(screen.queryByTestId("extension-dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows and hides ManageContactsDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("manage-contacts-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-contacts-btn"));
+    expect(screen.getByTestId("manage-contacts-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/Manage Contacts Dialog demo-id 2/)).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("close-contacts-btn"));
+    expect(screen.queryByTestId("manage-contacts-dialog")).not.toBeInTheDocument();
   });
 });
