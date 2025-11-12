@@ -1,7 +1,5 @@
 import { DemonstrationRoleAssignment } from "demos-server";
 import { mockPeople, MockPerson } from "./personMocks";
-import { MockedResponse } from "@apollo/client/testing";
-import { UNSET_DEMONSTRATION_ROLE_MUTATION } from "components/dialog/RemoveContactDialog";
 
 export type MockDemonstrationRoleAssignment = Pick<
   DemonstrationRoleAssignment,
@@ -42,33 +40,3 @@ export const mockDemonstrationRoleAssignments = [
     person: mockPeople[5],
   },
 ] as const satisfies MockDemonstrationRoleAssignment[];
-
-export const demonstrationRoleAssignmentMocks: MockedResponse[] = [
-  {
-    request: {
-      query: UNSET_DEMONSTRATION_ROLE_MUTATION,
-      variables: {
-        input: [
-          {
-            personId: mockDemonstrationRoleAssignments[0].person.id,
-            demonstrationId: "1",
-            roleId: mockDemonstrationRoleAssignments[0].role,
-          },
-          {
-            personId: mockDemonstrationRoleAssignments[1].person.id,
-            demonstrationId: "1",
-            roleId: mockDemonstrationRoleAssignments[1].role,
-          },
-        ],
-      },
-    },
-    result: {
-      data: {
-        unsetRoleAssignments: [
-          mockDemonstrationRoleAssignments[0],
-          mockDemonstrationRoleAssignments[1],
-        ],
-      },
-    },
-  },
-];
