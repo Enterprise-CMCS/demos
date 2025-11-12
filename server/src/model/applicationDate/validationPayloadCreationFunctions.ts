@@ -1,10 +1,11 @@
 import { DateType, ParsedApplicationDateInput } from "../../types.js";
-import { prisma } from "../../prismaClient.js";
+import { PrismaTransactionClient } from "../../prismaClient.js";
 
 export async function getExistingDates(
-  applicationId: string
+  applicationId: string,
+  tx: PrismaTransactionClient
 ): Promise<ParsedApplicationDateInput[]> {
-  const result = await prisma().applicationDate.findMany({
+  const result = await tx.applicationDate.findMany({
     select: {
       dateTypeId: true,
       dateValue: true,

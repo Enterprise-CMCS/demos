@@ -1,5 +1,5 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { prisma, PrismaTransactionClient } from "../../prismaClient.js";
 import {
   SetApplicationDateInput,
   SetApplicationDatesInput,
@@ -31,6 +31,31 @@ export function __parseInputApplicationDates(
   return result;
 }
 
+export async function __runDateChangeOperationsInTransaction(
+  parsedInputApplicationDates: ParsedSetApplicationDatesInput,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const dateUpdateOperations = parsedInputApplicationDates.applicationDates.map((dateToUpdate) => {
+    return tx.applicationDate.upsert({
+      where: {
+        applicationId_dateTypeId: {
+          applicationId: parsedInputApplicationDates.applicationId,
+          dateTypeId: dateToUpdate.dateType,
+        },
+      },
+      update: {
+        dateValue: dateToUpdate.dateValue,
+      },
+      create: {
+        applicationId: parsedInputApplicationDates.applicationId,
+        dateTypeId: dateToUpdate.dateType,
+        dateValue: dateToUpdate.dateValue,
+      },
+    });
+  });
+  await Promise.all(dateUpdateOperations);
+}
+
 export function __setApplicationDate(
   _: unknown,
   { input }: { input: SetApplicationDateInput }
@@ -54,40 +79,21 @@ export async function __setApplicationDates(
   if (input.applicationDates.length === 0) {
     return await getApplication(input.applicationId);
   }
-  const inputApplicationDates = __parseInputApplicationDates(input);
-  const existingApplicationDates = await getExistingDates(input.applicationId);
-  const updatedApplicationDates = mergeApplicationDates(
-    existingApplicationDates,
-    inputApplicationDates.applicationDates
-  );
-
-  validateInputDates(updatedApplicationDates);
-
-  const datesToUpdate = inputApplicationDates.applicationDates.map((dateToUpdate) =>
-    prisma().applicationDate.upsert({
-      where: {
-        applicationId_dateTypeId: {
-          applicationId: input.applicationId,
-          dateTypeId: dateToUpdate.dateType,
-        },
-      },
-      update: {
-        dateValue: dateToUpdate.dateValue,
-      },
-      create: {
-        applicationId: input.applicationId,
-        dateTypeId: dateToUpdate.dateType,
-        dateValue: dateToUpdate.dateValue,
-      },
-    })
-  );
 
   try {
-    await prisma().$transaction(datesToUpdate);
+    await prisma().$transaction(async (tx) => {
+      const existingApplicationDates = await getExistingDates(input.applicationId, tx);
+      const parsedInputApplicationDates = __parseInputApplicationDates(input);
+      const updatedApplicationDates = mergeApplicationDates(
+        existingApplicationDates,
+        parsedInputApplicationDates.applicationDates
+      );
+      validateInputDates(updatedApplicationDates);
+      await __runDateChangeOperationsInTransaction(parsedInputApplicationDates, tx);
+    });
   } catch (error) {
     handlePrismaError(error);
   }
-
   return await getApplication(input.applicationId);
 }
 
