@@ -1,9 +1,6 @@
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
 import { format } from "date-fns";
-import { ApplicationDate as ServerApplicationDate } from "demos-server";
-
-export type ApplicationDate = Omit<ServerApplicationDate, "createdAt" | "updatedAt">;
 
 /**
  * Application Dates Library

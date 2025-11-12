@@ -4,7 +4,7 @@ import { Button, SecondaryButton } from "components/button";
 import { DeleteIcon, ExportIcon } from "components/icons";
 import { addDays } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer, formatDateAsIsoString } from "util/formatDate";
+import { formatDate, formatDateForServer } from "util/formatDate";
 import { parseInputDate } from "util/parseDate";
 import {
   ApplicationWorkflowDemonstration,
@@ -129,7 +129,7 @@ export const ApplicationIntakePhase = ({
 
   const handleDocumentUploadSucceeded = async () => {
     const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
-    setStateApplicationSubmittedDate(formatDateAsIsoString(todayDate));
+    setStateApplicationSubmittedDate(formatDateForServer(todayDate));
 
     await setApplicationDateMutation({
       variables: {

@@ -125,9 +125,8 @@ export const CompletenessPhase = ({
   applicationCompletenessDocument,
   hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
-  const { showSuccess, showError } = useToast();
-
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
+  const { showSuccess, showError } = useToast();
   const [collapsed, setCollapsed] = useState(false);
 
   const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
@@ -229,19 +228,16 @@ export const CompletenessPhase = ({
     await completeCompletenessPhase();
   };
 
-  const handleDeclareIncomplete = async () => {
-    await setCompletenessIncompleted();
-  };
-
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
       <h4 id="completeness-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
       <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
-      {/* TODO: DOC NOT WORKING - documentPendingUpload.create - seeded to compensate */}
       <SecondaryButton
-        onClick={() => showCompletenessDocumentUploadDialog(applicationId)}
+        onClick={() => {
+          showCompletenessDocumentUploadDialog(applicationId);
+        }}
         size="small"
         name="open-upload"
       >
@@ -324,7 +320,12 @@ export const CompletenessPhase = ({
           size="small"
           onClick={() =>
             showDeclareIncompleteDialog(async () => {
-              await handleDeclareIncomplete();
+              try {
+                await setCompletenessIncompleted();
+                showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
+              } catch (error) {
+                showError(error instanceof Error ? error.message : String(error));
+              }
             })
           }
         >
@@ -417,7 +418,7 @@ export const CompletenessPhase = ({
       {!collapsed && (
         <div id="completeness-phase-content">
           <p className="text-sm text-text-placeholder mb-4">
-            Completeness Checklist – Find completeness guidelines online at{" "}
+            Completeness Checklist - Find completeness guidelines online at{" "}
             <a
               className="text-blue-700 underline"
               href="https://www.medicaid.gov"
