@@ -11,39 +11,13 @@ import {
 } from "./SdgPreparationPhase";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { MockedProvider } from "@apollo/client/testing";
-
-interface ButtonProps {
-  children?: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  size?: string;
-  name: string;
-}
+import { parseISO } from "date-fns";
 
 const showSuccess = vi.fn();
 const showError = vi.fn();
 
 vi.mock("components/toast", () => ({
   useToast: () => ({ showSuccess, showError }),
-}));
-
-vi.mock("components/button", () => ({
-  Button: (props: ButtonProps) => {
-    const { children, onClick, disabled, name } = props;
-    return (
-      <button name={name} onClick={onClick} disabled={disabled} data-testid={name}>
-        {children}
-      </button>
-    );
-  },
-  SecondaryButton: (props: ButtonProps) => {
-    const { children, onClick, name } = props;
-    return (
-      <button name={name} onClick={onClick} data-testid={name}>
-        {children}
-      </button>
-    );
-  },
 }));
 
 const mockDemonstration: ApplicationWorkflowDemonstration = {
@@ -58,7 +32,7 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
       phaseDates: [
         {
           dateType: "Expected Approval Date",
-          dateValue: "2025-01-01T05:00:00.000Z" as unknown as Date,
+          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
       ],
     },
@@ -72,7 +46,7 @@ const mockSetApplicationDate = {
       input: {
         applicationId: mockDemonstration.id,
         dateType: "Expected Approval Date",
-        dateValue: "2025-01-02T00:00:00.000-05:00",
+        dateValue: "2025-01-02",
       },
     },
   },
@@ -92,7 +66,7 @@ const mockSetApplicationDate1 = {
       input: {
         applicationId: mockDemonstration.id,
         dateType: "Expected Approval Date",
-        dateValue: "2025-01-01T00:00:00.000-05:00",
+        dateValue: "2025-01-01",
       },
     },
   },
@@ -112,7 +86,7 @@ const mockSetApplicationDate2 = {
       input: {
         applicationId: mockDemonstration.id,
         dateType: "SME Review Date",
-        dateValue: "2025-01-01T00:00:00.000-05:00",
+        dateValue: "2025-01-01",
       },
     },
   },
@@ -132,7 +106,7 @@ const mockSetApplicationDate3 = {
       input: {
         applicationId: mockDemonstration.id,
         dateType: "FRT Initial Meeting Date",
-        dateValue: "2025-01-01T00:00:00.000-05:00",
+        dateValue: "2025-01-01",
       },
     },
   },
@@ -152,7 +126,7 @@ const mockSetApplicationDate4 = {
       input: {
         applicationId: mockDemonstration.id,
         dateType: "BNPMT Initial Meeting Date",
-        dateValue: "2025-01-01T00:00:00.000-05:00",
+        dateValue: "2025-01-01",
       },
     },
   },
@@ -191,16 +165,16 @@ const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
       phaseDates: [
         {
           dateType: "Expected Approval Date",
-          dateValue: "2025-01-01T05:00:00.000Z" as unknown as Date,
+          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
-        { dateType: "SME Review Date", dateValue: "2025-01-01T05:00:00.000Z" as unknown as Date },
+        { dateType: "SME Review Date", dateValue: parseISO("2025-01-01T05:00:00.000Z") },
         {
           dateType: "FRT Initial Meeting Date",
-          dateValue: "2025-01-01T05:00:00.000Z" as unknown as Date,
+          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
         {
           dateType: "BNPMT Initial Meeting Date",
-          dateValue: "2025-01-01T05:00:00.000Z" as unknown as Date,
+          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
       ],
     },
@@ -350,7 +324,9 @@ describe("SdgPreparationPhase", () => {
 
       await userEvent.click(saveButton);
 
-      expect(showSuccess).toHaveBeenCalledWith("Successfully saved SDG Workplan for later.");
+      await waitFor(() => {
+        expect(showSuccess).toHaveBeenCalledWith("Successfully saved SDG Workplan for later.");
+      });
     });
   });
 

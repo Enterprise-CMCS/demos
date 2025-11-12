@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { Button, SecondaryButton, WarningButton } from "components/button";
 import { tw } from "tags/tw";
 import { DateType, PhaseName, PhaseStatus } from "demos-server";
-import { ApplicationDate } from "./applicationDates";
 import { SimplePhase, setStatusForPhase, getStatusForPhase } from "../phase-status/phaseStatus";
-import { formatDateTime } from "util/formatDate";
+import { format } from "date-fns";
+import { ApplicationDate as ServerApplicationDate } from "demos-server";
+
+type ApplicationDate = Omit<ServerApplicationDate, "createdAt" | "updatedAt">;
 
 /**
  * Get a specific date value from a list of application dates
@@ -274,7 +276,7 @@ export const ApplicationDateSimulation: React.FC = () => {
 
   const getDateDisplay = (dateType: DateType) => {
     const date = getDateFromApplicationDates(simulationState.applicationDates, dateType);
-    return date ? formatDateTime(date, "millisecond") : "Not set";
+    return date ? format(date, "MM/dd/yyyy HH:mm:ss.SSS") : "Not set";
   };
 
   const isStateApplicationSubmittedDateSet = () => {
