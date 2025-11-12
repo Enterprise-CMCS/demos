@@ -56,6 +56,7 @@ export const CompletenessDocumentUploadDialog: React.FC<Props> = ({
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       titleOverride="Add Completeness Document(s)"
+      phaseName="Completeness"
       onDocumentUploadSucceeded={onDocumentUploadSucceeded}
       refetchQueries={[{ query: GET_WORKFLOW_DEMONSTRATION_QUERY, variables: { id: applicationId } }]}
     />

@@ -435,13 +435,23 @@ export const CompletenessPhase = ({
             isOpen={isUploadOpen}
             onClose={() => setUploadOpen(false)}
             applicationId={applicationId}
+            onDocumentUploadSucceeded={() => {
+              setUploadOpen(false);
+            }}
           />
 
           <DeclareIncompleteDialog
             isOpen={isDeclareIncompleteOpen}
             onClose={() => setDeclareIncompleteOpen(false)}
             onConfirm={async () => {
-              setDeclareIncompleteOpen(false);
+              try {
+                await setCompletenessIncompleted();
+                showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
+              } catch (error) {
+                showError(error instanceof Error ? error.message : String(error));
+              } finally {
+                setDeclareIncompleteOpen(false);
+              }
             }}
           />
         </div>

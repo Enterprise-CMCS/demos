@@ -7,7 +7,13 @@ import { TextInput } from "components/input";
 import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useToast } from "components/toast";
-import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
+import {
+  Document,
+  DocumentType,
+  PhaseName,
+  UpdateDocumentInput,
+  UploadDocumentInput,
+} from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
@@ -460,6 +466,7 @@ interface AddDocumentDialogProps {
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
   refetchQueries?: RefetchQueries;
+  phaseName?: PhaseName;
   onDocumentUploadSucceeded?: () => void;
 }
 
@@ -470,6 +477,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   documentTypeSubset,
   titleOverride,
   refetchQueries,
+  phaseName = "None",
   onDocumentUploadSucceeded,
 }) => {
   const { showError } = useToast();
@@ -503,7 +511,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
-      phaseName: "None",
+      phaseName,
     };
 
     const uploadDocumentResponse = await uploadDocumentTrigger({
@@ -522,14 +530,12 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
     // If server/.env LOCAL_SIMPLE_UPLOAD="true" we just write to Documents table without S3 upload
     if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
-      console.log("Local stack upload bypass - skipping S3 upload");
+      console.log("Local host document - (basically this isn't an actual doc.");
       onDocumentUploadSucceeded?.();
       return;
     }
 
     const presignedURL = uploadResult.presignedURL ?? null;
-
-    console.log("presignedURL", presignedURL);
 
     if (!presignedURL) {
       throw new Error("Could not get presigned URL from the server");
