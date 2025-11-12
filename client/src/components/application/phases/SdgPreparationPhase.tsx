@@ -9,7 +9,7 @@ import { PhaseName } from "../phase-selector/PhaseSelector";
 import { useToast } from "components/toast";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
-import { parseInputDateAsStartOfDayEST } from "util/parseDate";
+import { parseInputDate } from "util/parseDate";
 
 const PHASE_NAME: PhaseName = "SDG Preparation";
 const NEXT_PHASE_NAME: PhaseName = "Approval Package";
@@ -126,9 +126,7 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "Expected Approval Date" satisfies DateType,
-            dateValue: parseInputDateAsStartOfDayEST(
-              sdgPreparationPhaseFormData.expectedApprovalDate
-            ),
+            dateValue: parseInputDate(sdgPreparationPhaseFormData.expectedApprovalDate),
           },
         },
       });
@@ -140,9 +138,7 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "SME Review Date" satisfies DateType,
-            dateValue: parseInputDateAsStartOfDayEST(
-              sdgPreparationPhaseFormData.smeInitialReviewDate
-            ),
+            dateValue: parseInputDate(sdgPreparationPhaseFormData.smeInitialReviewDate),
           },
         },
       });
@@ -154,9 +150,7 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "FRT Initial Meeting Date" satisfies DateType,
-            dateValue: parseInputDateAsStartOfDayEST(
-              sdgPreparationPhaseFormData.frtInitialMeetingDate
-            ),
+            dateValue: parseInputDate(sdgPreparationPhaseFormData.frtInitialMeetingDate),
           },
         },
       });
@@ -168,9 +162,7 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-            dateValue: parseInputDateAsStartOfDayEST(
-              sdgPreparationPhaseFormData.bnpmtInitialMeetingDate
-            ),
+            dateValue: parseInputDate(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
           },
         },
       });
