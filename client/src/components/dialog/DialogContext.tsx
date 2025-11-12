@@ -3,6 +3,7 @@ import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDi
 import { AmendmentDialog } from "./AmendmentDialog";
 import { ExtensionDialog } from "./ExtensionDialog";
 import { EditDemonstrationDialog } from "./demonstration";
+import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -52,10 +53,24 @@ export const useDialog = () => {
     );
   };
 
+  const showManageContactsDialog = (
+    demonstrationId: string,
+    existingContacts?: ExistingContactType[]
+  ) => {
+    context.showDialog(
+      <ManageContactsDialog
+        demonstrationId={demonstrationId}
+        existingContacts={existingContacts}
+        onClose={context.hideDialog}
+      />
+    );
+  };
+
   return {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
     showCreateExtensionDialog,
+    showManageContactsDialog,
   };
 };

@@ -19,9 +19,6 @@ cursor-pointer
 disabled:bg-surface-disabled
 disabled:text-text-placeholder
 disabled:cursor-not-allowed
-
-py-[8px]
-px-[16px]
 `;
 
 const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
@@ -33,9 +30,9 @@ const getSizeClasses = (isCircle: boolean, buttonSize: ButtonSize) => {
     }[buttonSize];
   }
   return {
-    large: "h-[48px] text-[16px]",
-    small: "h-[40px] text-[14px]",
-    standard: "h-[40px] text-[14px]",
+    large: "h-[48px] text-[16px] py-[8px] px-[16px]",
+    small: "h-[40px] text-[14px] py-[8px] px-[16px]",
+    standard: "h-[40px] text-[14px] py-[8px] px-[16px]",
   }[buttonSize];
 };
 

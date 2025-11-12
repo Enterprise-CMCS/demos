@@ -5,12 +5,8 @@ import { ApplicationIntakeUploadDialog } from "components/dialog/document/Applic
 import { DeleteIcon, ExportIcon } from "components/icons";
 import { addDays } from "date-fns";
 import { tw } from "tags/tw";
-import {
-  formatDate,
-  formatDateForServer,
-  formatDateAsIsoString,
-  parseInputDate,
-} from "util/formatDate";
+import { formatDate, formatDateForServer } from "util/formatDate";
+import { parseInputDate } from "util/parseDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -133,7 +129,7 @@ export const ApplicationIntakePhase = ({
 
   const handleDocumentUploadSucceeded = async () => {
     const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
-    setStateApplicationSubmittedDate(formatDateAsIsoString(todayDate));
+    setStateApplicationSubmittedDate(formatDateForServer(todayDate));
 
     await setApplicationDateMutation({
       variables: {

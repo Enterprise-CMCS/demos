@@ -15,6 +15,7 @@ import {
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
+import { addDays } from "date-fns";
 
 // TODO: get past-due added to the shared enum
 export type PhaseStatus = ServerPhaseStatus | "past-due";
@@ -71,7 +72,6 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
       ? (demonstration.currentPhaseName as PhaseName)
       : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
-
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: () => getConceptPhaseComponentFromDemonstration(demonstration),

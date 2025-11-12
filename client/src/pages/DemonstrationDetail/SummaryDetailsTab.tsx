@@ -9,7 +9,7 @@ export const SummaryDetailsTab: React.FC<{ demonstrationId: string }> = ({ demon
   const { showEditDemonstrationDialog } = useDialog();
   return (
     <>
-      <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
+      <div className="flex justify-between items-center mb-md border-b border-gray-200 pb-1">
         <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
         <SecondaryButton
           name="button-edit-details"

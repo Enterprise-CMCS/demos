@@ -3,12 +3,12 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useMutation } from "@apollo/client";
-import { DateType, PhaseStatus } from "demos-server";
 import { gql } from "graphql-tag";
 import { PhaseName } from "../phase-selector/PhaseSelector";
 import { useToast } from "components/toast";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
-import { getDateInputValue, toEstStartOfDay } from "util/formatDate";
+import { formatDateForServer } from "util/formatDate";
+import { DateType, PhaseStatus } from "demos-server";
 
 const PHASE_NAME: PhaseName = "SDG Preparation";
 const NEXT_PHASE_NAME: PhaseName = "Approval Package";
@@ -54,6 +54,22 @@ export const SET_SDG_PREPARATION_PHASE_STATUS_MUTATION = gql`
   }
 `;
 
+function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationPhaseFormData {
+  const getDateValue = (dateType: string) => {
+    const dateValue = sdgPreparationPhase.phaseDates.find(
+      (d) => d.dateType === dateType
+    )?.dateValue;
+    return dateValue ? formatDateForServer(dateValue) : undefined;
+  };
+
+  return {
+    expectedApprovalDate: getDateValue("Expected Approval Date"),
+    smeInitialReviewDate: getDateValue("SME Review Date"),
+    frtInitialMeetingDate: getDateValue("FRT Initial Meeting Date"),
+    bnpmtInitialMeetingDate: getDateValue("BNPMT Initial Meeting Date"),
+  };
+}
+
 interface SdgPreparationPhaseFormData {
   expectedApprovalDate?: string;
   smeInitialReviewDate?: string;
@@ -71,7 +87,7 @@ export const SdgPreparationPhase = ({
   setSelectedPhase: (phaseName: PhaseName) => void;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
-    useState<SdgPreparationPhaseFormData>(getFormDataFromPhase);
+    useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
   const [mutateApplicationDate] = useMutation<{ demonstration: ApplicationWorkflowDemonstration }>(
     SET_SDG_PREPARATION_PHASE_DATE_MUTATION
   );
@@ -79,38 +95,6 @@ export const SdgPreparationPhase = ({
     SET_SDG_PREPARATION_PHASE_STATUS_MUTATION
   );
   const { showSuccess, showError } = useToast();
-
-  function getFormDataFromPhase() {
-    const phaseDates = {
-      expectedApprovalDate: sdgPreparationPhase.phaseDates.find(
-        (date) => date.dateType === "Expected Approval Date"
-      )?.dateValue,
-      smeInitialReviewDate: sdgPreparationPhase.phaseDates.find(
-        (date) => date.dateType === "SME Review Date"
-      )?.dateValue,
-      frtInitialMeetingDate: sdgPreparationPhase.phaseDates.find(
-        (date) => date.dateType === "FRT Initial Meeting Date"
-      )?.dateValue,
-      bnpmtInitialMeetingDate: sdgPreparationPhase.phaseDates.find(
-        (date) => date.dateType === "BNPMT Initial Meeting Date"
-      )?.dateValue,
-    };
-
-    return {
-      expectedApprovalDate: phaseDates.expectedApprovalDate
-        ? getDateInputValue(phaseDates.expectedApprovalDate as unknown as string)
-        : undefined,
-      smeInitialReviewDate: phaseDates.smeInitialReviewDate
-        ? getDateInputValue(phaseDates.smeInitialReviewDate as unknown as string)
-        : undefined,
-      frtInitialMeetingDate: phaseDates.frtInitialMeetingDate
-        ? getDateInputValue(phaseDates.frtInitialMeetingDate as unknown as string)
-        : undefined,
-      bnpmtInitialMeetingDate: phaseDates.bnpmtInitialMeetingDate
-        ? getDateInputValue(phaseDates.bnpmtInitialMeetingDate as unknown as string)
-        : undefined,
-    };
-  }
 
   const isFormComplete =
     sdgPreparationPhaseFormData.expectedApprovalDate &&
@@ -125,7 +109,7 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "Expected Approval Date" satisfies DateType,
-            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.expectedApprovalDate),
+            dateValue: formatDateForServer(sdgPreparationPhaseFormData.expectedApprovalDate),
           },
         },
       });
@@ -137,7 +121,7 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "SME Review Date" satisfies DateType,
-            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.smeInitialReviewDate),
+            dateValue: formatDateForServer(sdgPreparationPhaseFormData.smeInitialReviewDate),
           },
         },
       });
@@ -149,7 +133,7 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "FRT Initial Meeting Date" satisfies DateType,
-            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.frtInitialMeetingDate),
+            dateValue: formatDateForServer(sdgPreparationPhaseFormData.frtInitialMeetingDate),
           },
         },
       });
@@ -161,7 +145,7 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
+            dateValue: formatDateForServer(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
           },
         },
       });
