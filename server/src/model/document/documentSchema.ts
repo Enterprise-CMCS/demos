@@ -34,7 +34,7 @@ export const documentSchema = gql`
   }
 
   type UploadDocumentResponse {
-    presignedURL: String!
+    presignedURL: String
   }
 
   type Mutation {
@@ -76,4 +76,8 @@ export interface UpdateDocumentInput {
   documentType?: DocumentType;
   applicationId?: string;
   phaseName?: PhaseName;
+}
+
+export interface UploadDocumentResponse {
+  presignedURL?: string | null;
 }
