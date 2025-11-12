@@ -7,15 +7,12 @@ import { SignoutLink } from "../auth/AuthLinks";
 export const ProfileBlock: React.FC = () => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { currentUser, loading, error } = getCurrentUser();
+  const { currentUser } = getCurrentUser();
 
   // Close menu on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     };
@@ -31,18 +28,6 @@ export const ProfileBlock: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [open]);
-
-  if (loading) {
-    return <div className="animate-pulse h-6 w-28 bg-white/20 rounded" />;
-  }
-
-  if (error) {
-    console.error("[ProfileBlock] currentUser error:", error);
-  }
-
-  if (!currentUser) {
-    console.warn("[ProfileBlock] No currentUser found");
-  }
 
   const resolvedName = currentUser
     ? currentUser.person.fullName || currentUser.username?.trim()

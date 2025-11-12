@@ -67,7 +67,7 @@ export const ApplicationWorkflow = ({ demonstrationId }: { demonstrationId: stri
   if (error) return <p>Error Loading Application Workflow: {error.message}</p>;
   if (data) {
     return (
-      <div className="flex flex-col gap-sm p-md">
+      <div className="flex flex-col gap-sm p-sm">
         <div className="flex w-full">
           <h3 className="text-brand text-2xl font-bold">APPLICATION</h3>
           <DemonstrationStatusBadge demonstrationStatus={data.demonstration.status} />

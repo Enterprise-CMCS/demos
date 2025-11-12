@@ -1,3 +1,5 @@
+import { DateType, ExpectedTimestamp } from "./types.js";
+
 export const APPLICATION_STATUS = [
   "Pre-Submission",
   "Under Review",
@@ -107,6 +109,36 @@ export const DATE_TYPES = [
   "PO & OGD Sign-Off",
   "OGC & OMB Review Completion Date",
 ] as const;
+
+export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
+
+type DateTypeExpectedTimestampRecord = Record<DateType, { expectedTimestamp: ExpectedTimestamp }>;
+
+export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecord = {
+  "Concept Start Date": { expectedTimestamp: "Start of Day" },
+  "Pre-Submission Submitted Date": { expectedTimestamp: "Start of Day" },
+  "Concept Completion Date": { expectedTimestamp: "Start of Day" },
+  "Application Intake Start Date": { expectedTimestamp: "Start of Day" },
+  "State Application Submitted Date": { expectedTimestamp: "Start of Day" },
+  "Completeness Review Due Date": { expectedTimestamp: "End of Day" },
+  "Application Intake Completion Date": { expectedTimestamp: "Start of Day" },
+  "Completeness Start Date": { expectedTimestamp: "Start of Day" },
+  "State Application Deemed Complete": { expectedTimestamp: "Start of Day" },
+  "Federal Comment Period Start Date": { expectedTimestamp: "Start of Day" },
+  "Federal Comment Period End Date": { expectedTimestamp: "End of Day" },
+  "Completeness Completion Date": { expectedTimestamp: "Start of Day" },
+  "SDG Preparation Start Date": { expectedTimestamp: "Start of Day" },
+  "Expected Approval Date": { expectedTimestamp: "Start of Day" },
+  "SME Review Date": { expectedTimestamp: "Start of Day" },
+  "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
+  "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
+  "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },
+  "OGC & OMB Review Start Date": { expectedTimestamp: "Start of Day" },
+  "OGC Review Complete": { expectedTimestamp: "Start of Day" },
+  "OMB Review Complete": { expectedTimestamp: "Start of Day" },
+  "PO & OGD Sign-Off": { expectedTimestamp: "Start of Day" },
+  "OGC & OMB Review Completion Date": { expectedTimestamp: "Start of Day" },
+} as const;
 
 export const STATES_AND_TERRITORIES = [
   { id: "AL", name: "Alabama" },

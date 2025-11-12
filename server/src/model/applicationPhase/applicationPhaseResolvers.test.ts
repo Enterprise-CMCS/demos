@@ -45,7 +45,7 @@ describe("applicationPhaseResolvers", () => {
   const testPhaseId: PhaseName = "Concept";
   const testPhaseStatusId: PhaseStatus = "Started";
   const testDateValue: Date = new Date("2025-01-01T00:00:00Z");
-  const testData: PrismaApplicationPhase = {
+  const testInput: PrismaApplicationPhase = {
     applicationId: testApplicationId,
     phaseId: testPhaseId,
     phaseStatusId: testPhaseStatusId,
@@ -59,7 +59,7 @@ describe("applicationPhaseResolvers", () => {
   });
 
   describe("__setApplicationPhaseStatus", () => {
-    const testData: SetApplicationPhaseStatusInput = {
+    const testInput: SetApplicationPhaseStatusInput = {
       applicationId: testApplicationId,
       phaseName: testPhaseId,
       phaseStatus: testPhaseStatusId,
@@ -83,7 +83,7 @@ describe("applicationPhaseResolvers", () => {
           phaseStatusId: testPhaseStatusId,
         },
       };
-      await __setApplicationPhaseStatus(undefined, { input: testData });
+      await __setApplicationPhaseStatus(undefined, { input: testInput });
       expect(mockUpsert).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
     });
@@ -91,7 +91,7 @@ describe("applicationPhaseResolvers", () => {
     it("should handle an error appropriately if it occurs", async () => {
       mockUpsert.mockRejectedValueOnce(testError);
       await expect(
-        __setApplicationPhaseStatus(undefined, { input: testData })
+        __setApplicationPhaseStatus(undefined, { input: testInput })
       ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
       expect(getApplication).not.toHaveBeenCalled();
@@ -117,7 +117,7 @@ describe("applicationPhaseResolvers", () => {
         },
       };
 
-      await __resolveApplicationPhaseDates(testData);
+      await __resolveApplicationPhaseDates(testInput);
       expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
@@ -131,21 +131,21 @@ describe("applicationPhaseResolvers", () => {
         },
       };
 
-      await __resolveApplicationPhaseDocuments(testData);
+      await __resolveApplicationPhaseDocuments(testInput);
       expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 
   describe("__resolveApplicationPhaseName", () => {
     it("should retrieve the phase name", async () => {
-      const result = __resolveApplicationPhaseName(testData);
+      const result = __resolveApplicationPhaseName(testInput);
       expect(result).toBe(testPhaseId);
     });
   });
 
   describe("__resolveApplicationPhaseStatus", () => {
     it("should retrieve the phase status", async () => {
-      const result = __resolveApplicationPhaseStatus(testData);
+      const result = __resolveApplicationPhaseStatus(testInput);
       expect(result).toBe(testPhaseStatusId);
     });
   });

@@ -8,7 +8,8 @@ import { gql } from "graphql-tag";
 import { PhaseName } from "../phase-selector/PhaseSelector";
 import { useToast } from "components/toast";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
-import { getDateInputValue, toEstStartOfDay } from "util/formatDate";
+import { formatDateForServer } from "util/formatDate";
+import { parseInputDateAsStartOfDayEST } from "util/parseDate";
 
 const PHASE_NAME: PhaseName = "SDG Preparation";
 const NEXT_PHASE_NAME: PhaseName = "Approval Package";
@@ -98,16 +99,16 @@ export const SdgPreparationPhase = ({
 
     return {
       expectedApprovalDate: phaseDates.expectedApprovalDate
-        ? getDateInputValue(phaseDates.expectedApprovalDate as unknown as string)
+        ? formatDateForServer(phaseDates.expectedApprovalDate as unknown as string)
         : undefined,
       smeInitialReviewDate: phaseDates.smeInitialReviewDate
-        ? getDateInputValue(phaseDates.smeInitialReviewDate as unknown as string)
+        ? formatDateForServer(phaseDates.smeInitialReviewDate as unknown as string)
         : undefined,
       frtInitialMeetingDate: phaseDates.frtInitialMeetingDate
-        ? getDateInputValue(phaseDates.frtInitialMeetingDate as unknown as string)
+        ? formatDateForServer(phaseDates.frtInitialMeetingDate as unknown as string)
         : undefined,
       bnpmtInitialMeetingDate: phaseDates.bnpmtInitialMeetingDate
-        ? getDateInputValue(phaseDates.bnpmtInitialMeetingDate as unknown as string)
+        ? formatDateForServer(phaseDates.bnpmtInitialMeetingDate as unknown as string)
         : undefined,
     };
   }
@@ -125,7 +126,9 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "Expected Approval Date" satisfies DateType,
-            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.expectedApprovalDate),
+            dateValue: parseInputDateAsStartOfDayEST(
+              sdgPreparationPhaseFormData.expectedApprovalDate
+            ),
           },
         },
       });
@@ -137,7 +140,9 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "SME Review Date" satisfies DateType,
-            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.smeInitialReviewDate),
+            dateValue: parseInputDateAsStartOfDayEST(
+              sdgPreparationPhaseFormData.smeInitialReviewDate
+            ),
           },
         },
       });
@@ -149,7 +154,9 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "FRT Initial Meeting Date" satisfies DateType,
-            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.frtInitialMeetingDate),
+            dateValue: parseInputDateAsStartOfDayEST(
+              sdgPreparationPhaseFormData.frtInitialMeetingDate
+            ),
           },
         },
       });
@@ -161,7 +168,9 @@ export const SdgPreparationPhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-            dateValue: toEstStartOfDay(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
+            dateValue: parseInputDateAsStartOfDayEST(
+              sdgPreparationPhaseFormData.bnpmtInitialMeetingDate
+            ),
           },
         },
       });

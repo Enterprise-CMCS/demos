@@ -6,6 +6,7 @@ import {
   DATE_TYPES,
   DOCUMENT_TYPES,
   EVENT_TYPES,
+  EXPECTED_TIMESTAMPS,
   GRANT_LEVELS,
   LOG_LEVELS,
   PERSON_TYPES,
@@ -62,9 +63,15 @@ export type {
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,
+  ApplicationDateInput,
   SetApplicationDateInput,
+  SetApplicationDatesInput,
+  ParsedApplicationDateInput,
+  ParsedSetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
+export type LocalDate = string;
+export type DateTimeOrLocalDate = Date | string;
 export type NonEmptyString = string;
 export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
 export type ApplicationType = (typeof APPLICATION_TYPES)[number];
@@ -77,6 +84,7 @@ export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
 export type DateType = (typeof DATE_TYPES)[number];
+export type ExpectedTimestamp = (typeof EXPECTED_TIMESTAMPS)[number];
 export type LogLevel = (typeof LOG_LEVELS)[number];
 export type EventType = (typeof EVENT_TYPES)[number];
 export type AdminDemonstrationRole = (typeof ADMIN_DEMONSTRATION_ROLES)[number];
