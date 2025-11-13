@@ -5,7 +5,7 @@ import { useToast } from "components/toast";
 import { Demonstration, UpdateDemonstrationInput } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { formatDateForServer } from "util/formatDate";
-import { parseInputDate, parseInputDateAsEndOfDayEST } from "util/parseDate";
+import { parseInputDate } from "util/parseDate";
 
 import { gql, useMutation, useQuery } from "@apollo/client";
 
@@ -85,7 +85,7 @@ const getUpdateDemonstrationInput = (
   }
 
   if (demonstration.expirationDate && demonstration.expirationDate.trim() !== "") {
-    input.expirationDate = parseInputDateAsEndOfDayEST(demonstration.expirationDate);
+    input.expirationDate = parseInputDate(demonstration.expirationDate);
   } else {
     input.expirationDate = null;
   }

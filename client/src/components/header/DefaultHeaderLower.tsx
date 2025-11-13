@@ -64,13 +64,6 @@ export const DefaultHeaderLower: React.FC = () => {
               Demonstration
             </button>
             <button
-              data-testid="button-create-new-document"
-              onClick={() => {}}
-              className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
-            >
-              Add New Document
-            </button>
-            <button
               data-testid="button-create-new-amendment"
               onClick={() => {
                 setShowDropdown(false);

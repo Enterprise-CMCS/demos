@@ -8,8 +8,6 @@ import { parseInputDate } from "util/parseDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { addDays, differenceInCalendarDays } from "date-fns";
 import { gql, useMutation } from "@apollo/client";
-import { CompletenessDocumentUploadDialog } from "components/dialog/document/CompletenessDocumentUploadDialog";
-import { DeclareIncompleteDialog } from "components/dialog";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -20,6 +18,7 @@ import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { SetApplicationDateInput } from "demos-server";
+import { useDialog } from "components/dialog/DialogContext";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -126,10 +125,8 @@ export const CompletenessPhase = ({
   applicationCompletenessDocument,
   hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
+  const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
-
-  const [isUploadOpen, setUploadOpen] = useState(false);
-  const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
@@ -231,18 +228,19 @@ export const CompletenessPhase = ({
     await completeCompletenessPhase();
   };
 
-  const handleDeclareIncomplete = async () => {
-    await setCompletenessIncompleted();
-  };
-
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
       <h4 id="completeness-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
       <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
-      {/* TODO: DOC NOT WORKING - documentPendingUpload.create - seeded to compensate */}
-      <SecondaryButton onClick={() => setUploadOpen(true)} size="small" name="open-upload">
+      <SecondaryButton
+        onClick={() => {
+          showCompletenessDocumentUploadDialog(applicationId);
+        }}
+        size="small"
+        name="open-upload"
+      >
         Upload
         <ExportIcon />
       </SecondaryButton>
@@ -320,7 +318,16 @@ export const CompletenessPhase = ({
         <SecondaryButton
           name="declare-incomplete"
           size="small"
-          onClick={() => setDeclareIncompleteOpen(true)}
+          onClick={() =>
+            showDeclareIncompleteDialog(async () => {
+              try {
+                await setCompletenessIncompleted();
+                showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
+              } catch (error) {
+                showError(error instanceof Error ? error.message : String(error));
+              }
+            })
+          }
         >
           Declare Incomplete
         </SecondaryButton>
@@ -411,7 +418,7 @@ export const CompletenessPhase = ({
       {!collapsed && (
         <div id="completeness-phase-content">
           <p className="text-sm text-text-placeholder mb-4">
-            Completeness Checklist – Find completeness guidelines online at{" "}
+            Completeness Checklist - Find completeness guidelines online at{" "}
             <a
               className="text-blue-700 underline"
               href="https://www.medicaid.gov"
@@ -429,21 +436,6 @@ export const CompletenessPhase = ({
               <VerifyCompleteSection />
             </div>
           </section>
-
-          <CompletenessDocumentUploadDialog
-            isOpen={isUploadOpen}
-            onClose={() => setUploadOpen(false)}
-            applicationId={applicationId}
-          />
-
-          <DeclareIncompleteDialog
-            isOpen={isDeclareIncompleteOpen}
-            onClose={() => setDeclareIncompleteOpen(false)}
-            onConfirm={async () => {
-              await handleDeclareIncomplete();
-              setDeclareIncompleteOpen(false);
-            }}
-          />
         </div>
       )}
     </div>

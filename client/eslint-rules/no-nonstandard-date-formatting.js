@@ -17,32 +17,17 @@ export const noNonstandardDateFormatting = createRule({
   name: "no-nonstandard-date-formatting",
   meta: {
     docs: {
-      description: "Enforce usage of formatDate for formatting dates",
+      description: "Enforce usage of date-fns for formatting and parsing dates",
       category: "Best Practices",
     },
     messages: {
-      useRenderDate: "Render dates using the RenderDate utility.",
+      no_date_methods: "This method on the date object is not allowed. Use date-fns instead.",
     },
     type: "problem",
     schema: [],
   },
   defaultOptions: [],
   create(context) {
-    function isInsideRenderDateCall(node) {
-      let parent = node.parent;
-      while (parent) {
-        if (
-          parent.type === "CallExpression" &&
-          parent.callee.type === "Identifier" &&
-          parent.callee.name === "formatDate"
-        ) {
-          return true;
-        }
-        parent = parent.parent;
-      }
-      return false;
-    }
-
     function shouldFlag(node) {
       return (
         node.callee.type === "MemberExpression" &&
@@ -54,9 +39,7 @@ export const noNonstandardDateFormatting = createRule({
     return {
       CallExpression(node) {
         if (shouldFlag(node)) {
-          if (!isInsideRenderDateCall(node)) {
-            context.report({ node, messageId: "useRenderDate" });
-          }
+          context.report({ node, messageId: "no_date_methods" });
         }
       },
     };

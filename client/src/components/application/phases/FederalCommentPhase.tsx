@@ -4,8 +4,8 @@ import { ApplicationUploadSection } from "components/application/phases/sections
 import { ExitIcon, WarningIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
-import { FederalCommentUploadDialog } from "components/dialog/document/FederalCommentUploadDialog";
 import { differenceInCalendarDays, endOfDay, startOfDay } from "date-fns";
+import { useDialog } from "components/dialog/DialogContext";
 
 interface FederalCommentPhaseProps {
   demonstrationId: string;
@@ -34,8 +34,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   documents = [],
 }) => {
   const [showWarning, setShowWarning] = useState(true);
-  const [isUploadOpen, setUploadOpen] = useState(false);
-
+  const { showFederalCommentDocumentUploadDialog } = useDialog();
   const daysLeft = differenceInCalendarDays(startOfDay(phaseEndDate), endOfDay(new Date()));
 
   const borderColorClass = daysLeft === 1 ? "border-border-warn" : "border-border-alert";
@@ -116,18 +115,12 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
             title="STEP 1 - UPLOAD"
             helperText="Upload the Internal Analysis Document (Optional)"
             documents={documents}
-            onUploadClick={() => setUploadOpen(true)}
+            onUploadClick={() => showFederalCommentDocumentUploadDialog(demonstrationId)}
             onDeleteDocument={(id) => console.log(id)}
           />
           <VerifyCompleteSection />
         </div>
       </section>
-
-      <FederalCommentUploadDialog
-        isOpen={isUploadOpen}
-        onClose={() => setUploadOpen(false)}
-        applicationId={demonstrationId}
-      />
     </div>
   );
 };
