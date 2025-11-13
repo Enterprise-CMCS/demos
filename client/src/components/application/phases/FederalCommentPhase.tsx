@@ -1,16 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
-import { ExitIcon, WarningIcon } from "components/icons";
-import { formatDate } from "util/formatDate";
+import { formatDate, formatDateForServer } from "util/formatDate";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { FederalCommentUploadDialog } from "components/dialog/document/FederalCommentUploadDialog";
-import { differenceInCalendarDays, endOfDay, startOfDay } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
+import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { Notice, NoticeVariant } from "components/notice";
+import { parseInputDate } from "util/parseDate";
 
 interface FederalCommentPhaseProps {
   demonstrationId: string;
-  phaseStartDate: Date;
-  phaseEndDate: Date;
+  phaseStartDate: string;
+  phaseEndDate: string;
+  phaseComplete: boolean;
   documents?: DocumentTableDocument[];
 }
 
@@ -27,27 +30,96 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
+export const getFederalCommentPhaseFromDemonstration = (
+  demonstration: ApplicationWorkflowDemonstration
+) => {
+  const federalCommentPhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "Federal Comment"
+  );
+
+  const phaseComplete = federalCommentPhase?.phaseStatus === "Completed";
+
+  const phaseStartDate = federalCommentPhase?.phaseDates.find(
+    (date) => date.dateType === "Federal Comment Period Start Date"
+  );
+  const phaseEndDate = federalCommentPhase?.phaseDates.find(
+    (date) => date.dateType === "Federal Comment Period End Date"
+  );
+
+  return <FederalCommentPhase
+    demonstrationId={demonstration.id}
+    phaseComplete={phaseComplete}
+    phaseStartDate={
+      phaseStartDate?.dateValue ? formatDate(phaseStartDate.dateValue) : ""
+    }
+    phaseEndDate={
+      phaseEndDate?.dateValue ? formatDate(phaseEndDate.dateValue) : ""
+    }
+  />;
+};
+
 export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   demonstrationId = "default-demo-id",
   phaseStartDate,
   phaseEndDate,
+  phaseComplete,
   documents = [],
 }) => {
-  const [showWarning, setShowWarning] = useState(true);
   const [isUploadOpen, setUploadOpen] = useState(false);
 
-  const daysLeft = differenceInCalendarDays(startOfDay(phaseEndDate), endOfDay(new Date()));
+  const FederalCommentNotice = () => {
+    useEffect(() => {
+      setNoticeDismissed(phaseComplete === true);
+    }, [phaseComplete]);
 
-  const borderColorClass = daysLeft === 1 ? "border-border-warn" : "border-border-alert";
-  const warningClasses =
-    tw`
-    w-[600px] p-sm rounded-md shadow-lg
-    bg-white text-text-font border border-l-4
-    flex items-center
-    transition-all duration-300 ease-in-out
-    animate-fade-in
-    mb-3
-  ` + ` ${borderColorClass}`;
+    const [isNoticeDismissed, setNoticeDismissed] = useState(
+      phaseComplete === true
+    );
+
+    if (phaseEndDate) {
+      useEffect(() => {
+        setNoticeDismissed(phaseComplete);
+      }, [phaseComplete]);
+
+      const noticeDueDateValue = parseInputDate(formatDateForServer(phaseEndDate));
+
+      if (!noticeDueDateValue || isNaN(noticeDueDateValue.getTime())) {
+        return null;
+      }
+
+      const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
+
+      // determine notice title/description from days
+      const getNoticeTitle = () => {
+        const daysLeft = noticeDaysValue;
+        if (daysLeft < 0) {
+          const daysPastDue = Math.abs(daysLeft);
+          return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
+        }
+        return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
+      };
+
+      const formattedNoticeDate = formatDate(noticeDueDateValue);
+      const noticeDescription = formattedNoticeDate
+        ? `The Federal Comment Period ends on ${formattedNoticeDate}`
+        : undefined;
+
+      // go from yellow to red at 1 day left.
+      const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
+      const shouldRenderNotice = Boolean(!isNoticeDismissed);
+      if (shouldRenderNotice) {
+        return (
+          <Notice
+            variant={noticeVariant}
+            title={getNoticeTitle()}
+            description={noticeDescription}
+            onDismiss={() => setNoticeDismissed(true)}
+            className="mb-6"
+          />
+        );
+      }
+    }
+  };
 
   const VerifyCompleteSection = () => (
     <div aria-labelledby="concept-verify-title">
@@ -62,11 +134,11 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       <div className="flex gap-8 mt-4 text-sm text-text-placeholder">
         <div className="flex flex-col">
           <span className="font-bold">Federal Comment Period Start Date</span>
-          <span>{formatDate(phaseStartDate)}</span>
+          <span>{phaseStartDate}</span>
         </div>
         <div className="flex flex-col">
           <span className="font-bold">Federal Comment Period End Date</span>
-          <span>{formatDate(phaseEndDate)}</span>
+          <span>{phaseEndDate}</span>
         </div>
       </div>
     </div>
@@ -74,27 +146,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
 
   return (
     <div>
-      {showWarning && (
-        <div className={warningClasses}>
-          <div className="mx-1">
-            <WarningIcon />
-          </div>
-          <div>
-            <h3 className="text-[18px] font-bold">
-              {daysLeft} {daysLeft === 1 ? "day" : "days"} left
-            </h3>
-            <span>The Federal Comment Period ends on {formatDate(phaseEndDate)}</span>
-          </div>
-          <button
-            data-testid="button-dismiss-warning"
-            onClick={() => setShowWarning(false)}
-            className="h-3 w-3 border-l border-border-rules cursor-pointer px-sm ml-auto"
-            aria-label="Dismiss warning"
-          >
-            <ExitIcon />
-          </button>
-        </div>
-      )}
+      <FederalCommentNotice />
 
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
         FEDERAL COMMENT PERIOD

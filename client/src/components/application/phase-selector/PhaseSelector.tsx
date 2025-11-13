@@ -7,15 +7,14 @@ import {
   ApprovalPackagePhase,
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  FederalCommentPhase,
   OgcOmbPhase,
   PostApprovalPhase,
   SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
+  getFederalCommentPhaseFromDemonstration,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
-import { addDays } from "date-fns";
 
 // TODO: get past-due added to the shared enum
 export type PhaseStatus = ServerPhaseStatus | "past-due";
@@ -77,18 +76,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
     Concept: () => getConceptPhaseComponentFromDemonstration(demonstration),
     "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
     Completeness: () => getApplicationCompletenessFromDemonstration(demonstration),
-    "Federal Comment": () => {
-      const phaseStartDate = new Date(2025, 8, 24);
-      const phaseEndDate = addDays(phaseStartDate, 30);
-
-      return (
-        <FederalCommentPhase
-          demonstrationId={demonstration.id}
-          phaseStartDate={phaseStartDate}
-          phaseEndDate={phaseEndDate}
-        />
-      );
-    },
+    "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
     "SDG Preparation": () => {
       const sdgPreparationPhase = demonstration.phases.find(
         (phase) => phase.phaseName === "SDG Preparation"
