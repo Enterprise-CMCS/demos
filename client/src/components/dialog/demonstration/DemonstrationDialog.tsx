@@ -183,10 +183,9 @@ export const DemonstrationDialog: React.FC<{
         <div className="grid grid-cols-3 gap-[24px]">
           <SelectUSAStates
             label="State/Territory"
-            currentState={activeDemonstration.stateId}
             value={activeDemonstration.stateId}
             isRequired
-            onStateChange={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
+            onSelect={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
           />
           <div className="col-span-2">
             <TextInput
@@ -207,7 +206,7 @@ export const DemonstrationDialog: React.FC<{
             <SelectUsers
               label="Project Officer"
               isRequired={true}
-              initialUserId={activeDemonstration.projectOfficerId}
+              value={activeDemonstration.projectOfficerId}
               onSelect={(userId) =>
                 setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }))
               }
