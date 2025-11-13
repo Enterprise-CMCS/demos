@@ -7,7 +7,7 @@
     "@apollo/client": "^3.14.0",
     "@date-fns/tz": "^1.4.1",
     "@date-fns/utc": "^2.1.1",
-    "@eslint/js": "^9.33.0",
+    "@eslint/js": "^9.38.0",
     "@faker-js/faker": "^9.8.0",
     "@tailwindcss/vite": "^4.1.4",
     "@testing-library/dom": "^10.4.0",
