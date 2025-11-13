@@ -3,7 +3,7 @@ import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { formatDate, formatDateForServer } from "util/formatDate";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
-import { FederalCommentUploadDialog } from "components/dialog/document/FederalCommentUploadDialog";
+import { useDialog } from "components/dialog/DialogContext";
 import { differenceInCalendarDays } from "date-fns";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { Notice, NoticeVariant } from "components/notice";
@@ -65,7 +65,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   phaseComplete,
   documents = [],
 }) => {
-  const [isUploadOpen, setUploadOpen] = useState(false);
+  const { showFederalCommentDocumentUploadDialog } = useDialog();
 
   const FederalCommentNotice = () => {
     useEffect(() => {
