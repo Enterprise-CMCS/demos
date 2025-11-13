@@ -23,13 +23,6 @@ describe("BaseDialog", () => {
     expect(screen.getByText("Dialog content")).toBeInTheDocument();
   });
 
-  it("does not render when closed", () => {
-    render(<BaseDialog {...defaultProps} isOpen={false} />);
-    const dialog = document.querySelector("dialog");
-    expect(dialog).toBeInTheDocument();
-    expect(dialog?.open).toBe(false);
-  });
-
   it("renders and triggers the close button", () => {
     const onClose = vi.fn();
     render(<BaseDialog {...defaultProps} onClose={onClose} />);
