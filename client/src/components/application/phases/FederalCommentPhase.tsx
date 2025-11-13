@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { formatDate, formatDateForServer } from "util/formatDate";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { useDialog } from "components/dialog/DialogContext";
-import { differenceInCalendarDays } from "date-fns";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
-import { Notice, NoticeVariant } from "components/notice";
-import { parseInputDate } from "util/parseDate";
+import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
 
 interface FederalCommentPhaseProps {
   demonstrationId: string;
@@ -67,60 +65,6 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
 }) => {
   const { showFederalCommentDocumentUploadDialog } = useDialog();
 
-  const FederalCommentNotice = () => {
-    useEffect(() => {
-      setNoticeDismissed(phaseComplete === true);
-    }, [phaseComplete]);
-
-    const [isNoticeDismissed, setNoticeDismissed] = useState(
-      phaseComplete === true
-    );
-
-    if (phaseEndDate) {
-      useEffect(() => {
-        setNoticeDismissed(phaseComplete);
-      }, [phaseComplete]);
-
-      const noticeDueDateValue = parseInputDate(formatDateForServer(phaseEndDate));
-
-      if (!noticeDueDateValue || isNaN(noticeDueDateValue.getTime())) {
-        return null;
-      }
-
-      const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
-
-      // determine notice title/description from days
-      const getNoticeTitle = () => {
-        const daysLeft = noticeDaysValue;
-        if (daysLeft < 0) {
-          const daysPastDue = Math.abs(daysLeft);
-          return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
-        }
-        return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
-      };
-
-      const formattedNoticeDate = formatDate(noticeDueDateValue);
-      const noticeDescription = formattedNoticeDate
-        ? `The Federal Comment Period ends on ${formattedNoticeDate}`
-        : undefined;
-
-      // go from yellow to red at 1 day left.
-      const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
-      const shouldRenderNotice = Boolean(!isNoticeDismissed);
-      if (shouldRenderNotice) {
-        return (
-          <Notice
-            variant={noticeVariant}
-            title={getNoticeTitle()}
-            description={noticeDescription}
-            onDismiss={() => setNoticeDismissed(true)}
-            className="mb-6"
-          />
-        );
-      }
-    }
-  };
-
   const VerifyCompleteSection = () => (
     <div aria-labelledby="concept-verify-title">
       <div>
@@ -146,7 +90,12 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
 
   return (
     <div>
-      <FederalCommentNotice />
+      {phaseEndDate && <DueDateNotice
+        dueDate={formatDateForServer(phaseEndDate)}
+        phaseComplete={phaseComplete}
+        shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={true}
+        descriptionToAppendDateTo="The Federal Comment Period ends on"
+      />}
 
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
         FEDERAL COMMENT PERIOD

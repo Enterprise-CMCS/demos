@@ -44,6 +44,7 @@ const buildComponent = (override: Partial<CompletenessPhaseProps> = {}) => {
     applicationId: "app-123",
     fedCommentStartDate: START_FED_COMMENT_DATE,
     fedCommentEndDate: END_FED_COMMENT_DATE,
+    fedCommentComplete: false,
     stateDeemedCompleteDate: "2025-09-30",
     applicationCompletenessDocument: [
       {
