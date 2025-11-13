@@ -1,0 +1,34 @@
+@Library("demos-lib@upgrade-checks") _
+
+pipeline {
+  agent {
+    kubernetes { 
+      yaml kubeBlock(containerNames:["node"])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    NO_COLOR = 1
+    STAGE = "test"
+  }
+
+  stages {
+    stage('Check for updates') {
+      steps {
+        script {
+          npmUpdates(dir: "client")          
+          npmUpdates(dir: "server")          
+          // npmUpdates(dir: "deployment")          
+          // npmUpdates(dir: "lambdas/authorizer")          
+          // npmUpdates(dir: "lambdas/dbRoleManagement")          
+          // npmUpdates(dir: "lambdas/emailer")          
+          // npmUpdates(dir: "lambdas/fileprocess")          
+        }
+      }
+    }
+  }
+}
