@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { SecondaryButton } from "components/button/SecondaryButton";
+import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";
 import { useDialog } from "components/dialog/DialogContext";
@@ -42,14 +42,14 @@ export const DefaultHeaderLower: React.FC = () => {
       <UserGreeting />
 
       <div ref={dropdownRef}>
-        <SecondaryButton
+        <IconButton
+          icon={<AddNewIcon />}
           name="create-new"
           data-testid="create-new"
           onClick={() => setShowDropdown((prev) => !prev)}
         >
-          <span>Create New</span>
-          <AddNewIcon />
-        </SecondaryButton>
+          Create New
+        </IconButton>
 
         {showDropdown && (
           <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">

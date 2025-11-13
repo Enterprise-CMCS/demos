@@ -3,7 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
 import { SecondaryButton } from "./SecondaryButton";
-import { EditIcon } from "components/icons";
 
 describe("SecondaryButton", () => {
   const defaultProps = {
@@ -16,23 +15,6 @@ describe("SecondaryButton", () => {
 
     expect(screen.getByTestId("test-button")).toBeInTheDocument();
     expect(screen.getByTestId("test-button")).toHaveTextContent("Test Button");
-  });
-
-  it("standardizes icon sizes when passed as children", () => {
-    render(
-      <SecondaryButton name="test-button" onClick={() => {}}>
-        Edit Details
-        <EditIcon className="w-2 h-2" />
-      </SecondaryButton>
-    );
-
-    const button = screen.getByRole("button", { name: "test-button" });
-    const icon = button.querySelector("svg");
-
-    expect(button).toBeInTheDocument();
-    expect(icon).toHaveClass("w-[20px]");
-    expect(icon).toHaveClass("h-[20px]");
-    expect(button).toHaveTextContent("Edit Details");
   });
 
   it("works without icons", () => {
@@ -61,5 +43,15 @@ describe("SecondaryButton", () => {
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent("2");
     expect(button.querySelector("svg")).toBeNull();
+  });
+
+  it("passes through button props correctly", () => {
+    render(
+      <SecondaryButton disabled name="test" onClick={() => {}}>
+        Disabled
+      </SecondaryButton>
+    );
+    const button = screen.getByTestId("test");
+    expect(button).toBeDisabled();
   });
 });
