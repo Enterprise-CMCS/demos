@@ -168,18 +168,12 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
             title="STEP 1 - UPLOAD"
             helperText="Upload the Internal Analysis Document (Optional)"
             documents={documents}
-            onUploadClick={() => setUploadOpen(true)}
+            onUploadClick={() => showFederalCommentDocumentUploadDialog(demonstrationId)}
             onDeleteDocument={(id) => console.log(id)}
           />
           <VerifyCompleteSection />
         </div>
       </section>
-
-      <FederalCommentUploadDialog
-        isOpen={isUploadOpen}
-        onClose={() => setUploadOpen(false)}
-        applicationId={demonstrationId}
-      />
     </div>
   );
 };

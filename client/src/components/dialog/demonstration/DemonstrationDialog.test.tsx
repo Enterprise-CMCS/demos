@@ -18,7 +18,6 @@ const DEFAULT_DEMONSTRATION = {
 };
 
 const DEFAULT_PROPS = {
-  isOpen: true,
   onClose: vi.fn(),
   onSubmit: vi.fn(),
   initialDemonstration: DEFAULT_DEMONSTRATION,

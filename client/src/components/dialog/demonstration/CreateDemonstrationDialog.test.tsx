@@ -12,7 +12,6 @@ import {
 } from "./CreateDemonstrationDialog";
 
 const DEFAULT_PROPS = {
-  isOpen: true,
   onClose: vi.fn(),
 };
 

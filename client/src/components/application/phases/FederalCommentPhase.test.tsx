@@ -21,10 +21,11 @@ vi.mock("components/icons", async (importOriginal) => {
   };
 });
 
-// Mock dialog to test open/close
-vi.mock("components/dialog/document/FederalCommentUploadDialog", () => ({
-  FederalCommentUploadDialog: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen ? <div>Federal Comment Upload Dialog</div> : null,
+const showFederalCommentDocumentUploadDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showFederalCommentDocumentUploadDialog,
+  }),
 }));
 
 describe("FederalCommentPhase", () => {
@@ -106,7 +107,7 @@ describe("FederalCommentPhase", () => {
       setup();
       const uploadButton = screen.getByRole("button", { name: /upload/i });
       await userEvent.click(uploadButton);
-      expect(screen.getByText("Federal Comment Upload Dialog")).toBeInTheDocument();
+      expect(showFederalCommentDocumentUploadDialog).toHaveBeenCalledWith("demo-123");
     });
   });
 
