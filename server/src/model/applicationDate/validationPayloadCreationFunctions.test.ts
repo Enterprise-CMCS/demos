@@ -1,20 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
-import { ApplicationDateInput } from "../../types.js";
+import { ApplicationDateInput, ParsedApplicationDateInput } from "../../types.js";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
+import { prisma, PrismaTransactionClient } from "../../prismaClient.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
 describe("validatePayloadCreationFunctions", () => {
-  const mockFindMany = vi.fn();
-  const mockPrismaClient = {
+  const transactionMocks = {
     applicationDate: {
-      findMany: mockFindMany,
+      findMany: vi.fn(),
     },
+  };
+  const mockTransaction = {
+    applicationDate: {
+      findMany: transactionMocks.applicationDate.findMany,
+    },
+  } as any;
+  const mockPrismaClient = {
+    $transaction: vi.fn((callback) => callback(mockTransaction)),
   };
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testOldDateValue: Date = new Date("2025-01-01T00:00:00Z");
@@ -23,11 +30,12 @@ describe("validatePayloadCreationFunctions", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
   describe("getExistingDates", () => {
     it("should request dates for the application from the database", async () => {
-      vi.mocked(mockFindMany).mockReturnValue([
+      vi.mocked(transactionMocks.applicationDate.findMany).mockReturnValue([
         {
           dateType: "Concept Start Date",
           dateValue: testOldDateValue,
@@ -47,14 +55,16 @@ describe("validatePayloadCreationFunctions", () => {
         },
       };
 
-      await getExistingDates(testApplicationId);
-      expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      await getExistingDates(testApplicationId, mockTransaction);
+      expect(transactionMocks.applicationDate.findMany).toHaveBeenCalledExactlyOnceWith(
+        expectedCall
+      );
     });
   });
 
   describe("mergeApplicationDates", () => {
     it("should merge the two lists correctly", () => {
-      const testExistingDates: ApplicationDateInput[] = [
+      const testExistingDates: ParsedApplicationDateInput[] = [
         {
           dateType: "Concept Start Date",
           dateValue: testOldDateValue,
@@ -64,7 +74,7 @@ describe("validatePayloadCreationFunctions", () => {
           dateValue: testOldDateValue,
         },
       ];
-      const testNewDates: ApplicationDateInput[] = [
+      const testNewDates: ParsedApplicationDateInput[] = [
         {
           dateType: "BNPMT Initial Meeting Date",
           dateValue: testOldDateValue,

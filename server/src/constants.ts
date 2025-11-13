@@ -108,6 +108,8 @@ export const DATE_TYPES = [
   "OMB Review Complete",
   "PO & OGD Sign-Off",
   "OGC & OMB Review Completion Date",
+  "Approval Package Start Date",
+  "Approval Package Completion Date",
 ] as const;
 
 export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
@@ -138,6 +140,8 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "OMB Review Complete": { expectedTimestamp: "Start of Day" },
   "PO & OGD Sign-Off": { expectedTimestamp: "Start of Day" },
   "OGC & OMB Review Completion Date": { expectedTimestamp: "Start of Day" },
+  "Approval Package Start Date": { expectedTimestamp: "Start of Day" },
+  "Approval Package Completion Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [

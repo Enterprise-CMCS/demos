@@ -40,3 +40,40 @@ export function parseDateTimeOrLocalDateToJSDate(
   );
   return dateValue;
 }
+
+function __getTodayStartOfDayEastern(): Date {
+  const easternNow = new TZDate(new Date(), "America/New_York");
+  const result = new TZDate(
+    easternNow.getFullYear(),
+    easternNow.getMonth(),
+    easternNow.getDate(),
+    0,
+    0,
+    0,
+    0,
+    "America/New_York"
+  );
+  return result;
+}
+
+function __getTodayEndOfDayEastern(): Date {
+  const easternNow = new TZDate(new Date(), "America/New_York");
+  const result = new TZDate(
+    easternNow.getFullYear(),
+    easternNow.getMonth(),
+    easternNow.getDate(),
+    23,
+    59,
+    59,
+    999,
+    "America/New_York"
+  );
+  return result;
+}
+
+export function getEasternNow(): Record<ExpectedTimestamp, Date> {
+  return {
+    "Start of Day": __getTodayStartOfDayEastern(),
+    "End of Day": __getTodayEndOfDayEastern(),
+  };
+}

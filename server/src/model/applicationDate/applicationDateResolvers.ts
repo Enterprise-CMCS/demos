@@ -31,7 +31,7 @@ export function __parseInputApplicationDates(
   return result;
 }
 
-export async function __runDateChangeOperationsInTransaction(
+export async function __changeDatesInTransaction(
   parsedInputApplicationDates: ParsedSetApplicationDatesInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
@@ -54,6 +54,22 @@ export async function __runDateChangeOperationsInTransaction(
     });
   });
   await Promise.all(dateUpdateOperations);
+}
+
+export async function validateAndUpdateDates(
+  setApplicationDateInput: ParsedSetApplicationDatesInput,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const existingApplicationDates = await getExistingDates(
+    setApplicationDateInput.applicationId,
+    tx
+  );
+  const updatedApplicationDates = mergeApplicationDates(
+    existingApplicationDates,
+    setApplicationDateInput.applicationDates
+  );
+  validateInputDates(updatedApplicationDates);
+  await __changeDatesInTransaction(setApplicationDateInput, tx);
 }
 
 export function __setApplicationDate(
@@ -79,17 +95,10 @@ export async function __setApplicationDates(
   if (input.applicationDates.length === 0) {
     return await getApplication(input.applicationId);
   }
-
   try {
     await prisma().$transaction(async (tx) => {
-      const existingApplicationDates = await getExistingDates(input.applicationId, tx);
       const parsedInputApplicationDates = __parseInputApplicationDates(input);
-      const updatedApplicationDates = mergeApplicationDates(
-        existingApplicationDates,
-        parsedInputApplicationDates.applicationDates
-      );
-      validateInputDates(updatedApplicationDates);
-      await __runDateChangeOperationsInTransaction(parsedInputApplicationDates, tx);
+      await validateAndUpdateDates(parsedInputApplicationDates, tx);
     });
   } catch (error) {
     handlePrismaError(error);

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { __makeEmptyValidations, validateInputDates } from "./validateInputDates.js";
-import { ApplicationDateInput, DateType } from "../../types.js";
+import { DateType, ParsedApplicationDateInput } from "../../types.js";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
@@ -80,8 +80,10 @@ describe("validateInputDates", () => {
         "OMB Review Complete",
         "PO & OGD Sign-Off",
         "OGC & OMB Review Completion Date",
+        "Approval Package Start Date",
+        "Approval Package Completion Date",
       ];
-      const testInput: ApplicationDateInput[] = [];
+      const testInput: ParsedApplicationDateInput[] = [];
       const expectedCalls = [];
       for (const dateType of startOfDayDateTypes) {
         testInput.push({ dateType: dateType, dateValue: testDateValue });
@@ -99,7 +101,7 @@ describe("validateInputDates", () => {
         "Federal Comment Period End Date",
         "Completeness Review Due Date",
       ];
-      const testInput: ApplicationDateInput[] = [];
+      const testInput: ParsedApplicationDateInput[] = [];
       const expectedCalls = [];
       for (const dateType of endOfDayDateTypes) {
         testInput.push({ dateType: dateType, dateValue: testDateValue });
@@ -113,13 +115,8 @@ describe("validateInputDates", () => {
     });
 
     it("should run __checkInputDateGreaterThan on dates with that check", () => {
-      const greaterThanCheckTypes: [DateType, DateType][] = [
-        ["Concept Completion Date", "Concept Start Date"],
-        ["Application Intake Completion Date", "Application Intake Start Date"],
-        ["State Application Deemed Complete", "State Application Submitted Date"],
-        ["Completeness Completion Date", "Completeness Start Date"],
-      ];
-      const testInput: ApplicationDateInput[] = [];
+      const greaterThanCheckTypes: [DateType, DateType][] = [];
+      const testInput: ParsedApplicationDateInput[] = [];
       const testApplicationDateMap: ApplicationDateMap = new Map();
       const expectedCalls = [];
       for (const dateType of greaterThanCheckTypes) {
@@ -139,10 +136,14 @@ describe("validateInputDates", () => {
 
     it("should run __checkInputDateGreaterThanOrEqual on dates with that check", () => {
       const greaterThanOrEqualCheckTypes: [DateType, DateType][] = [
+        ["Concept Completion Date", "Concept Start Date"],
+        ["Application Intake Completion Date", "Application Intake Start Date"],
         ["Application Intake Completion Date", "Concept Completion Date"],
+        ["State Application Deemed Complete", "State Application Submitted Date"],
+        ["Completeness Completion Date", "Completeness Start Date"],
         ["Completeness Completion Date", "Application Intake Completion Date"],
       ];
-      const testInput: ApplicationDateInput[] = [];
+      const testInput: ParsedApplicationDateInput[] = [];
       const testApplicationDateMap: ApplicationDateMap = new Map();
       const expectedCalls = [];
       for (const dateType of greaterThanOrEqualCheckTypes) {
@@ -187,7 +188,7 @@ describe("validateInputDates", () => {
           },
         ],
       ];
-      const testInput: ApplicationDateInput[] = [];
+      const testInput: ParsedApplicationDateInput[] = [];
       const testApplicationDateMap: ApplicationDateMap = new Map();
       const expectedCalls = [];
       for (const dateType of offsetCheckTypes) {

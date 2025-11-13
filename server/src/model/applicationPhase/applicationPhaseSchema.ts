@@ -17,8 +17,14 @@ export const applicationPhaseSchema = gql`
     phaseStatus: PhaseStatus!
   }
 
+  input CompletePhaseInput {
+    applicationId: ID!
+    phaseName: PhaseName!
+  }
+
   type Mutation {
-    setApplicationPhaseStatus(input: SetApplicationPhaseStatusInput!): Demonstration!
+    setApplicationPhaseStatus(input: SetApplicationPhaseStatusInput!): Application!
+    completePhase(input: CompletePhaseInput!): Application!
   }
 `;
 
@@ -35,4 +41,9 @@ export interface SetApplicationPhaseStatusInput {
   applicationId: string;
   phaseName: PhaseName;
   phaseStatus: PhaseStatus;
+}
+
+export interface CompletePhaseInput {
+  applicationId: string;
+  phaseName: PhaseName;
 }

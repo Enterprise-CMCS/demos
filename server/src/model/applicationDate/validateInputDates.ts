@@ -34,7 +34,7 @@ export function __makeEmptyValidations(): DateTypeValidationChecksRecord {
 }
 
 const VALIDATION_CHECKS = __makeEmptyValidations();
-VALIDATION_CHECKS["Concept Completion Date"]["greaterThanChecks"] = [
+VALIDATION_CHECKS["Concept Completion Date"]["greaterThanOrEqualChecks"] = [
   { dateTypeToCheck: "Concept Start Date" },
 ];
 VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"] = [
@@ -49,13 +49,11 @@ VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"] = [
     },
   },
 ];
-VALIDATION_CHECKS["Application Intake Completion Date"]["greaterThanChecks"] = [
-  { dateTypeToCheck: "Application Intake Start Date" },
-];
 VALIDATION_CHECKS["Application Intake Completion Date"]["greaterThanOrEqualChecks"] = [
+  { dateTypeToCheck: "Application Intake Start Date" },
   { dateTypeToCheck: "Concept Completion Date" },
 ];
-VALIDATION_CHECKS["State Application Deemed Complete"]["greaterThanChecks"] = [
+VALIDATION_CHECKS["State Application Deemed Complete"]["greaterThanOrEqualChecks"] = [
   { dateTypeToCheck: "State Application Submitted Date" },
 ];
 VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"] = [
@@ -82,15 +80,9 @@ VALIDATION_CHECKS["Federal Comment Period End Date"]["offsetChecks"] = [
     },
   },
 ];
-VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanChecks"] = [
-  {
-    dateTypeToCheck: "Completeness Start Date",
-  },
-];
 VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanOrEqualChecks"] = [
-  {
-    dateTypeToCheck: "Application Intake Completion Date",
-  },
+  { dateTypeToCheck: "Completeness Start Date" },
+  { dateTypeToCheck: "Application Intake Completion Date" },
 ];
 
 export function validateInputDates(datesToValidate: ParsedApplicationDateInput[]): void {
