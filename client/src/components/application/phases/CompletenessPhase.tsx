@@ -8,8 +8,6 @@ import { parseInputDate } from "util/parseDate";
 import { Notice, NoticeVariant } from "components/notice";
 import { addDays, differenceInCalendarDays } from "date-fns";
 import { gql, useMutation } from "@apollo/client";
-import { CompletenessDocumentUploadDialog } from "components/dialog/document/CompletenessDocumentUploadDialog";
-import { DeclareIncompleteDialog } from "components/dialog";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -20,6 +18,7 @@ import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { SetApplicationDateInput } from "demos-server";
+import { useDialog } from "components/dialog/DialogContext";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -126,10 +125,8 @@ export const CompletenessPhase = ({
   applicationCompletenessDocument,
   hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
-
+  const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
-  const [isUploadOpen, setUploadOpen] = useState(false);
-  const [isDeclareIncompleteOpen, setDeclareIncompleteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
@@ -239,7 +236,7 @@ export const CompletenessPhase = ({
       <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
       <SecondaryButton
         onClick={() => {
-          setUploadOpen(true);
+          showCompletenessDocumentUploadDialog(applicationId);
         }}
         size="small"
         name="open-upload"
@@ -321,7 +318,16 @@ export const CompletenessPhase = ({
         <SecondaryButton
           name="declare-incomplete"
           size="small"
-          onClick={() => setDeclareIncompleteOpen(true)}
+          onClick={() =>
+            showDeclareIncompleteDialog(async () => {
+              try {
+                await setCompletenessIncompleted();
+                showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
+              } catch (error) {
+                showError(error instanceof Error ? error.message : String(error));
+              }
+            })
+          }
         >
           Declare Incomplete
         </SecondaryButton>
@@ -430,30 +436,6 @@ export const CompletenessPhase = ({
               <VerifyCompleteSection />
             </div>
           </section>
-
-          <CompletenessDocumentUploadDialog
-            isOpen={isUploadOpen}
-            onClose={() => setUploadOpen(false)}
-            applicationId={applicationId}
-            onDocumentUploadSucceeded={() => {
-              setUploadOpen(false);
-            }}
-          />
-
-          <DeclareIncompleteDialog
-            isOpen={isDeclareIncompleteOpen}
-            onClose={() => setDeclareIncompleteOpen(false)}
-            onConfirm={async () => {
-              try {
-                await setCompletenessIncompleted();
-                showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
-              } catch (error) {
-                showError(error instanceof Error ? error.message : String(error));
-              } finally {
-                setDeclareIncompleteOpen(false);
-              }
-            }}
-          />
         </div>
       )}
     </div>

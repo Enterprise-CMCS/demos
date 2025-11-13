@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 import {
   Amendment,
@@ -16,7 +16,6 @@ import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
-import { AddDocumentDialog } from "components/dialog";
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
@@ -73,8 +72,6 @@ export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "current
   })[];
 };
 
-type EntityCreationModal = "amendment" | "extension" | "document" | null;
-
 const getQueryParamValue = (
   searchParams: URLSearchParams,
   singular: string,
@@ -89,8 +86,6 @@ export const DemonstrationDetail: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
   const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
   const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
-
-  const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
 
   const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
     DEMONSTRATION_DETAIL_QUERY,
@@ -136,14 +131,6 @@ export const DemonstrationDetail: React.FC = () => {
               />
             </Tab>
           </Tabs>
-
-          {entityCreationModal === "document" && (
-            <AddDocumentDialog
-              isOpen={true}
-              onClose={() => setEntityCreationModal(null)}
-              applicationId={demonstration.id}
-            />
-          )}
         </>
       }
     </div>

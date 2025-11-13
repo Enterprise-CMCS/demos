@@ -45,7 +45,8 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Ensure this component is rendered inside a DialogProvider in your app;
-  const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } = useDialog();
+  const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
+    useDialog();
 
   const { data, loading, error } = useQuery<{
     demonstration: DemonstrationHeaderDetails;

@@ -18,7 +18,6 @@ vi.mock("@apollo/client", async () => {
 });
 
 const defaultProps = {
-  isOpen: true,
   onClose: vi.fn(),
   applicationId: "test-application-id",
   onDocumentUploadSucceeded: vi.fn(),
@@ -133,13 +132,6 @@ describe("ApplicationIntakeUploadDialog", () => {
   });
 
   describe("Dialog State", () => {
-    it("does not render when closed", () => {
-      setup({ isOpen: false });
-      const dialog = document.querySelector("dialog");
-      expect(dialog).toBeInTheDocument();
-      expect(dialog?.open).toBe(false);
-    });
-
     it("passes correct applicationId to underlying dialog", () => {
       setup({ applicationId: "custom-application-id" });
       // The applicationId is passed to the underlying AddDocumentDialog

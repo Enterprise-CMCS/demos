@@ -23,19 +23,17 @@ const REASON_OPTIONS: Option[] = [
 // if other, a wild text box appears!
 const OTHER_REASON_VALUE = "other";
 
-type DeclareIncompleteForm = {
+export type DeclareIncompleteForm = {
   reason: string;
   otherText?: string;
 };
 
 type DeclareIncompleteDialogProps = {
-  isOpen: boolean;
   onClose: () => void;
   onConfirm?: (form: DeclareIncompleteForm) => void;
 };
 
 export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = ({
-  isOpen,
   onClose,
   onConfirm,
 }) => {
@@ -43,13 +41,6 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
   const [otherText, setOtherText] = React.useState("");
   const [attemptedSubmit, setAttemptedSubmit] = React.useState(false);
 
-  React.useEffect(() => {
-    if (!isOpen) {
-      setReason("");
-      setOtherText("");
-      setAttemptedSubmit(false);
-    }
-  }, [isOpen]);
   // pops the "other" explanation box
   const isOtherReason = (reason === OTHER_REASON_VALUE);
   const trimmedOther = otherText.trim();
@@ -68,7 +59,6 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
   return (
     <BaseDialog
       title="Declare Incomplete"
-      isOpen={isOpen}
       onClose={onClose}
       actions={
         <>
