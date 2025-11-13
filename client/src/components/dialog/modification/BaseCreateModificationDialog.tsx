@@ -17,9 +17,6 @@ export const CREATE_MODIFICATION_DIALOG_QUERY = gql`
   query CreateModificationDialog($id: ID!) {
     demonstration(id: $id) {
       id
-      primaryProjectOfficer {
-        id
-      }
       state {
         id
       }
