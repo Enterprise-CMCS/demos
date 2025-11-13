@@ -19,11 +19,6 @@ interface MockContactsTableProps {
   roles?: Array<{ id?: string; [key: string]: unknown }>;
 }
 
-interface MockAddDocumentDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
 interface MockSummaryDetailsTableProps {
   demonstrationId: string;
 }
@@ -48,23 +43,6 @@ vi.mock("components/dialog/DialogContext", () => ({
     showManageContactsDialog,
     showUploadDocumentDialog,
   }),
-}));
-
-vi.mock("components/dialog/document/DocumentDialog", () => ({
-  AddDocumentDialog: ({
-    isOpen,
-    onClose,
-    applicationId,
-  }: MockAddDocumentDialogProps & { applicationId?: string }) => {
-    return isOpen ? (
-      <div data-testid="add-document-dialog">
-        Add Document Dialog for {applicationId}
-        <button onClick={onClose} data-testid="close-dialog">
-          Close
-        </button>
-      </div>
-    ) : null;
-  },
 }));
 
 // Mock the SummaryDetailsTable component to avoid GraphQL queries
