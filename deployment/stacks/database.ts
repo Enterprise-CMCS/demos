@@ -117,6 +117,9 @@ export class DatabaseStack extends Stack {
       // dbInstance.cloudwatchLogGroups[lg].addSubscriptionFilter cannot be used
       // because the log group name contains a token and leads to errors.
       // CfnSubscriptionFilter can work with the tokens
+      if (lg === "upgrade") {
+        continue;
+      }
       const lgName = dbInstance.cloudwatchLogGroups[lg].logGroupName;
       new aws_logs.CfnSubscriptionFilter(commonProps.scope, `${lg}SubFilter`, {
         filterName: `${lg}-to-splunk`,
