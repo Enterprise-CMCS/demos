@@ -3,26 +3,41 @@ import {
   ApplicationDate as PrismaApplicationDate,
   Document as PrismaDocument,
 } from "@prisma/client";
-import { ParsedApplicationDateInput, DateType, PhaseName, PhaseStatus } from "../../types.js";
+import {
+  ParsedApplicationDateInput,
+  DateType,
+  PhaseStatus,
+  PhaseNameWithTrackedStatus,
+  CompletePhaseInput,
+  SetApplicationPhaseStatusInput,
+} from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
+
 import { prisma, PrismaTransactionClient } from "../../prismaClient.js";
-import { CompletePhaseInput, SetApplicationPhaseStatusInput } from "./applicationPhaseSchema.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
 import { validateAndUpdateDates } from "../applicationDate/applicationDateResolvers.js";
+import {
+  getExistingPhaseStatuses,
+  getExistingPhaseDocumentTypes,
+} from "./phaseValidationPayloadCreationFunctions.js";
+import { getExistingDates } from "../applicationDate/dateValidationPayloadCreationFunctions.js";
+import { validatePhaseCompletion } from "./validatePhaseChange.js";
 
 type PhaseActions = {
   dateToComplete: DateType;
   nextPhase: {
-    phaseName: PhaseName;
+    phaseName: PhaseNameWithTrackedStatus;
     dateToStart: DateType;
   } | null;
 };
-type PhaseActionRecord = Record<PhaseName, PhaseActions | "Not Implemented" | "Not Permitted">;
+type PhaseActionRecord = Record<
+  PhaseNameWithTrackedStatus,
+  PhaseActions | "Not Implemented" | "Not Permitted"
+>;
 
 const PHASE_ACTIONS: PhaseActionRecord = {
-  None: "Not Permitted",
   Concept: {
     dateToComplete: "Concept Completion Date",
     nextPhase: {
@@ -60,28 +75,9 @@ const PHASE_ACTIONS: PhaseActionRecord = {
   "Post Approval": "Not Implemented",
 };
 
-async function __getExistingPhaseStatus(
-  applicationId: string,
-  phaseName: PhaseName,
-  tx: PrismaTransactionClient
-): Promise<PhaseStatus> {
-  const result = await tx.applicationPhase.findUnique({
-    select: {
-      phaseStatusId: true,
-    },
-    where: {
-      applicationId_phaseId: {
-        applicationId: applicationId,
-        phaseId: phaseName,
-      },
-    },
-  });
-  return result!.phaseStatusId as PhaseStatus; // Guaranteed type and existence in DB
-}
-
 async function __changePhaseStatusInTransaction(
   applicationId: string,
-  phaseName: PhaseName,
+  phaseName: PhaseNameWithTrackedStatus,
   phaseStatus: PhaseStatus,
   tx: PrismaTransactionClient
 ): Promise<void> {
@@ -106,24 +102,24 @@ async function __completePhase(
   const easternNow = getEasternNow();
 
   if (phaseActions === "Not Permitted") {
-    throw new Error(`Operations against the ${input.phaseName} phase are not permitted via API`);
+    throw new Error(`Operations against the ${input.phaseName} phase are not permitted via API.`);
   } else if (phaseActions === "Not Implemented") {
-    throw new Error(`Completion of the ${input.phaseName} phase via API is not yet implemented`);
+    throw new Error(`Completion of the ${input.phaseName} phase via API is not yet implemented.`);
   }
 
   try {
     await prisma().$transaction(async (tx) => {
-      const currentPhaseStatus = await __getExistingPhaseStatus(
-        input.applicationId,
+      const existingDates = await getExistingDates(input.applicationId, tx);
+      const existingDocs = await getExistingPhaseDocumentTypes(input.applicationId, tx);
+      const existingPhaseStatuses = await getExistingPhaseStatuses(input.applicationId, tx);
+      validatePhaseCompletion(
         input.phaseName,
-        tx
+        existingDates,
+        existingDocs,
+        existingPhaseStatuses,
+        input.applicationId
       );
-      if (currentPhaseStatus !== "Started") {
-        throw new Error(
-          `${input.phaseName} phase for application ${input.applicationId} ` +
-            `has status ${currentPhaseStatus}; cannot complete a phase unless it has status of Started.`
-        );
-      }
+
       await __changePhaseStatusInTransaction(input.applicationId, input.phaseName, "Completed", tx);
 
       const applicationDatesToUpdate: ParsedApplicationDateInput[] = [];
@@ -135,11 +131,7 @@ async function __completePhase(
           ],
       });
       if (phaseActions.nextPhase) {
-        const nextPhaseStatus = await __getExistingPhaseStatus(
-          input.applicationId,
-          phaseActions.nextPhase.phaseName,
-          tx
-        );
+        const nextPhaseStatus = existingPhaseStatuses[phaseActions.nextPhase.phaseName];
         if (nextPhaseStatus === "Not Started") {
           await __changePhaseStatusInTransaction(
             input.applicationId,

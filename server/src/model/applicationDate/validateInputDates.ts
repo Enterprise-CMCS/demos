@@ -7,7 +7,6 @@ import {
   __checkInputDateGreaterThanOrEqual,
   __checkInputDateMeetsOffset,
   DateOffset,
-  ApplicationDateMap,
 } from "./checkInputDateFunctions.js";
 
 type ValidationChecks = {
@@ -20,7 +19,7 @@ type ValidationChecks = {
 type DateTypeValidationChecksRecord = Record<DateType, ValidationChecks>;
 
 export function __makeEmptyValidations(): DateTypeValidationChecksRecord {
-  const result: Partial<DateTypeValidationChecksRecord> = {};
+  const result = {} as DateTypeValidationChecksRecord;
   let dateType: DateType;
   for (dateType in DATE_TYPES_WITH_EXPECTED_TIMESTAMPS) {
     result[dateType] = {
@@ -30,7 +29,15 @@ export function __makeEmptyValidations(): DateTypeValidationChecksRecord {
       offsetChecks: [],
     };
   }
-  return result as DateTypeValidationChecksRecord;
+  return result;
+}
+
+export type ApplicationDateMap = Map<DateType, Date>;
+
+export function makeApplicationDateMapFromList(
+  inputDates: ParsedApplicationDateInput[]
+): ApplicationDateMap {
+  return new Map(inputDates.map((inputDate) => [inputDate.dateType, inputDate.dateValue]));
 }
 
 const VALIDATION_CHECKS = __makeEmptyValidations();
@@ -86,9 +93,7 @@ VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanOrEqualChecks"] = 
 ];
 
 export function validateInputDates(datesToValidate: ParsedApplicationDateInput[]): void {
-  const datesToValidateMap: ApplicationDateMap = new Map(
-    datesToValidate.map((dateToValidate) => [dateToValidate.dateType, dateToValidate.dateValue])
-  );
+  const datesToValidateMap = makeApplicationDateMapFromList(datesToValidate);
   for (const [dateType, dateValue] of datesToValidateMap.entries()) {
     const checks = VALIDATION_CHECKS[dateType];
     if (checks.expectedTimestamp === "Start of Day") {

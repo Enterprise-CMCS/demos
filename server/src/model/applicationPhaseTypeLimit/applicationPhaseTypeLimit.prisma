@@ -1,0 +1,10 @@
+// Flags: STATIC_CONSTRAINT
+model ApplicationPhaseTypeLimit {
+  id String
+
+  phase            Phase              @relation(fields: [id], references: [id])
+  applicationPhase ApplicationPhase[]
+
+  @@id([id])
+  @@map("application_phase_type_limit")
+}

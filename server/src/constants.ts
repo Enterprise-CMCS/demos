@@ -65,8 +65,7 @@ export const DOCUMENT_TYPES = [
   "State Application",
 ] as const;
 
-export const PHASE_NAME = [
-  "None",
+export const PHASE_NAMES_WITH_TRACKED_STATUS = [
   "Concept",
   "Application Intake",
   "Completeness",
@@ -76,6 +75,8 @@ export const PHASE_NAME = [
   "Approval Package",
   "Post Approval",
 ] as const;
+
+export const PHASE_NAME = ["None", ...PHASE_NAMES_WITH_TRACKED_STATUS] as const;
 
 export const PHASE_STATUS = [
   "Not Started",

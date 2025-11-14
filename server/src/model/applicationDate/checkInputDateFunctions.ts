@@ -1,4 +1,5 @@
 import { DateType } from "../../types.js";
+import { ApplicationDateMap } from "./validateInputDates.js";
 import { addDays, addHours, addMinutes, addSeconds, addMilliseconds } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 import { GraphQLError } from "graphql";
@@ -69,8 +70,6 @@ export function checkInputDateIsEndOfDay(
     );
   }
 }
-
-export type ApplicationDateMap = Map<DateType, Date>;
 
 export function __getDateValueFromApplicationDateMap(
   dateType: DateType,

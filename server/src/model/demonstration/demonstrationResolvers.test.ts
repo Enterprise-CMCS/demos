@@ -360,7 +360,7 @@ describe("demonstrationResolvers", () => {
       expect(transactionMocks.primaryDemonstrationRoleAssignment.create).not.toHaveBeenCalled();
       expect(getApplication).not.toHaveBeenCalled();
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(
-        new Error(`Person with id ${testValues.userId} not found`)
+        new Error(`Person with id ${testValues.userId} not found.`)
       );
     });
   });
@@ -532,7 +532,7 @@ describe("demonstrationResolvers", () => {
       expect(transactionMocks.demonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
       expect(transactionMocks.primaryDemonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(
-        new Error(`Person with id ${testValues.userId} not found`)
+        new Error(`Person with id ${testValues.userId} not found.`)
       );
     });
 
