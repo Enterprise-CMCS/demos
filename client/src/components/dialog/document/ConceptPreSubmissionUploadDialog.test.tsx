@@ -18,7 +18,6 @@ vi.mock("@apollo/client", async () => {
 });
 
 const defaultProps = {
-  isOpen: true,
   onClose: vi.fn(),
   onDocumentUploadSucceeded: vi.fn(),
   applicationId: "test-application-id",

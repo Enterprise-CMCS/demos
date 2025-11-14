@@ -17,8 +17,7 @@ import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
 } from "../ApplicationWorkflow";
-import { formatDateForServer } from "util/formatDate";
-import { getNowEst } from "../dates/applicationDates";
+import { formatDateForServer, getTodayEst } from "util/formatDate";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -30,6 +29,13 @@ vi.mock("@apollo/client", async () => {
     ]),
   };
 });
+
+const showApplicationIntakeDocumentUploadDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showApplicationIntakeDocumentUploadDialog,
+  }),
+}));
 
 describe("ApplicationIntakePhase", () => {
   const defaultProps: ApplicationIntakeProps = {
@@ -191,7 +197,10 @@ describe("ApplicationIntakePhase", () => {
       const uploadButton = screen.getByRole("button", { name: /upload/i });
       await userEvent.click(uploadButton);
 
-      expect(screen.getByText("Add State Application")).toBeInTheDocument();
+      expect(showApplicationIntakeDocumentUploadDialog).toHaveBeenCalledWith(
+        "test-demo-id",
+        expect.any(Function)
+      );
     });
   });
 
@@ -382,7 +391,7 @@ describe("ApplicationIntakePhase", () => {
 
   describe("handleDocumentUploadSucceeded", () => {
     it("date field should have today's date after document upload", async () => {
-      const todayString = formatDateForServer(getNowEst());
+      const todayString = getTodayEst();
 
       setup({
         initialStateApplicationSubmittedDate: todayString,

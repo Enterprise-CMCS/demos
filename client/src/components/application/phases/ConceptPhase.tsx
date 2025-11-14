@@ -2,7 +2,6 @@ import React, { useState } from "react";
 
 import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
-import { ConceptPreSubmissionUploadDialog } from "components/dialog/document/ConceptPreSubmissionUploadDialog";
 import { ChevronRightIcon, ExportIcon } from "components/icons";
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 import { Option } from "components/input/select/Select";
@@ -11,10 +10,10 @@ import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
-import { formatDateForServer } from "util/formatDate";
+import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
-import { getIsoDateString, getNowEst, getStartOfDateEST } from "../dates/applicationDates";
 import { DocumentList } from "./sections";
+import { useDialog } from "components/dialog/DialogContext";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -59,7 +58,7 @@ export const ConceptPhase = ({
   demonstrationId = "default-demo-id",
   initialPreSubmissionDocuments,
 }: ConceptProps) => {
-  const [isUploadOpen, setUploadOpen] = useState(false);
+  const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const [dateSubmitted, setDateSubmitted] = useState<string>("");
   const [demoType, setDemoType] = useState<string>("");
 
@@ -80,8 +79,7 @@ export const ConceptPhase = ({
   });
 
   const handleDocumentUploadSucceeded = async () => {
-    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
-    setDateSubmitted(formatDateForServer(todayDate));
+    setDateSubmitted(getTodayEst());
   };
 
   React.useEffect(() => {
@@ -118,7 +116,12 @@ export const ConceptPhase = ({
       </p>
 
       <SecondaryButton
-        onClick={() => setUploadOpen(true)}
+        onClick={() =>
+          showConceptPreSubmissionDocumentUploadDialog(
+            demonstrationId,
+            handleDocumentUploadSucceeded
+          )
+        }
         size="small"
         name="button-open-upload-modal"
       >
@@ -215,13 +218,6 @@ export const ConceptPhase = ({
           <VerifyCompleteSection />
         </div>
       </section>
-
-      <ConceptPreSubmissionUploadDialog
-        isOpen={isUploadOpen}
-        onClose={() => setUploadOpen(false)}
-        applicationId={demonstrationId}
-        onDocumentUploadSucceeded={handleDocumentUploadSucceeded}
-      />
     </div>
   );
 };

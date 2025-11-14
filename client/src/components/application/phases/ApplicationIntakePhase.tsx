@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { ApplicationIntakeUploadDialog } from "components/dialog/document/ApplicationIntakeUploadDialog";
 import { DeleteIcon, ExportIcon } from "components/icons";
-import { addDays } from "date-fns";
+import { addDays, parseISO } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer } from "util/formatDate";
-import { parseInputDate } from "util/parseDate";
+import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { getIsoDateString, getStartOfDateEST, getNowEst } from "../dates/applicationDates";
 import { useMutation, gql } from "@apollo/client";
+import { useDialog } from "components/dialog/DialogContext";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -42,7 +40,7 @@ const STYLES = {
 
 // Calculate completeness review due date (submitted date + 15 calendar days)
 export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
-  const date = parseInputDate(stateApplicationSubmittedDate);
+  const date = parseISO(stateApplicationSubmittedDate);
   return addDays(date, 15);
 };
 
@@ -82,7 +80,7 @@ export const ApplicationIntakePhase = ({
   initialStateApplicationDocuments,
   initialStateApplicationSubmittedDate,
 }: ApplicationIntakeProps) => {
-  const [isUploadOpen, setUploadOpen] = useState(false);
+  const { showApplicationIntakeDocumentUploadDialog } = useDialog();
   const [stateApplicationDocuments] = useState<ApplicationWorkflowDocument[]>(
     initialStateApplicationDocuments
   );
@@ -112,7 +110,7 @@ export const ApplicationIntakePhase = ({
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
   const onFinishButtonClick = async () => {
-    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
+    const todayDate = getTodayEst();
     await completeApplicationIntake();
 
     await setApplicationDateMutation({
@@ -128,7 +126,7 @@ export const ApplicationIntakePhase = ({
   };
 
   const handleDocumentUploadSucceeded = async () => {
-    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
+    const todayDate = getTodayEst();
     setStateApplicationSubmittedDate(formatDateForServer(todayDate));
 
     await setApplicationDateMutation({
@@ -158,13 +156,12 @@ export const ApplicationIntakePhase = ({
     setStateApplicationSubmittedDate(newDate);
 
     if (newDate) {
-      const parsedDate = parseInputDate(newDate);
       await setApplicationDateMutation({
         variables: {
           input: {
             applicationId: demonstrationId,
             dateType: "State Application Submitted Date",
-            dateValue: parsedDate,
+            dateValue: newDate,
           },
         },
         refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
@@ -175,7 +172,7 @@ export const ApplicationIntakePhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "Completeness Start Date",
-            dateValue: parsedDate,
+            dateValue: newDate,
           },
         },
         refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
@@ -191,7 +188,9 @@ export const ApplicationIntakePhase = ({
       <p className={STYLES.helper}>Upload the State Application file below.</p>
 
       <SecondaryButton
-        onClick={() => setUploadOpen(true)}
+        onClick={() =>
+          showApplicationIntakeDocumentUploadDialog(demonstrationId, handleDocumentUploadSucceeded)
+        }
         size="small"
         name="button-open-upload-modal"
       >
@@ -307,13 +306,6 @@ export const ApplicationIntakePhase = ({
           <VerifyCompleteSection />
         </div>
       </section>
-
-      <ApplicationIntakeUploadDialog
-        isOpen={isUploadOpen}
-        onClose={() => setUploadOpen(false)}
-        applicationId={demonstrationId}
-        onDocumentUploadSucceeded={handleDocumentUploadSucceeded}
-      />
     </div>
   );
 };

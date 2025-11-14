@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 
-import { CircleButton, SecondaryButton } from "components/button";
+import { CircleButton, IconButton } from "components/button";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { formatDate } from "util/formatDate";
@@ -45,7 +45,8 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Ensure this component is rendered inside a DialogProvider in your app;
-  const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } = useDialog();
+  const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
+    useDialog();
 
   const { data, loading, error } = useQuery<{
     demonstration: DemonstrationHeaderDetails;
@@ -109,12 +110,11 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           </span>
           <div className="flex gap-1 items-center -ml-2">
             <div>
-              <SecondaryButton
+              <IconButton
+                icon={<ChevronLeftIcon />}
                 name="Back to demonstrations"
                 onClick={() => (window.location.href = "/demonstrations")}
-              >
-                <ChevronLeftIcon width="28" height="20" />
-              </SecondaryButton>
+              />
             </div>
             <div>
               <div>

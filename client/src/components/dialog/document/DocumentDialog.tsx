@@ -294,7 +294,6 @@ const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
 };
 
 export type DocumentDialogProps = {
-  isOpen: boolean;
   onClose?: () => void;
   mode: DocumentDialogType;
   documentTypeSubset?: DocumentType[];
@@ -304,7 +303,6 @@ export type DocumentDialogProps = {
 };
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
-  isOpen,
   onClose = () => {},
   mode,
   documentTypeSubset,
@@ -398,7 +396,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   return (
     <BaseDialog
       title={dialogTitle}
-      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -460,7 +457,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
 type RefetchQueries = Array<string | PureQueryOptions>;
 
 interface AddDocumentDialogProps {
-  isOpen: boolean;
   onClose: () => void;
   applicationId: string;
   documentTypeSubset?: DocumentType[];
@@ -471,7 +467,6 @@ interface AddDocumentDialogProps {
 }
 
 export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
-  isOpen,
   onClose,
   applicationId,
   documentTypeSubset,
@@ -553,7 +548,6 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
   return (
     <DocumentDialog
-      isOpen={isOpen}
       onClose={onClose}
       mode="add"
       onSubmit={handleUpload}
@@ -565,11 +559,9 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 };
 
 export const EditDocumentDialog: React.FC<{
-  isOpen: boolean;
   onClose: () => void;
   initialDocument: DocumentDialogFields;
-  documentTypeSubset?: DocumentType[];
-}> = ({ isOpen, onClose, documentTypeSubset, initialDocument }) => {
+}> = ({ onClose, initialDocument }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
@@ -588,21 +580,18 @@ export const EditDocumentDialog: React.FC<{
 
   return (
     <DocumentDialog
-      isOpen={isOpen}
       mode="edit"
       initialDocument={initialDocument}
       onClose={onClose}
       onSubmit={handleEdit}
-      documentTypeSubset={documentTypeSubset}
     />
   );
 };
 
 export const RemoveDocumentDialog: React.FC<{
-  isOpen: boolean;
   documentIds: string[];
   onClose: () => void;
-}> = ({ isOpen, documentIds, onClose }) => {
+}> = ({ documentIds, onClose }) => {
   const { showWarning, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -635,7 +624,6 @@ export const RemoveDocumentDialog: React.FC<{
   return (
     <BaseDialog
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
-      isOpen={isOpen}
       onClose={onClose}
       actions={
         <>
