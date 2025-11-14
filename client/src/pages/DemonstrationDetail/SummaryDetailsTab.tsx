@@ -2,6 +2,7 @@ import React from "react";
 
 import { IconButton } from "components/button";
 import { EditIcon } from "components/icons";
+import { TabHeader } from "components/table/TabHeader";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { useDialog } from "components/dialog/DialogContext";
 
@@ -9,8 +10,7 @@ export const SummaryDetailsTab: React.FC<{ demonstrationId: string }> = ({ demon
   const { showEditDemonstrationDialog } = useDialog();
   return (
     <>
-      <div className="flex justify-between items-center mb-md border-b border-gray-200 pb-1">
-        <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
+      <TabHeader title="Summary Details">
         <IconButton
           icon={<EditIcon />}
           name="button-edit-details"
@@ -19,7 +19,7 @@ export const SummaryDetailsTab: React.FC<{ demonstrationId: string }> = ({ demon
         >
           Edit Details
         </IconButton>
-      </div>
+      </TabHeader>
 
       <SummaryDetailsTable demonstrationId={demonstrationId} />
     </>
