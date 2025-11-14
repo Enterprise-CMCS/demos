@@ -25,15 +25,9 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       currentPhaseName
       amendments {
         id
-        name
-        effectiveDate
-        status
       }
       extensions {
         id
-        name
-        effectiveDate
-        status
       }
       documents {
         id
@@ -62,8 +56,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 `;
 
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
-  amendments: Pick<Amendment, "id" | "name" | "effectiveDate" | "status">[];
-  extensions: Pick<Extension, "id" | "name" | "effectiveDate" | "status">[];
+  amendments: Pick<Amendment, "id">[];
+  extensions: Pick<Extension, "id">[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: { person: Pick<Person, "fullName"> };
   })[];
@@ -118,7 +112,6 @@ export const DemonstrationDetail: React.FC = () => {
             <Tab label={`Amendments (${demonstration.amendments?.length ?? 0})`} value="amendments">
               <AmendmentsTab
                 demonstrationId={demonstration.id}
-                amendments={demonstration.amendments || []}
                 initiallyExpandedId={amendmentParam ?? undefined}
               />
             </Tab>
@@ -126,7 +119,6 @@ export const DemonstrationDetail: React.FC = () => {
             <Tab label={`Extensions (${demonstration.extensions?.length ?? 0})`} value="extensions">
               <ExtensionsTab
                 demonstrationId={demonstration.id}
-                extensions={demonstration.extensions || []}
                 initiallyExpandedId={extensionParam ?? undefined}
               />
             </Tab>

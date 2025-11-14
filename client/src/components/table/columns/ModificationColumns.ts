@@ -1,11 +1,11 @@
-// components/table/columns/AmendmentColumns.ts
 import { ColumnDef } from "@tanstack/react-table";
-import { ModificationTableRow } from "../tables/ModificationTable";
+import { Amendment } from "../tables/AmendmentTable";
+import { Extension } from "../tables/ExtensionTable";
 
-// TODO: currently, this isnt really in use. We render the table directly in the component. We still
-// use the table for managing expansion, and i imagine we will use it for something later. For now,
-// removing the cell rendering.
-export const ModificationColumns: ColumnDef<ModificationTableRow>[] = [
+export const ModificationColumns: ColumnDef<Amendment | Extension>[] = [
+  {
+    accessorKey: "createdAt",
+  },
   {
     header: "Title",
     accessorKey: "name",
