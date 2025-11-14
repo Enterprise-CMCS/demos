@@ -1,6 +1,6 @@
 import React from "react";
 
-import { SecondaryButton } from "components/button";
+import { IconButton } from "components/button";
 import { EditIcon } from "components/icons";
 import { SummaryDetailsTable } from "components/table/tables/SummaryDetailsTable";
 import { useDialog } from "components/dialog/DialogContext";
@@ -11,14 +11,14 @@ export const SummaryDetailsTab: React.FC<{ demonstrationId: string }> = ({ demon
     <>
       <div className="flex justify-between items-center mb-md border-b border-gray-200 pb-1">
         <h2 className="text-brand font-bold text-md uppercase tracking-wide">Summary Details</h2>
-        <SecondaryButton
+        <IconButton
+          icon={<EditIcon />}
           name="button-edit-details"
           size="small"
           onClick={() => showEditDemonstrationDialog(demonstrationId)}
         >
           Edit Details
-          <EditIcon className="w-2 h-2" />
-        </SecondaryButton>
+        </IconButton>
       </div>
 
       <SummaryDetailsTable demonstrationId={demonstrationId} />

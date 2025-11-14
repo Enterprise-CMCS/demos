@@ -3,10 +3,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer } from "util/formatDate";
+import { formatDateForServer } from "util/formatDate";
 import { parseInputDate } from "util/parseDate";
-import { Notice, NoticeVariant } from "components/notice";
-import { addDays, differenceInCalendarDays } from "date-fns";
+import { addDays } from "date-fns";
 import { gql, useMutation } from "@apollo/client";
 import {
   ApplicationWorkflowDemonstration,
@@ -19,6 +18,7 @@ import { DocumentList } from "./sections";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { SetApplicationDateInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
+import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -75,6 +75,12 @@ export const getApplicationCompletenessFromDemonstration = (
   const fedCommentEndDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "Federal Comment Period End Date"
   );
+
+  const federalCommentPhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "Federal Comment"
+  );
+  const fedCommentComplete = federalCommentPhase?.phaseStatus === "Completed";
+
   const applicationIntakePhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Application Intake"
   );
@@ -97,6 +103,7 @@ export const getApplicationCompletenessFromDemonstration = (
       fedCommentEndDate={
         fedCommentEndDate?.dateValue ? formatDateForServer(fedCommentEndDate.dateValue) : ""
       }
+      fedCommentComplete={fedCommentComplete}
       stateDeemedCompleteDate={
         stateDeemedCompleteDate?.dateValue
           ? formatDateForServer(stateDeemedCompleteDate.dateValue)
@@ -112,6 +119,7 @@ export interface CompletenessPhaseProps {
   applicationId: string;
   fedCommentStartDate?: string;
   fedCommentEndDate?: string;
+  fedCommentComplete: boolean;
   stateDeemedCompleteDate?: string;
   applicationCompletenessDocument: ApplicationWorkflowDocument[];
   hasApplicationIntakeCompletionDate: boolean;
@@ -121,6 +129,7 @@ export const CompletenessPhase = ({
   applicationId,
   fedCommentStartDate,
   fedCommentEndDate,
+  fedCommentComplete,
   stateDeemedCompleteDate,
   applicationCompletenessDocument,
   hasApplicationIntakeCompletionDate,
@@ -358,54 +367,14 @@ export const CompletenessPhase = ({
     </div>
   );
 
-  const CompletenessNotice = () => {
-    const [isNoticeDismissed, setNoticeDismissed] = useState(false);
-
-    if (federalEndDate) {
-      const noticeDueDateValue = parseInputDate(federalEndDate);
-      if (!noticeDueDateValue) {
-        console.error("Error parsing federal end date for completeness notice:", federalEndDate);
-        showError("Error parsing federal end date for completeness notice.");
-      }
-
-      const noticeDaysValue = differenceInCalendarDays(noticeDueDateValue, new Date());
-
-      // determine notice title/description from days
-      const getNoticeTitle = () => {
-        const daysLeft = noticeDaysValue;
-        if (daysLeft < 0) {
-          const daysPastDue = Math.abs(daysLeft);
-          return `${daysPastDue} Day${daysPastDue === 1 ? "" : "s"} Past Due`;
-        }
-        return `${daysLeft} day${daysLeft === 1 ? "" : "s"} left in Federal Comment Period`;
-      };
-
-      const formattedNoticeDate = formatDate(noticeDueDateValue);
-      const noticeDescription = formattedNoticeDate
-        ? `This Amendment must be declared complete by ${formattedNoticeDate}`
-        : undefined;
-
-      // go from yellow to red at 1 day left.
-      const noticeVariant: NoticeVariant = noticeDaysValue <= 1 ? "error" : "warning";
-      const shouldRenderNotice = Boolean(!isNoticeDismissed);
-
-      if (shouldRenderNotice) {
-        return (
-          <Notice
-            variant={noticeVariant}
-            title={getNoticeTitle()}
-            description={noticeDescription}
-            onDismiss={() => setNoticeDismissed(true)}
-            className="mb-6"
-          />
-        );
-      }
-    }
-  };
-
   return (
     <div>
-      <CompletenessNotice />
+      {fedCommentEndDate && <DueDateNotice
+        dueDate={fedCommentEndDate}
+        phaseComplete={fedCommentComplete}
+        shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={false}
+        descriptionToAppendDateTo="his Amendment must be declared complete by"
+      />}
       <button
         className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
         onClick={() => setCollapsed((prev) => !prev)}
