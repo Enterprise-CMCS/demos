@@ -52,6 +52,7 @@ const buildComponent = (override: Partial<CompletenessPhaseProps> = {}) => {
         name: "Completed Completeness letter of Completeness",
         description: "YOLO FLIM-FLAM FOMO slabba-labba-ding-dong-do 🚀",
         documentType: "Application Completeness Letter",
+        owner: { person: { fullName: "John Doe" } },
         createdAt: new Date(END_FED_COMMENT_DATE),
       },
     ],

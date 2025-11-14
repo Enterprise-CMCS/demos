@@ -7,6 +7,7 @@ import type {
   ApplicationDate,
   PhaseStatus,
   Document,
+  Person,
 } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
