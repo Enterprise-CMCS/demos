@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
+import { DocumentType } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { AmendmentDialog } from "./AmendmentDialog";
 import { ExtensionDialog } from "./ExtensionDialog";
@@ -14,6 +15,7 @@ import { ApplicationIntakeUploadDialog } from "./document/ApplicationIntakeUploa
 import { CompletenessDocumentUploadDialog } from "./document/CompletenessDocumentUploadDialog";
 import { ConceptPreSubmissionUploadDialog } from "./document/ConceptPreSubmissionUploadDialog";
 import { FederalCommentUploadDialog } from "./document/FederalCommentUploadDialog";
+import { ApprovalPackageUploadDialog } from "./document/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 
 type DialogContextType = {
@@ -142,6 +144,16 @@ export const useDialog = () => {
     );
   };
 
+  const showApprovalPackageDocumentUploadDialog = (applicationId: string, documentType: DocumentType) => {
+    context.showDialog(
+      <ApprovalPackageUploadDialog
+        onClose={context.hideDialog}
+        applicationId={applicationId}
+        documentType={documentType}
+      />
+    );
+  };
+
   return {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
@@ -155,6 +167,7 @@ export const useDialog = () => {
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
     showFederalCommentDocumentUploadDialog,
+    showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
   };
 };

@@ -4,7 +4,6 @@ import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from 
 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
-  ApprovalPackagePhase,
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
   OgcOmbPhase,
@@ -12,6 +11,7 @@ import {
   SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
   getFederalCommentPhaseFromDemonstration,
+  getApprovalPackagePhase,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -91,7 +91,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
       );
     },
     "OGC & OMB Review": OgcOmbPhase,
-    "Approval Package": ApprovalPackagePhase,
+    "Approval Package": () => getApprovalPackagePhase(demonstration),
     "Post Approval": PostApprovalPhase,
   };
 

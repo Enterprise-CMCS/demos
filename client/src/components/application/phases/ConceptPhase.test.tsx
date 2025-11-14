@@ -45,6 +45,7 @@ describe("ConceptPhase", () => {
     name: "Pre-Submission Document 1",
     description: "Test pre-submission document",
     documentType: "Pre-Submission",
+    owner: { person: { fullName: "John Doe" } },
     createdAt: new Date("2024-01-15"),
   };
 
@@ -219,6 +220,7 @@ describe("ConceptPhase", () => {
             name: "Pre-Sub 1",
             description: "desc",
             documentType: "Pre-Submission",
+            owner: { person: { fullName: "John Doe" } },
             createdAt: new Date("2024-04-01"),
           },
           {
@@ -226,6 +228,7 @@ describe("ConceptPhase", () => {
             name: "General Doc",
             description: "ignore me",
             documentType: "General File",
+            owner: { person: { fullName: "John Doe" } },
             createdAt: new Date("2024-04-02"),
           },
         ],
