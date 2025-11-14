@@ -5,11 +5,11 @@ import { useToast } from "components/toast";
 import { Demonstration, UpdateDemonstrationInput } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { formatDateForServer } from "util/formatDate";
-import { parseInputDate } from "util/parseDate";
 
 import { gql, useMutation, useQuery } from "@apollo/client";
 
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
+import { parseISO } from "date-fns";
 
 const SUCCESS_MESSAGE = "Your demonstration has been updated.";
 const ERROR_MESSAGE = "Your demonstration was not updated because of an unknown problem.";
@@ -79,13 +79,13 @@ const getUpdateDemonstrationInput = (
   }
 
   if (demonstration.effectiveDate && demonstration.effectiveDate.trim() !== "") {
-    input.effectiveDate = parseInputDate(demonstration.effectiveDate);
+    input.effectiveDate = parseISO(demonstration.effectiveDate);
   } else {
     input.effectiveDate = null;
   }
 
   if (demonstration.expirationDate && demonstration.expirationDate.trim() !== "") {
-    input.expirationDate = parseInputDate(demonstration.expirationDate);
+    input.expirationDate = parseISO(demonstration.expirationDate);
   } else {
     input.expirationDate = null;
   }

@@ -1,18 +1,16 @@
-
 import React, { useState } from "react";
 
 import { Notice, NoticeVariant } from "components/notice";
 import { useToast } from "components/toast";
-import { differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 import { formatDate } from "util/formatDate";
-import { parseInputDate } from "util/parseDate";
 
 export const DueDateNotice = ({
   dueDate,
   phaseComplete,
   shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete,
   descriptionToAppendDateTo,
-} : {
+}: {
   dueDate: string;
   phaseComplete: boolean;
   shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete: boolean;
@@ -24,7 +22,7 @@ export const DueDateNotice = ({
   );
 
   if (dueDate) {
-    const noticeDueDateValue = parseInputDate(dueDate);
+    const noticeDueDateValue = parseISO(dueDate);
     if (!noticeDueDateValue) {
       console.error("Error parsing federal end date for completeness notice:", dueDate);
       showError("Error parsing federal end date for completeness notice.");
