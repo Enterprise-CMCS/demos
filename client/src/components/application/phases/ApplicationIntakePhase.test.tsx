@@ -31,6 +31,13 @@ vi.mock("@apollo/client", async () => {
   };
 });
 
+const showApplicationIntakeDocumentUploadDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showApplicationIntakeDocumentUploadDialog,
+  }),
+}));
+
 describe("ApplicationIntakePhase", () => {
   const defaultProps: ApplicationIntakeProps = {
     demonstrationId: "test-demo-id",
@@ -191,7 +198,10 @@ describe("ApplicationIntakePhase", () => {
       const uploadButton = screen.getByRole("button", { name: /upload/i });
       await userEvent.click(uploadButton);
 
-      expect(screen.getByText("Add State Application")).toBeInTheDocument();
+      expect(showApplicationIntakeDocumentUploadDialog).toHaveBeenCalledWith(
+        "test-demo-id",
+        expect.any(Function)
+      );
     });
   });
 

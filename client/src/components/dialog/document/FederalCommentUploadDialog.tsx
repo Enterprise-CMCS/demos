@@ -8,17 +8,13 @@ const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["General File"];
 const REFETCH_QUERIES = ["GetConceptDocuments", "GetDemonstrationDocuments"];
 
 type Props = {
-  isOpen: boolean;
   onClose: () => void;
   applicationId: string;
-  refetchQueries?: string[];
 };
 
-export const FederalCommentUploadDialog: React.FC<Props> = ({ isOpen, onClose, applicationId }) => {
+export const FederalCommentUploadDialog: React.FC<Props> = ({ onClose, applicationId }) => {
   return (
     <AddDocumentDialog
-      key={isOpen ? "open" : "closed"}
-      isOpen={isOpen}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       applicationId={applicationId}

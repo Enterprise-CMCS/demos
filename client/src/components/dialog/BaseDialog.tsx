@@ -6,7 +6,6 @@ import { tw } from "tags/tw";
 
 interface BaseDialogProps {
   title: string;
-  isOpen?: boolean;
   onClose: () => void;
   children: React.ReactNode;
   actions?: React.ReactNode;
@@ -24,7 +23,6 @@ const CONFIRMATION_DIALOG = tw`bg-surface-white border border-border-rules round
 
 export const BaseDialog: React.FC<BaseDialogProps> = ({
   title,
-  isOpen,
   onClose,
   children,
   actions,
@@ -36,29 +34,10 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
 
-  if (typeof isOpen === "undefined") {
-    // if isOpen is not provided, always show the dialog
-    useEffect(() => {
-      dialogRef.current?.showModal();
-      return () => dialogRef.current?.close();
-    }, []);
-  } else {
-    // if isOpen is provided, show/hide the dialog based on its value
-    useEffect(() => {
-      const dialog = dialogRef.current;
-      if (!dialog) return;
-
-      if (isOpen) {
-        if (!dialog.open) {
-          dialog.showModal();
-        }
-      } else {
-        if (dialog.open) {
-          dialog.close();
-        }
-      }
-    }, [isOpen]);
-  }
+  useEffect(() => {
+    dialogRef.current?.showModal();
+    return () => dialogRef.current?.close();
+  }, []);
 
   useEffect(() => {
     const confirmDialog = confirmDialogRef.current;

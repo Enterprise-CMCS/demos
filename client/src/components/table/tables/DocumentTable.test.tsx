@@ -1,6 +1,5 @@
 import React from "react";
 
-import { ToastProvider } from "components/toast";
 import { ALL_MOCKS } from "mock-data/index";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -11,13 +10,22 @@ import userEvent from "@testing-library/user-event";
 import { DocumentTable } from "./DocumentTable";
 import { mockDocuments } from "mock-data/documentMocks";
 
+const showUploadDocumentDialog = vi.fn();
+const showEditDocumentDialog = vi.fn();
+const showRemoveDocumentDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showUploadDocumentDialog,
+    showEditDocumentDialog,
+    showRemoveDocumentDialog,
+  }),
+}));
+
 describe("DocumentTable", () => {
   beforeEach(() => {
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
-        <ToastProvider>
-          <DocumentTable applicationId="test-application-id" documents={mockDocuments} />
-        </ToastProvider>
+        <DocumentTable applicationId="test-application-id" documents={mockDocuments} />
       </MockedProvider>
     );
   });
@@ -36,7 +44,7 @@ describe("DocumentTable", () => {
     });
     const user = userEvent.setup();
     await user.click(screen.getByLabelText(/Add Document/i));
-    expect(screen.getByText(/Add New Document/i)).toBeInTheDocument();
+    expect(showUploadDocumentDialog).toHaveBeenCalled();
   });
 
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {
@@ -64,7 +72,7 @@ describe("DocumentTable", () => {
     const editBtn = screen.getByLabelText(/Edit Document/i);
     await user.click(editBtn);
     // Modal should open, assuming it renders 'edit document' text
-    expect(screen.getByText(/edit document/i)).toBeInTheDocument();
+    expect(showEditDocumentDialog).toHaveBeenCalled();
   });
 
   it("renders the filter dropdown initially", async () => {

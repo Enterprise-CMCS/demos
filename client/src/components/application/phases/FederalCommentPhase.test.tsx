@@ -9,6 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { FederalCommentPhase } from "./FederalCommentPhase";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { addDays } from "date-fns";
+import { formatDate } from "util/formatDate";
 
 // Mock icons to avoid SVG rendering complexity
 vi.mock("components/icons", async (importOriginal) => {
@@ -20,15 +21,16 @@ vi.mock("components/icons", async (importOriginal) => {
   };
 });
 
-// Mock dialog to test open/close
-vi.mock("components/dialog/document/FederalCommentUploadDialog", () => ({
-  FederalCommentUploadDialog: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen ? <div>Federal Comment Upload Dialog</div> : null,
+const showFederalCommentDocumentUploadDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showFederalCommentDocumentUploadDialog,
+  }),
 }));
 
 describe("FederalCommentPhase", () => {
-  const defaultStart = new Date("2025-01-01");
-  const defaultEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days ahead
+  const defaultStart = "2025-01-01";
+  const defaultEnd = formatDate(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)); // 3 days ahead
 
   const mockDoc: DocumentTableDocument = {
     id: "doc-1",
@@ -46,6 +48,7 @@ describe("FederalCommentPhase", () => {
           demonstrationId="demo-123"
           phaseStartDate={defaultStart}
           phaseEndDate={defaultEnd}
+          phaseComplete={false}
           documents={[]}
           {...props}
         />
@@ -60,18 +63,11 @@ describe("FederalCommentPhase", () => {
       expect(screen.getByText(/The Federal Comment Period ends on/i)).toBeInTheDocument();
     });
 
-    it("dismisses warning when close button clicked", async () => {
-      setup();
-      const button = screen.getByTestId("button-dismiss-warning");
-      await userEvent.click(button);
-      expect(screen.queryByText(/days left/i, { exact: false })).not.toBeInTheDocument();
-    });
-
     it("uses correct singular/plural for day left", () => {
-      const oneDayEnd = addDays(new Date(), 1);
+      const oneDayEnd = formatDate(addDays(new Date(), 1));
 
       setup({ phaseEndDate: oneDayEnd });
-      expect(screen.getByText("1 day left")).toBeInTheDocument();
+      expect(screen.getByText(/1 day left/i)).toBeInTheDocument();
     });
   });
 
@@ -111,7 +107,7 @@ describe("FederalCommentPhase", () => {
       setup();
       const uploadButton = screen.getByRole("button", { name: /upload/i });
       await userEvent.click(uploadButton);
-      expect(screen.getByText("Federal Comment Upload Dialog")).toBeInTheDocument();
+      expect(showFederalCommentDocumentUploadDialog).toHaveBeenCalledWith("demo-123");
     });
   });
 

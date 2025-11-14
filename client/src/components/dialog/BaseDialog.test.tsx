@@ -8,7 +8,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 describe("BaseDialog", () => {
   const defaultProps = {
     title: "Test Dialog",
-    isOpen: true,
     onClose: vi.fn(),
     children: <div>Dialog content</div>,
   };
@@ -21,13 +20,6 @@ describe("BaseDialog", () => {
     render(<BaseDialog {...defaultProps} />);
     expect(screen.getByText("Test Dialog")).toBeInTheDocument();
     expect(screen.getByText("Dialog content")).toBeInTheDocument();
-  });
-
-  it("does not render when closed", () => {
-    render(<BaseDialog {...defaultProps} isOpen={false} />);
-    const dialog = document.querySelector("dialog");
-    expect(dialog).toBeInTheDocument();
-    expect(dialog?.open).toBe(false);
   });
 
   it("renders and triggers the close button", () => {
@@ -158,17 +150,6 @@ describe("BaseDialog", () => {
     document.dispatchEvent(escapeEvent);
     expect(preventDefaultSpy).toHaveBeenCalled();
     expect(stopPropagationSpy).toHaveBeenCalled();
-  });
-
-  it("shows dialog automatically when isOpen is undefined", () => {
-    const propsWithoutIsOpen = {
-      title: "Test Dialog",
-      onClose: vi.fn(),
-      children: <div>Dialog content</div>,
-    };
-    render(<BaseDialog {...propsWithoutIsOpen} />);
-    const dialog = document.querySelector("dialog");
-    expect(dialog?.open).toBe(true);
   });
 
   it("does not call setShowCancelConfirm when clicking inside confirmation dialog content", () => {

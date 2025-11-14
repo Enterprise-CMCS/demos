@@ -8,6 +8,10 @@ import { render, screen } from "@testing-library/react";
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({}),
+}));
+
 describe("PhaseSelector", () => {
   it("renders all phase names", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
