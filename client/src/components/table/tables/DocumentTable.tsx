@@ -2,19 +2,14 @@
 import * as React from "react";
 
 import { CircleButton } from "components/button/CircleButton";
-import {
-  AddDocumentDialog,
-  EditDocumentDialog,
-  RemoveDocumentDialog,
-} from "components/dialog/document/DocumentDialog";
 import { DeleteIcon, EditIcon, ImportIcon } from "components/icons";
-
 import { ColumnFilter } from "../ColumnFilter";
 import { DocumentColumns } from "../columns/DocumentColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { Document, Person } from "demos-server";
+import { useDialog } from "components/dialog/DialogContext";
 
 export type DocumentTableDocument = Pick<
   Document,
@@ -23,95 +18,14 @@ export type DocumentTableDocument = Pick<
   owner: { person: Pick<Person, "fullName"> };
 };
 
-type DisplayedModal = null | "add" | "edit" | "remove";
-
-interface DocumentModalsProps {
-  applicationId: string;
-  displayedModal: DisplayedModal;
-  onClose: () => void;
-  selectedDocs: DocumentTableDocument[];
-}
-
-function DocumentModals({
-  applicationId,
-  displayedModal,
-  onClose,
-  selectedDocs,
-}: DocumentModalsProps) {
-  if (displayedModal === "add") {
-    return <AddDocumentDialog applicationId={applicationId} isOpen={true} onClose={onClose} />;
-  }
-  if (displayedModal === "edit" && selectedDocs.length === 1) {
-    const selectedDoc = selectedDocs[0];
-
-    if (!selectedDoc) return null;
-
-    return (
-      <EditDocumentDialog
-        isOpen={true}
-        onClose={onClose}
-        initialDocument={{
-          id: selectedDoc.id,
-          name: selectedDoc.name,
-          description: selectedDoc.description,
-          documentType: selectedDoc.documentType,
-          file: null,
-        }}
-      />
-    );
-  }
-  if (displayedModal === "remove" && selectedDocs.length > 0) {
-    const selectedIds = selectedDocs.map((doc) => doc.id);
-    return <RemoveDocumentDialog isOpen={true} documentIds={selectedIds} onClose={onClose} />;
-  }
-  return null;
-}
-
-interface DocumentActionButtonsProps {
-  onShowModal: (modal: DisplayedModal) => void;
-  editDisabled: boolean;
-  removeDisabled: boolean;
-}
-
-function DocumentActionButtons({
-  onShowModal,
-  editDisabled,
-  removeDisabled,
-}: DocumentActionButtonsProps) {
-  return (
-    <div className="flex gap-2 ml-4">
-      <CircleButton name="add-document" ariaLabel="Add Document" onClick={() => onShowModal("add")}>
-        <ImportIcon />
-      </CircleButton>
-      <CircleButton
-        name="edit-document"
-        ariaLabel="Edit Document"
-        onClick={() => !editDisabled && onShowModal("edit")}
-        disabled={editDisabled}
-      >
-        <EditIcon />
-      </CircleButton>
-      <CircleButton
-        name="remove-document"
-        ariaLabel="Remove Document"
-        onClick={() => !removeDisabled && onShowModal("remove")}
-        disabled={removeDisabled}
-      >
-        <DeleteIcon />
-      </CircleButton>
-    </div>
-  );
-}
-
 export type DocumentsTableProps = {
   applicationId: string;
   documents: DocumentTableDocument[];
 };
 export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, documents }) => {
-  const [displayedModal, setDisplayedModal] = React.useState<DisplayedModal>(null);
-
   const documentColumns = DocumentColumns();
-
+  const { showUploadDocumentDialog, showEditDocumentDialog, showRemoveDocumentDialog } =
+    useDialog();
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
   };
@@ -128,23 +42,47 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
           emptyRowsMessage="No documents available."
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           initialState={initialState}
-          actionButtons={(table) => (
-            <DocumentActionButtons
-              onShowModal={setDisplayedModal}
-              editDisabled={table.getSelectedRowModel().rows.length !== 1}
-              removeDisabled={table.getSelectedRowModel().rows.length < 1}
-            />
-          )}
-          actionModals={(table) => {
+          actionButtons={(table) => {
             const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
-
+            const editDisabled = selectedDocs.length !== 1;
+            const removeDisabled = selectedDocs.length < 1;
             return (
-              <DocumentModals
-                applicationId={applicationId}
-                displayedModal={displayedModal}
-                onClose={() => setDisplayedModal(null)}
-                selectedDocs={selectedDocs}
-              />
+              <div className="flex gap-1 ml-4">
+                <CircleButton
+                  name="add-document"
+                  ariaLabel="Add Document"
+                  onClick={() => showUploadDocumentDialog(applicationId)}
+                >
+                  <ImportIcon />
+                </CircleButton>
+                <CircleButton
+                  name="edit-document"
+                  ariaLabel="Edit Document"
+                  onClick={() =>
+                    !editDisabled &&
+                    showEditDocumentDialog({
+                      id: selectedDocs[0].id,
+                      name: selectedDocs[0].name,
+                      description: selectedDocs[0].description,
+                      documentType: selectedDocs[0].documentType,
+                      file: null,
+                    })
+                  }
+                  disabled={editDisabled}
+                >
+                  <EditIcon />
+                </CircleButton>
+                <CircleButton
+                  name="remove-document"
+                  ariaLabel="Remove Document"
+                  onClick={() =>
+                    !removeDisabled && showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))
+                  }
+                  disabled={removeDisabled}
+                >
+                  <DeleteIcon />
+                </CircleButton>
+              </div>
             );
           }}
         />

@@ -1,5 +1,4 @@
 import { useAuth } from "react-oidc-context";
-import { logoutRedirect } from "router/cognitoConfig";
 
 export function useAuthActions() {
   const auth = useAuth();
@@ -8,12 +7,16 @@ export function useAuthActions() {
 
   const signOut = async () => {
     try {
-      await auth.signoutSilent();
-      await auth.removeUser();
+      await auth.signoutRedirect({
+        extraQueryParams: {
+          // Cognito expects logout_uri, not post_logout_redirect_uri
+          logout_uri: `${window.location.origin}/`,
+          client_id: import.meta.env.VITE_COGNITO_CLIENT_ID!,
+        },
+      });
     } catch (error) {
       console.warn("[Logout] logout failed", error);
     }
-    logoutRedirect();
   };
 
   return {

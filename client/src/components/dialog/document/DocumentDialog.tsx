@@ -7,12 +7,18 @@ import { TextInput } from "components/input";
 import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useToast } from "components/toast";
-import { Document, DocumentType, UpdateDocumentInput, UploadDocumentInput } from "demos-server";
+import {
+  Document,
+  DocumentType,
+  PhaseName,
+  UpdateDocumentInput,
+  UploadDocumentInput,
+} from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
 
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, PureQueryOptions } from "@apollo/client";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 export const DELETE_DOCUMENTS_QUERY = gql`
@@ -288,7 +294,6 @@ const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
 };
 
 export type DocumentDialogProps = {
-  isOpen: boolean;
   onClose?: () => void;
   mode: DocumentDialogType;
   documentTypeSubset?: DocumentType[];
@@ -298,7 +303,6 @@ export type DocumentDialogProps = {
 };
 
 const DocumentDialog: React.FC<DocumentDialogProps> = ({
-  isOpen,
   onClose = () => {},
   mode,
   documentTypeSubset,
@@ -392,7 +396,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   return (
     <BaseDialog
       title={dialogTitle}
-      isOpen={isOpen}
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
@@ -436,7 +439,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
       />
 
       <DescriptionInput
-        value={activeDocument.description}
+        value={activeDocument.description ?? ""}
         onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
       />
 
@@ -451,23 +454,25 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   );
 };
 
+type RefetchQueries = Array<string | PureQueryOptions>;
+
 interface AddDocumentDialogProps {
-  isOpen: boolean;
   onClose: () => void;
   applicationId: string;
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
-  refetchQueries?: string[];
+  refetchQueries?: RefetchQueries;
+  phaseName?: PhaseName;
   onDocumentUploadSucceeded?: () => void;
 }
 
 export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
-  isOpen,
   onClose,
   applicationId,
   documentTypeSubset,
   titleOverride,
   refetchQueries,
+  phaseName = "None",
   onDocumentUploadSucceeded,
 }) => {
   const { showError } = useToast();
@@ -501,7 +506,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
-      phaseName: "None",
+      phaseName,
     };
 
     const uploadDocumentResponse = await uploadDocumentTrigger({
@@ -512,7 +517,20 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error(uploadDocumentResponse.errors[0].message);
     }
 
-    const presignedURL = uploadDocumentResponse.data?.uploadDocument.presignedURL ?? null;
+    const uploadResult = uploadDocumentResponse.data?.uploadDocument;
+
+    if (!uploadResult) {
+      throw new Error("Upload response from the server was empty");
+    }
+
+    // If server/.env LOCAL_SIMPLE_UPLOAD="true" we just write to Documents table without S3 upload
+    if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
+      console.log("Local host document - (basically this isn't an actual doc.");
+      onDocumentUploadSucceeded?.();
+      return;
+    }
+
+    const presignedURL = uploadResult.presignedURL ?? null;
 
     if (!presignedURL) {
       throw new Error("Could not get presigned URL from the server");
@@ -530,7 +548,6 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
   return (
     <DocumentDialog
-      isOpen={isOpen}
       onClose={onClose}
       mode="add"
       onSubmit={handleUpload}
@@ -542,11 +559,9 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 };
 
 export const EditDocumentDialog: React.FC<{
-  isOpen: boolean;
   onClose: () => void;
   initialDocument: DocumentDialogFields;
-  documentTypeSubset?: DocumentType[];
-}> = ({ isOpen, onClose, documentTypeSubset, initialDocument }) => {
+}> = ({ onClose, initialDocument }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
@@ -565,21 +580,18 @@ export const EditDocumentDialog: React.FC<{
 
   return (
     <DocumentDialog
-      isOpen={isOpen}
       mode="edit"
       initialDocument={initialDocument}
       onClose={onClose}
       onSubmit={handleEdit}
-      documentTypeSubset={documentTypeSubset}
     />
   );
 };
 
 export const RemoveDocumentDialog: React.FC<{
-  isOpen: boolean;
   documentIds: string[];
   onClose: () => void;
-}> = ({ isOpen, documentIds, onClose }) => {
+}> = ({ documentIds, onClose }) => {
   const { showWarning, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -612,7 +624,6 @@ export const RemoveDocumentDialog: React.FC<{
   return (
     <BaseDialog
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
-      isOpen={isOpen}
       onClose={onClose}
       actions={
         <>

@@ -376,7 +376,7 @@ describe.sequential("Table Component Interactions", () => {
       const user = userEvent.setup();
 
       // Click on Name column header to sort
-      const nameHeader = screen.getByRole("columnheader", { name: "Name" });
+      const nameHeader = screen.getByRole("columnheader", { name: "Name Sort" });
       await user.click(nameHeader);
 
       // Apply keyword search that returns multiple results

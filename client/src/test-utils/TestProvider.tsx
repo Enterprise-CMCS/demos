@@ -3,11 +3,13 @@ import React, { ReactNode } from "react";
 import { ToastProvider } from "components/toast/ToastContext";
 
 import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
+import { MemoryRouter, MemoryRouterProps } from "react-router-dom";
 
 interface TestProviderProps {
   children: ReactNode;
   mocks?: MockedProviderProps["mocks"];
   addTypename?: boolean;
+  routerEntries?: MemoryRouterProps["initialEntries"];
 }
 
 /**
@@ -32,12 +34,15 @@ export const TestProvider: React.FC<TestProviderProps> = ({
   children,
   mocks = [],
   addTypename = false,
+  routerEntries = ["/"],
 }) => {
   return (
-    <ToastProvider>
-      <MockedProvider mocks={mocks} addTypename={addTypename}>
-        {children}
-      </MockedProvider>
-    </ToastProvider>
+    <MemoryRouter initialEntries={routerEntries}>
+      <ToastProvider>
+        <MockedProvider mocks={mocks} addTypename={addTypename}>
+          {children}
+        </MockedProvider>
+      </ToastProvider>
+    </MemoryRouter>
   );
 };

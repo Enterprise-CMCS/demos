@@ -1,10 +1,6 @@
-/* eslint-disable no-nonstandard-date-formatting/no-nonstandard-date-formatting */
 import { TZDate } from "@date-fns/tz";
 import { UTCDate } from "@date-fns/utc";
 import { format } from "date-fns";
-import { ApplicationDate as ServerApplicationDate, DateType } from "demos-server";
-
-export type ApplicationDate = Omit<ServerApplicationDate, "createdAt" | "updatedAt">;
 
 /**
  * Application Dates Library
@@ -43,6 +39,10 @@ export const getIsoDateString = (date: Date): IsoDateString => {
   return format(date, "yyyy-MM-dd") as IsoDateString;
 };
 
+export const getNowEst = (): DateEST => {
+  return new TZDate(new Date(), EST_TIMEZONE) as DateEST;
+};
+
 export const getStartOfDayEST = (year: number, month: number, day: number): StartOfDayEST => {
   return new TZDate(year, month, day, 0, 0, 0, 0, EST_TIMEZONE) as StartOfDayEST;
 };
@@ -59,47 +59,4 @@ export const getEndOfDayEST = (year: number, month: number, day: number): EndOfD
 export const getEndOfDateEST = (dateString: IsoDateString): EndOfDayEST => {
   const [yearStr, monthStr, dayStr] = dateString.split("-");
   return getEndOfDayEST(parseInt(yearStr, 10), parseInt(monthStr, 10), parseInt(dayStr, 10));
-};
-
-/**
- * Get a specific date value from a list of application dates
- */
-export const getDateFromApplicationDates = (
-  applicationDates: ApplicationDate[],
-  dateType: DateType
-): Date | null => {
-  const dateEntry = applicationDates.find((d) => d.dateType === dateType);
-  return dateEntry ? dateEntry.dateValue : null;
-};
-
-/**
- * Update a specific date value in a list of application dates
- * Returns a new array with the updated date
- */
-export const setDateInApplicationDates = (
-  applicationDates: ApplicationDate[],
-  dateType: DateType,
-  dateValue: Date
-): ApplicationDate[] => {
-  const existingDate = applicationDates.find((d) => d.dateType === dateType);
-
-  if (existingDate) {
-    // Update existing date
-    return applicationDates.map((date) => {
-      if (date.dateType === dateType) {
-        return { ...date, dateValue };
-      }
-      return date;
-    });
-  } else {
-    // Add new date
-    return [...applicationDates, { dateType, dateValue }];
-  }
-};
-
-/**
- * Check if a specific date exists in application dates
- */
-export const hasDate = (applicationDates: ApplicationDate[], dateType: DateType): boolean => {
-  return applicationDates.some((d) => d.dateType === dateType);
 };

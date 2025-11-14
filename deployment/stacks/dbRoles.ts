@@ -93,13 +93,14 @@ export class DBRoleStack extends Stack {
       securityGroup: dbRoleManagementSecurityGroup.securityGroup,
       asCode: false,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["pg"],
+      nodeModules: ["pg", "pino"],
       timeout: Duration.minutes(2),
       environment: {
         DATABASE_SECRET_ARN: `demos-${props.hostEnvironment}-rds-admin`, // pragma: allowlist secret
         STAGE: props.hostEnvironment,
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
+      depsLockFilePath: "../lambdas/dbRoleManagement/package-lock.json",
     });
 
     roleManagmentLambda.role.addToPolicy(

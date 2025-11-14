@@ -22,7 +22,6 @@ const DEFAULT_DEMONSTRATION = {
 };
 
 const DEFAULT_PROPS = {
-  isOpen: true,
   onClose: vi.fn(),
   onSubmit: vi.fn(),
   initialDemonstration: DEFAULT_DEMONSTRATION,
@@ -207,7 +206,7 @@ describe("EditDemonstrationDialog", () => {
           UPDATE_DEMONSTRATION_MOCK,
         ]}
       >
-        <EditDemonstrationDialog isOpen={true} onClose={vi.fn()} demonstrationId="1" />
+        <EditDemonstrationDialog onClose={vi.fn()} demonstrationId="1" />
       </TestProvider>
     );
 

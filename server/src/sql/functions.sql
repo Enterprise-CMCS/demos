@@ -1,16 +1,13 @@
 DO $$
 DECLARE
-    trigger_proc_record RECORD;
-    orphan_proc_record RECORD;
+    trigger_record RECORD;
+    proc_record RECORD;
 BEGIN
-    FOR trigger_proc_record IN
+    -- Delete all the triggers relating to functions and procedures first
+    FOR trigger_record IN
         SELECT
             c.relname AS table_name,
-            t.tgname AS trigger_name,
-            p.proname AS function_name,
-            p.oid AS function_oid,
-            pg_get_function_identity_arguments(p.oid) AS function_args,
-            p.prokind
+            t.tgname AS trigger_name
         FROM
             pg_trigger AS t
         INNER JOIN
@@ -29,38 +26,17 @@ BEGIN
     LOOP
         EXECUTE format(
             'DROP TRIGGER %I ON demos_app.%I;',
-            trigger_proc_record.trigger_name,
-            trigger_proc_record.table_name
+            trigger_record.trigger_name,
+            trigger_record.table_name
         );
         RAISE NOTICE
             'Dropped trigger % on demos_app.%',
-            trigger_proc_record.trigger_name,
-            trigger_proc_record.table_name;
-
-        IF trigger_proc_record.prokind = 'p' THEN
-            EXECUTE format(
-                'DROP PROCEDURE demos_app.%I(%s);',
-                trigger_proc_record.function_name,
-                trigger_proc_record.function_args
-            );
-            RAISE NOTICE
-                'Dropped procedure demos_app.%(%)',
-                trigger_proc_record.function_name,
-                trigger_proc_record.function_args;
-        ELSE
-            EXECUTE format(
-                'DROP FUNCTION demos_app.%I(%s);',
-                trigger_proc_record.function_name,
-                trigger_proc_record.function_args
-            );
-            RAISE NOTICE
-                'Dropped function demos_app.%(%)',
-                trigger_proc_record.function_name,
-                trigger_proc_record.function_args;
-        END IF;
+            trigger_record.trigger_name,
+            trigger_record.table_name;
     END LOOP;
 
-    FOR orphan_proc_record IN
+    -- Then, delete all the functions and procedures themselves
+    FOR proc_record IN
         SELECT
             p.proname AS function_name,
             pg_get_function_identity_arguments(p.oid) AS function_args,
@@ -74,26 +50,26 @@ BEGIN
             n.nspname = 'demos_app'
             AND p.proname NOT LIKE 'log_changes_%'
     LOOP
-        IF orphan_proc_record.prokind = 'p' THEN
+        IF proc_record.prokind = 'p' THEN
             EXECUTE format(
                 'DROP PROCEDURE demos_app.%I(%s);',
-                orphan_proc_record.function_name,
-                orphan_proc_record.function_args
+                proc_record.function_name,
+                proc_record.function_args
             );
             RAISE NOTICE
                 'Dropped procedure demos_app.%(%)',
-                orphan_proc_record.function_name,
-                orphan_proc_record.function_args;
+                proc_record.function_name,
+                proc_record.function_args;
         ELSE
             EXECUTE format(
                 'DROP FUNCTION demos_app.%I(%s);',
-                orphan_proc_record.function_name,
-                orphan_proc_record.function_args
+                proc_record.function_name,
+                proc_record.function_args
             );
             RAISE NOTICE
                 'Dropped function demos_app.%(%)',
-                orphan_proc_record.function_name,
-                orphan_proc_record.function_args;
+                proc_record.function_name,
+                proc_record.function_args;
         END IF;
     END LOOP;
 END
@@ -101,21 +77,23 @@ $$;
 
 -- assign_cms_user_to_all_states
 CREATE FUNCTION demos_app.assign_cms_user_to_all_states()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
     -- Check if the inserted person is a demos-cms-user or a demos-admin
     IF NEW.person_type_id IN ('demos-admin', 'demos-cms-user') THEN
         -- Insert a record into person_state for each state
         INSERT INTO demos_app.person_state (person_id, state_id)
-        SELECT 
+        SELECT
             NEW.id,
             s.id
         FROM demos_app.state AS s;
     END IF;
-    
+
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER trigger_assign_cms_user_to_states
 AFTER INSERT ON demos_app.person
@@ -124,70 +102,75 @@ EXECUTE FUNCTION demos_app.assign_cms_user_to_all_states();
 
 -- check_demonstration_primary_project_officer
 CREATE FUNCTION demos_app.check_demonstration_primary_project_officer()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
     -- Check if there's a primary project officer for this demonstration
     IF NOT EXISTS (
-        SELECT 1 
+        SELECT 1
         FROM demos_app.primary_demonstration_role_assignment AS pdra
-        WHERE pdra.demonstration_id = NEW.id 
+        WHERE pdra.demonstration_id = NEW.id
         AND pdra.role_id = 'Project Officer'
     ) THEN
         RAISE EXCEPTION 'Demonstration % must have a primary project officer assigned', NEW.id;
     END IF;
-    
+
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE CONSTRAINT TRIGGER check_demonstration_primary_project_officer_trigger
 AFTER INSERT OR UPDATE ON demos_app.demonstration
 DEFERRABLE INITIALLY DEFERRED
-FOR EACH ROW 
+FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_primary_project_officer();
 
 -- check_demonstration_retains_primary_project_officer
 CREATE FUNCTION demos_app.check_demonstration_retains_primary_project_officer()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    -- Only check on DELETE or UPDATE that changes the role away from Project Officer
-    IF TG_OP = 'DELETE' OR (TG_OP = 'UPDATE' AND OLD.role_id != NEW.role_id) THEN
-        -- First check if the demonstration still exists (skip constraint if demonstration is being deleted)
-        IF NOT EXISTS (
-            SELECT 1 
-            FROM demos_app.demonstration 
-            WHERE id = OLD.demonstration_id
+    IF (TG_OP = 'DELETE' AND OLD.role_id = 'Project Officer') THEN
+        IF EXISTS (
+            SELECT 1
+            FROM
+                demos_app.demonstration
+            WHERE
+                id = OLD.demonstration_id
         ) THEN
-            -- Demonstration is being deleted, so we don't need to enforce the constraint
-            RETURN COALESCE(NEW, OLD);
-        END IF;
-
-        -- Check if this was the last primary project officer for the demonstration
-        IF NOT EXISTS (
-            SELECT 1 
-            FROM demos_app.primary_demonstration_role_assignment AS pdra
-            WHERE pdra.demonstration_id = OLD.demonstration_id
-            AND pdra.role_id = 'Project Officer'
-            AND (TG_OP = 'DELETE' OR pdra.role_id != OLD.role_id)
-        ) THEN
-            RAISE EXCEPTION 'Cannot remove the last primary project officer from demonstration %', 
-                OLD.demonstration_id;
+            RAISE EXCEPTION 'Cannot remove the primary project officer from demonstration %', OLD.demonstration_id;
         END IF;
     END IF;
-    
+
+    IF (TG_OP = 'UPDATE' AND OLD.role_id = 'Project Officer' AND NEW.role_id != 'Project Officer') THEN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM
+                demos_app.primary_demonstration_role_assignment AS prda
+            WHERE
+                demonstration_id = OLD.demonstration_id
+                AND role_id = 'Project Officer'
+        ) THEN
+            RAISE EXCEPTION 'Cannot remove the primary project officer from demonstration %', OLD.demonstration_id;
+        END IF;
+    END IF;
     RETURN COALESCE(NEW, OLD);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE CONSTRAINT TRIGGER check_demonstration_retains_primary_project_officer_trigger
 AFTER DELETE OR UPDATE ON demos_app.primary_demonstration_role_assignment
 DEFERRABLE INITIALLY DEFERRED
-FOR EACH ROW 
+FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_retains_primary_project_officer();
 
 -- create_phases_and_dates_for_new_application
 CREATE FUNCTION demos_app.create_phases_and_dates_for_new_application()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 DECLARE
     v_phase_id TEXT;
     v_phase_num INT;
@@ -236,7 +219,7 @@ BEGIN
     );
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER create_phases_and_dates_for_new_application_trigger
 AFTER INSERT ON demos_app.application
@@ -292,3 +275,60 @@ BEGIN
         RAISE EXCEPTION 'Failed to move document from processing to clean. Details: %', SQLERRM;
 END;
 $$;
+
+-- check_that_main_record_deleted_from_application
+CREATE FUNCTION demos_app.check_that_main_record_deleted_from_application()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM demos_app.application WHERE id = OLD.id) THEN
+        RAISE EXCEPTION 'Cannot delete from demos_app.% table while the corresponding record is in demos_app.application', TG_TABLE_NAME;
+    END IF;
+    RETURN OLD;
+END;
+$$;
+
+CREATE TRIGGER check_that_main_record_deleted_from_application_trigger
+BEFORE DELETE ON demos_app.amendment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_that_main_record_deleted_from_application();
+
+CREATE TRIGGER check_that_main_record_deleted_from_application_trigger
+BEFORE DELETE ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_that_main_record_deleted_from_application();
+
+CREATE TRIGGER check_that_main_record_deleted_from_application_trigger
+BEFORE DELETE ON demos_app.extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_that_main_record_deleted_from_application();
+
+-- check_application_type_record_exists
+CREATE FUNCTION demos_app.check_application_type_record_exists()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.application_type_id = 'Amendment' THEN
+        IF NOT EXISTS (SELECT 1 FROM demos_app.amendment WHERE amendment.id = NEW.id) THEN
+            RAISE EXCEPTION 'No matching record in demos_app.amendment for application %', NEW.id;
+        END IF;
+    ELSIF NEW.application_type_id = 'Demonstration' THEN
+        IF NOT EXISTS (SELECT 1 FROM demos_app.demonstration WHERE demonstration.id = NEW.id) THEN
+            RAISE EXCEPTION 'No matching record in demos_app.demonstration for application %', NEW.id;
+        END IF;
+    ELSIF NEW.application_type_id = 'Extension' THEN
+        IF NOT EXISTS (SELECT 1 FROM demos_app.extension WHERE extension.id = NEW.id) THEN
+            RAISE EXCEPTION 'No matching record in demos_app.extension for application %', NEW.id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER check_application_type_record_exists_trigger
+AFTER INSERT OR UPDATE ON demos_app.application
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_application_type_record_exists();

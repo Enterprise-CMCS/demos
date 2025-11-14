@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@aws-sdk/client-lambda": "^3.886.0",
-    "@aws-sdk/client-secrets-manager": "^3.883.0",
-    "@aws-sdk/client-ssm": "^3.883.0",
+    "@aws-sdk/client-lambda": "^3.913.0",
+    "@aws-sdk/client-secrets-manager": "^3.929.0",
+    "@aws-sdk/client-ssm": "^3.913.0",
     "@types/aws-lambda": "^8.10.152",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.1",
@@ -22,6 +22,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "pino": "^10.1.0"
   }
 }

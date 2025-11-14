@@ -1,6 +1,7 @@
 import { gql } from "graphql-tag";
 import { Document } from "../document/documentSchema.js";
-import { Amendment, Extension } from "../modification/modificationSchema.js";
+import { Amendment } from "../amendment/amendmentSchema.js";
+import { Extension } from "../extension/extensionSchema.js";
 import { State } from "../state/stateSchema.js";
 import {
   SdgDivision,
@@ -11,13 +12,14 @@ import {
   DemonstrationRoleAssignment,
   NonEmptyString,
   Person,
+  DateTimeOrLocalDate,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
   type Demonstration {
     id: ID!
     name: NonEmptyString!
-    description: String!
+    description: String
     effectiveDate: DateTime
     expirationDate: DateTime
     sdgDivision: SdgDivision
@@ -47,8 +49,8 @@ export const demonstrationSchema = gql`
   input UpdateDemonstrationInput {
     name: NonEmptyString
     description: String
-    effectiveDate: DateTime
-    expirationDate: DateTime
+    effectiveDate: DateTimeOrLocalDate
+    expirationDate: DateTimeOrLocalDate
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: ApplicationStatus
@@ -57,13 +59,8 @@ export const demonstrationSchema = gql`
     projectOfficerUserId: String
   }
 
-  type CreateDemonstrationResponse {
-    success: Boolean!
-    message: String
-  }
-
   type Mutation {
-    createDemonstration(input: CreateDemonstrationInput!): CreateDemonstrationResponse
+    createDemonstration(input: CreateDemonstrationInput!): Demonstration
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
     deleteDemonstration(id: ID!): Demonstration
   }
@@ -77,9 +74,9 @@ export const demonstrationSchema = gql`
 export interface Demonstration {
   id: string;
   name: NonEmptyString;
-  description: string;
-  effectiveDate: Date | null;
-  expirationDate: Date | null;
+  description?: string;
+  effectiveDate?: Date;
+  expirationDate?: Date;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status: ApplicationStatus;
@@ -95,8 +92,6 @@ export interface Demonstration {
   primaryProjectOfficer: Person;
 }
 
-// Used in creating a demonstration from the F/E dialog.
-// The fields here should match the fields in that dialog.
 export interface CreateDemonstrationInput {
   name: NonEmptyString;
   projectOfficerUserId: string;
@@ -109,8 +104,8 @@ export interface CreateDemonstrationInput {
 export interface UpdateDemonstrationInput {
   name?: NonEmptyString;
   description?: string;
-  effectiveDate?: Date;
-  expirationDate?: Date;
+  effectiveDate?: DateTimeOrLocalDate | null;
+  expirationDate?: DateTimeOrLocalDate | null;
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status?: ApplicationStatus;

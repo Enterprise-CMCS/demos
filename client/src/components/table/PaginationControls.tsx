@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Table } from "@tanstack/react-table";
+import { Button, SecondaryButton } from "components/button";
 export interface PaginationControlsProps<T> {
   table: Table<T>;
   perPageChoices?: number[];
@@ -67,8 +68,7 @@ export function PaginationControls<T>({
 
   // ZERO state - If totalRows == 0, show "0 of 0"
   const firstRowIndex = totalRows === 0 ? 0 : currentPage * pageSize + 1;
-  const lastRowIndex =
-    totalRows === 0 ? 0 : Math.min((currentPage + 1) * pageSize, totalRows);
+  const lastRowIndex = totalRows === 0 ? 0 : Math.min((currentPage + 1) * pageSize, totalRows);
 
   return (
     <nav
@@ -85,7 +85,7 @@ export function PaginationControls<T>({
         <select
           id="pagination-page-size"
           aria-labelledby="pagination-page-size"
-          className="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border p-[8px] rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={pageSize}
           onChange={(e) => handlePageSizeChange(Number(e.target.value))}
         >
@@ -96,70 +96,52 @@ export function PaginationControls<T>({
           ))}
         </select>
         <span className="text-gray-700">
-          {totalRows === 0
-            ? "0 of 0"
-            : `${firstRowIndex} – ${lastRowIndex} of ${totalRows}`}
+          {totalRows === 0 ? "0 of 0" : `${firstRowIndex} – ${lastRowIndex} of ${totalRows}`}
         </span>
       </div>
       {/* Prev / Page Buttons / Next */}
       <div className="mr-2 flex items-center gap-1 flex-wrap">
-        <button
+        <Button
+          name="Go to Previous Page"
           onClick={previousPage}
           disabled={!canPreviousPage}
-          aria-label={
-            canPreviousPage ? "Go to previous page" : "No previous page"
-          }
-          aria-disabled={!canPreviousPage}
-          className={`px-2 py-1 rounded ${
-            canPreviousPage
-              ? "bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              : "bg-gray-200 text-gray-500 cursor-not-allowed"
-          }`}
+          aria-label={canPreviousPage ? "Go to previous page" : "No previous page"}
         >
           Prev
-        </button>
+        </Button>
         {getVisiblePageNumbers().map((page, idx) =>
           page === -1 ? (
-            <span
-              key={`ellipsis-${idx}`}
-              role="presentation"
-              className="px-2 py-1 text-gray-500"
-            >
+            <span key={`ellipsis-${idx}`} role="presentation" className="px-2 py-1 text-gray-500">
               …
             </span>
-          ) : (
-            <button
+          ) : page === currentPage ? (
+            <Button
               key={page}
+              name={"Go to page " + (page + 1)}
               onClick={() => setPageIndex(page)}
-              aria-label={
-                page === currentPage
-                  ? `Page ${page + 1}, current page`
-                  : `Go to page ${page + 1}`
-              }
-              aria-current={page === currentPage ? "page" : undefined}
-              className={`px-2 py-1 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                page === currentPage
-                  ? "bg-[var(--color-brand)] text-white font-semibold"
-                  : "bg-white text-black hover:bg-gray-100"
-              }`}
+              aria-label={`Page ${page + 1}, current page`}
             >
               {page + 1}
-            </button>
+            </Button>
+          ) : (
+            <SecondaryButton
+              key={page}
+              name={"Go to page " + (page + 1)}
+              onClick={() => setPageIndex(page)}
+              aria-label={`Go to page ${page + 1}`}
+            >
+              {page + 1}
+            </SecondaryButton>
           )
         )}
-        <button
+        <Button
+          name={"Go to next page"}
           onClick={nextPage}
           disabled={!canNextPage}
           aria-label={canNextPage ? "Go to next page" : "No next page"}
-          aria-disabled={!canNextPage}
-          className={`px-2 py-1 rounded ${
-            canNextPage
-              ? "bg-[var(--color-action)] text-white hover:bg-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              : "bg-gray-200 text-gray-500 cursor-not-allowed"
-          }`}
         >
           Next
-        </button>
+        </Button>
       </div>
     </nav>
   );

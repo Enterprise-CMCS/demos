@@ -3,10 +3,13 @@ import React from "react";
 import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
 import { Demonstration, UpdateDemonstrationInput } from "demos-server";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
-import { formatDateForServer, parseInputDate } from "util/formatDate";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { formatDateForServer } from "util/formatDate";
+import { parseInputDate } from "util/parseDate";
+
+import { gql, useMutation, useQuery } from "@apollo/client";
+
+import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
 
 const SUCCESS_MESSAGE = "Your demonstration has been updated.";
 const ERROR_MESSAGE = "Your demonstration was not updated because of an unknown problem.";
@@ -60,22 +63,47 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
 
 const getUpdateDemonstrationInput = (
   demonstration: DemonstrationDialogFields
-): UpdateDemonstrationInput => ({
-  ...(demonstration.name && { name: demonstration.name }),
-  ...(demonstration.description && { description: demonstration.description }),
-  ...(demonstration.stateId && { stateId: demonstration.stateId }),
-  ...(demonstration.projectOfficerId && {
-    projectOfficerUserId: demonstration.projectOfficerId,
-  }),
-  ...(demonstration.sdgDivision && { sdgDivision: demonstration.sdgDivision }),
-  ...(demonstration.signatureLevel && { signatureLevel: demonstration.signatureLevel }),
-  ...(demonstration.effectiveDate && {
-    effectiveDate: parseInputDate(demonstration.effectiveDate),
-  }),
-  ...(demonstration.expirationDate && {
-    expirationDate: parseInputDate(demonstration.expirationDate),
-  }),
-});
+): UpdateDemonstrationInput => {
+  const input: Record<string, unknown> = {
+    ...(demonstration.name && { name: demonstration.name }),
+    ...(demonstration.stateId && { stateId: demonstration.stateId }),
+    ...(demonstration.projectOfficerId && {
+      projectOfficerUserId: demonstration.projectOfficerId,
+    }),
+  };
+
+  if (demonstration.description && demonstration.description.trim() !== "") {
+    input.description = demonstration.description;
+  } else {
+    input.description = null;
+  }
+
+  if (demonstration.effectiveDate && demonstration.effectiveDate.trim() !== "") {
+    input.effectiveDate = parseInputDate(demonstration.effectiveDate);
+  } else {
+    input.effectiveDate = null;
+  }
+
+  if (demonstration.expirationDate && demonstration.expirationDate.trim() !== "") {
+    input.expirationDate = parseInputDate(demonstration.expirationDate);
+  } else {
+    input.expirationDate = null;
+  }
+
+  if (demonstration.sdgDivision) {
+    input.sdgDivision = demonstration.sdgDivision;
+  } else {
+    input.sdgDivision = null;
+  }
+
+  if (demonstration.signatureLevel) {
+    input.signatureLevel = demonstration.signatureLevel;
+  } else {
+    input.signatureLevel = null;
+  }
+
+  return input as UpdateDemonstrationInput;
+};
 
 const getDemonstrationDialogFields = (demonstration: Demonstration): DemonstrationDialogFields => ({
   name: demonstration.name,
@@ -114,10 +142,9 @@ const useUpdateDemonstration = () => {
 };
 
 export const EditDemonstrationDialog: React.FC<{
-  isOpen: boolean;
   onClose: () => void;
   demonstrationId: string;
-}> = ({ isOpen, demonstrationId, onClose }) => {
+}> = ({ demonstrationId, onClose }) => {
   const { showSuccess, showError } = useToast();
   const updateDemonstration = useUpdateDemonstration();
 
@@ -143,7 +170,6 @@ export const EditDemonstrationDialog: React.FC<{
       {error && <div>Error loading demonstration data.</div>}
       {data && (
         <DemonstrationDialog
-          isOpen={isOpen}
           onClose={onClose}
           mode="edit"
           onSubmit={onSubmit}

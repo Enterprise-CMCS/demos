@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { LogEventArguments, useEvent } from "./useEvent";
-import { formatDateTime } from "util/formatDate";
+import { format } from "date-fns";
 
 /**
  * MOCKS
@@ -49,7 +49,7 @@ describe("useEvent", () => {
     const { result } = renderHook(() => useEvent());
 
     const eventInput: LogEventArguments = {
-      eventType: "LOGIN_SUCCEEDED",
+      eventType: "Login Succeeded",
     };
 
     await result.current.logEvent(eventInput);
@@ -68,10 +68,10 @@ describe("useEvent", () => {
     const { result } = renderHook(() => useEvent());
 
     const eventInput: LogEventArguments = {
-      eventType: "LOGIN_SUCCEEDED",
+      eventType: "Login Succeeded",
       eventData: {
         userId: "123",
-        timestamp: formatDateTime(new Date(), "millisecond"),
+        timestamp: format(new Date(), "MM/dd/yyyy HH:mm:ss.SSS"),
         metadata: { source: "navigation" },
       },
     };

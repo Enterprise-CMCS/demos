@@ -108,7 +108,7 @@ export function KeywordSearch<T>({
   };
 
   return (
-    <div className="flex flex-col gap-sm">
+    <div className="flex flex-col gap-xs">
       <label htmlFor="input-keyword-search" className={LABEL_CLASSES}>
         {label}
       </label>

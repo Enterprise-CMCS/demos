@@ -1,26 +1,12 @@
 import React from "react";
 
-import { ToastProvider } from "components/toast";
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
-import {
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import {
-  DemonstrationTab,
-  DemonstrationTabDemonstration,
-} from "./DemonstrationTab";
+import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 
 // Type definitions for mock components
 interface MockDocumentTableProps {
@@ -31,17 +17,6 @@ interface MockDocumentTableProps {
 interface MockContactsTableProps {
   demonstrationId: string;
   roles?: Array<{ id?: string; [key: string]: unknown }>;
-}
-
-interface MockManageContactsDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  existingContacts?: Array<{ id?: string; [key: string]: unknown }>;
-}
-
-interface MockAddDocumentDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
 }
 
 interface MockSummaryDetailsTableProps {
@@ -61,39 +36,13 @@ vi.mock("components/table/tables/ContactsTable", () => ({
   ),
 }));
 
-vi.mock("components/dialog/ManageContactsDialog", () => ({
-  ManageContactsDialog: ({
-    isOpen,
-    onClose,
-    existingContacts,
-    demonstrationId,
-  }: MockManageContactsDialogProps & { demonstrationId?: string }) =>
-    isOpen ? (
-      <div data-testid="manage-contacts-dialog">
-        Manage Contacts Dialog for {demonstrationId} with {existingContacts?.length || 0} existing
-        contacts
-        <button onClick={onClose} data-testid="close-dialog">
-          Close
-        </button>
-      </div>
-    ) : null,
-}));
-
-vi.mock("components/dialog/document/DocumentDialog", () => ({
-  AddDocumentDialog: ({
-    isOpen,
-    onClose,
-    applicationId,
-  }: MockAddDocumentDialogProps & { applicationId?: string }) => {
-    return isOpen ? (
-      <div data-testid="add-document-dialog">
-        Add Document Dialog for {applicationId}
-        <button onClick={onClose} data-testid="close-dialog">
-          Close
-        </button>
-      </div>
-    ) : null;
-  },
+const showManageContactsDialog = vi.fn();
+const showUploadDocumentDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showManageContactsDialog,
+    showUploadDocumentDialog,
+  }),
 }));
 
 // Mock the SummaryDetailsTable component to avoid GraphQL queries
@@ -204,7 +153,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 const renderWithProvider = (component: React.ReactElement) => {
   return render(
     <MockedProvider mocks={[]} addTypename={false}>
-      <ToastProvider>{component}</ToastProvider>
+      {component}
     </MockedProvider>
   );
 };
@@ -253,14 +202,7 @@ describe("DemonstrationTab", () => {
     const addDocumentButton = screen.getByRole("button", { name: "add-new-document" });
     await user.click(addDocumentButton);
 
-    // Wait for the dialog to appear
-    await waitFor(() => {
-      expect(screen.getByTestId("add-document-dialog")).toBeInTheDocument();
-    });
-
-    expect(screen.getByTestId("add-document-dialog")).toHaveTextContent(
-      `Add Document Dialog for ${mockDemonstration.id}`
-    );
+    expect(showUploadDocumentDialog).toHaveBeenCalled();
   });
 
   it("opens manage contacts dialog when Manage Contact(s) button is clicked", async () => {
@@ -274,26 +216,7 @@ describe("DemonstrationTab", () => {
     const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
     await user.click(manageContactsButton);
 
-    expect(screen.getByTestId("manage-contacts-dialog")).toHaveTextContent(
-      `Manage Contacts Dialog for ${mockDemonstration.id} with 2 existing contacts`
-    );
-  });
-
-  it("closes dialogs when dialog onClose is called", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    // Open add document dialog
-    const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
-    await user.click(documentsTab);
-
-    const addDocumentButton = screen.getByRole("button", { name: "add-new-document" });
-    await user.click(addDocumentButton);
-
-    expect(screen.getByTestId("add-document-dialog")).toBeInTheDocument();
-
-    // Close it by clicking somewhere else or triggering onClose
-    // This would require the actual dialog implementation to test properly
+    expect(showManageContactsDialog).toHaveBeenCalled();
   });
 
   it("passes correct props to DocumentTable", async () => {
@@ -329,8 +252,19 @@ describe("DemonstrationTab", () => {
     const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
     await user.click(manageContactsButton);
 
+    const roles = mockDemonstration.roles.map((role) => ({
+      person: {
+        id: role.person.id,
+        fullName: role.person.fullName,
+        email: role.person.email,
+        idmRoles: [], // unknown for existing; restrictions handled dynamically
+      },
+      role: role.role,
+      isPrimary: role.isPrimary,
+    }));
+
     // Verify the dialog gets the mapped contacts with idmRoles as empty array
-    expect(screen.getByTestId("manage-contacts-dialog")).toHaveTextContent("2 existing contacts");
+    expect(showManageContactsDialog).toHaveBeenCalledWith(mockDemonstration.id, roles);
   });
 
   it("handles empty demonstration roles array", async () => {
@@ -351,7 +285,7 @@ describe("DemonstrationTab", () => {
     const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
     await user.click(manageContactsButton);
 
-    expect(screen.getByTestId("manage-contacts-dialog")).toHaveTextContent("0 existing contacts");
+    expect(showManageContactsDialog).toHaveBeenCalledWith(demonstrationWithEmptyRoles.id, []);
   });
 
   it("shows details tab content by default", () => {
@@ -413,7 +347,7 @@ describe("DemonstrationTab", () => {
       const addDocumentButton = screen.getByRole("button", { name: "add-new-document" });
       await user.click(addDocumentButton);
 
-      expect(screen.getByTestId("add-document-dialog")).toBeInTheDocument();
+      expect(showUploadDocumentDialog).toHaveBeenCalled();
     });
 
     it("shows correct modal type contact when contacts dialog opens", async () => {
@@ -426,7 +360,7 @@ describe("DemonstrationTab", () => {
       const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
       await user.click(manageContactsButton);
 
-      expect(screen.getByTestId("manage-contacts-dialog")).toBeInTheDocument();
+      expect(showManageContactsDialog).toHaveBeenCalled();
     });
 
     it("passes empty array to ManageContactsDialog when roles array is empty", async () => {
@@ -444,7 +378,7 @@ describe("DemonstrationTab", () => {
       const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
       await user.click(manageContactsButton);
 
-      expect(screen.getByTestId("manage-contacts-dialog")).toHaveTextContent("0 existing contacts");
+      expect(showManageContactsDialog).toHaveBeenCalledWith(demonstrationWithEmptyRoles.id, []);
     });
   });
 });

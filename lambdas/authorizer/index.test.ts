@@ -1,6 +1,9 @@
-import { APIGatewayTokenAuthorizerEvent } from "aws-lambda";
+import { APIGatewayTokenAuthorizerEvent, Context } from "aws-lambda";
 import { handler } from "./";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
+import { log } from "./log";
+
+const mockContext = { awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000" } as Context;
 
 describe("authorizer", () => {
   it("should pass", async () => {
@@ -23,7 +26,7 @@ describe("authorizer", () => {
       f(null, mockDecoded);
     });
 
-    const resp = await handler(mockEvent);
+    const resp = await handler(mockEvent, mockContext);
     expect(verifySpy).toHaveBeenCalledWith(mockToken, expect.anything(), expect.anything(), expect.anything());
     expect(resp).toEqual(
       expect.objectContaining({
@@ -52,11 +55,11 @@ describe("authorizer", () => {
       methodArn: "mock:arn",
       authorizationToken: `invalid`,
     };
-    const errorSpy = vi.spyOn(console, "error");
+    const infoSpy = vi.spyOn(log, "info");
 
-    await expect(handler(mockEvent)).rejects.toThrow("Unauthorized");
+    await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
-    expect(errorSpy).toHaveBeenCalledWith("no token");
+    expect(infoSpy).toHaveBeenCalledWith(expect.stringContaining("token is not set"));
   });
 
   it("should throw an error for invalid token", async () => {
@@ -66,14 +69,17 @@ describe("authorizer", () => {
       authorizationToken: `Bearer invalidtoken`,
     };
 
-    const errorSpy = vi.spyOn(console, "error");
+    const infoSpy = vi.spyOn(log, "info");
 
     vi.spyOn(jwt, "verify").mockImplementationOnce((token, gk, _, f) => {
       f(null, undefined);
     });
-    await expect(handler(mockEvent)).rejects.toThrow("Unauthorized");
+    await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("rejected with invalid token"));
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({error: expect.any(String)}),
+      expect.stringContaining("rejected with invalid token")
+    );
   });
 
   it("should throw an error if the `sub` is missing", async () => {
@@ -86,11 +92,11 @@ describe("authorizer", () => {
       f(null, {});
     });
 
-    const errorSpy = vi.spyOn(console, "error");
+    const infoSpy = vi.spyOn(log, "info");
 
-    await expect(handler(mockEvent)).rejects.toThrow("Unauthorized");
+    await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
-    expect(errorSpy).toHaveBeenCalledWith("user sub is missing");
+    expect(infoSpy).toHaveBeenCalledWith(expect.stringContaining("user sub is missing"));
   });
 
   it("should throw an error if the token is missing roles", async () => {
@@ -110,11 +116,14 @@ describe("authorizer", () => {
       f(null, mockDecoded);
     });
 
-    const errorSpy = vi.spyOn(console, "error");
+    const infoSpy = vi.spyOn(log, "info");
 
-    await expect(handler(mockEvent)).rejects.toThrow("Unauthorized");
+    await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("rejected with no roles"));
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({sub: expect.any(String)}),
+      expect.stringContaining("user has no roles")
+    );
   });
 
   it("should throw an error if the token has invalid roles", async () => {
@@ -135,11 +144,14 @@ describe("authorizer", () => {
       f(null, mockDecoded);
     });
 
-    const errorSpy = vi.spyOn(console, "error");
+    const infoSpy = vi.spyOn(log, "info");
 
-    await expect(handler(mockEvent)).rejects.toThrow("Unauthorized");
+    await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("rejected with invalid roles"));
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.objectContaining({sub: expect.anything(), roles: expect.anything()}),
+      expect.stringContaining("user has invalid roles")
+    );
   });
 
   it("should throw an error when jwt verification errors", async () => {
@@ -160,10 +172,13 @@ describe("authorizer", () => {
       f(new JsonWebTokenError("there was an error"), mockDecoded);
     });
 
-    const errorSpy = vi.spyOn(console, "error");
+    const infoSpy = vi.spyOn(log, "info");
 
-    await expect(handler(mockEvent)).rejects.toThrow("Unauthorized");
+    await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("rejected with invalid token"));
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.stringContaining("rejected with invalid token")
+    );
   });
 });

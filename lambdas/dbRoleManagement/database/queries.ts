@@ -1,17 +1,18 @@
 import { Role } from "../types";
 import { getPool } from "./pool";
+import { log } from "../log";
 
 export async function deleteRoles(roleList: Role[]) {
   if (roleList.length == 0) {
     return;
   }
   const roleNames = roleList.map((r) => r.name);
-  console.log(`dropping: ${roleNames.join(", ")}`);
+  log.info({ roleNames }, "dropping roles");
   try {
     const client = await getPool();
     await client.query(`DROP ROLE ${roleNames.join(",")}`);
   } catch (err) {
-    console.error("error deleting roles: ", err);
+    log.error({ error: (err as Error).message }, "error deleting roles");
   }
 }
 
@@ -56,18 +57,18 @@ export async function syncRoleMemberships(role: Role) {
     const toRevoke = [...currentRoles].filter((r) => !desiredSet.has(r));
 
     if (toRevoke.length != 0) {
-      console.log("TO REVOKE", toRevoke);
+      log.info({ roles: toRevoke }, "revoking roles");
       await client.query(`REVOKE ${toRevoke.join(",")} FROM ${role.name}`);
     }
 
     if (toGrant.length != 0) {
-      console.log("TO GRANT", toGrant);
+      log.info({ roles: toGrant }, "granting roles");
       await client.query(`GRANT ${toGrant.join(",")} TO ${role.name}`);
     }
 
     await client.query("COMMIT");
   } catch (err) {
-    console.error("syncRoleMemberships error:", err);
+    log.error({ error: (err as Error).message }, "syncRoleMemberships error");
     await client.query("ROLLBACK");
   }
 }
@@ -89,6 +90,7 @@ export async function createRole(role: Role, password: string) {
   try {
     await pool.query(`CREATE ROLE ${role.name} LOGIN PASSWORD '${password}'`);
   } catch (err) {
+    log.error({ error: (err as Error).message }, "failed to create role");
     throw new Error(`failed to create role: ${role.name}`);
   }
 }

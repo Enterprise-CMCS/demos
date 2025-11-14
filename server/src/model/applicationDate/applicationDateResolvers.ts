@@ -1,64 +1,106 @@
+import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { SetApplicationDateInput } from "../../types.js";
-import { getApplication } from "../application/applicationResolvers.js";
+import {
+  SetApplicationDateInput,
+  SetApplicationDatesInput,
+  ParsedSetApplicationDatesInput,
+} from "../../types.js";
+import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
+import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { validateInputDate } from "./validateInputDate.js";
+import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
+import { validateInputDates } from "./validateInputDates.js";
+import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
-export async function setApplicationDate(
-  _: undefined,
+export function __parseInputApplicationDates(
+  inputApplicationDates: SetApplicationDatesInput
+): ParsedSetApplicationDatesInput {
+  const result: ParsedSetApplicationDatesInput = {
+    applicationId: inputApplicationDates.applicationId,
+    applicationDates: [],
+  };
+  for (const applicationDate of inputApplicationDates.applicationDates) {
+    result.applicationDates.push({
+      dateType: applicationDate.dateType,
+      dateValue: parseDateTimeOrLocalDateToJSDate(
+        applicationDate.dateValue,
+        DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[applicationDate.dateType].expectedTimestamp
+      ),
+    });
+  }
+  return result;
+}
+
+export function __setApplicationDate(
+  _: unknown,
   { input }: { input: SetApplicationDateInput }
-) {
-  await validateInputDate(input);
-  try {
-    await prisma().applicationDate.upsert({
+): Promise<PrismaApplication> {
+  const payload: SetApplicationDatesInput = {
+    applicationId: input.applicationId,
+    applicationDates: [
+      {
+        dateType: input.dateType,
+        dateValue: input.dateValue,
+      },
+    ],
+  };
+  return __setApplicationDates(undefined, { input: payload });
+}
+
+export async function __setApplicationDates(
+  _: unknown,
+  { input }: { input: SetApplicationDatesInput }
+): Promise<PrismaApplication> {
+  if (input.applicationDates.length === 0) {
+    return await getApplication(input.applicationId);
+  }
+  const inputApplicationDates = __parseInputApplicationDates(input);
+  const existingApplicationDates = await getExistingDates(input.applicationId);
+  const updatedApplicationDates = mergeApplicationDates(
+    existingApplicationDates,
+    inputApplicationDates.applicationDates
+  );
+
+  validateInputDates(updatedApplicationDates);
+
+  const datesToUpdate = inputApplicationDates.applicationDates.map((dateToUpdate) =>
+    prisma().applicationDate.upsert({
       where: {
         applicationId_dateTypeId: {
           applicationId: input.applicationId,
-          dateTypeId: input.dateType,
+          dateTypeId: dateToUpdate.dateType,
         },
       },
       update: {
-        dateValue: input.dateValue,
+        dateValue: dateToUpdate.dateValue,
       },
       create: {
         applicationId: input.applicationId,
-        dateTypeId: input.dateType,
-        dateValue: input.dateValue,
+        dateTypeId: dateToUpdate.dateType,
+        dateValue: dateToUpdate.dateValue,
       },
-    });
+    })
+  );
+
+  try {
+    await prisma().$transaction(datesToUpdate);
   } catch (error) {
     handlePrismaError(error);
   }
+
   return await getApplication(input.applicationId);
 }
 
-export async function getApplicationDatesForPhase(applicationId: string, phaseId: string) {
-  const rows = await prisma().applicationDate.findMany({
-    select: {
-      dateTypeId: true,
-      dateValue: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    where: {
-      applicationId: applicationId,
-      dateType: {
-        phaseDateTypes: {
-          some: { phaseId: phaseId },
-        },
-      },
-    },
-  });
-  return rows.map((row) => ({
-    dateType: row.dateTypeId,
-    dateValue: row.dateValue,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  }));
+export function __resolveApplicationDateType(parent: PrismaApplicationDate): string {
+  return parent.dateTypeId;
 }
 
 export const applicationDateResolvers = {
   Mutation: {
-    setApplicationDate: setApplicationDate,
+    setApplicationDate: __setApplicationDate,
+    setApplicationDates: __setApplicationDates,
+  },
+  ApplicationDate: {
+    dateType: __resolveApplicationDateType,
   },
 };

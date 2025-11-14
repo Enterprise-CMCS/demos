@@ -7,7 +7,7 @@ export const documentSchema = gql`
   type Document {
     id: ID!
     name: NonEmptyString!
-    description: NonEmptyString!
+    description: String
     s3Path: String!
     owner: User!
     documentType: DocumentType!
@@ -19,7 +19,7 @@ export const documentSchema = gql`
 
   input UploadDocumentInput {
     name: NonEmptyString!
-    description: NonEmptyString!
+    description: String
     documentType: DocumentType!
     applicationId: ID!
     phaseName: PhaseName!
@@ -27,14 +27,14 @@ export const documentSchema = gql`
 
   input UpdateDocumentInput {
     name: NonEmptyString
-    description: NonEmptyString
+    description: String
     documentType: DocumentType
     applicationId: ID
     phaseName: PhaseName
   }
 
   type UploadDocumentResponse {
-    presignedURL: String!
+    presignedURL: String
   }
 
   type Mutation {
@@ -52,7 +52,7 @@ export const documentSchema = gql`
 export interface Document {
   id: string;
   name: NonEmptyString;
-  description: NonEmptyString;
+  description?: string;
   s3Path: string;
   owner: User;
   documentType: DocumentType;
@@ -64,7 +64,7 @@ export interface Document {
 
 export interface UploadDocumentInput {
   name: NonEmptyString;
-  description: NonEmptyString;
+  description?: string;
   documentType: DocumentType;
   applicationId: string;
   phaseName: PhaseName;
@@ -72,8 +72,12 @@ export interface UploadDocumentInput {
 
 export interface UpdateDocumentInput {
   name?: NonEmptyString;
-  description?: NonEmptyString;
+  description?: string;
   documentType?: DocumentType;
   applicationId?: string;
   phaseName?: PhaseName;
+}
+
+export interface UploadDocumentResponse {
+  presignedURL?: string | null;
 }

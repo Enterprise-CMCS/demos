@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React from "react";
 
 import {
   Amendment,
@@ -8,14 +8,11 @@ import {
   Extension,
   Person,
 } from "demos-server";
-import { usePageHeader } from "hooks/usePageHeader";
-import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { useLocation, useParams } from "react-router-dom";
 
 import { gql, useQuery } from "@apollo/client";
 
 import { AmendmentsTab } from "./AmendmentsTab";
-import { DemonstrationDetailModals } from "./DemonstrationDetailModals";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
@@ -75,9 +72,6 @@ export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "current
   })[];
 };
 
-type EntityCreationModal = "amendment" | "extension" | "document" | null;
-type DemonstrationActionModal = "edit" | "delete" | null;
-
 const getQueryParamValue = (
   searchParams: URLSearchParams,
   singular: string,
@@ -93,17 +87,6 @@ export const DemonstrationDetail: React.FC = () => {
   const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
   const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
-  const [entityCreationModal, setEntityCreationModal] = useState<EntityCreationModal>(null);
-  const [demonstrationActionModal, setDemonstrationActionModal] =
-    useState<DemonstrationActionModal>(null);
-
-  const handleEdit = useCallback(() => {
-    setDemonstrationActionModal("edit");
-  }, []);
-  const handleDelete = useCallback(() => {
-    setDemonstrationActionModal("delete");
-  }, []);
-
   const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
     DEMONSTRATION_DETAIL_QUERY,
     {
@@ -112,19 +95,6 @@ export const DemonstrationDetail: React.FC = () => {
   );
 
   const demonstration = data?.demonstration;
-
-  const headerContent = useMemo(
-    () =>
-      demonstration ? (
-        <DemonstrationDetailHeader
-          demonstrationId={demonstration.id}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      ) : null,
-    [demonstration, handleEdit, handleDelete]
-  );
-  usePageHeader(headerContent);
 
   if (loading) {
     return <div>Loading demonstration...</div>;
@@ -147,30 +117,20 @@ export const DemonstrationDetail: React.FC = () => {
 
             <Tab label={`Amendments (${demonstration.amendments?.length ?? 0})`} value="amendments">
               <AmendmentsTab
+                demonstrationId={demonstration.id}
                 amendments={demonstration.amendments || []}
-                onClick={() => setEntityCreationModal("amendment")}
                 initiallyExpandedId={amendmentParam ?? undefined}
               />
             </Tab>
 
             <Tab label={`Extensions (${demonstration.extensions?.length ?? 0})`} value="extensions">
               <ExtensionsTab
+                demonstrationId={demonstration.id}
                 extensions={demonstration.extensions || []}
-                onClick={() => setEntityCreationModal("extension")}
                 initiallyExpandedId={extensionParam ?? undefined}
               />
             </Tab>
           </Tabs>
-
-          {(entityCreationModal || demonstrationActionModal) && (
-            <DemonstrationDetailModals
-              entityCreationModal={entityCreationModal}
-              demonstrationActionModal={demonstrationActionModal}
-              demonstrationId={demonstration.id}
-              onCloseEntityModal={() => setEntityCreationModal(null)}
-              onCloseDemonstrationDialog={() => setDemonstrationActionModal(null)}
-            />
-          )}
         </>
       }
     </div>

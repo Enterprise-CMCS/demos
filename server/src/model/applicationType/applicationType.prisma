@@ -3,9 +3,10 @@
 model ApplicationType {
   id String @id
 
-  applications                  Application[]
-  demonstrationApplicationTypes DemonstrationApplicationTypeLimit[]
-  modificationApplicationTypes  ModificationApplicationTypeLimit[]
+  applications                      Application[]
+  demonstrationApplicationTypeLimit DemonstrationApplicationTypeLimit?
+  amendmentApplicationTypeLimit     AmendmentApplicationTypeLimit?
+  extensionApplicationTypeLimit     ExtensionApplicationTypeLimit?
 
   @@map("application_type")
 }

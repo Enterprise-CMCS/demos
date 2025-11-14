@@ -6,7 +6,6 @@ import { tw } from "tags/tw";
 
 interface BaseDialogProps {
   title: string;
-  isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
   actions?: React.ReactNode;
@@ -24,7 +23,6 @@ const CONFIRMATION_DIALOG = tw`bg-surface-white border border-border-rules round
 
 export const BaseDialog: React.FC<BaseDialogProps> = ({
   title,
-  isOpen,
   onClose,
   children,
   actions,
@@ -37,19 +35,9 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (isOpen) {
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-    } else {
-      if (dialog.open) {
-        dialog.close();
-      }
-    }
-  }, [isOpen]);
+    dialogRef.current?.showModal();
+    return () => dialogRef.current?.close();
+  }, []);
 
   useEffect(() => {
     const confirmDialog = confirmDialogRef.current;
@@ -62,16 +50,22 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     }
   }, [showCancelConfirm]);
 
-  const handleDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    // Close dialog when clicking on backdrop
-    if (e.target === e.currentTarget) {
-      if (setShowCancelConfirm) {
-        setShowCancelConfirm(true);
-      } else {
-        onClose();
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        const dialog = dialogRef.current;
+        if (dialog && dialog.open) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
       }
-    }
-  };
+    };
+
+    document.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown, { capture: true });
+    };
+  }, []);
 
   const handleConfirmDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     // Close confirmation dialog when clicking on backdrop
@@ -80,17 +74,30 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     }
   };
 
+  const handleDialogClose = (event: React.SyntheticEvent<HTMLDialogElement>) => {
+    event.preventDefault();
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  };
+
   return (
     <>
-      <dialog
-        ref={dialogRef}
-        className={`${DIALOG} ${maxWidthClass}`}
-        onClick={handleDialogClick}
-        onClose={onClose}
-      >
+      <dialog ref={dialogRef} className={`${DIALOG} ${maxWidthClass}`} onClose={handleDialogClose}>
         {!hideHeader && (
           <>
-            <button onClick={onClose} className={CLOSE_BUTTON} aria-label="Close dialog">
+            <button
+              onClick={() => {
+                if (setShowCancelConfirm) {
+                  setShowCancelConfirm(true);
+                } else {
+                  onClose();
+                }
+              }}
+              className={CLOSE_BUTTON}
+              aria-label="Close dialog"
+            >
               ×
             </button>
             <h2 className={TITLE}>{title}</h2>

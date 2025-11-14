@@ -5,13 +5,13 @@ import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   ApprovalPackagePhase,
-  CompletenessPhase,
-  ConceptPhase,
-  FederalCommentPhase,
+  getApplicationCompletenessFromDemonstration,
+  getConceptPhaseComponentFromDemonstration,
   OgcOmbPhase,
   PostApprovalPhase,
   SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
+  getFederalCommentPhaseFromDemonstration,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -73,23 +73,23 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
-    Concept: ConceptPhase,
+    Concept: () => getConceptPhaseComponentFromDemonstration(demonstration),
     "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
-    Completeness: CompletenessPhase,
-    "Federal Comment": () => {
-      const phaseStartDate = new Date(2025, 8, 24);
-      const phaseEndDate = new Date(phaseStartDate);
-      phaseEndDate.setDate(phaseEndDate.getDate() + 30);
-
+    Completeness: () => getApplicationCompletenessFromDemonstration(demonstration),
+    "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
+    "SDG Preparation": () => {
+      const sdgPreparationPhase = demonstration.phases.find(
+        (phase) => phase.phaseName === "SDG Preparation"
+      );
+      if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
       return (
-        <FederalCommentPhase
+        <SdgPreparationPhase
           demonstrationId={demonstration.id}
-          phaseStartDate={phaseStartDate}
-          phaseEndDate={phaseEndDate}
+          sdgPreparationPhase={sdgPreparationPhase}
+          setSelectedPhase={setSelectedPhase}
         />
       );
     },
-    "SDG Preparation": SdgPreparationPhase,
     "OGC & OMB Review": OgcOmbPhase,
     "Approval Package": ApprovalPackagePhase,
     "Post Approval": PostApprovalPhase,

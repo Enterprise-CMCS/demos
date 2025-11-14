@@ -33,8 +33,8 @@ describe("handlePrismaError", () => {
       } catch (error) {
         expect(error).toBeInstanceOf(GraphQLError);
         if (error instanceof GraphQLError) {
-          expect(error.message).toBe("An update was attempted on a record that does not exist.");
-          expect(error.extensions.code).toBe("NO_RECORD_FOUND_TO_UPDATE");
+          expect(error.message).toBe("An operation was attempted on a record that does not exist.");
+          expect(error.extensions.code).toBe("NO_RECORD_FOUND_FOR_OPERATION");
         }
       }
     });

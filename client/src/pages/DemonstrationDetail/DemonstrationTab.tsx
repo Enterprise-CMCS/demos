@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
-import { SecondaryButton } from "components/button";
-import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
-import { ManageContactsDialog } from "components/dialog/ManageContactsDialog";
+import { IconButton } from "components/button";
 import {
   AddNewIcon,
   CharacteristicIcon,
@@ -24,8 +22,7 @@ import {
 import { Tab, VerticalTabs } from "layout/Tabs";
 
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
-
-type ModalType = "document" | "contact" | null;
+import { useDialog } from "components/dialog/DialogContext";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email">;
@@ -44,7 +41,7 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status">
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
-  const [modalType, setModalType] = useState<ModalType>(null);
+  const { showManageContactsDialog, showUploadDocumentDialog } = useDialog();
 
   return (
     <div className="p-[16px]">
@@ -62,16 +59,16 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           label={`Documents (${demonstration.documents?.length ?? 0})`}
           value="documents"
         >
-          <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+          <div className="flex justify-between items-center pb-1 mb-2 border-b border-brand">
             <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
-            <SecondaryButton
+            <IconButton
+              icon={<AddNewIcon />}
               name="add-new-document"
               size="small"
-              onClick={() => setModalType("document")}
+              onClick={() => showUploadDocumentDialog(demonstration.id)}
             >
               Add Document
-              <AddNewIcon className="w-2 h-2" />
-            </SecondaryButton>
+            </IconButton>
           </div>
           <DocumentTable applicationId={demonstration.id} documents={demonstration.documents} />
         </Tab>
@@ -82,43 +79,32 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         >
           <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
             <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
-            <SecondaryButton
+            <IconButton
+              icon={<EditIcon />}
               name="manage-contacts"
               size="small"
-              onClick={() => setModalType("contact")}
+              onClick={() =>
+                showManageContactsDialog(
+                  demonstration.id,
+                  (demonstration.roles || []).map((c) => ({
+                    person: {
+                      id: c.person.id,
+                      fullName: c.person.fullName,
+                      email: c.person.email,
+                      idmRoles: [], // unknown for existing; restrictions handled dynamically
+                    },
+                    role: c.role,
+                    isPrimary: c.isPrimary,
+                  }))
+                )
+              }
             >
-              <span>Manage Contact(s)</span>
-              <EditIcon className="w-2 h-2" />
-            </SecondaryButton>
+              Manage Contact(s)
+            </IconButton>
           </div>
           <ContactsTable roles={demonstration.roles} />
         </Tab>
       </VerticalTabs>
-
-      {modalType === "document" && (
-        <AddDocumentDialog
-          isOpen={true}
-          onClose={() => setModalType(null)}
-          applicationId={demonstration.id}
-        />
-      )}
-      {modalType === "contact" && (
-        <ManageContactsDialog
-          demonstrationId={demonstration.id}
-          isOpen={true}
-          onClose={() => setModalType(null)}
-          existingContacts={(demonstration.roles || []).map((c) => ({
-            person: {
-              id: c.person.id,
-              fullName: c.person.fullName,
-              email: c.person.email,
-              idmRoles: [], // unknown for existing; restrictions handled dynamically
-            },
-            role: c.role,
-            isPrimary: c.isPrimary,
-          }))}
-        />
-      )}
     </div>
   );
 };

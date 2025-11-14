@@ -1,3 +1,5 @@
+import { DateType, ExpectedTimestamp } from "./types.js";
+
 export const APPLICATION_STATUS = [
   "Pre-Submission",
   "Under Review",
@@ -13,13 +15,10 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
+  "All Users",
 ] as const;
 
-export const CONTACT_TYPES = [
-  "DDME Analyst",
-  "Project Officer",
-  "State Point of Contact",
-] as const;
+export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
 
 export const ADMIN_DEMONSTRATION_ROLES = ROLES;
 
@@ -30,9 +29,7 @@ export const CMS_USER_DEMONSTRATION_ROLES = [
   "Monitoring & Evaluation Technical Director",
 ] as const;
 
-export const STATE_USER_DEMONSTRATION_ROLES = [
-  "State Point of Contact",
-] as const;
+export const STATE_USER_DEMONSTRATION_ROLES = ["State Point of Contact"] as const;
 
 export const PERSON_TYPES = [
   "demos-admin",
@@ -43,11 +40,7 @@ export const PERSON_TYPES = [
 
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
-export const APPLICATION_TYPES = [
-  "Demonstration",
-  "Amendment",
-  "Extension",
-] as const;
+export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
@@ -117,7 +110,36 @@ export const DATE_TYPES = [
   "OGC & OMB Review Completion Date",
 ] as const;
 
-// US States and Territories
+export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
+
+type DateTypeExpectedTimestampRecord = Record<DateType, { expectedTimestamp: ExpectedTimestamp }>;
+
+export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecord = {
+  "Concept Start Date": { expectedTimestamp: "Start of Day" },
+  "Pre-Submission Submitted Date": { expectedTimestamp: "Start of Day" },
+  "Concept Completion Date": { expectedTimestamp: "Start of Day" },
+  "Application Intake Start Date": { expectedTimestamp: "Start of Day" },
+  "State Application Submitted Date": { expectedTimestamp: "Start of Day" },
+  "Completeness Review Due Date": { expectedTimestamp: "End of Day" },
+  "Application Intake Completion Date": { expectedTimestamp: "Start of Day" },
+  "Completeness Start Date": { expectedTimestamp: "Start of Day" },
+  "State Application Deemed Complete": { expectedTimestamp: "Start of Day" },
+  "Federal Comment Period Start Date": { expectedTimestamp: "Start of Day" },
+  "Federal Comment Period End Date": { expectedTimestamp: "End of Day" },
+  "Completeness Completion Date": { expectedTimestamp: "Start of Day" },
+  "SDG Preparation Start Date": { expectedTimestamp: "Start of Day" },
+  "Expected Approval Date": { expectedTimestamp: "Start of Day" },
+  "SME Review Date": { expectedTimestamp: "Start of Day" },
+  "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
+  "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
+  "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },
+  "OGC & OMB Review Start Date": { expectedTimestamp: "Start of Day" },
+  "OGC Review Complete": { expectedTimestamp: "Start of Day" },
+  "OMB Review Complete": { expectedTimestamp: "Start of Day" },
+  "PO & OGD Sign-Off": { expectedTimestamp: "Start of Day" },
+  "OGC & OMB Review Completion Date": { expectedTimestamp: "Start of Day" },
+} as const;
+
 export const STATES_AND_TERRITORIES = [
   { id: "AL", name: "Alabama" },
   { id: "AK", name: "Alaska" },
@@ -175,4 +197,34 @@ export const STATES_AND_TERRITORIES = [
   { id: "MP", name: "Northern Mariana Islands" },
   { id: "PR", name: "Puerto Rico" },
   { id: "VI", name: "Virgin Islands" },
+] as const;
+
+export const LOG_LEVELS = [
+  "emerg",
+  "alert",
+  "crit",
+  "err",
+  "warning",
+  "notice",
+  "info",
+  "debug",
+] as const;
+
+export const EVENT_TYPES = [
+  "Login Succeeded",
+  "Login Failed",
+  "Logout Succeeded",
+  "Logout Failed",
+  "Create Demonstration Succeeded",
+  "Create Demonstration Failed",
+  "Create Extension Succeeded",
+  "Create Extension Failed",
+  "Create Amendment Succeeded",
+  "Create Amendment Failed",
+  "Edit Demonstration Succeeded",
+  "Edit Demonstration Failed",
+  "Delete Demonstration Succeeded",
+  "Delete Demonstration Failed",
+  "Delete Document Succeeded",
+  "Delete Document Failed",
 ] as const;

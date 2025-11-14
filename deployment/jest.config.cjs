@@ -4,7 +4,7 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   transform: {
-    "^.*(ts|tsx)?$": "ts-jest",
+    "^.+\\.[tj]sx?$": ["ts-jest", {isolatedModules: true}],
   },
-  transformIgnorePatterns: ["node_modules/?!(chalk)/"],
+  transformIgnorePatterns: [".*/node_modules/(?!(chalk)/)"],
 };

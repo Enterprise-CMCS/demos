@@ -1,9 +1,9 @@
-import { State } from "@prisma/client";
+import { State as PrismaState } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 
 export const stateResolvers = {
   Query: {
-    state: async (_: undefined, { id }: { id: string }) => {
+    state: async (_: unknown, { id }: { id: string }) => {
       return await prisma().state.findUnique({
         where: { id: id },
       });
@@ -14,7 +14,7 @@ export const stateResolvers = {
   },
 
   State: {
-    demonstrations: async (parent: State) => {
+    demonstrations: async (parent: PrismaState) => {
       return await prisma().demonstration.findMany({
         where: { stateId: parent.id },
       });

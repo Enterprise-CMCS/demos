@@ -66,13 +66,23 @@ export class DatabaseStack extends Stack {
       description: "KMS key for encrypting RDS",
     });
 
+    const engine = aws_rds.DatabaseInstanceEngine.postgres({
+          version: aws_rds.PostgresEngineVersion.VER_17_4,
+        })
+
+    const parameterGroup = new aws_rds.ParameterGroup(commonProps.scope, "rdsParameterGroup", {
+      name: `demos-${commonProps.stage}-postgres-17`,
+      engine,
+      parameters: {
+        shared_preload_libraries: "pg_stat_statements,pg_tle,pg_cron"
+      }
+    })
+
     const dbInstance = new aws_rds.DatabaseInstance(
       commonProps.scope,
       `${commonProps.project}-${commonProps.stage}-rds`,
       {
-        engine: aws_rds.DatabaseInstanceEngine.postgres({
-          version: aws_rds.PostgresEngineVersion.VER_17_4,
-        }),
+        engine,
         instanceType: aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE4_GRAVITON, aws_ec2.InstanceSize.MICRO),
         vpc: commonProps.vpc,
         vpcSubnets: { subnets: props.vpc.privateSubnets },
@@ -94,6 +104,7 @@ export class DatabaseStack extends Stack {
         cloudwatchLogsRetention: RetentionDays.THREE_MONTHS,
         storageEncryptionKey: rdsKMSKey,
         port: 15432,
+        parameterGroup: parameterGroup
       }
     );
 

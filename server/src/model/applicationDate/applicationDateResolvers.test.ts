@@ -1,10 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { setApplicationDate, getApplicationDatesForPhase } from "./applicationDateResolvers.js";
-import { SetApplicationDateInput, DateType, PhaseName } from "../../types.js";
+import {
+  __setApplicationDates,
+  __resolveApplicationDateType,
+  __setApplicationDate,
+  __parseInputApplicationDates,
+} from "./applicationDateResolvers.js";
+import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
+import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
+import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
+
+// Mock imports
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
-import { validateInputDate } from "./validateInputDate.js";
+import { validateInputDates } from "./validateInputDates.js";
+import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -21,100 +31,273 @@ vi.mock("../application/applicationResolvers.js", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("./validateInputDate.js", () => ({
-  validateInputDate: vi.fn(),
+vi.mock("./validateInputDates.js", () => ({
+  validateInputDates: vi.fn(),
+}));
+
+vi.mock("./validationPayloadCreationFunctions.js", () => ({
+  getExistingDates: vi.fn(),
+  mergeApplicationDates: vi.fn(),
 }));
 
 describe("applicationDateResolvers", () => {
-  const mockUpsert = vi.fn();
-  const mockFindMany = vi.fn();
-  const mockPrismaClient = {
+  const regularMocks = {
     applicationDate: {
-      upsert: mockUpsert,
-      findMany: mockFindMany,
+      upsert: vi.fn(),
     },
   };
-  const testDateType: DateType = "Concept Start Date";
-  const testDateValue: Date = new Date("2025-01-01T00:00:00Z");
-  const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
+  const mockPrismaClient = {
+    $transaction: vi.fn(),
+    applicationDate: {
+      upsert: regularMocks.applicationDate.upsert,
+    },
+  };
+
+  const testDateValue = new Date("2025-01-01T00:00:00Z");
+  const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
+  const testError = new Error("Database connection failed");
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(mockFindMany).mockReturnValue([
-      {
-        dateTypeId: testDateType,
-        dateValue: testDateValue,
-        createdAt: testDateValue,
-        updatedAt: testDateValue,
-      },
-    ]);
   });
 
-  describe("setApplicationDate", () => {
-    const testData: SetApplicationDateInput = {
-      applicationId: testApplicationId,
-      dateType: testDateType,
-      dateValue: testDateValue,
-    };
-    const testError = new Error("Database connection failed");
-
-    it("should upsert application date and return the updated application", async () => {
-      const expectedCall = {
-        where: {
-          applicationId_dateTypeId: {
-            applicationId: testApplicationId,
-            dateTypeId: testDateType,
+  describe("__parseInputApplicationDates", () => {
+    it("should return nicely parsed Dates from LocalDate inputs", () => {
+      const testLocalDateValue = "2025-01-15";
+      const testInput: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Federal Comment Period Start Date",
+            dateValue: testLocalDateValue,
           },
-        },
-        update: {
-          dateValue: testDateValue,
-        },
-        create: {
-          applicationId: testApplicationId,
-          dateTypeId: testDateType,
-          dateValue: testDateValue,
-        },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: testLocalDateValue,
+          },
+        ],
       };
-      await setApplicationDate(undefined, { input: testData });
-      expect(validateInputDate).toHaveBeenCalledExactlyOnceWith(testData);
-      expect(mockUpsert).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      const expectedOutput: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Federal Comment Period Start Date",
+            dateValue: parseDateTimeOrLocalDateToJSDate(testLocalDateValue, "Start of Day"),
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: parseDateTimeOrLocalDateToJSDate(testLocalDateValue, "End of Day"),
+          },
+        ],
+      };
+
+      const result = __parseInputApplicationDates(testInput);
+      expect(result).toEqual(expectedOutput);
+    });
+  });
+
+  describe("__setApplicationDates", () => {
+    const testInput: SetApplicationDatesInput = {
+      applicationId: testApplicationId,
+      applicationDates: [
+        {
+          dateType: "Concept Start Date",
+          dateValue: testDateValue,
+        },
+        {
+          dateType: "Federal Comment Period End Date",
+          dateValue: testDateValue,
+        },
+      ],
+    };
+
+    it("should do nothing if an empty list of dates is passed", async () => {
+      const testInput: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [],
+      };
+      await __setApplicationDates(undefined, { input: testInput });
+      expect(getExistingDates).not.toHaveBeenCalled();
+      expect(mergeApplicationDates).not.toHaveBeenCalled();
+      expect(validateInputDates).not.toHaveBeenCalled();
+      expect(prisma).not.toHaveBeenCalled();
+      expect(regularMocks.applicationDate.upsert).not.toHaveBeenCalled();
+      expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
+    });
+
+    it("should validate the input list if it is passed", async () => {
+      vi.mocked(getExistingDates).mockResolvedValueOnce([]);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testInput.applicationDates);
+
+      await __setApplicationDates(undefined, { input: testInput });
+      expect(getExistingDates).toHaveBeenCalledExactlyOnceWith(testApplicationId);
+      expect(mergeApplicationDates).toHaveBeenCalledExactlyOnceWith([], testInput.applicationDates);
+      expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(testInput.applicationDates);
+    });
+
+    it("should perform upserts in a transaction", async () => {
+      vi.mocked(getExistingDates).mockResolvedValueOnce([]);
+      regularMocks.applicationDate.upsert
+        .mockReturnValueOnce("mock-response-1")
+        .mockReturnValueOnce("mock-response-2");
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testInput.applicationDates);
+      const expectedCalls = [
+        [
+          {
+            where: {
+              applicationId_dateTypeId: {
+                applicationId: testApplicationId,
+                dateTypeId: "Concept Start Date",
+              },
+            },
+            update: {
+              dateValue: testDateValue,
+            },
+            create: {
+              applicationId: testApplicationId,
+              dateTypeId: "Concept Start Date",
+              dateValue: testDateValue,
+            },
+          },
+        ],
+        [
+          {
+            where: {
+              applicationId_dateTypeId: {
+                applicationId: testApplicationId,
+                dateTypeId: "Federal Comment Period End Date",
+              },
+            },
+            update: {
+              dateValue: testDateValue,
+            },
+            create: {
+              applicationId: testApplicationId,
+              dateTypeId: "Federal Comment Period End Date",
+              dateValue: testDateValue,
+            },
+          },
+        ],
+      ];
+
+      await __setApplicationDates(undefined, { input: testInput });
+      expect(regularMocks.applicationDate.upsert.mock.calls).toEqual(expectedCalls);
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledExactlyOnceWith([
+        "mock-response-1",
+        "mock-response-2",
+      ]);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
     });
 
     it("should handle an error appropriately if it occurs", async () => {
-      mockUpsert.mockRejectedValueOnce(testError);
-      await expect(setApplicationDate(undefined, { input: testData })).rejects.toThrowError(
+      vi.mocked(getExistingDates).mockResolvedValueOnce([]);
+      vi.mocked(mergeApplicationDates).mockReturnValueOnce(testInput.applicationDates);
+
+      mockPrismaClient.$transaction.mockRejectedValueOnce(testError);
+      await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
         testHandlePrismaError
       );
-      expect(validateInputDate).toHaveBeenCalledExactlyOnceWith(testData);
+      expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(testInput.applicationDates);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
       expect(getApplication).not.toHaveBeenCalled();
     });
   });
-  describe("getApplicationDatesForPhase", () => {
-    const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
-    const testPhaseId: PhaseName = "Concept";
-    it("should retrieve the requested dates for the phase and application", async () => {
-      const expectedCall = {
-        select: {
-          dateTypeId: true,
-          dateValue: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        where: {
-          applicationId: testApplicationId,
-          dateType: {
-            phaseDateTypes: {
-              some: { phaseId: testPhaseId },
-            },
-          },
-        },
-      };
 
-      await getApplicationDatesForPhase(testApplicationId, testPhaseId);
-      expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+  describe("__setApplicationDate", () => {
+    const testInput: SetApplicationDateInput = {
+      applicationId: testApplicationId,
+      dateType: "BNPMT Initial Meeting Date",
+      dateValue: testDateValue,
+    };
+    const transformedTestInput: SetApplicationDatesInput = {
+      applicationId: testApplicationId,
+      applicationDates: [
+        {
+          dateType: "BNPMT Initial Meeting Date",
+          dateValue: testDateValue,
+        },
+      ],
+    };
+
+    describe("invokes __setApplicationDates with a single item", () => {
+      it("should validate the input list", async () => {
+        vi.mocked(getExistingDates).mockResolvedValueOnce([]);
+        vi.mocked(mergeApplicationDates).mockReturnValueOnce(transformedTestInput.applicationDates);
+
+        await __setApplicationDate(undefined, { input: testInput });
+        expect(getExistingDates).toHaveBeenCalledExactlyOnceWith(testApplicationId);
+        expect(mergeApplicationDates).toHaveBeenCalledExactlyOnceWith(
+          [],
+          transformedTestInput.applicationDates
+        );
+        expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(
+          transformedTestInput.applicationDates
+        );
+      });
+
+      it("should perform upserts in a transaction", async () => {
+        vi.mocked(getExistingDates).mockResolvedValueOnce([]);
+        regularMocks.applicationDate.upsert
+          .mockReturnValueOnce("mock-response-1")
+          .mockReturnValueOnce("mock-response-2");
+        vi.mocked(mergeApplicationDates).mockReturnValueOnce(transformedTestInput.applicationDates);
+        const expectedCalls = [
+          [
+            {
+              where: {
+                applicationId_dateTypeId: {
+                  applicationId: testApplicationId,
+                  dateTypeId: "BNPMT Initial Meeting Date",
+                },
+              },
+              update: {
+                dateValue: testDateValue,
+              },
+              create: {
+                applicationId: testApplicationId,
+                dateTypeId: "BNPMT Initial Meeting Date",
+                dateValue: testDateValue,
+              },
+            },
+          ],
+        ];
+
+        await __setApplicationDate(undefined, { input: testInput });
+        expect(regularMocks.applicationDate.upsert.mock.calls).toEqual(expectedCalls);
+        expect(mockPrismaClient.$transaction).toHaveBeenCalledExactlyOnceWith(["mock-response-1"]);
+        expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
+      });
+
+      it("should handle an error appropriately if it occurs", async () => {
+        vi.mocked(getExistingDates).mockResolvedValueOnce([]);
+        vi.mocked(mergeApplicationDates).mockReturnValueOnce(transformedTestInput.applicationDates);
+
+        mockPrismaClient.$transaction.mockRejectedValueOnce(testError);
+        await expect(__setApplicationDate(undefined, { input: testInput })).rejects.toThrowError(
+          testHandlePrismaError
+        );
+        expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(
+          transformedTestInput.applicationDates
+        );
+        expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
+        expect(getApplication).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe("__resolveApplicationDateType", () => {
+    it("should retrieve the requested date type", () => {
+      const testPrismaResult: PrismaApplicationDate = {
+        applicationId: testApplicationId,
+        dateTypeId: "Concept Start Date",
+        dateValue: testDateValue,
+        createdAt: testDateValue,
+        updatedAt: testDateValue,
+      };
+      const result = __resolveApplicationDateType(testPrismaResult);
+      expect(result).toBe("Concept Start Date");
     });
   });
 });

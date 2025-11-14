@@ -55,3 +55,14 @@ vi.mock("react-oidc-context", () => ({
   }),
   withAuthenticationRequired: (Component: React.ComponentType) => Component,
 }));
+
+// Set default timezone for tests to UTC to avoid timezone-related test failures
+process.env.TZ = "UTC";
+
+// Mock console errors in tests, reducing noise in test output
+// Mostly catches warnings from apollo of the type "No more mocked responses for..."
+global.console = {
+  ...console,
+  error: vi.fn(),
+  warn: vi.fn(),
+};

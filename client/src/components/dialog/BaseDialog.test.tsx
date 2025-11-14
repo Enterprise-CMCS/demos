@@ -8,7 +8,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 describe("BaseDialog", () => {
   const defaultProps = {
     title: "Test Dialog",
-    isOpen: true,
     onClose: vi.fn(),
     children: <div>Dialog content</div>,
   };
@@ -21,13 +20,6 @@ describe("BaseDialog", () => {
     render(<BaseDialog {...defaultProps} />);
     expect(screen.getByText("Test Dialog")).toBeInTheDocument();
     expect(screen.getByText("Dialog content")).toBeInTheDocument();
-  });
-
-  it("does not render when closed", () => {
-    render(<BaseDialog {...defaultProps} isOpen={false} />);
-    const dialog = document.querySelector("dialog");
-    expect(dialog).toBeInTheDocument();
-    expect(dialog?.open).toBe(false);
   });
 
   it("renders and triggers the close button", () => {
@@ -47,7 +39,11 @@ describe("BaseDialog", () => {
         setShowCancelConfirm={setShowCancelConfirm}
       />
     );
-    expect(screen.getByText("Are you sure you want to cancel? Changes you have made so far will not be saved.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Are you sure you want to cancel? Changes you have made so far will not be saved."
+      )
+    ).toBeInTheDocument();
   });
 
   it("calls setShowCancelConfirm(false) when No is clicked", () => {
@@ -96,5 +92,79 @@ describe("BaseDialog", () => {
     render(<BaseDialog {...defaultProps} maxWidthClass="max-w-[500px]" />);
     const dialog = document.querySelector("dialog");
     expect(dialog).toHaveClass("max-w-[500px]");
+  });
+
+  it("calls setShowCancelConfirm(true) when close button is clicked and setShowCancelConfirm is provided", () => {
+    const onClose = vi.fn();
+    const setShowCancelConfirm = vi.fn();
+    render(
+      <BaseDialog {...defaultProps} onClose={onClose} setShowCancelConfirm={setShowCancelConfirm} />
+    );
+    const closeBtn = screen.getByLabelText("Close dialog");
+    fireEvent.click(closeBtn);
+    expect(setShowCancelConfirm).toHaveBeenCalledWith(true);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("calls onClose directly when close button is clicked and setShowCancelConfirm is not provided", () => {
+    const onClose = vi.fn();
+    render(<BaseDialog {...defaultProps} onClose={onClose} />);
+    const closeBtn = screen.getByLabelText("Close dialog");
+    fireEvent.click(closeBtn);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes confirmation dialog when clicking on backdrop", () => {
+    const setShowCancelConfirm = vi.fn();
+    render(
+      <BaseDialog
+        {...defaultProps}
+        showCancelConfirm={true}
+        setShowCancelConfirm={setShowCancelConfirm}
+      />
+    );
+    const confirmDialog = document.querySelectorAll("dialog")[1]; // Second dialog is confirmation
+    fireEvent.click(confirmDialog);
+    expect(setShowCancelConfirm).toHaveBeenCalledWith(false);
+  });
+
+  it("prevents default behavior and keeps dialog open on close event", () => {
+    render(<BaseDialog {...defaultProps} />);
+    const dialog = document.querySelector("dialog");
+    const closeEvent = new Event("close", { cancelable: true });
+    const preventDefaultSpy = vi.spyOn(closeEvent, "preventDefault");
+
+    dialog?.dispatchEvent(closeEvent);
+    expect(preventDefaultSpy).toHaveBeenCalled();
+  });
+
+  it("prevents escape key default behavior when dialog is open", () => {
+    render(<BaseDialog {...defaultProps} />);
+    const escapeEvent = new KeyboardEvent("keydown", {
+      key: "Escape",
+      cancelable: true,
+    });
+    const preventDefaultSpy = vi.spyOn(escapeEvent, "preventDefault");
+    const stopPropagationSpy = vi.spyOn(escapeEvent, "stopPropagation");
+
+    document.dispatchEvent(escapeEvent);
+    expect(preventDefaultSpy).toHaveBeenCalled();
+    expect(stopPropagationSpy).toHaveBeenCalled();
+  });
+
+  it("does not call setShowCancelConfirm when clicking inside confirmation dialog content", () => {
+    const setShowCancelConfirm = vi.fn();
+    render(
+      <BaseDialog
+        {...defaultProps}
+        showCancelConfirm={true}
+        setShowCancelConfirm={setShowCancelConfirm}
+      />
+    );
+    const confirmText = screen.getByText(
+      "Are you sure you want to cancel? Changes you have made so far will not be saved."
+    );
+    fireEvent.click(confirmText);
+    expect(setShowCancelConfirm).not.toHaveBeenCalled();
   });
 });

@@ -45,7 +45,6 @@ describe("AddDocumentDialog", () => {
     render(
       <ToastProvider>
         <AddDocumentDialog
-          isOpen={true}
           onClose={onClose}
           applicationId="test-application-id"
           documentTypeSubset={["General File", "Application Completeness Letter"]}
@@ -172,7 +171,7 @@ describe("RemoveDocumentDialog", () => {
   const setup = (ids: string[] = ["1"], onClose = vi.fn()) => {
     render(
       <ToastProvider>
-        <RemoveDocumentDialog isOpen={true} documentIds={ids} onClose={onClose} />
+        <RemoveDocumentDialog documentIds={ids} onClose={onClose} />
       </ToastProvider>
     );
     return { onClose };
@@ -232,7 +231,7 @@ describe("EditDocumentDialog", () => {
     const onClose = vi.fn();
     render(
       <ToastProvider>
-        <EditDocumentDialog isOpen={true} initialDocument={existingDocument} onClose={onClose} />
+        <EditDocumentDialog initialDocument={existingDocument} onClose={onClose} />
       </ToastProvider>
     );
     return { onClose };

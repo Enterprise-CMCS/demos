@@ -5,12 +5,14 @@ model Application {
   applicationTypeId String @map("application_type_id")
 
   applicationType        ApplicationType         @relation(fields: [applicationTypeId], references: [id])
+  amendment              Amendment?
   demonstration          Demonstration?
-  modification           Modification?
+  extension              Extension?
+  applicationDates       ApplicationDate[]
+  applicationPhases      ApplicationPhase[]
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]
-  applicationPhases      ApplicationPhase[]
-  applicationDates       ApplicationDate[]
+  events                 Event[]
 
   @@unique([id, applicationTypeId])
   @@map("application")

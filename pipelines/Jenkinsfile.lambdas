@@ -11,27 +11,13 @@ pipeline {
 
   stages {
     stage('Lambdas - Snyk - All') {
-      failFast true
-      parallel {
-        stage('Snyk Scan - Authorizer') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/authorizer') }
-            }
-          }
-        }
-        stage('Snyk Scan - DB Role Management') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/dbRoleManagement') }
-            }
-          }
-        }
-        stage('Snyk Scan - File Process') {
-          steps {
-            script {
-              if (hasChange("lambdas")) { snykScan('lambdas/fileprocess') }
-            }
+      steps {
+        script {
+          if (hasChange("lambdas")) { 
+            snykScan('lambdas/authorizer') 
+            snykScan('lambdas/dbRoleManagement')
+            snykScan('lambdas/fileprocess')
+            snykScan('lambdas/emailer')
           }
         }
       }
@@ -85,6 +71,21 @@ pipeline {
             }
           }
         }
+        stage('Unit Test - Emailer') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/emailer', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -108,6 +109,7 @@ pipeline {
                   "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
                   "pullrequest.base": env.CHANGE_TARGET ?: null,
                   "exclusions": "**/*.test.ts,**/*.test.tsx,**/coverage/**,**/jest.config.cjs,**/vite.config.ts",
+                  "cpd.exclusions": "**/log.ts",
                   "sources": "./",
                   "tests": "./",
                 ]
