@@ -2,17 +2,15 @@ import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { DeleteIcon, ExportIcon } from "components/icons";
-import { addDays } from "date-fns";
+import { addDays, parseISO } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer } from "util/formatDate";
-import { parseInputDate } from "util/parseDate";
+import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { getStartOfDateEST, getNowEst } from "../dates/applicationDates";
 import { useMutation, gql } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
 
@@ -42,7 +40,7 @@ const STYLES = {
 
 // Calculate completeness review due date (submitted date + 15 calendar days)
 export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
-  const date = parseInputDate(stateApplicationSubmittedDate);
+  const date = parseISO(stateApplicationSubmittedDate);
   return addDays(date, 15);
 };
 
@@ -112,7 +110,7 @@ export const ApplicationIntakePhase = ({
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
   const onFinishButtonClick = async () => {
-    const todayDate = getNowEst();
+    const todayDate = getTodayEst();
     await completeApplicationIntake();
 
     await setApplicationDateMutation({
@@ -128,7 +126,7 @@ export const ApplicationIntakePhase = ({
   };
 
   const handleDocumentUploadSucceeded = async () => {
-    const todayDate = getNowEst();
+    const todayDate = getTodayEst();
     setStateApplicationSubmittedDate(formatDateForServer(todayDate));
 
     await setApplicationDateMutation({

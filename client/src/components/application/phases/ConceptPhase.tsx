@@ -10,9 +10,8 @@ import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
-import { formatDateForServer } from "util/formatDate";
+import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
-import { getIsoDateString, getNowEst, getStartOfDateEST } from "../dates/applicationDates";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 
@@ -80,7 +79,7 @@ export const ConceptPhase = ({
   });
 
   const handleDocumentUploadSucceeded = async () => {
-    setDateSubmitted(formatDateForServer(getNowEst()));
+    setDateSubmitted(getTodayEst());
   };
 
   React.useEffect(() => {

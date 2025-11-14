@@ -4,8 +4,7 @@ import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForServer } from "util/formatDate";
-import { parseInputDate } from "util/parseDate";
-import { addDays } from "date-fns";
+import { addDays, parseISO } from "date-fns";
 import { gql, useMutation } from "@apollo/client";
 import {
   ApplicationWorkflowDemonstration,
@@ -176,7 +175,7 @@ export const CompletenessPhase = ({
       return;
     }
 
-    const parsedStateDate = parseInputDate(stateDeemedComplete);
+    const parsedStateDate = parseISO(stateDeemedComplete);
     const computedStartDate = addDays(parsedStateDate, 1);
     const computedEndDate = addDays(computedStartDate, FEDERAL_COMMENT_PERIOD_DAYS);
 
@@ -369,12 +368,14 @@ export const CompletenessPhase = ({
 
   return (
     <div>
-      {fedCommentEndDate && <DueDateNotice
-        dueDate={fedCommentEndDate}
-        phaseComplete={fedCommentComplete}
-        shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={false}
-        descriptionToAppendDateTo="his Amendment must be declared complete by"
-      />}
+      {fedCommentEndDate && (
+        <DueDateNotice
+          dueDate={fedCommentEndDate}
+          phaseComplete={fedCommentComplete}
+          shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={false}
+          descriptionToAppendDateTo="his Amendment must be declared complete by"
+        />
+      )}
       <button
         className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
         onClick={() => setCollapsed((prev) => !prev)}

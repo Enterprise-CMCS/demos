@@ -17,8 +17,7 @@ import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
 } from "../ApplicationWorkflow";
-import { formatDateForServer } from "util/formatDate";
-import { getNowEst } from "../dates/applicationDates";
+import { formatDateForServer, getTodayEst } from "util/formatDate";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -392,7 +391,7 @@ describe("ApplicationIntakePhase", () => {
 
   describe("handleDocumentUploadSucceeded", () => {
     it("date field should have today's date after document upload", async () => {
-      const todayString = formatDateForServer(getNowEst());
+      const todayString = getTodayEst();
 
       setup({
         initialStateApplicationSubmittedDate: todayString,
