@@ -67,7 +67,7 @@ export const InputSandbox: React.FC = () => {
         />
       </div>
       <div className="mt-3">
-        <SelectUSAStates isRequired={isRequired} isDisabled={disabled} onStateChange={setStatus} />
+        <SelectUSAStates isRequired={isRequired} isDisabled={disabled} onSelect={setStatus} />
       </div>
       <div className="mt-3">
         <SelectUsers
@@ -75,7 +75,7 @@ export const InputSandbox: React.FC = () => {
           label="Project Officers (default U ID is 123)"
           isDisabled={disabled}
           onSelect={setStatus}
-          initialUserId={String(currentUserId)}
+          value={String(currentUserId)}
         />
       </div>
       {status && (

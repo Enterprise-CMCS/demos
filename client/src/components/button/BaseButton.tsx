@@ -42,7 +42,7 @@ const getCircleClasses = (isCircle: boolean) => {
 
 export interface ButtonProps {
   name: string;
-  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children: React.ReactNode;
   className: string;
   ariaLabel?: string;

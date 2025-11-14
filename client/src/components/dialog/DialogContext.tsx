@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
-import { AmendmentDialog } from "./AmendmentDialog";
-import { ExtensionDialog } from "./ExtensionDialog";
+import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
+import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
 import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
@@ -54,13 +54,19 @@ export const useDialog = () => {
 
   const showCreateAmendmentDialog = (demonstrationId?: string) => {
     context.showDialog(
-      <AmendmentDialog demonstrationId={demonstrationId} mode="add" onClose={context.hideDialog} />
+      <CreateAmendmentDialog
+        initialDemonstrationId={demonstrationId}
+        onClose={context.hideDialog}
+      />
     );
   };
 
   const showCreateExtensionDialog = (demonstrationId?: string) => {
     context.showDialog(
-      <ExtensionDialog demonstrationId={demonstrationId} mode="add" onClose={context.hideDialog} />
+      <CreateExtensionDialog
+        initialDemonstrationId={demonstrationId}
+        onClose={context.hideDialog}
+      />
     );
   };
 

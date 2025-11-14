@@ -38,36 +38,33 @@ vi.mock("./demonstration", () => ({
     </div>
   ),
 }));
-vi.mock("./AmendmentDialog", () => ({
-  AmendmentDialog: ({
-    demonstrationId,
-    mode,
+vi.mock("./modification/CreateAmendmentDialog", () => ({
+  CreateAmendmentDialog: ({
+    initialDemonstrationId,
     onClose,
   }: {
-    demonstrationId?: string;
-    mode: string;
+    initialDemonstrationId?: string;
     onClose: () => void;
   }) => (
     <div data-testid="amendment-dialog">
-      Amendment Dialog {demonstrationId} {mode}
+      Amendment Dialog {initialDemonstrationId} create
       <button data-testid="close-amendment-btn" onClick={onClose}>
         Close
       </button>
     </div>
   ),
 }));
-vi.mock("./ExtensionDialog", () => ({
-  ExtensionDialog: ({
-    demonstrationId,
-    mode,
+
+vi.mock("./modification/CreateExtensionDialog", () => ({
+  CreateExtensionDialog: ({
+    initialDemonstrationId,
     onClose,
   }: {
-    demonstrationId?: string;
-    mode: string;
+    initialDemonstrationId?: string;
     onClose: () => void;
   }) => (
     <div data-testid="extension-dialog">
-      Extension Dialog {demonstrationId} {mode}
+      Extension Dialog {initialDemonstrationId} create
       <button data-testid="close-extension-btn" onClick={onClose}>
         Close
       </button>

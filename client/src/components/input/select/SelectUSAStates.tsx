@@ -4,29 +4,26 @@ import { AutoCompleteSelect } from "./AutoCompleteSelect";
 import { Option } from "./Select";
 
 export interface SelectUSAStatesProps {
-  onStateChange: (abbr: string) => void;
+  value?: string;
+  onSelect: (abbr: string) => void;
   label?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
-  currentState?: string;
-  value?: string;
 }
 
 export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
-  onStateChange,
+  value,
+  onSelect,
   label = "US State or Territory",
   isRequired = false,
   isDisabled = false,
-  currentState,
-  value,
 }) => {
   const options: Option[] = STATES_AND_TERRITORIES.map((state) => ({
     value: state.id,
     label: state.name,
   }));
 
-  const selectedValue = value ?? currentState;
-  const selectedOption = options.find((o) => o.value === selectedValue);
+  const selectedOption = options.find((o) => o.value === value);
 
   return (
     <AutoCompleteSelect
@@ -35,7 +32,7 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
       label={label}
       options={options}
       placeholder={`Select ${label.toLowerCase()}…`}
-      onSelect={onStateChange}
+      onSelect={onSelect}
       isRequired={isRequired}
       isDisabled={isDisabled}
       value={selectedOption?.value}

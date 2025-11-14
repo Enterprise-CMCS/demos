@@ -19,8 +19,8 @@ export const GET_USER_SELECT_OPTIONS_QUERY = gql`
 type Person = Pick<ServerPerson, "id" | "fullName" | "personType" | "firstName" | "lastName">;
 
 export interface SelectUsersProps {
+  value?: string;
   onSelect: (id: string) => void;
-  initialUserId?: string;
   label?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
@@ -35,20 +35,14 @@ const getOptionsFromPeople = (people: Person[]): Option[] => {
 };
 
 export const SelectUsers: React.FC<SelectUsersProps> = ({
+  value,
   onSelect,
-  initialUserId,
   label = "Users",
   isRequired = false,
   isDisabled = false,
   personTypes,
 }) => {
-  const [selectedUserId, setSelectedUserId] = React.useState<string>(initialUserId || "");
   const { data, loading, error } = useQuery<{ people: Person[] }>(GET_USER_SELECT_OPTIONS_QUERY);
-
-  const handleSelect = (id: string) => {
-    setSelectedUserId(id);
-    onSelect(id);
-  };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error loading users.</p>;
@@ -66,10 +60,10 @@ export const SelectUsers: React.FC<SelectUsersProps> = ({
       label={label}
       options={getOptionsFromPeople(people)}
       placeholder={`Select ${label.toLowerCase()}…`}
-      onSelect={handleSelect}
+      onSelect={onSelect}
       isRequired={isRequired}
       isDisabled={isDisabled || loading || !!error}
-      value={selectedUserId}
+      value={value}
     />
   );
 };
