@@ -9,7 +9,11 @@ import { useDialog } from "components/dialog/DialogContext";
 import { DocumentType } from "demos-server";
 
 export function ApprovalPackageColumns(demonstrationId: string) {
-  const { showApprovalPackageDocumentUploadDialog } = useDialog();
+  const {
+    showApprovalPackageDocumentUploadDialog,
+    showEditDocumentDialog,
+    showRemoveDocumentDialog,
+  } = useDialog();
 
   const columnHelper = createColumnHelper<ApprovalPackageTableRow>();
 
@@ -42,19 +46,18 @@ export function ApprovalPackageColumns(demonstrationId: string) {
     columnHelper.display({
       id: "actions",
       cell: ({ row }) => {
-        const doc = row.original;
-        const hasFile = !!doc.id;
+        const doc = row.original.document;
 
         return (
           <div className="flex gap-2 justify-center">
-            {!hasFile ? (
+            {!doc ? (
               <SecondaryButton
-                name={`upload-${doc.documentType}`}
-                ariaLabel={`Upload ${doc.documentType}`}
+                name={`upload-${row.original.documentType}`}
+                ariaLabel={`Upload ${row.original.documentType}`}
                 onClick={() =>
                   showApprovalPackageDocumentUploadDialog(
                     demonstrationId,
-                    doc.documentType as DocumentType
+                    row.original.documentType as DocumentType
                   )
                 }
               >
@@ -65,14 +68,14 @@ export function ApprovalPackageColumns(demonstrationId: string) {
                 <TertiaryButton
                   name={`edit-${doc.documentType}`}
                   ariaLabel={`Edit ${doc.documentType}`}
-                  onClick={() => {}
-                    // showEditDocumentDialog({
-                    //   id: doc.id!,
-                    //   name: doc.title || "",
-                    //   description: doc.description || "",
-                    //   documentType: doc.type,
-                    //   file: null,
-                    // })
+                  onClick={() =>
+                    showEditDocumentDialog({
+                      id: doc.id!,
+                      name: doc.name,
+                      description: doc.description,
+                      file: null,
+                      documentType: doc.documentType as DocumentType,
+                    })
                   }
                 >
                   <EditIcon />
@@ -80,7 +83,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
                 <TertiaryButton
                   name={`delete-${doc.documentType}`}
                   ariaLabel={`Delete ${doc.documentType}`}
-                  onClick={() => { /* TODO: DELETE DOCUMENT */}}
+                  onClick={() => showRemoveDocumentDialog([doc.id])}
                 >
                   <DeleteIcon />
                 </TertiaryButton>

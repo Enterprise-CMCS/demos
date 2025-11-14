@@ -22,7 +22,6 @@ const REQUIRED_TYPES: DocumentType[] = [
 export const getApprovalPackagePhase = (
   demonstration: ApplicationWorkflowDemonstration
 ) => {
-  console.log(demonstration);
   const formulationWorkbookDocument = demonstration?.documents.find(
     (doc) => doc.documentType === "Final Budget Neutrality Formulation Workbook"
   );
@@ -72,6 +71,7 @@ export const ApprovalPackagePhase = ({
         description: "-",
         uploadedBy: "-",
         uploadedDate: "-",
+        document: undefined,
       };
     }
 
@@ -82,6 +82,7 @@ export const ApprovalPackagePhase = ({
       description: doc.description || "-",
       uploadedBy: doc.owner?.person?.fullName || "-",
       uploadedDate: formatDate(doc.createdAt) || "-",
+      document: doc,
     };
   });
 
