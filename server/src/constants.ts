@@ -61,6 +61,7 @@ export const DOCUMENT_TYPES = [
   "Pre-Submission",
   "Q&A",
   "Signed Decision Memo",
+  "Special Terms & Conditions",
   "State Application",
 ] as const;
 
