@@ -80,8 +80,7 @@ export const ConceptPhase = ({
   });
 
   const handleDocumentUploadSucceeded = async () => {
-    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
-    setDateSubmitted(formatDateForServer(todayDate));
+    setDateSubmitted(formatDateForServer(getNowEst()));
   };
 
   React.useEffect(() => {

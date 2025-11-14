@@ -13,7 +13,7 @@ import {
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { getIsoDateString, getStartOfDateEST, getNowEst } from "../dates/applicationDates";
+import { getStartOfDateEST, getNowEst } from "../dates/applicationDates";
 import { useMutation, gql } from "@apollo/client";
 
 /** Business Rules for this Phase:
@@ -112,7 +112,7 @@ export const ApplicationIntakePhase = ({
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
   const onFinishButtonClick = async () => {
-    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
+    const todayDate = getNowEst();
     await completeApplicationIntake();
 
     await setApplicationDateMutation({
@@ -128,7 +128,7 @@ export const ApplicationIntakePhase = ({
   };
 
   const handleDocumentUploadSucceeded = async () => {
-    const todayDate = getStartOfDateEST(getIsoDateString(getNowEst()));
+    const todayDate = getNowEst();
     setStateApplicationSubmittedDate(formatDateForServer(todayDate));
 
     await setApplicationDateMutation({
@@ -158,13 +158,12 @@ export const ApplicationIntakePhase = ({
     setStateApplicationSubmittedDate(newDate);
 
     if (newDate) {
-      const parsedDate = parseInputDate(newDate);
       await setApplicationDateMutation({
         variables: {
           input: {
             applicationId: demonstrationId,
             dateType: "State Application Submitted Date",
-            dateValue: parsedDate,
+            dateValue: newDate,
           },
         },
         refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
@@ -175,7 +174,7 @@ export const ApplicationIntakePhase = ({
           input: {
             applicationId: demonstrationId,
             dateType: "Completeness Start Date",
-            dateValue: parsedDate,
+            dateValue: newDate,
           },
         },
         refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
