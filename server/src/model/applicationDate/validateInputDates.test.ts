@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { __makeEmptyValidations, validateInputDates } from "./validateInputDates.js";
+import {
+  __makeEmptyValidations,
+  ApplicationDateMap,
+  validateInputDates,
+} from "./validateInputDates.js";
 import { DateType, ParsedApplicationDateInput } from "../../types.js";
-import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
+import { DATE_TYPES, DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 
 import {
   checkInputDateIsStartOfDay,
@@ -10,7 +14,6 @@ import {
   __checkInputDateGreaterThanOrEqual,
   __checkInputDateMeetsOffset,
   DateOffset,
-  ApplicationDateMap,
 } from "./checkInputDateFunctions.js";
 
 vi.mock("./checkInputDateFunctions.js", () => ({
@@ -57,62 +60,65 @@ describe("validateInputDates", () => {
 
   describe("validateInputDates", () => {
     const testDateValue = new Date("2025-01-01T05:00:00Z");
+    const startOfDayDateTypes: DateType[] = [
+      "Concept Start Date",
+      "Pre-Submission Submitted Date",
+      "Concept Completion Date",
+      "Concept Skipped Date",
+      "Application Intake Start Date",
+      "State Application Submitted Date",
+      "Application Intake Completion Date",
+      "Completeness Start Date",
+      "State Application Deemed Complete",
+      "Federal Comment Period Start Date",
+      "Completeness Completion Date",
+      "SDG Preparation Start Date",
+      "Expected Approval Date",
+      "SME Review Date",
+      "FRT Initial Meeting Date",
+      "BNPMT Initial Meeting Date",
+      "SDG Preparation Completion Date",
+      "OGC & OMB Review Start Date",
+      "OGC Review Complete",
+      "OMB Review Complete",
+      "PO & OGD Sign-Off",
+      "OGC & OMB Review Completion Date",
+      "Approval Package Start Date",
+      "Approval Package Completion Date",
+    ];
+    const endOfDayDateTypes: DateType[] = [
+      "Federal Comment Period End Date",
+      "Completeness Review Due Date",
+    ];
 
     it("should run checkInputDateIsStartOfDay on start of day dates", () => {
-      const startOfDayDateTypes: DateType[] = [
-        "Concept Start Date",
-        "Pre-Submission Submitted Date",
-        "Concept Completion Date",
-        "Application Intake Start Date",
-        "State Application Submitted Date",
-        "Application Intake Completion Date",
-        "Completeness Start Date",
-        "State Application Deemed Complete",
-        "Federal Comment Period Start Date",
-        "Completeness Completion Date",
-        "SDG Preparation Start Date",
-        "Expected Approval Date",
-        "SME Review Date",
-        "FRT Initial Meeting Date",
-        "BNPMT Initial Meeting Date",
-        "SDG Preparation Completion Date",
-        "OGC & OMB Review Start Date",
-        "OGC Review Complete",
-        "OMB Review Complete",
-        "PO & OGD Sign-Off",
-        "OGC & OMB Review Completion Date",
-        "Approval Package Start Date",
-        "Approval Package Completion Date",
-      ];
       const testInput: ParsedApplicationDateInput[] = [];
       const expectedCalls = [];
-      for (const dateType of startOfDayDateTypes) {
+      for (const dateType of DATE_TYPES) {
         testInput.push({ dateType: dateType, dateValue: testDateValue });
-        expectedCalls.push([dateType, testDateValue]);
+        if (startOfDayDateTypes.includes(dateType)) {
+          expectedCalls.push([dateType, testDateValue]);
+        }
       }
 
       validateInputDates(testInput);
       expect(checkInputDateIsStartOfDay).toBeCalledTimes(startOfDayDateTypes.length);
       expect(vi.mocked(checkInputDateIsStartOfDay).mock.calls).toEqual(expectedCalls);
-      expect(checkInputDateIsEndOfDay).toBeCalledTimes(0);
     });
 
     it("should run checkInputDateIsEndOfDay on end of day dates", () => {
-      const endOfDayDateTypes: DateType[] = [
-        "Federal Comment Period End Date",
-        "Completeness Review Due Date",
-      ];
       const testInput: ParsedApplicationDateInput[] = [];
       const expectedCalls = [];
-      for (const dateType of endOfDayDateTypes) {
+      for (const dateType of DATE_TYPES) {
         testInput.push({ dateType: dateType, dateValue: testDateValue });
-        expectedCalls.push([dateType, testDateValue]);
+        if (endOfDayDateTypes.includes(dateType)) {
+          expectedCalls.push([dateType, testDateValue]);
+        }
       }
 
       validateInputDates(testInput);
       expect(checkInputDateIsEndOfDay).toBeCalledTimes(endOfDayDateTypes.length);
       expect(vi.mocked(checkInputDateIsEndOfDay).mock.calls).toEqual(expectedCalls);
-      expect(checkInputDateIsStartOfDay).toBeCalledTimes(0);
     });
 
     it("should run __checkInputDateGreaterThan on dates with that check", () => {
