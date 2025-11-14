@@ -1,10 +1,17 @@
 import React from "react";
 import {
   BaseCreateModificationDialog,
-  CreateModificationDialogProps,
+  CreateModificationFormFields,
 } from "./BaseCreateModificationDialog";
-import { gql } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
+import { useToast } from "components/toast";
+import { Amendment as ServerAmendment, Demonstration } from "demos-server";
 
+type Amendment = Pick<ServerAmendment, "id"> & {
+  demonstration: Pick<Demonstration, "id"> & {
+    amendments: Pick<ServerAmendment, "id">[];
+  };
+};
 export const CREATE_AMENDMENT_MUTATION = gql`
   mutation CreateAmendment($input: CreateAmendmentInput!) {
     createAmendment(input: $input) {
@@ -19,12 +26,52 @@ export const CREATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-export const CreateAmendmentDialog: React.FC<CreateModificationDialogProps> = (
-  createAmendmentDialogProps
-) => (
-  <BaseCreateModificationDialog
-    {...createAmendmentDialogProps}
-    modificationType={"Amendment"}
-    createModificationDialogMutation={CREATE_AMENDMENT_MUTATION}
-  />
-);
+export const CreateAmendmentDialog: React.FC<{
+  onClose: () => void;
+  initialDemonstrationId?: string;
+}> = ({ onClose, initialDemonstrationId }) => {
+  const { showSuccess, showError } = useToast();
+  const [triggerCreateAmendment] = useMutation<{ amendment: Amendment }>(CREATE_AMENDMENT_MUTATION);
+
+  const handleError = (error?: unknown) => {
+    showError("Error creating amendment.");
+    console.error(error || "Unknown error");
+    onClose();
+  };
+
+  const createAmendment = async ({
+    name,
+    description,
+    demonstrationId,
+  }: CreateModificationFormFields) => {
+    try {
+      const result = await triggerCreateAmendment({
+        variables: {
+          input: {
+            name: name,
+            description: description,
+            demonstrationId: demonstrationId,
+          },
+        },
+      });
+
+      if (!result.data?.amendment) {
+        handleError();
+      }
+
+      showSuccess("Amendment created successfully.");
+      onClose();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  return (
+    <BaseCreateModificationDialog
+      onClose={onClose}
+      initialDemonstrationId={initialDemonstrationId}
+      modificationType="Amendment"
+      handleSubmit={createAmendment}
+    />
+  );
+};

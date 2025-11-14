@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { DocumentNode, gql, useLazyQuery, useMutation } from "@apollo/client";
+import React, { useState } from "react";
+import { gql, useQuery } from "@apollo/client";
 import { BaseDialog } from "../BaseDialog";
 import { Button, SecondaryButton } from "components/button";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
@@ -7,12 +7,11 @@ import { TextInput } from "components/input";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { tw } from "tags/tw";
 import { useToast } from "components/toast";
+import { Demonstration as ServerDemonstration, State } from "demos-server";
 
-export type CreateModificationDialogProps = {
-  onClose: () => void;
-  initialDemonstrationId?: string;
+type Demonstration = Pick<ServerDemonstration, "id"> & {
+  state: Pick<State, "id">;
 };
-
 export const CREATE_MODIFICATION_DIALOG_QUERY = gql`
   query CreateModificationDialog($id: ID!) {
     demonstration(id: $id) {
@@ -24,7 +23,8 @@ export const CREATE_MODIFICATION_DIALOG_QUERY = gql`
   }
 `;
 
-type CreateModificationFormFields = {
+export type CreateModificationFormFields = {
+  demonstrationId?: string;
   name?: string;
   description?: string;
   stateId?: string;
@@ -34,90 +34,47 @@ interface BaseCreateModificationDialogProps {
   onClose: () => void;
   initialDemonstrationId?: string;
   modificationType: "Amendment" | "Extension";
-  createModificationDialogMutation: DocumentNode;
+  handleSubmit: (formFields: CreateModificationFormFields) => Promise<void>;
 }
-
 export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialogProps> = ({
   onClose,
   initialDemonstrationId,
   modificationType,
-  createModificationDialogMutation,
+  handleSubmit,
 }) => {
-  const [demonstrationId, setDemonstrationId] = useState(initialDemonstrationId);
+  const [loading, setLoading] = useState(false);
   const [createModificationFormFields, setCreateModificationFormFields] =
-    useState<CreateModificationFormFields>({});
+    useState<CreateModificationFormFields>({
+      demonstrationId: initialDemonstrationId,
+    });
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const { showSuccess, showError } = useToast();
+  const { showError } = useToast();
 
-  const [
-    triggerCreateModificationDialogQuery,
-    { data: createModificationDialogQueryData, error: createModificationDialogQueryError },
-  ] = useLazyQuery(CREATE_MODIFICATION_DIALOG_QUERY, {
-    variables: { id: demonstrationId },
-  });
-
-  const [
-    triggerCreateModificationDialogMutation,
-    {
-      data: createModificationDialogMutationData,
-      loading: createModificationDialogMutationLoading,
-      error: createModificationDialogMutationError,
+  useQuery<{ demonstration: Demonstration }>(CREATE_MODIFICATION_DIALOG_QUERY, {
+    variables: { id: createModificationFormFields.demonstrationId },
+    skip: !createModificationFormFields.demonstrationId,
+    onCompleted: (data) => {
+      setCreateModificationFormFields((fields) => ({
+        ...fields,
+        stateId: data.demonstration.state.id,
+      }));
     },
-  ] = useMutation(createModificationDialogMutation, {
-    variables: {
-      input: {
-        name: createModificationFormFields.name,
-        description: createModificationFormFields.description,
-        demonstrationId,
-      },
-    },
-  });
-
-  useEffect(() => {
-    if (demonstrationId) {
-      triggerCreateModificationDialogQuery();
-    }
-  }, [demonstrationId]);
-
-  const demonstration = createModificationDialogQueryData?.demonstration;
-  useEffect(() => {
-    if (!demonstration) return;
-    setCreateModificationFormFields((fields) => ({
-      ...fields,
-      stateId: demonstration.state.id,
-    }));
-  }, [demonstration]);
-
-  useEffect(() => {
-    if (createModificationDialogMutationData) {
-      showSuccess(`${modificationType} created successfully.`);
-      onClose();
-    }
-    if (createModificationDialogMutationError) {
-      showError(`Error creating ${modificationType.toLowerCase()}.`);
-      console.error(createModificationDialogMutationError);
-      onClose();
-    }
-    if (createModificationDialogQueryError) {
+    onError: (error) => {
       showError("Error loading demonstration data.");
-      console.error(createModificationDialogQueryError);
+      console.error(error);
       onClose();
-    }
-  }, [
-    createModificationDialogMutationData,
-    createModificationDialogMutationError,
-    createModificationDialogQueryError,
-    showSuccess,
-    showError,
-    onClose,
-  ]);
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      await triggerCreateModificationDialogMutation();
+      await handleSubmit(createModificationFormFields);
     } catch (error) {
       console.error("Error during mutation:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -143,11 +100,12 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
             type="submit"
             form={`create-${modificationType.toLowerCase()}`}
             disabled={
-              !(demonstrationId && createModificationFormFields.name) ||
-              createModificationDialogMutationLoading
+              !(
+                createModificationFormFields.demonstrationId && createModificationFormFields.name
+              ) || loading
             }
           >
-            {createModificationDialogMutationLoading ? "Saving..." : "Submit"}
+            {loading ? "Saving..." : "Submit"}
           </Button>
         </>
       }
@@ -155,14 +113,19 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
       <form
         id={`create-${modificationType.toLowerCase()}`}
         className="space-y-4"
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
       >
         <div>
           <SelectDemonstration
             isRequired
             isDisabled={!!initialDemonstrationId}
-            onSelect={setDemonstrationId}
-            value={demonstrationId}
+            onSelect={(value) => {
+              setCreateModificationFormFields({
+                ...createModificationFormFields,
+                demonstrationId: value,
+              });
+            }}
+            value={createModificationFormFields.demonstrationId}
           />
         </div>
 
@@ -187,7 +150,7 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
               label="State/Territory"
               isRequired
               isDisabled
-              value={demonstration?.state.id}
+              value={createModificationFormFields.stateId}
               onSelect={() => {}}
             />
           </div>
