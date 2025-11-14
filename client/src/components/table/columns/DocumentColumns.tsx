@@ -9,10 +9,10 @@ import { isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDate } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
 import { DOCUMENT_TYPES } from "demos-server-constants";
-import { DocumentTableDocument } from "../tables/DocumentTable";
+import { Document } from "../tables/DocumentTable";
 
 export function DocumentColumns() {
-  const columnHelper = createColumnHelper<DocumentTableDocument>();
+  const columnHelper = createColumnHelper<Document>();
 
   return [
     createSelectColumnDef(columnHelper),

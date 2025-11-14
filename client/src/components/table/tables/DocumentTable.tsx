@@ -8,32 +8,68 @@ import { DocumentColumns } from "../columns/DocumentColumns";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
-import { Document, Person } from "demos-server";
+import { Document as ServerDocument, Person } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
+import { gql, useQuery } from "@apollo/client";
 
-export type DocumentTableDocument = Pick<
-  Document,
+export type Document = Pick<
+  ServerDocument,
   "id" | "name" | "description" | "documentType" | "createdAt"
 > & {
   owner: { person: Pick<Person, "fullName"> };
 };
 
+export const DOCUMENTS_TABLE_QUERY = gql`
+  query DocumentsTable($id: ID!) {
+    demonstration(id: $id) {
+      documents {
+        id
+        name
+        description
+        documentType
+        createdAt
+        owner {
+          person {
+            fullName
+          }
+        }
+      }
+    }
+  }
+`;
+
 export type DocumentsTableProps = {
   applicationId: string;
-  documents: DocumentTableDocument[];
 };
-export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, documents }) => {
-  const documentColumns = DocumentColumns();
+export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId }) => {
   const { showUploadDocumentDialog, showEditDocumentDialog, showRemoveDocumentDialog } =
     useDialog();
+  const { data, loading, error } = useQuery<{ demonstration: { documents: Document[] } }>(
+    DOCUMENTS_TABLE_QUERY,
+    {
+      variables: { id: applicationId },
+    }
+  );
+
+  if (loading) {
+    return <div>Loading documents...</div>;
+  }
+
+  if (error || !data) {
+    return <div>Error loading documents.</div>;
+  }
+
+  const documents = data.demonstration.documents;
+
   const initialState = {
     sorting: [{ id: "createdAt", desc: true }],
   };
+  const documentColumns = DocumentColumns();
 
   return (
     <div className="overflow-x-auto w-full mb-2">
       {documentColumns && (
-        <Table<DocumentTableDocument>
+        <Table<Document>
           data={documents}
           columns={documentColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}

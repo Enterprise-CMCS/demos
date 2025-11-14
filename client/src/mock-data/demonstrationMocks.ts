@@ -9,6 +9,7 @@ import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
+import { DOCUMENTS_TABLE_QUERY } from "components/table/tables/DocumentTable";
 
 import { MockedResponse } from "@apollo/client/testing";
 
@@ -214,6 +215,15 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     result: {
       data: { createDemonstration: mockDemonstrations[2] },
+    },
+  },
+  {
+    request: {
+      query: DOCUMENTS_TABLE_QUERY,
+      variables: { id: "1" },
+    },
+    result: {
+      data: { demonstration: mockDemonstrations[0] },
     },
   },
   // Update demonstration mock - flexible for various update scenarios

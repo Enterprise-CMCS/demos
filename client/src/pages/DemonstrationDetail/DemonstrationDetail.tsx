@@ -37,16 +37,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       }
       documents {
         id
-        name
-        description
-        documentType
-        phaseName
-        createdAt
-        owner {
-          person {
-            fullName
-          }
-        }
       }
       roles {
         role
@@ -64,9 +54,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
   amendments: Pick<Amendment, "id" | "name" | "effectiveDate" | "status">[];
   extensions: Pick<Extension, "id" | "name" | "effectiveDate" | "status">[];
-  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
-    owner: { person: Pick<Person, "fullName"> };
-  })[];
+  documents: Pick<Document, "id">[];
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
     person: Pick<Person, "id" | "fullName" | "email">;
   })[];

@@ -8,7 +8,6 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 
 import { DocumentTable } from "./DocumentTable";
-import { mockDocuments } from "mock-data/documentMocks";
 
 const showUploadDocumentDialog = vi.fn();
 const showEditDocumentDialog = vi.fn();
@@ -25,9 +24,12 @@ describe("DocumentTable", () => {
   beforeEach(() => {
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
-        <DocumentTable applicationId="test-application-id" documents={mockDocuments} />
+        <DocumentTable applicationId="1" />
       </MockedProvider>
     );
+    waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
   });
 
   it("renders action buttons (add/edit)", async () => {

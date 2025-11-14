@@ -3,7 +3,6 @@ import React from "react";
 import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
 import { IconButton } from "components/button";
 import {
-  AddNewIcon,
   CharacteristicIcon,
   DetailsIcon,
   EditIcon,
@@ -11,7 +10,6 @@ import {
   StackIcon,
 } from "components/icons";
 import { ContactsTable } from "components/table/tables/ContactsTable";
-import { DocumentTable } from "components/table/tables/DocumentTable";
 import {
   Demonstration,
   DemonstrationRoleAssignment,
@@ -23,17 +21,14 @@ import { Tab, VerticalTabs } from "layout/Tabs";
 
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 import { useDialog } from "components/dialog/DialogContext";
+import { DocumentsTab } from "./DocumentsTab";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email">;
 };
 
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
-  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
-    owner: {
-      person: Pick<Person, "fullName">;
-    };
-  })[];
+  documents: Pick<Document, "id">[];
   roles: Role[];
   currentPhaseName: PhaseName;
 };
@@ -41,7 +36,7 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status">
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
-  const { showManageContactsDialog, showUploadDocumentDialog } = useDialog();
+  const { showManageContactsDialog } = useDialog();
 
   return (
     <div className="p-[16px]">
@@ -59,18 +54,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           label={`Documents (${demonstration.documents?.length ?? 0})`}
           value="documents"
         >
-          <div className="flex justify-between items-center pb-1 mb-2 border-b border-brand">
-            <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
-            <IconButton
-              icon={<AddNewIcon />}
-              name="add-new-document"
-              size="small"
-              onClick={() => showUploadDocumentDialog(demonstration.id)}
-            >
-              Add Document
-            </IconButton>
-          </div>
-          <DocumentTable applicationId={demonstration.id} documents={demonstration.documents} />
+          <DocumentsTab demonstrationId={demonstration.id} />
         </Tab>
         <Tab
           icon={<CharacteristicIcon />}
