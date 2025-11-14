@@ -76,8 +76,25 @@ export class DatabaseStack extends Stack {
       parameters: {
         shared_preload_libraries: "pg_stat_statements,pg_tle,pg_cron"
       }
-    })
+    });
 
+     // Role required for RDS Enhanced Monitoring (Datadog)
+    const rdsMonitoringRole = new aws_iam.Role(
+      commonProps.scope,
+      "rdsEnhancedMonitoringRole",
+      {
+        assumedBy: new aws_iam.ServicePrincipal(
+          "monitoring.rds.amazonaws.com"
+        ),
+        managedPolicies: [
+          aws_iam.ManagedPolicy.fromAwsManagedPolicyName(
+            "service-role/AmazonRDSEnhancedMonitoringRole"
+          ),
+        ],
+        description: `Enhanced Monitoring role for ${commonProps.project} ${commonProps.stage} RDS`,
+      }
+    );
+    
     const dbInstance = new aws_rds.DatabaseInstance(
       commonProps.scope,
       `${commonProps.project}-${commonProps.stage}-rds`,
@@ -104,12 +121,16 @@ export class DatabaseStack extends Stack {
         cloudwatchLogsRetention: RetentionDays.THREE_MONTHS,
         storageEncryptionKey: rdsKMSKey,
         port: 15432,
-        parameterGroup: parameterGroup
+        parameterGroup: parameterGroup,
+
+        // Datadog / Enhanced Monitoring
+        monitoringInterval: Duration.seconds(60),
+        monitoringRole: rdsMonitoringRole,
       }
     );
 
-    // Activate Datadog setting for this RDS instance
-    enableDatadogForRds(dbInstance);
+    // // Activate Datadog setting for this RDS instance
+    // enableDatadogForRds(dbInstance);
 
     const cmsCloudLogFunc = aws_lambda.Function.fromFunctionName(
       commonProps.scope,
@@ -189,10 +210,4 @@ export class DatabaseStack extends Stack {
       exportName: `${commonProps.project}-${commonProps.stage}-rds-port`,
     });
   }
-}
-
-// Datadog Postgres settings turns on Postgres CloudWatch logs, and sets enhanced monitoring interval to 60s
-export function enableDatadogForRds(instance: aws_rds.DatabaseInstance) {
-  const cfnDb = instance.node.defaultChild as aws_rds.CfnDBInstance;
-  cfnDb.addPropertyOverride("MonitoringInterval", 60);
 }
