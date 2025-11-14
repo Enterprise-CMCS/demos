@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
+import {
+  getExistingDates,
+  mergeApplicationDates,
+} from "./dateValidationPayloadCreationFunctions.js";
 import { ApplicationDateInput, ParsedApplicationDateInput } from "../../types.js";
 
 // Mock imports

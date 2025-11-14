@@ -18,7 +18,10 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
 import { validateInputDates } from "./validateInputDates.js";
-import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
+import {
+  getExistingDates,
+  mergeApplicationDates,
+} from "./dateValidationPayloadCreationFunctions.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -39,7 +42,7 @@ vi.mock("./validateInputDates.js", () => ({
   validateInputDates: vi.fn(),
 }));
 
-vi.mock("./validationPayloadCreationFunctions.js", () => ({
+vi.mock("./dateValidationPayloadCreationFunctions.js", () => ({
   getExistingDates: vi.fn(),
   mergeApplicationDates: vi.fn(),
 }));

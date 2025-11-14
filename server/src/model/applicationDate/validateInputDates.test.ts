@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { __makeEmptyValidations, validateInputDates } from "./validateInputDates.js";
 import { DateType, ParsedApplicationDateInput } from "../../types.js";
+import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
+
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
@@ -10,7 +12,6 @@ import {
   DateOffset,
   ApplicationDateMap,
 } from "./checkInputDateFunctions.js";
-import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 
 vi.mock("./checkInputDateFunctions.js", () => ({
   checkInputDateIsStartOfDay: vi.fn(),

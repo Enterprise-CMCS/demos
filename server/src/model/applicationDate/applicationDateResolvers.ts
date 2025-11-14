@@ -8,7 +8,10 @@ import {
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
+import {
+  getExistingDates,
+  mergeApplicationDates,
+} from "./dateValidationPayloadCreationFunctions.js";
 import { validateInputDates } from "./validateInputDates.js";
 import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
 
