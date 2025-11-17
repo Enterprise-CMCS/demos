@@ -3,9 +3,8 @@ import { gql, useQuery } from "@apollo/client";
 import { BaseDialog } from "../BaseDialog";
 import { Button, SecondaryButton } from "components/button";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
-import { TextInput } from "components/input";
+import { Textarea, TextInput } from "components/input";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
-import { tw } from "tags/tw";
 import { useToast } from "components/toast";
 import { Demonstration as ServerDemonstration, State } from "demos-server";
 
@@ -157,24 +156,17 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
         </div>
 
         <div className="flex flex-col gap-sm">
-          <label
-            className={tw`text-text-font font-bold text-field-label flex gap-0-5`}
-            htmlFor="description"
-          >
-            {`${modificationType} Description`}
-          </label>
-          <textarea
-            id="description"
-            placeholder={`Enter ${modificationType.toLowerCase()} description`}
-            className="w-full border border-border-fields rounded px-1 py-1 text-sm resize-y min-h-[80px]"
-            data-testid="textarea-description"
-            value={createModificationFormFields.description}
+          <Textarea
+            name={"description"}
+            label={`${modificationType} Description`}
             onChange={(e) =>
               setCreateModificationFormFields({
                 ...createModificationFormFields,
                 description: e.target.value,
               })
             }
+            initialValue={createModificationFormFields.description || ""}
+            placeholder={`Enter ${modificationType.toLowerCase()} description`}
           />
         </div>
       </form>
