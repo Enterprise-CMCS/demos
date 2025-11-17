@@ -31,7 +31,7 @@ export const SelectDemonstration: React.FC<{
   if (demonstrationsLoading) return <p>Loading...</p>;
   const demonstrations = demonstrationsData?.demonstrations;
   if (demonstrationsError) return <p>Error retrieving list of demonstrations.</p>;
-  if (!demonstrations) return <p>No demonstrations found.</p>;
+  if (!demonstrations || demonstrations.length < 1) return <p>No demonstrations found.</p>;
 
   return (
     <AutoCompleteSelect
@@ -45,7 +45,7 @@ export const SelectDemonstration: React.FC<{
       placeholder="Select demonstration…"
       onSelect={onSelect}
       isRequired={isRequired}
-      isDisabled={isDisabled || demonstrationsLoading || !!demonstrationsError}
+      isDisabled={isDisabled}
       value={value}
     />
   );
