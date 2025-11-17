@@ -44,6 +44,9 @@ const VALIDATION_CHECKS = __makeEmptyValidations();
 VALIDATION_CHECKS["Concept Completion Date"]["greaterThanOrEqualChecks"] = [
   { dateTypeToCheck: "Concept Start Date" },
 ];
+VALIDATION_CHECKS["Concept Skipped Date"]["greaterThanOrEqualChecks"] = [
+  { dateTypeToCheck: "Concept Start Date" },
+];
 VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"] = [
   {
     dateTypeToCheck: "State Application Submitted Date",

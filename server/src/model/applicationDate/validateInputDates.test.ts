@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __makeEmptyValidations,
   ApplicationDateMap,
+  makeApplicationDateMapFromList,
   validateInputDates,
 } from "./validateInputDates.js";
 import { DateType, ParsedApplicationDateInput } from "../../types.js";
@@ -25,6 +26,8 @@ vi.mock("./checkInputDateFunctions.js", () => ({
 }));
 
 describe("validateInputDates", () => {
+  const testDateValue = new Date("2025-01-01T05:00:00Z");
+
   beforeEach(() => {
     vi.resetAllMocks();
   });
@@ -58,116 +61,112 @@ describe("validateInputDates", () => {
     });
   });
 
+  describe("makeApplicationDateMapFromList", () => {
+    it("should create an ApplicationDateMap from a list", () => {
+      const testInput: ParsedApplicationDateInput[] = [
+        { dateType: "Concept Completion Date", dateValue: testDateValue },
+        { dateType: "BNPMT Initial Meeting Date", dateValue: testDateValue },
+      ];
+      const expectedResult: ApplicationDateMap = new Map([
+        ["Concept Completion Date", testDateValue],
+        ["BNPMT Initial Meeting Date", testDateValue],
+      ]);
+      const result = makeApplicationDateMapFromList(testInput);
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
   describe("validateInputDates", () => {
-    const testDateValue = new Date("2025-01-01T05:00:00Z");
-    const startOfDayDateTypes: DateType[] = [
-      "Concept Start Date",
-      "Pre-Submission Submitted Date",
-      "Concept Completion Date",
-      "Concept Skipped Date",
-      "Application Intake Start Date",
-      "State Application Submitted Date",
-      "Application Intake Completion Date",
-      "Completeness Start Date",
-      "State Application Deemed Complete",
-      "Federal Comment Period Start Date",
-      "Completeness Completion Date",
-      "SDG Preparation Start Date",
-      "Expected Approval Date",
-      "SME Review Date",
-      "FRT Initial Meeting Date",
-      "BNPMT Initial Meeting Date",
-      "SDG Preparation Completion Date",
-      "OGC & OMB Review Start Date",
-      "OGC Review Complete",
-      "OMB Review Complete",
-      "PO & OGD Sign-Off",
-      "OGC & OMB Review Completion Date",
-      "Approval Package Start Date",
-      "Approval Package Completion Date",
-    ];
-    const endOfDayDateTypes: DateType[] = [
-      "Federal Comment Period End Date",
-      "Completeness Review Due Date",
-    ];
+    const testInput = DATE_TYPES.map((dateType) => ({
+      dateType: dateType,
+      dateValue: testDateValue,
+    }));
+    const testApplicationDateMap = makeApplicationDateMapFromList(testInput);
 
     it("should run checkInputDateIsStartOfDay on start of day dates", () => {
-      const testInput: ParsedApplicationDateInput[] = [];
-      const expectedCalls = [];
-      for (const dateType of DATE_TYPES) {
-        testInput.push({ dateType: dateType, dateValue: testDateValue });
-        if (startOfDayDateTypes.includes(dateType)) {
-          expectedCalls.push([dateType, testDateValue]);
-        }
-      }
+      const startOfDayDateTypes: DateType[] = [
+        "Concept Start Date",
+        "Pre-Submission Submitted Date",
+        "Concept Completion Date",
+        "Concept Skipped Date",
+        "Application Intake Start Date",
+        "State Application Submitted Date",
+        "Application Intake Completion Date",
+        "Completeness Start Date",
+        "State Application Deemed Complete",
+        "Federal Comment Period Start Date",
+        "Completeness Completion Date",
+        "SDG Preparation Start Date",
+        "Expected Approval Date",
+        "SME Review Date",
+        "FRT Initial Meeting Date",
+        "BNPMT Initial Meeting Date",
+        "SDG Preparation Completion Date",
+        "OGC & OMB Review Start Date",
+        "OGC Review Complete",
+        "OMB Review Complete",
+        "PO & OGD Sign-Off",
+        "OGC & OMB Review Completion Date",
+        "Approval Package Start Date",
+        "Approval Package Completion Date",
+      ];
+      const expectedCalls = startOfDayDateTypes.map((dateType) => [dateType, testDateValue]);
 
       validateInputDates(testInput);
       expect(checkInputDateIsStartOfDay).toBeCalledTimes(startOfDayDateTypes.length);
-      expect(vi.mocked(checkInputDateIsStartOfDay).mock.calls).toEqual(expectedCalls);
+      expect(vi.mocked(checkInputDateIsStartOfDay).mock.calls.sort()).toEqual(expectedCalls.sort());
     });
 
     it("should run checkInputDateIsEndOfDay on end of day dates", () => {
-      const testInput: ParsedApplicationDateInput[] = [];
-      const expectedCalls = [];
-      for (const dateType of DATE_TYPES) {
-        testInput.push({ dateType: dateType, dateValue: testDateValue });
-        if (endOfDayDateTypes.includes(dateType)) {
-          expectedCalls.push([dateType, testDateValue]);
-        }
-      }
+      const endOfDayDateTypes: DateType[] = [
+        "Federal Comment Period End Date",
+        "Completeness Review Due Date",
+      ];
+      const expectedCalls = endOfDayDateTypes.map((dateType) => [dateType, testDateValue]);
 
       validateInputDates(testInput);
       expect(checkInputDateIsEndOfDay).toBeCalledTimes(endOfDayDateTypes.length);
-      expect(vi.mocked(checkInputDateIsEndOfDay).mock.calls).toEqual(expectedCalls);
+      expect(vi.mocked(checkInputDateIsEndOfDay).mock.calls.sort()).toEqual(expectedCalls.sort());
     });
 
     it("should run __checkInputDateGreaterThan on dates with that check", () => {
       const greaterThanCheckTypes: [DateType, DateType][] = [];
-      const testInput: ParsedApplicationDateInput[] = [];
-      const testApplicationDateMap: ApplicationDateMap = new Map();
-      const expectedCalls = [];
-      for (const dateType of greaterThanCheckTypes) {
-        testInput.push({ dateType: dateType[0], dateValue: testDateValue });
-        testInput.push({ dateType: dateType[1], dateValue: testDateValue });
-        testApplicationDateMap.set(dateType[0], testDateValue);
-        testApplicationDateMap.set(dateType[1], testDateValue);
-      }
-      for (const dateType of greaterThanCheckTypes) {
-        expectedCalls.push([testApplicationDateMap, dateType[0], dateType[1]]);
-      }
+      const expectedCalls = greaterThanCheckTypes.map((checkType) => [
+        testApplicationDateMap,
+        checkType[0],
+        checkType[1],
+      ]);
 
       validateInputDates(testInput);
       expect(__checkInputDateGreaterThan).toBeCalledTimes(greaterThanCheckTypes.length);
-      expect(vi.mocked(__checkInputDateGreaterThan).mock.calls).toEqual(expectedCalls);
+      expect(vi.mocked(__checkInputDateGreaterThan).mock.calls.sort()).toEqual(
+        expectedCalls.sort()
+      );
     });
 
     it("should run __checkInputDateGreaterThanOrEqual on dates with that check", () => {
       const greaterThanOrEqualCheckTypes: [DateType, DateType][] = [
         ["Concept Completion Date", "Concept Start Date"],
+        ["Concept Skipped Date", "Concept Start Date"],
         ["Application Intake Completion Date", "Application Intake Start Date"],
         ["Application Intake Completion Date", "Concept Completion Date"],
         ["State Application Deemed Complete", "State Application Submitted Date"],
         ["Completeness Completion Date", "Completeness Start Date"],
         ["Completeness Completion Date", "Application Intake Completion Date"],
       ];
-      const testInput: ParsedApplicationDateInput[] = [];
-      const testApplicationDateMap: ApplicationDateMap = new Map();
-      const expectedCalls = [];
-      for (const dateType of greaterThanOrEqualCheckTypes) {
-        testInput.push({ dateType: dateType[0], dateValue: testDateValue });
-        testInput.push({ dateType: dateType[1], dateValue: testDateValue });
-        testApplicationDateMap.set(dateType[0], testDateValue);
-        testApplicationDateMap.set(dateType[1], testDateValue);
-      }
-      for (const dateType of greaterThanOrEqualCheckTypes) {
-        expectedCalls.push([testApplicationDateMap, dateType[0], dateType[1]]);
-      }
+      const expectedCalls = greaterThanOrEqualCheckTypes.map((checkType) => [
+        testApplicationDateMap,
+        checkType[0],
+        checkType[1],
+      ]);
 
       validateInputDates(testInput);
       expect(__checkInputDateGreaterThanOrEqual).toBeCalledTimes(
         greaterThanOrEqualCheckTypes.length
       );
-      expect(vi.mocked(__checkInputDateGreaterThanOrEqual).mock.calls).toEqual(expectedCalls);
+      expect(vi.mocked(__checkInputDateGreaterThanOrEqual).mock.calls.sort()).toEqual(
+        expectedCalls.sort()
+      );
     });
 
     it("should run __checkInputDateMeetsOffset on dates with that check", () => {
@@ -194,23 +193,30 @@ describe("validateInputDates", () => {
             milliseconds: 0,
           },
         ],
+        [
+          "Federal Comment Period End Date",
+          "Federal Comment Period Start Date",
+          {
+            days: 30,
+            hours: 23,
+            minutes: 59,
+            seconds: 59,
+            milliseconds: 999,
+          },
+        ],
       ];
-      const testInput: ParsedApplicationDateInput[] = [];
-      const testApplicationDateMap: ApplicationDateMap = new Map();
-      const expectedCalls = [];
-      for (const dateType of offsetCheckTypes) {
-        testInput.push({ dateType: dateType[0], dateValue: testDateValue });
-        testInput.push({ dateType: dateType[1], dateValue: testDateValue });
-        testApplicationDateMap.set(dateType[0], testDateValue);
-        testApplicationDateMap.set(dateType[1], testDateValue);
-      }
-      for (const dateType of offsetCheckTypes) {
-        expectedCalls.push([testApplicationDateMap, dateType[0], dateType[1], dateType[2]]);
-      }
+      const expectedCalls = offsetCheckTypes.map((dateType) => [
+        testApplicationDateMap,
+        dateType[0],
+        dateType[1],
+        dateType[2],
+      ]);
 
       validateInputDates(testInput);
       expect(__checkInputDateMeetsOffset).toBeCalledTimes(offsetCheckTypes.length);
-      expect(vi.mocked(__checkInputDateMeetsOffset).mock.calls).toEqual(expectedCalls);
+      expect(vi.mocked(__checkInputDateMeetsOffset).mock.calls.sort()).toEqual(
+        expectedCalls.sort()
+      );
     });
   });
 });
