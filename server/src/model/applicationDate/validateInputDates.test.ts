@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  __makeEmptyValidations,
-  ApplicationDateMap,
+  makeEmptyValidations,
   makeApplicationDateMapFromList,
   validateInputDates,
 } from "./validateInputDates.js";
@@ -11,18 +10,19 @@ import { DATE_TYPES, DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
-  __checkInputDateGreaterThan,
-  __checkInputDateGreaterThanOrEqual,
-  __checkInputDateMeetsOffset,
+  checkInputDateGreaterThan,
+  checkInputDateGreaterThanOrEqual,
+  checkInputDateMeetsOffset,
   DateOffset,
-} from "./checkInputDateFunctions.js";
+  ApplicationDateMap,
+} from "./index.js";
 
 vi.mock("./checkInputDateFunctions.js", () => ({
   checkInputDateIsStartOfDay: vi.fn(),
   checkInputDateIsEndOfDay: vi.fn(),
-  __checkInputDateGreaterThan: vi.fn(),
-  __checkInputDateGreaterThanOrEqual: vi.fn(),
-  __checkInputDateMeetsOffset: vi.fn(),
+  checkInputDateGreaterThan: vi.fn(),
+  checkInputDateGreaterThanOrEqual: vi.fn(),
+  checkInputDateMeetsOffset: vi.fn(),
 }));
 
 describe("validateInputDates", () => {
@@ -32,9 +32,9 @@ describe("validateInputDates", () => {
     vi.resetAllMocks();
   });
 
-  describe("__makeEmptyValidations", () => {
+  describe("makeEmptyValidations", () => {
     it("should create the VALIDATION_CHECKS object correctly", () => {
-      const result = __makeEmptyValidations();
+      const result = makeEmptyValidations();
       let isExpectedTimestampCorrect = true;
       let isGreaterThanChecksCorrect = true;
       let isGreaterThanOrEqualChecksCorrect = true;
@@ -129,7 +129,7 @@ describe("validateInputDates", () => {
       expect(vi.mocked(checkInputDateIsEndOfDay).mock.calls.sort()).toEqual(expectedCalls.sort());
     });
 
-    it("should run __checkInputDateGreaterThan on dates with that check", () => {
+    it("should run checkInputDateGreaterThan on dates with that check", () => {
       const greaterThanCheckTypes: [DateType, DateType][] = [];
       const expectedCalls = greaterThanCheckTypes.map((checkType) => [
         testApplicationDateMap,
@@ -138,13 +138,11 @@ describe("validateInputDates", () => {
       ]);
 
       validateInputDates(testInput);
-      expect(__checkInputDateGreaterThan).toBeCalledTimes(greaterThanCheckTypes.length);
-      expect(vi.mocked(__checkInputDateGreaterThan).mock.calls.sort()).toEqual(
-        expectedCalls.sort()
-      );
+      expect(checkInputDateGreaterThan).toBeCalledTimes(greaterThanCheckTypes.length);
+      expect(vi.mocked(checkInputDateGreaterThan).mock.calls.sort()).toEqual(expectedCalls.sort());
     });
 
-    it("should run __checkInputDateGreaterThanOrEqual on dates with that check", () => {
+    it("should run checkInputDateGreaterThanOrEqual on dates with that check", () => {
       const greaterThanOrEqualCheckTypes: [DateType, DateType][] = [
         ["Concept Completion Date", "Concept Start Date"],
         ["Concept Skipped Date", "Concept Start Date"],
@@ -161,15 +159,13 @@ describe("validateInputDates", () => {
       ]);
 
       validateInputDates(testInput);
-      expect(__checkInputDateGreaterThanOrEqual).toBeCalledTimes(
-        greaterThanOrEqualCheckTypes.length
-      );
-      expect(vi.mocked(__checkInputDateGreaterThanOrEqual).mock.calls.sort()).toEqual(
+      expect(checkInputDateGreaterThanOrEqual).toBeCalledTimes(greaterThanOrEqualCheckTypes.length);
+      expect(vi.mocked(checkInputDateGreaterThanOrEqual).mock.calls.sort()).toEqual(
         expectedCalls.sort()
       );
     });
 
-    it("should run __checkInputDateMeetsOffset on dates with that check", () => {
+    it("should run checkInputDateMeetsOffset on dates with that check", () => {
       const offsetCheckTypes: [DateType, DateType, DateOffset][] = [
         [
           "Completeness Review Due Date",
@@ -213,10 +209,8 @@ describe("validateInputDates", () => {
       ]);
 
       validateInputDates(testInput);
-      expect(__checkInputDateMeetsOffset).toBeCalledTimes(offsetCheckTypes.length);
-      expect(vi.mocked(__checkInputDateMeetsOffset).mock.calls.sort()).toEqual(
-        expectedCalls.sort()
-      );
+      expect(checkInputDateMeetsOffset).toBeCalledTimes(offsetCheckTypes.length);
+      expect(vi.mocked(checkInputDateMeetsOffset).mock.calls.sort()).toEqual(expectedCalls.sort());
     });
   });
 });

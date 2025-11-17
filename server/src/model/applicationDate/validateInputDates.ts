@@ -1,24 +1,16 @@
-import { DateType, ExpectedTimestamp, ParsedApplicationDateInput } from "../../types.js";
+import { DateType, ParsedApplicationDateInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
-  __checkInputDateGreaterThan,
-  __checkInputDateGreaterThanOrEqual,
-  __checkInputDateMeetsOffset,
-  DateOffset,
-} from "./checkInputDateFunctions.js";
+  checkInputDateGreaterThan,
+  checkInputDateGreaterThanOrEqual,
+  checkInputDateMeetsOffset,
+  ApplicationDateMap,
+  DateTypeValidationChecksRecord,
+} from "./index.js";
 
-type ValidationChecks = {
-  expectedTimestamp: ExpectedTimestamp;
-  greaterThanChecks: { dateTypeToCheck: DateType }[];
-  greaterThanOrEqualChecks: { dateTypeToCheck: DateType }[];
-  offsetChecks: { dateTypeToCheck: DateType; dateOffset: DateOffset }[];
-};
-
-type DateTypeValidationChecksRecord = Record<DateType, ValidationChecks>;
-
-export function __makeEmptyValidations(): DateTypeValidationChecksRecord {
+export function makeEmptyValidations(): DateTypeValidationChecksRecord {
   const result = {} as DateTypeValidationChecksRecord;
   let dateType: DateType;
   for (dateType in DATE_TYPES_WITH_EXPECTED_TIMESTAMPS) {
@@ -32,15 +24,13 @@ export function __makeEmptyValidations(): DateTypeValidationChecksRecord {
   return result;
 }
 
-export type ApplicationDateMap = Map<DateType, Date>;
-
 export function makeApplicationDateMapFromList(
   inputDates: ParsedApplicationDateInput[]
 ): ApplicationDateMap {
   return new Map(inputDates.map((inputDate) => [inputDate.dateType, inputDate.dateValue]));
 }
 
-const VALIDATION_CHECKS = __makeEmptyValidations();
+const VALIDATION_CHECKS = makeEmptyValidations();
 VALIDATION_CHECKS["Concept Completion Date"]["greaterThanOrEqualChecks"] = [
   { dateTypeToCheck: "Concept Start Date" },
 ];
@@ -107,17 +97,17 @@ export function validateInputDates(datesToValidate: ParsedApplicationDateInput[]
     }
     if (checks.greaterThanChecks.length !== 0) {
       for (const check of checks.greaterThanChecks) {
-        __checkInputDateGreaterThan(datesToValidateMap, dateType, check.dateTypeToCheck);
+        checkInputDateGreaterThan(datesToValidateMap, dateType, check.dateTypeToCheck);
       }
     }
     if (checks.greaterThanOrEqualChecks.length !== 0) {
       for (const check of checks.greaterThanOrEqualChecks) {
-        __checkInputDateGreaterThanOrEqual(datesToValidateMap, dateType, check.dateTypeToCheck);
+        checkInputDateGreaterThanOrEqual(datesToValidateMap, dateType, check.dateTypeToCheck);
       }
     }
     if (checks.offsetChecks.length !== 0) {
       for (const check of checks.offsetChecks) {
-        __checkInputDateMeetsOffset(
+        checkInputDateMeetsOffset(
           datesToValidateMap,
           dateType,
           check.dateTypeToCheck,

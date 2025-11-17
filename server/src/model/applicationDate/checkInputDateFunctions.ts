@@ -1,19 +1,8 @@
 import { DateType } from "../../types.js";
-import { ApplicationDateMap } from "./validateInputDates.js";
+import { TZDateTimeParts, DateOffset, ApplicationDateMap } from "./applicationDateTypes.js";
 import { addDays, addHours, addMinutes, addSeconds, addMilliseconds } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 import { GraphQLError } from "graphql";
-
-type TZDateTimeParts = {
-  hours: number;
-  minutes: number;
-  seconds: number;
-  milliseconds: number;
-};
-
-export type DateOffset = TZDateTimeParts & {
-  days: number;
-};
 
 export function getTZDateTimeParts(dateValue: Date): TZDateTimeParts {
   const tzDateValue = new TZDate(dateValue, "America/New_York");
@@ -71,7 +60,7 @@ export function checkInputDateIsEndOfDay(
   }
 }
 
-export function __getDateValueFromApplicationDateMap(
+export function getDateValueFromApplicationDateMap(
   dateType: DateType,
   applicationDateMap: ApplicationDateMap
 ): Date {
@@ -85,13 +74,13 @@ export function __getDateValueFromApplicationDateMap(
   return result;
 }
 
-export function __checkInputDateGreaterThan(
+export function checkInputDateGreaterThan(
   applicationDateMap: ApplicationDateMap,
   inputDateType: DateType,
   targetDateType: DateType
 ): void {
-  const inputDateValue = __getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
-  const targetDateValue = __getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
+  const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const targetDateValue = getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
   if (!(inputDateValue.valueOf() > targetDateValue.valueOf())) {
     throw new Error(
       `The input ${inputDateType} has value ${inputDateValue.toISOString()}, ` +
@@ -101,13 +90,13 @@ export function __checkInputDateGreaterThan(
   }
 }
 
-export function __checkInputDateGreaterThanOrEqual(
+export function checkInputDateGreaterThanOrEqual(
   applicationDateMap: ApplicationDateMap,
   inputDateType: DateType,
   targetDateType: DateType
 ): void {
-  const inputDateValue = __getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
-  const targetDateValue = __getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
+  const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const targetDateValue = getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
   if (!(inputDateValue.valueOf() >= targetDateValue.valueOf())) {
     throw new Error(
       `The input ${inputDateType} has value ${inputDateValue.toISOString()}, ` +
@@ -117,14 +106,14 @@ export function __checkInputDateGreaterThanOrEqual(
   }
 }
 
-export function __checkInputDateMeetsOffset(
+export function checkInputDateMeetsOffset(
   applicationDateMap: ApplicationDateMap,
   inputDateType: DateType,
   targetDateType: DateType,
   targetDateOffset: DateOffset
 ): void {
-  const inputDateValue = __getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
-  const targetDateValue = __getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
+  const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
+  const targetDateValue = getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
   let offsetDateValue: Date;
   offsetDateValue = addDays(targetDateValue, targetDateOffset.days);
   offsetDateValue = addHours(offsetDateValue, targetDateOffset.hours);
