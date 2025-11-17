@@ -31,7 +31,9 @@ export const CreateExtensionDialog: React.FC<{
   initialDemonstrationId?: string;
 }> = ({ onClose, initialDemonstrationId }) => {
   const { showSuccess, showError } = useToast();
-  const [triggerCreateExtension] = useMutation<{ extension: Extension }>(CREATE_EXTENSION_MUTATION);
+  const [triggerCreateExtension] = useMutation<{ createExtension: Extension }>(
+    CREATE_EXTENSION_MUTATION
+  );
 
   const handleError = (error?: unknown) => {
     showError("Error creating extension.");
@@ -55,7 +57,7 @@ export const CreateExtensionDialog: React.FC<{
         },
       });
 
-      if (!result.data?.extension) {
+      if (!result.data?.createExtension) {
         handleError();
       }
 

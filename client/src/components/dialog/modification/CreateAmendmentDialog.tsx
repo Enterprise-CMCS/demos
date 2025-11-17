@@ -31,7 +31,9 @@ export const CreateAmendmentDialog: React.FC<{
   initialDemonstrationId?: string;
 }> = ({ onClose, initialDemonstrationId }) => {
   const { showSuccess, showError } = useToast();
-  const [triggerCreateAmendment] = useMutation<{ amendment: Amendment }>(CREATE_AMENDMENT_MUTATION);
+  const [triggerCreateAmendment] = useMutation<{ createAmendment: Amendment }>(
+    CREATE_AMENDMENT_MUTATION
+  );
 
   const handleError = (error?: unknown) => {
     showError("Error creating amendment.");
@@ -55,7 +57,7 @@ export const CreateAmendmentDialog: React.FC<{
         },
       });
 
-      if (!result.data?.amendment) {
+      if (!result.data?.createAmendment) {
         handleError();
       }
 

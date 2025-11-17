@@ -412,7 +412,7 @@ describe("BaseCreateModificationDialog", () => {
     });
   });
 
-  describe("Mutation Handling", () => {
+  describe("Submission Handling", () => {
     it("displays loading state during submission", async () => {
       render(
         <MockedProvider mocks={[queryMock]} addTypename={false}>
@@ -438,61 +438,6 @@ describe("BaseCreateModificationDialog", () => {
 
       await waitFor(() => {
         expect(screen.getByText("Saving...")).toBeInTheDocument();
-      });
-    });
-
-    it("shows success toast and closes dialog on successful creation", async () => {
-      render(
-        <MockedProvider mocks={[queryMock]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            initialDemonstrationId="demo-1"
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
-        </MockedProvider>
-      );
-
-      const titleInput = screen.getByPlaceholderText("Enter amendment title");
-      fireEvent.change(titleInput, { target: { value: "Test Amendment" } });
-
-      const descriptionInput = screen.getByTestId("textarea-description");
-      fireEvent.change(descriptionInput, { target: { value: "Test description" } });
-
-      const form = document.querySelector('form[id="create-amendment"]');
-      if (form) {
-        fireEvent.submit(form);
-      }
-
-      await waitFor(() => {
-        expect(mockShowSuccess).toHaveBeenCalledWith("Amendment created successfully.");
-        expect(mockOnClose).toHaveBeenCalled();
-      });
-    });
-
-    it("shows error toast and closes dialog on mutation error", async () => {
-      render(
-        <MockedProvider mocks={[queryMock]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            initialDemonstrationId="demo-1"
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
-        </MockedProvider>
-      );
-
-      const descriptionInput = screen.getByPlaceholderText("Enter amendment description");
-      fireEvent.change(descriptionInput, { target: { value: "Test Description" } });
-
-      const form = document.querySelector('form[id="create-amendment"]');
-      if (form) {
-        fireEvent.submit(form);
-      }
-
-      await waitFor(() => {
-        expect(mockShowError).toHaveBeenCalledWith("Error creating amendment.");
-        expect(mockOnClose).toHaveBeenCalled();
       });
     });
 

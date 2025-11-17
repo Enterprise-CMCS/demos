@@ -2,7 +2,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MockedProvider } from "@apollo/client/testing";
-import { CreateAmendmentDialog, CREATE_AMENDMENT_MUTATION } from "./CreateAmendmentDialog";
+import { CreateExtensionDialog, CREATE_EXTENSION_MUTATION } from "./CreateExtensionDialog";
 import { BaseCreateModificationDialog } from "./BaseCreateModificationDialog";
 
 const mockShowSuccess = vi.fn();
@@ -24,7 +24,7 @@ vi.mock("./BaseCreateModificationDialog", () => ({
         <button
           onClick={() =>
             handleSubmit({
-              name: "Test Amendment",
+              name: "Test Extension",
               description: "Test Description",
               demonstrationId: "demo-123",
             })
@@ -37,7 +37,7 @@ vi.mock("./BaseCreateModificationDialog", () => ({
   }),
 }));
 
-describe("CreateAmendmentDialog", () => {
+describe("CreateExtensionDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -46,10 +46,10 @@ describe("CreateAmendmentDialog", () => {
     const mocks = [
       {
         request: {
-          query: CREATE_AMENDMENT_MUTATION,
+          query: CREATE_EXTENSION_MUTATION,
           variables: {
             input: {
-              name: "Test Amendment",
+              name: "Test Extension",
               description: "Test Description",
               demonstrationId: "demo-123",
             },
@@ -57,11 +57,11 @@ describe("CreateAmendmentDialog", () => {
         },
         result: {
           data: {
-            createAmendment: {
-              id: "amendment-1",
+            createExtension: {
+              id: "extension-1",
               demonstration: {
                 id: "demo-123",
-                amendments: [{ id: "amendment-1" }],
+                extensions: [{ id: "extension-1" }],
               },
             },
           },
@@ -71,22 +71,22 @@ describe("CreateAmendmentDialog", () => {
 
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateAmendmentDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
+        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
       </MockedProvider>
     );
 
     expect(screen.getByTestId("base-dialog")).toBeInTheDocument();
-    expect(screen.getByText("Amendment")).toBeInTheDocument();
+    expect(screen.getByText("Extension")).toBeInTheDocument();
   });
 
-  it("successfully creates an amendment and shows success message", async () => {
+  it("successfully creates an extension and shows success message", async () => {
     const mocks = [
       {
         request: {
-          query: CREATE_AMENDMENT_MUTATION,
+          query: CREATE_EXTENSION_MUTATION,
           variables: {
             input: {
-              name: "Test Amendment",
+              name: "Test Extension",
               description: "Test Description",
               demonstrationId: "demo-123",
             },
@@ -94,11 +94,11 @@ describe("CreateAmendmentDialog", () => {
         },
         result: {
           data: {
-            createAmendment: {
-              id: "amendment-1",
+            createExtension: {
+              id: "extension-1",
               demonstration: {
                 id: "demo-123",
-                amendments: [{ id: "amendment-1" }],
+                extensions: [{ id: "extension-1" }],
               },
             },
           },
@@ -108,7 +108,7 @@ describe("CreateAmendmentDialog", () => {
 
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateAmendmentDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
+        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
       </MockedProvider>
     );
 
@@ -116,7 +116,7 @@ describe("CreateAmendmentDialog", () => {
     submitButton.click();
 
     await waitFor(() => {
-      expect(mockShowSuccess).toHaveBeenCalledWith("Amendment created successfully.");
+      expect(mockShowSuccess).toHaveBeenCalledWith("Extension created successfully.");
       expect(mockOnClose).toHaveBeenCalled();
     });
   });
@@ -125,10 +125,10 @@ describe("CreateAmendmentDialog", () => {
     const mocks = [
       {
         request: {
-          query: CREATE_AMENDMENT_MUTATION,
+          query: CREATE_EXTENSION_MUTATION,
           variables: {
             input: {
-              name: "Test Amendment",
+              name: "Test Extension",
               description: "Test Description",
               demonstrationId: "demo-123",
             },
@@ -140,7 +140,7 @@ describe("CreateAmendmentDialog", () => {
 
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateAmendmentDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
+        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
       </MockedProvider>
     );
 
@@ -148,7 +148,7 @@ describe("CreateAmendmentDialog", () => {
     submitButton.click();
 
     await waitFor(() => {
-      expect(mockShowError).toHaveBeenCalledWith("Error creating amendment.");
+      expect(mockShowError).toHaveBeenCalledWith("Error creating extension.");
       expect(mockOnClose).toHaveBeenCalled();
     });
   });
@@ -159,10 +159,10 @@ describe("CreateAmendmentDialog", () => {
     const mocks = [
       {
         request: {
-          query: CREATE_AMENDMENT_MUTATION,
+          query: CREATE_EXTENSION_MUTATION,
           variables: {
             input: {
-              name: "Test Amendment",
+              name: "Test Extension",
               description: "Test Description",
               demonstrationId: "demo-123",
             },
@@ -170,7 +170,7 @@ describe("CreateAmendmentDialog", () => {
         },
         result: {
           data: {
-            createAmendment: null,
+            createExtension: null,
           },
         },
       },
@@ -178,7 +178,7 @@ describe("CreateAmendmentDialog", () => {
 
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateAmendmentDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
+        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
       </MockedProvider>
     );
 
@@ -186,7 +186,7 @@ describe("CreateAmendmentDialog", () => {
     submitButton.click();
 
     await waitFor(() => {
-      expect(mockShowError).toHaveBeenCalledWith("Error creating amendment.");
+      expect(mockShowError).toHaveBeenCalledWith("Error creating extension.");
       expect(consoleErrorSpy).toHaveBeenCalledWith("Unknown error");
       expect(mockOnClose).toHaveBeenCalled();
     });
@@ -198,10 +198,10 @@ describe("CreateAmendmentDialog", () => {
     const mocks = [
       {
         request: {
-          query: CREATE_AMENDMENT_MUTATION,
+          query: CREATE_EXTENSION_MUTATION,
           variables: {
             input: {
-              name: "Test Amendment",
+              name: "Test Extension",
               description: "Test Description",
               demonstrationId: "demo-123",
             },
@@ -209,11 +209,11 @@ describe("CreateAmendmentDialog", () => {
         },
         result: {
           data: {
-            createAmendment: {
-              id: "amendment-1",
+            createExtension: {
+              id: "extension-1",
               demonstration: {
                 id: "demo-123",
-                amendments: [{ id: "amendment-1" }],
+                extensions: [{ id: "extension-1" }],
               },
             },
           },
@@ -222,7 +222,7 @@ describe("CreateAmendmentDialog", () => {
     ];
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateAmendmentDialog onClose={mockOnClose} initialDemonstrationId="demo-456" />
+        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-456" />
       </MockedProvider>
     );
 
@@ -230,7 +230,7 @@ describe("CreateAmendmentDialog", () => {
     expect(BaseCreateModificationDialog).toHaveBeenCalledWith(
       expect.objectContaining({
         initialDemonstrationId: "demo-456",
-        modificationType: "Amendment",
+        modificationType: "Extension",
         onClose: mockOnClose,
       }),
       undefined
