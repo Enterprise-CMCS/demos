@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { tw } from "tags/tw";
+import { gql } from "graphql-tag";
 
 import { Button, SecondaryButton } from "components/button";
-import { useMutation } from "@apollo/client";
-import { gql } from "graphql-tag";
-import { PhaseName } from "../phase-selector/PhaseSelector";
 import { useToast } from "components/toast";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
 import { DateType, PhaseStatus } from "demos-server";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
+import { PhaseName } from "../phase-selector/PhaseSelector";
+import { useMutation } from "@apollo/client";
 
 const PHASE_NAME: PhaseName = "SDG Preparation";
 const NEXT_PHASE_NAME: PhaseName = "Approval Package";
@@ -22,23 +23,6 @@ const STYLES = {
   header: tw`min-h-[88px]`,
   actions: tw`flex justify-end mt-2 gap-2`,
 };
-
-export const SET_SDG_PREPARATION_PHASE_DATE_MUTATION = gql`
-  mutation setSDGPreparationPhaseDate($input: SetApplicationDateInput) {
-    setApplicationDate(input: $input) {
-      ... on Demonstration {
-        id
-        phases {
-          phaseName
-          phaseDates {
-            dateType
-            dateValue
-          }
-        }
-      }
-    }
-  }
-`;
 
 export const SET_SDG_PREPARATION_PHASE_STATUS_MUTATION = gql`
   mutation setSDGPreparationPhaseStatus($input: SetApplicationPhaseStatusInput!) {
@@ -88,9 +72,7 @@ export const SdgPreparationPhase = ({
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
-  const [mutateApplicationDate] = useMutation<{ demonstration: ApplicationWorkflowDemonstration }>(
-    SET_SDG_PREPARATION_PHASE_DATE_MUTATION
-  );
+  const { setApplicationDate } = useSetApplicationDate();
   const [mutatePhaseStatus] = useMutation<{ demonstration: ApplicationWorkflowDemonstration }>(
     SET_SDG_PREPARATION_PHASE_STATUS_MUTATION
   );
@@ -104,50 +86,34 @@ export const SdgPreparationPhase = ({
 
   const handleSave = async () => {
     if (sdgPreparationPhaseFormData.expectedApprovalDate) {
-      await mutateApplicationDate({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "Expected Approval Date" satisfies DateType,
-            dateValue: formatDateForServer(sdgPreparationPhaseFormData.expectedApprovalDate),
-          },
-        },
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Expected Approval Date" satisfies DateType,
+        dateValue: formatDateForServer(sdgPreparationPhaseFormData.expectedApprovalDate),
       });
     }
 
     if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
-      await mutateApplicationDate({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "SME Review Date" satisfies DateType,
-            dateValue: formatDateForServer(sdgPreparationPhaseFormData.smeInitialReviewDate),
-          },
-        },
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "SME Review Date" satisfies DateType,
+        dateValue: formatDateForServer(sdgPreparationPhaseFormData.smeInitialReviewDate),
       });
     }
 
     if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
-      await mutateApplicationDate({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "FRT Initial Meeting Date" satisfies DateType,
-            dateValue: formatDateForServer(sdgPreparationPhaseFormData.frtInitialMeetingDate),
-          },
-        },
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "FRT Initial Meeting Date" satisfies DateType,
+        dateValue: formatDateForServer(sdgPreparationPhaseFormData.frtInitialMeetingDate),
       });
     }
 
     if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
-      await mutateApplicationDate({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-            dateValue: formatDateForServer(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
-          },
-        },
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "BNPMT Initial Meeting Date" satisfies DateType,
+        dateValue: formatDateForServer(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
       });
     }
   };

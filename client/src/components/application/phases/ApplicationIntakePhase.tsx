@@ -8,10 +8,9 @@ import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-  GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { useMutation, gql } from "@apollo/client";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 
 /** Business Rules for this Phase:
@@ -95,13 +94,7 @@ export const ApplicationIntakePhase = ({
     phaseStatus: "Completed",
   });
 
-  const [setApplicationDateMutation] = useMutation(gql`
-    mutation SetApplicationDate($input: SetApplicationDateInput!) {
-      setApplicationDate(input: $input) {
-        __typename
-      }
-    }
-  `);
+  const { setApplicationDate } = useSetApplicationDate();
 
   useEffect(() => {
     setIsFinishButtonEnabled(
@@ -113,15 +106,10 @@ export const ApplicationIntakePhase = ({
     const todayDate = getTodayEst();
     await completeApplicationIntake();
 
-    await setApplicationDateMutation({
-      variables: {
-        input: {
-          applicationId: demonstrationId,
-          dateType: "Application Intake Completion Date",
-          dateValue: todayDate,
-        },
-      },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    await setApplicationDate({
+      applicationId: demonstrationId,
+      dateType: "Application Intake Completion Date",
+      dateValue: todayDate,
     });
   };
 
@@ -129,26 +117,16 @@ export const ApplicationIntakePhase = ({
     const todayDate = getTodayEst();
     setStateApplicationSubmittedDate(formatDateForServer(todayDate));
 
-    await setApplicationDateMutation({
-      variables: {
-        input: {
-          applicationId: demonstrationId,
-          dateType: "State Application Submitted Date",
-          dateValue: todayDate,
-        },
-      },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    await setApplicationDate({
+      applicationId: demonstrationId,
+      dateType: "State Application Submitted Date",
+      dateValue: todayDate,
     });
 
-    await setApplicationDateMutation({
-      variables: {
-        input: {
-          applicationId: demonstrationId,
-          dateType: "Completeness Start Date",
-          dateValue: todayDate,
-        },
-      },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    await setApplicationDate({
+      applicationId: demonstrationId,
+      dateType: "Completeness Start Date",
+      dateValue: todayDate,
     });
   };
 
@@ -156,26 +134,16 @@ export const ApplicationIntakePhase = ({
     setStateApplicationSubmittedDate(newDate);
 
     if (newDate) {
-      await setApplicationDateMutation({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "State Application Submitted Date",
-            dateValue: newDate,
-          },
-        },
-        refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "State Application Submitted Date",
+        dateValue: newDate,
       });
 
-      await setApplicationDateMutation({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "Completeness Start Date",
-            dateValue: newDate,
-          },
-        },
-        refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Completeness Start Date",
+        dateValue: newDate,
       });
     }
   };

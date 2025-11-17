@@ -5,11 +5,9 @@ import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForServer } from "util/formatDate";
 import { addDays, parseISO } from "date-fns";
-import { gql, useMutation } from "@apollo/client";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-  GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "../ApplicationWorkflow";
 import { TZDate } from "@date-fns/tz";
 import { useToast } from "components/toast";
@@ -18,6 +16,7 @@ import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { SetApplicationDateInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -147,13 +146,7 @@ export const CompletenessPhase = ({
     applicationCompletenessDocument
   );
 
-  const [setApplicationDateMutation] = useMutation(gql`
-    mutation SetApplicationDate($input: SetApplicationDateInput!) {
-      setApplicationDate(input: $input) {
-        __typename
-      }
-    }
-  `);
+  const { setApplicationDate } = useSetApplicationDate();
 
   const { setPhaseStatus: completeCompletenessPhase } = useSetPhaseStatus({
     applicationId: applicationId,
@@ -218,12 +211,7 @@ export const CompletenessPhase = ({
 
     try {
       for (const input of inputs) {
-        await setApplicationDateMutation({
-          variables: {
-            input,
-          },
-          refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
-        });
+        await setApplicationDate(input);
       }
     } catch (error) {
       showError(error instanceof Error ? error.message : String(error));
