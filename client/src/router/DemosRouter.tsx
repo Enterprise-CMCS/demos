@@ -9,7 +9,6 @@ import { ComponentLibrary } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
-import { ApplicationDateSimulation } from "components/application/dates/ApplicationDateSimulation";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
 
@@ -32,7 +31,6 @@ export const DemosRouter: React.FC = () => {
                     <Route path="icons" element={<IconLibrary />} />
                     <Route path="events" element={<EventSandbox />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
-                    <Route path="dates" element={<ApplicationDateSimulation />} />
                   </>
                 )}
               </Route>

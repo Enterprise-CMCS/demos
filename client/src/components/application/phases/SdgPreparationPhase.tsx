@@ -2,16 +2,12 @@ import React, { useState } from "react";
 import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
-import { useMutation } from "@apollo/client";
-import { gql } from "graphql-tag";
-import { PhaseName } from "../phase-selector/PhaseSelector";
 import { useToast } from "components/toast";
-import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
+import { SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
-import { DateType, PhaseStatus } from "demos-server";
-
-const PHASE_NAME: PhaseName = "SDG Preparation";
-const NEXT_PHASE_NAME: PhaseName = "Approval Package";
+import { DateType } from "demos-server";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
+import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -22,37 +18,6 @@ const STYLES = {
   header: tw`min-h-[88px]`,
   actions: tw`flex justify-end mt-2 gap-2`,
 };
-
-export const SET_SDG_PREPARATION_PHASE_DATE_MUTATION = gql`
-  mutation setSDGPreparationPhaseDate($input: SetApplicationDateInput) {
-    setApplicationDate(input: $input) {
-      ... on Demonstration {
-        id
-        phases {
-          phaseName
-          phaseDates {
-            dateType
-            dateValue
-          }
-        }
-      }
-    }
-  }
-`;
-
-export const SET_SDG_PREPARATION_PHASE_STATUS_MUTATION = gql`
-  mutation setSDGPreparationPhaseStatus($input: SetApplicationPhaseStatusInput!) {
-    setApplicationPhaseStatus(input: $input) {
-      ... on Demonstration {
-        id
-        phases {
-          phaseName
-          phaseStatus
-        }
-      }
-    }
-  }
-`;
 
 function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationPhaseFormData {
   const getDateValue = (dateType: string) => {
@@ -80,20 +45,18 @@ interface SdgPreparationPhaseFormData {
 export const SdgPreparationPhase = ({
   demonstrationId,
   sdgPreparationPhase,
-  setSelectedPhase,
 }: {
   demonstrationId: string;
   sdgPreparationPhase: SimplePhase;
-  setSelectedPhase: (phaseName: PhaseName) => void;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
-  const [mutateApplicationDate] = useMutation<{ demonstration: ApplicationWorkflowDemonstration }>(
-    SET_SDG_PREPARATION_PHASE_DATE_MUTATION
-  );
-  const [mutatePhaseStatus] = useMutation<{ demonstration: ApplicationWorkflowDemonstration }>(
-    SET_SDG_PREPARATION_PHASE_STATUS_MUTATION
-  );
+  const { setApplicationDate } = useSetApplicationDate();
+  const { setPhaseStatus: completeSdgPreparationPhase } = useSetPhaseStatus({
+    applicationId: demonstrationId,
+    phaseName: "Completeness",
+    phaseStatus: "Completed",
+  });
   const { showSuccess, showError } = useToast();
 
   const isFormComplete =
@@ -104,50 +67,34 @@ export const SdgPreparationPhase = ({
 
   const handleSave = async () => {
     if (sdgPreparationPhaseFormData.expectedApprovalDate) {
-      await mutateApplicationDate({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "Expected Approval Date" satisfies DateType,
-            dateValue: formatDateForServer(sdgPreparationPhaseFormData.expectedApprovalDate),
-          },
-        },
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Expected Approval Date" satisfies DateType,
+        dateValue: formatDateForServer(sdgPreparationPhaseFormData.expectedApprovalDate),
       });
     }
 
     if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
-      await mutateApplicationDate({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "SME Review Date" satisfies DateType,
-            dateValue: formatDateForServer(sdgPreparationPhaseFormData.smeInitialReviewDate),
-          },
-        },
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "SME Review Date" satisfies DateType,
+        dateValue: formatDateForServer(sdgPreparationPhaseFormData.smeInitialReviewDate),
       });
     }
 
     if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
-      await mutateApplicationDate({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "FRT Initial Meeting Date" satisfies DateType,
-            dateValue: formatDateForServer(sdgPreparationPhaseFormData.frtInitialMeetingDate),
-          },
-        },
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "FRT Initial Meeting Date" satisfies DateType,
+        dateValue: formatDateForServer(sdgPreparationPhaseFormData.frtInitialMeetingDate),
       });
     }
 
     if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
-      await mutateApplicationDate({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-            dateValue: formatDateForServer(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
-          },
-        },
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "BNPMT Initial Meeting Date" satisfies DateType,
+        dateValue: formatDateForServer(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
       });
     }
   };
@@ -165,22 +112,13 @@ export const SdgPreparationPhase = ({
   const handleFinish = async () => {
     try {
       await handleSave();
-      await mutatePhaseStatus({
-        variables: {
-          input: {
-            applicationId: demonstrationId,
-            phaseName: PHASE_NAME,
-            phaseStatus: "Completed" satisfies PhaseStatus,
-          },
-        },
-      });
+      await completeSdgPreparationPhase();
     } catch {
       showError("Failed to finish SDG Preparation phase.");
       return;
     }
 
     showSuccess("Successfully finished SDG Preparation phase.");
-    setSelectedPhase(NEXT_PHASE_NAME);
   };
 
   return (

@@ -1,23 +1,21 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForServer } from "util/formatDate";
 import { addDays, parseISO } from "date-fns";
-import { gql, useMutation } from "@apollo/client";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-  GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "../ApplicationWorkflow";
-import { TZDate } from "@date-fns/tz";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
-import { SetApplicationDateInput } from "demos-server";
+import { DateType, SetApplicationDateInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -38,28 +36,23 @@ const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
 const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
 
-export const COMPLETENESS_PHASE_DATE_TYPES = [
-  "State Application Deemed Complete",
-  "Federal Comment Period Start Date",
-  "Federal Comment Period End Date",
-  "Completeness Completion Date",
-] as const;
+type CompletenessPhaseDateType = Extract<
+  DateType,
+  | "State Application Deemed Complete"
+  | "Federal Comment Period Start Date"
+  | "Federal Comment Period End Date"
+  | "Completeness Completion Date"
+>;
 
 export const getInputsForCompletenessPhase = (
   applicationId: string,
-  dateValues: Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>
+  dateValues: Partial<Record<CompletenessPhaseDateType, string>>
 ): SetApplicationDateInput[] => {
-  return COMPLETENESS_PHASE_DATE_TYPES.reduce<SetApplicationDateInput[]>((inputs, dateType) => {
-    const dateValue = dateValues[dateType];
-    if (dateValue) {
-      inputs.push({
-        applicationId,
-        dateType,
-        dateValue,
-      });
-    }
-    return inputs;
-  }, []);
+  return Object.entries(dateValues).map(([dateType, dateValue]) => ({
+    applicationId,
+    dateType: dateType,
+    dateValue: dateValue,
+  })) as SetApplicationDateInput[];
 };
 
 export const getApplicationCompletenessFromDemonstration = (
@@ -147,13 +140,7 @@ export const CompletenessPhase = ({
     applicationCompletenessDocument
   );
 
-  const [setApplicationDateMutation] = useMutation(gql`
-    mutation SetApplicationDate($input: SetApplicationDateInput!) {
-      setApplicationDate(input: $input) {
-        __typename
-      }
-    }
-  `);
+  const { setApplicationDate } = useSetApplicationDate();
 
   const { setPhaseStatus: completeCompletenessPhase } = useSetPhaseStatus({
     applicationId: applicationId,
@@ -196,34 +183,22 @@ export const CompletenessPhase = ({
     return completenessDocs.length > 0 && datesFilled && datesAreValid;
   };
 
-  const getDateValues = useCallback(() => {
-    const toEasternStartOfDay = (value: string): Date | null =>
-      value ? new TZDate(`${value}T00:00:00`, "America/New_York") : null;
-    const toEasternEndOfDay = (value: string): Date | null =>
-      value ? new TZDate(`${value}T23:59:59.999`, "America/New_York") : null;
-
+  const getDateValues = (): Partial<Record<CompletenessPhaseDateType, string>> => {
     return {
-      "State Application Deemed Complete": toEasternStartOfDay(stateDeemedComplete),
-      "Federal Comment Period Start Date": toEasternStartOfDay(federalStartDate),
-      "Federal Comment Period End Date": toEasternEndOfDay(federalEndDate),
-      "Completeness Completion Date": hasApplicationIntakeCompletionDate
-        ? toEasternStartOfDay(stateDeemedComplete)
-        : null,
-    } as Record<(typeof COMPLETENESS_PHASE_DATE_TYPES)[number], Date | null>;
-  }, [hasApplicationIntakeCompletionDate, stateDeemedComplete, federalStartDate, federalEndDate]);
+      ...(stateDeemedComplete && { "State Application Deemed Complete": stateDeemedComplete }),
+      ...(federalStartDate && { "Federal Comment Period Start Date": federalStartDate }),
+      ...(federalEndDate && { "Federal Comment Period End Date": federalEndDate }),
+      ...(hasApplicationIntakeCompletionDate &&
+        stateDeemedComplete && { "Completeness Completion Date": stateDeemedComplete }),
+    };
+  };
 
   const saveDates = async () => {
-    const dateValues = getDateValues();
-    const inputs = getInputsForCompletenessPhase(applicationId, dateValues);
+    const inputs = getInputsForCompletenessPhase(applicationId, getDateValues());
 
     try {
       for (const input of inputs) {
-        await setApplicationDateMutation({
-          variables: {
-            input,
-          },
-          refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
-        });
+        await setApplicationDate(input);
       }
     } catch (error) {
       showError(error instanceof Error ? error.message : String(error));
