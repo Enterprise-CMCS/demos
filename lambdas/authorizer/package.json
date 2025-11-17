@@ -11,10 +11,10 @@
     "pino": "^10.1.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.157",
-    "@vitest/coverage-v8": "^4.0.8",
+    "@types/aws-lambda": "^8.10.158",
+    "@vitest/coverage-v8": "^4.0.10",
     "esbuild": "^0.27.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.10"
   }
 }
