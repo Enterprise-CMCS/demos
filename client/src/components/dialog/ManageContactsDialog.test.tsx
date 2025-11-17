@@ -1025,13 +1025,13 @@ describe("ManageContactsDialog", () => {
   });
 
   describe("Project Officer Business Rules", () => {
-    it("automatically makes new Project Officer primary", async () => {
+    it("automatically makes new Project Officer primary when contact type is manually selected", async () => {
       const user = userEvent.setup();
       const mocks = [SEARCH_PEOPLE_MOCKS[0]];
 
       renderWithProviders(defaultProps, mocks);
 
-      // Add a CMS user (should default to Project Officer if none exist)
+      // Add a CMS user
       const searchInput = screen.getByPlaceholderText("Search by name or email");
       await user.type(searchInput, "jo");
 
@@ -1042,7 +1042,14 @@ describe("ManageContactsDialog", () => {
       const addButton = screen.getByText("John Doe").closest("button")!;
       await user.click(addButton);
 
-      // Should be added as Project Officer and be primary
+      // Should be added without a contact type initially (user must select)
+      expect(screen.getByDisplayValue("Select Type…")).toBeInTheDocument();
+
+      // User selects Project Officer
+      const selectContactType = screen.getByDisplayValue("Select Type…");
+      await user.selectOptions(selectContactType, "Project Officer");
+
+      // Should now show Project Officer and be automatically set as primary
       expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
       // Note: Primary toggle testing would require accessing the toggle component
     });
