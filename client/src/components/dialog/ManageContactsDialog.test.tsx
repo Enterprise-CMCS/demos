@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { gql } from "@apollo/client";
 import type { MockedResponse } from "@apollo/client/testing";
 import { MockedProvider } from "@apollo/client/testing";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ManageContactsDialog, ManageContactsDialogProps } from "./ManageContactsDialog";
@@ -663,14 +663,14 @@ describe("ManageContactsDialog", () => {
             {
               demonstrationId: "demo-1",
               personId: "person-1",
-              roleId: "Project Officer",
+              roleId: "DDME Analyst",
             },
           ],
         },
       },
       result: {
         data: {
-          unsetDemonstrationRoles: [{ role: "Project Officer" }],
+          unsetDemonstrationRoles: [{ role: "DDME Analyst" }],
         },
       },
     };
@@ -725,7 +725,7 @@ describe("ManageContactsDialog", () => {
               email: "john.doe@example.com",
             },
             role: "DDME Analyst",
-            isPrimary: true,
+            isPrimary: false, // Make it non-primary so it can be deleted
           },
         ],
       };
@@ -759,7 +759,7 @@ describe("ManageContactsDialog", () => {
               email: "john.doe@example.com",
               idmRoles: ["CMS"],
             },
-            role: "Project Officer",
+            role: "DDME Analyst", // Change to non-Project Officer role so it can be deleted
             isPrimary: false, // Make it deletable
           },
         ],
@@ -809,6 +809,71 @@ describe("ManageContactsDialog", () => {
 
       const deleteButton = screen.getByRole("button", { name: "Delete Contact" });
       expect(deleteButton).toBeDisabled();
+    });
+
+    it("handles deleting primary Project Officer when another Project Officer exists", async () => {
+      const user = userEvent.setup();
+      const propsWithContacts: ManageContactsDialogProps = {
+        ...defaultProps,
+        existingContacts: [
+          {
+            id: "role-1",
+            person: {
+              id: "person-1",
+              fullName: "John Doe (Primary)",
+              email: "john.doe@example.com",
+              idmRoles: ["CMS"],
+            },
+            role: "Project Officer",
+            isPrimary: true,
+          },
+          {
+            id: "role-2",
+            person: {
+              id: "person-2",
+              fullName: "Jane Smith",
+              email: "jane.smith@example.com",
+              idmRoles: ["CMS"],
+            },
+            role: "Project Officer",
+            isPrimary: false,
+          },
+        ],
+      };
+
+      renderWithProviders(propsWithContacts);
+
+      await waitFor(() => {
+        expect(screen.getByText("John Doe (Primary)")).toBeInTheDocument();
+        expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+      });
+
+      // Find the delete button for the primary Project Officer (John Doe)
+      const johnRow = screen.getByText("John Doe (Primary)").closest("tr");
+      const deleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact" });
+
+      // Delete button should be enabled since there's another Project Officer
+      expect(deleteButton).not.toBeDisabled();
+
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "confirmation-confirm" })).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole("button", { name: "confirmation-confirm" });
+      await user.click(confirmButton);
+
+      // Primary Project Officer should be removed from the table
+      await waitFor(() => {
+        expect(screen.queryByText("John Doe (Primary)")).not.toBeInTheDocument();
+      });
+
+      // Jane Smith should still be there and the Save button should be enabled
+      // (indicating changes were made that need to be saved)
+      expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+      const saveButton = screen.getByRole("button", { name: "button-save" });
+      expect(saveButton).not.toBeDisabled();
     });
   });
 

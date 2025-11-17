@@ -187,8 +187,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    // Clear search results immediately when search term changes
-    // They'll be repopulated by the useEffect above after debouncing
     if (value.length < 2) {
       setSearchResults([]);
     }
@@ -200,9 +198,8 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     setSelectedContacts((prev) => {
       const idmRoles = [person.personType];
 
-      // Don't auto-assign contact types - let users choose
       const defaults: { contactType?: ContactType; isPrimary: boolean } = {
-        contactType: undefined, // User must select
+        contactType: undefined,
         isPrimary: false,
       };
 
@@ -224,7 +221,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
   const handleContactTypeChange = useCallback((personId: string, newType?: ContactType) => {
     setSelectedContacts((previousContacts) => {
-      // Find the contact being changed
       const targetContact = previousContacts.find((c) => c.personId === personId);
       if (!targetContact) return previousContacts;
 
@@ -233,38 +229,31 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
           let newIsPrimary = false;
 
           if (newType === "Project Officer") {
-            // Check if there are any existing primary project officers
             const existingPrimaryPOs = previousContacts.filter(
               (c) => c.contactType === "Project Officer" && c.isPrimary && c.personId !== personId
             );
-            // Make primary if no other primary POs exist
             newIsPrimary = existingPrimaryPOs.length === 0;
           } else if (newType) {
-            // For non-PO types, check if there are existing contacts of this type
             const existingOfType = previousContacts.filter(
               (c) => c.contactType === newType && c.personId !== personId
             );
             const existingPrimaryOfType = existingOfType.filter((c) => c.isPrimary);
-            // Make primary if no existing primary of this type
             newIsPrimary = existingPrimaryOfType.length === 0;
           }
 
           return { ...contact, contactType: newType, isPrimary: newIsPrimary };
         }
 
-        // Handle impacts on other contacts when switching away from Project Officer
         if (
           targetContact.contactType === "Project Officer" &&
           targetContact.isPrimary &&
           newType !== "Project Officer"
         ) {
-          // The primary PO is switching away from PO, we need a new primary PO
           const otherPOs = previousContacts.filter(
             (c) => c.contactType === "Project Officer" && c.personId !== personId
           );
 
           if (otherPOs.length > 0 && contact.personId === otherPOs[0].personId) {
-            // Make the first other PO primary
             return { ...contact, isPrimary: true };
           }
         }
@@ -358,45 +347,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     setSelectedContacts(finalUpdated);
     setShowDeleteConfirm(false);
     setContactToDelete(null);
-
-    if (!contactToRemove.contactType) {
-      const updatedSavedContacts = savedContacts.filter(
-        (c) => c.personId !== contactToRemove.personId
-      );
-      setSavedContacts(updatedSavedContacts);
-      return;
-    }
-
-    const contactExistsInDatabase = savedContacts.some(
-      (c) =>
-        c.personId === contactToRemove.personId && c.contactType === contactToRemove.contactType
-    );
-
-    if (contactExistsInDatabase) {
-      try {
-        await unsetDemonstrationRoles({
-          variables: {
-            input: [
-              {
-                demonstrationId,
-                personId: contactToRemove.personId,
-                roleId: contactToRemove.contactType,
-              },
-            ],
-          },
-        });
-        setSavedContacts(finalUpdated.map((c) => ({ ...c })));
-      } catch (e) {
-        console.error(e);
-        setSelectedContacts(selectedContacts);
-        showError("Failed to remove contact. Please try again.");
-      }
-    } else {
-      const updatedSavedContacts = savedContacts.filter(
-        (c) => c.personId !== contactToRemove.personId
-      );
-      setSavedContacts(updatedSavedContacts);
-    }
   };
 
   const allValid = useMemo(() => {
@@ -469,7 +419,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     try {
       const currentRoles = selectedContacts.filter((c) => c.contactType);
 
-      // Strategy: Handle primary project officer changes more carefully
       const currentPrimaryPO = currentRoles.find(
         (c) => c.contactType === "Project Officer" && c.isPrimary
       );
@@ -477,13 +426,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         (c) => c.contactType === "Project Officer" && c.isPrimary
       );
 
-      // If we're changing primary project officer, handle it specially
       if (
         currentPrimaryPO &&
         savedPrimaryPO &&
         currentPrimaryPO.personId !== savedPrimaryPO.personId
       ) {
-        // First, set the new primary project officer
         await setDemonstrationRoles({
           variables: {
             input: [
@@ -497,7 +444,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
           },
         });
 
-        // Then set all other roles (including the old PO as non-primary)
         const otherRoles = currentRoles.filter(
           (c) => !(c.contactType === "Project Officer" && c.personId === currentPrimaryPO.personId)
         );
@@ -515,7 +461,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
           });
         }
       } else {
-        // No primary PO change, proceed normally
         await setDemonstrationRoles({
           variables: {
             input: currentRoles.map((c) => ({
@@ -528,7 +473,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         });
       }
 
-      // Then, identify and remove roles that should no longer exist
       const rolesToRemove: Array<{ demonstrationId: string; personId: string; roleId: string }> =
         [];
 
@@ -539,7 +483,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
           (c) => c.personId === savedContact.personId && c.contactType === savedContact.contactType
         );
 
-        // Only remove if this exact person+role combination no longer exists
         if (!currentContact) {
           rolesToRemove.push({
             demonstrationId,
@@ -549,7 +492,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         }
       });
 
-      // Remove old roles after new ones are set
       if (rolesToRemove.length > 0) {
         await unsetDemonstrationRoles({
           variables: { input: rolesToRemove },
@@ -568,7 +510,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   };
 
   const handleDialogClose = useCallback(() => {
-    setShowPrimaryWarning(false); // Always clear warning when dialog closes
+    setShowPrimaryWarning(false);
     onClose();
   }, [onClose]);
 
@@ -580,6 +522,31 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     }
   };
 
+  const isContactDeleteDisabled = useCallback(
+    (contact: ContactRow) => {
+      // If contact doesn't have a role, it can be deleted
+      if (!contact.contactType) return false;
+
+      // For Project Officers: can only delete if there are other Project Officers available
+      if (contact.contactType === "Project Officer") {
+        const projectOfficers = selectedContacts.filter((c) => c.contactType === "Project Officer");
+        // Can only delete if there's more than one Project Officer
+        return projectOfficers.length <= 1;
+      }
+
+      // For non-Project Officers: can delete if not primary, or if there are others of same type
+      if (contact.isPrimary) {
+        const sameTypeContacts = selectedContacts.filter(
+          (c) => c.contactType === contact.contactType
+        );
+        return sameTypeContacts.length <= 1;
+      }
+
+      return false;
+    },
+    [selectedContacts]
+  );
+
   const contactColumns = useMemo(
     () =>
       ContactColumns({
@@ -587,12 +554,14 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         onContactTypeChange: handleContactTypeChange,
         onPrimaryToggle: handlePrimaryToggle,
         onRemoveContact: handleRemoveContact,
+        isDeleteDisabled: isContactDeleteDisabled,
       }),
     [
       getFilteredContactTypeOptions,
       handleContactTypeChange,
       handlePrimaryToggle,
       handleRemoveContact,
+      isContactDeleteDisabled,
     ]
   );
 
@@ -653,13 +622,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
               />
             </div>
             {(() => {
-              // Filter and deduplicate results
               let filteredResults = searchResults
                 .filter((p) => p.personType !== "demos-state-user")
                 .filter((p) => !selectedContacts.some((c) => c.personId === p.id))
-                .filter((p, index, arr) => arr.findIndex((item) => item.id === p.id) === index); // Remove duplicates
+                .filter((p, index, arr) => arr.findIndex((item) => item.id === p.id) === index);
 
-              // Additional client-side filtering as backup in case backend search is too broad
               if (searchTerm.length >= 2) {
                 const searchTermLower = searchTerm.toLowerCase();
                 filteredResults = filteredResults.filter((p) => {
