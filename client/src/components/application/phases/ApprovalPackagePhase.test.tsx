@@ -136,4 +136,23 @@ describe("getApprovalPackagePhase", () => {
     expect(text.some((t) => t?.includes("Q&A Doc"))).toBe(true);
     expect(text.some((t) => t?.includes("Approval Doc"))).toBe(true);
   });
+
+  it("handles missing documents gracefully", () => {
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "demo-4",
+      status: "Pre-Submission",
+      currentPhaseName: "Approval Package",
+      documents: [],
+      phases: [],
+    };
+
+    render(getApprovalPackagePhase(demonstration));
+
+    const rows = screen.getAllByTestId("table-row");
+    expect(rows).toHaveLength(6);
+
+    rows.forEach((row) => {
+      expect(row.textContent).toContain("-");
+    });
+  });
 });
