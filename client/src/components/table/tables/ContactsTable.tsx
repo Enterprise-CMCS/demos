@@ -5,16 +5,10 @@ import {
   Person,
 } from "demos-server";
 
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 
 import { PaginationControls } from "../PaginationControls";
-import { TableHead } from "../Table";
+import { Table } from "../Table";
 
 export type DemonstrationRoleAssignment = Pick<
   ServerDemonstrationRoleAssignment,
@@ -46,40 +40,13 @@ const contactsColumns = [
 ];
 
 type ContactsTableProps = {
-  roles: DemonstrationRoleAssignment[] | null;
+  roles: DemonstrationRoleAssignment[];
 };
 
-export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [] }) => {
-  const table = useReactTable<DemonstrationRoleAssignment>({
-    data: roles || [],
-    columns: contactsColumns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
-  });
-
-  return (
-    <>
-      <table className="w-full table-fixed text-sm">
-        <TableHead headerGroups={table.getHeaderGroups()} />
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-2 py-1 border-b">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext()) ?? "-"}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <PaginationControls table={table} />
-    </>
-  );
-};
+export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [] }) => (
+  <Table<DemonstrationRoleAssignment>
+    data={roles}
+    columns={contactsColumns}
+    pagination={(table) => <PaginationControls table={table} />}
+  />
+);

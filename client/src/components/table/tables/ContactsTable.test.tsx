@@ -1,6 +1,5 @@
 import React from "react";
 
-import { ToastProvider } from "components/toast/ToastContext";
 import { mockDemonstrationRoleAssignments } from "mock-data/demonstrationRoleAssignmentMocks";
 import { DemosApolloProvider } from "router/DemosApolloProvider";
 
@@ -9,13 +8,18 @@ import userEvent from "@testing-library/user-event";
 
 import { ContactsTable } from "./ContactsTable";
 
-const renderWithToast = (component: React.ReactElement) => {
-  return render(
-    <DemosApolloProvider>
-      <ToastProvider>{component}</ToastProvider>
-    </DemosApolloProvider>
-  );
+const renderWithProvider = (component: React.ReactElement) => {
+  return render(<DemosApolloProvider>{component}</DemosApolloProvider>);
 };
+
+const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: mockShowSuccess,
+    showError: mockShowError,
+  }),
+}));
 
 const testMocks = mockDemonstrationRoleAssignments.slice(0, 2); // Use first two for testing
 
@@ -27,7 +31,7 @@ const testMocksWithPrimary = [
 
 describe("ContactsTable", () => {
   it("displays all required columns: Name, Email, Contact Type, and Primary", () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithProvider(<ContactsTable roles={testMocks} />);
 
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Email")).toBeInTheDocument();
@@ -36,28 +40,14 @@ describe("ContactsTable", () => {
   });
 
   it("displays contact information correctly", () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithProvider(<ContactsTable roles={testMocks} />);
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("jane.smith@email.com")).toBeInTheDocument();
     expect(screen.getAllByText("Project Officer")).toHaveLength(2);
   });
 
-  it("handles null roles prop correctly", () => {
-    renderWithToast(<ContactsTable roles={null} />);
-
-    // Should still show headers
-    expect(screen.getByText("Name")).toBeInTheDocument();
-    expect(screen.getByText("Email")).toBeInTheDocument();
-    expect(screen.getByText("Contact Type")).toBeInTheDocument();
-    expect(screen.getByText("Primary")).toBeInTheDocument();
-
-    // Should only have header row
-    const rows = screen.getAllByRole("row");
-    expect(rows.length).toBe(1); // Only header row
-  });
-
   it("displays Primary status correctly for both Yes and No values", () => {
-    renderWithToast(<ContactsTable roles={testMocksWithPrimary} />);
+    renderWithProvider(<ContactsTable roles={testMocksWithPrimary} />);
 
     // Should show "Yes" for primary contact
     expect(screen.getByText("Yes")).toBeInTheDocument();
@@ -74,7 +64,7 @@ describe("ContactsTable", () => {
         person: { ...testMocks[0].person, fullName: "", email: "" },
       },
     ];
-    renderWithToast(<ContactsTable roles={mockWithEmptyValues} />);
+    renderWithProvider(<ContactsTable roles={mockWithEmptyValues} />);
 
     // Should render the table even with empty values
     const rows = screen.getAllByRole("row");
@@ -82,14 +72,14 @@ describe("ContactsTable", () => {
   });
 
   it("displays all required fields for each contact", () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithProvider(<ContactsTable roles={testMocks} />);
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Email")).toBeInTheDocument();
     expect(screen.getByText("Contact Type")).toBeInTheDocument();
   });
 
   it("allows sorting by any column", async () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithProvider(<ContactsTable roles={testMocks} />);
 
     // Test that we can click on sortable columns without errors
     await userEvent.click(screen.getByText("Name"));
@@ -99,7 +89,7 @@ describe("ContactsTable", () => {
   });
 
   it("allows navigation to specific pages and page sizes", async () => {
-    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
+    renderWithProvider(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
     // Click page 2
     await userEvent.click(screen.getByText("2"));
     // Change page size
@@ -114,12 +104,12 @@ describe("ContactsTable", () => {
   });
 
   it("displays 10 records per page by default", () => {
-    renderWithToast(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
+    renderWithProvider(<ContactsTable roles={Array(25).fill(testMocks[0])} />);
     expect(screen.getByDisplayValue("10")).toBeInTheDocument();
   });
 
   it("renders table without checkboxes", () => {
-    renderWithToast(<ContactsTable roles={Array(3).fill(testMocks[0])} />);
+    renderWithProvider(<ContactsTable roles={Array(3).fill(testMocks[0])} />);
 
     // Should not have any checkboxes since this table doesn't support selection
     const checkboxes = screen.queryAllByRole("checkbox");
@@ -132,7 +122,7 @@ describe("ContactsTable", () => {
   });
 
   it("displays contact data in table format", () => {
-    renderWithToast(<ContactsTable roles={testMocks} />);
+    renderWithProvider(<ContactsTable roles={testMocks} />);
 
     // Verify table structure
     expect(screen.getByRole("table")).toBeInTheDocument();
@@ -143,7 +133,7 @@ describe("ContactsTable", () => {
   });
 
   it("handles empty roles array gracefully", () => {
-    renderWithToast(<ContactsTable roles={[]} />);
+    renderWithProvider(<ContactsTable roles={[]} />);
 
     // Should still show headers
     expect(screen.getByText("Name")).toBeInTheDocument();
@@ -152,7 +142,8 @@ describe("ContactsTable", () => {
     expect(screen.getByText("Primary")).toBeInTheDocument();
 
     // Should only have header row
+    screen.debug(undefined, 30000);
     const rows = screen.getAllByRole("row");
-    expect(rows.length).toBe(1); // Only header row
+    expect(rows.length).toBe(2); // header row and row indicating no data
   });
 });
