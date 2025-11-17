@@ -109,14 +109,12 @@ export const ApprovalPackagePhase = ({
           name="button-skip-concept"
           onClick={() => {}}
           size="small"
-          //disabled={!isSkipEnabled}
         >
           Save For Later
         </SecondaryButton>
         <Button
           name="button-finish-concept"
           onClick={() => {}}
-          //disabled={!isFinishEnabled}
           size="small"
         >
           Finish
