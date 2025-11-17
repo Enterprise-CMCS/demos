@@ -41,7 +41,7 @@ export function parseDateTimeOrLocalDateToJSDate(
   return dateValue;
 }
 
-function __getTodayStartOfDayEastern(): Date {
+export function __getTodayStartOfDayEastern(): Date {
   const easternNow = new TZDate(new Date(), "America/New_York");
   const result = new TZDate(
     easternNow.getFullYear(),
@@ -56,7 +56,7 @@ function __getTodayStartOfDayEastern(): Date {
   return result;
 }
 
-function __getTodayEndOfDayEastern(): Date {
+export function __getTodayEndOfDayEastern(): Date {
   const easternNow = new TZDate(new Date(), "America/New_York");
   const result = new TZDate(
     easternNow.getFullYear(),
