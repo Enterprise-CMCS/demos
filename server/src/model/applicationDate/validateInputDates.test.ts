@@ -15,7 +15,7 @@ import {
   checkInputDateMeetsOffset,
   DateOffset,
   ApplicationDateMap,
-} from "./index.js";
+} from ".";
 
 vi.mock("./checkInputDateFunctions.js", () => ({
   checkInputDateIsStartOfDay: vi.fn(),

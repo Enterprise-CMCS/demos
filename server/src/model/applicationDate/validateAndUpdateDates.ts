@@ -7,7 +7,7 @@ import {
   parseSetApplicationDatesInput,
   upsertApplicationDates,
   validateInputDates,
-} from "./index.js";
+} from ".";
 
 export async function validateAndUpdateDates(
   setApplicationDateInput: SetApplicationDatesInput,

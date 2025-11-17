@@ -13,9 +13,9 @@ import {
   mergeApplicationDates,
   validateInputDates,
   upsertApplicationDates,
-} from "./index.js";
+} from ".";
 
-vi.mock("./index.js", () => ({
+vi.mock(".", () => ({
   parseSetApplicationDatesInput: vi.fn(),
   getApplicationDates: vi.fn(),
   mergeApplicationDates: vi.fn(),

@@ -11,7 +11,7 @@ export {
 export { mergeApplicationDates } from "./mergeApplicationDates.js";
 export { parseSetApplicationDatesInput } from "./parseSetApplicationDatesInput.js";
 export { validateAndUpdateDates } from "./validateAndUpdateDates.js";
-export { validateInputDates } from "./validateInputDates.js";
+export { makeApplicationDateMapFromList, validateInputDates } from "./validateInputDates.js";
 
 // Queries
 export { getApplicationDates } from "./queries/getApplicationDates.js";

@@ -1,41 +1,27 @@
 import {
   ApplicationPhase as PrismaApplicationPhase,
-  ApplicationDate as PrismaApplicationDate,
   Document as PrismaDocument,
 } from "@prisma/client";
 import {
   ParsedApplicationDateInput,
-  DateType,
-  PhaseStatus,
-  PhaseNameWithTrackedStatus,
   CompletePhaseInput,
   SetApplicationPhaseStatusInput,
 } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 
-import { prisma, PrismaTransactionClient } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
-import { validateAndUpdateDates } from "../applicationDate/applicationDateResolvers.js";
 import {
-  getExistingPhaseStatuses,
-  getExistingPhaseDocumentTypes,
-} from "./phaseValidationPayloadCreationFunctions.js";
-import { getExistingDates } from "../applicationDate/dateValidationPayloadCreationFunctions.js";
-import { validatePhaseCompletion } from "./validatePhaseChange.js";
-
-type PhaseActions = {
-  dateToComplete: DateType;
-  nextPhase: {
-    phaseName: PhaseNameWithTrackedStatus;
-    dateToStart: DateType;
-  } | null;
-};
-type PhaseActionRecord = Record<
-  PhaseNameWithTrackedStatus,
-  PhaseActions | "Not Implemented" | "Not Permitted"
->;
+  PhaseActionRecord,
+  PrismaApplicationDateResults,
+  getApplicationPhaseDocumentTypes,
+  getApplicationPhaseStatuses,
+  updatePhaseStatus,
+  validatePhaseCompletion,
+} from ".";
+import { validateAndUpdateDates, getApplicationDates } from "../applicationDate";
 
 const PHASE_ACTIONS: PhaseActionRecord = {
   Concept: {
@@ -75,25 +61,6 @@ const PHASE_ACTIONS: PhaseActionRecord = {
   "Post Approval": "Not Implemented",
 };
 
-async function __changePhaseStatusInTransaction(
-  applicationId: string,
-  phaseName: PhaseNameWithTrackedStatus,
-  phaseStatus: PhaseStatus,
-  tx: PrismaTransactionClient
-): Promise<void> {
-  await tx.applicationPhase.update({
-    where: {
-      applicationId_phaseId: {
-        applicationId: applicationId,
-        phaseId: phaseName,
-      },
-    },
-    data: {
-      phaseStatusId: phaseStatus,
-    },
-  });
-}
-
 async function __completePhase(
   _: unknown,
   { input }: { input: CompletePhaseInput }
@@ -109,19 +76,24 @@ async function __completePhase(
 
   try {
     await prisma().$transaction(async (tx) => {
-      const existingDates = await getExistingDates(input.applicationId, tx);
-      const existingDocs = await getExistingPhaseDocumentTypes(input.applicationId, tx);
-      const existingPhaseStatuses = await getExistingPhaseStatuses(input.applicationId, tx);
+      // Pull existing data
+      const existingDates = await getApplicationDates(input.applicationId, tx);
+      const existingDocs = await getApplicationPhaseDocumentTypes(input.applicationId, tx);
+      const existingPhaseStatuses = await getApplicationPhaseStatuses(input.applicationId, tx);
+
+      // Validate if phase can be completed
       validatePhaseCompletion(
+        input.applicationId,
         input.phaseName,
         existingDates,
         existingDocs,
-        existingPhaseStatuses,
-        input.applicationId
+        existingPhaseStatuses
       );
 
-      await __changePhaseStatusInTransaction(input.applicationId, input.phaseName, "Completed", tx);
+      // Update the phase
+      await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
+      // Prepare to set the Completed date
       const applicationDatesToUpdate: ParsedApplicationDateInput[] = [];
       applicationDatesToUpdate.push({
         dateType: phaseActions.dateToComplete,
@@ -130,15 +102,19 @@ async function __completePhase(
             DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.dateToComplete].expectedTimestamp
           ],
       });
+
+      // Check if there is a next phase action and then check the next phase
       if (phaseActions.nextPhase) {
         const nextPhaseStatus = existingPhaseStatuses[phaseActions.nextPhase.phaseName];
         if (nextPhaseStatus === "Not Started") {
-          await __changePhaseStatusInTransaction(
+          await updatePhaseStatus(
             input.applicationId,
             phaseActions.nextPhase.phaseName,
             "Started",
             tx
           );
+
+          // Prepare to set the Start date of the next phase
           applicationDatesToUpdate.push({
             dateType: phaseActions.nextPhase.dateToStart,
             dateValue:
@@ -149,6 +125,8 @@ async function __completePhase(
           });
         }
       }
+
+      // Push updated dates
       await validateAndUpdateDates(
         { applicationId: input.applicationId, applicationDates: applicationDatesToUpdate },
         tx
@@ -186,11 +164,6 @@ export async function __setApplicationPhaseStatus(
   }
   return await getApplication(input.applicationId);
 }
-
-type PrismaApplicationDateResults = Pick<
-  PrismaApplicationDate,
-  "dateTypeId" | "dateValue" | "createdAt" | "updatedAt"
->;
 
 export async function __resolveApplicationPhaseDates(
   parent: PrismaApplicationPhase

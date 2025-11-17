@@ -1,25 +1,14 @@
+import { ParsedApplicationDateInput, PhaseNameWithTrackedStatus } from "../../types.js";
+import { makeApplicationDateMapFromList } from "../applicationDate";
 import {
-  DateType,
-  DocumentType,
-  ParsedApplicationDateInput,
-  PhaseNameWithTrackedStatus,
-} from "../../types.js";
-import { makeApplicationDateMapFromList } from "../applicationDate/validateInputDates.js";
-import {
-  ApplicationPhaseStatusRecord,
   ApplicationPhaseDocumentTypeRecord,
-} from "./phaseValidationPayloadCreationFunctions.js";
-
-type ValidationChecks = {
-  datesMustExist: DateType[];
-  documentTypesMustExist: DocumentType[];
-  phasesMustBeComplete: PhaseNameWithTrackedStatus[];
-};
-
-type PhaseCompletionValidationChecksRecord = Record<
-  PhaseNameWithTrackedStatus,
-  ValidationChecks | "No Validation" | "Not Implemented"
->;
+  ApplicationPhaseStatusRecord,
+  PhaseCompletionValidationChecksRecord,
+  checkApplicationDateExists,
+  checkDocumentTypeExists,
+  checkPhaseComplete,
+  checkPhaseStartedBeforeCompletion,
+} from ".";
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: "No Validation",
@@ -65,21 +54,18 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
 };
 
 export function validatePhaseCompletion(
+  applicationId: string,
   phaseToValidate: PhaseNameWithTrackedStatus,
   applicationDates: ParsedApplicationDateInput[],
   applicationDocumentTypes: ApplicationPhaseDocumentTypeRecord,
-  applicationPhases: ApplicationPhaseStatusRecord,
-  applicationId: string
+  applicationPhases: ApplicationPhaseStatusRecord
 ): void {
-  const currentPhaseStatus = applicationPhases[phaseToValidate];
-  if (currentPhaseStatus !== "Started") {
-    throw new Error(
-      `${phaseToValidate} phase for application ${applicationId} ` +
-        `has status ${currentPhaseStatus}; cannot complete a phase unless it has status of Started.`
-    );
-  }
-
   const applicationDateMap = makeApplicationDateMapFromList(applicationDates);
+  checkPhaseStartedBeforeCompletion(
+    applicationId,
+    phaseToValidate,
+    applicationPhases[phaseToValidate]
+  );
 
   const validationChecks = VALIDATION_CHECKS[phaseToValidate];
   if (validationChecks === "No Validation") {
@@ -90,38 +76,28 @@ export function validatePhaseCompletion(
 
   const datesToCheck = validationChecks.datesMustExist;
   const documentTypesToCheck = validationChecks.documentTypesMustExist;
-  const phasesToCheck = validationChecks.phasesMustBeComplete;
+  const phasesToCheckComplete = validationChecks.phasesMustBeComplete;
 
   if (datesToCheck.length !== 0) {
     for (const dateToCheck of datesToCheck) {
-      const check = applicationDateMap.get(dateToCheck);
-      if (!check) {
-        throw new Error(
-          `To complete the ${phaseToValidate} phase, the date ${dateToCheck} must exist, but it does not.`
-        );
-      }
+      checkApplicationDateExists(applicationId, phaseToValidate, dateToCheck, applicationDateMap);
     }
   }
 
   if (documentTypesToCheck.length !== 0) {
     for (const documentTypeToCheck of documentTypesToCheck) {
-      const check = applicationDocumentTypes[phaseToValidate].includes(documentTypeToCheck);
-      if (!check) {
-        throw new Error(
-          `To complete the ${phaseToValidate} phase, the document type ${documentTypeToCheck} must exist, but it does not.`
-        );
-      }
+      checkDocumentTypeExists(
+        applicationId,
+        phaseToValidate,
+        documentTypeToCheck,
+        applicationDocumentTypes
+      );
     }
   }
 
-  if (phasesToCheck.length !== 0) {
-    for (const phaseToCheck of phasesToCheck) {
-      const check = applicationPhases[phaseToCheck] === "Completed";
-      if (!check) {
-        throw new Error(
-          `To complete the ${phaseToValidate} phase, the phase ${phaseToCheck} must be Completed, but it is not.`
-        );
-      }
+  if (phasesToCheckComplete.length !== 0) {
+    for (const phaseToCheckComplete of phasesToCheckComplete) {
+      checkPhaseComplete(applicationId, phaseToValidate, phaseToCheckComplete, applicationPhases);
     }
   }
 }

@@ -9,7 +9,7 @@ import {
   checkInputDateMeetsOffset,
   getDateValueFromApplicationDateMap,
 } from "./checkInputDateFunctions.js";
-import { DateOffset, ApplicationDateMap } from "./index.js";
+import { DateOffset, ApplicationDateMap } from ".";
 
 describe("checkInputDateFunctions", () => {
   const testInputDateType: DateType = "Concept Completion Date";

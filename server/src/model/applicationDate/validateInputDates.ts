@@ -8,7 +8,7 @@ import {
   checkInputDateMeetsOffset,
   ApplicationDateMap,
   DateTypeValidationChecksRecord,
-} from "./index.js";
+} from ".";
 
 export function makeEmptyValidations(): DateTypeValidationChecksRecord {
   const result = {} as DateTypeValidationChecksRecord;

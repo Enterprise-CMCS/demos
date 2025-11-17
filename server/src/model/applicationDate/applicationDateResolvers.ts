@@ -3,7 +3,7 @@ import { prisma } from "../../prismaClient.js";
 import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { validateAndUpdateDates } from "./index.js";
+import { validateAndUpdateDates } from ".";
 
 export function __setApplicationDate(
   _: unknown,
