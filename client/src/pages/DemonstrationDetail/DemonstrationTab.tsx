@@ -10,6 +10,7 @@ import {
   OpenFolderIcon,
   StackIcon,
 } from "components/icons";
+import { TabHeader } from "components/table/TabHeader";
 import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import {
@@ -51,7 +52,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           <SummaryDetailsTab demonstrationId={demonstration.id} />
         </Tab>
         <Tab icon={<StackIcon />} label="Types (0)" value="demonstrationTypes">
-          <h1 className="text-xl font-bold text-brand uppercase">Types</h1>
+          <TabHeader title="Types" />
           {/* TO DO: Add New button? */}
         </Tab>
         <Tab
@@ -59,8 +60,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           label={`Documents (${demonstration.documents?.length ?? 0})`}
           value="documents"
         >
-          <div className="flex justify-between items-center pb-1 mb-2 border-b border-brand">
-            <h1 className="text-xl font-bold text-brand uppercase">Documents</h1>
+          <TabHeader title="Documents">
             <IconButton
               icon={<AddNewIcon />}
               name="add-new-document"
@@ -69,7 +69,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             >
               Add Document
             </IconButton>
-          </div>
+          </TabHeader>
           <DocumentTable applicationId={demonstration.id} documents={demonstration.documents} />
         </Tab>
         <Tab
@@ -77,8 +77,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           label={`Contacts (${demonstration.roles?.length ?? 0})`}
           value="contacts"
         >
-          <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
-            <h1 className="text-xl font-bold text-brand uppercase">Contacts</h1>
+          <TabHeader title="Contacts">
             <IconButton
               icon={<EditIcon />}
               name="manage-contacts"
@@ -101,7 +100,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             >
               Manage Contact(s)
             </IconButton>
-          </div>
+          </TabHeader>
           <ContactsTable roles={demonstration.roles} />
         </Tab>
       </VerticalTabs>
