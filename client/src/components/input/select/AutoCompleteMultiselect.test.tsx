@@ -12,7 +12,7 @@ const options: Option[] = [
 ];
 
 describe("AutoCompleteMultiselect", () => {
-  let onSelect: ReturnType<typeof vi.fn>;
+  let onSelect: (value: string[]) => void;
 
   beforeEach(() => {
     onSelect = vi.fn();
@@ -20,11 +20,7 @@ describe("AutoCompleteMultiselect", () => {
 
   it("renders input with placeholder", () => {
     render(
-      <AutoCompleteMultiselect
-        options={options}
-        onSelect={onSelect}
-        placeholder="Pick fruit"
-      />
+      <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
     );
     expect(screen.getByPlaceholderText("Pick fruit")).toBeInTheDocument();
   });
