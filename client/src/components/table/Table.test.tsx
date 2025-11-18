@@ -436,8 +436,8 @@ describe.sequential("Table Component Interactions", () => {
 
         const visibleNames = dataRows
           .map((row) => {
-            const nameCell = within(row).queryByText(/Item/);
-            return nameCell?.textContent || "";
+            const cells = within(row).getAllByRole("cell");
+            return cells[0]?.textContent || ""; // First cell is the Name column
           })
           .filter((name) => name.length > 0);
 
