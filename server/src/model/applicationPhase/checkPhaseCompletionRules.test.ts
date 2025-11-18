@@ -215,6 +215,7 @@ describe("checkPhaseCompletionRules", () => {
       ]);
       expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
       expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "SDG Preparation", "Application Intake", testApplicationPhases],
         [testApplicationId, "SDG Preparation", "Completeness", testApplicationPhases],
         [testApplicationId, "SDG Preparation", "Federal Comment", testApplicationPhases],
       ]);
@@ -281,6 +282,10 @@ describe("checkPhaseCompletionRules", () => {
         ],
       ]);
       expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Approval Package", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Completeness", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Approval Package", "SDG Preparation", testApplicationPhases],
         [testApplicationId, "Approval Package", "OGC & OMB Review", testApplicationPhases],
       ]);
     });

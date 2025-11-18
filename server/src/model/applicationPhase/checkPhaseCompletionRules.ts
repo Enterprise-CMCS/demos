@@ -39,7 +39,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "BNPMT Initial Meeting Date",
     ],
     documentTypesMustExist: [],
-    phasesMustBeComplete: ["Completeness", "Federal Comment"],
+    phasesMustBeComplete: ["Application Intake", "Completeness", "Federal Comment"],
   },
   "OGC & OMB Review": "Not Implemented",
   "Approval Package": {
@@ -52,7 +52,13 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Approval Letter",
       "Signed Decision Memo",
     ],
-    phasesMustBeComplete: ["OGC & OMB Review"],
+    phasesMustBeComplete: [
+      "Application Intake",
+      "Completeness",
+      "Federal Comment",
+      "SDG Preparation",
+      "OGC & OMB Review",
+    ],
   },
   "Post Approval": "Not Implemented",
 };
