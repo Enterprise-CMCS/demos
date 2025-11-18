@@ -1,15 +1,12 @@
 import React from "react";
-
 import {
   DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
   Person,
 } from "demos-server";
-
-import { createColumnHelper } from "@tanstack/react-table";
-
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { gql, useQuery } from "@apollo/client";
+import { createColumnHelper } from "@tanstack/react-table";
 
 export type DemonstrationRoleAssignment = Pick<
   ServerDemonstrationRoleAssignment,

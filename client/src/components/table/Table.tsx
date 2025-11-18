@@ -27,8 +27,7 @@ const STYLES = {
   subrow: "h-[56px] px-4 py-2 bg-gray-lighter border-b",
 };
 
-// We probably shouldn't export this, but we need it in the ContactsTable for now
-export function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
+function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
   return (
     <thead>
       {headerGroups.map((hg) => (

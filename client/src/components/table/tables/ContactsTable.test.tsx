@@ -1,8 +1,7 @@
 import React from "react";
 
-import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-
+import { render, screen, waitFor } from "@testing-library/react";
 import { CONTACTS_TABLE_QUERY, ContactsTable } from "./ContactsTable";
 import { MockedProvider } from "@apollo/client/testing";
 
