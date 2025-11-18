@@ -2,7 +2,7 @@
 export {
   checkApplicationDateExists,
   checkDocumentTypeExists,
-  checkPhaseComplete,
+  checkPriorPhaseComplete,
   checkPhaseStartedBeforeCompletion,
 } from "./checkPhaseCompletionFunctions.js";
 export { checkPhaseCompletionRules } from "./checkPhaseCompletionRules.js";

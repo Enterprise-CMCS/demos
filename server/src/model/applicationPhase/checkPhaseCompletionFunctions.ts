@@ -45,7 +45,7 @@ export function checkDocumentTypeExists(
   }
 }
 
-export function checkPhaseComplete(
+export function checkPriorPhaseComplete(
   applicationId: string,
   phaseToValidate: PhaseNameWithTrackedStatus,
   phaseToCheckComplete: PhaseNameWithTrackedStatus,

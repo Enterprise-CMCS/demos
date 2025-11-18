@@ -3,7 +3,7 @@ import { DateType, DocumentType, PhaseNameWithTrackedStatus } from "../../types.
 import {
   checkApplicationDateExists,
   checkDocumentTypeExists,
-  checkPhaseComplete,
+  checkPriorPhaseComplete,
   checkPhaseStartedBeforeCompletion,
 } from "./checkPhaseCompletionFunctions.js";
 import { ApplicationDateMap } from "../applicationDate/applicationDateTypes.js";
@@ -99,7 +99,7 @@ describe("checkInputDateFunctions", () => {
     });
   });
 
-  describe("checkPhaseComplete", () => {
+  describe("checkPriorPhaseComplete", () => {
     it("should throw if trying to complete a phase if the required previous phase is not Completed", () => {
       const testApplicationPhases: Partial<ApplicationPhaseStatusRecord> = {
         "Application Intake": "Started",
@@ -108,7 +108,7 @@ describe("checkInputDateFunctions", () => {
         `${testPhaseName} phase for application ${testApplicationId} requires the phase ` +
         `${testPhaseToCheckComplete} to be status Completed, but it is Started.`;
       expect(() =>
-        checkPhaseComplete(
+        checkPriorPhaseComplete(
           testApplicationId,
           testPhaseName,
           testPhaseToCheckComplete,
@@ -122,7 +122,7 @@ describe("checkInputDateFunctions", () => {
         "Application Intake": "Completed",
       };
       expect(() =>
-        checkPhaseComplete(
+        checkPriorPhaseComplete(
           testApplicationId,
           testPhaseName,
           testPhaseToCheckComplete,

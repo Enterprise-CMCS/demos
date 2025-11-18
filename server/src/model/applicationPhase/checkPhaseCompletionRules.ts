@@ -6,7 +6,7 @@ import {
   PhaseCompletionValidationChecksRecord,
   checkApplicationDateExists,
   checkDocumentTypeExists,
-  checkPhaseComplete,
+  checkPriorPhaseComplete,
   checkPhaseStartedBeforeCompletion,
 } from ".";
 
@@ -97,7 +97,12 @@ export function checkPhaseCompletionRules(
 
   if (phasesToCheckComplete.length !== 0) {
     for (const phaseToCheckComplete of phasesToCheckComplete) {
-      checkPhaseComplete(applicationId, phaseToValidate, phaseToCheckComplete, applicationPhases);
+      checkPriorPhaseComplete(
+        applicationId,
+        phaseToValidate,
+        phaseToCheckComplete,
+        applicationPhases
+      );
     }
   }
 }
