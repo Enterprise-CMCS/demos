@@ -8,11 +8,7 @@ import {
   processGuardDutyResult,
 } from ".";
 
-import {
-  CopyObjectCommand,
-  DeleteObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { CopyObjectCommand, DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 import { log } from "./log";
@@ -20,26 +16,21 @@ import { log } from "./log";
 const mockConnect = vi.fn();
 const mockQuery = vi.fn();
 const mockEnd = vi.fn();
-
 vi.mock("pg", () => {
-  return {
-    Client: vi.fn(function () {
-      return {
-        connect: mockConnect,
-        query: mockQuery,
-        end: mockEnd,
-      };
-    }),
+  const mockClient = {
+    connect: () => mockConnect(),
+    query: (...a) => mockQuery(...a),
+    end: () => mockEnd(),
   };
+
+  return { Client: vi.fn(() => mockClient) };
 });
 
 let mockEventBase: GuardDutyScanResultNotificationEvent;
 let logDebugSpy = vi.spyOn(log, "debug");
 let logInfoSpy = vi.spyOn(log, "info");
 let logWarnSpy = vi.spyOn(log, "warn");
-const mockContext = {
-  awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000",
-} as Context;
+const mockContext = { awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000" } as Context;
 
 describe("file-process", () => {
   beforeEach(() => {
@@ -83,16 +74,14 @@ describe("file-process", () => {
       // @ts-expect-error
       mockEventBase["detail-type"] = "invalid";
       expect(isGuardDutyScanClean(mockEventBase)).toEqual(false);
-      expect(logWarnSpy).toHaveBeenCalledWith(
-        "not a GuardDuty Malware Protection scan result"
-      );
+      expect(logWarnSpy).toHaveBeenCalledWith("not a GuardDuty Malware Protection scan result");
     });
 
     it("should return false if scan is not complete", () => {
       mockEventBase.detail.scanStatus = "FAILED";
       expect(isGuardDutyScanClean(mockEventBase)).toEqual(false);
       expect(logDebugSpy).toHaveBeenCalledWith(
-        { status: "FAILED" },
+        {status: "FAILED"},
         expect.stringContaining("scan not completed")
       );
     });
@@ -101,10 +90,7 @@ describe("file-process", () => {
       mockEventBase.detail.scanResultDetails.scanResultStatus = "THREATS_FOUND";
       expect(isGuardDutyScanClean(mockEventBase)).toEqual(false);
       expect(logWarnSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          status: expect.anything(),
-          objectKey: expect.anything(),
-        }),
+        expect.objectContaining({status: expect.anything(), objectKey: expect.anything()}),
         expect.stringContaining("file not clean")
       );
     });
@@ -133,10 +119,7 @@ describe("file-process", () => {
       };
       const id = await getApplicationId(mockClient, "test");
 
-      expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining("FROM demos_app"),
-        ["test"]
-      );
+      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining("FROM demos_app"), ["test"]);
       expect(id).toEqual("1");
     });
     it("should throw when record is missing or empty", async () => {
@@ -147,21 +130,15 @@ describe("file-process", () => {
         query: vi.fn().mockResolvedValue({ rows: [] }),
       };
 
-      await expect(getApplicationId(mockClient, "test")).rejects.toThrow(
-        "No document_pending_upload record found"
-      );
-      await expect(getApplicationId(mockClient2, "test")).rejects.toThrow(
-        "No document_pending_upload record found"
-      );
+      await expect(getApplicationId(mockClient, "test")).rejects.toThrow("No document_pending_upload record found");
+      await expect(getApplicationId(mockClient2, "test")).rejects.toThrow("No document_pending_upload record found");
     });
     it("should return proper error if query fails", async () => {
       const mockClient = {
         query: vi.fn().mockRejectedValue("unit test error"),
       };
 
-      await expect(getApplicationId(mockClient, "test")).rejects.toThrow(
-        "Failed to get application ID"
-      );
+      await expect(getApplicationId(mockClient, "test")).rejects.toThrow("Failed to get application ID");
     });
   });
 
@@ -181,14 +158,8 @@ describe("file-process", () => {
 
       expect(mockSend).toHaveBeenCalledTimes(2);
 
-      expect(mockSend).toHaveBeenNthCalledWith(
-        1,
-        expect.any(CopyObjectCommand)
-      );
-      expect(mockSend).toHaveBeenNthCalledWith(
-        2,
-        expect.any(DeleteObjectCommand)
-      );
+      expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
+      expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));
 
       expect(mockSend.mock.calls[0][0].input).toEqual({
         Bucket: mockCleanBucket,
@@ -215,15 +186,13 @@ describe("file-process", () => {
       console.log("mockEventBase", mockEventBase);
       await processGuardDutyResult(mockClient, mockEventBase);
       expect(logInfoSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ key: "test-key" }),
+        expect.objectContaining({key: "test-key"}),
         expect.stringContaining("successfully processed clean file")
       );
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenLastCalledWith(
-        expect.stringContaining(
-          "CALL demos_app.move_document_from_processing_to_clean"
-        ),
+        expect.stringContaining("CALL demos_app.move_document_from_processing_to_clean"),
         expect.arrayContaining([expect.anything()])
       );
     });
@@ -233,46 +202,41 @@ describe("file-process", () => {
     test("should properly handle clean file", async () => {
       const mockSend = vi.fn();
       vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
-      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(
-        () => ({
-          SecretString: JSON.stringify({
-            username: "something",
-            password: "fake", // pragma: allowlist secret
-            host: "fakehost",
-            port: 1234,
-            dbname: "test",
-          }),
-        })
-      );
+      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
+        SecretString: JSON.stringify({
+          username: "something",
+          password: "fake", // pragma: allowlist secret
+          host: "fakehost",
+          port: 1234,
+          dbname: "test",
+        }),
+      }));
 
       mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
 
-      await handler(
-        {
-          Records: [
-            {
-              messageId: "123",
-              receiptHandle: "",
-              messageAttributes: {},
-              md5OfBody: "",
-              eventSource: "",
-              eventSourceARN: "",
-              awsRegion: "us-east-1",
-              attributes: {
-                ApproximateReceiveCount: "1",
-                SentTimestamp: "mock timestamp",
-                SenderId: "1",
-                ApproximateFirstReceiveTimestamp: "",
-              },
-              body: JSON.stringify(mockEventBase),
+      await handler({
+        Records: [
+          {
+            messageId: "123",
+            receiptHandle: "",
+            messageAttributes: {},
+            md5OfBody: "",
+            eventSource: "",
+            eventSourceARN: "",
+            awsRegion: "us-east-1",
+            attributes: {
+              ApproximateReceiveCount: "1",
+              SentTimestamp: "mock timestamp",
+              SenderId: "1",
+              ApproximateFirstReceiveTimestamp: "",
             },
-          ],
-        },
-        mockContext
-      );
+            body: JSON.stringify(mockEventBase),
+          },
+        ],
+      }, mockContext);
 
       expect(logInfoSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ results: expect.any(Object) }),
+        expect.objectContaining({results: expect.any(Object)}),
         "all records processed successfully"
       );
       expect(mockEnd).toHaveBeenCalledTimes(1);
@@ -281,17 +245,15 @@ describe("file-process", () => {
     test("should properly handle failed file", async () => {
       const mockSend = vi.fn();
       vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
-      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(
-        () => ({
-          SecretString: JSON.stringify({
-            username: "something",
-            password: "fake", // pragma: allowlist secret
-            host: "fakehost",
-            port: 1234,
-            dbname: "test",
-          }),
-        })
-      );
+      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
+        SecretString: JSON.stringify({
+          username: "something",
+          password: "fake", // pragma: allowlist secret
+          host: "fakehost",
+          port: 1234,
+          dbname: "test",
+        }),
+      }));
 
       mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
 
@@ -321,9 +283,7 @@ describe("file-process", () => {
         mockContext
       );
 
-      expect(logWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("is not clean. Skipping processing.")
-      );
+      expect(logWarnSpy).toHaveBeenCalledWith(expect.stringContaining("is not clean. Skipping processing."));
       expect(logInfoSpy).toHaveBeenCalledWith(
         expect.objectContaining({ results: expect.any(Object) }),
         "all records processed successfully"
@@ -334,17 +294,15 @@ describe("file-process", () => {
     test("should catch and rethrow error", async () => {
       const mockSend = vi.fn();
       vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
-      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(
-        () => ({
-          SecretString: JSON.stringify({
-            username: "something",
-            password: "fake", // pragma: allowlist secret
-            host: "fakehost",
-            port: 1234,
-            dbname: "test",
-          }),
-        })
-      );
+      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
+        SecretString: JSON.stringify({
+          username: "something",
+          password: "fake", // pragma: allowlist secret
+          host: "fakehost",
+          port: 1234,
+          dbname: "test",
+        }),
+      }));
 
       mockQuery.mockRejectedValue("fail");
 
@@ -376,17 +334,15 @@ describe("file-process", () => {
       vi.spyOn(S3Client.prototype, "send").mockImplementation(() => {
         throw new Error("");
       });
-      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(
-        () => ({
-          SecretString: JSON.stringify({
-            username: "something",
-            password: "fake", // pragma: allowlist secret
-            host: "fakehost",
-            port: 1234,
-            dbname: "test",
-          }),
-        })
-      );
+      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
+        SecretString: JSON.stringify({
+          username: "something",
+          password: "fake", // pragma: allowlist secret
+          host: "fakehost",
+          port: 1234,
+          dbname: "test",
+        }),
+      }));
 
       mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
 
