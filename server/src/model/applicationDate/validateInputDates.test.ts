@@ -17,7 +17,7 @@ import {
   ApplicationDateMap,
 } from ".";
 
-vi.mock("./checkInputDateFunctions.js", () => ({
+vi.mock(".", () => ({
   checkInputDateIsStartOfDay: vi.fn(),
   checkInputDateIsEndOfDay: vi.fn(),
   checkInputDateGreaterThan: vi.fn(),

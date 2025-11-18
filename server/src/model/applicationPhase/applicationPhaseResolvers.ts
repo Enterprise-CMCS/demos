@@ -16,12 +16,11 @@ import { getEasternNow } from "../../dateUtilities.js";
 import {
   PhaseActionRecord,
   PrismaApplicationDateResults,
-  getApplicationPhaseDocumentTypes,
-  getApplicationPhaseStatuses,
+  startNextPhase,
   updatePhaseStatus,
   validatePhaseCompletion,
 } from ".";
-import { validateAndUpdateDates, getApplicationDates } from "../applicationDate";
+import { validateAndUpdateDates } from "../applicationDate";
 
 const PHASE_ACTIONS: PhaseActionRecord = {
   Concept: {
@@ -61,7 +60,7 @@ const PHASE_ACTIONS: PhaseActionRecord = {
   "Post Approval": "Not Implemented",
 };
 
-async function __completePhase(
+export async function __completePhase(
   _: unknown,
   { input }: { input: CompletePhaseInput }
 ): Promise<PrismaApplication> {
@@ -76,24 +75,9 @@ async function __completePhase(
 
   try {
     await prisma().$transaction(async (tx) => {
-      // Pull existing data
-      const existingDates = await getApplicationDates(input.applicationId, tx);
-      const existingDocs = await getApplicationPhaseDocumentTypes(input.applicationId, tx);
-      const existingPhaseStatuses = await getApplicationPhaseStatuses(input.applicationId, tx);
-
-      // Validate if phase can be completed
-      validatePhaseCompletion(
-        input.applicationId,
-        input.phaseName,
-        existingDates,
-        existingDocs,
-        existingPhaseStatuses
-      );
-
-      // Update the phase
+      await validatePhaseCompletion(input.applicationId, input.phaseName, tx);
       await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
-      // Prepare to set the Completed date
       const applicationDatesToUpdate: ParsedApplicationDateInput[] = [];
       applicationDatesToUpdate.push({
         dateType: phaseActions.dateToComplete,
@@ -103,30 +87,18 @@ async function __completePhase(
           ],
       });
 
-      // Check if there is a next phase action and then check the next phase
       if (phaseActions.nextPhase) {
-        const nextPhaseStatus = existingPhaseStatuses[phaseActions.nextPhase.phaseName];
-        if (nextPhaseStatus === "Not Started") {
-          await updatePhaseStatus(
-            input.applicationId,
-            phaseActions.nextPhase.phaseName,
-            "Started",
-            tx
-          );
-
-          // Prepare to set the Start date of the next phase
-          applicationDatesToUpdate.push({
-            dateType: phaseActions.nextPhase.dateToStart,
-            dateValue:
-              easternNow[
-                DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
-                  .expectedTimestamp
-              ],
-          });
-        }
+        await startNextPhase(input.applicationId, phaseActions.nextPhase.phaseName, tx);
+        applicationDatesToUpdate.push({
+          dateType: phaseActions.nextPhase.dateToStart,
+          dateValue:
+            easternNow[
+              DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
+                .expectedTimestamp
+            ],
+        });
       }
 
-      // Push updated dates
       await validateAndUpdateDates(
         { applicationId: input.applicationId, applicationDates: applicationDatesToUpdate },
         tx

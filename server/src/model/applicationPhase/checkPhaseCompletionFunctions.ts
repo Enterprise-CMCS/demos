@@ -55,7 +55,7 @@ export function checkPhaseComplete(
   const check = actualPhaseStatus === "Completed";
   if (!check) {
     throw new Error(
-      `${phaseToValidate} phase for application ${applicationId} requires at the phase ${phaseToCheckComplete} ` +
+      `${phaseToValidate} phase for application ${applicationId} requires the phase ${phaseToCheckComplete} ` +
         `to be status Completed, but it is ${actualPhaseStatus}.`
     );
   }
