@@ -13,7 +13,7 @@ import { PhaseName, PhaseStatus, SetApplicationPhaseStatusInput } from "../../ty
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
-import { completePhase } from ".";
+import { completePhase, skipConceptPhase } from ".";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -32,6 +32,7 @@ vi.mock("../application/applicationResolvers.js", () => ({
 
 vi.mock(".", () => ({
   completePhase: vi.fn(),
+  skipConceptPhase: vi.fn(),
 }));
 
 describe("applicationPhaseResolvers", () => {
@@ -51,7 +52,7 @@ describe("applicationPhaseResolvers", () => {
     },
   };
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
-  const testPhaseId: PhaseName = "Concept";
+  const testPhaseId: PhaseName = "Completeness";
   const testPhaseStatusId: PhaseStatus = "Started";
   const testDateValue: Date = new Date("2025-01-01T00:00:00Z");
   const testInput: PrismaApplicationPhase = {
@@ -98,6 +99,7 @@ describe("applicationPhaseResolvers", () => {
       expect(mockUpsert).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(completePhase).not.toHaveBeenCalled();
+      expect(skipConceptPhase).not.toHaveBeenCalled();
     });
 
     it("should use the completePhase method when getting a phase completion request", async () => {
@@ -112,6 +114,23 @@ describe("applicationPhaseResolvers", () => {
       expect(getApplication).not.toHaveBeenCalled();
       expect(completePhase).toHaveBeenCalledExactlyOnceWith(undefined, {
         input: { applicationId: testApplicationId, phaseName: testPhaseId },
+      });
+      expect(skipConceptPhase).not.toHaveBeenCalled();
+    });
+
+    it("should use the skipConceptPhase method when getting a phase skip request for Concept", async () => {
+      const testInput: SetApplicationPhaseStatusInput = {
+        applicationId: testApplicationId,
+        phaseName: "Concept",
+        phaseStatus: "Skipped",
+      };
+
+      await __setApplicationPhaseStatus(undefined, { input: testInput });
+      expect(mockUpsert).not.toHaveBeenCalled();
+      expect(getApplication).not.toHaveBeenCalled();
+      expect(completePhase).not.toHaveBeenCalled();
+      expect(skipConceptPhase).toHaveBeenCalledExactlyOnceWith(undefined, {
+        applicationId: testApplicationId,
       });
     });
 

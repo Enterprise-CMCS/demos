@@ -4,17 +4,17 @@ import { checkPhaseCompletionRules } from "./checkPhaseCompletionRules.js";
 // Mock imports
 import {
   ApplicationPhaseStatusRecord,
-  checkApplicationDateExists,
-  checkDocumentTypeExists,
-  checkPriorPhaseComplete,
+  checkApplicationDateExistsForCompletion,
+  checkDocumentTypeExistsForCompletion,
+  checkPriorPhaseCompleteForCompletion,
   checkPhaseStartedBeforeCompletion,
 } from ".";
 import { makeApplicationDateMapFromList } from "../applicationDate";
 
 vi.mock(".", () => ({
-  checkApplicationDateExists: vi.fn(),
-  checkDocumentTypeExists: vi.fn(),
-  checkPriorPhaseComplete: vi.fn(),
+  checkApplicationDateExistsForCompletion: vi.fn(),
+  checkDocumentTypeExistsForCompletion: vi.fn(),
+  checkPriorPhaseCompleteForCompletion: vi.fn(),
   checkPhaseStartedBeforeCompletion: vi.fn(),
 }));
 
@@ -55,9 +55,9 @@ describe("checkPhaseCompletionRules", () => {
 
       expect(makeApplicationDateMapFromList).not.toBeCalled();
       expect(checkPhaseStartedBeforeCompletion).not.toBeCalled();
-      expect(checkApplicationDateExists).not.toBeCalled();
-      expect(checkDocumentTypeExists).not.toBeCalled();
-      expect(checkPriorPhaseComplete).not.toBeCalled();
+      expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
+      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(checkPriorPhaseCompleteForCompletion).not.toBeCalled();
     });
   });
 
@@ -77,7 +77,7 @@ describe("checkPhaseCompletionRules", () => {
         "Application Intake",
         "Started"
       );
-      expect(vi.mocked(checkApplicationDateExists).mock.calls).toEqual([
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Application Intake",
@@ -91,7 +91,7 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
       ]);
-      expect(vi.mocked(checkDocumentTypeExists).mock.calls).toEqual([
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Application Intake",
@@ -99,7 +99,7 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDocumentTypes,
         ],
       ]);
-      expect(checkPriorPhaseComplete).not.toBeCalled();
+      expect(checkPriorPhaseCompleteForCompletion).not.toBeCalled();
     });
   });
 
@@ -119,7 +119,7 @@ describe("checkPhaseCompletionRules", () => {
         "Completeness",
         "Started"
       );
-      expect(vi.mocked(checkApplicationDateExists).mock.calls).toEqual([
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Completeness",
@@ -139,7 +139,7 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
       ]);
-      expect(vi.mocked(checkDocumentTypeExists).mock.calls).toEqual([
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Completeness",
@@ -147,7 +147,7 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDocumentTypes,
         ],
       ]);
-      expect(vi.mocked(checkPriorPhaseComplete).mock.calls).toEqual([
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
         [testApplicationId, "Completeness", "Application Intake", testApplicationPhases],
       ]);
     });
@@ -165,9 +165,9 @@ describe("checkPhaseCompletionRules", () => {
 
       expect(makeApplicationDateMapFromList).not.toBeCalled();
       expect(checkPhaseStartedBeforeCompletion).not.toBeCalled();
-      expect(checkApplicationDateExists).not.toBeCalled();
-      expect(checkDocumentTypeExists).not.toBeCalled();
-      expect(checkPriorPhaseComplete).not.toBeCalled();
+      expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
+      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(checkPriorPhaseCompleteForCompletion).not.toBeCalled();
     });
   });
 
@@ -187,7 +187,7 @@ describe("checkPhaseCompletionRules", () => {
         "SDG Preparation",
         "Started"
       );
-      expect(vi.mocked(checkApplicationDateExists).mock.calls).toEqual([
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "SDG Preparation",
@@ -208,8 +208,8 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
       ]);
-      expect(checkDocumentTypeExists).not.toBeCalled();
-      expect(vi.mocked(checkPriorPhaseComplete).mock.calls).toEqual([
+      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
         [testApplicationId, "SDG Preparation", "Completeness", testApplicationPhases],
         [testApplicationId, "SDG Preparation", "Federal Comment", testApplicationPhases],
       ]);
@@ -246,8 +246,8 @@ describe("checkPhaseCompletionRules", () => {
         "Approval Package",
         "Started"
       );
-      expect(checkApplicationDateExists).not.toBeCalled();
-      expect(vi.mocked(checkDocumentTypeExists).mock.calls).toEqual([
+      expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Approval Package",
@@ -275,7 +275,7 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDocumentTypes,
         ],
       ]);
-      expect(vi.mocked(checkPriorPhaseComplete).mock.calls).toEqual([
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
         [testApplicationId, "Approval Package", "OGC & OMB Review", testApplicationPhases],
       ]);
     });

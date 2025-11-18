@@ -4,9 +4,9 @@ import {
   ApplicationPhaseDocumentTypeRecord,
   ApplicationPhaseStatusRecord,
   PhaseCompletionValidationChecksRecord,
-  checkApplicationDateExists,
-  checkDocumentTypeExists,
-  checkPriorPhaseComplete,
+  checkApplicationDateExistsForCompletion,
+  checkDocumentTypeExistsForCompletion,
+  checkPriorPhaseCompleteForCompletion,
   checkPhaseStartedBeforeCompletion,
 } from ".";
 
@@ -80,13 +80,18 @@ export function checkPhaseCompletionRules(
 
   if (datesToCheck.length !== 0) {
     for (const dateToCheck of datesToCheck) {
-      checkApplicationDateExists(applicationId, phaseToValidate, dateToCheck, applicationDateMap);
+      checkApplicationDateExistsForCompletion(
+        applicationId,
+        phaseToValidate,
+        dateToCheck,
+        applicationDateMap
+      );
     }
   }
 
   if (documentTypesToCheck.length !== 0) {
     for (const documentTypeToCheck of documentTypesToCheck) {
-      checkDocumentTypeExists(
+      checkDocumentTypeExistsForCompletion(
         applicationId,
         phaseToValidate,
         documentTypeToCheck,
@@ -97,7 +102,7 @@ export function checkPhaseCompletionRules(
 
   if (phasesToCheckComplete.length !== 0) {
     for (const phaseToCheckComplete of phasesToCheckComplete) {
-      checkPriorPhaseComplete(
+      checkPriorPhaseCompleteForCompletion(
         applicationId,
         phaseToValidate,
         phaseToCheckComplete,

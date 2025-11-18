@@ -15,7 +15,19 @@ export function checkPhaseStartedBeforeCompletion(
   }
 }
 
-export function checkApplicationDateExists(
+export function checkConceptPhaseStartedBeforeSkipping(
+  applicationId: string,
+  currentPhaseStatus: PhaseStatus
+): void {
+  if (currentPhaseStatus !== "Started") {
+    throw new Error(
+      `Concept phase for application ${applicationId} ` +
+        `has status ${currentPhaseStatus}; cannot skip the phase unless it has status of Started.`
+    );
+  }
+}
+
+export function checkApplicationDateExistsForCompletion(
   applicationId: string,
   phaseToValidate: PhaseNameWithTrackedStatus,
   dateToCheck: DateType,
@@ -30,7 +42,7 @@ export function checkApplicationDateExists(
   }
 }
 
-export function checkDocumentTypeExists(
+export function checkDocumentTypeExistsForCompletion(
   applicationId: string,
   phaseToValidate: PhaseNameWithTrackedStatus,
   documentTypeToCheck: DocumentType,
@@ -45,7 +57,7 @@ export function checkDocumentTypeExists(
   }
 }
 
-export function checkPriorPhaseComplete(
+export function checkPriorPhaseCompleteForCompletion(
   applicationId: string,
   phaseToValidate: PhaseNameWithTrackedStatus,
   phaseToCheckComplete: PhaseNameWithTrackedStatus,

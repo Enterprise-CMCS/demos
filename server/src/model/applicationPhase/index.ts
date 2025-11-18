@@ -1,14 +1,16 @@
 // Functions
 export {
-  checkApplicationDateExists,
-  checkDocumentTypeExists,
-  checkPriorPhaseComplete,
+  checkApplicationDateExistsForCompletion,
+  checkDocumentTypeExistsForCompletion,
+  checkPriorPhaseCompleteForCompletion,
   checkPhaseStartedBeforeCompletion,
-} from "./checkPhaseCompletionFunctions.js";
+  checkConceptPhaseStartedBeforeSkipping,
+} from "./checkPhaseFunctions.js";
 export { checkPhaseCompletionRules } from "./checkPhaseCompletionRules.js";
 export { validatePhaseCompletion } from "./validatePhaseCompletion.js";
 export { startNextPhase } from "./startNextPhase.js";
 export { completePhase } from "./completePhase.js";
+export { skipConceptPhase } from "./skipConceptPhase.js";
 
 // Queries
 export { getApplicationPhaseDocumentTypes } from "./queries/getApplicationPhaseDocumentTypes.js";

@@ -6,7 +6,7 @@ import { SetApplicationPhaseStatusInput } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { PrismaApplicationDateResults, completePhase } from ".";
+import { PrismaApplicationDateResults, completePhase, skipConceptPhase } from ".";
 
 export async function __setApplicationPhaseStatus(
   _: unknown,
@@ -16,6 +16,8 @@ export async function __setApplicationPhaseStatus(
     return await completePhase(_, {
       input: { applicationId: input.applicationId, phaseName: input.phaseName },
     });
+  } else if (input.phaseName === "Concept" && input.phaseStatus === "Skipped") {
+    return await skipConceptPhase(_, { applicationId: input.applicationId });
   }
   try {
     await prisma().applicationPhase.upsert({
@@ -92,5 +94,6 @@ export const applicationPhaseResolvers = {
   Mutation: {
     setApplicationPhaseStatus: __setApplicationPhaseStatus,
     completePhase: completePhase,
+    skipConceptPhase: skipConceptPhase,
   },
 };

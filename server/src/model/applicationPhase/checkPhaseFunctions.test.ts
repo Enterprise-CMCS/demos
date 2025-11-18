@@ -1,15 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { DateType, DocumentType, PhaseNameWithTrackedStatus } from "../../types.js";
 import {
-  checkApplicationDateExists,
-  checkDocumentTypeExists,
-  checkPriorPhaseComplete,
+  checkApplicationDateExistsForCompletion,
+  checkConceptPhaseStartedBeforeSkipping,
+  checkDocumentTypeExistsForCompletion,
   checkPhaseStartedBeforeCompletion,
-} from "./checkPhaseCompletionFunctions.js";
+  checkPriorPhaseCompleteForCompletion,
+} from "./checkPhaseFunctions.js";
 import { ApplicationDateMap } from "../applicationDate/applicationDateTypes.js";
 import { ApplicationPhaseDocumentTypeRecord, ApplicationPhaseStatusRecord } from ".";
 
-describe("checkInputDateFunctions", () => {
+describe("checkPhaseFunctions", () => {
   const testApplicationId = "5a947103-3ad5-4237-96cd-3eaeb0c88541";
   const testPhaseName: PhaseNameWithTrackedStatus = "Completeness";
   const testDateTypeToCheck: DateType = "Expected Approval Date";
@@ -33,7 +34,24 @@ describe("checkInputDateFunctions", () => {
     });
   });
 
-  describe("checkApplicationDateExists", () => {
+  describe("checkConceptPhaseStartedBeforeSkipping", () => {
+    it("should throw if trying to skip the Concept phase and it is not Started", () => {
+      const expectedError =
+        `Concept phase for application ${testApplicationId} ` +
+        `has status Not Started; cannot skip the phase unless it has status of Started.`;
+      expect(() =>
+        checkConceptPhaseStartedBeforeSkipping(testApplicationId, "Not Started")
+      ).toThrowError(expectedError);
+    });
+
+    it("should not throw if trying to skip the Concept phase when it is Started", () => {
+      expect(() =>
+        checkConceptPhaseStartedBeforeSkipping(testApplicationId, "Started")
+      ).not.toThrow();
+    });
+  });
+
+  describe("checkApplicationDateExistsForCompletion", () => {
     it("should throw if trying to complete a phase with a missing date", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         ["Concept Start Date", new Date("2025-01-01T00:11:22.333Z")],
@@ -42,7 +60,7 @@ describe("checkInputDateFunctions", () => {
         `${testPhaseName} phase for application ${testApplicationId} requires the ` +
         `date ${testDateTypeToCheck} to exist before phase completion, but it does not.`;
       expect(() =>
-        checkApplicationDateExists(
+        checkApplicationDateExistsForCompletion(
           testApplicationId,
           testPhaseName,
           testDateTypeToCheck,
@@ -56,7 +74,7 @@ describe("checkInputDateFunctions", () => {
         [testDateTypeToCheck, new Date("2025-01-01T00:11:22.333Z")],
       ]);
       expect(() =>
-        checkApplicationDateExists(
+        checkApplicationDateExistsForCompletion(
           testApplicationId,
           testPhaseName,
           testDateTypeToCheck,
@@ -66,7 +84,7 @@ describe("checkInputDateFunctions", () => {
     });
   });
 
-  describe("checkDocumentTypeExists", () => {
+  describe("checkDocumentTypeExistsForCompletion", () => {
     it("should throw if trying to complete a phase with a missing document type", () => {
       const testApplicationDocumentTypes: Partial<ApplicationPhaseDocumentTypeRecord> = {
         Completeness: ["Internal Completeness Review Form"],
@@ -75,7 +93,7 @@ describe("checkInputDateFunctions", () => {
         `${testPhaseName} phase for application ${testApplicationId} requires at ` +
         `least one document of type ${testDocumentTypetoCheck} to exist, but none do.`;
       expect(() =>
-        checkDocumentTypeExists(
+        checkDocumentTypeExistsForCompletion(
           testApplicationId,
           testPhaseName,
           testDocumentTypetoCheck,
@@ -89,7 +107,7 @@ describe("checkInputDateFunctions", () => {
         Completeness: [testDocumentTypetoCheck],
       };
       expect(() =>
-        checkDocumentTypeExists(
+        checkDocumentTypeExistsForCompletion(
           testApplicationId,
           testPhaseName,
           testDocumentTypetoCheck,
@@ -99,7 +117,7 @@ describe("checkInputDateFunctions", () => {
     });
   });
 
-  describe("checkPriorPhaseComplete", () => {
+  describe("checkPriorPhaseCompleteForCompletion", () => {
     it("should throw if trying to complete a phase if the required previous phase is not Completed", () => {
       const testApplicationPhases: Partial<ApplicationPhaseStatusRecord> = {
         "Application Intake": "Started",
@@ -108,7 +126,7 @@ describe("checkInputDateFunctions", () => {
         `${testPhaseName} phase for application ${testApplicationId} requires the phase ` +
         `${testPhaseToCheckComplete} to be status Completed, but it is Started.`;
       expect(() =>
-        checkPriorPhaseComplete(
+        checkPriorPhaseCompleteForCompletion(
           testApplicationId,
           testPhaseName,
           testPhaseToCheckComplete,
@@ -122,7 +140,7 @@ describe("checkInputDateFunctions", () => {
         "Application Intake": "Completed",
       };
       expect(() =>
-        checkPriorPhaseComplete(
+        checkPriorPhaseCompleteForCompletion(
           testApplicationId,
           testPhaseName,
           testPhaseToCheckComplete,

@@ -4,9 +4,8 @@ import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
-import { startNextPhase, updatePhaseStatus, validatePhaseCompletion } from ".";
+import { startNextPhase, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
-import { PHASE_ACTIONS } from ".";
 
 export async function completePhase(
   _: unknown,
@@ -36,15 +35,21 @@ export async function completePhase(
       });
 
       if (phaseActions.nextPhase) {
-        await startNextPhase(input.applicationId, phaseActions.nextPhase.phaseName, tx);
-        applicationDatesToUpdate.push({
-          dateType: phaseActions.nextPhase.dateToStart,
-          dateValue:
-            easternNow[
-              DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
-                .expectedTimestamp
-            ],
-        });
+        const nextPhaseWasStarted = await startNextPhase(
+          input.applicationId,
+          phaseActions.nextPhase.phaseName,
+          tx
+        );
+        if (nextPhaseWasStarted) {
+          applicationDatesToUpdate.push({
+            dateType: phaseActions.nextPhase.dateToStart,
+            dateValue:
+              easternNow[
+                DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
+                  .expectedTimestamp
+              ],
+          });
+        }
       }
 
       await validateAndUpdateDates(

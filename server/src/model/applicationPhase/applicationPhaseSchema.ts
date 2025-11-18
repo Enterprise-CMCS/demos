@@ -25,6 +25,7 @@ export const applicationPhaseSchema = gql`
   type Mutation {
     setApplicationPhaseStatus(input: SetApplicationPhaseStatusInput!): Application!
     completePhase(input: CompletePhaseInput!): Application!
+    skipConceptPhase(applicationId: ID!): Application!
   }
 `;
 

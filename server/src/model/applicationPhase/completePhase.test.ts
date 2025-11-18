@@ -62,6 +62,7 @@ describe("completePhase", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
+    vi.mocked(startNextPhase).mockResolvedValue(true);
   });
 
   describe("Concept Phase", () => {
@@ -353,7 +354,7 @@ describe("completePhase", () => {
     });
   });
 
-  describe("Error Handling", () => {
+  describe("Special Cases", () => {
     it("should handle an error in the transaction appropriately if it occurs", async () => {
       vi.mocked(validatePhaseCompletion).mockRejectedValueOnce(testError);
       const testInput: CompletePhaseInput = {
@@ -365,6 +366,49 @@ describe("completePhase", () => {
         testHandlePrismaError
       );
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
+    });
+
+    it("should skip changing the date if the next phase is already started", async () => {
+      vi.mocked(startNextPhase).mockResolvedValue(false);
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Concept",
+      };
+      const expectedDateCall = [
+        [
+          {
+            applicationId: testApplicationId,
+            applicationDates: [
+              {
+                dateType: "Concept Completion Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+            ],
+          },
+          mockTransaction,
+        ],
+      ];
+
+      await completePhase(undefined, { input: testInput });
+
+      expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Concept",
+        mockTransaction
+      );
+      expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Concept",
+        "Completed",
+        mockTransaction
+      );
+      expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Application Intake",
+        mockTransaction
+      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+      expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
 });
