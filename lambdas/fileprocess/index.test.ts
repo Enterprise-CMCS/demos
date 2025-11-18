@@ -17,13 +17,15 @@ const mockConnect = vi.fn();
 const mockQuery = vi.fn();
 const mockEnd = vi.fn();
 vi.mock("pg", () => {
-  const mockClient = {
-    connect: () => mockConnect(),
-    query: (...a) => mockQuery(...a),
-    end: () => mockEnd(),
+  return {
+    Client: vi.fn(function () {
+      return {
+        connect: mockConnect,
+        query: mockQuery,
+        end: mockEnd,
+      };
+    }),
   };
-
-  return { Client: vi.fn(() => mockClient) };
 });
 
 let mockEventBase: GuardDutyScanResultNotificationEvent;
