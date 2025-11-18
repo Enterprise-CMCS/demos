@@ -8,6 +8,7 @@ export {
 export { checkPhaseCompletionRules } from "./checkPhaseCompletionRules.js";
 export { validatePhaseCompletion } from "./validatePhaseCompletion.js";
 export { startNextPhase } from "./startNextPhase.js";
+export { completePhase } from "./completePhase.js";
 
 // Queries
 export { getApplicationPhaseDocumentTypes } from "./queries/getApplicationPhaseDocumentTypes.js";
@@ -15,7 +16,7 @@ export { getApplicationPhaseStatus } from "./queries/getApplicationPhaseStatus.j
 export { getApplicationPhaseStatuses } from "./queries/getApplicationPhaseStatuses.js";
 export { updatePhaseStatus } from "./queries/updatePhaseStatus.js";
 
-// Types
+// Types & Constants
 export {
   ApplicationPhaseDocumentTypeRecord,
   ApplicationPhaseStatusRecord,
@@ -25,3 +26,4 @@ export {
   PrismaApplicationDateResults,
   ValidationChecks,
 } from "./applicationPhaseTypes.js";
+export { PHASE_ACTIONS } from "./applicationPhaseConstants.js";

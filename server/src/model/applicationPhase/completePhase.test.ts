@@ -1,0 +1,370 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { completePhase } from "./completePhase.js";
+import { CompletePhaseInput } from "../../types.js";
+
+// Mock imports
+import { prisma } from "../../prismaClient.js";
+import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { validateAndUpdateDates } from "../applicationDate";
+import { validatePhaseCompletion, updatePhaseStatus, startNextPhase } from ".";
+import { getEasternNow } from "../../dateUtilities.js";
+
+vi.mock("../../prismaClient.js", () => ({
+  prisma: vi.fn(),
+}));
+
+const testHandlePrismaError = new Error("Test handlePrismaError!");
+vi.mock("../../errors/handlePrismaError.js", () => ({
+  handlePrismaError: vi.fn(() => {
+    throw testHandlePrismaError;
+  }),
+}));
+
+vi.mock("../application/applicationResolvers.js", () => ({
+  getApplication: vi.fn(),
+}));
+
+vi.mock("../applicationDate", () => ({
+  validateAndUpdateDates: vi.fn(),
+}));
+
+// The importActual line is necessary to avoid overwriting the constant
+vi.mock(".", async () => {
+  const actual = await vi.importActual(".");
+  return {
+    ...actual,
+    validatePhaseCompletion: vi.fn(),
+    updatePhaseStatus: vi.fn(),
+    startNextPhase: vi.fn(),
+  };
+});
+
+vi.mock("../../dateUtilities.js", () => ({
+  getEasternNow: vi.fn(),
+}));
+
+describe("completePhase", () => {
+  const mockTransaction: any = vi.fn();
+  const mockPrismaClient = {
+    $transaction: vi.fn((callback) => callback(mockTransaction)),
+  };
+  const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
+  const testError = new Error("Database connection failed");
+  const mockEasternStartOfDayDate = new Date("2025-01-13T00:00:00.000-05:00");
+  const mockEasternEndOfDayDate = new Date("2025-01-13T23:59:59.999-05:00");
+  const mockEasternValue = {
+    "Start of Day": mockEasternStartOfDayDate,
+    "End of Day": mockEasternEndOfDayDate,
+  };
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
+  });
+
+  describe("Concept Phase", () => {
+    it("should take the right actions when completing the Concept phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Concept",
+      };
+      const expectedDateCall = [
+        [
+          {
+            applicationId: testApplicationId,
+            applicationDates: [
+              {
+                dateType: "Concept Completion Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+              {
+                dateType: "Application Intake Start Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+            ],
+          },
+          mockTransaction,
+        ],
+      ];
+
+      await completePhase(undefined, { input: testInput });
+
+      expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Concept",
+        mockTransaction
+      );
+      expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Concept",
+        "Completed",
+        mockTransaction
+      );
+      expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Application Intake",
+        mockTransaction
+      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Application Intake Phase", () => {
+    it("should take the right actions when completing the Application Intake phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Application Intake",
+      };
+      const expectedDateCall = [
+        [
+          {
+            applicationId: testApplicationId,
+            applicationDates: [
+              {
+                dateType: "Application Intake Completion Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+              {
+                dateType: "Completeness Start Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+            ],
+          },
+          mockTransaction,
+        ],
+      ];
+
+      await completePhase(undefined, { input: testInput });
+
+      expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Application Intake",
+        mockTransaction
+      );
+      expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Application Intake",
+        "Completed",
+        mockTransaction
+      );
+      expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Completeness",
+        mockTransaction
+      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Completeness Phase", () => {
+    it("should take the right actions when completing the Completeness phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Completeness",
+      };
+      const expectedDateCall = [
+        [
+          {
+            applicationId: testApplicationId,
+            applicationDates: [
+              {
+                dateType: "Completeness Completion Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+            ],
+          },
+          mockTransaction,
+        ],
+      ];
+
+      await completePhase(undefined, { input: testInput });
+
+      expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Completeness",
+        mockTransaction
+      );
+      expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Completeness",
+        "Completed",
+        mockTransaction
+      );
+      expect(startNextPhase).not.toBeCalled();
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Federal Comment Phase", () => {
+    it("should throw when attempting to complete the Federal Comment phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Federal Comment",
+      };
+
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        "Operations against the Federal Comment phase are not permitted via API."
+      );
+
+      expect(validatePhaseCompletion).not.toHaveBeenCalled();
+      expect(updatePhaseStatus).not.toHaveBeenCalled();
+      expect(startNextPhase).not.toBeCalled();
+      expect(validateAndUpdateDates).not.toHaveBeenCalled();
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("SDG Preparation Phase", () => {
+    it("should take the right actions when completing the SDG Preparation phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "SDG Preparation",
+      };
+      const expectedDateCall = [
+        [
+          {
+            applicationId: testApplicationId,
+            applicationDates: [
+              {
+                dateType: "SDG Preparation Completion Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+              {
+                dateType: "OGC & OMB Review Start Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+            ],
+          },
+          mockTransaction,
+        ],
+      ];
+
+      await completePhase(undefined, { input: testInput });
+
+      expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "SDG Preparation",
+        mockTransaction
+      );
+      expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "SDG Preparation",
+        "Completed",
+        mockTransaction
+      );
+      expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "OGC & OMB Review",
+        mockTransaction
+      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("OGC & OMB Review Phase", () => {
+    it("should take the right actions when completing the OGC & OMB Review phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "OGC & OMB Review",
+      };
+      const expectedDateCall = [
+        [
+          {
+            applicationId: testApplicationId,
+            applicationDates: [
+              {
+                dateType: "OGC & OMB Review Completion Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+              {
+                dateType: "Approval Package Start Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+            ],
+          },
+          mockTransaction,
+        ],
+      ];
+
+      await completePhase(undefined, { input: testInput });
+
+      expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "OGC & OMB Review",
+        mockTransaction
+      );
+      expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "OGC & OMB Review",
+        "Completed",
+        mockTransaction
+      );
+      expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Approval Package",
+        mockTransaction
+      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Approval Package Phase", () => {
+    it("should throw when attempting to complete the Approval Package phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Approval Package",
+      };
+
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        "Completion of the Approval Package phase via API is not yet implemented."
+      );
+
+      expect(validatePhaseCompletion).not.toHaveBeenCalled();
+      expect(updatePhaseStatus).not.toHaveBeenCalled();
+      expect(startNextPhase).not.toBeCalled();
+      expect(validateAndUpdateDates).not.toHaveBeenCalled();
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Post Approval Phase", () => {
+    it("should throw when attempting to complete the Post Approval phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Post Approval",
+      };
+
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        "Completion of the Post Approval phase via API is not yet implemented."
+      );
+
+      expect(validatePhaseCompletion).not.toHaveBeenCalled();
+      expect(updatePhaseStatus).not.toHaveBeenCalled();
+      expect(startNextPhase).not.toBeCalled();
+      expect(validateAndUpdateDates).not.toHaveBeenCalled();
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Error Handling", () => {
+    it("should handle an error in the transaction appropriately if it occurs", async () => {
+      vi.mocked(validatePhaseCompletion).mockRejectedValueOnce(testError);
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Concept",
+      };
+
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        testHandlePrismaError
+      );
+      expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
+    });
+  });
+});
