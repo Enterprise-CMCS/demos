@@ -44,7 +44,7 @@ describe("checkPhaseCompletionRules", () => {
   });
 
   describe("Concept Phase", () => {
-    it("should bypass checks for the Concept phase", () => {
+    it("should bypass almost all checks for the Concept phase", () => {
       checkPhaseCompletionRules(
         testApplicationId,
         "Concept",
@@ -53,8 +53,13 @@ describe("checkPhaseCompletionRules", () => {
         testApplicationPhases
       );
 
-      expect(makeApplicationDateMapFromList).not.toBeCalled();
-      expect(checkPhaseStartedBeforeCompletion).not.toBeCalled();
+      // Remember that we always check this for every phase regardless
+      expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Concept",
+        "Started"
+      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
       expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
       expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
       expect(checkPriorPhaseCompleteForCompletion).not.toBeCalled();

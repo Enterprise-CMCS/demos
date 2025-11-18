@@ -8,6 +8,7 @@ import {
   checkConceptPhaseStartedBeforeSkipping,
   getApplicationPhaseStatus,
   startNextPhase,
+  updatePhaseStatus,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
@@ -21,6 +22,7 @@ export async function skipConceptPhase(
     await prisma().$transaction(async (tx) => {
       const conceptStatus = await getApplicationPhaseStatus(applicationId, "Concept", tx);
       checkConceptPhaseStartedBeforeSkipping(applicationId, conceptStatus);
+      await updatePhaseStatus(applicationId, "Concept", "Skipped", tx);
 
       const applicationDatesToUpdate: ParsedApplicationDateInput[] = [];
       applicationDatesToUpdate.push({

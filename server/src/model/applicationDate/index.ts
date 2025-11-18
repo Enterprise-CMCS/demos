@@ -18,7 +18,7 @@ export { getApplicationDates } from "./queries/getApplicationDates.js";
 export { upsertApplicationDates } from "./queries/upsertApplicationDates.js";
 
 // Types
-export {
+export type {
   TZDateTimeParts,
   DateOffset,
   ValidationChecks,

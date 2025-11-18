@@ -12,7 +12,10 @@ export async function __setApplicationPhaseStatus(
   _: unknown,
   { input }: { input: SetApplicationPhaseStatusInput }
 ): Promise<PrismaApplication> {
-  if (input.phaseStatus === "Completed") {
+  // Temporary fix until we eventually deprecate __setApplicationPhaseStatus
+  if (input.phaseName === "Federal Comment") {
+    throw new Error(`Operations against the Federal Comment phase are not permitted via API.`);
+  } else if (input.phaseStatus === "Completed") {
     return await completePhase(_, {
       input: { applicationId: input.applicationId, phaseName: input.phaseName },
     });

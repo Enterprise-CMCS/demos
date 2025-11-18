@@ -51,7 +51,6 @@ VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"] = [
 ];
 VALIDATION_CHECKS["Application Intake Completion Date"]["greaterThanOrEqualChecks"] = [
   { dateTypeToCheck: "Application Intake Start Date" },
-  { dateTypeToCheck: "Concept Completion Date" },
 ];
 VALIDATION_CHECKS["State Application Deemed Complete"]["greaterThanOrEqualChecks"] = [
   { dateTypeToCheck: "State Application Submitted Date" },

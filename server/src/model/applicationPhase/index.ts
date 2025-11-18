@@ -19,7 +19,7 @@ export { getApplicationPhaseStatuses } from "./queries/getApplicationPhaseStatus
 export { updatePhaseStatus } from "./queries/updatePhaseStatus.js";
 
 // Types & Constants
-export {
+export type {
   ApplicationPhaseDocumentTypeRecord,
   ApplicationPhaseStatusRecord,
   PhaseActionRecord,

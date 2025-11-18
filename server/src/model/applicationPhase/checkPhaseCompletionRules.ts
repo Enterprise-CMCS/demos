@@ -11,7 +11,11 @@ import {
 } from ".";
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
-  Concept: "No Validation",
+  Concept: {
+    datesMustExist: [],
+    documentTypesMustExist: [],
+    phasesMustBeComplete: [],
+  },
   "Application Intake": {
     datesMustExist: ["State Application Submitted Date", "Completeness Review Due Date"],
     documentTypesMustExist: ["State Application"],
@@ -67,13 +71,13 @@ export function checkPhaseCompletionRules(
     throw new Error(`Validation of the ${phaseToValidate} phase via API is not yet implemented.`);
   }
 
-  const applicationDateMap = makeApplicationDateMapFromList(applicationDates);
   checkPhaseStartedBeforeCompletion(
     applicationId,
     phaseToValidate,
     applicationPhases[phaseToValidate]
   );
 
+  const applicationDateMap = makeApplicationDateMapFromList(applicationDates);
   const datesToCheck = validationChecks.datesMustExist;
   const documentTypesToCheck = validationChecks.documentTypesMustExist;
   const phasesToCheckComplete = validationChecks.phasesMustBeComplete;

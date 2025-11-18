@@ -9,6 +9,7 @@ import {
   checkConceptPhaseStartedBeforeSkipping,
   getApplicationPhaseStatus,
   startNextPhase,
+  updatePhaseStatus,
 } from ".";
 import { getEasternNow } from "../../dateUtilities.js";
 
@@ -39,6 +40,7 @@ vi.mock(".", async () => {
     checkConceptPhaseStartedBeforeSkipping: vi.fn(),
     getApplicationPhaseStatus: vi.fn(),
     startNextPhase: vi.fn(),
+    updatePhaseStatus: vi.fn(),
   };
 });
 
@@ -100,6 +102,12 @@ describe("skipConceptPhase", () => {
       testApplicationId,
       "Started"
     );
+    expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+      testApplicationId,
+      "Concept",
+      "Skipped",
+      mockTransaction
+    );
     expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Application Intake",
@@ -147,6 +155,12 @@ describe("skipConceptPhase", () => {
     expect(checkConceptPhaseStartedBeforeSkipping).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Started"
+    );
+    expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+      testApplicationId,
+      "Concept",
+      "Skipped",
+      mockTransaction
     );
     expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,

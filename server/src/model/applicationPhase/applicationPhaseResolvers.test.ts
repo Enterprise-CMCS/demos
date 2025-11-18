@@ -102,6 +102,20 @@ describe("applicationPhaseResolvers", () => {
       expect(skipConceptPhase).not.toHaveBeenCalled();
     });
 
+    it("should throw when attempting to operate against the Federal Comment phase", async () => {
+      const testInput: SetApplicationPhaseStatusInput = {
+        applicationId: testApplicationId,
+        phaseName: "Federal Comment",
+        phaseStatus: "Completed",
+      };
+      const expectedError =
+        "Operations against the Federal Comment phase are not permitted via API.";
+
+      await expect(
+        __setApplicationPhaseStatus(undefined, { input: testInput })
+      ).rejects.toThrowError(expectedError);
+    });
+
     it("should use the completePhase method when getting a phase completion request", async () => {
       const testInput: SetApplicationPhaseStatusInput = {
         applicationId: testApplicationId,

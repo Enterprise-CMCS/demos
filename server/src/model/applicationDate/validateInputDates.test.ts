@@ -147,7 +147,6 @@ describe("validateInputDates", () => {
         ["Concept Completion Date", "Concept Start Date"],
         ["Concept Skipped Date", "Concept Start Date"],
         ["Application Intake Completion Date", "Application Intake Start Date"],
-        ["Application Intake Completion Date", "Concept Completion Date"],
         ["State Application Deemed Complete", "State Application Submitted Date"],
         ["Completeness Completion Date", "Completeness Start Date"],
         ["Completeness Completion Date", "Application Intake Completion Date"],
