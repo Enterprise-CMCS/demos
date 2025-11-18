@@ -21,8 +21,10 @@ type Demonstration = Pick<ServerDemonstration, "id"> & {
   roles: Role[];
 };
 
-function getRolesForDialog(demonstration: Demonstration): ExistingContactType[] {
-  return (demonstration.roles || []).map((c) => ({
+export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demonstration }) => {
+  const { showManageContactsDialog } = useDialog();
+
+  const rolesForDialog: ExistingContactType[] = (demonstration.roles || []).map((c) => ({
     person: {
       id: c.person.id,
       fullName: c.person.fullName,
@@ -32,10 +34,6 @@ function getRolesForDialog(demonstration: Demonstration): ExistingContactType[] 
     role: c.role,
     isPrimary: c.isPrimary,
   }));
-}
-
-export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demonstration }) => {
-  const { showManageContactsDialog } = useDialog();
 
   return (
     <>
@@ -44,9 +42,7 @@ export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demons
           icon={<EditIcon />}
           name="manage-contacts"
           size="small"
-          onClick={() =>
-            showManageContactsDialog(demonstration.id, getRolesForDialog(demonstration))
-          }
+          onClick={() => showManageContactsDialog(demonstration.id, rolesForDialog)}
         >
           Manage Contact(s)
         </IconButton>
