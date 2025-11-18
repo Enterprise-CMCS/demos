@@ -11,6 +11,7 @@ import {
 
 import { useDialog } from "components/dialog/DialogContext";
 import { ContactsTable } from "components/table/tables/ContactsTable";
+import { ExistingContactType } from "components/dialog/ManageContactsDialog";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email">;
@@ -19,6 +20,19 @@ type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
 type Demonstration = Pick<ServerDemonstration, "id"> & {
   roles: Role[];
 };
+
+function getRolesForDialog(demonstration: Demonstration): ExistingContactType[] {
+  return (demonstration.roles || []).map((c) => ({
+    person: {
+      id: c.person.id,
+      fullName: c.person.fullName,
+      email: c.person.email,
+      idmRoles: [], // unknown for existing; restrictions handled dynamically
+    },
+    role: c.role,
+    isPrimary: c.isPrimary,
+  }));
+}
 
 export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demonstration }) => {
   const { showManageContactsDialog } = useDialog();
@@ -31,19 +45,7 @@ export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demons
           name="manage-contacts"
           size="small"
           onClick={() =>
-            showManageContactsDialog(
-              demonstration.id,
-              (demonstration.roles || []).map((c) => ({
-                person: {
-                  id: c.person.id,
-                  fullName: c.person.fullName,
-                  email: c.person.email,
-                  idmRoles: [], // unknown for existing; restrictions handled dynamically
-                },
-                role: c.role,
-                isPrimary: c.isPrimary,
-              }))
-            )
+            showManageContactsDialog(demonstration.id, getRolesForDialog(demonstration))
           }
         >
           Manage Contact(s)
