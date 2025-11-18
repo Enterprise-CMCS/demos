@@ -1,4 +1,3 @@
-// DemosApolloProvider.test.tsx
 import React from "react";
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -33,9 +32,9 @@ vi.mock("react-oidc-context", () => ({
 // @apollo/client & link/context mocks
 vi.mock("@apollo/client", () => ({
   ApolloClient: vi.fn(),
-  InMemoryCache: vi.fn(() => ({})),
+  InMemoryCache: vi.fn(),
   ApolloProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  createHttpLink: vi.fn(() => ({ kind: "httpLink" } as object)),
+  createHttpLink: vi.fn(() => ({ kind: "httpLink" }) as object),
   gql: vi.fn(),
   useQuery: vi.fn(() => ({ data: undefined, error: undefined, loading: false })),
 }));
