@@ -174,6 +174,7 @@ export function Table<T>({
     onExpandedChange: setExpanded,
     initialState,
     onRowSelectionChange: setRowSelection,
+    paginateExpandedRows: false,
   });
 
   // Auto-expand parents with visible children after filtering
