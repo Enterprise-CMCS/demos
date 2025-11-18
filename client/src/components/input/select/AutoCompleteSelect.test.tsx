@@ -1,9 +1,11 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { AutoCompleteSelect } from "./AutoCompleteSelect";
 import { Option } from "./Select";
+
+const onSelect: (value: string) => void = vi.fn();
 
 const options: Option[] = [
   { label: "Apple", value: "apple" },
@@ -12,12 +14,6 @@ const options: Option[] = [
 ];
 
 describe("AutoCompleteSelect", () => {
-  let onSelect: (value: string) => void;
-
-  beforeEach(() => {
-    onSelect = vi.fn();
-  });
-
   it("renders input with placeholder", () => {
     render(<AutoCompleteSelect options={options} onSelect={onSelect} placeholder="Pick fruit" />);
     expect(screen.getByPlaceholderText("Pick fruit")).toBeInTheDocument();
