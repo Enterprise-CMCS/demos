@@ -2,51 +2,36 @@ import * as React from "react";
 
 import { ChevronRightIcon } from "components/icons";
 import {
-  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { ModificationColumns } from "../columns/ModificationColumns";
-import { Amendment, Extension } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { DemonstrationStatusBadge } from "components/badge/DemonstrationStatusBadge";
-
-export type ModificationTableRow = Pick<
-  Amendment | Extension,
-  "id" | "name" | "effectiveDate" | "status"
->;
+import { Amendment } from "./AmendmentTable";
+import { Extension } from "./ExtensionTable";
 
 export function ModificationTable({
   modificationType,
-  modifications,
   initiallyExpandedId,
+  modifications,
 }: {
   modificationType: "Amendment" | "Extension";
-  modifications: ModificationTableRow[];
+  modifications: Amendment[] | Extension[];
   initiallyExpandedId?: string;
 }) {
-  const [expanded, setExpanded] = React.useState<ExpandedState>(() =>
-    initiallyExpandedId ? { [initiallyExpandedId]: true } : {}
-  );
-
-  const handleExpandedChange = React.useCallback(
-    (updater: ExpandedState | ((prev: ExpandedState) => ExpandedState)) => {
-      setExpanded((prev) => {
-        return typeof updater === "function" ? updater(prev) : updater;
-      });
-    },
-    []
-  );
-
-  const table = useReactTable<ModificationTableRow>({
+  const table = useReactTable<Amendment | Extension>({
     data: modifications,
     columns: ModificationColumns,
-    state: { expanded },
-    onExpandedChange: handleExpandedChange,
+    initialState: {
+      sorting: [{ id: "createdAt", desc: true }],
+      expanded: initiallyExpandedId ? { [initiallyExpandedId]: true } : {},
+    },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
+    getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
   });
 
@@ -71,7 +56,11 @@ export function ModificationTable({
             const isExpanded = row.getIsExpanded();
 
             return (
-              <div key={row.id} className="border rounded px-4 py-2 bg-white">
+              <div
+                data-testId={"modification-row"}
+                key={row.id}
+                className="border rounded px-4 py-2 bg-white"
+              >
                 <div
                   onClick={() => row.toggleExpanded()}
                   className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 cursor-pointer"

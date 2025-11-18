@@ -1,124 +1,190 @@
 import React from "react";
 
-import { ALL_MOCKS } from "mock-data/index";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MockedProvider } from "@apollo/client/testing";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
-import { DemonstrationDetail } from "./DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_QUERY, DemonstrationDetail } from "./DemonstrationDetail";
 
-const showCreateAmendmentDialog = vi.fn();
-const showCreateExtensionDialog = vi.fn();
-vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({
-    showCreateAmendmentDialog,
-    showCreateExtensionDialog,
-  }),
+// Mock the tab components
+vi.mock("pages/DemonstrationDetail/DemonstrationTab.tsx", () => ({
+  DemonstrationTab: vi.fn(() => <div data-testid="demonstration-tab">Demonstration Tab</div>),
 }));
 
+vi.mock("pages/DemonstrationDetail/AmendmentsTab.tsx", () => ({
+  AmendmentsTab: vi.fn(() => <div data-testid="amendments-tab">Amendments Tab</div>),
+}));
+
+vi.mock("pages/DemonstrationDetail/ExtensionsTab.tsx", () => ({
+  ExtensionsTab: vi.fn(() => <div data-testid="extensions-tab">Extensions Tab</div>),
+}));
+
+// Import mocked components to use in assertions
+import { DemonstrationTab } from "./DemonstrationTab";
+import { AmendmentsTab } from "./AmendmentsTab";
+import { ExtensionsTab } from "./ExtensionsTab";
+
+const DemonstrationDetailMock = {
+  request: {
+    query: DEMONSTRATION_DETAIL_QUERY,
+    variables: { id: "1" },
+  },
+  result: {
+    data: {
+      demonstration: {
+        id: "1",
+        status: "Active",
+        currentPhaseName: "Phase 1",
+        amendments: [
+          {
+            id: "amendment-1",
+          },
+          {
+            id: "amendment-2",
+          },
+        ],
+        extensions: [
+          {
+            id: "extension-1",
+          },
+        ],
+        documents: [],
+        roles: [],
+      },
+    },
+  },
+};
+
 describe("DemonstrationDetail", () => {
-  function renderWithProviders() {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const renderWithRouter = (initialEntry = "/demonstrations/1") => {
     return render(
-      <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
-        <MemoryRouter initialEntries={["/demonstrations/1"]}>
+      <MockedProvider mocks={[DemonstrationDetailMock]} addTypename={false}>
+        <MemoryRouter initialEntries={[initialEntry]}>
           <Routes>
             <Route path="/demonstrations/:id" element={<DemonstrationDetail />} />
           </Routes>
         </MemoryRouter>
       </MockedProvider>
     );
-  }
+  };
 
-  it("renders and switches to Amendments tab", async () => {
-    renderWithProviders();
-
-    // Wait for component to load and navigate to Documents tab where table is located
-    await waitFor(() => {
-      expect(screen.getByText("Summary Details")).toBeInTheDocument();
-    });
-
-    // Navigate to Documents tab first to access the table
-    const documentsTab = screen.getByRole("button", { name: /Documents/i });
-    fireEvent.click(documentsTab);
+  it("renders tabs with counts", async () => {
+    renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Demonstration Details/i })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("heading", { name: /Documents/i })).toBeInTheDocument();
-
-    const amendmentsTab = screen.getByRole("button", { name: /Amendments/i });
-    fireEvent.click(amendmentsTab);
-
-    expect(screen.getByText("Amendments")).toBeInTheDocument();
-    expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Amendments \(2\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Extensions \(1\)/i })).toBeInTheDocument();
   });
 
-  it("opens Add New Amendment modal", async () => {
-    renderWithProviders();
-
-    // Wait for component to load and navigate to Documents tab where table is located
-    await waitFor(() => {
-      expect(screen.getByText("Summary Details")).toBeInTheDocument();
-    });
-
-    // Navigate to Documents tab first to access the table
-    const documentsTab = screen.getByRole("button", { name: /Documents/i });
-    fireEvent.click(documentsTab);
+  it("renders on demonstration details tab by default", async () => {
+    renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByTestId("demonstration-tab")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /Amendments/i }));
-    fireEvent.click(screen.getByTestId("add-new-amendment"));
-
-    expect(showCreateAmendmentDialog).toHaveBeenCalledWith("1");
+    expect(DemonstrationTab).toHaveBeenCalledWith(
+      expect.objectContaining({
+        demonstration: expect.objectContaining({
+          id: "1",
+        }),
+      }),
+      undefined
+    );
   });
 
-  it("renders and switches to Extensions tab", async () => {
-    renderWithProviders();
-
-    // Wait for component to load and navigate to Documents tab where table is located
-    await waitFor(() => {
-      expect(screen.getByText("Summary Details")).toBeInTheDocument();
-    });
-
-    // Navigate to Documents tab first to access the table
-    const documentsTab = screen.getByRole("button", { name: /Documents/i });
-    fireEvent.click(documentsTab);
+  it("renders on amendments tab when query param is set", async () => {
+    renderWithRouter("/demonstrations/1?amendments=amendment-1");
 
     await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByTestId("amendments-tab")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /Extensions/i }));
+    expect(AmendmentsTab).toHaveBeenCalledWith(
+      expect.objectContaining({
+        demonstrationId: "1",
+        initiallyExpandedId: "amendment-1",
+      }),
+      undefined
+    );
 
-    expect(screen.getByText("Extensions")).toBeInTheDocument();
-    expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+    expect(screen.getByTestId("amendments-tab")).toBeInTheDocument();
   });
 
-  it("opens Add New Extension modal", async () => {
-    renderWithProviders();
-
-    // Wait for component to load and navigate to Documents tab where table is located
-    await waitFor(() => {
-      expect(screen.getByText("Summary Details")).toBeInTheDocument();
-    });
-
-    // Navigate to Documents tab first to access the table
-    const documentsTab = screen.getByRole("button", { name: /Documents/i });
-    fireEvent.click(documentsTab);
+  it("renders on extensions tab when query param is set", async () => {
+    renderWithRouter("/demonstrations/1?extensions=extension-1");
 
     await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByTestId("extensions-tab")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /Extensions/i }));
-    fireEvent.click(screen.getByTestId("add-new-extension"));
+    expect(ExtensionsTab).toHaveBeenCalledWith(
+      expect.objectContaining({
+        demonstrationId: "1",
+        initiallyExpandedId: "extension-1",
+      }),
+      undefined
+    );
 
-    expect(showCreateExtensionDialog).toHaveBeenCalledWith("1");
+    expect(screen.getByTestId("extensions-tab")).toBeInTheDocument();
+  });
+
+  it("switches between tabs", async () => {
+    const user = userEvent.setup();
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("demonstration-tab")).toBeInTheDocument();
+    });
+
+    // Click on Amendments tab
+    const amendmentsTab = screen.getByRole("button", { name: /Amendments \(2\)/i });
+    await user.click(amendmentsTab);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("amendments-tab")).toBeInTheDocument();
+    });
+
+    expect(AmendmentsTab).toHaveBeenCalledWith(
+      expect.objectContaining({
+        demonstrationId: "1",
+        initiallyExpandedId: undefined,
+      }),
+      undefined
+    );
+
+    // Click on Extensions tab
+    const extensionsTab = screen.getByRole("button", { name: /Extensions \(1\)/i });
+    await user.click(extensionsTab);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("extensions-tab")).toBeInTheDocument();
+    });
+
+    expect(ExtensionsTab).toHaveBeenCalledWith(
+      expect.objectContaining({
+        demonstrationId: "1",
+        initiallyExpandedId: undefined,
+      }),
+      undefined
+    );
+
+    // Click back to Demonstration Details tab
+    const detailsTab = screen.getByRole("button", { name: /Demonstration Details/i });
+    await user.click(detailsTab);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("demonstration-tab")).toBeInTheDocument();
+    });
   });
 });

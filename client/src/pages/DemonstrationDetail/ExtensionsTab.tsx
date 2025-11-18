@@ -1,14 +1,13 @@
 import React from "react";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
-import { ModificationTable, ModificationTableRow } from "components/table/tables/ModificationTable";
 import { useDialog } from "components/dialog/DialogContext";
+import { ExtensionTable } from "components/table/tables/ExtensionTable";
 
 export const ExtensionsTab: React.FC<{
   demonstrationId: string;
-  extensions: ModificationTableRow[];
   initiallyExpandedId?: string;
-}> = ({ demonstrationId, extensions, initiallyExpandedId }) => {
+}> = ({ demonstrationId, initiallyExpandedId }) => {
   const { showCreateExtensionDialog } = useDialog();
   return (
     <div className="p-2">
@@ -23,11 +22,7 @@ export const ExtensionsTab: React.FC<{
           Add New
         </IconButton>
       </div>
-      <ModificationTable
-        modificationType="Extension"
-        modifications={extensions}
-        initiallyExpandedId={initiallyExpandedId}
-      />
+      <ExtensionTable demonstrationId={demonstrationId} initiallyExpandedId={initiallyExpandedId} />
     </div>
   );
 };

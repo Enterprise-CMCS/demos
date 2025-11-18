@@ -86,7 +86,6 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
         <SdgPreparationPhase
           demonstrationId={demonstration.id}
           sdgPreparationPhase={sdgPreparationPhase}
-          setSelectedPhase={setSelectedPhase}
         />
       );
     },
