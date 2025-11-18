@@ -7,6 +7,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
+import { ContactsTab } from "./ContactsTab";
 
 // Type definitions for mock components
 interface MockDocumentTableProps {
@@ -14,45 +15,30 @@ interface MockDocumentTableProps {
   documents?: Array<{ id: string; [key: string]: unknown }>;
 }
 
-interface MockContactsTableProps {
-  demonstrationId: string;
-  roles?: Array<{ id?: string; [key: string]: unknown }>;
-}
-
 interface MockSummaryDetailsTableProps {
   demonstrationId: string;
 }
 
-// Mock the child components to avoid complex GraphQL queries
-vi.mock("components/table/tables/DocumentTable", () => ({
-  DocumentTable: ({ documents }: MockDocumentTableProps) => (
-    <div data-testid="document-table">Document Table ({documents?.length || 0} documents)</div>
-  ),
-}));
-
-vi.mock("components/table/tables/ContactsTable", () => ({
-  ContactsTable: ({ roles }: MockContactsTableProps) => (
-    <div data-testid="contacts-table">Contacts Table ({roles?.length || 0} contacts)</div>
-  ),
-}));
-
-const showManageContactsDialog = vi.fn();
 const showUploadDocumentDialog = vi.fn();
-vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({
-    showManageContactsDialog,
-    showUploadDocumentDialog,
-  }),
-}));
 
-// Mock the SummaryDetailsTable component to avoid GraphQL queries
 vi.mock("components/table/tables/SummaryDetailsTable", () => ({
   SummaryDetailsTable: ({ demonstrationId }: MockSummaryDetailsTableProps) => (
     <div data-testid="summary-details-table">SummaryDetailsTable - ID: {demonstrationId}</div>
   ),
 }));
-
-// Mock the Tab components to ensure they render properly
+vi.mock("components/table/tables/DocumentTable", () => ({
+  DocumentTable: ({ documents }: MockDocumentTableProps) => (
+    <div data-testid="document-table">Document Table ({documents?.length || 0} documents)</div>
+  ),
+}));
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showUploadDocumentDialog,
+  }),
+}));
+vi.mock("./ContactsTab", () => ({
+  ContactsTab: vi.fn(() => <div data-testid="contacts-tab">Contacts Tab</div>),
+}));
 vi.mock("layout/Tabs", () => ({
   VerticalTabs: ({
     children,
@@ -106,6 +92,7 @@ vi.mock("layout/Tabs", () => ({
     return <>{children}</>;
   },
 }));
+
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
   status: "Pre-Submission" as const,
@@ -169,124 +156,6 @@ describe("DemonstrationTab", () => {
     expect(screen.getByRole("button", { name: "Documents (2)" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Contacts (2)" })).toBeInTheDocument();
   });
-  it("displays correct count when demonstration has empty documents array", () => {
-    const demonstrationWithEmptyDocs: DemonstrationTabDemonstration = {
-      ...mockDemonstration,
-      documents: [],
-    };
-
-    renderWithProvider(<DemonstrationTab demonstration={demonstrationWithEmptyDocs} />);
-
-    expect(screen.getByRole("button", { name: "Documents (0)" })).toBeInTheDocument();
-  });
-
-  it("displays correct count when demonstration has empty roles array", () => {
-    const demonstrationWithEmptyRoles: DemonstrationTabDemonstration = {
-      ...mockDemonstration,
-      roles: [],
-    };
-
-    renderWithProvider(<DemonstrationTab demonstration={demonstrationWithEmptyRoles} />);
-
-    expect(screen.getByRole("button", { name: "Contacts (0)" })).toBeInTheDocument();
-  });
-
-  it("opens add document dialog when Add Document button is clicked", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    // Click on Documents tab first if not already active
-    const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
-    await user.click(documentsTab);
-
-    const addDocumentButton = screen.getByRole("button", { name: "add-new-document" });
-    await user.click(addDocumentButton);
-
-    expect(showUploadDocumentDialog).toHaveBeenCalled();
-  });
-
-  it("opens manage contacts dialog when Manage Contact(s) button is clicked", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    // Click on Contacts tab
-    const contactsTab = screen.getByRole("button", { name: "Contacts (2)" });
-    await user.click(contactsTab);
-
-    const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
-    await user.click(manageContactsButton);
-
-    expect(showManageContactsDialog).toHaveBeenCalled();
-  });
-
-  it("passes correct props to DocumentTable", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    // Switch to documents tab to see the document table
-    const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
-    await user.click(documentsTab);
-
-    expect(screen.getByTestId("document-table")).toHaveTextContent("Document Table (2 documents)");
-  });
-
-  it("passes correct props to ContactsTable", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    // Switch to contacts tab
-    const contactsTab = screen.getByRole("button", { name: "Contacts (2)" });
-    await user.click(contactsTab);
-
-    expect(screen.getByTestId("contacts-table")).toHaveTextContent("Contacts Table (2 contacts)");
-  });
-
-  it("passes correct existingContacts to ManageContactsDialog", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    // Switch to contacts tab and open manage dialog
-    const contactsTab = screen.getByRole("button", { name: "Contacts (2)" });
-    await user.click(contactsTab);
-
-    const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
-    await user.click(manageContactsButton);
-
-    const roles = mockDemonstration.roles.map((role) => ({
-      person: {
-        id: role.person.id,
-        fullName: role.person.fullName,
-        email: role.person.email,
-        idmRoles: [], // unknown for existing; restrictions handled dynamically
-      },
-      role: role.role,
-      isPrimary: role.isPrimary,
-    }));
-
-    // Verify the dialog gets the mapped contacts with idmRoles as empty array
-    expect(showManageContactsDialog).toHaveBeenCalledWith(mockDemonstration.id, roles);
-  });
-
-  it("handles empty demonstration roles array", async () => {
-    const user = userEvent.setup();
-    const demonstrationWithEmptyRoles = {
-      ...mockDemonstration,
-      roles: [],
-    };
-
-    renderWithProvider(<DemonstrationTab demonstration={demonstrationWithEmptyRoles} />);
-
-    expect(screen.getByRole("button", { name: "Contacts (0)" })).toBeInTheDocument();
-
-    // Switch to contacts tab and open manage dialog
-    const contactsTab = screen.getByRole("button", { name: "Contacts (0)" });
-    await user.click(contactsTab);
-
-    const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
-    await user.click(manageContactsButton);
-
-    expect(showManageContactsDialog).toHaveBeenCalledWith(demonstrationWithEmptyRoles.id, []);
-  });
 
   it("shows details tab content by default", () => {
     renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
@@ -295,52 +164,61 @@ describe("DemonstrationTab", () => {
     expect(screen.getByTestId("summary-details-table")).toBeInTheDocument();
   });
 
-  it("switches to documents tab and shows documents content", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
-    await user.click(documentsTab);
-
-    expect(screen.getByTestId("document-table")).toBeInTheDocument();
-  });
-
-  it("switches to contacts tab when clicked", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    const contactsTab = screen.getByRole("button", { name: "Contacts (2)" });
-    await user.click(contactsTab);
-
-    expect(screen.getByTestId("contacts-table")).toBeInTheDocument();
-  });
-
-  it("shows Add Document button in documents tab", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    // Switch to documents tab first
-    const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
-    await user.click(documentsTab);
-
-    expect(screen.getByRole("button", { name: "add-new-document" })).toBeInTheDocument();
-  });
-
-  it("shows Manage Contact(s) button in contacts tab", async () => {
-    const user = userEvent.setup();
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    const contactsTab = screen.getByRole("button", { name: "Contacts (2)" });
-    await user.click(contactsTab);
-
-    expect(screen.getByRole("button", { name: "manage-contacts" })).toBeInTheDocument();
-  });
-
-  describe("modal dialogs", () => {
-    it("shows correct modal type document when document dialog opens", async () => {
+  describe("contacts tab", () => {
+    it("passes correct props to ContactsTab", async () => {
       const user = userEvent.setup();
       renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
 
+      // Switch to contacts tab
+      const contactsTab = screen.getByRole("button", { name: "Contacts (2)" });
+      await user.click(contactsTab);
+
+      expect(ContactsTab).toHaveBeenCalledWith(
+        expect.objectContaining({
+          demonstration: mockDemonstration,
+        }),
+        undefined
+      );
+    });
+    it("displays correct count when demonstration has empty roles array", () => {
+      const demonstrationWithEmptyRoles: DemonstrationTabDemonstration = {
+        ...mockDemonstration,
+        roles: [],
+      };
+
+      renderWithProvider(<DemonstrationTab demonstration={demonstrationWithEmptyRoles} />);
+
+      expect(screen.getByRole("button", { name: "Contacts (0)" })).toBeInTheDocument();
+    });
+
+    it("handles empty demonstration roles array", async () => {
+      const demonstrationWithEmptyRoles = {
+        ...mockDemonstration,
+        roles: [],
+      };
+
+      renderWithProvider(<DemonstrationTab demonstration={demonstrationWithEmptyRoles} />);
+
+      expect(screen.getByRole("button", { name: "Contacts (0)" })).toBeInTheDocument();
+    });
+  });
+  describe("documents tab", () => {
+    it("displays correct count when demonstration has empty documents array", () => {
+      const demonstrationWithEmptyDocs: DemonstrationTabDemonstration = {
+        ...mockDemonstration,
+        documents: [],
+      };
+
+      renderWithProvider(<DemonstrationTab demonstration={demonstrationWithEmptyDocs} />);
+
+      expect(screen.getByRole("button", { name: "Documents (0)" })).toBeInTheDocument();
+    });
+
+    it("opens add document dialog when Add Document button is clicked", async () => {
+      const user = userEvent.setup();
+      renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
+
+      // Click on Documents tab first if not already active
       const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
       await user.click(documentsTab);
 
@@ -350,35 +228,53 @@ describe("DemonstrationTab", () => {
       expect(showUploadDocumentDialog).toHaveBeenCalled();
     });
 
-    it("shows correct modal type contact when contacts dialog opens", async () => {
+    it("passes correct props to DocumentTable", async () => {
       const user = userEvent.setup();
       renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
 
-      const contactsTab = screen.getByRole("button", { name: "Contacts (2)" });
-      await user.click(contactsTab);
+      // Switch to documents tab to see the document table
+      const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
+      await user.click(documentsTab);
 
-      const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
-      await user.click(manageContactsButton);
-
-      expect(showManageContactsDialog).toHaveBeenCalled();
+      expect(screen.getByTestId("document-table")).toHaveTextContent(
+        "Document Table (2 documents)"
+      );
     });
 
-    it("passes empty array to ManageContactsDialog when roles array is empty", async () => {
+    it("switches to documents tab and shows documents content", async () => {
       const user = userEvent.setup();
-      const demonstrationWithEmptyRoles: DemonstrationTabDemonstration = {
-        ...mockDemonstration,
-        roles: [],
-      };
+      renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
 
-      renderWithProvider(<DemonstrationTab demonstration={demonstrationWithEmptyRoles} />);
+      const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
+      await user.click(documentsTab);
 
-      const contactsTab = screen.getByRole("button", { name: "Contacts (0)" });
-      await user.click(contactsTab);
+      expect(screen.getByTestId("document-table")).toBeInTheDocument();
+    });
 
-      const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
-      await user.click(manageContactsButton);
+    it("shows Add Document button in documents tab", async () => {
+      const user = userEvent.setup();
+      renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
 
-      expect(showManageContactsDialog).toHaveBeenCalledWith(demonstrationWithEmptyRoles.id, []);
+      // Switch to documents tab first
+      const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
+      await user.click(documentsTab);
+
+      expect(screen.getByRole("button", { name: "add-new-document" })).toBeInTheDocument();
+    });
+
+    describe("modal dialogs", () => {
+      it("shows correct modal type document when document dialog opens", async () => {
+        const user = userEvent.setup();
+        renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
+
+        const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
+        await user.click(documentsTab);
+
+        const addDocumentButton = screen.getByRole("button", { name: "add-new-document" });
+        await user.click(addDocumentButton);
+
+        expect(showUploadDocumentDialog).toHaveBeenCalled();
+      });
     });
   });
 });
