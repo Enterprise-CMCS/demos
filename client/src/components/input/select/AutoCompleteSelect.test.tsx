@@ -1,9 +1,11 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { AutoCompleteSelect } from "./AutoCompleteSelect";
 import { Option } from "./Select";
+
+const onSelect: (value: string) => void = vi.fn();
 
 const options: Option[] = [
   { label: "Apple", value: "apple" },
@@ -12,20 +14,8 @@ const options: Option[] = [
 ];
 
 describe("AutoCompleteSelect", () => {
-  let onSelect: ReturnType<typeof vi.fn>;
-
-  beforeEach(() => {
-    onSelect = vi.fn();
-  });
-
   it("renders input with placeholder", () => {
-    render(
-      <AutoCompleteSelect
-        options={options}
-        onSelect={onSelect}
-        placeholder="Pick fruit"
-      />
-    );
+    render(<AutoCompleteSelect options={options} onSelect={onSelect} placeholder="Pick fruit" />);
     expect(screen.getByPlaceholderText("Pick fruit")).toBeInTheDocument();
   });
 
@@ -45,12 +35,7 @@ describe("AutoCompleteSelect", () => {
 
   it("renders disabled input", () => {
     render(
-      <AutoCompleteSelect
-        options={options}
-        onSelect={onSelect}
-        isDisabled
-        placeholder="Disabled"
-      />
+      <AutoCompleteSelect options={options} onSelect={onSelect} isDisabled placeholder="Disabled" />
     );
     expect(screen.getByPlaceholderText("Disabled")).toBeDisabled();
   });
@@ -131,13 +116,7 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("prefills input with defaultValue", () => {
-    render(
-      <AutoCompleteSelect
-        options={options}
-        onSelect={onSelect}
-        defaultValue="Banana"
-      />
-    );
+    render(<AutoCompleteSelect options={options} onSelect={onSelect} defaultValue="Banana" />);
     expect(screen.getByDisplayValue("Banana")).toBeInTheDocument();
   });
 });

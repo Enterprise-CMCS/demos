@@ -307,7 +307,7 @@ describe("tryUploadingFileToS3", () => {
   const testPresignedURL = "https://test-bucket.s3.amazonaws.com/test-key?presigned=true";
 
   beforeEach(() => {
-    global.fetch = vi.fn();
+    globalThis.fetch = vi.fn();
   });
 
   afterEach(() => {
@@ -318,12 +318,12 @@ describe("tryUploadingFileToS3", () => {
     const mockResponse = {
       ok: true,
     };
-    vi.mocked(global.fetch).mockResolvedValue(mockResponse as Response);
+    vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse as Response);
 
     const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
 
     expect(result).toEqual({ success: true, errorMessage: "" });
-    expect(global.fetch).toHaveBeenCalledWith(testPresignedURL, {
+    expect(globalThis.fetch).toHaveBeenCalledWith(testPresignedURL, {
       method: "PUT",
       body: mockFile,
       headers: { "Content-Type": "application/pdf" },
@@ -336,7 +336,7 @@ describe("tryUploadingFileToS3", () => {
       ok: false,
       text: vi.fn().mockResolvedValue(errorText),
     } as unknown as Response;
-    vi.mocked(global.fetch).mockResolvedValue(mockResponse);
+    vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse);
 
     const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
 
@@ -349,7 +349,7 @@ describe("tryUploadingFileToS3", () => {
 
   it("returns error when network error occurs", async () => {
     const networkError = new Error("Network timeout");
-    vi.mocked(global.fetch).mockRejectedValue(networkError);
+    vi.mocked(globalThis.fetch).mockRejectedValue(networkError);
 
     const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
 
@@ -361,7 +361,7 @@ describe("tryUploadingFileToS3", () => {
 
   it("returns generic error message for non-Error exceptions", async () => {
     const nonErrorException = "String error";
-    vi.mocked(global.fetch).mockRejectedValue(nonErrorException);
+    vi.mocked(globalThis.fetch).mockRejectedValue(nonErrorException);
 
     const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
 
@@ -376,11 +376,11 @@ describe("tryUploadingFileToS3", () => {
       type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });
     const mockResponse = { ok: true };
-    vi.mocked(global.fetch).mockResolvedValue(mockResponse as Response);
+    vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse as Response);
 
     await tryUploadingFileToS3(testPresignedURL, mockFileWithDifferentType);
 
-    expect(global.fetch).toHaveBeenCalledWith(testPresignedURL, {
+    expect(globalThis.fetch).toHaveBeenCalledWith(testPresignedURL, {
       method: "PUT",
       body: mockFileWithDifferentType,
       headers: {
