@@ -6,12 +6,10 @@ import {
   AddNewIcon,
   CharacteristicIcon,
   DetailsIcon,
-  EditIcon,
   OpenFolderIcon,
   StackIcon,
 } from "components/icons";
 import { TabHeader } from "components/table/TabHeader";
-import { ContactsTable } from "components/table/tables/ContactsTable";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import {
   Demonstration,
@@ -24,6 +22,7 @@ import { Tab, VerticalTabs } from "layout/Tabs";
 
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 import { useDialog } from "components/dialog/DialogContext";
+import { ContactsTab } from "./ContactsTab";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email">;
@@ -42,7 +41,7 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status">
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
-  const { showManageContactsDialog, showUploadDocumentDialog } = useDialog();
+  const { showUploadDocumentDialog } = useDialog();
 
   return (
     <div className="p-[16px]">
@@ -77,31 +76,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           label={`Contacts (${demonstration.roles?.length ?? 0})`}
           value="contacts"
         >
-          <TabHeader title="Contacts">
-            <IconButton
-              icon={<EditIcon />}
-              name="manage-contacts"
-              size="small"
-              onClick={() =>
-                showManageContactsDialog(
-                  demonstration.id,
-                  (demonstration.roles || []).map((c) => ({
-                    person: {
-                      id: c.person.id,
-                      fullName: c.person.fullName,
-                      email: c.person.email,
-                      idmRoles: [], // unknown for existing; restrictions handled dynamically
-                    },
-                    role: c.role,
-                    isPrimary: c.isPrimary,
-                  }))
-                )
-              }
-            >
-              Manage Contact(s)
-            </IconButton>
-          </TabHeader>
-          <ContactsTable roles={demonstration.roles} />
+          <ContactsTab demonstration={demonstration} />
         </Tab>
       </VerticalTabs>
     </div>
