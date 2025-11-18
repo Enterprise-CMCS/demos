@@ -17,6 +17,7 @@
     "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "^4.0.10",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.10",
+    "glob": "^11.1.0"
   }
 }
