@@ -140,7 +140,7 @@ describe.sequential("Table Component Interactions", () => {
       const user = userEvent.setup();
 
       // First apply a column filter for Option
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
@@ -224,7 +224,7 @@ describe.sequential("Table Component Interactions", () => {
       );
 
       // Now apply a column filter for Name
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
       await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
@@ -264,7 +264,7 @@ describe.sequential("Table Component Interactions", () => {
       await user.type(keywordSearchInput, "Alpha");
 
       // Apply column filter
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
       await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
@@ -320,7 +320,7 @@ describe.sequential("Table Component Interactions", () => {
       await user.clear(keywordSearchInput);
       await user.type(keywordSearchInput, "Alpha");
 
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
       await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
@@ -405,7 +405,7 @@ describe.sequential("Table Component Interactions", () => {
       );
 
       // Apply column filter and verify sorting is maintained
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
       await user.selectOptions(columnSelect, "Option");
 
       await waitFor(() => {
@@ -465,7 +465,7 @@ describe.sequential("Table Component Interactions", () => {
       await user.type(keywordSearchInput, "nonexistent");
 
       // Apply column filter
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
       await user.selectOptions(columnSelect, "Name");
 
       await waitFor(() => {
