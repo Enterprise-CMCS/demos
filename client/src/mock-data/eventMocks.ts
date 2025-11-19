@@ -3,7 +3,7 @@ import { LogEventArguments } from "hooks/event/useEvent";
 import { MockedResponse } from "@apollo/client/testing";
 import { MockUser, mockUsers } from "./userMocks.js";
 import { MockDemonstration, mockDemonstrations } from "./demonstrationMocks.js";
-import { gql } from "@apollo/client";
+import { LOG_EVENT_MUTATION, GET_EVENTS_QUERY } from "hooks/event/useEvent";
 
 export type MockEvent = Pick<
   Event,
@@ -12,45 +12,6 @@ export type MockEvent = Pick<
   user: MockUser;
   application: MockDemonstration;
 };
-
-export const LOG_EVENT_MUTATION = gql`
-  mutation LogEvent($input: LogEventInput!) {
-    logEvent(input: $input) {
-      id
-    }
-  }
-`;
-
-export const GET_EVENTS_QUERY = gql`
-  query GetEvents {
-    events {
-      id
-      eventType
-      logLevel
-      route
-      createdAt
-      eventData
-      user {
-        id
-        person {
-          fullName
-        }
-      }
-      role
-      application {
-        ... on Demonstration {
-          id
-        }
-        ... on Amendment {
-          id
-        }
-        ... on Extension {
-          id
-        }
-      }
-    }
-  }
-`;
 
 const mockEvents = [
   {
