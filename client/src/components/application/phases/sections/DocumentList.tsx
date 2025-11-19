@@ -3,6 +3,10 @@ import { DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
+import { gql } from "graphql-tag";
+import { Application, Document as ServerDocument } from "demos-server";
+import { useMutation } from "@apollo/client";
+import { useToast } from "components/toast";
 
 const STYLES = {
   list: tw`mt-4 space-y-3`,
@@ -10,19 +14,65 @@ const STYLES = {
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
 };
 
+type Document = {
+  application: Pick<Application, "id"> & {
+    documents: Pick<ServerDocument, "id">[];
+  };
+};
+export const DELETE_DOCUMENT_MUTATION = gql`
+  mutation DeleteDocument($id: ID!) {
+    deleteDocument(id: $id) {
+      application {
+        ... on Demonstration {
+          id
+          documents {
+            id
+          }
+        }
+        ... on Amendment {
+          id
+          documents {
+            id
+          }
+        }
+        ... on Extension {
+          id
+          documents {
+            id
+          }
+        }
+      }
+    }
+  }
+`;
+
 export interface DocumentListProps {
   documents: ApplicationWorkflowDocument[];
-  onDelete?: (id: string) => void;
   showDescription?: boolean;
   emptyMessage?: string;
 }
 
 export const DocumentList: React.FC<DocumentListProps> = ({
   documents,
-  onDelete,
   showDescription = true,
   emptyMessage = "No documents yet.",
 }) => {
+  const { showError } = useToast();
+  const [deleteDocumentTrigger, { loading }] = useMutation<{
+    deleteDocument: Document;
+  }>(DELETE_DOCUMENT_MUTATION);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDocumentTrigger({
+        variables: { id },
+      });
+    } catch (error) {
+      console.error(error);
+      showError("Error deleting document.");
+    }
+  };
+
   return (
     <div className={STYLES.list}>
       {documents.length === 0 && (
@@ -39,16 +89,15 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             </div>
           </div>
 
-          {onDelete && (
-            <button
-              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-              onClick={() => onDelete(doc.id)}
-              aria-label={`Delete ${doc.name}`}
-              title={`Delete ${doc.name}`}
-            >
-              <DeleteIcon className="w-2 h-2" />
-            </button>
-          )}
+          <button
+            className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
+            onClick={() => handleDelete(doc.id)}
+            aria-label={`Delete ${doc.name}`}
+            title={`Delete ${doc.name}`}
+            disabled={loading}
+          >
+            <DeleteIcon className="w-2 h-2" />
+          </button>
         </div>
       ))}
     </div>

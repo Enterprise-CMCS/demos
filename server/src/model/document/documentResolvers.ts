@@ -207,7 +207,7 @@ export const documentResolvers = {
       }
     },
 
-    deleteDocuments: async (_: unknown, { id }: { id: string }) => {
+    deleteDocument: async (_: unknown, { id }: { id: string }) => {
       return await prisma().$transaction(async (tx) => {
         const document = await tx.document.delete({
           where: { id },
