@@ -2,8 +2,8 @@
 model ApplicationPhaseTypeLimit {
   id String
 
-  phase            Phase              @relation(fields: [id], references: [id])
-  applicationPhase ApplicationPhase[]
+  phase             Phase              @relation(fields: [id], references: [id])
+  applicationPhases ApplicationPhase[]
 
   @@id([id])
   @@map("application_phase_type_limit")
