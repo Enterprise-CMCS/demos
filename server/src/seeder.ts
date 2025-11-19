@@ -387,6 +387,38 @@ async function seedDatabase() {
         dateType: "OGC & OMB Review Completion Date",
         dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
       },
+      {
+        dateType: "OGC Approval to Share with SMEs",
+        dateValue: new Date("2025-02-14T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Draft Approval Package to Pre",
+        dateValue: new Date("2025-02-15T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "DDME Approval Received",
+        dateValue: new Date("2025-02-16T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "State Concurrence",
+        dateValue: new Date("2025-02-17T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "BN PMT Approval to Send to OMB",
+        dateValue: new Date("2025-02-18T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Draft Approval Package Shared",
+        dateValue: new Date("2025-02-19T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Receive OMB Concurrence",
+        dateValue: new Date("2025-02-20T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Receive OGC Legal Clearance",
+        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+      },
     ],
   };
   await __setApplicationDates(undefined, { input: dateInput });
