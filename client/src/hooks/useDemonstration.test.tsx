@@ -3,7 +3,7 @@ import React, { ReactNode } from "react";
 import { MockedProvider } from "@apollo/client/testing";
 import { renderHook, waitFor } from "@testing-library/react";
 
-import { GET_DEMONSTRATION_BY_ID_QUERY, useDemonstration } from "./useDemonstration";
+import { GET_DEMONSTRATION_BY_ID_QUERY, useDemonstration } from "../pages/DemonstrationDetail/DemonstrationDetail";
 
 // Mock data
 const mockDemonstrationData = {
