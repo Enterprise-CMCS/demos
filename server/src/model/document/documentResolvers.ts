@@ -83,6 +83,17 @@ async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string
 export const documentResolvers = {
   Query: {
     document: getDocument,
+    documentExists: async (
+      _: unknown,
+      { documentId }: { documentId: string },
+    ) => {
+      const document = await prisma().document.findUnique({
+        where: { id: documentId },
+      });
+
+      if (document) return true;
+      return false;
+    },
   },
 
   Mutation: {
@@ -117,23 +128,24 @@ export const documentResolvers = {
         const fakePresignedUrl = await getPresignedUploadUrl(document);
         log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
         return {
-          presignedURL: fakePresignedUrl
+          presignedURL: fakePresignedUrl, documentId: document.id,
         };
       }
       const documentPendingUpload = await prisma().documentPendingUpload.create({
-        data: {
-          name: input.name,
-          description: input.description ?? "",
-          ownerUserId: context.user.id,
-          documentTypeId: input.documentType,
-          applicationId: input.applicationId,
-          phaseId: input.phaseName,
-        },
+          data: {
+            name: input.name,
+            description: input.description ?? "",
+            ownerUserId: context.user.id,
+            documentTypeId: input.documentType,
+            applicationId: input.applicationId,
+            phaseId: input.phaseName,
+          },
       });
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return {
-        presignedURL
+        presignedURL,
+        documentId: documentPendingUpload.id,
       };
     },
 

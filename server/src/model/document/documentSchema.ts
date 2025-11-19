@@ -34,7 +34,8 @@ export const documentSchema = gql`
   }
 
   type UploadDocumentResponse {
-    presignedURL: String
+    presignedURL: String!
+    documentId: ID!
   }
 
   type Mutation {
@@ -46,6 +47,7 @@ export const documentSchema = gql`
 
   type Query {
     document(id: ID!): Document
+    documentExists(documentId: ID!): Boolean!
   }
 `;
 
@@ -79,5 +81,6 @@ export interface UpdateDocumentInput {
 }
 
 export interface UploadDocumentResponse {
-  presignedURL?: string | null;
+  presignedURL: string;
+  documentId: string;
 }
