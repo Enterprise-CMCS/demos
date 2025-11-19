@@ -65,8 +65,7 @@ export const DOCUMENT_TYPES = [
   "State Application",
 ] as const;
 
-export const PHASE_NAME = [
-  "None",
+export const PHASE_NAMES_WITH_TRACKED_STATUS = [
   "Concept",
   "Application Intake",
   "Completeness",
@@ -76,6 +75,8 @@ export const PHASE_NAME = [
   "Approval Package",
   "Post Approval",
 ] as const;
+
+export const PHASE_NAME = ["None", ...PHASE_NAMES_WITH_TRACKED_STATUS] as const;
 
 export const PHASE_STATUS = [
   "Not Started",
@@ -89,6 +90,7 @@ export const DATE_TYPES = [
   "Concept Start Date",
   "Pre-Submission Submitted Date",
   "Concept Completion Date",
+  "Concept Skipped Date",
   "Application Intake Start Date",
   "State Application Submitted Date",
   "Completeness Review Due Date",
@@ -117,6 +119,8 @@ export const DATE_TYPES = [
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
+  "Approval Package Start Date",
+  "Approval Package Completion Date",
 ] as const;
 
 export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
@@ -127,6 +131,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Concept Start Date": { expectedTimestamp: "Start of Day" },
   "Pre-Submission Submitted Date": { expectedTimestamp: "Start of Day" },
   "Concept Completion Date": { expectedTimestamp: "Start of Day" },
+  "Concept Skipped Date": { expectedTimestamp: "Start of Day" },
   "Application Intake Start Date": { expectedTimestamp: "Start of Day" },
   "State Application Submitted Date": { expectedTimestamp: "Start of Day" },
   "Completeness Review Due Date": { expectedTimestamp: "End of Day" },
@@ -155,6 +160,8 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Draft Approval Package Shared": { expectedTimestamp: "Start of Day" },
   "Receive OMB Concurrence": { expectedTimestamp: "Start of Day" },
   "Receive OGC Legal Clearance": { expectedTimestamp: "Start of Day" },
+  "Approval Package Start Date": { expectedTimestamp: "Start of Day" },
+  "Approval Package Completion Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [

@@ -7,15 +7,16 @@ import { format } from "date-fns";
  * MOCKS
  */
 const mockLogEvent = vi.fn();
-vi.mock("@apollo/client", () => ({
-  useLazyQuery: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
-  useMutation: vi.fn(() => [mockLogEvent, { data: undefined, loading: false, error: undefined }]),
-}));
+const mockGetEvents = vi.fn();
 
-vi.mock("queries/eventQueries", () => ({
-  LOG_EVENT_MUTATION: "LOG_EVENT_MUTATION",
-  GET_EVENTS_QUERY: "GET_EVENTS_QUERY",
-}));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
+  return {
+    ...actual,
+    useLazyQuery: vi.fn(() => [mockGetEvents, { data: undefined, loading: false, error: undefined }]),
+    useMutation: vi.fn(() => [mockLogEvent, { data: undefined, loading: false, error: undefined }]),
+  };
+});
 
 vi.mock("react-router-dom", () => ({
   useLocation: vi.fn(() => ({
@@ -29,6 +30,7 @@ vi.mock("react-router-dom", () => ({
 describe("useEvent", () => {
   beforeEach(() => {
     mockLogEvent.mockClear();
+    mockGetEvents.mockClear();
   });
 
   it("should provide logEvent function", () => {

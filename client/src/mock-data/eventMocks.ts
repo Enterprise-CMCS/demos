@@ -1,11 +1,9 @@
 import { Event } from "demos-server";
 import { LogEventArguments } from "hooks/event/useEvent";
-import { GET_EVENTS_QUERY, LOG_EVENT_MUTATION } from "queries/eventQueries";
-
 import { MockedResponse } from "@apollo/client/testing";
-
 import { MockUser, mockUsers } from "./userMocks.js";
 import { MockDemonstration, mockDemonstrations } from "./demonstrationMocks.js";
+import { LOG_EVENT_MUTATION, GET_EVENTS_QUERY } from "hooks/event/useEvent";
 
 export type MockEvent = Pick<
   Event,
