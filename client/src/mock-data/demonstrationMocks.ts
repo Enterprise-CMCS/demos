@@ -9,7 +9,6 @@ import {
 
 import type { ApplicationStatus } from "demos-server";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
-import { GET_DEMONSTRATION_OPTIONS_QUERY } from "hooks/useDemonstrationOptions";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
 
@@ -340,16 +339,6 @@ export const demonstrationMocks: MockedResponse[] = [
             name: "Arizona",
           },
         },
-      },
-    },
-  },
-  {
-    request: {
-      query: GET_DEMONSTRATION_OPTIONS_QUERY,
-    },
-    result: {
-      data: {
-        demonstrations: mockDemonstrations,
       },
     },
   },
