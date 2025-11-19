@@ -3,7 +3,7 @@ import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
 import { Option } from "./Select";
 
-const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
+const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
 const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1
   text-text-font bg-surface-white disabled:bg-surface-disabled
   disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none 
@@ -102,7 +102,7 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
   };
 
   return (
-    <div className="flex flex-col gap-sm" ref={containerRef}>
+    <div className="flex flex-col gap-xs" ref={containerRef}>
       {label && (
         <label htmlFor={id} className={LABEL_CLASSES}>
           {isRequired && <span className="text-text-warn">*</span>}

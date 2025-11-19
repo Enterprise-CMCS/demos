@@ -1,9 +1,48 @@
-import { useLazyQuery, useMutation, FetchResult } from "@apollo/client";
+import { useLazyQuery, useMutation, FetchResult, gql } from "@apollo/client";
 import { useLocation } from "react-router-dom";
-import { LOG_EVENT_MUTATION, GET_EVENTS_QUERY } from "queries/eventQueries";
 import { Event, EventType, LogEventInput } from "demos-server";
 import { getLogLevelForEventType } from "./eventTypes.js";
 import { version } from "../../../package.json";
+
+export const LOG_EVENT_MUTATION = gql`
+  mutation LogEvent($input: LogEventInput!) {
+    logEvent(input: $input) {
+      id
+    }
+  }
+`;
+
+export const GET_EVENTS_QUERY = gql`
+  query GetEvents {
+    events {
+      id
+      eventType
+      logLevel
+      route
+      createdAt
+      eventData
+      user {
+        id
+        person {
+          fullName
+        }
+      }
+      role
+      application {
+        ... on Demonstration {
+          id
+        }
+        ... on Amendment {
+          id
+        }
+        ... on Extension {
+          id
+        }
+      }
+    }
+  }
+`;
+
 
 export type LogEventArguments = {
   eventType: EventType;

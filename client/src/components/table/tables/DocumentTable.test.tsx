@@ -79,7 +79,7 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    expect(screen.getByLabelText(/filter by:/i)).toBeInTheDocument();
+    expect(screen.getByTestId("filter-by-column")).toBeInTheDocument();
   });
 
   it("renders all document titles initially", async () => {
@@ -99,7 +99,7 @@ describe("DocumentTable", () => {
     });
 
     // Select the createdAt filter column
-    await user.selectOptions(screen.getByLabelText(/filter by:/i), ["createdAt"]);
+    await user.selectOptions(screen.getByTestId("filter-by-column"), ["createdAt"]);
 
     const startInput = document.body.querySelector('input[name="date-filter-start"]');
     const endInput = document.body.querySelector('input[name="date-filter-end"]');
@@ -122,7 +122,7 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    await user.selectOptions(screen.getByLabelText(/filter by:/i), ["type"]);
+    await user.selectOptions(screen.getByTestId("filter-by-column"), ["type"]);
 
     const input = screen.getByPlaceholderText("Select Document Type");
     await user.type(input, "Q&A");
