@@ -1,7 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { GraphQLError } from "graphql";
 
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
   Document as PrismaDocument,
@@ -80,6 +86,34 @@ async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string
   return s3Url;
 }
 
+async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
+  const s3 = createS3Client();
+
+  const copyResponse = await s3.send(
+    new CopyObjectCommand({
+      CopySource: `${process.env.CLEAN_BUCKET}/${document.applicationId}/${document.id}`,
+      Bucket: process.env.DELETED_BUCKET,
+      Key: `${document.applicationId}/${document.id}`,
+    })
+  );
+  if (!copyResponse.$metadata.httpStatusCode || copyResponse.$metadata.httpStatusCode !== 200) {
+    throw new Error(
+      `Failed to copy document to deleted bucket. Status: ${copyResponse.$metadata.httpStatusCode}`
+    );
+  }
+
+  const deleteResponse = await s3.send(
+    new DeleteObjectCommand({
+      Bucket: process.env.CLEAN_BUCKET,
+      Key: `${document.applicationId}/${document.id}`,
+    })
+  );
+  if (!deleteResponse.$metadata.httpStatusCode || deleteResponse.$metadata.httpStatusCode !== 204) {
+    throw new Error(
+      `Failed to delete document from clean bucket. Status: ${copyResponse.$metadata.httpStatusCode}`
+    );
+  }
+}
 export const documentResolvers = {
   Query: {
     document: getDocument,
@@ -117,7 +151,7 @@ export const documentResolvers = {
         const fakePresignedUrl = await getPresignedUploadUrl(document);
         log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
         return {
-          presignedURL: fakePresignedUrl
+          presignedURL: fakePresignedUrl,
         };
       }
       const documentPendingUpload = await prisma().documentPendingUpload.create({
@@ -133,7 +167,7 @@ export const documentResolvers = {
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return {
-        presignedURL
+        presignedURL,
       };
     },
 
@@ -173,11 +207,14 @@ export const documentResolvers = {
       }
     },
 
-    deleteDocuments: async (_: unknown, { ids }: { ids: string[] }) => {
-      const deleteResult = await prisma().document.deleteMany({
-        where: { id: { in: ids } },
+    deleteDocuments: async (_: unknown, { id }: { id: string }) => {
+      return await prisma().$transaction(async (tx) => {
+        const document = await tx.document.delete({
+          where: { id },
+        });
+        await moveDocumentFromCleanToDeletedBuckets(document);
+        return document;
       });
-      return deleteResult.count;
     },
   },
 
