@@ -83,7 +83,7 @@ export async function __createDemonstration(
       });
 
       if (!person) {
-        throw new Error(`Person with id ${input.projectOfficerUserId} not found`);
+        throw new Error(`Person with id ${input.projectOfficerUserId} not found.`);
       }
 
       await tx.demonstrationRoleAssignment.create({
@@ -152,7 +152,7 @@ export async function __updateDemonstration(
           select: { personTypeId: true },
         });
         if (!person) {
-          throw new Error(`Person with id ${input.projectOfficerUserId} not found`);
+          throw new Error(`Person with id ${input.projectOfficerUserId} not found.`);
         }
 
         await tx.demonstrationRoleAssignment.upsert({

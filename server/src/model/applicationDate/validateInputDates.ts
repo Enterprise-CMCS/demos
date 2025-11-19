@@ -1,26 +1,17 @@
-import { DateType, ExpectedTimestamp, ParsedApplicationDateInput } from "../../types.js";
+import { DateType, ParsedApplicationDateInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
-  __checkInputDateGreaterThan,
-  __checkInputDateGreaterThanOrEqual,
-  __checkInputDateMeetsOffset,
-  DateOffset,
+  checkInputDateGreaterThan,
+  checkInputDateGreaterThanOrEqual,
+  checkInputDateMeetsOffset,
   ApplicationDateMap,
-} from "./checkInputDateFunctions.js";
+  DateTypeValidationChecksRecord,
+} from ".";
 
-type ValidationChecks = {
-  expectedTimestamp: ExpectedTimestamp;
-  greaterThanChecks: { dateTypeToCheck: DateType }[];
-  greaterThanOrEqualChecks: { dateTypeToCheck: DateType }[];
-  offsetChecks: { dateTypeToCheck: DateType; dateOffset: DateOffset }[];
-};
-
-type DateTypeValidationChecksRecord = Record<DateType, ValidationChecks>;
-
-export function __makeEmptyValidations(): DateTypeValidationChecksRecord {
-  const result: Partial<DateTypeValidationChecksRecord> = {};
+export function makeEmptyValidations(): DateTypeValidationChecksRecord {
+  const result = {} as DateTypeValidationChecksRecord;
   let dateType: DateType;
   for (dateType in DATE_TYPES_WITH_EXPECTED_TIMESTAMPS) {
     result[dateType] = {
@@ -30,73 +21,79 @@ export function __makeEmptyValidations(): DateTypeValidationChecksRecord {
       offsetChecks: [],
     };
   }
-  return result as DateTypeValidationChecksRecord;
+  return result;
 }
 
-const VALIDATION_CHECKS = __makeEmptyValidations();
-VALIDATION_CHECKS["Concept Completion Date"]["greaterThanChecks"] = [
-  { dateTypeToCheck: "Concept Start Date" },
-];
-VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"] = [
-  {
-    dateTypeToCheck: "State Application Submitted Date",
-    dateOffset: {
-      days: 15,
-      hours: 23,
-      minutes: 59,
-      seconds: 59,
-      milliseconds: 999,
-    },
+export function makeApplicationDateMapFromList(
+  inputDates: ParsedApplicationDateInput[]
+): ApplicationDateMap {
+  return new Map(inputDates.map((inputDate) => [inputDate.dateType, inputDate.dateValue]));
+}
+
+const VALIDATION_CHECKS = makeEmptyValidations();
+// Phase completion dates must follow start dates
+VALIDATION_CHECKS["Concept Completion Date"]["greaterThanOrEqualChecks"].push({
+  dateTypeToCheck: "Concept Start Date",
+});
+VALIDATION_CHECKS["Concept Skipped Date"]["greaterThanOrEqualChecks"].push({
+  dateTypeToCheck: "Concept Start Date",
+});
+VALIDATION_CHECKS["Application Intake Completion Date"]["greaterThanOrEqualChecks"].push({
+  dateTypeToCheck: "Application Intake Start Date",
+});
+VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanOrEqualChecks"].push({
+  dateTypeToCheck: "Completeness Start Date",
+});
+VALIDATION_CHECKS["SDG Preparation Completion Date"]["greaterThanOrEqualChecks"].push({
+  dateTypeToCheck: "SDG Preparation Start Date",
+});
+VALIDATION_CHECKS["Approval Package Completion Date"]["greaterThanOrEqualChecks"].push({
+  dateTypeToCheck: "Approval Package Start Date",
+});
+
+// State application must be deemed complete after it is submitted
+VALIDATION_CHECKS["State Application Deemed Complete"]["greaterThanOrEqualChecks"].push({
+  dateTypeToCheck: "State Application Submitted Date",
+});
+
+// Completeness review is 15 days after state application submission
+VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"].push({
+  dateTypeToCheck: "State Application Submitted Date",
+  dateOffset: {
+    days: 15,
+    hours: 23,
+    minutes: 59,
+    seconds: 59,
+    milliseconds: 999,
   },
-];
-VALIDATION_CHECKS["Application Intake Completion Date"]["greaterThanChecks"] = [
-  { dateTypeToCheck: "Application Intake Start Date" },
-];
-VALIDATION_CHECKS["Application Intake Completion Date"]["greaterThanOrEqualChecks"] = [
-  { dateTypeToCheck: "Concept Completion Date" },
-];
-VALIDATION_CHECKS["State Application Deemed Complete"]["greaterThanChecks"] = [
-  { dateTypeToCheck: "State Application Submitted Date" },
-];
-VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"] = [
-  {
-    dateTypeToCheck: "State Application Deemed Complete",
-    dateOffset: {
-      days: 1,
-      hours: 0,
-      minutes: 0,
-      seconds: 0,
-      milliseconds: 0,
-    },
+});
+
+// Federal comment period starts 1 day after application deemed complete
+VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"].push({
+  dateTypeToCheck: "State Application Deemed Complete",
+  dateOffset: {
+    days: 1,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
   },
-];
-VALIDATION_CHECKS["Federal Comment Period End Date"]["offsetChecks"] = [
-  {
-    dateTypeToCheck: "Federal Comment Period Start Date",
-    dateOffset: {
-      days: 30,
-      hours: 23,
-      minutes: 59,
-      seconds: 59,
-      milliseconds: 999,
-    },
+});
+
+// Federal comment period is 30 days long
+VALIDATION_CHECKS["Federal Comment Period End Date"]["offsetChecks"].push({
+  dateTypeToCheck: "Federal Comment Period Start Date",
+  dateOffset: {
+    days: 30,
+    hours: 23,
+    minutes: 59,
+    seconds: 59,
+    milliseconds: 999,
   },
-];
-VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanChecks"] = [
-  {
-    dateTypeToCheck: "Completeness Start Date",
-  },
-];
-VALIDATION_CHECKS["Completeness Completion Date"]["greaterThanOrEqualChecks"] = [
-  {
-    dateTypeToCheck: "Application Intake Completion Date",
-  },
-];
+});
 
 export function validateInputDates(datesToValidate: ParsedApplicationDateInput[]): void {
-  const datesToValidateMap: ApplicationDateMap = new Map(
-    datesToValidate.map((dateToValidate) => [dateToValidate.dateType, dateToValidate.dateValue])
-  );
+  const datesToValidateMap = makeApplicationDateMapFromList(datesToValidate);
   for (const [dateType, dateValue] of datesToValidateMap.entries()) {
     const checks = VALIDATION_CHECKS[dateType];
     if (checks.expectedTimestamp === "Start of Day") {
@@ -107,17 +104,17 @@ export function validateInputDates(datesToValidate: ParsedApplicationDateInput[]
     }
     if (checks.greaterThanChecks.length !== 0) {
       for (const check of checks.greaterThanChecks) {
-        __checkInputDateGreaterThan(datesToValidateMap, dateType, check.dateTypeToCheck);
+        checkInputDateGreaterThan(datesToValidateMap, dateType, check.dateTypeToCheck);
       }
     }
     if (checks.greaterThanOrEqualChecks.length !== 0) {
       for (const check of checks.greaterThanOrEqualChecks) {
-        __checkInputDateGreaterThanOrEqual(datesToValidateMap, dateType, check.dateTypeToCheck);
+        checkInputDateGreaterThanOrEqual(datesToValidateMap, dateType, check.dateTypeToCheck);
       }
     }
     if (checks.offsetChecks.length !== 0) {
       for (const check of checks.offsetChecks) {
-        __checkInputDateMeetsOffset(
+        checkInputDateMeetsOffset(
           datesToValidateMap,
           dateType,
           check.dateTypeToCheck,
