@@ -147,9 +147,10 @@ describe("validateInputDates", () => {
         ["Concept Completion Date", "Concept Start Date"],
         ["Concept Skipped Date", "Concept Start Date"],
         ["Application Intake Completion Date", "Application Intake Start Date"],
-        ["State Application Deemed Complete", "State Application Submitted Date"],
         ["Completeness Completion Date", "Completeness Start Date"],
-        ["Completeness Completion Date", "Application Intake Completion Date"],
+        ["SDG Preparation Completion Date", "SDG Preparation Start Date"],
+        ["Approval Package Completion Date", "Approval Package Start Date"],
+        ["State Application Deemed Complete", "State Application Submitted Date"],
       ];
       const expectedCalls = greaterThanOrEqualCheckTypes.map((checkType) => [
         testApplicationDateMap,
