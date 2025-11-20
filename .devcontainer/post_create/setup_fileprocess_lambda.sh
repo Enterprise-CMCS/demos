@@ -44,6 +44,7 @@ $AWS_CMD lambda create-function \
         UPLOAD_BUCKET=upload-bucket,
         CLEAN_BUCKET=clean-bucket,
         DB_SCHEMA=demos_app
+        
     }" >/dev/null
 
 # Wait for Lambda to be active
