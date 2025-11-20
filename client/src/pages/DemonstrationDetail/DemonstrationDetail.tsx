@@ -49,6 +49,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
           id
           fullName
           email
+          personType
         }
       }
     }
@@ -62,7 +63,7 @@ export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "current
     owner: { person: Pick<Person, "fullName"> };
   })[];
   roles: (Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-    person: Pick<Person, "id" | "fullName" | "email">;
+    person: Pick<Person, "id" | "fullName" | "email" | "personType">;
   })[];
 };
 

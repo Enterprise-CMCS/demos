@@ -79,9 +79,7 @@ type PersonSearchResult = {
 
 export type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   id?: string;
-  person: Pick<Person, "id" | "fullName" | "email"> & {
-    idmRoles?: string[];
-  };
+  person: Pick<Person, "id" | "fullName" | "email" | "personType">;
 };
 
 export type ManageContactsDialogProps = {
@@ -96,7 +94,7 @@ const mapExistingContacts = (arr: ManageContactsDialogProps["existingContacts"] 
     personId: contact.person.id,
     name: contact.person.fullName,
     email: contact.person.email,
-    idmRoles: contact.person.idmRoles ?? [],
+    idmRoles: contact.person.personType ? [contact.person.personType] : [],
     contactType: contact.role satisfies ContactType,
     isPrimary: contact.isPrimary,
   }));
@@ -233,12 +231,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
               (c) => c.contactType === "Project Officer" && c.isPrimary && c.personId !== personId
             );
             newIsPrimary = existingPrimaryPOs.length === 0;
-          } else if (newType) {
-            const existingOfType = previousContacts.filter(
-              (c) => c.contactType === newType && c.personId !== personId
-            );
-            const existingPrimaryOfType = existingOfType.filter((c) => c.isPrimary);
-            newIsPrimary = existingPrimaryOfType.length === 0;
           }
 
           return { ...contact, contactType: newType, isPrimary: newIsPrimary };
@@ -330,13 +322,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     const updated = selectedContacts.filter((c) => c.personId !== contactToDelete);
 
     let finalUpdated = updated;
-    if (contactToRemove.isPrimary && contactToRemove.contactType) {
-      const remainingOfSameType = updated.filter(
-        (c) => c.contactType === contactToRemove.contactType
-      );
-      if (remainingOfSameType.length > 0) {
+    if (contactToRemove.isPrimary && contactToRemove.contactType === "Project Officer") {
+      const remainingPOs = updated.filter((c) => c.contactType === "Project Officer");
+      if (remainingPOs.length > 0) {
         finalUpdated = updated.map((c) => {
-          if (c.personId === remainingOfSameType[0].personId) {
+          if (c.personId === remainingPOs[0].personId) {
             return { ...c, isPrimary: true };
           }
           return c;
@@ -368,24 +358,21 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       return false;
     }
 
-    const presentTypes = Array.from(
+    const allTypes = Array.from(
       new Set(
         selectedContacts
           .map((contact) => contact.contactType)
           .filter((type): type is ContactType => Boolean(type))
       )
-    ).filter((type) => type !== "Project Officer");
+    );
 
-    const isValidPrimaries = presentTypes.every((type) => {
+    const hasValidPrimaries = allTypes.every((type) => {
       const contactsOfType = selectedContacts.filter((c) => c.contactType === type);
       const primariesOfType = contactsOfType.filter((c) => c.isPrimary);
-      if (primariesOfType.length > 1) {
-        return false;
-      }
-      return true;
+      return primariesOfType.length <= 1;
     });
 
-    return isValidPrimaries;
+    return hasValidPrimaries;
   }, [selectedContacts]);
 
   const hasChanges = useMemo(() => {
@@ -524,22 +511,12 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
   const isContactDeleteDisabled = useCallback(
     (contact: ContactRow) => {
-      // If contact doesn't have a role, it can be deleted
       if (!contact.contactType) return false;
 
-      // For Project Officers: can only delete if there are other Project Officers available
       if (contact.contactType === "Project Officer") {
         const projectOfficers = selectedContacts.filter((c) => c.contactType === "Project Officer");
-        // Can only delete if there's more than one Project Officer
+        if (contact.isPrimary) return true;
         return projectOfficers.length <= 1;
-      }
-
-      // For non-Project Officers: can delete if not primary, or if there are others of same type
-      if (contact.isPrimary) {
-        const sameTypeContacts = selectedContacts.filter(
-          (c) => c.contactType === contact.contactType
-        );
-        return sameTypeContacts.length <= 1;
       }
 
       return false;

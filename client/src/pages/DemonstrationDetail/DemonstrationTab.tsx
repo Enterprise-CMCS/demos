@@ -26,7 +26,7 @@ import { SummaryDetailsTab } from "./SummaryDetailsTab";
 import { useDialog } from "components/dialog/DialogContext";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-  person: Pick<Person, "fullName" | "id" | "email">;
+  person: Pick<Person, "fullName" | "id" | "email" | "personType">;
 };
 
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
@@ -90,7 +90,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
                       id: c.person.id,
                       fullName: c.person.fullName,
                       email: c.person.email,
-                      idmRoles: [], // unknown for existing; restrictions handled dynamically
+                      personType: c.person.personType,
                     },
                     role: c.role,
                     isPrimary: c.isPrimary,

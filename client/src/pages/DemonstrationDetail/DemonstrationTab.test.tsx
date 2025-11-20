@@ -134,6 +134,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
         id: "person-1",
         fullName: "John Doe",
         email: "john@example.com",
+        personType: "demos-cms-user",
       },
       role: "Project Officer",
       isPrimary: true,
@@ -143,6 +144,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
         id: "person-2",
         fullName: "Jane Smith",
         email: "jane@example.com",
+        personType: "demos-state-user",
       },
       role: "State Point of Contact",
       isPrimary: false,
@@ -257,13 +259,13 @@ describe("DemonstrationTab", () => {
         id: role.person.id,
         fullName: role.person.fullName,
         email: role.person.email,
-        idmRoles: [], // unknown for existing; restrictions handled dynamically
+        personType: role.person.personType,
       },
       role: role.role,
       isPrimary: role.isPrimary,
     }));
 
-    // Verify the dialog gets the mapped contacts with idmRoles as empty array
+    // Verify the dialog gets the mapped contacts with personType
     expect(showManageContactsDialog).toHaveBeenCalledWith(mockDemonstration.id, roles);
   });
 

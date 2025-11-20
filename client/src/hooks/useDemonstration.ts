@@ -17,6 +17,7 @@ export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
         person {
           id
           fullName
+          personType
         }
       }
     }
@@ -34,6 +35,7 @@ interface DemonstrationRole {
   person: {
     id: string;
     fullName: string;
+    personType: string;
   };
 }
 
