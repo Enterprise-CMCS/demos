@@ -23,12 +23,12 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
   "SDG Preparation": {
     dateToComplete: "SDG Preparation Completion Date",
     nextPhase: {
-      phaseName: "OGC & OMB Review",
-      dateToStart: "OGC & OMB Review Start Date",
+      phaseName: "Review",
+      dateToStart: "Review Start Date",
     },
   },
-  "OGC & OMB Review": {
-    dateToComplete: "OGC & OMB Review Completion Date",
+  "Review": {
+    dateToComplete: "Review Completion Date",
     nextPhase: {
       phaseName: "Approval Package",
       dateToStart: "Approval Package Start Date",

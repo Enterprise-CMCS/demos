@@ -33,7 +33,7 @@ describe("PhaseSelector", () => {
       "Completeness",
       "Federal Comment",
       "SDG Preparation",
-      "OGC & OMB Review",
+      "Review",
       "Approval Package",
       "Post Approval",
     ].forEach((name) => {
@@ -172,14 +172,14 @@ describe("getDisplayedPhaseDate", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
       status: "Under Review",
-      currentPhaseName: "OGC & OMB Review",
+      currentPhaseName: "Review",
       phases: [
         {
-          phaseName: "OGC & OMB Review",
+          phaseName: "Review",
           phaseStatus: "Completed",
           phaseDates: [
             {
-              dateType: "OGC & OMB Review Start Date",
+              dateType: "Review Start Date",
               dateValue: startDate,
             },
             {
@@ -192,7 +192,7 @@ describe("getDisplayedPhaseDate", () => {
       documents: [],
     };
 
-    const result = getDisplayedPhaseDate(demonstration, "OGC & OMB Review");
+    const result = getDisplayedPhaseDate(demonstration, "Review");
     expect(result).toEqual(completeDate);
   });
 

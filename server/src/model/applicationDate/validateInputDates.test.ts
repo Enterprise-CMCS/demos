@@ -102,11 +102,11 @@ describe("validateInputDates", () => {
         "FRT Initial Meeting Date",
         "BNPMT Initial Meeting Date",
         "SDG Preparation Completion Date",
-        "OGC & OMB Review Start Date",
+        "Review Start Date",
         "OGC Review Complete",
         "OMB Review Complete",
         "PO & OGD Sign-Off",
-        "OGC & OMB Review Completion Date",
+        "Review Completion Date",
         "Approval Package Start Date",
         "Approval Package Completion Date",
       ];
