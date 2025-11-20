@@ -48,12 +48,12 @@ export type SimplePhase = {
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
 };
 
-export type ApplicationWorkflowDocument = Pick<
+export type ApplicationWorkflowDocument = (Pick<
   Document,
   "id" | "name" | "description" | "documentType" | "createdAt"
 > & {
   owner: { person: Pick<Person, "fullName"> };
-};
+});
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
