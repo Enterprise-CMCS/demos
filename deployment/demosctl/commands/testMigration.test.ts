@@ -90,12 +90,23 @@ describe("testMigration", () => {
     expect(exitCode).toBe(1);
   });
 
-  test("should exit if db is set to 'demos'", async () => {
+  test("should exit if db is set to 'demos' or 'postgres'", async () => {
     const mockStageName = "unit-test";
-    const targetDB = "demos";
+
+    const exitCode = await testMigration(mockStageName, "demos");
+    expect(exitCode).toBe(1);
+    expect(console.error).toHaveBeenCalledWith("testMigration cannot be run against specified db");
+    const exitCode2 = await testMigration(mockStageName, "postgres");
+    expect(exitCode2).toBe(1);
+    expect(console.error).toHaveBeenCalledWith("testMigration cannot be run against specified db");
+  });
+  
+  test("should exit if db is invalid", async () => {
+    const mockStageName = "unit-test";
+    const targetDB = "invalid-db-name";
 
     const exitCode = await testMigration(mockStageName, targetDB);
-    expect(console.error).toHaveBeenCalledWith("testMigration cannot be run against 'demos' db");
+    expect(console.error).toHaveBeenCalledWith("invalid database name");
     expect(exitCode).toBe(1);
   });
 

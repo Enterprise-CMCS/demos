@@ -1,4 +1,4 @@
-import https from "https";
+import https from "node:https";
 
 import { getSecret } from "../lib/getSecret";
 import { Client } from "pg";
@@ -27,12 +27,12 @@ export async function testMigration(environment: string, dbname?: string) {
     return 1;
   }
 
-  if (dbname == "demos") {
-    console.error("testMigration cannot be run against 'demos' db");
+  if (dbname == "demos" || dbname == "postgres") {
+    console.error("testMigration cannot be run against specified db");
     return 1;
   }
 
-  if (!/^[a-zA-Z0-9_]+$/.test(dbname)) {
+  if (!/^\w+$/.test(dbname)) {
     console.error("invalid database name");
     return 1;
   }
