@@ -39,6 +39,11 @@ function randomDateRange() {
   return { start: randomEasternStart, end: randomEasternEnd };
 }
 
+function randomBackdatedDate() {
+  const daysBack = faker.number.int({ min: 90, max: 210 }); // roughly 3-7 months ago
+  return faker.date.recent({ days: daysBack });
+}
+
 function checkIfAllowed() {
   if (process.env.ALLOW_SEED !== "true") {
     throw new Error("Database seeding is not allowed. Set ALLOW_SEED=true to use this feature.");
@@ -191,6 +196,42 @@ async function seedDatabase() {
   }
   // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
+  const healthFocusDemoTypes = [
+    "Beneficiary Engagement",
+    "PHE-COVID-19", "Aggregate Cap", "Annual Limits",
+    "Basic Health Plan (BHP)", "Behavioral Health",
+    "Children's Health Insurance Program (CHIP)",
+    "CMMI - AHEAD", "CMMI - Integrated Care for Kids (IncK)",
+    "CMMI - Maternal Opioid Misuse (MOM)",
+    "Community Engagement", "Contingency Management",
+    "Continuous Eligibility",
+    "Delivery System Reform Incentive Payment (DSRIP)",
+    "Dental", "Designated State Health Programs (DSHP)",
+    "Employment Supports", "Enrollment Cap",
+    "End-Stage Renal Disease (ESRD)", "Expenditure Cap",
+    "Former Foster Care Youth (FFCY)",
+    "Global Payment Program (GPP)", "Health Equity",
+    "Health-Related Social Needs (HRSN)",
+    "Healthy Behavior Incentives",
+    "HIV", "Home Community Based Services (HCBS)",
+    "Lead Exposure", "Lifetime Limits",
+    "Long-Term Services and Supports (LTSS)",
+    "Managed Care", "Marketplace Coverage/Premium Assistance Wrap",
+    "New Adult Group Expansion", "Non-Eligibility Period",
+    "Non-Emergency Medical Transportation (NEMT)",
+    "Partial Expansion of the New Adult Group", "Pharmacy", "PHE-Appendix K",
+    "PHE-Reasonable Opportunity Period (ROP)", "PHE-Risk Mitigation",
+    "PHE-Vaccine Coverage", "Premiums/Cost-Sharing",
+    "Provider Cap", "Provider Restriction", "ReEntry",
+    "Reproductive Health: Family Planning", "Reproductive Health: Fertility",
+    "Reproductive Health: Hyde", "Reproductive Health: Maternal Health",
+    "Reproductive Health: Post-Partum Extension", "Reproductive Health: RAD",
+    "Retroactive Eligibility", "Serious Mental Illness (SMI)", "Special Needs",
+    "Substance Use Disorder (SUD)", "Targeted Population Expansion", "Tribal",
+    "Uncompensated Care","Value Based Care (VBC)", "Vision",
+  ];
+  const demonstrationTypes = ["Section 1115", "Section 1915(b)", "Section 1915(c)"];
+
   for (let i = 0; i < demonstrationCount; i++) {
     // get a random cms-user
     const person = await prisma().person.findRandom({
@@ -206,12 +247,26 @@ async function seedDatabase() {
       throw new Error("No cms users found to assign as project officers");
     }
 
+    let stateSelection = sampleFromArray(person.personStates, 1)[0];
+    if (!stateSelection) {
+      const fallbackState = await prisma().state.findRandom();
+      if (!fallbackState) {
+        throw new Error("No states available to assign to demonstration");
+      }
+      stateSelection = { stateId: fallbackState.id, state: fallbackState, personId: person.id };
+    }
+
+    const stateName = stateSelection.state?.name ?? stateSelection.stateId;
+    const waiverType = sampleFromArray(demonstrationTypes, 1)[0];
+    const focusArea = sampleFromArray(healthFocusDemoTypes, 1)[0];
+    const demoName = `${stateName} ${waiverType} Waiver: ${focusArea}`;
+
     const createInput: CreateDemonstrationInput = {
-      name: faker.lorem.words(3),
+      name: demoName,
       description: faker.lorem.sentence(),
       sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-      stateId: sampleFromArray(person.personStates, 1)[0].stateId,
+      stateId: stateSelection.stateId,
       projectOfficerUserId: person.id,
     };
     await __createDemonstration(undefined, { input: createInput });
@@ -275,12 +330,13 @@ async function seedDatabase() {
       await prisma().document.create({
         data: {
           name: `${faker.company.buzzNoun()[0].toUpperCase()}${faker.company.buzzNoun().slice(1)} completeness Letter`,
-          description: "**SEEDED DOC** completeness letter",
+          description: "Completeness Letter ",
           s3Path: `s3://${faker.lorem.word()}/${faker.system.commonFileName("pdf")}`,
           ownerUserId,
           documentTypeId: completenessDocumentType,
           applicationId: demonstration.id,
           phaseId: completenessPhase,
+          createdAt: randomBackdatedDate(),
         },
       });
     })
@@ -453,6 +509,7 @@ async function seedDatabase() {
         documentTypeId: stateApplicationDocumentType,
         applicationId: demonstration.id,
         phaseId: applicationIntakePhaseName,
+        createdAt: randomBackdatedDate(),
       },
     });
   }
@@ -471,6 +528,7 @@ async function seedDatabase() {
         documentTypeId: stateApplicationDocumentType,
         applicationId: amendmentId.id,
         phaseId: applicationIntakePhaseName,
+        createdAt: randomBackdatedDate(),
       },
     });
   }
@@ -488,6 +546,7 @@ async function seedDatabase() {
         documentTypeId: stateApplicationDocumentType,
         applicationId: extensionId.id,
         phaseId: applicationIntakePhaseName,
+        createdAt: randomBackdatedDate(),
       },
     });
   }
@@ -511,6 +570,7 @@ async function seedDatabase() {
         documentTypeId: allowedPhaseDocumentTypes!.documentTypeId,
         applicationId: (await prisma().application.findRandom())!.id,
         phaseId: allowedPhaseDocumentTypes!.phaseId,
+        createdAt: randomBackdatedDate(),
       },
     });
   }
