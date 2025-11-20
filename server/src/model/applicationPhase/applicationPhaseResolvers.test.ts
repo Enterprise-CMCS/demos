@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  __setApplicationPhaseStatus,
   __resolveApplicationPhaseDates,
+  __resolveApplicationPhaseDocuments,
   __resolveApplicationPhaseName,
   __resolveApplicationPhaseStatus,
-  __resolveApplicationPhaseDocuments,
+  __setApplicationPhaseStatus,
 } from "./applicationPhaseResolvers.js";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
-import { PhaseStatus, PhaseName, SetApplicationPhaseStatusInput } from "../../types.js";
+import { PhaseName, PhaseStatus, SetApplicationPhaseStatusInput } from "../../types.js";
+
+// Mock imports
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
+import { completePhase, skipConceptPhase } from ".";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -27,10 +30,17 @@ vi.mock("../application/applicationResolvers.js", () => ({
   getApplication: vi.fn(),
 }));
 
+vi.mock(".", () => ({
+  completePhase: vi.fn(),
+  skipConceptPhase: vi.fn(),
+}));
+
 describe("applicationPhaseResolvers", () => {
   const mockUpsert = vi.fn();
   const mockFindMany = vi.fn();
+  const mockTransaction: any = vi.fn();
   const mockPrismaClient = {
+    $transaction: vi.fn((callback) => callback(mockTransaction)),
     applicationDate: {
       findMany: mockFindMany,
     },
@@ -42,7 +52,7 @@ describe("applicationPhaseResolvers", () => {
     },
   };
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
-  const testPhaseId: PhaseName = "Concept";
+  const testPhaseId: PhaseName = "Completeness";
   const testPhaseStatusId: PhaseStatus = "Started";
   const testDateValue: Date = new Date("2025-01-01T00:00:00Z");
   const testInput: PrismaApplicationPhase = {
@@ -52,10 +62,12 @@ describe("applicationPhaseResolvers", () => {
     createdAt: testDateValue,
     updatedAt: testDateValue,
   };
+  const testError = new Error("Database connection failed");
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
   describe("__setApplicationPhaseStatus", () => {
@@ -64,7 +76,6 @@ describe("applicationPhaseResolvers", () => {
       phaseName: testPhaseId,
       phaseStatus: testPhaseStatusId,
     };
-    const testError = new Error("Database connection failed");
 
     it("should upsert phase status and return the updated application", async () => {
       const expectedCall = {
@@ -83,12 +94,61 @@ describe("applicationPhaseResolvers", () => {
           phaseStatusId: testPhaseStatusId,
         },
       };
+
       await __setApplicationPhaseStatus(undefined, { input: testInput });
       expect(mockUpsert).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
+      expect(completePhase).not.toHaveBeenCalled();
+      expect(skipConceptPhase).not.toHaveBeenCalled();
     });
 
-    it("should handle an error appropriately if it occurs", async () => {
+    it("should throw when attempting to operate against the Federal Comment phase", async () => {
+      const testInput: SetApplicationPhaseStatusInput = {
+        applicationId: testApplicationId,
+        phaseName: "Federal Comment",
+        phaseStatus: "Completed",
+      };
+      const expectedError =
+        "Operations against the Federal Comment phase are not permitted via API.";
+
+      await expect(
+        __setApplicationPhaseStatus(undefined, { input: testInput })
+      ).rejects.toThrowError(expectedError);
+    });
+
+    it("should use the completePhase method when getting a phase completion request", async () => {
+      const testInput: SetApplicationPhaseStatusInput = {
+        applicationId: testApplicationId,
+        phaseName: testPhaseId,
+        phaseStatus: "Completed",
+      };
+
+      await __setApplicationPhaseStatus(undefined, { input: testInput });
+      expect(mockUpsert).not.toHaveBeenCalled();
+      expect(getApplication).not.toHaveBeenCalled();
+      expect(completePhase).toHaveBeenCalledExactlyOnceWith(undefined, {
+        input: { applicationId: testApplicationId, phaseName: testPhaseId },
+      });
+      expect(skipConceptPhase).not.toHaveBeenCalled();
+    });
+
+    it("should use the skipConceptPhase method when getting a phase skip request for Concept", async () => {
+      const testInput: SetApplicationPhaseStatusInput = {
+        applicationId: testApplicationId,
+        phaseName: "Concept",
+        phaseStatus: "Skipped",
+      };
+
+      await __setApplicationPhaseStatus(undefined, { input: testInput });
+      expect(mockUpsert).not.toHaveBeenCalled();
+      expect(getApplication).not.toHaveBeenCalled();
+      expect(completePhase).not.toHaveBeenCalled();
+      expect(skipConceptPhase).toHaveBeenCalledExactlyOnceWith(undefined, {
+        applicationId: testApplicationId,
+      });
+    });
+
+    it("should handle an error appropriately if it occurs in the transaction", async () => {
       mockUpsert.mockRejectedValueOnce(testError);
       await expect(
         __setApplicationPhaseStatus(undefined, { input: testInput })

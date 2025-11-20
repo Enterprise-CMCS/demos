@@ -1,20 +1,12 @@
 import React from "react";
-
 import {
   DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
   Person,
 } from "demos-server";
-
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-
 import { PaginationControls } from "../PaginationControls";
-import { TableHead } from "../Table";
+import { Table } from "../Table";
+import { gql, useQuery } from "@apollo/client";
+import { createColumnHelper } from "@tanstack/react-table";
 
 export type DemonstrationRoleAssignment = Pick<
   ServerDemonstrationRoleAssignment,
@@ -22,6 +14,21 @@ export type DemonstrationRoleAssignment = Pick<
 > & {
   person: Pick<Person, "id" | "fullName" | "email">;
 };
+export const CONTACTS_TABLE_QUERY = gql`
+  query ContactsTable($id: ID!) {
+    demonstration(id: $id) {
+      roles {
+        isPrimary
+        role
+        person {
+          id
+          fullName
+          email
+        }
+      }
+    }
+  }
+`;
 
 const contactsColumnHelper = createColumnHelper<DemonstrationRoleAssignment>();
 const contactsColumns = [
@@ -45,41 +52,25 @@ const contactsColumns = [
   }),
 ];
 
-type ContactsTableProps = {
-  roles: DemonstrationRoleAssignment[] | null;
-};
-
-export const ContactsTable: React.FC<ContactsTableProps> = ({ roles = [] }) => {
-  const table = useReactTable<DemonstrationRoleAssignment>({
-    data: roles || [],
-    columns: contactsColumns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
+export const ContactsTable: React.FC<{ demonstrationId: string }> = ({ demonstrationId }) => {
+  const { data, loading, error } = useQuery<{
+    demonstration: { roles: DemonstrationRoleAssignment[] };
+  }>(CONTACTS_TABLE_QUERY, {
+    variables: { id: demonstrationId },
   });
+  if (loading) {
+    return <div>Loading contacts...</div>;
+  }
+  const demonstration = data?.demonstration;
+  if (error || !demonstration) {
+    return <div>Error loading contacts.</div>;
+  }
 
   return (
-    <>
-      <table className="w-full table-fixed text-sm">
-        <TableHead headerGroups={table.getHeaderGroups()} />
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-2 py-1 border-b">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext()) ?? "-"}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <PaginationControls table={table} />
-    </>
+    <Table<DemonstrationRoleAssignment>
+      data={demonstration.roles}
+      columns={contactsColumns}
+      pagination={(table) => <PaginationControls table={table} />}
+    />
   );
 };

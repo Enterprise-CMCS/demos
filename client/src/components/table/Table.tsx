@@ -27,8 +27,7 @@ const STYLES = {
   subrow: "h-[56px] px-4 py-2 bg-gray-lighter border-b",
 };
 
-// We probably shouldn't export this, but we need it in the ContactsTable for now
-export function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
+function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
   return (
     <thead>
       {headerGroups.map((hg) => (
@@ -120,7 +119,7 @@ function TableSearch<T>({
   return (
     <div className="grid w-full grid-cols-4 gap-[24px]">
       <div className="col-span-1">{keywordSearch && keywordSearch(table)}</div>
-      <div className="col-span-1">{columnFilter && columnFilter(table)}</div>
+      <div className="col-span-2">{columnFilter && columnFilter(table)}</div>
     </div>
   );
 }
@@ -174,6 +173,7 @@ export function Table<T>({
     onExpandedChange: setExpanded,
     initialState,
     onRowSelectionChange: setRowSelection,
+    paginateExpandedRows: false,
   });
 
   // Auto-expand parents with visible children after filtering

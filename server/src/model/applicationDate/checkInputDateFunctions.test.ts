@@ -1,16 +1,15 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { DateType } from "../../types.js";
 import {
   getTZDateTimeParts,
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
-  __checkInputDateGreaterThan,
-  __checkInputDateGreaterThanOrEqual,
-  __checkInputDateMeetsOffset,
-  ApplicationDateMap,
-  DateOffset,
-  __getDateValueFromApplicationDateMap,
+  checkInputDateGreaterThan,
+  checkInputDateGreaterThanOrEqual,
+  checkInputDateMeetsOffset,
+  getDateValueFromApplicationDateMap,
 } from "./checkInputDateFunctions.js";
+import { DateOffset, ApplicationDateMap } from ".";
 
 describe("checkInputDateFunctions", () => {
   const testInputDateType: DateType = "Concept Completion Date";
@@ -165,15 +164,12 @@ describe("checkInputDateFunctions", () => {
     });
   });
 
-  describe("__getDateValueFromApplicationDateMap", () => {
+  describe("getDateValueFromApplicationDateMap", () => {
     it("should extract a date from a date map", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testBaseDateValue],
       ]);
-      const result = __getDateValueFromApplicationDateMap(
-        testInputDateType,
-        testApplicationDateMap
-      );
+      const result = getDateValueFromApplicationDateMap(testInputDateType, testApplicationDateMap);
       expect(result).toBe(testBaseDateValue);
     });
 
@@ -182,7 +178,7 @@ describe("checkInputDateFunctions", () => {
         [testInputDateType, testBaseDateValue],
       ]);
       expect(() =>
-        __getDateValueFromApplicationDateMap(testTargetDateType, testApplicationDateMap)
+        getDateValueFromApplicationDateMap(testTargetDateType, testApplicationDateMap)
       ).toThrowError(
         `The date ${testTargetDateType} was requested as part of a validation, but is undefined. ` +
           `It must either be in the database, or part of your payload.`
@@ -190,14 +186,14 @@ describe("checkInputDateFunctions", () => {
     });
   });
 
-  describe("__checkInputDateGreaterThan", () => {
+  describe("checkInputDateGreaterThan", () => {
     it("should not throw when the date is greater than the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testAfterDateValue],
         [testTargetDateType, testBaseDateValue],
       ]);
       expect(() =>
-        __checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
+        checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
       ).not.toThrow();
     });
 
@@ -211,7 +207,7 @@ describe("checkInputDateFunctions", () => {
         `but it must be greater than ${testTargetDateType}, ` +
         `which has value ${testBaseDateValue.toISOString()}.`;
       expect(() =>
-        __checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
+        checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
       ).toThrowError(expectedError);
     });
 
@@ -225,19 +221,19 @@ describe("checkInputDateFunctions", () => {
         `but it must be greater than ${testTargetDateType}, ` +
         `which has value ${testBaseDateValue.toISOString()}.`;
       expect(() =>
-        __checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
+        checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
       ).toThrowError(expectedError);
     });
   });
 
-  describe("__checkInputDateGreaterThanOrEqual", () => {
+  describe("checkInputDateGreaterThanOrEqual", () => {
     it("should not throw when the date is greater than the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testAfterDateValue],
         [testTargetDateType, testBaseDateValue],
       ]);
       expect(() =>
-        __checkInputDateGreaterThanOrEqual(
+        checkInputDateGreaterThanOrEqual(
           testApplicationDateMap,
           testInputDateType,
           testTargetDateType
@@ -255,7 +251,7 @@ describe("checkInputDateFunctions", () => {
         `but it must be greater than or equal to ${testTargetDateType}, ` +
         `which has value ${testBaseDateValue.toISOString()}.`;
       expect(() =>
-        __checkInputDateGreaterThanOrEqual(
+        checkInputDateGreaterThanOrEqual(
           testApplicationDateMap,
           testInputDateType,
           testTargetDateType
@@ -269,7 +265,7 @@ describe("checkInputDateFunctions", () => {
         [testTargetDateType, testBaseDateValue],
       ]);
       expect(() =>
-        __checkInputDateGreaterThanOrEqual(
+        checkInputDateGreaterThanOrEqual(
           testApplicationDateMap,
           testInputDateType,
           testTargetDateType
@@ -278,7 +274,7 @@ describe("checkInputDateFunctions", () => {
     });
   });
 
-  describe("__checkInputDateMeetsOffset", () => {
+  describe("checkInputDateMeetsOffset", () => {
     const testOffset: DateOffset = {
       days: 13,
       hours: 11,
@@ -293,7 +289,7 @@ describe("checkInputDateFunctions", () => {
         [testTargetDateType, testBaseDateValue],
       ]);
       expect(() =>
-        __checkInputDateMeetsOffset(
+        checkInputDateMeetsOffset(
           testApplicationDateMap,
           testInputDateType,
           testTargetDateType,
@@ -316,7 +312,7 @@ describe("checkInputDateFunctions", () => {
         `which is ${testAddDateValue.toISOString()}. ` +
         `The value provided was ${testAfterDateValue.toISOString()}.`;
       expect(() =>
-        __checkInputDateMeetsOffset(
+        checkInputDateMeetsOffset(
           testApplicationDateMap,
           testInputDateType,
           testTargetDateType,

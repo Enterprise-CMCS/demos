@@ -13,8 +13,10 @@ import {
   STATE_USER_DEMONSTRATION_ROLES,
 } from "demos-server-constants";
 import { useDebounced } from "hooks/useDebounced";
-import { GET_DEMONSTRATION_BY_ID_QUERY } from "hooks/useDemonstration";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import {
+  DEMONSTRATION_DETAIL_QUERY,
+  GET_DEMONSTRATION_BY_ID_QUERY,
+} from "pages/DemonstrationDetail/DemonstrationDetail";
 
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
 

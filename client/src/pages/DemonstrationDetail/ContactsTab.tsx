@@ -1,0 +1,53 @@
+import React from "react";
+
+import { IconButton } from "components/button";
+import { EditIcon } from "components/icons";
+import { TabHeader } from "components/table/TabHeader";
+import {
+  Demonstration as ServerDemonstration,
+  DemonstrationRoleAssignment,
+  Person,
+} from "demos-server";
+
+import { useDialog } from "components/dialog/DialogContext";
+import { ContactsTable } from "components/table/tables/ContactsTable";
+import { ExistingContactType } from "components/dialog/ManageContactsDialog";
+
+type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
+  person: Pick<Person, "fullName" | "id" | "email" | "personType">;
+};
+
+type Demonstration = Pick<ServerDemonstration, "id"> & {
+  roles: Role[];
+};
+
+export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demonstration }) => {
+  const { showManageContactsDialog } = useDialog();
+
+  const rolesForDialog: ExistingContactType[] = (demonstration.roles || []).map((c) => ({
+    person: {
+      id: c.person.id,
+      fullName: c.person.fullName,
+      email: c.person.email,
+      personType: c.person.personType,
+    },
+    role: c.role,
+    isPrimary: c.isPrimary,
+  }));
+
+  return (
+    <>
+      <TabHeader title="Contacts">
+        <IconButton
+          icon={<EditIcon />}
+          name="manage-contacts"
+          size="small"
+          onClick={() => showManageContactsDialog(demonstration.id, rolesForDialog)}
+        >
+          Manage Contact(s)
+        </IconButton>
+      </TabHeader>
+      <ContactsTable demonstrationId={demonstration.id} />
+    </>
+  );
+};

@@ -9,13 +9,59 @@ import {
   Person,
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
-
 import { gql, useQuery } from "@apollo/client";
-
 import { AmendmentsTab } from "./AmendmentsTab";
 import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
+import { DemonstrationQueryResult } from "demos-server";
+
+export const useDemonstration = (id?: string) => {
+  const { data, loading, error } = useQuery<DemonstrationQueryResult>(
+    GET_DEMONSTRATION_BY_ID_QUERY,
+    {
+      variables: { id: id! },
+      skip: !id,
+      fetchPolicy: "cache-first",
+    }
+  );
+
+  const demonstration = data?.demonstration;
+
+  const projectOfficer = (demonstration?.roles ?? []).find(
+    (role) => role.role === "Project Officer" && role.isPrimary === true
+  );
+
+  return {
+    demonstration,
+    projectOfficer,
+    loading,
+    error,
+  };
+};
+
+
+export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
+  query GetDemonstrationById($id: ID!) {
+    demonstration(id: $id) {
+      id
+      name
+      description
+      state {
+        id
+        name
+      }
+      roles {
+        isPrimary
+        role
+        person {
+          id
+          fullName
+        }
+      }
+    }
+  }
+`;
 
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {

@@ -59,6 +59,33 @@ export const demonstrationSchema = gql`
     projectOfficerUserId: String
   }
 
+type DemonstrationState {
+  id: String
+  name: String
+}
+
+type DemonstrationDetails {
+  id: String
+  name: String
+  description: String
+  state: DemonstrationState
+  roles: [DemonstrationRole!]
+}
+
+type DemonstrationRole {
+  isPrimary: Boolean
+  role: String
+  person: DemonstrationPerson
+}
+
+type DemonstrationPerson {
+  id: String
+  fullName: String
+}
+
+type DemonstrationQueryResult {
+  demonstration: DemonstrationDetails
+}
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
@@ -112,4 +139,32 @@ export interface UpdateDemonstrationInput {
   currentPhaseName?: PhaseName;
   stateId?: string;
   projectOfficerUserId?: string;
+}
+
+export interface DemonstrationState {
+  id: string | null;
+  name: string | null;
+}
+
+export interface DemonstrationDetails {
+  id: string | null;
+  name: string | null;
+  description: string | null;
+  state: DemonstrationState | null;
+  roles: DemonstrationRole[] | null;
+}
+
+export interface DemonstrationRole {
+  isPrimary: boolean | null;
+  role: string | null;
+  person: DemonstrationPerson | null;
+}
+
+export interface DemonstrationPerson {
+  id: string | null;
+  fullName: string | null;
+}
+
+export interface DemonstrationQueryResult {
+  demonstration: DemonstrationDetails | null;
 }
