@@ -33,21 +33,8 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         documentType
         createdAt
         owner {
-          id
           person {
-            id
             fullName
-          }
-        }
-        application {
-          ... on Demonstration {
-            id
-          }
-          ... on Amendment {
-            id
-          }
-          ... on Extension {
-            id
           }
         }
       }

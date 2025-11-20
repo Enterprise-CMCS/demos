@@ -216,6 +216,22 @@ export const documentResolvers = {
         return document;
       });
     },
+    deleteDocuments: async (_: unknown, { ids }: { ids: string[] }) => {
+      return await prisma().$transaction(async (tx) => {
+        const documents = await tx.document.findMany({
+          where: { id: { in: ids } },
+        });
+
+        for (const document of documents) {
+          await moveDocumentFromCleanToDeletedBuckets(document);
+        }
+
+        const result = await tx.document.deleteMany({
+          where: { id: { in: ids } },
+        });
+        return result.count;
+      });
+    },
   },
 
   Document: {

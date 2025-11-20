@@ -43,8 +43,7 @@ $AWS_CMD lambda create-function \
         DATABASE_SECRET_ARN=database-secret,
         UPLOAD_BUCKET=upload-bucket,
         CLEAN_BUCKET=clean-bucket,
-        DB_SCHEMA=demos_app,
-        NODE_EXTRA_CA_CERTS=/var/task/ca-cert.pem
+        DB_SCHEMA=demos_app
     }" >/dev/null
 
 # Wait for Lambda to be active

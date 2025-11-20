@@ -523,6 +523,13 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Upload response from the server was empty");
     }
 
+    // If server/.env LOCAL_SIMPLE_UPLOAD="true" we just write to Documents table without S3 upload
+    if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
+      console.log("Local host document - (basically this isn't an actual doc.");
+      onDocumentUploadSucceeded?.();
+      return;
+    }
+
     const presignedURL = uploadResult.presignedURL ?? null;
 
     if (!presignedURL) {
