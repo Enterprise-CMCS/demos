@@ -33,8 +33,21 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         documentType
         createdAt
         owner {
+          id
           person {
+            id
             fullName
+          }
+        }
+        application {
+          ... on Demonstration {
+            id
+          }
+          ... on Amendment {
+            id
+          }
+          ... on Extension {
+            id
           }
         }
       }
@@ -48,12 +61,12 @@ export type SimplePhase = {
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
 };
 
-export type ApplicationWorkflowDocument = (Pick<
+export type ApplicationWorkflowDocument = Pick<
   Document,
   "id" | "name" | "description" | "documentType" | "createdAt"
 > & {
   owner: { person: Pick<Person, "fullName"> };
-});
+};
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,

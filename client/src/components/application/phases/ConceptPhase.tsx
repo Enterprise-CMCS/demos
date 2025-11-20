@@ -131,7 +131,6 @@ export const ConceptPhase = ({
 
       <DocumentList
         documents={preSubmissionDocuments}
-        onDelete={(id) => console.log("Delete document:", id)}
       />
     </div>
   );

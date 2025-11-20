@@ -2,7 +2,10 @@ import React from "react";
 import { DeleteIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
-import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
+import {
+  ApplicationWorkflowDocument,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
+} from "components/application/ApplicationWorkflow";
 import { gql } from "graphql-tag";
 import { Application, Document as ServerDocument } from "demos-server";
 import { useMutation } from "@apollo/client";
@@ -22,26 +25,7 @@ type Document = {
 export const DELETE_DOCUMENT_MUTATION = gql`
   mutation DeleteDocument($id: ID!) {
     deleteDocument(id: $id) {
-      application {
-        ... on Demonstration {
-          id
-          documents {
-            id
-          }
-        }
-        ... on Amendment {
-          id
-          documents {
-            id
-          }
-        }
-        ... on Extension {
-          id
-          documents {
-            id
-          }
-        }
-      }
+      id
     }
   }
 `;
@@ -60,7 +44,9 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   const { showError } = useToast();
   const [deleteDocumentTrigger, { loading }] = useMutation<{
     deleteDocument: Document;
-  }>(DELETE_DOCUMENT_MUTATION);
+  }>(DELETE_DOCUMENT_MUTATION, {
+    refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+  });
 
   const handleDelete = async (id: string) => {
     try {

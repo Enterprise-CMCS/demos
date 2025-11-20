@@ -1,9 +1,9 @@
 import React from "react";
 import { SecondaryButton } from "components/button";
-import { ExportIcon, DeleteIcon } from "components/icons";
+import { ExportIcon } from "components/icons";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
-import { formatDate } from "util/formatDate";
 import { tw } from "tags/tw";
+import { DocumentList } from "./DocumentList";
 
 const STYLES = {
   title: tw`text-xl font-semibold mb-2`,
@@ -18,7 +18,6 @@ type Props = {
   helperText: string;
   documents: DocumentTableDocument[];
   onUploadClick: () => void;
-  onDeleteDocument: (docId: string) => void;
 };
 
 export const ApplicationUploadSection: React.FC<Props> = ({
@@ -26,7 +25,6 @@ export const ApplicationUploadSection: React.FC<Props> = ({
   helperText,
   documents,
   onUploadClick,
-  onDeleteDocument,
 }) => {
   return (
     <div aria-labelledby="upload-title">
@@ -40,30 +38,7 @@ export const ApplicationUploadSection: React.FC<Props> = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <div className={STYLES.list}>
-        {documents.length === 0 && (
-          <div className="text-sm text-text-placeholder">No documents yet.</div>
-        )}
-        {documents.map((doc) => (
-          <div key={doc.id} className={STYLES.fileRow}>
-            <div>
-              <div className="font-medium">{doc.name}</div>
-              <div className={STYLES.fileMeta}>
-                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
-                {doc.description ? ` • ${doc.description}` : ""}
-              </div>
-            </div>
-            <button
-              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-              onClick={() => onDeleteDocument(doc.id)}
-              aria-label={`Delete ${doc.name}`}
-              title={`Delete ${doc.name}`}
-            >
-              <DeleteIcon className="w-2 h-2" />
-            </button>
-          </div>
-        ))}
-      </div>
+      <DocumentList documents={documents} />
     </div>
   );
 };
