@@ -119,7 +119,7 @@ function TableSearch<T>({
   return (
     <div className="grid w-full grid-cols-4 gap-[24px]">
       <div className="col-span-1">{keywordSearch && keywordSearch(table)}</div>
-      <div className="col-span-1">{columnFilter && columnFilter(table)}</div>
+      <div className="col-span-2">{columnFilter && columnFilter(table)}</div>
     </div>
   );
 }
@@ -173,6 +173,7 @@ export function Table<T>({
     onExpandedChange: setExpanded,
     initialState,
     onRowSelectionChange: setRowSelection,
+    paginateExpandedRows: false,
   });
 
   // Auto-expand parents with visible children after filtering

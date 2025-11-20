@@ -2,6 +2,10 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import prismaRandom from "prisma-extension-random";
 import { log } from "./log";
 
+export type PrismaTransactionClient = Parameters<
+  Parameters<ReturnType<typeof prisma>["$transaction"]>[0]
+>[0];
+
 // really annoying typescript hackiness to get the types to play well with the $extends method
 // the prisma random extension will be eventually removed.
 const createExtendedClient = () => {

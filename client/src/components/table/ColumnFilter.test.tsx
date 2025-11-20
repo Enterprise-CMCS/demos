@@ -83,8 +83,8 @@ describe("ColumnFilter Component", () => {
 
   describe("Initial Render", () => {
     it("renders the filter dropdown with correct label", () => {
-      expect(screen.getByText(/filter by:/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/filter by:/i)).toBeInTheDocument();
+      expect(screen.getByText(/Filter By/i)).toBeInTheDocument();
+      expect(screen.getByTestId("filter-by-column")).toBeInTheDocument();
     });
 
     it("displays all table rows initially", () => {
@@ -107,7 +107,7 @@ describe("ColumnFilter Component", () => {
   describe("Filter Selection", () => {
     it("shows filter input when a column is selected", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       // Type to filter the options and then click on the option
       await user.selectOptions(columnSelect, "Name");
@@ -119,7 +119,7 @@ describe("ColumnFilter Component", () => {
 
     it("changes filter input type based on column selection", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       // Test text filter (Name column)
       await user.selectOptions(columnSelect, "Name");
@@ -147,7 +147,7 @@ describe("ColumnFilter Component", () => {
 
     it("clears filter value when changing columns", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       // Select name column and enter a filter
       await user.selectOptions(columnSelect, "Name");
@@ -172,7 +172,7 @@ describe("ColumnFilter Component", () => {
   describe("Text Filtering", () => {
     it("filters rows correctly by name column", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Name");
 
@@ -197,7 +197,7 @@ describe("ColumnFilter Component", () => {
 
     it("is case insensitive", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Name");
 
@@ -216,7 +216,7 @@ describe("ColumnFilter Component", () => {
 
     it("handles partial matches", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Name");
 
@@ -241,7 +241,7 @@ describe("ColumnFilter Component", () => {
   describe("Select Filter Type", () => {
     it("renders AutoCompleteSelect when column has select filter type", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Option");
 
@@ -252,7 +252,7 @@ describe("ColumnFilter Component", () => {
 
     it("filters correctly using select filter", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Option");
 
@@ -290,7 +290,7 @@ describe("ColumnFilter Component", () => {
     });
     it("filters table rows by multiple selected options in multiselect filter", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Option");
 
@@ -336,7 +336,7 @@ describe("ColumnFilter Component", () => {
 
     it("allows clearing selections in a multiselect filter", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Option");
 
@@ -386,7 +386,7 @@ describe("ColumnFilter Component", () => {
   describe("Date Filter Type", () => {
     it("renders DatePicker when column has date filter type", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Date");
 
@@ -398,7 +398,7 @@ describe("ColumnFilter Component", () => {
 
     it("filters rows by date range", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       // Select the Date column
       await user.selectOptions(columnSelect, "Date");
@@ -424,7 +424,7 @@ describe("ColumnFilter Component", () => {
 
     it("shows no results for unmatched MM/dd/yyyy date", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Date");
 
@@ -445,7 +445,7 @@ describe("ColumnFilter Component", () => {
   describe("No Results State", () => {
     it("shows no results message when filter yields no matches", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, "Name");
 
@@ -472,7 +472,7 @@ describe("ColumnFilter Component", () => {
 
     it("returns to showing results when valid filter is applied after no results", async () => {
       const user = userEvent.setup();
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
 
       await user.selectOptions(columnSelect, ["Name"]);
 

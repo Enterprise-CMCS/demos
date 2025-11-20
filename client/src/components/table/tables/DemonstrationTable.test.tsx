@@ -36,7 +36,7 @@ const applyProjectOfficerFilter = async (
   officerName: string
 ) => {
   // Select Project Officer filter from column dropdown
-  const columnSelect = screen.getByLabelText(/filter by:/i);
+  const columnSelect = screen.getByTestId("filter-by-column");
   await user.selectOptions(columnSelect, ["Project Officer"]);
 
   // Wait for the project officer filter input to appear
@@ -64,7 +64,7 @@ const applyProjectOfficerFilter = async (
 
 const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateCode: string) => {
   // Select state filter from column dropdown
-  const columnSelect = screen.getByLabelText(/filter by:/i);
+  const columnSelect = screen.getByTestId("filter-by-column");
   await user.selectOptions(columnSelect, ["State/Territory"]);
 
   // Wait for the state filter input to appear
@@ -168,7 +168,7 @@ describe("Demonstrations", () => {
 
     it("includes table features (search, filter, pagination)", () => {
       expect(screen.getByLabelText(/search:/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/filter by:/i)).toBeInTheDocument();
+      expect(screen.getByTestId("filter-by-column")).toBeInTheDocument();
       expect(screen.getByText("Items per page:")).toBeInTheDocument();
     });
 
@@ -207,7 +207,7 @@ describe("Demonstrations", () => {
       await clearSearchInput(user);
 
       // Open the column filter dropdown and select "State/Territory"
-      const columnSelect = screen.getByLabelText(/filter by:/i);
+      const columnSelect = screen.getByTestId("filter-by-column");
       await user.selectOptions(columnSelect, ["State/Territory"]);
 
       // Wait for the state filter input to appear

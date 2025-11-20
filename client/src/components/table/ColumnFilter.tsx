@@ -5,10 +5,6 @@ import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMul
 import { Option, Select } from "components/input/select/Select";
 import { parseISO } from "date-fns";
 
-export interface ColumnFilterByDropdownProps<T> {
-  table: Table<T>;
-}
-
 export interface ColumnMetaFilterConfig {
   filterConfig?:
     | {
@@ -25,7 +21,7 @@ export interface ColumnMetaFilterConfig {
       };
 }
 
-export function ColumnFilter<T>({ table }: ColumnFilterByDropdownProps<T>) {
+export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   const [selectedColumn, setSelectedColumn] = React.useState<string>("");
   const [filterValue, setFilterValue] = React.useState<string | string[] | null>("");
 
@@ -89,7 +85,7 @@ export function ColumnFilter<T>({ table }: ColumnFilterByDropdownProps<T>) {
       case "select":
         return (
           <AutoCompleteMultiselect
-            label={`${columnDisplayName} Filter`}
+            label={`${columnDisplayName}`}
             options={filterConfig?.options || []}
             placeholder={`Select ${columnDisplayName}`}
             onSelect={(val) => onValueChange(val)}
@@ -136,7 +132,7 @@ export function ColumnFilter<T>({ table }: ColumnFilterByDropdownProps<T>) {
       default:
         return (
           <TextInput
-            label={`${columnDisplayName} Filter`}
+            label={`${columnDisplayName}`}
             name={`filter-${selectedColumn}`}
             placeholder={`Filter ${columnDisplayName}`}
             value={filterValue as string}
@@ -151,17 +147,19 @@ export function ColumnFilter<T>({ table }: ColumnFilterByDropdownProps<T>) {
   const liveMessage = `Showing ${totalRows} rows`;
 
   return (
-    <div className="flex flex-col gap-sm">
-      <Select
-        label="Filter by:"
-        options={columnOptions}
-        placeholder="Select a Column..."
-        value={selectedColumn}
-        onSelect={(val) => setSelectedColumn(val)}
-        id="filter-by-column"
-      />
+    <div className="grid grid-cols-2 gap-[24px]">
+      <div className="col-span-1">
+        <Select
+          label="Filter By"
+          options={columnOptions}
+          placeholder="Select a Column..."
+          value={selectedColumn}
+          onSelect={(val) => setSelectedColumn(val)}
+          id="filter-by-column"
+        />
+      </div>
 
-      {renderFilterInput()}
+      <div className="col-span-1">{renderFilterInput()}</div>
 
       <div aria-live="polite" role="status" className="sr-only">
         {liveMessage}
