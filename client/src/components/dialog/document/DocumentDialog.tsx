@@ -18,7 +18,7 @@ import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
 
-import { gql, useMutation, PureQueryOptions } from "@apollo/client";
+import { gql, useMutation, useLazyQuery, PureQueryOptions } from "@apollo/client";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 export const DELETE_DOCUMENTS_QUERY = gql`
@@ -31,7 +31,14 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
       presignedURL
+      documentId
     }
+  }
+`;
+
+export const POLL_DOCUMENT_EXISTS_QUERY = gql`
+  query PollDocumentExists($documentId: ID!) {
+    documentExists(documentId: $documentId)
   }
 `;
 
@@ -46,7 +53,20 @@ export const UPDATE_DOCUMENT_QUERY = gql`
   }
 `;
 
+const LOCALHOST_SENTINEL = "http://localhost";
+
 type DocumentDialogType = "add" | "edit";
+
+type DialogStatus =
+  | "idle" // Initial state, no file selected
+  | "loading_file" // File being read into browser
+  | "file_loaded" // File read successfully into browser
+  | "uploading_to_s3" // Uploading file to S3
+  | "editing" // Editing document metadata
+  | "scanning" // Virus scan in progress
+  | "complete" // All done successfully
+  | "timeout" // Scan timed out
+  | "error"; // Error occurred
 
 const STYLES = {
   label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
@@ -297,7 +317,10 @@ export type DocumentDialogProps = {
   onClose?: () => void;
   mode: DocumentDialogType;
   documentTypeSubset?: DocumentType[];
-  onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
+  onSubmit?: (
+    dialogFields: DocumentDialogFields,
+    setDialogStatus: (dialogStatus: DialogStatus) => void
+  ) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
 };
@@ -319,6 +342,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [dialogStatus, setDialogStatus] = useState<DialogStatus>("idle");
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -327,12 +351,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
     maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
     onErrorCallback: (msg: ErrorMessage) => showError(msg),
   });
-
-  useEffect(() => {
-    if (initialDocument) {
-      setActiveDocument(initialDocument);
-    }
-  }, [initialDocument]);
 
   useEffect(() => {
     if (mode === "add" && file && !titleManuallyEdited && !activeDocument.name.trim()) {
@@ -345,7 +363,11 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
+  const isLoadingFile = dialogStatus === "loading_file";
+  const isUploadingToS3 = dialogStatus === "uploading_to_s3";
+  const isScanning = dialogStatus === "scanning";
   const isUploading = uploadStatus === "uploading";
+  const isBusy = isLoadingFile || isUploadingToS3 || isScanning || isSubmitting;
 
   const missingType = !activeDocument.documentType;
   const missingFile = !file;
@@ -363,7 +385,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
   };
 
   const onUploadClick = async () => {
-    if (isUploading || isSubmitting) return;
+    if (isBusy) return;
     if (isMissing) {
       showError(ERROR_MESSAGES.missingField);
       focusFirstMissing();
@@ -377,7 +399,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
       setSubmitting(true);
 
       if (onSubmit) {
-        await onSubmit(activeDocument);
+        await onSubmit(activeDocument, setDialogStatus);
       }
 
       showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
@@ -393,6 +415,13 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setFile(null);
   };
 
+  const getUploadButtonText = () => {
+    if (isScanning) return "Scanning for viruses...";
+    if (isUploadingToS3) return "Uploading to S3...";
+    if (isLoadingFile || isSubmitting || isUploading) return "Uploading...";
+    return "Upload";
+  };
+
   return (
     <BaseDialog
       title={dialogTitle}
@@ -405,6 +434,7 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
             name="button-cancel-upload-document"
             size="small"
             onClick={() => setShowCancelConfirm(true)}
+            disabled={isScanning}
           >
             Cancel
           </SecondaryButton>
@@ -413,14 +443,28 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
-            aria-disabled={isMissing || isUploading || isSubmitting ? "true" : "false"}
-            disabled={isMissing || isUploading || isSubmitting}
+            aria-disabled={
+              isMissing || isUploading || isSubmitting || isScanning ? "true" : "false"
+            }
+            disabled={isMissing || isUploading || isSubmitting || isScanning}
           >
-            Upload
+            {getUploadButtonText()}
           </Button>
         </>
       }
     >
+      {isScanning && (
+        <div className="mb-sm p-sm bg-surface-secondary border border-border-fields rounded text-sm text-text-font">
+          <div className="flex items-center gap-2">
+            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+            <span className="font-medium">Scanning document for viruses...</span>
+          </div>
+          <p className="text-xs text-text-placeholder mt-1 ml-6">
+            This usually takes a few seconds. Please wait.
+          </p>
+        </div>
+      )}
+
       <DropTarget
         file={file}
         onRemove={clearFile}
@@ -475,10 +519,79 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   phaseName = "None",
   onDocumentUploadSucceeded,
 }) => {
-  const { showError } = useToast();
+  const { showError, showWarning } = useToast();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
     refetchQueries,
   });
+  const [checkDocumentStatus] = useLazyQuery(POLL_DOCUMENT_EXISTS_QUERY, {
+    fetchPolicy: "network-only",
+  });
+
+  const pollingIntervalRef = useRef<number | null>(null);
+  const pollingStartTimeRef = useRef<number | null>(null);
+
+  const POLLING_INTERVAL_MS = 1000; // 1 second
+  const POLLING_TIMEOUT_MS = 20000; // 20 seconds
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const waitForVirusScan = async (
+    documentId: string,
+    setDialogStatus: (status: DialogStatus) => void
+  ): Promise<void> => {
+    setDialogStatus("scanning");
+    pollingStartTimeRef.current = Date.now();
+
+    return new Promise((resolve, reject) => {
+      pollingIntervalRef.current = setInterval(async () => {
+        try {
+          const elapsed = Date.now() - (pollingStartTimeRef.current ?? 0);
+
+          if (elapsed >= POLLING_TIMEOUT_MS) {
+            // Timeout reached
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+            setDialogStatus("timeout");
+            showWarning(
+              "Virus scan is taking longer than expected. Your document will appear when scanning completes."
+            );
+            resolve();
+            return;
+          }
+
+          const result = await checkDocumentStatus({
+            variables: { documentId },
+          });
+
+          if (result.data?.documentExists) {
+            // Scan complete!
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+            setDialogStatus("complete");
+            resolve();
+          }
+        } catch (error) {
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setDialogStatus("error");
+          reject(error);
+        }
+      }, POLLING_INTERVAL_MS);
+    });
+  };
 
   const defaultDocumentType: DocumentType | undefined = documentTypeSubset?.[0];
 
@@ -490,7 +603,10 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     documentType: defaultDocumentType,
   };
 
-  const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
+  const handleUpload = async (
+    dialogFields: DocumentDialogFields,
+    setDialogStatus: (status: DialogStatus) => void
+  ): Promise<void> => {
     if (!dialogFields.file) {
       showError("No file selected");
       return;
@@ -523,25 +639,32 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Upload response from the server was empty");
     }
 
-    // If server/.env LOCAL_SIMPLE_UPLOAD="true" we just write to Documents table without S3 upload
-    if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
-      console.log("Local host document - (basically this isn't an actual doc.");
+    if (uploadResult.presignedURL.startsWith(LOCALHOST_SENTINEL)) {
       onDocumentUploadSucceeded?.();
       return;
     }
 
     const presignedURL = uploadResult.presignedURL ?? null;
+    const documentId = uploadResult.documentId ?? null;
 
     if (!presignedURL) {
       throw new Error("Could not get presigned URL from the server");
     }
 
+    if (!documentId) {
+      throw new Error("Could not get pending upload ID from the server");
+    }
+
+    setDialogStatus("uploading_to_s3");
     const response: S3UploadResponse = await tryUploadingFileToS3(presignedURL, dialogFields.file);
 
     if (!response.success) {
       showError(response.errorMessage);
+      setDialogStatus("error");
       throw new Error(response.errorMessage);
     }
+
+    await waitForVirusScan(documentId, setDialogStatus);
 
     onDocumentUploadSucceeded?.();
   };
@@ -564,13 +687,18 @@ export const EditDocumentDialog: React.FC<{
 }> = ({ onClose, initialDocument }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
-  const handleEdit = async (dialogFields: DocumentDialogFields) => {
+  const handleEdit = async (
+    dialogFields: DocumentDialogFields,
+    setDialogStatus: (dialogStatus: DialogStatus) => void
+  ) => {
     const updateDocumentInput: UpdateDocumentInput = {
       applicationId: dialogFields.id,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
     };
+
+    setDialogStatus("editing");
 
     await updateDocumentTrigger({
       variables: { input: updateDocumentInput },
