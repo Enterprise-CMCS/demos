@@ -154,7 +154,7 @@ describe("ApprovalPackagePhase", () => {
       />
     );
 
-    const finishButton = screen.getByRole("button", { name: "Finish" });
+    const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
   });
 
@@ -170,7 +170,7 @@ describe("ApprovalPackagePhase", () => {
       />
     );
 
-    const finishButton = screen.getByRole("button", { name: "Finish" });
+    const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
   });
 
@@ -192,7 +192,7 @@ describe("ApprovalPackagePhase", () => {
       />
     );
 
-    const finishButton = screen.getByRole("button", { name: "Finish" });
+    const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeEnabled();
   });
 
@@ -205,7 +205,7 @@ describe("ApprovalPackagePhase", () => {
       />
     );
 
-    const finishButton = screen.getByRole("button", { name: "Finish" });
+    const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
   });
 });
@@ -284,8 +284,8 @@ describe("getApprovalPackagePhase", () => {
 
     render(getApprovalPackagePhase(demo));
 
-    const finishAllDone = screen.getByRole("button", { name: "Finish" });
-    expect(finishAllDone).toBeEnabled();
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeEnabled();
   });
 
   it("correctly computes allPreviousPhasesDone when some previous phases are NOT completed", () => {
@@ -313,7 +313,7 @@ describe("getApprovalPackagePhase", () => {
 
     render(getApprovalPackagePhase(demo));
 
-    const finishNotDone = screen.getByRole("button", { name: "Finish" });
-    expect(finishNotDone).toBeDisabled();
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
   });
 });
