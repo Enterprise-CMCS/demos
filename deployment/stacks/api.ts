@@ -96,6 +96,16 @@ export class ApiStack extends Stack {
       "Allow traffic to secrets manager VPCE"
     );
 
+    const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
+      prefixListName: `com.amazonaws.${this.region}.s3`,
+    });
+    
+    graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
+
     const cognitoAuthority = Fn.importValue(`${commonProps.hostEnvironment}CognitoAuthority`);
     const apigateway_outputs = apigateway.create({
       ...commonProps,
@@ -171,6 +181,7 @@ export class ApiStack extends Stack {
     dbSecret.grantRead(graphqlLambda.lambda.role);
     uploadBucket.grantPut(graphqlLambda.lambda.role);
     cleanBucket.grantDelete(graphqlLambda.lambda.role);
+    cleanBucket.grantRead(graphqlLambda.lambda.role);
     deletedBucket.grantPut(graphqlLambda.lambda.role);
     const emailerTimeout = Duration.minutes(1);
 
