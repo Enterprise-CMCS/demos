@@ -51,6 +51,57 @@ const createS3Client = () => {
   return new S3Client(s3ClientConfig);
 };
 
+export const uploadDocument = async (
+  parent: unknown,
+  { input }: { input: UploadDocumentInput },
+  context: GraphQLContext
+): Promise<UploadDocumentResponse> => {
+  if (context.user === null) {
+    throw new Error(
+      "The GraphQL context does not have user information. Are you properly authenticated?"
+    );
+  }
+  // Looks for localstack pre-signed and does a simplified upload flow
+  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
+    const documentId = randomUUID();
+    const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
+    const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
+    const document = await prisma().document.create({
+      data: {
+        id: documentId,
+        name: input.name,
+        description: input.description ?? "",
+        ownerUserId: context.user.id,
+        documentTypeId: input.documentType,
+        applicationId: input.applicationId,
+        phaseId: input.phaseName,
+        s3Path,
+      },
+    });
+
+    const fakePresignedUrl = await getPresignedUploadUrl(document);
+    log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
+    return {
+      presignedURL: fakePresignedUrl,
+    };
+  }
+  const documentPendingUpload = await prisma().documentPendingUpload.create({
+    data: {
+      name: input.name,
+      description: input.description ?? "",
+      ownerUserId: context.user.id,
+      documentTypeId: input.documentType,
+      applicationId: input.applicationId,
+      phaseId: input.phaseName,
+    },
+  });
+
+  const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
+  return {
+    presignedURL,
+  };
+};
+
 async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
     where: { id: id },
@@ -138,56 +189,7 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    uploadDocument: async (
-      parent: unknown,
-      { input }: { input: UploadDocumentInput },
-      context: GraphQLContext
-    ): Promise<UploadDocumentResponse> => {
-      if (context.user === null) {
-        throw new Error(
-          "The GraphQL context does not have user information. Are you properly authenticated?"
-        );
-      }
-      // Looks for localstack pre-signed and does a simplified upload flow
-      if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
-        const documentId = randomUUID();
-        const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
-        const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
-        const document = await prisma().document.create({
-          data: {
-            id: documentId,
-            name: input.name,
-            description: input.description ?? "",
-            ownerUserId: context.user.id,
-            documentTypeId: input.documentType,
-            applicationId: input.applicationId,
-            phaseId: input.phaseName,
-            s3Path,
-          },
-        });
-
-        const fakePresignedUrl = await getPresignedUploadUrl(document);
-        log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
-        return {
-          presignedURL: fakePresignedUrl,
-        };
-      }
-      const documentPendingUpload = await prisma().documentPendingUpload.create({
-        data: {
-          name: input.name,
-          description: input.description ?? "",
-          ownerUserId: context.user.id,
-          documentTypeId: input.documentType,
-          applicationId: input.applicationId,
-          phaseId: input.phaseName,
-        },
-      });
-
-      const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
-      return {
-        presignedURL,
-      };
-    },
+    uploadDocument: uploadDocument,
 
     downloadDocument: async (_: unknown, { id }: { id: string }) => {
       const document = await prisma().document.findUnique({
