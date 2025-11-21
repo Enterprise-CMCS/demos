@@ -30,7 +30,7 @@ import { __setApplicationDates } from "./model/applicationDate/applicationDateRe
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application/applicationResolvers.js";
-import { uploadDocument } from "./model/document/documentResolvers.js";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 
@@ -50,6 +50,19 @@ function getRandomPhaseDocumentTypeCombination(): {
 
 async function seedDocuments() {
   console.log("🌱 Seeding documents...");
+  const s3Client = new S3Client(
+    process.env.S3_ENDPOINT_LOCAL
+      ? {
+          region: "us-east-1",
+          endpoint: process.env.S3_ENDPOINT_LOCAL,
+          forcePathStyle: true,
+          credentials: {
+            accessKeyId: "test",
+            secretAccessKey: "test", // pragma: allowlist secret
+          },
+        }
+      : {}
+  );
 
   const applications = await prisma().application.findMany();
 
@@ -58,52 +71,37 @@ async function seedDocuments() {
       try {
         const { phaseName, documentType } = getRandomPhaseDocumentTypeCombination();
         const name = faker.lorem.sentence(2);
-        const user = await prisma().user.findRandom();
-
-        if (process.env.LOCAL_SIMPLE_UPLOAD) {
-          await prisma().document.create({
-            data: {
-              name: name,
-              description: faker.lorem.sentence(5),
-              documentTypeId: documentType,
-              applicationId: application.id,
-              phaseId: phaseName,
-              s3Path: `${application.id}/${name}`,
-              ownerUserId: user!.id,
-            },
-          });
+        let document = await prisma().document.create({
+          data: {
+            name: name,
+            description: faker.lorem.sentence(5),
+            s3Path: "tmp",
+            ownerUserId: (await prisma().user.findRandom())!.id,
+            documentTypeId: documentType,
+            applicationId: application.id,
+            phaseId: phaseName,
+          },
+        });
+        const s3Path = `${application.id}/${document.id}`;
+        document = await prisma().document.update({
+          where: { id: document.id },
+          data: {
+            s3Path,
+          },
+        });
+        // temporary bypass for backward compatability with simple upload.
+        // TODO: remove this bypass
+        if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
           continue;
         }
-
-        const document = {
-          name: name,
-          description: faker.lorem.sentence(5),
-          documentType: documentType,
-          applicationId: application.id,
-          phaseName: phaseName,
-        };
-
-        const uploadDocumentResponse = await uploadDocument(
-          undefined,
-          {
-            input: document,
-          },
-          {
-            user: {
-              id: user!.id,
-              sub: user!.cognitoSubject,
-              role: user!.personTypeId,
-            },
-          }
-        );
-        const presignedURL = uploadDocumentResponse.presignedURL;
         const mockFileContent = Buffer.from(`Test file: ${JSON.stringify(document)}`);
-
-        await fetch(presignedURL!, {
-          method: "PUT",
-          body: mockFileContent,
-          headers: { "Content-Type": "txt" },
-        });
+        await s3Client.send(
+          new PutObjectCommand({
+            Bucket: process.env.CLEAN_BUCKET,
+            Key: s3Path,
+            Body: mockFileContent,
+          })
+        );
       } catch (error) {
         console.error(`Could not seed document. ${error}`);
       }
