@@ -148,7 +148,7 @@ export async function main(passedContext?: { [key: string]: any }) {
     api.addDependency(dbRole);
   }
 
-  applyCoreSuppressions(core);
+  applyCoreSuppressions(core, stage);
   applyApiSuppressions(api, stage);
   if (config.srrConfigured) {
     applyUISuppressions(ui, stage);
