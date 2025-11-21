@@ -3,7 +3,8 @@ import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
 import { Option, Select } from "components/input/select/Select";
-import { parseISO } from "date-fns";
+import { parseISO, isValid } from "date-fns";
+import { DatePicker } from "components/input/date/DatePicker";
 
 export interface ColumnMetaFilterConfig {
   filterConfig?:
@@ -26,11 +27,22 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   const [filterValue, setFilterValue] = React.useState<string | string[] | null>("");
 
   const [filterRangeValue, setFilterRangeValue] = React.useState<{
-    start: Date | null;
-    end: Date | null;
-  }>({ start: null, end: null });
+    start: string;
+    end: string;
+  }>({ start: "", end: "" });
 
   const availableColumns = table.getAllColumns().filter((column) => column.getCanFilter());
+
+  const toDateIfCompleteAndSane = (value: string) => {
+    if (!value) return null;
+    if (value.length < 10) return null;
+    const [yearStr] = value.split("-");
+    const year = Number(yearStr);
+    if (!year || year < 2000) return null;
+    const parsed = parseISO(value);
+    console.log("parsed date:", parsed);
+    return isValid(parsed) ? parsed : null;
+  };
 
   const columnOptions: Option[] = availableColumns.map((col) => {
     const columnDef = col.columnDef;
@@ -58,14 +70,26 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
     }
   };
 
-  const onRangeChange = (start: Date | null, end: Date | null) => {
-    setFilterRangeValue({ start, end });
-    if (selectedColumn && (start || end)) {
-      table.setColumnFilters([{ id: selectedColumn, value: { start, end } }]);
-    } else {
+  const onRangeChange = (startStr: string, endStr: string) => {
+    setFilterRangeValue({ start: startStr, end: endStr });
+
+    const startDate = toDateIfCompleteAndSane(startStr);
+    const endDate = toDateIfCompleteAndSane(endStr);
+
+    // Only touch table filters when we actually have something valid
+    if (selectedColumn && (startDate || endDate)) {
+      table.setColumnFilters([
+        {
+          id: selectedColumn,
+          value: { start: startDate, end: endDate },
+        },
+      ]);
+    } else if (selectedColumn) {
+    // Optional: clear the filter when fields are emptied / invalid
       table.setColumnFilters([]);
     }
   };
+
   // Get the selected column's filter configuration
   const selectedColumnObj = availableColumns.find((col) => col.id === selectedColumn);
   const meta: ColumnMetaFilterConfig | undefined = selectedColumnObj?.columnDef.meta;
@@ -96,38 +120,24 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
       case "date":
         return (
           <>
-            <div>
-              <label
-                className="block text-sm font-bold mb-1"
-                htmlFor="date-filter-start"
-              >{`${columnDisplayName} Start`}</label>
-              <input
-                id="date-filter-start"
+            <div className="grid gap-8">
+              <DatePicker
+                label={`${columnDisplayName} Start`}
                 name="date-filter-start"
-                type="date"
-                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-                onChange={(e) => {
-                  const value = e.target.value;
-                  onRangeChange(parseISO(value), filterRangeValue.end);
-                }}
+                value={filterRangeValue.start}
+                onValueChange={(val) => onRangeChange(val, filterRangeValue.end)}
+                // you can add onDateChange here if you ever want the parsed Date
               />
-            </div>
-            <div>
-              <label
-                className="block text-sm font-bold mb-1"
-                htmlFor="date-filter-end"
-              >{`${columnDisplayName} End`}</label>
-              <input
-                id="date-filter-end"
+
+              <DatePicker
+                label={`${columnDisplayName} End`}
                 name="date-filter-end"
-                type="date"
-                onChange={(e) => onRangeChange(filterRangeValue.start, parseISO(e.target.value))}
-                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+                value={filterRangeValue.end}
+                onValueChange={(val) => onRangeChange(filterRangeValue.start, val)}
               />
             </div>
           </>
         );
-
       case "text":
       default:
         return (
