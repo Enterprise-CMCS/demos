@@ -81,9 +81,7 @@ type PersonSearchResult = {
 
 export type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   id?: string;
-  person: Pick<Person, "id" | "fullName" | "email"> & {
-    idmRoles?: string[];
-  };
+  person: Pick<Person, "id" | "fullName" | "email" | "personType">;
 };
 
 export type ManageContactsDialogProps = {
@@ -98,7 +96,7 @@ const mapExistingContacts = (arr: ManageContactsDialogProps["existingContacts"] 
     personId: contact.person.id,
     name: contact.person.fullName,
     email: contact.person.email,
-    idmRoles: contact.person.idmRoles ?? [],
+    idmRoles: contact.person.personType ? [contact.person.personType] : [],
     contactType: contact.role satisfies ContactType,
     isPrimary: contact.isPrimary,
   }));
@@ -129,6 +127,10 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     onCompleted: (data) => {
       const results = data.searchPeople || [];
       setSearchResults(results);
+    },
+    onError: (error) => {
+      console.error("Search error:", error);
+      setSearchResults([]);
     },
   });
   const [setDemonstrationRoles] = useMutation(SET_DEMONSTRATION_ROLE_MUTATION, {
@@ -185,6 +187,9 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+    if (value.length < 2) {
+      setSearchResults([]);
+    }
   };
 
   const handleAddContact = (person: PersonSearchResult) => {
@@ -193,29 +198,10 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     setSelectedContacts((prev) => {
       const idmRoles = [person.personType];
 
-      let defaults: { contactType?: ContactType; isPrimary: boolean };
-
-      const availableTypes = getFilteredContactTypeOptions(idmRoles);
-
-      if (person.personType === "demos-state-user") {
-        const stateContactType: ContactType = "State Point of Contact";
-        defaults = {
-          contactType: stateContactType,
-          isPrimary: false,
-        };
-      } else if (person.personType === "demos-cms-user") {
-        const nonStateOptions = availableTypes.filter(
-          (opt) => opt.value !== "State Point of Contact"
-        );
-        const defaultContactType =
-          nonStateOptions.length > 0 ? (nonStateOptions[0].value as ContactType) : undefined;
-        defaults = {
-          contactType: defaultContactType,
-          isPrimary: false,
-        };
-      } else {
-        defaults = { isPrimary: false };
-      }
+      const defaults: { contactType?: ContactType; isPrimary: boolean } = {
+        contactType: undefined,
+        isPrimary: false,
+      };
 
       return [
         ...prev,
@@ -235,23 +221,35 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
   const handleContactTypeChange = useCallback((personId: string, newType?: ContactType) => {
     setSelectedContacts((previousContacts) => {
-      const existingPrimaryProjectOfficers = previousContacts.filter(
-        (c) => c.contactType === "Project Officer" && c.isPrimary && c.personId !== personId
-      );
+      const targetContact = previousContacts.find((c) => c.personId === personId);
+      if (!targetContact) return previousContacts;
 
       return previousContacts.map((contact) => {
         if (contact.personId === personId) {
           let newIsPrimary = false;
 
           if (newType === "Project Officer") {
-            newIsPrimary = existingPrimaryProjectOfficers.length === 0;
-          } else if (newType === contact.contactType) {
-            newIsPrimary = contact.isPrimary ?? false;
-          } else {
-            newIsPrimary = false;
+            const existingPrimaryPOs = previousContacts.filter(
+              (c) => c.contactType === "Project Officer" && c.isPrimary && c.personId !== personId
+            );
+            newIsPrimary = existingPrimaryPOs.length === 0;
           }
 
           return { ...contact, contactType: newType, isPrimary: newIsPrimary };
+        }
+
+        if (
+          targetContact.contactType === "Project Officer" &&
+          targetContact.isPrimary &&
+          newType !== "Project Officer"
+        ) {
+          const otherPOs = previousContacts.filter(
+            (c) => c.contactType === "Project Officer" && c.personId !== personId
+          );
+
+          if (otherPOs.length > 0 && contact.personId === otherPOs[0].personId) {
+            return { ...contact, isPrimary: true };
+          }
         }
 
         return contact;
@@ -279,7 +277,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
         if (!target.isPrimary && existingPrimary) {
           setShowPrimaryWarning(true);
-          setTimeout(() => setShowPrimaryWarning(false), 3000);
         }
 
         return prev.map((contact) => {
@@ -291,7 +288,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       } else {
         if (!target.isPrimary && existingPrimary) {
           setShowPrimaryWarning(true);
-          setTimeout(() => setShowPrimaryWarning(false), 3000);
         }
 
         const willBePrimary = !target.isPrimary;
@@ -328,13 +324,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     const updated = selectedContacts.filter((c) => c.personId !== contactToDelete);
 
     let finalUpdated = updated;
-    if (contactToRemove.isPrimary && contactToRemove.contactType) {
-      const remainingOfSameType = updated.filter(
-        (c) => c.contactType === contactToRemove.contactType
-      );
-      if (remainingOfSameType.length > 0) {
+    if (contactToRemove.isPrimary && contactToRemove.contactType === "Project Officer") {
+      const remainingPOs = updated.filter((c) => c.contactType === "Project Officer");
+      if (remainingPOs.length > 0) {
         finalUpdated = updated.map((c) => {
-          if (c.personId === remainingOfSameType[0].personId) {
+          if (c.personId === remainingPOs[0].personId) {
             return { ...c, isPrimary: true };
           }
           return c;
@@ -345,45 +339,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     setSelectedContacts(finalUpdated);
     setShowDeleteConfirm(false);
     setContactToDelete(null);
-
-    if (!contactToRemove.contactType) {
-      const updatedSavedContacts = savedContacts.filter(
-        (c) => c.personId !== contactToRemove.personId
-      );
-      setSavedContacts(updatedSavedContacts);
-      return;
-    }
-
-    const contactExistsInDatabase = savedContacts.some(
-      (c) =>
-        c.personId === contactToRemove.personId && c.contactType === contactToRemove.contactType
-    );
-
-    if (contactExistsInDatabase) {
-      try {
-        await unsetDemonstrationRoles({
-          variables: {
-            input: [
-              {
-                demonstrationId,
-                personId: contactToRemove.personId,
-                roleId: contactToRemove.contactType,
-              },
-            ],
-          },
-        });
-        setSavedContacts(finalUpdated.map((c) => ({ ...c })));
-      } catch (e) {
-        console.error(e);
-        setSelectedContacts(selectedContacts);
-        showError("Failed to remove contact. Please try again.");
-      }
-    } else {
-      const updatedSavedContacts = savedContacts.filter(
-        (c) => c.personId !== contactToRemove.personId
-      );
-      setSavedContacts(updatedSavedContacts);
-    }
   };
 
   const allValid = useMemo(() => {
@@ -405,24 +360,21 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       return false;
     }
 
-    const presentTypes = Array.from(
+    const allTypes = Array.from(
       new Set(
         selectedContacts
           .map((contact) => contact.contactType)
           .filter((type): type is ContactType => Boolean(type))
       )
-    ).filter((type) => type !== "Project Officer");
+    );
 
-    const isValidPrimaries = presentTypes.every((type) => {
+    const hasValidPrimaries = allTypes.every((type) => {
       const contactsOfType = selectedContacts.filter((c) => c.contactType === type);
       const primariesOfType = contactsOfType.filter((c) => c.isPrimary);
-      if (primariesOfType.length > 1) {
-        return false;
-      }
-      return true;
+      return primariesOfType.length <= 1;
     });
 
-    return isValidPrimaries;
+    return hasValidPrimaries;
   }, [selectedContacts]);
 
   const hasChanges = useMemo(() => {
@@ -454,22 +406,73 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      const currentRoles = selectedContacts.filter((c) => c.contactType);
+
+      const currentPrimaryPO = currentRoles.find(
+        (c) => c.contactType === "Project Officer" && c.isPrimary
+      );
+      const savedPrimaryPO = savedContacts.find(
+        (c) => c.contactType === "Project Officer" && c.isPrimary
+      );
+
+      if (
+        currentPrimaryPO &&
+        savedPrimaryPO &&
+        currentPrimaryPO.personId !== savedPrimaryPO.personId
+      ) {
+        await setDemonstrationRoles({
+          variables: {
+            input: [
+              {
+                demonstrationId,
+                personId: currentPrimaryPO.personId,
+                roleId: "Project Officer",
+                isPrimary: true,
+              },
+            ],
+          },
+        });
+
+        const otherRoles = currentRoles.filter(
+          (c) => !(c.contactType === "Project Officer" && c.personId === currentPrimaryPO.personId)
+        );
+
+        if (otherRoles.length > 0) {
+          await setDemonstrationRoles({
+            variables: {
+              input: otherRoles.map((c) => ({
+                demonstrationId,
+                personId: c.personId,
+                roleId: c.contactType!,
+                isPrimary: !!c.isPrimary,
+              })),
+            },
+          });
+        }
+      } else {
+        await setDemonstrationRoles({
+          variables: {
+            input: currentRoles.map((c) => ({
+              demonstrationId,
+              personId: c.personId,
+              roleId: c.contactType!,
+              isPrimary: !!c.isPrimary,
+            })),
+          },
+        });
+      }
+
       const rolesToRemove: Array<{ demonstrationId: string; personId: string; roleId: string }> =
         [];
-      const currentRoles = selectedContacts.filter((c) => c.contactType);
 
       savedContacts.forEach((savedContact) => {
         if (!savedContact.contactType) return;
 
-        const currentContact = currentRoles.find((c) => c.personId === savedContact.personId);
+        const currentContact = currentRoles.find(
+          (c) => c.personId === savedContact.personId && c.contactType === savedContact.contactType
+        );
 
         if (!currentContact) {
-          rolesToRemove.push({
-            demonstrationId,
-            personId: savedContact.personId,
-            roleId: savedContact.contactType,
-          });
-        } else if (currentContact.contactType !== savedContact.contactType) {
           rolesToRemove.push({
             demonstrationId,
             personId: savedContact.personId,
@@ -484,20 +487,9 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         });
       }
 
-      await setDemonstrationRoles({
-        variables: {
-          input: currentRoles.map((c) => ({
-            demonstrationId,
-            personId: c.personId,
-            roleId: c.contactType!,
-            isPrimary: !!c.isPrimary,
-          })),
-        },
-      });
-
       setSavedContacts(selectedContacts.map((c) => ({ ...c })));
       showSuccess("Contacts have been updated.");
-      onClose();
+      handleDialogClose();
     } catch (e) {
       console.error(e);
       showError("An error occurred while updating contacts.");
@@ -506,13 +498,33 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     }
   };
 
+  const handleDialogClose = useCallback(() => {
+    setShowPrimaryWarning(false);
+    onClose();
+  }, [onClose]);
+
   const handleClose = () => {
     if (hasChanges) {
       setShowCancelConfirm(true);
     } else {
-      onClose();
+      handleDialogClose();
     }
   };
+
+  const isContactDeleteDisabled = useCallback(
+    (contact: ContactRow) => {
+      if (!contact.contactType) return false;
+
+      if (contact.contactType === "Project Officer") {
+        const projectOfficers = selectedContacts.filter((c) => c.contactType === "Project Officer");
+        if (contact.isPrimary) return true;
+        return projectOfficers.length <= 1;
+      }
+
+      return false;
+    },
+    [selectedContacts]
+  );
 
   const contactColumns = useMemo(
     () =>
@@ -521,12 +533,14 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         onContactTypeChange: handleContactTypeChange,
         onPrimaryToggle: handlePrimaryToggle,
         onRemoveContact: handleRemoveContact,
+        isDeleteDisabled: isContactDeleteDisabled,
       }),
     [
       getFilteredContactTypeOptions,
       handleContactTypeChange,
       handlePrimaryToggle,
       handleRemoveContact,
+      isContactDeleteDisabled,
     ]
   );
 
@@ -562,7 +576,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     <>
       <BaseDialog
         title="Manage Contact(s)"
-        onClose={onClose}
+        onClose={handleDialogClose}
         showCancelConfirm={showCancelConfirm}
         setShowCancelConfirm={setShowCancelConfirm}
         maxWidthClass="max-w-[1000px]"
@@ -586,35 +600,48 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
                 autoComplete="off"
               />
             </div>
-            {searchResults
-              .filter((p) => p.personType !== "demos-state-user")
-              .filter((p) => !selectedContacts.some((c) => c.personId === p.id)).length > 0 && (
-              <div
-                className="absolute left-0 right-0 z-20 mt-sm border border-gray rounded-minimal p-sm bg-surface-white shadow-lg max-h-[200px] overflow-y-auto"
-                role="listbox"
-                aria-label="Search results"
-                data-testid="search-results-dropdown"
-              >
-                {searchResults
-                  .filter((p) => p.personType !== "demos-state-user")
-                  .filter((p) => !selectedContacts.some((c) => c.personId === p.id))
-                  .map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handleAddContact(p)}
-                      className="w-full text-left px-sm py-xs hover:bg-action-hover rounded-minimal focus:bg-action-hover focus:outline-none"
-                      role="option"
-                      aria-label={`Add ${p.firstName} ${p.lastName} (${p.email}) as contact`}
-                    >
-                      <div className="flex justify-between">
-                        <span>{`${p.firstName} ${p.lastName}`}</span>
-                        <span className="text-text-placeholder">{p.email}</span>
-                      </div>
-                    </button>
-                  ))}
-              </div>
-            )}
+            {(() => {
+              let filteredResults = searchResults
+                .filter((p) => p.personType !== "demos-state-user")
+                .filter((p) => !selectedContacts.some((c) => c.personId === p.id))
+                .filter((p, index, arr) => arr.findIndex((item) => item.id === p.id) === index);
+
+              if (searchTerm.length >= 2) {
+                const searchTermLower = searchTerm.toLowerCase();
+                filteredResults = filteredResults.filter((p) => {
+                  const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+                  const email = p.email.toLowerCase();
+                  return fullName.includes(searchTermLower) || email.includes(searchTermLower);
+                });
+              }
+
+              return (
+                filteredResults.length > 0 && (
+                  <div
+                    className="absolute left-0 right-0 z-20 mt-sm border border-gray rounded-minimal p-sm bg-surface-white shadow-lg max-h-[200px] overflow-y-auto"
+                    role="listbox"
+                    aria-label="Search results"
+                    data-testid="search-results-dropdown"
+                  >
+                    {filteredResults.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => handleAddContact(p)}
+                        className="w-full text-left px-sm py-xs hover:bg-action-hover rounded-minimal focus:bg-action-hover focus:outline-none"
+                        role="option"
+                        aria-label={`Add ${p.firstName} ${p.lastName} (${p.email}) as contact`}
+                      >
+                        <div className="flex justify-between">
+                          <span>{`${p.firstName} ${p.lastName}`}</span>
+                          <span className="text-text-placeholder">{p.email}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )
+              );
+            })()}
           </div>
 
           <div className="text-field-label font-bold">Assigned Contacts</div>

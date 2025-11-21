@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { gql } from "@apollo/client";
 import type { MockedResponse } from "@apollo/client/testing";
 import { MockedProvider } from "@apollo/client/testing";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ManageContactsDialog, ManageContactsDialogProps } from "./ManageContactsDialog";
@@ -126,7 +126,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "John Doe",
             email: "john.doe@example.com",
-            idmRoles: ["CMS"],
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: true,
@@ -206,6 +206,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "John Doe",
             email: "john.doe@example.com",
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: true,
@@ -243,7 +244,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "John Doe",
             email: "john.doe@example.com",
-            idmRoles: ["CMS"],
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: false,
@@ -272,6 +273,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "John Doe",
             email: "john.doe@example.com",
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: false,
@@ -304,7 +306,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "Alice Doe", // Change to Alice so it appears first alphabetically
             email: "alice.doe@example.com",
-            idmRoles: ["CMS"],
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: true,
@@ -315,7 +317,7 @@ describe("ManageContactsDialog", () => {
             id: "person-2",
             fullName: "Zoe Smith",
             email: "zoe.smith@example.com",
-            idmRoles: ["CMS"],
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: false,
@@ -389,7 +391,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "John Doe",
             email: "john.doe@example.com",
-            idmRoles: ["CMS"],
+            personType: "demos-cms-user",
           },
           role: "DDME Analyst", // Use non-primary-required role
           isPrimary: false,
@@ -420,7 +422,7 @@ describe("ManageContactsDialog", () => {
     });
   });
 
-  it("disables delete button for primary contacts", async () => {
+  it("disables delete button for primary Project Officer only", async () => {
     const propsWithContacts: ManageContactsDialogProps = {
       ...defaultProps,
       existingContacts: [
@@ -430,7 +432,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "John Doe",
             email: "john.doe@example.com",
-            idmRoles: ["CMS"],
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: true,
@@ -448,6 +450,70 @@ describe("ManageContactsDialog", () => {
     expect(deleteButton).toBeDisabled();
   });
 
+  it("allows delete for primary contacts of other types", async () => {
+    const propsWithContacts: ManageContactsDialogProps = {
+      ...defaultProps,
+      existingContacts: [
+        {
+          id: "role-1",
+          person: {
+            id: "person-1",
+            fullName: "John Doe",
+            email: "john.doe@example.com",
+            personType: "demos-cms-user",
+          },
+          role: "Project Officer",
+          isPrimary: true,
+        },
+        {
+          id: "role-2",
+          person: {
+            id: "person-2",
+            fullName: "Jane Smith",
+            email: "jane.smith@example.com",
+            personType: "demos-state-user",
+          },
+          role: "State Point of Contact",
+          isPrimary: true,
+        },
+        {
+          id: "role-3",
+          person: {
+            id: "person-3",
+            fullName: "Bob Wilson",
+            email: "bob.wilson@example.com",
+            personType: "demos-state-user",
+          },
+          role: "State Point of Contact",
+          isPrimary: false,
+        },
+      ],
+    };
+
+    renderWithProviders(propsWithContacts);
+
+    await waitFor(() => {
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+      expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+      expect(screen.getByText("Bob Wilson")).toBeInTheDocument();
+    });
+
+    // Primary Project Officer should be disabled
+    const johnRow = screen.getByText("John Doe").closest("tr");
+    const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact" });
+    expect(johnDeleteButton).toBeDisabled();
+
+    // Primary State Point of Contact should be enabled (not a Project Officer)
+    const janeRow = screen.getByText("Jane Smith").closest("tr");
+    const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact" });
+    expect(janeDeleteButton).not.toBeDisabled();
+
+    // Non-primary State Point of Contact should be enabled
+    const bobRow = screen.getByText("Bob Wilson").closest("tr");
+    const bobDeleteButton = within(bobRow!).getByRole("button", { name: "Delete Contact" });
+    expect(bobDeleteButton).not.toBeDisabled();
+  });
+
   it("disables save button when validation fails", () => {
     const propsWithContacts: ManageContactsDialogProps = {
       ...defaultProps,
@@ -458,6 +524,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "John Doe",
             email: "john.doe@example.com",
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: false, // No primary selected
@@ -567,7 +634,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "CMS User",
             email: "cms@example.com",
-            idmRoles: ["demos-cms-user"],
+            personType: "demos-cms-user",
           },
           role: "Project Officer",
           isPrimary: false,
@@ -596,7 +663,7 @@ describe("ManageContactsDialog", () => {
             id: "person-1",
             fullName: "State User",
             email: "state@example.com",
-            idmRoles: ["demos-state-user"],
+            personType: "demos-state-user",
           },
           role: "State Point of Contact",
           isPrimary: false,
@@ -663,14 +730,14 @@ describe("ManageContactsDialog", () => {
             {
               demonstrationId: "demo-1",
               personId: "person-1",
-              roleId: "Project Officer",
+              roleId: "DDME Analyst",
             },
           ],
         },
       },
       result: {
         data: {
-          unsetDemonstrationRoles: [{ role: "Project Officer" }],
+          unsetDemonstrationRoles: [{ role: "DDME Analyst" }],
         },
       },
     };
@@ -686,7 +753,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "John Doe",
               email: "john.doe@example.com",
-              idmRoles: ["CMS"],
+              personType: "demos-cms-user",
             },
             role: "DDME Analyst",
             isPrimary: false, // Make it deletable
@@ -723,9 +790,10 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "John Doe",
               email: "john.doe@example.com",
+              personType: "demos-cms-user",
             },
             role: "DDME Analyst",
-            isPrimary: true,
+            isPrimary: false, // Make it non-primary so it can be deleted
           },
         ],
       };
@@ -757,9 +825,9 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "John Doe",
               email: "john.doe@example.com",
-              idmRoles: ["CMS"],
+              personType: "demos-cms-user",
             },
-            role: "Project Officer",
+            role: "DDME Analyst", // Change to non-Project Officer role so it can be deleted
             isPrimary: false, // Make it deletable
           },
         ],
@@ -798,6 +866,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "John Doe",
               email: "john.doe@example.com",
+              personType: "demos-cms-user",
             },
             role: "Project Officer",
             isPrimary: true,
@@ -809,6 +878,121 @@ describe("ManageContactsDialog", () => {
 
       const deleteButton = screen.getByRole("button", { name: "Delete Contact" });
       expect(deleteButton).toBeDisabled();
+    });
+
+    it("disables delete button for primary Project Officer (always)", async () => {
+      const propsWithContacts: ManageContactsDialogProps = {
+        ...defaultProps,
+        existingContacts: [
+          {
+            id: "role-1",
+            person: {
+              id: "person-1",
+              fullName: "John Doe (Primary)",
+              email: "john.doe@example.com",
+              personType: "demos-cms-user",
+            },
+            role: "Project Officer",
+            isPrimary: true,
+          },
+          {
+            id: "role-2",
+            person: {
+              id: "person-2",
+              fullName: "Jane Smith",
+              email: "jane.smith@example.com",
+              personType: "demos-cms-user",
+            },
+            role: "Project Officer",
+            isPrimary: false,
+          },
+        ],
+      };
+
+      renderWithProviders(propsWithContacts);
+
+      await waitFor(() => {
+        expect(screen.getByText("John Doe (Primary)")).toBeInTheDocument();
+        expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+      });
+
+      // Find the delete button for the primary Project Officer (John Doe)
+      const johnRow = screen.getByText("John Doe (Primary)").closest("tr");
+      const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact" });
+
+      // Primary Project Officer delete button should ALWAYS be disabled
+      expect(johnDeleteButton).toBeDisabled();
+
+      // Find the delete button for the non-primary Project Officer (Jane Smith)
+      const janeRow = screen.getByText("Jane Smith").closest("tr");
+      const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact" });
+
+      // Non-primary Project Officer delete button should be enabled when there are multiple POs
+      expect(janeDeleteButton).not.toBeDisabled();
+    });
+
+    it("allows deleting non-primary Project Officer when multiple exist", async () => {
+      const user = userEvent.setup();
+      const propsWithContacts: ManageContactsDialogProps = {
+        ...defaultProps,
+        existingContacts: [
+          {
+            id: "role-1",
+            person: {
+              id: "person-1",
+              fullName: "John Doe (Primary)",
+              email: "john.doe@example.com",
+              personType: "demos-cms-user",
+            },
+            role: "Project Officer",
+            isPrimary: true,
+          },
+          {
+            id: "role-2",
+            person: {
+              id: "person-2",
+              fullName: "Jane Smith",
+              email: "jane.smith@example.com",
+              personType: "demos-cms-user",
+            },
+            role: "Project Officer",
+            isPrimary: false,
+          },
+        ],
+      };
+
+      renderWithProviders(propsWithContacts);
+
+      await waitFor(() => {
+        expect(screen.getByText("John Doe (Primary)")).toBeInTheDocument();
+        expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+      });
+
+      // Find the delete button for the non-primary Project Officer (Jane Smith)
+      const janeRow = screen.getByText("Jane Smith").closest("tr");
+      const deleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact" });
+
+      // Non-primary Project Officer should be deletable
+      expect(deleteButton).not.toBeDisabled();
+
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "confirmation-confirm" })).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole("button", { name: "confirmation-confirm" });
+      await user.click(confirmButton);
+
+      // Non-primary Project Officer should be removed from the table
+      await waitFor(() => {
+        expect(screen.queryByText("Jane Smith")).not.toBeInTheDocument();
+      });
+
+      // Primary Project Officer should still be there
+      expect(screen.getByText("John Doe (Primary)")).toBeInTheDocument();
+      const saveButton = screen.getByRole("button", { name: "button-save" });
+      expect(saveButton).not.toBeDisabled();
     });
   });
 
@@ -894,6 +1078,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "John Doe",
               email: "john.doe@example.com",
+              personType: "demos-cms-user",
             },
             role: "DDME Analyst",
             isPrimary: true,
@@ -917,6 +1102,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "John Doe",
               email: "john.doe@example.com",
+              personType: "demos-cms-user",
             },
             role: "Project Officer",
             isPrimary: true,
@@ -940,6 +1126,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "John Doe",
               email: "john.doe@example.com",
+              personType: "demos-cms-user",
             },
             role: "Project Officer",
             isPrimary: true,
@@ -950,6 +1137,7 @@ describe("ManageContactsDialog", () => {
               id: "person-2",
               fullName: "Alice Williams",
               email: "alice.williams@example.com",
+              personType: "demos-cms-user",
             },
             role: "DDME Analyst",
             isPrimary: false,
@@ -960,9 +1148,9 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts, mocks);
 
-      // Change Alice from DDME Analyst to State Point of Contact (a valid change that doesn't violate Project Officer rule)
+      // Change Alice from DDME Analyst to Policy Technical Director (a valid change that doesn't violate Project Officer rule)
       const aliceSelect = screen.getByDisplayValue("DDME Analyst");
-      fireEvent.change(aliceSelect, { target: { value: "State Point of Contact" } });
+      fireEvent.change(aliceSelect, { target: { value: "Policy Technical Director" } });
 
       // Save button should be enabled after making a valid change
       await waitFor(() => {
@@ -983,7 +1171,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "CMS User",
               email: "cms@example.com",
-              idmRoles: ["CMS"],
+              personType: "demos-cms-user",
             },
             role: "Project Officer",
             isPrimary: true,
@@ -1009,7 +1197,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "State User",
               email: "state@example.com",
-              idmRoles: ["State"],
+              personType: "demos-state-user",
             },
             role: "State Point of Contact",
             isPrimary: true,
@@ -1025,13 +1213,13 @@ describe("ManageContactsDialog", () => {
   });
 
   describe("Project Officer Business Rules", () => {
-    it("automatically makes new Project Officer primary", async () => {
+    it("automatically makes new Project Officer primary when contact type is manually selected", async () => {
       const user = userEvent.setup();
       const mocks = [SEARCH_PEOPLE_MOCKS[0]];
 
       renderWithProviders(defaultProps, mocks);
 
-      // Add a CMS user (should default to Project Officer if none exist)
+      // Add a CMS user
       const searchInput = screen.getByPlaceholderText("Search by name or email");
       await user.type(searchInput, "jo");
 
@@ -1042,7 +1230,14 @@ describe("ManageContactsDialog", () => {
       const addButton = screen.getByText("John Doe").closest("button")!;
       await user.click(addButton);
 
-      // Should be added as Project Officer and be primary
+      // Should be added without a contact type initially (user must select)
+      expect(screen.getByDisplayValue("Select Type…")).toBeInTheDocument();
+
+      // User selects Project Officer
+      const selectContactType = screen.getByDisplayValue("Select Type…");
+      await user.selectOptions(selectContactType, "Project Officer");
+
+      // Should now show Project Officer and be automatically set as primary
       expect(screen.getByDisplayValue("Project Officer")).toBeInTheDocument();
       // Note: Primary toggle testing would require accessing the toggle component
     });
@@ -1057,6 +1252,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "John Doe",
               email: "john.doe@example.com",
+              personType: "demos-cms-user",
             },
             role: "Project Officer",
             isPrimary: true,
@@ -1084,7 +1280,7 @@ describe("ManageContactsDialog", () => {
               id: "person-1",
               fullName: "Zoe Smith",
               email: "zoe@example.com",
-              idmRoles: ["CMS"],
+              personType: "demos-cms-user",
             },
             role: "DDME Analyst",
             isPrimary: true,
@@ -1095,7 +1291,7 @@ describe("ManageContactsDialog", () => {
               id: "person-2",
               fullName: "Alice Jones",
               email: "alice@example.com",
-              idmRoles: ["CMS"],
+              personType: "demos-cms-user",
             },
             role: "Project Officer",
             isPrimary: true,

@@ -14,7 +14,7 @@ import { ContactsTable } from "components/table/tables/ContactsTable";
 import { ExistingContactType } from "components/dialog/ManageContactsDialog";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-  person: Pick<Person, "fullName" | "id" | "email">;
+  person: Pick<Person, "fullName" | "id" | "email" | "personType">;
 };
 
 type Demonstration = Pick<ServerDemonstration, "id"> & {
@@ -29,7 +29,7 @@ export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demons
       id: c.person.id,
       fullName: c.person.fullName,
       email: c.person.email,
-      idmRoles: [], // unknown for existing; restrictions handled dynamically
+      personType: c.person.personType,
     },
     role: c.role,
     isPrimary: c.isPrimary,
