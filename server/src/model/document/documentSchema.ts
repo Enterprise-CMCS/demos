@@ -40,6 +40,7 @@ export const documentSchema = gql`
   type Mutation {
     uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+    deleteDocument(id: ID!): Document!
     deleteDocuments(ids: [ID!]!): Int!
     downloadDocument(id: ID!): String
   }

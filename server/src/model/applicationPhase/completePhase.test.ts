@@ -236,7 +236,7 @@ describe("completePhase", () => {
                 dateValue: mockEasternStartOfDayDate,
               },
               {
-                dateType: "OGC & OMB Review Start Date",
+                dateType: "Review Start Date",
                 dateValue: mockEasternStartOfDayDate,
               },
             ],
@@ -260,7 +260,7 @@ describe("completePhase", () => {
       );
       expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
-        "OGC & OMB Review",
+        "Review",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
@@ -268,15 +268,15 @@ describe("completePhase", () => {
     });
   });
 
-  describe("OGC & OMB Review Phase", () => {
-    it("should throw when attempting to complete the OGC & OMB Review phase", async () => {
+  describe("Review Phase", () => {
+    it("should take the right actions when completing the Review phase", async () => {
       const testInput: CompletePhaseInput = {
         applicationId: testApplicationId,
-        phaseName: "OGC & OMB Review",
+        phaseName: "Review",
       };
 
       await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
-        "Completion of the OGC & OMB Review phase via API is not yet implemented."
+        "Completion of the Review phase via API is not yet implemented."
       );
 
       expect(validatePhaseCompletion).not.toHaveBeenCalled();
