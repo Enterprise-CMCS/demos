@@ -104,7 +104,7 @@ export class FileUploadStack extends Stack {
     }
 
     const deletedBucket = new Bucket(this, "FileDeletedBucket", {
-      versioned: false,
+      versioned: true,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,
