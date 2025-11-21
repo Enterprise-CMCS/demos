@@ -29,4 +29,3 @@ if __name__ == "__main__":
             token_count, text = count_tokens_in_pdf(pdf_file)
             print(f"Total tokens: {token_count}")
             print(f"Total characters: {len(text)}")
-            
