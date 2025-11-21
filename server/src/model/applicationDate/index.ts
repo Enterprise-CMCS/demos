@@ -6,7 +6,7 @@ export {
   checkInputDateGreaterThanOrEqual,
   checkInputDateMeetsOffset,
   getDateValueFromApplicationDateMap,
-  getTZDateTimeParts,
+  getDateTimeParts,
 } from "./checkInputDateFunctions.js";
 export { mergeApplicationDates } from "./mergeApplicationDates.js";
 export { parseSetApplicationDatesInput } from "./parseSetApplicationDatesInput.js";
@@ -19,7 +19,7 @@ export { upsertApplicationDates } from "./queries/upsertApplicationDates.js";
 
 // Types
 export type {
-  TZDateTimeParts,
+  DateTimeParts,
   DateOffset,
   ValidationChecks,
   DateTypeValidationChecksRecord,
