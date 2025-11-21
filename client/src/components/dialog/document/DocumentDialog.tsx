@@ -14,17 +14,6 @@ import { tw } from "tags/tw";
 
 type DocumentDialogType = "add" | "edit";
 
-type DialogStatus =
-  | "idle" // Initial state, no file selected
-  | "loading_file" // File being read into browser
-  | "file_loaded" // File read successfully into browser
-  | "uploading_to_s3" // Uploading file to S3
-  | "editing" // Editing document metadata
-  | "scanning" // Virus scan in progress
-  | "complete" // All done successfully
-  | "timeout" // Scan timed out
-  | "error"; // Error occurred
-
 const STYLES = {
   label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
   textarea: tw`w-full border border-border-fields px-xs py-xs text-sm rounded resize-y`,
@@ -243,10 +232,7 @@ export type DocumentDialogProps = {
   onClose?: () => void;
   mode: DocumentDialogType;
   documentTypeSubset?: DocumentType[];
-  onSubmit?: (
-    dialogFields: DocumentDialogFields,
-    setDialogStatus: (dialogStatus: DialogStatus) => void
-  ) => Promise<void>;
+  onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
 };
@@ -268,7 +254,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [dialogStatus, setDialogStatus] = useState<DialogStatus>("idle");
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -277,6 +262,12 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
     onErrorCallback: (msg: ErrorMessage) => showError(msg),
   });
+
+  useEffect(() => {
+    if (initialDocument) {
+      setActiveDocument(initialDocument);
+    }
+  }, [initialDocument]);
 
   useEffect(() => {
     if (mode === "add" && file && !titleManuallyEdited && !activeDocument.name.trim()) {
@@ -289,11 +280,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
-  const isLoadingFile = dialogStatus === "loading_file";
-  const isUploadingToS3 = dialogStatus === "uploading_to_s3";
-  const isScanning = dialogStatus === "scanning";
   const isUploading = uploadStatus === "uploading";
-  const isBusy = isLoadingFile || isUploadingToS3 || isScanning || isSubmitting;
 
   const missingType = !activeDocument.documentType;
   const missingFile = !file;
@@ -311,7 +298,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   };
 
   const onUploadClick = async () => {
-    if (isBusy) return;
+    if (isUploading || isSubmitting) return;
     if (isMissing) {
       showError(ERROR_MESSAGES.missingField);
       focusFirstMissing();
@@ -325,7 +312,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       setSubmitting(true);
 
       if (onSubmit) {
-        await onSubmit(activeDocument, setDialogStatus);
+        await onSubmit(activeDocument);
       }
 
       showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
@@ -341,13 +328,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setFile(null);
   };
 
-  const getUploadButtonText = () => {
-    if (isScanning) return "Scanning for viruses...";
-    if (isUploadingToS3) return "Uploading to S3...";
-    if (isLoadingFile || isSubmitting || isUploading) return "Uploading...";
-    return "Upload";
-  };
-
   return (
     <BaseDialog
       title={dialogTitle}
@@ -360,7 +340,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             name="button-cancel-upload-document"
             size="small"
             onClick={() => setShowCancelConfirm(true)}
-            disabled={isScanning}
           >
             Cancel
           </SecondaryButton>
@@ -369,28 +348,14 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
-            aria-disabled={
-              isMissing || isUploading || isSubmitting || isScanning ? "true" : "false"
-            }
-            disabled={isMissing || isUploading || isSubmitting || isScanning}
+            aria-disabled={isMissing || isUploading || isSubmitting ? "true" : "false"}
+            disabled={isMissing || isUploading || isSubmitting}
           >
-            {getUploadButtonText()}
+            Upload
           </Button>
         </>
       }
     >
-      {isScanning && (
-        <div className="mb-sm p-sm bg-surface-secondary border border-border-fields rounded text-sm text-text-font">
-          <div className="flex items-center gap-2">
-            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-            <span className="font-medium">Scanning document for viruses...</span>
-          </div>
-          <p className="text-xs text-text-placeholder mt-1 ml-6">
-            This usually takes a few seconds. Please wait.
-          </p>
-        </div>
-      )}
-
       <DropTarget
         file={file}
         onRemove={clearFile}
