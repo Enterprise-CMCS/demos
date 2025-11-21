@@ -203,6 +203,7 @@ export const documentResolvers = {
 
   Mutation: {
     uploadDocument: uploadDocument,
+
     downloadDocument: async (_: unknown, { id }: { id: string }) => {
       const document = await prisma().document.findUnique({
         where: { id: id },
