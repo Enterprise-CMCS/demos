@@ -20,7 +20,8 @@ erDiagram
   application_phase }|--|| application : "FK005"
   date_type ||--|{ application_date  : "FK001"
   application_date }|--|| application : "FK002"
-  application_phase }|--|| phase : "FK006"
+  application_phase }|--|| application_phase_type_limit : "FK006"
+  application_phase_type_limit ||--|| phase : "FK067"
   application }|--|| application_type : "FK007"
   application ||--|| demonstration : "FK008"
   application ||--|| extension : "FK009"
@@ -153,6 +154,10 @@ erDiagram
     text id PK, FK "FK060: id ∈ application_type.id"
   }
 
+  application_phase_type_limit:::typeLimiter {
+    text id PK, FK "FK067: id ∈ phase.id"
+  }
+
   demonstration_application_type_limit:::typeLimiter {
     text id PK, FK "FK013: id ∈ application_type.id"
   }
@@ -207,7 +212,7 @@ erDiagram
 
   application_phase:::dataTable {
     uuid application_id PK, FK "FK005: application_id ∈ application.id"
-    text phase_id PK, FK "FK006: phase_id ∈ phase.id"
+    text phase_id PK, FK "FK006: phase_id ∈ application_phase_type_limit.id"
     text phase_status_id FK "FK004: phase_status_id ∈ phase_status.id"
     timestamptz created_at
     timestamptz updated_at
@@ -247,7 +252,6 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
-    CONSTRAINT_CHECK check_s3_path_start "Validate that the S3 path starts with s3://."
   }
 
   document_pending_upload:::dataTable {

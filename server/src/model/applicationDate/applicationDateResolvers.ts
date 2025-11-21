@@ -1,35 +1,9 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import {
-  SetApplicationDateInput,
-  SetApplicationDatesInput,
-  ParsedSetApplicationDatesInput,
-} from "../../types.js";
-import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
+import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { getExistingDates, mergeApplicationDates } from "./validationPayloadCreationFunctions.js";
-import { validateInputDates } from "./validateInputDates.js";
-import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
-
-export function __parseInputApplicationDates(
-  inputApplicationDates: SetApplicationDatesInput
-): ParsedSetApplicationDatesInput {
-  const result: ParsedSetApplicationDatesInput = {
-    applicationId: inputApplicationDates.applicationId,
-    applicationDates: [],
-  };
-  for (const applicationDate of inputApplicationDates.applicationDates) {
-    result.applicationDates.push({
-      dateType: applicationDate.dateType,
-      dateValue: parseDateTimeOrLocalDateToJSDate(
-        applicationDate.dateValue,
-        DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[applicationDate.dateType].expectedTimestamp
-      ),
-    });
-  }
-  return result;
-}
+import { validateAndUpdateDates } from ".";
 
 export function __setApplicationDate(
   _: unknown,
@@ -54,40 +28,13 @@ export async function __setApplicationDates(
   if (input.applicationDates.length === 0) {
     return await getApplication(input.applicationId);
   }
-  const inputApplicationDates = __parseInputApplicationDates(input);
-  const existingApplicationDates = await getExistingDates(input.applicationId);
-  const updatedApplicationDates = mergeApplicationDates(
-    existingApplicationDates,
-    inputApplicationDates.applicationDates
-  );
-
-  validateInputDates(updatedApplicationDates);
-
-  const datesToUpdate = inputApplicationDates.applicationDates.map((dateToUpdate) =>
-    prisma().applicationDate.upsert({
-      where: {
-        applicationId_dateTypeId: {
-          applicationId: input.applicationId,
-          dateTypeId: dateToUpdate.dateType,
-        },
-      },
-      update: {
-        dateValue: dateToUpdate.dateValue,
-      },
-      create: {
-        applicationId: input.applicationId,
-        dateTypeId: dateToUpdate.dateType,
-        dateValue: dateToUpdate.dateValue,
-      },
-    })
-  );
-
   try {
-    await prisma().$transaction(datesToUpdate);
+    await prisma().$transaction(async (tx) => {
+      await validateAndUpdateDates(input, tx);
+    });
   } catch (error) {
     handlePrismaError(error);
   }
-
   return await getApplication(input.applicationId);
 }
 

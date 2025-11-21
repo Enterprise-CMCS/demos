@@ -1,6 +1,11 @@
 import { faker } from "@faker-js/faker";
 import { TZDate } from "@date-fns/tz";
-import { SDG_DIVISIONS, PERSON_TYPES, SIGNATURE_LEVEL } from "./constants.js";
+import {
+  SDG_DIVISIONS,
+  PERSON_TYPES,
+  SIGNATURE_LEVEL,
+  PHASE_DOCUMENT_TYPE_MAP,
+} from "./constants.js";
 import {
   CreateDemonstrationInput,
   CreateAmendmentInput,
@@ -25,6 +30,86 @@ import { __setApplicationDates } from "./model/applicationDate/applicationDateRe
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application/applicationResolvers.js";
+import { uploadDocument } from "./model/document/documentResolvers.js";
+
+const DOCUMENTS_PER_APPLICATION = 15;
+
+function getRandomPhaseDocumentTypeCombination(): {
+  phaseName: PhaseName;
+  documentType: DocumentType;
+} {
+  const phaseNames = Object.keys(PHASE_DOCUMENT_TYPE_MAP) as PhaseName[];
+  const randomPhase = faker.helpers.arrayElement(phaseNames);
+  const validDocumentTypes = PHASE_DOCUMENT_TYPE_MAP[randomPhase];
+  const randomDocumentType = faker.helpers.arrayElement(validDocumentTypes);
+  return {
+    phaseName: randomPhase,
+    documentType: randomDocumentType,
+  };
+}
+
+async function seedDocuments() {
+  console.log("🌱 Seeding documents...");
+
+  const applications = await prisma().application.findMany();
+
+  for (const application of applications) {
+    for (let i = 0; i < DOCUMENTS_PER_APPLICATION; i++) {
+      try {
+        const { phaseName, documentType } = getRandomPhaseDocumentTypeCombination();
+        const name = faker.lorem.sentence(2);
+        const user = await prisma().user.findRandom();
+
+        if (process.env.LOCAL_SIMPLE_UPLOAD) {
+          await prisma().document.create({
+            data: {
+              name: name,
+              description: faker.lorem.sentence(5),
+              documentTypeId: documentType,
+              applicationId: application.id,
+              phaseId: phaseName,
+              s3Path: `${application.id}/${name}`,
+              ownerUserId: user!.id,
+            },
+          });
+          continue;
+        }
+
+        const document = {
+          name: name,
+          description: faker.lorem.sentence(5),
+          documentType: documentType,
+          applicationId: application.id,
+          phaseName: phaseName,
+        };
+
+        const uploadDocumentResponse = await uploadDocument(
+          undefined,
+          {
+            input: document,
+          },
+          {
+            user: {
+              id: user!.id,
+              sub: user!.cognitoSubject,
+              role: user!.personTypeId,
+            },
+          }
+        );
+        const presignedURL = uploadDocumentResponse.presignedURL;
+        const mockFileContent = Buffer.from(`Test file: ${JSON.stringify(document)}`);
+
+        await fetch(presignedURL!, {
+          method: "PUT",
+          body: mockFileContent,
+          headers: { "Content-Type": "txt" },
+        });
+      } catch (error) {
+        console.error(`Could not seed document. ${error}`);
+      }
+    }
+  }
+}
 
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
@@ -101,7 +186,6 @@ async function seedDatabase() {
   const demonstrationCount = 20;
   const amendmentCount = 10;
   const extensionCount = 8;
-  const documentCount = 130;
 
   console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
@@ -265,27 +349,6 @@ async function seedDatabase() {
     })
   );
 
-  // Right now, document upload is not working.
-  // This is the only way to get docs into phases to enable some submit buttons.
-  console.log("🌱 Seeding completeness documents...");
-  const completenessDocumentType: DocumentType = "Application Completeness Letter";
-  await Promise.all(
-    demonstrations.map(async (demonstration) => {
-      const ownerUserId = (await prisma().user.findRandom())!.id;
-      await prisma().document.create({
-        data: {
-          name: `${faker.company.buzzNoun()[0].toUpperCase()}${faker.company.buzzNoun().slice(1)} completeness Letter`,
-          description: "**SEEDED DOC** completeness letter",
-          s3Path: `s3://${faker.lorem.word()}/${faker.system.commonFileName("pdf")}`,
-          ownerUserId,
-          documentTypeId: completenessDocumentType,
-          applicationId: demonstration.id,
-          phaseId: completenessPhase,
-        },
-      });
-    })
-  );
-
   console.log("🌱 Seeding all dates for one demonstration");
   const randomDemonstration = await prisma().demonstration.findRandom({
     select: {
@@ -368,7 +431,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
       },
       {
-        dateType: "OGC & OMB Review Start Date",
+        dateType: "Review Start Date",
         dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
       },
       {
@@ -384,8 +447,40 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-12T00:00:00.000-05:00"),
       },
       {
-        dateType: "OGC & OMB Review Completion Date",
+        dateType: "Review Completion Date",
         dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "OGC Approval to Share with SMEs",
+        dateValue: new Date("2025-02-14T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Draft Approval Package to Pre",
+        dateValue: new Date("2025-02-15T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "DDME Approval Received",
+        dateValue: new Date("2025-02-16T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "State Concurrence",
+        dateValue: new Date("2025-02-17T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "BN PMT Approval to Send to OMB",
+        dateValue: new Date("2025-02-18T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Draft Approval Package Shared",
+        dateValue: new Date("2025-02-19T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Receive OMB Concurrence",
+        dateValue: new Date("2025-02-20T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Receive OGC Legal Clearance",
+        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
       },
     ],
   };
@@ -437,83 +532,8 @@ async function seedDatabase() {
     await __updateExtension(undefined, updateInput);
   }
 
-  console.log("🌱 Seeding documents...");
-  // Get the application document type
-  const stateApplicationDocumentType: DocumentType = "State Application";
-  const applicationIntakePhaseName: PhaseName = "Application Intake";
-  const nonePhaseName: PhaseName = "None";
-  for (const demonstration of demonstrations) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: demonstration.id,
-        phaseId: applicationIntakePhaseName,
-      },
-    });
-  }
-  // Every amendment and extension has an application
-  const amendmentIds = await prisma().amendment.findMany({
-    select: { id: true },
-  });
-  for (const amendmentId of amendmentIds) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: amendmentId.id,
-        phaseId: applicationIntakePhaseName,
-      },
-    });
-  }
-  const extensionIds = await prisma().extension.findMany({
-    select: { id: true },
-  });
-  for (const extensionId of extensionIds) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: extensionId.id,
-        phaseId: applicationIntakePhaseName,
-      },
-    });
-  }
+  await seedDocuments();
 
-  // Now, the rest can be largely randomized
-  for (let i = 0; i < documentCount; i++) {
-    // It is easier to just pull from the DB than to sample randomly from the constant
-    const allowedPhaseDocumentTypes = await prisma().phaseDocumentType.findRandom({
-      where: {
-        NOT: {
-          OR: [{ documentTypeId: stateApplicationDocumentType }, { phaseId: nonePhaseName }],
-        },
-      },
-    });
-    await prisma().document.create({
-      data: {
-        name: faker.lorem.sentence(2),
-        description: faker.lorem.sentence(),
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: allowedPhaseDocumentTypes!.documentTypeId,
-        applicationId: (await prisma().application.findRandom())!.id,
-        phaseId: allowedPhaseDocumentTypes!.phaseId,
-      },
-    });
-  }
   console.log("🌱 Seeding events (with and without applicationIds)...");
 
   // Grab some applications for association

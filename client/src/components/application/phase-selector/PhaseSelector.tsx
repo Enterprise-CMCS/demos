@@ -6,12 +6,12 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  OgcOmbPhase,
   PostApprovalPhase,
   SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
   getFederalCommentPhaseFromDemonstration,
   getApprovalPackagePhase,
+  ReviewPhase,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -89,7 +89,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
         />
       );
     },
-    "OGC & OMB Review": OgcOmbPhase,
+    Review: ReviewPhase,
     "Approval Package": () => getApprovalPackagePhase(demonstration),
     "Post Approval": PostApprovalPhase,
   };

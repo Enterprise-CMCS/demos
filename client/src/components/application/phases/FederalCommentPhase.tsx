@@ -118,7 +118,6 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
             helperText="Upload the Internal Analysis Document (Optional)"
             documents={documents}
             onUploadClick={() => showFederalCommentDocumentUploadDialog(demonstrationId)}
-            onDeleteDocument={(id) => console.log(id)}
           />
           <VerifyCompleteSection />
         </div>

@@ -9,7 +9,8 @@ import { formatDateForServer } from "util/formatDate";
 import { gql, useMutation, useQuery } from "@apollo/client";
 
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
-import { parseISO } from "date-fns";
+import { endOfDay, parseISO } from "date-fns";
+import { TZDate } from "@date-fns/tz";
 
 const SUCCESS_MESSAGE = "Your demonstration has been updated.";
 const ERROR_MESSAGE = "Your demonstration was not updated because of an unknown problem.";
@@ -85,7 +86,7 @@ const getUpdateDemonstrationInput = (
   }
 
   if (demonstration.expirationDate && demonstration.expirationDate.trim() !== "") {
-    input.expirationDate = parseISO(demonstration.expirationDate);
+    input.expirationDate = endOfDay(new TZDate(demonstration.expirationDate, "America/New_York"));
   } else {
     input.expirationDate = null;
   }

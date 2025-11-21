@@ -136,7 +136,7 @@ export const CompletenessPhase = ({
     stateDeemedCompleteDate ?? ""
   );
 
-  const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
+  const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(
     applicationCompletenessDocument
   );
 
@@ -227,10 +227,7 @@ export const CompletenessPhase = ({
         Upload
         <ExportIcon />
       </SecondaryButton>
-      <DocumentList
-        documents={completenessDocs}
-        onDelete={(id) => setCompletenessDocs((docs) => docs.filter((d) => d.id !== id))}
-      />
+      <DocumentList documents={completenessDocs} />
     </div>
   );
 

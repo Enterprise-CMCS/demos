@@ -11,6 +11,7 @@ import {
   LOG_LEVELS,
   PERSON_TYPES,
   PHASE_NAME,
+  PHASE_NAMES_WITH_TRACKED_STATUS,
   PHASE_STATUS,
   ROLES,
   SDG_DIVISIONS,
@@ -32,6 +33,11 @@ export type {
   CreateDemonstrationInput,
   Demonstration,
   UpdateDemonstrationInput,
+  DemonstrationDetails,
+  DemonstrationQueryResult,
+  DemonstrationRole,
+  DemonstrationPerson,
+  DemonstrationState,
 } from "./model/demonstration/demonstrationSchema.js";
 
 export type { State } from "./model/state/stateSchema.js";
@@ -58,6 +64,7 @@ export type {
 
 export type {
   ApplicationPhase,
+  CompletePhaseInput,
   SetApplicationPhaseStatusInput,
 } from "./model/applicationPhase/applicationPhaseSchema.js";
 export type { Application } from "./model/application/applicationSchema.js";
@@ -79,6 +86,7 @@ export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export type PhaseName = (typeof PHASE_NAME)[number];
+export type PhaseNameWithTrackedStatus = (typeof PHASE_NAMES_WITH_TRACKED_STATUS)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];

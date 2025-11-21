@@ -9,11 +9,51 @@ import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { Demonstration } from "demos-server";
-import { useDateValidation } from "hooks/useDateValidation";
 import { tw } from "tags/tw";
 
 const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
 const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-half text-sm`;
+
+// imported from hooks. Only used here.
+export const useDateValidation = () => {
+  const [expirationError, setExpirationError] = useState("");
+
+  const handleEffectiveDateChange = (
+    effectiveDate: string,
+    expirationDate: string,
+    setEffectiveDate: (date: string) => void,
+    setExpirationDate: (date: string) => void
+  ) => {
+    setEffectiveDate(effectiveDate);
+    if (expirationDate && expirationDate < effectiveDate) {
+      setExpirationDate("");
+    }
+  };
+
+  const handleExpirationDateChange = (
+    expirationDate: string,
+    effectiveDate: string,
+    setExpirationDate: (date: string) => void
+  ) => {
+    // Only validate if we have complete - valid dates (YYYY-MM-DD format)
+    const isCompleteDate = /^\d{4}-\d{2}-\d{2}$/.test(expirationDate);
+
+    if (effectiveDate && isCompleteDate && expirationDate < effectiveDate) {
+      setExpirationError("Expiration Date cannot be before Effective Date.");
+      return;
+    } else {
+      setExpirationError("");
+      setExpirationDate(expirationDate);
+    }
+  };
+
+  return {
+    expirationError,
+    setExpirationError,
+    handleEffectiveDateChange,
+    handleExpirationDateChange,
+  };
+};
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -165,7 +205,7 @@ export const DemonstrationDialog: React.FC<{
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
-      maxWidthClass="max-w-[720px]"
+      maxWidthClass="max-w-[920px]"
       actions={
         <>
           <SecondaryButton

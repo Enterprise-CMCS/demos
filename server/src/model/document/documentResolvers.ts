@@ -1,7 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { GraphQLError } from "graphql";
 
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
   Document as PrismaDocument,
@@ -11,7 +17,10 @@ import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import {
+  getApplication,
+  PrismaApplication,
+} from "../application/applicationResolvers.js";
 import type {
   UpdateDocumentInput,
   UploadDocumentInput,
@@ -45,6 +54,59 @@ const createS3Client = () => {
   return new S3Client(s3ClientConfig);
 };
 
+export const uploadDocument = async (
+  parent: unknown,
+  { input }: { input: UploadDocumentInput },
+  context: GraphQLContext,
+): Promise<UploadDocumentResponse> => {
+  if (context.user === null) {
+    throw new Error(
+      "The GraphQL context does not have user information. Are you properly authenticated?",
+    );
+  }
+  // Looks for localstack pre-signed and does a simplified upload flow
+  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
+    const documentId = randomUUID();
+    const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
+    const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
+    const document = await prisma().document.create({
+      data: {
+        id: documentId,
+        name: input.name,
+        description: input.description ?? "",
+        ownerUserId: context.user.id,
+        documentTypeId: input.documentType,
+        applicationId: input.applicationId,
+        phaseId: input.phaseName,
+        s3Path,
+      },
+    });
+
+    const fakePresignedUrl = await getPresignedUploadUrl(document);
+    log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
+    return {
+      presignedURL: fakePresignedUrl,
+      documentId: document.id,
+    };
+  }
+  const documentPendingUpload = await prisma().documentPendingUpload.create({
+    data: {
+      name: input.name,
+      description: input.description ?? "",
+      ownerUserId: context.user.id,
+      documentTypeId: input.documentType,
+      applicationId: input.applicationId,
+      phaseId: input.phaseName,
+    },
+  });
+
+  const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
+  return {
+    presignedURL,
+    documentId: documentPendingUpload.id,
+  };
+};
+
 async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
     where: { id: id },
@@ -52,7 +114,7 @@ async function getDocument(parent: unknown, { id }: { id: string }) {
 }
 
 async function getPresignedUploadUrl(
-  documentPendingUpload: PrismaDocumentPendingUpload
+  documentPendingUpload: PrismaDocumentPendingUpload,
 ): Promise<string> {
   const s3 = createS3Client();
   const uploadBucket = process.env.UPLOAD_BUCKET;
@@ -66,7 +128,9 @@ async function getPresignedUploadUrl(
   });
 }
 
-async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string> {
+async function getPresignedDownloadUrl(
+  document: PrismaDocument,
+): Promise<string> {
   const s3 = createS3Client();
   const cleanBucket = process.env.CLEAN_BUCKET;
   const key = `${document.applicationId}/${document.id}`;
@@ -80,6 +144,55 @@ async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string
   return s3Url;
 }
 
+async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
+  // temporary bypass for backward compatability with simple upload.
+  // TODO: remove this bypass
+  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
+    return;
+  }
+
+  const s3 = createS3Client();
+
+  try {
+    const copyResponse = await s3.send(
+      new CopyObjectCommand({
+        CopySource: `${process.env.CLEAN_BUCKET}/${document.applicationId}/${document.id}`,
+        Bucket: process.env.DELETED_BUCKET,
+        Key: `${document.applicationId}/${document.id}`,
+      }),
+    );
+    if (
+      !copyResponse.$metadata.httpStatusCode ||
+      copyResponse.$metadata.httpStatusCode !== 200
+    ) {
+      throw new Error(
+        `Response from copy operation returned with a non-200 status: ${copyResponse.$metadata.httpStatusCode}`,
+      );
+    }
+  } catch (error) {
+    throw new Error(`Error while copying document to deleted bucket: ${error}`);
+  }
+
+  try {
+    const deleteResponse = await s3.send(
+      new DeleteObjectCommand({
+        Bucket: process.env.CLEAN_BUCKET,
+        Key: `${document.applicationId}/${document.id}`,
+      }),
+    );
+    if (
+      !deleteResponse.$metadata.httpStatusCode ||
+      (deleteResponse.$metadata.httpStatusCode !== 200 &&
+        deleteResponse.$metadata.httpStatusCode !== 204)
+    ) {
+      throw new Error(
+        `Response from delete operation returned with a non-200 status: ${deleteResponse.$metadata.httpStatusCode}`,
+      );
+    }
+  } catch (error) {
+    throw new Error(`Failed to delete document from clean bucket: ${error}`);
+  }
+}
 export const documentResolvers = {
   Query: {
     document: getDocument,
@@ -100,11 +213,11 @@ export const documentResolvers = {
     uploadDocument: async (
       parent: unknown,
       { input }: { input: UploadDocumentInput },
-      context: GraphQLContext
+      context: GraphQLContext,
     ): Promise<UploadDocumentResponse> => {
       if (context.user === null) {
         throw new Error(
-          "The GraphQL context does not have user information. Are you properly authenticated?"
+          "The GraphQL context does not have user information. Are you properly authenticated?",
         );
       }
       // Looks for localstack pre-signed and does a simplified upload flow
@@ -128,10 +241,12 @@ export const documentResolvers = {
         const fakePresignedUrl = await getPresignedUploadUrl(document);
         log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
         return {
-          presignedURL: fakePresignedUrl, documentId: document.id,
+          presignedURL: fakePresignedUrl,
+          documentId: document.id,
         };
       }
-      const documentPendingUpload = await prisma().documentPendingUpload.create({
+      const documentPendingUpload = await prisma().documentPendingUpload.create(
+        {
           data: {
             name: input.name,
             description: input.description ?? "",
@@ -140,7 +255,8 @@ export const documentResolvers = {
             applicationId: input.applicationId,
             phaseId: input.phaseName,
           },
-      });
+        },
+      );
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return {
@@ -166,9 +282,12 @@ export const documentResolvers = {
 
     updateDocument: async (
       _: unknown,
-      { id, input }: { id: string; input: UpdateDocumentInput }
+      { id, input }: { id: string; input: UpdateDocumentInput },
     ): Promise<PrismaDocument> => {
-      checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
+      checkOptionalNotNullFields(
+        ["name", "documentType", "applicationId", "phaseName"],
+        input,
+      );
       try {
         return await prisma().document.update({
           where: { id: id },
@@ -185,11 +304,30 @@ export const documentResolvers = {
       }
     },
 
-    deleteDocuments: async (_: unknown, { ids }: { ids: string[] }) => {
-      const deleteResult = await prisma().document.deleteMany({
-        where: { id: { in: ids } },
+    deleteDocument: async (_: unknown, { id }: { id: string }) => {
+      return await prisma().$transaction(async (tx) => {
+        const document = await tx.document.delete({
+          where: { id },
+        });
+        await moveDocumentFromCleanToDeletedBuckets(document);
+        return document;
       });
-      return deleteResult.count;
+    },
+    deleteDocuments: async (_: unknown, { ids }: { ids: string[] }) => {
+      return await prisma().$transaction(async (tx) => {
+        const documents = await tx.document.findMany({
+          where: { id: { in: ids } },
+        });
+
+        for (const document of documents) {
+          await moveDocumentFromCleanToDeletedBuckets(document);
+        }
+
+        const result = await tx.document.deleteMany({
+          where: { id: { in: ids } },
+        });
+        return result.count;
+      });
     },
   },
 

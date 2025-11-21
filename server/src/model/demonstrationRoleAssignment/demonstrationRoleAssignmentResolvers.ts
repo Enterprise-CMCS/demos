@@ -52,14 +52,14 @@ export async function setDemonstrationRole(
       where: { id: input.personId },
     });
     if (!person) {
-      throw new Error(`Person with id ${input.personId} not found`);
+      throw new Error(`Person with id ${input.personId} not found.`);
     }
 
     const demonstration = await tx.demonstration.findUnique({
       where: { id: input.demonstrationId },
     });
     if (!demonstration) {
-      throw new Error(`Demonstration with id ${input.demonstrationId} not found`);
+      throw new Error(`Demonstration with id ${input.demonstrationId} not found.`);
     }
 
     await prisma().demonstrationRoleAssignment.upsert({
@@ -131,14 +131,14 @@ export async function setDemonstrationRoles(
         where: { id: roleInput.personId },
       });
       if (!person) {
-        throw new Error(`Person with id ${roleInput.personId} not found`);
+        throw new Error(`Person with id ${roleInput.personId} not found.`);
       }
 
       const demonstration = await tx.demonstration.findUnique({
         where: { id: roleInput.demonstrationId },
       });
       if (!demonstration) {
-        throw new Error(`Demonstration with id ${roleInput.demonstrationId} not found`);
+        throw new Error(`Demonstration with id ${roleInput.demonstrationId} not found.`);
       }
 
       // Create or update the role assignment
