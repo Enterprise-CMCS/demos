@@ -317,20 +317,45 @@ describe("completePhase", () => {
   });
 
   describe("Approval Package Phase", () => {
-    it("should throw when attempting to complete the Approval Package phase", async () => {
+    it("should take the right actions when completing the Approval Package phase", async () => {
       const testInput: CompletePhaseInput = {
         applicationId: testApplicationId,
         phaseName: "Approval Package",
       };
+      const expectedDateCall = [
+        [
+          {
+            applicationId: testApplicationId,
+            applicationDates: [
+              {
+                dateType: "Approval Package Completion Date",
+                dateValue: mockEasternStartOfDayDate,
+              },
+            ],
+          },
+          mockTransaction,
+        ],
+      ];
 
-      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
-        "Completion of the Approval Package phase via API is not yet implemented."
+      await completePhase(undefined, { input: testInput });
+
+      expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Approval Package",
+        mockTransaction
       );
-
-      expect(validatePhaseCompletion).not.toHaveBeenCalled();
-      expect(updatePhaseStatus).not.toHaveBeenCalled();
-      expect(startNextPhase).not.toBeCalled();
-      expect(validateAndUpdateDates).not.toHaveBeenCalled();
+      expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Approval Package",
+        "Completed",
+        mockTransaction
+      );
+      expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Post Approval",
+        mockTransaction
+      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
