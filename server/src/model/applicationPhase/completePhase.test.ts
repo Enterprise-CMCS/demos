@@ -269,49 +269,20 @@ describe("completePhase", () => {
   });
 
   describe("OGC & OMB Review Phase", () => {
-    it("should take the right actions when completing the OGC & OMB Review phase", async () => {
+    it("should throw when attempting to complete the OGC & OMB Review phase", async () => {
       const testInput: CompletePhaseInput = {
         applicationId: testApplicationId,
         phaseName: "OGC & OMB Review",
       };
-      const expectedDateCall = [
-        [
-          {
-            applicationId: testApplicationId,
-            applicationDates: [
-              {
-                dateType: "OGC & OMB Review Completion Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-              {
-                dateType: "Approval Package Start Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-            ],
-          },
-          mockTransaction,
-        ],
-      ];
 
-      await completePhase(undefined, { input: testInput });
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        "Completion of the OGC & OMB Review phase via API is not yet implemented."
+      );
 
-      expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
-        testApplicationId,
-        "OGC & OMB Review",
-        mockTransaction
-      );
-      expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
-        testApplicationId,
-        "OGC & OMB Review",
-        "Completed",
-        mockTransaction
-      );
-      expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
-        testApplicationId,
-        "Approval Package",
-        mockTransaction
-      );
-      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+      expect(validatePhaseCompletion).not.toHaveBeenCalled();
+      expect(updatePhaseStatus).not.toHaveBeenCalled();
+      expect(startNextPhase).not.toBeCalled();
+      expect(validateAndUpdateDates).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });

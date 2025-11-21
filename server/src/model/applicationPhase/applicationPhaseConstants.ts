@@ -26,13 +26,7 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
       dateToStart: "OGC & OMB Review Start Date",
     },
   },
-  "OGC & OMB Review": {
-    dateToComplete: "OGC & OMB Review Completion Date",
-    nextPhase: {
-      phaseName: "Approval Package",
-      dateToStart: "Approval Package Start Date",
-    },
-  },
+  "OGC & OMB Review": "Not Implemented",
   "Approval Package": {
     dateToComplete: "Approval Package Completion Date",
     nextPhase: {
