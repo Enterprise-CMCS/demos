@@ -53,8 +53,6 @@ export const UPDATE_DOCUMENT_QUERY = gql`
   }
 `;
 
-const LOCALHOST_SENTINEL = "http://localhost";
-
 type DocumentDialogType = "add" | "edit";
 
 type DialogStatus =
@@ -639,7 +637,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Upload response from the server was empty");
     }
 
-    if (uploadResult.presignedURL.startsWith(LOCALHOST_SENTINEL)) {
+    if (uploadResult.presignedURL.includes("localhost")) {
       onDocumentUploadSucceeded?.();
       return;
     }
