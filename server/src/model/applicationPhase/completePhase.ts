@@ -41,14 +41,16 @@ export async function completePhase(
           tx
         );
         if (nextPhaseWasStarted) {
-          applicationDatesToUpdate.push({
-            dateType: phaseActions.nextPhase.dateToStart,
-            dateValue:
-              easternNow[
-                DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
-                  .expectedTimestamp
-              ],
-          });
+          if (phaseActions.nextPhase.dateToStart) {
+            applicationDatesToUpdate.push({
+              dateType: phaseActions.nextPhase.dateToStart,
+              dateValue:
+                easternNow[
+                  DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
+                    .expectedTimestamp
+                ],
+            });
+          }
         }
       }
 
