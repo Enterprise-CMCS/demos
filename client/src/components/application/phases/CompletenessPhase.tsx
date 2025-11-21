@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-
+import React, { useState } from "react";
+import { DatePicker } from "components/input/date/DatePicker";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForServer } from "util/formatDate";
-import { addDays, parseISO } from "date-fns";
+import { addDays } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -130,10 +130,17 @@ export const CompletenessPhase = ({
   const { showSuccess, showError } = useToast();
   const [collapsed, setCollapsed] = useState(false);
 
-  const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
-  const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
+  const [federalStartDate, setFederalStartDate] = useState<string>(() => {
+    console.log("Initial federalStartDate:", fedCommentStartDate ?? "");
+    return fedCommentStartDate ?? "";
+  });
+  const [federalEndDate, setFederalEndDate] = useState<string>(() => {
+    console.log("Initial federalEndDate:", fedCommentEndDate ?? "");
+    return fedCommentEndDate ?? "";
+  });
+  // const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
-    stateDeemedCompleteDate ?? ""
+    // stateDeemedCompleteDate ?? ""
   );
 
   const [completenessDocs, setCompletenessDocs] = useState<ApplicationWorkflowDocument[]>(
@@ -155,23 +162,24 @@ export const CompletenessPhase = ({
   });
 
   // Automatically set federal comment period dates based on state deemed complete date
-  useEffect(() => {
-    if (!stateDeemedComplete) {
-      setFederalStartDate("");
-      setFederalEndDate("");
-      return;
-    }
+  // useEffect(() => {
+  //   if (!stateDeemedComplete) {
+  //     setFederalStartDate("");
+  //     setFederalEndDate("");
+  //     return;
+  //   }
 
-    const parsedStateDate = parseISO(stateDeemedComplete);
-    const computedStartDate = addDays(parsedStateDate, 1);
-    const computedEndDate = addDays(computedStartDate, FEDERAL_COMMENT_PERIOD_DAYS);
+  //   const parsedStateDate = parseISO(stateDeemedComplete);
+  //   const computedStartDate = addDays(parsedStateDate, 1);
+  //   const computedEndDate = addDays(computedStartDate, FEDERAL_COMMENT_PERIOD_DAYS);
 
-    const nextStart = formatDateForServer(computedStartDate);
-    const nextEnd = formatDateForServer(computedEndDate);
+  //   const nextStart = formatDateForServer(computedStartDate);
+  //   const nextEnd = formatDateForServer(computedEndDate);
 
-    setFederalStartDate(nextStart);
-    setFederalEndDate(nextEnd);
-  }, [stateDeemedComplete]);
+  //   setFederalStartDate(nextStart);
+  //   setFederalEndDate(nextEnd);
+  // }, [stateDeemedComplete]);
+
 
   const finishIsEnabled = () => {
     const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
@@ -252,15 +260,12 @@ export const CompletenessPhase = ({
             <span className="text-text-warn mr-1">*</span>
             State Application Deemed Complete
           </label>
-          <input
-            type="date"
-            value={stateDeemedComplete}
-            onChange={(event) => {
-              setStateDeemedComplete(event.target.value);
-            }}
-            className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+          <DatePicker
+            name="state-application-deemed-complete"
             id="state-application-deemed-complete"
-            data-testid="state-application-deemed-complete"
+            value={stateDeemedComplete}
+            required
+            inputClassName="w-full"
           />
         </div>
 
