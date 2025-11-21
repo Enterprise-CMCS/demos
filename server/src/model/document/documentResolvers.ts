@@ -95,29 +95,41 @@ async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
 
   const s3 = createS3Client();
 
-  const copyResponse = await s3.send(
-    new CopyObjectCommand({
-      CopySource: `${process.env.CLEAN_BUCKET}/${document.applicationId}/${document.id}`,
-      Bucket: process.env.DELETED_BUCKET,
-      Key: `${document.applicationId}/${document.id}`,
-    })
-  );
-  if (!copyResponse.$metadata.httpStatusCode || copyResponse.$metadata.httpStatusCode !== 200) {
-    throw new Error(
-      `Failed to copy document to deleted bucket. Status: ${copyResponse.$metadata.httpStatusCode}`
+  try {
+    const copyResponse = await s3.send(
+      new CopyObjectCommand({
+        CopySource: `${process.env.CLEAN_BUCKET}/${document.applicationId}/${document.id}`,
+        Bucket: process.env.DELETED_BUCKET,
+        Key: `${document.applicationId}/${document.id}`,
+      })
     );
+    if (!copyResponse.$metadata.httpStatusCode || copyResponse.$metadata.httpStatusCode !== 200) {
+      throw new Error(
+        `Response from copy operation returned with a non-200 status: ${copyResponse.$metadata.httpStatusCode}`
+      );
+    }
+  } catch (error) {
+    throw new Error(`Error while copying document to deleted bucket: ${error}`);
   }
 
-  const deleteResponse = await s3.send(
-    new DeleteObjectCommand({
-      Bucket: process.env.CLEAN_BUCKET,
-      Key: `${document.applicationId}/${document.id}`,
-    })
-  );
-  if (!deleteResponse.$metadata.httpStatusCode || deleteResponse.$metadata.httpStatusCode !== 204) {
-    throw new Error(
-      `Failed to delete document from clean bucket. Status: ${copyResponse.$metadata.httpStatusCode}`
+  try {
+    const deleteResponse = await s3.send(
+      new DeleteObjectCommand({
+        Bucket: process.env.CLEAN_BUCKET,
+        Key: `${document.applicationId}/${document.id}`,
+      })
     );
+    if (
+      !deleteResponse.$metadata.httpStatusCode ||
+      (deleteResponse.$metadata.httpStatusCode !== 200 &&
+        deleteResponse.$metadata.httpStatusCode !== 204)
+    ) {
+      throw new Error(
+        `Response from delete operation returned with a non-200 status: ${deleteResponse.$metadata.httpStatusCode}`
+      );
+    }
+  } catch (error) {
+    throw new Error(`Failed to delete document from clean bucket: ${error}`);
   }
 }
 export const documentResolvers = {
