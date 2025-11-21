@@ -17,10 +17,7 @@ import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
-import {
-  getApplication,
-  PrismaApplication,
-} from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import type {
   UpdateDocumentInput,
   UploadDocumentInput,
@@ -61,7 +58,7 @@ async function getDocument(parent: unknown, { id }: { id: string }) {
 }
 
 async function getPresignedUploadUrl(
-  documentPendingUpload: PrismaDocumentPendingUpload,
+  documentPendingUpload: PrismaDocumentPendingUpload
 ): Promise<string> {
   const s3 = createS3Client();
   const uploadBucket = process.env.UPLOAD_BUCKET;
@@ -75,9 +72,7 @@ async function getPresignedUploadUrl(
   });
 }
 
-async function getPresignedDownloadUrl(
-  document: PrismaDocument,
-): Promise<string> {
+async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string> {
   const s3 = createS3Client();
   const cleanBucket = process.env.CLEAN_BUCKET;
   const key = `${document.applicationId}/${document.id}`;
@@ -106,14 +101,11 @@ async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
         CopySource: `${process.env.CLEAN_BUCKET}/${document.applicationId}/${document.id}`,
         Bucket: process.env.DELETED_BUCKET,
         Key: `${document.applicationId}/${document.id}`,
-      }),
+      })
     );
-    if (
-      !copyResponse.$metadata.httpStatusCode ||
-      copyResponse.$metadata.httpStatusCode !== 200
-    ) {
+    if (!copyResponse.$metadata.httpStatusCode || copyResponse.$metadata.httpStatusCode !== 200) {
       throw new Error(
-        `Response from copy operation returned with a non-200 status: ${copyResponse.$metadata.httpStatusCode}`,
+        `Response from copy operation returned with a non-200 status: ${copyResponse.$metadata.httpStatusCode}`
       );
     }
   } catch (error) {
@@ -125,7 +117,7 @@ async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
       new DeleteObjectCommand({
         Bucket: process.env.CLEAN_BUCKET,
         Key: `${document.applicationId}/${document.id}`,
-      }),
+      })
     );
     if (
       !deleteResponse.$metadata.httpStatusCode ||
@@ -133,7 +125,7 @@ async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
         deleteResponse.$metadata.httpStatusCode !== 204)
     ) {
       throw new Error(
-        `Response from delete operation returned with a non-200 status: ${deleteResponse.$metadata.httpStatusCode}`,
+        `Response from delete operation returned with a non-200 status: ${deleteResponse.$metadata.httpStatusCode}`
       );
     }
   } catch (error) {
@@ -160,11 +152,11 @@ export const documentResolvers = {
     uploadDocument: async (
       parent: unknown,
       { input }: { input: UploadDocumentInput },
-      context: GraphQLContext,
+      context: GraphQLContext
     ): Promise<UploadDocumentResponse> => {
       if (context.user === null) {
         throw new Error(
-          "The GraphQL context does not have user information. Are you properly authenticated?",
+          "The GraphQL context does not have user information. Are you properly authenticated?"
         );
       }
       // Looks for localstack pre-signed and does a simplified upload flow
@@ -192,18 +184,16 @@ export const documentResolvers = {
           documentId: document.id,
         };
       }
-      const documentPendingUpload = await prisma().documentPendingUpload.create(
-        {
-          data: {
-            name: input.name,
-            description: input.description ?? "",
-            ownerUserId: context.user.id,
-            documentTypeId: input.documentType,
-            applicationId: input.applicationId,
-            phaseId: input.phaseName,
-          },
+      const documentPendingUpload = await prisma().documentPendingUpload.create({
+        data: {
+          name: input.name,
+          description: input.description ?? "",
+          ownerUserId: context.user.id,
+          documentTypeId: input.documentType,
+          applicationId: input.applicationId,
+          phaseId: input.phaseName,
         },
-      );
+      });
 
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return {
@@ -229,12 +219,9 @@ export const documentResolvers = {
 
     updateDocument: async (
       _: unknown,
-      { id, input }: { id: string; input: UpdateDocumentInput },
+      { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<PrismaDocument> => {
-      checkOptionalNotNullFields(
-        ["name", "documentType", "applicationId", "phaseName"],
-        input,
-      );
+      checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
       try {
         return await prisma().document.update({
           where: { id: id },
