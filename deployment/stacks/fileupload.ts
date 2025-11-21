@@ -54,7 +54,8 @@ export class FileUploadStack extends Stack {
 
     const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
-      removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      removalPolicy:
+        props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
       autoDeleteObjects: props.isDev || props.isEphemeral,
       enforceSSL: true,
@@ -70,11 +71,13 @@ export class FileUploadStack extends Stack {
       enforceSSL: true,
       eventBridgeEnabled: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
-      cors: [{
-        allowedMethods: [HttpMethods.PUT],
-        allowedOrigins: [`https://${props.cloudfrontHost}`],
-        allowedHeaders: ["*"]
-      }]
+      cors: [
+        {
+          allowedMethods: [HttpMethods.PUT],
+          allowedOrigins: [`https://${props.cloudfrontHost}`],
+          allowedHeaders: ["*"],
+        },
+      ],
     });
 
     new GuardDutyS3(this, "uploadBucketScan", {
@@ -100,6 +103,17 @@ export class FileUploadStack extends Stack {
       Tags.of(cleanBucket).add("AWS_Backup", backupTags.d15_w90);
     }
 
+    const deletedBucket = new Bucket(this, "FileDeletedBucket", {
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      serverAccessLogsBucket: accessLogs,
+      serverAccessLogsPrefix: "deleted",
+      enforceSSL: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
     const fileProcessLambdaSecurityGroup = securityGroup.create({
       ...props,
       name: "fileProcessSecurityGroup",
@@ -107,7 +121,9 @@ export class FileUploadStack extends Stack {
       scope: this,
     });
 
-    const rdsSecurityGroupId = Fn.importValue(`${props.project}-${props.hostEnvironment}-rds-security-group-id`);
+    const rdsSecurityGroupId = Fn.importValue(
+      `${props.project}-${props.hostEnvironment}-rds-security-group-id`
+    );
 
     const rdsPort = importNumberValue(`${props.project}-${props.hostEnvironment}-rds-port`);
 
@@ -188,6 +204,11 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "uploadBucketName", {
       exportName: `${props.stage}UploadBucketName`,
       value: uploadBucket.bucketName,
+    });
+
+    new CfnOutput(this, "deletedBucketName", {
+      exportName: `${props.stage}DeletedBucketName`,
+      value: deletedBucket.bucketName,
     });
   }
 }

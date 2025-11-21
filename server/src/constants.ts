@@ -1,4 +1,4 @@
-import { DateType, ExpectedTimestamp } from "./types.js";
+import { DateType, DocumentType, ExpectedTimestamp } from "./types.js";
 
 export const APPLICATION_STATUS = [
   "Pre-Submission",
@@ -252,3 +252,61 @@ export const EVENT_TYPES = [
   "Delete Document Succeeded",
   "Delete Document Failed",
 ] as const;
+
+export const NONE_PHASE_DOCUMENTS: DocumentType[] = [
+  "Application Completeness Letter",
+  "Approval Letter",
+  "Final BN Worksheet",
+  "Final Budget Neutrality Formulation Workbook",
+  "Formal OMB Policy Concurrence Email",
+  "Internal Completeness Review Form",
+  "Payment Ratio Analysis",
+  "Pre-Submission",
+  "Q&A",
+  "Signed Decision Memo",
+  "State Application",
+  "General File",
+] as const;
+
+export const CONCEPT_PHASE_DOCUMENTS: DocumentType[] = ["General File", "Pre-Submission"] as const;
+
+export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
+  "General File",
+  "State Application",
+] as const;
+
+export const COMPLETENESS_PHASE_DOCUMENTS: DocumentType[] = [
+  "General File",
+  "Internal Completeness Review Form",
+  "Application Completeness Letter",
+] as const;
+export const FEDERAL_COMMENT_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+
+export const SDG_PREPARATION_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+
+export const REVIEW_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+
+export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
+  "General File",
+  "Approval Letter",
+  "Final BN Worksheet",
+  "Final Budget Neutrality Formulation Workbook",
+  "Formal OMB Policy Concurrence Email",
+  "Payment Ratio Analysis",
+  "Q&A",
+  "Signed Decision Memo",
+] as const;
+
+export const POST_APPROVAL_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+
+export const PHASE_DOCUMENT_TYPE_MAP = {
+  None: NONE_PHASE_DOCUMENTS,
+  Concept: CONCEPT_PHASE_DOCUMENTS,
+  "Application Intake": APPLICATION_INTAKE_PHASE_DOCUMENTS,
+  Completeness: COMPLETENESS_PHASE_DOCUMENTS,
+  "Federal Comment": FEDERAL_COMMENT_PHASE_DOCUMENTS,
+  "SDG Preparation": SDG_PREPARATION_PHASE_DOCUMENTS,
+  "OGC & OMB Review": REVIEW_PHASE_DOCUMENTS,
+  "Approval Package": APPROVAL_PACKAGE_PHASE_DOCUMENTS,
+  "Post Approval": POST_APPROVAL_PHASE_DOCUMENTS,
+};

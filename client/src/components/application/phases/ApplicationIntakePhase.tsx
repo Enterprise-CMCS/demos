@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { DeleteIcon, ExportIcon } from "components/icons";
+import { ExportIcon } from "components/icons";
 import { addDays, parseISO } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
+import { formatDateForServer, getTodayEst } from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -12,6 +12,7 @@ import {
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
+import { DocumentList } from "./sections";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -166,33 +167,7 @@ export const ApplicationIntakePhase = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <div className={STYLES.list}>
-        {stateApplicationDocuments.length == 0 && (
-          <div className="text-sm text-text-placeholder">No documents yet.</div>
-        )}
-        {stateApplicationDocuments.map((doc: ApplicationWorkflowDocument) => (
-          <div key={doc.id} className={STYLES.fileRow}>
-            <div>
-              <div className="font-medium">{doc.name}</div>
-              <div className={STYLES.fileMeta}>
-                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
-                {doc.description ? ` • ${doc.description}` : ""}
-              </div>
-            </div>
-            <button
-              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-              onClick={() => {
-                // TODO: use mutator for deleting document
-                console.log("Delete document:", doc.id);
-              }}
-              aria-label={`Delete ${doc.name}`}
-              title={`Delete ${doc.name}`}
-            >
-              <DeleteIcon className="w-2 h-2" />
-            </button>
-          </div>
-        ))}
-      </div>
+      <DocumentList documents={initialStateApplicationDocuments} />
     </div>
   );
 
