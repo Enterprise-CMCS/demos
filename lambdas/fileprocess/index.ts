@@ -8,6 +8,7 @@ import { als, log, store, reqIdChild } from "./log";
 const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
+const bypassSSL = process.env.BYPASS_SSL;
 
 const s3Config = process.env.AWS_ENDPOINT_URL
   ? {
@@ -223,9 +224,11 @@ export const handler = async (event: SQSEvent, context: Context) =>
     try {
       client = new Client({
         connectionString: await getDatabaseUrl(),
-        ssl: {
-          rejectUnauthorized: true,
-        },
+        ssl: bypassSSL
+          ? false
+          : {
+              rejectUnauthorized: true,
+            },
       });
       await client.connect();
       const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
