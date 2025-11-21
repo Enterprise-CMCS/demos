@@ -17,7 +17,7 @@ import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication,PrismaApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import type {
   UpdateDocumentInput,
   UploadDocumentInput,
@@ -125,9 +125,7 @@ async function getPresignedUploadUrl(
   });
 }
 
-async function getPresignedDownloadUrl(
-  document: PrismaDocument,
-): Promise<string> {
+async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string> {
   const s3 = createS3Client();
   const cleanBucket = process.env.CLEAN_BUCKET;
   const key = `${document.applicationId}/${document.id}`;
@@ -160,7 +158,7 @@ async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
     );
     if (!copyResponse.$metadata.httpStatusCode || copyResponse.$metadata.httpStatusCode !== 200) {
       throw new Error(
-        `Response from copy operation returned with a non-200 status: ${copyResponse.$metadata.httpStatusCode}`,
+        `Response from copy operation returned with a non-200 status: ${copyResponse.$metadata.httpStatusCode}`
       );
     }
   } catch (error) {
@@ -224,7 +222,7 @@ export const documentResolvers = {
       _: unknown,
       { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<PrismaDocument> => {
-      checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"],input,);
+      checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
       try {
         return await prisma().document.update({
           where: { id: id },
