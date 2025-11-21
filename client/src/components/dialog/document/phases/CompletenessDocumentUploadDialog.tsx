@@ -1,6 +1,6 @@
 import React from "react";
 import { DocumentType } from "demos-server";
-import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { AddDocumentDialog } from "components/dialog/document";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/ApplicationWorkflow";
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = [
@@ -22,9 +22,7 @@ export const CompletenessDocumentUploadDialog: React.FC<Props> = ({ onClose, app
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       titleOverride="Add Completeness Document(s)"
       phaseName="Completeness"
-      refetchQueries={[
-        { query: GET_WORKFLOW_DEMONSTRATION_QUERY, variables: { id: applicationId } },
-      ]}
+      refetchQueries={[GET_WORKFLOW_DEMONSTRATION_QUERY]}
     />
   );
 };

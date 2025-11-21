@@ -10,12 +10,12 @@ import {
   DocumentDialogFields,
   EditDocumentDialog,
   RemoveDocumentDialog,
-} from "./document/DocumentDialog";
-import { ApplicationIntakeUploadDialog } from "./document/ApplicationIntakeUploadDialog";
-import { CompletenessDocumentUploadDialog } from "./document/CompletenessDocumentUploadDialog";
-import { ConceptPreSubmissionUploadDialog } from "./document/ConceptPreSubmissionUploadDialog";
-import { FederalCommentUploadDialog } from "./document/FederalCommentUploadDialog";
-import { ApprovalPackageUploadDialog } from "./document/ApprovalPackageUploadDialog";
+} from "./document";
+import { ApplicationIntakeUploadDialog } from "./document/phases/ApplicationIntakeUploadDialog";
+import { CompletenessDocumentUploadDialog } from "./document/phases/CompletenessDocumentUploadDialog";
+import { ConceptPreSubmissionUploadDialog } from "./document/phases/ConceptPreSubmissionUploadDialog";
+import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUploadDialog";
+import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 
 type DialogContextType = {
@@ -150,7 +150,10 @@ export const useDialog = () => {
     );
   };
 
-  const showApprovalPackageDocumentUploadDialog = (applicationId: string, documentType: DocumentType) => {
+  const showApprovalPackageDocumentUploadDialog = (
+    applicationId: string,
+    documentType: DocumentType
+  ) => {
     context.showDialog(
       <ApprovalPackageUploadDialog
         onClose={context.hideDialog}

@@ -22,8 +22,12 @@ vi.mock("@apollo/client", async () => {
 });
 
 // Mock AddDocumentDialog
-vi.mock("components/dialog/document/DocumentDialog", () => ({
-  AddDocumentDialog: ({ titleOverride, documentTypeSubset, phaseName }: MockAddDocumentDialogProps) => (
+vi.mock("components/dialog/document", () => ({
+  AddDocumentDialog: ({
+    titleOverride,
+    documentTypeSubset,
+    phaseName,
+  }: MockAddDocumentDialogProps) => (
     <div>
       <div data-testid="add-document-dialog">{titleOverride}</div>
       <div data-testid="document-type">{documentTypeSubset.join(",")}</div>
