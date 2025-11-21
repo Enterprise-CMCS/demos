@@ -1,15 +1,19 @@
 import React from "react";
 import { DocumentType } from "demos-server";
-import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { AddDocumentDialog } from "components/dialog/document";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/ApplicationWorkflow";
 
 type Props = {
   applicationId: string;
-  documentType: DocumentType
+  documentType: DocumentType;
   onClose: () => void;
 };
 
-export const ApprovalPackageUploadDialog: React.FC<Props> = ({ onClose, applicationId, documentType }) => {
+export const ApprovalPackageUploadDialog: React.FC<Props> = ({
+  onClose,
+  applicationId,
+  documentType,
+}) => {
   return (
     <AddDocumentDialog
       applicationId={applicationId}
@@ -17,9 +21,7 @@ export const ApprovalPackageUploadDialog: React.FC<Props> = ({ onClose, applicat
       documentTypeSubset={[documentType]}
       titleOverride="Add Approval Package Document(s)"
       phaseName="Approval Package"
-      refetchQueries={[
-        { query: GET_WORKFLOW_DEMONSTRATION_QUERY, variables: { id: applicationId } },
-      ]}
+      refetchQueries={[GET_WORKFLOW_DEMONSTRATION_QUERY]}
     />
   );
 };
