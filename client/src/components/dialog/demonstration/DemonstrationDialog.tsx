@@ -205,7 +205,7 @@ export const DemonstrationDialog: React.FC<{
       onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
-      maxWidthClass="max-w-[720px]"
+      maxWidthClass="max-w-[920px]"
       actions={
         <>
           <SecondaryButton
