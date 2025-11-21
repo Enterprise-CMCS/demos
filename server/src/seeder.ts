@@ -89,6 +89,11 @@ async function seedDocuments() {
             s3Path,
           },
         });
+        // temporary bypass for backward compatability with simple upload.
+        // TODO: remove this bypass
+        if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
+          continue;
+        }
         const mockFileContent = Buffer.from(`Test file: ${JSON.stringify(document)}`);
         await s3Client.send(
           new PutObjectCommand({

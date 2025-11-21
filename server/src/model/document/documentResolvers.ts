@@ -87,6 +87,12 @@ async function getPresignedDownloadUrl(document: PrismaDocument): Promise<string
 }
 
 async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
+  // temporary bypass for backward compatability with simple upload.
+  // TODO: remove this bypass
+  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
+    return;
+  }
+
   const s3 = createS3Client();
 
   const copyResponse = await s3.send(
