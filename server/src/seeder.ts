@@ -429,7 +429,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
       },
       {
-        dateType: "OGC & OMB Review Start Date",
+        dateType: "Review Start Date",
         dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
       },
       {
@@ -445,7 +445,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-12T00:00:00.000-05:00"),
       },
       {
-        dateType: "OGC & OMB Review Completion Date",
+        dateType: "Review Completion Date",
         dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
       },
       {
