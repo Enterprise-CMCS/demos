@@ -37,5 +37,6 @@ create_bucket_with_cors() {
 create_bucket_with_cors "upload-bucket"
 create_bucket_with_cors "clean-bucket"
 create_bucket_with_cors "deleted-bucket"
+create_bucket_with_cors "infected-bucket"
 
 echo "✅ S3 buckets ready with CORS configured"

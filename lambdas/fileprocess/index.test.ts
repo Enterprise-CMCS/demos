@@ -81,7 +81,7 @@ describe("file-process", () => {
       mockEventBase.detail.scanStatus = "FAILED";
       expect(isGuardDutyScanClean(mockEventBase)).toEqual(false);
       expect(logDebugSpy).toHaveBeenCalledWith(
-        {status: "FAILED"},
+        { status: "FAILED" },
         expect.stringContaining("scan not completed")
       );
     });
@@ -90,7 +90,7 @@ describe("file-process", () => {
       mockEventBase.detail.scanResultDetails.scanResultStatus = "THREATS_FOUND";
       expect(isGuardDutyScanClean(mockEventBase)).toEqual(false);
       expect(logWarnSpy).toHaveBeenCalledWith(
-        expect.objectContaining({status: expect.anything(), objectKey: expect.anything()}),
+        expect.objectContaining({ status: expect.anything(), objectKey: expect.anything() }),
         expect.stringContaining("file not clean")
       );
     });
@@ -119,7 +119,9 @@ describe("file-process", () => {
       };
       const id = await getApplicationId(mockClient, "test");
 
-      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining("FROM demos_app"), ["test"]);
+      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining("FROM demos_app"), [
+        "test",
+      ]);
       expect(id).toEqual("1");
     });
     it("should throw when record is missing or empty", async () => {
@@ -130,15 +132,21 @@ describe("file-process", () => {
         query: vi.fn().mockResolvedValue({ rows: [] }),
       };
 
-      await expect(getApplicationId(mockClient, "test")).rejects.toThrow("No document_pending_upload record found");
-      await expect(getApplicationId(mockClient2, "test")).rejects.toThrow("No document_pending_upload record found");
+      await expect(getApplicationId(mockClient, "test")).rejects.toThrow(
+        "No document_pending_upload record found"
+      );
+      await expect(getApplicationId(mockClient2, "test")).rejects.toThrow(
+        "No document_pending_upload record found"
+      );
     });
     it("should return proper error if query fails", async () => {
       const mockClient = {
         query: vi.fn().mockRejectedValue("unit test error"),
       };
 
-      await expect(getApplicationId(mockClient, "test")).rejects.toThrow("Failed to get application ID");
+      await expect(getApplicationId(mockClient, "test")).rejects.toThrow(
+        "Failed to get application ID"
+      );
     });
   });
 
@@ -186,7 +194,7 @@ describe("file-process", () => {
       console.log("mockEventBase", mockEventBase);
       await processGuardDutyResult(mockClient, mockEventBase);
       expect(logInfoSpy).toHaveBeenCalledWith(
-        expect.objectContaining({key: "test-key"}),
+        expect.objectContaining({ key: "test-key" }),
         expect.stringContaining("successfully processed clean file")
       );
       expect(mockSend).toHaveBeenCalledTimes(2);
@@ -214,29 +222,32 @@ describe("file-process", () => {
 
       mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
 
-      await handler({
-        Records: [
-          {
-            messageId: "123",
-            receiptHandle: "",
-            messageAttributes: {},
-            md5OfBody: "",
-            eventSource: "",
-            eventSourceARN: "",
-            awsRegion: "us-east-1",
-            attributes: {
-              ApproximateReceiveCount: "1",
-              SentTimestamp: "mock timestamp",
-              SenderId: "1",
-              ApproximateFirstReceiveTimestamp: "",
+      await handler(
+        {
+          Records: [
+            {
+              messageId: "123",
+              receiptHandle: "",
+              messageAttributes: {},
+              md5OfBody: "",
+              eventSource: "",
+              eventSourceARN: "",
+              awsRegion: "us-east-1",
+              attributes: {
+                ApproximateReceiveCount: "1",
+                SentTimestamp: "mock timestamp",
+                SenderId: "1",
+                ApproximateFirstReceiveTimestamp: "",
+              },
+              body: JSON.stringify(mockEventBase),
             },
-            body: JSON.stringify(mockEventBase),
-          },
-        ],
-      }, mockContext);
+          ],
+        },
+        mockContext
+      );
 
       expect(logInfoSpy).toHaveBeenCalledWith(
-        expect.objectContaining({results: expect.any(Object)}),
+        expect.objectContaining({ results: expect.any(Object) }),
         "all records processed successfully"
       );
       expect(mockEnd).toHaveBeenCalledTimes(1);
@@ -283,7 +294,9 @@ describe("file-process", () => {
         mockContext
       );
 
-      expect(logWarnSpy).toHaveBeenCalledWith(expect.stringContaining("is not clean. Skipping processing."));
+      expect(logWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("is not clean. Skipping processing.")
+      );
       expect(logInfoSpy).toHaveBeenCalledWith(
         expect.objectContaining({ results: expect.any(Object) }),
         "all records processed successfully"
