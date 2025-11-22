@@ -4,10 +4,13 @@ import { ApprovalPackageTable, ApprovalPackageTableRow } from "components/table/
 import { DocumentType } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { Button, SecondaryButton } from "components/button";
+import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
+import { useToast } from "components/toast";
 
 export interface ApprovalPackagePhaseProps {
   demonstrationId: string;
   documents: (ApplicationWorkflowDocument | undefined)[];
+  allPreviousPhasesDone: boolean;
 }
 
 const REQUIRED_TYPES: DocumentType[] = [
@@ -41,6 +44,16 @@ export const getApprovalPackagePhase = (
     (doc) => doc.documentType === "Signed Decision Memo"
   );
 
+  const currentPhaseIndex =
+    demonstration.phases.findIndex((p) => p.phaseName === "Approval Package");
+  const allPreviousPhasesDone = demonstration.phases
+    .slice(0, currentPhaseIndex) // all phases before the current one
+    .every(
+      (phase) =>
+        phase.phaseStatus === "Completed" ||
+        phase.phaseStatus === "Skipped"
+    );
+
   return (
     <ApprovalPackagePhase
       demonstrationId={demonstration.id}
@@ -52,6 +65,7 @@ export const getApprovalPackagePhase = (
         approvalLetterDocument,
         decisionMemoDocument,
       ]}
+      allPreviousPhasesDone={allPreviousPhasesDone}
     />
   );
 };
@@ -59,7 +73,15 @@ export const getApprovalPackagePhase = (
 export const ApprovalPackagePhase = ({
   demonstrationId,
   documents,
+  allPreviousPhasesDone,
 }: ApprovalPackagePhaseProps) => {
+  const { showSuccess, showError } = useToast();
+  const { setPhaseStatus: completeApprovalPackagePhase } = useSetPhaseStatus({
+    applicationId: demonstrationId,
+    phaseName: "Approval Package",
+    phaseStatus: "Completed",
+  });
+
   const tableRows: ApprovalPackageTableRow[] = REQUIRED_TYPES.map((type) => {
     const doc = documents.find((doc) => doc?.documentType === type);
 
@@ -86,6 +108,20 @@ export const ApprovalPackagePhase = ({
     };
   });
 
+  const finishEnabled = allPreviousPhasesDone &&
+    tableRows.every((row) => row.document); // all req documents have been provided
+
+  const handleFinishApprovalPackagePhase = async () => {
+    try {
+      await completeApprovalPackagePhase();
+    } catch {
+      showError("Failed to finish Approval Package phase.");
+      return;
+    }
+
+    showSuccess("Successfully finished Approval Package phase.");
+  };
+
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPROVAL</h3>
@@ -103,19 +139,20 @@ export const ApprovalPackagePhase = ({
         rows={tableRows}
       />
 
-      {/* LOGIC TO BE ADDED VIA DEMOS-1038 */}
       <div className="mt-8 mb-8 flex justify-end gap-2">
         <SecondaryButton
           name="button-skip-concept"
           onClick={() => {}}
           size="small"
+          disabled // Save function to be added later
         >
           Save For Later
         </SecondaryButton>
         <Button
           name="button-finish-concept"
-          onClick={() => {}}
           size="small"
+          disabled={!finishEnabled}
+          onClick={handleFinishApprovalPackagePhase}
         >
           Finish
         </Button>

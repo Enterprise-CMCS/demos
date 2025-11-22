@@ -8,11 +8,13 @@ import {
   getApprovalPackagePhase,
 } from "./ApprovalPackagePhase";
 
-import { ApplicationWorkflowDocument, ApplicationWorkflowDemonstration } from "components/application/ApplicationWorkflow";
+import {
+  ApplicationWorkflowDocument,
+  ApplicationWorkflowDemonstration,
+} from "components/application/ApplicationWorkflow";
 import { DocumentType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
 
-// Mock the table component so we can inspect rows passed into it
 vi.mock("components/table/tables/ApprovalPackageTable", () => ({
   ApprovalPackageTable: ({ rows }: { rows: ApprovalPackageTableRow[] }) => (
     <div data-testid="approval-package-table">
@@ -25,10 +27,22 @@ vi.mock("components/table/tables/ApprovalPackageTable", () => ({
   ),
 }));
 
-// Mock formatDate to ensure stable output
 vi.mock("util/formatDate", () => ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   formatDate: (date: string | Date) => "FormattedDate",
+}));
+
+vi.mock("components/application/phase-status/phaseStatusQueries", () => ({
+  useSetPhaseStatus: () => ({
+    setPhaseStatus: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
 }));
 
 const doc = (overrides: Partial<ApplicationWorkflowDocument>): ApplicationWorkflowDocument => ({
@@ -44,7 +58,11 @@ const doc = (overrides: Partial<ApplicationWorkflowDocument>): ApplicationWorkfl
 describe("ApprovalPackagePhase", () => {
   it("renders the section headers", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} />
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     expect(screen.getByText("APPROVAL")).toBeInTheDocument();
@@ -59,7 +77,11 @@ describe("ApprovalPackagePhase", () => {
 
   it("renders the table with all required types, even if documents missing", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} />
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     const rows = screen.getAllByTestId("table-row");
@@ -87,7 +109,11 @@ describe("ApprovalPackagePhase", () => {
     });
 
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[d1]} />
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={[d1]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     const rows = screen.getAllByTestId("table-row");
@@ -101,7 +127,11 @@ describe("ApprovalPackagePhase", () => {
 
   it("sets missing fields to '-' when no document", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} />
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     const rows = screen.getAllByTestId("table-row");
@@ -110,6 +140,73 @@ describe("ApprovalPackagePhase", () => {
     );
 
     expect(workbookRow!.textContent).toContain("-");
+  });
+
+  it("disables Finish when previous phases are NOT done", () => {
+    const d1 = doc({ documentType: "Q&A" });
+    const d2 = doc({ documentType: "Approval Letter" });
+
+    render(
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={[d1, d2]}
+        allPreviousPhasesDone={false}
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
+  });
+
+  it("disables Finish when NOT all required documents are uploaded", () => {
+    // Provide only one doc even though many required
+    const d1 = doc({ documentType: "Q&A" });
+
+    render(
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={[d1]}
+        allPreviousPhasesDone={true}
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
+  });
+
+  it("enables Finish ONLY when all previous phases are done AND all required documents uploaded", () => {
+    const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
+      doc({ documentType: "Q&A" }),
+      doc({ documentType: "Special Terms & Conditions" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
+      doc({ documentType: "Approval Letter" }),
+      doc({ documentType: "Signed Decision Memo" }),
+    ];
+
+    render(
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={completeDocs}
+        allPreviousPhasesDone={true}
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeEnabled();
+  });
+
+  it("handles empty documents list by disabling Finish", () => {
+    render(
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
   });
 });
 
@@ -120,10 +217,13 @@ describe("getApprovalPackagePhase", () => {
       status: "Pre-Submission",
       currentPhaseName: "Approval Package",
       documents: [
-        doc({ documentType: "Q&A", name: "Q&A Doc" as const }),
-        doc({ documentType: "Approval Letter", name: "Approval Doc" as const }),
+        doc({ documentType: "Q&A", name: "Q&A Doc" }),
+        doc({ documentType: "Approval Letter", name: "Approval Doc" }),
       ],
-      phases: [],
+      phases: [
+        { phaseName: "Completeness", phaseStatus: "Completed", phaseDates: [] },
+        { phaseName: "Approval Package", phaseStatus: "Started", phaseDates: [] },
+      ],
     };
 
     render(getApprovalPackagePhase(demonstration));
@@ -143,7 +243,10 @@ describe("getApprovalPackagePhase", () => {
       status: "Pre-Submission",
       currentPhaseName: "Approval Package",
       documents: [],
-      phases: [],
+      phases: [
+        { phaseName: "Completeness", phaseStatus: "Completed", phaseDates: [] },
+        { phaseName: "Approval Package", phaseStatus: "Started", phaseDates: [] },
+      ],
     };
 
     render(getApprovalPackagePhase(demonstration));
@@ -154,5 +257,63 @@ describe("getApprovalPackagePhase", () => {
     rows.forEach((row) => {
       expect(row.textContent).toContain("-");
     });
+  });
+
+  it("correctly computes allPreviousPhasesDone when all previous phases are completed", () => {
+    const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
+      doc({ documentType: "Q&A" }),
+      doc({ documentType: "Special Terms & Conditions" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
+      doc({ documentType: "Approval Letter" }),
+      doc({ documentType: "Signed Decision Memo" }),
+    ];
+
+    const demo: ApplicationWorkflowDemonstration = {
+      id: "demo-all",
+      status: "Under Review",
+      currentPhaseName: "Approval Package",
+      documents: completeDocs,
+      phases: [
+        { phaseName: "Concept", phaseStatus: "Completed", phaseDates: [] },
+        { phaseName: "Application Intake", phaseStatus: "Skipped", phaseDates: [] },
+        { phaseName: "Completeness", phaseStatus: "Completed", phaseDates: [] },
+        { phaseName: "Approval Package", phaseStatus: "Started", phaseDates: [] },
+      ],
+    };
+
+    render(getApprovalPackagePhase(demo));
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeEnabled();
+  });
+
+  it("correctly computes allPreviousPhasesDone when some previous phases are NOT completed", () => {
+    const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
+      doc({ documentType: "Q&A" }),
+      doc({ documentType: "Special Terms & Conditions" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
+      doc({ documentType: "Approval Letter" }),
+      doc({ documentType: "Signed Decision Memo" }),
+    ];
+
+    const demo: ApplicationWorkflowDemonstration = {
+      id: "demo-not",
+      status: "Under Review",
+      currentPhaseName: "Approval Package",
+      documents: completeDocs,
+      phases: [
+        { phaseName: "Concept", phaseStatus: "Completed", phaseDates: [] },
+        { phaseName: "Application Intake", phaseStatus: "Started", phaseDates: [] }, // Not Completed
+        { phaseName: "Completeness", phaseStatus: "Completed", phaseDates: [] },
+        { phaseName: "Approval Package", phaseStatus: "Started", phaseDates: [] },
+      ],
+    };
+
+    render(getApprovalPackagePhase(demo));
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
   });
 });
