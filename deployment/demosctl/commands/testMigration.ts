@@ -1,4 +1,4 @@
-import https from "https";
+import https from "node:https";
 
 import { getSecret } from "../lib/getSecret";
 import { Client } from "pg";
@@ -27,10 +27,16 @@ export async function testMigration(environment: string, dbname?: string) {
     return 1;
   }
 
-  if (dbname == "demos") {
-    console.error("testMigration cannot be run against 'demos' db");
+  if (dbname == "demos" || dbname == "postgres") {
+    console.error("testMigration cannot be run against specified db");
     return 1;
   }
+
+  if (!/^\w+$/.test(dbname)) {
+    console.error("invalid database name");
+    return 1;
+  }
+  const safeName = dbname
 
   console.log("test-migration:", environment);
   const caCert = await fetchCACert("https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem");
@@ -48,7 +54,7 @@ export async function testMigration(environment: string, dbname?: string) {
   let migrationStatus: number | null = -1;
   try {
     console.log("About to run the migrations....");
-    migrationStatus = await runMigration(environment, dbname, secretData);
+    migrationStatus = await runMigration(environment, safeName, secretData);
   } catch (err) {
     console.error("migrationStatus error", err);
     return 1;

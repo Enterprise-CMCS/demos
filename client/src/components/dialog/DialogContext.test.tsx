@@ -90,7 +90,7 @@ vi.mock("./ManageContactsDialog", () => ({
     </div>
   ),
 }));
-vi.mock("./document/DocumentDialog", () => ({
+vi.mock("./document", () => ({
   AddDocumentDialog: ({
     onClose,
     applicationId,
@@ -135,7 +135,7 @@ vi.mock("./document/DocumentDialog", () => ({
   ),
 }));
 
-vi.mock("./document/ApplicationIntakeUploadDialog", () => ({
+vi.mock("./document/phases/ApplicationIntakeUploadDialog", () => ({
   ApplicationIntakeUploadDialog: ({
     applicationId,
     onDocumentUploadSucceeded,
@@ -157,7 +157,7 @@ vi.mock("./document/ApplicationIntakeUploadDialog", () => ({
   ),
 }));
 
-vi.mock("./document/CompletenessDocumentUploadDialog", () => ({
+vi.mock("./document/phases/CompletenessDocumentUploadDialog", () => ({
   CompletenessDocumentUploadDialog: ({
     applicationId,
     onClose,
@@ -174,7 +174,7 @@ vi.mock("./document/CompletenessDocumentUploadDialog", () => ({
   ),
 }));
 
-vi.mock("./document/ConceptPreSubmissionUploadDialog", () => ({
+vi.mock("./document/phases/ConceptPreSubmissionUploadDialog", () => ({
   ConceptPreSubmissionUploadDialog: ({
     applicationId,
     onDocumentUploadSucceeded,
@@ -196,7 +196,7 @@ vi.mock("./document/ConceptPreSubmissionUploadDialog", () => ({
   ),
 }));
 
-vi.mock("./document/FederalCommentUploadDialog", () => ({
+vi.mock("./document/phases/FederalCommentUploadDialog", () => ({
   FederalCommentUploadDialog: ({
     applicationId,
     onClose,

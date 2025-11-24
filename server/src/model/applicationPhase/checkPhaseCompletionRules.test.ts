@@ -32,7 +32,7 @@ describe("checkPhaseCompletionRules", () => {
     Completeness: "Started",
     "Federal Comment": "Started",
     "SDG Preparation": "Started",
-    "OGC & OMB Review": "Started",
+    "Review": "Started",
     "Approval Package": "Started",
     "Post Approval": "Started",
   };
@@ -222,17 +222,17 @@ describe("checkPhaseCompletionRules", () => {
     });
   });
 
-  describe("OGC & OMB Review Phase", () => {
-    it("should throw since the OGC & OMB Review phase is not implemented", () => {
+  describe("Review Phase", () => {
+    it("should throw since the Review phase is not implemented", () => {
       expect(() =>
         checkPhaseCompletionRules(
           testApplicationId,
-          "OGC & OMB Review",
+          "Review",
           testApplicationDates,
           testApplicationDocumentTypes,
           testApplicationPhases
         )
-      ).toThrowError("Validation of the OGC & OMB Review phase via API is not yet implemented.");
+      ).toThrowError("Validation of the Review phase via API is not yet implemented.");
     });
   });
 
@@ -286,7 +286,7 @@ describe("checkPhaseCompletionRules", () => {
         [testApplicationId, "Approval Package", "Completeness", testApplicationPhases],
         [testApplicationId, "Approval Package", "Federal Comment", testApplicationPhases],
         [testApplicationId, "Approval Package", "SDG Preparation", testApplicationPhases],
-        [testApplicationId, "Approval Package", "OGC & OMB Review", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Review", testApplicationPhases],
       ]);
     });
   });

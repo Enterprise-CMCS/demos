@@ -41,7 +41,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
     documentTypesMustExist: [],
     phasesMustBeComplete: ["Application Intake", "Completeness", "Federal Comment"],
   },
-  "OGC & OMB Review": "Not Implemented",
+  "Review": "Not Implemented",
   "Approval Package": {
     datesMustExist: [],
     documentTypesMustExist: [
@@ -57,7 +57,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Completeness",
       "Federal Comment",
       "SDG Preparation",
-      "OGC & OMB Review",
+      "Review",
     ],
   },
   "Post Approval": "Not Implemented",

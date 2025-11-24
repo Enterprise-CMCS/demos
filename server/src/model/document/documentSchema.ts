@@ -34,18 +34,21 @@ export const documentSchema = gql`
   }
 
   type UploadDocumentResponse {
-    presignedURL: String
+    presignedURL: String!
+    documentId: ID!
   }
 
   type Mutation {
     uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+    deleteDocument(id: ID!): Document!
     deleteDocuments(ids: [ID!]!): Int!
     downloadDocument(id: ID!): String
   }
 
   type Query {
     document(id: ID!): Document
+    documentExists(documentId: ID!): Boolean!
   }
 `;
 
@@ -79,5 +82,6 @@ export interface UpdateDocumentInput {
 }
 
 export interface UploadDocumentResponse {
-  presignedURL?: string | null;
+  presignedURL: string;
+  documentId: string;
 }

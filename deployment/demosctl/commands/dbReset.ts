@@ -3,6 +3,7 @@ import fs from "fs";
 
 import { getSecret } from "../lib/getSecret";
 import { runShell } from "../lib/runCommand";
+import { ListBucketsCommand, S3Client } from "@aws-sdk/client-s3";
 
 interface DBData {
   username: string;
@@ -33,6 +34,14 @@ export async function dbReset(environment: string, absPath: string = "") {
     return 1;
   }
 
+  const s3 = new S3Client({region: "us-east-1"})
+  const res = await s3.send(new ListBucketsCommand({Prefix: `demos-${environment}-file-upload-filecleanbucket`}))
+
+  if (res.Buckets?.length != 1) {
+    console.error("couldn't find the proper bucket...", res)
+    return 1
+  }
+
   const dbUrl = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${dbname}?schema=demos_app`;
   let serverPath = path.join("..", "server");
   if (absPath != "") {
@@ -49,6 +58,7 @@ export async function dbReset(environment: string, absPath: string = "") {
       ...process.env,
       DATABASE_URL: dbUrl,
       ALLOW_SEED: "true",
+      CLEAN_BUCKET: res.Buckets[0].Name
     },
   });
 }

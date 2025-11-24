@@ -236,7 +236,7 @@ describe("completePhase", () => {
                 dateValue: mockEasternStartOfDayDate,
               },
               {
-                dateType: "OGC & OMB Review Start Date",
+                dateType: "Review Start Date",
                 dateValue: mockEasternStartOfDayDate,
               },
             ],
@@ -260,7 +260,7 @@ describe("completePhase", () => {
       );
       expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
-        "OGC & OMB Review",
+        "Review",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
@@ -268,11 +268,30 @@ describe("completePhase", () => {
     });
   });
 
-  describe("OGC & OMB Review Phase", () => {
-    it("should take the right actions when completing the OGC & OMB Review phase", async () => {
+  describe("Review Phase", () => {
+    it("should take the right actions when completing the Review phase", async () => {
       const testInput: CompletePhaseInput = {
         applicationId: testApplicationId,
-        phaseName: "OGC & OMB Review",
+        phaseName: "Review",
+      };
+
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        "Completion of the Review phase via API is not yet implemented."
+      );
+
+      expect(validatePhaseCompletion).not.toHaveBeenCalled();
+      expect(updatePhaseStatus).not.toHaveBeenCalled();
+      expect(startNextPhase).not.toBeCalled();
+      expect(validateAndUpdateDates).not.toHaveBeenCalled();
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Approval Package Phase", () => {
+    it("should take the right actions when completing the Approval Package phase", async () => {
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Approval Package",
       };
       const expectedDateCall = [
         [
@@ -280,11 +299,7 @@ describe("completePhase", () => {
             applicationId: testApplicationId,
             applicationDates: [
               {
-                dateType: "OGC & OMB Review Completion Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-              {
-                dateType: "Approval Package Start Date",
+                dateType: "Approval Package Completion Date",
                 dateValue: mockEasternStartOfDayDate,
               },
             ],
@@ -297,40 +312,21 @@ describe("completePhase", () => {
 
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
-        "OGC & OMB Review",
+        "Approval Package",
         mockTransaction
       );
       expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
-        "OGC & OMB Review",
+        "Approval Package",
         "Completed",
         mockTransaction
       );
       expect(startNextPhase).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
-        "Approval Package",
+        "Post Approval",
         mockTransaction
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
-      expect(handlePrismaError).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("Approval Package Phase", () => {
-    it("should throw when attempting to complete the Approval Package phase", async () => {
-      const testInput: CompletePhaseInput = {
-        applicationId: testApplicationId,
-        phaseName: "Approval Package",
-      };
-
-      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
-        "Completion of the Approval Package phase via API is not yet implemented."
-      );
-
-      expect(validatePhaseCompletion).not.toHaveBeenCalled();
-      expect(updatePhaseStatus).not.toHaveBeenCalled();
-      expect(startNextPhase).not.toBeCalled();
-      expect(validateAndUpdateDates).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });

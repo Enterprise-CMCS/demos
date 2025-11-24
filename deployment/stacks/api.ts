@@ -31,7 +31,11 @@ interface APIStackProps {
 }
 
 export class ApiStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties & APIStackProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: StackProps & DeploymentConfigProperties & APIStackProps
+  ) {
     super(scope, id, {
       ...props,
       terminationProtection: false,
@@ -42,7 +46,11 @@ export class ApiStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
+          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(
+              this,
+              "iamPermissionsBoundary",
+              props.iamPermissionsBoundaryArn
+            )
           : undefined,
     };
 
@@ -56,9 +64,15 @@ export class ApiStack extends Stack {
       `${commonProps.project}-${commonProps.hostEnvironment}-rds-security-group-id`
     );
 
-    const rdsPort = importNumberValue(`${commonProps.project}-${commonProps.hostEnvironment}-rds-port`);
+    const rdsPort = importNumberValue(
+      `${commonProps.project}-${commonProps.hostEnvironment}-rds-port`
+    );
 
-    const rdsSg = aws_ec2.SecurityGroup.fromSecurityGroupId(commonProps.scope, "rdsSg", rdsSecurityGroupId);
+    const rdsSg = aws_ec2.SecurityGroup.fromSecurityGroupId(
+      commonProps.scope,
+      "rdsSg",
+      rdsSecurityGroupId
+    );
 
     rdsSg.addIngressRule(
       aws_ec2.Peer.securityGroupId(graphqlLambdaSecurityGroup.securityGroup.securityGroupId),
@@ -80,6 +94,16 @@ export class ApiStack extends Stack {
       aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
       aws_ec2.Port.HTTPS,
       "Allow traffic to secrets manager VPCE"
+    );
+
+    const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
+      prefixListName: `com.amazonaws.${this.region}.s3`,
+    });
+    
+    graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
     );
 
     const cognitoAuthority = Fn.importValue(`${commonProps.hostEnvironment}CognitoAuthority`);
@@ -112,16 +136,23 @@ export class ApiStack extends Stack {
       "authorizer"
     );
 
-    const tokenAuthorizer = new aws_apigateway.TokenAuthorizer(commonProps.scope, "jwtTokenAuthorizer", {
-      handler: authorizerLambda.lambda.lambda,
-      authorizerName: "cognitoTokenAuth",
-    });
+    const tokenAuthorizer = new aws_apigateway.TokenAuthorizer(
+      commonProps.scope,
+      "jwtTokenAuthorizer",
+      {
+        handler: authorizerLambda.lambda.lambda,
+        authorizerName: "cognitoTokenAuth",
+      }
+    );
 
     const uploadBucketName = Fn.importValue(`${props.stage}UploadBucketName`);
     const uploadBucket = aws_s3.Bucket.fromBucketName(this, "uploadBucket", uploadBucketName);
 
     const cleanBucketName = Fn.importValue(`${props.stage}CleanBucketName`);
     const cleanBucket = aws_s3.Bucket.fromBucketName(this, "cleanBucket", cleanBucketName);
+
+    const deletedBucketName = Fn.importValue(`${props.stage}DeletedBucketName`);
+    const deletedBucket = aws_s3.Bucket.fromBucketName(this, "deletedBucket", deletedBucketName);
 
     const graphqlLambda = lambda.create(
       {
@@ -142,13 +173,16 @@ export class ApiStack extends Stack {
           DATABASE_SECRET_ARN: dbSecret.secretName, // This needs to be the name rather than the arn, otherwise the request from the lambda fails since no secret suffix is available
           UPLOAD_BUCKET: uploadBucket.bucketName,
           CLEAN_BUCKET: cleanBucket.bucketName,
+          DELETED_BUCKET: deletedBucket.bucketName,
         },
       },
       "graphql"
     );
     dbSecret.grantRead(graphqlLambda.lambda.role);
     uploadBucket.grantPut(graphqlLambda.lambda.role);
-
+    cleanBucket.grantDelete(graphqlLambda.lambda.role);
+    cleanBucket.grantRead(graphqlLambda.lambda.role);
+    deletedBucket.grantPut(graphqlLambda.lambda.role);
     const emailerTimeout = Duration.minutes(1);
 
     const kmsKey = new aws_kms.Key(this, "emailerQueueKey", {
@@ -187,7 +221,12 @@ export class ApiStack extends Stack {
     //   "Allow traffic to cms smtp"
     // );
 
-    const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(commonProps.scope, "cmsSharedServcices", "cmscloud-shared-services", commonProps.vpc)
+    const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
+      commonProps.scope,
+      "cmsSharedServcices",
+      "cmscloud-shared-services",
+      commonProps.vpc
+    );
 
     const ssmSg = aws_ec2.SecurityGroup.fromLookupByName(
       this,

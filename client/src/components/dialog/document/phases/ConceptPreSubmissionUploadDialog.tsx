@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AddDocumentDialog } from "components/dialog/document/DocumentDialog";
+import { AddDocumentDialog } from "components/dialog/document";
 import { DocumentType } from "demos-server";
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["Pre-Submission", "General File"];
