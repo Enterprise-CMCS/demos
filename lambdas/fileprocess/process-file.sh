@@ -32,8 +32,10 @@ FILE_ID="$1"
 # Check for -i flag
 if [ "$2" = "-i" ]; then
     SCAN_RESULT_STATUS="THREATS_FOUND"
+    THREATS_JSON=',\"threats\":[{\"name\":\"Trojan.Generic\"},{\"name\":\"Malware.Eicar.Test\"}]'
 else
     SCAN_RESULT_STATUS="NO_THREATS_FOUND"
+    THREATS_JSON=',\"threats\":null'
 fi
 
 echo -e "🔄 Processing file: $FILE_ID with Status: $SCAN_RESULT_STATUS"
@@ -42,7 +44,7 @@ GUARD_DUTY_PAYLOAD=$(cat << EOF | base64 -w 0
 {
   "Records": [
     {
-      "body": "{\"detail-type\":\"GuardDuty Malware Protection Object Scan Result\",\"detail\":{\"scanStatus\":\"COMPLETED\",\"s3ObjectDetails\":{\"bucketName\":\"upload-bucket\",\"objectKey\":\"$FILE_ID\"},\"scanResultDetails\":{\"scanResultStatus\":\"$SCAN_RESULT_STATUS\"}}}"
+      "body": "{\"detail-type\":\"GuardDuty Malware Protection Object Scan Result\",\"detail\":{\"scanStatus\":\"COMPLETED\",\"s3ObjectDetails\":{\"bucketName\":\"upload-bucket\",\"objectKey\":\"$FILE_ID\"},\"scanResultDetails\":{\"scanResultStatus\":\"$SCAN_RESULT_STATUS\"$THREATS_JSON}}}"
     }
   ]
 }

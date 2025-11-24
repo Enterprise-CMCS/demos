@@ -114,6 +114,24 @@ export class FileUploadStack extends Stack {
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
 
+    const infectedBucket = new Bucket(this, "FileInfectedBucket", {
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      serverAccessLogsBucket: accessLogs,
+      serverAccessLogsPrefix: "infected",
+      enforceSSL: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+      lifecycleRules: [
+        {
+          id: "DeleteInfectedFilesAfter30Days",
+          enabled: true,
+          expiration: Duration.days(30),
+        },
+      ],
+    });
+
     const fileProcessLambdaSecurityGroup = securityGroup.create({
       ...props,
       name: "fileProcessSecurityGroup",
@@ -178,6 +196,7 @@ export class FileUploadStack extends Stack {
       environment: {
         UPLOAD_BUCKET: uploadBucket.bucketName,
         CLEAN_BUCKET: cleanBucket.bucketName,
+        INFECTED_BUCKET: infectedBucket.bucketName,
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
@@ -193,6 +212,7 @@ export class FileUploadStack extends Stack {
     uploadBucket.grantRead(fileProcessLambda.lambda);
     uploadBucket.grantDelete(fileProcessLambda.lambda);
     cleanBucket.grantWrite(fileProcessLambda.lambda);
+    infectedBucket.grantWrite(fileProcessLambda.lambda);
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
     dbSecret.grantRead(fileProcessLambda.lambda);
 
@@ -209,6 +229,11 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "deletedBucketName", {
       exportName: `${props.stage}DeletedBucketName`,
       value: deletedBucket.bucketName,
+    });
+
+    new CfnOutput(this, "infectedBucketName", {
+      exportName: `${props.stage}InfectedBucketName`,
+      value: infectedBucket.bucketName,
     });
   }
 }
