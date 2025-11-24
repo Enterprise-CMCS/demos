@@ -17,6 +17,23 @@ const mockDBData = {
   dbname: "hostDB",
 };
 
+jest.mock("@aws-sdk/client-s3", () => {
+  const actual = jest.requireActual("@aws-sdk/client-s3");
+  return {
+    ...actual,
+    S3Client: jest.fn(() => ({
+      send: jest.fn(async (command) => {
+        if (
+          command instanceof actual.ListBucketsCommand
+        ) {
+          return {Buckets: [{Name: "cleanBucket"}]};
+        }
+        return {};
+      }),
+    })),
+  };
+});
+
 describe("runMigration", () => {
   beforeEach(() => {
     jest.spyOn(console, "error");
