@@ -1,4 +1,9 @@
-import { SQSEvent, GuardDutyScanResultNotificationEvent, Context } from "aws-lambda";
+import {
+  SQSEvent,
+  GuardDutyScanResultNotificationEvent,
+  Context,
+  GuardDutyScanResultNotificationEventDetail,
+} from "aws-lambda";
 
 import { Client } from "pg";
 import { S3Client, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
@@ -37,11 +42,6 @@ const secretsManagerConfig = process.env.AWS_ENDPOINT_URL
 
 const secretsManager = new SecretsManagerClient(secretsManagerConfig);
 
-interface FileInfo {
-  bucket: string;
-  key: string;
-  status: string;
-}
 interface Results {
   processedRecords: number;
   cleanFiles: number;
@@ -84,6 +84,56 @@ export async function getApplicationId(client: typeof Client, fileKey: string) {
   }
 }
 
+export async function moveFile(
+  documentId: string,
+  destinationBucket: string,
+  destinationKey: string
+) {
+  await s3.send(
+    new CopyObjectCommand({
+      Bucket: destinationBucket,
+      CopySource: `${uploadBucket}/${documentId}`,
+      Key: destinationKey,
+    })
+  );
+  log.info(`successfully copied file to ${destinationBucket}`);
+
+  await s3.send(
+    new DeleteObjectCommand({
+      Bucket: uploadBucket,
+      Key: documentId,
+    })
+  );
+  log.info(`successfully deleted file from ${uploadBucket}`);
+}
+
+export async function processCleanDatabaseRecord(
+  client: typeof Client,
+  documentId: string,
+  applicationId: string
+) {
+  const processDocumentQuery = `CALL ${dbSchema}.${PROCESS_PENDING_DOCUMENT_CLEAN}($1::UUID, $2::TEXT);`;
+  await client.query(processDocumentQuery, [documentId, `${applicationId}/${documentId}`]);
+}
+
+export async function processInfectedDatabaseRecord(
+  client: typeof Client,
+  documentId: string,
+  applicationId: string,
+  scanResultDetails: GuardDutyScanResultNotificationEventDetail["scanResultDetails"]
+) {
+  const threatsString = scanResultDetails.threats
+    ? scanResultDetails.threats.map((threat) => threat.name).join(", ")
+    : "";
+  const processDocumentQuery = `CALL ${dbSchema}.${PROCESS_PENDING_DOCUMENT_INFECTED}($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);`;
+  await client.query(processDocumentQuery, [
+    documentId,
+    `${applicationId}/${documentId}`,
+    scanResultDetails.scanResultStatus ?? "",
+    threatsString,
+  ]);
+}
+
 export async function processGuardDutyResult(
   client: typeof Client,
   guardDutyEvent: GuardDutyScanResultNotificationEvent
@@ -116,43 +166,18 @@ export async function processGuardDutyResult(
 
   const documentId = s3Details.objectKey;
   const applicationId = await getApplicationId(client, documentId);
-  const destinationKey = `${applicationId}/${documentId}`;
 
   const scanResultStatus = scanResultDetails.scanResultStatus;
   const isClean = scanResultStatus === GUARDDUTY_CLEAN_STATUS;
+
   const destinationBucket = isClean ? cleanBucket : infectedBucket;
+  const destinationKey = `${applicationId}/${documentId}`;
 
-  await s3.send(
-    new CopyObjectCommand({
-      Bucket: destinationBucket,
-      CopySource: `${uploadBucket}/${documentId}`,
-      Key: destinationKey,
-    })
-  );
-  log.info(`successfully copied file to ${isClean ? "clean" : "infected"} bucket`);
-
-  await s3.send(
-    new DeleteObjectCommand({
-      Bucket: uploadBucket,
-      Key: documentId,
-    })
-  );
-  log.info("successfully deleted file from pending bucket");
-
+  await moveFile(documentId, destinationBucket, destinationKey);
   if (isClean) {
-    const processDocumentQuery = `CALL ${dbSchema}.${PROCESS_PENDING_DOCUMENT_CLEAN}($1::UUID, $2::TEXT);`;
-    await client.query(processDocumentQuery, [documentId, `${applicationId}/${documentId}`]);
+    processCleanDatabaseRecord(client, documentId, applicationId);
   } else {
-    const threatsString = scanResultDetails.threats
-      ? scanResultDetails.threats.map((threat) => threat.name).join(", ")
-      : "";
-    const processDocumentQuery = `CALL ${dbSchema}.${PROCESS_PENDING_DOCUMENT_INFECTED}($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);`;
-    await client.query(processDocumentQuery, [
-      documentId,
-      `${applicationId}/${documentId}`,
-      scanResultStatus ?? "",
-      threatsString,
-    ]);
+    processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
   }
 
   return isClean;
