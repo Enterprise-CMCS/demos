@@ -45,49 +45,46 @@ export function createLocalS3Adapter(
   baseDir: string = "/tmp/demos-local-s3",
   baseUrl: string = "http://localhost:4566",
 ): S3Adapter {
+  const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-upload-bucket";
+  const cleanBucket = process.env.CLEAN_BUCKET ?? "local-clean-bucket";
+  const deletedBucket = process.env.DELETED_BUCKET ?? "local-deleted-bucket";
+
   return {
     async getPresignedUploadUrl(
-      bucket: string,
       key: string,
       expiresIn: number,
     ): Promise<string> {
-      const url = `${baseUrl}/${bucket}/${key}?upload=true&expires=${expiresIn}`;
+      const url = `${baseUrl}/${uploadBucket}/${key}?upload=true&expires=${expiresIn}`;
 
       log.debug("LocalS3Adapter: Generated upload URL", undefined, {
-        bucket,
+        bucket: uploadBucket,
         key,
         url,
-        localPath: await getFilePath(baseDir, bucket, key),
+        localPath: await getFilePath(baseDir, uploadBucket, key),
       });
 
       return url;
     },
 
     async getPresignedDownloadUrl(
-      bucket: string,
       key: string,
       expiresIn: number,
     ): Promise<string> {
-      const url = `${baseUrl}/${bucket}/${key}?download=true&expires=${expiresIn}`;
+      const url = `${baseUrl}/${cleanBucket}/${key}?download=true&expires=${expiresIn}`;
 
       log.debug("LocalS3Adapter: Generated download URL", undefined, {
-        bucket,
+        bucket: cleanBucket,
         key,
         url,
-        localPath: await getFilePath(baseDir, bucket, key),
+        localPath: await getFilePath(baseDir, cleanBucket, key),
       });
 
       return url;
     },
 
-    async copyObject(
-      sourceBucket: string,
-      sourceKey: string,
-      destBucket: string,
-      destKey: string,
-    ): Promise<void> {
-      const sourcePath = await getFilePath(baseDir, sourceBucket, sourceKey);
-      const destPath = await getFilePath(baseDir, destBucket, destKey);
+    async moveDocumentFromCleanToDeleted(key: string): Promise<void> {
+      const sourcePath = await getFilePath(baseDir, cleanBucket, key);
+      const destPath = await getFilePath(baseDir, deletedBucket, key);
 
       try {
         await fs.copyFile(sourcePath, destPath);
@@ -110,21 +107,19 @@ export function createLocalS3Adapter(
           throw new Error(`Failed to copy file: ${error}`);
         }
       }
-    },
-
-    async deleteObject(bucket: string, key: string): Promise<void> {
-      const filePath = await getFilePath(baseDir, bucket, key);
 
       try {
-        await fs.unlink(filePath);
-        log.debug("LocalS3Adapter: Deleted file", undefined, { filePath });
+        await fs.unlink(sourcePath);
+        log.debug("LocalS3Adapter: Deleted file", undefined, {
+          filePath: sourcePath,
+        });
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === "ENOENT") {
           log.warn(
             "LocalS3Adapter: File not found, skipping delete",
             undefined,
             {
-              filePath,
+              filePath: sourcePath,
             },
           );
           // File doesn't exist, which is fine for delete operation

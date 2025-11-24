@@ -7,26 +7,11 @@ import { createLocalS3Adapter } from "./LocalS3Adapter.js";
  * to be injected based on the environment.
  */
 export interface S3Adapter {
-  getPresignedUploadUrl(
-    bucket: string,
-    key: string,
-    expiresIn: number,
-  ): Promise<string>;
+  getPresignedUploadUrl(key: string, expiresIn: number): Promise<string>;
 
-  getPresignedDownloadUrl(
-    bucket: string,
-    key: string,
-    expiresIn: number,
-  ): Promise<string>;
+  getPresignedDownloadUrl(key: string, expiresIn: number): Promise<string>;
 
-  copyObject(
-    sourceBucket: string,
-    sourceKey: string,
-    destBucket: string,
-    destKey: string,
-  ): Promise<void>;
-
-  deleteObject(bucket: string, key: string): Promise<void>;
+  moveDocumentFromCleanToDeleted(key: string): Promise<void>;
 }
 
 /**
