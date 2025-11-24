@@ -4,9 +4,13 @@ import {
   makeApplicationDateMapFromList,
   validateInputDates,
 } from "./validateInputDates.js";
-import { DateType, ParsedApplicationDateInput } from "../../types.js";
+import { DateType } from "../../types.js";
+import { ParsedApplicationDateInput } from ".";
+import { EasternTZDate } from "../../dateUtilities.js";
 import { DATE_TYPES, DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
+import { TZDate } from "@date-fns/tz";
 
+// Mock imports
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
@@ -26,7 +30,10 @@ vi.mock(".", () => ({
 }));
 
 describe("validateInputDates", () => {
-  const testDateValue = new Date("2025-01-01T05:00:00Z");
+  const testDateValue: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate("2025-01-01T00:00:00.000-05:00", "America/New_York"),
+  };
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -77,7 +84,7 @@ describe("validateInputDates", () => {
   });
 
   describe("validateInputDates", () => {
-    const testInput = DATE_TYPES.map((dateType) => ({
+    const testInput: ParsedApplicationDateInput[] = DATE_TYPES.map((dateType) => ({
       dateType: dateType,
       dateValue: testDateValue,
     }));
@@ -180,10 +187,7 @@ describe("validateInputDates", () => {
           "State Application Submitted Date",
           {
             days: 15,
-            hours: 23,
-            minutes: 59,
-            seconds: 59,
-            milliseconds: 999,
+            expectedTimestamp: "End of Day",
           },
         ],
         [
@@ -191,10 +195,7 @@ describe("validateInputDates", () => {
           "State Application Deemed Complete",
           {
             days: 1,
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0,
+            expectedTimestamp: "Start of Day",
           },
         ],
         [
@@ -202,10 +203,15 @@ describe("validateInputDates", () => {
           "Federal Comment Period Start Date",
           {
             days: 30,
-            hours: 23,
-            minutes: 59,
-            seconds: 59,
-            milliseconds: 999,
+            expectedTimestamp: "End of Day",
+          },
+        ],
+        [
+          "Federal Comment Period Start Date",
+          "Federal Comment Period End Date",
+          {
+            days: -30,
+            expectedTimestamp: "Start of Day",
           },
         ],
       ];

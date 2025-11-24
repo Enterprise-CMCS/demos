@@ -1,12 +1,15 @@
 import { EasternTZDate } from "../../dateUtilities.js";
 import { DateType, ExpectedTimestamp } from "../../types.js";
 
-export type DateTimeParts = {
-  hours: number;
-  minutes: number;
-  seconds: number;
-  milliseconds: number;
-};
+export interface ParsedApplicationDateInput {
+  dateType: DateType;
+  dateValue: EasternTZDate;
+}
+
+export interface ParsedSetApplicationDatesInput {
+  applicationId: string;
+  applicationDates: ParsedApplicationDateInput[];
+}
 
 export type DateOffset = {
   days: number;

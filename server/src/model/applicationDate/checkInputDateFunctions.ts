@@ -1,5 +1,5 @@
 import { DateType, ExpectedTimestamp } from "../../types.js";
-import { DateOffset, ApplicationDateMap } from "./applicationDateTypes.js";
+import { DateOffset, ApplicationDateMap } from ".";
 import { addDays } from "date-fns";
 import { GraphQLError } from "graphql";
 import { EasternTZDate, getDateTimeParts } from "../../dateUtilities.js";

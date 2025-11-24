@@ -1,4 +1,5 @@
-import { ParsedApplicationDateInput, PhaseNameWithTrackedStatus } from "../../types.js";
+import { PhaseNameWithTrackedStatus } from "../../types.js";
+import { ParsedApplicationDateInput } from "../applicationDate";
 import { makeApplicationDateMapFromList } from "../applicationDate";
 import {
   ApplicationPhaseDocumentTypeRecord,
@@ -41,7 +42,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
     documentTypesMustExist: [],
     phasesMustBeComplete: ["Application Intake", "Completeness", "Federal Comment"],
   },
-  "Review": "Not Implemented",
+  Review: "Not Implemented",
   "Approval Package": {
     datesMustExist: [],
     documentTypesMustExist: [

@@ -1,6 +1,7 @@
-import { DateType, ParsedApplicationDateInput } from "../../types.js";
+import { DateType } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import {
+  ParsedApplicationDateInput,
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
   checkInputDateGreaterThan,
@@ -61,10 +62,7 @@ VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"].push({
   dateTypeToCheck: "State Application Submitted Date",
   dateOffset: {
     days: 15,
-    hours: 23,
-    minutes: 59,
-    seconds: 59,
-    milliseconds: 999,
+    expectedTimestamp: "End of Day",
   },
 });
 
@@ -73,10 +71,7 @@ VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"].push({
   dateTypeToCheck: "State Application Deemed Complete",
   dateOffset: {
     days: 1,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-    milliseconds: 0,
+    expectedTimestamp: "Start of Day",
   },
 });
 
@@ -85,10 +80,15 @@ VALIDATION_CHECKS["Federal Comment Period End Date"]["offsetChecks"].push({
   dateTypeToCheck: "Federal Comment Period Start Date",
   dateOffset: {
     days: 30,
-    hours: 23,
-    minutes: 59,
-    seconds: 59,
-    milliseconds: 999,
+    expectedTimestamp: "End of Day",
+  },
+});
+
+VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"].push({
+  dateTypeToCheck: "Federal Comment Period End Date",
+  dateOffset: {
+    days: -30,
+    expectedTimestamp: "Start of Day",
   },
 });
 

@@ -31,7 +31,8 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
 } from "../application/applicationResolvers.js";
-import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
+import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
+import { TZDate } from "@date-fns/tz";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -117,13 +118,17 @@ export async function __updateDemonstration(
   parent: unknown,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
+  let easternEffectiveDate: TZDate | undefined = undefined;
+  let easternExpirationDate: TZDate | undefined = undefined;
   if (input.effectiveDate) {
-    input.effectiveDate = parseDateTimeOrLocalDateToJSDate(input.effectiveDate, "Start of Day");
-    checkInputDateIsStartOfDay("effectiveDate", input.effectiveDate);
+    const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.effectiveDate, "Start of Day");
+    checkInputDateIsStartOfDay("effectiveDate", inputDate);
+    easternEffectiveDate = inputDate.easternTZDate;
   }
   if (input.expirationDate) {
-    input.expirationDate = parseDateTimeOrLocalDateToJSDate(input.expirationDate, "End of Day");
-    checkInputDateIsEndOfDay("expirationDate", input.expirationDate);
+    const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.expirationDate, "End of Day");
+    checkInputDateIsEndOfDay("expirationDate", inputDate);
+    easternExpirationDate = inputDate.easternTZDate;
   }
   checkOptionalNotNullFields(
     ["name", "status", "currentPhaseName", "stateId", "projectOfficerUserId"],
@@ -136,8 +141,8 @@ export async function __updateDemonstration(
         data: {
           name: input.name,
           description: input.description,
-          effectiveDate: input.effectiveDate,
-          expirationDate: input.expirationDate,
+          effectiveDate: easternEffectiveDate,
+          expirationDate: easternExpirationDate,
           sdgDivisionId: input.sdgDivision,
           signatureLevelId: input.signatureLevel,
           statusId: input.status,

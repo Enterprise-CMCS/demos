@@ -1,10 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  ParsedApplicationDateInput,
-  ParsedSetApplicationDatesInput,
-  SetApplicationDatesInput,
-} from "../../types.js";
+import { LocalDate, SetApplicationDatesInput } from "../../types.js";
+import { EasternTZDate } from "../../dateUtilities.js";
+import { ParsedApplicationDateInput, ParsedSetApplicationDatesInput } from ".";
 import { validateAndUpdateDates } from "./validateAndUpdateDates.js";
+import { TZDate } from "@date-fns/tz";
 
 // Mock imports
 import {
@@ -25,10 +24,20 @@ vi.mock(".", () => ({
 
 describe("validateAndUpdateDates", () => {
   const testPrismaTransaction: any = "Test";
-  const testDateTimeValue1 = new Date("2025-01-01T00:00:00.000Z");
-  const testLocalDateValue2 = "2025-10-31";
-  const testDateTimeValue2 = new Date("2025-10-31T00:00:00.000Z");
-  const testDateTimeValue3 = new Date("2025-11-13T00:00:00.000Z");
+  const testDateTimeValue1 = new Date("2025-01-01T00:00:00.000-05:00");
+  const testDateTimeValue2: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate("2025-01-01T00:00:00.000-05:00", "America/New_York"),
+  };
+  const testLocalDateValue3 = "2025-10-31" as LocalDate;
+  const testDateTimeValue3: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate("2025-10-31T00:00:00.000-04:00", "America/New_York"),
+  };
+  const testDateTimeValue4: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate("2025-11-13T00:00:00.000-05:00", "America/New_York"),
+  };
 
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testInput: SetApplicationDatesInput = {
@@ -40,7 +49,7 @@ describe("validateAndUpdateDates", () => {
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: testLocalDateValue2,
+        dateValue: testLocalDateValue3,
       },
     ],
   };
@@ -49,32 +58,32 @@ describe("validateAndUpdateDates", () => {
     applicationDates: [
       {
         dateType: "Federal Comment Period Start Date",
-        dateValue: testDateTimeValue1,
+        dateValue: testDateTimeValue2,
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: testDateTimeValue2,
+        dateValue: testDateTimeValue3,
       },
     ],
   };
   const testExistingDates: ParsedApplicationDateInput[] = [
     {
       dateType: "BNPMT Initial Meeting Date",
-      dateValue: testDateTimeValue3,
+      dateValue: testDateTimeValue4,
     },
   ];
   const testMergedDates: ParsedApplicationDateInput[] = [
     {
       dateType: "Federal Comment Period Start Date",
-      dateValue: testDateTimeValue1,
-    },
-    {
-      dateType: "Federal Comment Period End Date",
       dateValue: testDateTimeValue2,
     },
     {
-      dateType: "BNPMT Initial Meeting Date",
+      dateType: "Federal Comment Period End Date",
       dateValue: testDateTimeValue3,
+    },
+    {
+      dateType: "BNPMT Initial Meeting Date",
+      dateValue: testDateTimeValue4,
     },
   ];
 

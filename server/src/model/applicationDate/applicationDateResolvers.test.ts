@@ -4,11 +4,8 @@ import {
   __resolveApplicationDateType,
   __setApplicationDate,
 } from "./applicationDateResolvers.js";
-import {
-  ParsedSetApplicationDatesInput,
-  SetApplicationDateInput,
-  SetApplicationDatesInput,
-} from "../../types.js";
+import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
+import { ParsedSetApplicationDatesInput } from ".";
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 
 // Mock imports
@@ -42,7 +39,7 @@ describe("applicationDateResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
   };
 
-  const testDateValue = new Date("2025-01-01T00:00:00Z");
+  const testDateValue = new Date("2025-01-01T00:00:00.000Z");
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
 
@@ -53,7 +50,7 @@ describe("applicationDateResolvers", () => {
   });
 
   describe("__setApplicationDates", () => {
-    const testInput: ParsedSetApplicationDatesInput = {
+    const testInput: SetApplicationDatesInput = {
       applicationId: testApplicationId,
       applicationDates: [
         {
@@ -99,7 +96,7 @@ describe("applicationDateResolvers", () => {
       dateType: "BNPMT Initial Meeting Date",
       dateValue: testDateValue,
     };
-    const transformedTestInput: ParsedSetApplicationDatesInput = {
+    const transformedTestInput: SetApplicationDatesInput = {
       applicationId: testApplicationId,
       applicationDates: [
         {

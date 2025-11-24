@@ -1,5 +1,7 @@
 import { PrismaTransactionClient } from "../../../prismaClient.js";
-import { DateType, ParsedApplicationDateInput } from "../../../types.js";
+import { DateType } from "../../../types.js";
+import { ParsedApplicationDateInput } from "..";
+import { parseJSDateToEasternTZDate } from "../../../dateUtilities.js";
 
 export async function getApplicationDates(
   applicationId: string,
@@ -16,6 +18,6 @@ export async function getApplicationDates(
   });
   return result.map((row) => ({
     dateType: row.dateTypeId as DateType, // Enforced by database constraints
-    dateValue: row.dateValue,
+    dateValue: parseJSDateToEasternTZDate(row.dateValue),
   }));
 }

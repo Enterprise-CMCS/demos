@@ -1,4 +1,4 @@
-import { ParsedApplicationDateInput } from "../../types.js";
+import { ParsedApplicationDateInput } from ".";
 
 export function mergeApplicationDates(
   existingDates: ParsedApplicationDateInput[],
