@@ -1,6 +1,5 @@
 import { PhaseNameWithTrackedStatus } from "../../types.js";
-import { ParsedApplicationDateInput } from "../applicationDate";
-import { makeApplicationDateMapFromList } from "../applicationDate";
+import { ParsedApplicationDateInput, makeApplicationDateMapFromList } from "../applicationDate";
 import {
   ApplicationPhaseDocumentTypeRecord,
   ApplicationPhaseStatusRecord,

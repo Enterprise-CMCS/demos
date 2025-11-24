@@ -90,7 +90,9 @@ export function checkInputDateGreaterThan(
 ): void {
   const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
   const targetDateValue = getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
-  if (!(inputDateValue.easternTZDate.valueOf() > targetDateValue.easternTZDate.valueOf())) {
+  const inputIsGreaterThanTarget =
+    inputDateValue.easternTZDate.valueOf() > targetDateValue.easternTZDate.valueOf();
+  if (!inputIsGreaterThanTarget) {
     throw new Error(
       `The input ${inputDateType} has value ${inputDateValue.easternTZDate.toISOString()}, ` +
         `but it must be greater than ${targetDateType}, ` +
@@ -106,7 +108,9 @@ export function checkInputDateGreaterThanOrEqual(
 ): void {
   const inputDateValue = getDateValueFromApplicationDateMap(inputDateType, applicationDateMap);
   const targetDateValue = getDateValueFromApplicationDateMap(targetDateType, applicationDateMap);
-  if (!(inputDateValue.easternTZDate.valueOf() >= targetDateValue.easternTZDate.valueOf())) {
+  const inputIsGreaterThanOrEqualToTarget =
+    inputDateValue.easternTZDate.valueOf() >= targetDateValue.easternTZDate.valueOf();
+  if (!inputIsGreaterThanOrEqualToTarget) {
     throw new Error(
       `The input ${inputDateType} has value ${inputDateValue.easternTZDate.toISOString()}, ` +
         `but it must be greater than or equal to ${targetDateType}, ` +
