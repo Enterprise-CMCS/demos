@@ -135,6 +135,17 @@ async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
 export const documentResolvers = {
   Query: {
     document: getDocument,
+    documentExists: async (
+      _: unknown,
+      { documentId }: { documentId: string },
+    ) => {
+      const document = await prisma().document.findUnique({
+        where: { id: documentId },
+      });
+
+      if (document) return true;
+      return false;
+    },
   },
 
   Mutation: {
@@ -170,6 +181,7 @@ export const documentResolvers = {
         log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
         return {
           presignedURL: fakePresignedUrl,
+          documentId: document.id,
         };
       }
       const documentPendingUpload = await prisma().documentPendingUpload.create({
@@ -186,6 +198,7 @@ export const documentResolvers = {
       const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
       return {
         presignedURL,
+        documentId: documentPendingUpload.id,
       };
     },
 

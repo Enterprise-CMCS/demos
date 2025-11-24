@@ -4,8 +4,4 @@ export { BaseCreateModificationDialog } from "./modification/BaseCreateModificat
 export { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 export { CreateDemonstrationDialog, EditDemonstrationDialog } from "./demonstration";
 export { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
-export {
-  AddDocumentDialog,
-  EditDocumentDialog,
-  RemoveDocumentDialog,
-} from "./document/DocumentDialog";
+export { AddDocumentDialog, EditDocumentDialog, RemoveDocumentDialog } from "./document";
