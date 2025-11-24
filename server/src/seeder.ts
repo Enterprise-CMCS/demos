@@ -90,7 +90,7 @@ async function seedDocuments() {
           },
         });
         // temporary bypass for backward compatability with simple upload.
-        // TODO: remove this bypass - when we can upload docs without having to run a command. This is for local dev let's not kill ourselves.
+        // TODO: remove this bypass
         if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
           continue;
         }
