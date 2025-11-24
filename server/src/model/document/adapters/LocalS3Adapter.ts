@@ -50,11 +50,8 @@ export function createLocalS3Adapter(
   const deletedBucket = process.env.DELETED_BUCKET ?? "local-deleted-bucket";
 
   return {
-    async getPresignedUploadUrl(
-      key: string,
-      expiresIn: number,
-    ): Promise<string> {
-      const url = `${baseUrl}/${uploadBucket}/${key}?upload=true&expires=${expiresIn}`;
+    async getPresignedUploadUrl(key: string): Promise<string> {
+      const url = `${baseUrl}/${uploadBucket}/${key}?upload=true&expires=3600`;
 
       log.debug("LocalS3Adapter: Generated upload URL", undefined, {
         bucket: uploadBucket,
@@ -66,11 +63,8 @@ export function createLocalS3Adapter(
       return url;
     },
 
-    async getPresignedDownloadUrl(
-      key: string,
-      expiresIn: number,
-    ): Promise<string> {
-      const url = `${baseUrl}/${cleanBucket}/${key}?download=true&expires=${expiresIn}`;
+    async getPresignedDownloadUrl(key: string): Promise<string> {
+      const url = `${baseUrl}/${cleanBucket}/${key}?download=true&expires=3600`;
 
       log.debug("LocalS3Adapter: Generated download URL", undefined, {
         bucket: cleanBucket,

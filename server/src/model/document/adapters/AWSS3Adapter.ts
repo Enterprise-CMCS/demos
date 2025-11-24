@@ -9,6 +9,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Adapter } from "./S3Adapter.js";
 
 const LOCALSTACK_ENDPOINT = "http://localhost:4566";
+const EXPIRATION_TIME_SECONDS = 3600; // 1 hour in seconds
 
 /**
  * Resolve the S3 endpoint based on environment variables
@@ -62,26 +63,24 @@ export function createAWSS3Adapter(): S3Adapter {
   }
 
   return {
-    async getPresignedUploadUrl(
-      key: string,
-      expiresIn: number,
-    ): Promise<string> {
+    async getPresignedUploadUrl(key: string): Promise<string> {
       const command = new PutObjectCommand({
         Bucket: uploadBucket,
         Key: key,
       });
-      return await getSignedUrl(s3Client, command, { expiresIn });
+      return await getSignedUrl(s3Client, command, {
+        expiresIn: EXPIRATION_TIME_SECONDS,
+      });
     },
 
-    async getPresignedDownloadUrl(
-      key: string,
-      expiresIn: number,
-    ): Promise<string> {
+    async getPresignedDownloadUrl(key: string): Promise<string> {
       const command = new GetObjectCommand({
         Bucket: cleanBucket,
         Key: key,
       });
-      return await getSignedUrl(s3Client, command, { expiresIn });
+      return await getSignedUrl(s3Client, command, {
+        expiresIn: EXPIRATION_TIME_SECONDS,
+      });
     },
 
     async moveDocumentFromCleanToDeleted(key: string): Promise<void> {

@@ -7,10 +7,8 @@ import { createLocalS3Adapter } from "./LocalS3Adapter.js";
  * to be injected based on the environment.
  */
 export interface S3Adapter {
-  getPresignedUploadUrl(key: string, expiresIn: number): Promise<string>;
-
-  getPresignedDownloadUrl(key: string, expiresIn: number): Promise<string>;
-
+  getPresignedUploadUrl(key: string): Promise<string>;
+  getPresignedDownloadUrl(key: string): Promise<string>;
   moveDocumentFromCleanToDeleted(key: string): Promise<void>;
 }
 
@@ -18,9 +16,6 @@ export interface S3Adapter {
  * Creates the appropriate S3Adapter based on environment
  * */
 export function createS3Adapter(): S3Adapter {
-  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
-    return createLocalS3Adapter();
-  }
-
+  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") return createLocalS3Adapter();
   return createAWSS3Adapter();
 }

@@ -67,7 +67,6 @@ export const documentResolvers = {
 
       const presignedURL = await s3Adapter.getPresignedUploadUrl(
         documentPendingUpload.id,
-        3600,
       );
       return {
         presignedURL,
@@ -88,7 +87,7 @@ export const documentResolvers = {
         });
       }
       const key = `${document.applicationId}/${document.id}`;
-      return await s3Adapter.getPresignedDownloadUrl(key, 3600);
+      return await s3Adapter.getPresignedDownloadUrl(key);
     },
 
     updateDocument: async (
@@ -120,12 +119,8 @@ export const documentResolvers = {
         const document = await tx.document.delete({
           where: { id },
         });
-        // temporary bypass for backward compatability with simple upload.
-        // TODO: remove this bypass
-        if (process.env.LOCAL_SIMPLE_UPLOAD !== "true") {
-          const key = `${document.applicationId}/${document.id}`;
-          await s3Adapter.moveDocumentFromCleanToDeleted(key);
-        }
+        const key = `${document.applicationId}/${document.id}`;
+        await s3Adapter.moveDocumentFromCleanToDeleted(key);
         return document;
       });
     },
@@ -135,13 +130,9 @@ export const documentResolvers = {
           where: { id: { in: ids } },
         });
 
-        // temporary bypass for backward compatability with simple upload.
-        // TODO: remove this bypass
-        if (process.env.LOCAL_SIMPLE_UPLOAD !== "true") {
-          for (const document of documents) {
-            const key = `${document.applicationId}/${document.id}`;
-            await s3Adapter.moveDocumentFromCleanToDeleted(key);
-          }
+        for (const document of documents) {
+          const key = `${document.applicationId}/${document.id}`;
+          await s3Adapter.moveDocumentFromCleanToDeleted(key);
         }
 
         const result = await tx.document.deleteMany({
