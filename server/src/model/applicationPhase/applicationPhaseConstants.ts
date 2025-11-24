@@ -17,23 +17,21 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
   },
   Completeness: {
     dateToComplete: "Completeness Completion Date",
-    nextPhase: null,
   },
   "Federal Comment": "Not Permitted",
   "SDG Preparation": {
     dateToComplete: "SDG Preparation Completion Date",
     nextPhase: {
-      phaseName: "OGC & OMB Review",
-      dateToStart: "OGC & OMB Review Start Date",
+      phaseName: "Review",
+      dateToStart: "Review Start Date",
     },
   },
-  "OGC & OMB Review": {
-    dateToComplete: "OGC & OMB Review Completion Date",
+  Review: "Not Implemented",
+  "Approval Package": {
+    dateToComplete: "Approval Package Completion Date",
     nextPhase: {
-      phaseName: "Approval Package",
-      dateToStart: "Approval Package Start Date",
+      phaseName: "Post Approval",
     },
   },
-  "Approval Package": "Not Implemented",
   "Post Approval": "Not Implemented",
 };

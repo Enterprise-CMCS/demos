@@ -1,50 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, ErrorButton, SecondaryButton } from "components/button";
+import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
+import { ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
 import { useToast } from "components/toast";
-import {
-  Document,
-  DocumentType,
-  PhaseName,
-  UpdateDocumentInput,
-  UploadDocumentInput,
-} from "demos-server";
+import { Document, DocumentType } from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
-
-import { gql, useMutation, PureQueryOptions } from "@apollo/client";
-import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-
-export const DELETE_DOCUMENTS_QUERY = gql`
-  mutation DeleteDocuments($ids: [ID!]!) {
-    deleteDocuments(ids: $ids)
-  }
-`;
-
-export const UPLOAD_DOCUMENT_QUERY = gql`
-  mutation UploadDocument($input: UploadDocumentInput!) {
-    uploadDocument(input: $input) {
-      presignedURL
-    }
-  }
-`;
-
-export const UPDATE_DOCUMENT_QUERY = gql`
-  mutation UpdateDocument($input: UpdateDocumentInput!) {
-    updateDocument(input: $input) {
-      id
-      title
-      description
-      documentType
-    }
-  }
-`;
 
 type DocumentDialogType = "add" | "edit";
 
@@ -97,37 +63,6 @@ const abbreviateLongFilename = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
   const half = Math.floor((maxLength - 3) / 2);
   return `${str.slice(0, half)}...${str.slice(-half)}`;
-};
-
-interface S3UploadResponse {
-  success: boolean;
-  errorMessage: string;
-}
-
-/**
- * @internal - Exported for testing only
- */
-export const tryUploadingFileToS3 = async (
-  presignedURL: string,
-  file: File
-): Promise<S3UploadResponse> => {
-  try {
-    const putResponse = await fetch(presignedURL, {
-      method: "PUT",
-      body: file,
-      headers: { "Content-Type": file.type },
-    });
-
-    if (putResponse.ok) {
-      return { success: true, errorMessage: "" };
-    } else {
-      const errorText = await putResponse.text();
-      return { success: false, errorMessage: `Failed to upload file: ${errorText}` };
-    }
-  } catch (error) {
-    const errorText = error instanceof Error ? error.message : "Network error during upload";
-    return { success: false, errorMessage: errorText };
-  }
 };
 
 const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
@@ -302,7 +237,7 @@ export type DocumentDialogProps = {
   titleOverride?: string;
 };
 
-const DocumentDialog: React.FC<DocumentDialogProps> = ({
+export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onClose = () => {},
   mode,
   documentTypeSubset,
@@ -450,213 +385,6 @@ const DocumentDialog: React.FC<DocumentDialogProps> = ({
         }
         documentTypeSubset={documentTypeSubset}
       />
-    </BaseDialog>
-  );
-};
-
-type RefetchQueries = Array<string | PureQueryOptions>;
-
-interface AddDocumentDialogProps {
-  onClose: () => void;
-  applicationId: string;
-  documentTypeSubset?: DocumentType[];
-  titleOverride?: string;
-  refetchQueries?: RefetchQueries;
-  phaseName?: PhaseName;
-  onDocumentUploadSucceeded?: () => void;
-}
-
-export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
-  onClose,
-  applicationId,
-  documentTypeSubset,
-  titleOverride,
-  refetchQueries,
-  phaseName = "None",
-  onDocumentUploadSucceeded,
-}) => {
-  const { showError } = useToast();
-  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
-    refetchQueries,
-  });
-
-  const defaultDocumentType: DocumentType | undefined = documentTypeSubset?.[0];
-
-  const defaultDocument: DocumentDialogFields = {
-    file: null,
-    id: "",
-    name: "",
-    description: "",
-    documentType: defaultDocumentType,
-  };
-
-  const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
-    if (!dialogFields.file) {
-      showError("No file selected");
-      return;
-    }
-
-    if (!dialogFields.documentType) {
-      showError("No Document Type Selected");
-      return;
-    }
-
-    const uploadDocumentInput: UploadDocumentInput = {
-      applicationId,
-      name: dialogFields.name,
-      description: dialogFields.description,
-      documentType: dialogFields.documentType,
-      phaseName,
-    };
-
-    const uploadDocumentResponse = await uploadDocumentTrigger({
-      variables: { input: uploadDocumentInput },
-    });
-
-    if (uploadDocumentResponse.errors?.length) {
-      throw new Error(uploadDocumentResponse.errors[0].message);
-    }
-
-    const uploadResult = uploadDocumentResponse.data?.uploadDocument;
-
-    if (!uploadResult) {
-      throw new Error("Upload response from the server was empty");
-    }
-
-    // If server/.env LOCAL_SIMPLE_UPLOAD="true" we just write to Documents table without S3 upload
-    if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
-      console.log("Local host document - (basically this isn't an actual doc.");
-      onDocumentUploadSucceeded?.();
-      return;
-    }
-
-    const presignedURL = uploadResult.presignedURL ?? null;
-
-    if (!presignedURL) {
-      throw new Error("Could not get presigned URL from the server");
-    }
-
-    const response: S3UploadResponse = await tryUploadingFileToS3(presignedURL, dialogFields.file);
-
-    if (!response.success) {
-      showError(response.errorMessage);
-      throw new Error(response.errorMessage);
-    }
-
-    onDocumentUploadSucceeded?.();
-  };
-
-  return (
-    <DocumentDialog
-      onClose={onClose}
-      mode="add"
-      onSubmit={handleUpload}
-      documentTypeSubset={documentTypeSubset}
-      initialDocument={defaultDocument}
-      titleOverride={titleOverride}
-    />
-  );
-};
-
-export const EditDocumentDialog: React.FC<{
-  onClose: () => void;
-  initialDocument: DocumentDialogFields;
-}> = ({ onClose, initialDocument }) => {
-  const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
-
-  const handleEdit = async (dialogFields: DocumentDialogFields) => {
-    const updateDocumentInput: UpdateDocumentInput = {
-      applicationId: dialogFields.id,
-      name: dialogFields.name,
-      description: dialogFields.description,
-      documentType: dialogFields.documentType,
-    };
-
-    await updateDocumentTrigger({
-      variables: { input: updateDocumentInput },
-      refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
-    });
-  };
-
-  return (
-    <DocumentDialog
-      mode="edit"
-      initialDocument={initialDocument}
-      onClose={onClose}
-      onSubmit={handleEdit}
-    />
-  );
-};
-
-export const RemoveDocumentDialog: React.FC<{
-  documentIds: string[];
-  onClose: () => void;
-}> = ({ documentIds, onClose }) => {
-  const { showWarning, showError } = useToast();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const [deleteDocumentsTrigger] = useMutation<{
-    removedDocumentIds: string[];
-  }>(DELETE_DOCUMENTS_QUERY);
-
-  const onConfirm = async (documentIdList: string[]) => {
-    try {
-      setIsDeleting(true);
-      await deleteDocumentsTrigger({
-        variables: { ids: documentIdList },
-        refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
-      });
-
-      const isMultipleDocuments = documentIdList.length > 1;
-      showWarning(
-        `Your document${isMultipleDocuments ? "s" : ""} ${
-          isMultipleDocuments ? "have been" : "has been"
-        } removed.`
-      );
-      onClose();
-    } catch {
-      showError("Your changes could not be saved due to an unknown problem.");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  return (
-    <BaseDialog
-      title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
-      onClose={onClose}
-      actions={
-        <>
-          <SecondaryButton
-            name="button-cancel-delete-document"
-            size="small"
-            onClick={onClose}
-            disabled={isDeleting}
-          >
-            Cancel
-          </SecondaryButton>
-          <ErrorButton
-            name="button-confirm-delete-document"
-            size="small"
-            onClick={() => onConfirm(documentIds)}
-            aria-label="Confirm Remove Document"
-            disabled={isDeleting}
-            aria-disabled={isDeleting}
-          >
-            {isDeleting ? "Removing..." : "Remove"}
-          </ErrorButton>
-        </>
-      }
-    >
-      <div className="mb-2 text-sm text-text-filled">
-        Are you sure you want to remove {documentIds.length} document
-        {documentIds.length > 1 ? "s" : ""}?
-        <br />
-        <span className="text-error flex items-center gap-1 mt-1">
-          <ErrorIcon />
-          This action cannot be undone.
-        </span>
-      </div>
     </BaseDialog>
   );
 };

@@ -1,4 +1,4 @@
-import { DateType, ExpectedTimestamp } from "./types.js";
+import { DateType, DocumentType, ExpectedTimestamp } from "./types.js";
 
 export const APPLICATION_STATUS = [
   "Pre-Submission",
@@ -71,7 +71,7 @@ export const PHASE_NAMES_WITH_TRACKED_STATUS = [
   "Completeness",
   "Federal Comment",
   "SDG Preparation",
-  "OGC & OMB Review",
+  "Review",
   "Approval Package",
   "Post Approval",
 ] as const;
@@ -106,11 +106,19 @@ export const DATE_TYPES = [
   "FRT Initial Meeting Date",
   "BNPMT Initial Meeting Date",
   "SDG Preparation Completion Date",
-  "OGC & OMB Review Start Date",
+  "Review Start Date",
   "OGC Review Complete",
   "OMB Review Complete",
   "PO & OGD Sign-Off",
-  "OGC & OMB Review Completion Date",
+  "Review Completion Date",
+  "OGC Approval to Share with SMEs",
+  "Draft Approval Package to Pre",
+  "DDME Approval Received",
+  "State Concurrence",
+  "BN PMT Approval to Send to OMB",
+  "Draft Approval Package Shared",
+  "Receive OMB Concurrence",
+  "Receive OGC Legal Clearance",
   "Approval Package Start Date",
   "Approval Package Completion Date",
 ] as const;
@@ -139,11 +147,19 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },
-  "OGC & OMB Review Start Date": { expectedTimestamp: "Start of Day" },
+  "Review Start Date": { expectedTimestamp: "Start of Day" },
   "OGC Review Complete": { expectedTimestamp: "Start of Day" },
   "OMB Review Complete": { expectedTimestamp: "Start of Day" },
   "PO & OGD Sign-Off": { expectedTimestamp: "Start of Day" },
-  "OGC & OMB Review Completion Date": { expectedTimestamp: "Start of Day" },
+  "Review Completion Date": { expectedTimestamp: "Start of Day" },
+  "OGC Approval to Share with SMEs": { expectedTimestamp: "Start of Day" },
+  "Draft Approval Package to Pre": { expectedTimestamp: "Start of Day" },
+  "DDME Approval Received": { expectedTimestamp: "Start of Day" },
+  "State Concurrence": { expectedTimestamp: "Start of Day" },
+  "BN PMT Approval to Send to OMB": { expectedTimestamp: "Start of Day" },
+  "Draft Approval Package Shared": { expectedTimestamp: "Start of Day" },
+  "Receive OMB Concurrence": { expectedTimestamp: "Start of Day" },
+  "Receive OGC Legal Clearance": { expectedTimestamp: "Start of Day" },
   "Approval Package Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Package Completion Date": { expectedTimestamp: "Start of Day" },
 } as const;
@@ -236,3 +252,61 @@ export const EVENT_TYPES = [
   "Delete Document Succeeded",
   "Delete Document Failed",
 ] as const;
+
+export const NONE_PHASE_DOCUMENTS: DocumentType[] = [
+  "Application Completeness Letter",
+  "Approval Letter",
+  "Final BN Worksheet",
+  "Final Budget Neutrality Formulation Workbook",
+  "Formal OMB Policy Concurrence Email",
+  "Internal Completeness Review Form",
+  "Payment Ratio Analysis",
+  "Pre-Submission",
+  "Q&A",
+  "Signed Decision Memo",
+  "State Application",
+  "General File",
+] as const;
+
+export const CONCEPT_PHASE_DOCUMENTS: DocumentType[] = ["General File", "Pre-Submission"] as const;
+
+export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
+  "General File",
+  "State Application",
+] as const;
+
+export const COMPLETENESS_PHASE_DOCUMENTS: DocumentType[] = [
+  "General File",
+  "Internal Completeness Review Form",
+  "Application Completeness Letter",
+] as const;
+export const FEDERAL_COMMENT_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+
+export const SDG_PREPARATION_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+
+export const REVIEW_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+
+export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
+  "General File",
+  "Approval Letter",
+  "Final BN Worksheet",
+  "Final Budget Neutrality Formulation Workbook",
+  "Formal OMB Policy Concurrence Email",
+  "Payment Ratio Analysis",
+  "Q&A",
+  "Signed Decision Memo",
+] as const;
+
+export const POST_APPROVAL_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+
+export const PHASE_DOCUMENT_TYPE_MAP = {
+  None: NONE_PHASE_DOCUMENTS,
+  Concept: CONCEPT_PHASE_DOCUMENTS,
+  "Application Intake": APPLICATION_INTAKE_PHASE_DOCUMENTS,
+  Completeness: COMPLETENESS_PHASE_DOCUMENTS,
+  "Federal Comment": FEDERAL_COMMENT_PHASE_DOCUMENTS,
+  "SDG Preparation": SDG_PREPARATION_PHASE_DOCUMENTS,
+  "Review": REVIEW_PHASE_DOCUMENTS,
+  "Approval Package": APPROVAL_PACKAGE_PHASE_DOCUMENTS,
+  "Post Approval": POST_APPROVAL_PHASE_DOCUMENTS,
+};

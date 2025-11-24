@@ -40,7 +40,7 @@ describe("phaseStatusQueries", () => {
         "Completeness",
         "Federal Comment",
         "SDG Preparation",
-        "OGC & OMB Review",
+        "Review",
         "Approval Package",
         "Post Approval",
       ] as const;
@@ -90,13 +90,13 @@ describe("phaseStatusQueries", () => {
     it("should handle phase names with spaces and special characters", () => {
       const input: SetApplicationPhaseStatusInput = {
         applicationId: "app-123",
-        phaseName: "OGC & OMB Review",
+        phaseName: "Review",
         phaseStatus: "Completed",
       };
 
       const result = getQueryForSetPhaseStatus(input);
 
-      expect(result).toContain('phaseName: "OGC & OMB Review"');
+      expect(result).toContain('phaseName: "Review"');
       expect(result).toContain('phaseStatus: "Completed"');
     });
 

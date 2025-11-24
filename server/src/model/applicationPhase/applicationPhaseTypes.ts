@@ -14,10 +14,10 @@ export type PhaseCompletionValidationChecksRecord = Record<
 
 export type PhaseActions = {
   dateToComplete: DateType;
-  nextPhase: {
+  nextPhase?: {
     phaseName: PhaseNameWithTrackedStatus;
-    dateToStart: DateType;
-  } | null;
+    dateToStart?: DateType;
+  };
 };
 export type PhaseActionRecord = Record<
   PhaseNameWithTrackedStatus,
