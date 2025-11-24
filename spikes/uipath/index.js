@@ -12,12 +12,16 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const logPath = createLogFile();
+// Positional args: [0]=node, [1]=index.js, [2]=input file, [3]=log file
+const inputFile = process.argv[2] || "ak-behavioral-health-demo-pa.pdf";
+const logPath = createLogFile(process.argv[3] || process.env.LOG_FILE || "uipath.log");
 
 const token = await getToken();
 log("Got the auth token.", logPath);
 
-const docId = await uploadDocument(token, "ak-behavioral-health-demo-pa.pdf");
+log(`Using input file: ${inputFile}`, logPath);
+
+const docId = await uploadDocument(token, inputFile);
 log(`Document ID: ${docId}`, logPath);
 
 const resultUrl = await extractDoc(token, docId);
