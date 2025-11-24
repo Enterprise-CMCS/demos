@@ -7,7 +7,6 @@ const BUCKET_NAME = "local-demos-bucket";
  * Creates a local in-memory adapter for simple local development.
  * Does not persist files - just tracks uploaded keys in memory.
  *
- * @param baseUrl - Base URL for mock presigned URLs (default: http://localhost:4566)
  * @returns S3Adapter implementation
  */
 export function createLocalS3Adapter(): S3Adapter {
@@ -15,9 +14,8 @@ export function createLocalS3Adapter(): S3Adapter {
 
   return {
     async getPresignedUploadUrl(key: string): Promise<string> {
-      const url = `${HOST}/${BUCKET_NAME}/${key}?upload=true&expires=3600`;
       uploadedFiles.add(key);
-      return url;
+      return `${HOST}/${BUCKET_NAME}/${key}?upload=true&expires=3600`;
     },
 
     async getPresignedDownloadUrl(key: string): Promise<string> {
