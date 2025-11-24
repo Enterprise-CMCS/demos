@@ -17,19 +17,14 @@ const mockDBData = {
   dbname: "hostDB",
 };
 
+const mockS3Send =jest.fn().mockImplementation(() => ({Buckets: [{Name: "cleanBucket"}]}))
+
 jest.mock("@aws-sdk/client-s3", () => {
   const actual = jest.requireActual("@aws-sdk/client-s3");
   return {
     ...actual,
     S3Client: jest.fn(() => ({
-      send: jest.fn(async (command) => {
-        if (
-          command instanceof actual.ListBucketsCommand
-        ) {
-          return {Buckets: [{Name: "cleanBucket"}]};
-        }
-        return {};
-      }),
+      send: mockS3Send,
     })),
   };
 });
@@ -61,6 +56,7 @@ describe("runMigration", () => {
         env: expect.objectContaining({
           DATABASE_URL: `postgresql://${mockDBData.username}:${mockDBData.password}@${mockDBData.host}:${mockDBData.port}/${targetDB}?schema=demos_app`,
           ALLOW_SEED: "true",
+          CLEAN_BUCKET: "cleanBucket"
         }),
       })
     );
@@ -137,4 +133,23 @@ describe("runMigration", () => {
     expect(exitCode).toEqual(1);
     expect(runShell).not.toHaveBeenCalled();
   });
+
+  test("should exit with status 1 if the clean bucket response comes back invalid", async () => {
+    const mockStageName = "dev";
+
+    const gs = getSecret as jest.Mock;
+    const mockDataString = JSON.stringify(mockDBData);
+    gs.mockResolvedValueOnce(mockDataString);
+
+    mockS3Send.mockImplementationOnce(() => ({}))
+    const exitCode = await dbReset(mockStageName);
+    expect(exitCode).toEqual(1);
+    expect(runShell).not.toHaveBeenCalled();
+    
+    mockS3Send.mockImplementationOnce(() => ({Buckets: [{Name: "bucket1"}, {Name: "bucketTwo"}]}))
+    const exitCode2 = await dbReset(mockStageName);
+    expect(exitCode2).toEqual(1);
+    expect(runShell).not.toHaveBeenCalled();
+    
+  })
 });
