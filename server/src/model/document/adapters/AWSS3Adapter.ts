@@ -8,16 +8,14 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Adapter } from "./S3Adapter.js";
 
-const LOCAL_SIMPLE_UPLOAD_ENDPOINT = "http://localhost:4566";
+const LOCALSTACK_ENDPOINT = "http://localhost:4566";
 
 /**
  * Resolve the S3 endpoint based on environment variables
  */
 const resolveS3Endpoint = (): string | undefined => {
-  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
-    return LOCAL_SIMPLE_UPLOAD_ENDPOINT;
-  }
-  return process.env.S3_ENDPOINT_LOCAL;
+  // LocalStack endpoint for local S3 emulation
+  return process.env.S3_ENDPOINT_LOCAL ?? LOCALSTACK_ENDPOINT;
 };
 
 /**
