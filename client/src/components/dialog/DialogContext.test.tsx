@@ -240,12 +240,22 @@ const mockRoles: ExistingContactType[] = [
   {
     role: "Project Officer",
     isPrimary: true,
-    person: { id: "person-1", fullName: "Person One", email: "person.one@email.com" },
+    person: {
+      id: "person-1",
+      fullName: "Person One",
+      email: "person.one@email.com",
+      personType: "demos-cms-user",
+    },
   },
   {
     role: "DDME Analyst",
     isPrimary: false,
-    person: { id: "person-2", fullName: "Person Two", email: "person.two@email.com" },
+    person: {
+      id: "person-2",
+      fullName: "Person Two",
+      email: "person.two@email.com",
+      personType: "demos-cms-user",
+    },
   },
 ];
 
