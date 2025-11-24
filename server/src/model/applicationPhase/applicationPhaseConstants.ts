@@ -17,7 +17,6 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
   },
   Completeness: {
     dateToComplete: "Completeness Completion Date",
-    nextPhase: null,
   },
   "Federal Comment": "Not Permitted",
   "SDG Preparation": {
@@ -27,13 +26,12 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
       dateToStart: "Review Start Date",
     },
   },
-  "Review": {
-    dateToComplete: "Review Completion Date",
+  Review: "Not Implemented",
+  "Approval Package": {
+    dateToComplete: "Approval Package Completion Date",
     nextPhase: {
-      phaseName: "Approval Package",
-      dateToStart: "Approval Package Start Date",
+      phaseName: "Post Approval",
     },
   },
-  "Approval Package": "Not Implemented",
   "Post Approval": "Not Implemented",
 };
