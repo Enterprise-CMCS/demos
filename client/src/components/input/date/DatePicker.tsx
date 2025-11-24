@@ -17,11 +17,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   required,
   onChange,
   onValueChange,
-  ...inputProps
 }) => {
   const inputId = id ?? name;
-  const { min, ...restInputProps } = inputProps;
-  const inputMin = min ?? "1900-01-01";
+  const inputMin = "1900-01-01";
+  // Maybe candidate for a spread operator "..props" pattern.
+  // Figure we'd wait for a use case.
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange?.(e);
@@ -48,7 +48,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         className={`w-full border border-border-fields px-1 py-1 text-sm rounded ${inputClassName}`}
         min={inputMin}
         required={required}
-        {...restInputProps}
       />
     </div>
   );
