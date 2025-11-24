@@ -40,7 +40,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   className = "",
   inputClassName = "",
   required,
-  ...rest
 }) => {
   const inputId = id ?? name;
 
@@ -74,7 +73,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         onChange={handleChange}
         className={`w-full border border-border-fields px-1 py-1 text-sm rounded ${inputClassName}`}
         required={required}
-        {...rest}
       />
     </div>
   );
