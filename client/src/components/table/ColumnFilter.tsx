@@ -3,7 +3,7 @@ import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
 import { Option, Select } from "components/input/select/Select";
-import { parseISO, isValid } from "date-fns";
+import { parseISO, format } from "date-fns";
 import { DatePicker } from "components/input/date/DatePicker";
 
 export interface ColumnMetaFilterConfig {
@@ -27,22 +27,11 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   const [filterValue, setFilterValue] = React.useState<string | string[] | null>("");
 
   const [filterRangeValue, setFilterRangeValue] = React.useState<{
-    start: string;
-    end: string;
-  }>({ start: "", end: "" });
+    start: Date | null;
+    end: Date | null;
+  }>({ start: null, end: null });
 
   const availableColumns = table.getAllColumns().filter((column) => column.getCanFilter());
-
-  const toDateIfCompleteAndSane = (value: string) => {
-    if (!value) return null;
-    if (value.length < 10) return null;
-    const [yearStr] = value.split("-");
-    const year = Number(yearStr);
-    if (!year || year < 2000) return null;
-    const parsed = parseISO(value);
-    console.log("parsed date:", parsed);
-    return isValid(parsed) ? parsed : null;
-  };
 
   const columnOptions: Option[] = availableColumns.map((col) => {
     const columnDef = col.columnDef;
@@ -70,26 +59,14 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
     }
   };
 
-  const onRangeChange = (startStr: string, endStr: string) => {
-    setFilterRangeValue({ start: startStr, end: endStr });
-
-    const startDate = toDateIfCompleteAndSane(startStr);
-    const endDate = toDateIfCompleteAndSane(endStr);
-
-    // Only touch table filters when we actually have something valid
-    if (selectedColumn && (startDate || endDate)) {
-      table.setColumnFilters([
-        {
-          id: selectedColumn,
-          value: { start: startDate, end: endDate },
-        },
-      ]);
-    } else if (selectedColumn) {
-    // Optional: clear the filter when fields are emptied / invalid
+  const onRangeChange = (start: Date | null, end: Date | null) => {
+    setFilterRangeValue({ start, end });
+    if (selectedColumn && (start || end)) {
+      table.setColumnFilters([{ id: selectedColumn, value: { start, end } }]);
+    } else {
       table.setColumnFilters([]);
     }
   };
-
   // Get the selected column's filter configuration
   const selectedColumnObj = availableColumns.find((col) => col.id === selectedColumn);
   const meta: ColumnMetaFilterConfig | undefined = selectedColumnObj?.columnDef.meta;
@@ -120,24 +97,33 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
       case "date":
         return (
           <>
-            <div className="grid gap-8">
+            <div>
               <DatePicker
                 label={`${columnDisplayName} Start`}
+                id="date-filter-start"
                 name="date-filter-start"
-                value={filterRangeValue.start}
-                onValueChange={(val) => onRangeChange(val, filterRangeValue.end)}
-                // you can add onDateChange here if you ever want the parsed Date
+                placeholder="Start date"
+                value={filterRangeValue.start ? format(filterRangeValue.start, "yyyy-MM-dd") : ""}
+                onValueChange={(val) =>
+                  onRangeChange(val ? parseISO(val) : null, filterRangeValue.end)
+                }
               />
-
+            </div>
+            <div>
               <DatePicker
                 label={`${columnDisplayName} End`}
+                id="date-filter-end"
                 name="date-filter-end"
-                value={filterRangeValue.end}
-                onValueChange={(val) => onRangeChange(filterRangeValue.start, val)}
+                placeholder="End date"
+                value={filterRangeValue.end ? format(filterRangeValue.end, "yyyy-MM-dd") : ""}
+                onValueChange={(val) =>
+                  onRangeChange(filterRangeValue.start, val ? parseISO(val) : null)
+                }
               />
             </div>
           </>
         );
+
       case "text":
       default:
         return (

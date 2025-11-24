@@ -585,7 +585,6 @@ async function seedDatabase() {
     await __updateExtension(undefined, updateInput);
   }
 
-<<<<<<< HEAD
   console.log("🌱 Seeding documents...");
   // Get the application document type
   const stateApplicationDocumentType: DocumentType = "State Application";
@@ -643,7 +642,7 @@ async function seedDatabase() {
       },
     });
   }
-
+  const documentCount = 30;
   // Now, the rest can be largely randomized
   for (let i = 0; i < documentCount; i++) {
     // It is easier to just pull from the DB than to sample randomly from the constant
@@ -667,10 +666,6 @@ async function seedDatabase() {
       },
     });
   }
-=======
-  await seedDocuments();
-
->>>>>>> main
   console.log("🌱 Seeding events (with and without applicationIds)...");
 
   // Grab some applications for association
