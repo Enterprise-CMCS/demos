@@ -1,8 +1,9 @@
 import axios from "axios";
 import fs from "fs";
 import FormData from "form-data";
+import { log } from "./logFile.js";
 
-export async function uploadDocument(token,fileName) {
+export async function uploadDocument(token, fileName) {
   const formData = new FormData();
   formData.append(
     "file",
@@ -24,7 +25,7 @@ export async function uploadDocument(token,fileName) {
         const percentCompleted = Math.round(
           (progressEvent.loaded * 100) / progressEvent.total
         );
-        console.log(`Upload progress: ${percentCompleted}%`);
+        log(`Upload progress: ${percentCompleted}%`);
       },
     }
   );
