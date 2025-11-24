@@ -10,20 +10,10 @@ import { S3Adapter } from "./S3Adapter.js";
 
 const LOCALSTACK_ENDPOINT = "http://localhost:4566";
 const EXPIRATION_TIME_SECONDS = 3600; // 1 hour in seconds
+const REQUIRED_ENV_VARS = ["UPLOAD_BUCKET", "CLEAN_BUCKET", "DELETED_BUCKET"];
 
-/**
- * Resolve the S3 endpoint based on environment variables
- */
-const resolveS3Endpoint = (): string | undefined => {
-  // LocalStack endpoint for local S3 emulation
-  return process.env.S3_ENDPOINT_LOCAL ?? LOCALSTACK_ENDPOINT;
-};
-
-/**
- * Create an S3Client configured for the current environment
- */
 const createS3Client = (): S3Client => {
-  const endpoint = resolveS3Endpoint();
+  const endpoint = process.env.S3_ENDPOINT_LOCAL ?? LOCALSTACK_ENDPOINT;
   const s3ClientConfig = endpoint
     ? {
         region: "us-east-1",
@@ -39,6 +29,18 @@ const createS3Client = (): S3Client => {
   return new S3Client(s3ClientConfig);
 };
 
+const assertEnvironmentVariablesSet = (): void => {
+  const missingVars = REQUIRED_ENV_VARS.filter(
+    (varName) => !process.env[varName],
+  );
+
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(", ")}`,
+    );
+  }
+};
+
 /**
  * Creates an AWS S3 adapter that uses the AWS SDK to interact with S3 buckets.
  * Automatically configures the S3Client and bucket names based on environment variables.
@@ -48,19 +50,11 @@ const createS3Client = (): S3Client => {
 export function createAWSS3Adapter(): S3Adapter {
   const s3Client = createS3Client();
 
-  const uploadBucket = process.env.UPLOAD_BUCKET;
-  const cleanBucket = process.env.CLEAN_BUCKET;
-  const deletedBucket = process.env.DELETED_BUCKET;
+  assertEnvironmentVariablesSet();
 
-  if (!uploadBucket) {
-    throw new Error("UPLOAD_BUCKET environment variable is required");
-  }
-  if (!cleanBucket) {
-    throw new Error("CLEAN_BUCKET environment variable is required");
-  }
-  if (!deletedBucket) {
-    throw new Error("DELETED_BUCKET environment variable is required");
-  }
+  const uploadBucket = process.env.UPLOAD_BUCKET!;
+  const cleanBucket = process.env.CLEAN_BUCKET!;
+  const deletedBucket = process.env.DELETED_BUCKET!;
 
   return {
     async getPresignedUploadUrl(key: string): Promise<string> {
