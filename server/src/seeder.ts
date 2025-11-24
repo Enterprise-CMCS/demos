@@ -90,7 +90,7 @@ async function seedDocuments() {
           },
         });
         // temporary bypass for backward compatability with simple upload.
-        // TODO: remove this bypass
+        // TODO: remove this bypass - when we can upload docs without having to run a command. This is for local dev let's not kill ourselves.
         if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
           continue;
         }
@@ -106,6 +106,89 @@ async function seedDocuments() {
         console.error(`Could not seed document. ${error}`);
       }
     }
+  }
+
+  console.log("🌱 Seeding application documents...");
+  const stateApplicationDocumentType: DocumentType = "State Application";
+  const applicationIntakePhaseName: PhaseName = "Application Intake";
+  const nonePhaseName: PhaseName = "None";
+
+  const demonstrations = await prisma().demonstration.findMany({ select: { id: true } });
+  for (const demonstration of demonstrations) {
+    const fakeName = faker.lorem.sentence(2);
+    await prisma().document.create({
+      data: {
+        name: fakeName,
+        description: "Application for " + fakeName,
+        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
+        ownerUserId: (await prisma().user.findRandom())!.id,
+        documentTypeId: stateApplicationDocumentType,
+        applicationId: demonstration.id,
+        phaseId: applicationIntakePhaseName,
+        createdAt: randomBackdatedDate(),
+      },
+    });
+  }
+
+  const amendmentIds = await prisma().amendment.findMany({
+    select: { id: true },
+  });
+  for (const amendmentId of amendmentIds) {
+    const fakeName = faker.lorem.sentence(2);
+    await prisma().document.create({
+      data: {
+        name: fakeName,
+        description: "Application for " + fakeName,
+        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
+        ownerUserId: (await prisma().user.findRandom())!.id,
+        documentTypeId: stateApplicationDocumentType,
+        applicationId: amendmentId.id,
+        phaseId: applicationIntakePhaseName,
+        createdAt: randomBackdatedDate(),
+      },
+    });
+  }
+
+  const extensionIds = await prisma().extension.findMany({
+    select: { id: true },
+  });
+  for (const extensionId of extensionIds) {
+    const fakeName = faker.lorem.sentence(2);
+    await prisma().document.create({
+      data: {
+        name: fakeName,
+        description: "Application for " + fakeName,
+        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
+        ownerUserId: (await prisma().user.findRandom())!.id,
+        documentTypeId: stateApplicationDocumentType,
+        applicationId: extensionId.id,
+        phaseId: nonePhaseName,
+        createdAt: randomBackdatedDate(),
+      },
+    });
+  }
+
+  const documentCount = 50;
+  for (let i = 0; i < documentCount; i++) {
+    const allowedPhaseDocumentTypes = await prisma().phaseDocumentType.findRandom({
+      where: {
+        NOT: {
+          OR: [{ documentTypeId: stateApplicationDocumentType }, { phaseId: nonePhaseName }],
+        },
+      },
+    });
+    await prisma().document.create({
+      data: {
+        name: faker.lorem.sentence(2),
+        description: faker.lorem.sentence(),
+        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
+        ownerUserId: (await prisma().user.findRandom())!.id,
+        documentTypeId: allowedPhaseDocumentTypes!.documentTypeId,
+        applicationId: (await prisma().application.findRandom())!.id,
+        phaseId: allowedPhaseDocumentTypes!.phaseId,
+        createdAt: randomBackdatedDate(),
+      },
+    });
   }
 }
 
@@ -585,87 +668,7 @@ async function seedDatabase() {
     await __updateExtension(undefined, updateInput);
   }
 
-  console.log("🌱 Seeding documents...");
-  // Get the application document type
-  const stateApplicationDocumentType: DocumentType = "State Application";
-  const applicationIntakePhaseName: PhaseName = "Application Intake";
-  const nonePhaseName: PhaseName = "None";
-  for (const demonstration of demonstrations) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: demonstration.id,
-        phaseId: applicationIntakePhaseName,
-        createdAt: randomBackdatedDate(),
-      },
-    });
-  }
-  // Every amendment and extension has an application
-  const amendmentIds = await prisma().amendment.findMany({
-    select: { id: true },
-  });
-  for (const amendmentId of amendmentIds) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: amendmentId.id,
-        phaseId: applicationIntakePhaseName,
-        createdAt: randomBackdatedDate(),
-      },
-    });
-  }
-  const extensionIds = await prisma().extension.findMany({
-    select: { id: true },
-  });
-  for (const extensionId of extensionIds) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: extensionId.id,
-        phaseId: applicationIntakePhaseName,
-        createdAt: randomBackdatedDate(),
-      },
-    });
-  }
-  const documentCount = 30;
-  // Now, the rest can be largely randomized
-  for (let i = 0; i < documentCount; i++) {
-    // It is easier to just pull from the DB than to sample randomly from the constant
-    const allowedPhaseDocumentTypes = await prisma().phaseDocumentType.findRandom({
-      where: {
-        NOT: {
-          OR: [{ documentTypeId: stateApplicationDocumentType }, { phaseId: nonePhaseName }],
-        },
-      },
-    });
-    await prisma().document.create({
-      data: {
-        name: faker.lorem.sentence(2),
-        description: faker.lorem.sentence(),
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: allowedPhaseDocumentTypes!.documentTypeId,
-        applicationId: (await prisma().application.findRandom())!.id,
-        phaseId: allowedPhaseDocumentTypes!.phaseId,
-        createdAt: randomBackdatedDate(),
-      },
-    });
-  }
+  await seedDocuments();
   console.log("🌱 Seeding events (with and without applicationIds)...");
 
   // Grab some applications for association
