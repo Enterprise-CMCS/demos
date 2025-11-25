@@ -1,4 +1,4 @@
-import { ParsedApplicationDateInput, CompletePhaseInput } from "../../types.js";
+import { CompletePhaseInput, ApplicationDateInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
@@ -25,13 +25,13 @@ export async function completePhase(
       await validatePhaseCompletion(input.applicationId, input.phaseName, tx);
       await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
-      const applicationDatesToUpdate: ParsedApplicationDateInput[] = [];
+      const applicationDatesToUpdate: ApplicationDateInput[] = [];
       applicationDatesToUpdate.push({
         dateType: phaseActions.dateToComplete,
         dateValue:
           easternNow[
             DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.dateToComplete].expectedTimestamp
-          ],
+          ].easternTZDate,
       });
 
       if (phaseActions.nextPhase) {
@@ -48,7 +48,7 @@ export async function completePhase(
                 easternNow[
                   DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
                     .expectedTimestamp
-                ],
+                ].easternTZDate,
             });
           }
         }
