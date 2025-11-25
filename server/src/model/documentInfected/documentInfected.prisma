@@ -12,5 +12,9 @@ model DocumentInfected {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
+  owner             User              @relation(fields: [ownerUserId], references: [id])
+  application       Application       @relation(fields: [applicationId], references: [id])
+  phaseDocumentType PhaseDocumentType @relation(fields: [phaseId, documentTypeId], references: [phaseId, documentTypeId])
+
   @@map("document_infected")
 }
