@@ -28,6 +28,7 @@ type ContactColumnsProps = {
   onContactTypeChange: (personId: string, value: ContactType) => void;
   onPrimaryToggle: (personId: string) => void;
   onRemoveContact: (personId: string) => void;
+  isDeleteDisabled?: (contact: ContactRow) => boolean;
 };
 
 export function ContactColumns({
@@ -35,6 +36,7 @@ export function ContactColumns({
   onContactTypeChange,
   onPrimaryToggle,
   onRemoveContact,
+  isDeleteDisabled,
 }: ContactColumnsProps) {
   const columnHelper = createColumnHelper<ContactRow>();
 
@@ -108,23 +110,19 @@ export function ContactColumns({
       size: 80,
       cell: (info) => {
         const contact = info.row.original;
+        const deleteDisabled = isDeleteDisabled
+          ? isDeleteDisabled(contact)
+          : contact.contactType === "Project Officer" && contact.isPrimary;
+
         return (
           <div className="text-center">
             <CircleButton
               name="Delete Contact"
               size="small"
               onClick={() => onRemoveContact(contact.personId)}
-              disabled={contact.contactType === "Project Officer" && contact.isPrimary}
+              disabled={deleteDisabled}
             >
-              <DeleteIcon
-                width="15"
-                height="15"
-                fill={
-                  contact.contactType === "Project Officer" && contact.isPrimary
-                    ? "#9CA3AF"
-                    : "#CD2026"
-                }
-              />
+              <DeleteIcon width="15" height="15" fill={deleteDisabled ? "#9CA3AF" : "#CD2026"} />
             </CircleButton>
           </div>
         );

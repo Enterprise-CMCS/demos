@@ -22,7 +22,8 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
 } from "../application/applicationResolvers.js";
-import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
+import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
+import { TZDate } from "@date-fns/tz";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
@@ -68,13 +69,21 @@ export async function __updateAmendment(
   parent: unknown,
   { id, input }: { id: string; input: UpdateAmendmentInput }
 ): Promise<PrismaAmendment> {
+  let easternEffectiveDate: TZDate | null | undefined;
+  let easternExpirationDate: TZDate | null | undefined;
   if (input.effectiveDate) {
-    input.effectiveDate = parseDateTimeOrLocalDateToJSDate(input.effectiveDate, "Start of Day");
-    checkInputDateIsStartOfDay("effectiveDate", input.effectiveDate);
+    const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.effectiveDate, "Start of Day");
+    checkInputDateIsStartOfDay("effectiveDate", inputDate);
+    easternEffectiveDate = inputDate.easternTZDate;
+  } else if (input.effectiveDate === null) {
+    easternEffectiveDate = null;
   }
   if (input.expirationDate) {
-    input.expirationDate = parseDateTimeOrLocalDateToJSDate(input.expirationDate, "End of Day");
-    checkInputDateIsEndOfDay("expirationDate", input.expirationDate);
+    const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.expirationDate, "End of Day");
+    checkInputDateIsEndOfDay("expirationDate", inputDate);
+    easternExpirationDate = inputDate.easternTZDate;
+  } else if (input.expirationDate === null) {
+    easternExpirationDate = null;
   }
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
   try {
@@ -86,8 +95,8 @@ export async function __updateAmendment(
         demonstrationId: input.demonstrationId,
         name: input.name,
         description: input.description,
-        effectiveDate: input.effectiveDate,
-        expirationDate: input.expirationDate,
+        effectiveDate: easternEffectiveDate,
+        expirationDate: easternExpirationDate,
         statusId: input.status,
         currentPhaseId: input.currentPhaseName,
       },

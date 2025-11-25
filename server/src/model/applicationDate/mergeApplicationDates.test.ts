@@ -1,11 +1,19 @@
 import { describe, it, expect } from "vitest";
+import { ParsedApplicationDateInput } from ".";
+import { EasternTZDate } from "../../dateUtilities.js";
+import { TZDate } from "@date-fns/tz";
 import { mergeApplicationDates } from "./mergeApplicationDates.js";
-import { ApplicationDateInput, ParsedApplicationDateInput } from "../../types.js";
 
 describe("mergeApplicationDates", () => {
   it("should merge the two lists correctly", () => {
-    const testOldDateValue: Date = new Date("2025-01-01T00:00:00Z");
-    const testNewDateValue: Date = new Date("2025-01-07T00:00:00Z");
+    const testOldDateValue: EasternTZDate = {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate("2025-01-01T00:00:00Z", "America/New_York"),
+    };
+    const testNewDateValue: EasternTZDate = {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate("2025-01-07T00:00:00Z", "America/New_York"),
+    };
     const testExistingDates: ParsedApplicationDateInput[] = [
       {
         dateType: "Concept Start Date",
@@ -26,7 +34,7 @@ describe("mergeApplicationDates", () => {
         dateValue: testNewDateValue,
       },
     ];
-    const expectedResult: ApplicationDateInput[] = [
+    const expectedResult: ParsedApplicationDateInput[] = [
       {
         dateType: "Concept Start Date",
         dateValue: testNewDateValue,

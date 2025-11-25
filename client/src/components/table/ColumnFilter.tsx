@@ -3,7 +3,8 @@ import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
 import { Option, Select } from "components/input/select/Select";
-import { parseISO } from "date-fns";
+import { parseISO, format } from "date-fns";
+import { DatePicker } from "components/input/date/DatePicker";
 
 export interface ColumnMetaFilterConfig {
   filterConfig?:
@@ -97,32 +98,27 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
         return (
           <>
             <div>
-              <label
-                className="block text-sm font-bold mb-1"
-                htmlFor="date-filter-start"
-              >{`${columnDisplayName} Start`}</label>
-              <input
+              <DatePicker
+                label={`${columnDisplayName} Start`}
                 id="date-filter-start"
                 name="date-filter-start"
-                type="date"
-                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-                onChange={(e) => {
-                  const value = e.target.value;
-                  onRangeChange(parseISO(value), filterRangeValue.end);
-                }}
+                placeholder="Start date"
+                value={filterRangeValue.start ? format(filterRangeValue.start, "yyyy-MM-dd") : ""}
+                onValueChange={(val) =>
+                  onRangeChange(val ? parseISO(val) : null, filterRangeValue.end)
+                }
               />
             </div>
             <div>
-              <label
-                className="block text-sm font-bold mb-1"
-                htmlFor="date-filter-end"
-              >{`${columnDisplayName} End`}</label>
-              <input
+              <DatePicker
+                label={`${columnDisplayName} End`}
                 id="date-filter-end"
                 name="date-filter-end"
-                type="date"
-                onChange={(e) => onRangeChange(filterRangeValue.start, parseISO(e.target.value))}
-                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
+                placeholder="End date"
+                value={filterRangeValue.end ? format(filterRangeValue.end, "yyyy-MM-dd") : ""}
+                onValueChange={(val) =>
+                  onRangeChange(filterRangeValue.start, val ? parseISO(val) : null)
+                }
               />
             </div>
           </>

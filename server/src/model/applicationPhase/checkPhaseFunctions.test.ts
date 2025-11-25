@@ -9,6 +9,7 @@ import {
 } from "./checkPhaseFunctions.js";
 import { ApplicationDateMap } from "../applicationDate/applicationDateTypes.js";
 import { ApplicationPhaseDocumentTypeRecord, ApplicationPhaseStatusRecord } from ".";
+import { TZDate } from "@date-fns/tz";
 
 describe("checkPhaseFunctions", () => {
   const testApplicationId = "5a947103-3ad5-4237-96cd-3eaeb0c88541";
@@ -54,7 +55,13 @@ describe("checkPhaseFunctions", () => {
   describe("checkApplicationDateExistsForCompletion", () => {
     it("should throw if trying to complete a phase with a missing date", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
-        ["Concept Start Date", new Date("2025-01-01T00:11:22.333Z")],
+        [
+          "Concept Start Date",
+          {
+            isEasternTZDate: true,
+            easternTZDate: new TZDate("2025-01-01T00:11:22.333-05:00", "America/New_York"),
+          },
+        ],
       ]);
       const expectedError =
         `${testPhaseName} phase for application ${testApplicationId} requires the ` +
@@ -71,7 +78,13 @@ describe("checkPhaseFunctions", () => {
 
     it("should not throw if trying to complete a phase where the date isn't missing", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testDateTypeToCheck, new Date("2025-01-01T00:11:22.333Z")],
+        [
+          testDateTypeToCheck,
+          {
+            isEasternTZDate: true,
+            easternTZDate: new TZDate("2025-01-01T00:11:22.333-05:00", "America/New_York"),
+          },
+        ],
       ]);
       expect(() =>
         checkApplicationDateExistsForCompletion(
