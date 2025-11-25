@@ -10,7 +10,7 @@ def call(Map params = [:]) {
     def containerPresets = [
       'node': """
 - name: node
-  image: ${opts.NODE_IMAGE ?: 'artifactory.cloud.cms.gov/docker/node:22-alpine'}
+  image: ${opts.NODE_IMAGE ?: 'artifactory.cloud.cms.gov/docker/node:24-alpine'}
   command:
   - cat
   tty: true
