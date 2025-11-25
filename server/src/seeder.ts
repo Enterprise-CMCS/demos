@@ -108,29 +108,6 @@ async function seedDocuments() {
       }
     }
   }
-
-  const documentCount = 50;
-  for (let i = 0; i < documentCount; i++) {
-    const allowedPhaseDocumentTypes = await prisma().phaseDocumentType.findRandom({
-      where: {
-        NOT: {
-          OR: [{ documentTypeId: "State Application" }, { phaseId: "None" }],
-        },
-      },
-    });
-    await prisma().document.create({
-      data: {
-        name: faker.lorem.sentence(2),
-        description: faker.lorem.sentence(),
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: allowedPhaseDocumentTypes!.documentTypeId,
-        applicationId: (await prisma().application.findRandom())!.id,
-        phaseId: allowedPhaseDocumentTypes!.phaseId,
-        createdAt: randomBackdatedDate(),
-      },
-    });
-  }
 }
 
 function randomDateRange() {
