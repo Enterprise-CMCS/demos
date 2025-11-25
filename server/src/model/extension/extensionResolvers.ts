@@ -69,17 +69,21 @@ export async function __updateExtension(
   parent: unknown,
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
-  let easternEffectiveDate: TZDate | undefined = undefined;
-  let easternExpirationDate: TZDate | undefined = undefined;
+  let easternEffectiveDate: TZDate | null | undefined;
+  let easternExpirationDate: TZDate | null | undefined;
   if (input.effectiveDate) {
     const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.effectiveDate, "Start of Day");
     checkInputDateIsStartOfDay("effectiveDate", inputDate);
     easternEffectiveDate = inputDate.easternTZDate;
+  } else if (input.effectiveDate === null) {
+    easternEffectiveDate = null;
   }
   if (input.expirationDate) {
     const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.expirationDate, "End of Day");
     checkInputDateIsEndOfDay("expirationDate", inputDate);
     easternExpirationDate = inputDate.easternTZDate;
+  } else if (input.expirationDate === null) {
+    easternExpirationDate = null;
   }
   checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
   try {

@@ -395,7 +395,9 @@ describe("demonstrationResolvers", () => {
           name: testValues.demonstrationName,
         },
       };
+
       await __updateDemonstration(undefined, testInput);
+
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
         expectedCheckOptionalNotNullFieldList,
         testInput.input
@@ -406,6 +408,7 @@ describe("demonstrationResolvers", () => {
 
     it("should not touch the person tables if no update to project officer is requested", async () => {
       await __updateDemonstration(undefined, testInput);
+
       expect(transactionMocks.person.findUnique).not.toHaveBeenCalled();
       expect(transactionMocks.demonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
       expect(transactionMocks.primaryDemonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
@@ -480,6 +483,7 @@ describe("demonstrationResolvers", () => {
       ];
 
       await __updateDemonstration(undefined, testInput);
+
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
         expectedCheckOptionalNotNullFieldList,
         testInput.input
@@ -528,9 +532,11 @@ describe("demonstrationResolvers", () => {
           },
         },
       ];
+
       await expect(__updateDemonstration(undefined, testInput)).rejects.toThrowError(
         testHandlePrismaError
       );
+
       expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(
         expectedCalls[0]
       );
@@ -544,9 +550,42 @@ describe("demonstrationResolvers", () => {
 
     it("should not parse or check input dates if they don't exist", async () => {
       await __updateDemonstration(undefined, testInput);
+
       expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
+    });
+
+    it("should not parse or check input dates if they are null, but should pass them through", async () => {
+      const testInput: { id: string; input: UpdateDemonstrationInput } = {
+        id: testValues.demonstrationId,
+        input: {
+          name: testValues.demonstrationName,
+          effectiveDate: null,
+          expirationDate: null,
+        },
+      };
+      const expectedCall = {
+        where: {
+          id: testValues.demonstrationId,
+        },
+        data: {
+          name: testValues.demonstrationName,
+          effectiveDate: null,
+          expirationDate: null,
+        },
+      };
+
+      await __updateDemonstration(undefined, testInput);
+      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
+        expectedCheckOptionalNotNullFieldList,
+        testInput.input
+      );
+      expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
+      expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
+      expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
+      expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
     it("should parse and check effective date if it is provided", async () => {
