@@ -165,10 +165,12 @@ describe("AddDocumentDialog", () => {
 
 describe("virus scan polling", () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     globalThis.fetch = vi.fn();
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.clearAllMocks();
   });
@@ -210,18 +212,21 @@ describe("virus scan polling", () => {
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     await waitFor(() => expect(uploadBtn).toBeEnabled());
 
-    fireEvent.click(uploadBtn);
+    const clickPromise = new Promise<void>((resolve) => {
+      fireEvent.click(uploadBtn);
+      // Wait for next tick to let the click handler start
+      setTimeout(() => resolve(), 0);
+    });
 
-    await waitFor(
-      () => {
-        expect(mockLazyQueryFn).toHaveBeenCalledWith({
-          variables: { documentId: "test-doc-id" },
-        });
-        expect(onDocumentUploadSucceeded).toHaveBeenCalled();
-      },
-      { timeout: 3000 }
-    );
-  }, 10000);
+    await clickPromise;
+    // Advance timer to allow polling to complete
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(mockLazyQueryFn).toHaveBeenCalledWith({
+      variables: { documentId: "test-doc-id" },
+    });
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+  });
 
   it("continues polling if document does not exist yet", async () => {
     mockMutationFn.mockResolvedValue({
@@ -265,16 +270,20 @@ describe("virus scan polling", () => {
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     await waitFor(() => expect(uploadBtn).toBeEnabled());
 
-    fireEvent.click(uploadBtn);
+    const clickPromise = new Promise<void>((resolve) => {
+      fireEvent.click(uploadBtn);
+      setTimeout(() => resolve(), 0);
+    });
 
-    await waitFor(
-      () => {
-        expect(mockLazyQueryFn).toHaveBeenCalledTimes(3);
-        expect(onDocumentUploadSucceeded).toHaveBeenCalled();
-      },
-      { timeout: 10000 }
-    );
-  }, 15000);
+    await clickPromise;
+    // Advance timers for each polling attempt (3 total)
+    await vi.advanceTimersByTimeAsync(1000); // 1st poll (fails)
+    await vi.advanceTimersByTimeAsync(1000); // 2nd poll (fails)
+    await vi.advanceTimersByTimeAsync(1000); // 3rd poll (succeeds)
+
+    expect(mockLazyQueryFn).toHaveBeenCalledTimes(3);
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+  });
 
   it("throws error when virus scan times out", async () => {
     mockMutationFn.mockResolvedValue({
@@ -310,16 +319,18 @@ describe("virus scan polling", () => {
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     await waitFor(() => expect(uploadBtn).toBeEnabled());
 
-    fireEvent.click(uploadBtn);
+    const clickPromise = new Promise<void>((resolve) => {
+      fireEvent.click(uploadBtn);
+      setTimeout(() => resolve(), 0);
+    });
+
+    await clickPromise;
+    // Advance timers to reach max attempts (10 * 1000ms)
+    await vi.advanceTimersByTimeAsync(10000);
 
     // Should reach max attempts (10) and throw timeout error
-    await waitFor(
-      () => {
-        expect(mockLazyQueryFn).toHaveBeenCalledTimes(10);
-      },
-      { timeout: 15000 }
-    );
-  }, 20000);
+    expect(mockLazyQueryFn).toHaveBeenCalledTimes(10);
+  });
 
   it("skips virus scan polling for localhost uploads", async () => {
     mockMutationFn.mockResolvedValue({
@@ -352,18 +363,19 @@ describe("virus scan polling", () => {
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     await waitFor(() => expect(uploadBtn).toBeEnabled());
 
-    fireEvent.click(uploadBtn);
+    const clickPromise = new Promise<void>((resolve) => {
+      fireEvent.click(uploadBtn);
+      setTimeout(() => resolve(), 0);
+    });
 
-    await waitFor(
-      () => {
-        expect(onDocumentUploadSucceeded).toHaveBeenCalled();
-      },
-      { timeout: 3000 }
-    );
+    await clickPromise;
+    // Advance timers (though localhost should skip polling)
+    await vi.advanceTimersByTimeAsync(100);
 
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
     // Should not poll for virus scan in localhost mode
     expect(mockLazyQueryFn).not.toHaveBeenCalled();
-  }, 10000);
+  });
 });
 
 describe("tryUploadingFileToS3", () => {
