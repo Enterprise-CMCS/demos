@@ -191,10 +191,26 @@ describe("validateInputDates", () => {
           },
         ],
         [
+          "State Application Submitted Date",
+          "Completeness Review Due Date",
+          {
+            days: -15,
+            expectedTimestamp: "Start of Day",
+          },
+        ],
+        [
           "Federal Comment Period Start Date",
           "State Application Deemed Complete",
           {
             days: 1,
+            expectedTimestamp: "Start of Day",
+          },
+        ],
+        [
+          "State Application Deemed Complete",
+          "Federal Comment Period Start Date",
+          {
+            days: -1,
             expectedTimestamp: "Start of Day",
           },
         ],

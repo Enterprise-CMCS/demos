@@ -66,11 +66,27 @@ VALIDATION_CHECKS["Completeness Review Due Date"]["offsetChecks"].push({
   },
 });
 
+VALIDATION_CHECKS["State Application Submitted Date"]["offsetChecks"].push({
+  dateTypeToCheck: "Completeness Review Due Date",
+  dateOffset: {
+    days: -15,
+    expectedTimestamp: "Start of Day",
+  },
+});
+
 // Federal comment period starts 1 day after application deemed complete
 VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"].push({
   dateTypeToCheck: "State Application Deemed Complete",
   dateOffset: {
     days: 1,
+    expectedTimestamp: "Start of Day",
+  },
+});
+
+VALIDATION_CHECKS["State Application Deemed Complete"]["offsetChecks"].push({
+  dateTypeToCheck: "Federal Comment Period Start Date",
+  dateOffset: {
+    days: -1,
     expectedTimestamp: "Start of Day",
   },
 });
