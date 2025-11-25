@@ -1,5 +1,5 @@
 import React from "react";
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useApolloClient } from "@apollo/client";
 
 import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
 import { DocumentDialog, DocumentDialogFields } from "components/dialog/document/DocumentDialog";
@@ -70,9 +70,8 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   onDocumentUploadSucceeded,
 }) => {
   const { showError } = useToast();
-  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
-    refetchQueries,
-  });
+  const client = useApolloClient();
+  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
 
   const [checkDocumentExists] = useLazyQuery(DOCUMENT_EXISTS_QUERY, {
     fetchPolicy: "network-only",
@@ -153,6 +152,9 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     // Local development mode - skip S3 upload and virus scan
     if (uploadResult.presignedURL.startsWith(LOCALHOST_URL_PREFIX)) {
       onDocumentUploadSucceeded?.();
+      if (refetchQueries) {
+        await client.refetchQueries({ include: refetchQueries });
+      }
       return;
     }
 
@@ -172,6 +174,9 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     await waitForVirusScan(uploadResult.documentId);
     console.debug("[AddDocumentDialog] Upload and virus scan completed successfully");
     onDocumentUploadSucceeded?.();
+    if (refetchQueries) {
+      await client.refetchQueries({ include: refetchQueries });
+    }
   };
 
   return (
