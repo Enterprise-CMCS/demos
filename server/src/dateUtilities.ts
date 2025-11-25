@@ -1,12 +1,38 @@
 import { DateTimeOrLocalDate, ExpectedTimestamp } from "./types.js";
 import { TZDate } from "@date-fns/tz";
 
-export function parseDateTimeOrLocalDateToJSDate(
+export type DateTimeParts = {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
+};
+
+export function getDateTimeParts(dateValue: Date): DateTimeParts {
+  return {
+    hours: dateValue.getHours(),
+    minutes: dateValue.getMinutes(),
+    seconds: dateValue.getSeconds(),
+    milliseconds: dateValue.getMilliseconds(),
+  };
+}
+
+// This is intentionally structurally different to enable better type checking in TS
+export type EasternTZDate = {
+  readonly isEasternTZDate: true;
+  easternTZDate: TZDate;
+};
+
+export function parseJSDateToEasternTZDate(input: Date): EasternTZDate {
+  return { isEasternTZDate: true, easternTZDate: new TZDate(input, "America/New_York") };
+}
+
+export function parseDateTimeOrLocalDateToEasternTZDate(
   input: DateTimeOrLocalDate,
   expectedTimestamp: ExpectedTimestamp
-): Date {
+): EasternTZDate {
   if (input instanceof Date) {
-    return input;
+    return parseJSDateToEasternTZDate(input);
   }
   // When created, the assumed timezone is UTC
   // This is why getUTC* functions are used below
@@ -26,52 +52,38 @@ export function parseDateTimeOrLocalDateToJSDate(
     origDateParts.seconds = 59;
     origDateParts.milliseconds = 999;
   }
-  const dateValue = new Date(
-    new TZDate(
-      origDateParts.year,
-      origDateParts.month,
-      origDateParts.day,
-      origDateParts.hours,
-      origDateParts.minutes,
-      origDateParts.seconds,
-      origDateParts.milliseconds,
-      "America/New_York"
-    )
-  );
-  return dateValue;
-}
-
-export function __getTodayStartOfDayEastern(): Date {
-  const easternNow = new TZDate(new Date(), "America/New_York");
-  const result = new TZDate(
-    easternNow.getFullYear(),
-    easternNow.getMonth(),
-    easternNow.getDate(),
-    0,
-    0,
-    0,
-    0,
+  const dateValue = new TZDate(
+    origDateParts.year,
+    origDateParts.month,
+    origDateParts.day,
+    origDateParts.hours,
+    origDateParts.minutes,
+    origDateParts.seconds,
+    origDateParts.milliseconds,
     "America/New_York"
   );
-  return result;
+  return { isEasternTZDate: true, easternTZDate: dateValue };
 }
 
-export function __getTodayEndOfDayEastern(): Date {
-  const easternNow = new TZDate(new Date(), "America/New_York");
-  const result = new TZDate(
-    easternNow.getFullYear(),
-    easternNow.getMonth(),
-    easternNow.getDate(),
-    23,
-    59,
-    59,
-    999,
-    "America/New_York"
-  );
-  return result;
+export function __getTodayStartOfDayEastern(): EasternTZDate {
+  const easternNow: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate(new Date(), "America/New_York"),
+  };
+  easternNow.easternTZDate.setHours(0, 0, 0, 0);
+  return easternNow;
 }
 
-export function getEasternNow(): Record<ExpectedTimestamp, Date> {
+export function __getTodayEndOfDayEastern(): EasternTZDate {
+  const easternNow: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate(new Date(), "America/New_York"),
+  };
+  easternNow.easternTZDate.setHours(23, 59, 59, 999);
+  return easternNow;
+}
+
+export function getEasternNow(): Record<ExpectedTimestamp, EasternTZDate> {
   return {
     "Start of Day": __getTodayStartOfDayEastern(),
     "End of Day": __getTodayEndOfDayEastern(),

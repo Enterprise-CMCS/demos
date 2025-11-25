@@ -1,14 +1,19 @@
+import { EasternTZDate } from "../../dateUtilities.js";
 import { DateType, ExpectedTimestamp } from "../../types.js";
 
-export type TZDateTimeParts = {
-  hours: number;
-  minutes: number;
-  seconds: number;
-  milliseconds: number;
-};
+export interface ParsedApplicationDateInput {
+  dateType: DateType;
+  dateValue: EasternTZDate;
+}
 
-export type DateOffset = TZDateTimeParts & {
+export interface ParsedSetApplicationDatesInput {
+  applicationId: string;
+  applicationDates: ParsedApplicationDateInput[];
+}
+
+export type DateOffset = {
   days: number;
+  expectedTimestamp: ExpectedTimestamp;
 };
 
 export type ValidationChecks = {
@@ -20,4 +25,4 @@ export type ValidationChecks = {
 
 export type DateTypeValidationChecksRecord = Record<DateType, ValidationChecks>;
 
-export type ApplicationDateMap = Map<DateType, Date>;
+export type ApplicationDateMap = Map<DateType, EasternTZDate>;

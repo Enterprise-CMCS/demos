@@ -25,7 +25,7 @@ import { useDialog } from "components/dialog/DialogContext";
 import { ContactsTab } from "./ContactsTab";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-  person: Pick<Person, "fullName" | "id" | "email">;
+  person: Pick<Person, "fullName" | "id" | "email" | "personType">;
 };
 
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {

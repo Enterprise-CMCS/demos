@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { DateType } from "../../types.js";
 import {
-  getTZDateTimeParts,
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
   checkInputDateGreaterThan,
@@ -10,156 +9,515 @@ import {
   getDateValueFromApplicationDateMap,
 } from "./checkInputDateFunctions.js";
 import { DateOffset, ApplicationDateMap } from ".";
+import { EasternTZDate } from "../../dateUtilities.js";
+import { TZDate } from "@date-fns/tz";
+
+const OFFSET_TEST_CASES = [
+  "bothDatesESTStartToStart",
+  "bothDatesESTStartToEnd",
+  "bothDatesESTEndToEnd",
+  "bothDatesESTEndToStart",
+  "negativeBothDatesESTStartToStart",
+  "negativeBothDatesESTStartToEnd",
+  "negativeBothDatesESTEndToEnd",
+  "negativeBothDatesESTEndToStart",
+  "bothDatesEDTStartToStart",
+  "bothDatesEDTStartToEnd",
+  "bothDatesEDTEndToEnd",
+  "bothDatesEDTEndToStart",
+  "EDTtoESTStartToStart",
+  "EDTtoESTStartToEnd",
+  "EDTtoESTEndToEnd",
+  "EDTtoESTEndToStart",
+  "ESTtoEDTStartToStart",
+  "ESTtoEDTStartToEnd",
+  "ESTtoEDTEndToEnd",
+  "ESTtoEDTEndToStart",
+] as const;
+type OffsetTestCase = (typeof OFFSET_TEST_CASES)[number];
+type TestOffsetValues = {
+  offset: DateOffset;
+  before: EasternTZDate;
+  after: EasternTZDate;
+};
+type OffsetTestCaseRecord = Record<OffsetTestCase, TestOffsetValues>;
+
+const OFFEST_TEST_CASE_VALUES: OffsetTestCaseRecord = {
+  bothDatesESTStartToStart: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 1, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 5, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  bothDatesESTStartToEnd: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 1, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 5, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  bothDatesESTEndToEnd: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 1, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 5, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  bothDatesESTEndToStart: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 1, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 5, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  negativeBothDatesESTStartToStart: {
+    offset: {
+      days: -4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 5, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 1, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  negativeBothDatesESTStartToEnd: {
+    offset: {
+      days: -4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 5, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 1, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  negativeBothDatesESTEndToEnd: {
+    offset: {
+      days: -4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 5, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 1, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  negativeBothDatesESTEndToStart: {
+    offset: {
+      days: -4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 5, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 6, 1, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  bothDatesEDTStartToStart: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 11, 1, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 11, 5, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  bothDatesEDTStartToEnd: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 11, 1, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 11, 5, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  bothDatesEDTEndToEnd: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 11, 1, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 11, 5, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  bothDatesEDTEndToStart: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 11, 1, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 11, 5, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  EDTtoESTStartToStart: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 9, 31, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 10, 4, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  EDTtoESTStartToEnd: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 9, 31, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 10, 4, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  EDTtoESTEndToEnd: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 9, 31, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 10, 4, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  EDTtoESTEndToStart: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 9, 31, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 10, 4, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  ESTtoEDTStartToStart: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 2, 6, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 2, 10, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+  ESTtoEDTStartToEnd: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 2, 6, 0, 0, 0, 0, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 2, 10, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  ESTtoEDTEndToEnd: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "End of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 2, 6, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 2, 10, 23, 59, 59, 999, "America/New_York"),
+    },
+  },
+  ESTtoEDTEndToStart: {
+    offset: {
+      days: 4,
+      expectedTimestamp: "Start of Day",
+    },
+    before: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 2, 6, 23, 59, 59, 999, "America/New_York"),
+    },
+    after: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2025, 2, 10, 0, 0, 0, 0, "America/New_York"),
+    },
+  },
+};
+
+function makeOffsetTest(testName: string, input: TestOffsetValues) {
+  it(`should not throw when the input matches the target plus the offset (${testName})`, () => {
+    const testApplicationDateMap: ApplicationDateMap = new Map([
+      ["Concept Completion Date", input.after],
+      ["Concept Start Date", input.before],
+    ]);
+    expect(() =>
+      checkInputDateMeetsOffset(
+        testApplicationDateMap,
+        "Concept Completion Date",
+        "Concept Start Date",
+        input.offset
+      )
+    ).not.toThrow();
+  });
+}
 
 describe("checkInputDateFunctions", () => {
   const testInputDateType: DateType = "Concept Completion Date";
   const testTargetDateType: DateType = "Concept Start Date";
-  const testBeforeDateValue = new Date("2024-11-30T00:00:00Z");
-  const testBaseDateValue = new Date("2025-01-01T00:00:00Z");
-  const testAddDateValue = new Date("2025-01-14T11:12:13.145Z");
-  const testAfterDateValue = new Date("2025-01-31T00:00:00Z");
-
-  describe("getTZDateTimeParts", () => {
-    const datePartsUTCToEST = getTZDateTimeParts(new Date("2025-03-01T11:23:13.128Z"));
-    const datePartsEST = getTZDateTimeParts(new Date("2025-03-07T04:19:19.008-05:00"));
-    const datePartsUTCToEDT = getTZDateTimeParts(new Date("2025-08-01T17:19:32.989Z"));
-    const datePartsEDT = getTZDateTimeParts(new Date("2025-09-11T10:07:13.082-04:00"));
-
-    it("should return the correct hours in EST for a GMT date", () => {
-      expect(datePartsUTCToEST.hours).toBe(6);
-    });
-
-    it("should return the correct hours in EST for an EST date", () => {
-      expect(datePartsEST.hours).toBe(4);
-    });
-
-    it("should return the correct hours in EDT for a GMT date", () => {
-      expect(datePartsUTCToEDT.hours).toBe(13);
-    });
-
-    it("should return the correct hours in EDT for an EDT date", () => {
-      expect(datePartsEDT.hours).toBe(10);
-    });
-
-    it("should return the correct minutes, seconds, and milliseconds for GMT dates", () => {
-      expect(datePartsUTCToEST.minutes).toBe(23);
-      expect(datePartsUTCToEST.seconds).toBe(13);
-      expect(datePartsUTCToEST.milliseconds).toBe(128);
-      expect(datePartsUTCToEDT.minutes).toBe(19);
-      expect(datePartsUTCToEDT.seconds).toBe(32);
-      expect(datePartsUTCToEDT.milliseconds).toBe(989);
-    });
-
-    it("should return the correct minutes, seconds, and milliseconds for Eastern dates", () => {
-      expect(datePartsEST.minutes).toBe(19);
-      expect(datePartsEST.seconds).toBe(19);
-      expect(datePartsEST.milliseconds).toBe(8);
-      expect(datePartsEDT.minutes).toBe(7);
-      expect(datePartsEDT.seconds).toBe(13);
-      expect(datePartsEDT.milliseconds).toBe(82);
-    });
-  });
+  const testDateValue: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate(2025, 1, 7, 11, 14, 25, 313, "America/New_York"),
+  };
+  const testAfterDateValue: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate(2025, 1, 15, 8, 11, 19, 483, "America/New_York"),
+  };
+  const testBeforeDateValue: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate(2025, 0, 11, 17, 54, 33, 4, "America/New_York"),
+  };
 
   describe("checkInputDateIsStartOfDay", () => {
     it("should not throw when given a valid start of day date in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 1, 5, 0, 0, 0);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).not.toThrow();
     });
 
     it("should throw when given a invalid start of day hour value in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 1, 4, 0, 0, 0);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 4, 0, 0, 0, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid start of day minute value in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 1, 5, 1, 0, 0);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 0, 1, 0, 0, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid start of day second value in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 1, 5, 0, 1, 0);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 0, 0, 1, 0, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid start of day millisecond value in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 1, 5, 0, 0, 1);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 1, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should not throw when given a valid start of day date in EDT", () => {
-      const testInputDateValue = new Date(2025, 7, 1, 4, 0, 0, 0);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 7, 1, 0, 0, 0, 0, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).not.toThrow();
     });
 
     it("should throw when given a invalid start of day hour value in EDT", () => {
-      const testInputDateValue = new Date(2025, 7, 1, 3, 0, 0, 0);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 7, 1, 1, 0, 0, 0, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid start of day minute value in EDT", () => {
-      const testInputDateValue = new Date(2025, 7, 1, 4, 1, 0, 0);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 7, 0, 1, 0, 0, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid start of day second value in EDT", () => {
-      const testInputDateValue = new Date(2025, 7, 1, 4, 0, 1, 0);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 7, 1, 0, 0, 1, 0, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid start of day millisecond value in EDT", () => {
-      const testInputDateValue = new Date(2025, 7, 1, 4, 0, 0, 100);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 7, 1, 0, 0, 0, 1, "America/New_York"),
+      };
       expect(() => checkInputDateIsStartOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
   });
 
   describe("checkInputDateIsEndOfDay", () => {
     it("should not throw when given a valid end of day date in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 3, 4, 59, 59, 999);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 23, 59, 59, 999, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).not.toThrow();
     });
 
     it("should throw when given a invalid end of day hour value in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 3, 3, 59, 59, 999);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 22, 59, 59, 999, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid end of day minute value in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 3, 4, 58, 59, 999);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 23, 58, 59, 999, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid end of day second value in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 3, 4, 59, 58, 999);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 23, 59, 58, 999, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid end of day millisecond value in EST", () => {
-      const testInputDateValue = new Date(2025, 1, 3, 4, 59, 59, 998);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 1, 1, 23, 59, 59, 998, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should not throw when given a valid end of day date in EDT", () => {
-      const testInputDateValue = new Date(2025, 8, 1, 3, 59, 59, 999);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 8, 1, 23, 59, 59, 999, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).not.toThrow();
     });
 
     it("should throw when given a invalid end of day hour value in EDT", () => {
-      const testInputDateValue = new Date(2025, 8, 1, 2, 59, 59, 999);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 8, 1, 22, 59, 59, 999, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid end of day minute value in EDT", () => {
-      const testInputDateValue = new Date(2025, 8, 1, 3, 58, 59, 999);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 8, 1, 23, 58, 59, 999, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid end of day second value in EDT", () => {
-      const testInputDateValue = new Date(2025, 8, 1, 3, 59, 58, 999);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 8, 1, 23, 59, 58, 999, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
 
     it("should throw when given a invalid end of day millisecond value in EDT", () => {
-      const testInputDateValue = new Date(2025, 1, 8, 3, 59, 59, 998);
+      const testInputDateValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2025, 8, 1, 23, 59, 59, 998, "America/New_York"),
+      };
       expect(() => checkInputDateIsEndOfDay(testInputDateType, testInputDateValue)).toThrow();
     });
   });
@@ -167,21 +525,21 @@ describe("checkInputDateFunctions", () => {
   describe("getDateValueFromApplicationDateMap", () => {
     it("should extract a date from a date map", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testInputDateType, testBaseDateValue],
+        [testInputDateType, testDateValue],
       ]);
       const result = getDateValueFromApplicationDateMap(testInputDateType, testApplicationDateMap);
-      expect(result).toBe(testBaseDateValue);
+      expect(result).toBe(testDateValue);
     });
 
     it("should throw if the date isn't found", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testInputDateType, testBaseDateValue],
+        [testInputDateType, testDateValue],
       ]);
       expect(() =>
         getDateValueFromApplicationDateMap(testTargetDateType, testApplicationDateMap)
       ).toThrowError(
         `The date ${testTargetDateType} was requested as part of a validation, but is undefined. ` +
-          `It must either be in the database, or part of your payload.`
+          `It must either be in the database, or part of the set of dates being changed.`
       );
     });
   });
@@ -190,7 +548,7 @@ describe("checkInputDateFunctions", () => {
     it("should not throw when the date is greater than the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testAfterDateValue],
-        [testTargetDateType, testBaseDateValue],
+        [testTargetDateType, testDateValue],
       ]);
       expect(() =>
         checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
@@ -200,12 +558,12 @@ describe("checkInputDateFunctions", () => {
     it("should throw when the date is less than the target", async () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testBeforeDateValue],
-        [testTargetDateType, testBaseDateValue],
+        [testTargetDateType, testDateValue],
       ]);
       const expectedError =
-        `The input ${testInputDateType} has value ${testBeforeDateValue.toISOString()}, ` +
+        `The input ${testInputDateType} has value ${testBeforeDateValue.easternTZDate.toISOString()}, ` +
         `but it must be greater than ${testTargetDateType}, ` +
-        `which has value ${testBaseDateValue.toISOString()}.`;
+        `which has value ${testDateValue.easternTZDate.toISOString()}.`;
       expect(() =>
         checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
       ).toThrowError(expectedError);
@@ -213,13 +571,13 @@ describe("checkInputDateFunctions", () => {
 
     it("should throw when the date is equal to the target", async () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testInputDateType, testBaseDateValue],
-        [testTargetDateType, testBaseDateValue],
+        [testInputDateType, testDateValue],
+        [testTargetDateType, testDateValue],
       ]);
       const expectedError =
-        `The input ${testInputDateType} has value ${testBaseDateValue.toISOString()}, ` +
+        `The input ${testInputDateType} has value ${testDateValue.easternTZDate.toISOString()}, ` +
         `but it must be greater than ${testTargetDateType}, ` +
-        `which has value ${testBaseDateValue.toISOString()}.`;
+        `which has value ${testDateValue.easternTZDate.toISOString()}.`;
       expect(() =>
         checkInputDateGreaterThan(testApplicationDateMap, testInputDateType, testTargetDateType)
       ).toThrowError(expectedError);
@@ -230,7 +588,7 @@ describe("checkInputDateFunctions", () => {
     it("should not throw when the date is greater than the target", () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testAfterDateValue],
-        [testTargetDateType, testBaseDateValue],
+        [testTargetDateType, testDateValue],
       ]);
       expect(() =>
         checkInputDateGreaterThanOrEqual(
@@ -244,12 +602,12 @@ describe("checkInputDateFunctions", () => {
     it("should throw when the date is less than the target", async () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
         [testInputDateType, testBeforeDateValue],
-        [testTargetDateType, testBaseDateValue],
+        [testTargetDateType, testDateValue],
       ]);
       const expectedError =
-        `The input ${testInputDateType} has value ${testBeforeDateValue.toISOString()}, ` +
+        `The input ${testInputDateType} has value ${testBeforeDateValue.easternTZDate.toISOString()}, ` +
         `but it must be greater than or equal to ${testTargetDateType}, ` +
-        `which has value ${testBaseDateValue.toISOString()}.`;
+        `which has value ${testDateValue.easternTZDate.toISOString()}.`;
       expect(() =>
         checkInputDateGreaterThanOrEqual(
           testApplicationDateMap,
@@ -261,8 +619,8 @@ describe("checkInputDateFunctions", () => {
 
     it("should not throw when the date is equal to the target", async () => {
       const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testInputDateType, testBaseDateValue],
-        [testTargetDateType, testBaseDateValue],
+        [testInputDateType, testDateValue],
+        [testTargetDateType, testDateValue],
       ]);
       expect(() =>
         checkInputDateGreaterThanOrEqual(
@@ -275,48 +633,91 @@ describe("checkInputDateFunctions", () => {
   });
 
   describe("checkInputDateMeetsOffset", () => {
-    const testOffset: DateOffset = {
-      days: 13,
-      hours: 11,
-      minutes: 12,
-      seconds: 13,
-      milliseconds: 145,
-    };
+    for (const offset of OFFSET_TEST_CASES) {
+      makeOffsetTest(offset, OFFEST_TEST_CASE_VALUES[offset]);
+    }
 
-    it("should not throw when the input matches the target plus the offset", () => {
+    it("should throw when the input does not numerically match the target plus the offset", () => {
+      const testValues: TestOffsetValues = {
+        offset: {
+          days: 5,
+          expectedTimestamp: "Start of Day",
+        },
+        before: OFFEST_TEST_CASE_VALUES.bothDatesESTStartToStart.before,
+        after: OFFEST_TEST_CASE_VALUES.bothDatesESTStartToStart.after,
+      };
       const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testInputDateType, testAddDateValue],
-        [testTargetDateType, testBaseDateValue],
-      ]);
-      expect(() =>
-        checkInputDateMeetsOffset(
-          testApplicationDateMap,
-          testInputDateType,
-          testTargetDateType,
-          testOffset
-        )
-      ).not.toThrow();
-    });
-
-    it("should throw when the input does not match the target plus the offset", () => {
-      const testApplicationDateMap: ApplicationDateMap = new Map([
-        [testInputDateType, testAfterDateValue],
-        [testTargetDateType, testBaseDateValue],
+        [testInputDateType, testValues.after],
+        [testTargetDateType, testValues.before],
       ]);
       const expectedError =
-        `The input ${testInputDateType} must be equal to ${testTargetDateType} + ${testOffset.days} days, ` +
-        `${testOffset.hours} hours, ` +
-        `${testOffset.minutes} minutes, ` +
-        `${testOffset.seconds} seconds, ` +
-        `and ${testOffset.milliseconds} milliseconds, ` +
-        `which is ${testAddDateValue.toISOString()}. ` +
-        `The value provided was ${testAfterDateValue.toISOString()}.`;
+        `The input ${testInputDateType} must be equal to ${testTargetDateType} +${testValues.offset.days} days ` +
+        "and should have a timestamp that is start of day. " +
+        `The value provided was ${testValues.after.easternTZDate.toISOString()}.`;
+
       expect(() =>
         checkInputDateMeetsOffset(
           testApplicationDateMap,
           testInputDateType,
           testTargetDateType,
-          testOffset
+          testValues.offset
+        )
+      ).toThrowError(expectedError);
+    });
+
+    it("should throw when the input does not numerically match the target minus the offset", () => {
+      const testValues: TestOffsetValues = {
+        offset: {
+          days: -5,
+          expectedTimestamp: "Start of Day",
+        },
+        before: OFFEST_TEST_CASE_VALUES.negativeBothDatesESTStartToStart.before,
+        after: OFFEST_TEST_CASE_VALUES.negativeBothDatesESTStartToStart.after,
+      };
+      const testApplicationDateMap: ApplicationDateMap = new Map([
+        [testInputDateType, testValues.after],
+        [testTargetDateType, testValues.before],
+      ]);
+      const expectedError =
+        `The input ${testInputDateType} must be equal to ${testTargetDateType} ${testValues.offset.days} days ` +
+        "and should have a timestamp that is start of day. " +
+        `The value provided was ${testValues.after.easternTZDate.toISOString()}.`;
+
+      expect(() =>
+        checkInputDateMeetsOffset(
+          testApplicationDateMap,
+          testInputDateType,
+          testTargetDateType,
+          testValues.offset
+        )
+      ).toThrowError(expectedError);
+    });
+
+    it("should throw when the input does not have the right expected timestamp", () => {
+      const testValues: TestOffsetValues = {
+        offset: {
+          days: 4,
+          expectedTimestamp: "End of Day",
+        },
+        before: OFFEST_TEST_CASE_VALUES.bothDatesEDTStartToStart.before,
+        after: OFFEST_TEST_CASE_VALUES.bothDatesEDTStartToStart.after,
+      };
+      const testInputDateType = "Federal Comment Period End Date";
+      const testTargetDateType = "Federal Comment Period Start Date";
+      const testApplicationDateMap: ApplicationDateMap = new Map([
+        [testInputDateType, testValues.after],
+        [testTargetDateType, testValues.before],
+      ]);
+      const expectedError =
+        `The input ${testInputDateType} must be an end of day date (11:59:59.999 in Eastern time), but it is ` +
+        `${testValues.after.easternTZDate.toISOString()}.`;
+
+      expect(() =>
+        checkInputDateMeetsOffset(
+          testApplicationDateMap,
+          testInputDateType,
+          testTargetDateType,
+          testValues.offset
         )
       ).toThrowError(expectedError);
     });

@@ -135,16 +135,17 @@ export const ApplicationIntakePhase = ({
     setStateApplicationSubmittedDate(newDate);
 
     if (newDate) {
+      const formattedNewDate = formatDateForServer(newDate);
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "State Application Submitted Date",
-        dateValue: newDate,
+        dateValue: formattedNewDate,
       });
 
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "Completeness Start Date",
-        dateValue: newDate,
+        dateValue: formattedNewDate,
       });
     }
   };
