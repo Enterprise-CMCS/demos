@@ -32,13 +32,19 @@ vi.mock("pg", () => {
 
 let mockEventBase: GuardDutyScanResultNotificationEvent;
 let mockEventInfected: GuardDutyScanResultNotificationEvent;
-let logDebugSpy = vi.spyOn(log, "debug");
-let logInfoSpy = vi.spyOn(log, "info");
-let logWarnSpy = vi.spyOn(log, "warn");
+let logDebugSpy;
+let logInfoSpy;
+let logWarnSpy;
 const mockContext = { awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000" } as Context;
 
 describe("file-process", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+
+    logDebugSpy = vi.spyOn(log, "debug");
+    logInfoSpy = vi.spyOn(log, "info");
+    logWarnSpy = vi.spyOn(log, "warn");
+
     mockEventBase = {
       source: "aws.guardduty",
       id: "123",
@@ -95,9 +101,6 @@ describe("file-process", () => {
       },
       resources: [],
     };
-  });
-  afterEach(() => {
-    vi.resetAllMocks();
   });
 
   describe("getApplicationId", () => {
