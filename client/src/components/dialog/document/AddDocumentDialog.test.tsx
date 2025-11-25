@@ -9,14 +9,16 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AddDocumentDialog, tryUploadingFileToS3 } from "./AddDocumentDialog";
 
-const mockQuery = vi.fn();
+const mockMutation = vi.fn();
+const mockLazyQuery = vi.fn();
 
 beforeEach(() => {
   vi.mock("@apollo/client", async () => {
     const actual = await vi.importActual("@apollo/client");
     return {
       ...actual,
-      useMutation: () => [mockQuery],
+      useMutation: () => [mockMutation],
+      useLazyQuery: () => [mockLazyQuery],
     };
   });
 });

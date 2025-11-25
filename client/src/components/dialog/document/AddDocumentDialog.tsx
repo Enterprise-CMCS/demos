@@ -1,5 +1,5 @@
 import React from "react";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useLazyQuery, useMutation } from "@apollo/client";
 
 import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
 import { DocumentDialog, DocumentDialogFields } from "components/dialog/document/DocumentDialog";
@@ -9,9 +9,19 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
       presignedURL
+      documentId
     }
   }
 `;
+
+export const DOCUMENT_EXISTS_QUERY = gql`
+  query DocumentExists($documentId: ID!) {
+    documentExists(documentId: $documentId)
+  }
+`;
+
+const VIRUS_SCAN_MAX_ATTEMPTS = 10;
+const DOCUMENT_POLL_INTERVAL_MS = 1_000;
 
 interface S3UploadResponse {
   success: boolean;
@@ -68,6 +78,10 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     refetchQueries,
   });
 
+  const [checkDocumentExists] = useLazyQuery(DOCUMENT_EXISTS_QUERY, {
+    fetchPolicy: "network-only",
+  });
+
   const defaultDocumentType: DocumentType | undefined = documentTypeSubset?.[0];
 
   const defaultDocument: DocumentDialogFields = {
@@ -76,6 +90,22 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     name: "",
     description: "",
     documentType: defaultDocumentType,
+  };
+
+  const waitForVirusScan = async (documentId: string): Promise<void> => {
+    for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
+      const { data } = await checkDocumentExists({
+        variables: { documentId },
+      });
+
+      if (data?.documentExists === true) {
+        return;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, DOCUMENT_POLL_INTERVAL_MS));
+    }
+
+    throw new Error("Virus scan timed out. Please check the document status later.");
   };
 
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
@@ -111,9 +141,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Upload response from the server was empty");
     }
 
-    // If server/.env LOCAL_SIMPLE_UPLOAD="true" we just write to Documents table without S3 upload
     if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
-      console.log("Local host document - (basically this isn't an actual doc.");
       onDocumentUploadSucceeded?.();
       return;
     }
@@ -130,6 +158,8 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       showError(response.errorMessage);
       throw new Error(response.errorMessage);
     }
+
+    await waitForVirusScan(uploadResult.documentId);
 
     onDocumentUploadSucceeded?.();
   };
