@@ -75,12 +75,12 @@ export async function getApplicationId(client: typeof Client, fileKey: string) {
     const result = await client.query(getApplicationIdQuery, [fileKey]);
 
     if (result.rows.length === 0 || !result.rows[0].application_id) {
-      throw new Error(`No document_pending_upload record found for key: ${fileKey}`);
+      throw new Error(`No document_pending_upload record found for key: ${fileKey}.`);
     }
 
     return result.rows[0].application_id;
   } catch (error) {
-    throw new Error(`Failed to get application ID for key ${fileKey}: ${(error as Error).message}`);
+    throw new Error(`Failed to get application ID for key ${fileKey}: ${(error as Error).message}.`);
   }
 }
 
@@ -96,7 +96,7 @@ export async function moveFile(
       Key: destinationKey,
     })
   );
-  log.info(`successfully copied file to ${destinationBucket}`);
+  log.info(`successfully copied file to ${destinationBucket}.`);
 
   await s3.send(
     new DeleteObjectCommand({
@@ -104,7 +104,7 @@ export async function moveFile(
       Key: documentId,
     })
   );
-  log.info(`successfully deleted file from ${uploadBucket}`);
+  log.info(`successfully deleted file from ${uploadBucket}.`);
 }
 
 export async function processCleanDatabaseRecord(
@@ -114,6 +114,7 @@ export async function processCleanDatabaseRecord(
 ) {
   const processDocumentQuery = `CALL ${dbSchema}.${PROCESS_PENDING_DOCUMENT_CLEAN}($1::UUID, $2::TEXT);`;
   await client.query(processDocumentQuery, [documentId, `${applicationId}/${documentId}`]);
+  log.info("successfully processed clean file in database.");
 }
 
 export async function processInfectedDatabaseRecord(
@@ -132,6 +133,7 @@ export async function processInfectedDatabaseRecord(
     scanResultDetails.scanResultStatus ?? "",
     threatsString,
   ]);
+  log.info("successfully processed infected file in database.");
 }
 
 export async function processGuardDutyResult(
@@ -140,28 +142,28 @@ export async function processGuardDutyResult(
 ): Promise<boolean> {
   const detailType = guardDutyEvent["detail-type"];
   if (detailType !== "GuardDuty Malware Protection Object Scan Result") {
-    log.warn("not a GuardDuty Malware Protection scan result");
+    log.warn("not a GuardDuty Malware Protection scan result.");
     return;
   }
 
   const guardDutyEventDetails = guardDutyEvent.detail;
   if (!guardDutyEventDetails) {
-    throw new Error("No detail found in GuardDuty event");
+    throw new Error("No detail found in GuardDuty event.");
   }
 
   const s3Details = guardDutyEventDetails.s3ObjectDetails;
   if (!s3Details) {
-    throw new Error("No S3 object details found in GuardDuty event");
+    throw new Error("No S3 object details found in GuardDuty event.");
   }
 
   const scanResultDetails = guardDutyEventDetails.scanResultDetails;
   if (!scanResultDetails) {
-    throw new Error("No scan result details found in GuardDuty event");
+    throw new Error("No scan result details found in GuardDuty event.");
   }
 
   const scanStatus = guardDutyEventDetails.scanStatus;
   if (scanStatus !== "COMPLETED") {
-    throw new Error("GuardDuty scan not completed");
+    throw new Error("GuardDuty scan not completed.");
   }
 
   const documentId = s3Details.objectKey;
@@ -221,7 +223,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
       for (const record of event.Records) {
         try {
           const guardDutyEvent: GuardDutyScanResultNotificationEvent = JSON.parse(record.body);
-          log.debug({ guardDutyEvent }, "Received GuardDuty event");
+          log.debug({ guardDutyEvent }, "Received GuardDuty event.");
 
           const isClean = await processGuardDutyResult(client, guardDutyEvent);
           results.processedRecords++;
@@ -231,26 +233,26 @@ export const handler = async (event: SQSEvent, context: Context) =>
             results.infectedFiles++;
           }
         } catch (error) {
-          log.error({ error: error.message }, "error processing record");
+          log.error({ error: error.message }, "error processing record.");
           throw error;
         }
       }
 
-      log.info({ results }, "all records processed successfully");
+      log.info({ results }, "all records processed successfully.");
 
       return {
         statusCode: 200,
         body: `Processed ${results.processedRecords} records: ${results.cleanFiles} clean files processed, ${results.infectedFiles} infected files processed.`,
       };
     } catch (error) {
-      log.error({ error: error.message }, "lambda execution failed");
+      log.error({ error: error.message }, "lambda execution failed.");
       throw new Error(`Lambda failed: ${(error as Error).message}`);
     } finally {
       if (client) {
         try {
           await client.end();
         } catch (closeError) {
-          log.error({ error: closeError }, "error closing database connection");
+          log.error({ error: closeError }, "error closing database connection.");
         }
       }
     }

@@ -23,6 +23,9 @@ npx esbuild index.ts \
 # Include the CA cert in the zip
 zip -qr fileprocess.zip index.js node_modules/ package.json package-lock.json ca-cert.pem
 
+# Clean up build artifacts so test uses the source file
+rm index.js index.js.map
+
 # Return to original directory
 cd - > /dev/null
 
@@ -43,7 +46,6 @@ $AWS_CMD lambda create-function \
         DATABASE_SECRET_ARN=database-secret,
         UPLOAD_BUCKET=upload-bucket,
         CLEAN_BUCKET=clean-bucket,
-        INFECTED_BUCKET=infected-bucket,
         DB_SCHEMA=demos_app,
         BYPASS_SSL=true
     }" >/dev/null
