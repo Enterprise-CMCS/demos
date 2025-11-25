@@ -22,11 +22,7 @@ export const DOCUMENT_EXISTS_QUERY = gql`
 
 const VIRUS_SCAN_MAX_ATTEMPTS = 10;
 const DOCUMENT_POLL_INTERVAL_MS = 1_000;
-
-interface S3UploadResponse {
-  success: boolean;
-  errorMessage: string;
-}
+const LOCALHOST_URL_PREFIX = "http://localhost";
 
 /**
  * @internal - Exported for testing only
@@ -34,7 +30,7 @@ interface S3UploadResponse {
 export const tryUploadingFileToS3 = async (
   presignedURL: string,
   file: File
-): Promise<S3UploadResponse> => {
+): Promise<{ success: boolean; errorMessage: string }> => {
   try {
     const putResponse = await fetch(presignedURL, {
       method: "PUT",
@@ -139,7 +135,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     }
 
     // Local development mode - skip S3 upload and virus scan
-    if (uploadResult.presignedURL.includes("http://localhost")) {
+    if (uploadResult.presignedURL.startsWith(LOCALHOST_URL_PREFIX)) {
       onDocumentUploadSucceeded?.();
       return;
     }

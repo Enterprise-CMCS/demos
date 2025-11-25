@@ -9,16 +9,19 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AddDocumentDialog, tryUploadingFileToS3 } from "./AddDocumentDialog";
 
-const mockMutation = vi.fn();
-const mockLazyQuery = vi.fn();
+let mockMutationFn = vi.fn();
+let mockLazyQueryFn = vi.fn();
 
 beforeEach(() => {
+  mockMutationFn = vi.fn();
+  mockLazyQueryFn = vi.fn();
+
   vi.mock("@apollo/client", async () => {
     const actual = await vi.importActual("@apollo/client");
     return {
       ...actual,
-      useMutation: () => [mockMutation],
-      useLazyQuery: () => [mockLazyQuery],
+      useMutation: () => [mockMutationFn, { loading: false }],
+      useLazyQuery: () => [mockLazyQueryFn, { loading: false }],
     };
   });
 });
@@ -158,6 +161,209 @@ describe("AddDocumentDialog", () => {
 
     expect(titleSpan.textContent).toContain("...");
   });
+});
+
+describe("virus scan polling", () => {
+  beforeEach(() => {
+    globalThis.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+  });
+
+  it("polls documentExists query after successful upload", async () => {
+    mockMutationFn.mockResolvedValue({
+      data: {
+        uploadDocument: {
+          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
+          documentId: "test-doc-id",
+        },
+      },
+    });
+
+    mockLazyQueryFn.mockResolvedValue({
+      data: { documentExists: true },
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
+
+    const onDocumentUploadSucceeded = vi.fn();
+
+    render(
+      <ToastProvider>
+        <AddDocumentDialog
+          onClose={vi.fn()}
+          applicationId="test-app-id"
+          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+          documentTypeSubset={["General File"]}
+        />
+      </ToastProvider>
+    );
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+
+    fireEvent.click(uploadBtn);
+
+    await waitFor(
+      () => {
+        expect(mockLazyQueryFn).toHaveBeenCalledWith({
+          variables: { documentId: "test-doc-id" },
+        });
+        expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
+  }, 10000);
+
+  it("continues polling if document does not exist yet", async () => {
+    mockMutationFn.mockResolvedValue({
+      data: {
+        uploadDocument: {
+          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
+          documentId: "test-doc-id",
+        },
+      },
+    });
+
+    let callCount = 0;
+    mockLazyQueryFn.mockImplementation(async () => {
+      callCount++;
+      if (callCount < 3) {
+        return { data: { documentExists: false } };
+      }
+      return { data: { documentExists: true } };
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
+
+    const onDocumentUploadSucceeded = vi.fn();
+
+    render(
+      <ToastProvider>
+        <AddDocumentDialog
+          onClose={vi.fn()}
+          applicationId="test-app-id"
+          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+          documentTypeSubset={["General File"]}
+        />
+      </ToastProvider>
+    );
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+
+    fireEvent.click(uploadBtn);
+
+    await waitFor(
+      () => {
+        expect(mockLazyQueryFn).toHaveBeenCalledTimes(3);
+        expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+      },
+      { timeout: 10000 }
+    );
+  }, 15000);
+
+  it("throws error when virus scan times out", async () => {
+    mockMutationFn.mockResolvedValue({
+      data: {
+        uploadDocument: {
+          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
+          documentId: "test-doc-id",
+        },
+      },
+    });
+
+    mockLazyQueryFn.mockResolvedValue({
+      data: { documentExists: false },
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
+
+    render(
+      <ToastProvider>
+        <AddDocumentDialog
+          onClose={vi.fn()}
+          applicationId="test-app-id"
+          documentTypeSubset={["General File"]}
+        />
+      </ToastProvider>
+    );
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+
+    fireEvent.click(uploadBtn);
+
+    // Should reach max attempts (10) and throw timeout error
+    await waitFor(
+      () => {
+        expect(mockLazyQueryFn).toHaveBeenCalledTimes(10);
+      },
+      { timeout: 15000 }
+    );
+  }, 20000);
+
+  it("skips virus scan polling for localhost uploads", async () => {
+    mockMutationFn.mockResolvedValue({
+      data: {
+        uploadDocument: {
+          presignedURL: "http://localhost:4566/test-bucket/test-file",
+          documentId: "test-doc-id",
+        },
+      },
+    });
+
+    const onDocumentUploadSucceeded = vi.fn();
+
+    render(
+      <ToastProvider>
+        <AddDocumentDialog
+          onClose={vi.fn()}
+          applicationId="test-app-id"
+          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+          documentTypeSubset={["General File"]}
+        />
+      </ToastProvider>
+    );
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+
+    fireEvent.click(uploadBtn);
+
+    await waitFor(
+      () => {
+        expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+      },
+      { timeout: 3000 }
+    );
+
+    // Should not poll for virus scan in localhost mode
+    expect(mockLazyQueryFn).not.toHaveBeenCalled();
+  }, 10000);
 });
 
 describe("tryUploadingFileToS3", () => {
