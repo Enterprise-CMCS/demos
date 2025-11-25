@@ -47,16 +47,6 @@ export interface SetApplicationDatesInput {
   applicationDates: ApplicationDateInput[];
 }
 
-export interface ParsedApplicationDateInput {
-  dateType: DateType;
-  dateValue: Date;
-}
-
-export interface ParsedSetApplicationDatesInput {
-  applicationId: string;
-  applicationDates: ParsedApplicationDateInput[];
-}
-
 export interface ApplicationDate {
   dateType: DateType;
   dateValue: Date;

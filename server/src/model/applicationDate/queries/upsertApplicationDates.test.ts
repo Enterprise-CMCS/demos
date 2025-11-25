@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { upsertApplicationDates } from "./upsertApplicationDates.js";
-import { ParsedSetApplicationDatesInput } from "../../../types.js";
+import { ParsedSetApplicationDatesInput } from "..";
+import { EasternTZDate } from "../../../dateUtilities.js";
+import { TZDate } from "@date-fns/tz";
 
 describe("upsertApplicationDates", () => {
   const transactionMocks = {
@@ -14,8 +16,14 @@ describe("upsertApplicationDates", () => {
     },
   } as any;
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
-  const testDateValue1: Date = new Date("2025-01-01T00:00:00Z");
-  const testDateValue2: Date = new Date("2025-01-30T00:00:00Z");
+  const testDateValue1: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate("2025-01-01T05:00:00Z", "America/New_York"),
+  };
+  const testDateValue2: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate("2025-01-30T05:00:00Z", "America/New_York"),
+  };
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -45,12 +53,12 @@ describe("upsertApplicationDates", () => {
             },
           },
           update: {
-            dateValue: testDateValue1,
+            dateValue: testDateValue1.easternTZDate,
           },
           create: {
             applicationId: testApplicationId,
             dateTypeId: "Concept Completion Date",
-            dateValue: testDateValue1,
+            dateValue: testDateValue1.easternTZDate,
           },
         },
       ],
@@ -63,12 +71,12 @@ describe("upsertApplicationDates", () => {
             },
           },
           update: {
-            dateValue: testDateValue2,
+            dateValue: testDateValue2.easternTZDate,
           },
           create: {
             applicationId: testApplicationId,
             dateTypeId: "Concept Start Date",
-            dateValue: testDateValue2,
+            dateValue: testDateValue2.easternTZDate,
           },
         },
       ],
