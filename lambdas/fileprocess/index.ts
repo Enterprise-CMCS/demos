@@ -177,9 +177,9 @@ export async function processGuardDutyResult(
 
   await moveFile(documentId, destinationBucket, destinationKey);
   if (isClean) {
-    processCleanDatabaseRecord(client, documentId, applicationId);
+    await processCleanDatabaseRecord(client, documentId, applicationId);
   } else {
-    processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
+    await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
   }
 
   return isClean;
