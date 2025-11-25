@@ -80,6 +80,7 @@ async function seedDocuments() {
             documentTypeId: documentType,
             applicationId: application.id,
             phaseId: phaseName,
+            createdAt: randomBackdatedDate(),
           },
         });
         const s3Path = `${application.id}/${document.id}`;
@@ -108,72 +109,12 @@ async function seedDocuments() {
     }
   }
 
-  console.log("🌱 Seeding application documents...");
-  const stateApplicationDocumentType: DocumentType = "State Application";
-  const applicationIntakePhaseName: PhaseName = "Application Intake";
-  const nonePhaseName: PhaseName = "None";
-
-  const demonstrations = await prisma().demonstration.findMany({ select: { id: true } });
-  for (const demonstration of demonstrations) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: demonstration.id,
-        phaseId: applicationIntakePhaseName,
-        createdAt: randomBackdatedDate(),
-      },
-    });
-  }
-
-  const amendmentIds = await prisma().amendment.findMany({
-    select: { id: true },
-  });
-  for (const amendmentId of amendmentIds) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: amendmentId.id,
-        phaseId: applicationIntakePhaseName,
-        createdAt: randomBackdatedDate(),
-      },
-    });
-  }
-
-  const extensionIds = await prisma().extension.findMany({
-    select: { id: true },
-  });
-  for (const extensionId of extensionIds) {
-    const fakeName = faker.lorem.sentence(2);
-    await prisma().document.create({
-      data: {
-        name: fakeName,
-        description: "Application for " + fakeName,
-        s3Path: "s3://" + faker.lorem.word() + "/" + faker.lorem.word(),
-        ownerUserId: (await prisma().user.findRandom())!.id,
-        documentTypeId: stateApplicationDocumentType,
-        applicationId: extensionId.id,
-        phaseId: nonePhaseName,
-        createdAt: randomBackdatedDate(),
-      },
-    });
-  }
-
   const documentCount = 50;
   for (let i = 0; i < documentCount; i++) {
     const allowedPhaseDocumentTypes = await prisma().phaseDocumentType.findRandom({
       where: {
         NOT: {
-          OR: [{ documentTypeId: stateApplicationDocumentType }, { phaseId: nonePhaseName }],
+          OR: [{ documentTypeId: "State Application" }, { phaseId: "None" }],
         },
       },
     });
@@ -206,8 +147,8 @@ function randomDateRange() {
 }
 
 function randomBackdatedDate() {
-  const daysBack = faker.number.int({ min: 90, max: 210 }); // roughly 3-7 months ago
-  return faker.date.recent({ days: daysBack });
+  // choose a random date within the last year
+  return faker.date.recent({ days: 365 });
 }
 
 function checkIfAllowed() {
@@ -361,7 +302,7 @@ async function seedDatabase() {
   }
   // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
-  const healthFocusDemoTypes = [
+  const healthFocusTitles = [
     "Beneficiary Engagement",
     "PHE-COVID-19", "Aggregate Cap", "Annual Limits",
     "Basic Health Plan (BHP)", "Behavioral Health",
@@ -423,7 +364,7 @@ async function seedDatabase() {
 
     const stateName = stateSelection.state?.name ?? stateSelection.stateId;
     const waiverType = sampleFromArray(demonstrationTypes, 1)[0];
-    const focusArea = sampleFromArray(healthFocusDemoTypes, 1)[0];
+    const focusArea = sampleFromArray(healthFocusTitles, 1)[0];
     const demoName = `${stateName} ${waiverType} Waiver: ${focusArea}`;
 
     const createInput: CreateDemonstrationInput = {
