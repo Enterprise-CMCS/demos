@@ -20,8 +20,8 @@ export const DOCUMENT_EXISTS_QUERY = gql`
   }
 `;
 
-const VIRUS_SCAN_MAX_ATTEMPTS = 10;
-const DOCUMENT_POLL_INTERVAL_MS = 2_000;
+export const VIRUS_SCAN_MAX_ATTEMPTS = 10;
+export const DOCUMENT_POLL_INTERVAL_MS = 2_000;
 const LOCALHOST_URL_PREFIX = "http://localhost";
 
 /**

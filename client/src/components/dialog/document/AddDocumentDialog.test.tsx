@@ -7,7 +7,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { AddDocumentDialog, tryUploadingFileToS3 } from "./AddDocumentDialog";
+import {
+  AddDocumentDialog,
+  DOCUMENT_POLL_INTERVAL_MS,
+  tryUploadingFileToS3,
+  VIRUS_SCAN_MAX_ATTEMPTS,
+} from "./AddDocumentDialog";
 
 let mockMutationFn = vi.fn();
 let mockLazyQueryFn = vi.fn();
@@ -225,7 +230,7 @@ describe("virus scan polling", () => {
 
     await clickPromise;
     // Advance timer to allow polling to complete
-    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
     expect(mockLazyQueryFn).toHaveBeenCalledWith({
       variables: { documentId: "test-doc-id" },
@@ -282,9 +287,9 @@ describe("virus scan polling", () => {
 
     await clickPromise;
     // Advance timers for each polling attempt (3 total)
-    await vi.advanceTimersByTimeAsync(1000); // 1st poll (fails)
-    await vi.advanceTimersByTimeAsync(1000); // 2nd poll (fails)
-    await vi.advanceTimersByTimeAsync(1000); // 3rd poll (succeeds)
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 1st poll (fails)
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 2nd poll (fails)
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 3rd poll (succeeds)
 
     expect(mockLazyQueryFn).toHaveBeenCalledTimes(3);
     expect(onDocumentUploadSucceeded).toHaveBeenCalled();
@@ -330,11 +335,11 @@ describe("virus scan polling", () => {
     });
 
     await clickPromise;
-    // Advance timers to reach max attempts (10 * 1000ms)
-    await vi.advanceTimersByTimeAsync(10000);
+    // Advance timers to reach max attempts
+    await vi.advanceTimersByTimeAsync(VIRUS_SCAN_MAX_ATTEMPTS * DOCUMENT_POLL_INTERVAL_MS);
 
-    // Should reach max attempts (10) and throw timeout error
-    expect(mockLazyQueryFn).toHaveBeenCalledTimes(10);
+    // Should reach max attempts  and throw timeout error
+    expect(mockLazyQueryFn).toHaveBeenCalledTimes(VIRUS_SCAN_MAX_ATTEMPTS);
   });
 
   it("skips virus scan polling for localhost uploads", async () => {
@@ -427,7 +432,7 @@ describe("virus scan polling", () => {
     });
 
     await clickPromise;
-    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
     expect(onDocumentUploadSucceeded).toHaveBeenCalled();
     expect(mockRefetchQueries).toHaveBeenCalledWith({ include: refetchQueries });
@@ -476,7 +481,7 @@ describe("virus scan polling", () => {
     });
 
     await clickPromise;
-    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
     expect(onDocumentUploadSucceeded).toHaveBeenCalled();
     expect(mockRefetchQueries).not.toHaveBeenCalled();
