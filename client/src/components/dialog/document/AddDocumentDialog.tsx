@@ -89,12 +89,23 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   };
 
   const waitForVirusScan = async (documentId: string): Promise<void> => {
+    console.debug(`[AddDocumentDialog] Starting virus scan polling for document: ${documentId}`);
     for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
+      console.debug(
+        `[AddDocumentDialog] Polling attempt ${attempt + 1}/${VIRUS_SCAN_MAX_ATTEMPTS}`
+      );
       const { data } = await checkDocumentExists({
         variables: { documentId },
       });
 
-      if (data?.documentExists === true) return;
+      if (data?.documentExists === true) {
+        console.debug(`[AddDocumentDialog] Document exists check passed on attempt ${attempt + 1}`);
+        return;
+      }
+
+      console.debug(
+        `[AddDocumentDialog] Document not yet available, waiting ${DOCUMENT_POLL_INTERVAL_MS}ms before retry`
+      );
 
       await new Promise((resolve) => setTimeout(resolve, DOCUMENT_POLL_INTERVAL_MS));
     }
@@ -103,6 +114,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   };
 
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
+    console.debug(`[AddDocumentDialog] Starting upload for file: ${dialogFields.file?.name}`);
     if (!dialogFields.file) {
       showError("No file selected");
       return;
@@ -134,6 +146,10 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Upload response from the server was empty");
     }
 
+    console.debug(
+      `[AddDocumentDialog] Received presigned URL and documentId: ${uploadResult.documentId}`
+    );
+
     // Local development mode - skip S3 upload and virus scan
     if (uploadResult.presignedURL.startsWith(LOCALHOST_URL_PREFIX)) {
       onDocumentUploadSucceeded?.();
@@ -144,13 +160,17 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Could not get presigned URL from the server");
     }
 
+    console.debug(`[AddDocumentDialog] Starting S3 upload for file: ${dialogFields.file.name}`);
     const response = await tryUploadingFileToS3(uploadResult.presignedURL, dialogFields.file);
     if (!response.success) {
+      console.debug(`[AddDocumentDialog] S3 upload failed: ${response.errorMessage}`);
       showError(response.errorMessage);
       throw new Error(response.errorMessage);
     }
 
+    console.debug("[AddDocumentDialog] S3 upload successful, starting virus scan wait");
     await waitForVirusScan(uploadResult.documentId);
+    console.debug("[AddDocumentDialog] Upload and virus scan completed successfully");
     onDocumentUploadSucceeded?.();
   };
 
