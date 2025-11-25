@@ -98,14 +98,12 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         variables: { documentId },
       });
 
-      if (data?.documentExists === true) {
-        return;
-      }
+      if (data?.documentExists === true) return;
 
       await new Promise((resolve) => setTimeout(resolve, DOCUMENT_POLL_INTERVAL_MS));
     }
 
-    throw new Error("Virus scan timed out. Please check the document status later.");
+    throw new Error("Waiting for virus scan timed out");
   };
 
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
@@ -136,31 +134,27 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     }
 
     const uploadResult = uploadDocumentResponse.data?.uploadDocument;
-
     if (!uploadResult) {
       throw new Error("Upload response from the server was empty");
     }
 
-    if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
+    // Local development mode - skip S3 upload and virus scan
+    if (uploadResult.presignedURL.includes("http://localhost")) {
       onDocumentUploadSucceeded?.();
       return;
     }
 
-    const presignedURL = uploadResult.presignedURL ?? null;
-
-    if (!presignedURL) {
+    if (!uploadResult.presignedURL) {
       throw new Error("Could not get presigned URL from the server");
     }
 
-    const response: S3UploadResponse = await tryUploadingFileToS3(presignedURL, dialogFields.file);
-
+    const response = await tryUploadingFileToS3(uploadResult.presignedURL, dialogFields.file);
     if (!response.success) {
       showError(response.errorMessage);
       throw new Error(response.errorMessage);
     }
 
     await waitForVirusScan(uploadResult.documentId);
-
     onDocumentUploadSucceeded?.();
   };
 
