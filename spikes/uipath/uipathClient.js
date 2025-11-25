@@ -12,6 +12,8 @@ export function getProjectId() {
   return projectId;
 }
 
+// Basically the model it's using, may want different models for differnt files.
+// May need to request to checj the differeent extractors.
 export function getExtractorGuid() {
   const extractorGuid = process.env.EXTRACTOR_GUID;
   if (!extractorGuid) {
