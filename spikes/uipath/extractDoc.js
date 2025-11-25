@@ -1,12 +1,14 @@
 import {
   duPost,
   UIPATH_BASE_URL,
-  UIPATH_EXTRACTOR_GUID,
-  UIPATH_PROJECT_ID,
+  getExtractorGuid,
+  getProjectId,
 } from "./uipathClient.js";
 
 export async function extractDoc(token, docId) {
-  const url = `${UIPATH_BASE_URL}:443/${UIPATH_EXTRACTOR_GUID}/du_/api/framework/projects/${UIPATH_PROJECT_ID}/extractors/generative_extractor/extraction/start`;
+  const extractorGuid = getExtractorGuid();
+  const projectId = getProjectId();
+  const url = `${UIPATH_BASE_URL}:443/${extractorGuid}/du_/api/framework/projects/${projectId}/extractors/generative_extractor/extraction/start`;
 
   const extract = await duPost(url, token, {
     documentId: docId,
