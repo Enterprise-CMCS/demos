@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "types": ["node", "vitest/globals", "aws-lambda"],
+    "esModuleInterop": true,
+    "target": "es2023",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "strict": true
+  }
+}
