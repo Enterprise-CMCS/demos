@@ -254,6 +254,21 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
   }
 
+  document_infected:::dataTable {
+    uuid id PK
+    text name
+    text description
+    text s3_path
+    uuid owner_user_id
+    text document_type_id
+    uuid application_id
+    text phase_id
+    text infection_status
+    text infection_threats
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
   document_pending_upload:::dataTable {
     uuid id PK
     text name
