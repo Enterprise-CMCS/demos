@@ -1,4 +1,4 @@
-import fs from "fs";
+import * as fs from "fs";
 import FormData from "form-data";
 import { AxiosProgressEvent } from "axios";
 import { log } from "./log";
@@ -22,7 +22,7 @@ export async function uploadDocument(token: string, fileName: string): Promise<s
         // form-data requires its own headers so axios can set boundaries
         ...formData.getHeaders(),
         "x-uipath-page-range": "All",
-      },
+    },
       onUploadProgress: (progressEvent?: AxiosProgressEvent) => {
         if (!progressEvent?.total) return;
         const percentCompleted = Math.round(((progressEvent.loaded ?? 0) * 100) / progressEvent.total);

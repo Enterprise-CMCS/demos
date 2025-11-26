@@ -10,6 +10,7 @@
   "type": "module",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.158",
+    "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "^4.0.10",
     "esbuild": "^0.27.0",
     "typescript": "^5.9.3",
@@ -19,6 +20,7 @@
     "axios": "^1.13.2",
     "axios-oauth-client": "^2.2.0",
     "dotenv": "^17.2.3",
-    "form-data": "^4.0.5"
+    "form-data": "^4.0.5",
+    "pino": "^10.1.0"
   }
 }
