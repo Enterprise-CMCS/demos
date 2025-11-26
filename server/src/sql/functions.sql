@@ -332,7 +332,7 @@ BEGIN
 END;
 $$;
 
--- delete_infected_documentve_document_from_pending_to_infected
+-- delete_infected_document
 CREATE PROCEDURE demos_app.delete_infected_document(
     p_s3_path TEXT
 )

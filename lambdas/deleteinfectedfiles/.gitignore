@@ -2,10 +2,9 @@
 coverage
 
 # Lambda deployment artifacts
-fileprocess.zip
+deleteinfectedfiles.zip
 lambda-env.json
 node_modules/
-package-lock.json
 index.js
 index.js.map
 
