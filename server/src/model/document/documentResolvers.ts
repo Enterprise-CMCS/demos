@@ -14,7 +14,7 @@ import type {
   UploadDocumentInput,
   UploadDocumentResponse,
 } from "./documentSchema.js";
-import { createS3Adapter, S3Adapter } from "./adapters/S3Adapter.js";
+import { createS3Adapter, S3Adapter } from "../../adapters/S3Adapter";
 
 const s3Adapter: S3Adapter = createS3Adapter();
 
