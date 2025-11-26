@@ -54,6 +54,14 @@ vi.mock("jsonwebtoken", () => ({ default: {}, verify: vi.fn() }));
 
 // (Optional) smoke signal to confirm which mock path gets hit
 console.log("[TEST] prisma mock wired");
+
+// Mock environment variables required by adapters
+beforeEach(() => {
+  process.env.UPLOAD_BUCKET = "test-upload-bucket";
+  process.env.CLEAN_BUCKET = "test-clean-bucket";
+  process.env.DELETED_BUCKET = "test-deleted-bucket";
+});
+
 // Minimal APIGatewayProxyEvent with authorizer claims that match your screenshot
 function makeEvent(): APIGatewayProxyEvent {
   const identitiesString = JSON.stringify([
