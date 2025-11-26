@@ -2,7 +2,7 @@
 coverage
 
 # Lambda deployment artifacts
-deleteinfectedfiles.zip
+deleteinfectedfile.zip
 lambda-env.json
 node_modules/
 index.js
