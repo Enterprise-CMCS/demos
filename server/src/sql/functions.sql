@@ -332,6 +332,28 @@ BEGIN
 END;
 $$;
 
+-- delete_infected_documentve_document_from_pending_to_infected
+CREATE PROCEDURE demos_app.delete_infected_document(
+    p_s3_path TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    IF NOT EXISTS (SELECT id FROM demos_app.document_infected WHERE s3_path = p_s3_path) THEN
+        RAISE EXCEPTION 'No document_infected found for s3_path: %', p_s3_path;
+    END IF;
+
+    DELETE FROM
+        demos_app.document_infected
+    WHERE
+        s3_path = p_s3_path;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE EXCEPTION 'Failed to delete infected document. Details: %', SQLERRM;
+END;
+$$;
+
 -- check_that_main_record_deleted_from_application
 CREATE FUNCTION demos_app.check_that_main_record_deleted_from_application()
 RETURNS TRIGGER

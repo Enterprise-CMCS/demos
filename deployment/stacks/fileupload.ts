@@ -10,6 +10,7 @@ import {
   Fn,
   aws_ec2,
   Tags,
+  aws_s3_notifications,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Bucket, HttpMethods } from "aws-cdk-lib/aws-s3";
@@ -46,6 +47,17 @@ export class FileUploadStack extends Stack {
     const uploadQueue = new Queue(this, "FileUploadQueue", {
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
+      deadLetterQueue: {
+        maxReceiveCount: 5,
+        queue: deadLetterQueue,
+      },
+    });
+
+    const deleteInfectedFileQueue = new Queue(this, "DeleteInfectedFileQueue", {
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      encryption: QueueEncryption.KMS,
+      encryptionMasterKey: kmsKey,
       deadLetterQueue: {
         maxReceiveCount: 5,
         queue: deadLetterQueue,
@@ -128,9 +140,16 @@ export class FileUploadStack extends Stack {
           id: "DeleteInfectedFilesAfter30Days",
           enabled: true,
           expiration: Duration.days(30),
+          noncurrentVersionExpiration: Duration.days(0),
+          expiredObjectDeleteMarker: true,
         },
       ],
     });
+
+    infectedBucket.addEventNotification(
+      aws_s3.EventType.LIFECYCLE_EXPIRATION_DELETE_MARKER_CREATED,
+      new aws_s3_notifications.SqsDestination(deleteInfectedFileQueue)
+    );
 
     const fileProcessLambdaSecurityGroup = securityGroup.create({
       ...props,
@@ -215,6 +234,34 @@ export class FileUploadStack extends Stack {
     infectedBucket.grantWrite(fileProcessLambda.lambda);
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
     dbSecret.grantRead(fileProcessLambda.lambda);
+
+    const deleteInfectedFileLambda = new lambda.Lambda(this, "deleteInfectedFile", {
+      ...props,
+      scope: this,
+      entry: "../lambdas/deleteinfectedfile/index.ts",
+      handler: "index.handler",
+      vpc: props.vpc,
+      securityGroup: fileProcessLambdaSecurityGroup.securityGroup,
+      asCode: false,
+      externalModules: ["@aws-sdk"],
+      nodeModules: ["pg", "pino"],
+      timeout: Duration.seconds(30),
+      environment: {
+        INFECTED_BUCKET: infectedBucket.bucketName,
+        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
+      },
+      depsLockFilePath: "../lambdas/deleteinfectedfile/package-lock.json",
+    });
+
+    deleteInfectedFileLambda.lambda.addEventSource(
+      new SqsEventSource(deleteInfectedFileQueue, {
+        batchSize: 1,
+      })
+    );
+
+    dbSecret.grantRead(deleteInfectedFileLambda.lambda);
+    deleteInfectedFileQueue.grantConsumeMessages(deleteInfectedFileLambda.lambda);
 
     new CfnOutput(this, "cleanBucketName", {
       exportName: `${props.stage}CleanBucketName`,

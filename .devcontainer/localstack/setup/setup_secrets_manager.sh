@@ -3,7 +3,11 @@ set -e
 
 echo "🔐 Setting up Secrets Manager..."
 
+LOCALSTACK_ENDPOINT="http://localstack:4566"
+AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
+
+DB_PASSWORD="postgres" # pragma: allowlist secret
 
 # Delete existing secret
 $AWS_CMD secretsmanager delete-secret \
