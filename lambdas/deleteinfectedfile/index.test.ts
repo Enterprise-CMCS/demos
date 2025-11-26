@@ -1,559 +1,294 @@
-import {
-  Context,
-  GuardDutyScanResultNotificationEvent,
-  GuardDutyScanResultNotificationEventDetail,
-} from "aws-lambda";
-import {
-  moveFile,
-  getApplicationId,
-  handler,
-  processGuardDutyResult,
-  processInfectedDatabaseRecord,
-  processCleanDatabaseRecord,
-} from ".";
-
-import { CopyObjectCommand, DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { SQSEvent, Context } from "aws-lambda";
+import { Client } from "pg";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { handler, getDatabaseUrl, deleteInfectedDocument } from "./index";
 
-import { log } from "./log";
-
-const mockConnect = vi.fn();
-const mockQuery = vi.fn();
-const mockEnd = vi.fn();
-vi.mock("pg", () => {
-  const mockClient = {
-    connect: () => mockConnect(),
-    query: (...a) => mockQuery(...a),
-    end: () => mockEnd(),
+// Mock the SecretsManagerClient
+vi.mock("@aws-sdk/client-secrets-manager", () => {
+  const mockSend = vi.fn();
+  return {
+    SecretsManagerClient: vi.fn(() => ({
+      send: mockSend,
+    })),
+    GetSecretValueCommand: vi.fn(),
   };
-
-  return { Client: vi.fn(() => mockClient) };
 });
 
-let mockEventBase: GuardDutyScanResultNotificationEvent;
-let mockEventInfected: GuardDutyScanResultNotificationEvent;
-let logDebugSpy;
-let logInfoSpy;
-let logWarnSpy;
-const mockContext = { awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000" } as Context;
+// Mock the pg Client
+vi.mock("pg", () => {
+  const mockQuery = vi.fn();
+  const mockConnect = vi.fn();
+  const mockEnd = vi.fn();
 
-describe("file-process", () => {
+  return {
+    Client: vi.fn().mockImplementation(() => ({
+      query: mockQuery,
+      connect: mockConnect,
+      end: mockEnd,
+    })),
+  };
+});
+
+describe("deleteinfectedfile Lambda", () => {
+  let mockClient: any;
+  let mockSecretsManagerSend: any;
+  const mockDatabaseSecret = {
+    username: "test_user",
+    password: "test_password", // pragma: allowlist secret
+    host: "test-host",
+    port: "5432",
+    dbname: "test_db",
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
 
-    logDebugSpy = vi.spyOn(log, "debug");
-    logInfoSpy = vi.spyOn(log, "info");
-    logWarnSpy = vi.spyOn(log, "warn");
+    // Setup mock client
+    const ClientConstructor = Client as any;
+    mockClient = new ClientConstructor({});
 
-    mockEventBase = {
-      source: "aws.guardduty",
-      id: "123",
-      version: "1",
-      account: "0123456789",
-      time: "faketime",
-      region: "us-east-1",
-      "detail-type": "GuardDuty Malware Protection Object Scan Result",
-      detail: {
-        scanStatus: "COMPLETED",
-        schemaVersion: "1.0",
-        resourceType: "S3_OBJECT",
-        s3ObjectDetails: {
-          bucketName: "test-bucket",
-          objectKey: "test-key",
-          eTag: "",
-          versionId: "1",
-          s3Throttled: false,
-        },
-        scanResultDetails: {
-          scanResultStatus: "NO_THREATS_FOUND",
-          threats: [],
-        },
-      },
-      resources: [],
-    };
-    mockEventInfected = {
-      source: "aws.guardduty",
-      id: "123",
-      version: "1",
-      account: "0123456789",
-      time: "faketime",
-      region: "us-east-1",
-      "detail-type": "GuardDuty Malware Protection Object Scan Result",
-      detail: {
-        scanStatus: "COMPLETED",
-        schemaVersion: "1.0",
-        resourceType: "S3_OBJECT",
-        s3ObjectDetails: {
-          bucketName: "test-bucket",
-          objectKey: "test-key",
-          eTag: "",
-          versionId: "1",
-          s3Throttled: false,
-        },
-        scanResultDetails: {
-          scanResultStatus: "THREATS_FOUND",
-          threats: [
-            {
-              name: "Malware.Test",
-            },
-          ],
-        },
-      },
-      resources: [],
-    };
+    // Setup secrets manager mock
+    const SecretsManagerClientConstructor = SecretsManagerClient as any;
+    const secretsManagerInstance = new SecretsManagerClientConstructor({});
+    mockSecretsManagerSend = secretsManagerInstance.send;
+
+    // Mock secrets manager response
+    mockSecretsManagerSend.mockResolvedValue({
+      SecretString: JSON.stringify(mockDatabaseSecret),
+    });
+
+    // Reset the cached database URL
+    (getDatabaseUrl as any).cachedUrl = undefined;
   });
 
-  describe("getApplicationId", () => {
-    it("should return a application id", async () => {
-      const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [{ application_id: "1" }] }),
-      };
-      const id = await getApplicationId(mockClient, "test");
+  describe("getDatabaseUrl", () => {
+    it("should fetch and construct database URL from secrets manager", async () => {
+      const url = await getDatabaseUrl();
 
-      expect(mockClient.query).toHaveBeenCalledWith(expect.stringContaining("FROM demos_app"), [
-        "test",
-      ]);
-      expect(id).toEqual("1");
-    });
-    it("should throw when record is missing or empty", async () => {
-      const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [{}] }),
-      };
-      const mockClient2 = {
-        query: vi.fn().mockResolvedValue({ rows: [] }),
-      };
-
-      await expect(getApplicationId(mockClient, "test")).rejects.toThrow(
-        "No document_pending_upload record found"
+      expect(url).toBe(
+        `postgresql://${mockDatabaseSecret.username}:${mockDatabaseSecret.password}@${mockDatabaseSecret.host}:${mockDatabaseSecret.port}/${mockDatabaseSecret.dbname}?schema=demos_app`
       );
-      await expect(getApplicationId(mockClient2, "test")).rejects.toThrow(
-        "No document_pending_upload record found"
-      );
-    });
-    it("should return proper error if query fails", async () => {
-      const mockClient = {
-        query: vi.fn().mockRejectedValue("unit test error"),
-      };
-
-      await expect(getApplicationId(mockClient, "test")).rejects.toThrow(
-        "Failed to get application ID"
-      );
+      expect(mockSecretsManagerSend).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe("moveFile", () => {
-    it("should send proper commands to s3", async () => {
-      const mockSend = vi.fn();
+  describe("deleteInfectedDocument", () => {
+    it("should call stored procedure with correct parameters", async () => {
+      const documentKey = "application-id/file-id";
 
-      const mockUploadBucket = "mock-upload-bucket";
-      const mockDestinationBucket = "mock-destination-bucket";
-
-      const mockApplicationId = "mock-application-id";
-      const mockDocumentId = "mock-document-id";
-
-      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
-
-      const resp = await moveFile(
-        mockDocumentId,
-        mockDestinationBucket,
-        `${mockApplicationId}/${mockDocumentId}`
-      );
-
-      expect(mockSend).toHaveBeenCalledTimes(2);
-
-      expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
-      expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));
-
-      expect(mockSend.mock.calls[0][0].input).toEqual({
-        Bucket: mockDestinationBucket,
-        CopySource: `${mockUploadBucket}/${mockDocumentId}`,
-        Key: `${mockApplicationId}/${mockDocumentId}`,
-      });
-
-      expect(mockSend.mock.calls[1][0].input).toEqual({
-        Bucket: mockUploadBucket,
-        Key: mockDocumentId,
-      });
-    });
-  });
-  describe("processGuardDutyResult", () => {
-    test("should successfully process the file", async () => {
-      const mockSend = vi.fn();
-      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
-
-      const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [{ application_id: "1" }] }),
-      };
-      console.log("mockEventBase", mockEventBase);
-      await processGuardDutyResult(mockClient, mockEventBase);
-      expect(logInfoSpy).toHaveBeenCalledTimes(3);
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("successfully copied file to mock-clean-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("successfully deleted file from mock-upload-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining("successfully processed clean file in database.")
-      );
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockClient.query).toHaveBeenCalledTimes(2);
-      expect(mockClient.query).toHaveBeenLastCalledWith(
-        expect.stringContaining("CALL demos_app.move_document_from_pending_to_clean"),
-        expect.arrayContaining([expect.anything()])
-      );
-    });
-  });
-
-  describe("processCleanDatabaseRecord", () => {
-    it("should call the database with correct parameters", async () => {
-      const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [] }),
-      };
-
-      await processCleanDatabaseRecord(mockClient, "test-doc-id", "test-app-id");
+      await deleteInfectedDocument(mockClient, documentKey);
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT);",
-        ["test-doc-id", "test-app-id/test-doc-id"]
+        "CALL demos_app.delete_infected_document($1::TEXT);",
+        [documentKey]
       );
-      expect(logInfoSpy).toHaveBeenCalledWith("successfully processed clean file in database.");
-    });
-
-    it("should throw error if database query fails", async () => {
-      const mockClient = {
-        query: vi.fn().mockRejectedValue(new Error("database error")),
-      };
-
-      await expect(
-        processCleanDatabaseRecord(mockClient, "test-doc-id", "test-app-id")
-      ).rejects.toThrow("database error");
-    });
-  });
-
-  describe("processInfectedDatabaseRecord", () => {
-    it("should call the database with correct parameters for infected file", async () => {
-      const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [] }),
-      };
-
-      const mockScanResultDetails: GuardDutyScanResultNotificationEventDetail["scanResultDetails"] =
-        {
-          scanResultStatus: "THREATS_FOUND",
-          threats: [{ name: "Trojan.Generic" }, { name: "Malware.Test" }],
-        };
-
-      await processInfectedDatabaseRecord(
-        mockClient,
-        "test-doc-id",
-        "test-app-id",
-        mockScanResultDetails
-      );
-
-      expect(mockClient.query).toHaveBeenCalledWith(
-        "CALL demos_app.move_document_from_pending_to_infected($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);",
-        ["test-doc-id", "test-app-id/test-doc-id", "THREATS_FOUND", "Trojan.Generic, Malware.Test"]
-      );
-      expect(logInfoSpy).toHaveBeenCalledWith("successfully processed infected file in database.");
-    });
-
-    it("should handle empty threats array", async () => {
-      const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [] }),
-      };
-
-      const mockScanResultDetails: GuardDutyScanResultNotificationEventDetail["scanResultDetails"] =
-        {
-          scanResultStatus: "THREATS_FOUND",
-          threats: [],
-        };
-
-      await processInfectedDatabaseRecord(
-        mockClient,
-        "test-doc-id",
-        "test-app-id",
-        mockScanResultDetails
-      );
-
-      expect(mockClient.query).toHaveBeenCalledWith(
-        "CALL demos_app.move_document_from_pending_to_infected($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);",
-        ["test-doc-id", "test-app-id/test-doc-id", "THREATS_FOUND", ""]
-      );
-    });
-
-    it("should throw error if database query fails", async () => {
-      const mockClient = {
-        query: vi.fn().mockRejectedValue(new Error("database error")),
-      };
-
-      const mockScanResultDetails: GuardDutyScanResultNotificationEventDetail["scanResultDetails"] =
-        {
-          scanResultStatus: "THREATS_FOUND",
-          threats: [{ name: "Trojan.Generic" }],
-        };
-
-      await expect(
-        processInfectedDatabaseRecord(
-          mockClient,
-          "test-doc-id",
-          "test-app-id",
-          mockScanResultDetails
-        )
-      ).rejects.toThrow("database error");
     });
   });
 
   describe("handler", () => {
-    test("should properly handle clean file", async () => {
-      const mockSend = vi.fn();
-      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
-      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
-        SecretString: JSON.stringify({
-          username: "something",
-          password: "fake", // pragma: allowlist secret
-          host: "fakehost",
-          port: 1234,
-          dbname: "test",
-        }),
-      }));
+    const mockContext: Context = {
+      awsRequestId: "test-request-id",
+      functionName: "deleteinfectedfile",
+      functionVersion: "1",
+      memoryLimitInMB: "128",
+      logGroupName: "/aws/lambda/deleteinfectedfile",
+      logStreamName: "2024/01/01/[$LATEST]test",
+      invokedFunctionArn: "arn:aws:lambda:us-east-1:123456789:function:deleteinfectedfile",
+      callbackWaitsForEmptyEventLoop: false,
+      getRemainingTimeInMillis: () => 30000,
+      done: vi.fn(),
+      fail: vi.fn(),
+      succeed: vi.fn(),
+    };
 
-      mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
-
-      await handler(
-        {
-          Records: [
-            {
-              messageId: "123",
-              receiptHandle: "",
-              messageAttributes: {},
-              md5OfBody: "",
-              eventSource: "",
-              eventSourceARN: "",
-              awsRegion: "us-east-1",
-              attributes: {
-                ApproximateReceiveCount: "1",
-                SentTimestamp: "mock timestamp",
-                SenderId: "1",
-                ApproximateFirstReceiveTimestamp: "",
-              },
-              body: JSON.stringify(mockEventBase),
-            },
-          ],
-        },
-        mockContext
-      );
-
-      expect(logInfoSpy).toHaveBeenCalledTimes(4);
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("successfully copied file to mock-clean-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("successfully deleted file from mock-upload-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining("successfully processed clean file in database.")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        4,
-        {
-          results: {
-            cleanFiles: 1,
-            infectedFiles: 0,
-            processedRecords: 1,
-          },
-        },
-        "all records processed successfully."
-      );
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
-      expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));
-
-      expect(mockQuery).toHaveBeenCalledTimes(3);
-      expect(mockQuery).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("SET search_path TO demos_app, public;")
-      );
-      expect(mockQuery).toHaveBeenNthCalledWith(
-        2,
-        "SELECT application_id FROM demos_app.document_pending_upload WHERE id = $1;",
-        ["test-key"]
-      );
-      expect(mockQuery).toHaveBeenNthCalledWith(
-        3,
-        "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT);",
-        ["test-key", "1/test-key"]
-      );
-      expect(mockEnd).toHaveBeenCalledTimes(1);
-    });
-
-    test("should properly handle infected file", async () => {
-      const mockSend = vi.fn();
-      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
-      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
-        SecretString: JSON.stringify({
-          username: "something",
-          password: "fake", // pragma: allowlist secret
-          host: "fakehost",
-          port: 1234,
-          dbname: "test",
-        }),
-      }));
-
-      mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
-
-      await handler(
-        {
-          Records: [
-            {
-              messageId: "123",
-              receiptHandle: "",
-              messageAttributes: {},
-              md5OfBody: "",
-              eventSource: "",
-              eventSourceARN: "",
-              awsRegion: "us-east-1",
-              attributes: {
-                ApproximateReceiveCount: "1",
-                SentTimestamp: "mock timestamp",
-                SenderId: "1",
-                ApproximateFirstReceiveTimestamp: "",
-              },
-              body: JSON.stringify(mockEventInfected),
-            },
-          ],
-        },
-        mockContext
-      );
-
-      expect(logInfoSpy).toHaveBeenCalledTimes(4);
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("successfully copied file to mock-infected-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("successfully deleted file from mock-upload-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining("successfully processed infected file in database.")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        4,
-        {
-          results: {
-            cleanFiles: 0,
-            infectedFiles: 1,
-            processedRecords: 1,
-          },
-        },
-        "all records processed successfully."
-      );
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
-      expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));
-
-      expect(mockQuery).toHaveBeenCalledTimes(3);
-      expect(mockQuery).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("SET search_path TO demos_app, public;")
-      );
-      expect(mockQuery).toHaveBeenNthCalledWith(
-        2,
-        "SELECT application_id FROM demos_app.document_pending_upload WHERE id = $1;",
-        ["test-key"]
-      );
-      expect(mockQuery).toHaveBeenNthCalledWith(
-        3,
-        "CALL demos_app.move_document_from_pending_to_infected($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);",
-        ["test-key", "1/test-key", "THREATS_FOUND", "Malware.Test"]
-      );
-      expect(mockEnd).toHaveBeenCalledTimes(1);
-    });
-
-    test("should catch and rethrow error", async () => {
-      const mockSend = vi.fn();
-      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
-      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
-        SecretString: JSON.stringify({
-          username: "something",
-          password: "fake", // pragma: allowlist secret
-          host: "fakehost",
-          port: 1234,
-          dbname: "test",
-        }),
-      }));
-
-      mockQuery.mockRejectedValue("fail");
-
-      const handlerEvent = {
+    it("should process single S3 lifecycle expiration event successfully", async () => {
+      const mockEvent: SQSEvent = {
         Records: [
           {
-            messageId: "123",
-            receiptHandle: "",
+            messageId: "msg-123",
+            receiptHandle: "receipt-123",
+            body: JSON.stringify({
+              Records: [
+                {
+                  eventVersion: "2.1",
+                  eventSource: "aws:s3",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
+                  s3: {
+                    bucket: { name: "infected-bucket" },
+                    object: { key: "application-id/file-id" },
+                  },
+                },
+              ],
+            }),
+            attributes: {} as any,
             messageAttributes: {},
             md5OfBody: "",
-            eventSource: "",
-            eventSourceARN: "",
+            eventSource: "aws:sqs",
+            eventSourceARN: "arn:aws:sqs:us-east-1:123456789:infected-file-expiration-queue",
             awsRegion: "us-east-1",
-            attributes: {
-              ApproximateReceiveCount: "1",
-              SentTimestamp: "mock timestamp",
-              SenderId: "1",
-              ApproximateFirstReceiveTimestamp: "",
-            },
-            body: JSON.stringify(mockEventBase),
           },
         ],
       };
 
-      await expect(handler(handlerEvent, mockContext)).rejects.toThrow();
-    });
-    test("should catch and rethrow error", async () => {
-      const mockSend = vi.fn();
-      vi.spyOn(S3Client.prototype, "send").mockImplementation(() => {
-        throw new Error("");
+      const result = await handler(mockEvent, mockContext);
+
+      expect(mockClient.connect).toHaveBeenCalled();
+      expect(mockClient.query).toHaveBeenCalledWith("SET search_path TO demos_app, public;");
+      expect(mockClient.query).toHaveBeenCalledWith(
+        "CALL demos_app.delete_infected_document($1::TEXT);",
+        ["application-id/file-id"]
+      );
+      expect(mockClient.end).toHaveBeenCalled();
+      expect(result).toEqual({
+        statusCode: 200,
+        body: "Deleted 1 records.",
       });
-      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
-        SecretString: JSON.stringify({
-          username: "something",
-          password: "fake", // pragma: allowlist secret
-          host: "fakehost",
-          port: 1234,
-          dbname: "test",
-        }),
-      }));
+    });
 
-      mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
-
-      const handlerEvent = {
+    it("should process multiple S3 records in single SQS message", async () => {
+      const mockEvent: SQSEvent = {
         Records: [
           {
-            messageId: "123",
-            receiptHandle: "",
+            messageId: "msg-123",
+            receiptHandle: "receipt-123",
+            body: JSON.stringify({
+              Records: [
+                {
+                  eventVersion: "2.1",
+                  eventSource: "aws:s3",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
+                  s3: {
+                    bucket: { name: "infected-bucket" },
+                    object: { key: "application-1/file-1" },
+                  },
+                },
+                {
+                  eventVersion: "2.1",
+                  eventSource: "aws:s3",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
+                  s3: {
+                    bucket: { name: "infected-bucket" },
+                    object: { key: "application-2/file-2" },
+                  },
+                },
+              ],
+            }),
+            attributes: {} as any,
             messageAttributes: {},
             md5OfBody: "",
-            eventSource: "",
-            eventSourceARN: "",
+            eventSource: "aws:sqs",
+            eventSourceARN: "arn:aws:sqs:us-east-1:123456789:infected-file-expiration-queue",
             awsRegion: "us-east-1",
-            attributes: {
-              ApproximateReceiveCount: "1",
-              SentTimestamp: "mock timestamp",
-              SenderId: "1",
-              ApproximateFirstReceiveTimestamp: "",
-            },
-            body: JSON.stringify(mockEventBase),
           },
         ],
       };
 
-      await expect(handler(handlerEvent, mockContext)).rejects.toThrow();
+      const result = await handler(mockEvent, mockContext);
+
+      expect(mockClient.query).toHaveBeenCalledWith(
+        "CALL demos_app.delete_infected_document($1::TEXT);",
+        ["application-1/file-1"]
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
+        "CALL demos_app.delete_infected_document($1::TEXT);",
+        ["application-2/file-2"]
+      );
+      expect(result).toEqual({
+        statusCode: 200,
+        body: "Deleted 2 records.",
+      });
+    });
+
+    it("should throw error if record body is invalid", async () => {
+      const mockEvent: SQSEvent = {
+        Records: [
+          {
+            messageId: "msg-123",
+            receiptHandle: "receipt-123",
+            body: "",
+            attributes: {} as any,
+            messageAttributes: {},
+            md5OfBody: "",
+            eventSource: "aws:sqs",
+            eventSourceARN: "arn:aws:sqs:us-east-1:123456789:infected-file-expiration-queue",
+            awsRegion: "us-east-1",
+          },
+        ],
+      };
+
+      await expect(handler(mockEvent, mockContext)).rejects.toThrow(
+        "Lambda failed: event record body invalid."
+      );
+    });
+
+    it("should throw error if S3 object key is missing", async () => {
+      const mockEvent: SQSEvent = {
+        Records: [
+          {
+            messageId: "msg-123",
+            receiptHandle: "receipt-123",
+            body: JSON.stringify({
+              Records: [
+                {
+                  eventVersion: "2.1",
+                  eventSource: "aws:s3",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
+                  s3: {
+                    bucket: { name: "infected-bucket" },
+                    object: {},
+                  },
+                },
+              ],
+            }),
+            attributes: {} as any,
+            messageAttributes: {},
+            md5OfBody: "",
+            eventSource: "aws:sqs",
+            eventSourceARN: "arn:aws:sqs:us-east-1:123456789:infected-file-expiration-queue",
+            awsRegion: "us-east-1",
+          },
+        ],
+      };
+
+      await expect(handler(mockEvent, mockContext)).rejects.toThrow(
+        "Lambda failed: S3 record object key missing."
+      );
+    });
+
+    it("should close database connection even if processing fails", async () => {
+      mockClient.query.mockRejectedValueOnce(new Error("Database error"));
+
+      const mockEvent: SQSEvent = {
+        Records: [
+          {
+            messageId: "msg-123",
+            receiptHandle: "receipt-123",
+            body: JSON.stringify({
+              Records: [
+                {
+                  eventVersion: "2.1",
+                  eventSource: "aws:s3",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
+                  s3: {
+                    bucket: { name: "infected-bucket" },
+                    object: { key: "application-id/file-id" },
+                  },
+                },
+              ],
+            }),
+            attributes: {} as any,
+            messageAttributes: {},
+            md5OfBody: "",
+            eventSource: "aws:sqs",
+            eventSourceARN: "arn:aws:sqs:us-east-1:123456789:infected-file-expiration-queue",
+            awsRegion: "us-east-1",
+          },
+        ],
+      };
+
+      await expect(handler(mockEvent, mockContext)).rejects.toThrow();
+      expect(mockClient.end).toHaveBeenCalled();
     });
   });
 });

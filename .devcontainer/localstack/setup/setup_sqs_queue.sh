@@ -10,7 +10,7 @@ AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 # ============================================================================
 # FileProcess Queue (for S3 upload events transformed to GuardDuty format)
 # ============================================================================
-echo "Creating FileProcess queue with 5 second delay..."
+echo "Creating FileProcess queue"
 
 FILEPROCESS_DLQ_URL=$($AWS_CMD sqs create-queue \
     --queue-name fileprocess-dlq \
@@ -24,10 +24,10 @@ FILEPROCESS_DLQ_ARN=$($AWS_CMD sqs get-queue-attributes \
 
 FILEPROCESS_REDRIVE_POLICY="{\"deadLetterTargetArn\":\"$FILEPROCESS_DLQ_ARN\",\"maxReceiveCount\":\"5\"}"
 
-# 5 second delay simulates GuardDuty scan time
+# simulates GuardDuty
 FILEPROCESS_QUEUE_URL=$($AWS_CMD sqs create-queue \
     --queue-name fileprocess-queue \
-    --attributes "{\"RedrivePolicy\":\"$(echo $FILEPROCESS_REDRIVE_POLICY | sed 's/"/\\"/g')\",\"MessageRetentionPeriod\":\"1209600\",\"DelaySeconds\":\"5\"}" \
+    --attributes "{\"RedrivePolicy\":\"$(echo $FILEPROCESS_REDRIVE_POLICY | sed 's/"/\\"/g')\",\"MessageRetentionPeriod\":\"1209600\"}" \
     --output text --query 'QueueUrl')
 
 FILEPROCESS_QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
@@ -57,7 +57,7 @@ $AWS_CMD sqs set-queue-attributes \
     --queue-url $FILEPROCESS_QUEUE_URL \
     --attributes "{\"Policy\":\"$(echo $FILEPROCESS_QUEUE_POLICY | sed 's/"/\\"/g')\"}"
 
-echo "✅ FileProcess queue created (5 second delay)"
+echo "✅ FileProcess queue created"
 echo "   Queue ARN: $FILEPROCESS_QUEUE_ARN"
 echo "   DLQ ARN: $FILEPROCESS_DLQ_ARN"
 
