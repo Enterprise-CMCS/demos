@@ -1,6 +1,7 @@
 import {
   aws_ec2,
   aws_iam,
+  aws_lambda,
   aws_secretsmanager,
   CustomResource,
   Duration,
@@ -19,6 +20,7 @@ import * as securityGroup from "../lib/security-group";
 import importNumberValue from "../util/importNumberValue";
 import { Provider } from "aws-cdk-lib/custom-resources";
 import * as databaseRoles from "../databaseRoles";
+import { CfnFunction } from "aws-cdk-lib/aws-lambda";
 
 interface DBRoleStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -30,6 +32,7 @@ export class DBRoleStack extends Stack {
       ...props,
       terminationProtection: false,
     });
+
 
     const dbRoleManagementSecurityGroup = securityGroup.create({
       ...props,
@@ -144,6 +147,11 @@ export class DBRoleStack extends Stack {
     const crp = new Provider(this, "rolesCrp", {
       onEventHandler: roleManagmentLambda.lambda,
     });
+
+    // This override is needed because the latest JS version is returned as node
+    // 22 and the function is internal to CDK
+    const il = crp.node.tryFindChild("framework-onEvent")?.node.defaultChild as CfnFunction
+    il.runtime = aws_lambda.Runtime.NODEJS_24_X.name
 
     const cr = new CustomResource(this, "dbRoles", {
       serviceToken: crp.serviceToken,
