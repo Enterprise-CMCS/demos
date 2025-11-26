@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-# filepath: /workspaces/demos/lambdas/deleteinfectedfile/delete-infected-file.sh
 set -e
 
 if [ -z "$1" ]; then

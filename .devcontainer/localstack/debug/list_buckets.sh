@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-# filepath: /workspaces/demos/.devcontainer/list_buckets.sh
 set -e
 
 export LOCALSTACK_ENDPOINT="http://localstack:4566"

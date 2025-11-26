@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-# filepath: /workspaces/demos/lambdas/deleteinfectedfile/delete-all-infected-files.sh
 set -e
 
 export LOCALSTACK_ENDPOINT="http://localstack:4566"
