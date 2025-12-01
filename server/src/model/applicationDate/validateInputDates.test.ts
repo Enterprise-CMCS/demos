@@ -108,7 +108,7 @@ describe("validateInputDates", () => {
         "PO & OGD Sign-Off",
         "Review Completion Date",
         "OGC Approval to Share with SMEs",
-        "Draft Approval Package to Pre",
+        "Draft Approval Package to Prep",
         "DDME Approval Received",
         "State Concurrence",
         "BN PMT Approval to Send to OMB",
