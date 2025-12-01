@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
 import { Button, SecondaryButton } from "components/button";
+import { DatePicker } from "components/input/date/DatePicker";
+import { TextInput } from "components/input";
 
 interface ReviewPhaseProps {
   formData: ReviewPhaseFormData;
@@ -16,8 +18,8 @@ interface ReviewPhaseFormData {
   draftApprovalPackageSharedDate?: string;
   receiveOMBConcurrenceDate?: string;
   receiveOGCLegalClearanceDate?: string;
-  poOGDNotes?: string;
-  ogcOMBNotes?: string;
+  poOGDNotes?: string; // Placeholder Value
+  ogcOMBNotes?: string;  // Placeholder Value
 }
 
 function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormData {
@@ -77,87 +79,79 @@ export const ReviewPhase = ({
         </div>
 
         <div className="flex flex-col">
-          <label className="font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            OGC Approval To Share with SMEs
-          </label>
-          <input
-            type="date"
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="datepicker-ogc-approval-to-share-date"
+          <DatePicker
+            label="OGC Approval To Share with SMEs"
+            id="datepicker-ogc-approval-to-share-date"
+            name="datepicker-ogc-approval-to-share-date"
+            placeholder="mm/dd/yyyy"
             value={reviewPhaseFormData.ogcApprovalToShareDate || ""}
-            onChange={(e) =>
+            required
+            onValueChange={(val) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
-                ogcApprovalToShareDate: e.target.value,
+                ogcApprovalToShareDate: val,
               })
             }
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            Draft Approval Package to Prep
-          </label>
-          <input
-            type="date"
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="datepicker-draft-approval-package-to-prep-date"
+          <DatePicker
+            label="Draft Approval Package to Prep"
+            id="datepicker-draft-approval-package-to-prep-date"
+            name="datepicker-draft-approval-package-to-prep-date"
+            placeholder="mm/dd/yyyy"
             value={reviewPhaseFormData.draftApprovalPackageToPrepDate || ""}
-            onChange={(e) =>
+            required
+            onValueChange={(val) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
-                draftApprovalPackageToPrepDate: e.target.value,
+                draftApprovalPackageToPrepDate: val,
               })
             }
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            DDME Approval Received
-          </label>
-          <input
-            type="date"
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="datepicker-ddme-approval-received-date"
+          <DatePicker
+            label="DDME Approval Received"
+            id="datepicker-ddme-approval-received-date"
+            name="datepicker-ddme-approval-received-date"
+            placeholder="mm/dd/yyyy"
             value={reviewPhaseFormData.ddmeApprovalReceivedDate || ""}
-            onChange={(e) =>
+            required
+            onValueChange={(val) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
-                ddmeApprovalReceivedDate: e.target.value,
+                ddmeApprovalReceivedDate: val,
               })
             }
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            State Concurrence
-          </label>
-          <input
-            type="date"
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="datepicker-state-concurrence-date"
+          <DatePicker
+            label="State Concurrence"
+            id="datepicker-state-concurrence-date"
+            name="datepicker-state-concurrence-date"
+            placeholder="mm/dd/yyyy"
             value={reviewPhaseFormData.stateConcurrenceDate || ""}
-            onChange={(e) =>
+            required
+            onValueChange={(val) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
-                stateConcurrenceDate: e.target.value,
+                stateConcurrenceDate: val,
               })
             }
           />
         </div>
 
         <div className="col-span-2 flex flex-col">
-          <label className="font-bold mb-1">PO OGD Notes</label>
-          <input
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="input-po-ogd-notes"
-            value={reviewPhaseFormData.poOGDNotes || ""}
+          <TextInput
+            name="input-po-ogd-notes"
+            label="PO OGD Notes"
+            placeholder="Enter"
+            value={reviewPhaseFormData.poOGDNotes}
             onChange={(e) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
@@ -177,87 +171,79 @@ export const ReviewPhase = ({
         </div>
 
         <div className="flex flex-col">
-          <label className="font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            BN PMT Approval to Send to OMB
-          </label>
-          <input
-            type="date"
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="datepicker-bn-pmt-approval-received-date"
+          <DatePicker
+            label="BN PMT Approval Received"
+            id="datepicker-bn-pmt-approval-received-date"
+            name="datepicker-bn-pmt-approval-received-date"
+            placeholder="mm/dd/yyyy"
             value={reviewPhaseFormData.bnPmtApprovalReceivedDate || ""}
-            onChange={(e) =>
+            required
+            onValueChange={(val) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
-                bnPmtApprovalReceivedDate: e.target.value,
+                bnPmtApprovalReceivedDate: val,
               })
             }
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            Draft Approval Package Shared
-          </label>
-          <input
-            type="date"
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="datepicker-draft-approval-package-shared-date"
+          <DatePicker
+            label="Draft Approval Package Shared"
+            id="datepicker-draft-approval-package-shared-date"
+            name="datepicker-draft-approval-package-shared-date"
+            placeholder="mm/dd/yyyy"
             value={reviewPhaseFormData.draftApprovalPackageSharedDate || ""}
-            onChange={(e) =>
+            required
+            onValueChange={(val) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
-                draftApprovalPackageSharedDate: e.target.value,
+                draftApprovalPackageSharedDate: val,
               })
             }
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            Receive OMB Concurrence
-          </label>
-          <input
-            type="date"
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="datepicker-receive-omb-concurrence-date"
+          <DatePicker
+            label="Receive OMB Concurrence"
+            id="datepicker-receive-omb-concurrence-date"
+            name="datepicker-receive-omb-concurrence-date"
+            placeholder="mm/dd/yyyy"
             value={reviewPhaseFormData.receiveOMBConcurrenceDate || ""}
-            onChange={(e) =>
+            required
+            onValueChange={(val) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
-                receiveOMBConcurrenceDate: e.target.value,
+                receiveOMBConcurrenceDate: val,
               })
             }
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            Receive OGC Legal Clearance
-          </label>
-          <input
-            type="date"
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="datepicker-receive-ogc-legal-clearance-date"
+          <DatePicker
+            label="Receive OGC Legal Clearance"
+            id="datepicker-receive-ogc-legal-clearance-date"
+            name="datepicker-receive-ogc-legal-clearance-date"
+            placeholder="mm/dd/yyyy"
             value={reviewPhaseFormData.receiveOGCLegalClearanceDate || ""}
-            onChange={(e) =>
+            required
+            onValueChange={(val) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
-                receiveOGCLegalClearanceDate: e.target.value,
+                receiveOGCLegalClearanceDate: val,
               })
             }
           />
         </div>
 
         <div className="col-span-2 flex flex-col">
-          <label className="font-bold mb-1">OGC OMB Notes</label>
-          <input
-            className="border border-border-fields px-1 py-1 rounded"
-            data-testid="input-ogc-omb-notes"
-            value={reviewPhaseFormData.ogcOMBNotes || ""}
+          <TextInput
+            name="input-ogc-omb-notes"
+            label="OGC OMB Notes"
+            placeholder="Enter"
+            value={reviewPhaseFormData.ogcOMBNotes}
             onChange={(e) =>
               setReviewPhaseFormData({
                 ...reviewPhaseFormData,
