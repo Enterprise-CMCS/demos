@@ -5,7 +5,7 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 import { als, log, store, reqIdChild } from "./log";
 
 const DELETE_INFECTED_DOCUMENT = "delete_infected_document";
-const LIFECYCLE_EXPIRATION_DELETE_EVENT = "LifecycleExpiration:Delete";
+const LIFECYCLE_EXPIRATION_DELETE_EVENT = "LifecycleExpiration:DeleteMarkerCreated";
 const INFECTED_BUCKET = "infected-bucket";
 
 let databaseUrlCache = "";
@@ -56,11 +56,14 @@ export async function deleteInfectedDocument(client: typeof Client, documentKey:
 function validateS3Event(s3Record: any): void {
   const eventName = s3Record.eventName;
 
-  // Validate specific lifecycle event types
+  // Only accept LifecycleExpiration:DeleteMarkerCreated events (versioned buckets)
   if (eventName !== LIFECYCLE_EXPIRATION_DELETE_EVENT) {
-    log.error({ eventName, s3Record }, "Unsupported lifecycle expiration event type.");
+    log.error(
+      { eventName, s3Record },
+      `Invalid event type - expected ${LIFECYCLE_EXPIRATION_DELETE_EVENT}`
+    );
     throw new Error(
-      `Unsupported event type: ${eventName}. Expected ${LIFECYCLE_EXPIRATION_DELETE_EVENT}.`
+      `Invalid event type: ${eventName}. Expected ${LIFECYCLE_EXPIRATION_DELETE_EVENT}.`
     );
   }
 

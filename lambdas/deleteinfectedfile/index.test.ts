@@ -102,7 +102,7 @@ describe("deleteinfectedfile Lambda", () => {
       succeed: vi.fn(),
     };
 
-    it("should process single S3 lifecycle expiration event successfully", async () => {
+    it("should process single S3 lifecycle delete marker created event successfully", async () => {
       const mockEvent: SQSEvent = {
         Records: [
           {
@@ -113,7 +113,7 @@ describe("deleteinfectedfile Lambda", () => {
                 {
                   eventVersion: "2.1",
                   eventSource: "aws:s3",
-                  eventName: "LifecycleExpiration:Delete",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
                   s3: {
                     bucket: { name: "infected-bucket" },
                     object: { key: "application-id/file-id" },
@@ -157,7 +157,7 @@ describe("deleteinfectedfile Lambda", () => {
                 {
                   eventVersion: "2.1",
                   eventSource: "aws:s3",
-                  eventName: "LifecycleExpiration:Delete",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
                   s3: {
                     bucket: { name: "infected-bucket" },
                     object: { key: "application-1/file-1" },
@@ -166,7 +166,7 @@ describe("deleteinfectedfile Lambda", () => {
                 {
                   eventVersion: "2.1",
                   eventSource: "aws:s3",
-                  eventName: "LifecycleExpiration:Delete",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
                   s3: {
                     bucket: { name: "infected-bucket" },
                     object: { key: "application-2/file-2" },
@@ -222,7 +222,7 @@ describe("deleteinfectedfile Lambda", () => {
       );
     });
 
-    it("should throw error if event is not a lifecycle expiration delete event", async () => {
+    it("should throw error if event is not a lifecycle expiration delete marker event", async () => {
       const mockEvent: SQSEvent = {
         Records: [
           {
@@ -252,7 +252,7 @@ describe("deleteinfectedfile Lambda", () => {
       };
 
       await expect(handler(mockEvent, mockContext)).rejects.toThrow(
-        "Lambda failed: Unsupported event type: ObjectCreated:Put. Expected LifecycleExpiration:Delete."
+        "Invalid event type: ObjectCreated:Put"
       );
     });
 
@@ -267,7 +267,7 @@ describe("deleteinfectedfile Lambda", () => {
                 {
                   eventVersion: "2.1",
                   eventSource: "aws:s3",
-                  eventName: "LifecycleExpiration:Delete",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
                   s3: {
                     bucket: { name: "wrong-bucket" },
                     object: { key: "application-id/file-id" },
@@ -299,7 +299,7 @@ describe("deleteinfectedfile Lambda", () => {
                 {
                   eventVersion: "2.1",
                   eventSource: "aws:s3",
-                  eventName: "LifecycleExpiration:Delete",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
                   s3: {
                     bucket: { name: "infected-bucket" },
                     object: {},
@@ -335,7 +335,7 @@ describe("deleteinfectedfile Lambda", () => {
                 {
                   eventVersion: "2.1",
                   eventSource: "aws:s3",
-                  eventName: "LifecycleExpiration:Delete",
+                  eventName: "LifecycleExpiration:DeleteMarkerCreated",
                   s3: {
                     bucket: { name: "infected-bucket" },
                     object: { key: "application-id/file-id" },
