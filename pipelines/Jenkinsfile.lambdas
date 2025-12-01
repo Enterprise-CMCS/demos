@@ -18,7 +18,7 @@ pipeline {
             snykScan('lambdas/dbRoleManagement')
             snykScan('lambdas/fileprocess')
             snykScan('lambdas/emailer')
-            syncScan('lambdas/deleteinfectedfile')
+            snykScan('lambdas/deleteinfectedfile')
           }
         }
       }
