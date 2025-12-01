@@ -509,7 +509,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-14T00:00:00.000-05:00"),
       },
       {
-        dateType: "Draft Approval Package to Pre",
+        dateType: "Draft Approval Package to Prep",
         dateValue: new Date("2025-02-15T00:00:00.000-05:00"),
       },
       {
