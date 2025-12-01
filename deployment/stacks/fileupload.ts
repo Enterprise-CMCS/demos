@@ -127,7 +127,7 @@ export class FileUploadStack extends Stack {
     });
 
     const infectedBucket = new Bucket(this, "FileInfectedBucket", {
-      versioned: true,
+      versioned: false,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,
@@ -140,14 +140,12 @@ export class FileUploadStack extends Stack {
           id: "DeleteInfectedFilesAfter30Days",
           enabled: true,
           expiration: Duration.days(30),
-          noncurrentVersionExpiration: Duration.days(0),
-          expiredObjectDeleteMarker: true,
         },
       ],
     });
 
     infectedBucket.addEventNotification(
-      aws_s3.EventType.LIFECYCLE_EXPIRATION_DELETE_MARKER_CREATED,
+      aws_s3.EventType.LIFECYCLE_EXPIRATION, 
       new aws_s3_notifications.SqsDestination(deleteInfectedFileQueue)
     );
 

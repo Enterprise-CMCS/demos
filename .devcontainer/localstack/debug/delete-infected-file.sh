@@ -36,7 +36,7 @@ S3_EVENT=$(cat <<EOF
       "eventSource": "aws:s3",
       "awsRegion": "us-east-1",
       "eventTime": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
-      "eventName": "LifecycleExpiration:DeleteMarkerCreated",
+      "eventName": "LifecycleExpiration:Delete",
       "s3": {
         "s3SchemaVersion": "1.0",
         "configurationId": "lifecycle-expiration",

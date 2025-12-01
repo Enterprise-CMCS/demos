@@ -5,6 +5,8 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 import { als, log, store, reqIdChild } from "./log";
 
 const DELETE_INFECTED_DOCUMENT = "delete_infected_document";
+const LIFECYCLE_EXPIRATION_DELETE_EVENT = "LifecycleExpiration:Delete";
+const INFECTED_BUCKET = "infected-bucket";
 
 let databaseUrlCache = "";
 let cacheExpiration = 0;
@@ -51,6 +53,27 @@ export async function deleteInfectedDocument(client: typeof Client, documentKey:
   log.info("successfully deleted infected document in database.");
 }
 
+function validateS3Event(s3Record: any): void {
+  const eventName = s3Record.eventName;
+
+  // Validate specific lifecycle event types
+  if (eventName !== LIFECYCLE_EXPIRATION_DELETE_EVENT) {
+    log.error({ eventName, s3Record }, "Unsupported lifecycle expiration event type.");
+    throw new Error(
+      `Unsupported event type: ${eventName}. Expected ${LIFECYCLE_EXPIRATION_DELETE_EVENT}.`
+    );
+  }
+
+  // Validate bucket name
+  const bucketName = s3Record.s3?.bucket?.name;
+  if (bucketName !== INFECTED_BUCKET) {
+    log.error({ bucketName, s3Record }, `Invalid bucket - expected ${INFECTED_BUCKET}.`);
+    throw new Error(`Invalid bucket: ${bucketName}. Expected ${INFECTED_BUCKET}.`);
+  }
+
+  log.debug({ eventName, bucketName }, "S3 event validation passed.");
+}
+
 export const handler = async (event: SQSEvent, context: Context) =>
   als.run(store, async () => {
     reqIdChild(context.awsRequestId);
@@ -83,17 +106,20 @@ export const handler = async (event: SQSEvent, context: Context) =>
       for (const record of event.Records) {
         if (!record.body || typeof record.body !== "string") {
           log.error({ record }, "event record body invalid.");
-          throw new Error("event record body invalid.");
+          throw new Error("Lambda failed: event record body invalid.");
         }
         log.debug({ record }, "Processing SQS record.");
         const eventRecords = JSON.parse(record.body);
 
         for (const s3Record of eventRecords.Records) {
           try {
+            // Validate the S3 event before processing
+            validateS3Event(s3Record);
+
             const documentKey = s3Record.s3?.object?.key;
             if (!documentKey) {
               log.error({ s3Record }, "S3 record object key missing.");
-              throw new Error("S3 record object key missing.");
+              throw new Error("Lambda failed: S3 record object key missing.");
             }
             await deleteInfectedDocument(client, documentKey);
             results.deletedInfectedDocuments++;
