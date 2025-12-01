@@ -7,7 +7,8 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from "../applicationDate";
 import { validatePhaseCompletion, updatePhaseStatus, startNextPhase } from ".";
-import { getEasternNow } from "../../dateUtilities.js";
+import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
+import { TZDate } from "@date-fns/tz";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -53,8 +54,14 @@ describe("completePhase", () => {
   const mockEasternStartOfDayDate = new Date("2025-01-13T00:00:00.000-05:00");
   const mockEasternEndOfDayDate = new Date("2025-01-13T23:59:59.999-05:00");
   const mockEasternValue = {
-    "Start of Day": mockEasternStartOfDayDate,
-    "End of Day": mockEasternEndOfDayDate,
+    "Start of Day": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternStartOfDayDate, "America/New_York"),
+    } satisfies EasternTZDate,
+    "End of Day": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternEndOfDayDate, "America/New_York"),
+    } satisfies EasternTZDate,
   };
 
   beforeEach(() => {

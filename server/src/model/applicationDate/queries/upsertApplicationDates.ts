@@ -1,5 +1,5 @@
 import { PrismaTransactionClient } from "../../../prismaClient.js";
-import { ParsedSetApplicationDatesInput } from "../../../types.js";
+import { ParsedSetApplicationDatesInput } from "..";
 
 export async function upsertApplicationDates(
   parsedInputApplicationDates: ParsedSetApplicationDatesInput,
@@ -14,12 +14,12 @@ export async function upsertApplicationDates(
         },
       },
       update: {
-        dateValue: dateToUpdate.dateValue,
+        dateValue: dateToUpdate.dateValue.easternTZDate,
       },
       create: {
         applicationId: parsedInputApplicationDates.applicationId,
         dateTypeId: dateToUpdate.dateType,
-        dateValue: dateToUpdate.dateValue,
+        dateValue: dateToUpdate.dateValue.easternTZDate,
       },
     });
   });

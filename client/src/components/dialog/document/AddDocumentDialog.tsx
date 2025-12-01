@@ -1,5 +1,5 @@
 import React from "react";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useApolloClient } from "@apollo/client";
 
 import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
 import { DocumentDialog, DocumentDialogFields } from "components/dialog/document/DocumentDialog";
@@ -9,14 +9,20 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
       presignedURL
+      documentId
     }
   }
 `;
 
-interface S3UploadResponse {
-  success: boolean;
-  errorMessage: string;
-}
+export const DOCUMENT_EXISTS_QUERY = gql`
+  query DocumentExists($documentId: ID!) {
+    documentExists(documentId: $documentId)
+  }
+`;
+
+export const VIRUS_SCAN_MAX_ATTEMPTS = 10;
+export const DOCUMENT_POLL_INTERVAL_MS = 2_000;
+const LOCALHOST_URL_PREFIX = "http://localhost";
 
 /**
  * @internal - Exported for testing only
@@ -24,7 +30,7 @@ interface S3UploadResponse {
 export const tryUploadingFileToS3 = async (
   presignedURL: string,
   file: File
-): Promise<S3UploadResponse> => {
+): Promise<{ success: boolean; errorMessage: string }> => {
   try {
     const putResponse = await fetch(presignedURL, {
       method: "PUT",
@@ -64,8 +70,11 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   onDocumentUploadSucceeded,
 }) => {
   const { showError } = useToast();
-  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY, {
-    refetchQueries,
+  const client = useApolloClient();
+  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
+
+  const [checkDocumentExists] = useLazyQuery(DOCUMENT_EXISTS_QUERY, {
+    fetchPolicy: "network-only",
   });
 
   const defaultDocumentType: DocumentType | undefined = documentTypeSubset?.[0];
@@ -76,6 +85,22 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     name: "",
     description: "",
     documentType: defaultDocumentType,
+  };
+
+  const waitForVirusScan = async (documentId: string): Promise<void> => {
+    for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
+      const { data } = await checkDocumentExists({
+        variables: { documentId },
+      });
+
+      if (data?.documentExists === true) {
+        return;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, DOCUMENT_POLL_INTERVAL_MS));
+    }
+
+    throw new Error("Waiting for virus scan timed out");
   };
 
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
@@ -106,32 +131,34 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     }
 
     const uploadResult = uploadDocumentResponse.data?.uploadDocument;
-
     if (!uploadResult) {
       throw new Error("Upload response from the server was empty");
     }
 
-    // If server/.env LOCAL_SIMPLE_UPLOAD="true" we just write to Documents table without S3 upload
-    if (uploadResult.presignedURL.includes("http://localhost:4566/")) {
-      console.log("Local host document - (basically this isn't an actual doc.");
+    // Local development mode - skip S3 upload and virus scan
+    if (uploadResult.presignedURL.startsWith(LOCALHOST_URL_PREFIX)) {
       onDocumentUploadSucceeded?.();
+      if (refetchQueries) {
+        await client.refetchQueries({ include: refetchQueries });
+      }
       return;
     }
 
-    const presignedURL = uploadResult.presignedURL ?? null;
-
-    if (!presignedURL) {
+    if (!uploadResult.presignedURL) {
       throw new Error("Could not get presigned URL from the server");
     }
 
-    const response: S3UploadResponse = await tryUploadingFileToS3(presignedURL, dialogFields.file);
-
+    const response = await tryUploadingFileToS3(uploadResult.presignedURL, dialogFields.file);
     if (!response.success) {
       showError(response.errorMessage);
       throw new Error(response.errorMessage);
     }
 
+    await waitForVirusScan(uploadResult.documentId);
     onDocumentUploadSucceeded?.();
+    if (refetchQueries) {
+      await client.refetchQueries({ include: refetchQueries });
+    }
   };
 
   return (

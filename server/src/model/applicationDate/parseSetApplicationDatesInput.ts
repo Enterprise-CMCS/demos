@@ -1,6 +1,7 @@
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
-import { parseDateTimeOrLocalDateToJSDate } from "../../dateUtilities.js";
-import { ParsedSetApplicationDatesInput, SetApplicationDatesInput } from "../../types.js";
+import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
+import { SetApplicationDatesInput } from "../../types.js";
+import { ParsedSetApplicationDatesInput } from ".";
 
 export function parseSetApplicationDatesInput(
   inputApplicationDates: SetApplicationDatesInput
@@ -12,7 +13,7 @@ export function parseSetApplicationDatesInput(
   for (const applicationDate of inputApplicationDates.applicationDates) {
     result.applicationDates.push({
       dateType: applicationDate.dateType,
-      dateValue: parseDateTimeOrLocalDateToJSDate(
+      dateValue: parseDateTimeOrLocalDateToEasternTZDate(
         applicationDate.dateValue,
         DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[applicationDate.dateType].expectedTimestamp
       ),

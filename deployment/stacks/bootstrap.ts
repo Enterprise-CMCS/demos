@@ -120,6 +120,19 @@ export class BootstrapStack extends Stack {
           actions: ["cloudfront:ListDistributions"],
           resources: ["*"],
         }),
+        new aws_iam.PolicyStatement({
+          actions: ["s3:ListAllMyBuckets"],
+          resources: ["*"],
+        }),
+        new aws_iam.PolicyStatement({
+          actions: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:DeleteObjectVersion", "s3:ListBucketVersions"],
+          resources: [
+            "arn:aws:s3:::demos-dev-file-upload-*",
+            "arn:aws:s3:::demos-test-file-upload-*",
+            "arn:aws:s3:::demos-dev-file-upload-*/*",
+            "arn:aws:s3:::demos-test-file-upload-*/*"
+          ],
+        }),
       ],
     });
 

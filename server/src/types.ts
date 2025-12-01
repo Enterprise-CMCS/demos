@@ -73,12 +73,10 @@ export type {
   ApplicationDateInput,
   SetApplicationDateInput,
   SetApplicationDatesInput,
-  ParsedApplicationDateInput,
-  ParsedSetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
-export type LocalDate = string;
-export type DateTimeOrLocalDate = Date | string;
+export type LocalDate = string & { readonly __brand: "LocalDate" };
+export type DateTimeOrLocalDate = Date | LocalDate;
 export type NonEmptyString = string;
 export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
 export type ApplicationType = (typeof APPLICATION_TYPES)[number];

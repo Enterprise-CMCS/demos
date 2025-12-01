@@ -30,7 +30,7 @@ import { __setApplicationDates } from "./model/applicationDate/applicationDateRe
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application/applicationResolvers.js";
-import { uploadDocument } from "./model/document/documentResolvers.js";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 
@@ -50,6 +50,19 @@ function getRandomPhaseDocumentTypeCombination(): {
 
 async function seedDocuments() {
   console.log("🌱 Seeding documents...");
+  const s3Client = new S3Client(
+    process.env.S3_ENDPOINT_LOCAL
+      ? {
+          region: "us-east-1",
+          endpoint: process.env.S3_ENDPOINT_LOCAL,
+          forcePathStyle: true,
+          credentials: {
+            accessKeyId: "test",
+            secretAccessKey: "test", // pragma: allowlist secret
+          },
+        }
+      : {}
+  );
 
   const applications = await prisma().application.findMany();
 
@@ -58,52 +71,38 @@ async function seedDocuments() {
       try {
         const { phaseName, documentType } = getRandomPhaseDocumentTypeCombination();
         const name = faker.lorem.sentence(2);
-        const user = await prisma().user.findRandom();
-
-        if (process.env.LOCAL_SIMPLE_UPLOAD) {
-          await prisma().document.create({
-            data: {
-              name: name,
-              description: faker.lorem.sentence(5),
-              documentTypeId: documentType,
-              applicationId: application.id,
-              phaseId: phaseName,
-              s3Path: `${application.id}/${name}`,
-              ownerUserId: user!.id,
-            },
-          });
+        let document = await prisma().document.create({
+          data: {
+            name: name,
+            description: faker.lorem.sentence(5),
+            s3Path: "tmp",
+            ownerUserId: (await prisma().user.findRandom())!.id,
+            documentTypeId: documentType,
+            applicationId: application.id,
+            phaseId: phaseName,
+            createdAt: randomBackdatedDate(),
+          },
+        });
+        const s3Path = `${application.id}/${document.id}`;
+        document = await prisma().document.update({
+          where: { id: document.id },
+          data: {
+            s3Path,
+          },
+        });
+        // temporary bypass for backward compatability with simple upload.
+        // TODO: remove this bypass
+        if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
           continue;
         }
-
-        const document = {
-          name: name,
-          description: faker.lorem.sentence(5),
-          documentType: documentType,
-          applicationId: application.id,
-          phaseName: phaseName,
-        };
-
-        const uploadDocumentResponse = await uploadDocument(
-          undefined,
-          {
-            input: document,
-          },
-          {
-            user: {
-              id: user!.id,
-              sub: user!.cognitoSubject,
-              role: user!.personTypeId,
-            },
-          }
-        );
-        const presignedURL = uploadDocumentResponse.presignedURL;
         const mockFileContent = Buffer.from(`Test file: ${JSON.stringify(document)}`);
-
-        await fetch(presignedURL!, {
-          method: "PUT",
-          body: mockFileContent,
-          headers: { "Content-Type": "txt" },
-        });
+        await s3Client.send(
+          new PutObjectCommand({
+            Bucket: process.env.CLEAN_BUCKET,
+            Key: s3Path,
+            Body: mockFileContent,
+          })
+        );
       } catch (error) {
         console.error(`Could not seed document. ${error}`);
       }
@@ -122,6 +121,11 @@ function randomDateRange() {
   randomEasternEnd.setHours(23, 59, 59, 999);
 
   return { start: randomEasternStart, end: randomEasternEnd };
+}
+
+function randomBackdatedDate() {
+  // choose a random date within the last year
+  return faker.date.recent({ days: 365 });
 }
 
 function checkIfAllowed() {
@@ -275,6 +279,42 @@ async function seedDatabase() {
   }
   // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
+  const healthFocusTitles = [
+    "Beneficiary Engagement",
+    "PHE-COVID-19", "Aggregate Cap", "Annual Limits",
+    "Basic Health Plan (BHP)", "Behavioral Health",
+    "Children's Health Insurance Program (CHIP)",
+    "CMMI - AHEAD", "CMMI - Integrated Care for Kids (IncK)",
+    "CMMI - Maternal Opioid Misuse (MOM)",
+    "Community Engagement", "Contingency Management",
+    "Continuous Eligibility",
+    "Delivery System Reform Incentive Payment (DSRIP)",
+    "Dental", "Designated State Health Programs (DSHP)",
+    "Employment Supports", "Enrollment Cap",
+    "End-Stage Renal Disease (ESRD)", "Expenditure Cap",
+    "Former Foster Care Youth (FFCY)",
+    "Global Payment Program (GPP)", "Health Equity",
+    "Health-Related Social Needs (HRSN)",
+    "Healthy Behavior Incentives",
+    "HIV", "Home Community Based Services (HCBS)",
+    "Lead Exposure", "Lifetime Limits",
+    "Long-Term Services and Supports (LTSS)",
+    "Managed Care", "Marketplace Coverage/Premium Assistance Wrap",
+    "New Adult Group Expansion", "Non-Eligibility Period",
+    "Non-Emergency Medical Transportation (NEMT)",
+    "Partial Expansion of the New Adult Group", "Pharmacy", "PHE-Appendix K",
+    "PHE-Reasonable Opportunity Period (ROP)", "PHE-Risk Mitigation",
+    "PHE-Vaccine Coverage", "Premiums/Cost-Sharing",
+    "Provider Cap", "Provider Restriction", "ReEntry",
+    "Reproductive Health: Family Planning", "Reproductive Health: Fertility",
+    "Reproductive Health: Hyde", "Reproductive Health: Maternal Health",
+    "Reproductive Health: Post-Partum Extension", "Reproductive Health: RAD",
+    "Retroactive Eligibility", "Serious Mental Illness (SMI)", "Special Needs",
+    "Substance Use Disorder (SUD)", "Targeted Population Expansion", "Tribal",
+    "Uncompensated Care","Value Based Care (VBC)", "Vision",
+  ];
+  const demonstrationTypes = ["Section 1115", "Section 1915(b)", "Section 1915(c)"];
+
   for (let i = 0; i < demonstrationCount; i++) {
     // get a random cms-user
     const person = await prisma().person.findRandom({
@@ -290,12 +330,26 @@ async function seedDatabase() {
       throw new Error("No cms users found to assign as project officers");
     }
 
+    let stateSelection = sampleFromArray(person.personStates, 1)[0];
+    if (!stateSelection) {
+      const fallbackState = await prisma().state.findRandom();
+      if (!fallbackState) {
+        throw new Error("No states available to assign to demonstration");
+      }
+      stateSelection = { stateId: fallbackState.id, state: fallbackState, personId: person.id };
+    }
+
+    const stateName = stateSelection.state?.name ?? stateSelection.stateId;
+    const waiverType = sampleFromArray(demonstrationTypes, 1)[0];
+    const focusArea = sampleFromArray(healthFocusTitles, 1)[0];
+    const demoName = `${stateName} ${waiverType} Waiver: ${focusArea}`;
+
     const createInput: CreateDemonstrationInput = {
-      name: faker.lorem.words(3),
+      name: demoName,
       description: faker.lorem.sentence(),
       sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
-      stateId: sampleFromArray(person.personStates, 1)[0].stateId,
+      stateId: stateSelection.stateId,
       projectOfficerUserId: person.id,
     };
     await __createDemonstration(undefined, { input: createInput });
@@ -533,7 +587,6 @@ async function seedDatabase() {
   }
 
   await seedDocuments();
-
   console.log("🌱 Seeding events (with and without applicationIds)...");
 
   // Grab some applications for association
