@@ -51,12 +51,6 @@ export function applyUISuppressions(ui: Stack, stage: string) {
 }
 
 export function applyApiSuppressions(api: Stack, stage: string) {
-
-  NagSuppressions.addStackSuppressions(api, [{
-    id: "AwsSolutions-L1",
-    reason: "Node24 is not currently available on AWS, but is causing this finding",
-  }])
-
   NagSuppressions.addResourceSuppressionsByPath(api, `/demos-${stage}-api/ApiGatewayRestApi/Resource`, [
     {
       id: "AwsSolutions-APIG4",
@@ -176,11 +170,6 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
 
 export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
 
-NagSuppressions.addStackSuppressions(fileUpload, [{
-    id: "AwsSolutions-L1",
-    reason: "Node24 is not currently available on AWS, but is causing this finding",
-  }])
-
   NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource`,
@@ -238,10 +227,6 @@ NagSuppressions.addStackSuppressions(fileUpload, [{
 }
 
 export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {
-  NagSuppressions.addStackSuppressions(dbRole, [{
-    id: "AwsSolutions-L1",
-    reason: "Node24 is not currently available on AWS, but is causing this finding",
-  }])
   NagSuppressions.addResourceSuppressionsByPath(
     dbRole,
     `/demos-${stage}-db-role/dbRoleManagement/dbRoleManagementLambdaExecutionRole/Resource`,
