@@ -363,8 +363,10 @@ BEGIN
             FROM
                 demos_app.application_phase AS ap
             INNER JOIN
-                fed_comment_period_dates AS fcpd
-                    ON ap.application_id = fcpd.application_id
+                fed_comment_period_dates AS fcpd ON
+                    ap.application_id = fcpd.application_id AND
+                    fcpd.federal_comment_start IS NOT NULL AND
+                    fcpd.federal_comment_end IS NOT NULL
             GROUP BY
                 ap.application_id,
                 fcpd.federal_comment_start,
