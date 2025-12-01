@@ -1,9 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { GraphQLError } from "graphql";
-import {
-  Document as PrismaDocument,
-  DocumentPendingUpload as PrismaDocumentPendingUpload,
-} from "@prisma/client";
+import { Document as PrismaDocument } from "@prisma/client";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -26,23 +23,6 @@ async function getDocument(parent: unknown, { id }: { id: string }) {
   return await prisma().document.findUnique({
     where: { id: id },
   });
-}
-
-async function getPresignedUploadUrl(
-  documentPendingUpload: PrismaDocumentPendingUpload,
-): Promise<string> {
-  return await s3Adapter.getPresignedUploadUrl(documentPendingUpload.id);
-}
-
-async function getPresignedDownloadUrl(
-  document: PrismaDocument,
-): Promise<string> {
-  return await s3Adapter.getPresignedDownloadUrl(document.id);
-}
-
-async function moveDocumentFromCleanToDeletedBuckets(document: PrismaDocument) {
-  const key = `${document.applicationId}/${document.id}`;
-  await s3Adapter.moveDocumentFromCleanToDeleted(key);
 }
 
 export const documentResolvers = {
@@ -90,7 +70,9 @@ export const documentResolvers = {
           },
         });
 
-        const fakePresignedUrl = await getPresignedUploadUrl(document);
+        const fakePresignedUrl = await s3Adapter.getPresignedUploadUrl(
+          document.id,
+        );
         log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
         return {
           presignedURL: fakePresignedUrl,
@@ -110,7 +92,9 @@ export const documentResolvers = {
         },
       );
 
-      const presignedURL = await getPresignedUploadUrl(documentPendingUpload);
+      const presignedURL = await s3Adapter.getPresignedUploadUrl(
+        documentPendingUpload.id,
+      );
       return {
         presignedURL,
         documentId: documentPendingUpload.id,
@@ -129,7 +113,7 @@ export const documentResolvers = {
           },
         });
       }
-      return await getPresignedDownloadUrl(document);
+      return await s3Adapter.getPresignedDownloadUrl(document.id);
     },
 
     updateDocument: async (
@@ -161,7 +145,8 @@ export const documentResolvers = {
         const document = await tx.document.delete({
           where: { id },
         });
-        await moveDocumentFromCleanToDeletedBuckets(document);
+        const key = `${document.applicationId}/${document.id}`;
+        await s3Adapter.moveDocumentFromCleanToDeleted(key);
         return document;
       });
     },
@@ -172,7 +157,8 @@ export const documentResolvers = {
         });
 
         for (const document of documents) {
-          await moveDocumentFromCleanToDeletedBuckets(document);
+          const key = `${document.applicationId}/${document.id}`;
+          await s3Adapter.moveDocumentFromCleanToDeleted(key);
         }
 
         const result = await tx.document.deleteMany({
