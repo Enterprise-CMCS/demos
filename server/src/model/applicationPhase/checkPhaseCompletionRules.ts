@@ -12,8 +12,8 @@ import {
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
-    datesMustExist: [],
-    documentTypesMustExist: [],
+    datesMustExist: ["Pre-Submission Submitted Date"],
+    documentTypesMustExist: ["Pre-Submission"],
     phasesMustBeComplete: [],
   },
   "Application Intake": {
