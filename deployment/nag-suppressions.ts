@@ -225,6 +225,20 @@ NagSuppressions.addStackSuppressions(fileUpload, [{
       },
     ]
   );
+
+  
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/deleteInfectedFile/deleteInfectedFileLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason:
+          "Permissions given are required for the lambda execution role. Some wildcards are unavoidable",
+      },
+    ]
+  );
+  
   NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/uploadBucketScan/GuardDutyMalwareProtectionRolePolicy/Resource`,
