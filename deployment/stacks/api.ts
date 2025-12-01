@@ -23,8 +23,6 @@ import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import importNumberValue from "../util/importNumberValue";
 import path from "path";
-import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
-import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 interface APIStackProps {
   vpc: IVpc;
@@ -99,7 +97,7 @@ export class ApiStack extends Stack {
     const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
       prefixListName: `com.amazonaws.${this.region}.s3`,
     });
-    
+
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
@@ -117,6 +115,7 @@ export class ApiStack extends Stack {
       `demos-${commonProps.hostEnvironment}-rds-demos_server`
     );
 
+    // Authorizer Lambda - dustin use this as guide
     const authPath = path.join("..", "lambdas", "authorizer");
     const rel = path.resolve(authPath);
 
@@ -144,6 +143,7 @@ export class ApiStack extends Stack {
         authorizerName: "cognitoTokenAuth",
       }
     );
+    // -----------------
 
     const uploadBucketName = Fn.importValue(`${props.stage}UploadBucketName`);
     const uploadBucket = aws_s3.Bucket.fromBucketName(this, "uploadBucket", uploadBucketName);

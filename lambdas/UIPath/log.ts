@@ -21,14 +21,11 @@ export const setupLogger = (serviceName: string) =>
         return { type, ctx: Object.keys(rest).length && rest || undefined };
       },
     },
-    transport: process.stdout.isTTY
-      ? {
-          target: "pino-pretty",
-        }
-      : undefined,
+    // Disable pretty transport in bundled/worker contexts to avoid worker path issues.
+    transport: undefined,
   });
 
-export const parentLogger = setupLogger("dbRoleManagement");
+export const parentLogger = setupLogger("uipath");
 
 export const reqIdChild = (id: string, extra?: object) => {
   const child = parentLogger.child({requestId: id, ...extra });

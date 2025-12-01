@@ -15,7 +15,7 @@ const isLocal = () =>
   (!process.env.AWS_EXECUTION_ENV && !process.env.AWS_LAMBDA_FUNCTION_NAME);
 
 async function runLocal() {
-  const inputFile = process.env.INPUT_FILE ?? "ak-behavioral-health-demo-pa.pdf";
+  const inputFile = process.env.INPUT_FILE ?? "AL0878R0200 2.PDF";
   reqIdChild("local-run");
 
   const status = await runDocumentUnderstanding(inputFile, {
@@ -29,7 +29,8 @@ async function runLocal() {
 }
 
 const isDirectRun = () => {
-  const currentPath = fileURLToPath(import.meta.url);
+  // @ts-ignore
+  const currentPath = fileURLToPath(import.meta.url); // This works just fine. Not sure why linter is calling me out.
   const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
   return currentPath === invokedPath;
 };
