@@ -115,7 +115,6 @@ export class ApiStack extends Stack {
       `demos-${commonProps.hostEnvironment}-rds-demos_server`
     );
 
-    // Authorizer Lambda - dustin use this as guide
     const authPath = path.join("..", "lambdas", "authorizer");
     const rel = path.resolve(authPath);
 
@@ -143,7 +142,6 @@ export class ApiStack extends Stack {
         authorizerName: "cognitoTokenAuth",
       }
     );
-    // -----------------
 
     const uploadBucketName = Fn.importValue(`${props.stage}UploadBucketName`);
     const uploadBucket = aws_s3.Bucket.fromBucketName(this, "uploadBucket", uploadBucketName);
