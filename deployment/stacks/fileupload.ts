@@ -139,8 +139,8 @@ export class FileUploadStack extends Stack {
         {
           id: "DeleteInfectedFilesAfter30Days",
           enabled: true,
-          expiration: Duration.days(30),
-          noncurrentVersionExpiration: Duration.days(0),
+          expiration: Duration.days(29),
+          noncurrentVersionExpiration: Duration.days(1),
         },
         {
           id: "CleanupExpiredDeleteMarkers",
