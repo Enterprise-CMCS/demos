@@ -9,7 +9,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Adapter } from "./S3Adapter.js";
 
 const EXPIRATION_TIME_SECONDS = 3600; // 1 hour in seconds
-
 const LOCAL_SIMPLE_UPLOAD_ENDPOINT = "http://localhost:4566";
 
 const resolveS3Endpoint = (): string | undefined => {
