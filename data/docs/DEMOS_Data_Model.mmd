@@ -262,10 +262,10 @@ erDiagram
     text name
     text description
     text s3_path
-    uuid owner_user_id
-    text document_type_id
-    uuid application_id
-    text phase_id
+    uuid owner_user_id FK "FK068: owner_user_id ∈ users.id"
+    text document_type_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    uuid application_id FK "FK070: application_id ∈ application.id"
+    text phase_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
     text infection_status
     text infection_threats
     timestamptz created_at
