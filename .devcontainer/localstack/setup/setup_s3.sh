@@ -59,8 +59,8 @@ done
 
 
 
-# Enable versioning on clean-bucket, deleted-bucket, and infected-bucket
-echo "🔄 Enabling versioning on clean-bucket, deleted-bucket, and infected-bucket..."
+# Enable versioning on clean-bucket and deleted-bucket
+echo "🔄 Enabling versioning on clean-bucket and deleted-bucket..."
 
 $AWS_CMD s3api put-bucket-versioning \
     --bucket clean-bucket \
@@ -70,11 +70,7 @@ $AWS_CMD s3api put-bucket-versioning \
     --bucket deleted-bucket \
     --versioning-configuration Status=Enabled
 
-$AWS_CMD s3api put-bucket-versioning \
-    --bucket infected-bucket \
-    --versioning-configuration Status=Enabled
-
-echo "✅ Versioning enabled on clean-bucket, deleted-bucket, and infected-bucket."
+echo "✅ Versioning enabled on clean-bucket and deleted-bucket."
 
 
 
