@@ -13,6 +13,7 @@ TBL_FOLDERS = [
     "demonstrationRoleAssignment",
     "document",
     "documentPendingUpload",
+    "documentInfected",
     "extension",
     "person",
     "personState",

@@ -12,6 +12,7 @@ model Application {
   applicationPhases      ApplicationPhase[]
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]
+  documentsInfected      DocumentInfected[]
   events                 Event[]
 
   @@unique([id, applicationTypeId])

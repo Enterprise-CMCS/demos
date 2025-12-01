@@ -8,6 +8,7 @@ model PhaseDocumentType {
   documentType           DocumentType            @relation(fields: [documentTypeId], references: [id])
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]
+  documentsInfected      DocumentInfected[]
 
   @@id([phaseId, documentTypeId])
   @@map("phase_document_type")

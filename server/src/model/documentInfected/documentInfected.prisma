@@ -1,0 +1,20 @@
+model DocumentInfected {
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String
+  description      String?
+  s3Path           String   @map("s3_path")
+  ownerUserId      String   @map("owner_user_id") @db.Uuid
+  documentTypeId   String   @map("document_type_id")
+  applicationId    String   @map("application_id") @db.Uuid
+  phaseId          String   @map("phase_id")
+  infectionStatus  String   @map("infection_status")
+  infectionThreats String   @map("infection_threats")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  owner             User              @relation(fields: [ownerUserId], references: [id])
+  application       Application       @relation(fields: [applicationId], references: [id])
+  phaseDocumentType PhaseDocumentType @relation(fields: [phaseId, documentTypeId], references: [phaseId, documentTypeId])
+
+  @@map("document_infected")
+}

@@ -226,8 +226,8 @@ AFTER INSERT ON demos_app.application
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.create_phases_and_dates_for_new_application();
 
--- move_document_from_processing_to_clean
-CREATE PROCEDURE demos_app.move_document_from_processing_to_clean(
+-- move_document_from_pending_to_clean
+CREATE PROCEDURE demos_app.move_document_from_pending_to_clean(
     p_id UUID,
     p_s3_path TEXT
 )
@@ -272,7 +272,63 @@ BEGIN
         id = p_id;
 
     EXCEPTION WHEN OTHERS THEN
-        RAISE EXCEPTION 'Failed to move document from processing to clean. Details: %', SQLERRM;
+        RAISE EXCEPTION 'Failed to move document from pending to clean. Details: %', SQLERRM;
+END;
+$$;
+
+-- move_document_from_pending_to_infected
+CREATE PROCEDURE demos_app.move_document_from_pending_to_infected(
+    p_id UUID,
+    p_s3_path TEXT,
+    p_infection_status TEXT,
+    p_infection_threats TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    IF NOT EXISTS (SELECT id FROM demos_app.document_pending_upload WHERE id = p_id) THEN
+        RAISE EXCEPTION 'No document_pending_upload found for id: %', p_id;
+    END IF;
+
+    INSERT INTO demos_app.document_infected (
+        id,
+        name,
+        description,
+        s3_path,
+        owner_user_id,
+        document_type_id,
+        application_id,
+        phase_id,
+        infection_status,
+        infection_threats,
+        created_at,
+        updated_at
+    )
+    SELECT
+        id,
+        name,
+        description,
+        p_s3_path,
+        owner_user_id,
+        document_type_id,
+        application_id,
+        phase_id,
+        p_infection_status,
+        p_infection_threats,
+        created_at,
+        updated_at
+    FROM
+        demos_app.document_pending_upload
+    WHERE id = p_id;
+
+    DELETE FROM
+        demos_app.document_pending_upload
+    WHERE
+        id = p_id;
+
+    EXCEPTION WHEN OTHERS THEN
+        RAISE EXCEPTION 'Failed to move document from pending to infected. Details: %', SQLERRM;
 END;
 $$;
 
