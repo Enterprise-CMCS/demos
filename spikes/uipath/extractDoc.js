@@ -2,7 +2,7 @@ import axios from "axios";
 
 export async function extractDoc(token, docId) {
   const extract = await axios.post(
-    `https://govcloud.uipath.us:443/${process.env.EXTRACTOR_GUID}/du_/api/framework/projects/${process.env.ZERO_PROJECT_ID}/extractors/generative_extractor/extraction/start?api-version=1.0`,
+    `https://govcloud.uipath.us:443/${process.env.EXTRACTOR_GUID}/du_/api/framework/projects/${process.env.UIPATH_PROJECT_ID}/extractors/generative_extractor/extraction/start?api-version=1.0`,
     {
       documentId: docId,
       pageRange: null,

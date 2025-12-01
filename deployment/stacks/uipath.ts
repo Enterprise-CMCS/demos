@@ -51,7 +51,7 @@ export class UiPathStack extends Stack {
       environment: {
         CLIENT_ID: process.env.CLIENT_ID ?? "",
         CLIENT_SECRET: process.env.CLIENT_SECRET ?? "",
-        ZERO_PROJECT_ID: process.env.ZERO_PROJECT_ID ?? "",
+        UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? "",
         EXTRACTOR_GUID: process.env.EXTRACTOR_GUID ?? "",
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
       },

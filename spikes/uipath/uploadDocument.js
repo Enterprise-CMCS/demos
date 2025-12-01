@@ -11,7 +11,7 @@ export async function uploadDocument(token,fileName) {
   );
 
   const doc = await axios.post(
-    `https://govcloud.uipath.us/globalalliant/Dev/du_/api/framework/projects/${process.env.ZERO_PROJECT_ID}/digitization/start?api-version=1.0`,
+    `https://govcloud.uipath.us/globalalliant/Dev/du_/api/framework/projects/${process.env.UIPATH_PROJECT_ID}/digitization/start?api-version=1.0`,
     formData,
     {
       headers: {
