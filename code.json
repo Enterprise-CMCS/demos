@@ -1,5 +1,6 @@
 {
   "name": "demos",
+  "version": "",
   "description": "The Demonstration Evaluation and Management Oversight System (DEMOS) supports the administration of the Medicaid Section 1115 demonstration program",
   "longDescription": "The Demonstration Evaluation and Management Oversight System (DEMOS) supports the administration of the demonstration program under Medicaid Section 1115 of the Social Security Act (also known as ‘1115 waivers’). The system collects and produces data and descriptive information about Section 1115 applications submitted by states, and supports CMS’ review and approval of the applications, as well as monitoring and evaluation of approved demonstrations and budget neutrality.",
   "status": "Development",
@@ -15,11 +16,14 @@
   },
   "organization": "Centers for Medicare & Medicaid Services",
   "repositoryURL": "https://github.com/Enterprise-CMCS/demos",
-  "projectURL": "",
   "repositoryHost": "github.com/Enterprise-CMCS",
   "repositoryVisibility": "public",
+  "homepageURL": "",
+  "downloadURL": "",
+  "disclaimerURL": "",
+  "disclaimerText": "",
   "vcs": "git",
-  "laborHours": 11628,
+  "laborHours": 13065,
   "reuseFrequency": {
     "forks": 0,
     "clones": 0
@@ -44,15 +48,22 @@
     "Mermaid",
     "Groovy",
     "CSS",
+    "ZAP",
     "Dockerfile",
     "HTML"
   ],
   "maintenance": "contract",
-  "contractNumber": "75FCMC24F0232",
+  "contractNumber": [
+    "75FCMC24F0232"
+  ],
+  "SBOM": "https://github.com/Enterprise-CMCS/demos/network/dependencies",
+  "relatedCode": [],
+  "reusedCode": [],
+  "partners": [],
   "date": {
     "created": "2025-05-08T12:52:27Z",
-    "lastModified": "2025-09-30T17:46:48Z",
-    "metaDataLastUpdated": "2025-10-01T00:02:14.599Z"
+    "lastModified": "2025-12-01T18:16:52Z",
+    "metadataLastUpdated": "2025-12-01T19:14:16.719Z"
   },
   "tags": [
     "PMDA",
@@ -66,10 +77,8 @@
     "email": "dl-pmda@globalalliantinc.com",
     "name": ""
   },
-  "feedbackMechanisms": [
-    "https://github.com/Enterprise-CMCS/demos/issues",
-    "Help Desk"
-  ],
+  "feedbackMechanism": "https://github.com/Enterprise-CMCS/demos/issues",
+  "AIUseCaseID": "0",
   "localisation": false,
   "repositoryType": "website",
   "userInput": true,
@@ -77,7 +86,6 @@
   "group": "CMCS",
   "projects": [],
   "systems": [],
-  "upstream": "https://github.com/Enterprise-CMCS/demos/network/dependencies",
   "subsetInHealthcare": [
     "Medicaid"
   ],
