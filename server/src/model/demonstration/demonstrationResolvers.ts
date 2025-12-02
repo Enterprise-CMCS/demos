@@ -135,7 +135,7 @@ export async function __updateDemonstration(
     easternExpirationDate = null;
   }
   checkOptionalNotNullFields(
-    ["name", "status", "currentPhaseName", "stateId", "projectOfficerUserId"],
+    ["name", "status", "stateId", "projectOfficerUserId"],
     input
   );
   try {
@@ -150,7 +150,6 @@ export async function __updateDemonstration(
           sdgDivisionId: input.sdgDivision,
           signatureLevelId: input.signatureLevel,
           statusId: input.status,
-          currentPhaseId: input.currentPhaseName,
           stateId: input.stateId,
         },
       });

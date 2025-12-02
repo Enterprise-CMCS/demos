@@ -85,7 +85,7 @@ export async function __updateExtension(
   } else if (input.expirationDate === null) {
     easternExpirationDate = null;
   }
-  checkOptionalNotNullFields(["demonstrationId", "name", "status", "currentPhaseName"], input);
+  checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().extension.update({
       where: {
@@ -98,7 +98,6 @@ export async function __updateExtension(
         effectiveDate: easternEffectiveDate,
         expirationDate: easternExpirationDate,
         statusId: input.status,
-        currentPhaseId: input.currentPhaseName,
       },
     });
   } catch (error) {

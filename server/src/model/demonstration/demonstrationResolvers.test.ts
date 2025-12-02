@@ -381,7 +381,6 @@ describe("demonstrationResolvers", () => {
     const expectedCheckOptionalNotNullFieldList = [
       "name",
       "status",
-      "currentPhaseName",
       "stateId",
       "projectOfficerUserId",
     ];

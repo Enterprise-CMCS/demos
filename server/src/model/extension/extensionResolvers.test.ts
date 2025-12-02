@@ -185,7 +185,6 @@ describe("extensionResolvers", () => {
       "demonstrationId",
       "name",
       "status",
-      "currentPhaseName",
     ];
     const testEasternTZDate: EasternTZDate = {
       isEasternTZDate: true,

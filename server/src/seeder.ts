@@ -19,7 +19,7 @@ import {
   Role,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
-import { DocumentType, PhaseName, PhaseStatus } from "./types.js";
+import { DocumentType, PhaseName } from "./types.js";
 import {
   __createDemonstration,
   __updateDemonstration,
@@ -281,37 +281,65 @@ async function seedDatabase() {
   console.log("🌱 Seeding demonstrations...");
   const healthFocusTitles = [
     "Beneficiary Engagement",
-    "PHE-COVID-19", "Aggregate Cap", "Annual Limits",
-    "Basic Health Plan (BHP)", "Behavioral Health",
+    "PHE-COVID-19",
+    "Aggregate Cap",
+    "Annual Limits",
+    "Basic Health Plan (BHP)",
+    "Behavioral Health",
     "Children's Health Insurance Program (CHIP)",
-    "CMMI - AHEAD", "CMMI - Integrated Care for Kids (IncK)",
+    "CMMI - AHEAD",
+    "CMMI - Integrated Care for Kids (IncK)",
     "CMMI - Maternal Opioid Misuse (MOM)",
-    "Community Engagement", "Contingency Management",
+    "Community Engagement",
+    "Contingency Management",
     "Continuous Eligibility",
     "Delivery System Reform Incentive Payment (DSRIP)",
-    "Dental", "Designated State Health Programs (DSHP)",
-    "Employment Supports", "Enrollment Cap",
-    "End-Stage Renal Disease (ESRD)", "Expenditure Cap",
+    "Dental",
+    "Designated State Health Programs (DSHP)",
+    "Employment Supports",
+    "Enrollment Cap",
+    "End-Stage Renal Disease (ESRD)",
+    "Expenditure Cap",
     "Former Foster Care Youth (FFCY)",
-    "Global Payment Program (GPP)", "Health Equity",
+    "Global Payment Program (GPP)",
+    "Health Equity",
     "Health-Related Social Needs (HRSN)",
     "Healthy Behavior Incentives",
-    "HIV", "Home Community Based Services (HCBS)",
-    "Lead Exposure", "Lifetime Limits",
+    "HIV",
+    "Home Community Based Services (HCBS)",
+    "Lead Exposure",
+    "Lifetime Limits",
     "Long-Term Services and Supports (LTSS)",
-    "Managed Care", "Marketplace Coverage/Premium Assistance Wrap",
-    "New Adult Group Expansion", "Non-Eligibility Period",
+    "Managed Care",
+    "Marketplace Coverage/Premium Assistance Wrap",
+    "New Adult Group Expansion",
+    "Non-Eligibility Period",
     "Non-Emergency Medical Transportation (NEMT)",
-    "Partial Expansion of the New Adult Group", "Pharmacy", "PHE-Appendix K",
-    "PHE-Reasonable Opportunity Period (ROP)", "PHE-Risk Mitigation",
-    "PHE-Vaccine Coverage", "Premiums/Cost-Sharing",
-    "Provider Cap", "Provider Restriction", "ReEntry",
-    "Reproductive Health: Family Planning", "Reproductive Health: Fertility",
-    "Reproductive Health: Hyde", "Reproductive Health: Maternal Health",
-    "Reproductive Health: Post-Partum Extension", "Reproductive Health: RAD",
-    "Retroactive Eligibility", "Serious Mental Illness (SMI)", "Special Needs",
-    "Substance Use Disorder (SUD)", "Targeted Population Expansion", "Tribal",
-    "Uncompensated Care","Value Based Care (VBC)", "Vision",
+    "Partial Expansion of the New Adult Group",
+    "Pharmacy",
+    "PHE-Appendix K",
+    "PHE-Reasonable Opportunity Period (ROP)",
+    "PHE-Risk Mitigation",
+    "PHE-Vaccine Coverage",
+    "Premiums/Cost-Sharing",
+    "Provider Cap",
+    "Provider Restriction",
+    "ReEntry",
+    "Reproductive Health: Family Planning",
+    "Reproductive Health: Fertility",
+    "Reproductive Health: Hyde",
+    "Reproductive Health: Maternal Health",
+    "Reproductive Health: Post-Partum Extension",
+    "Reproductive Health: RAD",
+    "Retroactive Eligibility",
+    "Serious Mental Illness (SMI)",
+    "Special Needs",
+    "Substance Use Disorder (SUD)",
+    "Targeted Population Expansion",
+    "Tribal",
+    "Uncompensated Care",
+    "Value Based Care (VBC)",
+    "Vision",
   ];
   const demonstrationTypes = ["Section 1115", "Section 1915(b)", "Section 1915(c)"];
 
@@ -355,25 +383,14 @@ async function seedDatabase() {
     await __createDemonstration(undefined, { input: createInput });
   }
   const demonstrations = (await getManyApplications("Demonstration"))!;
-  const completenessPhase: PhaseName = "Completeness";
-  const incompletePhaseStatus: PhaseStatus = "Incomplete";
 
   await Promise.all(
-    demonstrations.map(async (demonstration, index) => {
+    demonstrations.map(async (demonstration) => {
       const randomDates = randomDateRange();
       const updatePayload: UpdateDemonstrationInput = {
         effectiveDate: randomDates["start"],
         expirationDate: randomDates["end"],
       };
-
-      /*
-       * DEMOS-684 Test Case
-       * Need to eventually include seeding for other phases,
-       * And correctly seed valid dates, phase statuses, etc...
-       */
-      if (index === 0) {
-        updatePayload.currentPhaseName = completenessPhase;
-      }
 
       const updateInput = {
         id: demonstration.id,
@@ -381,25 +398,6 @@ async function seedDatabase() {
       };
 
       await __updateDemonstration(undefined, updateInput);
-
-      if (index === 0) {
-        await prisma().applicationPhase.upsert({
-          where: {
-            applicationId_phaseId: {
-              applicationId: demonstration.id,
-              phaseId: completenessPhase,
-            },
-          },
-          update: {
-            phaseStatusId: incompletePhaseStatus,
-          },
-          create: {
-            applicationId: demonstration.id,
-            phaseId: completenessPhase,
-            phaseStatusId: incompletePhaseStatus,
-          },
-        });
-      }
     })
   );
 

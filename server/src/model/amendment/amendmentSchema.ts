@@ -39,7 +39,6 @@ export const amendmentSchema = gql`
     effectiveDate: DateTimeOrLocalDate
     expirationDate: DateTimeOrLocalDate
     status: ApplicationStatus
-    currentPhaseName: PhaseName
   }
 
   type Mutation {
@@ -82,5 +81,4 @@ export interface UpdateAmendmentInput {
   effectiveDate?: DateTimeOrLocalDate | null;
   expirationDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
-  currentPhaseName?: PhaseName;
 }
