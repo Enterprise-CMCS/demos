@@ -18,7 +18,6 @@ import {
 } from "./nag-suppressions";
 import { FileUploadStack } from "./stacks/fileupload";
 import { DBRoleStack } from "./stacks/dbRoles";
-import { UiPathStack } from "./stacks/uipath";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function main(passedContext?: { [key: string]: any }) {
@@ -119,15 +118,6 @@ export async function main(passedContext?: { [key: string]: any }) {
   });
   api.addDependency(core);
   api.addDependency(fileUpload);
-
-  const uipath = new UiPathStack(app, `${project}-${stage}-uipath`, {
-    ...config,
-    env: {
-      account: process.env.CDK_DEFAULT_ACCOUNT,
-      region: process.env.CDK_DEFAULT_REGION,
-    },
-  });
-  uipath.addDependency(core);
 
   const ui = new UiStack(app, `${project}-${stage}-ui`, {
     ...config,

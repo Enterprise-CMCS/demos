@@ -7,6 +7,7 @@ import { DeploymentConfigProperties } from "../config";
 
 interface UiPathProcessorProps extends DeploymentConfigProperties {
   removalPolicy?: RemovalPolicy;
+  bundle?: boolean;
 }
 
 export class UiPathProcessor extends Construct {
@@ -32,24 +33,28 @@ export class UiPathProcessor extends Construct {
       deadLetterQueue: { queue: this.deadLetterQueue, maxReceiveCount: 5 },
     });
 
+    const shouldBundle = props.bundle ?? true;
+    const entryFile = path.join(lambdaPath, "index.ts");
+    const assetPath = lambdaPath;
+
     const uipathLambda = new lambda.Lambda(this, "Lambda", {
-        ...props,
-        scope: this,
-        entry: path.join(lambdaPath, "index.ts"),
-        handler: "handler",
-        timeout: Duration.minutes(2),
-        asCode: false,
-        externalModules: ["aws-sdk"],
-        nodeModules: ["axios", "form-data", "pino", "pino-pretty"],
-        depsLockFilePath: path.join(lambdaPath, "package-lock.json"),
-        environment: {
-          CLIENT_ID: process.env.CLIENT_ID ?? "",
-          CLIENT_SECRET: process.env.CLIENT_SECRET ?? "",
-          UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? "",
-          EXTRACTOR_GUID: process.env.EXTRACTOR_GUID ?? "",
-          LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
-        },
-      });
+      ...props,
+      scope: this,
+      entry: shouldBundle ? entryFile : assetPath,
+      handler: "handler",
+      timeout: Duration.minutes(2),
+      asCode: !shouldBundle,
+      externalModules: ["aws-sdk"],
+      nodeModules: ["axios", "form-data", "pino", "pino-pretty"],
+      depsLockFilePath: path.join(lambdaPath, "package-lock.json"),
+      environment: {
+        CLIENT_ID: process.env.CLIENT_ID ?? "",
+        CLIENT_SECRET: process.env.CLIENT_SECRET ?? "",
+        UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? "",
+        EXTRACTOR_GUID: process.env.EXTRACTOR_GUID ?? "",
+        LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
+      },
+    });
 
     uipathLambda.lambda.addEventSource(new SqsEventSource(this.queue, { batchSize: 1 }));
   }

@@ -23,6 +23,8 @@ import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import importNumberValue from "../util/importNumberValue";
 import path from "path";
+import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 interface APIStackProps {
   vpc: IVpc;
