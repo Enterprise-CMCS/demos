@@ -5,6 +5,7 @@
   "type": "module",
   "devDependencies": {
     "@apollo/client": "^3.14.0",
+    "@axe-core/cli": "^4.10.2",
     "@date-fns/tz": "^1.4.1",
     "@date-fns/utc": "^2.1.1",
     "@eslint/js": "^9.39.1",
@@ -52,6 +53,8 @@
     ]
   },
   "scripts": {
+    "ally": "echo 'Running accessibility check...' && echo 'Make sure dev server is running (npm run dev)' && axe http://localhost:3000 --save accessibility-report.json --verbose --timer --tags wcag2a,wcag2aa,wcag21aa && echo 'Accessibility report saved to accessibility-report.json'",
+    "ally:ci": "axe http://localhost:3000 --save accessibility-report.json --exit --no-reporter",
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "npm run tsc && vite build",
     "build:ci": "vite build",

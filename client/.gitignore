@@ -3,3 +3,5 @@ node_modules
 .DS_Store
 coverage
 dist
+accessibility-report.json
+accessibility-reports/
