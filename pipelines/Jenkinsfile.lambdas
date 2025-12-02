@@ -20,6 +20,7 @@ pipeline {
             snykScan('lambdas/dbRoleManagement')
             snykScan('lambdas/fileprocess')
             snykScan('lambdas/emailer')
+            snykScan('lambdas/deleteinfectedfile')
           }
         }
       }
@@ -73,6 +74,21 @@ pipeline {
             }
           }
         }
+        stage('Unit Test - Delete Infected File') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/deleteinfectedfile', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
         stage('Unit Test - Emailer') {
           steps {
             script {
@@ -111,7 +127,7 @@ pipeline {
                   "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
                   "pullrequest.base": env.CHANGE_TARGET ?: null,
                   "exclusions": "**/*.test.ts,**/*.test.tsx,**/coverage/**,**/jest.config.cjs,**/vite.config.ts",
-                  "cpd.exclusions": "**/log.ts",
+                  "cpd.exclusions": "**/log.ts,**/index.ts",
                   "sources": "./",
                   "tests": "./",
                 ]
