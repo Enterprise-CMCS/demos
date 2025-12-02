@@ -1,16 +1,11 @@
 import {
-  Stack,
-  StackProps,
-  RemovalPolicy,
-  aws_s3,
-  Duration,
-  aws_kms,
-  CfnOutput,
-  aws_secretsmanager,
-  Fn,
-  aws_ec2,
-  Tags,
+  Stack, StackProps,
+  RemovalPolicy, aws_s3,
+  Duration, aws_kms,
+  CfnOutput, aws_secretsmanager,
+  Fn, aws_ec2, Tags,
 } from "aws-cdk-lib";
+
 import { Construct } from "constructs";
 import { Bucket, HttpMethods } from "aws-cdk-lib/aws-s3";
 import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
@@ -22,6 +17,7 @@ import * as securityGroup from "../lib/security-group";
 import { GuardDutyS3 } from "../lib/guardDutyS3";
 import importNumberValue from "../util/importNumberValue";
 import { backupTags } from "../util/backup";
+import { UiPathProcessor } from "../lib/uipathProcessor";
 
 interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -29,6 +25,7 @@ interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
 
 export class FileUploadStack extends Stack {
   constructor(scope: Construct, id: string, props: FileUploadStackProps) {
+
     super(scope, id, props);
 
     const kmsKey = new aws_kms.Key(this, "queueKey", {
@@ -195,6 +192,12 @@ export class FileUploadStack extends Stack {
     cleanBucket.grantWrite(fileProcessLambda.lambda);
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
     dbSecret.grantRead(fileProcessLambda.lambda);
+
+    // UiPath processor (queue + DLQ + lambda) within FileUpload stack
+    new UiPathProcessor(this, "UiPathProcessor", {
+      ...props,
+      removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+    });
 
     new CfnOutput(this, "cleanBucketName", {
       exportName: `${props.stage}CleanBucketName`,
