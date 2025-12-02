@@ -159,6 +159,12 @@ describe("checkPhaseCompletionRules", () => {
           "Application Completeness Letter",
           testApplicationDocumentTypes,
         ],
+        [
+          testApplicationId,
+          "Completeness",
+          "Internal Completeness Review Form",
+          testApplicationDocumentTypes,
+        ],
       ]);
       expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
         [testApplicationId, "Completeness", "Application Intake", testApplicationPhases],
