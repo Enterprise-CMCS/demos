@@ -388,3 +388,156 @@ AFTER INSERT OR UPDATE ON demos_app.application
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_application_type_record_exists();
+
+-- update_federal_comment_phase_status
+CREATE PROCEDURE demos_app.update_federal_comment_phase_status()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    phase_status_record RECORD;
+BEGIN
+    FOR phase_status_record IN
+        WITH fed_comment_period_dates AS (
+            SELECT
+                application_id,
+                max(CASE WHEN date_type_id = 'Federal Comment Period Start Date' THEN date_value END) AS federal_comment_start,
+                max(CASE WHEN date_type_id = 'Federal Comment Period End Date' THEN date_value END) AS federal_comment_end
+            FROM
+                demos_app.application_date
+            WHERE
+                date_type_id IN ('Federal Comment Period Start Date', 'Federal Comment Period End Date')
+            GROUP BY
+                application_id
+        ),
+        phase_statuses AS (
+            SELECT
+                ap.application_id,
+                fcpd.federal_comment_start,
+                fcpd.federal_comment_end,
+                max(CASE WHEN ap.phase_id = 'Federal Comment' THEN ap.phase_status_id END) AS federal_comment_phase_status,
+                max(CASE WHEN ap.phase_id = 'SDG Preparation' THEN ap.phase_status_id END) AS sdg_preparation_phase_status
+            FROM
+                demos_app.application_phase AS ap
+            INNER JOIN
+                fed_comment_period_dates AS fcpd ON
+                    ap.application_id = fcpd.application_id AND
+                    fcpd.federal_comment_start IS NOT NULL AND
+                    fcpd.federal_comment_end IS NOT NULL
+            GROUP BY
+                ap.application_id,
+                fcpd.federal_comment_start,
+                fcpd.federal_comment_end
+        ),
+        action_logic AS (
+            SELECT
+                application_id,
+                federal_comment_start,
+                federal_comment_end,
+                federal_comment_phase_status,
+                sdg_preparation_phase_status,
+                CASE
+                    WHEN
+                        CURRENT_TIMESTAMP BETWEEN federal_comment_start AND federal_comment_end AND
+                        federal_comment_phase_status = 'Not Started'
+                        THEN TRUE
+                    ELSE
+                        FALSE
+                END AS start_federal_comment_phase,
+                CASE
+                    WHEN
+                        CURRENT_TIMESTAMP >= federal_comment_end AND
+                        (federal_comment_phase_status = 'Started' OR federal_comment_phase_status = 'Not Started')
+                        THEN TRUE
+                    ELSE
+                        FALSE
+                END AS complete_federal_comment_phase,
+                CASE
+                    WHEN
+                        CURRENT_TIMESTAMP >= federal_comment_end AND
+                        (federal_comment_phase_status = 'Started' OR federal_comment_phase_status = 'Not Started') AND
+                        (sdg_preparation_phase_status != 'Started')
+                        THEN TRUE
+                    ELSE
+                        FALSE
+                END AS start_sdg_prep_phase
+            FROM
+                phase_statuses
+        )
+        SELECT
+            application_id,
+            start_federal_comment_phase,
+            complete_federal_comment_phase,
+            start_sdg_prep_phase
+        FROM
+            action_logic
+    LOOP
+        IF phase_status_record.start_federal_comment_phase THEN
+            UPDATE
+                demos_app.application_phase
+            SET
+                phase_status_id = 'Started',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE
+                application_id = phase_status_record.application_id AND
+                phase_id = 'Federal Comment';
+        END IF;
+        IF phase_status_record.complete_federal_comment_phase THEN
+            UPDATE
+                demos_app.application_phase
+            SET
+                phase_status_id = 'Completed',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE
+                application_id = phase_status_record.application_id AND
+                phase_id = 'Federal Comment';
+        END IF;
+        IF phase_status_record.start_sdg_prep_phase THEN
+            UPDATE
+                demos_app.application_phase
+            SET
+                phase_status_id = 'Started',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE
+                application_id = phase_status_record.application_id AND
+                phase_id = 'SDG Preparation';
+
+            INSERT INTO
+                demos_app.application_date
+            VALUES
+                (
+                    phase_status_record.application_id,
+                    'SDG Preparation Start Date',
+                    timezone('America/New_York', date_trunc('day', timezone('America/New_York', CURRENT_TIMESTAMP))),
+                    CURRENT_TIMESTAMP,
+                    CURRENT_TIMESTAMP
+                );
+        END IF;
+    END LOOP;
+END;
+$$;
+
+DO $$
+DECLARE
+    cronjob RECORD;
+BEGIN
+    FOR cronjob IN
+        SELECT
+            jobid
+        FROM
+            cron.job
+        WHERE
+            jobname = 'nightly-update-federal-comment-phase-status'
+    LOOP
+        PERFORM cron.unschedule(cronjob.jobid);
+    END LOOP;
+END
+$$;
+
+-- Scheduled to run at 00:05 Eastern
+-- Time is in UTC, so during EDT will run at 23:05 and then 00:05
+-- During EST, will run at 00:05 and then 01:05
+SELECT cron.schedule(
+    'nightly-update-federal-comment-phase-status',
+    '5 4,5 * * *',
+    'CALL demos_app.update_federal_comment_phase_status();'
+);
