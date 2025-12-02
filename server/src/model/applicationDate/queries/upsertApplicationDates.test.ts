@@ -32,7 +32,7 @@ describe("upsertApplicationDates", () => {
   it("should upsert changed dates", async () => {
     const testInput: ParsedSetApplicationDatesInput = {
       applicationId: testApplicationId,
-      applicationDates: [
+      applicationDatesToUpsert: [
         {
           dateType: "Concept Completion Date",
           dateValue: testDateValue1,
@@ -42,6 +42,7 @@ describe("upsertApplicationDates", () => {
           dateValue: testDateValue2,
         },
       ],
+      applicationDatesToDelete: [],
     };
     const expectedCalls = [
       [
