@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dequelabs/axe-core/develop/axe.json",
+  "rules": {},
+  "tags": ["wcag2a", "wcag2aa", "wcag21aa"],
+  "reporter": "v2",
+  "outputDir": "./accessibility-reports/",
+  "save": true,
+  "timeout": 30000,
+  "include": [["html"]],
+  "exclude": []
+}
