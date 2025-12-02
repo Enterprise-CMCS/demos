@@ -8,13 +8,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "nodemailer": "^7.0.10",
+    "nodemailer": "^7.0.11",
     "pino": "^10.1.0"
   },
   "devDependencies": {
     "@aws-sdk/client-ssm": "^3.932.0",
     "@types/aws-lambda": "^8.10.158",
-    "@types/nodemailer": "^7.0.3",
+    "@types/nodemailer": "^7.0.4",
     "@vitest/coverage-v8": "^4.0.10",
     "aws-sdk-client-mock": "^4.1.0",
     "typescript": "^5.9.3",

@@ -538,6 +538,20 @@ async function seedDatabase() {
   };
   await __setApplicationDates(undefined, { input: dateInput });
 
+  // Having the SDG Preparation Start Date without the phase being started
+  // causes errors handling the Federal Comment status; this fixes that
+  await prisma().applicationPhase.update({
+    where: {
+      applicationId_phaseId: {
+        applicationId: randomDemonstration!.id,
+        phaseId: "SDG Preparation",
+      },
+    },
+    data: {
+      phaseStatusId: "Started",
+    },
+  });
+
   console.log("🌱 Seeding amendments...");
   for (let i = 0; i < amendmentCount; i++) {
     const createInput: CreateAmendmentInput = {
