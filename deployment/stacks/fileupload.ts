@@ -201,7 +201,7 @@ export class FileUploadStack extends Stack {
 
     const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
-      "rdsDatabaseSecret",
+      "rdsFileProcessDatabaseSecret",
       `demos-${props.hostEnvironment}-rds-demos_upload`
     );
 
@@ -241,7 +241,7 @@ export class FileUploadStack extends Stack {
 
     const dbSecretDeleteInfectedFile = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
-      "rdsDatabaseSecret",
+      "rdsDeleteInfectedFileDatabaseSecret",
       `demos-${props.hostEnvironment}-rds-demos_delete_infected_file`
     );
     const deleteInfectedFileLambda = new lambda.Lambda(this, "deleteInfectedFile", {
