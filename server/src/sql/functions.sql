@@ -410,8 +410,7 @@ BEGIN
     FROM demos_app.application_phase AS ap
     INNER JOIN demos_app.phase AS p ON ap.phase_id = p.id
     WHERE ap.application_id = NEW.application_id
-    AND ap.phase_status_id = 'Completed'
-    AND p.phase_number > 0;
+    AND ap.phase_status_id = 'Completed';
 
     -- If we found a completed phase
     IF v_last_completed_phase_number IS NOT NULL THEN
@@ -432,8 +431,7 @@ BEGIN
         FROM demos_app.application_phase AS ap
         INNER JOIN demos_app.phase AS p ON ap.phase_id = p.id
         WHERE ap.application_id = NEW.application_id
-        AND p.id = 'Concept'
-        LIMIT 1;
+        AND p.id = 'Concept';
 
         -- If Concept is Started, it's the current phase
         IF v_concept_phase_status = 'Started' THEN
@@ -468,7 +466,7 @@ END;
 $$;
 
 CREATE TRIGGER update_demonstration_current_phase_on_phase_update_trigger
-AFTER INSERT OR UPDATE ON demos_app.application_phase
+AFTER UPDATE ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_demonstration_current_phase_on_phase_update();
 
