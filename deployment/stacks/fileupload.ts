@@ -199,7 +199,7 @@ export class FileUploadStack extends Stack {
       "Allow traffic to S3"
     );
 
-    const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+    const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsDatabaseSecret",
       `demos-${props.hostEnvironment}-rds-demos_upload`
@@ -220,7 +220,7 @@ export class FileUploadStack extends Stack {
         UPLOAD_BUCKET: uploadBucket.bucketName,
         CLEAN_BUCKET: cleanBucket.bucketName,
         INFECTED_BUCKET: infectedBucket.bucketName,
-        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        DATABASE_SECRET_ARN: dbSecretFileProcess.secretName, // pragma: allowlist secret
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
       depsLockFilePath: "../lambdas/fileprocess/package-lock.json",
@@ -237,8 +237,13 @@ export class FileUploadStack extends Stack {
     cleanBucket.grantWrite(fileProcessLambda.lambda);
     infectedBucket.grantWrite(fileProcessLambda.lambda);
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
-    dbSecret.grantRead(fileProcessLambda.lambda);
+    dbSecretFileProcess.grantRead(fileProcessLambda.lambda);
 
+    const dbSecretDeleteInfectedFile = aws_secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "rdsDatabaseSecret",
+      `demos-${props.hostEnvironment}-rds-demos_delete_infected_file`
+    );
     const deleteInfectedFileLambda = new lambda.Lambda(this, "deleteInfectedFile", {
       ...props,
       scope: this,
@@ -252,7 +257,7 @@ export class FileUploadStack extends Stack {
       timeout: Duration.seconds(30),
       environment: {
         INFECTED_BUCKET: infectedBucket.bucketName,
-        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        DATABASE_SECRET_ARN: dbSecretDeleteInfectedFile.secretName, // pragma: allowlist secret
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
       depsLockFilePath: "../lambdas/deleteinfectedfile/package-lock.json",
@@ -264,7 +269,7 @@ export class FileUploadStack extends Stack {
       })
     );
 
-    dbSecret.grantRead(deleteInfectedFileLambda.lambda);
+    dbSecretDeleteInfectedFile.grantRead(deleteInfectedFileLambda.lambda);
     deleteInfectedFileQueue.grantConsumeMessages(deleteInfectedFileLambda.lambda);
 
     new CfnOutput(this, "cleanBucketName", {
