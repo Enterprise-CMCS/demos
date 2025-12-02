@@ -74,7 +74,8 @@ export class DatabaseStack extends Stack {
       name: `demos-${commonProps.stage}-postgres-17`,
       engine,
       parameters: {
-        shared_preload_libraries: "pg_stat_statements,pg_tle,pg_cron"
+        shared_preload_libraries: "pg_stat_statements,pg_tle,pg_cron",
+        "cron.database_name": "demos",
       }
     })
 
