@@ -54,7 +54,6 @@ export const demonstrationSchema = gql`
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: ApplicationStatus
-    currentPhaseName: PhaseName
     stateId: ID
     projectOfficerUserId: String
   }
@@ -136,7 +135,6 @@ export interface UpdateDemonstrationInput {
   sdgDivision?: SdgDivision;
   signatureLevel?: SignatureLevel;
   status?: ApplicationStatus;
-  currentPhaseName?: PhaseName;
   stateId?: string;
   projectOfficerUserId?: string;
 }

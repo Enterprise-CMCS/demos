@@ -411,6 +411,87 @@ DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_application_type_record_exists();
 
+CREATE OR REPLACE FUNCTION demos_app.update_demonstration_current_phase_on_phase_update()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_max_phase_number INT;
+    v_last_completed_phase_number INT;
+    v_current_phase_id TEXT;
+    v_concept_phase_status TEXT;
+    v_application_type_id TEXT;
+BEGIN
+    -- Get the maximum phase number
+    SELECT MAX(p.phase_number) INTO v_max_phase_number
+    FROM demos_app.phase AS p
+    WHERE p.phase_number > 0;
+
+    -- Get the highest completed phase number
+    SELECT MAX(p.phase_number) INTO v_last_completed_phase_number
+    FROM demos_app.application_phase AS ap
+    INNER JOIN demos_app.phase AS p ON ap.phase_id = p.id
+    WHERE ap.application_id = NEW.application_id
+    AND ap.phase_status_id = 'Completed';
+
+    -- If we found a completed phase
+    IF v_last_completed_phase_number IS NOT NULL THEN
+        -- If it's the last phase, that's the current phase
+        IF v_last_completed_phase_number = v_max_phase_number THEN
+            SELECT p.id INTO v_current_phase_id
+            FROM demos_app.phase AS p
+            WHERE p.phase_number = v_last_completed_phase_number;
+        ELSE
+            -- Otherwise, the current phase is the one after the last completed
+            SELECT p.id INTO v_current_phase_id
+            FROM demos_app.phase AS p
+            WHERE p.phase_number = v_last_completed_phase_number + 1;
+        END IF;
+    ELSE
+        -- No completed phase found, check the Concept phase
+        SELECT ap.phase_status_id INTO v_concept_phase_status
+        FROM demos_app.application_phase AS ap
+        INNER JOIN demos_app.phase AS p ON ap.phase_id = p.id
+        WHERE ap.application_id = NEW.application_id
+        AND p.id = 'Concept';
+
+        -- If Concept is Started, it's the current phase
+        IF v_concept_phase_status = 'Started' THEN
+            SELECT 'Concept' INTO v_current_phase_id;
+        -- If Concept is Skipped, the phase after is current
+        ELSIF v_concept_phase_status = 'Skipped' THEN
+            SELECT 'Application Intake' INTO v_current_phase_id;
+        END IF;
+    END IF;
+
+    -- Update the appropriate table based on application type
+    SELECT application_type_id INTO v_application_type_id
+    FROM demos_app.application
+    WHERE id = NEW.application_id;
+
+    IF v_application_type_id = 'Demonstration' THEN
+        UPDATE demos_app.demonstration
+        SET current_phase_id = v_current_phase_id
+        WHERE id = NEW.application_id;
+    ELSIF v_application_type_id = 'Amendment' THEN
+        UPDATE demos_app.amendment
+        SET current_phase_id = v_current_phase_id
+        WHERE id = NEW.application_id;
+    ELSIF v_application_type_id = 'Extension' THEN
+        UPDATE demos_app.extension
+        SET current_phase_id = v_current_phase_id
+        WHERE id = NEW.application_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_demonstration_current_phase_on_phase_update_trigger
+AFTER UPDATE ON demos_app.application_phase
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.update_demonstration_current_phase_on_phase_update();
+
 -- update_federal_comment_phase_status
 CREATE PROCEDURE demos_app.update_federal_comment_phase_status()
 LANGUAGE plpgsql
