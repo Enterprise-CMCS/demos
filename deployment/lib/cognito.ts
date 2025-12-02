@@ -83,6 +83,7 @@ export function create(props: CognitoProps): CognitoOutputs {
         mutable: true,
       }),
     },
+    deletionProtection: ["impl", "prod"].includes(props.stage)
   });
 
   const cfnUserPool = userPool.node.defaultChild as aws_cognito.CfnUserPool;
@@ -114,8 +115,11 @@ export function create(props: CognitoProps): CognitoOutputs {
   });
 
   // Set up SAML IdP for IDM and user pool client + branding
-  const IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
-  const userPoolClient = createUserPoolClientResource(props, userPool, IDM.providerName);
+  let IDM: aws_cognito.UserPoolIdentityProviderSaml | undefined;
+  if (props.idmMetadataEndpoint != "not-configured") {
+    IDM = createIdmIdp(props.scope, props.stage, userPool, props.idmMetadataEndpoint!);
+  }
+  const userPoolClient = createUserPoolClientResource(props, userPool, IDM?.providerName);
   addCognitoBranding(props, userPool.userPoolId, userPoolClient.userPoolClientId);
 
   return {
@@ -172,11 +176,17 @@ const getCognitoDomainPrefix = (project: string, stage: string): string => `${pr
 // ---- Internal helpers for CDK resources ----
 const allowNativeCognitoIdp = (props: CognitoProps): boolean => props.isDev || props.isEphemeral;
 
+
+
 const createUserPoolClientResource = (
   props: CognitoProps,
   userPool: aws_cognito.IUserPool,
-  idmProviderName: string
+  idmProviderName?: string
 ) => {
+  const supportedProviders = [...(allowNativeCognitoIdp(props) ? [UserPoolClientIdentityProvider.COGNITO] : [])]
+  if (idmProviderName) {
+    supportedProviders.unshift(UserPoolClientIdentityProvider.custom(idmProviderName))
+  }
   const callbackUrls = getCallbackUrls(props);
   const logoutUrls = getLogoutUrls(props, callbackUrls);
   return new aws_cognito.UserPoolClient(props.scope, "UserPoolClient", {
@@ -193,10 +203,7 @@ const createUserPoolClientResource = (
     accessTokenValidity: Duration.minutes(30),
     idTokenValidity: Duration.minutes(30),
     refreshTokenValidity: Duration.hours(24),
-    supportedIdentityProviders: [
-      UserPoolClientIdentityProvider.custom(idmProviderName),
-      ...(allowNativeCognitoIdp(props) ? [UserPoolClientIdentityProvider.COGNITO] : []),
-    ],
+    supportedIdentityProviders: supportedProviders,
     generateSecret: false,
   });
 };
