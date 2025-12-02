@@ -27,7 +27,10 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Federal Comment Period Start Date",
       "Federal Comment Period End Date",
     ],
-    documentTypesMustExist: ["Application Completeness Letter"],
+    documentTypesMustExist: [
+      "Application Completeness Letter",
+      "Internal Completeness Review Form",
+    ],
     phasesMustBeComplete: ["Application Intake"],
   },
   "Federal Comment": "No Validation",
