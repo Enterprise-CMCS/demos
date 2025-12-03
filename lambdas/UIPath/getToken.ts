@@ -9,11 +9,11 @@ const TOKEN_SCOPE =
   "Du.Digitization.Api Du.Classification.Api Du.Extraction.Api Du.Validation.Api Du.DataDeletion.Api";
 
 export async function getToken(): Promise<string> {
-  const clientId = process.env.CLIENT_ID;
+  const clientId = process.env.UIPATH_CLIENT_ID;
   const clientSecret = process.env.CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error("CLIENT_ID and CLIENT_SECRET must be set in the environment.");
+    throw new Error("UIPATH_CLIENT_ID and UIPATH_CLIENT_SECRET must be set in the environment.");
   }
 
   const params = new URLSearchParams();

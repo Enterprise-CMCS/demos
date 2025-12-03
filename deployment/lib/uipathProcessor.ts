@@ -60,7 +60,7 @@ export class UiPathProcessor extends Construct {
       `demos-${props.hostEnvironment}-rds-demos_upload`
     );
 
-    const uiPathDefaultProjectId = "00000000-0000-0000-0000-000000000000";
+    const uiPathDefaultProjectId = process.env.UI_PATH_DEFAULT_PROJECT_ID ?? "00000000-0000-0000-0000-000000000000";
     const uipathLambda = new lambda.Lambda(this, "Lambda", {
       ...props,
       scope: this,
@@ -72,9 +72,10 @@ export class UiPathProcessor extends Construct {
       nodeModules: ["axios", "form-data", "pino", "pino-pretty"],
       depsLockFilePath: path.join(lambdaPath, "package-lock.json"),
       environment: {
-        CLIENT_ID: process.env.CLIENT_ID ?? "",
+        UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
-        CLIENT_SECRET: clientSecret.secretName,
+        UIPATH_CLIENT_SECRET: clientSecret.secretName,
+        UIPATH_EXTRACTOR_GUID: process.env.UIPATH_EXTRACTOR_GUID ?? "",
         UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? uiPathDefaultProjectId,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
       },

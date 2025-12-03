@@ -15,9 +15,9 @@ export function getProjectId(): string {
 // Basically the model it's using, may want different models for different files.
 // May need to request to check the different extractors.
 export function getExtractorGuid(): string {
-  const extractorGuid = process.env.EXTRACTOR_GUID;
+  const extractorGuid = process.env.UIPATH_EXTRACTOR_GUID;
   if (!extractorGuid) {
-    throw new Error("Missing EXTRACTOR_GUID in environment.");
+    throw new Error("Missing UIPATH_EXTRACTOR_GUID in environment.");
   }
   return extractorGuid;
 }
