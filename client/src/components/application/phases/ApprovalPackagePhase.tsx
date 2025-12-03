@@ -12,7 +12,11 @@ import { formatDate } from "util/formatDate";
 import { Button, SecondaryButton } from "components/button";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { useToast } from "components/toast";
-import { SAVE_FOR_LATER_MESSAGE } from "util/messages";
+import {
+  FAILED_TO_SAVE_MESSAGE,
+  getPhaseCompletedMessage,
+  SAVE_FOR_LATER_MESSAGE,
+} from "util/messages";
 
 export interface ApprovalPackagePhaseProps {
   demonstrationId: string;
@@ -114,11 +118,11 @@ export const ApprovalPackagePhase = ({
     try {
       await completeApprovalPackagePhase();
     } catch {
-      showError("Failed to finish Approval Package phase.");
+      showError(FAILED_TO_SAVE_MESSAGE);
       return;
     }
 
-    showSuccess("Successfully finished Approval Package phase.");
+    showSuccess(getPhaseCompletedMessage("Approval Package"));
   };
 
   const handleSaveForLater = () => {

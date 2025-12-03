@@ -13,6 +13,8 @@ import { useSetPhaseStatus } from "components/application/phase-status/phaseStat
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";
+import { getPhaseCompletedMessage } from "util/messages";
+import { useToast } from "components/toast";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -80,6 +82,7 @@ export const ApplicationIntakePhase = ({
   initialStateApplicationDocuments,
   initialStateApplicationSubmittedDate,
 }: ApplicationIntakeProps) => {
+  const { showSuccess } = useToast();
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
   const [stateApplicationDocuments] = useState<ApplicationWorkflowDocument[]>(
     initialStateApplicationDocuments
@@ -112,6 +115,8 @@ export const ApplicationIntakePhase = ({
       dateType: "Application Intake Completion Date",
       dateValue: todayDate,
     });
+
+    showSuccess(getPhaseCompletedMessage("Application Intake"));
   };
 
   const handleDocumentUploadSucceeded = async () => {

@@ -7,10 +7,6 @@ import { TextInput } from "components/input";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 
-interface ReviewPhaseProps {
-  formData: ReviewPhaseFormData;
-}
-
 interface ReviewPhaseFormData {
   ogcApprovalToShareDate?: string;
   draftApprovalPackageToPrepDate?: string;
@@ -54,7 +50,7 @@ export const getReviewPhaseComponentFromDemonstration = (
   return <ReviewPhase formData={reviewPhaseFormData} />;
 };
 
-export const ReviewPhase = ({ formData }: ReviewPhaseProps) => {
+export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => {
   const { showSuccess } = useToast();
   const [reviewPhaseFormData, setReviewPhaseFormData] = useState<ReviewPhaseFormData>(formData);
 
