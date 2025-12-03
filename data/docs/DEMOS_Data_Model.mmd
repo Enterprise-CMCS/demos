@@ -14,6 +14,8 @@ erDiagram
   classDef associativeTable stroke:darkmagenta,fill:plum
   classDef legend stroke:black,fill:#ddd
 
+  phase_status ||--|{ phase_phase_status : "FK072"
+  phase_phase_status }|--|| phase : "FK071"
   phase_status ||--|{ application_phase  : "FK004"
   phase_date_type }|--|| phase : "FK003"
   phase_date_type }|--|| date_type: "FK017"
@@ -364,6 +366,11 @@ erDiagram
   phase_document_type:::associativeTable {
     text phase_id PK, FK "FK027: phase_id ∈ phase.id"
     text document_type_id PK, FK "FK028: document_type_id ∈ document_type.id"
+  }
+
+  phase_phase_status:::associativeTable {
+    text phase_id PK, FK "FK071: phase_id ∈ phase.id"
+    text phase_status_id PK, FK "FK072: phase_status_id ∈ phase_status.id"
   }
 
   primary_demonstration_role_assignment:::associativeTable {
