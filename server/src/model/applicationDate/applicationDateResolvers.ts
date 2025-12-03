@@ -4,6 +4,7 @@ import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.j
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from ".";
+import { startPhaseOnDateUpdate } from "./startPhaseOnDateUpdate.js";
 
 export function __setApplicationDate(
   _: unknown,
@@ -30,6 +31,8 @@ export async function __setApplicationDates(
   }
   try {
     await prisma().$transaction(async (tx) => {
+      const phaseStartDates = await startPhaseOnDateUpdate(input, tx);
+      input.applicationDates.push(...phaseStartDates);
       await validateAndUpdateDates(input, tx);
     });
   } catch (error) {

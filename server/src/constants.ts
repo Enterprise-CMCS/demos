@@ -1,4 +1,4 @@
-import { DateType, DocumentType, ExpectedTimestamp } from "./types.js";
+import { DateType, DocumentType, ExpectedTimestamp, PhaseNameWithTrackedStatus } from "./types.js";
 
 export const APPLICATION_STATUS = [
   "Pre-Submission",
@@ -306,7 +306,35 @@ export const PHASE_DOCUMENT_TYPE_MAP = {
   Completeness: COMPLETENESS_PHASE_DOCUMENTS,
   "Federal Comment": FEDERAL_COMMENT_PHASE_DOCUMENTS,
   "SDG Preparation": SDG_PREPARATION_PHASE_DOCUMENTS,
-  "Review": REVIEW_PHASE_DOCUMENTS,
+  Review: REVIEW_PHASE_DOCUMENTS,
   "Approval Package": APPROVAL_PACKAGE_PHASE_DOCUMENTS,
   "Post Approval": POST_APPROVAL_PHASE_DOCUMENTS,
+};
+
+type PhaseMetaDateRecord = Record<
+  PhaseNameWithTrackedStatus,
+  { startDate?: DateType; endDate?: DateType }
+>;
+
+export const PHASE_META_DATES: PhaseMetaDateRecord = {
+  Concept: { startDate: "Concept Start Date", endDate: "Concept Completion Date" },
+  "Application Intake": {
+    startDate: "Application Intake Start Date",
+    endDate: "Application Intake Completion Date",
+  },
+  Completeness: { startDate: "Completeness Start Date", endDate: "Completeness Completion Date" },
+  "Federal Comment": {
+    startDate: "Federal Comment Period Start Date",
+    endDate: "Federal Comment Period End Date",
+  },
+  "SDG Preparation": {
+    startDate: "SDG Preparation Start Date",
+    endDate: "SDG Preparation Completion Date",
+  },
+  Review: { startDate: "Review Start Date", endDate: "Review Completion Date" },
+  "Approval Package": {
+    startDate: "Approval Package Start Date",
+    endDate: "Approval Package Completion Date",
+  },
+  "Post Approval": {},
 };

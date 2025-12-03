@@ -13,6 +13,7 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
 import { validateAndUpdateDates } from "./validateAndUpdateDates.js";
+import { startPhaseOnDateUpdate } from "./startPhaseOnDateUpdate.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -33,6 +34,10 @@ vi.mock("./validateAndUpdateDates.js", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
+vi.mock("./startPhaseOnDateUpdate.js", () => ({
+  startPhaseOnDateUpdate: vi.fn(),
+}));
+
 describe("applicationDateResolvers", () => {
   const mockTransaction: any = "Test";
   const mockPrismaClient = {
@@ -47,6 +52,7 @@ describe("applicationDateResolvers", () => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    vi.mocked(startPhaseOnDateUpdate).mockResolvedValue([]);
   });
 
   describe("__setApplicationDates", () => {
@@ -72,6 +78,40 @@ describe("applicationDateResolvers", () => {
       await __setApplicationDates(undefined, { input: testInput });
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(prisma).not.toHaveBeenCalled();
+      expect(startPhaseOnDateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should call startPhaseOnDateUpdate before validateAndUpdateDates", async () => {
+      await __setApplicationDates(undefined, { input: testInput });
+      expect(startPhaseOnDateUpdate).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
+      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
+      expect(startPhaseOnDateUpdate).toHaveBeenCalledBefore(validateAndUpdateDates as any);
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
+    });
+
+    it("should append phase start dates to input before validation", async () => {
+      const phaseStartDates = [
+        {
+          dateType: "Application Intake Start Date",
+          dateValue: testDateValue,
+        },
+      ];
+      vi.mocked(startPhaseOnDateUpdate).mockResolvedValue(phaseStartDates as any);
+
+      const inputCopy = { ...testInput, applicationDates: [...testInput.applicationDates] };
+      await __setApplicationDates(undefined, { input: inputCopy });
+
+      expect(startPhaseOnDateUpdate).toHaveBeenCalledWith(inputCopy, mockTransaction);
+      expect(validateAndUpdateDates).toHaveBeenCalledWith(
+        expect.objectContaining({
+          applicationId: testApplicationId,
+          applicationDates: expect.arrayContaining([
+            ...testInput.applicationDates,
+            ...phaseStartDates,
+          ]),
+        }),
+        mockTransaction
+      );
     });
 
     it("should validate and update based on the input if it is present", async () => {
@@ -82,6 +122,15 @@ describe("applicationDateResolvers", () => {
 
     it("should handle an error appropriately if it occurs", async () => {
       mockPrismaClient.$transaction.mockRejectedValueOnce(testError);
+      await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
+        testHandlePrismaError
+      );
+      expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
+      expect(getApplication).not.toHaveBeenCalled();
+    });
+
+    it("should handle an error from startPhaseOnDateUpdate appropriately", async () => {
+      vi.mocked(startPhaseOnDateUpdate).mockRejectedValueOnce(testError);
       await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
         testHandlePrismaError
       );
@@ -109,6 +158,10 @@ describe("applicationDateResolvers", () => {
     describe("invokes __setApplicationDates with a single item", () => {
       it("should validate and update based on the input if it is present", async () => {
         await __setApplicationDate(undefined, { input: testInput });
+        expect(startPhaseOnDateUpdate).toHaveBeenCalledExactlyOnceWith(
+          transformedTestInput,
+          mockTransaction
+        );
         expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
           transformedTestInput,
           mockTransaction
