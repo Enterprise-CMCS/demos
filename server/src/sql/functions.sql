@@ -619,6 +619,11 @@ BEGIN
 END;
 $$;
 
+-- Create the extension if it isn't already there
+-- This is a fix to help enable the temp DB testing pattern we are using
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+-- Wipe existing scheduled records
 DO $$
 DECLARE
     cronjob RECORD;
