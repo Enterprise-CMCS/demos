@@ -9,9 +9,5 @@ aws configure set region us-east-1
 # Add this alias to handle it
 echo "alias aws='aws --endpoint-url=http://localstack:4566'" >> ~/.bashrc
 echo "alias aws='aws --endpoint-url=http://localstack:4566'" >> ~/.zshrc
-
-# Setup LocalStack
-bash /workspaces/demos/.devcontainer/localstack/setup_localstack.sh
-
 echo ""
 echo "✅ Post-create setup complete!"

@@ -96,6 +96,7 @@ pipeline {
               dirCon('deployment', 'node') {
                 sh """
                 npm ci
+                export IS_TEST_MIGRATION="true"
                 npx tsx demosctl/index test-migration dev "temp_${env.CHANGE_ID}_${currentBuild.startTimeInMillis}"
                 """
               }

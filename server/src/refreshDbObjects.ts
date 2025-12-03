@@ -22,3 +22,9 @@ executeSqlFile("./src/sql/utility_views.sql");
 executeSqlFile("./src/sql/permissions.sql");
 executeSqlFile("./src/sql/history_triggers.sql");
 executeSqlFile("./src/sql/functions.sql");
+
+// Cron scheduling does not work in the temp DB used for test migrations
+// This is a limitation of pg_cron; we set the IS_TEST_MIGRATION flag in Jenkinsfile.server
+if (process.env.IS_TEST_MIGRATION !== "true") {
+  executeSqlFile("./src/sql/cron_schedules.sql");
+}
