@@ -50,8 +50,7 @@ try {
   }
   log(`Result URL: ${resultUrl}`, logPath);
 
-  let delayMs = 5_000; // start at 5s to reduce polling cost
-  const maxDelayMs = 30_000; // cap backoff at 30s
+  let delayMs = 1_000;
 
   while (true) {
     await sleep(delayMs);
@@ -63,7 +62,6 @@ try {
     }
 
     log(status, logPath);
-    delayMs = Math.min(delayMs * 2, maxDelayMs); // exponential backoff to limit requests/credits
   }
 } catch (error) {
   log(`Fatal error: ${error.message}`, logPath);
