@@ -33,7 +33,7 @@ export class DemosLogGroup extends Construct {
 
     new SubscriptionFilter(this, "SubscriptionFilter", {
       logGroup: this.logGroup,
-      destination: new LambdaDestination(DemosLogGroup.getSubscriptionLambda(this)),
+      destination: new LambdaDestination(DemosLogGroup.getSubscriptionLambda(this), {addPermissions: false}),
       filterPattern: FilterPattern.allEvents(),
       filterName: "logs-to-cms-splunk"
     })
