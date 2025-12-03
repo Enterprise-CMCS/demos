@@ -220,7 +220,7 @@ export type DocumentDialogFields = Pick<Document, "id" | "name" | "description">
   file: File | null;
 } & { documentType: DocumentType };
 
-const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
+const DEFAULT_DOCUMENT_FIELDS: DocumentDialogFields = {
   file: null,
   id: "",
   name: "",
@@ -237,6 +237,18 @@ export type DocumentDialogProps = {
   titleOverride?: string;
 };
 
+// Sets the default document type if a subset is provided
+const setDefaultDocumentType = (
+  documentDialogFields: DocumentDialogFields,
+  documentTypeSubset?: DocumentType[]
+): DocumentDialogFields => {
+  if (!documentTypeSubset) return documentDialogFields;
+  return {
+    ...documentDialogFields,
+    documentType: documentTypeSubset[0],
+  };
+};
+
 export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onClose = () => {},
   mode,
@@ -248,7 +260,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const { showSuccess, showError } = useToast();
 
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
-    initialDocument || EMPTY_DOCUMENT_FIELDS
+    initialDocument || setDefaultDocumentType(DEFAULT_DOCUMENT_FIELDS, documentTypeSubset)
   );
 
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);

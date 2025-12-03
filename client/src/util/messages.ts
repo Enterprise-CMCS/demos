@@ -10,6 +10,7 @@ export const DOCUMENT_REMOVED_MESSAGE = "Your document has been removed.";
 
 // Phase Messages
 export const SAVE_FOR_LATER_MESSAGE = "Updates  saved successfully";
+export const FAILED_TO_SAVE_MESSAGE = "Failed to save updates.";
 export const getPhaseCompletedMessage = (phaseName: PhaseName) => {
   return `${phaseName} has been completed`;
 };

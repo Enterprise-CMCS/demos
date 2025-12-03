@@ -15,6 +15,7 @@ import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
+import { getPhaseCompletedMessage } from "util/messages";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -101,11 +102,12 @@ export const ConceptPhase = ({
   const isSkipEnabled = !hasAnyActivity;
 
   const onFinish = async () => {
-    await Promise.all([completeConcept()]);
+    await completeConcept();
+    showSuccess(getPhaseCompletedMessage("Concept"));
   };
 
   const onSkip = async () => {
-    await Promise.all([skipConcept()]);
+    await skipConcept();
     showSuccess("Concept phase skipped");
   };
 
