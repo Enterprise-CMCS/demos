@@ -20,7 +20,6 @@ const logPath = createLogFile(process.argv[3] || process.env.LOG_FILE || "uipath
 if (! inputFile) {
   log("Usage: node index.js <input-file> [log-file]", logPath);
   throw new Error("Input file is required");
-  process.exit(1);
 }
 
 try {
@@ -50,7 +49,7 @@ try {
   }
   log(`Result URL: ${resultUrl}`, logPath);
 
-  let delayMs = 1_000;
+  let delayMs = 3_000;
 
   while (true) {
     await sleep(delayMs);
