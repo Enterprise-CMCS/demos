@@ -74,7 +74,7 @@ export class UiPathProcessor extends Construct {
       environment: {
         CLIENT_ID: process.env.CLIENT_ID ?? "",
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
-        CLIENT_SECRET_SECRET_NAME: clientSecret.secretName,
+        CLIENT_SECRET: clientSecret.secretName,
         UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? uiPathDefaultProjectId,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
       },
