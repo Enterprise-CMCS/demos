@@ -218,7 +218,7 @@ const DropTarget: React.FC<{
 
 export type DocumentDialogFields = Pick<Document, "id" | "name" | "description"> & {
   file: File | null;
-} & { documentType: DocumentType | undefined };
+} & { documentType: DocumentType };
 
 const EMPTY_DOCUMENT_FIELDS: DocumentDialogFields = {
   file: null,

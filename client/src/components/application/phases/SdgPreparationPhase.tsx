@@ -8,6 +8,7 @@ import { formatDateForServer } from "util/formatDate";
 import { DateType } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
+import { SAVE_FOR_LATER_MESSAGE } from "util/messages";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -103,10 +104,10 @@ export const SdgPreparationPhase = ({
     try {
       await handleSave();
     } catch {
-      showError("Failed to save SDG Workplan for later.");
+      showError("Failed to save updates.");
       return;
     }
-    showSuccess("Successfully saved SDG Workplan for later.");
+    showSuccess(SAVE_FOR_LATER_MESSAGE);
   };
 
   const handleFinish = async () => {

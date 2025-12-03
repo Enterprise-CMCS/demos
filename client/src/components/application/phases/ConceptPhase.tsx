@@ -14,6 +14,7 @@ import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
+import { useToast } from "components/toast";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -58,6 +59,7 @@ export const ConceptPhase = ({
   demonstrationId = "default-demo-id",
   initialPreSubmissionDocuments,
 }: ConceptProps) => {
+  const { showSuccess } = useToast();
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const [dateSubmitted, setDateSubmitted] = useState<string>("");
   const [demoType, setDemoType] = useState<string>("");
@@ -104,6 +106,7 @@ export const ConceptPhase = ({
 
   const onSkip = async () => {
     await Promise.all([skipConcept()]);
+    showSuccess("Concept phase skipped");
   };
 
   const UploadSection = () => (
@@ -129,9 +132,7 @@ export const ConceptPhase = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <DocumentList
-        documents={preSubmissionDocuments}
-      />
+      <DocumentList documents={preSubmissionDocuments} />
     </div>
   );
 
