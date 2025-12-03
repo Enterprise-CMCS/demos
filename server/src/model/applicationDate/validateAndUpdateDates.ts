@@ -2,6 +2,7 @@ import { PrismaTransactionClient } from "../../prismaClient.js";
 import { SetApplicationDatesInput } from "../../types.js";
 
 import {
+  deleteApplicationDates,
   getApplicationDates,
   mergeApplicationDates,
   parseSetApplicationDatesInput,
@@ -20,8 +21,10 @@ export async function validateAndUpdateDates(
   );
   const updatedApplicationDates = mergeApplicationDates(
     existingApplicationDates,
-    parsedSetApplicationDatesInput.applicationDates
+    parsedSetApplicationDatesInput.applicationDatesToUpsert,
+    parsedSetApplicationDatesInput.applicationDatesToDelete
   );
   validateInputDates(updatedApplicationDates);
   await upsertApplicationDates(parsedSetApplicationDatesInput, tx);
+  await deleteApplicationDates(parsedSetApplicationDatesInput, tx);
 }

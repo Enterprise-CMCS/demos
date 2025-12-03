@@ -7,19 +7,21 @@ import { TZDate } from "@date-fns/tz";
 
 // Mock imports
 import {
-  parseSetApplicationDatesInput,
+  deleteApplicationDates,
   getApplicationDates,
   mergeApplicationDates,
-  validateInputDates,
+  parseSetApplicationDatesInput,
   upsertApplicationDates,
+  validateInputDates,
 } from ".";
 
 vi.mock(".", () => ({
-  parseSetApplicationDatesInput: vi.fn(),
+  deleteApplicationDates: vi.fn(),
   getApplicationDates: vi.fn(),
   mergeApplicationDates: vi.fn(),
-  validateInputDates: vi.fn(),
+  parseSetApplicationDatesInput: vi.fn(),
   upsertApplicationDates: vi.fn(),
+  validateInputDates: vi.fn(),
 }));
 
 describe("validateAndUpdateDates", () => {
@@ -55,7 +57,7 @@ describe("validateAndUpdateDates", () => {
   };
   const testParsedResult: ParsedSetApplicationDatesInput = {
     applicationId: testApplicationId,
-    applicationDates: [
+    applicationDatesToUpsert: [
       {
         dateType: "Federal Comment Period Start Date",
         dateValue: testDateTimeValue2,
@@ -65,6 +67,7 @@ describe("validateAndUpdateDates", () => {
         dateValue: testDateTimeValue3,
       },
     ],
+    applicationDatesToDelete: ["SME Review Date"],
   };
   const testExistingDates: ParsedApplicationDateInput[] = [
     {
@@ -88,10 +91,7 @@ describe("validateAndUpdateDates", () => {
   ];
 
   it("should parse, validate, and upsert the input dates", async () => {
-    vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce({
-      applicationId: testApplicationId,
-      applicationDates: testParsedResult.applicationDates,
-    });
+    vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
     vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
     vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
 
@@ -104,10 +104,15 @@ describe("validateAndUpdateDates", () => {
     );
     expect(mergeApplicationDates).toHaveBeenCalledExactlyOnceWith(
       testExistingDates,
-      testParsedResult.applicationDates
+      testParsedResult.applicationDatesToUpsert,
+      testParsedResult.applicationDatesToDelete
     );
     expect(validateInputDates).toHaveBeenCalledExactlyOnceWith(testMergedDates);
     expect(upsertApplicationDates).toHaveBeenCalledExactlyOnceWith(
+      testParsedResult,
+      testPrismaTransaction
+    );
+    expect(deleteApplicationDates).toHaveBeenCalledExactlyOnceWith(
       testParsedResult,
       testPrismaTransaction
     );
