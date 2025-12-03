@@ -98,7 +98,12 @@ describe("BaseDialog", () => {
     const onClose = vi.fn();
     const setShowCancelConfirm = vi.fn();
     render(
-      <BaseDialog {...defaultProps} onClose={onClose} setShowCancelConfirm={setShowCancelConfirm} />
+      <BaseDialog
+        {...defaultProps}
+        onClose={onClose}
+        showCancelConfirm={true}
+        setShowCancelConfirm={setShowCancelConfirm}
+      />
     );
     const closeBtn = screen.getByLabelText("Close dialog");
     fireEvent.click(closeBtn);
