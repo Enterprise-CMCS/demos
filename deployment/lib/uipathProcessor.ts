@@ -1,13 +1,15 @@
 import { Construct } from "constructs";
 import path from "node:path";
-import { Duration, RemovalPolicy, aws_sqs as sqs } from "aws-cdk-lib";
+import { aws_secretsmanager, Duration, RemovalPolicy, aws_sqs as sqs } from "aws-cdk-lib";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambda from "./lambda";
 import { DeploymentConfigProperties } from "../config";
+import { aws_kms as kms } from "aws-cdk-lib";
 
 interface UiPathProcessorProps extends DeploymentConfigProperties {
   removalPolicy?: RemovalPolicy;
   bundle?: boolean;
+  kmsKey?: kms.IKey;
 }
 
 export class UiPathProcessor extends Construct {
@@ -20,42 +22,70 @@ export class UiPathProcessor extends Construct {
     const lambdaPath = path.join(__dirname, "..", "..", "lambdas", "UIPath");
     const removalPolicy = props.removalPolicy ?? RemovalPolicy.DESTROY;
 
+    const queueKey =
+      props.kmsKey ??
+      new kms.Key(this, "UiPathQueueKey", {
+        enableKeyRotation: true,
+        removalPolicy,
+        alias: "alias/uipath-queue-key",
+        description: "KMS key for UiPath SQS queues",
+      });
+
     this.deadLetterQueue = new sqs.Queue(this, "UiPathDLQ", {
-      encryption: sqs.QueueEncryption.KMS_MANAGED,
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: queueKey,
       enforceSSL: true,
       removalPolicy,
     });
 
     this.queue = new sqs.Queue(this, "UiPathQueue", {
-      encryption: sqs.QueueEncryption.KMS_MANAGED,
+      encryption: sqs.QueueEncryption.KMS,
+      encryptionMasterKey: queueKey,
       enforceSSL: true,
       removalPolicy,
       deadLetterQueue: { queue: this.deadLetterQueue, maxReceiveCount: 5 },
     });
 
-    const shouldBundle = props.bundle ?? true;
     const entryFile = path.join(lambdaPath, "index.ts");
-    const assetPath = lambdaPath;
 
+    // Only dev exists right now, so let's just hard that for now.
+    const clientSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "UiPathClientSecret",
+      `demos-dev/uipath`
+    );
+    const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "rdsDatabaseSecret",
+      `demos-${props.hostEnvironment}-rds-demos_upload`
+    );
+
+    const uiPathDefaultProjectId = "00000000-0000-0000-0000-000000000000";
     const uipathLambda = new lambda.Lambda(this, "Lambda", {
       ...props,
       scope: this,
-      entry: shouldBundle ? entryFile : assetPath,
+      entry: entryFile,
       handler: "handler",
-      timeout: Duration.minutes(2),
-      asCode: !shouldBundle,
+      timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
+      asCode: false, // compiles.
       externalModules: ["aws-sdk"],
       nodeModules: ["axios", "form-data", "pino", "pino-pretty"],
       depsLockFilePath: path.join(lambdaPath, "package-lock.json"),
       environment: {
         CLIENT_ID: process.env.CLIENT_ID ?? "",
-        CLIENT_SECRET: process.env.CLIENT_SECRET ?? "",
-        UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? "",
-        EXTRACTOR_GUID: process.env.EXTRACTOR_GUID ?? "",
+        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        CLIENT_SECRET_SECRET_NAME: clientSecret.secretName,
+        UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? uiPathDefaultProjectId,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
       },
     });
 
-    uipathLambda.lambda.addEventSource(new SqsEventSource(this.queue, { batchSize: 1 }));
+    // optional: allow Lambda to use this key directly
+    queueKey.grantEncryptDecrypt(uipathLambda.lambda);
+    clientSecret.grantRead(uipathLambda.lambda);
+
+    uipathLambda.lambda.addEventSource(
+      new SqsEventSource(this.queue, { batchSize: 1 }),
+    );
   }
 }

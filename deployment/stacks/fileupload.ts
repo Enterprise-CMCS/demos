@@ -197,6 +197,7 @@ export class FileUploadStack extends Stack {
     new UiPathProcessor(this, "UiPathProcessor", {
       ...props,
       removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      kmsKey,
     });
 
     new CfnOutput(this, "cleanBucketName", {
