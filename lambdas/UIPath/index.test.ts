@@ -56,8 +56,7 @@ describe("handler", () => {
     expect(runDocumentUnderstandingMock).toHaveBeenCalledWith(
       "file.pdf",
       expect.objectContaining({
-        initialDelayMs: 5_000,
-        maxDelayMs: 30_000,
+        pollIntervalMs: 5_000,
         logFullResult: false,
       })
     );

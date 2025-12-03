@@ -7,20 +7,17 @@ import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 
 interface UipathMessage {
   s3Key: string;
+  questions?: unknown;
 }
 
-const isLocal = () =>
-  process.env.RUN_LOCAL === "true" ||
-  process.env.ENVIRONMENT === "local" ||
-  (!process.env.AWS_EXECUTION_ENV && !process.env.AWS_LAMBDA_FUNCTION_NAME);
+const isLocal = () => process.env.ENVIRONMENT === "local" || process.env.RUN_LOCAL === "true";
 
 async function runLocal() {
-  const inputFile = process.env.INPUT_FILE ?? "AL0878R0200 2.PDF";
+  const inputFile = process.env.INPUT_FILE ?? "ak-behavioral-health-demo-pa.pdf";
   reqIdChild("local-run");
 
   const status = await runDocumentUnderstanding(inputFile, {
-    initialDelayMs: 1_000,
-    maxDelayMs: 8_000,
+    pollIntervalMs: 1_000,
     logFullResult: true,
   });
 
@@ -30,7 +27,7 @@ async function runLocal() {
 
 const isDirectRun = () => {
   // @ts-ignore
-  const currentPath = fileURLToPath(import.meta.url); // This works just fine. Not sure why linter is calling me out.
+  const currentPath = fileURLToPath(import.meta.url);
   const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
   return currentPath === invokedPath;
 };
@@ -51,8 +48,7 @@ export const handler = async (event: SQSEvent) =>
     }
 
     const status = await runDocumentUnderstanding(inputFile, {
-      initialDelayMs: 5_000,
-      maxDelayMs: 30_000,
+      pollIntervalMs: 5_000,
       logFullResult: false,
     });
 
@@ -65,7 +61,8 @@ if (isDirectRun() && isLocal()) {
     try {
       await runLocal();
     } catch (err) {
-      log.error({ err }, "Local execution failed");
+      const error = err as Error;
+      log.error({ err: { message: error.message, stack: error.stack } }, "Local execution failed");
       process.exitCode = 1;
     }
   });

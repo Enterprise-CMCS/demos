@@ -4,8 +4,9 @@ export const UIPATH_BASE_URL = "https://govcloud.uipath.us";
 export const UIPATH_TENANT = "globalalliant/Dev";
 export const UIPATH_API_VERSION = "1.0";
 
+
 export function getProjectId(): string {
-  const projectId = process.env.UIPATH_PROJECT_ID;
+  const projectId = process.env.UIPATH_PROJECT_ID ?? process.env.UIPATH_DEFAULT_PROJECT_ID;
   if (!projectId) {
     throw new Error("Missing UIPATH_PROJECT_ID in environment.");
   }

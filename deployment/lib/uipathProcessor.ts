@@ -8,7 +8,6 @@ import { aws_kms as kms } from "aws-cdk-lib";
 
 interface UiPathProcessorProps extends DeploymentConfigProperties {
   removalPolicy?: RemovalPolicy;
-  bundle?: boolean;
   kmsKey?: kms.IKey;
 }
 
@@ -46,7 +45,7 @@ export class UiPathProcessor extends Construct {
       deadLetterQueue: { queue: this.deadLetterQueue, maxReceiveCount: 5 },
     });
 
-    const entryFile = path.join(lambdaPath, "index.ts");
+    const entryPath = lambdaPath; // package directory as asset (no bundling)
 
     // Only dev exists right now, so let's just hard that for now.
     const clientSecret = aws_secretsmanager.Secret.fromSecretNameV2(
@@ -60,14 +59,14 @@ export class UiPathProcessor extends Construct {
       `demos-${props.hostEnvironment}-rds-demos_upload`
     );
 
-    const uiPathDefaultProjectId = process.env.UI_PATH_DEFAULT_PROJECT_ID ?? "00000000-0000-0000-0000-000000000000";
+    const uiPathDefaultProjectId = process.env.UIPATH_DEFAULT_PROJECT_ID ?? "00000000-0000-0000-0000-000000000000";
     const uipathLambda = new lambda.Lambda(this, "Lambda", {
       ...props,
       scope: this,
-      entry: entryFile,
+      entry: entryPath,
       handler: "handler",
       timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
-      asCode: false, // compiles.
+      asCode: false, // this is typescript will need to be compiled
       externalModules: ["aws-sdk"],
       nodeModules: ["axios", "form-data", "pino", "pino-pretty"],
       depsLockFilePath: path.join(lambdaPath, "package-lock.json"),

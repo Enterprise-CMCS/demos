@@ -1,4 +1,5 @@
 import axios from "axios";
+import "dotenv/config";
 
 interface TokenResponse {
   access_token: string;
@@ -10,7 +11,7 @@ const TOKEN_SCOPE =
 
 export async function getToken(): Promise<string> {
   const clientId = process.env.UIPATH_CLIENT_ID;
-  const clientSecret = process.env.CLIENT_SECRET;
+  const clientSecret = process.env.UIPATH_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     throw new Error("UIPATH_CLIENT_ID and UIPATH_CLIENT_SECRET must be set in the environment.");

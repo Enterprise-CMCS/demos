@@ -7,15 +7,11 @@ import { fetchExtractionResult, ExtractionStatus } from "./fetchExtractResult";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-export interface BackoffConfig {
-  initialDelayMs?: number;
-  maxDelayMs?: number;
-  maxAttempts?: number;
-}
-
-export interface RunDocumentUnderstandingOptions extends BackoffConfig {
+export interface RunDocumentUnderstandingOptions {
   token?: string;
   logFullResult?: boolean;
+  pollIntervalMs?: number;
+  maxAttempts?: number;
 }
 
 export async function runDocumentUnderstanding(
@@ -24,9 +20,8 @@ export async function runDocumentUnderstanding(
 ): Promise<ExtractionStatus> {
   const {
     token: providedToken,
-    initialDelayMs = 1_000,
-    maxDelayMs = 30_000,
-    maxAttempts = Infinity,
+    pollIntervalMs = 1000,
+    maxAttempts = 5000,
     logFullResult = true,
   } = options;
 
@@ -40,10 +35,9 @@ export async function runDocumentUnderstanding(
   log.info({ resultUrl }, "Started extraction.");
 
   let attempt = 0;
-  let delayMs = initialDelayMs;
-
+  console.log(attempt < maxAttempts);
   while (attempt < maxAttempts) {
-    await sleep(delayMs);
+    await sleep(1 * 1000); // getting this to work before adding back in the pollIntervalMs
     const status = await fetchExtractionResult(token, resultUrl);
 
     if (status.status === "Succeeded") {
@@ -55,8 +49,7 @@ export async function runDocumentUnderstanding(
       return status;
     }
 
-    log.info({ status, attempt, delayMs }, "Extraction still running");
-    delayMs = Math.min(delayMs * 2, maxDelayMs);
+    log.info({ status, attempt, pollIntervalMs }, "Extraction still running");
     attempt += 1;
   }
 

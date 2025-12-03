@@ -48,8 +48,7 @@ describe("runDocumentUnderstanding", () => {
       .mockResolvedValueOnce({ status: "Succeeded", data: { ok: true } });
 
     const promise = runDocumentUnderstanding("file.pdf", {
-      initialDelayMs: 10,
-      maxDelayMs: 20,
+      pollIntervalMs: 10,
       logFullResult: false,
     });
 
@@ -69,8 +68,7 @@ describe("runDocumentUnderstanding", () => {
     fetchExtractionResultMock.mockResolvedValue({ status: "Pending" });
 
     const promise = runDocumentUnderstanding("file.pdf", {
-      initialDelayMs: 1,
-      maxDelayMs: 2,
+      pollIntervalMs: 1,
       maxAttempts: 2,
     });
 
