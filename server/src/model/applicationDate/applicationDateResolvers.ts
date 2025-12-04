@@ -32,7 +32,17 @@ export async function __setApplicationDates(
   try {
     await prisma().$transaction(async (tx) => {
       const phaseStartDates = await startPhaseOnDateUpdate(input, tx);
-      input.applicationDates.push(...phaseStartDates);
+
+      // put all generated dates in a map
+      const mergedDateMap = new Map(
+        phaseStartDates.map((phaseStartDate) => [phaseStartDate.dateType, phaseStartDate])
+      );
+      // put all input dates in the map, overwriting any generated dates of the same type
+      input.applicationDates.forEach((inputDate) =>
+        mergedDateMap.set(inputDate.dateType, inputDate)
+      );
+      input.applicationDates = Array.from(mergedDateMap.values());
+
       await validateAndUpdateDates(input, tx);
     });
   } catch (error) {

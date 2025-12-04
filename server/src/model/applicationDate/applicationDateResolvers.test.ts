@@ -169,6 +169,68 @@ describe("applicationDateResolvers", () => {
         expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       });
     });
+
+    it("should merge phase start dates with input dates, prioritizing input dates when types conflict", async () => {
+      const phaseStartDates = [
+        {
+          dateType: "Application Intake Start Date",
+          dateValue: new Date("2025-01-01T00:00:00.000Z"),
+        },
+        {
+          dateType: "Concept Start Date",
+          dateValue: new Date("2025-01-15T00:00:00.000Z"), // This will be overwritten
+        },
+      ];
+      vi.mocked(startPhaseOnDateUpdate).mockResolvedValue(phaseStartDates as any);
+
+      const inputWithConflict: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Concept Start Date",
+            dateValue: new Date("2025-02-01T00:00:00.000Z"), // This should win
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: new Date("2025-03-01T00:00:00.000Z"),
+          },
+        ],
+      };
+
+      await __setApplicationDates(undefined, { input: inputWithConflict });
+
+      expect(validateAndUpdateDates).toHaveBeenCalledWith(
+        expect.objectContaining({
+          applicationId: testApplicationId,
+          applicationDates: expect.arrayContaining([
+            {
+              dateType: "Application Intake Start Date",
+              dateValue: new Date("2025-01-01T00:00:00.000Z"),
+            },
+            {
+              dateType: "Concept Start Date",
+              dateValue: new Date("2025-02-01T00:00:00.000Z"), // Input date wins
+            },
+            {
+              dateType: "Federal Comment Period End Date",
+              dateValue: new Date("2025-03-01T00:00:00.000Z"),
+            },
+          ]),
+        }),
+        mockTransaction
+      );
+
+      // Verify the merged array has exactly 3 items (no duplicates)
+      const calledWith = vi.mocked(validateAndUpdateDates).mock.calls[0][0];
+      expect(calledWith.applicationDates).toHaveLength(3);
+
+      // Verify "Concept Start Date" appears only once with the input value
+      const conceptDates = calledWith.applicationDates.filter(
+        (date) => date.dateType === "Concept Start Date"
+      );
+      expect(conceptDates).toHaveLength(1);
+      expect(conceptDates[0].dateValue).toEqual(new Date("2025-02-01T00:00:00.000Z"));
+    });
   });
 
   describe("__resolveApplicationDateType", () => {
