@@ -5,8 +5,8 @@ import { DocumentType, PhaseName } from "../../types.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 
 // Mock adapter using vi.hoisted
-const { mockDocumentAdapter } = vi.hoisted(() => ({
-  mockDocumentAdapter: {
+const { mockS3Adapter } = vi.hoisted(() => ({
+  mockS3Adapter: {
     getPresignedDownloadUrl: vi.fn(),
     moveDocumentFromCleanToDeleted: vi.fn(),
     uploadDocument: vi.fn(),
@@ -18,8 +18,8 @@ vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../../adapters/document/DocumentAdapter.js", () => ({
-  createDocumentAdapter: () => mockDocumentAdapter,
+vi.mock("../../adapters/s3/S3Adapter.js", () => ({
+  createS3Adapter: () => mockS3Adapter,
 }));
 
 vi.mock("../user/userResolvers.js", () => ({
@@ -192,7 +192,7 @@ describe("documentResolvers", () => {
           documentId: testValues.documentId,
         };
 
-        mockDocumentAdapter.uploadDocument.mockResolvedValueOnce(mockResponse);
+        mockS3Adapter.uploadDocument.mockResolvedValueOnce(mockResponse);
 
         const result = await documentResolvers.Mutation.uploadDocument(
           undefined,
@@ -200,7 +200,7 @@ describe("documentResolvers", () => {
           mockContext
         );
 
-        expect(mockDocumentAdapter.uploadDocument).toHaveBeenCalledExactlyOnceWith(
+        expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith(
           { input: mockInput },
           testValues.userId
         );
@@ -222,7 +222,7 @@ describe("documentResolvers", () => {
           "The GraphQL context does not have user information. Are you properly authenticated?"
         );
 
-        expect(mockDocumentAdapter.uploadDocument).not.toHaveBeenCalled();
+        expect(mockS3Adapter.uploadDocument).not.toHaveBeenCalled();
       });
     });
 
@@ -230,7 +230,7 @@ describe("documentResolvers", () => {
       it("should return presigned download URL", async () => {
         const mockUrl = "https://download-url.com";
         mockPrismaClient.document.findUniqueOrThrow.mockResolvedValueOnce(mockDocument);
-        mockDocumentAdapter.getPresignedDownloadUrl.mockResolvedValueOnce(mockUrl);
+        mockS3Adapter.getPresignedDownloadUrl.mockResolvedValueOnce(mockUrl);
 
         const result = await documentResolvers.Mutation.downloadDocument(undefined, {
           id: testValues.documentId,
@@ -239,7 +239,7 @@ describe("documentResolvers", () => {
         expect(mockPrismaClient.document.findUniqueOrThrow).toHaveBeenCalledWith({
           where: { id: testValues.documentId },
         });
-        expect(mockDocumentAdapter.getPresignedDownloadUrl).toHaveBeenCalledWith(
+        expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledWith(
           testValues.documentId
         );
         expect(result).toBe(mockUrl);
@@ -318,13 +318,13 @@ describe("documentResolvers", () => {
           };
           return callback(mockTx);
         });
-        mockDocumentAdapter.moveDocumentFromCleanToDeleted.mockResolvedValueOnce(undefined);
+        mockS3Adapter.moveDocumentFromCleanToDeleted.mockResolvedValueOnce(undefined);
 
         const result = await documentResolvers.Mutation.deleteDocument(undefined, {
           id: testValues.documentId,
         });
 
-        expect(mockDocumentAdapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledWith(
+        expect(mockS3Adapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledWith(
           `${testValues.applicationId}/${testValues.documentId}`
         );
         expect(result).toEqual(mockDocument);
@@ -356,11 +356,11 @@ describe("documentResolvers", () => {
           };
           return callback(mockTx);
         });
-        mockDocumentAdapter.moveDocumentFromCleanToDeleted.mockResolvedValue(undefined);
+        mockS3Adapter.moveDocumentFromCleanToDeleted.mockResolvedValue(undefined);
 
         const result = await documentResolvers.Mutation.deleteDocuments(undefined, { ids });
 
-        expect(mockDocumentAdapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledTimes(2);
+        expect(mockS3Adapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledTimes(2);
         expect(result).toBe(2);
       });
 
@@ -379,7 +379,7 @@ describe("documentResolvers", () => {
           ids: ["non-existent"],
         });
 
-        expect(mockDocumentAdapter.moveDocumentFromCleanToDeleted).not.toHaveBeenCalled();
+        expect(mockS3Adapter.moveDocumentFromCleanToDeleted).not.toHaveBeenCalled();
         expect(result).toBe(0);
       });
     });

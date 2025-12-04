@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { DocumentAdapter } from "./DocumentAdapter.js";
+import { S3Adapter } from "./S3Adapter.js";
 import { UploadDocumentInput } from "../../types.js";
 import { DocumentPendingUpload } from "@prisma/client";
 
@@ -39,7 +39,7 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
 }));
 
 // Import after mocks
-import { createAWSS3DocumentAdapter } from "./AwsS3DocumentAdapter.js";
+import { createAWSS3Adapter } from "./AwsS3Adapter.js";
 import {
   PutObjectCommand,
   GetObjectCommand,
@@ -51,14 +51,15 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { DOCUMENT_TYPES } from "../../constants.js";
 
-describe("AwsS3DocumentAdapter", () => {
-  let adapter: DocumentAdapter;
+describe("AwsS3Adapter", () => {
+  let adapter: S3Adapter;
   let originalEnv: NodeJS.ProcessEnv;
 
   const mockPrismaClient = {
     documentPendingUpload: {
       create: vi.fn(),
     },
+    $transaction: vi.fn(),
   };
 
   const testDocumentId = "doc-123-456";
@@ -89,13 +90,21 @@ describe("AwsS3DocumentAdapter", () => {
     vi.clearAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
 
+    // Reset the mock implementation to clear queued return values
+    mockGetSignedUrl.mockReset();
+
+    // Setup default $transaction behavior to execute the callback
+    mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      return callback(mockPrismaClient);
+    });
+
     // Save and set environment variables
     originalEnv = { ...process.env };
     process.env.UPLOAD_BUCKET = "test-upload-bucket";
     process.env.CLEAN_BUCKET = "test-clean-bucket";
     process.env.DELETED_BUCKET = "test-deleted-bucket";
 
-    adapter = createAWSS3DocumentAdapter();
+    adapter = createAWSS3Adapter();
   });
 
   afterEach(() => {
@@ -107,7 +116,7 @@ describe("AwsS3DocumentAdapter", () => {
     it("should create S3 client with default AWS configuration when S3_ENDPOINT_LOCAL is not set", () => {
       delete process.env.S3_ENDPOINT_LOCAL;
 
-      createAWSS3DocumentAdapter();
+      createAWSS3Adapter();
 
       expect(mockS3Client).toHaveBeenCalledWith({});
     });
@@ -115,7 +124,7 @@ describe("AwsS3DocumentAdapter", () => {
     it("should create S3 client with custom local endpoint when S3_ENDPOINT_LOCAL is set", () => {
       process.env.S3_ENDPOINT_LOCAL = "http://localhost:4566";
 
-      createAWSS3DocumentAdapter();
+      createAWSS3Adapter();
 
       expect(mockS3Client).toHaveBeenCalledWith({
         region: "us-east-1",
@@ -131,7 +140,7 @@ describe("AwsS3DocumentAdapter", () => {
     it("should use empty config for production AWS when no endpoint is set", () => {
       delete process.env.S3_ENDPOINT_LOCAL;
 
-      createAWSS3DocumentAdapter();
+      createAWSS3Adapter();
 
       expect(mockS3Client).toHaveBeenCalledWith({});
     });
@@ -172,7 +181,7 @@ describe("AwsS3DocumentAdapter", () => {
 
     it("should use correct upload bucket from environment", async () => {
       process.env.UPLOAD_BUCKET = "custom-upload-bucket";
-      const customAdapter = createAWSS3DocumentAdapter();
+      const customAdapter = createAWSS3Adapter();
       const mockPresignedUrl = "https://s3.amazonaws.com/presigned-upload-url";
 
       mockPrismaClient.documentPendingUpload.create.mockResolvedValueOnce(
@@ -235,7 +244,7 @@ describe("AwsS3DocumentAdapter", () => {
 
     it("should use correct clean bucket from environment", async () => {
       process.env.CLEAN_BUCKET = "custom-clean-bucket";
-      const customAdapter = createAWSS3DocumentAdapter();
+      const customAdapter = createAWSS3Adapter();
       const mockPresignedUrl = "https://s3.amazonaws.com/presigned-download-url";
       mockGetSignedUrl.mockResolvedValueOnce(mockPresignedUrl);
 
@@ -335,7 +344,7 @@ describe("AwsS3DocumentAdapter", () => {
     it("should use correct buckets from environment", async () => {
       process.env.CLEAN_BUCKET = "custom-clean-bucket";
       process.env.DELETED_BUCKET = "custom-deleted-bucket";
-      const customAdapter = createAWSS3DocumentAdapter();
+      const customAdapter = createAWSS3Adapter();
 
       mockSend
         .mockResolvedValueOnce({ $metadata: { httpStatusCode: 200 } })

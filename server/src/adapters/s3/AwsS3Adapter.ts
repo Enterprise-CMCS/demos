@@ -6,7 +6,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { DocumentAdapter } from "./DocumentAdapter.js";
+import { S3Adapter } from "./S3Adapter.js";
 import { UploadDocumentInput, UploadDocumentResponse } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -35,7 +35,7 @@ const createS3Client = () => {
  * Creates an AWS S3 adapter that uses the AWS SDK to interact with S3 buckets.
  * Automatically configures the S3Client and bucket names based on environment variables.
  */
-export function createAWSS3DocumentAdapter(): DocumentAdapter {
+export function createAWSS3Adapter(): S3Adapter {
   const s3Client = createS3Client();
 
   const uploadBucket = process.env.UPLOAD_BUCKET!;

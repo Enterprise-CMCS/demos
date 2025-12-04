@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { DocumentAdapter } from "./DocumentAdapter.js";
+import { S3Adapter } from "./S3Adapter.js";
 import { prisma } from "../../prismaClient.js";
 import { log } from "../../log.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -13,7 +13,7 @@ const BUCKET_NAME = "local-demos-bucket";
  * Creates a local in-memory adapter for simple local development.
  * Does not persist files - just tracks "uploaded" keys in memory.
  */
-export function createLocalDocumentAdapter(): DocumentAdapter {
+export function createLocalS3Adapter(): S3Adapter {
   const uploadedFiles = new Set<string>();
 
   async function getPresignedUploadUrl(key: string): Promise<string> {

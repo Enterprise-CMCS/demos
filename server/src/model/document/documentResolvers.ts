@@ -8,7 +8,7 @@ import {
   UploadDocumentResponse,
 } from "../../types.js";
 import { getUser } from "../user/userResolvers.js";
-import { createDocumentAdapter, DocumentAdapter } from "../../adapters/document/DocumentAdapter.js";
+import { createS3Adapter, S3Adapter } from "../../adapters/s3/S3Adapter.js";
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -45,7 +45,7 @@ export async function documentExists(
 }
 
 export async function downloadDocument(parent: unknown, { id }: { id: string }): Promise<string> {
-  const s3Adapter: DocumentAdapter = createDocumentAdapter();
+  const s3Adapter: S3Adapter = createS3Adapter();
 
   try {
     const document = await prisma().document.findUniqueOrThrow({
@@ -62,7 +62,7 @@ export async function uploadDocument(
   { input }: { input: UploadDocumentInput },
   context: GraphQLContext
 ): Promise<UploadDocumentResponse> {
-  const documentAdapter: DocumentAdapter = createDocumentAdapter();
+  const documentAdapter: S3Adapter = createS3Adapter();
 
   if (!context.user) {
     throw new Error(
@@ -110,7 +110,7 @@ export async function deleteDocuments(
   parent: unknown,
   { ids }: { ids: string[] }
 ): Promise<number> {
-  const s3Adapter: DocumentAdapter = createDocumentAdapter();
+  const s3Adapter: S3Adapter = createS3Adapter();
 
   return await prisma().$transaction(async (tx) => {
     const documents = await tx.document.findMany({
@@ -133,7 +133,7 @@ export async function deleteDocument(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaDocument> {
-  const s3Adapter: DocumentAdapter = createDocumentAdapter();
+  const s3Adapter: S3Adapter = createS3Adapter();
 
   try {
     return await prisma().$transaction(async (tx) => {

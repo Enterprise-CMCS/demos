@@ -1,27 +1,27 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { DocumentAdapter, createDocumentAdapter } from "./DocumentAdapter.js";
+import { S3Adapter, createS3Adapter } from "./S3Adapter.js";
 
 // Mock the adapter implementations
-vi.mock("./AwsS3DocumentAdapter.js", () => ({
-  createAWSS3DocumentAdapter: vi.fn(),
+vi.mock("./AwsS3Adapter.js", () => ({
+  createAWSS3Adapter: vi.fn(),
 }));
 
-vi.mock("./LocalDocumentAdapter.js", () => ({
-  createLocalDocumentAdapter: vi.fn(),
+vi.mock("./LocalS3Adapter.js", () => ({
+  createLocalS3Adapter: vi.fn(),
 }));
 
 // Import after mocks
-import { createAWSS3DocumentAdapter } from "./AwsS3DocumentAdapter.js";
-import { createLocalDocumentAdapter } from "./LocalDocumentAdapter.js";
+import { createAWSS3Adapter } from "./AwsS3Adapter.js";
+import { createLocalS3Adapter } from "./LocalS3Adapter.js";
 
-describe("DocumentAdapter", () => {
-  const mockAWSAdapter: DocumentAdapter = {
+describe("S3Adapter", () => {
+  const mockAWSAdapter: S3Adapter = {
     getPresignedDownloadUrl: vi.fn(),
     moveDocumentFromCleanToDeleted: vi.fn(),
     uploadDocument: vi.fn(),
   };
 
-  const mockLocalAdapter: DocumentAdapter = {
+  const mockLocalAdapter: S3Adapter = {
     getPresignedDownloadUrl: vi.fn(),
     moveDocumentFromCleanToDeleted: vi.fn(),
     uploadDocument: vi.fn(),
@@ -46,59 +46,59 @@ describe("DocumentAdapter", () => {
     }
   });
 
-  describe("createDocumentAdapter", () => {
+  describe("createS3Adapter", () => {
     it("should create AWS S3 adapter when LOCAL_SIMPLE_UPLOAD is not set", async () => {
       delete process.env.LOCAL_SIMPLE_UPLOAD;
-      vi.mocked(createAWSS3DocumentAdapter).mockReturnValue(mockAWSAdapter);
+      vi.mocked(createAWSS3Adapter).mockReturnValue(mockAWSAdapter);
 
       // Re-import to get fresh module
-      const { createDocumentAdapter: freshCreateAdapter } = await import(
-        "./DocumentAdapter.js?t=" + Date.now()
+      const { createS3Adapter: freshCreateAdapter } = await import(
+        "./S3Adapter.js?t=" + Date.now()
       );
 
       const adapter = freshCreateAdapter();
 
-      expect(createAWSS3DocumentAdapter).toHaveBeenCalledOnce();
-      expect(createLocalDocumentAdapter).not.toHaveBeenCalled();
+      expect(createAWSS3Adapter).toHaveBeenCalledOnce();
+      expect(createLocalS3Adapter).not.toHaveBeenCalled();
       expect(adapter).toBe(mockAWSAdapter);
     });
 
     it("should create AWS S3 adapter when LOCAL_SIMPLE_UPLOAD is false", async () => {
       process.env.LOCAL_SIMPLE_UPLOAD = "false";
-      vi.mocked(createAWSS3DocumentAdapter).mockReturnValue(mockAWSAdapter);
+      vi.mocked(createAWSS3Adapter).mockReturnValue(mockAWSAdapter);
 
-      const { createDocumentAdapter: freshCreateAdapter } = await import(
-        "./DocumentAdapter.js?t=" + Date.now()
+      const { createS3Adapter: freshCreateAdapter } = await import(
+        "./S3Adapter.js?t=" + Date.now()
       );
 
       const adapter = freshCreateAdapter();
 
-      expect(createAWSS3DocumentAdapter).toHaveBeenCalledOnce();
-      expect(createLocalDocumentAdapter).not.toHaveBeenCalled();
+      expect(createAWSS3Adapter).toHaveBeenCalledOnce();
+      expect(createLocalS3Adapter).not.toHaveBeenCalled();
       expect(adapter).toBe(mockAWSAdapter);
     });
 
     it("should create local adapter when LOCAL_SIMPLE_UPLOAD is true", async () => {
       process.env.LOCAL_SIMPLE_UPLOAD = "true";
-      vi.mocked(createLocalDocumentAdapter).mockReturnValue(mockLocalAdapter);
+      vi.mocked(createLocalS3Adapter).mockReturnValue(mockLocalAdapter);
 
-      const { createDocumentAdapter: freshCreateAdapter } = await import(
-        "./DocumentAdapter.js?t=" + Date.now()
+      const { createS3Adapter: freshCreateAdapter } = await import(
+        "./S3Adapter.js?t=" + Date.now()
       );
 
       const adapter = freshCreateAdapter();
 
-      expect(createLocalDocumentAdapter).toHaveBeenCalledOnce();
-      expect(createAWSS3DocumentAdapter).not.toHaveBeenCalled();
+      expect(createLocalS3Adapter).toHaveBeenCalledOnce();
+      expect(createAWSS3Adapter).not.toHaveBeenCalled();
       expect(adapter).toBe(mockLocalAdapter);
     });
 
     it("should return singleton instance on subsequent calls", async () => {
       process.env.LOCAL_SIMPLE_UPLOAD = "false";
-      vi.mocked(createAWSS3DocumentAdapter).mockReturnValue(mockAWSAdapter);
+      vi.mocked(createAWSS3Adapter).mockReturnValue(mockAWSAdapter);
 
-      const { createDocumentAdapter: freshCreateAdapter } = await import(
-        "./DocumentAdapter.js?t=" + Date.now()
+      const { createS3Adapter: freshCreateAdapter } = await import(
+        "./S3Adapter.js?t=" + Date.now()
       );
 
       const adapter1 = freshCreateAdapter();
@@ -107,15 +107,15 @@ describe("DocumentAdapter", () => {
 
       expect(adapter1).toBe(adapter2);
       expect(adapter2).toBe(adapter3);
-      expect(createAWSS3DocumentAdapter).toHaveBeenCalledOnce();
+      expect(createAWSS3Adapter).toHaveBeenCalledOnce();
     });
 
     it("should only initialize adapter once even with multiple calls", async () => {
       process.env.LOCAL_SIMPLE_UPLOAD = "false";
-      vi.mocked(createAWSS3DocumentAdapter).mockReturnValue(mockAWSAdapter);
+      vi.mocked(createAWSS3Adapter).mockReturnValue(mockAWSAdapter);
 
-      const { createDocumentAdapter: freshCreateAdapter } = await import(
-        "./DocumentAdapter.js?t=" + Date.now()
+      const { createS3Adapter: freshCreateAdapter } = await import(
+        "./S3Adapter.js?t=" + Date.now()
       );
 
       // Call multiple times rapidly
@@ -133,7 +133,7 @@ describe("DocumentAdapter", () => {
       });
 
       // Factory should only be called once
-      expect(createAWSS3DocumentAdapter).toHaveBeenCalledOnce();
+      expect(createAWSS3Adapter).toHaveBeenCalledOnce();
     });
   });
 });

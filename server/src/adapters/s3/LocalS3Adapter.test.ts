@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { DocumentAdapter } from "./DocumentAdapter.js";
+import { S3Adapter } from "./S3Adapter.js";
 import { UploadDocumentInput, UploadDocumentResponse } from "../../types.js";
 import { Document as PrismaDocument } from "@prisma/client";
 
@@ -30,20 +30,21 @@ vi.mock("node:crypto", () => ({
 }));
 
 // Import after mocks
-import { createLocalDocumentAdapter } from "./LocalDocumentAdapter.js";
+import { createLocalS3Adapter } from "./LocalS3Adapter.js";
 import { prisma } from "../../prismaClient.js";
 import { log } from "../../log.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { randomUUID, UUID } from "node:crypto";
 
-describe("LocalDocumentAdapter", () => {
-  let adapter: DocumentAdapter;
+describe("LocalS3Adapter", () => {
+  let adapter: S3Adapter;
   let originalUploadBucket: string | undefined;
 
   const mockPrismaClient = {
     document: {
       create: vi.fn(),
     },
+    $transaction: vi.fn(),
   };
 
   const testDocumentId = "doc-123-456";
@@ -75,7 +76,13 @@ describe("LocalDocumentAdapter", () => {
     vi.clearAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(randomUUID).mockReturnValue(testDocumentId as UUID);
-    adapter = createLocalDocumentAdapter();
+
+    // Setup default $transaction behavior to execute the callback
+    mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      return callback(mockPrismaClient);
+    });
+
+    adapter = createLocalS3Adapter();
     originalUploadBucket = process.env.UPLOAD_BUCKET;
   });
 
@@ -147,7 +154,7 @@ describe("LocalDocumentAdapter", () => {
 
     it("should handle Prisma errors", async () => {
       const testError = new Error("Database error");
-      mockPrismaClient.document.create.mockRejectedValueOnce(testError);
+      mockPrismaClient.$transaction.mockRejectedValueOnce(testError);
 
       await expect(
         adapter.uploadDocument({ input: mockUploadInput }, testUserId)
@@ -203,9 +210,9 @@ describe("LocalDocumentAdapter", () => {
 
     it("should work with multiple uploaded documents", async () => {
       const documentIds: UUID[] = [
-        "aaaa-aaaa-aaaa-aaaa-aaaa",
-        "bbbb-bbbb-bbbb-bbbb-bbbb",
-        "cccc-cccc-cccc-cccc-cccc",
+        "aaaa-aaaa-aaaa-aaaa-aaaa" as UUID,
+        "bbbb-bbbb-bbbb-bbbb-bbbb" as UUID,
+        "cccc-cccc-cccc-cccc-cccc" as UUID,
       ];
       let callCount = 0;
       vi.mocked(randomUUID).mockImplementation(() => documentIds[callCount++]);
@@ -253,9 +260,9 @@ describe("LocalDocumentAdapter", () => {
 
     it("should handle multiple deletions", async () => {
       const documentIds: UUID[] = [
-        "aaaa-aaaa-aaaa-aaaa-aaaa",
-        "bbbb-bbbb-bbbb-bbbb-bbbb",
-        "cccc-cccc-cccc-cccc-cccc",
+        "aaaa-aaaa-aaaa-aaaa-aaaa" as UUID,
+        "bbbb-bbbb-bbbb-bbbb-bbbb" as UUID,
+        "cccc-cccc-cccc-cccc-cccc" as UUID,
       ];
       let callCount = 0;
       vi.mocked(randomUUID).mockImplementation(() => documentIds[callCount++]);
