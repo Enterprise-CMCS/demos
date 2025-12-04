@@ -27,7 +27,7 @@ async function runLocal() {
 
 const isDirectRun = () => {
   // @ts-ignore
-  const currentPath = fileURLToPath(import.meta.url);
+  const currentPath = fileURLToPath(import.meta.url); // This works just fine. Not sure why linter is calling me out.
   const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
   return currentPath === invokedPath;
 };
@@ -61,8 +61,7 @@ if (isDirectRun() && isLocal()) {
     try {
       await runLocal();
     } catch (err) {
-      const error = err as Error;
-      log.error({ err: { message: error.message, stack: error.stack } }, "Local execution failed");
+      log.error({ err }, "Local execution failed");
       process.exitCode = 1;
     }
   });

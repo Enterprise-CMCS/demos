@@ -1,6 +1,7 @@
 import pino from "pino";
 import { AsyncLocalStorage } from "node:async_hooks";
 
+const isLocal = () => process.env.ENVIRONMENT === "local" || process.env.RUN_LOCAL === "true";
 export const setupLogger = (serviceName: string) =>
   pino({
     level: process.env.LOG_LEVEL ?? "info",
@@ -22,7 +23,17 @@ export const setupLogger = (serviceName: string) =>
       },
     },
     // Disable pretty transport in bundled/worker contexts to avoid worker path issues.
-    transport: undefined,
+    transport: isLocal()
+    ? {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+          translateTime: "SYS:standard",
+          singleLine: false,
+          messageFormat: "{msg}", // only prints msg (still prints ctx separately)
+        },
+      }
+    : undefined,
   });
 
 export const parentLogger = setupLogger("uipath");
