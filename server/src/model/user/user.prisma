@@ -11,6 +11,7 @@ model User {
 
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]
+  documentsInfected      DocumentInfected[]
   events                 Event[]
 
   @@id([id])

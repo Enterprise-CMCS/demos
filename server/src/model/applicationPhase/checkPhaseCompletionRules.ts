@@ -12,8 +12,8 @@ import {
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
-    datesMustExist: [],
-    documentTypesMustExist: [],
+    datesMustExist: ["Pre-Submission Submitted Date"],
+    documentTypesMustExist: ["Pre-Submission"],
     phasesMustBeComplete: [],
   },
   "Application Intake": {
@@ -27,7 +27,10 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Federal Comment Period Start Date",
       "Federal Comment Period End Date",
     ],
-    documentTypesMustExist: ["Application Completeness Letter"],
+    documentTypesMustExist: [
+      "Application Completeness Letter",
+      "Internal Completeness Review Form",
+    ],
     phasesMustBeComplete: ["Application Intake"],
   },
   "Federal Comment": "No Validation",

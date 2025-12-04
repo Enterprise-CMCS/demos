@@ -11,13 +11,13 @@ export const applicationDateSchema = gql`
 
   input ApplicationDateInput {
     dateType: DateType!
-    dateValue: DateTimeOrLocalDate!
+    dateValue: DateTimeOrLocalDate
   }
 
   input SetApplicationDateInput {
     applicationId: ID!
     dateType: DateType!
-    dateValue: DateTimeOrLocalDate!
+    dateValue: DateTimeOrLocalDate
   }
 
   input SetApplicationDatesInput {
@@ -34,12 +34,12 @@ export const applicationDateSchema = gql`
 export interface SetApplicationDateInput {
   applicationId: string;
   dateType: DateType;
-  dateValue: DateTimeOrLocalDate;
+  dateValue: DateTimeOrLocalDate | null;
 }
 
 export interface ApplicationDateInput {
   dateType: DateType;
-  dateValue: DateTimeOrLocalDate;
+  dateValue: DateTimeOrLocalDate | null;
 }
 
 export interface SetApplicationDatesInput {

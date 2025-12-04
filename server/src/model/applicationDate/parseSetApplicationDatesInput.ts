@@ -8,16 +8,21 @@ export function parseSetApplicationDatesInput(
 ): ParsedSetApplicationDatesInput {
   const result: ParsedSetApplicationDatesInput = {
     applicationId: inputApplicationDates.applicationId,
-    applicationDates: [],
+    applicationDatesToUpsert: [],
+    applicationDatesToDelete: [],
   };
   for (const applicationDate of inputApplicationDates.applicationDates) {
-    result.applicationDates.push({
-      dateType: applicationDate.dateType,
-      dateValue: parseDateTimeOrLocalDateToEasternTZDate(
-        applicationDate.dateValue,
-        DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[applicationDate.dateType].expectedTimestamp
-      ),
-    });
+    if (applicationDate.dateValue === null) {
+      result.applicationDatesToDelete.push(applicationDate.dateType);
+    } else {
+      result.applicationDatesToUpsert.push({
+        dateType: applicationDate.dateType,
+        dateValue: parseDateTimeOrLocalDateToEasternTZDate(
+          applicationDate.dateValue,
+          DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[applicationDate.dateType].expectedTimestamp
+        ),
+      });
+    }
   }
   return result;
 }

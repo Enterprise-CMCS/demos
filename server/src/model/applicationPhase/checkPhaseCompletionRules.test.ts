@@ -32,7 +32,7 @@ describe("checkPhaseCompletionRules", () => {
     Completeness: "Started",
     "Federal Comment": "Started",
     "SDG Preparation": "Started",
-    "Review": "Started",
+    Review: "Started",
     "Approval Package": "Started",
     "Post Approval": "Started",
   };
@@ -44,7 +44,7 @@ describe("checkPhaseCompletionRules", () => {
   });
 
   describe("Concept Phase", () => {
-    it("should bypass almost all checks for the Concept phase", () => {
+    it("should run expected checks for the Application Intake phase", () => {
       checkPhaseCompletionRules(
         testApplicationId,
         "Concept",
@@ -53,15 +53,23 @@ describe("checkPhaseCompletionRules", () => {
         testApplicationPhases
       );
 
-      // Remember that we always check this for every phase regardless
       expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Concept",
         "Started"
       );
       expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
-      expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
-      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
+        [
+          testApplicationId,
+          "Concept",
+          "Pre-Submission Submitted Date",
+          testApplicationDateMapReturn,
+        ],
+      ]);
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Concept", "Pre-Submission", testApplicationDocumentTypes],
+      ]);
       expect(checkPriorPhaseCompleteForCompletion).not.toBeCalled();
     });
   });
@@ -149,6 +157,12 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationId,
           "Completeness",
           "Application Completeness Letter",
+          testApplicationDocumentTypes,
+        ],
+        [
+          testApplicationId,
+          "Completeness",
+          "Internal Completeness Review Form",
           testApplicationDocumentTypes,
         ],
       ]);

@@ -1,7 +1,9 @@
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk", "scanner"])
+      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk", "scanner"], opts: [
+        NODE_IMAGE: "artifactory.cloud.cms.gov/docker/node:24-alpine"
+      ])
     }
   }
 
@@ -64,7 +66,7 @@ pipeline {
           if (hasChange("deployment")) {
             sonarQubeScan(
               projectKey: 'demos-cdk',
-              credentialsId: 'sonarqube-demos-cdk',
+              credentialsId: 'sonarqube-demos-all',
               projectBaseDir: 'deployment',
               sonarqubeFlags: [
                 "javascript.lcov.reportPaths": "coverage/lcov.info",

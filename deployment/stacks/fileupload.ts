@@ -1,9 +1,16 @@
 import {
-  Stack, StackProps,
-  RemovalPolicy, aws_s3,
-  Duration, aws_kms,
-  CfnOutput, aws_secretsmanager,
-  Fn, aws_ec2, Tags,
+  Stack,
+  StackProps,
+  RemovalPolicy,
+  aws_s3,
+  Duration,
+  aws_kms,
+  CfnOutput,
+  aws_secretsmanager,
+  Fn,
+  aws_ec2,
+  Tags,
+  aws_s3_notifications,
 } from "aws-cdk-lib";
 
 import { Construct } from "constructs";
@@ -43,6 +50,17 @@ export class FileUploadStack extends Stack {
     const uploadQueue = new Queue(this, "FileUploadQueue", {
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
+      deadLetterQueue: {
+        maxReceiveCount: 5,
+        queue: deadLetterQueue,
+      },
+    });
+
+    const deleteInfectedFileQueue = new Queue(this, "DeleteInfectedFileQueue", {
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      encryption: QueueEncryption.KMS,
+      encryptionMasterKey: kmsKey,
       deadLetterQueue: {
         maxReceiveCount: 5,
         queue: deadLetterQueue,
@@ -111,6 +129,35 @@ export class FileUploadStack extends Stack {
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
 
+    const infectedBucket = new Bucket(this, "FileInfectedBucket", {
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      serverAccessLogsBucket: accessLogs,
+      serverAccessLogsPrefix: "infected",
+      enforceSSL: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+      lifecycleRules: [
+        {
+          id: "DeleteInfectedFilesAfter30Days",
+          enabled: true,
+          expiration: Duration.days(29),
+          noncurrentVersionExpiration: Duration.days(1),
+        },
+        {
+          id: "CleanupExpiredDeleteMarkers",
+          enabled: true,
+          expiredObjectDeleteMarker: true,
+        },
+      ],
+    });
+
+    infectedBucket.addEventNotification(
+      aws_s3.EventType.LIFECYCLE_EXPIRATION_DELETE_MARKER_CREATED,
+      new aws_s3_notifications.SqsDestination(deleteInfectedFileQueue)
+    );
+
     const fileProcessLambdaSecurityGroup = securityGroup.create({
       ...props,
       name: "fileProcessSecurityGroup",
@@ -155,9 +202,9 @@ export class FileUploadStack extends Stack {
       "Allow traffic to S3"
     );
 
-    const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
+    const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
-      "rdsDatabaseSecret",
+      "rdsFileProcessDatabaseSecret",
       `demos-${props.hostEnvironment}-rds-demos_upload`
     );
 
@@ -175,7 +222,8 @@ export class FileUploadStack extends Stack {
       environment: {
         UPLOAD_BUCKET: uploadBucket.bucketName,
         CLEAN_BUCKET: cleanBucket.bucketName,
-        DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
+        INFECTED_BUCKET: infectedBucket.bucketName,
+        DATABASE_SECRET_ARN: dbSecretFileProcess.secretName, // pragma: allowlist secret
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
       depsLockFilePath: "../lambdas/fileprocess/package-lock.json",
@@ -190,8 +238,42 @@ export class FileUploadStack extends Stack {
     uploadBucket.grantRead(fileProcessLambda.lambda);
     uploadBucket.grantDelete(fileProcessLambda.lambda);
     cleanBucket.grantWrite(fileProcessLambda.lambda);
+    infectedBucket.grantWrite(fileProcessLambda.lambda);
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
-    dbSecret.grantRead(fileProcessLambda.lambda);
+    dbSecretFileProcess.grantRead(fileProcessLambda.lambda);
+
+    const dbSecretDeleteInfectedFile = aws_secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "rdsDeleteInfectedFileDatabaseSecret",
+      `demos-${props.hostEnvironment}-rds-demos_delete_infected_file`
+    );
+    const deleteInfectedFileLambda = new lambda.Lambda(this, "deleteInfectedFile", {
+      ...props,
+      scope: this,
+      entry: "../lambdas/deleteinfectedfile/index.ts",
+      handler: "index.handler",
+      vpc: props.vpc,
+      securityGroup: fileProcessLambdaSecurityGroup.securityGroup,
+      asCode: false,
+      externalModules: ["@aws-sdk"],
+      nodeModules: ["pg", "pino"],
+      timeout: Duration.seconds(30),
+      environment: {
+        INFECTED_BUCKET: infectedBucket.bucketName,
+        DATABASE_SECRET_ARN: dbSecretDeleteInfectedFile.secretName, // pragma: allowlist secret
+        NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
+      },
+      depsLockFilePath: "../lambdas/deleteinfectedfile/package-lock.json",
+    });
+
+    deleteInfectedFileLambda.lambda.addEventSource(
+      new SqsEventSource(deleteInfectedFileQueue, {
+        batchSize: 1,
+      })
+    );
+
+    dbSecretDeleteInfectedFile.grantRead(deleteInfectedFileLambda.lambda);
+    deleteInfectedFileQueue.grantConsumeMessages(deleteInfectedFileLambda.lambda);
 
     // UiPath processor (queue + DLQ + lambda) within FileUpload stack
     new UiPathProcessor(this, "UiPathProcessor", {
@@ -213,6 +295,11 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "deletedBucketName", {
       exportName: `${props.stage}DeletedBucketName`,
       value: deletedBucket.bucketName,
+    });
+
+    new CfnOutput(this, "infectedBucketName", {
+      exportName: `${props.stage}InfectedBucketName`,
+      value: infectedBucket.bucketName,
     });
   }
 }

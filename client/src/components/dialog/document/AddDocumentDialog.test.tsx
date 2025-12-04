@@ -7,14 +7,21 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { AddDocumentDialog, tryUploadingFileToS3 } from "./AddDocumentDialog";
+import {
+  AddDocumentDialog,
+  DOCUMENT_POLL_INTERVAL_MS,
+  tryUploadingFileToS3,
+  VIRUS_SCAN_MAX_ATTEMPTS,
+} from "./AddDocumentDialog";
 
 let mockMutationFn = vi.fn();
 let mockLazyQueryFn = vi.fn();
+let mockRefetchQueries = vi.fn();
 
 beforeEach(() => {
   mockMutationFn = vi.fn();
   mockLazyQueryFn = vi.fn();
+  mockRefetchQueries = vi.fn();
 
   vi.mock("@apollo/client", async () => {
     const actual = await vi.importActual("@apollo/client");
@@ -22,6 +29,9 @@ beforeEach(() => {
       ...actual,
       useMutation: () => [mockMutationFn, { loading: false }],
       useLazyQuery: () => [mockLazyQueryFn, { loading: false }],
+      useApolloClient: () => ({
+        refetchQueries: mockRefetchQueries,
+      }),
     };
   });
 });
@@ -220,7 +230,7 @@ describe("virus scan polling", () => {
 
     await clickPromise;
     // Advance timer to allow polling to complete
-    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
     expect(mockLazyQueryFn).toHaveBeenCalledWith({
       variables: { documentId: "test-doc-id" },
@@ -277,9 +287,9 @@ describe("virus scan polling", () => {
 
     await clickPromise;
     // Advance timers for each polling attempt (3 total)
-    await vi.advanceTimersByTimeAsync(1000); // 1st poll (fails)
-    await vi.advanceTimersByTimeAsync(1000); // 2nd poll (fails)
-    await vi.advanceTimersByTimeAsync(1000); // 3rd poll (succeeds)
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 1st poll (fails)
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 2nd poll (fails)
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 3rd poll (succeeds)
 
     expect(mockLazyQueryFn).toHaveBeenCalledTimes(3);
     expect(onDocumentUploadSucceeded).toHaveBeenCalled();
@@ -325,11 +335,11 @@ describe("virus scan polling", () => {
     });
 
     await clickPromise;
-    // Advance timers to reach max attempts (10 * 1000ms)
-    await vi.advanceTimersByTimeAsync(10000);
+    // Advance timers to reach max attempts
+    await vi.advanceTimersByTimeAsync(VIRUS_SCAN_MAX_ATTEMPTS * DOCUMENT_POLL_INTERVAL_MS);
 
-    // Should reach max attempts (10) and throw timeout error
-    expect(mockLazyQueryFn).toHaveBeenCalledTimes(10);
+    // Should reach max attempts  and throw timeout error
+    expect(mockLazyQueryFn).toHaveBeenCalledTimes(VIRUS_SCAN_MAX_ATTEMPTS);
   });
 
   it("skips virus scan polling for localhost uploads", async () => {
@@ -375,6 +385,106 @@ describe("virus scan polling", () => {
     expect(onDocumentUploadSucceeded).toHaveBeenCalled();
     // Should not poll for virus scan in localhost mode
     expect(mockLazyQueryFn).not.toHaveBeenCalled();
+  });
+
+  it("refetches queries after successful upload when refetchQueries is provided", async () => {
+    mockMutationFn.mockResolvedValue({
+      data: {
+        uploadDocument: {
+          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
+          documentId: "test-doc-id",
+        },
+      },
+    });
+
+    mockLazyQueryFn.mockResolvedValue({
+      data: { documentExists: true },
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
+
+    const onDocumentUploadSucceeded = vi.fn();
+    const refetchQueries = ["GetDocuments", "GetApplicationDocuments"];
+
+    render(
+      <ToastProvider>
+        <AddDocumentDialog
+          onClose={vi.fn()}
+          applicationId="test-app-id"
+          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+          documentTypeSubset={["General File"]}
+          refetchQueries={refetchQueries}
+        />
+      </ToastProvider>
+    );
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+
+    const clickPromise = new Promise<void>((resolve) => {
+      fireEvent.click(uploadBtn);
+      setTimeout(() => resolve(), 0);
+    });
+
+    await clickPromise;
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
+
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(mockRefetchQueries).toHaveBeenCalledWith({ include: refetchQueries });
+  });
+
+  it("does not call refetchQueries when not provided", async () => {
+    mockMutationFn.mockResolvedValue({
+      data: {
+        uploadDocument: {
+          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
+          documentId: "test-doc-id",
+        },
+      },
+    });
+
+    mockLazyQueryFn.mockResolvedValue({
+      data: { documentExists: true },
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
+
+    const onDocumentUploadSucceeded = vi.fn();
+
+    render(
+      <ToastProvider>
+        <AddDocumentDialog
+          onClose={vi.fn()}
+          applicationId="test-app-id"
+          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+          documentTypeSubset={["General File"]}
+        />
+      </ToastProvider>
+    );
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+
+    const clickPromise = new Promise<void>((resolve) => {
+      fireEvent.click(uploadBtn);
+      setTimeout(() => resolve(), 0);
+    });
+
+    await clickPromise;
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
+
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(mockRefetchQueries).not.toHaveBeenCalled();
   });
 });
 

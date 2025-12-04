@@ -11,7 +11,7 @@ import {
   getApplicationIntakeComponentFromDemonstration,
   getFederalCommentPhaseFromDemonstration,
   getApprovalPackagePhase,
-  ReviewPhase,
+  getReviewPhaseComponentFromDemonstration,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -89,7 +89,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
         />
       );
     },
-    Review: ReviewPhase,
+    Review: () => getReviewPhaseComponentFromDemonstration(demonstration),
     "Approval Package": () => getApprovalPackagePhase(demonstration),
     "Post Approval": PostApprovalPhase,
   };

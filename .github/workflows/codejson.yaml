@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Update code.json
-        uses: DSACMS/automated-codejson-generator@v1.0.0
+        uses: DSACMS/automated-codejson-generator@main
         with:
           GITHUB_TOKEN: ${{ secrets.DEMOS_GITHUB_SERVICE_ACCOUNT_TOKEN }}
           BRANCH: "main"

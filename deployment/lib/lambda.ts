@@ -102,7 +102,7 @@ export class Lambda extends Construct {
       code: asCode ? aws_lambda.Code.fromAsset(props.entry) : undefined,
       depsLockFilePath: props.depsLockFilePath,
       handler: `${props.handler}`,
-      runtime: Runtime.NODEJS_22_X,
+      runtime: Runtime.NODEJS_24_X,
       timeout,
       memorySize,
       role,

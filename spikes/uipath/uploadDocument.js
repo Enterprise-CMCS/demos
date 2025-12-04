@@ -1,33 +1,36 @@
-import axios from "axios";
 import fs from "fs";
 import FormData from "form-data";
+import { log } from "./logFile.js";
+import { duPost, UIPATH_BASE_URL, UIPATH_TENANT, getProjectId } from "./uipathClient.js";
 
-export async function uploadDocument(token,fileName) {
+export async function uploadDocument(token, fileName) {
+  const projectId = getProjectId();
+  const url = `${UIPATH_BASE_URL}/${UIPATH_TENANT}/du_/api/framework/projects/${projectId}/digitization/start`;
+
   const formData = new FormData();
-  formData.append(
-    "file",
-    fs.createReadStream(fileName),
-    fileName
-  );
 
-  const doc = await axios.post(
-    `https://govcloud.uipath.us/globalalliant/Dev/du_/api/framework/projects/${process.env.UIPATH_PROJECT_ID}/digitization/start?api-version=1.0`,
-    formData,
-    {
+  formData.append("file", fs.createReadStream(fileName), fileName);
+
+  try {
+    const doc = await duPost(url, token, formData, {
       headers: {
-        "Content-Type": "multipart/form-data", // Important for file uploads
+        // form-data requires its own headers so axios can set boundaries
+        ...formData.getHeaders(),
         "x-uipath-page-range": "All",
-        Authorization: `Bearer ${token}`,
       },
       onUploadProgress: (progressEvent) => {
         // Optional: Track upload progress
-        const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total
-        );
-        console.log(`Upload progress: ${percentCompleted}%`);
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        log(`Upload progress: ${percentCompleted}%`);
       },
-    }
-  );
+    });
 
-  return doc.data.documentId;
+    return doc?.data?.documentId || doc?.data;
+  } catch (error) {
+    log(`Error uploading document: ${error.message}`);
+    if (error.response?.data) {
+      log(`Upload error response: ${JSON.stringify(error.response.data)}`);
+    }
+    throw error;
+  }
 }

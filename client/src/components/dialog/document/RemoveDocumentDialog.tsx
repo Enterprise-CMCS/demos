@@ -16,7 +16,7 @@ export const RemoveDocumentDialog: React.FC<{
   documentIds: string[];
   onClose: () => void;
 }> = ({ documentIds, onClose }) => {
-  const { showWarning, showError } = useToast();
+  const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [deleteDocumentsTrigger] = useMutation<{
@@ -32,11 +32,10 @@ export const RemoveDocumentDialog: React.FC<{
       });
 
       const isMultipleDocuments = documentIdList.length > 1;
-      showWarning(
-        `Your document${isMultipleDocuments ? "s" : ""} ${
-          isMultipleDocuments ? "have been" : "has been"
-        } removed.`
-      );
+      const removalMessage = `Your document${isMultipleDocuments ? "s" : ""} ${
+        isMultipleDocuments ? "have been" : "has been"
+      } removed.`;
+      showSuccess(removalMessage);
       onClose();
     } catch {
       showError("Your changes could not be saved due to an unknown problem.");

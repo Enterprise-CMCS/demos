@@ -7,25 +7,14 @@
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "features": {
         "ghcr.io/devcontainers-community/npm-features/typescript:1": {},
-        "ghcr.io/devcontainers-extra/features/prisma:2": {},
         "ghcr.io/devcontainers-extra/features/ts-node:1": {}
     },
     "mounts": [
         "type=bind,source=${localEnv:HOME}/.ssh,target=/root/.ssh,readonly"
     ],
-
-    // Features to add to the dev container. More info: https://containers.dev/features.
-    // "features": {},
-
-    // Use 'postCreateCommand' to run commands after the container is created.
     "postCreateCommand": "bash .devcontainer/post_create.sh",
-
-    // Configure tool-specific properties.
-    // "customizations": {},
-
-    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    "postStartCommand": "bash .devcontainer/localstack/setup_localstack.sh",
     "remoteUser": "root",
-
     "otherPortsAttributes": {
         "onAutoForward": "ignore"
     },

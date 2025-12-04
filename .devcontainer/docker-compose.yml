@@ -50,7 +50,7 @@ services:
       DEBUG: ${DEBUG:-0}
       DOCKER_HOST: unix:///var/run/docker.sock
       HOSTNAME_EXTERNAL: localstack
-      SERVICES: s3,lambda,apigateway,secretsmanager,logs
+      SERVICES: s3,events,sqs,lambda,apigateway,secretsmanager,logs
       CORS_ALLOWED_ORIGINS: "http://localhost:3000"
       CORS_ALLOWED_METHODS: "GET,POST,PUT,DELETE,HEAD,OPTIONS"
       CORS_ALLOWED_HEADERS: "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent"

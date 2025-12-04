@@ -16,13 +16,10 @@ Below is a generic version of the structure of the back-end.
 
 ```
 |-- src/
+|   |-- adapters/
 |   |-- auth/
-|   |   `-- auth.config.ts
-|   |   `-- auth.util.ts
+|   |-- errors/
 |   |-- model/
-|   |   |-- _manyToManyJoinTable/
-|   |   |   |-- manyToManyJoinTable.prisma
-|   |   |   `-- manyToManyJoinTableHistory.prisma
 |   |   |-- someTable/
 |   |   |   |-- someTable.prisma
 |   |   |   `-- someTableHistory.prisma
@@ -45,7 +42,10 @@ Below is a generic version of the structure of the back-end.
 |   |   `-- permissions.sql
 |   |   `-- utility_views.sql
 |   |-- constants.ts
+|   |-- customScalarResolvers.ts
+|   |-- dateUtilities.ts
 |   |-- local-server.ts
+|   |-- log.ts
 |   |-- prismaClient.ts
 |   |-- refreshDbObjects.ts
 |   |-- seeder.ts
@@ -53,7 +53,9 @@ Below is a generic version of the structure of the back-end.
 |   `-- types.ts
 ```
 
+* The `adapters/` folder contains various adapters used mostly with S3 / AWS.
 * The `auth/` folder contains the authorization module.
+* The `errors/` folder contains custom errors.
 * The `model/` folder contains Prisma models and related GraphQL resolvers and schema. It also contains Prisma migrations within the `migrations` folder. Models will be discussed more below.
 * The `sql/` folder contains SQL that is run on every deploy (meaning it must be idempotent). This is for things like stored procedures and views. The following files are present:
   * `functions.sql` contains all the non-history related stored procedures and functions. Upon running, it purges all non-logging triggers and procedures and recreates them.
@@ -61,7 +63,10 @@ Below is a generic version of the structure of the back-end.
   * `permissions.sql` handles granting specific permissions to standard roles on the database.
   * `utility_views.sql` drops and creates a set of utility views used for database administration. It drops views starting with `vw_util_*` and recreates them.
 * `constants.ts` stores constants for use throughout the codebase. Magic strings that are used repeatedly should be made into constants with a consistent definition found here.
+* `customScalarResolvers.ts` is code for custom scalars used in the application.
+* `dateUtilities.ts` is a module of some basic date handling functions.
 * `local-server.ts` runs Apollo Server and hosts the API. This version is strictly for local / development use, as the actual deployed version is found in `server.ts`. They are different files due to the launch configuration requirements for AWS Lambda.
+* `log.ts` is the logger.
 * `prismaClient.ts` is where the Prisma client instantiation is defined. You will import and use this in all your resolvers to access the Prisma models.
 * `refreshDbObjects.ts` is the script which runs the files found in `sql/`. This is accessible via `npm run dbrefresh` and is also run as a default part of `npm run seed:reset` and `npm run migrate:deploy`.
 * `seeder.ts` is a script for seeding synthetic data into local / development databases. It also serves as a confirmation that your models are working as expected. You should add to or update the seeder for any model changes, to ensure that the data inserts as expected.
@@ -80,17 +85,17 @@ In general, the `model/` folder is structured so that every folder is a single m
 
 > There is a small caveat here: history tables. Some tables have trigger-based logging within the database, where all operations on that table insert a record into the corresponding history table. Those history tables are not exposed via GraphQL and are not interacted with via API. For tables that have history logging, we define the corresponding history table in the same folder as the model.
 
-Models are named using PascalCase (for instance, `DocumentProcessingStep`). The folders and files containing the models are named in camelCase (e.g. `documentProcessingStep/documentProcessingStep.prisma`). IF a model represents a join table (i.e. a many-to-many associative table), the folder name gets prefixed with an underscore; the file and model names are not changed.
+Models are named using PascalCase (for instance, `DocumentProcessingStep`). The folders and files containing the models are named in camelCase (e.g. `documentProcessingStep/documentProcessingStep.prisma`).
 
-Each model folder will generally have up to four files. For the hypothetical `DocumentProcessingStep` model, these might be:
+Each model folder will have at least one file, and possibly many files. For a hypothetical `DocumentProcessingStep` model, these might be:
 
 * `documentProcessingStep.prisma`: The Prisma model representing the table itself in the database. This is where columns and relations are defined.
 * `documentProcessingStepHistory.prisma`: This is the history table specification.
 * `documentProcessingStepResolvers.ts`: These are the GraphQL resolvers relating to this model.
-  * Note that join tables will not have resolvers; the resolvers for those models should be built on either end of the joining models (e.g. changes to the `UserRole` model should be made on either the `User` or `Role` model).
+  * Note that for more complex areas of the codebase, there may be numerous TypeScript files (see for instance `applicationDate` and `applicationPhase`).
 * `documentProcessingStepSchema.ts`: This is the GraphQL schema for the model. This file is linted via the custom rules found in `/server/eslint-rules` to ensure that the TypeScript and GraphQL types in this file match.
 
-If a model has a `Resolvers.ts` file, it should also have a `Schema.ts` file.
+If a model has a `Resolvers.ts` file, it generally should also have a `Schema.ts` file.
 
 # Standards and Conventions
 
@@ -194,7 +199,7 @@ In Prisma, fields that exist on the model and in the database are known as "scal
   updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 ```
 
-Putting these here, and then adding an empty line, means that they will be formatted as a single block when you run `prisma format`. It also helps to distinguish between the part of the Prisma file that contains strictly column definitions, from the section containing the relation fields.
+Putting these here, and then adding an empty line, means that they will be formatted as a single block when you run `npx prisma format`. It also helps to distinguish between the part of the Prisma file that contains strictly column definitions, from the section containing the relation fields.
 
 Table and column naming standards are described [below](#database-guidelines-and-conventions). Note that, in Prisma, you ___cannot___ have a relation field and a scalar field with the same name. This means that, barring rare exceptions, every scalar field that is constrained by a foreign key will have an `_id` suffix to avoid name collisions.
 
@@ -219,7 +224,7 @@ Above, there are two relation fields defined.
 
 The `primaryReviwer` has type `User` and is related to the `User` model via the `@relation` statement (in this case, the statement says that the `primaryReviewerUserId` must be an element of `User.id`).
 
-The `authors` relation field tells us that there is a list of `User` objects associated with this. You'll note that there's no connection information here. In Prisma, a relation field must be present on _both ends_ of the relationship. In this context, this probably means that there's a constraint elsewhere in the database to a join table. Fortunately, `prisma format` automatically adds in the other end of relationships in case you forget to do so. Just be sure to fix the names, as by default, `prisma format` adds them in using PascalCase and not camelCase.
+The `authors` relation field tells us that there is a list of `User` objects associated with this. You'll note that there's no connection information here. In Prisma, a relation field must be present on _both ends_ of the relationship. In this context, this probably means that there's a constraint elsewhere in the database to a join table. Fortunately, `npx prisma format` automatically adds in the other end of relationships in case you forget to do so. Just be sure to fix the names, as by default, `npx prisma format` adds them in using PascalCase and not camelCase.
 
 You can denote an optional connection by using `?` after the type (e.g. `User?`). If you do this, be sure to also mark the scalar field as optional in the same way. When you do this, Prisma will automatically generate the SQL with a constraint where on delete, the values are set to `NULL`. This may not be desired functionality - if so, edit the generated SQL accordingly.
 
@@ -307,7 +312,6 @@ export interface UpdateProposalInput {
 A few notes:
 
 * GQL and TypeScript have slightly different ways of denoting optional / required fields.
-* GQL doesn't have a native DateTime type, but we are using the [GraphQL Scalars](https://the-guild.dev/graphql/scalars) package for these. The DateTime type from this package is equivalent to the Date type in TypeScript. To ensure that our custom linting works correctly and does not identify a mismatch in the types between GraphQL and TypeScript, we create the `DateTime` type as being the same as the `Date` one.
 * Note that for inputs, we accept a specific `primaryReviewerUserId`; however, for the actual `Proposal` type, the field is `primaryReviewer` and has the type `User`. This is expected; the type shows the nested nature of the object, while the inputs accept specific IDs for use in the resolver code.
   * In general, you will use the "relational field" names and types from Prisma on the object type, and the "scalar field" names and types on the inputs.
   * The exception for this is cases where a relational field exists to a static constraint table. In those cases, you can use the relational field name throughout, since the intent of the static constraint table is to simply constrain the display value.
@@ -320,40 +324,7 @@ A few notes:
 
 ### Static Constraint Types
 
-In cases where a field is constrained by a static constraint table, you should create a type to denote this in both GraphQL and TypeScript.
-
-In GraphQL, we are accomplishing this by declaring custom scalars, without implementing any actual restrictions. This is effectively denoting them as special strings. The main value of this is that they will be specially noted in the Apollo interface, and you can include information about the expected values in the documentation.
-
-The below would be done in your `Schema.ts` file.
-
-```typescript
-import { gql } from "graphql-tag";
-export const reviewSchema = gql`
-  """
-  A string representing a review status. Expected values are:
-  - New
-  - In Progress
-  - Complete
-  """
-  scalar ReviewStatus
-  ...
-`
-```
-
-Later, you will want to add corresponding TypeScript types. You'll add two items: an array of the acceptable values, and a type derived from that (and having the same name as the scalar you added to the GQL). Put the array into `src/constants.ts` and the type into `src/types.ts`. Remember that any changes made here will need to be reflected in the database, and vice versa!
-
-```typescript
-// constants.ts
-export const REVIEW_STATUS = ["New", "In Progress", "Complete"] as const;
-
-// types.ts
-import { REVIEW_STATUS } from "./constants.js";
-export type ReviewStats = (typeof REVIEW_STATUS)[number];
-```
-
-Import your new type into the `Schema.ts` file you are working on, and use it throughout as appropriate. The advantage of this approach is that now, the front-end can make use of the exported type during type checking, and can use the exported constant to populate menus, etc, without hitting the database to retrieve a list of values.
-
-As a reminder, this approach is intended for cases where the constraint is rarely changing, and where it has a tractable number of levels (10 or fewer, generally).
+In cases where a field is constrained by a static constraint table, you should create a type to denote this in both GraphQL and TypeScript. There's code in `customScalarResolvers.ts` to enable this to happen dynamically from the constants. Using these as custom scalars means that there is validation on input that the string coming in is in the acceptable set of values. Take a look at `documentType` for an example of how this is done.
 
 ## Resolver Standards and Conventions
 
@@ -364,9 +335,7 @@ Every object should have a resolver and schema definition which provides for the
 * [Field Resolvers](#field-resolvers) (if relevant)
 * [Type Resolvers](#type-resolvers) (if relevant)
 
-However, as noted above, there is no need to add resolvers for associative / join tables; the resolvers relating to these should be on the objects being associated, not on the associative table itself.
-
-Resolvers relating to a specific model are stored in the same folder as the model, as described in [Structure](#structure).
+Generally, resolvers are placed in the same folder as the model to which they are related, as described in [Structure](#structure). Some judgement may be needed in deciding where to place code.
 
 ### Field Naming
 
@@ -485,7 +454,7 @@ This is implemented using the `__resolveType` resolver function.
 3. __ID Columns__: Most tables will have a column named `id` which represents the identifier for that table. Do not prefix the ID with the name of the table (i.e. use `state.id`, not `state.state_id`).
 4. __Static Constraint Tables__: As described [above](#static-constraints-tables-vs-enums), a static constraint table should be used in favor of an `enum` in most cases. Such contraint tables will have a single column, `id`, which contains the valid values. Denote these tables with the `STATIC_CONSTRAINT` flag on their Prisma models. Static constraint tables should not have history tables, nor will they have resolvers; they are intended to implement an `enum`-like functionality.
 5. __Foreign Keys__: When using a column in a table that references the ID column of another table, refer to it with a prefix. Ideally, you should simply use `table_name_id`. In some contexts, it is necessary to add additional context about the meaning of a column. For instance, the primary reviewer of a proposal is a user, but naming the column `user_id` is ambiguous. In those contexts, you can use the format of `meaningful_name_type_id`. So, `primary_reviewer_user_id` indicates the the column is the primary reviewer and that it is a user ID, meaning it can be looked up in `users.id`.
-6. __Relation Exposure (API & DB)__:: When using a table with an `FK_id` inside in the structure, e.g. `Event.application_id` or `Demonstration.application_type_id`, we set up the schema and resolvers to return the Object `Event.Application` instead of the `Event.application_id`. If we consistently do this, returing the 1 to 1 relationship instead of the ID. We can maintain parity across the system.
+6. __Relation Exposure (API & DB)__:: When using a table with an `FK_id` inside in the structure, e.g. `Event.application_id` or `Demonstration.application_type_id`, we set up the schema and resolvers to return the Object `Event.Application` instead of the `Event.application_id`. If we consistently do this, returing the 1 to 1 relationship instead of the ID, we can maintain parity across the system.
 ```TS
   export interface Event {
     id: string;
@@ -493,7 +462,6 @@ This is implemented using the `__resolveType` resolver function.
     application?: Application;
   }
   ```
-
 7. __History Table Specifics__: Every history table should begein with three columns: `revision_id`, `revision_type`, and `modified_at`. These are expected by the standard format of the logging triggers. Every other column should be reproduced from the source table, but no constraints or checks should be duplicated.
 
 # How To Guides
@@ -505,7 +473,7 @@ The easiest path is using the `devcontainer` setup as documented in the [Main Re
 ```zsh
 cd server
 npm install
-npm run seed
+npm run seed:reset
 npm run watch
 ```
 
@@ -514,7 +482,7 @@ You can use same top three instructions
 ```zsh
 cd server
 npm install
-npm run seed
+npm run seed:reset
 ```
 Then run this to separate prisma and the code in separate shell sessions.
 ```zsh
@@ -522,7 +490,7 @@ npm run dev
 npm run prisma
 ```
 
-You may run the seeder as much as you like. Note that `npm run seed` both rebuilds the DB schemas from the ground up, and then loads data into them. If you just want to drop and reload data (for instance, to check that history tracking is working), you can use `tsx --inspect ./src/seeder.ts` to just run that portion.
+You may run the seeder as much as you like. Note that `npm run seed:reset` both rebuilds the DB schemas from the ground up, and then loads data into them. If you just want to drop and reload data (for instance, to check that history tracking is working), you can use `npm run seed` to just run that portion.
 
 ## Localstack for Lambdas
 
@@ -547,14 +515,14 @@ There is a second local stack script located under `lambdas/fileprocess/setup.sh
 
 ## Prisma Migrations
 
-Prisma has a robust system which detects drift between the current state of the database and the Prisma models, and can generate SQL migration files to address this drift automatically. All of this functionality falls under the `prisma migrate` command.
+Prisma has a robust system which detects drift between the current state of the database and the Prisma models, and can generate SQL migration files to address this drift automatically. All of this functionality falls under the `npx prisma migrate` command.
 
 Note that all of the commands here are appropriate when working in the devcontainer against the local development instance of PostgreSQL. You should verify that your `.env` file has you pointed to the local development DB before doing any of this - if you use the provided version, this should be true, but it's always good to check!
 
-* `prisma migrate reset` drops the database and runs all the migrations found in the `migrations/` folder. You can use the `--force` flag to skip the confirmation dialogue. Oftentimes, you will have to do a `prisma migrate reset` when making changes to models; Prisma will prompt you at the terminal to do so. This is generally because the changes needed are not possible without dropping and recreating the data.
-* `prisma migrate dev` is a complex command, as it is responsible for both generating new migrations and running them, which is not intuitive. (See also [this discussion](https://github.com/prisma/prisma/issues/11184) about the issues with this command.) When you run `prisma migrate dev`, it will try to generate a new migration in the `migrations/` folder that implements the changes to the models since the last migration.
-  * If it is not possible to generate this automatically (for instance, if you need to change the type on a field that already exists, or drop a field that has data in it), Prisma will warn instead. You can use `--create-only` on this command to generate the SQL but not run it - this allows you to go edit in necessary code changes like dropping records, etc, in the SQL. Once you have the SQL the way you want, you can use `prisma migrate dev` to run it, though a `prisma migrate reset` may be necessary.
-  * Note that if you generate a new migration, make additional model changes, and then run `primsa migrate dev` again, by default it will create a new migration, not update the previous one you made. If you are trying to keep your changes contained into a single migration per PR (which is usually a good idea), you will need to delete the previous migration before running `prisma migrate dev` again.
+* `npx prisma migrate reset` drops the database and runs all the migrations found in the `migrations/` folder. You can use the `--force` flag to skip the confirmation dialogue. Oftentimes, you will have to do a `npx prisma migrate reset` when making changes to models; Prisma will prompt you at the terminal to do so. This is generally because the changes needed are not possible without dropping and recreating the data.
+* `npx prisma migrate dev` is a complex command, as it is responsible for both generating new migrations and running them, which is not intuitive. (See also [this discussion](https://github.com/prisma/prisma/issues/11184) about the issues with this command.) When you run `npx prisma migrate dev`, it will try to generate a new migration in the `migrations/` folder that implements the changes to the models since the last migration.
+  * If it is not possible to generate this automatically (for instance, if you need to change the type on a field that already exists, or drop a field that has data in it), Prisma will warn instead. You can use `--create-only` on this command to generate the SQL but not run it - this allows you to go edit in necessary code changes like dropping records, etc, in the SQL. Once you have the SQL the way you want, you can use `npx prisma migrate dev` to run it, though a `npx prisma migrate reset` may be necessary.
+  * Note that if you generate a new migration, make additional model changes, and then run `primsa migrate dev` again, by default it will create a new migration, not update the previous one you made. If you are trying to keep your changes contained into a single migration per PR (which is usually a good idea), you will need to delete the previous migration before running `npx prisma migrate dev` again.
   * Keep in mind that if you change a table, you need to change the corresponding history table and the related trigger and function found in `sql/history_triggers.sql`. This used to be accomplished via a Python script found in `/data/utilities/scripts`, but now that the triggers are stored in a static file, you should just edit `history_triggers.sql`.
 
 An important point: ___read the SQL that is generated by your model changes and make sure it makes sense.___ At the end of the day, the migration SQL is what gets run to bring the database into the state desired. While Prisma is pretty good, there have been a few places where it generated seemingly unusual items (a constraint that set the field to `NULL` on delete, when the field is `NOT NULL`, for instance). Prisma gets almost everything right, but be sure to at least skim what is generated.

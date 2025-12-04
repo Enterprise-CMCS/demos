@@ -8,7 +8,8 @@ export interface ParsedApplicationDateInput {
 
 export interface ParsedSetApplicationDatesInput {
   applicationId: string;
-  applicationDates: ParsedApplicationDateInput[];
+  applicationDatesToUpsert: ParsedApplicationDateInput[];
+  applicationDatesToDelete: DateType[];
 }
 
 export type DateOffset = {
