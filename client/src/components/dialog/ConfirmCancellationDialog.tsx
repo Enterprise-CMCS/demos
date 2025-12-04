@@ -36,8 +36,19 @@ export const ConfirmCancellationDialog: React.FC<ConfirmCancellationDialogProps>
     }
   }, [isOpen]);
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    const dialog = confirmDialogRef.current;
+    if (dialog && e.target === dialog) {
+      onClose();
+    }
+  };
+
   return (
-    <dialog ref={confirmDialogRef} className={STYLES.CONFIRMATION_DIALOG}>
+    <dialog
+      ref={confirmDialogRef}
+      className={STYLES.CONFIRMATION_DIALOG}
+      onClick={handleBackdropClick}
+    >
       <div className="flex flex-col">
         <h2 className={STYLES.TITLE}>Are you sure?</h2>
         <div className={STYLES.MESSAGE}>
@@ -48,10 +59,10 @@ export const ConfirmCancellationDialog: React.FC<ConfirmCancellationDialogProps>
           </span>
         </div>
         <div className={STYLES.BUTTONS}>
-          <SecondaryButton name="cancel-no" onClick={onClose}>
+          <SecondaryButton name="button-cc-dialog-cancel" onClick={onClose}>
             Cancel
           </SecondaryButton>
-          <ErrorButton name="cancel-yes" onClick={onConfirm}>
+          <ErrorButton name="button-cc-dialog-discard" onClick={onConfirm}>
             Discard Changes
           </ErrorButton>
         </div>
