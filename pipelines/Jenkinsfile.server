@@ -61,7 +61,7 @@ pipeline {
               if (hasChange("server")) {
                 sonarQubeScan(
                   projectKey: 'demos-server',
-                  credentialsId: 'sonarqube-demos-server',
+                  credentialsId: 'sonarqube-demos-all',
                   projectBaseDir: 'server',
                   sonarqubeFlags: [
                     "javascript.lcov.reportPaths": "coverage/lcov.info",

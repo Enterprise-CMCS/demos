@@ -61,7 +61,7 @@ pipeline {
           if (hasChange(changePaths)) {
             sonarQubeScan(
               projectKey: 'demos',
-              credentialsId: 'sonarqube-demos-client',
+              credentialsId: 'sonarqube-demos-all',
               projectBaseDir: 'client',
               sonarqubeFlags: [
                 "javascript.lcov.reportPaths": "coverage/lcov.info",
