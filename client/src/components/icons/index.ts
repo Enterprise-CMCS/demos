@@ -34,6 +34,7 @@ export * from "./Alert/InfoIcon";
 export * from "./Alert/NullIcon";
 export * from "./Alert/SuccessIcon";
 export * from "./Alert/WarningIcon";
+export * from "./Alert/AlertIcon";
 
 export * from "./Input/DateIcon";
 export * from "./Input/DateTimeIcon";
