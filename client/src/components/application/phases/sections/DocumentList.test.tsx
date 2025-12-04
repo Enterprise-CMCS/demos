@@ -5,6 +5,7 @@ import { MockedProvider } from "@apollo/client/testing";
 import userEvent from "@testing-library/user-event";
 import { DocumentList, DELETE_DOCUMENT_MUTATION } from "./DocumentList";
 import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
+import { DOCUMENT_REMOVAL_FAILED_MESSAGE } from "util/messages";
 
 // Mock the toast hook
 const mockShowError = vi.fn();
@@ -201,7 +202,7 @@ describe("DocumentList", () => {
     await user.click(deleteButton);
 
     await waitFor(() => {
-      expect(mockShowError).toHaveBeenCalledWith("Error deleting document.");
+      expect(mockShowError).toHaveBeenCalledWith(DOCUMENT_REMOVAL_FAILED_MESSAGE);
     });
   });
 });

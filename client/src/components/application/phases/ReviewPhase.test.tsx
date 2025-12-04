@@ -8,6 +8,7 @@ import { parseISO, format } from "date-fns";
 import { ReviewPhase, getReviewPhaseComponentFromDemonstration } from "./ReviewPhase";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { ApplicationDate } from "demos-server";
+import { TestProvider } from "test-utils/TestProvider";
 
 // Mock formatDateForServer so date output is predictable and uses date-fns (no toISOString slicing)
 vi.mock("util/formatDate", () => ({
@@ -31,35 +32,42 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
   status: "Pre-Submission",
   currentPhaseName: "Review",
   documents: [],
-  phases: [buildPhase({
-    "OGC Approval to Share with SMEs": "2025-01-01T00:00:00.000Z",
-    "Draft Approval Package to Prep": "2025-01-02T00:00:00.000Z",
-    "DDME Approval Received": "2025-01-03T00:00:00.000Z",
-    "State Concurrence": "2025-01-04T00:00:00.000Z",
-    "BN PMT Approval to Send to OMB": "2025-01-05T00:00:00.000Z",
-    "Draft Approval Package Shared": "2025-01-06T00:00:00.000Z",
-    "Receive OMB Concurrence": "2025-01-07T00:00:00.000Z",
-    "Receive OGC Legal Clearance": "2025-01-08T00:00:00.000Z",
-    "PO OGD Notes": "2025-01-09T00:00:00.000Z",
-    "OGC OMB Notes": "2025-01-10T00:00:00.000Z",
-  })],
+  phases: [
+    buildPhase({
+      "OGC Approval to Share with SMEs": "2025-01-01T00:00:00.000Z",
+      "Draft Approval Package to Prep": "2025-01-02T00:00:00.000Z",
+      "DDME Approval Received": "2025-01-03T00:00:00.000Z",
+      "State Concurrence": "2025-01-04T00:00:00.000Z",
+      "BN PMT Approval to Send to OMB": "2025-01-05T00:00:00.000Z",
+      "Draft Approval Package Shared": "2025-01-06T00:00:00.000Z",
+      "Receive OMB Concurrence": "2025-01-07T00:00:00.000Z",
+      "Receive OGC Legal Clearance": "2025-01-08T00:00:00.000Z",
+      "PO OGD Notes": "2025-01-09T00:00:00.000Z",
+      "OGC OMB Notes": "2025-01-10T00:00:00.000Z",
+    }),
+  ],
 };
 
 describe("ReviewPhase Component", () => {
-
-  const setup = (formData = {
-    ogcApprovalToShareDate: "2025-01-01",
-    draftApprovalPackageToPrepDate: "2025-01-02",
-    ddmeApprovalReceivedDate: "2025-01-03",
-    stateConcurrenceDate: "2025-01-04",
-    bnPmtApprovalReceivedDate: "2025-01-05",
-    draftApprovalPackageSharedDate: "2025-01-06",
-    receiveOMBConcurrenceDate: "2025-01-07",
-    receiveOGCLegalClearanceDate: "2025-01-08",
-    poOGDNotes: "notes1",
-    ogcOMBNotes: "notes2",
-  }) => {
-    render(<ReviewPhase formData={formData} />);
+  const setup = (
+    formData = {
+      ogcApprovalToShareDate: "2025-01-01",
+      draftApprovalPackageToPrepDate: "2025-01-02",
+      ddmeApprovalReceivedDate: "2025-01-03",
+      stateConcurrenceDate: "2025-01-04",
+      bnPmtApprovalReceivedDate: "2025-01-05",
+      draftApprovalPackageSharedDate: "2025-01-06",
+      receiveOMBConcurrenceDate: "2025-01-07",
+      receiveOGCLegalClearanceDate: "2025-01-08",
+      poOGDNotes: "notes1",
+      ogcOMBNotes: "notes2",
+    }
+  ) => {
+    render(
+      <TestProvider>
+        <ReviewPhase formData={formData} />
+      </TestProvider>
+    );
   };
 
   beforeEach(() => {
@@ -72,9 +80,7 @@ describe("ReviewPhase Component", () => {
 
       expect(screen.getByText("REVIEW")).toBeInTheDocument();
       expect(
-        screen.getByText(
-          /Gather input and address comments from the HHS/i
-        )
+        screen.getByText(/Gather input and address comments from the HHS/i)
       ).toBeInTheDocument();
     });
   });
@@ -94,7 +100,7 @@ describe("ReviewPhase Component", () => {
         "datepicker-receive-ogc-legal-clearance-date",
       ];
 
-      inputTestIds.forEach(testId => {
+      inputTestIds.forEach((testId) => {
         expect(screen.getByTestId(testId)).toBeInTheDocument();
       });
     });
@@ -112,8 +118,12 @@ describe("ReviewPhase Component", () => {
       setup();
 
       expect(screen.getByTestId("datepicker-ogc-approval-to-share-date")).toHaveValue("2025-01-01");
-      expect(screen.getByTestId("datepicker-draft-approval-package-to-prep-date")).toHaveValue("2025-01-02");
-      expect(screen.getByTestId("datepicker-ddme-approval-received-date")).toHaveValue("2025-01-03");
+      expect(screen.getByTestId("datepicker-draft-approval-package-to-prep-date")).toHaveValue(
+        "2025-01-02"
+      );
+      expect(screen.getByTestId("datepicker-ddme-approval-received-date")).toHaveValue(
+        "2025-01-03"
+      );
       expect(screen.getByTestId("datepicker-state-concurrence-date")).toHaveValue("2025-01-04");
     });
   });
@@ -158,7 +168,7 @@ describe("ReviewPhase Component", () => {
 describe("getReviewPhaseComponentFromDemonstration", () => {
   it("renders ReviewPhase when Review phase exists", () => {
     const component = getReviewPhaseComponentFromDemonstration(mockDemonstration);
-    render(component);
+    render(<TestProvider>{component}</TestProvider>);
 
     expect(screen.getByText("REVIEW")).toBeInTheDocument();
   });

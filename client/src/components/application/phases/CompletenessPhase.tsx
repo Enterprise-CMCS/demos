@@ -16,6 +16,7 @@ import { DateType, SetApplicationDateInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
+import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -32,9 +33,6 @@ const STYLES = {
 };
 
 const FEDERAL_COMMENT_PERIOD_DAYS = 30;
-
-const DATES_SUCCESS_MESSAGE = "Dates saved successfully.";
-const PHASE_SAVED_SUCCESS_MESSAGE = "Dates and status saved successfully.";
 
 type CompletenessPhaseDateType = Extract<
   DateType,
@@ -206,9 +204,26 @@ export const CompletenessPhase = ({
     }
   };
 
+  const handleDeclareIncomplete = async () => {
+    showDeclareIncompleteDialog(async () => {
+      try {
+        await setCompletenessIncompleted();
+        showSuccess(SAVE_FOR_LATER_MESSAGE);
+      } catch (error) {
+        showError(error instanceof Error ? error.message : String(error));
+      }
+    });
+  };
+
   const handleFinishCompleteness = async () => {
     await saveDates();
     await completeCompletenessPhase();
+    showSuccess(getPhaseCompletedMessage("Completeness"));
+  };
+
+  const handleSaveForLater = async () => {
+    await saveDates();
+    showSuccess(SAVE_FOR_LATER_MESSAGE);
   };
 
   const UploadSection = () => (
@@ -295,41 +310,18 @@ export const CompletenessPhase = ({
       </div>
 
       <div className={STYLES.actions}>
-        <SecondaryButton
-          name="declare-incomplete"
-          size="small"
-          onClick={() =>
-            showDeclareIncompleteDialog(async () => {
-              try {
-                await setCompletenessIncompleted();
-                showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
-              } catch (error) {
-                showError(error instanceof Error ? error.message : String(error));
-              }
-            })
-          }
-        >
+        <SecondaryButton name="declare-incomplete" size="small" onClick={handleDeclareIncomplete}>
           Declare Incomplete
         </SecondaryButton>
         <div className={STYLES.actionsEnd}>
-          <SecondaryButton
-            name="save-for-later"
-            size="small"
-            onClick={async () => {
-              await saveDates();
-              showSuccess(DATES_SUCCESS_MESSAGE);
-            }}
-          >
+          <SecondaryButton name="save-for-later" size="small" onClick={handleSaveForLater}>
             Save For Later
           </SecondaryButton>
           <Button
             name="finish-completeness"
             size="small"
             disabled={!finishIsEnabled()}
-            onClick={async () => {
-              await handleFinishCompleteness();
-              showSuccess(PHASE_SAVED_SUCCESS_MESSAGE);
-            }}
+            onClick={handleFinishCompleteness}
           >
             Finish
           </Button>

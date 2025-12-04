@@ -7,6 +7,11 @@ import userEvent from "@testing-library/user-event";
 import { SdgPreparationPhase } from "./SdgPreparationPhase";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { parseISO } from "date-fns";
+import {
+  FAILED_TO_SAVE_MESSAGE,
+  getPhaseCompletedMessage,
+  SAVE_FOR_LATER_MESSAGE,
+} from "util/messages";
 
 const showSuccess = vi.fn();
 const showError = vi.fn();
@@ -193,7 +198,7 @@ describe("SdgPreparationPhase", () => {
           dateType: "Expected Approval Date",
           dateValue: "2025-01-02",
         });
-        expect(showSuccess).toHaveBeenCalledWith("Successfully saved SDG Workplan for later.");
+        expect(showSuccess).toHaveBeenCalledWith(SAVE_FOR_LATER_MESSAGE);
       });
     });
 
@@ -210,7 +215,7 @@ describe("SdgPreparationPhase", () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(showError).toHaveBeenCalledWith("Failed to save SDG Workplan for later.");
+        expect(showError).toHaveBeenCalledWith(FAILED_TO_SAVE_MESSAGE);
       });
     });
   });
@@ -229,7 +234,7 @@ describe("SdgPreparationPhase", () => {
       await waitFor(() => {
         expect(mockSetApplicationDate).toHaveBeenCalledTimes(4);
         expect(mockSetPhaseStatus).toHaveBeenCalled();
-        expect(showSuccess).toHaveBeenCalledWith("Successfully finished SDG Preparation phase.");
+        expect(showSuccess).toHaveBeenCalledWith(getPhaseCompletedMessage("SDG Preparation"));
       });
     });
 
@@ -244,7 +249,7 @@ describe("SdgPreparationPhase", () => {
       await userEvent.click(finishButton);
 
       await waitFor(() => {
-        expect(showError).toHaveBeenCalledWith("Failed to finish SDG Preparation phase.");
+        expect(showError).toHaveBeenCalledWith(FAILED_TO_SAVE_MESSAGE);
       });
     });
   });

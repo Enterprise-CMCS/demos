@@ -4,6 +4,7 @@ import { gql, useLazyQuery, useMutation, useApolloClient } from "@apollo/client"
 import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
 import { DocumentDialog, DocumentDialogFields } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
+import { DOCUMENT_UPLOADED_MESSAGE } from "util/messages";
 
 export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
@@ -69,23 +70,13 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   phaseName = "None",
   onDocumentUploadSucceeded,
 }) => {
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const client = useApolloClient();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
 
   const [checkDocumentExists] = useLazyQuery(DOCUMENT_EXISTS_QUERY, {
     fetchPolicy: "network-only",
   });
-
-  const defaultDocumentType: DocumentType | undefined = documentTypeSubset?.[0];
-
-  const defaultDocument: DocumentDialogFields = {
-    file: null,
-    id: "",
-    name: "",
-    description: "",
-    documentType: defaultDocumentType,
-  };
 
   const waitForVirusScan = async (documentId: string): Promise<void> => {
     for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
@@ -103,14 +94,17 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     throw new Error("Waiting for virus scan timed out");
   };
 
+  const handleDocumentUploadSucceeded = async (): Promise<void> => {
+    showSuccess(DOCUMENT_UPLOADED_MESSAGE);
+    onDocumentUploadSucceeded?.();
+    if (refetchQueries) {
+      await client.refetchQueries({ include: refetchQueries });
+    }
+  };
+
   const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
     if (!dialogFields.file) {
-      showError("No file selected");
-      return;
-    }
-
-    if (!dialogFields.documentType) {
-      showError("No Document Type Selected");
+      showError("Please select a file to upload.");
       return;
     }
 
@@ -137,10 +131,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
     // Local development mode - skip S3 upload and virus scan
     if (uploadResult.presignedURL.startsWith(LOCALHOST_URL_PREFIX)) {
-      onDocumentUploadSucceeded?.();
-      if (refetchQueries) {
-        await client.refetchQueries({ include: refetchQueries });
-      }
+      await handleDocumentUploadSucceeded();
       return;
     }
 
@@ -150,15 +141,11 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
     const response = await tryUploadingFileToS3(uploadResult.presignedURL, dialogFields.file);
     if (!response.success) {
-      showError(response.errorMessage);
       throw new Error(response.errorMessage);
     }
 
     await waitForVirusScan(uploadResult.documentId);
-    onDocumentUploadSucceeded?.();
-    if (refetchQueries) {
-      await client.refetchQueries({ include: refetchQueries });
-    }
+    await handleDocumentUploadSucceeded();
   };
 
   return (
@@ -167,7 +154,6 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       mode="add"
       onSubmit={handleUpload}
       documentTypeSubset={documentTypeSubset}
-      initialDocument={defaultDocument}
       titleOverride={titleOverride}
     />
   );
