@@ -22,8 +22,6 @@ describe("UiPathProcessor construct", () => {
     new UiPathProcessor(stack, "UiPathProcessor", {
       ...mockProps,
       removalPolicy: RemovalPolicy.DESTROY,
-      bundle: false,
-      env: { account: "123456789012", region: "us-east-1" },
     });
 
     const template = Template.fromStack(stack);

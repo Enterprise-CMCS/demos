@@ -61,7 +61,7 @@ if (isDirectRun() && isLocal()) {
     try {
       await runLocal();
     } catch (err) {
-      log.error({ err }, "Local execution failed");
+      log.error({ err });
       process.exitCode = 1;
     }
   });
