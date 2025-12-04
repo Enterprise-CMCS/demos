@@ -1,6 +1,8 @@
 #!/usr/bin/bash
 set -e
 
+START_TIME=$(date +%s)
+
 echo "🚀 Starting LocalStack setup..."
 
 # Wait for LocalStack to be ready
@@ -44,8 +46,14 @@ echo ""
 echo "5️⃣ Setting up deleteinfectedfile Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_deleteinfectedfile_lambda.sh
 
+END_TIME=$(date +%s)
+ELAPSED=$((END_TIME - START_TIME))
+MINUTES=$((ELAPSED / 60))
+SECONDS=$((ELAPSED % 60))
+
 echo ""
 echo "✅ LocalStack setup complete!"
+echo "⏱️  Total time: ${MINUTES}m ${SECONDS}s"
 echo ""
 echo "📋 Resources created:"
 echo "   - Secrets Manager: database credentials"
