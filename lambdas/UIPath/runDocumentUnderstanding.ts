@@ -20,7 +20,7 @@ export async function runDocumentUnderstanding(
 ): Promise<ExtractionStatus> {
   const {
     token: providedToken,
-    pollIntervalMs = 1000,
+    pollIntervalMs = 3000,
     maxAttempts = 5000,
     logFullResult = true,
   } = options;
@@ -37,7 +37,7 @@ export async function runDocumentUnderstanding(
   let attempt = 0;
   console.log(attempt < maxAttempts);
   while (attempt < maxAttempts) {
-    await sleep(1 * 1000); // getting this to work before adding back in the pollIntervalMs
+    await sleep(pollIntervalMs);
     const status = await fetchExtractionResult(token, resultUrl);
 
     if (status.status === "Succeeded") {
@@ -52,6 +52,4 @@ export async function runDocumentUnderstanding(
     log.info({ status, attempt, pollIntervalMs }, "Extraction still running");
     attempt += 1;
   }
-
-  throw new Error("UiPath extraction did not succeed within the configured attempts.");
 }
