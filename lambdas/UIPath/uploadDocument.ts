@@ -12,7 +12,7 @@ export interface UploadResponse {
 export async function uploadDocument(token: string, fileName: string): Promise<string> {
   const projectId = getProjectId();
   const url = `${UIPATH_BASE_URL}/${UIPATH_TENANT}/du_/api/framework/projects/${projectId}/digitization/start`;
-
+  log.info({ url }, "Uploading document to UiPath");
   const formData = new FormData();
   formData.append("file", fs.createReadStream(fileName), fileName);
 

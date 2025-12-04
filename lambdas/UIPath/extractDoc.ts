@@ -1,4 +1,4 @@
-import { duPost, UIPATH_BASE_URL, getExtractorGuid, getProjectId, UIPATH_TENANT } from "./uipathClient";
+import { duPost, UIPATH_BASE_URL, getExtractorGuid, UIPATH_EXTRACTOR_NAME, getProjectId, UIPATH_TENANT } from "./uipathClient";
 
 export interface ExtractionStartResponse {
   resultUrl: string;
@@ -14,11 +14,7 @@ export interface ExtractionPrompt {
 export async function extractDoc(token: string, docId: string): Promise<string> {
   const extractorGuid = getExtractorGuid(); // NOTE: Zoe might make her own. So we may need to query here to get the right GUID
   const projectId = getProjectId();
-  console.log(UIPATH_BASE_URL);
-  console.log(UIPATH_TENANT);
-  console.log(projectId);
-  console.log(extractorGuid);
-  const url = `${UIPATH_BASE_URL}:443/${UIPATH_TENANT}/du_/api/framework/projects/${projectId}/extractors/${extractorGuid}/extraction/start`;
+  const url = `${UIPATH_BASE_URL}:443/${extractorGuid}/du_/api/framework/projects/${projectId}/extractors/${UIPATH_EXTRACTOR_NAME}/extraction/start?api-version=1.0`;
 
   const extract = await duPost<ExtractionStartResponse>(url, token, {
     documentId: docId,
