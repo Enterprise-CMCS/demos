@@ -13,14 +13,15 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Positional args: [0]=node, [1]=index.js, [2]=input file, [3]=log file
-const inputFile = process.argv[2] || "ak-behavioral-health-demo-pa.pdf";
-const logPath = createLogFile(process.argv[3] || process.env.LOG_FILE || "uipath.log");
+// Positional args: [0]=node, [1]=index.js - `node index.js` to run!
+const inputFile = "ak-behavioral-health-demo-pa.pdf";
+const logPath = createLogFile("uipath.log");
 
 if (! inputFile) {
-  log("Usage: node index.js <input-file> [log-file]", logPath);
   throw new Error("Input file is required");
 }
+
+log("Running on file: ", inputFile);
 
 try {
   // Validate required env early to avoid undefined IDs in URLs
