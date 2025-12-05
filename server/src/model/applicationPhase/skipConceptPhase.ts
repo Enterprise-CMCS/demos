@@ -7,7 +7,7 @@ import { getEasternNow } from "../../dateUtilities.js";
 import {
   checkConceptPhaseStartedBeforeSkipping,
   getApplicationPhaseStatus,
-  startNextPhase,
+  startPhase,
   updatePhaseStatus,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
@@ -31,7 +31,7 @@ export async function skipConceptPhase(
           easternNow[DATE_TYPES_WITH_EXPECTED_TIMESTAMPS["Concept Skipped Date"].expectedTimestamp]
             .easternTZDate,
       });
-      const nextPhaseWasStarted = await startNextPhase(applicationId, "Application Intake", tx);
+      const nextPhaseWasStarted = await startPhase(applicationId, "Application Intake", tx);
       if (nextPhaseWasStarted) {
         applicationDatesToUpdate.push({
           dateType: "Application Intake Start Date",

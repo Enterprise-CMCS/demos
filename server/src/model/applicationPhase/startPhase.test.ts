@@ -10,7 +10,7 @@ vi.mock(".", () => ({
   updatePhaseStatus: vi.fn(),
 }));
 
-describe("startNextPhase", () => {
+describe("startPhase", () => {
   const testApplicationId: string = "3ed9d466-0563-4634-959f-b9f86f659905";
   const testPhaseName: PhaseNameWithTrackedStatus = "Review";
   const mockTransaction: any = "A mock transaction";
