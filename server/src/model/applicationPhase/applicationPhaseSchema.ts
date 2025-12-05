@@ -26,6 +26,7 @@ export const applicationPhaseSchema = gql`
     setApplicationPhaseStatus(input: SetApplicationPhaseStatusInput!): Application!
     completePhase(input: CompletePhaseInput!): Application!
     skipConceptPhase(applicationId: ID!): Application!
+    declareCompletenessPhaseIncomplete(applicationId: ID!): Application!
   }
 `;
 
