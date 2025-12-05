@@ -122,5 +122,8 @@ pipeline {
       failure {
         slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
       }
+    always {
+      cleanWs(deleteDirs: true)
+    }
     }
 }

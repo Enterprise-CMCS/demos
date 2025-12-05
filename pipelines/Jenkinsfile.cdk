@@ -104,5 +104,8 @@ pipeline {
     failure {
       slackPipelineFail("CDK")
     }
+    always {
+      cleanWs(deleteDirs: true)
+    }
   }
 }
