@@ -4,7 +4,7 @@ import { ApplicationDateInput, DocumentType, PhaseNameWithTrackedStatus } from "
 import { EasternNow } from "../../dateUtilities.js";
 
 // Mock dependencies
-vi.mock("../phaseDocumentType/queries/getPhaseNamesByDocumentType.js", () => ({
+vi.mock("../phaseDocumentType/queries/getPhasesByDocumentType.js", () => ({
   getPhasesByDocumentType: vi.fn(),
 }));
 
@@ -16,7 +16,7 @@ vi.mock("../applicationDate/createPhaseStartDate.js", () => ({
   createPhaseStartDate: vi.fn(),
 }));
 
-import { getPhasesByDocumentType } from "../phaseDocumentType/queries/getPhaseNamesByDocumentType.js";
+import { getPhasesByDocumentType } from "../phaseDocumentType/queries/getPhasesByDocumentType.js";
 import { startPhase } from "../applicationPhase/index.js";
 import { createPhaseStartDate } from "../applicationDate/createPhaseStartDate.js";
 import { Phase as PrismaPhase } from "@prisma/client";
