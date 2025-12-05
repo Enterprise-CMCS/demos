@@ -1,11 +1,31 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
+import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from ".";
 import { startPhasesByDates } from "./startPhasesByDates.js";
 import { getEasternNow } from "../../dateUtilities.js";
+
+export function checkForDuplicateDateTypes(input: SetApplicationDatesInput): void {
+  const inputDateTypes = input.applicationDates.map((applicationDate) => applicationDate.dateType);
+  const inputDateTypeCounts = new Map<DateType, number>();
+  for (const dateType of inputDateTypes) {
+    inputDateTypeCounts.set(dateType, (inputDateTypeCounts.get(dateType) || 0) + 1);
+  }
+  const duplicatedDateTypes: DateType[] = [];
+  for (const [dateType, count] of inputDateTypeCounts) {
+    if (count > 1) {
+      duplicatedDateTypes.push(dateType);
+    }
+  }
+  if (duplicatedDateTypes.length > 0) {
+    throw new Error(
+      `The input contained the same dateType more than once for ` +
+        `these dateTypes: ${duplicatedDateTypes.join(", ")}.`
+    );
+  }
+}
 
 export function __setApplicationDate(
   _: unknown,
@@ -31,6 +51,7 @@ export async function __setApplicationDates(
     return await getApplication(input.applicationId);
   }
   try {
+    checkForDuplicateDateTypes(input);
     await prisma().$transaction(async (tx) => {
       const easternNow = getEasternNow();
       const phaseStartDates = await startPhasesByDates(
