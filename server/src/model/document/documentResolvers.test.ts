@@ -54,6 +54,18 @@ vi.mock("../application/applicationResolvers.js", () => ({
   getApplication: vi.fn(),
 }));
 
+vi.mock("../../dateUtilities.js", () => ({
+  getEasternNow: vi.fn(),
+}));
+
+vi.mock("./startPhaseByDocument.js", () => ({
+  startPhaseByDocument: vi.fn(),
+}));
+
+vi.mock("../applicationDate/validateAndUpdateDates.js", () => ({
+  validateAndUpdateDates: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { getS3Adapter } from "../../adapters/s3/S3Adapter.js";
@@ -63,6 +75,11 @@ import { updateDocumentMeta } from "./queries/updateDocumentMeta.js";
 import { findUserById } from "../user/queries/findUserById.js";
 import { handleDeleteDocument } from "./handleDeleteDocument.js";
 import { getApplication } from "../application/applicationResolvers.js";
+import { EasternNow, getEasternNow } from "../../dateUtilities.js";
+import { startPhaseByDocument } from "./startPhaseByDocument.js";
+import { validateAndUpdateDates } from "../applicationDate/validateAndUpdateDates.js";
+import { TZDate } from "@date-fns/tz";
+import { ApplicationDateInput } from "../applicationDate/applicationDateSchema.js";
 
 describe("documentResolvers", () => {
   const mockTransaction = "mockTransaction" as any;
@@ -167,6 +184,22 @@ describe("documentResolvers", () => {
       uploadUrl: "https://s3.amazonaws.com/upload-url",
     };
 
+    const mockEasternNow: EasternNow = {
+      "End of Day": {
+        easternTZDate: new TZDate("2025-01-15T23:59:59.999Z"),
+        isEasternTZDate: true,
+      },
+      "Start of Day": {
+        easternTZDate: new TZDate("2025-01-15T00:00:00.000Z"),
+        isEasternTZDate: true,
+      },
+    };
+
+    const mockPhaseStartDate: ApplicationDateInput = {
+      dateType: "Application Intake Completion Date",
+      dateValue: new TZDate("2025-01-20"),
+    };
+
     it("should upload document with user context", async () => {
       vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
 
@@ -194,6 +227,49 @@ describe("documentResolvers", () => {
 
       expect(mockS3Adapter.uploadDocument).not.toHaveBeenCalled();
       expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
+    });
+
+    it("should call startPhaseByDocument with correct parameters", async () => {
+      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
+      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
+      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
+
+      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
+
+      expect(getEasternNow).toHaveBeenCalledOnce();
+      expect(startPhaseByDocument).toHaveBeenCalledExactlyOnceWith(
+        mockTransaction,
+        testApplicationId,
+        "State Application",
+        mockEasternNow
+      );
+    });
+
+    it("should call validateAndUpdateDates when phase start date is returned", async () => {
+      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
+      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
+      vi.mocked(startPhaseByDocument).mockResolvedValue(mockPhaseStartDate);
+      vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
+
+      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
+
+      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          applicationDates: [mockPhaseStartDate],
+        },
+        mockTransaction
+      );
+    });
+
+    it("should not call validateAndUpdateDates when phase start date is null", async () => {
+      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
+      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
+      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
+
+      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
+
+      expect(validateAndUpdateDates).not.toHaveBeenCalled();
     });
   });
 

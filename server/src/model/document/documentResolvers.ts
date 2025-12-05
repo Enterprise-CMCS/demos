@@ -16,6 +16,9 @@ import { getDocumentExists } from "./queries/getDocumentExists.js";
 import { updateDocumentMeta } from "./queries/updateDocumentMeta.js";
 import { findUserById } from "../user/queries/findUserById.js";
 import { handleDeleteDocument } from "./handleDeleteDocument.js";
+import { getEasternNow } from "../../dateUtilities.js";
+import { validateAndUpdateDates } from "../applicationDate/validateAndUpdateDates.js";
+import { startPhaseByDocument } from "./startPhaseByDocument.js";
 
 export async function getDocument(
   parent: unknown,
@@ -47,6 +50,21 @@ export async function uploadDocument(
     }
     const userId = context.user.id;
     return await prisma().$transaction(async (tx) => {
+      const easternNow = getEasternNow();
+      const phaseStartDate = await startPhaseByDocument(
+        tx,
+        input.applicationId,
+        input.documentType,
+        easternNow
+      );
+
+      if (phaseStartDate) {
+        await validateAndUpdateDates(
+          { applicationId: input.applicationId, applicationDates: [phaseStartDate] },
+          tx
+        );
+      }
+
       return await s3Adapter.uploadDocument(tx, input, userId);
     });
   } catch (error) {
