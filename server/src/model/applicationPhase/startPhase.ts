@@ -7,8 +7,8 @@ export async function startPhase(
   phaseName: PhaseNameWithTrackedStatus,
   tx: PrismaTransactionClient
 ): Promise<boolean> {
-  const nextPhaseStatus = await getApplicationPhaseStatus(applicationId, phaseName, tx);
-  if (nextPhaseStatus === "Not Started") {
+  const phaseStatus = await getApplicationPhaseStatus(applicationId, phaseName, tx);
+  if (phaseStatus === "Not Started") {
     await updatePhaseStatus(applicationId, phaseName, "Started", tx);
     return true;
   }

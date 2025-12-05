@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { startPhase } from "./startNextPhase.js";
+import { startPhase } from "./startPhase.js";
 import { PhaseNameWithTrackedStatus } from "../../types.js";
 
 // Mock imports
-import { getApplicationPhaseStatus, updatePhaseStatus } from ".";
+import { getApplicationPhaseStatus, updatePhaseStatus } from "./index.js";
 
 vi.mock(".", () => ({
   getApplicationPhaseStatus: vi.fn(),
