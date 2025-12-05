@@ -1049,9 +1049,7 @@ describe("ManageContactsDialog", () => {
       await waitFor(
         () => {
           expect(
-            screen.getByText(
-              "Are you sure you want to cancel? Changes you have made so far will not be saved."
-            )
+            screen.getByText("You will lose any unsaved changes in this view.")
           ).toBeInTheDocument();
         },
         { timeout: 3000 }

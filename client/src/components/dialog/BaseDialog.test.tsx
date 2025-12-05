@@ -39,11 +39,7 @@ describe("BaseDialog", () => {
         setShowCancelConfirm={setShowCancelConfirm}
       />
     );
-    expect(
-      screen.getByText(
-        "Are you sure you want to cancel? Changes you have made so far will not be saved."
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText("You will lose any unsaved changes in this view.")).toBeInTheDocument();
   });
 
   it("calls setShowCancelConfirm(false) when No is clicked", () => {
@@ -55,7 +51,7 @@ describe("BaseDialog", () => {
         setShowCancelConfirm={setShowCancelConfirm}
       />
     );
-    const noButton = screen.getByText("No");
+    const noButton = screen.getByTestId("button-cc-dialog-cancel");
     fireEvent.click(noButton);
     expect(setShowCancelConfirm).toHaveBeenCalledWith(false);
   });
@@ -71,7 +67,7 @@ describe("BaseDialog", () => {
         setShowCancelConfirm={setShowCancelConfirm}
       />
     );
-    const yesButton = screen.getByText("Yes");
+    const yesButton = screen.getByTestId("button-cc-dialog-discard");
     fireEvent.click(yesButton);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -98,7 +94,12 @@ describe("BaseDialog", () => {
     const onClose = vi.fn();
     const setShowCancelConfirm = vi.fn();
     render(
-      <BaseDialog {...defaultProps} onClose={onClose} setShowCancelConfirm={setShowCancelConfirm} />
+      <BaseDialog
+        {...defaultProps}
+        onClose={onClose}
+        showCancelConfirm={true}
+        setShowCancelConfirm={setShowCancelConfirm}
+      />
     );
     const closeBtn = screen.getByLabelText("Close dialog");
     fireEvent.click(closeBtn);
@@ -161,9 +162,7 @@ describe("BaseDialog", () => {
         setShowCancelConfirm={setShowCancelConfirm}
       />
     );
-    const confirmText = screen.getByText(
-      "Are you sure you want to cancel? Changes you have made so far will not be saved."
-    );
+    const confirmText = screen.getByText("You will lose any unsaved changes in this view.");
     fireEvent.click(confirmText);
     expect(setShowCancelConfirm).not.toHaveBeenCalled();
   });
