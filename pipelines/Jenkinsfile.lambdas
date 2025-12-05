@@ -143,5 +143,8 @@ pipeline {
     failure {
       slackPipelineFail("Lambdas")
     }
+    always {
+      cleanWs(deleteDirs: true)
+    }
   }
 }
