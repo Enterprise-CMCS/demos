@@ -1,5 +1,5 @@
 import { PHASE_START_END_DATES } from "../../constants";
-import { EasternNow, getExpectedTimestampLabel } from "../../dateUtilities";
+import { EasternNow, getDayBoundaryLabel } from "../../dateUtilities";
 import { PhaseNameWithTrackedStatus } from "../../types";
 import { ApplicationDateInput } from "./applicationDateSchema";
 
@@ -13,6 +13,6 @@ export function createPhaseStartDate(
   }
   return {
     dateType: phaseStartDateType,
-    dateValue: easternNow[getExpectedTimestampLabel(phaseStartDateType)].easternTZDate,
+    dateValue: easternNow[getDayBoundaryLabel(phaseStartDateType)].easternTZDate,
   };
 }

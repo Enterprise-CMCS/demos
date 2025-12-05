@@ -4,7 +4,7 @@ import { ApplicationDateInput } from "./applicationDateSchema";
 import { startPhase } from "../applicationPhase";
 import { createPhaseStartDate } from "./createPhaseStartDate";
 import { EasternNow } from "../../dateUtilities";
-import { getOrderedPhaseDateTypes } from "../applicationPhase/queries/getOrderedPhaseDateTypes";
+import { getOrderedPhaseDateTypes } from "../phaseDateType/queries/getOrderedPhaseDateTypes";
 
 export async function startPhasesByDates(
   tx: PrismaTransactionClient,
@@ -23,6 +23,8 @@ export async function startPhasesByDates(
     if (date.dateValue === null) {
       continue;
     }
+
+    // The ordering of the phaseDateTypes ensures the found phase is ealiest in number.
     const phase = orderedPhaseDateTypes.find(
       (phaseDateType) => phaseDateType.dateTypeId === date.dateType
     );

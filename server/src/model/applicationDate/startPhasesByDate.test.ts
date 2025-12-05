@@ -1,17 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { startPhasesByDates } from "./startPhaseOnDateUpdate.js";
+import { startPhasesByDates } from "./startPhasesByDate.js";
 import { ApplicationDateInput } from "./applicationDateSchema.js";
 import { EasternNow } from "../../dateUtilities.js";
 import { PrismaTransactionClient } from "../../prismaClient.js";
-import {
-  DateTimeOrLocalDate,
-  DateType,
-  LocalDate,
-  PhaseNameWithTrackedStatus,
-} from "../../types.js";
+import { DateType, LocalDate } from "../../types.js";
 
 // Mock dependencies
-vi.mock("../applicationPhase/queries/getOrderedPhaseDateTypes.js", () => ({
+vi.mock("../phaseDateType/queries/getOrderedPhaseDateTypes.js", () => ({
   getOrderedPhaseDateTypes: vi.fn(),
 }));
 
@@ -26,7 +21,7 @@ vi.mock("./createPhaseStartDate.js", () => ({
 import {
   getOrderedPhaseDateTypes,
   OrderedPhaseDateTypes,
-} from "../applicationPhase/queries/getOrderedPhaseDateTypes.js";
+} from "../phaseDateType/queries/getOrderedPhaseDateTypes.js";
 import { startPhase } from "../applicationPhase/index.js";
 import { createPhaseStartDate } from "./createPhaseStartDate.js";
 import { TZDate } from "@date-fns/tz";
@@ -451,7 +446,7 @@ describe("startPhasesByDates", () => {
       });
     });
   });
-  
+
   describe("null date handling", () => {
     it("should skip null date values and not start phases for them", async () => {
       const applicationDates: ApplicationDateInput[] = [

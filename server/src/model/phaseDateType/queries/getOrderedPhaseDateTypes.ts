@@ -18,5 +18,5 @@ export async function getOrderedPhaseDateTypes(
         phaseNumber: "asc",
       },
     },
-  })) as OrderedPhaseDateTypes;
+  })) as OrderedPhaseDateTypes; // casting constrained by database
 }

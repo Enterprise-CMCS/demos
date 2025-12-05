@@ -92,6 +92,6 @@ export function getEasternNow(): EasternNow {
   };
 }
 
-export function getExpectedTimestampLabel(dateType: DateType): ExpectedTimestamp {
+export function getDayBoundaryLabel(dateType: DateType): ExpectedTimestamp {
   return DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[dateType].expectedTimestamp;
 }
