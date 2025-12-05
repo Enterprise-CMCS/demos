@@ -1,11 +1,22 @@
 import React from "react";
-import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
-import { ApprovalPackageTable, ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
+import {
+  ApplicationWorkflowDemonstration,
+  ApplicationWorkflowDocument,
+} from "components/application/ApplicationWorkflow";
+import {
+  ApprovalPackageTable,
+  ApprovalPackageTableRow,
+} from "components/table/tables/ApprovalPackageTable";
 import { DocumentType } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { Button, SecondaryButton } from "components/button";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { useToast } from "components/toast";
+import {
+  FAILED_TO_SAVE_MESSAGE,
+  getPhaseCompletedMessage,
+  SAVE_FOR_LATER_MESSAGE,
+} from "util/messages";
 
 export interface ApprovalPackagePhaseProps {
   demonstrationId: string;
@@ -22,15 +33,11 @@ const REQUIRED_TYPES: DocumentType[] = [
   "Signed Decision Memo",
 ] as const;
 
-export const getApprovalPackagePhase = (
-  demonstration: ApplicationWorkflowDemonstration
-) => {
+export const getApprovalPackagePhase = (demonstration: ApplicationWorkflowDemonstration) => {
   const formulationWorkbookDocument = demonstration?.documents.find(
     (doc) => doc.documentType === "Final Budget Neutrality Formulation Workbook"
   );
-  const qaDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Q&A"
-  );
+  const qaDocument = demonstration?.documents.find((doc) => doc.documentType === "Q&A");
   const termsAndConditionsDocument = demonstration?.documents.find(
     (doc) => doc.documentType === "Special Terms & Conditions"
   );
@@ -44,15 +51,12 @@ export const getApprovalPackagePhase = (
     (doc) => doc.documentType === "Signed Decision Memo"
   );
 
-  const currentPhaseIndex =
-    demonstration.phases.findIndex((p) => p.phaseName === "Approval Package");
+  const currentPhaseIndex = demonstration.phases.findIndex(
+    (p) => p.phaseName === "Approval Package"
+  );
   const allPreviousPhasesDone = demonstration.phases
     .slice(0, currentPhaseIndex) // all phases before the current one
-    .every(
-      (phase) =>
-        phase.phaseStatus === "Completed" ||
-        phase.phaseStatus === "Skipped"
-    );
+    .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
   return (
     <ApprovalPackagePhase
@@ -108,18 +112,21 @@ export const ApprovalPackagePhase = ({
     };
   });
 
-  const finishEnabled = allPreviousPhasesDone &&
-    tableRows.every((row) => row.document); // all req documents have been provided
+  const finishEnabled = allPreviousPhasesDone && tableRows.every((row) => row.document); // all req documents have been provided
 
   const handleFinishApprovalPackagePhase = async () => {
     try {
       await completeApprovalPackagePhase();
     } catch {
-      showError("Failed to finish Approval Package phase.");
+      showError(FAILED_TO_SAVE_MESSAGE);
       return;
     }
 
-    showSuccess("Successfully finished Approval Package phase.");
+    showSuccess(getPhaseCompletedMessage("Approval Package"));
+  };
+
+  const handleSaveForLater = () => {
+    showSuccess(SAVE_FOR_LATER_MESSAGE);
   };
 
   return (
@@ -130,19 +137,14 @@ export const ApprovalPackagePhase = ({
       </p>
 
       <h4 className="text-[18px] font-bold tracking-wide mb-1">APPROVAL PACKAGE</h4>
-      <p className="text-sm text-text-placeholder">
-        Each File Type Is Required Prior To Approval
-      </p>
+      <p className="text-sm text-text-placeholder">Each File Type Is Required Prior To Approval</p>
 
-      <ApprovalPackageTable
-        demonstrationId={demonstrationId}
-        rows={tableRows}
-      />
+      <ApprovalPackageTable demonstrationId={demonstrationId} rows={tableRows} />
 
       <div className="mt-8 mb-8 flex justify-end gap-2">
         <SecondaryButton
           name="button-skip-concept"
-          onClick={() => {}}
+          onClick={handleSaveForLater}
           size="small"
           disabled // Save function to be added later
         >

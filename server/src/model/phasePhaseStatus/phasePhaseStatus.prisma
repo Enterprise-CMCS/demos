@@ -1,0 +1,12 @@
+// Flags: NATURAL_KEY, NO_HISTORY, NO_CREATED_TS, NO_UPDATED_TS
+// Table is an associative table used as a constraint and will only be updated by migration
+// Note the unusual name - it associates the Phase and PhaseStatus models, which looks odd
+model PhasePhaseStatus {
+  phaseId       String @map("phase_id")
+  phaseStatusId String @map("phase_status_id")
+
+  applicationPhases ApplicationPhase[]
+
+  @@id([phaseId, phaseStatusId])
+  @@map("phase_phase_status")
+}

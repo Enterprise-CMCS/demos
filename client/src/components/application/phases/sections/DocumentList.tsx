@@ -10,6 +10,7 @@ import { gql } from "graphql-tag";
 import { Application, Document as ServerDocument } from "demos-server";
 import { useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
+import { DOCUMENT_REMOVAL_FAILED_MESSAGE, DOCUMENT_REMOVED_MESSAGE } from "util/messages";
 
 const STYLES = {
   list: tw`mt-4 space-y-3`,
@@ -41,7 +42,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   showDescription = true,
   emptyMessage = "No documents yet.",
 }) => {
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const [deleteDocumentTrigger, { loading }] = useMutation<{
     deleteDocument: Document;
   }>(DELETE_DOCUMENT_MUTATION, {
@@ -53,9 +54,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       await deleteDocumentTrigger({
         variables: { id },
       });
+      showSuccess(DOCUMENT_REMOVED_MESSAGE);
     } catch (error) {
       console.error(error);
-      showError("Error deleting document.");
+      showError(DOCUMENT_REMOVAL_FAILED_MESSAGE);
     }
   };
 
