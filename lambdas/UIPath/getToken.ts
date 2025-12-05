@@ -1,5 +1,4 @@
 import axios from "axios";
-import "dotenv/config";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 interface TokenResponse {
@@ -39,8 +38,10 @@ async function getCredentials(): Promise<UiPathCredentials> {
     try {
       const parsedSecret = JSON.parse(secretString);
       const clientId = parsedSecret.clientId ?? parsedSecret.UIPATH_CLIENT_ID;
-      const clientSecret = parsedSecret.clientSecret ?? parsedSecret.client_secret ?? parsedSecret.UIPATH_CLIENT_SECRET;
-
+      console.log('clientId', clientId);
+      const clientSecret =
+        parsedSecret.clientSecret ?? parsedSecret.client_secret ?? parsedSecret.UIPATH_CLIENT_SECRET;
+      console.log('clientSecret', clientSecret ? clientSecret.substring(0, 5) : "NO SECRET!");
       if (clientId && clientSecret) {
         return { clientId, clientSecret };
       }

@@ -1,4 +1,3 @@
-import "dotenv/config";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { SQSEvent } from "aws-lambda";
@@ -37,7 +36,7 @@ export const handler = async (event: SQSEvent) =>
     if (isLocal()) {
       return runLocal();
     }
-
+    log.info({ recordCount: event.Records.length }, "UiPath lambda invoked");
     const firstRecord = event.Records[0];
     reqIdChild(firstRecord?.messageId ?? "n/a");
 

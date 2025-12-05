@@ -2,6 +2,7 @@
   "name": "ui-path-doc-understanding",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.ts",
   "scripts": {
     "test": "ROLLUP_USE_BUNDLED=1 vitest run",
@@ -9,7 +10,6 @@
     "execute": "RUN_LOCAL=true npx tsx index.ts",
     "build": "npx esbuild index.ts --bundle --platform=node --format=esm --outdir=dist"
   },
-  "type": "module",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.943.0",
     "axios": "^1.13.2",

@@ -26,9 +26,16 @@ npx esbuild index.ts \
   --format=esm \
   --sourcemap \
   --external:@aws-sdk/* \
+  --external:pg \
+  --external:pino \
+  --external:axios \
+  --external:form-data \
+  --external:axios-oauth-client \
+  --external:dotenv \
   --outfile=index.js
 
 zip -qr uipath.zip index.js node_modules/ package.json package-lock.json
+
 
 # Clean up build artifacts
 rm index.js index.js.map
@@ -63,7 +70,7 @@ for i in {1..15}; do
         --function-name $LAMBDA_NAME \
         --query 'Configuration.State' \
         --output text 2>/dev/null || echo "Pending")
-    
+
     if [ "$STATUS" = "Active" ]; then
         echo "✅ UiPath Lambda function created"
         break
