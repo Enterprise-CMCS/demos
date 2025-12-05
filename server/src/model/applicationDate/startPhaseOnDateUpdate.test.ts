@@ -451,4 +451,102 @@ describe("startPhasesByDates", () => {
       });
     });
   });
+  
+  describe("null date handling", () => {
+    it("should skip null date values and not start phases for them", async () => {
+      const applicationDates: ApplicationDateInput[] = [
+        {
+          dateType: "Application Intake Start Date",
+          dateValue: null,
+        },
+        {
+          dateType: "State Application Submitted Date",
+          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+        },
+      ];
+      vi.mocked(startPhase).mockResolvedValue(false);
+
+      const result = await startPhasesByDates(
+        mockTransaction,
+        testApplicationId,
+        applicationDates,
+        mockEasternNow
+      );
+
+      // startPhase should only be called once for the non-null date
+      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Application Intake",
+        mockTransaction
+      );
+      expect(getOrderedPhaseDateTypes).toHaveBeenCalledExactlyOnceWith(mockTransaction);
+      expect(result).toEqual([]);
+    });
+
+    it("should return empty array when all dates are null", async () => {
+      const applicationDates: ApplicationDateInput[] = [
+        {
+          dateType: "Application Intake Start Date",
+          dateValue: null,
+        },
+        {
+          dateType: "State Application Deemed Complete",
+          dateValue: null,
+        },
+      ];
+
+      const result = await startPhasesByDates(
+        mockTransaction,
+        testApplicationId,
+        applicationDates,
+        mockEasternNow
+      );
+
+      expect(startPhase).not.toHaveBeenCalled();
+      expect(createPhaseStartDate).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+
+    it("should process mix of null and non-null dates correctly", async () => {
+      const applicationDates: ApplicationDateInput[] = [
+        {
+          dateType: "Application Intake Start Date",
+          dateValue: null,
+        },
+        {
+          dateType: "State Application Submitted Date",
+          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+        },
+        {
+          dateType: "State Application Deemed Complete",
+          dateValue: null,
+        },
+      ];
+      const mockStartDate: ApplicationDateInput = {
+        dateType: "Application Intake Start Date",
+        dateValue: new Date("2025-01-01T00:00:00.000Z"),
+      };
+      vi.mocked(startPhase).mockResolvedValue(true);
+      vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
+
+      const result = await startPhasesByDates(
+        mockTransaction,
+        testApplicationId,
+        applicationDates,
+        mockEasternNow
+      );
+
+      // Only one call for the non-null date
+      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Application Intake",
+        mockTransaction
+      );
+      expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith(
+        "Application Intake",
+        mockEasternNow
+      );
+      expect(result).toEqual([mockStartDate]);
+    });
+  });
 });

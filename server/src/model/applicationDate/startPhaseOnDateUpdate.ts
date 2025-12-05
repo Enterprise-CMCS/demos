@@ -19,6 +19,10 @@ export async function startPhasesByDates(
 
   const startDatesToAdd: ApplicationDateInput[] = [];
   for (const date of applicationDates) {
+    // null date values indicate removal of a date, thus should not start a phase
+    if (date.dateValue === null) {
+      continue;
+    }
     const phase = orderedPhaseDateTypes.find(
       (phaseDateType) => phaseDateType.dateTypeId === date.dateType
     );

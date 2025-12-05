@@ -51,4 +51,39 @@ describe("startNextPhase", () => {
     );
     expect(updatePhaseStatus).not.toBeCalled();
   });
+
+  it("should start Completeness phase when status is Incomplete", async () => {
+    const completenessPhase: PhaseNameWithTrackedStatus = "Completeness";
+    vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Incomplete");
+
+    const result = await startPhase(testApplicationId, completenessPhase, mockTransaction);
+
+    expect(result).toEqual(true);
+    expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(
+      testApplicationId,
+      completenessPhase,
+      mockTransaction
+    );
+    expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
+      testApplicationId,
+      completenessPhase,
+      "Started",
+      mockTransaction
+    );
+  });
+
+  it("should not start non-Completeness phase when status is Incomplete", async () => {
+    const nonCompletenessPhase: PhaseNameWithTrackedStatus = "Application Intake";
+    vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Incomplete");
+
+    const result = await startPhase(testApplicationId, nonCompletenessPhase, mockTransaction);
+
+    expect(result).toEqual(false);
+    expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(
+      testApplicationId,
+      nonCompletenessPhase,
+      mockTransaction
+    );
+    expect(updatePhaseStatus).not.toHaveBeenCalled();
+  });
 });
