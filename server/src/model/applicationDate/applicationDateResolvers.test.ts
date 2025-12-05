@@ -13,7 +13,7 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
 import { validateAndUpdateDates } from "./validateAndUpdateDates.js";
-import { startPhasesByDates } from "./startPhasesByDate.js";
+import { startPhasesByDates } from "./startPhasesByDates.js";
 import { getEasternNow } from "../../dateUtilities.js";
 
 vi.mock("../../prismaClient.js", () => ({
@@ -35,7 +35,7 @@ vi.mock("./validateAndUpdateDates.js", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
-vi.mock("./startPhasesByDate.js", () => ({
+vi.mock("./startPhasesByDates.js", () => ({
   startPhasesByDates: vi.fn(),
 }));
 

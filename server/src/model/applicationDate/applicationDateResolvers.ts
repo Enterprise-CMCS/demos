@@ -4,7 +4,7 @@ import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.j
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from ".";
-import { startPhasesByDates } from "./startPhasesByDate.js";
+import { startPhasesByDates } from "./startPhasesByDates.js";
 import { getEasternNow } from "../../dateUtilities.js";
 
 export function __setApplicationDate(
