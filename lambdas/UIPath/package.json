@@ -1,0 +1,31 @@
+{
+  "name": "ui-path-doc-understanding",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "test": "ROLLUP_USE_BUNDLED=1 vitest run",
+    "lint": "tsc --noEmit --skipLibCheck",
+    "execute": "RUN_LOCAL=true npx tsx index.ts",
+    "build": "npx esbuild index.ts --bundle --platform=node --format=esm --outdir=dist"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.943.0",
+    "axios": "^1.13.2",
+    "axios-oauth-client": "^2.2.0",
+    "dotenv": "^17.2.3",
+    "form-data": "^4.0.5",
+    "pino": "^10.1.0",
+    "pino-pretty": "^11.2.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.158",
+    "@types/node": "^24.10.1",
+    "@vitest/coverage-v8": "^4.0.10",
+    "esbuild": "^0.27.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.10"
+  }
+}
