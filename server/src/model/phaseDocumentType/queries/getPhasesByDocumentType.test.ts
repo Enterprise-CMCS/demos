@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getPhasesByDocumentType } from "./getPhaseNamesByDocumentType.js";
+import { getPhasesByDocumentType } from "./getPhasesByDocumentType.js";
 import { DocumentType } from "../../../types.js";
 
 describe("getPhasesByDocumentType", () => {

@@ -4,7 +4,7 @@ import { ApplicationDateInput } from "../applicationDate/applicationDateSchema";
 import { startPhase } from "../applicationPhase";
 import { createPhaseStartDate } from "../applicationDate/createPhaseStartDate";
 import { EasternNow } from "../../dateUtilities";
-import { getPhasesByDocumentType } from "../phaseDocumentType/queries/getPhaseNamesByDocumentType";
+import { getPhasesByDocumentType } from "../phaseDocumentType/queries/getPhasesByDocumentType";
 
 export async function startPhaseByDocument(
   tx: PrismaTransactionClient,
