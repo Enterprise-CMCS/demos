@@ -332,23 +332,25 @@ export const CompletenessPhase = ({
 
   return (
     <div>
-      {fedCommentEndDate && (
-        <DueDateNotice
-          dueDate={fedCommentEndDate}
-          phaseComplete={fedCommentComplete}
-          shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={false}
-          descriptionToAppendDateTo="his Amendment must be declared complete by"
-        />
-      )}
-      <button
-        className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
-        onClick={() => setCollapsed((prev) => !prev)}
-        aria-expanded={!collapsed}
-        aria-controls="completeness-phase-content"
-        data-testid="toggle-completeness"
-      >
-        COMPLETENESS
-      </button>
+      <div className="flex flex-col gap-6">
+        {fedCommentEndDate && (
+          <DueDateNotice
+            dueDate={fedCommentEndDate}
+            phaseComplete={fedCommentComplete}
+            shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={false}
+            descriptionToAppendDateTo="his Amendment must be declared complete by"
+          />
+        )}
+        <button
+          className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
+          onClick={() => setCollapsed((prev) => !prev)}
+          aria-expanded={!collapsed}
+          aria-controls="completeness-phase-content"
+          data-testid="toggle-completeness"
+        >
+          COMPLETENESS
+        </button>
+      </div>
       {!collapsed && (
         <div id="completeness-phase-content">
           <p className="text-sm text-text-placeholder mb-4">

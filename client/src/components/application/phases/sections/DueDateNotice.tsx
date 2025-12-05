@@ -57,7 +57,6 @@ export const DueDateNotice = ({
           title={getNoticeTitle()}
           description={noticeDescription}
           onDismiss={() => setNoticeDismissed(true)}
-          className="mb-6"
         />
       );
     }

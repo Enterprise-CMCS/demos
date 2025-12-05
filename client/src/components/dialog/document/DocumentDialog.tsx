@@ -276,12 +276,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   });
 
   useEffect(() => {
-    if (initialDocument) {
-      setActiveDocument(initialDocument);
-    }
-  }, [initialDocument]);
-
-  useEffect(() => {
     if (mode === "add" && file && !titleManuallyEdited && !activeDocument.name.trim()) {
       const base = file.name.replace(/\.[^.]+$/, "");
       setActiveDocument((prev) => ({ ...prev, name: base }));
@@ -298,22 +292,10 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const missingFile = !file;
   const isMissing = missingType || missingFile;
 
-  const focusFirstMissing = () => {
-    if (missingType) {
-      document.getElementById("document-type")?.focus();
-      return;
-    }
-    if (missingFile) {
-      fileInputRef.current?.focus();
-      return;
-    }
-  };
-
   const onUploadClick = async () => {
     if (isUploading || isSubmitting) return;
     if (isMissing) {
       showError(ERROR_MESSAGES.missingField);
-      focusFirstMissing();
       return;
     }
     await handleUpload();
@@ -334,10 +316,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const clearFile = () => {
-    setFile(null);
   };
 
   return (
@@ -370,7 +348,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     >
       <DropTarget
         file={file}
-        onRemove={clearFile}
+        onRemove={() => setFile(null)}
         fileInputRef={fileInputRef}
         uploadStatus={uploadStatus}
         uploadProgress={uploadProgress}

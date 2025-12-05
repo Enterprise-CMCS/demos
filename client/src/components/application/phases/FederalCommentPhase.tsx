@@ -44,16 +44,14 @@ export const getFederalCommentPhaseFromDemonstration = (
     (date) => date.dateType === "Federal Comment Period End Date"
   );
 
-  return <FederalCommentPhase
-    demonstrationId={demonstration.id}
-    phaseComplete={phaseComplete}
-    phaseStartDate={
-      phaseStartDate?.dateValue ? formatDate(phaseStartDate.dateValue) : ""
-    }
-    phaseEndDate={
-      phaseEndDate?.dateValue ? formatDate(phaseEndDate.dateValue) : ""
-    }
-  />;
+  return (
+    <FederalCommentPhase
+      demonstrationId={demonstration.id}
+      phaseComplete={phaseComplete}
+      phaseStartDate={phaseStartDate?.dateValue ? formatDate(phaseStartDate.dateValue) : ""}
+      phaseEndDate={phaseEndDate?.dateValue ? formatDate(phaseEndDate.dateValue) : ""}
+    />
+  );
 };
 
 export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
@@ -90,16 +88,20 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
 
   return (
     <div>
-      {phaseEndDate && <DueDateNotice
-        dueDate={formatDateForServer(phaseEndDate)}
-        phaseComplete={phaseComplete}
-        shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={true}
-        descriptionToAppendDateTo="The Federal Comment Period ends on"
-      />}
+      <div className="flex flex-col gap-6">
+        {phaseEndDate && (
+          <DueDateNotice
+            dueDate={formatDateForServer(phaseEndDate)}
+            phaseComplete={phaseComplete}
+            shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={true}
+            descriptionToAppendDateTo="The Federal Comment Period ends on"
+          />
+        )}
 
-      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
-        FEDERAL COMMENT PERIOD
-      </h3>
+        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
+          FEDERAL COMMENT PERIOD
+        </h3>
+      </div>
       <p className="text-sm text-text-placeholder mb-4">
         Federal Comment Period Review. Find completeness guidelines online at{" "}
         <a
