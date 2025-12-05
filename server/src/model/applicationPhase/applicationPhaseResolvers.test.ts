@@ -13,7 +13,7 @@ import { PhaseName, PhaseStatus, SetApplicationPhaseStatusInput } from "../../ty
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
-import { completePhase, skipConceptPhase } from ".";
+import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -33,6 +33,7 @@ vi.mock("../application/applicationResolvers.js", () => ({
 vi.mock(".", () => ({
   completePhase: vi.fn(),
   skipConceptPhase: vi.fn(),
+  declareCompletenessPhaseIncomplete: vi.fn(),
 }));
 
 describe("applicationPhaseResolvers", () => {
@@ -130,6 +131,7 @@ describe("applicationPhaseResolvers", () => {
         input: { applicationId: testApplicationId, phaseName: testPhaseId },
       });
       expect(skipConceptPhase).not.toHaveBeenCalled();
+      expect(declareCompletenessPhaseIncomplete).not.toHaveBeenCalled();
     });
 
     it("should use the skipConceptPhase method when getting a phase skip request for Concept", async () => {
@@ -144,6 +146,24 @@ describe("applicationPhaseResolvers", () => {
       expect(getApplication).not.toHaveBeenCalled();
       expect(completePhase).not.toHaveBeenCalled();
       expect(skipConceptPhase).toHaveBeenCalledExactlyOnceWith(undefined, {
+        applicationId: testApplicationId,
+      });
+      expect(declareCompletenessPhaseIncomplete).not.toHaveBeenCalled();
+    });
+
+    it("should use the declareCompletenessPhaseIncomplete method when getting an incompleteness request", async () => {
+      const testInput: SetApplicationPhaseStatusInput = {
+        applicationId: testApplicationId,
+        phaseName: "Completeness",
+        phaseStatus: "Incomplete",
+      };
+
+      await __setApplicationPhaseStatus(undefined, { input: testInput });
+      expect(mockUpsert).not.toHaveBeenCalled();
+      expect(getApplication).not.toHaveBeenCalled();
+      expect(completePhase).not.toHaveBeenCalled();
+      expect(skipConceptPhase).not.toHaveBeenCalled();
+      expect(declareCompletenessPhaseIncomplete).toHaveBeenCalledExactlyOnceWith(undefined, {
         applicationId: testApplicationId,
       });
     });

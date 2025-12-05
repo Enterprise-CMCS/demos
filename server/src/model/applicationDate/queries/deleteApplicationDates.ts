@@ -5,7 +5,7 @@ export async function deleteApplicationDates(
   parsedInputApplicationDates: ParsedSetApplicationDatesInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
-  const dateUpdateOperations = parsedInputApplicationDates.applicationDatesToDelete.map(
+  const dateDeleteOperations = parsedInputApplicationDates.applicationDatesToDelete.map(
     (dateToUpdate) => {
       return tx.applicationDate.delete({
         where: {
@@ -17,5 +17,5 @@ export async function deleteApplicationDates(
       });
     }
   );
-  await Promise.all(dateUpdateOperations);
+  await Promise.all(dateDeleteOperations);
 }

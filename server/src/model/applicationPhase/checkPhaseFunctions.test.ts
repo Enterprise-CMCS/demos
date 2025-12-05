@@ -5,10 +5,16 @@ import {
   checkConceptPhaseStartedBeforeSkipping,
   checkDocumentTypeExistsForCompletion,
   checkPhaseStartedBeforeCompletion,
+  checkPhaseStatus,
   checkPriorPhaseCompleteForCompletion,
 } from "./checkPhaseFunctions.js";
 import { ApplicationDateMap } from "../applicationDate/applicationDateTypes.js";
-import { ApplicationPhaseDocumentTypeRecord, ApplicationPhaseStatusRecord } from ".";
+import {
+  ApplicationPhaseDocumentTypeRecord,
+  ApplicationPhaseStatusRecord,
+  checkApplicationIntakeStatusForIncomplete,
+  checkCompletenessStatusForIncomplete,
+} from ".";
 import { TZDate } from "@date-fns/tz";
 
 describe("checkPhaseFunctions", () => {
@@ -17,6 +23,19 @@ describe("checkPhaseFunctions", () => {
   const testDateTypeToCheck: DateType = "Expected Approval Date";
   const testDocumentTypetoCheck: DocumentType = "Final BN Worksheet";
   const testPhaseToCheckComplete: PhaseNameWithTrackedStatus = "Application Intake";
+
+  describe("checkPhaseStatus", () => {
+    it("should throw the passed error message if the expected doesn't match", () => {
+      const testError = "Something is awry with your code!";
+      expect(() => checkPhaseStatus("Completed", "Not Started", testError)).toThrowError(testError);
+    });
+
+    it("should not throw if the statuses are the same", () => {
+      const testError = "Something is awry with your code!";
+
+      expect(() => checkPhaseStatus("Completed", "Completed", testError)).not.toThrowError();
+    });
+  });
 
   describe("checkPhaseStartedBeforeCompletion", () => {
     it("should throw if trying to complete a phase that has not been started", () => {
@@ -48,6 +67,42 @@ describe("checkPhaseFunctions", () => {
     it("should not throw if trying to skip the Concept phase when it is Started", () => {
       expect(() =>
         checkConceptPhaseStartedBeforeSkipping(testApplicationId, "Started")
+      ).not.toThrow();
+    });
+  });
+
+  describe("checkCompletenessStatusForIncomplete", () => {
+    it("should throw a proper message if Completeness phase is not Started", () => {
+      const expectedError =
+        `Completeness phase for application ${testApplicationId} ` +
+        `has status Not Started; cannot declare the Completeness phase ` +
+        `Incomplete unless Completeness has the status of Started.`;
+      expect(() =>
+        checkCompletenessStatusForIncomplete(testApplicationId, "Not Started")
+      ).toThrowError(expectedError);
+    });
+
+    it("should not throw if Completeness is Started", () => {
+      expect(() =>
+        checkCompletenessStatusForIncomplete(testApplicationId, "Started")
+      ).not.toThrow();
+    });
+  });
+
+  describe("checkApplicationIntakeStatusForIncomplete", () => {
+    it("should throw a proper message if Application Intake phase is not Completed", () => {
+      const expectedError =
+        `Application Intake phase for application ${testApplicationId} ` +
+        `has status Not Started; cannot declare the Completeness phase ` +
+        `Incomplete unless Application Intake has the status of Completed.`;
+      expect(() =>
+        checkApplicationIntakeStatusForIncomplete(testApplicationId, "Not Started")
+      ).toThrowError(expectedError);
+    });
+
+    it("should not throw if Application Intake is Completed", () => {
+      expect(() =>
+        checkApplicationIntakeStatusForIncomplete(testApplicationId, "Completed")
       ).not.toThrow();
     });
   });
