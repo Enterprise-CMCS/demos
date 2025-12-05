@@ -12,12 +12,12 @@
     "pino": "^10.1.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-ssm": "^3.932.0",
-    "@types/aws-lambda": "^8.10.158",
+    "@aws-sdk/client-ssm": "^3.943.0",
+    "@types/aws-lambda": "^8.10.159",
     "@types/nodemailer": "^7.0.4",
-    "@vitest/coverage-v8": "^4.0.10",
+    "@vitest/coverage-v8": "^4.0.15",
     "aws-sdk-client-mock": "^4.1.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.15"
   }
 }

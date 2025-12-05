@@ -8,11 +8,11 @@ vi.mock("../../dateUtilities.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../dateUtilities.js")>();
   return {
     ...actual,
-    getExpectedTimestampLabel: vi.fn(),
+    getDayBoundaryLabel: vi.fn(),
   };
 });
 
-import { getExpectedTimestampLabel } from "../../dateUtilities.js";
+import { getDayBoundaryLabel } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 
 describe("createPhaseStartDate", () => {
@@ -34,11 +34,11 @@ describe("createPhaseStartDate", () => {
   describe("when phase has a start date", () => {
     it("should create ApplicationDateInput with Start of Day timestamp", () => {
       const phaseId: PhaseNameWithTrackedStatus = "Concept";
-      vi.mocked(getExpectedTimestampLabel).mockReturnValue("Start of Day");
+      vi.mocked(getDayBoundaryLabel).mockReturnValue("Start of Day");
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
 
-      expect(getExpectedTimestampLabel).toHaveBeenCalledExactlyOnceWith(
+      expect(getDayBoundaryLabel).toHaveBeenCalledExactlyOnceWith(
         PHASE_START_END_DATES[phaseId].startDate
       );
       expect(result).toEqual({
@@ -49,11 +49,11 @@ describe("createPhaseStartDate", () => {
 
     it("should create ApplicationDateInput with End of Day timestamp", () => {
       const phaseId: PhaseNameWithTrackedStatus = "Application Intake";
-      vi.mocked(getExpectedTimestampLabel).mockReturnValue("End of Day");
+      vi.mocked(getDayBoundaryLabel).mockReturnValue("End of Day");
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
 
-      expect(getExpectedTimestampLabel).toHaveBeenCalledExactlyOnceWith(
+      expect(getDayBoundaryLabel).toHaveBeenCalledExactlyOnceWith(
         PHASE_START_END_DATES[phaseId].startDate
       );
       expect(result).toEqual({
@@ -65,14 +65,13 @@ describe("createPhaseStartDate", () => {
 
   describe("when phase has no start date", () => {
     it("should return null for phase without start date", () => {
-
       // post approval phase currently has no start date
       const phaseId = "Post Approval" as PhaseNameWithTrackedStatus;
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
 
       expect(result).toBeNull();
-      expect(getExpectedTimestampLabel).not.toHaveBeenCalled();
+      expect(getDayBoundaryLabel).not.toHaveBeenCalled();
     });
   });
 });
