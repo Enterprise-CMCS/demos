@@ -10,7 +10,7 @@ export {
 } from "./checkPhaseFunctions.js";
 export { checkPhaseCompletionRules } from "./checkPhaseCompletionRules.js";
 export { validatePhaseCompletion } from "./validatePhaseCompletion.js";
-export { startNextPhase } from "./startNextPhase.js";
+export { startPhase } from "./startPhase.js";
 export { completePhase } from "./completePhase.js";
 export { skipConceptPhase } from "./skipConceptPhase.js";
 export { declareCompletenessPhaseIncomplete } from "./declareCompletenessPhaseIncomplete.js";
