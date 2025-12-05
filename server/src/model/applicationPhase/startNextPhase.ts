@@ -2,16 +2,15 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { PhaseNameWithTrackedStatus } from "../../types.js";
 import { getApplicationPhaseStatus, updatePhaseStatus } from ".";
 
-export async function startNextPhase(
+export async function startPhase(
   applicationId: string,
-  nextPhaseName: PhaseNameWithTrackedStatus,
+  phaseName: PhaseNameWithTrackedStatus,
   tx: PrismaTransactionClient
 ): Promise<boolean> {
-  let result: boolean = false;
-  const nextPhaseStatus = await getApplicationPhaseStatus(applicationId, nextPhaseName, tx);
+  const nextPhaseStatus = await getApplicationPhaseStatus(applicationId, phaseName, tx);
   if (nextPhaseStatus === "Not Started") {
-    await updatePhaseStatus(applicationId, nextPhaseName, "Started", tx);
-    result = true;
+    await updatePhaseStatus(applicationId, phaseName, "Started", tx);
+    return true;
   }
-  return result;
+  return false;
 }

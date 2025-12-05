@@ -4,7 +4,8 @@ import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.j
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from ".";
-import { startPhaseOnDateUpdate } from "./startPhaseOnDateUpdate.js";
+import { startPhasesByDates } from "./startPhaseOnDateUpdate.js";
+import { getEasternNow } from "../../dateUtilities.js";
 
 export function __setApplicationDate(
   _: unknown,
@@ -31,18 +32,15 @@ export async function __setApplicationDates(
   }
   try {
     await prisma().$transaction(async (tx) => {
-      const phaseStartDates = await startPhaseOnDateUpdate(input, tx);
-
-      // put all generated dates in a map
-      const mergedDateMap = new Map(
-        phaseStartDates.map((phaseStartDate) => [phaseStartDate.dateType, phaseStartDate])
+      const easternNow = getEasternNow();
+      const phaseStartDates = await startPhasesByDates(
+        tx,
+        input.applicationId,
+        input.applicationDates,
+        easternNow
       );
-      // put all input dates in the map, overwriting any generated dates of the same type
-      input.applicationDates.forEach((inputDate) =>
-        mergedDateMap.set(inputDate.dateType, inputDate)
-      );
-      input.applicationDates = Array.from(mergedDateMap.values());
 
+      input.applicationDates.push(...phaseStartDates);
       await validateAndUpdateDates(input, tx);
     });
   } catch (error) {

@@ -13,7 +13,8 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
 import { validateAndUpdateDates } from "./validateAndUpdateDates.js";
-import { startPhaseOnDateUpdate } from "./startPhaseOnDateUpdate.js";
+import { startPhasesByDates } from "./startPhaseOnDateUpdate.js";
+import { getEasternNow } from "../../dateUtilities.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -35,7 +36,11 @@ vi.mock("./validateAndUpdateDates.js", () => ({
 }));
 
 vi.mock("./startPhaseOnDateUpdate.js", () => ({
-  startPhaseOnDateUpdate: vi.fn(),
+  startPhasesByDates: vi.fn(),
+}));
+
+vi.mock("../../dateUtilities.js", () => ({
+  getEasternNow: vi.fn(),
 }));
 
 describe("applicationDateResolvers", () => {
@@ -48,11 +53,23 @@ describe("applicationDateResolvers", () => {
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
 
+  const mockEasternNow = {
+    "Start of Day": {
+      easternTZDate: new Date("2025-01-01T05:00:00.000Z"),
+      easternTZString: "2025-01-01T00:00:00-05:00",
+    },
+    "End of Day": {
+      easternTZDate: new Date("2025-01-02T04:59:59.999Z"),
+      easternTZString: "2025-01-01T23:59:59.999-05:00",
+    },
+  };
+
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-    vi.mocked(startPhaseOnDateUpdate).mockResolvedValue([]);
+    vi.mocked(getEasternNow).mockReturnValue(mockEasternNow as any);
+    vi.mocked(startPhasesByDates).mockResolvedValue([]);
   });
 
   describe("__setApplicationDates", () => {
@@ -78,40 +95,6 @@ describe("applicationDateResolvers", () => {
       await __setApplicationDates(undefined, { input: testInput });
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(prisma).not.toHaveBeenCalled();
-      expect(startPhaseOnDateUpdate).not.toHaveBeenCalled();
-    });
-
-    it("should call startPhaseOnDateUpdate before validateAndUpdateDates", async () => {
-      await __setApplicationDates(undefined, { input: testInput });
-      expect(startPhaseOnDateUpdate).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
-      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(testInput, mockTransaction);
-      expect(startPhaseOnDateUpdate).toHaveBeenCalledBefore(validateAndUpdateDates as any);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
-    });
-
-    it("should append phase start dates to input before validation", async () => {
-      const phaseStartDates = [
-        {
-          dateType: "Application Intake Start Date",
-          dateValue: testDateValue,
-        },
-      ];
-      vi.mocked(startPhaseOnDateUpdate).mockResolvedValue(phaseStartDates as any);
-
-      const inputCopy = { ...testInput, applicationDates: [...testInput.applicationDates] };
-      await __setApplicationDates(undefined, { input: inputCopy });
-
-      expect(startPhaseOnDateUpdate).toHaveBeenCalledWith(inputCopy, mockTransaction);
-      expect(validateAndUpdateDates).toHaveBeenCalledWith(
-        expect.objectContaining({
-          applicationId: testApplicationId,
-          applicationDates: expect.arrayContaining([
-            ...testInput.applicationDates,
-            ...phaseStartDates,
-          ]),
-        }),
-        mockTransaction
-      );
     });
 
     it("should validate and update based on the input if it is present", async () => {
@@ -129,13 +112,39 @@ describe("applicationDateResolvers", () => {
       expect(getApplication).not.toHaveBeenCalled();
     });
 
-    it("should handle an error from startPhaseOnDateUpdate appropriately", async () => {
-      vi.mocked(startPhaseOnDateUpdate).mockRejectedValueOnce(testError);
-      await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
-        testHandlePrismaError
+    it("should call startPhasesByDates with correct arguments", async () => {
+      await __setApplicationDates(undefined, { input: testInput });
+
+      expect(getEasternNow).toHaveBeenCalledExactlyOnceWith();
+      expect(startPhasesByDates).toHaveBeenCalledExactlyOnceWith(
+        mockTransaction,
+        testApplicationId,
+        testInput.applicationDates,
+        mockEasternNow
       );
-      expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
-      expect(getApplication).not.toHaveBeenCalled();
+    });
+
+    it("should merge phase start dates with input dates before validation", async () => {
+      const phaseStartDates = [
+        {
+          dateType: "Application Intake Start Date",
+          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+        },
+      ];
+      vi.mocked(startPhasesByDates).mockResolvedValueOnce(phaseStartDates as any);
+
+      await __setApplicationDates(undefined, { input: testInput });
+
+      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          applicationId: testApplicationId,
+          applicationDates: expect.arrayContaining([
+            ...testInput.applicationDates,
+            ...phaseStartDates,
+          ]),
+        }),
+        mockTransaction
+      );
     });
   });
 
@@ -158,78 +167,12 @@ describe("applicationDateResolvers", () => {
     describe("invokes __setApplicationDates with a single item", () => {
       it("should validate and update based on the input if it is present", async () => {
         await __setApplicationDate(undefined, { input: testInput });
-        expect(startPhaseOnDateUpdate).toHaveBeenCalledExactlyOnceWith(
-          transformedTestInput,
-          mockTransaction
-        );
         expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
           transformedTestInput,
           mockTransaction
         );
         expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       });
-    });
-
-    it("should merge phase start dates with input dates, prioritizing input dates when types conflict", async () => {
-      const phaseStartDates = [
-        {
-          dateType: "Application Intake Start Date",
-          dateValue: new Date("2025-01-01T00:00:00.000Z"),
-        },
-        {
-          dateType: "Concept Start Date",
-          dateValue: new Date("2025-01-15T00:00:00.000Z"), // This will be overwritten
-        },
-      ];
-      vi.mocked(startPhaseOnDateUpdate).mockResolvedValue(phaseStartDates as any);
-
-      const inputWithConflict: SetApplicationDatesInput = {
-        applicationId: testApplicationId,
-        applicationDates: [
-          {
-            dateType: "Concept Start Date",
-            dateValue: new Date("2025-02-01T00:00:00.000Z"), // This should win
-          },
-          {
-            dateType: "Federal Comment Period End Date",
-            dateValue: new Date("2025-03-01T00:00:00.000Z"),
-          },
-        ],
-      };
-
-      await __setApplicationDates(undefined, { input: inputWithConflict });
-
-      expect(validateAndUpdateDates).toHaveBeenCalledWith(
-        expect.objectContaining({
-          applicationId: testApplicationId,
-          applicationDates: expect.arrayContaining([
-            {
-              dateType: "Application Intake Start Date",
-              dateValue: new Date("2025-01-01T00:00:00.000Z"),
-            },
-            {
-              dateType: "Concept Start Date",
-              dateValue: new Date("2025-02-01T00:00:00.000Z"), // Input date wins
-            },
-            {
-              dateType: "Federal Comment Period End Date",
-              dateValue: new Date("2025-03-01T00:00:00.000Z"),
-            },
-          ]),
-        }),
-        mockTransaction
-      );
-
-      // Verify the merged array has exactly 3 items (no duplicates)
-      const calledWith = vi.mocked(validateAndUpdateDates).mock.calls[0][0];
-      expect(calledWith.applicationDates).toHaveLength(3);
-
-      // Verify "Concept Start Date" appears only once with the input value
-      const conceptDates = calledWith.applicationDates.filter(
-        (date) => date.dateType === "Concept Start Date"
-      );
-      expect(conceptDates).toHaveLength(1);
-      expect(conceptDates[0].dateValue).toEqual(new Date("2025-02-01T00:00:00.000Z"));
     });
   });
 

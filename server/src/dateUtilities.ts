@@ -1,4 +1,5 @@
-import { DateTimeOrLocalDate, ExpectedTimestamp } from "./types.js";
+import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "./constants.js";
+import { DateTimeOrLocalDate, DateType, ExpectedTimestamp } from "./types.js";
 import { TZDate } from "@date-fns/tz";
 
 export type DateTimeParts = {
@@ -83,9 +84,14 @@ export function __getTodayEndOfDayEastern(): EasternTZDate {
   return easternNow;
 }
 
-export function getEasternNow(): Record<ExpectedTimestamp, EasternTZDate> {
+export type EasternNow = Record<ExpectedTimestamp, EasternTZDate>;
+export function getEasternNow(): EasternNow {
   return {
     "Start of Day": __getTodayStartOfDayEastern(),
     "End of Day": __getTodayEndOfDayEastern(),
   };
+}
+
+export function getExpectedTimestampLabel(dateType: DateType): ExpectedTimestamp {
+  return DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[dateType].expectedTimestamp;
 }

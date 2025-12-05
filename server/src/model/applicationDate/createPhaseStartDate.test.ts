@@ -1,69 +1,78 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createPhaseStartDate } from "./createPhaseStartDate";
-import { getEasternNow } from "../../dateUtilities";
-import { PhaseNameWithTrackedStatus } from "../../types";
+import { createPhaseStartDate } from "./createPhaseStartDate.js";
+import { EasternNow } from "../../dateUtilities.js";
+import { PhaseNameWithTrackedStatus } from "../../types.js";
+import { PHASE_START_END_DATES } from "../../constants.js";
+
+vi.mock("../../dateUtilities.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../dateUtilities.js")>();
+  return {
+    ...actual,
+    getExpectedTimestampLabel: vi.fn(),
+  };
+});
+
+import { getExpectedTimestampLabel } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 
-// Mock the dateUtilities module
-vi.mock("../../dateUtilities");
-
 describe("createPhaseStartDate", () => {
-  const mockStartOfDay = new TZDate("2025-01-15T00:00:00-05:00");
-  const mockEndOfDay = new TZDate("2025-01-15T23:59:59-05:00");
+  const mockEasternNow: EasternNow = {
+    "Start of Day": {
+      easternTZDate: new TZDate("2025-01-01T05:00:00.000Z"),
+      isEasternTZDate: true,
+    },
+    "End of Day": {
+      easternTZDate: new TZDate("2025-01-02T04:59:59.999Z"),
+      isEasternTZDate: true,
+    },
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
 
-    vi.mocked(getEasternNow).mockReturnValue({
-      "Start of Day": {
-        isEasternTZDate: true,
-        easternTZDate: mockStartOfDay,
-      },
-      "End of Day": {
-        isEasternTZDate: true,
-        easternTZDate: mockEndOfDay,
-      },
+  describe("when phase has a start date", () => {
+    it("should create ApplicationDateInput with Start of Day timestamp", () => {
+      const phaseId: PhaseNameWithTrackedStatus = "Concept";
+      vi.mocked(getExpectedTimestampLabel).mockReturnValue("Start of Day");
+
+      const result = createPhaseStartDate(phaseId, mockEasternNow);
+
+      expect(getExpectedTimestampLabel).toHaveBeenCalledExactlyOnceWith(
+        PHASE_START_END_DATES[phaseId].startDate
+      );
+      expect(result).toEqual({
+        dateType: PHASE_START_END_DATES[phaseId].startDate,
+        dateValue: mockEasternNow["Start of Day"].easternTZDate,
+      });
+    });
+
+    it("should create ApplicationDateInput with End of Day timestamp", () => {
+      const phaseId: PhaseNameWithTrackedStatus = "Application Intake";
+      vi.mocked(getExpectedTimestampLabel).mockReturnValue("End of Day");
+
+      const result = createPhaseStartDate(phaseId, mockEasternNow);
+
+      expect(getExpectedTimestampLabel).toHaveBeenCalledExactlyOnceWith(
+        PHASE_START_END_DATES[phaseId].startDate
+      );
+      expect(result).toEqual({
+        dateType: PHASE_START_END_DATES[phaseId].startDate,
+        dateValue: mockEasternNow["End of Day"].easternTZDate,
+      });
     });
   });
 
-  it("should return undefined for phases without a start date", () => {
-    const phaseId: PhaseNameWithTrackedStatus = "Post Approval";
+  describe("when phase has no start date", () => {
+    it("should return null for phase without start date", () => {
 
-    const result = createPhaseStartDate(phaseId);
+      // post approval phase currently has no start date
+      const phaseId = "Post Approval" as PhaseNameWithTrackedStatus;
 
-    expect(result).toBeUndefined();
-  });
+      const result = createPhaseStartDate(phaseId, mockEasternNow);
 
-  it("should create Start Date for applicable Phase", () => {
-    const phaseId: PhaseNameWithTrackedStatus = "Application Intake";
-
-    const result = createPhaseStartDate(phaseId);
-
-    expect(getEasternNow).toHaveBeenCalled();
-    expect(result).toEqual({
-      dateType: "Application Intake Start Date",
-      dateValue: mockStartOfDay,
+      expect(result).toBeNull();
+      expect(getExpectedTimestampLabel).not.toHaveBeenCalled();
     });
-  });
-
-  it("should use Start of Day timestamp for all start dates", () => {
-    const phases: PhaseNameWithTrackedStatus[] = [
-      "Concept",
-      "Application Intake",
-      "Completeness",
-      "Federal Comment",
-      "SDG Preparation",
-      "Review",
-      "Approval Package",
-    ];
-
-    for (const phaseId of phases) {
-      const result = createPhaseStartDate(phaseId);
-      expect(result?.dateValue).toEqual(mockStartOfDay);
-    }
-
-    const postApprovalPhase: PhaseNameWithTrackedStatus = "Post Approval";
-    const postApprovalResult = createPhaseStartDate(postApprovalPhase);
-    expect(postApprovalResult).toBeUndefined();
   });
 });

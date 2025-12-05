@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { startNextPhase } from "./startNextPhase.js";
+import { startPhase } from "./startNextPhase.js";
 import { PhaseNameWithTrackedStatus } from "../../types.js";
 
 // Mock imports
@@ -22,7 +22,7 @@ describe("startNextPhase", () => {
   it("should pull the status and update it if it is Not Started", async () => {
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Not Started");
 
-    const result = await startNextPhase(testApplicationId, testPhaseName, mockTransaction);
+    const result = await startPhase(testApplicationId, testPhaseName, mockTransaction);
 
     expect(result).toEqual(true);
     expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(
@@ -41,7 +41,7 @@ describe("startNextPhase", () => {
   it("should do nothing if the phase is a status other than Not Started", async () => {
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Completed");
 
-    const result = await startNextPhase(testApplicationId, testPhaseName, mockTransaction);
+    const result = await startPhase(testApplicationId, testPhaseName, mockTransaction);
 
     expect(result).toEqual(false);
     expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(

@@ -311,12 +311,11 @@ export const PHASE_DOCUMENT_TYPE_MAP = {
   "Post Approval": POST_APPROVAL_PHASE_DOCUMENTS,
 };
 
-type PhaseMetaDateRecord = Record<
+type PhaseStartEndDateRecord = Record<
   PhaseNameWithTrackedStatus,
   { startDate?: DateType; endDate?: DateType }
 >;
-
-export const PHASE_META_DATES: PhaseMetaDateRecord = {
+export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
   Concept: { startDate: "Concept Start Date", endDate: "Concept Completion Date" },
   "Application Intake": {
     startDate: "Application Intake Start Date",
