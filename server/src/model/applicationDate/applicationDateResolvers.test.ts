@@ -112,6 +112,45 @@ describe("applicationDateResolvers", () => {
       expect(getApplication).not.toHaveBeenCalled();
     });
 
+    it("should throw an error if you pass in the same dateType more than once", async () => {
+      const testInput: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Concept Start Date",
+            dateValue: testDateValue,
+          },
+          {
+            dateType: "Concept Start Date",
+            dateValue: testDateValue,
+          },
+          {
+            dateType: "Concept Completion Date",
+            dateValue: testDateValue,
+          },
+          {
+            dateType: "Concept Completion Date",
+            dateValue: null,
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: testDateValue,
+          },
+        ],
+      };
+
+      await expect(__setApplicationDates(undefined, { input: testInput })).rejects.toThrowError(
+        testHandlePrismaError
+      );
+      expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(
+        new Error(
+          "The input contained the same dateType more than once for " +
+            "these dateTypes: Concept Start Date, Concept Completion Date."
+        )
+      );
+      expect(getApplication).not.toHaveBeenCalled();
+    });
+
     it("should call startPhasesByDates with correct arguments", async () => {
       await __setApplicationDates(undefined, { input: testInput });
 
