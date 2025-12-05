@@ -43,7 +43,7 @@ export const determineDeploymentConfig = async (
     isLocalstack: process.env.CDK_DEFAULT_ACCOUNT == "000000000000",
   };
 
-  const isEphemeral = !["dev", "test", "prod"].includes(stage);
+  const isEphemeral = !["dev", "test", "impl", "prod"].includes(stage);
   const hostEnvironment = !isEphemeral ? stage : hostEnv ?? "dev";
   const hostUserPoolId = isEphemeral ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`) : undefined;
 

@@ -9,6 +9,7 @@ const alertIcons = [
   Icons.InfoIcon,
   Icons.FailIcon,
   Icons.NullIcon,
+  Icons.AlertIcon,
 ];
 const inputIcons = [
   Icons.SearchIcon,
