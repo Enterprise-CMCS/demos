@@ -598,7 +598,7 @@ async function seedDatabase() {
     await __updateExtension(undefined, updateInput);
   }
 
-  // await seedDocuments();
+  await seedDocuments();
   console.log("🌱 Seeding events (with and without applicationIds)...");
 
   // Grab some applications for association
