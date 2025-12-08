@@ -18,7 +18,7 @@ import { findUserById } from "../user/queries/findUserById.js";
 import { handleDeleteDocument } from "./handleDeleteDocument.js";
 import { getEasternNow } from "../../dateUtilities.js";
 import { validateAndUpdateDates } from "../applicationDate/validateAndUpdateDates.js";
-import { startPhaseByDocument } from "./startPhaseByDocument.js";
+import { startPhaseByPhaseName } from "../applicationPhase/startPhaseByPhaseName.js";
 
 export async function getDocument(
   parent: unknown,
@@ -51,10 +51,10 @@ export async function uploadDocument(
     const userId = context.user.id;
     return await prisma().$transaction(async (tx) => {
       const easternNow = getEasternNow();
-      const phaseStartDate = await startPhaseByDocument(
+      const phaseStartDate = await startPhaseByPhaseName(
         tx,
         input.applicationId,
-        input.documentType,
+        input.phaseName,
         easternNow
       );
 

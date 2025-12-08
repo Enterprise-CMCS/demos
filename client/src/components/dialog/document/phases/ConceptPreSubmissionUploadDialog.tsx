@@ -25,6 +25,7 @@ export const ConceptPreSubmissionUploadDialog: React.FC<Props> = ({
       titleOverride="Pre-Submission Document"
       onDocumentUploadSucceeded={onDocumentUploadSucceeded}
       refetchQueries={[DEMONSTRATION_DETAIL_QUERY]}
+      phaseName="Concept"
     />
   );
 };

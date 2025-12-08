@@ -1,8 +1,8 @@
 import { PrismaTransactionClient } from "../../prismaClient";
 import { PhaseNameWithTrackedStatus } from "../../types";
-import { ApplicationDateInput } from "./applicationDateSchema";
-import { startPhase } from "../applicationPhase";
-import { createPhaseStartDate } from "./createPhaseStartDate";
+import { ApplicationDateInput } from "../applicationDate/applicationDateSchema";
+import { startPhase } from ".";
+import { createPhaseStartDate } from "../applicationDate/createPhaseStartDate";
 import { EasternNow } from "../../dateUtilities";
 import { getOrderedPhaseDateTypes } from "../phaseDateType/queries/getOrderedPhaseDateTypes";
 

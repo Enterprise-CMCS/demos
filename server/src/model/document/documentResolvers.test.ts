@@ -58,8 +58,8 @@ vi.mock("../../dateUtilities.js", () => ({
   getEasternNow: vi.fn(),
 }));
 
-vi.mock("./startPhaseByDocument.js", () => ({
-  startPhaseByDocument: vi.fn(),
+vi.mock("../applicationPhase/startPhaseByPhaseName.js", () => ({
+  startPhaseByPhaseName: vi.fn(),
 }));
 
 vi.mock("../applicationDate/validateAndUpdateDates.js", () => ({
@@ -76,10 +76,10 @@ import { findUserById } from "../user/queries/findUserById.js";
 import { handleDeleteDocument } from "./handleDeleteDocument.js";
 import { getApplication } from "../application/applicationResolvers.js";
 import { EasternNow, getEasternNow } from "../../dateUtilities.js";
-import { startPhaseByDocument } from "./startPhaseByDocument.js";
 import { validateAndUpdateDates } from "../applicationDate/validateAndUpdateDates.js";
 import { TZDate } from "@date-fns/tz";
 import { ApplicationDateInput } from "../applicationDate/applicationDateSchema.js";
+import { startPhaseByPhaseName } from "../applicationPhase/startPhaseByPhaseName.js";
 
 describe("documentResolvers", () => {
   const mockTransaction = "mockTransaction" as any;
@@ -229,18 +229,18 @@ describe("documentResolvers", () => {
       expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
     });
 
-    it("should call startPhaseByDocument with correct parameters", async () => {
+    it("should call startPhaseByPhaseName with correct parameters", async () => {
       vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
       vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
+      vi.mocked(startPhaseByPhaseName).mockResolvedValue(null);
 
       await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
 
       expect(getEasternNow).toHaveBeenCalledOnce();
-      expect(startPhaseByDocument).toHaveBeenCalledExactlyOnceWith(
+      expect(startPhaseByPhaseName).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         testApplicationId,
-        "State Application",
+        "Concept",
         mockEasternNow
       );
     });
@@ -248,7 +248,7 @@ describe("documentResolvers", () => {
     it("should call validateAndUpdateDates when phase start date is returned", async () => {
       vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
       vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(mockPhaseStartDate);
+      vi.mocked(startPhaseByPhaseName).mockResolvedValue(mockPhaseStartDate);
       vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
 
       await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
@@ -265,7 +265,7 @@ describe("documentResolvers", () => {
     it("should not call validateAndUpdateDates when phase start date is null", async () => {
       vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
       vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
+      vi.mocked(startPhaseByPhaseName).mockResolvedValue(null);
 
       await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
 
