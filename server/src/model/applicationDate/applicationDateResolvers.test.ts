@@ -13,6 +13,8 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getApplication } from "../application/applicationResolvers.js";
 import { validateAndUpdateDates } from "./validateAndUpdateDates.js";
+import { startPhasesByDates } from "./startPhasesByDates.js";
+import { getEasternNow } from "../../dateUtilities.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -33,6 +35,14 @@ vi.mock("./validateAndUpdateDates.js", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
+vi.mock("./startPhasesByDates.js", () => ({
+  startPhasesByDates: vi.fn(),
+}));
+
+vi.mock("../../dateUtilities.js", () => ({
+  getEasternNow: vi.fn(),
+}));
+
 describe("applicationDateResolvers", () => {
   const mockTransaction: any = "Test";
   const mockPrismaClient = {
@@ -43,10 +53,23 @@ describe("applicationDateResolvers", () => {
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
 
+  const mockEasternNow = {
+    "Start of Day": {
+      easternTZDate: new Date("2025-01-01T05:00:00.000Z"),
+      easternTZString: "2025-01-01T00:00:00-05:00",
+    },
+    "End of Day": {
+      easternTZDate: new Date("2025-01-02T04:59:59.999Z"),
+      easternTZString: "2025-01-01T23:59:59.999-05:00",
+    },
+  };
+
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    vi.mocked(getEasternNow).mockReturnValue(mockEasternNow as any);
+    vi.mocked(startPhasesByDates).mockResolvedValue([]);
   });
 
   describe("__setApplicationDates", () => {
@@ -87,6 +110,41 @@ describe("applicationDateResolvers", () => {
       );
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
       expect(getApplication).not.toHaveBeenCalled();
+    });
+
+    it("should call startPhasesByDates with correct arguments", async () => {
+      await __setApplicationDates(undefined, { input: testInput });
+
+      expect(getEasternNow).toHaveBeenCalledExactlyOnceWith();
+      expect(startPhasesByDates).toHaveBeenCalledExactlyOnceWith(
+        mockTransaction,
+        testApplicationId,
+        testInput.applicationDates,
+        mockEasternNow
+      );
+    });
+
+    it("should merge phase start dates with input dates before validation", async () => {
+      const phaseStartDates = [
+        {
+          dateType: "Application Intake Start Date",
+          dateValue: new Date("2025-01-15T00:00:00.000Z"),
+        },
+      ];
+      vi.mocked(startPhasesByDates).mockResolvedValueOnce(phaseStartDates as any);
+
+      await __setApplicationDates(undefined, { input: testInput });
+
+      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          applicationId: testApplicationId,
+          applicationDates: expect.arrayContaining([
+            ...testInput.applicationDates,
+            ...phaseStartDates,
+          ]),
+        }),
+        mockTransaction
+      );
     });
   });
 
