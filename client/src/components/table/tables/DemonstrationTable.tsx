@@ -60,6 +60,19 @@ const getSubRows = (
   ];
 };
 
+// Apply default sort to incoming demonstrations: first by state ID, then by name
+const applyDefaultSort = (demonstrations: Demonstration[]): Demonstration[] => {
+  return [...demonstrations].sort((a, b) => {
+    // First sort by state ID
+    const stateComparison = a.state.id.localeCompare(b.state.id);
+    if (stateComparison !== 0) {
+      return stateComparison;
+    }
+    // Then sort by name
+    return a.name.localeCompare(b.name);
+  });
+};
+
 export const DemonstrationTable: React.FC<{
   demonstrations: Demonstration[];
   projectOfficerOptions: Pick<Person, "fullName">[];
@@ -72,12 +85,13 @@ export const DemonstrationTable: React.FC<{
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
 }) => {
   const demonstrationColumns = DemonstrationColumns(projectOfficerOptions);
+  const sortedDemonstrations = applyDefaultSort(demonstrations);
 
   return (
     <div className="flex flex-col gap-[24px]">
       {demonstrationColumns && (
         <Table<GenericDemonstrationTableRow>
-          data={demonstrations.map((demonstration) => ({
+          data={sortedDemonstrations.map((demonstration) => ({
             ...demonstration,
             type: "demonstration",
           }))}
