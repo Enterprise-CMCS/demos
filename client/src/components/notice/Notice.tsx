@@ -5,8 +5,12 @@ import { tw } from "tags/tw";
 
 export type NoticeVariant = "info" | "success" | "warning" | "error";
 
-const COMMON_CLASSES = tw`bg-white text-text-font flex
-  items-center gap-2 border-l-[10px] border px-1 py-1 text-sm w-1/2
+const COMMON_CLASSES = tw`flex items-center gap-2 px-1 py-1 text-sm
+bg-white text-text-font border-l-[10px] border
+`;
+
+const DISMISS_BUTTON_CLASSES = tw`flex  items-center h-4 pr-1
+border-l border-border-rules pl-2 text-text-placeholder cursor-pointer
 `;
 
 const VARIANT_TO_CLASSNAME: Record<NoticeVariant, string> = {
@@ -52,9 +56,7 @@ export const Notice: React.FC<NoticeProps> = ({
         <button
           type="button"
           onClick={onDismiss}
-          className="flex h-4 pr-1 items-center border-l border-border-rules pl-2
-          text-text-placeholder transition-colors hover:text-text-font focus:outline-none
-          focus:ring-2 focus:ring-action-focus focus:ring-offset-2"
+          className={DISMISS_BUTTON_CLASSES}
           aria-label="Dismiss notice"
         >
           <ExitIcon />

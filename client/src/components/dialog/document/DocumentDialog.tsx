@@ -11,8 +11,11 @@ import { Document, DocumentType } from "demos-server";
 import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
+import { Notice } from "components/notice";
 
 type DocumentDialogType = "add" | "edit";
+
+type DocumentDialogState = "idle" | "uploading" | "unknown-error" | "virus-scan-failed";
 
 const STYLES = {
   label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
@@ -44,20 +47,14 @@ const MAX_FILENAME_DISPLAY_LENGTH = 60;
 const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
   missingField: "A required field is missing.",
+  failedUploadUnknownProblem: "Your document could not be added because of an unknown problem.",
+  failedEditUnknownIssue: "Your changes could not be saved because of an unknown problem.",
 };
 const SUCCESS_MESSAGES = {
   fileUploaded: "Your document has been added.",
   fileUpdated: "Your document has been updated.",
   fileDeleted: "Your document has been removed.",
 };
-
-const getErrorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : "An unknown error occurred.";
-
-const unknownErrorText = (mode: DocumentDialogType) =>
-  mode === "edit"
-    ? "Your changes could not be saved because of an unknown problem."
-    : "Your document could not be added because of an unknown problem.";
 
 const abbreviateLongFilename = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
@@ -216,6 +213,43 @@ const DropTarget: React.FC<{
   );
 };
 
+const DocumentDialogNotice = ({
+  documentDialogState,
+  setDocumentDialogState,
+}: {
+  documentDialogState: DocumentDialogState;
+  setDocumentDialogState: (state: DocumentDialogState) => void;
+}) => {
+  const clearDialogState = () => setDocumentDialogState("idle");
+
+  switch (documentDialogState) {
+    case "unknown-error":
+      return (
+        <div className="px-2 py-1">
+          <Notice
+            title="An Error has occurred"
+            description={ERROR_MESSAGES.failedUploadUnknownProblem}
+            variant="error"
+            onDismiss={clearDialogState}
+          />
+        </div>
+      );
+    case "virus-scan-failed":
+      return (
+        <div className="px-2 py-1">
+          <Notice
+            title="An Error has occurred"
+            description="Document appears to be corrupted; upload a new file."
+            variant="error"
+            onDismiss={clearDialogState}
+          />
+        </div>
+      );
+    default:
+      return null;
+  }
+};
+
 export type DocumentDialogFields = Pick<Document, "id" | "name" | "description"> & {
   file: File | null;
 } & { documentType: DocumentType };
@@ -263,8 +297,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     initialDocument || setDefaultDocumentType(DEFAULT_DOCUMENT_FIELDS, documentTypeSubset)
   );
 
+  const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
-  const [isSubmitting, setSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -286,14 +320,12 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
-  const isUploading = uploadStatus === "uploading";
-
   const missingType = !activeDocument.documentType;
   const missingFile = !file;
   const isMissing = missingType || missingFile;
 
   const onUploadClick = async () => {
-    if (isUploading || isSubmitting) return;
+    if (documentDialogState === "uploading") return;
     if (isMissing) {
       showError(ERROR_MESSAGES.missingField);
       return;
@@ -302,19 +334,18 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   };
 
   const handleUpload = async () => {
-    try {
-      setSubmitting(true);
+    setDocumentDialogState("uploading");
 
+    try {
       if (onSubmit) {
         await onSubmit(activeDocument);
       }
 
       showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
       onClose();
-    } catch (error: unknown) {
-      showError(getErrorMessage(error) || unknownErrorText(mode));
-    } finally {
-      setSubmitting(false);
+      setDocumentDialogState("idle");
+    } catch {
+      setDocumentDialogState("unknown-error");
     }
   };
 
@@ -338,8 +369,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             size="small"
             onClick={onUploadClick}
             aria-label="Upload Document"
-            aria-disabled={isMissing || isUploading || isSubmitting ? "true" : "false"}
-            disabled={isMissing || isUploading || isSubmitting}
+            aria-disabled={isMissing || documentDialogState === "uploading" ? "true" : "false"}
+            disabled={isMissing || documentDialogState === "uploading"}
           >
             Upload
           </Button>
@@ -353,6 +384,11 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
         uploadStatus={uploadStatus}
         uploadProgress={uploadProgress}
         handleFileChange={handleFileChange}
+      />
+
+      <DocumentDialogNotice
+        documentDialogState={documentDialogState}
+        setDocumentDialogState={setDocumentDialogState}
       />
 
       <TitleInput
