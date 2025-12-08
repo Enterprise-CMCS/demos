@@ -2,7 +2,11 @@ import React from "react";
 import { gql, useLazyQuery, useMutation, useApolloClient } from "@apollo/client";
 
 import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
-import { DocumentDialog, DocumentDialogFields } from "components/dialog/document/DocumentDialog";
+import {
+  DocumentDialog,
+  DocumentDialogFields,
+  DocumentDialogState,
+} from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
 import { DOCUMENT_UPLOADED_MESSAGE } from "util/messages";
 
@@ -23,7 +27,7 @@ export const DOCUMENT_EXISTS_QUERY = gql`
 
 export const VIRUS_SCAN_MAX_ATTEMPTS = 10;
 export const DOCUMENT_POLL_INTERVAL_MS = 2_000;
-const LOCALHOST_URL_PREFIX = "http://localhost";
+const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
 
 /**
  * @internal - Exported for testing only
@@ -78,7 +82,10 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     fetchPolicy: "network-only",
   });
 
-  const waitForVirusScan = async (documentId: string): Promise<void> => {
+  const waitForVirusScan = async (
+    documentId: string,
+    setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
+  ): Promise<void> => {
     for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
       const { data } = await checkDocumentExists({
         variables: { documentId },
@@ -91,6 +98,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       await new Promise((resolve) => setTimeout(resolve, DOCUMENT_POLL_INTERVAL_MS));
     }
 
+    setDocumentDialogState("virus-scan-failed");
     throw new Error("Waiting for virus scan timed out");
   };
 
@@ -102,7 +110,10 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     }
   };
 
-  const handleUpload = async (dialogFields: DocumentDialogFields): Promise<void> => {
+  const handleUpload = async (
+    dialogFields: DocumentDialogFields,
+    setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
+  ): Promise<void> => {
     if (!dialogFields.file) {
       showError("Please select a file to upload.");
       return;
@@ -130,7 +141,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     }
 
     // Local development mode - skip S3 upload and virus scan
-    if (uploadResult.presignedURL.startsWith(LOCALHOST_URL_PREFIX)) {
+    if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
       await handleDocumentUploadSucceeded();
       return;
     }
@@ -144,7 +155,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error(response.errorMessage);
     }
 
-    await waitForVirusScan(uploadResult.documentId);
+    await waitForVirusScan(uploadResult.documentId, setDocumentDialogState);
     await handleDocumentUploadSucceeded();
   };
 

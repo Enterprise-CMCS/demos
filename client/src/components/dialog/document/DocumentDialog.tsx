@@ -15,7 +15,7 @@ import { Notice } from "components/notice";
 
 type DocumentDialogType = "add" | "edit";
 
-type DocumentDialogState = "idle" | "uploading" | "unknown-error" | "virus-scan-failed";
+export type DocumentDialogState = "idle" | "uploading" | "unknown-error" | "virus-scan-failed";
 
 const STYLES = {
   label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
@@ -266,7 +266,10 @@ export type DocumentDialogProps = {
   onClose?: () => void;
   mode: DocumentDialogType;
   documentTypeSubset?: DocumentType[];
-  onSubmit?: (dialogFields: DocumentDialogFields) => Promise<void>;
+  onSubmit?: (
+    dialogFields: DocumentDialogFields,
+    setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
+  ) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
 };
@@ -338,7 +341,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
     try {
       if (onSubmit) {
-        await onSubmit(activeDocument);
+        await onSubmit(activeDocument, setDocumentDialogState);
       }
 
       showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
