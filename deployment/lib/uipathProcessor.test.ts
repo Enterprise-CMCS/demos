@@ -12,10 +12,12 @@ const mockProps: DeploymentConfigProperties = {
   zScalerIps: ["0.0.0.0"],
   hostEnvironment: "dev",
   cloudfrontHost: "unittest.demos.com",
+  srrConfigured: false,
 };
 
 describe("UiPathProcessor construct", () => {
   it("synthesizes queue, DLQ, and lambda", () => {
+    process.env.UIPATH_SKIP_BUNDLING = "true";
     const app = new App();
     const stack = new Stack(app, "uiPathProcessorTest");
 

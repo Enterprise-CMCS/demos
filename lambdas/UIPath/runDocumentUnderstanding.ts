@@ -21,7 +21,7 @@ export async function runDocumentUnderstanding(
   const {
     token: providedToken,
     pollIntervalMs = 3000,
-    maxAttempts = 5000,
+    maxAttempts = 500, // Just to put SOME kinda limit on it. DO not want it just running FOREVER!
     logFullResult = true,
   } = options;
 
@@ -35,7 +35,6 @@ export async function runDocumentUnderstanding(
   log.info({ resultUrl }, "Started extraction.");
 
   let attempt = 0;
-  console.log(attempt < maxAttempts);
   while (attempt < maxAttempts) {
     await sleep(pollIntervalMs);
     const status = await fetchExtractionResult(token, resultUrl);
@@ -52,4 +51,6 @@ export async function runDocumentUnderstanding(
     log.info({ status, attempt, pollIntervalMs }, "Extraction still running");
     attempt += 1;
   }
+
+  throw new Error("UiPath extraction did not succeed within the configured attempts.");
 }

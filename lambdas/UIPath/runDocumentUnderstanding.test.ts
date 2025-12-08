@@ -68,11 +68,12 @@ describe("runDocumentUnderstanding", () => {
     fetchExtractionResultMock.mockResolvedValue({ status: "Pending" });
 
     const promise = runDocumentUnderstanding("file.pdf", {
-      pollIntervalMs: 1,
+      pollIntervalMs: 10,
       maxAttempts: 2,
     });
 
+    const expectation = expect(promise).rejects.toThrow("did not succeed");
     await vi.runAllTimersAsync();
-    await expect(promise).rejects.toThrow("did not succeed");
+    await expectation;
   });
 });
