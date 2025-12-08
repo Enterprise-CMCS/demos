@@ -3,3 +3,4 @@ node_modules/
 .venv/
 uipath.log
 *.pdf
+uipath.zip
