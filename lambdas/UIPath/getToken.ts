@@ -35,18 +35,13 @@ async function getCredentials(): Promise<UiPathCredentials> {
       throw new Error("UiPath secret is missing a SecretString value.");
     }
 
-    try {
-      const parsedSecret = JSON.parse(secretString);
-      const clientId = parsedSecret.clientId ?? parsedSecret.UIPATH_CLIENT_ID;
-      console.log('clientId', clientId);
-      const clientSecret =
-        parsedSecret.clientSecret ?? parsedSecret.client_secret ?? parsedSecret.UIPATH_CLIENT_SECRET;
-      console.log('clientSecret', clientSecret ? clientSecret.substring(0, 5) : "NO SECRET!");
-      if (clientId && clientSecret) {
-        return { clientId, clientSecret };
-      }
-    } catch {
-      // fall through to error below
+    const parsedSecret = JSON.parse(secretString);
+    const clientId = parsedSecret.clientId ?? parsedSecret.UIPATH_CLIENT_ID;
+    const clientSecret =
+      parsedSecret.clientSecret ?? parsedSecret.client_secret ?? parsedSecret.UIPATH_CLIENT_SECRET;
+
+    if (clientId && clientSecret) {
+      return { clientId, clientSecret };
     }
 
     throw new Error("UiPath secret must contain clientId/clientSecret fields.");

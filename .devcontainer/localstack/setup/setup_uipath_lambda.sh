@@ -9,10 +9,11 @@ AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 
 QUEUE_NAME="uipath-queue"
 LAMBDA_NAME="uipath"
-SECRET_NAME=${UIPATH_SECRET_NAME:-"uipath-credentials"}
-UIPATH_PROJECT_ID=${UIPATH_PROJECT_ID:-"local-project-id"}
-UIPATH_EXTRACTOR_GUID=${UIPATH_EXTRACTOR_GUID:-"local-extractor-guid"}
-UIPATH_CLIENT_ID_VALUE=${UIPATH_CLIENT_ID_VALUE:-"local-uipath-client-id"}
+UIPATH_SECRET_ID=${UIPATH_SECRET_ID:-"uipath-credentials"}
+UIPATH_PROJECT_ID=${UIPATH_PROJECT_ID:-"00000000-0000-0000-0000-000000000000"} # pragma: allowlist secret
+
+UIPATH_EXTRACTOR_GUID=${UIPATH_EXTRACTOR_GUID:-""}
+UIPATH_CLIENT_ID=${UIPATH_CLIENT_ID:-""}
 LOG_LEVEL=${LOG_LEVEL:-"info"}
 
 # Build Lambda package
@@ -34,8 +35,7 @@ npx esbuild index.ts \
   --external:dotenv \
   --outfile=index.js
 
-zip -qr uipath.zip index.js node_modules/ package.json package-lock.json
-
+zip -qr uipath.zip index.js node_modules/ package.json package-lock.json ak-behavioral-health-demo-pa.pdf
 
 # Clean up build artifacts
 rm index.js index.js.map
@@ -56,8 +56,8 @@ $AWS_CMD lambda create-function \
     --environment "Variables={
         AWS_REGION=$AWS_REGION,
         AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
-        UIPATH_SECRET_ID=$SECRET_NAME,
-        UIPATH_CLIENT_ID=$UIPATH_CLIENT_ID_VALUE,
+        UIPATH_SECRET_ID=$UIPATH_SECRET_ID,
+        UIPATH_CLIENT_ID=$UIPATH_CLIENT_ID,
         UIPATH_PROJECT_ID=$UIPATH_PROJECT_ID,
         UIPATH_EXTRACTOR_GUID=$UIPATH_EXTRACTOR_GUID,
         LOG_LEVEL=$LOG_LEVEL
