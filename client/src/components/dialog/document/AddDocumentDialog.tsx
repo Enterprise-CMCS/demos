@@ -27,7 +27,7 @@ export const DOCUMENT_EXISTS_QUERY = gql`
 
 export const VIRUS_SCAN_MAX_ATTEMPTS = 10;
 export const DOCUMENT_POLL_INTERVAL_MS = 2_000;
-const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
+export const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
 
 /**
  * @internal - Exported for testing only
