@@ -10,6 +10,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import {
   AddDocumentDialog,
   DOCUMENT_POLL_INTERVAL_MS,
+  LOCAL_UPLOAD_PREFIX,
   tryUploadingFileToS3,
   VIRUS_SCAN_MAX_ATTEMPTS,
 } from "./AddDocumentDialog";
@@ -342,7 +343,7 @@ describe("virus scan polling", () => {
     mockMutationFn.mockResolvedValue({
       data: {
         uploadDocument: {
-          presignedURL: "http://localhost:4566/test-bucket/test-file",
+          presignedURL: LOCAL_UPLOAD_PREFIX + "/test-file",
           documentId: "test-doc-id",
         },
       },
