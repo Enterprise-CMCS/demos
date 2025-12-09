@@ -164,9 +164,9 @@ describe("applicationResolvers", () => {
           extension: true,
         },
       };
-      const result = getManyApplications(testDemonstrationApplicationTypeId);
+      const result = await getManyApplications(testDemonstrationApplicationTypeId);
       expect(regularMocks.application.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-      expect(result).resolves.toStrictEqual([]);
+      expect(result).toEqual([]);
     });
   });
 

@@ -10,6 +10,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import {
   AddDocumentDialog,
   DOCUMENT_POLL_INTERVAL_MS,
+  LOCAL_UPLOAD_PREFIX,
   tryUploadingFileToS3,
   VIRUS_SCAN_MAX_ATTEMPTS,
 } from "./AddDocumentDialog";
@@ -70,11 +71,7 @@ describe("AddDocumentDialog", () => {
   it("shows cancel confirmation dialog when cancel is clicked", () => {
     setup();
     fireEvent.click(screen.getByText("Cancel"));
-    expect(
-      screen.getByText(
-        "Are you sure you want to cancel? Changes you have made so far will not be saved."
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText("You will lose any unsaved changes in this view.")).toBeInTheDocument();
   });
 
   it("has disabled button in edit when file is missing", () => {
@@ -112,7 +109,7 @@ describe("AddDocumentDialog", () => {
   it("calls onClose when confirming cancel", async () => {
     const { onClose } = setup();
     fireEvent.click(screen.getByText("Cancel"));
-    fireEvent.click(screen.getByText("Yes"));
+    fireEvent.click(screen.getByTestId("button-cc-dialog-discard"));
 
     await waitFor(() => {
       expect(onClose).toHaveBeenCalled();
@@ -346,7 +343,7 @@ describe("virus scan polling", () => {
     mockMutationFn.mockResolvedValue({
       data: {
         uploadDocument: {
-          presignedURL: "http://localhost:4566/test-bucket/test-file",
+          presignedURL: LOCAL_UPLOAD_PREFIX + "/test-file",
           documentId: "test-doc-id",
         },
       },
