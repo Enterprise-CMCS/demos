@@ -8,7 +8,6 @@ import {
   DocumentDialogState,
 } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
-import { DOCUMENT_UPLOADED_MESSAGE } from "util/messages";
 
 export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
@@ -74,7 +73,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   phaseName = "None",
   onDocumentUploadSucceeded,
 }) => {
-  const { showError, showSuccess } = useToast();
+  const { showError } = useToast();
   const client = useApolloClient();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
 
@@ -103,7 +102,6 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   };
 
   const handleDocumentUploadSucceeded = async (): Promise<void> => {
-    showSuccess(DOCUMENT_UPLOADED_MESSAGE);
     onDocumentUploadSucceeded?.();
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
