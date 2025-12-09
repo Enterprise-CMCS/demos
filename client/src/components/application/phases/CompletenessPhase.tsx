@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Button, SecondaryButton } from "components/button";
+import { SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForServer } from "util/formatDate";
@@ -15,8 +15,7 @@ import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { DateType, SetApplicationDateInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
-import { useSetApplicationDate } from "components/application/date/dateQueries";
-import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
+import { SAVE_FOR_LATER_MESSAGE } from "util/messages";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -122,7 +121,6 @@ export const CompletenessPhase = ({
   fedCommentComplete,
   stateDeemedCompleteDate,
   applicationCompletenessDocument,
-  hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
@@ -137,14 +135,6 @@ export const CompletenessPhase = ({
   const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(
     applicationCompletenessDocument
   );
-
-  const { setApplicationDate } = useSetApplicationDate();
-
-  const { setPhaseStatus: completeCompletenessPhase } = useSetPhaseStatus({
-    applicationId: applicationId,
-    phaseName: "Completeness",
-    phaseStatus: "Completed",
-  });
 
   const { setPhaseStatus: setCompletenessIncompleted } = useSetPhaseStatus({
     applicationId: applicationId,
@@ -171,39 +161,6 @@ export const CompletenessPhase = ({
     setFederalEndDate(nextEnd);
   }, [stateDeemedComplete]);
 
-  const finishIsEnabled = () => {
-    const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
-    const datesAreValid =
-      federalStartDate && federalEndDate
-        ? true
-        : new Date(federalStartDate) <= new Date(federalEndDate);
-
-    return completenessDocs.length > 0 && datesFilled && datesAreValid;
-  };
-
-  const getDateValues = (): Partial<Record<CompletenessPhaseDateType, string>> => {
-    return {
-      ...(stateDeemedComplete && { "State Application Deemed Complete": stateDeemedComplete }),
-      ...(federalStartDate && { "Federal Comment Period Start Date": federalStartDate }),
-      ...(federalEndDate && { "Federal Comment Period End Date": federalEndDate }),
-      ...(hasApplicationIntakeCompletionDate &&
-        stateDeemedComplete && { "Completeness Completion Date": stateDeemedComplete }),
-    };
-  };
-
-  const saveDates = async () => {
-    const inputs = getInputsForCompletenessPhase(applicationId, getDateValues());
-
-    try {
-      for (const input of inputs) {
-        await setApplicationDate(input);
-      }
-    } catch (error) {
-      showError(error instanceof Error ? error.message : String(error));
-      console.error("Error saving Phase: ", error);
-    }
-  };
-
   const handleDeclareIncomplete = async () => {
     showDeclareIncompleteDialog(async () => {
       try {
@@ -213,17 +170,6 @@ export const CompletenessPhase = ({
         showError(error instanceof Error ? error.message : String(error));
       }
     });
-  };
-
-  const handleFinishCompleteness = async () => {
-    await saveDates();
-    await completeCompletenessPhase();
-    showSuccess(getPhaseCompletedMessage("Completeness"));
-  };
-
-  const handleSaveForLater = async () => {
-    await saveDates();
-    showSuccess(SAVE_FOR_LATER_MESSAGE);
   };
 
   const UploadSection = () => (
@@ -313,19 +259,6 @@ export const CompletenessPhase = ({
         <SecondaryButton name="declare-incomplete" size="small" onClick={handleDeclareIncomplete}>
           Declare Incomplete
         </SecondaryButton>
-        <div className={STYLES.actionsEnd}>
-          <SecondaryButton name="save-for-later" size="small" onClick={handleSaveForLater}>
-            Save For Later
-          </SecondaryButton>
-          <Button
-            name="finish-completeness"
-            size="small"
-            disabled={!finishIsEnabled()}
-            onClick={handleFinishCompleteness}
-          >
-            Finish
-          </Button>
-        </div>
       </div>
     </div>
   );
