@@ -82,12 +82,10 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
           <div className="flex flex-col">
             <DatePicker
               label="OGC Approval To Share with SMEs"
-              id="datepicker-ogc-approval-to-share-date"
               name="datepicker-ogc-approval-to-share-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.ogcApprovalToShareDate || ""}
-              required
-              onValueChange={(val) =>
+              value={reviewPhaseFormData.ogcApprovalToShareDate}
+              isRequired
+              onChange={(val) =>
                 setReviewPhaseFormData({
                   ...reviewPhaseFormData,
                   ogcApprovalToShareDate: val,
@@ -99,12 +97,10 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
           <div className="flex flex-col">
             <DatePicker
               label="Draft Approval Package to Prep"
-              id="datepicker-draft-approval-package-to-prep-date"
               name="datepicker-draft-approval-package-to-prep-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.draftApprovalPackageToPrepDate || ""}
-              required
-              onValueChange={(val) =>
+              value={reviewPhaseFormData.draftApprovalPackageToPrepDate}
+              isRequired
+              onChange={(val) =>
                 setReviewPhaseFormData({
                   ...reviewPhaseFormData,
                   draftApprovalPackageToPrepDate: val,
@@ -116,12 +112,10 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
           <div className="flex flex-col">
             <DatePicker
               label="DDME Approval Received"
-              id="datepicker-ddme-approval-received-date"
               name="datepicker-ddme-approval-received-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.ddmeApprovalReceivedDate || ""}
-              required
-              onValueChange={(val) =>
+              value={reviewPhaseFormData.ddmeApprovalReceivedDate}
+              isRequired
+              onChange={(val) =>
                 setReviewPhaseFormData({
                   ...reviewPhaseFormData,
                   ddmeApprovalReceivedDate: val,
@@ -133,12 +127,10 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
           <div className="flex flex-col">
             <DatePicker
               label="State Concurrence"
-              id="datepicker-state-concurrence-date"
               name="datepicker-state-concurrence-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.stateConcurrenceDate || ""}
-              required
-              onValueChange={(val) =>
+              value={reviewPhaseFormData.stateConcurrenceDate}
+              isRequired
+              onChange={(val) =>
                 setReviewPhaseFormData({
                   ...reviewPhaseFormData,
                   stateConcurrenceDate: val,
@@ -172,12 +164,10 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
           <div className="flex flex-col">
             <DatePicker
               label="BN PMT Approval Received"
-              id="datepicker-bn-pmt-approval-received-date"
               name="datepicker-bn-pmt-approval-received-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.bnPmtApprovalReceivedDate || ""}
-              required
-              onValueChange={(val) =>
+              value={reviewPhaseFormData.bnPmtApprovalReceivedDate}
+              isRequired
+              onChange={(val) =>
                 setReviewPhaseFormData({
                   ...reviewPhaseFormData,
                   bnPmtApprovalReceivedDate: val,
@@ -189,12 +179,10 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
           <div className="flex flex-col">
             <DatePicker
               label="Draft Approval Package Shared"
-              id="datepicker-draft-approval-package-shared-date"
               name="datepicker-draft-approval-package-shared-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.draftApprovalPackageSharedDate || ""}
-              required
-              onValueChange={(val) =>
+              value={reviewPhaseFormData.draftApprovalPackageSharedDate}
+              isRequired
+              onChange={(val) =>
                 setReviewPhaseFormData({
                   ...reviewPhaseFormData,
                   draftApprovalPackageSharedDate: val,
@@ -206,12 +194,10 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
           <div className="flex flex-col">
             <DatePicker
               label="Receive OMB Concurrence"
-              id="datepicker-receive-omb-concurrence-date"
               name="datepicker-receive-omb-concurrence-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.receiveOMBConcurrenceDate || ""}
-              required
-              onValueChange={(val) =>
+              value={reviewPhaseFormData.receiveOMBConcurrenceDate}
+              isRequired
+              onChange={(val) =>
                 setReviewPhaseFormData({
                   ...reviewPhaseFormData,
                   receiveOMBConcurrenceDate: val,
@@ -223,12 +209,10 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
           <div className="flex flex-col">
             <DatePicker
               label="Receive OGC Legal Clearance"
-              id="datepicker-receive-ogc-legal-clearance-date"
               name="datepicker-receive-ogc-legal-clearance-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.receiveOGCLegalClearanceDate || ""}
-              required
-              onValueChange={(val) =>
+              value={reviewPhaseFormData.receiveOGCLegalClearanceDate}
+              isRequired
+              onChange={(val) =>
                 setReviewPhaseFormData({
                   ...reviewPhaseFormData,
                   receiveOGCLegalClearanceDate: val,
