@@ -4,7 +4,7 @@ import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
-import { startPhase, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
+import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
 export async function completePhase(
@@ -35,7 +35,7 @@ export async function completePhase(
       });
 
       if (phaseActions.nextPhase) {
-        const nextPhaseWasStarted = await startPhase(
+        const nextPhaseWasStarted = await setPhaseToStarted(
           input.applicationId,
           phaseActions.nextPhase.phaseName,
           tx

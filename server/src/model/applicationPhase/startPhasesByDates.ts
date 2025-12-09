@@ -1,10 +1,9 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { PhaseNameWithTrackedStatus } from "../../types";
-import { ApplicationDateInput } from "./applicationDateSchema";
-import { startPhase } from "../applicationPhase";
-import { createPhaseStartDate } from "./createPhaseStartDate";
+import { PhaseNameWithTrackedStatus, ApplicationDateInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
-import { getOrderedPhaseDateTypes } from "../phaseDateType/queries/getOrderedPhaseDateTypes";
+import { createPhaseStartDate } from "../applicationDate";
+import { getOrderedPhaseDateTypes } from "../phaseDateType";
+import { setPhaseToStarted } from ".";
 
 export async function startPhasesByDates(
   tx: PrismaTransactionClient,
@@ -34,7 +33,7 @@ export async function startPhasesByDates(
 
     // casting constrained by database
     const phaseId = phase.phaseId as PhaseNameWithTrackedStatus;
-    const phaseStarted = await startPhase(applicationId, phaseId, tx);
+    const phaseStarted = await setPhaseToStarted(applicationId, phaseId, tx);
     if (phaseStarted) {
       const startDateForPhase = createPhaseStartDate(phaseId, easternNow);
 
