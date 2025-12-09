@@ -19,7 +19,7 @@ export class UiPathProcessor extends Construct {
     super(scope, id);
 
 
-    const lambdaPath = "../lambdas/UIPath/index.ts"
+    const lambdaPath = "../lambdas/UIPath/";
     // this might be not best practices, but bundle for Tests.
     const skipBundling = process.env.UIPATH_SKIP_BUNDLING === "true";
     const removalPolicy = props.removalPolicy ?? RemovalPolicy.DESTROY;
@@ -65,7 +65,7 @@ export class UiPathProcessor extends Construct {
     const uipathLambda = new lambda.Lambda(this, "Lambda", {
       ...props,
       scope: this,
-      entry: "../lambdas/UIPath/index.ts",
+      entry: lambdaPath + "index.ts",
       handler: "handler",
       timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
       asCode: skipBundling, // skip bundling when requested (I am not sure why i need this)
