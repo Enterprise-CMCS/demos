@@ -1,5 +1,9 @@
 import { PhaseNameWithTrackedStatus } from "../../types.js";
-import { ParsedApplicationDateInput, makeApplicationDateMapFromList } from "../applicationDate";
+import {
+  ParsedApplicationDateInput,
+  makeApplicationDateMapFromList,
+  checkInputDateGreaterThanOrEqual,
+} from "../applicationDate";
 import {
   ApplicationPhaseDocumentTypeRecord,
   ApplicationPhaseStatusRecord,
@@ -17,7 +21,10 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
     phasesMustBeComplete: [],
   },
   "Application Intake": {
-    datesMustExist: ["State Application Submitted Date", "Completeness Review Due Date"],
+    datesMustExist: [
+      "State Application Submitted Date",
+      "Completeness Review Due Date",
+    ],
     documentTypesMustExist: ["State Application"],
     phasesMustBeComplete: [],
   },
@@ -42,9 +49,31 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "BNPMT Initial Meeting Date",
     ],
     documentTypesMustExist: [],
-    phasesMustBeComplete: ["Application Intake", "Completeness", "Federal Comment"],
+    phasesMustBeComplete: [
+      "Application Intake",
+      "Completeness",
+      "Federal Comment",
+    ],
   },
-  Review: "Not Implemented",
+  Review: {
+    datesMustExist: [
+      "OGC Approval to Share with SMEs",
+      "Draft Approval Package to Prep",
+      "DDME Approval Received",
+      "State Concurrence",
+      "BN PMT Approval to Send to OMB",
+      "Draft Approval Package Shared",
+      "Receive OMB Concurrence",
+      "Receive OGC Legal Clearance",
+    ],
+    documentTypesMustExist: [],
+    phasesMustBeComplete: [
+      "Application Intake",
+      "Completeness",
+      "Federal Comment",
+      "SDG Preparation",
+    ],
+  },
   "Approval Package": {
     datesMustExist: [],
     documentTypesMustExist: [
@@ -71,19 +100,21 @@ export function checkPhaseCompletionRules(
   phaseToValidate: PhaseNameWithTrackedStatus,
   applicationDates: ParsedApplicationDateInput[],
   applicationDocumentTypes: ApplicationPhaseDocumentTypeRecord,
-  applicationPhases: ApplicationPhaseStatusRecord
+  applicationPhases: ApplicationPhaseStatusRecord,
 ): void {
   const validationChecks = VALIDATION_CHECKS[phaseToValidate];
   if (validationChecks === "No Validation") {
     return;
   } else if (validationChecks === "Not Implemented") {
-    throw new Error(`Validation of the ${phaseToValidate} phase via API is not yet implemented.`);
+    throw new Error(
+      `Validation of the ${phaseToValidate} phase via API is not yet implemented.`,
+    );
   }
 
   checkPhaseStartedBeforeCompletion(
     applicationId,
     phaseToValidate,
-    applicationPhases[phaseToValidate]
+    applicationPhases[phaseToValidate],
   );
 
   const applicationDateMap = makeApplicationDateMapFromList(applicationDates);
@@ -97,7 +128,7 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         dateToCheck,
-        applicationDateMap
+        applicationDateMap,
       );
     }
   }
@@ -108,7 +139,7 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         documentTypeToCheck,
-        applicationDocumentTypes
+        applicationDocumentTypes,
       );
     }
   }
@@ -119,8 +150,31 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         phaseToCheckComplete,
-        applicationPhases
+        applicationPhases,
       );
+    }
+  }
+
+  // Special validation for Review phase: Review Completion Date must be >= Review Start Date
+  if (phaseToValidate === "Review") {
+    const reviewStartDate = applicationDateMap.get("Review Start Date");
+    const reviewCompletionDate = applicationDateMap.get(
+      "Review Completion Date",
+    );
+
+    if (reviewStartDate && reviewCompletionDate) {
+      try {
+        checkInputDateGreaterThanOrEqual(
+          applicationDateMap,
+          "Review Completion Date",
+          "Review Start Date",
+        );
+      } catch (error) {
+        throw new Error(
+          `Review phase for application ${applicationId} requires Review Completion Date ` +
+            `to be greater than or equal to Review Start Date. ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
   }
 }
