@@ -1,7 +1,7 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from ".";
 import { startPhasesByDates } from "./startPhasesByDates.js";

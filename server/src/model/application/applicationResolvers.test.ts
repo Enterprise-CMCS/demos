@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, expectTypeOf } from "vitest";
+import { PrismaApplication } from ".";
 import {
   getApplication,
   getManyApplications,
@@ -8,7 +9,6 @@ import {
   resolveApplicationStatus,
   __resolveApplicationType,
   resolveApplicationPhases,
-  PrismaApplication,
 } from "./applicationResolvers.js";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types.js";
 

@@ -5,10 +5,7 @@ import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
-import {
-  getApplication,
-  PrismaApplication,
-} from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application";
 import type {
   UpdateDocumentInput,
   UploadDocumentInput,
@@ -28,10 +25,7 @@ async function getDocument(parent: unknown, { id }: { id: string }) {
 export const documentResolvers = {
   Query: {
     document: getDocument,
-    documentExists: async (
-      _: unknown,
-      { documentId }: { documentId: string },
-    ) => {
+    documentExists: async (_: unknown, { documentId }: { documentId: string }) => {
       const document = await prisma().document.findUnique({
         where: { id: documentId },
       });
@@ -45,11 +39,11 @@ export const documentResolvers = {
     uploadDocument: async (
       parent: unknown,
       { input }: { input: UploadDocumentInput },
-      context: GraphQLContext,
+      context: GraphQLContext
     ): Promise<UploadDocumentResponse> => {
       if (context.user === null) {
         throw new Error(
-          "The GraphQL context does not have user information. Are you properly authenticated?",
+          "The GraphQL context does not have user information. Are you properly authenticated?"
         );
       }
       // Looks for localstack pre-signed and does a simplified upload flow
@@ -70,31 +64,25 @@ export const documentResolvers = {
           },
         });
 
-        const fakePresignedUrl = await s3Adapter.getPresignedUploadUrl(
-          document.id,
-        );
+        const fakePresignedUrl = await s3Adapter.getPresignedUploadUrl(document.id);
         log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
         return {
           presignedURL: fakePresignedUrl,
           documentId: document.id,
         };
       }
-      const documentPendingUpload = await prisma().documentPendingUpload.create(
-        {
-          data: {
-            name: input.name,
-            description: input.description ?? "",
-            ownerUserId: context.user.id,
-            documentTypeId: input.documentType,
-            applicationId: input.applicationId,
-            phaseId: input.phaseName,
-          },
+      const documentPendingUpload = await prisma().documentPendingUpload.create({
+        data: {
+          name: input.name,
+          description: input.description ?? "",
+          ownerUserId: context.user.id,
+          documentTypeId: input.documentType,
+          applicationId: input.applicationId,
+          phaseId: input.phaseName,
         },
-      );
+      });
 
-      const presignedURL = await s3Adapter.getPresignedUploadUrl(
-        documentPendingUpload.id,
-      );
+      const presignedURL = await s3Adapter.getPresignedUploadUrl(documentPendingUpload.id);
       return {
         presignedURL,
         documentId: documentPendingUpload.id,
@@ -118,12 +106,9 @@ export const documentResolvers = {
 
     updateDocument: async (
       _: unknown,
-      { id, input }: { id: string; input: UpdateDocumentInput },
+      { id, input }: { id: string; input: UpdateDocumentInput }
     ): Promise<PrismaDocument> => {
-      checkOptionalNotNullFields(
-        ["name", "documentType", "applicationId", "phaseName"],
-        input,
-      );
+      checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
       try {
         return await prisma().document.update({
           where: { id: id },

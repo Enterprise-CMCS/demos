@@ -1,5 +1,6 @@
 import { prisma } from "../../prismaClient.js";
 import { GraphQLError } from "graphql";
+import { PrismaApplication } from ".";
 import { ApplicationType } from "../../types.js";
 import {
   Demonstration as PrismaDemonstration,
@@ -9,8 +10,6 @@ import {
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-
-export type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
 
 type FindApplicationQueryResult = {
   id: string;

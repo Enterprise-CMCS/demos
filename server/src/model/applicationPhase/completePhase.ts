@@ -1,7 +1,7 @@
 import { CompletePhaseInput, ApplicationDateInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
 import { startPhase, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
