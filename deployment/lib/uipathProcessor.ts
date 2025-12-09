@@ -52,7 +52,7 @@ export class UiPathProcessor extends Construct {
     const clientSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "UiPathClientSecret",
-      `demos-dev/uipath`
+      `demos-${props.hostEnvironment}/uipath`
     );
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
