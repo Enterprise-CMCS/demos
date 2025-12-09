@@ -1,5 +1,6 @@
 import { Construct } from "constructs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { aws_secretsmanager, Duration, RemovalPolicy, aws_sqs as sqs } from "aws-cdk-lib";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambda from "./lambda";
@@ -18,10 +19,10 @@ export class UiPathProcessor extends Construct {
   constructor(scope: Construct, id: string, props: UiPathProcessorProps) {
     super(scope, id);
 
+
     const lambdaPath = path.join(__dirname, "..", "..", "lambdas", "UIPath");
     // this might be not best practices, but bundle for Tests.
     const skipBundling = process.env.UIPATH_SKIP_BUNDLING === "true";
-    const entryPath = skipBundling ? lambdaPath : path.join(lambdaPath, "index.ts");
     const removalPolicy = props.removalPolicy ?? RemovalPolicy.DESTROY;
 
     const queueKey =
@@ -65,7 +66,7 @@ export class UiPathProcessor extends Construct {
     const uipathLambda = new lambda.Lambda(this, "Lambda", {
       ...props,
       scope: this,
-      entry: entryPath,
+      entry: "../lambdas/UIPath/index.ts",
       handler: "handler",
       timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
       asCode: skipBundling, // skip bundling when requested (I am not sure why i need this)
