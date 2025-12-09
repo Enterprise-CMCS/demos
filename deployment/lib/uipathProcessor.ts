@@ -67,7 +67,6 @@ export class UiPathProcessor extends Construct {
       timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
       asCode: false,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["pg", "pino", "axios", "form-data", "pino-pretty"],
       environment: {
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
