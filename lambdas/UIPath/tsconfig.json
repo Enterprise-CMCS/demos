@@ -2,10 +2,7 @@
   "compilerOptions": {
     "types": ["node", "vitest/globals"],
     "esModuleInterop": true,
-    "target": "ES2023",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true
+    "target": "es2023",
+    "moduleResolution":"bundler",
   },
 }
