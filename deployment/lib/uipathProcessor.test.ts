@@ -2,6 +2,7 @@ import { App, RemovalPolicy, Stack } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { UiPathProcessor } from "./uipathProcessor";
 import { DeploymentConfigProperties } from "../config";
+import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
 
 const mockProps: DeploymentConfigProperties = {
   project: "demos",
@@ -17,8 +18,13 @@ const mockProps: DeploymentConfigProperties = {
 
 describe("UiPathProcessor construct", () => {
   it("synthesizes queue, DLQ, and lambda", () => {
-    process.env.UIPATH_SKIP_BUNDLING = "true";
-    const app = new App();
+    const app = new App({
+      context: {
+        // 👇 Disable bundling for ALL stacks in this test run
+        [BUNDLING_STACKS]: [],
+      },
+    });
+
     const stack = new Stack(app, "uiPathProcessorTest");
 
     new UiPathProcessor(stack, "UiPathProcessor", {
@@ -27,8 +33,12 @@ describe("UiPathProcessor construct", () => {
     });
 
     const template = Template.fromStack(stack);
+
     template.resourceCountIs("AWS::SQS::Queue", 2);
     template.resourceCountIs("AWS::Lambda::Function", 1);
-    template.hasResourceProperties("AWS::Lambda::Function", Match.objectLike({}));
+    template.hasResourceProperties(
+      "AWS::Lambda::Function",
+      Match.objectLike({})
+    );
   });
 });

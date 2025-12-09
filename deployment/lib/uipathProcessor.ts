@@ -1,5 +1,4 @@
 import { Construct } from "constructs";
-import path from "node:path";
 import { aws_secretsmanager, Duration, RemovalPolicy, aws_sqs as sqs } from "aws-cdk-lib";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambda from "./lambda";
@@ -20,8 +19,6 @@ export class UiPathProcessor extends Construct {
 
 
     const lambdaPath = "../lambdas/UIPath/";
-    // this might be not best practices, but bundle for Tests.
-    const skipBundling = process.env.UIPATH_SKIP_BUNDLING === "true";
     const removalPolicy = props.removalPolicy ?? RemovalPolicy.DESTROY;
 
     const queueKey =
@@ -68,9 +65,10 @@ export class UiPathProcessor extends Construct {
       entry: lambdaPath + "index.ts",
       handler: "handler",
       timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
-      asCode: skipBundling, // skip bundling when requested (I am not sure why i need this)
-      externalModules: skipBundling ? undefined : ["aws-sdk"],
-      depsLockFilePath: skipBundling ? undefined : path.join(lambdaPath, "package-lock.json"),
+      asCode: false,
+      externalModules: ["@aws-sdk"],
+      nodeModules: ["pg", "pino"],
+      depsLockFilePath: "../lambdas/UIPath/package-lock.json",
       environment: {
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
