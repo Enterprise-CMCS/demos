@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { skipConceptPhase } from "./skipConceptPhase.js";
+import { TZDate } from "@date-fns/tz";
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
@@ -12,7 +13,6 @@ import {
   updatePhaseStatus,
 } from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
-import { TZDate } from "@date-fns/tz";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),

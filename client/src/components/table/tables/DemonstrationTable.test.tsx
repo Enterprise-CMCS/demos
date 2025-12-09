@@ -128,6 +128,35 @@ describe("Demonstrations", () => {
       expectDemonstrationResults();
     });
 
+    it("applies default sort order by state then by name", () => {
+      const rows = screen.getAllByRole("row");
+      // Filter to get only demonstration rows (skip header row)
+      const demoRows = rows.filter((row) => {
+        const cells = within(row).queryAllByRole("cell");
+        return cells.length > 0;
+      });
+
+      // Extract state and title from each row
+      const rowData = demoRows.map((row) => {
+        const cells = within(row).getAllByRole("cell");
+        // Assuming state is in column 1 and title is in column 2 (after select column)
+        const stateCell = cells[1];
+        const titleCell = cells[2];
+        return {
+          state: stateCell.textContent,
+          title: titleCell.textContent,
+        };
+      });
+
+      // Verify the order: FL, MT, TX (alphabetically by state)
+      expect(rowData[0].state).toBe("FL");
+      expect(rowData[0].title).toBe("Florida Health Innovation");
+      expect(rowData[1].state).toBe("MT");
+      expect(rowData[1].title).toBe("Montana Medicaid Waiver");
+      expect(rowData[2].state).toBe("TX");
+      expect(rowData[2].title).toBe("Texas Reform Initiative");
+    });
+
     it("renders table columns correctly", () => {
       const headers = screen.getAllByRole("columnheader");
       expect(headers).toHaveLength(8);
@@ -349,8 +378,8 @@ describe("Demonstrations", () => {
         name: "expand",
       });
       await user.click(expandButton);
-      expect(screen.getByText("Amendment 1 - Montana Medicaid Waiver")).toBeInTheDocument();
-      expect(screen.getByText("Extension 1 - Montana Medicaid Waiver")).toBeInTheDocument();
+      expect(screen.getByText("Amendment 4 - Florida Health Innovation")).toBeInTheDocument();
+      expect(screen.getByText("Amendment 5 - Florida Health Innovation")).toBeInTheDocument();
     });
 
     it("sorting applies only to demonstration records, not to nested amendments/extensions", async () => {
