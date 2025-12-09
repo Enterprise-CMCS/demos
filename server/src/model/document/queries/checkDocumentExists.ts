@@ -1,6 +1,6 @@
 import { PrismaTransactionClient } from "../../../prismaClient";
 
-export async function getDocumentExists(
+export async function checkDocumentExists(
   tx: PrismaTransactionClient,
   documentId: string
 ): Promise<boolean> {

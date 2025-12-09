@@ -15,8 +15,13 @@ import { getEasternNow } from "../../dateUtilities";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
-import { startPhaseByPhaseName } from "../applicationPhase";
-import { getDocumentExists, getDocumentById, updateDocumentMeta, handleDeleteDocument } from ".";
+import { startPhaseByDocument } from "../applicationPhase";
+import {
+  checkDocumentExists,
+  getDocumentById,
+  updateDocument as updateDocumentQuery,
+  handleDeleteDocument,
+} from ".";
 
 export async function getDocument(
   parent: unknown,
@@ -29,7 +34,7 @@ export async function getDocument(
 
 export async function documentExists(_: unknown, { documentId }: { documentId: string }) {
   return await prisma().$transaction(async (tx) => {
-    return getDocumentExists(tx, documentId);
+    return checkDocumentExists(tx, documentId);
   });
 }
 
@@ -49,12 +54,7 @@ export async function uploadDocument(
     const userId = context.user.id;
     return await prisma().$transaction(async (tx) => {
       const easternNow = getEasternNow();
-      const phaseStartDate = await startPhaseByPhaseName(
-        tx,
-        input.applicationId,
-        input.phaseName,
-        easternNow
-      );
+      const phaseStartDate = await startPhaseByDocument(tx, input.applicationId, input, easternNow);
 
       if (phaseStartDate) {
         await validateAndUpdateDates(
@@ -89,7 +89,7 @@ export async function updateDocument(
   checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
   try {
     return await prisma().$transaction(async (tx) => {
-      return await updateDocumentMeta(tx, id, input);
+      return await updateDocumentQuery(tx, id, input);
     });
   } catch (error) {
     handlePrismaError(error);

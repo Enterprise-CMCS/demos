@@ -5,14 +5,14 @@ import { EasternNow } from "../../dateUtilities";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getOrderedPhaseDateTypes, OrderedPhaseDateTypes } from "../phaseDateType";
 import { createPhaseStartDate } from "../applicationDate";
-import { startPhase, startPhasesByDates } from ".";
+import { setPhaseToStarted, startPhasesByDates } from ".";
 
 vi.mock("../phaseDateType", () => ({
   getOrderedPhaseDateTypes: vi.fn(),
 }));
 
-vi.mock("./startPhase", () => ({
-  startPhase: vi.fn(),
+vi.mock("./setPhaseToStarted", () => ({
+  setPhaseToStarted: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({
@@ -75,7 +75,7 @@ describe("startPhasesByDates", () => {
 
       expect(result).toEqual([]);
       expect(getOrderedPhaseDateTypes).not.toHaveBeenCalled();
-      expect(startPhase).not.toHaveBeenCalled();
+      expect(setPhaseToStarted).not.toHaveBeenCalled();
       expect(createPhaseStartDate).not.toHaveBeenCalled();
     });
 
@@ -86,7 +86,7 @@ describe("startPhasesByDates", () => {
           dateValue: new Date("2025-01-01T00:00:00.000Z"),
         },
       ];
-      vi.mocked(startPhase).mockResolvedValue(false);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
       await startPhasesByDates(
         mockTransaction,
@@ -112,7 +112,7 @@ describe("startPhasesByDates", () => {
         startPhasesByDates(mockTransaction, testApplicationId, applicationDates, mockEasternNow)
       ).rejects.toThrow("No phase found for date type Unknown Date Type");
 
-      expect(startPhase).not.toHaveBeenCalled();
+      expect(setPhaseToStarted).not.toHaveBeenCalled();
     });
 
     it("should find correct phase for each date type", async () => {
@@ -126,7 +126,7 @@ describe("startPhasesByDates", () => {
           dateValue: "2025-01-15" as LocalDate,
         },
       ];
-      vi.mocked(startPhase).mockResolvedValue(false);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
       await startPhasesByDates(
         mockTransaction,
@@ -135,12 +135,16 @@ describe("startPhasesByDates", () => {
         mockEasternNow
       );
 
-      expect(startPhase).toHaveBeenCalledWith(
+      expect(setPhaseToStarted).toHaveBeenCalledWith(
         testApplicationId,
         "Application Intake",
         mockTransaction
       );
-      expect(startPhase).toHaveBeenCalledWith(testApplicationId, "Completeness", mockTransaction);
+      expect(setPhaseToStarted).toHaveBeenCalledWith(
+        testApplicationId,
+        "Completeness",
+        mockTransaction
+      );
     });
   });
 
@@ -152,7 +156,7 @@ describe("startPhasesByDates", () => {
           dateValue: new Date("2025-01-01T00:00:00.000Z"),
         },
       ];
-      vi.mocked(startPhase).mockResolvedValue(false);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
       await startPhasesByDates(
         mockTransaction,
@@ -161,7 +165,7 @@ describe("startPhasesByDates", () => {
         mockEasternNow
       );
 
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
         mockTransaction
@@ -179,7 +183,7 @@ describe("startPhasesByDates", () => {
           dateValue: new Date("2025-01-15T00:00:00.000Z"),
         },
       ];
-      vi.mocked(startPhase).mockResolvedValue(false);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
       await startPhasesByDates(
         mockTransaction,
@@ -188,13 +192,17 @@ describe("startPhasesByDates", () => {
         mockEasternNow
       );
 
-      expect(startPhase).toHaveBeenCalledTimes(2);
-      expect(startPhase).toHaveBeenCalledWith(
+      expect(setPhaseToStarted).toHaveBeenCalledTimes(2);
+      expect(setPhaseToStarted).toHaveBeenCalledWith(
         testApplicationId,
         "Application Intake",
         mockTransaction
       );
-      expect(startPhase).toHaveBeenCalledWith(testApplicationId, "Completeness", mockTransaction);
+      expect(setPhaseToStarted).toHaveBeenCalledWith(
+        testApplicationId,
+        "Completeness",
+        mockTransaction
+      );
     });
   });
 
@@ -206,7 +214,7 @@ describe("startPhasesByDates", () => {
           dateValue: new Date("2025-01-01T00:00:00.000Z"),
         },
       ];
-      vi.mocked(startPhase).mockResolvedValue(false);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
       const result = await startPhasesByDates(
         mockTransaction,
@@ -230,7 +238,7 @@ describe("startPhasesByDates", () => {
         dateType: "Application Intake Start Date",
         dateValue: new Date("2025-01-01T00:00:00.000Z"),
       };
-      vi.mocked(startPhase).mockResolvedValue(true);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
 
       const result = await startPhasesByDates(
@@ -254,7 +262,7 @@ describe("startPhasesByDates", () => {
           dateValue: new Date("2025-01-15T00:00:00.000Z"),
         },
       ];
-      vi.mocked(startPhase).mockResolvedValue(true);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(null);
 
       const result = await startPhasesByDates(
@@ -280,7 +288,7 @@ describe("startPhasesByDates", () => {
         dateType: "Application Intake Start Date",
         dateValue: new Date("2025-01-01T05:00:00.000Z"),
       };
-      vi.mocked(startPhase).mockResolvedValue(true);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
 
       const result = await startPhasesByDates(
@@ -310,7 +318,7 @@ describe("startPhasesByDates", () => {
         dateType: "Application Intake Start Date",
         dateValue: new Date("2025-01-01T00:00:00.000Z"),
       };
-      vi.mocked(startPhase)
+      vi.mocked(setPhaseToStarted)
         .mockResolvedValueOnce(true) // Application Intake started
         .mockResolvedValueOnce(false); // Completeness not started
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
@@ -365,7 +373,7 @@ describe("startPhasesByDates", () => {
         dateType: "Completeness Review Due Date",
         dateValue: new Date("2025-01-16T00:00:00.000Z"),
       };
-      vi.mocked(startPhase).mockResolvedValue(true);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate)
         .mockReturnValueOnce(mockIntakeStartDate) // Same type as input
         .mockReturnValueOnce(mockCompletenessStartDate); // Same type as input
@@ -390,7 +398,7 @@ describe("startPhasesByDates", () => {
           dateValue: new Date("2025-01-01T00:00:00.000Z"),
         },
       ];
-      vi.mocked(startPhase).mockResolvedValue(false);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
       await startPhasesByDates(
         mockTransaction,
@@ -400,7 +408,7 @@ describe("startPhasesByDates", () => {
       );
 
       // Should use the first match (find returns first match)
-      expect(startPhase).toHaveBeenCalledWith(
+      expect(setPhaseToStarted).toHaveBeenCalledWith(
         testApplicationId,
         "Application Intake",
         mockTransaction
@@ -420,7 +428,7 @@ describe("startPhasesByDates", () => {
         dateType: "Application Intake Start Date",
         dateValue: new Date("2025-01-01T00:00:00.000Z"),
       };
-      vi.mocked(startPhase).mockResolvedValue(true);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
 
       const result = await startPhasesByDates(
@@ -452,7 +460,7 @@ describe("startPhasesByDates", () => {
           dateValue: new Date("2025-01-15T00:00:00.000Z"),
         },
       ];
-      vi.mocked(startPhase).mockResolvedValue(false);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
       const result = await startPhasesByDates(
         mockTransaction,
@@ -462,7 +470,7 @@ describe("startPhasesByDates", () => {
       );
 
       // startPhase should only be called once for the non-null date
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
         mockTransaction
@@ -490,7 +498,7 @@ describe("startPhasesByDates", () => {
         mockEasternNow
       );
 
-      expect(startPhase).not.toHaveBeenCalled();
+      expect(setPhaseToStarted).not.toHaveBeenCalled();
       expect(createPhaseStartDate).not.toHaveBeenCalled();
       expect(result).toEqual([]);
     });
@@ -514,7 +522,7 @@ describe("startPhasesByDates", () => {
         dateType: "Application Intake Start Date",
         dateValue: new Date("2025-01-01T00:00:00.000Z"),
       };
-      vi.mocked(startPhase).mockResolvedValue(true);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(true);
       vi.mocked(createPhaseStartDate).mockReturnValue(mockStartDate);
 
       const result = await startPhasesByDates(
@@ -525,7 +533,7 @@ describe("startPhasesByDates", () => {
       );
 
       // Only one call for the non-null date
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
         mockTransaction

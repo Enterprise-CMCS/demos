@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { updateDocumentMeta } from "../";
+import { updateDocument } from "../";
 import { UpdateDocumentInput } from "../../../types";
 
-describe("updateDocumentMeta", () => {
+describe("updateDocument", () => {
   const transactionMocks = {
     document: {
       update: vi.fn(),
@@ -27,18 +27,6 @@ describe("updateDocumentMeta", () => {
   });
 
   it("should update document metadata in the database", async () => {
-    // The mock return value is to support the return at the end
-    vi.mocked(transactionMocks.document.update).mockResolvedValue({
-      id: testDocumentId,
-      applicationId: testInput.applicationId,
-      documentTypeId: testInput.documentType,
-      s3Key: "s3-key-123",
-      uploadedBy: "user-123",
-      uploadedAt: new Date("2025-01-01T00:00:00.000Z"),
-      deletedBy: null,
-      deletedAt: null,
-      fileName: testInput.name,
-    });
     const expectedCall = {
       where: { id: testDocumentId },
       data: {
@@ -50,7 +38,7 @@ describe("updateDocumentMeta", () => {
       },
     };
 
-    await updateDocumentMeta(mockTransaction, testDocumentId, testInput);
+    await updateDocument(mockTransaction, testDocumentId, testInput);
     expect(transactionMocks.document.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 });

@@ -10,7 +10,7 @@ export async function createDocumentPendingUpload(
   return await tx.documentPendingUpload.create({
     data: {
       name: input.name,
-      description: input.description ?? "",
+      description: input.description,
       ownerUserId: ownerUserId,
       documentTypeId: input.documentType,
       applicationId: input.applicationId,

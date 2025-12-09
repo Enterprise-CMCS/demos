@@ -28,18 +28,6 @@ describe("createDocumentPendingUpload", () => {
   });
 
   it("should create document pending upload with all fields", async () => {
-    // The mock return value is to support the return at the end
-    vi.mocked(transactionMocks.documentPendingUpload.create).mockResolvedValue({
-      id: "pending-doc-123",
-      name: "test-document.pdf",
-      description: "Test document description",
-      ownerUserId: testUserId,
-      documentTypeId: "State Application",
-      applicationId: "app-123-456",
-      phaseId: "Concept",
-      createdAt: new Date("2025-01-01T00:00:00.000Z"),
-    });
-
     const expectedCall = {
       data: {
         name: "test-document.pdf",
@@ -57,55 +45,7 @@ describe("createDocumentPendingUpload", () => {
     );
   });
 
-  it("should default description to empty string when undefined", async () => {
-    const inputWithoutDescription: UploadDocumentInput = {
-      name: "test-document.pdf",
-      description: undefined,
-      documentType: "State Application",
-      applicationId: "app-123-456",
-      phaseName: "Concept",
-    };
-
-    vi.mocked(transactionMocks.documentPendingUpload.create).mockResolvedValue({
-      id: "pending-doc-123",
-      name: "test-document.pdf",
-      description: "",
-      ownerUserId: testUserId,
-      documentTypeId: "State Application",
-      applicationId: "app-123-456",
-      phaseId: "Concept",
-      createdAt: new Date("2025-01-01T00:00:00.000Z"),
-    });
-
-    const expectedCall = {
-      data: {
-        name: "test-document.pdf",
-        description: "",
-        ownerUserId: testUserId,
-        documentTypeId: "State Application",
-        applicationId: "app-123-456",
-        phaseId: "Concept",
-      },
-    };
-
-    await createDocumentPendingUpload(mockTransaction, inputWithoutDescription, testUserId);
-    expect(transactionMocks.documentPendingUpload.create).toHaveBeenCalledExactlyOnceWith(
-      expectedCall
-    );
-  });
-
   it("should map input fields to database fields correctly", async () => {
-    vi.mocked(transactionMocks.documentPendingUpload.create).mockResolvedValue({
-      id: "pending-doc-123",
-      name: testInput.name,
-      description: testInput.description,
-      ownerUserId: testUserId,
-      documentTypeId: testInput.documentType,
-      applicationId: testInput.applicationId,
-      phaseId: testInput.phaseName,
-      createdAt: new Date("2025-01-01T00:00:00.000Z"),
-    });
-
     await createDocumentPendingUpload(mockTransaction, testInput, testUserId);
 
     const createCall = vi.mocked(transactionMocks.documentPendingUpload.create).mock.calls[0][0];

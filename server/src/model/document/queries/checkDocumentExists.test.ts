@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getDocumentExists } from "../";
+import { checkDocumentExists } from "..";
 
-describe("getDocumentExists", () => {
+describe("checkDocumentExists", () => {
   const transactionMocks = {
     document: {
       findUnique: vi.fn(),
@@ -19,23 +19,11 @@ describe("getDocumentExists", () => {
   });
 
   it("should check if document exists by id in the database", async () => {
-    // The mock return value is to support the return at the end
-    vi.mocked(transactionMocks.document.findUnique).mockResolvedValue({
-      id: testDocumentId,
-      applicationId: "app-123-456",
-      documentTypeId: "State Application",
-      s3Key: "s3-key-123",
-      uploadedBy: "user-123",
-      uploadedAt: new Date("2025-01-01T00:00:00.000Z"),
-      deletedBy: null,
-      deletedAt: null,
-      fileName: "test-document.pdf",
-    });
     const expectedCall = {
       where: { id: testDocumentId },
     };
 
-    await getDocumentExists(mockTransaction, testDocumentId);
+    await checkDocumentExists(mockTransaction, testDocumentId);
     expect(transactionMocks.document.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
@@ -52,14 +40,14 @@ describe("getDocumentExists", () => {
       fileName: "test-document.pdf",
     });
 
-    const result = await getDocumentExists(mockTransaction, testDocumentId);
+    const result = await checkDocumentExists(mockTransaction, testDocumentId);
     expect(result).toBe(true);
   });
 
   it("should return false when document does not exist", async () => {
     vi.mocked(transactionMocks.document.findUnique).mockResolvedValue(null);
 
-    const result = await getDocumentExists(mockTransaction, testDocumentId);
+    const result = await checkDocumentExists(mockTransaction, testDocumentId);
     expect(result).toBe(false);
   });
 });

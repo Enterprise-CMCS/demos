@@ -19,14 +19,6 @@ describe("findUserById", () => {
   });
 
   it("should get user by id from the database", async () => {
-    // The mock return value is to support the return at the end
-    vi.mocked(transactionMocks.user.findUniqueOrThrow).mockResolvedValue({
-      id: testUserId,
-      email: "test@example.com",
-      role: "CMS_USER",
-      createdAt: new Date("2025-01-01T00:00:00.000Z"),
-      updatedAt: new Date("2025-01-01T00:00:00.000Z"),
-    });
     const expectedCall = {
       where: { id: testUserId },
     };

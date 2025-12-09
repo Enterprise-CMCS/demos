@@ -10,14 +10,14 @@ import { EasternNow, getEasternNow } from "../../dateUtilities";
 import { findUserById } from "../user";
 import { getApplication } from "../application/applicationResolvers";
 import { validateAndUpdateDates } from "../applicationDate";
-import { startPhaseByPhaseName } from "../applicationPhase";
-import { getDocumentById, getDocumentExists, updateDocumentMeta, handleDeleteDocument } from ".";
+import { startPhaseByDocument } from "../applicationPhase";
+import { getDocumentById, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
 import {
   getDocument,
   documentExists,
   uploadDocument,
   downloadDocument,
-  updateDocument,
+  updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
   resolveOwner,
@@ -49,7 +49,7 @@ vi.mock("../../dateUtilities", () => ({
 }));
 
 vi.mock("../applicationPhase", () => ({
-  startPhaseByPhaseName: vi.fn(),
+  startPhaseByDocument: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({
@@ -62,8 +62,8 @@ vi.mock("../user", () => ({
 
 vi.mock(".", () => ({
   getDocumentById: vi.fn(),
-  getDocumentExists: vi.fn(),
-  updateDocumentMeta: vi.fn(),
+  checkDocumentExists: vi.fn(),
+  updateDocument: vi.fn(),
   handleDeleteDocument: vi.fn(),
 }));
 
@@ -130,17 +130,17 @@ describe("documentResolvers", () => {
 
   describe("documentExists", () => {
     it("should check if document exists", async () => {
-      vi.mocked(getDocumentExists).mockResolvedValue(true);
+      vi.mocked(checkDocumentExists).mockResolvedValue(true);
 
       const result = await documentExists(undefined, { documentId: testDocumentId });
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(getDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
       expect(result).toBe(true);
     });
 
     it("should return false when document does not exist", async () => {
-      vi.mocked(getDocumentExists).mockResolvedValue(false);
+      vi.mocked(checkDocumentExists).mockResolvedValue(false);
 
       const result = await documentExists(undefined, { documentId: testDocumentId });
 
@@ -215,18 +215,18 @@ describe("documentResolvers", () => {
       expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
     });
 
-    it("should call startPhaseByPhaseName with correct parameters", async () => {
+    it("should call startPhaseByDocument with correct parameters", async () => {
       vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
       vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByPhaseName).mockResolvedValue(null);
+      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
 
       await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
 
       expect(getEasternNow).toHaveBeenCalledOnce();
-      expect(startPhaseByPhaseName).toHaveBeenCalledExactlyOnceWith(
+      expect(startPhaseByDocument).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         testApplicationId,
-        "Concept",
+        mockUploadInput,
         mockEasternNow
       );
     });
@@ -234,7 +234,7 @@ describe("documentResolvers", () => {
     it("should call validateAndUpdateDates when phase start date is returned", async () => {
       vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
       vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByPhaseName).mockResolvedValue(mockPhaseStartDate);
+      vi.mocked(startPhaseByDocument).mockResolvedValue(mockPhaseStartDate);
       vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
 
       await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
@@ -251,7 +251,7 @@ describe("documentResolvers", () => {
     it("should not call validateAndUpdateDates when phase start date is null", async () => {
       vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
       vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByPhaseName).mockResolvedValue(null);
+      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
 
       await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
 
@@ -285,9 +285,9 @@ describe("documentResolvers", () => {
     };
 
     it("should update document metadata", async () => {
-      vi.mocked(updateDocumentMeta).mockResolvedValue(mockDocument);
+      vi.mocked(updateDocument).mockResolvedValue(mockDocument);
 
-      const result = await updateDocument(undefined, {
+      const result = await updateDocumentResolver(undefined, {
         id: testDocumentId,
         input: mockUpdateInput,
       });
@@ -297,7 +297,7 @@ describe("documentResolvers", () => {
         mockUpdateInput
       );
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(updateDocumentMeta).toHaveBeenCalledExactlyOnceWith(
+      expect(updateDocument).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         testDocumentId,
         mockUpdateInput

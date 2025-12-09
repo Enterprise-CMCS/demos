@@ -1,22 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
-import { ApplicationDateInput, PhaseName } from "../../types";
+import { ApplicationDateInput, UploadDocumentInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
 import { createPhaseStartDate } from "../applicationDate";
-import { startPhaseByPhaseName, startPhase } from ".";
+import { startPhaseByDocument, setPhaseToStarted } from ".";
 
-vi.mock("./startPhase", () => ({
-  startPhase: vi.fn(),
+vi.mock("./setPhaseToStarted", () => ({
+  setPhaseToStarted: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({
   createPhaseStartDate: vi.fn(),
 }));
 
-describe("startPhaseByPhaseName", () => {
+describe("startPhaseByDocument", () => {
   const mockTransaction = "mockTransaction" as any;
   const testApplicationId = "app-123-456";
-  const testPhaseName: PhaseName = "Concept";
+  const mockDocument: Pick<UploadDocumentInput, "phaseName"> = {
+    phaseName: "Concept",
+  };
   const mockEasternNow: EasternNow = {
     "End of Day": {
       easternTZDate: new TZDate("2025-01-15T23:59:59.999Z"),
@@ -38,17 +40,17 @@ describe("startPhaseByPhaseName", () => {
   });
 
   it("should start phase and return start date when phase is successfully started", async () => {
-    vi.mocked(startPhase).mockResolvedValue(true);
+    vi.mocked(setPhaseToStarted).mockResolvedValue(true);
     vi.mocked(createPhaseStartDate).mockReturnValue(mockPhaseStartDate);
 
-    const result = await startPhaseByPhaseName(
+    const result = await startPhaseByDocument(
       mockTransaction,
       testApplicationId,
-      testPhaseName,
+      mockDocument,
       mockEasternNow
     );
 
-    expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+    expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Concept",
       mockTransaction
@@ -58,16 +60,16 @@ describe("startPhaseByPhaseName", () => {
   });
 
   it("should return null when phase is not started", async () => {
-    vi.mocked(startPhase).mockResolvedValue(false);
+    vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
-    const result = await startPhaseByPhaseName(
+    const result = await startPhaseByDocument(
       mockTransaction,
       testApplicationId,
-      testPhaseName,
+      mockDocument,
       mockEasternNow
     );
 
-    expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+    expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Concept",
       mockTransaction
@@ -77,17 +79,17 @@ describe("startPhaseByPhaseName", () => {
   });
 
   it("should return null when createPhaseStartDate returns null", async () => {
-    vi.mocked(startPhase).mockResolvedValue(true);
+    vi.mocked(setPhaseToStarted).mockResolvedValue(true);
     vi.mocked(createPhaseStartDate).mockReturnValue(null);
 
-    const result = await startPhaseByPhaseName(
+    const result = await startPhaseByDocument(
       mockTransaction,
       testApplicationId,
-      testPhaseName,
+      mockDocument,
       mockEasternNow
     );
 
-    expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+    expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Concept",
       mockTransaction
@@ -97,14 +99,16 @@ describe("startPhaseByPhaseName", () => {
   });
 
   it("should return null immediately when phaseName is 'None'", async () => {
-    const result = await startPhaseByPhaseName(
+    const result = await startPhaseByDocument(
       mockTransaction,
       testApplicationId,
-      "None",
+      {
+        phaseName: "None",
+      },
       mockEasternNow
     );
 
-    expect(startPhase).not.toHaveBeenCalled();
+    expect(setPhaseToStarted).not.toHaveBeenCalled();
     expect(createPhaseStartDate).not.toHaveBeenCalled();
     expect(result).toBeNull();
   });
