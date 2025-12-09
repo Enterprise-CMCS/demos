@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { findUserById } from "./findUserById.js";
+import { findUserById } from "../";
 
 describe("findUserById", () => {
   const transactionMocks = {

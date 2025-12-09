@@ -1,30 +1,23 @@
+import { TZDate } from "@date-fns/tz";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { startPhasesByDates } from "../applicationPhase/startPhasesByDates.js";
-import { ApplicationDateInput } from "../applicationDate/applicationDateSchema.js";
-import { EasternNow } from "../../dateUtilities.js";
-import { PrismaTransactionClient } from "../../prismaClient.js";
-import { DateType, LocalDate } from "../../types.js";
+import { DateType, LocalDate, ApplicationDateInput } from "../../types";
+import { EasternNow } from "../../dateUtilities";
+import { PrismaTransactionClient } from "../../prismaClient";
+import { getOrderedPhaseDateTypes, OrderedPhaseDateTypes } from "../phaseDateType";
+import { createPhaseStartDate } from "../applicationDate";
+import { startPhase, startPhasesByDates } from ".";
 
-// Mock dependencies
-vi.mock("../phaseDateType/queries/getOrderedPhaseDateTypes.js", () => ({
+vi.mock("../phaseDateType", () => ({
   getOrderedPhaseDateTypes: vi.fn(),
 }));
 
-vi.mock("../applicationPhase/index.js", () => ({
+vi.mock("./startPhase", () => ({
   startPhase: vi.fn(),
 }));
 
-vi.mock("../applicationDate/createPhaseStartDate.js", () => ({
+vi.mock("../applicationDate", () => ({
   createPhaseStartDate: vi.fn(),
 }));
-
-import {
-  getOrderedPhaseDateTypes,
-  OrderedPhaseDateTypes,
-} from "../phaseDateType/queries/getOrderedPhaseDateTypes.js";
-import { startPhase } from "./index.js";
-import { createPhaseStartDate } from "../applicationDate/createPhaseStartDate.js";
-import { TZDate } from "@date-fns/tz";
 
 describe("startPhasesByDates", () => {
   const mockTransaction = {} as PrismaTransactionClient;

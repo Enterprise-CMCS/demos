@@ -1,6 +1,6 @@
 import { Document as PrismaDocument } from "@prisma/client";
 import { PrismaTransactionClient } from "../../../prismaClient";
-import { UpdateDocumentInput } from "../documentSchema";
+import { UpdateDocumentInput } from "../../../types";
 
 export async function updateDocumentMeta(
   tx: PrismaTransactionClient,

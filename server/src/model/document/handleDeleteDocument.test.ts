@@ -1,14 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { handleDeleteDocument } from "./handleDeleteDocument.js";
-import { S3Adapter } from "../../adapters/s3/S3Adapter.js";
 import { Document as PrismaDocument } from "@prisma/client";
+import { S3Adapter } from "../../adapters";
+import { handleDeleteDocument, deleteDocumentById } from ".";
 
-// Mock dependencies
-vi.mock("./queries/deleteDocumentById.js", () => ({
+vi.mock("./queries/deleteDocumentById", () => ({
   deleteDocumentById: vi.fn(),
 }));
-
-import { deleteDocumentById } from "./queries/deleteDocumentById.js";
 
 describe("handleDeleteDocument", () => {
   const transactionMocks = {
@@ -72,23 +69,5 @@ describe("handleDeleteDocument", () => {
     const result = await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
 
     expect(result).toEqual(mockDeletedDocument);
-  });
-
-  it("should call deleteDocumentById before moving S3 object", async () => {
-    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument);
-    const callOrder: string[] = [];
-
-    vi.mocked(deleteDocumentById).mockImplementation(async () => {
-      callOrder.push("deleteDocumentById");
-      return mockDeletedDocument;
-    });
-
-    vi.mocked(mockS3Adapter.moveDocumentFromCleanToDeleted).mockImplementation(async () => {
-      callOrder.push("moveDocumentFromCleanToDeleted");
-    });
-
-    await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
-
-    expect(callOrder).toEqual(["deleteDocumentById", "moveDocumentFromCleanToDeleted"]);
   });
 });

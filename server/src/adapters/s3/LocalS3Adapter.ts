@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { log } from "../../log.js";
-import { S3Adapter } from "./S3Adapter.js";
-import { UploadDocumentInput } from "../../model/document/documentSchema";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { log } from "../../log";
+import { UploadDocumentInput } from "../../types";
+import { S3Adapter } from "../";
 
 const HOSTNAME = "LocalS3Adapter";
 const BUCKET_NAME = "local-demos-bucket";

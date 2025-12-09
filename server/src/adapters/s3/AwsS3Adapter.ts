@@ -6,10 +6,10 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { S3Adapter } from "./S3Adapter.js";
-import { UploadDocumentInput } from "../../model/document/documentSchema";
 import { PrismaTransactionClient } from "../../prismaClient";
-import { createDocumentPendingUpload } from "../../model/documentPendingUpload/queries/createDocumentPendingUpload.js";
+import { UploadDocumentInput } from "../../types";
+import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
+import { S3Adapter } from "../";
 
 const EXPIRATION_TIME_SECONDS = 3600; // 1 hour in seconds
 

@@ -1,24 +1,22 @@
 import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { prisma } from "../../prismaClient.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import { GraphQLContext } from "../../auth/auth.util";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
+import { prisma } from "../../prismaClient";
 import type {
+  DocumentType,
+  PhaseName,
   UpdateDocumentInput,
   UploadDocumentInput,
   UploadDocumentResponse,
-} from "./documentSchema.js";
-import { getS3Adapter } from "../../adapters/s3/S3Adapter.js";
-import { DocumentType, PhaseName } from "../../types.js";
-import { getDocumentById } from "./queries/getDocumentById.js";
-import { getDocumentExists } from "./queries/getDocumentExists.js";
-import { updateDocumentMeta } from "./queries/updateDocumentMeta.js";
-import { findUserById } from "../user/queries/findUserById.js";
-import { handleDeleteDocument } from "./handleDeleteDocument.js";
-import { getEasternNow } from "../../dateUtilities.js";
-import { validateAndUpdateDates } from "../applicationDate/validateAndUpdateDates.js";
-import { startPhaseByPhaseName } from "../applicationPhase/startPhaseByPhaseName.js";
+} from "../../types";
+import { getS3Adapter } from "../../adapters";
+import { getEasternNow } from "../../dateUtilities";
+import { getApplication, PrismaApplication } from "../application/applicationResolvers";
+import { findUserById } from "../user";
+import { validateAndUpdateDates } from "../applicationDate";
+import { startPhaseByPhaseName } from "../applicationPhase";
+import { getDocumentExists, getDocumentById, updateDocumentMeta, handleDeleteDocument } from ".";
 
 export async function getDocument(
   parent: unknown,

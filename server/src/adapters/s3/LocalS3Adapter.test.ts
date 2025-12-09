@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createLocalS3Adapter } from "./LocalS3Adapter.js";
-import { UploadDocumentInput } from "../../model/document/documentSchema.js";
-import { PrismaTransactionClient } from "../../prismaClient.js";
+import { PrismaTransactionClient } from "../../prismaClient";
+import { UploadDocumentInput } from "../../types";
+import { createLocalS3Adapter } from "./LocalS3Adapter";
 
 describe("LocalS3Adapter", () => {
   const mockTransaction = {

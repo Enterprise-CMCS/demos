@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createAWSS3Adapter } from "./AwsS3Adapter.js";
 import { S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { UploadDocumentInput } from "../../model/document/documentSchema.js";
+import { UploadDocumentInput } from "../../model/document/documentSchema";
+import { createAWSS3Adapter } from "./AwsS3Adapter";
+import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
 
-// Mock AWS SDK
 vi.mock("@aws-sdk/client-s3", () => ({
   S3Client: vi.fn(() => ({
     send: vi.fn(),
@@ -22,8 +22,6 @@ vi.mock("@aws-sdk/s3-request-presigner", () => ({
 vi.mock("../../model/documentPendingUpload/queries/createDocumentPendingUpload.js", () => ({
   createDocumentPendingUpload: vi.fn(),
 }));
-
-import { createDocumentPendingUpload } from "../../model/documentPendingUpload/queries/createDocumentPendingUpload.js";
 
 describe("AwsS3Adapter", () => {
   const originalEnv = { ...process.env };

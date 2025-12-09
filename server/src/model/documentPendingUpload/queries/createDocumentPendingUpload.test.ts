@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createDocumentPendingUpload } from "./createDocumentPendingUpload.js";
-import { UploadDocumentInput } from "../../document/documentSchema.js";
+import { UploadDocumentInput } from "../../../types";
+import { createDocumentPendingUpload } from "../";
 
 describe("createDocumentPendingUpload", () => {
   const transactionMocks = {

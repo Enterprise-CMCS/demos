@@ -1,26 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { startPhaseByPhaseName } from "./startPhaseByPhaseName.js";
-import {
-  ApplicationDateInput,
-  DocumentType,
-  PhaseName,
-  PhaseNameWithTrackedStatus,
-} from "../../types.js";
-import { EasternNow } from "../../dateUtilities.js";
+import { TZDate } from "@date-fns/tz";
+import { ApplicationDateInput, PhaseName } from "../../types";
+import { EasternNow } from "../../dateUtilities";
+import { createPhaseStartDate } from "../applicationDate";
+import { startPhaseByPhaseName, startPhase } from ".";
 
-// Mock dependencies
-vi.mock("../applicationPhase/index.js", () => ({
+vi.mock("./startPhase", () => ({
   startPhase: vi.fn(),
 }));
 
-vi.mock("../applicationDate/createPhaseStartDate.js", () => ({
+vi.mock("../applicationDate", () => ({
   createPhaseStartDate: vi.fn(),
 }));
-
-import { startPhase } from "./index.js";
-import { createPhaseStartDate } from "../applicationDate/createPhaseStartDate.js";
-import { Phase as PrismaPhase } from "@prisma/client";
-import { TZDate } from "@date-fns/tz";
 
 describe("startPhaseByPhaseName", () => {
   const mockTransaction = "mockTransaction" as any;
@@ -35,11 +26,6 @@ describe("startPhaseByPhaseName", () => {
       easternTZDate: new TZDate("2025-01-15T00:00:00.000Z"),
       isEasternTZDate: true,
     },
-  };
-
-  const mockPhase: PrismaPhase = {
-    id: "Concept",
-    phaseNumber: 1,
   };
 
   const mockPhaseStartDate: ApplicationDateInput = {

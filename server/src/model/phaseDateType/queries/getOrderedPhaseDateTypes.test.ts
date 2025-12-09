@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getOrderedPhaseDateTypes } from "./getOrderedPhaseDateTypes.js";
+import { getOrderedPhaseDateTypes } from "../";
 
 describe("getOrderedPhaseDateTypes", () => {
   const transactionMocks = {

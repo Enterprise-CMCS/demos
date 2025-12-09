@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { updateDocumentMeta } from "./updateDocumentMeta.js";
-import { UpdateDocumentInput } from "../documentSchema.js";
+import { updateDocumentMeta } from "../";
+import { UpdateDocumentInput } from "../../../types";
 
 describe("updateDocumentMeta", () => {
   const transactionMocks = {

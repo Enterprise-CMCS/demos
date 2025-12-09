@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { deleteDocumentById } from "./deleteDocumentById.js";
+import { deleteDocumentById } from "../";
 
 describe("deleteDocumentById", () => {
   const transactionMocks = {

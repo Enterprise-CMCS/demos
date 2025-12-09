@@ -1,10 +1,9 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { PhaseNameWithTrackedStatus } from "../../types";
-import { ApplicationDateInput } from "../applicationDate/applicationDateSchema";
-import { startPhase } from ".";
-import { createPhaseStartDate } from "../applicationDate/createPhaseStartDate";
+import { PhaseNameWithTrackedStatus, ApplicationDateInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
-import { getOrderedPhaseDateTypes } from "../phaseDateType/queries/getOrderedPhaseDateTypes";
+import { createPhaseStartDate } from "../applicationDate";
+import { getOrderedPhaseDateTypes } from "../phaseDateType";
+import { startPhase } from ".";
 
 export async function startPhasesByDates(
   tx: PrismaTransactionClient,

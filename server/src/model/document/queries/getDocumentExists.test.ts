@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getDocumentExists } from "./getDocumentExists.js";
+import { getDocumentExists } from "../";
 
 describe("getDocumentExists", () => {
   const transactionMocks = {

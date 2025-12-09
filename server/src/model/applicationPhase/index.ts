@@ -11,6 +11,8 @@ export { validatePhaseCompletion } from "./validatePhaseCompletion.js";
 export { startPhase } from "./startPhase.js";
 export { completePhase } from "./completePhase.js";
 export { skipConceptPhase } from "./skipConceptPhase.js";
+export { startPhasesByDates } from "./startPhasesByDates.js";
+export { startPhaseByPhaseName } from "./startPhaseByPhaseName.js";
 
 // Queries
 export { getApplicationPhaseDocumentTypes } from "./queries/getApplicationPhaseDocumentTypes.js";

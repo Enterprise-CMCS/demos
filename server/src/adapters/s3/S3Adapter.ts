@@ -1,7 +1,7 @@
-import { PrismaTransactionClient } from "../../prismaClient.js";
-import { UploadDocumentInput } from "../../types.js";
-import { createAWSS3Adapter } from "./AwsS3Adapter.js";
-import { createLocalS3Adapter } from "./LocalS3Adapter.js";
+import { PrismaTransactionClient } from "../../prismaClient";
+import { UploadDocumentInput } from "../../types";
+import { createAWSS3Adapter } from "./AwsS3Adapter";
+import { createLocalS3Adapter } from "./LocalS3Adapter";
 
 export interface S3Adapter {
   getPresignedUploadUrl(key: string): Promise<string>;

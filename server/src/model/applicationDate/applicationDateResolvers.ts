@@ -1,11 +1,11 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
-import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { prisma } from "../../prismaClient";
+import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
+import { handlePrismaError } from "../../errors/handlePrismaError";
+import { getEasternNow } from "../../dateUtilities";
+import { getApplication, PrismaApplication } from "../application/applicationResolvers";
+import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
-import { startPhasesByDates } from "../applicationPhase/startPhasesByDates.js";
-import { getEasternNow } from "../../dateUtilities.js";
 
 export function __setApplicationDate(
   _: unknown,

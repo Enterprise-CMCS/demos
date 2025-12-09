@@ -1,4 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { TZDate } from "@date-fns/tz";
+import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { UpdateDocumentInput, UploadDocumentInput, ApplicationDateInput } from "../../types";
+import { prisma } from "../../prismaClient.js";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
+import { getS3Adapter } from "../../adapters";
+import { EasternNow, getEasternNow } from "../../dateUtilities";
+import { findUserById } from "../user";
+import { getApplication } from "../application/applicationResolvers";
+import { validateAndUpdateDates } from "../applicationDate";
+import { startPhaseByPhaseName } from "../applicationPhase";
+import { getDocumentById, getDocumentExists, updateDocumentMeta, handleDeleteDocument } from ".";
 import {
   getDocument,
   documentExists,
@@ -13,73 +26,46 @@ import {
   resolvePhaseName,
   documentResolvers,
 } from "./documentResolvers.js";
-import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { UpdateDocumentInput, UploadDocumentInput } from "./documentSchema.js";
 
 // Mock dependencies
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
+vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
-vi.mock("../../adapters/s3/S3Adapter.js", () => ({
+vi.mock("../../adapters", () => ({
   getS3Adapter: vi.fn(),
 }));
 
-vi.mock("./queries/getDocumentById.js", () => ({
-  getDocumentById: vi.fn(),
-}));
-
-vi.mock("./queries/getDocumentExists.js", () => ({
-  getDocumentExists: vi.fn(),
-}));
-
-vi.mock("./queries/updateDocumentMeta.js", () => ({
-  updateDocumentMeta: vi.fn(),
-}));
-
-vi.mock("../user/queries/findUserById.js", () => ({
-  findUserById: vi.fn(),
-}));
-
-vi.mock("./handleDeleteDocument.js", () => ({
-  handleDeleteDocument: vi.fn(),
-}));
-
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application/applicationResolvers", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("../../dateUtilities.js", () => ({
+vi.mock("../../dateUtilities", () => ({
   getEasternNow: vi.fn(),
 }));
 
-vi.mock("../applicationPhase/startPhaseByPhaseName.js", () => ({
+vi.mock("../applicationPhase", () => ({
   startPhaseByPhaseName: vi.fn(),
 }));
 
-vi.mock("../applicationDate/validateAndUpdateDates.js", () => ({
+vi.mock("../applicationDate", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
-import { prisma } from "../../prismaClient.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { getS3Adapter } from "../../adapters/s3/S3Adapter.js";
-import { getDocumentById } from "./queries/getDocumentById.js";
-import { getDocumentExists } from "./queries/getDocumentExists.js";
-import { updateDocumentMeta } from "./queries/updateDocumentMeta.js";
-import { findUserById } from "../user/queries/findUserById.js";
-import { handleDeleteDocument } from "./handleDeleteDocument.js";
-import { getApplication } from "../application/applicationResolvers.js";
-import { EasternNow, getEasternNow } from "../../dateUtilities.js";
-import { validateAndUpdateDates } from "../applicationDate/validateAndUpdateDates.js";
-import { TZDate } from "@date-fns/tz";
-import { ApplicationDateInput } from "../applicationDate/applicationDateSchema.js";
-import { startPhaseByPhaseName } from "../applicationPhase/startPhaseByPhaseName.js";
+vi.mock("../user", () => ({
+  findUserById: vi.fn(),
+}));
+
+vi.mock(".", () => ({
+  getDocumentById: vi.fn(),
+  getDocumentExists: vi.fn(),
+  updateDocumentMeta: vi.fn(),
+  handleDeleteDocument: vi.fn(),
+}));
 
 describe("documentResolvers", () => {
   const mockTransaction = "mockTransaction" as any;
@@ -341,7 +327,6 @@ describe("documentResolvers", () => {
 
     it("should delete multiple documents and return count", async () => {
       vi.mocked(handleDeleteDocument).mockResolvedValue(mockDocument);
-
       const result = await deleteDocuments(undefined, { ids: testDocumentIds });
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();

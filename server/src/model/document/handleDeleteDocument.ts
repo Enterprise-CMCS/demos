@@ -1,7 +1,7 @@
 import { Document as PrismaDocument } from "@prisma/client";
-import { S3Adapter } from "../../adapters/s3/S3Adapter";
 import { PrismaTransactionClient } from "../../prismaClient";
-import { deleteDocumentById } from "./queries/deleteDocumentById";
+import { S3Adapter } from "../../adapters/s3/S3Adapter";
+import { deleteDocumentById } from ".";
 
 export async function handleDeleteDocument(
   tx: PrismaTransactionClient,
