@@ -63,11 +63,11 @@ export class UiPathProcessor extends Construct {
       ...props,
       scope: this,
       entry: lambdaPath + "index.ts",
-      handler: "handler",
+      handler: "index.handler",
       timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
       asCode: false,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["pg", "pino"],
+      nodeModules: ["pg", "pino", "axios", "form-data", "pino-pretty"],
       depsLockFilePath: "../lambdas/UIPath/package-lock.json",
       environment: {
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
