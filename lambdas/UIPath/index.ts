@@ -23,13 +23,13 @@ async function runLocal() {
   log.info({ status }, "UiPath extraction completed (local)");
   return status;
 }
-
-const isDirectRun = () => {
-  // @ts-ignore
-  const currentPath = fileURLToPath(import.meta.url); // This works just fine. Not sure why linter is calling me out.
-  const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
-  return currentPath === invokedPath;
-};
+// fails ci/cd "import.meta"
+// const isDirectRun = () => {
+//   // @ts-ignore
+//   const currentPath = fileURLToPath(import.meta.url); // This works just fine. Not sure why linter is calling me out.
+//   const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
+//   return currentPath === invokedPath;
+// };
 
 export const handler = async (event: SQSEvent) =>
   als.run(store, async () => {
@@ -55,13 +55,15 @@ export const handler = async (event: SQSEvent) =>
     return status;
   });
 
-if (isDirectRun() && isLocal()) {
-  await als.run(store, async () => {
-    try {
-      await runLocal();
-    } catch (err) {
-      log.error({ err });
-      process.exitCode = 1;
-    }
-  });
+if (isLocal()) {
+  (async () => {
+    await als.run(store, async () => {
+      try {
+        await runLocal();
+      } catch (err) {
+        log.error({ err });
+        process.exitCode = 1;
+      }
+    });
+  })();
 }
