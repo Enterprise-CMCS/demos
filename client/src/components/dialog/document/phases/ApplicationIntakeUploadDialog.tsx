@@ -26,6 +26,7 @@ export const ApplicationIntakeUploadDialog: React.FC<Props> = ({
       titleOverride="Add State Application"
       refetchQueries={REFETCH_QUERIES}
       onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+      phaseName="Application Intake"
     />
   );
 };

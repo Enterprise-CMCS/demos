@@ -1,178 +1,170 @@
-import { randomUUID } from "node:crypto";
-import { GraphQLError } from "graphql";
-import { Document as PrismaDocument } from "@prisma/client";
+import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application";
 import type {
+  DocumentType,
+  PhaseName,
   UpdateDocumentInput,
   UploadDocumentInput,
   UploadDocumentResponse,
-} from "./documentSchema.js";
-import { log } from "../../log.js";
-import { createS3Adapter, S3Adapter } from "../../adapters/s3/S3Adapter.js";
+} from "../../types";
+import { getS3Adapter } from "../../adapters";
+import { getEasternNow } from "../../dateUtilities";
+import { findUserById } from "../user";
+import { validateAndUpdateDates } from "../applicationDate";
+import { startPhaseByDocument } from "../applicationPhase";
+import {
+  checkDocumentExists,
+  getDocumentById,
+  updateDocument as updateDocumentQuery,
+  handleDeleteDocument,
+} from ".";
 
-const s3Adapter: S3Adapter = createS3Adapter();
-
-async function getDocument(parent: unknown, { id }: { id: string }) {
-  return await prisma().document.findUnique({
-    where: { id: id },
+export async function getDocument(
+  parent: unknown,
+  { id }: { id: string }
+): Promise<PrismaDocument> {
+  return await prisma().$transaction(async (tx) => {
+    return await getDocumentById(tx, id);
   });
+}
+
+export async function documentExists(_: unknown, { documentId }: { documentId: string }) {
+  return await prisma().$transaction(async (tx) => {
+    return checkDocumentExists(tx, documentId);
+  });
+}
+
+export async function uploadDocument(
+  parent: unknown,
+  { input }: { input: UploadDocumentInput },
+  context: GraphQLContext
+): Promise<UploadDocumentResponse> {
+  const s3Adapter = getS3Adapter();
+
+  try {
+    if (context.user === null) {
+      throw new Error(
+        "The GraphQL context does not have user information. Are you properly authenticated?"
+      );
+    }
+    const userId = context.user.id;
+    return await prisma().$transaction(async (tx) => {
+      const easternNow = getEasternNow();
+      const phaseStartDate = await startPhaseByDocument(tx, input.applicationId, input, easternNow);
+
+      if (phaseStartDate) {
+        await validateAndUpdateDates(
+          { applicationId: input.applicationId, applicationDates: [phaseStartDate] },
+          tx
+        );
+      }
+
+      return await s3Adapter.uploadDocument(tx, input, userId);
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
+export async function downloadDocument(_: unknown, { id }: { id: string }): Promise<string> {
+  const s3Adapter = getS3Adapter();
+  try {
+    return prisma().$transaction(async (tx) => {
+      const document = await getDocumentById(tx, id);
+      return await s3Adapter.getPresignedDownloadUrl(document.id);
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
+export async function updateDocument(
+  _: unknown,
+  { id, input }: { id: string; input: UpdateDocumentInput }
+): Promise<PrismaDocument> {
+  checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
+  try {
+    return await prisma().$transaction(async (tx) => {
+      return await updateDocumentQuery(tx, id, input);
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
+export async function deleteDocument(_: unknown, { id }: { id: string }): Promise<PrismaDocument> {
+  const s3Adapter = getS3Adapter();
+
+  try {
+    return prisma().$transaction(async (tx) => {
+      return handleDeleteDocument(tx, s3Adapter, id);
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
+export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): Promise<number> {
+  const s3Adapter = getS3Adapter();
+
+  try {
+    return prisma().$transaction(async (tx) => {
+      let count = 0;
+      for (const documentId of ids) {
+        await handleDeleteDocument(tx, s3Adapter, documentId);
+        count++;
+      }
+      return count;
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
+export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
+  try {
+    return prisma().$transaction(async (tx) => {
+      return findUserById(tx, parent.ownerUserId);
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
+export function resolveDocumentType(parent: PrismaDocument): DocumentType {
+  return parent.documentTypeId as DocumentType;
+}
+
+export async function resolveApplication(parent: PrismaDocument): Promise<PrismaApplication> {
+  return await getApplication(parent.applicationId);
+}
+
+export function resolvePhaseName(parent: PrismaDocument): PhaseName {
+  return parent.phaseId as PhaseName;
 }
 
 export const documentResolvers = {
   Query: {
     document: getDocument,
-    documentExists: async (_: unknown, { documentId }: { documentId: string }) => {
-      const document = await prisma().document.findUnique({
-        where: { id: documentId },
-      });
-
-      if (document) return true;
-      return false;
-    },
+    documentExists: documentExists,
   },
 
   Mutation: {
-    uploadDocument: async (
-      parent: unknown,
-      { input }: { input: UploadDocumentInput },
-      context: GraphQLContext
-    ): Promise<UploadDocumentResponse> => {
-      if (context.user === null) {
-        throw new Error(
-          "The GraphQL context does not have user information. Are you properly authenticated?"
-        );
-      }
-      // Looks for localstack pre-signed and does a simplified upload flow
-      if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
-        const documentId = randomUUID();
-        const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
-        const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
-        const document = await prisma().document.create({
-          data: {
-            id: documentId,
-            name: input.name,
-            description: input.description ?? "",
-            ownerUserId: context.user.id,
-            documentTypeId: input.documentType,
-            applicationId: input.applicationId,
-            phaseId: input.phaseName,
-            s3Path,
-          },
-        });
-
-        const fakePresignedUrl = await s3Adapter.getPresignedUploadUrl(document.id);
-        log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
-        return {
-          presignedURL: fakePresignedUrl,
-          documentId: document.id,
-        };
-      }
-      const documentPendingUpload = await prisma().documentPendingUpload.create({
-        data: {
-          name: input.name,
-          description: input.description ?? "",
-          ownerUserId: context.user.id,
-          documentTypeId: input.documentType,
-          applicationId: input.applicationId,
-          phaseId: input.phaseName,
-        },
-      });
-
-      const presignedURL = await s3Adapter.getPresignedUploadUrl(documentPendingUpload.id);
-      return {
-        presignedURL,
-        documentId: documentPendingUpload.id,
-      };
-    },
-
-    downloadDocument: async (_: unknown, { id }: { id: string }) => {
-      const document = await prisma().document.findUnique({
-        where: { id: id },
-      });
-      if (!document) {
-        throw new GraphQLError("Document not found.", {
-          extensions: {
-            code: "NOT_FOUND",
-            http: { status: 404 },
-          },
-        });
-      }
-      return await s3Adapter.getPresignedDownloadUrl(document.id);
-    },
-
-    updateDocument: async (
-      _: unknown,
-      { id, input }: { id: string; input: UpdateDocumentInput }
-    ): Promise<PrismaDocument> => {
-      checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
-      try {
-        return await prisma().document.update({
-          where: { id: id },
-          data: {
-            name: input.name,
-            description: input.description,
-            documentTypeId: input.documentType,
-            applicationId: input.applicationId,
-            phaseId: input.phaseName,
-          },
-        });
-      } catch (error) {
-        handlePrismaError(error);
-      }
-    },
-
-    deleteDocument: async (_: unknown, { id }: { id: string }) => {
-      return await prisma().$transaction(async (tx) => {
-        const document = await tx.document.delete({
-          where: { id },
-        });
-        const key = `${document.applicationId}/${document.id}`;
-        await s3Adapter.moveDocumentFromCleanToDeleted(key);
-        return document;
-      });
-    },
-    deleteDocuments: async (_: unknown, { ids }: { ids: string[] }) => {
-      return await prisma().$transaction(async (tx) => {
-        const documents = await tx.document.findMany({
-          where: { id: { in: ids } },
-        });
-
-        for (const document of documents) {
-          const key = `${document.applicationId}/${document.id}`;
-          await s3Adapter.moveDocumentFromCleanToDeleted(key);
-        }
-
-        const result = await tx.document.deleteMany({
-          where: { id: { in: ids } },
-        });
-        return result.count;
-      });
-    },
+    uploadDocument: uploadDocument,
+    downloadDocument: downloadDocument,
+    updateDocument: updateDocument,
+    deleteDocument: deleteDocument,
+    deleteDocuments: deleteDocuments,
   },
 
   Document: {
-    owner: async (parent: PrismaDocument) => {
-      const user = await prisma().user.findUnique({
-        where: { id: parent.ownerUserId },
-        include: { person: true },
-      });
-      return { ...user, ...user?.person };
-    },
-
-    documentType: async (parent: PrismaDocument) => {
-      return parent.documentTypeId;
-    },
-
-    application: async (parent: PrismaDocument): Promise<PrismaApplication> => {
-      return await getApplication(parent.applicationId);
-    },
-
-    phaseName: async (parent: PrismaDocument) => {
-      return parent.phaseId;
-    },
+    owner: resolveOwner,
+    documentType: resolveDocumentType,
+    application: resolveApplication,
+    phaseName: resolvePhaseName,
   },
 };

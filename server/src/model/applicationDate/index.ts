@@ -16,6 +16,7 @@ export {
   makeApplicationDateMapFromList,
   validateInputDates,
 } from "./validateInputDates.js";
+export { createPhaseStartDate } from "./createPhaseStartDate.js";
 
 // Queries
 export { deleteApplicationDates } from "./queries/deleteApplicationDates.js";

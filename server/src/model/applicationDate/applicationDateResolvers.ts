@@ -3,9 +3,9 @@ import { prisma } from "../../prismaClient.js";
 import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { getEasternNow } from "../../dateUtilities";
+import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
-import { startPhasesByDates } from "./startPhasesByDates.js";
-import { getEasternNow } from "../../dateUtilities.js";
 
 export function checkForDuplicateDateTypes(input: SetApplicationDatesInput): void {
   const inputDateTypes = input.applicationDates.map((applicationDate) => applicationDate.dateType);

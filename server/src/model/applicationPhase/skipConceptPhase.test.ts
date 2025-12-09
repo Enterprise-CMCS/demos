@@ -9,7 +9,7 @@ import { validateAndUpdateDates } from "../applicationDate";
 import {
   checkConceptPhaseStartedBeforeSkipping,
   getApplicationPhaseStatus,
-  startPhase,
+  setPhaseToStarted,
   updatePhaseStatus,
 } from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
@@ -40,7 +40,7 @@ vi.mock(".", async () => {
     ...actual,
     checkConceptPhaseStartedBeforeSkipping: vi.fn(),
     getApplicationPhaseStatus: vi.fn(),
-    startPhase: vi.fn(),
+    setPhaseToStarted: vi.fn(),
     updatePhaseStatus: vi.fn(),
   };
 });
@@ -74,7 +74,7 @@ describe("skipConceptPhase", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
-    vi.mocked(startPhase).mockResolvedValue(true);
+    vi.mocked(setPhaseToStarted).mockResolvedValue(true);
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Started");
   });
 
@@ -115,7 +115,7 @@ describe("skipConceptPhase", () => {
       "Skipped",
       mockTransaction
     );
-    expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+    expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Application Intake",
       mockTransaction
@@ -136,7 +136,7 @@ describe("skipConceptPhase", () => {
   });
 
   it("should skip changing the date if the next phase is already started", async () => {
-    vi.mocked(startPhase).mockResolvedValue(false);
+    vi.mocked(setPhaseToStarted).mockResolvedValue(false);
     const expectedDateCall = [
       [
         {
@@ -169,7 +169,7 @@ describe("skipConceptPhase", () => {
       "Skipped",
       mockTransaction
     );
-    expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+    expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       "Application Intake",
       mockTransaction

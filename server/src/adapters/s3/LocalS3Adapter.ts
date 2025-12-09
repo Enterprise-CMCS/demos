@@ -1,4 +1,8 @@
-import { S3Adapter } from "./S3Adapter.js";
+import { randomUUID } from "node:crypto";
+import { PrismaTransactionClient } from "../../prismaClient";
+import { log } from "../../log";
+import { UploadDocumentInput } from "../../types";
+import { S3Adapter } from "../";
 
 const HOSTNAME = "LocalS3Adapter";
 const BUCKET_NAME = "local-demos-bucket";
@@ -26,6 +30,38 @@ export function createLocalS3Adapter(): S3Adapter {
 
     async moveDocumentFromCleanToDeleted(key: string): Promise<void> {
       uploadedFiles.delete(key);
+    },
+
+    async uploadDocument(
+      tx: PrismaTransactionClient,
+      input: UploadDocumentInput,
+      userId: string
+    ): Promise<{
+      presignedURL: string;
+      documentId: string;
+    }> {
+      const documentId = randomUUID();
+      const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
+      const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
+      const document = await tx.document.create({
+        data: {
+          id: documentId,
+          name: input.name,
+          description: input.description ?? "",
+          ownerUserId: userId,
+          documentTypeId: input.documentType,
+          applicationId: input.applicationId,
+          phaseId: input.phaseName,
+          s3Path,
+        },
+      });
+
+      const fakePresignedUrl = await this.getPresignedUploadUrl(document.id);
+      log.debug("fakePresignedUrl", undefined, fakePresignedUrl);
+      return {
+        presignedURL: fakePresignedUrl,
+        documentId: document.id,
+      };
     },
   };
 }
