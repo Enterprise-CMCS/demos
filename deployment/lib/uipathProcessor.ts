@@ -62,7 +62,7 @@ export class UiPathProcessor extends Construct {
     const uiPathDir = path.resolve(process.cwd(), "..", "lambdas", "UIPath");
     const uiPathLockFile = path.join(uiPathDir, "package-lock.json");
 
-    const uipathLambda = new lambda.Lambda(this, "Lambda", {
+    const uipathLambda = new lambda.Lambda(this, "uipath", {
       ...props,
       scope: this,
       entry: "../lambdas/UIPath/index.ts",
