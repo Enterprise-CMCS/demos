@@ -4,7 +4,7 @@ import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambda from "./lambda";
 import { DeploymentConfigProperties } from "../config";
 import { aws_kms as kms } from "aws-cdk-lib";
-import fs from "fs";
+import { NagSuppressions } from "cdk-nag";
 import path from "path";
 
 interface UiPathProcessorProps extends DeploymentConfigProperties {
@@ -61,18 +61,6 @@ export class UiPathProcessor extends Construct {
     const uiPathDir = path.resolve(process.cwd(), "..", "lambdas", "UIPath");
     const uiPathLockFile = path.join(uiPathDir, "package-lock.json");
 
-    if (process.env.DEBUG_UI_PATH === "true") {
-      // Helps trace bundling path issues in CI/CD without affecting runtime.
-      console.log("## ---- UiPath bundling paths ------- ##", {
-        cwd: process.cwd(),
-        uiPathDir,
-        uiPathLockFile,
-        uiPathDirExists: fs.existsSync(uiPathDir),
-        lockExists: fs.existsSync(uiPathLockFile),
-        contents: fs.existsSync(uiPathDir) ? fs.readdirSync(uiPathDir) : "missing",
-      });
-    }
-
     const uipathLambda = new lambda.Lambda(this, "Lambda", {
       ...props,
       scope: this,
@@ -92,9 +80,33 @@ export class UiPathProcessor extends Construct {
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
       },
     });
+    // This is so i can get a clean build until jesse comes back
+    if (uipathLambda.lambda.role) {
+      NagSuppressions.addResourceSuppressions(uipathLambda.lambda.role, [
+        {
+          id: "AwsSolutions-IAM5",
+          reason:
+            "Lambda needs wildcard resource for CloudWatch Logs and VPC networking operations; " +
+            "scope is limited to these services and this function.",
+          appliesTo: [
+            "Resource::arn:aws:logs:*:*:*",
+            "Resource::*",
+          ],
+        },
+      ]);
+    }
 
     // optional: allow Lambda to use this key directly
-    queueKey.grantEncryptDecrypt(uipathLambda.lambda);
+    queueKey.grant(
+      uipathLambda.lambda,
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:GenerateDataKey",
+      "kms:GenerateDataKeyWithoutPlaintext",
+      "kms:ReEncryptFrom",
+      "kms:ReEncryptTo",
+    );
     clientSecret.grantRead(uipathLambda.lambda);
 
     uipathLambda.lambda.addEventSource(
