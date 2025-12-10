@@ -187,15 +187,6 @@ export const ReviewPhase = ({
 
           {isStep1Expanded && (
             <>
-              <div className="col-span-4">
-                <h4 id="concept-verify-title" className="text-xl font-semibold mb-1">
-                  STEP 1 - PO & OGD
-                </h4>
-                <p className="text-sm text-text-placeholder">
-                  Record the Sign-Off for Internal Review
-                </p>
-              </div>
-
               <div className="flex flex-col">
                 <DatePicker
                   label="OGC Approval To Share with SMEs"
@@ -236,6 +227,21 @@ export const ReviewPhase = ({
                     setReviewPhaseFormData({
                       ...reviewPhaseFormData,
                       ddmeApprovalReceivedDate: val,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <DatePicker
+                  label="State Concurrence"
+                  name="datepicker-state-concurrence-date"
+                  value={reviewPhaseFormData.stateConcurrenceDate}
+                  isRequired
+                  onChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      stateConcurrenceDate: val,
                     })
                   }
                 />
