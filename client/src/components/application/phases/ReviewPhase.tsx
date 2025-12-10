@@ -129,9 +129,11 @@ export const ReviewPhase = ({
     for (const dateUpdate of dateUpdates) {
       if (dateUpdate.dateValue) {
         // Create date at noon UTC to avoid timezone issues when saving
-        const [year, month, day] = dateUpdate.dateValue.split('-');
-        const utcDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0));
-        
+        const [year, month, day] = dateUpdate.dateValue.split("-");
+        const utcDate = new Date(
+          Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0)
+        );
+
         await setApplicationDate({
           applicationId: demonstrationId,
           dateType: dateUpdate.dateType,
