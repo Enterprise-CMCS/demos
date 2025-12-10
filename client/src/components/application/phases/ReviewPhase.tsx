@@ -247,25 +247,11 @@ export const ReviewPhase = ({
                 />
               </div>
 
-              <div className="flex flex-col">
-                <DatePicker
-                  label="State Concurrence"
-                  name="datepicker-state-concurrence-date"
-                  value={reviewPhaseFormData.stateConcurrenceDate}
-                  isRequired
-                  onChange={(val) =>
-                    setReviewPhaseFormData({
-                      ...reviewPhaseFormData,
-                      stateConcurrenceDate: val,
-                    })
-                  }
-                />
-              </div>
-
               <div className="col-span-2 flex flex-col">
                 <label className="text-sm font-bold text-text-font mb-1">PO OGD Notes</label>
                 <textarea
                   name="input-po-ogd-notes"
+                  data-testid="input-po-ogd-notes"
                   placeholder="Enter notes..."
                   value={reviewPhaseFormData.poOGDNotes || ""}
                   onChange={(e) =>
@@ -364,6 +350,7 @@ export const ReviewPhase = ({
                 <label className="text-sm font-bold text-text-font mb-1">OGC OMB Notes</label>
                 <textarea
                   name="input-ogc-omb-notes"
+                  data-testid="input-ogc-omb-notes"
                   placeholder="Enter notes..."
                   value={reviewPhaseFormData.ogcOMBNotes || ""}
                   onChange={(e) =>
