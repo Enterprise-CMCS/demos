@@ -40,6 +40,7 @@ export class UiPathProcessor extends Construct {
       encryptionMasterKey: queueKey,
       enforceSSL: true,
       removalPolicy,
+      visibilityTimeout: Duration.minutes(15),
       deadLetterQueue: { queue: this.deadLetterQueue, maxReceiveCount: 5 },
     });
 
@@ -67,7 +68,7 @@ export class UiPathProcessor extends Construct {
       entry: "../lambdas/UIPath/index.ts",
       depsLockFilePath: uiPathLockFile,
       handler: "index.handler",
-      timeout: Duration.minutes(30),
+      timeout: Duration.minutes(15),
       asCode: false,
       externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager"],
       nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty"],
