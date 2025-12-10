@@ -1,11 +1,14 @@
 import React, { useState } from "react";
+import { ChevronUpIcon, ChevronDownIcon } from "components/icons";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
 import { Button, SecondaryButton } from "components/button";
 import { DatePicker } from "components/input/date/DatePicker";
-import { TextInput } from "components/input";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
+import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
+import { DateType } from "demos-server";
 
 interface ReviewPhaseFormData {
   ogcApprovalToShareDate?: string;
@@ -16,8 +19,8 @@ interface ReviewPhaseFormData {
   draftApprovalPackageSharedDate?: string;
   receiveOMBConcurrenceDate?: string;
   receiveOGCLegalClearanceDate?: string;
-  poOGDNotes?: string; // Placeholder Value
-  ogcOMBNotes?: string; // Placeholder Value
+  poOGDNotes?: string;
+  ogcOMBNotes?: string;
 }
 
 function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormData {
@@ -47,19 +50,105 @@ export const getReviewPhaseComponentFromDemonstration = (
   if (!reviewPhase) return <div>Error: Review Phase not found.</div>;
 
   const reviewPhaseFormData = getFormDataFromPhase(reviewPhase);
-  return <ReviewPhase formData={reviewPhaseFormData} />;
+  return <ReviewPhase formData={reviewPhaseFormData} demonstrationId={demonstration.id} />;
 };
 
-export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => {
+export const ReviewPhase = ({
+  formData,
+  demonstrationId,
+}: {
+  formData: ReviewPhaseFormData;
+  demonstrationId: string;
+}) => {
   const { showSuccess } = useToast();
   const [reviewPhaseFormData, setReviewPhaseFormData] = useState<ReviewPhaseFormData>(formData);
+  const [isStep1Expanded, setIsStep1Expanded] = useState(true);
+  const [isStep2Expanded, setIsStep2Expanded] = useState(true);
 
-  const handleSaveForLater = () => {
-    showSuccess(SAVE_FOR_LATER_MESSAGE);
+  const { setApplicationDate } = useSetApplicationDate();
+  const { setPhaseStatus: completeReviewPhase } = useSetPhaseStatus({
+    applicationId: demonstrationId,
+    phaseName: "Review",
+    phaseStatus: "Completed",
+  });
+
+  const isFormComplete = !!(
+    reviewPhaseFormData.ogcApprovalToShareDate &&
+    reviewPhaseFormData.draftApprovalPackageToPrepDate &&
+    reviewPhaseFormData.ddmeApprovalReceivedDate &&
+    reviewPhaseFormData.stateConcurrenceDate &&
+    reviewPhaseFormData.bnPmtApprovalReceivedDate &&
+    reviewPhaseFormData.draftApprovalPackageSharedDate &&
+    reviewPhaseFormData.receiveOMBConcurrenceDate &&
+    reviewPhaseFormData.receiveOGCLegalClearanceDate
+  );
+
+  const saveFormData = async () => {
+    const dateUpdates = [
+      {
+        dateType: "OGC Approval to Share with SMEs" as DateType,
+        dateValue: reviewPhaseFormData.ogcApprovalToShareDate,
+      },
+      {
+        dateType: "Draft Approval Package to Prep" as DateType,
+        dateValue: reviewPhaseFormData.draftApprovalPackageToPrepDate,
+      },
+      {
+        dateType: "DDME Approval Received" as DateType,
+        dateValue: reviewPhaseFormData.ddmeApprovalReceivedDate,
+      },
+      {
+        dateType: "State Concurrence" as DateType,
+        dateValue: reviewPhaseFormData.stateConcurrenceDate,
+      },
+      {
+        dateType: "BN PMT Approval to Send to OMB" as DateType,
+        dateValue: reviewPhaseFormData.bnPmtApprovalReceivedDate,
+      },
+      {
+        dateType: "Draft Approval Package Shared" as DateType,
+        dateValue: reviewPhaseFormData.draftApprovalPackageSharedDate,
+      },
+      {
+        dateType: "Receive OMB Concurrence" as DateType,
+        dateValue: reviewPhaseFormData.receiveOMBConcurrenceDate,
+      },
+      {
+        dateType: "Receive OGC Legal Clearance" as DateType,
+        dateValue: reviewPhaseFormData.receiveOGCLegalClearanceDate,
+      },
+    ];
+
+    for (const dateUpdate of dateUpdates) {
+      if (dateUpdate.dateValue) {
+        await setApplicationDate({
+          applicationId: demonstrationId,
+          dateType: dateUpdate.dateType,
+          dateValue: formatDateForServer(dateUpdate.dateValue),
+        });
+      }
+    }
   };
 
-  const handleFinish = () => {
-    showSuccess(getPhaseCompletedMessage("Review"));
+  const handleSaveForLater = async () => {
+    try {
+      await saveFormData();
+      showSuccess(SAVE_FOR_LATER_MESSAGE);
+    } catch (error) {
+      console.error("Error saving form data:", error);
+    }
+  };
+
+  const handleFinish = async () => {
+    try {
+      await saveFormData();
+
+      await completeReviewPhase();
+
+      showSuccess(getPhaseCompletedMessage("Review"));
+    } catch (error) {
+      console.error("Error completing Review phase:", error);
+    }
   };
 
   return (
@@ -71,193 +160,230 @@ export const ReviewPhase = ({ formData }: { formData: ReviewPhaseFormData }) => 
       </p>
 
       <section className="bg-white p-8">
-        <div className="grid grid-cols-4 gap-10 text-sm text-text-placeholder">
+        <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
           <div className="col-span-4">
-            <h4 id="concept-verify-title" className="text-xl font-semibold mb-1">
-              STEP 1 - PO & OGD
-            </h4>
-            <p className="text-sm text-text-placeholder">Record the Sign-Off for Internal Review</p>
+            <div
+              className="flex items-center justify-between cursor-pointer"
+              onClick={() => setIsStep1Expanded(!isStep1Expanded)}
+            >
+              <div>
+                <h4 className="text-xl font-semibold mb-1 text-black">STEP 1 - PO & OGD</h4>
+                <p className="text-sm text-black">Record the Sign-Off for Internal Review</p>
+              </div>
+              {isStep1Expanded ? (
+                <ChevronUpIcon className="h-2 w-2 text-brand" />
+              ) : (
+                <ChevronDownIcon className="h-2 w-2 text-brand" />
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col">
-            <DatePicker
-              label="OGC Approval To Share with SMEs"
-              id="datepicker-ogc-approval-to-share-date"
-              name="datepicker-ogc-approval-to-share-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.ogcApprovalToShareDate || ""}
-              required
-              onValueChange={(val) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  ogcApprovalToShareDate: val,
-                })
-              }
-            />
-          </div>
+          {isStep1Expanded && (
+            <>
+              <div className="flex flex-col">
+                <DatePicker
+                  label="OGC Approval To Share with SMEs"
+                  id="datepicker-ogc-approval-to-share-date"
+                  name="datepicker-ogc-approval-to-share-date"
+                  placeholder="mm/dd/yyyy"
+                  value={reviewPhaseFormData.ogcApprovalToShareDate || ""}
+                  required
+                  onValueChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      ogcApprovalToShareDate: val,
+                    })
+                  }
+                />
+              </div>
 
-          <div className="flex flex-col">
-            <DatePicker
-              label="Draft Approval Package to Prep"
-              id="datepicker-draft-approval-package-to-prep-date"
-              name="datepicker-draft-approval-package-to-prep-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.draftApprovalPackageToPrepDate || ""}
-              required
-              onValueChange={(val) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  draftApprovalPackageToPrepDate: val,
-                })
-              }
-            />
-          </div>
+              <div className="flex flex-col">
+                <DatePicker
+                  label="Draft Approval Package to Prep"
+                  id="datepicker-draft-approval-package-to-prep-date"
+                  name="datepicker-draft-approval-package-to-prep-date"
+                  placeholder="mm/dd/yyyy"
+                  value={reviewPhaseFormData.draftApprovalPackageToPrepDate || ""}
+                  required
+                  onValueChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      draftApprovalPackageToPrepDate: val,
+                    })
+                  }
+                />
+              </div>
 
-          <div className="flex flex-col">
-            <DatePicker
-              label="DDME Approval Received"
-              id="datepicker-ddme-approval-received-date"
-              name="datepicker-ddme-approval-received-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.ddmeApprovalReceivedDate || ""}
-              required
-              onValueChange={(val) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  ddmeApprovalReceivedDate: val,
-                })
-              }
-            />
-          </div>
+              <div className="flex flex-col">
+                <DatePicker
+                  label="DDME Approval Received"
+                  id="datepicker-ddme-approval-received-date"
+                  name="datepicker-ddme-approval-received-date"
+                  placeholder="mm/dd/yyyy"
+                  value={reviewPhaseFormData.ddmeApprovalReceivedDate || ""}
+                  required
+                  onValueChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      ddmeApprovalReceivedDate: val,
+                    })
+                  }
+                />
+              </div>
 
-          <div className="flex flex-col">
-            <DatePicker
-              label="State Concurrence"
-              id="datepicker-state-concurrence-date"
-              name="datepicker-state-concurrence-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.stateConcurrenceDate || ""}
-              required
-              onValueChange={(val) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  stateConcurrenceDate: val,
-                })
-              }
-            />
-          </div>
+              <div className="flex flex-col">
+                <DatePicker
+                  label="State Concurrence"
+                  id="datepicker-state-concurrence-date"
+                  name="datepicker-state-concurrence-date"
+                  placeholder="mm/dd/yyyy"
+                  value={reviewPhaseFormData.stateConcurrenceDate || ""}
+                  required
+                  onValueChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      stateConcurrenceDate: val,
+                    })
+                  }
+                />
+              </div>
 
-          <div className="col-span-2 flex flex-col">
-            <TextInput
-              name="input-po-ogd-notes"
-              label="PO OGD Notes"
-              placeholder="Enter"
-              value={reviewPhaseFormData.poOGDNotes}
-              onChange={(e) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  poOGDNotes: e.target.value,
-                })
-              }
-            />
-          </div>
+              <div className="col-span-2 flex flex-col">
+                <label className="text-sm font-bold text-text-font mb-1">PO OGD Notes</label>
+                <textarea
+                  name="input-po-ogd-notes"
+                  placeholder="Enter notes..."
+                  value={reviewPhaseFormData.poOGDNotes || ""}
+                  onChange={(e) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      poOGDNotes: e.target.value,
+                    })
+                  }
+                  className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={1}
+                />
+              </div>
+            </>
+          )}
 
           <div className="col-span-4 mt-1">
-            <h4 id="concept-verify-title" className="text-xl font-semibold mb-1">
-              STEP 2 - OGC & OMB
-            </h4>
-            <p className="text-sm text-text-placeholder">Record the OGC & OMB Review Process</p>
+            <div
+              className="flex items-center justify-between cursor-pointer"
+              onClick={() => setIsStep2Expanded(!isStep2Expanded)}
+            >
+              <div>
+                <h4 className="text-xl font-semibold mb-1 text-black">STEP 2 - OGC & OMB</h4>
+                <p className="text-sm text-black">Record the OGC & OMB Review Process</p>
+              </div>
+              {isStep2Expanded ? (
+                <ChevronUpIcon className="h-2 w-2 text-brand" />
+              ) : (
+                <ChevronDownIcon className="h-2 w-2 text-brand" />
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col">
-            <DatePicker
-              label="BN PMT Approval Received"
-              id="datepicker-bn-pmt-approval-received-date"
-              name="datepicker-bn-pmt-approval-received-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.bnPmtApprovalReceivedDate || ""}
-              required
-              onValueChange={(val) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  bnPmtApprovalReceivedDate: val,
-                })
-              }
-            />
-          </div>
+          {isStep2Expanded && (
+            <>
+              <div className="flex flex-col">
+                <DatePicker
+                  label="BN PMT Approval Received"
+                  id="datepicker-bn-pmt-approval-received-date"
+                  name="datepicker-bn-pmt-approval-received-date"
+                  placeholder="mm/dd/yyyy"
+                  value={reviewPhaseFormData.bnPmtApprovalReceivedDate || ""}
+                  required
+                  onValueChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      bnPmtApprovalReceivedDate: val,
+                    })
+                  }
+                />
+              </div>
 
-          <div className="flex flex-col">
-            <DatePicker
-              label="Draft Approval Package Shared"
-              id="datepicker-draft-approval-package-shared-date"
-              name="datepicker-draft-approval-package-shared-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.draftApprovalPackageSharedDate || ""}
-              required
-              onValueChange={(val) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  draftApprovalPackageSharedDate: val,
-                })
-              }
-            />
-          </div>
+              <div className="flex flex-col">
+                <DatePicker
+                  label="Draft Approval Package Shared"
+                  id="datepicker-draft-approval-package-shared-date"
+                  name="datepicker-draft-approval-package-shared-date"
+                  placeholder="mm/dd/yyyy"
+                  value={reviewPhaseFormData.draftApprovalPackageSharedDate || ""}
+                  required
+                  onValueChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      draftApprovalPackageSharedDate: val,
+                    })
+                  }
+                />
+              </div>
 
-          <div className="flex flex-col">
-            <DatePicker
-              label="Receive OMB Concurrence"
-              id="datepicker-receive-omb-concurrence-date"
-              name="datepicker-receive-omb-concurrence-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.receiveOMBConcurrenceDate || ""}
-              required
-              onValueChange={(val) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  receiveOMBConcurrenceDate: val,
-                })
-              }
-            />
-          </div>
+              <div className="flex flex-col">
+                <DatePicker
+                  label="Receive OMB Concurrence"
+                  id="datepicker-receive-omb-concurrence-date"
+                  name="datepicker-receive-omb-concurrence-date"
+                  placeholder="mm/dd/yyyy"
+                  value={reviewPhaseFormData.receiveOMBConcurrenceDate || ""}
+                  required
+                  onValueChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      receiveOMBConcurrenceDate: val,
+                    })
+                  }
+                />
+              </div>
 
-          <div className="flex flex-col">
-            <DatePicker
-              label="Receive OGC Legal Clearance"
-              id="datepicker-receive-ogc-legal-clearance-date"
-              name="datepicker-receive-ogc-legal-clearance-date"
-              placeholder="mm/dd/yyyy"
-              value={reviewPhaseFormData.receiveOGCLegalClearanceDate || ""}
-              required
-              onValueChange={(val) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  receiveOGCLegalClearanceDate: val,
-                })
-              }
-            />
-          </div>
+              <div className="flex flex-col">
+                <DatePicker
+                  label="Receive OGC Legal Clearance"
+                  id="datepicker-receive-ogc-legal-clearance-date"
+                  name="datepicker-receive-ogc-legal-clearance-date"
+                  placeholder="mm/dd/yyyy"
+                  value={reviewPhaseFormData.receiveOGCLegalClearanceDate || ""}
+                  required
+                  onValueChange={(val) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      receiveOGCLegalClearanceDate: val,
+                    })
+                  }
+                />
+              </div>
 
-          <div className="col-span-2 flex flex-col">
-            <TextInput
-              name="input-ogc-omb-notes"
-              label="OGC OMB Notes"
-              placeholder="Enter"
-              value={reviewPhaseFormData.ogcOMBNotes}
-              onChange={(e) =>
-                setReviewPhaseFormData({
-                  ...reviewPhaseFormData,
-                  ogcOMBNotes: e.target.value,
-                })
-              }
-            />
-          </div>
+              <div className="col-span-2 flex flex-col">
+                <label className="text-sm font-bold text-text-font mb-1">OGC OMB Notes</label>
+                <textarea
+                  name="input-ogc-omb-notes"
+                  placeholder="Enter notes..."
+                  value={reviewPhaseFormData.ogcOMBNotes || ""}
+                  onChange={(e) =>
+                    setReviewPhaseFormData({
+                      ...reviewPhaseFormData,
+                      ogcOMBNotes: e.target.value,
+                    })
+                  }
+                  className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={1}
+                />
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex justify-end mt-2 gap-2">
           <SecondaryButton onClick={handleSaveForLater} size="large" name="review-save-for-later">
             Save For Later
           </SecondaryButton>
-          <Button onClick={handleFinish} size="large" name="review-finish" disabled={false}>
+          <Button
+            onClick={handleFinish}
+            size="large"
+            name="review-finish"
+            disabled={!isFormComplete}
+          >
             Finish
           </Button>
         </div>
