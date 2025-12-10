@@ -4,6 +4,7 @@ import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambda from "./lambda";
 import { DeploymentConfigProperties } from "../config";
 import { aws_kms as kms } from "aws-cdk-lib";
+import path from "path";
 
 interface UiPathProcessorProps extends DeploymentConfigProperties {
   removalPolicy?: RemovalPolicy;
@@ -63,6 +64,7 @@ export class UiPathProcessor extends Construct {
       ...props,
       scope: this,
       entry: lambdaPath + "index.ts",
+      depsLockFilePath: path.join(__dirname, "..", "..", "lambdas", "UIPath", "package-lock.json"),
       handler: "index.handler",
       timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
       asCode: false,
