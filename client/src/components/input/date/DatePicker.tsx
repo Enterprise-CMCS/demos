@@ -1,33 +1,33 @@
 import React from "react";
 import { Input } from "components/input/Input";
 
-export interface DatePickerProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> {
+interface DatePickerProps {
+  name: string;
   label: string;
-  required?: boolean;
+  onChange: (newDate: string) => void;
   value?: string;
-  onValueChange?: (newDate: string) => void;
+  isRequired?: boolean;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
   label,
   name,
-  id,
-  required,
   value,
-  onValueChange,
+  onChange,
+  isRequired,
 }) => {
+  // This is only triggered when the input value is a valid date string
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onValueChange?.(e.target.value);
+    onChange(e.target.value);
   };
 
   return (
     <Input
       type="date"
+      name={name}
       label={label}
-      name={name ?? id ?? ""}
-      isRequired={required ?? false}
-      value={value}
+      value={value || ""}
+      isRequired={isRequired ?? false}
       onChange={handleChange}
     />
   );
