@@ -100,23 +100,17 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
             <div>
               <DatePicker
                 label={`${columnDisplayName} Start`}
-                id="date-filter-start"
                 name="date-filter-start"
-                placeholder="Start date"
                 value={filterRangeValue.start ? format(filterRangeValue.start, "yyyy-MM-dd") : ""}
-                onValueChange={(val) =>
-                  onRangeChange(val ? parseISO(val) : null, filterRangeValue.end)
-                }
+                onChange={(val) => onRangeChange(val ? parseISO(val) : null, filterRangeValue.end)}
               />
             </div>
             <div>
               <DatePicker
                 label={`${columnDisplayName} End`}
-                id="date-filter-end"
                 name="date-filter-end"
-                placeholder="End date"
                 value={filterRangeValue.end ? format(filterRangeValue.end, "yyyy-MM-dd") : ""}
-                onValueChange={(val) =>
+                onChange={(val) =>
                   onRangeChange(filterRangeValue.start, val ? parseISO(val) : null)
                 }
               />
