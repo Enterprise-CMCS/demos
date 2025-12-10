@@ -4,6 +4,7 @@ import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambda from "./lambda";
 import { DeploymentConfigProperties } from "../config";
 import { aws_kms as kms } from "aws-cdk-lib";
+import fs from "fs";
 import path from "path";
 
 interface UiPathProcessorProps extends DeploymentConfigProperties {
@@ -17,11 +18,7 @@ export class UiPathProcessor extends Construct {
 
   constructor(scope: Construct, id: string, props: UiPathProcessorProps) {
     super(scope, id);
-
-
-    const lambdaPath = "../lambdas/UIPath/";
     const removalPolicy = props.removalPolicy ?? RemovalPolicy.DESTROY;
-
     const queueKey =
       props.kmsKey ??
       new kms.Key(this, "UiPathQueueKey", {
@@ -60,13 +57,29 @@ export class UiPathProcessor extends Construct {
 
     const uiPathDefaultProjectId =
       process.env.UIPATH_DEFAULT_PROJECT_ID ?? "00000000-0000-0000-0000-000000000000";
+
+    const uiPathDir = path.resolve(process.cwd(), "..", "lambdas", "UIPath");
+    const uiPathLockFile = path.join(uiPathDir, "package-lock.json");
+
+    if (process.env.DEBUG_UI_PATH === "true") {
+      // Helps trace bundling path issues in CI/CD without affecting runtime.
+      console.log("## ---- UiPath bundling paths ------- ##", {
+        cwd: process.cwd(),
+        uiPathDir,
+        uiPathLockFile,
+        uiPathDirExists: fs.existsSync(uiPathDir),
+        lockExists: fs.existsSync(uiPathLockFile),
+        contents: fs.existsSync(uiPathDir) ? fs.readdirSync(uiPathDir) : "missing",
+      });
+    }
+
     const uipathLambda = new lambda.Lambda(this, "Lambda", {
       ...props,
       scope: this,
-      entry: lambdaPath + "index.ts",
-      depsLockFilePath: path.join(__dirname, "..", "..", "lambdas", "UIPath", "package-lock.json"),
+      entry: "../lambdas/UIPath/index.ts",
+      depsLockFilePath: uiPathLockFile,
       handler: "index.handler",
-      timeout: Duration.minutes(15), // We do not have enough data to wittle this down yet,
+      timeout: Duration.minutes(30),
       asCode: false,
       externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager"],
       nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty"],
