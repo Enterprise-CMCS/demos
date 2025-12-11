@@ -15,6 +15,7 @@ import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";
 import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
+import { DatePicker } from "components/input/date/DatePicker";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -189,16 +190,12 @@ export const ApplicationIntakePhase = ({
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-bold mb-1">
-            <span className="text-text-warn mr-1">*</span>
-            State Application Submitted Date
-          </label>
-          <input
-            type="date"
-            value={stateApplicationSubmittedDate ?? undefined}
-            onChange={(e) => handleDateChange(e.target.value)}
-            className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-            required
+          <DatePicker
+            name="datepicker-state-application-submitted-date"
+            label="State Application Submitted Date"
+            value={stateApplicationSubmittedDate}
+            onChange={(newDate) => handleDateChange(newDate)}
+            isRequired
             aria-required="true"
           />
           {!stateApplicationDocuments && stateApplicationSubmittedDate && (
@@ -209,17 +206,16 @@ export const ApplicationIntakePhase = ({
         </div>
 
         <div>
-          <label className="block text-sm font-bold mb-1">Completeness Review Due Date</label>
-          <input
-            type="date"
+          <DatePicker
+            name="datepicker-completeness-review-due-date"
+            label="Completeness Review Due Date"
             value={
               stateApplicationSubmittedDate
                 ? formatDateForServer(getCompletenessReviewDueDate(stateApplicationSubmittedDate))
                 : ""
             }
-            disabled
-            className="w-full border border-border-fields px-1 py-1 text-sm rounded bg-gray-50 text-gray-600"
-            aria-describedby="completeness-review-help"
+            onChange={() => {}}
+            isDisabled={true}
           />
           <div id="completeness-review-help" className="text-xs text-text-placeholder mt-1">
             Automatically calculated as 15 calendar days after State Application Submitted Date

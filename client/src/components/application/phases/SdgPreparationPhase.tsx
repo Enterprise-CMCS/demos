@@ -13,6 +13,7 @@ import {
   getPhaseCompletedMessage,
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
+import { DatePicker } from "components/input/date/DatePicker";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -147,22 +148,14 @@ export const SdgPreparationPhase = ({
               </p>
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-              <label className="block text-sm font-bold mb-1">
-                <span className="text-text-warn mr-1">*</span>
-                Expected Approval Date
-              </label>
-              <input
-                type="date"
-                name="expected-approval-date"
-                data-testid="datepicker-expected-approval-date"
-                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-                aria-required={true}
-                placeholder="Expected Approval Date"
+              <DatePicker
+                name="datepicker-expected-approval-date"
+                label="Expected Approval Date"
                 value={sdgPreparationPhaseFormData.expectedApprovalDate}
-                onChange={(e) => {
+                onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
                     ...sdgPreparationPhaseFormData,
-                    expectedApprovalDate: e.target.value,
+                    expectedApprovalDate: newDate,
                   });
                 }}
               />
@@ -178,20 +171,16 @@ export const SdgPreparationPhase = ({
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
               <label className="block text-sm font-bold mb-1">
                 <span className="text-text-warn mr-1">*</span>
-                SME Initial Review Date
               </label>
-              <input
-                name="sme-initial-review-date"
-                data-testid="datepicker-sme-initial-review-date"
-                type="date"
-                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-                aria-required={true}
-                placeholder="SME Initial Review Date"
+              <DatePicker
+                name="datepicker-sme-initial-review-date"
+                label="SME Initial Review Date"
+                isRequired={true}
                 value={sdgPreparationPhaseFormData.smeInitialReviewDate}
-                onChange={(e) => {
+                onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
                     ...sdgPreparationPhaseFormData,
-                    smeInitialReviewDate: e.target.value,
+                    smeInitialReviewDate: newDate,
                   });
                 }}
               />
@@ -199,39 +188,30 @@ export const SdgPreparationPhase = ({
                 <span className="text-text-warn mr-1">*</span>
                 FRT Initial Meeting Date
               </label>
-              <input
-                name="frt-initial-meeting-date"
-                data-testid="datepicker-frt-intial-meeting-date"
-                type="date"
-                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-                aria-required={true}
-                placeholder="FRT Initial Meeting Date"
+              <DatePicker
+                name="datepicker-frt-initial-meeting-date"
+                data-testid="datepicker-frt-initial-meeting-date"
+                isRequired={true}
+                label="FRT Initial Meeting Date"
                 value={sdgPreparationPhaseFormData.frtInitialMeetingDate}
-                onChange={(e) => {
+                onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
                     ...sdgPreparationPhaseFormData,
-                    frtInitialMeetingDate: e.target.value,
+                    frtInitialMeetingDate: newDate,
                   });
                 }}
               />
-              <label className="block text-sm font-bold mb-1">
-                <span className="text-text-warn mr-1">*</span>
-                BNPMT Initial Meeting Date
-              </label>
-              <input
-                name="bnpmt-intial-meeting-date"
-                data-testid="datepicker-bnpmt-intial-meeting-date"
-                type="date"
-                className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-                aria-required={true}
-                placeholder="BNPMT Initial Meeting Date"
+              <DatePicker
+                name="datepicker-bnpmt-initial-meeting-date"
+                label="BNPMT Initial Meeting Date"
                 value={sdgPreparationPhaseFormData.bnpmtInitialMeetingDate}
-                onChange={(e) => {
+                onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
                     ...sdgPreparationPhaseFormData,
-                    bnpmtInitialMeetingDate: e.target.value,
+                    bnpmtInitialMeetingDate: newDate,
                   });
                 }}
+                isRequired={true}
               />
             </div>
 
