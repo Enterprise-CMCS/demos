@@ -2,7 +2,7 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { PhaseNameWithTrackedStatus } from "../../types.js";
 import { getApplicationPhaseStatus, updatePhaseStatus } from ".";
 
-export async function startPhase(
+export async function setPhaseToStarted(
   applicationId: string,
   phaseName: PhaseNameWithTrackedStatus,
   tx: PrismaTransactionClient

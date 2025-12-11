@@ -6,20 +6,15 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { S3Adapter } from "./S3Adapter.js";
+import { PrismaTransactionClient } from "../../prismaClient";
+import { UploadDocumentInput } from "../../types";
+import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
+import { S3Adapter } from "../";
 
-const EXPIRATION_TIME_SECONDS = 3600; // 1 hour in seconds
-const LOCAL_SIMPLE_UPLOAD_ENDPOINT = "http://localhost:4566";
-
-const resolveS3Endpoint = (): string | undefined => {
-  if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
-    return LOCAL_SIMPLE_UPLOAD_ENDPOINT;
-  }
-  return process.env.S3_ENDPOINT_LOCAL;
-};
+const EXPIRATION_TIME_SECONDS = 60 * 60;
 
 const createS3Client = () => {
-  const endpoint = resolveS3Endpoint();
+  const endpoint = process.env.S3_ENDPOINT_LOCAL;
   const s3ClientConfig = endpoint
     ? {
         region: "us-east-1",
@@ -74,20 +69,18 @@ export function createAWSS3Adapter(): S3Adapter {
             CopySource: `${process.env.CLEAN_BUCKET}/${key}`,
             Bucket: deletedBucket,
             Key: key,
-          }),
+          })
         );
         if (
           !copyResponse.$metadata.httpStatusCode ||
           copyResponse.$metadata.httpStatusCode !== 200
         ) {
           throw new Error(
-            `Response from copy operation returned with a non-200 status: ${copyResponse.$metadata.httpStatusCode}`,
+            `Response from copy operation returned with a non-200 status: ${copyResponse.$metadata.httpStatusCode}`
           );
         }
       } catch (error) {
-        throw new Error(
-          `Error while copying document to deleted bucket: ${error}`,
-        );
+        throw new Error(`Error while copying document to deleted bucket: ${error}`);
       }
 
       try {
@@ -95,7 +88,7 @@ export function createAWSS3Adapter(): S3Adapter {
           new DeleteObjectCommand({
             Bucket: cleanBucket,
             Key: key,
-          }),
+          })
         );
         if (
           !deleteResponse.$metadata.httpStatusCode ||
@@ -103,14 +96,28 @@ export function createAWSS3Adapter(): S3Adapter {
             deleteResponse.$metadata.httpStatusCode !== 204)
         ) {
           throw new Error(
-            `Response from delete operation returned with a non-200 status: ${deleteResponse.$metadata.httpStatusCode}`,
+            `Response from delete operation returned with a non-200 status: ${deleteResponse.$metadata.httpStatusCode}`
           );
         }
       } catch (error) {
-        throw new Error(
-          `Failed to delete document from clean bucket: ${error}`,
-        );
+        throw new Error(`Failed to delete document from clean bucket: ${error}`);
       }
+    },
+
+    async uploadDocument(
+      tx: PrismaTransactionClient,
+      input: UploadDocumentInput,
+      userId: string
+    ): Promise<{
+      presignedURL: string;
+      documentId: string;
+    }> {
+      const documentPendingUpload = await createDocumentPendingUpload(tx, input, userId);
+      const presignedURL = await this.getPresignedUploadUrl(documentPendingUpload.id);
+      return {
+        presignedURL,
+        documentId: documentPendingUpload.id,
+      };
     },
   };
 }

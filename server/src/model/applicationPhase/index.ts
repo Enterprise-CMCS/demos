@@ -10,10 +10,12 @@ export {
 } from "./checkPhaseFunctions.js";
 export { checkPhaseCompletionRules } from "./checkPhaseCompletionRules.js";
 export { validatePhaseCompletion } from "./validatePhaseCompletion.js";
-export { startPhase } from "./startPhase.js";
+export { setPhaseToStarted } from "./setPhaseToStarted.js";
 export { completePhase } from "./completePhase.js";
 export { skipConceptPhase } from "./skipConceptPhase.js";
 export { declareCompletenessPhaseIncomplete } from "./declareCompletenessPhaseIncomplete.js";
+export { startPhasesByDates } from "./startPhasesByDates.js";
+export { startPhaseByDocument } from "./startPhaseByDocument.js";
 
 // Queries
 export { getApplicationPhaseDocumentTypes } from "./queries/getApplicationPhaseDocumentTypes.js";

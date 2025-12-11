@@ -6,7 +6,7 @@ import { CompletePhaseInput } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from "../applicationDate";
-import { validatePhaseCompletion, updatePhaseStatus, startPhase } from ".";
+import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 
@@ -36,7 +36,7 @@ vi.mock(".", async () => {
     ...actual,
     validatePhaseCompletion: vi.fn(),
     updatePhaseStatus: vi.fn(),
-    startPhase: vi.fn(),
+    setPhaseToStarted: vi.fn(),
   };
 });
 
@@ -71,7 +71,7 @@ describe("completePhase", () => {
       callback(mockTransaction),
     );
     vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
-    vi.mocked(startPhase).mockResolvedValue(true);
+    vi.mocked(setPhaseToStarted).mockResolvedValue(true);
   });
 
   describe("Concept Phase", () => {
@@ -112,7 +112,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction,
       );
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
         mockTransaction,
@@ -162,7 +162,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction,
       );
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Completeness",
         mockTransaction,
@@ -208,7 +208,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction,
       );
-      expect(startPhase).not.toBeCalled();
+      expect(setPhaseToStarted).not.toBeCalled();
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
         expectedDateCall,
       );
@@ -231,7 +231,7 @@ describe("completePhase", () => {
 
       expect(validatePhaseCompletion).not.toHaveBeenCalled();
       expect(updatePhaseStatus).not.toHaveBeenCalled();
-      expect(startPhase).not.toBeCalled();
+      expect(setPhaseToStarted).not.toBeCalled();
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
@@ -275,7 +275,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction,
       );
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Review",
         mockTransaction,
@@ -325,7 +325,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction,
       );
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approval Package",
         mockTransaction,
@@ -371,7 +371,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction,
       );
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Post Approval",
         mockTransaction,
@@ -398,7 +398,7 @@ describe("completePhase", () => {
 
       expect(validatePhaseCompletion).not.toHaveBeenCalled();
       expect(updatePhaseStatus).not.toHaveBeenCalled();
-      expect(startPhase).not.toBeCalled();
+      expect(setPhaseToStarted).not.toBeCalled();
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
@@ -419,7 +419,7 @@ describe("completePhase", () => {
     });
 
     it("should skip changing the date if the next phase is already started", async () => {
-      vi.mocked(startPhase).mockResolvedValue(false);
+      vi.mocked(setPhaseToStarted).mockResolvedValue(false);
       const testInput: CompletePhaseInput = {
         applicationId: testApplicationId,
         phaseName: "Concept",
@@ -452,7 +452,7 @@ describe("completePhase", () => {
         "Completed",
         mockTransaction,
       );
-      expect(startPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
         mockTransaction,
