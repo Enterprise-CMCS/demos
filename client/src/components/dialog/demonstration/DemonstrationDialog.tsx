@@ -12,9 +12,6 @@ import { LocalDate, SdgDivision, SignatureLevel } from "demos-server";
 import { tw } from "tags/tw";
 import { useDialog } from "../DialogContext";
 
-const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
-const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-half text-sm`;
-
 export type DemonstrationData = {
   name?: string;
   stateId?: string;
@@ -27,6 +24,75 @@ export type DemonstrationData = {
 };
 
 type ValidationErrors = Partial<Record<keyof DemonstrationData, string>>;
+
+const SubmitButton: React.FC<{ hasChanged: boolean; isSubmitting: boolean }> = ({
+  hasChanged,
+  isSubmitting,
+}) => (
+  <Button
+    name="button-submit-demonstration-dialog"
+    size="small"
+    disabled={!hasChanged}
+    type="submit"
+    form="demonstration-form"
+  >
+    {isSubmitting ? (
+      <svg
+        className="animate-spin h-2 w-2 text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+        />
+      </svg>
+    ) : (
+      "Submit"
+    )}
+  </Button>
+);
+
+const DateInput: React.FC<{
+  name: string;
+  value?: LocalDate;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errorMessage?: string;
+}> = ({ name, value, onChange, errorMessage }) => {
+  const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-half text-sm`;
+  const DATE_LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
+
+  return (
+    <>
+      <label className={DATE_LABEL_CLASSES} htmlFor={name}>
+        Effective Date
+      </label>
+      <input
+        data-testid={`input-${name}`}
+        id={name}
+        type="date"
+        className={`${DATE_INPUT_CLASSES} ${
+          errorMessage
+            ? "border-border-warn focus:ring-border-warn"
+            : "border-border-fields focus:ring-border-focus"
+        }`}
+        value={value}
+        onChange={onChange}
+      />
+      {errorMessage && <div className="text-text-warn text-sm mt-1">{errorMessage}</div>}
+    </>
+  );
+};
 
 const validateForm = (formData: DemonstrationData): ValidationErrors => {
   const errors: Record<string, string> = {};
@@ -50,6 +116,7 @@ const validateForm = (formData: DemonstrationData): ValidationErrors => {
 
   return errors;
 };
+
 type DemonstrationDialogProps =
   | {
       mode: "create";
@@ -103,9 +170,10 @@ export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) =
     );
   };
 
-  const updateForm = (formData: DemonstrationData) => {
-    setHasChanged(hasFormChanged(initialDemonstrationData, formData));
+  const updateForm = (newData: Partial<DemonstrationData>) => {
+    const formData = { ...demonstrationData, ...newData };
     setDemonstrationData(formData);
+    setHasChanged(hasFormChanged(initialDemonstrationData, formData));
   };
 
   return (
@@ -124,38 +192,7 @@ export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) =
           >
             Cancel
           </SecondaryButton>
-          <Button
-            name="button-submit-demonstration-dialog"
-            size="small"
-            disabled={!hasChanged}
-            type="submit"
-            form="demonstration-form"
-          >
-            {isSubmitting ? (
-              <svg
-                className="animate-spin h-2 w-2 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-            ) : (
-              "Submit"
-            )}
-          </Button>
+          <SubmitButton hasChanged={hasChanged} isSubmitting={isSubmitting} />
         </>
       }
     >
@@ -171,7 +208,7 @@ export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) =
               label="State/Territory"
               value={demonstrationData.stateId}
               isRequired
-              onSelect={(stateId) => updateForm({ ...demonstrationData, stateId })}
+              onSelect={(stateId) => updateForm({ stateId })}
             />
             {validationErrors.stateId && (
               <div className="text-text-warn text-sm mt-1">{validationErrors.stateId}</div>
@@ -184,7 +221,7 @@ export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) =
               isRequired
               placeholder="Enter title"
               value={demonstrationData.name}
-              onChange={(e) => updateForm({ ...demonstrationData, name: e.target.value })}
+              onChange={(e) => updateForm({ name: e.target.value })}
             />
             {validationErrors.name && (
               <div className="text-text-warn text-sm mt-1">{validationErrors.name}</div>
@@ -198,7 +235,7 @@ export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) =
               label="Project Officer"
               isRequired={true}
               value={demonstrationData.projectOfficerId}
-              onSelect={(userId) => updateForm({ ...demonstrationData, projectOfficerId: userId })}
+              onSelect={(userId) => updateForm({ projectOfficerId: userId })}
               personTypes={["demos-admin", "demos-cms-user"]}
             />
             {validationErrors.projectOfficerId && (
@@ -208,56 +245,20 @@ export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) =
           {mode === "edit" && (
             <>
               <div className="flex flex-col gap-xs">
-                <label className={LABEL_CLASSES} htmlFor="effective-date">
-                  Effective Date
-                </label>
-                <input
-                  data-testid="input-effective-date"
-                  id="effective-date"
-                  type="date"
-                  className={`${DATE_INPUT_CLASSES} ${
-                    validationErrors.effectiveDate
-                      ? "border-border-warn focus:ring-border-warn"
-                      : "border-border-fields focus:ring-border-focus"
-                  }`}
+                <DateInput
+                  name="effective-date"
+                  onChange={(e) => updateForm({ effectiveDate: e.target.value as LocalDate })}
+                  errorMessage={validationErrors.effectiveDate}
                   value={demonstrationData.effectiveDate}
-                  onChange={(e) =>
-                    updateForm({ ...demonstrationData, effectiveDate: e.target.value as LocalDate })
-                  }
                 />
-                {validationErrors.effectiveDate && (
-                  <div className="text-text-warn text-sm mt-1">
-                    {validationErrors.effectiveDate}
-                  </div>
-                )}
               </div>
               <div className="flex flex-col gap-xs">
-                <label className={LABEL_CLASSES} htmlFor="expiration-date">
-                  Expiration Date
-                </label>
-                <input
-                  data-testid="input-expiration-date"
-                  id="expiration-date"
-                  type="date"
-                  className={`${DATE_INPUT_CLASSES} ${
-                    validationErrors.expirationDate
-                      ? "border-border-warn focus:ring-border-warn"
-                      : "border-border-fields focus:ring-border-focus"
-                  }`}
+                <DateInput
+                  name="expiration-date"
+                  onChange={(e) => updateForm({ expirationDate: e.target.value as LocalDate })}
+                  errorMessage={validationErrors.expirationDate}
                   value={demonstrationData.expirationDate}
-                  min={demonstrationData.effectiveDate || undefined}
-                  onChange={(e) =>
-                    updateForm({
-                      ...demonstrationData,
-                      expirationDate: e.target.value as LocalDate,
-                    })
-                  }
                 />
-                {validationErrors.expirationDate && (
-                  <div className="text-text-warn text-sm mt-1">
-                    {validationErrors.expirationDate}
-                  </div>
-                )}
               </div>
             </>
           )}
@@ -269,7 +270,7 @@ export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) =
             label="Demonstration Description"
             placeholder="Enter description"
             initialValue={demonstrationData.description ?? ""}
-            onChange={(e) => updateForm({ ...demonstrationData, description: e.target.value })}
+            onChange={(e) => updateForm({ description: e.target.value })}
           />
           {validationErrors.description && (
             <div className="text-text-warn text-sm mt-1">{validationErrors.description}</div>
@@ -279,11 +280,11 @@ export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) =
         <div className="grid grid-cols-2 gap-2">
           <SelectSdgDivision
             initialValue={demonstrationData.sdgDivision}
-            onSelect={(sdgDivision) => updateForm({ ...demonstrationData, sdgDivision })}
+            onSelect={(sdgDivision) => updateForm({ sdgDivision })}
           />
           <SelectSignatureLevel
             initialValue={demonstrationData.signatureLevel}
-            onSelect={(signatureLevel) => updateForm({ ...demonstrationData, signatureLevel })}
+            onSelect={(signatureLevel) => updateForm({ signatureLevel })}
           />
         </div>
       </form>

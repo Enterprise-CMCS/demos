@@ -49,9 +49,7 @@ export const useDialog = () => {
   };
 
   const showEditDemonstrationDialog = (demonstrationId: string) => {
-    context.showDialog(
-      <EditDemonstrationDialog demonstrationId={demonstrationId} onClose={context.hideDialog} />
-    );
+    context.showDialog(<EditDemonstrationDialog demonstrationId={demonstrationId} />);
   };
 
   const showCreateAmendmentDialog = (demonstrationId?: string) => {
