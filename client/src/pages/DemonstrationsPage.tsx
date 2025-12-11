@@ -76,9 +76,11 @@ export const DemonstrationsPage: React.FC = () => {
   let tabValue = "my-demonstrations";
   const tabDemoKey = "selectedDemonstrationTab";
   tabValue = sessionStorage.getItem(tabDemoKey) ?? tabValue;
-  if (tabValue !== "my-demonstrations" && tabValue !== "demonstrations") {
+
+  if (typeof window === "undefined" || (tabValue !== "my-demonstrations" && tabValue !== "demonstrations")) {
     tabValue = "my-demonstrations";
   }
+
   // checking for headless states. (e.g. testing/CICD)
   typeof window !== "undefined" ? sessionStorage.setItem(tabDemoKey, tabValue) : null;
 
