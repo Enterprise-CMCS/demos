@@ -275,6 +275,8 @@ export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
   "State Application",
 ] as const;
 
+export const NOTE_TYPES = ["PO OGD Notes", "OGC OMB Notes"] as const;
+
 export const COMPLETENESS_PHASE_DOCUMENTS: DocumentType[] = [
   "General File",
   "Internal Completeness Review Form",

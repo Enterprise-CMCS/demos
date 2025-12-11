@@ -69,6 +69,7 @@ export const ReviewPhase = ({
 }) => {
   const { showSuccess } = useToast();
   const [reviewPhaseFormData, setReviewPhaseFormData] = useState<ReviewPhaseFormData>(formData);
+  const [originalFormData] = useState<ReviewPhaseFormData>(formData);
   const [isStep1Expanded, setIsStep1Expanded] = useState(true);
   const [isStep2Expanded, setIsStep2Expanded] = useState(true);
 
@@ -88,6 +89,22 @@ export const ReviewPhase = ({
     reviewPhaseFormData.draftApprovalPackageSharedDate &&
     reviewPhaseFormData.receiveOMBConcurrenceDate &&
     reviewPhaseFormData.receiveOGCLegalClearanceDate
+  );
+
+  const hasFormChanges = !!(
+    reviewPhaseFormData.ogcApprovalToShareDate !== originalFormData.ogcApprovalToShareDate ||
+    reviewPhaseFormData.draftApprovalPackageToPrepDate !==
+      originalFormData.draftApprovalPackageToPrepDate ||
+    reviewPhaseFormData.ddmeApprovalReceivedDate !== originalFormData.ddmeApprovalReceivedDate ||
+    reviewPhaseFormData.stateConcurrenceDate !== originalFormData.stateConcurrenceDate ||
+    reviewPhaseFormData.bnPmtApprovalReceivedDate !== originalFormData.bnPmtApprovalReceivedDate ||
+    reviewPhaseFormData.draftApprovalPackageSharedDate !==
+      originalFormData.draftApprovalPackageSharedDate ||
+    reviewPhaseFormData.receiveOMBConcurrenceDate !== originalFormData.receiveOMBConcurrenceDate ||
+    reviewPhaseFormData.receiveOGCLegalClearanceDate !==
+      originalFormData.receiveOGCLegalClearanceDate ||
+    reviewPhaseFormData.poOGDNotes !== originalFormData.poOGDNotes ||
+    reviewPhaseFormData.ogcOMBNotes !== originalFormData.ogcOMBNotes
   );
 
   const saveFormData = async () => {
@@ -172,7 +189,7 @@ export const ReviewPhase = ({
         White House - Office of Management and Budget (OMB)
       </p>
 
-      <section className="bg-white p-8">
+      <section className="bg-white pt-2">
         <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
           <div className="col-span-4">
             <div
@@ -180,8 +197,10 @@ export const ReviewPhase = ({
               onClick={() => setIsStep1Expanded(!isStep1Expanded)}
             >
               <div>
-                <h4 className="text-xl font-semibold mb-1 text-black">STEP 1 - PO & OGD</h4>
-                <p className="text-sm text-black">Record the Sign-Off for Internal Review</p>
+                <h4 className="text-xl font-bold mb-1 text-black">STEP 1 - PO & OGD</h4>
+                <p className="text-sm text-text-placeholder">
+                  Record the Sign-Off for Internal Review
+                </p>
               </div>
               {isStep1Expanded ? (
                 <ChevronUpIcon className="h-2 w-2 text-brand" />
@@ -279,8 +298,8 @@ export const ReviewPhase = ({
               onClick={() => setIsStep2Expanded(!isStep2Expanded)}
             >
               <div>
-                <h4 className="text-xl font-semibold mb-1 text-black">STEP 2 - OGC & OMB</h4>
-                <p className="text-sm text-black">Record the OGC & OMB Review Process</p>
+                <h4 className="text-xl font-bold mb-1 text-black">STEP 2 - OGC & OMB</h4>
+                <p className="text-sm text-text-placeholder">Record the OGC & OMB Review Process</p>
               </div>
               {isStep2Expanded ? (
                 <ChevronUpIcon className="h-2 w-2 text-brand" />
@@ -374,7 +393,12 @@ export const ReviewPhase = ({
         </div>
 
         <div className="flex justify-end mt-2 gap-2">
-          <SecondaryButton onClick={handleSaveForLater} size="large" name="review-save-for-later">
+          <SecondaryButton
+            onClick={handleSaveForLater}
+            size="large"
+            name="review-save-for-later"
+            disabled={!hasFormChanges}
+          >
             Save For Later
           </SecondaryButton>
           <Button
