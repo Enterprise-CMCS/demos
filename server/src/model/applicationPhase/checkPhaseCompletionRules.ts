@@ -2,7 +2,6 @@ import { PhaseNameWithTrackedStatus } from "../../types.js";
 import {
   ParsedApplicationDateInput,
   makeApplicationDateMapFromList,
-  checkInputDateGreaterThanOrEqual,
 } from "../applicationDate";
 import {
   ApplicationPhaseDocumentTypeRecord,
@@ -152,29 +151,6 @@ export function checkPhaseCompletionRules(
         phaseToCheckComplete,
         applicationPhases,
       );
-    }
-  }
-
-  // Special validation for Review phase: Review Completion Date must be >= Review Start Date
-  if (phaseToValidate === "Review") {
-    const reviewStartDate = applicationDateMap.get("Review Start Date");
-    const reviewCompletionDate = applicationDateMap.get(
-      "Review Completion Date",
-    );
-
-    if (reviewStartDate && reviewCompletionDate) {
-      try {
-        checkInputDateGreaterThanOrEqual(
-          applicationDateMap,
-          "Review Completion Date",
-          "Review Start Date",
-        );
-      } catch (error) {
-        throw new Error(
-          `Review phase for application ${applicationId} requires Review Completion Date ` +
-            `to be greater than or equal to Review Start Date. ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
     }
   }
 }

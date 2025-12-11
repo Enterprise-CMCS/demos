@@ -165,6 +165,7 @@ describe("validateInputDates", () => {
         ["Completeness Completion Date", "Completeness Start Date"],
         ["SDG Preparation Completion Date", "SDG Preparation Start Date"],
         ["Approval Package Completion Date", "Approval Package Start Date"],
+        ["Review Completion Date", "Review Start Date"],
         ["State Application Deemed Complete", "State Application Submitted Date"],
       ];
       const expectedCalls = greaterThanOrEqualCheckTypes.map((checkType) => [

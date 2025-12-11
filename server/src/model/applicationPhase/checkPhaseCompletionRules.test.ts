@@ -11,7 +11,6 @@ import {
 } from ".";
 import {
   makeApplicationDateMapFromList,
-  checkInputDateGreaterThanOrEqual,
 } from "../applicationDate";
 
 vi.mock(".", () => ({
@@ -23,7 +22,6 @@ vi.mock(".", () => ({
 
 vi.mock("../applicationDate", () => ({
   makeApplicationDateMapFromList: vi.fn(),
-  checkInputDateGreaterThanOrEqual: vi.fn(),
 }));
 
 describe("checkPhaseCompletionRules", () => {
@@ -40,29 +38,13 @@ describe("checkPhaseCompletionRules", () => {
     "Approval Package": "Started",
     "Post Approval": "Started",
   };
-  const testApplicationDateMapReturn: any = new Map([
-    [
-      "Review Start Date",
-      {
-        isEasternTZDate: true as const,
-        easternTZDate: { toISOString: () => "2025-01-01T00:00:00.000Z" },
-      },
-    ],
-    [
-      "Review Completion Date",
-      {
-        isEasternTZDate: true as const,
-        easternTZDate: { toISOString: () => "2025-01-02T00:00:00.000Z" },
-      },
-    ],
-  ]);
+  const testApplicationDateMapReturn: any = "Test Mapped Date Return";
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(makeApplicationDateMapFromList).mockReturnValue(
       testApplicationDateMapReturn,
     );
-    vi.mocked(checkInputDateGreaterThanOrEqual).mockReturnValue(undefined);
   });
 
   describe("Concept Phase", () => {
@@ -398,31 +380,6 @@ describe("checkPhaseCompletionRules", () => {
         [testApplicationId, "Review", "Federal Comment", testApplicationPhases],
         [testApplicationId, "Review", "SDG Preparation", testApplicationPhases],
       ]);
-      expect(checkInputDateGreaterThanOrEqual).toHaveBeenCalledWith(
-        testApplicationDateMapReturn,
-        "Review Completion Date",
-        "Review Start Date",
-      );
-    });
-
-    it("should throw an error when Review Completion Date is less than Review Start Date", () => {
-      // Mock the date comparison to throw an error
-      vi.mocked(checkInputDateGreaterThanOrEqual).mockImplementation(() => {
-        throw new Error("Date validation failed");
-      });
-
-      expect(() =>
-        checkPhaseCompletionRules(
-          testApplicationId,
-          "Review",
-          testApplicationDates,
-          testApplicationDocumentTypes,
-          testApplicationPhases,
-        ),
-      ).toThrowError(
-        "Review phase for application 78927fea-36fb-4be6-b4e5-fa355b489d35 requires Review Completion Date " +
-          "to be greater than or equal to Review Start Date. Date validation failed",
-      );
     });
   });
 

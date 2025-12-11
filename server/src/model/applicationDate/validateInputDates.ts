@@ -51,6 +51,9 @@ VALIDATION_CHECKS["SDG Preparation Completion Date"]["greaterThanOrEqualChecks"]
 VALIDATION_CHECKS["Approval Package Completion Date"]["greaterThanOrEqualChecks"].push({
   dateTypeToCheck: "Approval Package Start Date",
 });
+VALIDATION_CHECKS["Review Completion Date"]["greaterThanOrEqualChecks"].push({
+  dateTypeToCheck: "Review Start Date",
+});
 
 // State application must be deemed complete after it is submitted
 VALIDATION_CHECKS["State Application Deemed Complete"]["greaterThanOrEqualChecks"].push({
