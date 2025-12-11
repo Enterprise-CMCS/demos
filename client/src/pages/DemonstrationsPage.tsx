@@ -79,9 +79,8 @@ export const DemonstrationsPage: React.FC = () => {
   if (tabValue !== "my-demonstrations" && tabValue !== "demonstrations") {
     tabValue = "my-demonstrations";
   }
-  if (typeof window !== "undefined") {
-    sessionStorage.setItem(tabDemoKey, tabValue);
-  }
+  // checking for headless states. (e.g. testing/CICD)
+  typeof window !== "undefined" ? sessionStorage.setItem(tabDemoKey, tabValue) : null;
 
   return (
     <div className="shadow-md bg-white p-[16px]">
