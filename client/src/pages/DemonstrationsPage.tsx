@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React from "react";
 import { DemonstrationTable } from "components/table/tables/DemonstrationTable";
 import { gql, useQuery } from "@apollo/client";
 import {
@@ -64,16 +64,23 @@ export type DemonstrationsPageQueryResult = {
 };
 
 export const DemonstrationsPage: React.FC = () => {
-  const { data, loading, error } = useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
+  const { data, loading, error } = useQuery<DemonstrationsPageQueryResult>(
+    DEMONSTRATIONS_PAGE_QUERY
+  );
+
   const demonstrations = data?.demonstrations || [];
   const myDemonstrations = demonstrations.filter(
     (d) => d.primaryProjectOfficer.id === data?.currentUser.id
   );
 
+  let tabValue = "my-demonstrations";
   const tabDemoKey = "selectedDemonstrationTab";
-  const defaultTabValue = sessionStorage.getItem(tabDemoKey) ?? "my-demonstrations";
+  tabValue = sessionStorage.getItem(tabDemoKey) ?? tabValue;
+  if (tabValue !== "my-demonstrations" && tabValue !== "demonstrations") {
+    tabValue = "my-demonstrations";
+  }
   if (typeof window !== "undefined") {
-    sessionStorage.setItem(tabDemoKey, defaultTabValue);
+    sessionStorage.setItem(tabDemoKey, tabValue);
   }
 
   return (
@@ -85,7 +92,7 @@ export const DemonstrationsPage: React.FC = () => {
       {error && <div className="p-4 text-red-500">Error loading demonstrations.</div>}
       {data && (
         <HorizontalSectionTabs
-          defaultValue={defaultTabValue}
+          defaultValue={tabValue}
           onSelect={(value) => sessionStorage.setItem(tabDemoKey, value)}
         >
           <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">
