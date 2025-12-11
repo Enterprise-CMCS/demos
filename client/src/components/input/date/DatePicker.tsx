@@ -4,7 +4,7 @@ import { Input } from "components/input/Input";
 interface DatePickerProps {
   name: string;
   label: string;
-  onChange: (newDate: string) => void;
+  onChange?: (newDate: string) => void;
   value?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
@@ -20,7 +20,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 }) => {
   // This is only triggered when the input value is a valid date string
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    onChange?.(e.target.value);
   };
 
   return (

@@ -274,7 +274,6 @@ export const CompletenessPhase = ({
             label="Federal Comment Period Start Date"
             value={federalStartDate}
             isDisabled
-            onChange={() => {}}
           />
         </div>
 
@@ -284,7 +283,6 @@ export const CompletenessPhase = ({
             label="Federal Comment Period End Date"
             value={federalEndDate}
             isDisabled
-            onChange={() => {}}
           />
         </div>
       </div>

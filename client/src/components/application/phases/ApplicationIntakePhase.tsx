@@ -214,7 +214,6 @@ export const ApplicationIntakePhase = ({
                 ? formatDateForServer(getCompletenessReviewDueDate(stateApplicationSubmittedDate))
                 : ""
             }
-            onChange={() => {}}
             isDisabled={true}
           />
           <div id="completeness-review-help" className="text-xs text-text-placeholder mt-1">
