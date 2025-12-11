@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { startPhase } from "./startPhase.js";
-import { PhaseNameWithTrackedStatus } from "../../types.js";
+import { setPhaseToStarted } from "./setPhaseToStarted";
+import { PhaseNameWithTrackedStatus } from "../../types";
 
 // Mock imports
 import { getApplicationPhaseStatus, updatePhaseStatus } from "./index.js";
@@ -10,7 +10,7 @@ vi.mock(".", () => ({
   updatePhaseStatus: vi.fn(),
 }));
 
-describe("startPhase", () => {
+describe("setPhaseToStarted", () => {
   const testApplicationId: string = "3ed9d466-0563-4634-959f-b9f86f659905";
   const testPhaseName: PhaseNameWithTrackedStatus = "Review";
   const mockTransaction: any = "A mock transaction";
@@ -22,7 +22,7 @@ describe("startPhase", () => {
   it("should pull the status and update it if it is Not Started", async () => {
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Not Started");
 
-    const result = await startPhase(testApplicationId, testPhaseName, mockTransaction);
+    const result = await setPhaseToStarted(testApplicationId, testPhaseName, mockTransaction);
 
     expect(result).toEqual(true);
     expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(
@@ -41,7 +41,7 @@ describe("startPhase", () => {
   it("should do nothing if the phase is a status other than Not Started", async () => {
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Completed");
 
-    const result = await startPhase(testApplicationId, testPhaseName, mockTransaction);
+    const result = await setPhaseToStarted(testApplicationId, testPhaseName, mockTransaction);
 
     expect(result).toEqual(false);
     expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(
@@ -56,7 +56,7 @@ describe("startPhase", () => {
     const completenessPhase: PhaseNameWithTrackedStatus = "Completeness";
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Incomplete");
 
-    const result = await startPhase(testApplicationId, completenessPhase, mockTransaction);
+    const result = await setPhaseToStarted(testApplicationId, completenessPhase, mockTransaction);
 
     expect(result).toEqual(true);
     expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(
@@ -76,7 +76,11 @@ describe("startPhase", () => {
     const nonCompletenessPhase: PhaseNameWithTrackedStatus = "Application Intake";
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Incomplete");
 
-    const result = await startPhase(testApplicationId, nonCompletenessPhase, mockTransaction);
+    const result = await setPhaseToStarted(
+      testApplicationId,
+      nonCompletenessPhase,
+      mockTransaction
+    );
 
     expect(result).toEqual(false);
     expect(getApplicationPhaseStatus).toHaveBeenCalledExactlyOnceWith(

@@ -6,6 +6,7 @@ import {
 } from "./DemonstrationDetailHeader";
 import { MockedProvider } from "@apollo/client/testing";
 import { GraphQLError } from "graphql";
+import { MemoryRouter } from "react-router-dom";
 
 vi.mock("components/toast/ToastContext", () => ({
   useToast: () => ({
@@ -78,9 +79,11 @@ const mockDemonstrationQueryError = {
 describe("Demonstration Detail Header", () => {
   it("renders demonstration header info", async () => {
     render(
-      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader demonstrationId="1" />
-      </MockedProvider>
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
     );
 
     await waitFor(() => {
@@ -128,9 +131,11 @@ describe("Demonstration Detail Header", () => {
 
   it("renders date placeholder as --/--/---- when dates are missing", async () => {
     render(
-      <MockedProvider mocks={[mockDemonstrationQueryWithoutDatesQuery]} addTypename={false}>
-        <DemonstrationDetailHeader demonstrationId="1" />
-      </MockedProvider>
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQueryWithoutDatesQuery]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
     );
 
     await waitFor(() => {
@@ -142,9 +147,11 @@ describe("Demonstration Detail Header", () => {
 
   it("shows loading state while fetching demonstration data", async () => {
     render(
-      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader demonstrationId="1" />
-      </MockedProvider>
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
     );
 
     // Should show loading state immediately
@@ -165,9 +172,11 @@ describe("Demonstration Detail Header", () => {
 
   it("shows error state when GraphQL query fails", async () => {
     render(
-      <MockedProvider mocks={[mockDemonstrationQueryError]} addTypename={false}>
-        <DemonstrationDetailHeader demonstrationId="1" />
-      </MockedProvider>
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQueryError]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
     );
 
     // Wait for error to appear
@@ -185,9 +194,11 @@ describe("Demonstration Detail Header", () => {
 
   it("shows Add button and dropdown options", async () => {
     render(
-      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader demonstrationId="1" />
-      </MockedProvider>
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
     );
     // Wait for component to load
     await waitFor(() => {
@@ -219,9 +230,11 @@ describe("Demonstration Detail Header", () => {
 
   it("opens Add Amendment Modal when Amendment option is clicked", async () => {
     render(
-      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader demonstrationId="1" />
-      </MockedProvider>
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
     );
     // Wait for component to load
     await waitFor(() => {
@@ -250,9 +263,11 @@ describe("Demonstration Detail Header", () => {
 
   it("opens Add Extension Modal when Extension option is clicked", async () => {
     render(
-      <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
-        <DemonstrationDetailHeader demonstrationId="1" />
-      </MockedProvider>
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
     );
     // Wait for component to load
     await waitFor(() => {

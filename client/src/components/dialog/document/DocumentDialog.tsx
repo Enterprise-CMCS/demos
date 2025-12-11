@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, SecondaryButton } from "components/button";
+import { SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
@@ -12,6 +12,7 @@ import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
 import { Notice } from "components/notice";
+import { UploadButton } from "./UploadButton";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -114,7 +115,7 @@ const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = 
     } as const
   )[uploadStatus];
   return (
-    <div className="bg-border-fields rounded h-[6px] overflow-hidden mt-1">
+    <div className="bg-border-fields rounded h-1.5 overflow-hidden mt-1">
       <div
         role="progressbar"
         data-testid="upload-progress-bar"
@@ -344,9 +345,9 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
         await onSubmit(activeDocument, setDocumentDialogState);
       }
 
-      showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
-      onClose();
       setDocumentDialogState("idle");
+      onClose();
+      showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
     } catch {
       setDocumentDialogState("unknown-error");
     }
@@ -367,16 +368,11 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           >
             Cancel
           </SecondaryButton>
-          <Button
-            name="button-confirm-upload-document"
-            size="small"
+          <UploadButton
             onClick={onUploadClick}
-            aria-label="Upload Document"
-            aria-disabled={isMissing || documentDialogState === "uploading" ? "true" : "false"}
-            disabled={isMissing || documentDialogState === "uploading"}
-          >
-            Upload
-          </Button>
+            disabled={isMissing}
+            isUploading={documentDialogState === "uploading"}
+          />
         </>
       }
     >

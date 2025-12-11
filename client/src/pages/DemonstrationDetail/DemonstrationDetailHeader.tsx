@@ -6,6 +6,7 @@ import { Demonstration, Person, State } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { gql, useQuery } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
+import { useNavigate } from "react-router-dom";
 
 export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
   query DemonstrationHeaderDetails($demonstrationId: ID!) {
@@ -43,6 +44,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
 }) => {
   const [showButtons, setShowButtons] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const navigate = useNavigate();
 
   // Ensure this component is rendered inside a DialogProvider in your app;
   const { showEditDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
@@ -113,7 +115,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <IconButton
                 icon={<ChevronLeftIcon />}
                 name="Back to demonstrations"
-                onClick={() => (window.location.href = "/demonstrations")}
+                onClick={() => navigate("/demonstrations")}
               />
             </div>
             <div>

@@ -64,13 +64,23 @@ export type DemonstrationsPageQueryResult = {
 };
 
 export const DemonstrationsPage: React.FC = () => {
-  const { data, loading, error } =
-    useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
+  const { data, loading, error } = useQuery<DemonstrationsPageQueryResult>(
+    DEMONSTRATIONS_PAGE_QUERY
+  );
 
   const demonstrations = data?.demonstrations || [];
-  const myDemonstrations: Demonstration[] = demonstrations.filter(
-    (demonstration) => demonstration.primaryProjectOfficer.id === data?.currentUser.id
+  const myDemonstrations = demonstrations.filter(
+    (d) => d.primaryProjectOfficer.id === data?.currentUser.id
   );
+
+  const tabDemoKey = "selectedDemonstrationTab";
+  let tabValue = "my-demonstrations";
+
+  if (typeof window !== "undefined") {
+    const stored = sessionStorage.getItem(tabDemoKey);
+    tabValue = ["my-demonstrations", "demonstrations"].includes(stored ?? "") ? stored! : tabValue;
+    sessionStorage.setItem(tabDemoKey, tabValue);
+  }
 
   return (
     <div className="shadow-md bg-white p-[16px]">
@@ -80,7 +90,10 @@ export const DemonstrationsPage: React.FC = () => {
       {loading && <div className="p-4">Loading demonstrations...</div>}
       {error && <div className="p-4 text-red-500">Error loading demonstrations.</div>}
       {data && (
-        <HorizontalSectionTabs defaultValue="demonstrations">
+        <HorizontalSectionTabs
+          defaultValue={tabValue}
+          onSelect={(value) => sessionStorage.setItem(tabDemoKey, value)}
+        >
           <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">
             <DemonstrationTable
               demonstrations={myDemonstrations}

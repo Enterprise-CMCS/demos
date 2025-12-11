@@ -3,43 +3,40 @@ import {
   __setApplicationDates,
   __resolveApplicationDateType,
   __setApplicationDate,
-} from "./applicationDateResolvers.js";
-import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
-import { ParsedSetApplicationDatesInput } from ".";
+} from "./applicationDateResolvers";
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
+import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
+import { prisma } from "../../prismaClient";
+import { handlePrismaError } from "../../errors/handlePrismaError";
+import { getEasternNow } from "../../dateUtilities";
+import { getApplication } from "../application/applicationResolvers";
+import { startPhasesByDates } from "../applicationPhase";
+import { validateAndUpdateDates } from ".";
 
-// Mock imports
-import { prisma } from "../../prismaClient.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { getApplication } from "../application/applicationResolvers.js";
-import { validateAndUpdateDates } from "./validateAndUpdateDates.js";
-import { startPhasesByDates } from "./startPhasesByDates.js";
-import { getEasternNow } from "../../dateUtilities.js";
-
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
 }));
 
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application/applicationResolvers", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("./validateAndUpdateDates.js", () => ({
+vi.mock("./validateAndUpdateDates", () => ({
   validateAndUpdateDates: vi.fn(),
 }));
 
-vi.mock("./startPhasesByDates.js", () => ({
+vi.mock("../applicationPhase", () => ({
   startPhasesByDates: vi.fn(),
 }));
 
-vi.mock("../../dateUtilities.js", () => ({
+vi.mock("../../dateUtilities", () => ({
   getEasternNow: vi.fn(),
 }));
 

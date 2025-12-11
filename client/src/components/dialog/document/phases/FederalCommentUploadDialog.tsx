@@ -20,6 +20,7 @@ export const FederalCommentUploadDialog: React.FC<Props> = ({ onClose, applicati
       applicationId={applicationId}
       titleOverride="Internal Analysis Document"
       refetchQueries={REFETCH_QUERIES}
+      phaseName="Federal Comment"
     />
   );
 };
