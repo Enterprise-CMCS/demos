@@ -32,9 +32,15 @@ export interface TabsProps {
   children: ReactElement<TabProps>[] | ReactElement<TabProps>;
   defaultValue?: string;
   styles?: TabsStyles;
+  onSelect?: (value: string) => void;
 }
 
-export const Tabs: React.FC<TabsProps> = ({ children, defaultValue, styles = defaultStyles }) => {
+export const Tabs: React.FC<TabsProps> = ({
+  children,
+  defaultValue,
+  styles = defaultStyles,
+  onSelect,
+}) => {
   const tabs = Children.toArray(children) as ReactElement<TabProps>[];
   const [selectedValue, setSelectedValue] = useState<string>(
     defaultValue || tabs[0]?.props.value || ""
@@ -44,6 +50,7 @@ export const Tabs: React.FC<TabsProps> = ({ children, defaultValue, styles = def
 
   const handleTabSelect = (value: string) => {
     setSelectedValue(value);
+    onSelect?.(value);
   };
 
   return (

@@ -4,6 +4,7 @@ import { TabsProps, Tabs, TabsStyles } from "./Tabs";
 export const HorizontalSectionTabs: React.FC<Omit<TabsProps, "styles">> = ({
   children,
   defaultValue,
+  onSelect,
 }) => {
   const styles: TabsStyles = {
     getButtonStyles: (isSelected: boolean) =>
@@ -16,7 +17,7 @@ export const HorizontalSectionTabs: React.FC<Omit<TabsProps, "styles">> = ({
   };
 
   return (
-    <Tabs defaultValue={defaultValue} styles={styles}>
+    <Tabs defaultValue={defaultValue} styles={styles} onSelect={onSelect}>
       {children}
     </Tabs>
   );
