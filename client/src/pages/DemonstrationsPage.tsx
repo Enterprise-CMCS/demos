@@ -64,27 +64,17 @@ export type DemonstrationsPageQueryResult = {
 };
 
 export const DemonstrationsPage: React.FC = () => {
-  const tabStorageKey = "selectedDemonstrationTab";
-  const storedTabValue = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    return sessionStorage.getItem(tabStorageKey);
-  }, []);
-  const { data, loading, error } =
-    useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
-
+  const { data, loading, error } = useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
   const demonstrations = data?.demonstrations || [];
-  const myDemonstrations: Demonstration[] = demonstrations.filter(
-    (demonstration) => demonstration.primaryProjectOfficer.id === data?.currentUser.id
+  const myDemonstrations = demonstrations.filter(
+    (d) => d.primaryProjectOfficer.id === data?.currentUser.id
   );
-  const defaultTabValue =
-    storedTabValue === "my-demonstrations" || storedTabValue === "demonstrations"
-      ? storedTabValue
-      : "my-demonstrations";
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    sessionStorage.setItem(tabStorageKey, defaultTabValue);
-  }, [defaultTabValue]);
+  const tabDemoKey = "selectedDemonstrationTab";
+  const defaultTabValue = sessionStorage.getItem(tabDemoKey) ?? "my-demonstrations";
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem(tabDemoKey, defaultTabValue);
+  }
 
   return (
     <div className="shadow-md bg-white p-[16px]">
@@ -96,7 +86,7 @@ export const DemonstrationsPage: React.FC = () => {
       {data && (
         <HorizontalSectionTabs
           defaultValue={defaultTabValue}
-          onSelect={(value) => sessionStorage.setItem(tabStorageKey, value)}
+          onSelect={(value) => sessionStorage.setItem(tabDemoKey, value)}
         >
           <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">
             <DemonstrationTable
