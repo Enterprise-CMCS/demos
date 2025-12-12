@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Button, SecondaryButton } from "components/button";
+import { SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { Textarea } from "components/input";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
@@ -10,6 +10,7 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { Demonstration } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
+import { SubmitButton } from "components/button/SubmitButton";
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -32,47 +33,6 @@ const DemonstrationDescriptionTextArea: React.FC<{
         onChange={(e) => setDescription(e.target.value)}
       />
     </>
-  );
-};
-
-const SubmitButton: React.FC<{
-  isChanged: boolean;
-  isSubmitting: boolean;
-}> = ({ isChanged, isSubmitting }) => {
-  return (
-    <Button
-      name="button-submit-demonstration-dialog"
-      size="small"
-      disabled={!isChanged || isSubmitting}
-      type="submit"
-      form="demonstration-form"
-      onClick={() => {}}
-    >
-      {isSubmitting ? (
-        <svg
-          className="animate-spin h-2 w-2 text-white"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-          />
-        </svg>
-      ) : (
-        "Submit"
-      )}
-    </Button>
   );
 };
 
@@ -157,7 +117,11 @@ export const DemonstrationDialog: React.FC<{
           >
             Cancel
           </SecondaryButton>
-          <SubmitButton isChanged={formHasChanges} isSubmitting={isSubmitting} />
+          <SubmitButton
+            name="button-submit-demonstration-dialog"
+            disabled={!formHasChanges}
+            isLoading={isSubmitting}
+          />
         </>
       }
     >

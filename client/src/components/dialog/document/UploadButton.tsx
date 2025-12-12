@@ -1,6 +1,10 @@
 import React from "react";
-import { Button } from "components/button";
-import { Spinner } from "components/loading/Spinner";
+import { SubmitButton } from "components/button/SubmitButton";
+
+const BUTTON_TEXT = "Upload";
+const BUTTON_LOADING_TEXT = "Uploading";
+const BUTTON_NAME = "button-confirm-upload-document";
+const BUTTON_LABEL = "Upload Document";
 
 interface UploadButtonProps {
   onClick: () => void;
@@ -8,30 +12,16 @@ interface UploadButtonProps {
   isUploading: boolean;
 }
 
-const ButtonText = ({ isUploading }: { isUploading: boolean }) => {
-  const getButtonText = () => {
-    if (isUploading) return "Uploading";
-    return "Upload";
-  };
-
-  return (
-    <>
-      {isUploading && <Spinner />}
-      {getButtonText()}
-    </>
-  );
-};
-
 export const UploadButton: React.FC<UploadButtonProps> = ({ onClick, disabled, isUploading }) => {
   return (
-    <Button
-      name="button-confirm-upload-document"
+    <SubmitButton
+      text={BUTTON_TEXT}
+      loadingText={BUTTON_LOADING_TEXT}
       onClick={onClick}
-      aria-label="Upload Document"
-      aria-disabled={disabled || isUploading ? "true" : "false"}
-      disabled={disabled || isUploading}
-    >
-      <ButtonText isUploading={isUploading} />
-    </Button>
+      disabled={disabled}
+      isLoading={isUploading}
+      name={BUTTON_NAME}
+      label={BUTTON_LABEL}
+    />
   );
 };
