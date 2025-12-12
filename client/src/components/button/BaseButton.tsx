@@ -78,6 +78,7 @@ export const BaseButton: React.FC<ButtonProps> = ({
       {...(form ? { form } : {})}
       className={`${BASE_BUTTON_STYLES} ${sizeClasses} ${circleClasses} ${className}`}
       disabled={disabled}
+      aria-disabled={disabled ? "true" : "false"}
     >
       {children}
     </button>
