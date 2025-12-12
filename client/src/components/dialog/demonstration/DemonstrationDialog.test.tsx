@@ -6,6 +6,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { render, renderHook, screen, waitFor } from "@testing-library/react";
 import { DemonstrationDialog, useDateValidation } from "./DemonstrationDialog";
+import userEvent from "@testing-library/user-event";
+import { SdgDivision, SignatureLevel } from "demos-server";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -22,7 +24,6 @@ const DEFAULT_PROPS = {
   initialDemonstration: DEFAULT_DEMONSTRATION,
   mode: "create" as const,
 };
-
 
 // Test ID constants
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
@@ -227,5 +228,298 @@ describe("useDateValidation", () => {
 
     expect(result.current.expirationError).toBe("");
     expect(mockSetExpirationDate).toHaveBeenCalledWith("2024-07-15");
+  });
+});
+
+describe("DemonstrationDialog - handleChange and isChanged behavior", () => {
+  const GET_USER_SELECT_OPTIONS_MOCK = {
+    request: {
+      query: GET_USER_SELECT_OPTIONS_QUERY,
+    },
+    result: {
+      data: {
+        people: [
+          {
+            id: "test-officer-id",
+            fullName: "Test Officer",
+            personType: "demos-cms-user",
+          },
+          {
+            id: "initial-officer-id",
+            fullName: "Initial Officer",
+            personType: "demos-cms-user",
+          },
+        ],
+      },
+    },
+  };
+
+  let user: ReturnType<typeof userEvent.setup>;
+
+  beforeEach(() => {
+    user = userEvent.setup();
+  });
+
+  it("should enable/disable submit button on state change", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      stateId: "NC",
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const stateSelect = getByTestId(STATE_SELECT_TEST_ID);
+    await user.click(stateSelect);
+    await user.clear(stateSelect);
+    await user.type(stateSelect, "Alabama");
+    await user.click(screen.getByText("Alabama"));
+    expect(submitButton).toBeEnabled();
+
+    await user.click(stateSelect);
+    await user.clear(stateSelect);
+    await user.type(stateSelect, "North Carolina");
+    await user.click(screen.getByText("North Carolina"));
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should enable/disable submit button on name change", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      name: "Original Name",
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const titleInput = getByTestId(TITLE_INPUT_TEST_ID);
+    await user.clear(titleInput);
+    await user.type(titleInput, "New Name");
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(titleInput);
+    await user.type(titleInput, "Original Name");
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should enable/disable submit button on project officer change", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      projectOfficerId: "initial-officer-id",
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK, GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId(SELECT_USERS_TEST_ID)).toBeInTheDocument();
+    });
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const projectOfficerSelect = getByTestId(SELECT_USERS_TEST_ID);
+    await user.click(projectOfficerSelect);
+    await user.clear(projectOfficerSelect);
+    await user.type(projectOfficerSelect, "Test Officer");
+    await user.click(screen.getByText("Test Officer"));
+    expect(submitButton).toBeEnabled();
+
+    await user.click(projectOfficerSelect);
+    await user.clear(projectOfficerSelect);
+    await user.type(projectOfficerSelect, "Initial Officer");
+    await user.click(screen.getByText("Initial Officer"));
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should enable/disable submit button on effective date change in edit mode", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      effectiveDate: "2024-01-01",
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const effectiveDateInput = getByTestId(EFFECTIVE_DATE_INPUT_TEST_ID);
+    await user.clear(effectiveDateInput);
+    await user.type(effectiveDateInput, "2024-02-01");
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(effectiveDateInput);
+    await user.type(effectiveDateInput, "2024-01-01");
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should enable/disable submit button on expiration date change in edit mode", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      effectiveDate: "2024-01-01",
+      expirationDate: "2024-12-31",
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const expirationDateInput = getByTestId(EXPIRATION_DATE_INPUT_TEST_ID);
+    await user.clear(expirationDateInput);
+    await user.type(expirationDateInput, "2024-11-30");
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(expirationDateInput);
+    await user.type(expirationDateInput, "2024-12-31");
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should enable/disable submit button on description change", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      description: "Original Description",
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const descriptionTextarea = getByTestId(DESCRIPTION_TEXTAREA_TEST_ID);
+    await user.clear(descriptionTextarea);
+    await user.type(descriptionTextarea, "New Description");
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(descriptionTextarea);
+    await user.type(descriptionTextarea, "Original Description");
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should enable/disable submit button on sdg division change", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      sdgDivision: "Division of System Reform Demonstrations" as SdgDivision,
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const sdgDivisionSelect = getByTestId(SDG_DIVISION_SELECT_TEST_ID);
+    await user.selectOptions(
+      sdgDivisionSelect,
+      "Division of Eligibility and Coverage Demonstrations"
+    );
+    expect(submitButton).toBeEnabled();
+
+    await user.selectOptions(sdgDivisionSelect, "Division of System Reform Demonstrations");
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should enable/disable submit button on signature level change", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      signatureLevel: "OA" as SignatureLevel,
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const signatureLevelSelect = getByTestId(SIGNATURE_LEVEL_SELECT_TEST_ID);
+    await user.selectOptions(signatureLevelSelect, "OCD");
+    expect(submitButton).toBeEnabled();
+
+    await user.selectOptions(signatureLevelSelect, "OA");
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("should enable/disable submit button on multiple field changes", async () => {
+    const initialDemo = {
+      ...DEFAULT_DEMONSTRATION,
+      name: "Original Name",
+      description: "Original Description",
+      stateId: "NC",
+      sdgDivision: "Division of System Reform Demonstrations" as SdgDivision,
+      signatureLevel: "OA" as SignatureLevel,
+    };
+
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const titleInput = getByTestId(TITLE_INPUT_TEST_ID);
+    await user.clear(titleInput);
+    await user.type(titleInput, "New Name");
+    expect(submitButton).toBeEnabled();
+
+    const descriptionTextarea = getByTestId(DESCRIPTION_TEXTAREA_TEST_ID);
+    await user.clear(descriptionTextarea);
+    await user.type(descriptionTextarea, "New Description");
+    expect(submitButton).toBeEnabled();
+
+    const stateSelect = getByTestId(STATE_SELECT_TEST_ID);
+    await user.click(stateSelect);
+    await user.clear(stateSelect);
+    await user.type(stateSelect, "Alabama");
+    await user.click(screen.getByText("Alabama"));
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(titleInput);
+    await user.type(titleInput, "Original Name");
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(descriptionTextarea);
+    await user.type(descriptionTextarea, "Original Description");
+    expect(submitButton).toBeEnabled();
+
+    await user.click(stateSelect);
+    await user.clear(stateSelect);
+    await user.type(stateSelect, "North Carolina");
+    await user.click(screen.getByText("North Carolina"));
+    expect(submitButton).toBeDisabled();
   });
 });

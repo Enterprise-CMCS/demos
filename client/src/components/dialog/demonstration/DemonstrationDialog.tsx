@@ -80,20 +80,14 @@ const DemonstrationDescriptionTextArea: React.FC<{
 };
 
 const SubmitButton: React.FC<{
-  activeDemonstration: DemonstrationDialogFields;
+  isChanged: boolean;
   isSubmitting: boolean;
-}> = ({ activeDemonstration, isSubmitting }) => {
+}> = ({ isChanged, isSubmitting }) => {
   return (
     <Button
       name="button-submit-demonstration-dialog"
       size="small"
-      disabled={
-        !(
-          activeDemonstration.stateId &&
-          activeDemonstration.name &&
-          activeDemonstration.projectOfficerId
-        ) || isSubmitting
-      }
+      disabled={!isChanged || isSubmitting}
       type="submit"
       form="demonstration-form"
       onClick={() => {}}
@@ -191,12 +185,31 @@ export const DemonstrationDialog: React.FC<{
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isChanged, setIsChanged] = useState<boolean>(false);
 
   const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
     setIsSubmitting(true);
     await onSubmit(activeDemonstration);
     setIsSubmitting(false);
+  };
+
+  const checkFormChanged = (updatedDemonstration: DemonstrationDialogFields) => {
+    return (
+      updatedDemonstration.name !== initialDemonstration.name ||
+      updatedDemonstration.description !== initialDemonstration.description ||
+      updatedDemonstration.stateId !== initialDemonstration.stateId ||
+      updatedDemonstration.projectOfficerId !== initialDemonstration.projectOfficerId ||
+      updatedDemonstration.effectiveDate !== initialDemonstration.effectiveDate ||
+      updatedDemonstration.expirationDate !== initialDemonstration.expirationDate ||
+      updatedDemonstration.sdgDivision !== initialDemonstration.sdgDivision ||
+      updatedDemonstration.signatureLevel !== initialDemonstration.signatureLevel
+    );
+  };
+
+  const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
+    setActiveDemonstration(updatedDemonstration);
+    setIsChanged(checkFormChanged(updatedDemonstration));
   };
 
   return (
@@ -215,7 +228,7 @@ export const DemonstrationDialog: React.FC<{
           >
             Cancel
           </SecondaryButton>
-          <SubmitButton activeDemonstration={activeDemonstration} isSubmitting={isSubmitting} />
+          <SubmitButton isChanged={isChanged} isSubmitting={isSubmitting} />
         </>
       }
     >
@@ -225,7 +238,7 @@ export const DemonstrationDialog: React.FC<{
             label="State/Territory"
             value={activeDemonstration.stateId}
             isRequired
-            onSelect={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
+            onSelect={(stateId) => handleChange({ ...activeDemonstration, stateId })}
           />
           <div className="col-span-2">
             <TextInput
@@ -234,9 +247,7 @@ export const DemonstrationDialog: React.FC<{
               isRequired
               placeholder="Enter title"
               value={activeDemonstration.name}
-              onChange={(e) =>
-                setActiveDemonstration((prev) => ({ ...prev, name: e.target.value }))
-              }
+              onChange={(e) => handleChange({ ...activeDemonstration, name: e.target.value })}
             />
           </div>
         </div>
@@ -247,8 +258,8 @@ export const DemonstrationDialog: React.FC<{
               label="Project Officer"
               isRequired={true}
               value={activeDemonstration.projectOfficerId}
-              onSelect={(userId) =>
-                setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }))
+              onSelect={(projectOfficerId) =>
+                handleChange({ ...activeDemonstration, projectOfficerId })
               }
               personTypes={["demos-admin", "demos-cms-user"]}
             />
@@ -257,11 +268,11 @@ export const DemonstrationDialog: React.FC<{
             <DateInputs
               effectiveDate={activeDemonstration.effectiveDate}
               expirationDate={activeDemonstration.expirationDate}
-              setEffectiveDate={(value) =>
-                setActiveDemonstration((prev) => ({ ...prev, effectiveDate: value }))
+              setEffectiveDate={(effectiveDate) =>
+                handleChange({ ...activeDemonstration, effectiveDate })
               }
-              setExpirationDate={(value) =>
-                setActiveDemonstration((prev) => ({ ...prev, expirationDate: value }))
+              setExpirationDate={(expirationDate) =>
+                handleChange({ ...activeDemonstration, expirationDate })
               }
             />
           )}
@@ -270,22 +281,18 @@ export const DemonstrationDialog: React.FC<{
         <div className="flex flex-col gap-xs">
           <DemonstrationDescriptionTextArea
             description={activeDemonstration.description}
-            setDescription={(value) =>
-              setActiveDemonstration((prev) => ({ ...prev, description: value }))
-            }
+            setDescription={(description) => handleChange({ ...activeDemonstration, description })}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <SelectSdgDivision
             initialValue={activeDemonstration.sdgDivision}
-            onSelect={(sdgDivision) => setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))}
+            onSelect={(sdgDivision) => handleChange({ ...activeDemonstration, sdgDivision })}
           />
           <SelectSignatureLevel
             initialValue={activeDemonstration.signatureLevel}
-            onSelect={(signatureLevel) =>
-              setActiveDemonstration((prev) => ({ ...prev, signatureLevel }))
-            }
+            onSelect={(signatureLevel) => handleChange({ ...activeDemonstration, signatureLevel })}
           />
         </div>
       </form>
