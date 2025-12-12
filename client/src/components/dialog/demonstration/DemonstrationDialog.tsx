@@ -176,6 +176,22 @@ const DateInputs: React.FC<{
   );
 };
 
+export const checkFormHasChanges = (
+  initialDemonstration: DemonstrationDialogFields,
+  updatedDemonstration: DemonstrationDialogFields
+) => {
+  return (
+    updatedDemonstration.name !== initialDemonstration.name ||
+    updatedDemonstration.description !== initialDemonstration.description ||
+    updatedDemonstration.stateId !== initialDemonstration.stateId ||
+    updatedDemonstration.projectOfficerId !== initialDemonstration.projectOfficerId ||
+    updatedDemonstration.effectiveDate !== initialDemonstration.effectiveDate ||
+    updatedDemonstration.expirationDate !== initialDemonstration.expirationDate ||
+    updatedDemonstration.sdgDivision !== initialDemonstration.sdgDivision ||
+    updatedDemonstration.signatureLevel !== initialDemonstration.signatureLevel
+  );
+};
+
 export const DemonstrationDialog: React.FC<{
   onClose: () => void;
   mode: DemonstrationDialogMode;
@@ -185,7 +201,7 @@ export const DemonstrationDialog: React.FC<{
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isChanged, setIsChanged] = useState<boolean>(false);
+  const [formHasChanges, setFormHasChanges] = useState<boolean>(false);
 
   const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
@@ -194,22 +210,9 @@ export const DemonstrationDialog: React.FC<{
     setIsSubmitting(false);
   };
 
-  const checkFormChanged = (updatedDemonstration: DemonstrationDialogFields) => {
-    return (
-      updatedDemonstration.name !== initialDemonstration.name ||
-      updatedDemonstration.description !== initialDemonstration.description ||
-      updatedDemonstration.stateId !== initialDemonstration.stateId ||
-      updatedDemonstration.projectOfficerId !== initialDemonstration.projectOfficerId ||
-      updatedDemonstration.effectiveDate !== initialDemonstration.effectiveDate ||
-      updatedDemonstration.expirationDate !== initialDemonstration.expirationDate ||
-      updatedDemonstration.sdgDivision !== initialDemonstration.sdgDivision ||
-      updatedDemonstration.signatureLevel !== initialDemonstration.signatureLevel
-    );
-  };
-
   const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
     setActiveDemonstration(updatedDemonstration);
-    setIsChanged(checkFormChanged(updatedDemonstration));
+    setFormHasChanges(checkFormHasChanges(initialDemonstration, updatedDemonstration));
   };
 
   return (
@@ -228,7 +231,7 @@ export const DemonstrationDialog: React.FC<{
           >
             Cancel
           </SecondaryButton>
-          <SubmitButton isChanged={isChanged} isSubmitting={isSubmitting} />
+          <SubmitButton isChanged={formHasChanges} isSubmitting={isSubmitting} />
         </>
       }
     >
