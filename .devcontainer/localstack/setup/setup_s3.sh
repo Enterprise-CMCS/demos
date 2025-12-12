@@ -29,7 +29,7 @@ CORS_CONFIG='{
   ]
 }'
 
-BUCKETS=("upload-bucket" "clean-bucket" "deleted-bucket" "infected-bucket")
+BUCKETS=("upload-bucket" "clean-bucket" "deleted-bucket" "infected-bucket" "uipath-documents")
 
 # Delete all existing buckets first
 echo "🗑️  Removing existing buckets..."
@@ -164,6 +164,7 @@ echo "   - upload-bucket: EventBridge → transforms to GuardDuty ($SCAN_RESULT_
 echo "   - infected-bucket: Manual expiration simulation → infected-file-expiration-queue → deleteinfectedfile Lambda"
 echo "   - clean-bucket: Storage for clean files"
 echo "   - deleted-bucket: Storage for deleted files"
+echo "   - uipath-documents: Storage for UiPath document understanding flows"
 echo ""
 echo "💡 To simulate lifecycle expiration in LocalStack:"
 echo "   .devcontainer/localstack/debug/delete-infected-file.sh <object-key>"

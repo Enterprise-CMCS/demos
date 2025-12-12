@@ -4,16 +4,19 @@ set -e
 echo "🚀 Deploying UiPath Lambda function..."
 
 LOCALSTACK_ENDPOINT="http://localstack:4566"
+
 AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 
 QUEUE_NAME="uipath-queue"
 LAMBDA_NAME="uipath"
+
 UIPATH_SECRET_ID=${UIPATH_SECRET_ID:-"uipath-credentials"}
 UIPATH_PROJECT_ID=${UIPATH_PROJECT_ID:-"00000000-0000-0000-0000-000000000000"} # pragma: allowlist secret
 
 UIPATH_EXTRACTOR_GUID=${UIPATH_EXTRACTOR_GUID:-""}
 UIPATH_CLIENT_ID=${UIPATH_CLIENT_ID:-""}
+UIPATH_DOCUMENT_BUCKET=${UIPATH_DOCUMENT_BUCKET:-"uipath-documents"}
 LOG_LEVEL=${LOG_LEVEL:-"info"}
 
 # Build Lambda package
@@ -60,6 +63,7 @@ $AWS_CMD lambda create-function \
         UIPATH_CLIENT_ID=$UIPATH_CLIENT_ID,
         UIPATH_PROJECT_ID=$UIPATH_PROJECT_ID,
         UIPATH_EXTRACTOR_GUID=$UIPATH_EXTRACTOR_GUID,
+        UIPATH_DOCUMENT_BUCKET=$UIPATH_DOCUMENT_BUCKET,
         LOG_LEVEL=$LOG_LEVEL
     }" >/dev/null
 
