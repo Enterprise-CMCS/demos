@@ -9,51 +9,7 @@ import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { Demonstration } from "demos-server";
-import { tw } from "tags/tw";
-
-const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
-const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-half text-sm`;
-
-// imported from hooks. Only used here.
-export const useDateValidation = () => {
-  const [expirationError, setExpirationError] = useState("");
-
-  const handleEffectiveDateChange = (
-    effectiveDate: string,
-    expirationDate: string,
-    setEffectiveDate: (date: string) => void,
-    setExpirationDate: (date: string) => void
-  ) => {
-    setEffectiveDate(effectiveDate);
-    if (expirationDate && expirationDate < effectiveDate) {
-      setExpirationDate("");
-    }
-  };
-
-  const handleExpirationDateChange = (
-    expirationDate: string,
-    effectiveDate: string,
-    setExpirationDate: (date: string) => void
-  ) => {
-    // Only validate if we have complete - valid dates (YYYY-MM-DD format)
-    const isCompleteDate = /^\d{4}-\d{2}-\d{2}$/.test(expirationDate);
-
-    if (effectiveDate && isCompleteDate && expirationDate < effectiveDate) {
-      setExpirationError("Expiration Date cannot be before Effective Date.");
-      return;
-    } else {
-      setExpirationError("");
-      setExpirationDate(expirationDate);
-    }
-  };
-
-  return {
-    expirationError,
-    setExpirationError,
-    handleEffectiveDateChange,
-    handleExpirationDateChange,
-  };
-};
+import { DatePicker } from "components/input/date/DatePicker";
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -120,62 +76,6 @@ const SubmitButton: React.FC<{
   );
 };
 
-const DateInputs: React.FC<{
-  effectiveDate: string;
-  expirationDate: string;
-  setEffectiveDate: (date: string) => void;
-  setExpirationDate: (date: string) => void;
-}> = ({ effectiveDate, expirationDate, setEffectiveDate, setExpirationDate }) => {
-  const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
-    useDateValidation();
-
-  return (
-    <>
-      <div className="flex flex-col gap-xs">
-        <label className={LABEL_CLASSES} htmlFor="effective-date">
-          Effective Date
-        </label>
-        <input
-          data-testid="input-effective-date"
-          id="effective-date"
-          type="date"
-          className={DATE_INPUT_CLASSES}
-          value={effectiveDate}
-          onChange={(e) =>
-            handleEffectiveDateChange(
-              e.target.value,
-              expirationDate,
-              (value) => setEffectiveDate(value),
-              (value) => setExpirationDate(value)
-            )
-          }
-        />
-      </div>
-      <div className="flex flex-col gap-xs">
-        <label className={LABEL_CLASSES} htmlFor="expiration-date">
-          Expiration Date
-        </label>
-        <input
-          data-testid="input-expiration-date"
-          id="expiration-date"
-          type="date"
-          className={`${DATE_INPUT_CLASSES} ${
-            expirationError
-              ? "border-border-warn focus:ring-border-warn"
-              : "border-border-fields focus:ring-border-focus"
-          }`}
-          value={expirationDate}
-          min={effectiveDate || undefined}
-          onChange={(e) =>
-            handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)
-          }
-        />
-        {expirationError && <div className="text-text-warn text-sm mt-1">{expirationError}</div>}
-      </div>
-    </>
-  );
-};
-
 export const DemonstrationDialog: React.FC<{
   onClose: () => void;
   mode: DemonstrationDialogMode;
@@ -186,6 +86,7 @@ export const DemonstrationDialog: React.FC<{
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isChanged, setIsChanged] = useState<boolean>(false);
+  const [expirationError, setExpirationError] = useState("");
 
   const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
@@ -210,6 +111,31 @@ export const DemonstrationDialog: React.FC<{
   const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
     setActiveDemonstration(updatedDemonstration);
     setIsChanged(checkFormChanged(updatedDemonstration));
+  };
+
+  const handleEffectiveDateChange = (effectiveDate: string) => {
+    const updatedDemonstration = { ...activeDemonstration, effectiveDate };
+
+    if (activeDemonstration.expirationDate && activeDemonstration.expirationDate < effectiveDate) {
+      updatedDemonstration.expirationDate = "";
+    }
+
+    handleChange(updatedDemonstration);
+  };
+
+  const handleExpirationDateChange = (expirationDate: string) => {
+    const isCompleteDate = /^\d{4}-\d{2}-\d{2}$/.test(expirationDate);
+
+    if (
+      activeDemonstration.effectiveDate &&
+      isCompleteDate &&
+      expirationDate < activeDemonstration.effectiveDate
+    ) {
+      setExpirationError("Expiration Date cannot be before Effective Date.");
+    } else {
+      setExpirationError("");
+      handleChange({ ...activeDemonstration, expirationDate });
+    }
   };
 
   return (
@@ -265,16 +191,27 @@ export const DemonstrationDialog: React.FC<{
             />
           </div>
           {mode === "edit" && (
-            <DateInputs
-              effectiveDate={activeDemonstration.effectiveDate}
-              expirationDate={activeDemonstration.expirationDate}
-              setEffectiveDate={(effectiveDate) =>
-                handleChange({ ...activeDemonstration, effectiveDate })
-              }
-              setExpirationDate={(expirationDate) =>
-                handleChange({ ...activeDemonstration, expirationDate })
-              }
-            />
+            <>
+              <div className="flex flex-col gap-xs">
+                <DatePicker
+                  name="effective-date"
+                  label="Effective Date"
+                  value={activeDemonstration.effectiveDate}
+                  onChange={handleEffectiveDateChange}
+                />
+              </div>
+              <div className="flex flex-col gap-xs">
+                <DatePicker
+                  name="expiration-date"
+                  label="Expiration Date"
+                  value={activeDemonstration.expirationDate}
+                  onChange={handleExpirationDateChange}
+                />
+                {expirationError && (
+                  <div className="text-text-warn text-sm mt-1">{expirationError}</div>
+                )}
+              </div>
+            </>
           )}
         </div>
 
