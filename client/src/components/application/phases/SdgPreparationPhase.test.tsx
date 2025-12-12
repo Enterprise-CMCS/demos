@@ -132,7 +132,7 @@ describe("SdgPreparationPhase", () => {
       expect(datePicker).toBeInTheDocument();
 
       expect(screen.getByText("Expected Approval Date")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("Expected Approval Date")).toBeInTheDocument();
+      expect(screen.getByLabelText("Expected Approval Date")).toBeInTheDocument();
     });
   });
 
@@ -150,8 +150,8 @@ describe("SdgPreparationPhase", () => {
       setup();
 
       expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeInTheDocument();
-      expect(screen.getByTestId("datepicker-frt-intial-meeting-date")).toBeInTheDocument();
-      expect(screen.getByTestId("datepicker-bnpmt-intial-meeting-date")).toBeInTheDocument();
+      expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeInTheDocument();
+      expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeInTheDocument();
     });
 
     it("renders Save For Later and Finish buttons", () => {

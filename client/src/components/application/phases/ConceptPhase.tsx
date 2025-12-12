@@ -16,6 +16,7 @@ import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
+import { DatePicker } from "components/input/date/DatePicker";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -150,17 +151,12 @@ export const ConceptPhase = ({
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="preSubmissionDate" className="block text-sm font-bold mb-1">
-            {hasPreSubmissionDocuments && <span className="text-text-warn mr-1">*</span>}
-            Pre-Submission Document Submitted Date
-          </label>
-          <input
-            id="preSubmissionDate"
-            type="date"
+          <DatePicker
+            name="datepicker-pre-submission-date"
+            label="Pre-Submission Document Submitted Date"
             value={dateSubmitted}
-            onChange={(e) => setDateSubmitted(e.target.value)}
-            className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-            aria-required={hasPreSubmissionDocuments}
+            onChange={(newDate) => setDateSubmitted(newDate)}
+            isRequired={hasPreSubmissionDocuments}
           />
           {hasPreSubmissionDocuments && !dateSubmitted && (
             <div className="text-xs text-text-warn mt-1">

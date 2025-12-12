@@ -17,6 +17,7 @@ import { useDialog } from "components/dialog/DialogContext";
 import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
+import { DatePicker } from "components/input/date/DatePicker";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -257,54 +258,31 @@ export const CompletenessPhase = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <label
-            className="block text-sm font-bold mb-1"
-            htmlFor="state-application-deemed-complete"
-          >
-            <span className="text-text-warn mr-1">*</span>
-            State Application Deemed Complete
-          </label>
-          <input
-            type="date"
+          <DatePicker
+            name="datepicker-state-application-deemed-complete"
+            label="State Application Deemed Complete"
             value={stateDeemedComplete}
-            onChange={(event) => {
-              setStateDeemedComplete(event.target.value);
+            onChange={(newDate) => {
+              setStateDeemedComplete(newDate);
             }}
-            className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-            id="state-application-deemed-complete"
-            data-testid="state-application-deemed-complete"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-bold mb-1" htmlFor="federal-comment-period-start">
-            <span className="text-text-warn mr-1">*</span>
-            Federal Comment Period Start Date
-          </label>
-          <input
-            type="date"
+          <DatePicker
+            name="datepicker-federal-comment-period-start"
+            label="Federal Comment Period Start Date"
             value={federalStartDate}
-            className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-            id="federal-comment-period-start"
-            data-testid="federal-comment-period-start"
-            readOnly
-            disabled
+            isDisabled
           />
         </div>
 
         <div>
-          <label className="block text-sm font-bold mb-1" htmlFor="federal-comment-period-end">
-            <span className="text-text-warn mr-1">*</span>
-            Federal Comment Period End Date
-          </label>
-          <input
-            type="date"
+          <DatePicker
+            name="datepicker-federal-comment-period-end"
+            label="Federal Comment Period End Date"
             value={federalEndDate}
-            className="w-full border border-border-fields px-1 py-1 text-sm rounded"
-            id="federal-comment-period-end"
-            data-testid="federal-comment-period-end"
-            readOnly
-            disabled
+            isDisabled
           />
         </div>
       </div>
