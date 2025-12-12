@@ -4,21 +4,21 @@ import { Spinner } from "components/loading/Spinner";
 
 const ButtonText = ({
   text,
-  loadingText,
-  isLoading,
+  submittingText,
+  isSubmitting,
 }: {
   text: string;
-  loadingText: string;
-  isLoading: boolean;
+  submittingText: string;
+  isSubmitting: boolean;
 }) => {
   const getButtonText = () => {
-    if (isLoading) return loadingText;
+    if (isSubmitting) return submittingText;
     return text;
   };
 
   return (
     <>
-      {isLoading && <Spinner />}
+      {isSubmitting && <Spinner />}
       {getButtonText()}
     </>
   );
@@ -28,31 +28,35 @@ interface SubmitButtonProps {
   text?: string;
   onClick?: () => void;
   disabled?: boolean;
-  isLoading?: boolean;
+  isSubmitting?: boolean;
   name?: string;
   label?: string;
-  loadingText?: string;
+  submittingText?: string;
+  form?: string;
 }
 
 export const SubmitButton: React.FC<SubmitButtonProps> = ({
   text = "Submit",
   onClick = () => {},
   disabled = false,
-  isLoading = false,
+  isSubmitting = false,
   name = "button-submit",
   label = text,
-  loadingText = "Loading",
+  submittingText = "Loading",
+  form,
 }) => {
   return (
     <Button
       name={name}
       onClick={onClick}
-      aria-label={label}
-      aria-disabled={disabled || isLoading ? "true" : "false"}
-      disabled={disabled || isLoading}
+      ariaLabel={label}
+      aria-disabled={disabled || isSubmitting ? "true" : "false"}
+      disabled={disabled || isSubmitting}
       data-testId={name}
+      type="submit"
+      form={form}
     >
-      <ButtonText text={text} loadingText={loadingText} isLoading={isLoading} />
+      <ButtonText text={text} submittingText={submittingText} isSubmitting={isSubmitting} />
     </Button>
   );
 };

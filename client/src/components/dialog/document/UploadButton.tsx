@@ -16,10 +16,10 @@ export const UploadButton: React.FC<UploadButtonProps> = ({ onClick, disabled, i
   return (
     <SubmitButton
       text={BUTTON_TEXT}
-      loadingText={BUTTON_LOADING_TEXT}
+      submittingText={BUTTON_LOADING_TEXT}
       onClick={onClick}
       disabled={disabled}
-      isLoading={isUploading}
+      isSubmitting={isUploading}
       name={BUTTON_NAME}
       label={BUTTON_LABEL}
     />

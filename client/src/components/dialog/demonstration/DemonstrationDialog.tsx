@@ -118,9 +118,10 @@ export const DemonstrationDialog: React.FC<{
             Cancel
           </SecondaryButton>
           <SubmitButton
+            form="demonstration-form"
             name="button-submit-demonstration-dialog"
             disabled={!formHasChanges}
-            isLoading={isSubmitting}
+            isSubmitting={isSubmitting}
           />
         </>
       }
