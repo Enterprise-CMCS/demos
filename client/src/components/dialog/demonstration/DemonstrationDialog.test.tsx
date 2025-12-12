@@ -5,7 +5,14 @@ import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 
 import { render, renderHook, screen, waitFor } from "@testing-library/react";
-import { DemonstrationDialog, useDateValidation } from "./DemonstrationDialog";
+import {
+  DemonstrationDialog,
+  useDateValidation,
+  checkFormHasChanges,
+  DemonstrationDialogFields,
+} from "./DemonstrationDialog";
+import userEvent from "@testing-library/user-event";
+import { SdgDivision, SignatureLevel } from "demos-server";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -22,7 +29,6 @@ const DEFAULT_PROPS = {
   initialDemonstration: DEFAULT_DEMONSTRATION,
   mode: "create" as const,
 };
-
 
 // Test ID constants
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
@@ -129,6 +135,134 @@ describe("DemonstrationDialog", () => {
   it("renders the description textarea", () => {
     render(getDemonstrationDialog());
     expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
+  });
+
+  it("should enable submit button when form has changes and disable when reverted", async () => {
+    const user = userEvent.setup();
+    const { getByTestId } = render(getDemonstrationDialog("edit"));
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const titleInput = getByTestId(TITLE_INPUT_TEST_ID);
+    await user.clear(titleInput);
+    await user.type(titleInput, "New Name");
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(titleInput);
+    expect(submitButton).toBeDisabled();
+  });
+
+  describe("checkFormChanged", () => {
+    const BASE_DEMONSTRATION: DemonstrationDialogFields = {
+      name: "Test Demo",
+      description: "Test Description",
+      stateId: "NC",
+      projectOfficerId: "officer-123",
+      effectiveDate: "2024-01-01",
+      expirationDate: "2024-12-31",
+      sdgDivision: "Division of System Reform Demonstrations",
+      signatureLevel: "OA",
+    };
+
+    it("returns false when demonstrations are identical", () => {
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, BASE_DEMONSTRATION);
+      expect(result).toBe(false);
+    });
+
+    it("returns false when demonstrations have same values but different object references", () => {
+      const copy = { ...BASE_DEMONSTRATION };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, copy);
+      expect(result).toBe(false);
+    });
+
+    it("returns true when name changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, name: "Different Name" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when description changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, description: "Different Description" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when stateId changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, stateId: "CA" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when projectOfficerId changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, projectOfficerId: "officer-456" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when effectiveDate changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, effectiveDate: "2024-02-01" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when expirationDate changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, expirationDate: "2024-11-30" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when sdgDivision changes", () => {
+      const updated = {
+        ...BASE_DEMONSTRATION,
+        sdgDivision: "Division of Eligibility and Coverage Demonstrations" as SdgDivision,
+      };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when signatureLevel changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, signatureLevel: "OCD" as SignatureLevel };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when multiple fields change", () => {
+      const updated = {
+        ...BASE_DEMONSTRATION,
+        name: "New Name",
+        description: "New Description",
+        stateId: "CA",
+      };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns false when empty strings remain empty", () => {
+      const empty = {
+        ...BASE_DEMONSTRATION,
+        name: "",
+        description: "",
+        effectiveDate: "",
+        expirationDate: "",
+      };
+      const result = checkFormHasChanges(empty, { ...empty });
+      expect(result).toBe(false);
+    });
+
+    it("returns true when field changes from empty to non-empty", () => {
+      const initial = { ...BASE_DEMONSTRATION, name: "" };
+      const updated = { ...BASE_DEMONSTRATION, name: "New Name" };
+      const result = checkFormHasChanges(initial, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when field changes from non-empty to empty", () => {
+      const initial = { ...BASE_DEMONSTRATION, name: "Test Name" };
+      const updated = { ...BASE_DEMONSTRATION, name: "" };
+      const result = checkFormHasChanges(initial, updated);
+      expect(result).toBe(true);
+    });
   });
 });
 
