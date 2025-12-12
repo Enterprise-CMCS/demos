@@ -1,10 +1,18 @@
-import type { SetApplicationDateInput } from "demos-server";
+import type { SetApplicationDateInput, SetApplicationDatesInput } from "demos-server";
 import { gql, useMutation } from "@apollo/client";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../ApplicationWorkflow";
 
 const SET_APPLICATION_DATE_MUTATION = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {
     setApplicationDate(input: $input) {
+      __typename
+    }
+  }
+`;
+
+const SET_APPLICATION_DATES_MUTATION = gql`
+  mutation SetApplicationDates($input: SetApplicationDatesInput!) {
+    setApplicationDates(input: $input) {
       __typename
     }
   }
@@ -33,4 +41,32 @@ export const useSetApplicationDate = () => {
   };
 
   return { setApplicationDate, data, loading, error };
+};
+
+/**
+ * Hook to set multiple application dates with automatic refetching of the workflow demonstration.
+ * Uses transaction handling to ensure all dates are set or none are set.
+ *
+ * @example
+ * const { setApplicationDates } = useSetApplicationDates();
+ *
+ * await setApplicationDates({
+ *   applicationId: "demo-123",
+ *   applicationDates: [
+ *     { dateType: "State Application Submitted Date", dateValue: "2024-01-15" },
+ *     { dateType: "Concept Completion Date", dateValue: "2024-01-20" }
+ *   ]
+ * });
+ */
+export const useSetApplicationDates = () => {
+  const [mutate, { data, loading, error }] = useMutation(SET_APPLICATION_DATES_MUTATION);
+
+  const setApplicationDates = async (input: SetApplicationDatesInput) => {
+    return await mutate({
+      variables: { input },
+      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    });
+  };
+
+  return { setApplicationDates, data, loading, error };
 };
