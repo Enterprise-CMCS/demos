@@ -8,201 +8,178 @@ import { SelectSignatureLevel } from "components/input/select/SelectSignatureLev
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
-import { Demonstration } from "demos-server";
+import { LocalDate, SdgDivision, SignatureLevel } from "demos-server";
 import { tw } from "tags/tw";
+import { useDialog } from "../DialogContext";
 
-const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
-const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-half text-sm`;
-
-// imported from hooks. Only used here.
-export const useDateValidation = () => {
-  const [expirationError, setExpirationError] = useState("");
-
-  const handleEffectiveDateChange = (
-    effectiveDate: string,
-    expirationDate: string,
-    setEffectiveDate: (date: string) => void,
-    setExpirationDate: (date: string) => void
-  ) => {
-    setEffectiveDate(effectiveDate);
-    if (expirationDate && expirationDate < effectiveDate) {
-      setExpirationDate("");
-    }
-  };
-
-  const handleExpirationDateChange = (
-    expirationDate: string,
-    effectiveDate: string,
-    setExpirationDate: (date: string) => void
-  ) => {
-    // Only validate if we have complete - valid dates (YYYY-MM-DD format)
-    const isCompleteDate = /^\d{4}-\d{2}-\d{2}$/.test(expirationDate);
-
-    if (effectiveDate && isCompleteDate && expirationDate < effectiveDate) {
-      setExpirationError("Expiration Date cannot be before Effective Date.");
-      return;
-    } else {
-      setExpirationError("");
-      setExpirationDate(expirationDate);
-    }
-  };
-
-  return {
-    expirationError,
-    setExpirationError,
-    handleEffectiveDateChange,
-    handleExpirationDateChange,
-  };
-};
-
-export type DemonstrationDialogMode = "create" | "edit";
-
-export type DemonstrationDialogFields = Pick<
-  Demonstration,
-  "name" | "description" | "sdgDivision" | "signatureLevel"
-> & { stateId: string; projectOfficerId: string; effectiveDate: string; expirationDate: string };
-
-const DemonstrationDescriptionTextArea: React.FC<{
+export type DemonstrationData = {
+  name?: string;
+  stateId?: string;
+  projectOfficerId?: string;
   description?: string;
-  setDescription: (value: string) => void;
-}> = ({ description, setDescription }) => {
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
+  effectiveDate?: LocalDate;
+  expirationDate?: LocalDate;
+};
+
+type ValidationErrors = Partial<Record<keyof DemonstrationData, string>>;
+
+const SubmitButton: React.FC<{ hasChanged: boolean; isSubmitting: boolean }> = ({
+  hasChanged,
+  isSubmitting,
+}) => (
+  <Button
+    name="button-submit-demonstration-dialog"
+    size="small"
+    disabled={!hasChanged}
+    type="submit"
+    form="demonstration-form"
+  >
+    {isSubmitting ? (
+      <svg
+        className="animate-spin h-2 w-2 text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+        />
+      </svg>
+    ) : (
+      "Submit"
+    )}
+  </Button>
+);
+
+const DateInput: React.FC<{
+  name: string;
+  value?: LocalDate;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errorMessage?: string;
+}> = ({ name, value, onChange, errorMessage }) => {
+  const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-half text-sm`;
+  const DATE_LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
+
   return (
     <>
-      <Textarea
-        name="description"
-        label="Demonstration Description"
-        placeholder="Enter description"
-        initialValue={description ?? ""}
-        onChange={(e) => setDescription(e.target.value)}
+      <label className={DATE_LABEL_CLASSES} htmlFor={name}>
+        Effective Date
+      </label>
+      <input
+        data-testid={`input-${name}`}
+        id={name}
+        type="date"
+        className={`${DATE_INPUT_CLASSES} ${
+          errorMessage
+            ? "border-border-warn focus:ring-border-warn"
+            : "border-border-fields focus:ring-border-focus"
+        }`}
+        value={value}
+        onChange={onChange}
       />
+      {errorMessage && <div className="text-text-warn text-sm mt-1">{errorMessage}</div>}
     </>
   );
 };
 
-const SubmitButton: React.FC<{
-  activeDemonstration: DemonstrationDialogFields;
-  isSubmitting: boolean;
-}> = ({ activeDemonstration, isSubmitting }) => {
-  return (
-    <Button
-      name="button-submit-demonstration-dialog"
-      size="small"
-      disabled={
-        !(
-          activeDemonstration.stateId &&
-          activeDemonstration.name &&
-          activeDemonstration.projectOfficerId
-        ) || isSubmitting
-      }
-      type="submit"
-      form="demonstration-form"
-      onClick={() => {}}
-    >
-      {isSubmitting ? (
-        <svg
-          className="animate-spin h-2 w-2 text-white"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-          />
-        </svg>
-      ) : (
-        "Submit"
-      )}
-    </Button>
-  );
+const validateForm = (formData: DemonstrationData): ValidationErrors => {
+  const errors: Record<string, string> = {};
+
+  if (!formData.stateId) errors.stateId = "State/Territory is required";
+  if (!formData.name?.trim()) errors.name = "Demonstration Title is required";
+  if (!formData.projectOfficerId) errors.projectOfficerId = "Project Officer is required";
+
+  if (formData.expirationDate && formData.effectiveDate) {
+    const validExpirationDate = /^\d{4}-\d{2}-\d{2}$/.test(formData.expirationDate);
+    const validEffectiveDate = /^\d{4}-\d{2}-\d{2}$/.test(formData.effectiveDate);
+    if (!validExpirationDate) errors.expirationDate = "Expiration Date must be a valid date";
+    if (!validEffectiveDate) errors.effectiveDate = "Effective Date must be a valid date";
+    if (
+      validEffectiveDate &&
+      validExpirationDate &&
+      new Date(formData.expirationDate) < new Date(formData.effectiveDate)
+    )
+      errors.expirationDate = "Expiration Date connot be before Effective Date.";
+  }
+
+  return errors;
 };
 
-const DateInputs: React.FC<{
-  effectiveDate: string;
-  expirationDate: string;
-  setEffectiveDate: (date: string) => void;
-  setExpirationDate: (date: string) => void;
-}> = ({ effectiveDate, expirationDate, setEffectiveDate, setExpirationDate }) => {
-  const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
-    useDateValidation();
+type DemonstrationDialogProps =
+  | {
+      mode: "create";
+      onSubmit: (demonstration: DemonstrationData) => Promise<void>;
+    }
+  | {
+      mode: "edit";
+      initialDemonstrationData: DemonstrationData;
+      onSubmit: (demonstration: DemonstrationData) => Promise<void>;
+    };
+export const DemonstrationDialog: React.FC<DemonstrationDialogProps> = (props) => {
+  const mode = props.mode;
+  const onSubmit = props.onSubmit;
+  const initialDemonstrationData = props.mode === "edit" ? props.initialDemonstrationData : {};
 
-  return (
-    <>
-      <div className="flex flex-col gap-xs">
-        <label className={LABEL_CLASSES} htmlFor="effective-date">
-          Effective Date
-        </label>
-        <input
-          data-testid="input-effective-date"
-          id="effective-date"
-          type="date"
-          className={DATE_INPUT_CLASSES}
-          value={effectiveDate}
-          onChange={(e) =>
-            handleEffectiveDateChange(
-              e.target.value,
-              expirationDate,
-              (value) => setEffectiveDate(value),
-              (value) => setExpirationDate(value)
-            )
-          }
-        />
-      </div>
-      <div className="flex flex-col gap-xs">
-        <label className={LABEL_CLASSES} htmlFor="expiration-date">
-          Expiration Date
-        </label>
-        <input
-          data-testid="input-expiration-date"
-          id="expiration-date"
-          type="date"
-          className={`${DATE_INPUT_CLASSES} ${
-            expirationError
-              ? "border-border-warn focus:ring-border-warn"
-              : "border-border-fields focus:ring-border-focus"
-          }`}
-          value={expirationDate}
-          min={effectiveDate || undefined}
-          onChange={(e) =>
-            handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)
-          }
-        />
-        {expirationError && <div className="text-text-warn text-sm mt-1">{expirationError}</div>}
-      </div>
-    </>
-  );
-};
+  const [demonstrationData, setDemonstrationData] =
+    useState<DemonstrationData>(initialDemonstrationData);
 
-export const DemonstrationDialog: React.FC<{
-  onClose: () => void;
-  mode: DemonstrationDialogMode;
-  initialDemonstration: DemonstrationDialogFields;
-  onSubmit: (demonstration: DemonstrationDialogFields) => Promise<void>;
-}> = ({ onClose, mode, initialDemonstration, onSubmit }) => {
-  const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const { hideDialog } = useDialog();
+
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [hasChanged, setHasChanged] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
-    setIsSubmitting(true);
-    await onSubmit(activeDemonstration);
-    setIsSubmitting(false);
+
+    const validationErrors = validateForm(demonstrationData);
+    setValidationErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length === 0) {
+      setIsSubmitting(true);
+      await onSubmit(demonstrationData);
+      setIsSubmitting(false);
+      hideDialog();
+    }
+  };
+
+  const hasFormChanged = (initial: DemonstrationData, current: DemonstrationData): boolean => {
+    return (
+      initial.name !== current.name ||
+      initial.stateId !== current.stateId ||
+      initial.projectOfficerId !== current.projectOfficerId ||
+      initial.description !== current.description ||
+      initial.sdgDivision !== current.sdgDivision ||
+      initial.signatureLevel !== current.signatureLevel ||
+      initial.effectiveDate !== current.effectiveDate ||
+      initial.expirationDate !== current.expirationDate
+    );
+  };
+
+  const updateForm = (newData: Partial<DemonstrationData>) => {
+    const formData = { ...demonstrationData, ...newData };
+    setDemonstrationData(formData);
+    setHasChanged(hasFormChanged(initialDemonstrationData, formData));
   };
 
   return (
     <BaseDialog
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
-      onClose={onClose}
+      onClose={hideDialog}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
       maxWidthClass="max-w-[920px]"
@@ -215,29 +192,40 @@ export const DemonstrationDialog: React.FC<{
           >
             Cancel
           </SecondaryButton>
-          <SubmitButton activeDemonstration={activeDemonstration} isSubmitting={isSubmitting} />
+          <SubmitButton hasChanged={hasChanged} isSubmitting={isSubmitting} />
         </>
       }
     >
-      <form id="demonstration-form" className="flex flex-col gap-[24px]" onSubmit={handleSubmit}>
+      <form
+        id="demonstration-form"
+        className="flex flex-col gap-[24px]"
+        onSubmit={handleSubmit}
+        noValidate
+      >
         <div className="grid grid-cols-3 gap-[24px]">
-          <SelectUSAStates
-            label="State/Territory"
-            value={activeDemonstration.stateId}
-            isRequired
-            onSelect={(stateId) => setActiveDemonstration((prev) => ({ ...prev, stateId }))}
-          />
+          <div className="col-span-1">
+            <SelectUSAStates
+              label="State/Territory"
+              value={demonstrationData.stateId}
+              isRequired
+              onSelect={(stateId) => updateForm({ stateId })}
+            />
+            {validationErrors.stateId && (
+              <div className="text-text-warn text-sm mt-1">{validationErrors.stateId}</div>
+            )}
+          </div>
           <div className="col-span-2">
             <TextInput
               name="input-demonstration-title"
               label="Demonstration Title"
               isRequired
               placeholder="Enter title"
-              value={activeDemonstration.name}
-              onChange={(e) =>
-                setActiveDemonstration((prev) => ({ ...prev, name: e.target.value }))
-              }
+              value={demonstrationData.name}
+              onChange={(e) => updateForm({ name: e.target.value })}
             />
+            {validationErrors.name && (
+              <div className="text-text-warn text-sm mt-1">{validationErrors.name}</div>
+            )}
           </div>
         </div>
 
@@ -246,46 +234,57 @@ export const DemonstrationDialog: React.FC<{
             <SelectUsers
               label="Project Officer"
               isRequired={true}
-              value={activeDemonstration.projectOfficerId}
-              onSelect={(userId) =>
-                setActiveDemonstration((prev) => ({ ...prev, projectOfficerId: userId }))
-              }
+              value={demonstrationData.projectOfficerId}
+              onSelect={(userId) => updateForm({ projectOfficerId: userId })}
               personTypes={["demos-admin", "demos-cms-user"]}
             />
+            {validationErrors.projectOfficerId && (
+              <div className="text-text-warn text-sm mt-1">{validationErrors.projectOfficerId}</div>
+            )}
           </div>
           {mode === "edit" && (
-            <DateInputs
-              effectiveDate={activeDemonstration.effectiveDate}
-              expirationDate={activeDemonstration.expirationDate}
-              setEffectiveDate={(value) =>
-                setActiveDemonstration((prev) => ({ ...prev, effectiveDate: value }))
-              }
-              setExpirationDate={(value) =>
-                setActiveDemonstration((prev) => ({ ...prev, expirationDate: value }))
-              }
-            />
+            <>
+              <div className="flex flex-col gap-xs">
+                <DateInput
+                  name="effective-date"
+                  onChange={(e) => updateForm({ effectiveDate: e.target.value as LocalDate })}
+                  errorMessage={validationErrors.effectiveDate}
+                  value={demonstrationData.effectiveDate}
+                />
+              </div>
+              <div className="flex flex-col gap-xs">
+                <DateInput
+                  name="expiration-date"
+                  onChange={(e) => updateForm({ expirationDate: e.target.value as LocalDate })}
+                  errorMessage={validationErrors.expirationDate}
+                  value={demonstrationData.expirationDate}
+                />
+              </div>
+            </>
           )}
         </div>
 
         <div className="flex flex-col gap-xs">
-          <DemonstrationDescriptionTextArea
-            description={activeDemonstration.description}
-            setDescription={(value) =>
-              setActiveDemonstration((prev) => ({ ...prev, description: value }))
-            }
+          <Textarea
+            name="description"
+            label="Demonstration Description"
+            placeholder="Enter description"
+            initialValue={demonstrationData.description ?? ""}
+            onChange={(e) => updateForm({ description: e.target.value })}
           />
+          {validationErrors.description && (
+            <div className="text-text-warn text-sm mt-1">{validationErrors.description}</div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <SelectSdgDivision
-            initialValue={activeDemonstration.sdgDivision}
-            onSelect={(sdgDivision) => setActiveDemonstration((prev) => ({ ...prev, sdgDivision }))}
+            initialValue={demonstrationData.sdgDivision}
+            onSelect={(sdgDivision) => updateForm({ sdgDivision })}
           />
           <SelectSignatureLevel
-            initialValue={activeDemonstration.signatureLevel}
-            onSelect={(signatureLevel) =>
-              setActiveDemonstration((prev) => ({ ...prev, signatureLevel }))
-            }
+            initialValue={demonstrationData.signatureLevel}
+            onSelect={(signatureLevel) => updateForm({ signatureLevel })}
           />
         </div>
       </form>

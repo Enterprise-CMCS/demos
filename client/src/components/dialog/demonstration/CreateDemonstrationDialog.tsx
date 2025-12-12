@@ -1,19 +1,10 @@
 import React from "react";
 import { useToast } from "components/toast";
-import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
+import { DemonstrationData, DemonstrationDialog } from "./DemonstrationDialog";
 import { useMutation } from "@apollo/client";
-import { CreateDemonstrationInput, Demonstration } from "demos-server";
+import { Demonstration } from "demos-server";
 import { gql } from "@apollo/client";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
-
-const DEFAULT_DEMONSTRATION_DIALOG_FIELDS: DemonstrationDialogFields = {
-  name: "",
-  effectiveDate: "",
-  expirationDate: "",
-  description: "",
-  stateId: "",
-  projectOfficerId: "",
-};
 
 const SUCCESS_MESSAGE = "Your demonstration is ready.";
 const ERROR_MESSAGE = "Your demonstration was not created because of an unknown problem.";
@@ -25,37 +16,23 @@ export const CREATE_DEMONSTRATION_MUTATION = gql`
     }
   }
 `;
-export const CreateDemonstrationDialog: React.FC<{
-  onClose: () => void;
-}> = ({ onClose }) => {
+export const CreateDemonstrationDialog: React.FC = () => {
   const { showSuccess, showError } = useToast();
 
   const [createDemonstrationTrigger] = useMutation<{
     createDemonstration: Demonstration;
   }>(CREATE_DEMONSTRATION_MUTATION);
 
-  const getCreateDemonstrationInput = (
-    demonstration: DemonstrationDialogFields
-  ): CreateDemonstrationInput => ({
-    name: demonstration.name,
-    description: demonstration.description,
-    stateId: demonstration.stateId,
-    projectOfficerUserId: demonstration.projectOfficerId,
-    sdgDivision: demonstration.sdgDivision,
-    signatureLevel: demonstration.signatureLevel,
-  });
-
-  const onSubmit = async (demonstration: DemonstrationDialogFields) => {
+  const onSubmit = async (demonstrationData: DemonstrationData) => {
     try {
       const result = await createDemonstrationTrigger({
         variables: {
-          input: getCreateDemonstrationInput(demonstration),
+          input: demonstrationData,
         },
         refetchQueries: [DEMONSTRATIONS_PAGE_QUERY],
       });
 
       const success = !result.errors;
-      onClose();
       if (success) {
         showSuccess(SUCCESS_MESSAGE);
       } else {
@@ -69,9 +46,7 @@ export const CreateDemonstrationDialog: React.FC<{
 
   return (
     <DemonstrationDialog
-      onClose={onClose}
       mode="create"
-      initialDemonstration={DEFAULT_DEMONSTRATION_DIALOG_FIELDS}
       onSubmit={onSubmit}
     />
   );
