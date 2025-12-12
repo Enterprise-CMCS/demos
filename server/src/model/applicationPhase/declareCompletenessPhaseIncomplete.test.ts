@@ -132,7 +132,7 @@ describe("declareCompletenessPhaseIncomplete", () => {
     "SDG Preparation": "Not Started",
     Review: "Not Started",
     "Approval Package": "Not Started",
-    "Post Approval": "Not Started",
+    "Approval Summary": "Not Started",
   };
 
   beforeEach(() => {

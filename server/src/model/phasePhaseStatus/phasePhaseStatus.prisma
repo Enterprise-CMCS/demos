@@ -6,6 +6,7 @@ model PhasePhaseStatus {
   phaseStatusId String @map("phase_status_id")
 
   applicationPhases ApplicationPhase[]
+  phase             Phases[]
 
   @@id([phaseId, phaseStatusId])
   @@map("phase_phase_status")

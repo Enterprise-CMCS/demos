@@ -377,7 +377,7 @@ describe("completePhase", () => {
       );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
-        "Post Approval",
+        "Approval Summary",
         mockTransaction,
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
@@ -387,17 +387,17 @@ describe("completePhase", () => {
     });
   });
 
-  describe("Post Approval Phase", () => {
-    it("should throw when attempting to complete the Post Approval phase", async () => {
+  describe("Approval Summary Phase", () => {
+    it("should throw when attempting to complete the Approval Summary phase", async () => {
       const testInput: CompletePhaseInput = {
         applicationId: testApplicationId,
-        phaseName: "Post Approval",
+        phaseName: "Approval Summary",
       };
 
       await expect(
         completePhase(undefined, { input: testInput }),
       ).rejects.toThrowError(
-        "Completion of the Post Approval phase via API is not yet implemented.",
+        "Completion of the Approval Summary phase via API is not yet implemented.",
       );
 
       expect(validatePhaseCompletion).not.toHaveBeenCalled();

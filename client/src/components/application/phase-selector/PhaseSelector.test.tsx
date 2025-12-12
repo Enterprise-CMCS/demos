@@ -35,7 +35,7 @@ describe("PhaseSelector", () => {
       "SDG Preparation",
       "Review",
       "Approval Package",
-      "Post Approval",
+      "Approval Summary",
     ].forEach((name) => {
       expect(screen.getByText(name)).toBeInTheDocument();
     });

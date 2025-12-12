@@ -6,7 +6,7 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  PostApprovalPhase,
+  ApprovalSummaryPhase,
   SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
   getFederalCommentPhaseFromDemonstration,
@@ -91,7 +91,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
     },
     Review: () => getReviewPhaseComponentFromDemonstration(demonstration),
     "Approval Package": () => getApprovalPackagePhase(demonstration),
-    "Post Approval": PostApprovalPhase,
+    "Approval Summary": ApprovalSummaryPhase,
   };
 
   const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
