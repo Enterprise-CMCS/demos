@@ -12,6 +12,7 @@ describe("SubmitButton", () => {
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent("Submit");
     expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute("type", "submit");
   });
 
   it("renders with custom text", () => {
@@ -34,6 +35,13 @@ describe("SubmitButton", () => {
 
     const button = screen.getByRole("button", { name: "Custom Label" });
     expect(button).toBeInTheDocument();
+  });
+
+  it("associates with form when form prop is provided", () => {
+    render(<SubmitButton form="my-form" />);
+
+    const button = screen.getByRole("button");
+    expect(button).toHaveAttribute("form", "my-form");
   });
 
   it("is disabled when disabled prop is true", () => {
@@ -111,11 +119,19 @@ describe("SubmitButton", () => {
 
     let button = screen.getByRole("button");
     expect(button).toHaveTextContent("Submit");
+    expect(button).not.toBeDisabled();
 
     rerender(<SubmitButton text="Submit" submittingText="Submitting..." isSubmitting={true} />);
 
     button = screen.getByRole("button");
     expect(button).toHaveTextContent("Submitting...");
     expect(button).toBeDisabled();
+  });
+
+  it("hides spinner when isSubmitting is false", () => {
+    render(<SubmitButton isSubmitting={false} />);
+
+    const spinner = screen.queryByRole("img", { name: "Loading" });
+    expect(spinner).not.toBeInTheDocument();
   });
 });

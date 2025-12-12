@@ -9,7 +9,7 @@ const ButtonText = ({
 }: {
   text: string;
   submittingText: string;
-  isSubmitting: boolean;
+  isSubmitting?: boolean;
 }) => {
   const getButtonText = () => {
     if (isSubmitting) return submittingText;
@@ -26,24 +26,24 @@ const ButtonText = ({
 
 interface SubmitButtonProps {
   text?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  isSubmitting?: boolean;
   name?: string;
   label?: string;
   submittingText?: string;
+  onClick?: () => void;
   form?: string;
+  disabled?: boolean;
+  isSubmitting?: boolean;
 }
 
 export const SubmitButton: React.FC<SubmitButtonProps> = ({
   text = "Submit",
-  onClick = () => {},
-  disabled = false,
-  isSubmitting = false,
   name = "button-submit",
   label = text,
   submittingText = "Loading",
+  onClick,
   form,
+  disabled,
+  isSubmitting,
 }) => {
   return (
     <Button
