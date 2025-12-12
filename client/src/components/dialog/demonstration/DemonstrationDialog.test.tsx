@@ -5,7 +5,11 @@ import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 
 import { render, screen, waitFor } from "@testing-library/react";
-import { DemonstrationDialog } from "./DemonstrationDialog";
+import {
+  DemonstrationDialog,
+  checkFormHasChanges,
+  DemonstrationDialogFields,
+} from "./DemonstrationDialog";
 import userEvent from "@testing-library/user-event";
 import { SdgDivision, SignatureLevel } from "demos-server";
 
@@ -130,6 +134,134 @@ describe("DemonstrationDialog", () => {
   it("renders the description textarea", () => {
     render(getDemonstrationDialog());
     expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
+  });
+
+  it("should enable submit button when form has changes and disable when reverted", async () => {
+    const user = userEvent.setup();
+    const { getByTestId } = render(getDemonstrationDialog("edit"));
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const titleInput = getByTestId(TITLE_INPUT_TEST_ID);
+    await user.clear(titleInput);
+    await user.type(titleInput, "New Name");
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(titleInput);
+    expect(submitButton).toBeDisabled();
+  });
+
+  describe("checkFormChanged", () => {
+    const BASE_DEMONSTRATION: DemonstrationDialogFields = {
+      name: "Test Demo",
+      description: "Test Description",
+      stateId: "NC",
+      projectOfficerId: "officer-123",
+      effectiveDate: "2024-01-01",
+      expirationDate: "2024-12-31",
+      sdgDivision: "Division of System Reform Demonstrations",
+      signatureLevel: "OA",
+    };
+
+    it("returns false when demonstrations are identical", () => {
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, BASE_DEMONSTRATION);
+      expect(result).toBe(false);
+    });
+
+    it("returns false when demonstrations have same values but different object references", () => {
+      const copy = { ...BASE_DEMONSTRATION };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, copy);
+      expect(result).toBe(false);
+    });
+
+    it("returns true when name changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, name: "Different Name" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when description changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, description: "Different Description" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when stateId changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, stateId: "CA" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when projectOfficerId changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, projectOfficerId: "officer-456" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when effectiveDate changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, effectiveDate: "2024-02-01" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when expirationDate changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, expirationDate: "2024-11-30" };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when sdgDivision changes", () => {
+      const updated = {
+        ...BASE_DEMONSTRATION,
+        sdgDivision: "Division of Eligibility and Coverage Demonstrations" as SdgDivision,
+      };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when signatureLevel changes", () => {
+      const updated = { ...BASE_DEMONSTRATION, signatureLevel: "OCD" as SignatureLevel };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when multiple fields change", () => {
+      const updated = {
+        ...BASE_DEMONSTRATION,
+        name: "New Name",
+        description: "New Description",
+        stateId: "CA",
+      };
+      const result = checkFormHasChanges(BASE_DEMONSTRATION, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns false when empty strings remain empty", () => {
+      const empty = {
+        ...BASE_DEMONSTRATION,
+        name: "",
+        description: "",
+        effectiveDate: "",
+        expirationDate: "",
+      };
+      const result = checkFormHasChanges(empty, { ...empty });
+      expect(result).toBe(false);
+    });
+
+    it("returns true when field changes from empty to non-empty", () => {
+      const initial = { ...BASE_DEMONSTRATION, name: "" };
+      const updated = { ...BASE_DEMONSTRATION, name: "New Name" };
+      const result = checkFormHasChanges(initial, updated);
+      expect(result).toBe(true);
+    });
+
+    it("returns true when field changes from non-empty to empty", () => {
+      const initial = { ...BASE_DEMONSTRATION, name: "Test Name" };
+      const updated = { ...BASE_DEMONSTRATION, name: "" };
+      const result = checkFormHasChanges(initial, updated);
+      expect(result).toBe(true);
+    });
   });
 });
 
@@ -278,298 +410,5 @@ describe("DemonstrationDialog - Date Validation", () => {
     });
 
     expect(queryByText("Expiration Date cannot be before Effective Date.")).not.toBeInTheDocument();
-  });
-});
-
-describe("DemonstrationDialog - handleChange and isChanged behavior", () => {
-  const GET_USER_SELECT_OPTIONS_MOCK = {
-    request: {
-      query: GET_USER_SELECT_OPTIONS_QUERY,
-    },
-    result: {
-      data: {
-        people: [
-          {
-            id: "test-officer-id",
-            fullName: "Test Officer",
-            personType: "demos-cms-user",
-          },
-          {
-            id: "initial-officer-id",
-            fullName: "Initial Officer",
-            personType: "demos-cms-user",
-          },
-        ],
-      },
-    },
-  };
-
-  let user: ReturnType<typeof userEvent.setup>;
-
-  beforeEach(() => {
-    user = userEvent.setup();
-  });
-
-  it("should enable/disable submit button on state change", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      stateId: "NC",
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const stateSelect = getByTestId(STATE_SELECT_TEST_ID);
-    await user.click(stateSelect);
-    await user.clear(stateSelect);
-    await user.type(stateSelect, "Alabama");
-    await user.click(screen.getByText("Alabama"));
-    expect(submitButton).toBeEnabled();
-
-    await user.click(stateSelect);
-    await user.clear(stateSelect);
-    await user.type(stateSelect, "North Carolina");
-    await user.click(screen.getByText("North Carolina"));
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("should enable/disable submit button on name change", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      name: "Original Name",
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const titleInput = getByTestId(TITLE_INPUT_TEST_ID);
-    await user.clear(titleInput);
-    await user.type(titleInput, "New Name");
-    expect(submitButton).toBeEnabled();
-
-    await user.clear(titleInput);
-    await user.type(titleInput, "Original Name");
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("should enable/disable submit button on project officer change", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      projectOfficerId: "initial-officer-id",
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK, GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId(SELECT_USERS_TEST_ID)).toBeInTheDocument();
-    });
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const projectOfficerSelect = getByTestId(SELECT_USERS_TEST_ID);
-    await user.click(projectOfficerSelect);
-    await user.clear(projectOfficerSelect);
-    await user.type(projectOfficerSelect, "Test Officer");
-    await user.click(screen.getByText("Test Officer"));
-    expect(submitButton).toBeEnabled();
-
-    await user.click(projectOfficerSelect);
-    await user.clear(projectOfficerSelect);
-    await user.type(projectOfficerSelect, "Initial Officer");
-    await user.click(screen.getByText("Initial Officer"));
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("should enable/disable submit button on effective date change in edit mode", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      effectiveDate: "2024-01-01",
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const effectiveDateInput = getByTestId(EFFECTIVE_DATE_INPUT_TEST_ID);
-    await user.clear(effectiveDateInput);
-    await user.type(effectiveDateInput, "2024-02-01");
-    expect(submitButton).toBeEnabled();
-
-    await user.clear(effectiveDateInput);
-    await user.type(effectiveDateInput, "2024-01-01");
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("should enable/disable submit button on expiration date change in edit mode", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      effectiveDate: "2024-01-01",
-      expirationDate: "2024-12-31",
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const expirationDateInput = getByTestId(EXPIRATION_DATE_INPUT_TEST_ID);
-    await user.clear(expirationDateInput);
-    await user.type(expirationDateInput, "2024-11-30");
-    expect(submitButton).toBeEnabled();
-
-    await user.clear(expirationDateInput);
-    await user.type(expirationDateInput, "2024-12-31");
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("should enable/disable submit button on description change", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      description: "Original Description",
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const descriptionTextarea = getByTestId(DESCRIPTION_TEXTAREA_TEST_ID);
-    await user.clear(descriptionTextarea);
-    await user.type(descriptionTextarea, "New Description");
-    expect(submitButton).toBeEnabled();
-
-    await user.clear(descriptionTextarea);
-    await user.type(descriptionTextarea, "Original Description");
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("should enable/disable submit button on sdg division change", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      sdgDivision: "Division of System Reform Demonstrations" as SdgDivision,
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const sdgDivisionSelect = getByTestId(SDG_DIVISION_SELECT_TEST_ID);
-    await user.selectOptions(
-      sdgDivisionSelect,
-      "Division of Eligibility and Coverage Demonstrations"
-    );
-    expect(submitButton).toBeEnabled();
-
-    await user.selectOptions(sdgDivisionSelect, "Division of System Reform Demonstrations");
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("should enable/disable submit button on signature level change", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      signatureLevel: "OA" as SignatureLevel,
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const signatureLevelSelect = getByTestId(SIGNATURE_LEVEL_SELECT_TEST_ID);
-    await user.selectOptions(signatureLevelSelect, "OCD");
-    expect(submitButton).toBeEnabled();
-
-    await user.selectOptions(signatureLevelSelect, "OA");
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("should enable/disable submit button on multiple field changes", async () => {
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      name: "Original Name",
-      description: "Original Description",
-      stateId: "NC",
-      sdgDivision: "Division of System Reform Demonstrations" as SdgDivision,
-      signatureLevel: "OA" as SignatureLevel,
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    const titleInput = getByTestId(TITLE_INPUT_TEST_ID);
-    await user.clear(titleInput);
-    await user.type(titleInput, "New Name");
-    expect(submitButton).toBeEnabled();
-
-    const descriptionTextarea = getByTestId(DESCRIPTION_TEXTAREA_TEST_ID);
-    await user.clear(descriptionTextarea);
-    await user.type(descriptionTextarea, "New Description");
-    expect(submitButton).toBeEnabled();
-
-    const stateSelect = getByTestId(STATE_SELECT_TEST_ID);
-    await user.click(stateSelect);
-    await user.clear(stateSelect);
-    await user.type(stateSelect, "Alabama");
-    await user.click(screen.getByText("Alabama"));
-    expect(submitButton).toBeEnabled();
-
-    await user.clear(titleInput);
-    await user.type(titleInput, "Original Name");
-    expect(submitButton).toBeEnabled();
-
-    await user.clear(descriptionTextarea);
-    await user.type(descriptionTextarea, "Original Description");
-    expect(submitButton).toBeEnabled();
-
-    await user.click(stateSelect);
-    await user.clear(stateSelect);
-    await user.type(stateSelect, "North Carolina");
-    await user.click(screen.getByText("North Carolina"));
-    expect(submitButton).toBeDisabled();
   });
 });
