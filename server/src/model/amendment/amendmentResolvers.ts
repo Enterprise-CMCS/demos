@@ -9,10 +9,7 @@ import {
 } from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import {
-  checkInputDateIsStartOfDay,
-  checkInputDateIsEndOfDay,
-} from "../applicationDate/checkInputDateFunctions.js";
+import { resolveEffectiveAndExpirationDates } from "../applicationDate/resolveEffectiveAndExpirationDates.js";
 import {
   deleteApplication,
   getApplication,
@@ -22,8 +19,6 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
 } from "../application/applicationResolvers.js";
-import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
-import { TZDate } from "@date-fns/tz";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
@@ -69,22 +64,7 @@ export async function __updateAmendment(
   parent: unknown,
   { id, input }: { id: string; input: UpdateAmendmentInput }
 ): Promise<PrismaAmendment> {
-  let easternEffectiveDate: TZDate | null | undefined;
-  let easternExpirationDate: TZDate | null | undefined;
-  if (input.effectiveDate) {
-    const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.effectiveDate, "Start of Day");
-    checkInputDateIsStartOfDay("effectiveDate", inputDate);
-    easternEffectiveDate = inputDate.easternTZDate;
-  } else if (input.effectiveDate === null) {
-    easternEffectiveDate = null;
-  }
-  if (input.expirationDate) {
-    const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.expirationDate, "End of Day");
-    checkInputDateIsEndOfDay("expirationDate", inputDate);
-    easternExpirationDate = inputDate.easternTZDate;
-  } else if (input.expirationDate === null) {
-    easternExpirationDate = null;
-  }
+  const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().amendment.update({
@@ -95,8 +75,8 @@ export async function __updateAmendment(
         demonstrationId: input.demonstrationId,
         name: input.name,
         description: input.description,
-        effectiveDate: easternEffectiveDate,
-        expirationDate: easternExpirationDate,
+        effectiveDate,
+        expirationDate,
         statusId: input.status,
       },
     });
@@ -115,7 +95,7 @@ export async function __deleteAmendment(
 export async function __resolveParentDemonstration(
   parent: PrismaAmendment
 ): Promise<PrismaDemonstration> {
-  // DB enforces that you cannot orphan the demonstration record
+    // DB enforces that you cannot orphan the demonstration record
   const result = await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
