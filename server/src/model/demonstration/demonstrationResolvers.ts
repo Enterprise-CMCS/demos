@@ -18,10 +18,7 @@ import {
 } from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import {
-  checkInputDateIsStartOfDay,
-  checkInputDateIsEndOfDay,
-} from "../applicationDate/checkInputDateFunctions.js";
+import { resolveEffectiveAndExpirationDates } from "../applicationDate/resolveEffectiveAndExpirationDates.js";
 import {
   deleteApplication,
   getApplication,
@@ -31,8 +28,6 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
 } from "../application/applicationResolvers.js";
-import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
-import { TZDate } from "@date-fns/tz";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -118,22 +113,7 @@ export async function __updateDemonstration(
   parent: unknown,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
-  let easternEffectiveDate: TZDate | null | undefined;
-  let easternExpirationDate: TZDate | null | undefined;
-  if (input.effectiveDate) {
-    const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.effectiveDate, "Start of Day");
-    checkInputDateIsStartOfDay("effectiveDate", inputDate);
-    easternEffectiveDate = inputDate.easternTZDate;
-  } else if (input.effectiveDate === null) {
-    easternEffectiveDate = null;
-  }
-  if (input.expirationDate) {
-    const inputDate = parseDateTimeOrLocalDateToEasternTZDate(input.expirationDate, "End of Day");
-    checkInputDateIsEndOfDay("expirationDate", inputDate);
-    easternExpirationDate = inputDate.easternTZDate;
-  } else if (input.expirationDate === null) {
-    easternExpirationDate = null;
-  }
+  const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(
     ["name", "status", "stateId", "projectOfficerUserId"],
     input
@@ -145,8 +125,8 @@ export async function __updateDemonstration(
         data: {
           name: input.name,
           description: input.description,
-          effectiveDate: easternEffectiveDate,
-          expirationDate: easternExpirationDate,
+          effectiveDate,
+          expirationDate,
           sdgDivisionId: input.sdgDivision,
           signatureLevelId: input.signatureLevel,
           statusId: input.status,
