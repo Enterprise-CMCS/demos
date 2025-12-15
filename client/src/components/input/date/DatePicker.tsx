@@ -8,6 +8,7 @@ interface DatePickerProps {
   value?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
+  getValidationMessage?: () => string | undefined;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
@@ -17,6 +18,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   onChange,
   isRequired,
   isDisabled,
+  getValidationMessage,
 }) => {
   // This is only triggered when the input value is a valid date string
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,6 +36,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       aria-required={isRequired ? "true" : "false"}
       isDisabled={isDisabled ?? false}
       aria-disabled={isDisabled ? "true" : "false"}
+      getValidationMessage={getValidationMessage}
     />
   );
 };

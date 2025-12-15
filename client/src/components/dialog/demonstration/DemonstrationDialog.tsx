@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -9,51 +9,8 @@ import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { Demonstration } from "demos-server";
-import { tw } from "tags/tw";
-
-const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
-const DATE_INPUT_CLASSES = tw`w-full border rounded px-1 py-half text-sm`;
-
-// imported from hooks. Only used here.
-export const useDateValidation = () => {
-  const [expirationError, setExpirationError] = useState("");
-
-  const handleEffectiveDateChange = (
-    effectiveDate: string,
-    expirationDate: string,
-    setEffectiveDate: (date: string) => void,
-    setExpirationDate: (date: string) => void
-  ) => {
-    setEffectiveDate(effectiveDate);
-    if (expirationDate && expirationDate < effectiveDate) {
-      setExpirationDate("");
-    }
-  };
-
-  const handleExpirationDateChange = (
-    expirationDate: string,
-    effectiveDate: string,
-    setExpirationDate: (date: string) => void
-  ) => {
-    // Only validate if we have complete - valid dates (YYYY-MM-DD format)
-    const isCompleteDate = /^\d{4}-\d{2}-\d{2}$/.test(expirationDate);
-
-    if (effectiveDate && isCompleteDate && expirationDate < effectiveDate) {
-      setExpirationError("Expiration Date cannot be before Effective Date.");
-      return;
-    } else {
-      setExpirationError("");
-      setExpirationDate(expirationDate);
-    }
-  };
-
-  return {
-    expirationError,
-    setExpirationError,
-    handleEffectiveDateChange,
-    handleExpirationDateChange,
-  };
-};
+import { DatePicker } from "components/input/date/DatePicker";
+import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -126,51 +83,27 @@ const DateInputs: React.FC<{
   setEffectiveDate: (date: string) => void;
   setExpirationDate: (date: string) => void;
 }> = ({ effectiveDate, expirationDate, setEffectiveDate, setExpirationDate }) => {
-  const { expirationError, handleEffectiveDateChange, handleExpirationDateChange } =
-    useDateValidation();
+  // Validate expiration date is after effective date
+  useEffect(() => {}, [effectiveDate, expirationDate]);
 
   return (
     <>
       <div className="flex flex-col gap-xs">
-        <label className={LABEL_CLASSES} htmlFor="effective-date">
-          Effective Date
-        </label>
-        <input
-          data-testid="input-effective-date"
-          id="effective-date"
-          type="date"
-          className={DATE_INPUT_CLASSES}
+        <DatePicker
+          name="datepicker-effective-date"
+          label="Effective Date"
           value={effectiveDate}
-          onChange={(e) =>
-            handleEffectiveDateChange(
-              e.target.value,
-              expirationDate,
-              (value) => setEffectiveDate(value),
-              (value) => setExpirationDate(value)
-            )
-          }
+          onChange={(newDate) => setEffectiveDate(newDate)}
         />
       </div>
       <div className="flex flex-col gap-xs">
-        <label className={LABEL_CLASSES} htmlFor="expiration-date">
-          Expiration Date
-        </label>
-        <input
-          data-testid="input-expiration-date"
-          id="expiration-date"
-          type="date"
-          className={`${DATE_INPUT_CLASSES} ${
-            expirationError
-              ? "border-border-warn focus:ring-border-warn"
-              : "border-border-fields focus:ring-border-focus"
-          }`}
+        <DatePicker
+          name="datepicker-expiration-date"
+          label="Expiration Date"
           value={expirationDate}
-          min={effectiveDate || undefined}
-          onChange={(e) =>
-            handleExpirationDateChange(e.target.value, effectiveDate, setExpirationDate)
-          }
+          onChange={(newDate) => setExpirationDate(newDate)}
+          getValidationMessage={() => EXPIRATION_DATE_ERROR_MESSAGE}
         />
-        {expirationError && <div className="text-text-warn text-sm mt-1">{expirationError}</div>}
       </div>
     </>
   );
