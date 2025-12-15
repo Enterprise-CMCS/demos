@@ -131,10 +131,12 @@ const CollapseToggleButton = ({
   setIsCollapsed: (bool: boolean) => void;
 }) => {
   const iconStyles = "w-[14px] h-[14px] cursor-pointer";
-  const getCollapsedStyles = () => {
-    return isCollapsed ? "flex justify-center text-text-font" : "flex justify-end text-action";
-  };
-  const containerStyles = `h-[40px] flex items-center shrink-0 p-2 ${getCollapsedStyles()} `;
+  const collapsedStyles = "p-0 flex justify-center text-text-font";
+  const uncollapsedStyles = "p-2 flex justify-end text-action";
+  const containerStyles = `h-[40px] flex items-center shrink-0 ${isCollapsed ?
+    collapsedStyles :
+    uncollapsedStyles
+  }`;
 
   const CollapseButton = () => {
     return (
