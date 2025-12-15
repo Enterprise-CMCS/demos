@@ -9,6 +9,7 @@ model Phase {
   amendments                Amendment[]
   demonstrations            Demonstration[]
   extensions                Extension[]
+  phasePhaseStatuses        PhasePhaseStatus[]
 
   @@id([id])
   @@unique([phaseNumber])
