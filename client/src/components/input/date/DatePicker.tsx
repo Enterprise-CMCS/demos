@@ -8,7 +8,7 @@ interface DatePickerProps {
   value?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
-  getValidationMessage?: () => string | undefined;
+  getValidationMessage?: () => string;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({

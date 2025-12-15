@@ -12,6 +12,7 @@ import {
 } from "./DemonstrationDialog";
 import userEvent from "@testing-library/user-event";
 import { SdgDivision, SignatureLevel } from "demos-server";
+import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -129,6 +130,70 @@ describe("DemonstrationDialog", () => {
   it("renders expiration date field in edit mode", () => {
     render(getDemonstrationDialog("edit"));
     expect(screen.getByTestId(EXPIRATION_DATE_INPUT_TEST_ID)).toBeInTheDocument();
+  });
+
+  it("shows error when expiration date is before effective date", async () => {
+    const propsWithDates = {
+      ...DEFAULT_PROPS,
+      mode: "edit" as const,
+      initialDemonstration: {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-12-01",
+        expirationDate: "2024-11-01",
+      },
+    };
+
+    render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...propsWithDates} />
+      </TestProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(EXPIRATION_DATE_ERROR_MESSAGE)).toBeInTheDocument();
+    });
+  });
+
+  it("does not show error when expiration date is after effective date", async () => {
+    const propsWithDates = {
+      ...DEFAULT_PROPS,
+      mode: "edit" as const,
+      initialDemonstration: {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-11-01",
+        expirationDate: "2024-12-01",
+      },
+    };
+
+    render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...propsWithDates} />
+      </TestProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText(EXPIRATION_DATE_ERROR_MESSAGE)).not.toBeInTheDocument();
+    });
+  });
+
+  it("does not show error when only one date is provided", async () => {
+    const propsWithEffectiveDateOnly = {
+      ...DEFAULT_PROPS,
+      mode: "edit" as const,
+      initialDemonstration: {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-11-01",
+        expirationDate: "",
+      },
+    };
+
+    render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...propsWithEffectiveDateOnly} />
+      </TestProvider>
+    );
+
+    expect(screen.queryByText(EXPIRATION_DATE_ERROR_MESSAGE)).not.toBeInTheDocument();
   });
 
   it("renders the description textarea", () => {

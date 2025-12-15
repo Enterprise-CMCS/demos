@@ -83,8 +83,16 @@ const DateInputs: React.FC<{
   setEffectiveDate: (date: string) => void;
   setExpirationDate: (date: string) => void;
 }> = ({ effectiveDate, expirationDate, setEffectiveDate, setExpirationDate }) => {
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
   // Validate expiration date is after effective date
-  useEffect(() => {}, [effectiveDate, expirationDate]);
+  useEffect(() => {
+    if (expirationDate && effectiveDate && expirationDate < effectiveDate) {
+      setErrorMessage(EXPIRATION_DATE_ERROR_MESSAGE);
+    } else {
+      setErrorMessage("");
+    }
+  }, [effectiveDate, expirationDate]);
 
   return (
     <>
@@ -102,7 +110,7 @@ const DateInputs: React.FC<{
           label="Expiration Date"
           value={expirationDate}
           onChange={(newDate) => setExpirationDate(newDate)}
-          getValidationMessage={() => EXPIRATION_DATE_ERROR_MESSAGE}
+          getValidationMessage={() => errorMessage}
         />
       </div>
     </>
