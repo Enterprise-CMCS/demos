@@ -132,6 +132,7 @@ export const DemonstrationDialog: React.FC<{
             Cancel
           </SecondaryButton>
           <SubmitButton
+            name={"button-submit-demonstration-dialog"}
             disabled={!formHasChanges}
             isSubmitting={isSubmitting}
             onClick={handleSubmit}

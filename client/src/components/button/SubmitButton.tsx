@@ -1,27 +1,34 @@
 import React from "react";
-import { BaseActionButton } from "components/button/BaseActionButton";
+import { Button } from "components/button";
+import { Spinner } from "components/loading/Spinner";
 
-const BUTTON_TEXT = "Submit";
-const BUTTON_LOADING_TEXT = "Loading";
-const BUTTON_NAME = "button-submit";
-const BUTTON_LABEL = "Submit";
+const SUBMIT_BUTTON_TEXT = "Submit";
+const SUBMIT_BUTTON_LABEL = "Submit";
+const SUBMIT_BUTTON_LOADING_TEXT = "Loading";
 
 interface SubmitButtonProps {
+  name: string;
   onClick: () => void;
-  disabled: boolean;
+  disabled?: boolean;
   isSubmitting: boolean;
 }
 
-export const SubmitButton: React.FC<SubmitButtonProps> = ({ onClick, disabled, isSubmitting }) => {
+export const SubmitButton: React.FC<SubmitButtonProps> = ({
+  name,
+  onClick,
+  disabled,
+  isSubmitting,
+}) => {
   return (
-    <BaseActionButton
-      text={BUTTON_TEXT}
-      submittingText={BUTTON_LOADING_TEXT}
+    <Button
+      name={name}
       onClick={onClick}
-      disabled={disabled}
-      isSubmitting={isSubmitting}
-      name={BUTTON_NAME}
-      label={BUTTON_LABEL}
-    />
+      aria-label={SUBMIT_BUTTON_LABEL}
+      aria-disabled={disabled || isSubmitting ? "true" : "false"}
+      disabled={disabled || isSubmitting}
+    >
+      {isSubmitting && <Spinner />}
+      {isSubmitting ? SUBMIT_BUTTON_LOADING_TEXT : SUBMIT_BUTTON_TEXT}
+    </Button>
   );
 };
