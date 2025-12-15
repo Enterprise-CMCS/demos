@@ -16,7 +16,7 @@ erDiagram
 
   phase_status ||--|{ phase_phase_status : "FK072"
   phase_phase_status }|--|| phase : "FK071"
-  phase_status ||--|{ application_phase  : "FK004"
+  phase_phase_status ||--|{ application_phase  : "FK004"
   phase_date_type }|--|| phase : "FK003"
   phase_date_type }|--|| date_type: "FK017"
   application_phase }|--|| application : "FK005"

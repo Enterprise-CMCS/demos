@@ -77,7 +77,7 @@ export const RemoveDocumentDialog: React.FC<{
         <br />
         <span className="text-error flex items-center gap-1 mt-1">
           <ErrorIcon />
-          This action cannot be undone.
+          This action cannot be undone!
         </span>
       </div>
     </BaseDialog>

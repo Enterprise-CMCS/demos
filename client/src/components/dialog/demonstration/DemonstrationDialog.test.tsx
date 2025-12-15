@@ -12,6 +12,7 @@ import {
 } from "./DemonstrationDialog";
 import userEvent from "@testing-library/user-event";
 import { SdgDivision, SignatureLevel } from "demos-server";
+import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -36,8 +37,8 @@ const DESCRIPTION_TEXTAREA_TEST_ID = "textarea-description";
 const TITLE_INPUT_TEST_ID = "input-demonstration-title";
 const STATE_SELECT_TEST_ID = "select-us-state";
 const SELECT_USERS_TEST_ID = "select-users";
-const EFFECTIVE_DATE_INPUT_TEST_ID = "effective-date";
-const EXPIRATION_DATE_INPUT_TEST_ID = "expiration-date";
+const EFFECTIVE_DATE_INPUT_TEST_ID = "datepicker-effective-date";
+const EXPIRATION_DATE_INPUT_TEST_ID = "datepicker-expiration-date";
 const SDG_DIVISION_SELECT_TEST_ID = "sdg-division-select";
 const SIGNATURE_LEVEL_SELECT_TEST_ID = "signature-level-select";
 
@@ -129,6 +130,70 @@ describe("DemonstrationDialog", () => {
   it("renders expiration date field in edit mode", () => {
     render(getDemonstrationDialog("edit"));
     expect(screen.getByTestId(EXPIRATION_DATE_INPUT_TEST_ID)).toBeInTheDocument();
+  });
+
+  it("shows error when expiration date is before effective date", async () => {
+    const propsWithDates = {
+      ...DEFAULT_PROPS,
+      mode: "edit" as const,
+      initialDemonstration: {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-12-01",
+        expirationDate: "2024-11-01",
+      },
+    };
+
+    render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...propsWithDates} />
+      </TestProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(EXPIRATION_DATE_ERROR_MESSAGE)).toBeInTheDocument();
+    });
+  });
+
+  it("does not show error when expiration date is after effective date", async () => {
+    const propsWithDates = {
+      ...DEFAULT_PROPS,
+      mode: "edit" as const,
+      initialDemonstration: {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-11-01",
+        expirationDate: "2024-12-01",
+      },
+    };
+
+    render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...propsWithDates} />
+      </TestProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText(EXPIRATION_DATE_ERROR_MESSAGE)).not.toBeInTheDocument();
+    });
+  });
+
+  it("does not show error when only one date is provided", async () => {
+    const propsWithEffectiveDateOnly = {
+      ...DEFAULT_PROPS,
+      mode: "edit" as const,
+      initialDemonstration: {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-11-01",
+        expirationDate: "",
+      },
+    };
+
+    render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog {...propsWithEffectiveDateOnly} />
+      </TestProvider>
+    );
+
+    expect(screen.queryByText(EXPIRATION_DATE_ERROR_MESSAGE)).not.toBeInTheDocument();
   });
 
   it("renders the description textarea", () => {
@@ -262,153 +327,5 @@ describe("DemonstrationDialog", () => {
       const result = checkFormHasChanges(initial, updated);
       expect(result).toBe(true);
     });
-  });
-});
-
-describe("DemonstrationDialog - Date Validation", () => {
-  const GET_USER_SELECT_OPTIONS_MOCK = {
-    request: {
-      query: GET_USER_SELECT_OPTIONS_QUERY,
-    },
-    result: {
-      data: {
-        people: [
-          {
-            id: "test-officer-id",
-            fullName: "Test Officer",
-            personType: "demos-cms-user",
-          },
-        ],
-      },
-    },
-  };
-
-  it("should clear expiration date when effective date is set after expiration", async () => {
-    const user = userEvent.setup();
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      effectiveDate: "2024-01-01",
-      expirationDate: "2024-06-15",
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const effectiveDateInput = getByTestId(EFFECTIVE_DATE_INPUT_TEST_ID);
-    const expirationDateInput = getByTestId(EXPIRATION_DATE_INPUT_TEST_ID);
-
-    expect(expirationDateInput).toHaveValue("2024-06-15");
-
-    await user.clear(effectiveDateInput);
-    await user.type(effectiveDateInput, "2024-07-01");
-
-    await waitFor(() => {
-      expect(expirationDateInput).toHaveValue("");
-    });
-  });
-
-  it("should not clear expiration date when effective date is before expiration", async () => {
-    const user = userEvent.setup();
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      effectiveDate: "2024-01-01",
-      expirationDate: "2024-07-15",
-    };
-
-    const { getByTestId } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const effectiveDateInput = getByTestId(EFFECTIVE_DATE_INPUT_TEST_ID);
-    const expirationDateInput = getByTestId(EXPIRATION_DATE_INPUT_TEST_ID);
-
-    expect(expirationDateInput).toHaveValue("2024-07-15");
-
-    await user.clear(effectiveDateInput);
-    await user.type(effectiveDateInput, "2024-06-01");
-
-    await waitFor(() => {
-      expect(expirationDateInput).toHaveValue("2024-07-15");
-    });
-  });
-
-  it("should show error when expiration date is before effective date", async () => {
-    const user = userEvent.setup();
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      effectiveDate: "2024-06-01",
-      expirationDate: "",
-    };
-
-    const { getByTestId, getByText } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const expirationDateInput = getByTestId(EXPIRATION_DATE_INPUT_TEST_ID);
-
-    await user.type(expirationDateInput, "2024-05-15");
-
-    await waitFor(() => {
-      expect(getByText("Expiration Date cannot be before Effective Date.")).toBeInTheDocument();
-    });
-
-    expect(expirationDateInput).toHaveValue("");
-  });
-
-  it("should clear error and set date when expiration date is after effective date", async () => {
-    const user = userEvent.setup();
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      effectiveDate: "2024-06-01",
-      expirationDate: "",
-    };
-
-    const { getByTestId, queryByText } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const expirationDateInput = getByTestId(EXPIRATION_DATE_INPUT_TEST_ID);
-
-    await user.type(expirationDateInput, "2024-07-15");
-
-    await waitFor(() => {
-      expect(expirationDateInput).toHaveValue("2024-07-15");
-    });
-
-    expect(queryByText("Expiration Date cannot be before Effective Date.")).not.toBeInTheDocument();
-  });
-
-  it("should allow expiration date when no effective date is set", async () => {
-    const user = userEvent.setup();
-    const initialDemo = {
-      ...DEFAULT_DEMONSTRATION,
-      effectiveDate: "",
-      expirationDate: "",
-    };
-
-    const { getByTestId, queryByText } = render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} mode="edit" initialDemonstration={initialDemo} />
-      </TestProvider>
-    );
-
-    const expirationDateInput = getByTestId(EXPIRATION_DATE_INPUT_TEST_ID);
-
-    await user.type(expirationDateInput, "2024-07-15");
-
-    await waitFor(() => {
-      expect(expirationDateInput).toHaveValue("2024-07-15");
-    });
-
-    expect(queryByText("Expiration Date cannot be before Effective Date.")).not.toBeInTheDocument();
   });
 });

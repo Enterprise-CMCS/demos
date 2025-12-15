@@ -91,7 +91,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Review",
     ],
   },
-  "Post Approval": "Not Implemented",
+  "Approval Summary": "Not Implemented",
 };
 
 export function checkPhaseCompletionRules(

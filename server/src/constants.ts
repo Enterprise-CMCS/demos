@@ -73,7 +73,7 @@ export const PHASE_NAMES_WITH_TRACKED_STATUS = [
   "SDG Preparation",
   "Review",
   "Approval Package",
-  "Post Approval",
+  "Approval Summary",
 ] as const;
 
 export const PHASE_NAME = ["None", ...PHASE_NAMES_WITH_TRACKED_STATUS] as const;
@@ -299,7 +299,7 @@ export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
   "Signed Decision Memo",
 ] as const;
 
-export const POST_APPROVAL_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+export const APPROVAL_SUMMARY_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 
 export const PHASE_DOCUMENT_TYPE_MAP = {
   None: NONE_PHASE_DOCUMENTS,
@@ -310,7 +310,7 @@ export const PHASE_DOCUMENT_TYPE_MAP = {
   "SDG Preparation": SDG_PREPARATION_PHASE_DOCUMENTS,
   Review: REVIEW_PHASE_DOCUMENTS,
   "Approval Package": APPROVAL_PACKAGE_PHASE_DOCUMENTS,
-  "Post Approval": POST_APPROVAL_PHASE_DOCUMENTS,
+  "Approval Summary": APPROVAL_SUMMARY_PHASE_DOCUMENTS,
 };
 
 type PhaseStartEndDateRecord = Record<
@@ -337,5 +337,5 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
     startDate: "Approval Package Start Date",
     endDate: "Approval Package Completion Date",
   },
-  "Post Approval": {},
+  "Approval Summary": {},
 };

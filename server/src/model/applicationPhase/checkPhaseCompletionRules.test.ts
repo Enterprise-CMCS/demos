@@ -36,7 +36,7 @@ describe("checkPhaseCompletionRules", () => {
     "SDG Preparation": "Started",
     Review: "Started",
     "Approval Package": "Started",
-    "Post Approval": "Started",
+    "Approval Summary": "Started",
   };
   const testApplicationDateMapReturn: any = "Test Mapped Date Return";
 
@@ -479,18 +479,18 @@ describe("checkPhaseCompletionRules", () => {
     });
   });
 
-  describe("Post Approval", () => {
-    it("should throw since the Post Approval phase is not implemented", () => {
+  describe("Approval Summary", () => {
+    it("should throw since the Approval Summary phase is not implemented", () => {
       expect(() =>
         checkPhaseCompletionRules(
           testApplicationId,
-          "Post Approval",
+          "Approval Summary",
           testApplicationDates,
           testApplicationDocumentTypes,
           testApplicationPhases,
         ),
       ).toThrowError(
-        "Validation of the Post Approval phase via API is not yet implemented.",
+        "Validation of the Approval Summary phase via API is not yet implemented.",
       );
     });
   });
