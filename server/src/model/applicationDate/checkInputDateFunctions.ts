@@ -59,7 +59,7 @@ export function checkInputDateIsEndOfDay(
   if (!isEndOfDay) {
     throw new GraphQLError(
       `The input ${dateType} must be an end of day date ` +
-        `(11:59:59.999 in Eastern time), but it is ${dateValue.easternTZDate.toISOString()}.`,
+        `(23:59:59.999 in Eastern time), but it is ${dateValue.easternTZDate.toISOString()}.`,
       {
         extensions: {
           code: "INVALID_END_OF_DAY_INPUT_DATETIME",
