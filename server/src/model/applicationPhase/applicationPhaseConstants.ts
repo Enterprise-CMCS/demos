@@ -36,8 +36,8 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
   "Approval Package": {
     dateToComplete: "Approval Package Completion Date",
     nextPhase: {
-      phaseName: "Post Approval",
+      phaseName: "Approval Summary",
     },
   },
-  "Post Approval": "Not Implemented",
+  "Approval Summary": "Not Implemented",
 };

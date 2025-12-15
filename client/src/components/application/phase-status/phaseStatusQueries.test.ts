@@ -42,7 +42,7 @@ describe("phaseStatusQueries", () => {
         "SDG Preparation",
         "Review",
         "Approval Package",
-        "Post Approval",
+        "Approval Summary",
       ] as const;
 
       phaseNames.forEach((phaseName) => {

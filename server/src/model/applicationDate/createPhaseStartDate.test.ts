@@ -65,8 +65,8 @@ describe("createPhaseStartDate", () => {
 
   describe("when phase has no start date", () => {
     it("should return null for phase without start date", () => {
-      // post approval phase currently has no start date
-      const phaseId = "Post Approval" as PhaseNameWithTrackedStatus;
+      // approval summary phase currently has no start date
+      const phaseId = "Approval Summary" as PhaseNameWithTrackedStatus;
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
 

@@ -2,7 +2,7 @@
 model PhaseStatus {
   id String
 
-  applicationPhases ApplicationPhase[]
+  phasePhaseStatuses PhasePhaseStatus[]
 
   @@id([id])
   @@map("phase_status")
