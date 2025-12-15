@@ -1,23 +1,17 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import { MockedProvider } from "@apollo/client/testing";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DocumentList, DELETE_DOCUMENT_MUTATION } from "./DocumentList";
+import { DocumentList } from "./DocumentList";
 import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
-import { DOCUMENT_REMOVAL_FAILED_MESSAGE } from "util/messages";
+import { TestProvider } from "test-utils/TestProvider";
 
-// Mock the toast hook
-const mockShowError = vi.fn();
-vi.mock("components/toast", () => ({
-  useToast: () => ({
-    showError: mockShowError,
+const mockShowRemoveDocumentDialog = vi.fn();
+
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showRemoveDocumentDialog: mockShowRemoveDocumentDialog,
   }),
-}));
-
-// Mock DeleteIcon
-vi.mock("components/icons/DeleteIcon", () => ({
-  DeleteIcon: () => <span data-testid="delete-icon">Delete</span>,
 }));
 
 describe("DocumentList", () => {
@@ -54,9 +48,9 @@ describe("DocumentList", () => {
 
   it("renders empty message when no documents", () => {
     render(
-      <MockedProvider mocks={[]}>
+      <TestProvider>
         <DocumentList documents={[]} />
-      </MockedProvider>
+      </TestProvider>
     );
 
     expect(screen.getByText("No documents yet.")).toBeInTheDocument();
@@ -65,9 +59,9 @@ describe("DocumentList", () => {
   it("renders custom empty message", () => {
     const customMessage = "No files available";
     render(
-      <MockedProvider mocks={[]}>
+      <TestProvider>
         <DocumentList documents={[]} emptyMessage={customMessage} />
-      </MockedProvider>
+      </TestProvider>
     );
 
     expect(screen.getByText(customMessage)).toBeInTheDocument();
@@ -75,9 +69,9 @@ describe("DocumentList", () => {
 
   it("renders list of documents", () => {
     render(
-      <MockedProvider mocks={[]}>
+      <TestProvider>
         <DocumentList documents={mockDocuments} />
-      </MockedProvider>
+      </TestProvider>
     );
 
     expect(screen.getByText("Test Document 1")).toBeInTheDocument();
@@ -86,9 +80,9 @@ describe("DocumentList", () => {
 
   it("displays formatted creation dates", () => {
     render(
-      <MockedProvider mocks={[]}>
+      <TestProvider>
         <DocumentList documents={mockDocuments} />
-      </MockedProvider>
+      </TestProvider>
     );
 
     // Dates should be formatted (adjust based on your formatDate implementation)
@@ -98,111 +92,26 @@ describe("DocumentList", () => {
 
   it("renders delete buttons for each document", () => {
     render(
-      <MockedProvider mocks={[]}>
+      <TestProvider>
         <DocumentList documents={mockDocuments} />
-      </MockedProvider>
+      </TestProvider>
     );
 
     const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
     expect(deleteButtons).toHaveLength(2);
   });
 
-  it("calls delete mutation when delete button is clicked", async () => {
+  it("calls showRemoveDocumentDialog when delete button is clicked", async () => {
     const user = userEvent.setup();
-    const mocks = [
-      {
-        request: {
-          query: DELETE_DOCUMENT_MUTATION,
-          variables: { id: "doc-1" },
-        },
-        result: {
-          data: {
-            deleteDocument: {
-              id: "doc-1",
-            },
-          },
-        },
-      },
-    ];
-
     render(
-      <MockedProvider mocks={mocks} addTypename={false}>
+      <TestProvider>
         <DocumentList documents={mockDocuments} />
-      </MockedProvider>
+      </TestProvider>
     );
 
-    const deleteButtons = screen.getAllByRole("button", { name: /delete test document 1/i });
-    await user.click(deleteButtons[0]);
-
-    await waitFor(() => {
-      // Verify the mutation was called (you can add more specific assertions)
-      expect(deleteButtons[0]).not.toBeDisabled();
-    });
-  });
-
-  it("disables delete buttons while loading", async () => {
-    const user = userEvent.setup();
-    const mocks = [
-      {
-        request: {
-          query: DELETE_DOCUMENT_MUTATION,
-          variables: { id: "doc-1" },
-        },
-        result: {
-          data: {
-            deleteDocument: {
-              id: "doc-1",
-            },
-          },
-        },
-        delay: 100, // Simulate network delay
-      },
-    ];
-
-    render(
-      <MockedProvider mocks={mocks} addTypename={false}>
-        <DocumentList documents={mockDocuments} />
-      </MockedProvider>
-    );
-
-    const deleteButton = screen.getByRole("button", { name: /delete test document 1/i });
+    const deleteButton = screen.getByRole("button", { name: "Delete Test Document 1" });
     await user.click(deleteButton);
 
-    // Button should be disabled while loading
-    expect(deleteButton).toBeDisabled();
-  });
-
-  it("shows error toast on delete failure", async () => {
-    const user = userEvent.setup();
-    const showError = vi.fn();
-
-    vi.mock("hooks/useToast", () => ({
-      useToast: () => ({
-        showError,
-      }),
-    }));
-
-    const mocks = [
-      {
-        request: {
-          query: DELETE_DOCUMENT_MUTATION,
-          variables: { id: "doc-1" },
-        },
-        error: new Error("Delete failed"),
-      },
-    ];
-
-    render(
-      <MockedProvider mocks={mocks} addTypename={false}>
-        <DocumentList documents={mockDocuments} />
-      </MockedProvider>
-    );
-
-    const deleteButton = screen.getByRole("button", { name: /delete test document 1/i });
-    await user.click(deleteButton);
-
-    await waitFor(() => {
-      expect(mockShowError).toHaveBeenCalledWith(DOCUMENT_REMOVAL_FAILED_MESSAGE);
-    });
+    expect(mockShowRemoveDocumentDialog).toHaveBeenCalledWith(["doc-1"]);
   });
 });
