@@ -18,31 +18,31 @@
     "test:ci": "jest --coverage --ci --no-color --verbose=false --silent --runInBand"
   },
   "devDependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.943.0",
-    "@eslint/js": "^9.39.1",
+    "@aws-sdk/client-secrets-manager": "^3.950.0",
+    "@eslint/js": "^9.39.2",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.10.1",
-    "@types/pg": "^8.15.6",
+    "@types/node": "^24.10.4",
+    "@types/pg": "^8.16.0",
     "aws-cdk-local": "^3.0.1",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.48.1"
+    "typescript-eslint": "^8.49.0"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudfront": "^3.943.0",
-    "@aws-sdk/client-cognito-identity-provider": "^3.943.0",
-    "@aws-sdk/client-ec2": "^3.943.0",
-    "@aws-sdk/client-s3": "^3.943.0",
-    "@aws-sdk/client-ssm": "^3.943.0",
-    "aws-cdk": "^2.1033.0",
-    "aws-cdk-lib": "^2.231.0",
+    "@aws-sdk/client-cloudfront": "^3.948.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.948.0",
+    "@aws-sdk/client-ec2": "^3.948.0",
+    "@aws-sdk/client-s3": "^3.948.0",
+    "@aws-sdk/client-ssm": "^3.948.0",
+    "aws-cdk": "^2.1034.0",
+    "aws-cdk-lib": "^2.232.2",
     "cdk-nag": "^2.37.55",
     "chalk": "^5.6.2",
-    "constructs": "^10.4.3",
+    "constructs": "^10.4.4",
     "pg": "^8.16.3"
   }
 }
