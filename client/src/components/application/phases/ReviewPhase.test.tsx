@@ -61,11 +61,12 @@ describe("ReviewPhase Component", () => {
       receiveOGCLegalClearanceDate: "2025-01-08",
       poOGDNotes: "notes1",
       ogcOMBNotes: "notes2",
-    }
+    },
+    demonstrationId = "test-demo-id"
   ) => {
     render(
       <TestProvider>
-        <ReviewPhase formData={formData} />
+        <ReviewPhase formData={formData} demonstrationId={demonstrationId} />
       </TestProvider>
     );
   };
