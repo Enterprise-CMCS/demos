@@ -95,7 +95,7 @@ export async function __deleteAmendment(
 export async function __resolveParentDemonstration(
   parent: PrismaAmendment
 ): Promise<PrismaDemonstration> {
-    // DB enforces that you cannot orphan the demonstration record
+  // DB enforces that you cannot orphan the demonstration record
   const result = await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });

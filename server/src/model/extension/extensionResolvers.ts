@@ -95,7 +95,7 @@ export async function __deleteExtension(
 export async function __resolveParentDemonstration(
   parent: PrismaExtension
 ): Promise<PrismaDemonstration> {
-    // DB enforces that you cannot orphan the demonstration record
+  // DB enforces that you cannot orphan the demonstration record
   const result = await prisma().demonstration.findUnique({
     where: { id: parent.demonstrationId },
   });
