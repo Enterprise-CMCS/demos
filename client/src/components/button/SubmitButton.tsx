@@ -30,7 +30,6 @@ interface SubmitButtonProps {
   label?: string;
   submittingText?: string;
   onClick?: () => void;
-  form?: string;
   disabled?: boolean;
   isSubmitting?: boolean;
 }
@@ -41,7 +40,6 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
   label = text,
   submittingText = "Loading",
   onClick,
-  form,
   disabled,
   isSubmitting,
 }) => {
@@ -53,8 +51,6 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       aria-disabled={disabled || isSubmitting ? "true" : "false"}
       disabled={disabled || isSubmitting}
       data-testId={name}
-      type="submit"
-      form={form}
     >
       <ButtonText text={text} submittingText={submittingText} isSubmitting={isSubmitting} />
     </Button>

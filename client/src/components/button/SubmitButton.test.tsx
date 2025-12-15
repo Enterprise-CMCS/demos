@@ -12,7 +12,6 @@ describe("SubmitButton", () => {
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent("Submit");
     expect(button).not.toBeDisabled();
-    expect(button).toHaveAttribute("type", "submit");
   });
 
   it("renders with custom text", () => {
@@ -35,13 +34,6 @@ describe("SubmitButton", () => {
 
     const button = screen.getByRole("button", { name: "Custom Label" });
     expect(button).toBeInTheDocument();
-  });
-
-  it("associates with form when form prop is provided", () => {
-    render(<SubmitButton form="my-form" />);
-
-    const button = screen.getByRole("button");
-    expect(button).toHaveAttribute("form", "my-form");
   });
 
   it("is disabled when disabled prop is true", () => {

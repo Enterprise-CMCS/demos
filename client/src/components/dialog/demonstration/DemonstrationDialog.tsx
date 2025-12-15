@@ -64,8 +64,7 @@ export const DemonstrationDialog: React.FC<{
   const [formHasChanges, setFormHasChanges] = useState<boolean>(false);
   const [expirationError, setExpirationError] = useState("");
 
-  const handleSubmit = async (formEvent: React.FormEvent<HTMLFormElement>) => {
-    formEvent.preventDefault();
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     await onSubmit(activeDemonstration);
     setIsSubmitting(false);
@@ -118,15 +117,15 @@ export const DemonstrationDialog: React.FC<{
             Cancel
           </SecondaryButton>
           <SubmitButton
-            form="demonstration-form"
             name="button-submit-demonstration-dialog"
             disabled={!formHasChanges}
             isSubmitting={isSubmitting}
+            onClick={handleSubmit}
           />
         </>
       }
     >
-      <form id="demonstration-form" className="flex flex-col gap-[24px]" onSubmit={handleSubmit}>
+      <form id="demonstration-form" className="flex flex-col gap-[24px]">
         <div className="grid grid-cols-3 gap-[24px]">
           <SelectUSAStates
             label="State/Territory"
