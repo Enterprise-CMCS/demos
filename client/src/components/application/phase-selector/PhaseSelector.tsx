@@ -27,8 +27,7 @@ const PhaseGroups = () => {
     <>
       <span className="col-span-1">Pre-Submission</span>
       <span className={`col-span-3 ${leftBorderStyles}`}>Submission</span>
-      <span className={`col-span-3 ${leftBorderStyles}`}>Approval</span>
-      <span className={`col-span-1 ${leftBorderStyles}`}>Post-Approval</span>
+      <span className={`col-span-4 ${leftBorderStyles}`}>Approval</span>
     </>
   );
 };
