@@ -2,11 +2,11 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { SubmitButton } from "./SubmitButton";
+import { BaseActionButton } from "./BaseActionButton";
 
 describe("SubmitButton", () => {
   it("renders with default props", () => {
-    render(<SubmitButton />);
+    render(<BaseActionButton />);
 
     const button = screen.getByRole("button", { name: "Submit" });
     expect(button).toBeInTheDocument();
@@ -15,7 +15,7 @@ describe("SubmitButton", () => {
   });
 
   it("renders with custom text", () => {
-    render(<SubmitButton text="Save Changes" />);
+    render(<BaseActionButton text="Save Changes" />);
 
     const button = screen.getByRole("button", { name: "Save Changes" });
     expect(button).toBeInTheDocument();
@@ -23,21 +23,21 @@ describe("SubmitButton", () => {
   });
 
   it("renders with custom name", () => {
-    render(<SubmitButton name="custom-submit-button" />);
+    render(<BaseActionButton name="custom-submit-button" />);
 
     const button = screen.getByTestId("custom-submit-button");
     expect(button).toBeInTheDocument();
   });
 
   it("renders with custom label", () => {
-    render(<SubmitButton text="Submit" label="Custom Label" />);
+    render(<BaseActionButton text="Submit" label="Custom Label" />);
 
     const button = screen.getByRole("button", { name: "Custom Label" });
     expect(button).toBeInTheDocument();
   });
 
   it("is disabled when disabled prop is true", () => {
-    render(<SubmitButton disabled={true} />);
+    render(<BaseActionButton disabled={true} />);
 
     const button = screen.getByRole("button");
     expect(button).toBeDisabled();
@@ -45,7 +45,7 @@ describe("SubmitButton", () => {
   });
 
   it("shows spinner and submitting text when isSubmitting is true", () => {
-    render(<SubmitButton isSubmitting={true} submittingText="Saving..." />);
+    render(<BaseActionButton isSubmitting={true} submittingText="Saving..." />);
 
     const button = screen.getByRole("button");
     expect(button).toBeDisabled();
@@ -56,14 +56,14 @@ describe("SubmitButton", () => {
   });
 
   it("uses default submitting text when not provided", () => {
-    render(<SubmitButton isSubmitting={true} />);
+    render(<BaseActionButton isSubmitting={true} />);
 
     const button = screen.getByRole("button");
     expect(button).toHaveTextContent("Loading");
   });
 
   it("is disabled when isSubmitting is true", () => {
-    render(<SubmitButton isSubmitting={true} />);
+    render(<BaseActionButton isSubmitting={true} />);
 
     const button = screen.getByRole("button");
     expect(button).toBeDisabled();
@@ -74,7 +74,7 @@ describe("SubmitButton", () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
 
-    render(<SubmitButton onClick={handleClick} />);
+    render(<BaseActionButton onClick={handleClick} />);
 
     const button = screen.getByRole("button");
     await user.click(button);
@@ -86,7 +86,7 @@ describe("SubmitButton", () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
 
-    render(<SubmitButton onClick={handleClick} disabled={true} />);
+    render(<BaseActionButton onClick={handleClick} disabled={true} />);
 
     const button = screen.getByRole("button");
     await user.click(button);
@@ -98,7 +98,7 @@ describe("SubmitButton", () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
 
-    render(<SubmitButton onClick={handleClick} isSubmitting={true} />);
+    render(<BaseActionButton onClick={handleClick} isSubmitting={true} />);
 
     const button = screen.getByRole("button");
     await user.click(button);
@@ -107,13 +107,13 @@ describe("SubmitButton", () => {
   });
 
   it("switches text when isSubmitting changes", () => {
-    const { rerender } = render(<SubmitButton text="Submit" submittingText="Submitting..." />);
+    const { rerender } = render(<BaseActionButton text="Submit" submittingText="Submitting..." />);
 
     let button = screen.getByRole("button");
     expect(button).toHaveTextContent("Submit");
     expect(button).not.toBeDisabled();
 
-    rerender(<SubmitButton text="Submit" submittingText="Submitting..." isSubmitting={true} />);
+    rerender(<BaseActionButton text="Submit" submittingText="Submitting..." isSubmitting={true} />);
 
     button = screen.getByRole("button");
     expect(button).toHaveTextContent("Submitting...");
@@ -121,7 +121,7 @@ describe("SubmitButton", () => {
   });
 
   it("hides spinner when isSubmitting is false", () => {
-    render(<SubmitButton isSubmitting={false} />);
+    render(<BaseActionButton isSubmitting={false} />);
 
     const spinner = screen.queryByRole("img", { name: "Loading" });
     expect(spinner).not.toBeInTheDocument();

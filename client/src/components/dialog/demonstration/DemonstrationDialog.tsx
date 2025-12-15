@@ -10,8 +10,8 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { Demonstration } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
-import { SubmitButton } from "components/button/SubmitButton";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
+import { SubmitButton } from "components/button/SubmitButton";
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -132,7 +132,6 @@ export const DemonstrationDialog: React.FC<{
             Cancel
           </SecondaryButton>
           <SubmitButton
-            name="button-submit-demonstration-dialog"
             disabled={!formHasChanges}
             isSubmitting={isSubmitting}
             onClick={handleSubmit}

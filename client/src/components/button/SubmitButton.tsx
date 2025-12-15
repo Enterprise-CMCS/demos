@@ -1,58 +1,27 @@
 import React from "react";
-import { Button } from "components/button";
-import { Spinner } from "components/loading/Spinner";
+import { BaseActionButton } from "components/button/BaseActionButton";
 
-const ButtonText = ({
-  text,
-  submittingText,
-  isSubmitting,
-}: {
-  text: string;
-  submittingText: string;
-  isSubmitting?: boolean;
-}) => {
-  const getButtonText = () => {
-    if (isSubmitting) return submittingText;
-    return text;
-  };
-
-  return (
-    <>
-      {isSubmitting && <Spinner />}
-      {getButtonText()}
-    </>
-  );
-};
+const BUTTON_TEXT = "Submit";
+const BUTTON_LOADING_TEXT = "Loading";
+const BUTTON_NAME = "button-submit";
+const BUTTON_LABEL = "Submit";
 
 interface SubmitButtonProps {
-  text?: string;
-  name?: string;
-  label?: string;
-  submittingText?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  isSubmitting?: boolean;
+  onClick: () => void;
+  disabled: boolean;
+  isSubmitting: boolean;
 }
 
-export const SubmitButton: React.FC<SubmitButtonProps> = ({
-  text = "Submit",
-  name = "button-submit",
-  label = text,
-  submittingText = "Loading",
-  onClick,
-  disabled,
-  isSubmitting,
-}) => {
+export const SubmitButton: React.FC<SubmitButtonProps> = ({ onClick, disabled, isSubmitting }) => {
   return (
-    <Button
-      name={name}
+    <BaseActionButton
+      text={BUTTON_TEXT}
+      submittingText={BUTTON_LOADING_TEXT}
       onClick={onClick}
-      ariaLabel={label}
-      aria-disabled={disabled || isSubmitting ? "true" : "false"}
-      disabled={disabled || isSubmitting}
-      data-testId={name}
-    >
-      <ButtonText text={text} submittingText={submittingText} isSubmitting={isSubmitting} />
-    </Button>
+      disabled={disabled}
+      isSubmitting={isSubmitting}
+      name={BUTTON_NAME}
+      label={BUTTON_LABEL}
+    />
   );
 };
