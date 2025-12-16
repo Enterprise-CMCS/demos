@@ -5,10 +5,16 @@ import { vi } from "vitest";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 
+const mockHideDialog = vi.fn();
+vi.mock("./DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
+
 describe("BaseDialog", () => {
   const defaultProps = {
     title: "Test Dialog",
-    onClose: vi.fn(),
     children: <div>Dialog content</div>,
   };
 
@@ -23,11 +29,10 @@ describe("BaseDialog", () => {
   });
 
   it("renders and triggers the close button", () => {
-    const onClose = vi.fn();
-    render(<BaseDialog {...defaultProps} onClose={onClose} />);
+    render(<BaseDialog {...defaultProps} />);
     const closeBtn = screen.getByLabelText("Close dialog");
     fireEvent.click(closeBtn);
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockHideDialog).toHaveBeenCalledTimes(1);
   });
 
   it("renders cancel confirmation dialog when showCancelConfirm is true", () => {
@@ -56,20 +61,18 @@ describe("BaseDialog", () => {
     expect(setShowCancelConfirm).toHaveBeenCalledWith(false);
   });
 
-  it("calls onClose when Yes is clicked in confirmation", () => {
-    const onClose = vi.fn();
+  it("calls hideDialog when Yes is clicked in confirmation", () => {
     const setShowCancelConfirm = vi.fn();
     render(
       <BaseDialog
         {...defaultProps}
-        onClose={onClose}
         showCancelConfirm={true}
         setShowCancelConfirm={setShowCancelConfirm}
       />
     );
     const yesButton = screen.getByTestId("button-cc-dialog-discard");
     fireEvent.click(yesButton);
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockHideDialog).toHaveBeenCalledTimes(1);
   });
 
   it("renders custom actions when provided", () => {
@@ -91,12 +94,10 @@ describe("BaseDialog", () => {
   });
 
   it("calls setShowCancelConfirm(true) when close button is clicked and setShowCancelConfirm is provided", () => {
-    const onClose = vi.fn();
     const setShowCancelConfirm = vi.fn();
     render(
       <BaseDialog
         {...defaultProps}
-        onClose={onClose}
         showCancelConfirm={true}
         setShowCancelConfirm={setShowCancelConfirm}
       />
@@ -104,15 +105,14 @@ describe("BaseDialog", () => {
     const closeBtn = screen.getByLabelText("Close dialog");
     fireEvent.click(closeBtn);
     expect(setShowCancelConfirm).toHaveBeenCalledWith(true);
-    expect(onClose).not.toHaveBeenCalled();
+    expect(mockHideDialog).not.toHaveBeenCalled();
   });
 
-  it("calls onClose directly when close button is clicked and setShowCancelConfirm is not provided", () => {
-    const onClose = vi.fn();
-    render(<BaseDialog {...defaultProps} onClose={onClose} />);
+  it("calls hideDialog directly when close button is clicked and setShowCancelConfirm is not provided", () => {
+    render(<BaseDialog {...defaultProps} />);
     const closeBtn = screen.getByLabelText("Close dialog");
     fireEvent.click(closeBtn);
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockHideDialog).toHaveBeenCalledTimes(1);
   });
 
   it("closes confirmation dialog when clicking on backdrop", () => {

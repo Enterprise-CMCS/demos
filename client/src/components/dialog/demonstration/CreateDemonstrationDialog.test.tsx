@@ -2,7 +2,7 @@ import React from "react";
 
 import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
 import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
@@ -11,9 +11,12 @@ import {
   CREATE_DEMONSTRATION_MUTATION,
 } from "./CreateDemonstrationDialog";
 
-const DEFAULT_PROPS = {
-  onClose: vi.fn(),
-};
+const mockHideDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
 
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
 const CANCEL_BUTTON_TEST_ID = "button-cancel-demonstration-dialog";
@@ -67,7 +70,7 @@ describe("CreateDemonstrationDialog", () => {
   const getCreateDemonstrationDialog = (additionalMocks: any[] = []) => {
     return (
       <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK, ...additionalMocks]}>
-        <CreateDemonstrationDialog {...DEFAULT_PROPS} />
+        <CreateDemonstrationDialog />
       </TestProvider>
     );
   };
@@ -163,11 +166,9 @@ describe("CreateDemonstrationDialog", () => {
   });
 
   it("closes dialog after successful submission", async () => {
-    const onCloseMock = vi.fn();
-
     render(
       <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK, CREATE_DEMONSTRATION_MOCK]}>
-        <CreateDemonstrationDialog onClose={onCloseMock} />
+        <CreateDemonstrationDialog />
       </TestProvider>
     );
 

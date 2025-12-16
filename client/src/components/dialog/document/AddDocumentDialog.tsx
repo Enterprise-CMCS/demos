@@ -55,7 +55,6 @@ export const tryUploadingFileToS3 = async (
 };
 
 interface AddDocumentDialogProps {
-  onClose: () => void;
   applicationId: string;
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
@@ -65,7 +64,6 @@ interface AddDocumentDialogProps {
 }
 
 export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
-  onClose,
   applicationId,
   documentTypeSubset,
   titleOverride,
@@ -159,7 +157,6 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
   return (
     <DocumentDialog
-      onClose={onClose}
       mode="add"
       onSubmit={handleUpload}
       documentTypeSubset={documentTypeSubset}

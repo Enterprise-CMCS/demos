@@ -17,9 +17,8 @@ export const UPDATE_DOCUMENT_QUERY = gql`
 `;
 
 export const EditDocumentDialog: React.FC<{
-  onClose: () => void;
   initialDocument: DocumentDialogFields;
-}> = ({ onClose, initialDocument }) => {
+}> = ({ initialDocument }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
@@ -36,12 +35,5 @@ export const EditDocumentDialog: React.FC<{
     });
   };
 
-  return (
-    <DocumentDialog
-      mode="edit"
-      initialDocument={initialDocument}
-      onClose={onClose}
-      onSubmit={handleEdit}
-    />
-  );
+  return <DocumentDialog mode="edit" initialDocument={initialDocument} onSubmit={handleEdit} />;
 };

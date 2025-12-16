@@ -18,6 +18,13 @@ vi.mock("components/toast", () => ({
   }),
 }));
 
+const mockHideDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
+
 // Mock SelectDemonstration component
 vi.mock("components/input/select/SelectDemonstration", () => ({
   SelectDemonstration: ({
@@ -104,8 +111,6 @@ const queryErrorMock = {
 const handleSubmit = vi.fn();
 
 describe("BaseCreateModificationDialog", () => {
-  const mockOnClose = vi.fn();
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -114,11 +119,7 @@ describe("BaseCreateModificationDialog", () => {
     it("renders with correct title for Amendment", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Amendment" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -128,11 +129,7 @@ describe("BaseCreateModificationDialog", () => {
     it("renders with correct title for Extension", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Extension"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Extension" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -142,11 +139,7 @@ describe("BaseCreateModificationDialog", () => {
     it("renders all required form fields", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Amendment" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -159,11 +152,7 @@ describe("BaseCreateModificationDialog", () => {
     it("renders correct form ID based on modification type", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Extension"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Extension" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -174,11 +163,7 @@ describe("BaseCreateModificationDialog", () => {
     it("renders action buttons", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Amendment" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -193,7 +178,6 @@ describe("BaseCreateModificationDialog", () => {
         render(
           <MockedProvider mocks={[]} addTypename={false}>
             <BaseCreateModificationDialog
-              onClose={mockOnClose}
               modificationType="Amendment"
               handleSubmit={handleSubmit}
             />
@@ -208,7 +192,6 @@ describe("BaseCreateModificationDialog", () => {
         render(
           <MockedProvider mocks={[queryMock]} addTypename={false}>
             <BaseCreateModificationDialog
-              onClose={mockOnClose}
               modificationType="Amendment"
               handleSubmit={handleSubmit}
             />
@@ -232,7 +215,6 @@ describe("BaseCreateModificationDialog", () => {
         render(
           <MockedProvider mocks={[queryMock]} addTypename={false}>
             <BaseCreateModificationDialog
-              onClose={mockOnClose}
               modificationType="Amendment"
               handleSubmit={handleSubmit}
             />
@@ -254,7 +236,6 @@ describe("BaseCreateModificationDialog", () => {
         render(
           <MockedProvider mocks={[queryMock]} addTypename={false}>
             <BaseCreateModificationDialog
-              onClose={mockOnClose}
               initialDemonstrationId="demo-1"
               modificationType="Amendment"
               handleSubmit={handleSubmit}
@@ -270,7 +251,6 @@ describe("BaseCreateModificationDialog", () => {
         render(
           <MockedProvider mocks={[queryMock]} addTypename={false}>
             <BaseCreateModificationDialog
-              onClose={mockOnClose}
               initialDemonstrationId="demo-1"
               modificationType="Amendment"
               handleSubmit={handleSubmit}
@@ -286,7 +266,6 @@ describe("BaseCreateModificationDialog", () => {
         render(
           <MockedProvider mocks={[queryMock]} addTypename={false}>
             <BaseCreateModificationDialog
-              onClose={mockOnClose}
               initialDemonstrationId="demo-1"
               modificationType="Amendment"
               handleSubmit={handleSubmit}
@@ -306,11 +285,7 @@ describe("BaseCreateModificationDialog", () => {
     it("disables submit button when demonstration is not selected", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Amendment" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -322,7 +297,6 @@ describe("BaseCreateModificationDialog", () => {
       render(
         <MockedProvider mocks={[queryMock]} addTypename={false}>
           <BaseCreateModificationDialog
-            onClose={mockOnClose}
             initialDemonstrationId="demo-1"
             modificationType="Amendment"
             handleSubmit={handleSubmit}
@@ -340,7 +314,6 @@ describe("BaseCreateModificationDialog", () => {
       render(
         <MockedProvider mocks={[queryMock]} addTypename={false}>
           <BaseCreateModificationDialog
-            onClose={mockOnClose}
             initialDemonstrationId="demo-1"
             modificationType="Amendment"
             handleSubmit={handleSubmit}
@@ -362,11 +335,7 @@ describe("BaseCreateModificationDialog", () => {
     it("updates title field value on change", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Amendment" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -379,11 +348,7 @@ describe("BaseCreateModificationDialog", () => {
     it("updates description field value on change", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Amendment" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -396,11 +361,7 @@ describe("BaseCreateModificationDialog", () => {
     it("shows cancel confirmation when cancel button is clicked", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Amendment"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Amendment" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -417,7 +378,6 @@ describe("BaseCreateModificationDialog", () => {
       render(
         <MockedProvider mocks={[queryMock]} addTypename={false}>
           <BaseCreateModificationDialog
-            onClose={mockOnClose}
             initialDemonstrationId="demo-1"
             modificationType="Amendment"
             handleSubmit={handleSubmit}
@@ -445,7 +405,6 @@ describe("BaseCreateModificationDialog", () => {
       render(
         <MockedProvider mocks={[queryErrorMock]} addTypename={false}>
           <BaseCreateModificationDialog
-            onClose={mockOnClose}
             initialDemonstrationId="demo-1"
             modificationType="Amendment"
             handleSubmit={handleSubmit}
@@ -455,7 +414,7 @@ describe("BaseCreateModificationDialog", () => {
 
       await waitFor(() => {
         expect(mockShowError).toHaveBeenCalledWith("Error loading demonstration data.");
-        expect(mockOnClose).toHaveBeenCalled();
+        expect(mockHideDialog).toHaveBeenCalled();
       });
     });
   });
@@ -464,11 +423,7 @@ describe("BaseCreateModificationDialog", () => {
     it("applies correct labels and placeholders for Extensions", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Extension"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Extension" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 
@@ -481,11 +436,7 @@ describe("BaseCreateModificationDialog", () => {
     it("uses correct button names for Extensions", () => {
       render(
         <MockedProvider mocks={[]} addTypename={false}>
-          <BaseCreateModificationDialog
-            onClose={mockOnClose}
-            modificationType="Extension"
-            handleSubmit={handleSubmit}
-          />
+          <BaseCreateModificationDialog modificationType="Extension" handleSubmit={handleSubmit} />
         </MockedProvider>
       );
 

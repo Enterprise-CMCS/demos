@@ -22,13 +22,19 @@ const DEFAULT_DEMONSTRATION = {
 };
 
 const DEFAULT_PROPS = {
-  onClose: vi.fn(),
   onSubmit: vi.fn(),
   initialDemonstration: DEFAULT_DEMONSTRATION,
 };
 
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
 const CANCEL_BUTTON_TEST_ID = "button-cancel-demonstration-dialog";
+
+const mockHideDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
 
 describe("EditDemonstrationDialog", () => {
   const TEST_DEMO_ID = "1";
@@ -206,7 +212,7 @@ describe("EditDemonstrationDialog", () => {
           UPDATE_DEMONSTRATION_MOCK,
         ]}
       >
-        <EditDemonstrationDialog onClose={vi.fn()} demonstrationId="1" />
+        <EditDemonstrationDialog demonstrationId="1" />
       </TestProvider>
     );
 

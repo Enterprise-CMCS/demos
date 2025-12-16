@@ -6,6 +6,7 @@ import {
 import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
 import { Extension as ServerExtension, Demonstration } from "demos-server";
+import { useDialog } from "../DialogContext";
 
 type Extension = Pick<ServerExtension, "id"> & {
   demonstration: Pick<Demonstration, "id"> & {
@@ -27,9 +28,9 @@ export const CREATE_EXTENSION_MUTATION = gql`
 `;
 
 export const CreateExtensionDialog: React.FC<{
-  onClose: () => void;
   initialDemonstrationId?: string;
-}> = ({ onClose, initialDemonstrationId }) => {
+}> = ({ initialDemonstrationId }) => {
+  const { hideDialog } = useDialog();
   const { showSuccess, showError } = useToast();
   const [triggerCreateExtension] = useMutation<{ createExtension: Extension }>(
     CREATE_EXTENSION_MUTATION
@@ -38,7 +39,7 @@ export const CreateExtensionDialog: React.FC<{
   const handleError = (error?: unknown) => {
     showError("Error creating extension.");
     console.error(error || "Unknown error");
-    onClose();
+    hideDialog();
   };
 
   const createExtension = async ({
@@ -62,7 +63,7 @@ export const CreateExtensionDialog: React.FC<{
       }
 
       showSuccess("Extension created successfully.");
-      onClose();
+      hideDialog();
     } catch (error) {
       handleError(error);
     }
@@ -70,7 +71,6 @@ export const CreateExtensionDialog: React.FC<{
 
   return (
     <BaseCreateModificationDialog
-      onClose={onClose}
       initialDemonstrationId={initialDemonstrationId}
       modificationType="Extension"
       handleSubmit={createExtension}

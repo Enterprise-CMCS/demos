@@ -2,7 +2,6 @@ import "@testing-library/jest-dom";
 
 import React from "react";
 
-import { ToastProvider } from "components/toast/ToastContext";
 import { describe, expect, it, vi } from "vitest";
 
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -11,6 +10,22 @@ import { RemoveDocumentDialog } from "./RemoveDocumentDialog";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 const mockQuery = vi.fn();
+
+const mockHideDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
+
+const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: mockShowSuccess,
+    showError: mockShowError,
+  }),
+}));
 
 beforeEach(() => {
   vi.mock("@apollo/client", async () => {
@@ -31,13 +46,8 @@ const CONFIRM_REMOVE_BUTTON_TEST_ID = "button-confirm-delete-document";
 const CANCEL_REMOVE_BUTTON_TEST_ID = "button-cancel-delete-document";
 
 describe("RemoveDocumentDialog", () => {
-  const setup = (ids: string[] = ["1"], onClose = vi.fn()) => {
-    render(
-      <ToastProvider>
-        <RemoveDocumentDialog documentIds={ids} onClose={onClose} />
-      </ToastProvider>
-    );
-    return { onClose };
+  const setup = (ids: string[] = ["1"]) => {
+    render(<RemoveDocumentDialog documentIds={ids} />);
   };
 
   it("renders with single document", () => {
@@ -55,18 +65,18 @@ describe("RemoveDocumentDialog", () => {
   });
 
   it("calls onClose when Cancel is clicked", () => {
-    const { onClose } = setup(["1"]);
+    setup(["1"]);
     fireEvent.click(screen.getByTestId(CANCEL_REMOVE_BUTTON_TEST_ID));
-    expect(onClose).toHaveBeenCalled();
+    expect(mockHideDialog).toHaveBeenCalled();
   });
 
   it("shows warning and closes when Remove is clicked", async () => {
-    const { onClose } = setup(["1", "2"]);
+    setup(["1", "2"]);
     await act(async () => {
       fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
     });
     await waitFor(() => {
-      expect(onClose).toHaveBeenCalled();
+      expect(mockHideDialog).toHaveBeenCalled();
     });
   });
 

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorButton, SecondaryButton } from "components/button";
 import { ErrorIcon } from "components/icons";
+import { useDialog } from "../DialogContext";
 
 export const DELETE_DOCUMENTS_QUERY = gql`
   mutation DeleteDocuments($ids: [ID!]!) {
@@ -14,8 +15,8 @@ export const DELETE_DOCUMENTS_QUERY = gql`
 
 export const RemoveDocumentDialog: React.FC<{
   documentIds: string[];
-  onClose: () => void;
-}> = ({ documentIds, onClose }) => {
+}> = ({ documentIds }) => {
+  const { hideDialog } = useDialog();
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -36,7 +37,7 @@ export const RemoveDocumentDialog: React.FC<{
         isMultipleDocuments ? "have been" : "has been"
       } removed.`;
       showSuccess(removalMessage);
-      onClose();
+      hideDialog();
     } catch {
       showError("Your changes could not be saved due to an unknown problem.");
     } finally {
@@ -47,13 +48,12 @@ export const RemoveDocumentDialog: React.FC<{
   return (
     <BaseDialog
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
-      onClose={onClose}
       actions={
         <>
           <SecondaryButton
             name="button-cancel-delete-document"
             size="small"
-            onClick={onClose}
+            onClick={hideDialog}
             disabled={isDeleting}
           >
             Cancel

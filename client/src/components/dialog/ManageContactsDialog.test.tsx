@@ -1,6 +1,5 @@
 import React from "react";
 
-import { ToastProvider } from "components/toast";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { gql } from "@apollo/client";
@@ -88,17 +87,30 @@ const SET_ROLES_MOCK = {
 };
 
 const defaultProps: ManageContactsDialogProps = {
-  onClose: vi.fn(),
   demonstrationId: "demo-1",
   existingContacts: [],
 };
 
+const mockHideDialog = vi.fn();
+vi.mock("./DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
+
+const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: mockShowSuccess,
+    showError: mockShowError,
+  }),
+}));
+
 const renderWithProviders = (props = defaultProps, mocks: MockedResponse[] = []) => {
   return render(
     <MockedProvider mocks={mocks} addTypename={false}>
-      <ToastProvider>
-        <ManageContactsDialog {...props} />
-      </ToastProvider>
+      <ManageContactsDialog {...props} />
     </MockedProvider>
   );
 };
@@ -573,10 +585,9 @@ describe("ManageContactsDialog", () => {
 
   it("submits contacts successfully", async () => {
     const user = userEvent.setup();
-    const mockOnClose = vi.fn();
     const mocks = [...SEARCH_PEOPLE_MOCKS, SET_ROLES_MOCK];
 
-    renderWithProviders({ ...defaultProps, onClose: mockOnClose }, mocks);
+    renderWithProviders({ ...defaultProps }, mocks);
 
     // Add a contact through search
     const searchInput = screen.getByPlaceholderText("Search by name or email");
@@ -608,7 +619,7 @@ describe("ManageContactsDialog", () => {
     await user.click(saveButton);
 
     await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockHideDialog).toHaveBeenCalled();
     });
   });
 
@@ -999,8 +1010,7 @@ describe("ManageContactsDialog", () => {
   describe("Smart Close Functionality", () => {
     it("closes immediately when no changes are made using Cancel button", async () => {
       const user = userEvent.setup();
-      const mockOnClose = vi.fn();
-      const props = { ...defaultProps, onClose: mockOnClose };
+      const props = { ...defaultProps };
 
       renderWithProviders(props);
 
@@ -1008,13 +1018,12 @@ describe("ManageContactsDialog", () => {
       await user.click(cancelButton);
 
       // Should close immediately without confirmation
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockHideDialog).toHaveBeenCalledTimes(1);
     });
 
     it("shows confirmation when changes are made and Cancel button is clicked", async () => {
       const user = userEvent.setup();
-      const mockOnClose = vi.fn();
-      const props = { ...defaultProps, onClose: mockOnClose };
+      const props = { ...defaultProps };
       const mocks = [SEARCH_PEOPLE_MOCKS[0]];
 
       renderWithProviders(props, mocks);
@@ -1054,7 +1063,7 @@ describe("ManageContactsDialog", () => {
         },
         { timeout: 3000 }
       );
-      expect(mockOnClose).not.toHaveBeenCalled();
+      expect(mockHideDialog).not.toHaveBeenCalled();
     });
   });
 

@@ -2,7 +2,6 @@ import "@testing-library/jest-dom";
 
 import React from "react";
 
-import { ToastProvider } from "components/toast/ToastContext";
 import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -10,6 +9,22 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { DocumentDialogFields, EditDocumentDialog } from "./";
 
 const mockQuery = vi.fn();
+
+const mockHideDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
+
+const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: mockShowSuccess,
+    showError: mockShowError,
+  }),
+}));
 
 beforeEach(() => {
   vi.mock("@apollo/client", async () => {
@@ -39,13 +54,7 @@ describe("EditDocumentDialog", () => {
     file: null,
   };
   const setup = () => {
-    const onClose = vi.fn();
-    render(
-      <ToastProvider>
-        <EditDocumentDialog initialDocument={existingDocument} onClose={onClose} />
-      </ToastProvider>
-    );
-    return { onClose };
+    render(<EditDocumentDialog initialDocument={existingDocument} />);
   };
 
   it("renders dialog with correct title and fields", () => {
@@ -102,13 +111,13 @@ describe("EditDocumentDialog", () => {
   });
 
   it("calls onClose when cancel is confirmed", async () => {
-    const { onClose } = setup();
+    setup();
 
     fireEvent.click(screen.getByText("Cancel"));
     fireEvent.click(screen.getByTestId("button-cc-dialog-discard"));
 
     await waitFor(() => {
-      expect(onClose).toHaveBeenCalled();
+      expect(mockHideDialog).toHaveBeenCalled();
     });
   });
 });

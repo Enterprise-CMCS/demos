@@ -94,11 +94,10 @@ export const checkFormHasChanges = (
 };
 
 export const DemonstrationDialog: React.FC<{
-  onClose: () => void;
   mode: DemonstrationDialogMode;
   initialDemonstration: DemonstrationDialogFields;
   onSubmit: (demonstration: DemonstrationDialogFields) => Promise<void>;
-}> = ({ onClose, mode, initialDemonstration, onSubmit }) => {
+}> = ({ mode, initialDemonstration, onSubmit }) => {
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -118,7 +117,6 @@ export const DemonstrationDialog: React.FC<{
   return (
     <BaseDialog
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
-      onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
       maxWidthClass="max-w-[920px]"

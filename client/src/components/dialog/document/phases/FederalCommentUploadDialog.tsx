@@ -8,14 +8,12 @@ const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["General File"];
 const REFETCH_QUERIES = ["GetConceptDocuments", "GetDemonstrationDocuments"];
 
 type Props = {
-  onClose: () => void;
   applicationId: string;
 };
 
-export const FederalCommentUploadDialog: React.FC<Props> = ({ onClose, applicationId }) => {
+export const FederalCommentUploadDialog: React.FC<Props> = ({ applicationId }) => {
   return (
     <AddDocumentDialog
-      onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       applicationId={applicationId}
       titleOverride="Internal Analysis Document"

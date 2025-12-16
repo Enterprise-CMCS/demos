@@ -6,18 +6,12 @@ import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/Applica
 type Props = {
   applicationId: string;
   documentType: DocumentType;
-  onClose: () => void;
 };
 
-export const ApprovalPackageUploadDialog: React.FC<Props> = ({
-  onClose,
-  applicationId,
-  documentType,
-}) => {
+export const ApprovalPackageUploadDialog: React.FC<Props> = ({ applicationId, documentType }) => {
   return (
     <AddDocumentDialog
       applicationId={applicationId}
-      onClose={onClose}
       documentTypeSubset={[documentType]}
       titleOverride="Add Approval Package Document(s)"
       phaseName="Approval Package"

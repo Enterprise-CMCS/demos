@@ -6,6 +6,7 @@ import {
 import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
 import { Amendment as ServerAmendment, Demonstration } from "demos-server";
+import { useDialog } from "../DialogContext";
 
 type Amendment = Pick<ServerAmendment, "id"> & {
   demonstration: Pick<Demonstration, "id"> & {
@@ -27,9 +28,9 @@ export const CREATE_AMENDMENT_MUTATION = gql`
 `;
 
 export const CreateAmendmentDialog: React.FC<{
-  onClose: () => void;
   initialDemonstrationId?: string;
-}> = ({ onClose, initialDemonstrationId }) => {
+}> = ({ initialDemonstrationId }) => {
+  const { hideDialog } = useDialog();
   const { showSuccess, showError } = useToast();
   const [triggerCreateAmendment] = useMutation<{ createAmendment: Amendment }>(
     CREATE_AMENDMENT_MUTATION
@@ -38,7 +39,7 @@ export const CreateAmendmentDialog: React.FC<{
   const handleError = (error?: unknown) => {
     showError("Error creating amendment.");
     console.error(error || "Unknown error");
-    onClose();
+    hideDialog();
   };
 
   const createAmendment = async ({
@@ -62,7 +63,7 @@ export const CreateAmendmentDialog: React.FC<{
       }
 
       showSuccess("Amendment created successfully.");
-      onClose();
+      hideDialog();
     } catch (error) {
       handleError(error);
     }
@@ -70,7 +71,6 @@ export const CreateAmendmentDialog: React.FC<{
 
   return (
     <BaseCreateModificationDialog
-      onClose={onClose}
       initialDemonstrationId={initialDemonstrationId}
       modificationType="Amendment"
       handleSubmit={createAmendment}

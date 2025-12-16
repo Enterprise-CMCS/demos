@@ -7,6 +7,7 @@ import { Textarea, TextInput } from "components/input";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { useToast } from "components/toast";
 import { Demonstration as ServerDemonstration, State } from "demos-server";
+import { useDialog } from "../DialogContext";
 
 type Demonstration = Pick<ServerDemonstration, "id"> & {
   state: Pick<State, "id">;
@@ -30,17 +31,16 @@ export type CreateModificationFormFields = {
 };
 
 interface BaseCreateModificationDialogProps {
-  onClose: () => void;
   initialDemonstrationId?: string;
   modificationType: "Amendment" | "Extension";
   handleSubmit: (formFields: CreateModificationFormFields) => Promise<void>;
 }
 export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialogProps> = ({
-  onClose,
   initialDemonstrationId,
   modificationType,
   handleSubmit,
 }) => {
+  const { hideDialog } = useDialog();
   const [loading, setLoading] = useState(false);
   const [createModificationFormFields, setCreateModificationFormFields] =
     useState<CreateModificationFormFields>({
@@ -61,7 +61,7 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
     onError: (error) => {
       showError("Error loading demonstration data.");
       console.error(error);
-      onClose();
+      hideDialog();
     },
   });
 
@@ -80,7 +80,6 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
   return (
     <BaseDialog
       title={`New ${modificationType}`}
-      onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
       maxWidthClass="max-w-[720px]"

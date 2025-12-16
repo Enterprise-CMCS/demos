@@ -45,12 +45,12 @@ export const useDialog = () => {
   if (!context) throw new Error("useDialog must be used within a DialogProvider");
 
   const showCreateDemonstrationDialog = () => {
-    context.showDialog(<CreateDemonstrationDialog onClose={context.hideDialog} />);
+    context.showDialog(<CreateDemonstrationDialog />);
   };
 
   const showEditDemonstrationDialog = (demonstrationId: string) => {
     context.showDialog(
-      <EditDemonstrationDialog demonstrationId={demonstrationId} onClose={context.hideDialog} />
+      <EditDemonstrationDialog demonstrationId={demonstrationId} />
     );
   };
 
@@ -58,7 +58,6 @@ export const useDialog = () => {
     context.showDialog(
       <CreateAmendmentDialog
         initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
       />
     );
   };
@@ -67,7 +66,6 @@ export const useDialog = () => {
     context.showDialog(
       <CreateExtensionDialog
         initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
       />
     );
   };
@@ -80,26 +78,25 @@ export const useDialog = () => {
       <ManageContactsDialog
         demonstrationId={demonstrationId}
         existingContacts={existingContacts}
-        onClose={context.hideDialog}
       />
     );
   };
 
   const showUploadDocumentDialog = (applicationId: string) => {
     context.showDialog(
-      <AddDocumentDialog onClose={context.hideDialog} applicationId={applicationId} />
+      <AddDocumentDialog applicationId={applicationId} />
     );
   };
 
   const showEditDocumentDialog = (initialDocument: DocumentDialogFields) => {
     context.showDialog(
-      <EditDocumentDialog initialDocument={initialDocument} onClose={context.hideDialog} />
+      <EditDocumentDialog initialDocument={initialDocument} />
     );
   };
 
   const showRemoveDocumentDialog = (documentIds: string[]) => {
     context.showDialog(
-      <RemoveDocumentDialog documentIds={documentIds} onClose={context.hideDialog} />
+      <RemoveDocumentDialog documentIds={documentIds} />
     );
   };
 
@@ -110,7 +107,6 @@ export const useDialog = () => {
     context.showDialog(
       <ApplicationIntakeUploadDialog
         onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
       />
     );
@@ -119,7 +115,6 @@ export const useDialog = () => {
   const showCompletenessDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
-        onClose={context.hideDialog}
         applicationId={applicationId}
       />
     );
@@ -132,7 +127,6 @@ export const useDialog = () => {
     context.showDialog(
       <ConceptPreSubmissionUploadDialog
         onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
       />
     );
@@ -140,13 +134,13 @@ export const useDialog = () => {
 
   const showFederalCommentDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
-      <FederalCommentUploadDialog onClose={context.hideDialog} applicationId={applicationId} />
+      <FederalCommentUploadDialog applicationId={applicationId} />
     );
   };
 
   const showDeclareIncompleteDialog = (onConfirm: (form: DeclareIncompleteForm) => void) => {
     context.showDialog(
-      <DeclareIncompleteDialog onConfirm={onConfirm} onClose={context.hideDialog} />
+      <DeclareIncompleteDialog onConfirm={onConfirm} />
     );
   };
 
@@ -156,7 +150,6 @@ export const useDialog = () => {
   ) => {
     context.showDialog(
       <ApprovalPackageUploadDialog
-        onClose={context.hideDialog}
         applicationId={applicationId}
         documentType={documentType}
       />
@@ -164,6 +157,7 @@ export const useDialog = () => {
   };
 
   return {
+    hideDialog: context.hideDialog,
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,

@@ -5,6 +5,7 @@ import { useMutation } from "@apollo/client";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { gql } from "@apollo/client";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
+import { useDialog } from "../DialogContext";
 
 const DEFAULT_DEMONSTRATION_DIALOG_FIELDS: DemonstrationDialogFields = {
   name: "",
@@ -25,10 +26,9 @@ export const CREATE_DEMONSTRATION_MUTATION = gql`
     }
   }
 `;
-export const CreateDemonstrationDialog: React.FC<{
-  onClose: () => void;
-}> = ({ onClose }) => {
+export const CreateDemonstrationDialog: React.FC = () => {
   const { showSuccess, showError } = useToast();
+  const { hideDialog } = useDialog();
 
   const [createDemonstrationTrigger] = useMutation<{
     createDemonstration: Demonstration;
@@ -55,7 +55,7 @@ export const CreateDemonstrationDialog: React.FC<{
       });
 
       const success = !result.errors;
-      onClose();
+      hideDialog();
       if (success) {
         showSuccess(SUCCESS_MESSAGE);
       } else {
@@ -69,7 +69,6 @@ export const CreateDemonstrationDialog: React.FC<{
 
   return (
     <DemonstrationDialog
-      onClose={onClose}
       mode="create"
       initialDemonstration={DEFAULT_DEMONSTRATION_DIALOG_FIELDS}
       onSubmit={onSubmit}

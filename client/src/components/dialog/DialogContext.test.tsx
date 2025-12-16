@@ -7,68 +7,26 @@ import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 
-const MockDialog = ({ onClose }: { onClose: () => void }) => (
-  <div data-testid="mock-dialog">
-    Mock Dialog
-    <button data-testid="close-btn" onClick={onClose}>
-      Close
-    </button>
-  </div>
-);
+const MockDialog = () => <div data-testid="mock-dialog">Mock Dialog</div>;
 
 // Patch DialogContext to use MockDialog for testing
 vi.mock("./demonstration/CreateDemonstrationDialog", () => ({
-  CreateDemonstrationDialog: ({ onClose }: { onClose: () => void }) => (
-    <MockDialog onClose={onClose} />
-  ),
+  CreateDemonstrationDialog: () => <MockDialog />,
 }));
 vi.mock("./demonstration", () => ({
-  EditDemonstrationDialog: ({
-    demonstrationId,
-    onClose,
-  }: {
-    demonstrationId: string;
-    onClose: () => void;
-  }) => (
-    <div data-testid="edit-dialog">
-      Edit Dialog {demonstrationId}
-      <button data-testid="close-edit-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  EditDemonstrationDialog: ({ demonstrationId }: { demonstrationId: string }) => (
+    <div data-testid="edit-dialog">Edit Dialog {demonstrationId}</div>
   ),
 }));
 vi.mock("./modification/CreateAmendmentDialog", () => ({
-  CreateAmendmentDialog: ({
-    initialDemonstrationId,
-    onClose,
-  }: {
-    initialDemonstrationId?: string;
-    onClose: () => void;
-  }) => (
-    <div data-testid="amendment-dialog">
-      Amendment Dialog {initialDemonstrationId} create
-      <button data-testid="close-amendment-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  CreateAmendmentDialog: ({ initialDemonstrationId }: { initialDemonstrationId?: string }) => (
+    <div data-testid="amendment-dialog">Amendment Dialog {initialDemonstrationId} create</div>
   ),
 }));
 
 vi.mock("./modification/CreateExtensionDialog", () => ({
-  CreateExtensionDialog: ({
-    initialDemonstrationId,
-    onClose,
-  }: {
-    initialDemonstrationId?: string;
-    onClose: () => void;
-  }) => (
-    <div data-testid="extension-dialog">
-      Extension Dialog {initialDemonstrationId} create
-      <button data-testid="close-extension-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  CreateExtensionDialog: ({ initialDemonstrationId }: { initialDemonstrationId?: string }) => (
+    <div data-testid="extension-dialog">Extension Dialog {initialDemonstrationId} create</div>
   ),
 }));
 
@@ -76,62 +34,24 @@ vi.mock("./ManageContactsDialog", () => ({
   ManageContactsDialog: ({
     demonstrationId,
     existingContacts,
-    onClose,
   }: {
     demonstrationId: string;
     existingContacts?: ExistingContactType[];
-    onClose: () => void;
   }) => (
     <div data-testid="manage-contacts-dialog">
       Manage Contacts Dialog {demonstrationId} {existingContacts?.length ?? 0}
-      <button data-testid="close-contacts-btn" onClick={onClose}>
-        Close
-      </button>
     </div>
   ),
 }));
 vi.mock("./document", () => ({
-  AddDocumentDialog: ({
-    onClose,
-    applicationId,
-  }: {
-    onClose: () => void;
-    applicationId: string;
-  }) => (
-    <div data-testid="add-document-dialog">
-      Add Document Dialog {applicationId}
-      <button data-testid="close-add-document-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  AddDocumentDialog: ({ applicationId }: { applicationId: string }) => (
+    <div data-testid="add-document-dialog">Add Document Dialog {applicationId}</div>
   ),
-  EditDocumentDialog: ({
-    initialDocument,
-    onClose,
-  }: {
-    initialDocument: { id: string };
-    onClose: () => void;
-  }) => (
-    <div data-testid="edit-document-dialog">
-      Edit Document Dialog {initialDocument.id}
-      <button data-testid="close-edit-document-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  EditDocumentDialog: ({ initialDocument }: { initialDocument: { id: string } }) => (
+    <div data-testid="edit-document-dialog">Edit Document Dialog {initialDocument.id}</div>
   ),
-  RemoveDocumentDialog: ({
-    documentIds,
-    onClose,
-  }: {
-    documentIds: string[];
-    onClose: () => void;
-  }) => (
-    <div data-testid="remove-document-dialog">
-      Remove Document Dialog {documentIds.join(",")}
-      <button data-testid="close-remove-document-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  RemoveDocumentDialog: ({ documentIds }: { documentIds: string[] }) => (
+    <div data-testid="remove-document-dialog">Remove Document Dialog {documentIds.join(",")}</div>
   ),
 }));
 
@@ -139,38 +59,22 @@ vi.mock("./document/phases/ApplicationIntakeUploadDialog", () => ({
   ApplicationIntakeUploadDialog: ({
     applicationId,
     onDocumentUploadSucceeded,
-    onClose,
   }: {
     applicationId: string;
     onDocumentUploadSucceeded: () => void;
-    onClose: () => void;
   }) => (
     <div data-testid="application-intake-upload-dialog">
       Application Intake Upload Dialog {applicationId}
       <button data-testid="upload-succeeded-btn" onClick={onDocumentUploadSucceeded}>
         Upload Succeeded
       </button>
-      <button data-testid="close-application-intake-upload-btn" onClick={onClose}>
-        Close
-      </button>
     </div>
   ),
 }));
 
 vi.mock("./document/phases/CompletenessDocumentUploadDialog", () => ({
-  CompletenessDocumentUploadDialog: ({
-    applicationId,
-    onClose,
-  }: {
-    applicationId: string;
-    onClose: () => void;
-  }) => (
-    <div data-testid="completeness-upload-dialog">
-      Completeness Upload Dialog {applicationId}
-      <button data-testid="close-completeness-upload-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  CompletenessDocumentUploadDialog: ({ applicationId }: { applicationId: string }) => (
+    <div data-testid="completeness-upload-dialog">Completeness Upload Dialog {applicationId}</div>
   ),
 }));
 
@@ -178,37 +82,24 @@ vi.mock("./document/phases/ConceptPreSubmissionUploadDialog", () => ({
   ConceptPreSubmissionUploadDialog: ({
     applicationId,
     onDocumentUploadSucceeded,
-    onClose,
   }: {
     applicationId: string;
     onDocumentUploadSucceeded: () => void;
-    onClose: () => void;
   }) => (
     <div data-testid="concept-pre-upload-dialog">
       Concept Pre-Submission Upload Dialog {applicationId}
       <button data-testid="upload-succeeded-btn" onClick={onDocumentUploadSucceeded}>
         Upload Succeeded
       </button>
-      <button data-testid="close-concept-pre-upload-btn" onClick={onClose}>
-        Close
-      </button>
     </div>
   ),
 }));
 
 vi.mock("./document/phases/FederalCommentUploadDialog", () => ({
-  FederalCommentUploadDialog: ({
-    applicationId,
-    onClose,
-  }: {
-    applicationId: string;
-    onClose: () => void;
-  }) => (
+  FederalCommentUploadDialog: ({ applicationId }: { applicationId: string }) => (
     <div data-testid="federal-comment-upload-dialog">
       Federal Comment Upload Dialog {applicationId}
-      <button data-testid="close-federal-comment-upload-btn" onClick={onClose}>
-        Close
-      </button>
+      <button data-testid="close-federal-comment-upload-btn">Close</button>
     </div>
   ),
 }));
@@ -216,10 +107,8 @@ vi.mock("./document/phases/FederalCommentUploadDialog", () => ({
 vi.mock("./DeclareIncompleteDialog", () => ({
   DeclareIncompleteDialog: ({
     onConfirm,
-    onClose,
   }: {
     onConfirm: (form: DeclareIncompleteForm) => void;
-    onClose: () => void;
   }) => (
     <div data-testid="declare-incomplete-dialog">
       Declare Incomplete Dialog
@@ -228,9 +117,6 @@ vi.mock("./DeclareIncompleteDialog", () => ({
         onClick={() => onConfirm({ reason: "missing-documentation", otherText: undefined })}
       >
         Confirm
-      </button>
-      <button data-testid="close-declare-incomplete-btn" onClick={onClose}>
-        Close
       </button>
     </div>
   ),
@@ -281,10 +167,14 @@ const TestConsumer: React.FC = () => {
     showConceptPreSubmissionDocumentUploadDialog,
     showFederalCommentDocumentUploadDialog,
     showDeclareIncompleteDialog,
+    hideDialog,
   } = useDialog();
 
   return (
     <div>
+      <button data-testid="close-btn" onClick={hideDialog}>
+        Close Dialog
+      </button>
       <button data-testid="open-create-btn" onClick={showCreateDemonstrationDialog}>
         Open Create Dialog
       </button>
@@ -396,7 +286,7 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-edit-btn"));
     expect(screen.getByTestId("edit-dialog")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-edit-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("edit-dialog")).not.toBeInTheDocument();
   });
 
@@ -413,7 +303,7 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-amendment-btn"));
     expect(screen.getByTestId("amendment-dialog")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-amendment-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("amendment-dialog")).not.toBeInTheDocument();
   });
 
@@ -430,7 +320,7 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-extension-btn"));
     expect(screen.getByTestId("extension-dialog")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-extension-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("extension-dialog")).not.toBeInTheDocument();
   });
 
@@ -448,7 +338,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("manage-contacts-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Manage Contacts Dialog demo-id 2/)).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-contacts-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("manage-contacts-dialog")).not.toBeInTheDocument();
   });
 
@@ -466,7 +356,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("add-document-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Add Document Dialog app-1/)).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-add-document-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("add-document-dialog")).not.toBeInTheDocument();
   });
 
@@ -484,7 +374,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("edit-document-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Edit Document Dialog doc-1/)).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-edit-document-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("edit-document-dialog")).not.toBeInTheDocument();
   });
 
@@ -502,7 +392,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("remove-document-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Remove Document Dialog doc-1,doc-2/)).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-remove-document-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("remove-document-dialog")).not.toBeInTheDocument();
   });
 
@@ -520,7 +410,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("application-intake-upload-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Application Intake Upload Dialog app-2/)).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-application-intake-upload-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("application-intake-upload-dialog")).not.toBeInTheDocument();
   });
 
@@ -538,7 +428,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("completeness-upload-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Completeness Upload Dialog app-3/)).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-completeness-upload-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("completeness-upload-dialog")).not.toBeInTheDocument();
   });
 
@@ -556,7 +446,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("concept-pre-upload-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Concept Pre-Submission Upload Dialog app-4/)).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-concept-pre-upload-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("concept-pre-upload-dialog")).not.toBeInTheDocument();
   });
 
@@ -574,7 +464,7 @@ describe("DialogContext", () => {
     expect(screen.getByTestId("federal-comment-upload-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Federal Comment Upload Dialog app-5/)).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-federal-comment-upload-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("federal-comment-upload-dialog")).not.toBeInTheDocument();
   });
   it("shows and hides DeclareIncompleteDialog via context and calls onConfirm", async () => {
@@ -590,7 +480,7 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-declare-incomplete-btn"));
     expect(screen.getByTestId("declare-incomplete-dialog")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-declare-incomplete-btn"));
+    await user.click(screen.getByTestId("close-btn"));
     expect(screen.queryByTestId("declare-incomplete-dialog")).not.toBeInTheDocument();
   });
 });

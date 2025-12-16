@@ -4,13 +4,16 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DeclareIncompleteDialog } from "./DeclareIncompleteDialog";
 
-const mockOnClose = vi.fn();
 const mockOnConfirm = vi.fn();
+const mockHideDialog = vi.fn();
+vi.mock("./DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
 
-function setup(props = {}) {
-  return render(
-    <DeclareIncompleteDialog onClose={mockOnClose} onConfirm={mockOnConfirm} {...props} />
-  );
+function setup() {
+  return render(<DeclareIncompleteDialog onConfirm={mockOnConfirm} />);
 }
 
 describe("DeclareIncompleteDialog", () => {
@@ -63,7 +66,7 @@ describe("DeclareIncompleteDialog", () => {
       reason: "pending-clarification",
       otherText: undefined,
     });
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockHideDialog).toHaveBeenCalled();
   });
 
   it("calls onConfirm and onClose with correct values when 'Other' is selected and explanation is provided", async () => {
@@ -74,14 +77,14 @@ describe("DeclareIncompleteDialog", () => {
     const confirmBtn = screen.getByRole("button", { name: /declare-incomplete-confirm/i });
     await userEvent.click(confirmBtn);
     expect(mockOnConfirm).toHaveBeenCalledWith({ reason: "other", otherText: "Extra info" });
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockHideDialog).toHaveBeenCalled();
   });
 
   it("calls onClose when cancel button is clicked", async () => {
     setup();
     const cancelBtn = screen.getByRole("button", { name: /cancel/i });
     await userEvent.click(cancelBtn);
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockHideDialog).toHaveBeenCalled();
   });
 
   it("has a close dialog button", () => {

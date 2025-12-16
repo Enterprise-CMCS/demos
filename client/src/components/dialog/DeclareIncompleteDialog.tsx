@@ -6,6 +6,7 @@ import { ErrorIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { Select, Option } from "components/input/select/Select";
 import { tw } from "tags/tw";
+import { useDialog } from "./DialogContext";
 
 const MESSAGE_ICON = tw`text-error flex items-start gap-2 text-sm`;
 const FIELD_STACK = tw`mt-4 flex flex-col gap-4 md:flex-row`;
@@ -29,29 +30,26 @@ export type DeclareIncompleteForm = {
 };
 
 type DeclareIncompleteDialogProps = {
-  onClose: () => void;
   onConfirm?: (form: DeclareIncompleteForm) => void;
 };
 
-export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = ({
-  onClose,
-  onConfirm,
-}) => {
+export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = ({ onConfirm }) => {
+  const { hideDialog } = useDialog();
   const [reason, setReason] = React.useState("");
   const [otherText, setOtherText] = React.useState("");
   const [attemptedSubmit, setAttemptedSubmit] = React.useState(false);
 
   // pops the "other" explanation box
-  const isOtherReason = (reason === OTHER_REASON_VALUE);
+  const isOtherReason = reason === OTHER_REASON_VALUE;
   const trimmedOther = otherText.trim();
-  const isValid = (reason !== "" && (!isOtherReason || trimmedOther !== ""));
+  const isValid = reason !== "" && (!isOtherReason || trimmedOther !== "");
 
   const handleConfirm = () => {
     setAttemptedSubmit(true);
     if (!isValid) return;
 
     onConfirm?.({ reason, otherText: isOtherReason ? trimmedOther : undefined });
-    onClose();
+    hideDialog();
   };
 
   const reasonError = attemptedSubmit && reason === "";
@@ -59,10 +57,9 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
   return (
     <BaseDialog
       title="Declare Incomplete"
-      onClose={onClose}
       actions={
         <>
-          <SecondaryButton name="declare-incomplete-cancel" size="small" onClick={onClose}>
+          <SecondaryButton name="declare-incomplete-cancel" size="small" onClick={hideDialog}>
             Cancel
           </SecondaryButton>
           <ErrorButton
@@ -77,7 +74,8 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
       }
     >
       <p className="text-base">
-        Are you sure you want to declare this application process <span className="font-semibold">incomplete</span>?
+        Are you sure you want to declare this application process{" "}
+        <span className="font-semibold">incomplete</span>?
       </p>
 
       <div className={MESSAGE_ICON}>
@@ -107,7 +105,9 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
               placeholder="Enter reason"
               value={otherText}
               onChange={(event) => setOtherText(event.target.value)}
-              getValidationMessage={(value) => (attemptedSubmit && value.trim() === "" ? "Provide an explanation." : "")}
+              getValidationMessage={(value) =>
+                attemptedSubmit && value.trim() === "" ? "Provide an explanation." : ""
+              }
             />
           </div>
         )}

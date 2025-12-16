@@ -13,6 +13,7 @@ import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpl
 import { tw } from "tags/tw";
 import { Notice } from "components/notice";
 import { UploadButton } from "./UploadButton";
+import { useDialog } from "../DialogContext";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -264,7 +265,6 @@ const DEFAULT_DOCUMENT_FIELDS: DocumentDialogFields = {
 };
 
 export type DocumentDialogProps = {
-  onClose?: () => void;
   mode: DocumentDialogType;
   documentTypeSubset?: DocumentType[];
   onSubmit?: (
@@ -288,7 +288,6 @@ const setDefaultDocumentType = (
 };
 
 export const DocumentDialog: React.FC<DocumentDialogProps> = ({
-  onClose = () => {},
   mode,
   documentTypeSubset,
   onSubmit,
@@ -296,6 +295,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   titleOverride,
 }) => {
   const { showSuccess, showError } = useToast();
+
+  const { hideDialog } = useDialog();
 
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
     initialDocument || setDefaultDocumentType(DEFAULT_DOCUMENT_FIELDS, documentTypeSubset)
@@ -346,7 +347,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       }
 
       setDocumentDialogState("idle");
-      onClose();
+      hideDialog();
       showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
     } catch {
       setDocumentDialogState("unknown-error");
@@ -356,7 +357,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   return (
     <BaseDialog
       title={dialogTitle}
-      onClose={onClose}
       showCancelConfirm={showCancelConfirm}
       setShowCancelConfirm={setShowCancelConfirm}
       actions={

@@ -2,10 +2,10 @@ import React, { useEffect, useRef } from "react";
 
 import { tw } from "tags/tw";
 import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
+import { useDialog } from "./DialogContext";
 
 interface BaseDialogProps {
   title: string;
-  onClose: () => void;
   children: React.ReactNode;
   actions?: React.ReactNode;
   showCancelConfirm?: boolean;
@@ -21,7 +21,6 @@ const HR = tw`border-border-rules my-sm`;
 
 export const BaseDialog: React.FC<BaseDialogProps> = ({
   title,
-  onClose,
   children,
   actions,
   showCancelConfirm = false,
@@ -29,6 +28,8 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   maxWidthClass = "max-w-[720px]",
   hideHeader = false,
 }) => {
+  const { hideDialog } = useDialog();
+
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -65,7 +66,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     if (showCancelConfirm && setShowCancelConfirm) {
       setShowCancelConfirm(true);
     } else {
-      onClose();
+      hideDialog();
     }
   };
 
@@ -96,7 +97,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
         <ConfirmCancellationDialog
           isOpen={showCancelConfirm}
           onClose={() => setShowCancelConfirm(false)}
-          onConfirm={onClose}
+          onConfirm={hideDialog}
         />
       )}
     </>

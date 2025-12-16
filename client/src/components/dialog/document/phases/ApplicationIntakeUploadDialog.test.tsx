@@ -17,8 +17,14 @@ vi.mock("@apollo/client", async () => {
   };
 });
 
+const mockHideDialog = vi.fn();
+vi.mock("../../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
+
 const defaultProps = {
-  onClose: vi.fn(),
   applicationId: "test-application-id",
   onDocumentUploadSucceeded: vi.fn(),
 };

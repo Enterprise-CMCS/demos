@@ -23,6 +23,7 @@ import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import type { ContactRow, ContactType } from "../table/columns/ContactColumns";
 import { ContactColumns } from "../table/columns/ContactColumns";
 import { PaginationControls } from "../table/PaginationControls";
+import { useDialog } from "./DialogContext";
 
 const SEARCH_PEOPLE_QUERY = gql`
   query SearchPeople($search: String!, $demonstrationId: ID) {
@@ -85,7 +86,6 @@ export type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "is
 };
 
 export type ManageContactsDialogProps = {
-  onClose: () => void;
   demonstrationId: string;
   existingContacts?: ExistingContactType[];
 };
@@ -102,11 +102,11 @@ const mapExistingContacts = (arr: ManageContactsDialogProps["existingContacts"] 
   }));
 
 export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
-  onClose,
   demonstrationId,
   existingContacts = [],
 }) => {
   const { showSuccess, showError } = useToast();
+  const { hideDialog } = useDialog();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<PersonSearchResult[]>([]);
@@ -489,7 +489,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
       setSavedContacts(selectedContacts.map((c) => ({ ...c })));
       showSuccess("Contacts have been updated.");
-      handleDialogClose();
+      hideDialog();
     } catch (e) {
       console.error(e);
       showError("An error occurred while updating contacts.");
@@ -498,16 +498,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     }
   };
 
-  const handleDialogClose = useCallback(() => {
-    setShowPrimaryWarning(false);
-    onClose();
-  }, [onClose]);
-
   const handleClose = () => {
     if (hasChanges) {
       setShowCancelConfirm(true);
     } else {
-      handleDialogClose();
+      hideDialog();
     }
   };
 
@@ -576,7 +571,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     <>
       <BaseDialog
         title="Manage Contact(s)"
-        onClose={handleDialogClose}
         showCancelConfirm={showCancelConfirm}
         setShowCancelConfirm={setShowCancelConfirm}
         maxWidthClass="max-w-[1000px]"

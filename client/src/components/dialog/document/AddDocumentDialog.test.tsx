@@ -19,6 +19,13 @@ let mockMutationFn = vi.fn();
 let mockLazyQueryFn = vi.fn();
 let mockRefetchQueries = vi.fn();
 
+const mockHideDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
+
 beforeEach(() => {
   mockMutationFn = vi.fn();
   mockLazyQueryFn = vi.fn();
@@ -48,17 +55,14 @@ const FILE_INPUT_TEST_ID = "input-file";
 
 describe("AddDocumentDialog", () => {
   const setup = () => {
-    const onClose = vi.fn();
     render(
       <ToastProvider>
         <AddDocumentDialog
-          onClose={onClose}
           applicationId="test-application-id"
           documentTypeSubset={["General File", "Application Completeness Letter"]}
         />
       </ToastProvider>
     );
-    return { onClose };
   };
 
   it("renders dialog with title and required fields", () => {
@@ -107,12 +111,12 @@ describe("AddDocumentDialog", () => {
   });
 
   it("calls onClose when confirming cancel", async () => {
-    const { onClose } = setup();
+    setup();
     fireEvent.click(screen.getByText("Cancel"));
     fireEvent.click(screen.getByTestId("button-cc-dialog-discard"));
 
     await waitFor(() => {
-      expect(onClose).toHaveBeenCalled();
+      expect(mockHideDialog).toHaveBeenCalled();
     });
   });
 
@@ -203,7 +207,6 @@ describe("virus scan polling", () => {
     render(
       <ToastProvider>
         <AddDocumentDialog
-          onClose={vi.fn()}
           applicationId="test-app-id"
           onDocumentUploadSucceeded={onDocumentUploadSucceeded}
           documentTypeSubset={["General File"]}
@@ -261,7 +264,6 @@ describe("virus scan polling", () => {
     render(
       <ToastProvider>
         <AddDocumentDialog
-          onClose={vi.fn()}
           applicationId="test-app-id"
           onDocumentUploadSucceeded={onDocumentUploadSucceeded}
           documentTypeSubset={["General File"]}
@@ -310,11 +312,7 @@ describe("virus scan polling", () => {
 
     render(
       <ToastProvider>
-        <AddDocumentDialog
-          onClose={vi.fn()}
-          applicationId="test-app-id"
-          documentTypeSubset={["General File"]}
-        />
+        <AddDocumentDialog applicationId="test-app-id" documentTypeSubset={["General File"]} />
       </ToastProvider>
     );
 
@@ -354,7 +352,6 @@ describe("virus scan polling", () => {
     render(
       <ToastProvider>
         <AddDocumentDialog
-          onClose={vi.fn()}
           applicationId="test-app-id"
           onDocumentUploadSucceeded={onDocumentUploadSucceeded}
           documentTypeSubset={["General File"]}
@@ -406,7 +403,6 @@ describe("virus scan polling", () => {
     render(
       <ToastProvider>
         <AddDocumentDialog
-          onClose={vi.fn()}
           applicationId="test-app-id"
           onDocumentUploadSucceeded={onDocumentUploadSucceeded}
           documentTypeSubset={["General File"]}
@@ -456,7 +452,6 @@ describe("virus scan polling", () => {
     render(
       <ToastProvider>
         <AddDocumentDialog
-          onClose={vi.fn()}
           applicationId="test-app-id"
           onDocumentUploadSucceeded={onDocumentUploadSucceeded}
           documentTypeSubset={["General File"]}

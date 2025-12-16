@@ -14,7 +14,12 @@ vi.mock("components/toast", () => ({
   }),
 }));
 
-const mockOnClose = vi.fn();
+const mockHideDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
 
 vi.mock("./BaseCreateModificationDialog", () => ({
   BaseCreateModificationDialog: vi.fn(({ handleSubmit, modificationType }) => {
@@ -71,7 +76,7 @@ describe("CreateExtensionDialog", () => {
 
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
+        <CreateExtensionDialog initialDemonstrationId="demo-123" />
       </MockedProvider>
     );
 
@@ -108,7 +113,7 @@ describe("CreateExtensionDialog", () => {
 
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
+        <CreateExtensionDialog initialDemonstrationId="demo-123" />
       </MockedProvider>
     );
 
@@ -117,7 +122,7 @@ describe("CreateExtensionDialog", () => {
 
     await waitFor(() => {
       expect(mockShowSuccess).toHaveBeenCalledWith("Extension created successfully.");
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockHideDialog).toHaveBeenCalled();
     });
   });
 
@@ -140,7 +145,7 @@ describe("CreateExtensionDialog", () => {
 
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
+        <CreateExtensionDialog initialDemonstrationId="demo-123" />
       </MockedProvider>
     );
 
@@ -149,7 +154,7 @@ describe("CreateExtensionDialog", () => {
 
     await waitFor(() => {
       expect(mockShowError).toHaveBeenCalledWith("Error creating extension.");
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockHideDialog).toHaveBeenCalled();
     });
   });
 
@@ -178,7 +183,7 @@ describe("CreateExtensionDialog", () => {
 
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-123" />
+        <CreateExtensionDialog initialDemonstrationId="demo-123" />
       </MockedProvider>
     );
 
@@ -188,7 +193,7 @@ describe("CreateExtensionDialog", () => {
     await waitFor(() => {
       expect(mockShowError).toHaveBeenCalledWith("Error creating extension.");
       expect(consoleErrorSpy).toHaveBeenCalledWith("Unknown error");
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockHideDialog).toHaveBeenCalled();
     });
 
     consoleErrorSpy.mockRestore();
@@ -222,7 +227,7 @@ describe("CreateExtensionDialog", () => {
     ];
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
-        <CreateExtensionDialog onClose={mockOnClose} initialDemonstrationId="demo-456" />
+        <CreateExtensionDialog initialDemonstrationId="demo-456" />
       </MockedProvider>
     );
 
@@ -231,7 +236,6 @@ describe("CreateExtensionDialog", () => {
       expect.objectContaining({
         initialDemonstrationId: "demo-456",
         modificationType: "Extension",
-        onClose: mockOnClose,
       }),
       undefined
     );

@@ -24,11 +24,17 @@ const DEFAULT_DEMONSTRATION = {
 };
 
 const DEFAULT_PROPS = {
-  onClose: vi.fn(),
   onSubmit: vi.fn(),
   initialDemonstration: DEFAULT_DEMONSTRATION,
   mode: "create" as const,
 };
+
+const mockHideDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    hideDialog: mockHideDialog,
+  }),
+}));
 
 // Test ID constants
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
