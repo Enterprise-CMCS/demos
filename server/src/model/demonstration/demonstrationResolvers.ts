@@ -125,8 +125,8 @@ export async function __updateDemonstration(
         data: {
           name: input.name,
           description: input.description,
-          effectiveDate,
-          expirationDate,
+          effectiveDate: effectiveDate,
+          expirationDate: expirationDate,
           sdgDivisionId: input.sdgDivision,
           signatureLevelId: input.signatureLevel,
           statusId: input.status,

@@ -75,8 +75,8 @@ export async function __updateAmendment(
         demonstrationId: input.demonstrationId,
         name: input.name,
         description: input.description,
-        effectiveDate,
-        expirationDate,
+        effectiveDate: effectiveDate,
+        expirationDate: expirationDate,
         statusId: input.status,
       },
     });
