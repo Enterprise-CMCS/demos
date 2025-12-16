@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 
-import { SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { Textarea } from "components/input";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
@@ -12,6 +11,7 @@ import { Demonstration } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 import { SubmitButton } from "components/button/SubmitButton";
+import { useDialog } from "../DialogContext";
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -94,20 +94,21 @@ export const checkFormHasChanges = (
 };
 
 export const DemonstrationDialog: React.FC<{
-  onClose: () => void;
   mode: DemonstrationDialogMode;
   initialDemonstration: DemonstrationDialogFields;
   onSubmit: (demonstration: DemonstrationDialogFields) => Promise<void>;
-}> = ({ onClose, mode, initialDemonstration, onSubmit }) => {
+}> = ({ mode, initialDemonstration, onSubmit }) => {
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formHasChanges, setFormHasChanges] = useState<boolean>(false);
+
+  const { hideDialog } = useDialog();
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     await onSubmit(activeDemonstration);
     setIsSubmitting(false);
+    hideDialog();
   };
 
   const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
@@ -118,19 +119,9 @@ export const DemonstrationDialog: React.FC<{
   return (
     <BaseDialog
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
-      onClose={onClose}
-      showCancelConfirm={showCancelConfirm}
-      setShowCancelConfirm={setShowCancelConfirm}
       maxWidthClass="max-w-[920px]"
-      actions={
+      submitButton={
         <>
-          <SecondaryButton
-            name="button-cancel-demonstration-dialog"
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-          >
-            Cancel
-          </SecondaryButton>
           <SubmitButton
             name={"button-submit-demonstration-dialog"}
             disabled={!formHasChanges}

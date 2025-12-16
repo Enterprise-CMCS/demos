@@ -25,9 +25,7 @@ export const CREATE_DEMONSTRATION_MUTATION = gql`
     }
   }
 `;
-export const CreateDemonstrationDialog: React.FC<{
-  onClose: () => void;
-}> = ({ onClose }) => {
+export const CreateDemonstrationDialog: React.FC = () => {
   const { showSuccess, showError } = useToast();
 
   const [createDemonstrationTrigger] = useMutation<{
@@ -55,7 +53,6 @@ export const CreateDemonstrationDialog: React.FC<{
       });
 
       const success = !result.errors;
-      onClose();
       if (success) {
         showSuccess(SUCCESS_MESSAGE);
       } else {
@@ -69,7 +66,6 @@ export const CreateDemonstrationDialog: React.FC<{
 
   return (
     <DemonstrationDialog
-      onClose={onClose}
       mode="create"
       initialDemonstration={DEFAULT_DEMONSTRATION_DIALOG_FIELDS}
       onSubmit={onSubmit}

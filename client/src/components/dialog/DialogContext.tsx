@@ -45,13 +45,11 @@ export const useDialog = () => {
   if (!context) throw new Error("useDialog must be used within a DialogProvider");
 
   const showCreateDemonstrationDialog = () => {
-    context.showDialog(<CreateDemonstrationDialog onClose={context.hideDialog} />);
+    context.showDialog(<CreateDemonstrationDialog />);
   };
 
   const showEditDemonstrationDialog = (demonstrationId: string) => {
-    context.showDialog(
-      <EditDemonstrationDialog demonstrationId={demonstrationId} onClose={context.hideDialog} />
-    );
+    context.showDialog(<EditDemonstrationDialog demonstrationId={demonstrationId} />);
   };
 
   const showCreateAmendmentDialog = (demonstrationId?: string) => {
@@ -164,6 +162,7 @@ export const useDialog = () => {
   };
 
   return {
+    hideDialog: context.hideDialog,
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
