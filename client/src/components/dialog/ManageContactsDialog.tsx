@@ -602,7 +602,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
             </div>
             {(() => {
               let filteredResults = searchResults
-                .filter((p) => p.personType !== "demos-state-user")
                 .filter((p) => !selectedContacts.some((c) => c.personId === p.id))
                 .filter((p, index, arr) => arr.findIndex((item) => item.id === p.id) === index);
 
