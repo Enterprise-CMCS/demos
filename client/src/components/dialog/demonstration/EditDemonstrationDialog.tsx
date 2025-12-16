@@ -143,8 +143,9 @@ const useUpdateDemonstration = () => {
 };
 
 export const EditDemonstrationDialog: React.FC<{
+  onClose: () => void;
   demonstrationId: string;
-}> = ({ demonstrationId }) => {
+}> = ({ demonstrationId, onClose }) => {
   const { showSuccess, showError } = useToast();
   const updateDemonstration = useUpdateDemonstration();
 
@@ -156,6 +157,7 @@ export const EditDemonstrationDialog: React.FC<{
     try {
       await updateDemonstration(demonstrationId, demonstrationDialogFields);
 
+      onClose();
       showSuccess(SUCCESS_MESSAGE);
     } catch (error) {
       console.error("Edit Demonstration failed:", error);
@@ -169,6 +171,7 @@ export const EditDemonstrationDialog: React.FC<{
       {error && <div>Error loading demonstration data.</div>}
       {data && (
         <DemonstrationDialog
+          onClose={onClose}
           mode="edit"
           onSubmit={onSubmit}
           initialDemonstration={getDemonstrationDialogFields(data.demonstration)}

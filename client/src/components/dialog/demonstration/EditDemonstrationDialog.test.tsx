@@ -206,7 +206,7 @@ describe("EditDemonstrationDialog", () => {
           UPDATE_DEMONSTRATION_MOCK,
         ]}
       >
-        <EditDemonstrationDialog demonstrationId="1" />
+        <EditDemonstrationDialog onClose={vi.fn()} demonstrationId="1" />
       </TestProvider>
     );
 

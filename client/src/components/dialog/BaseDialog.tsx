@@ -2,13 +2,14 @@ import React, { useEffect, useRef } from "react";
 
 import { tw } from "tags/tw";
 import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
-import { SecondaryButton } from "components/button";
-import { useDialog } from "./DialogContext";
 
 interface BaseDialogProps {
   title: string;
+  onClose: () => void;
   children: React.ReactNode;
-  submitButton?: React.ReactNode;
+  actions?: React.ReactNode;
+  showCancelConfirm?: boolean;
+  setShowCancelConfirm?: (val: boolean) => void;
   maxWidthClass?: string;
   hideHeader?: boolean;
 }
@@ -20,14 +21,15 @@ const HR = tw`border-border-rules my-sm`;
 
 export const BaseDialog: React.FC<BaseDialogProps> = ({
   title,
+  onClose,
   children,
-  submitButton,
+  actions,
+  showCancelConfirm = false,
+  setShowCancelConfirm,
   maxWidthClass = "max-w-[720px]",
   hideHeader = false,
 }) => {
-  const [showCancelConfirm, setShowCancelConfirm] = React.useState<boolean>(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const { hideDialog } = useDialog();
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -59,16 +61,20 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
     }
   };
 
+  const onCloseClicked = () => {
+    if (showCancelConfirm && setShowCancelConfirm) {
+      setShowCancelConfirm(true);
+    } else {
+      onClose();
+    }
+  };
+
   return (
     <>
       <dialog ref={dialogRef} className={`${DIALOG} ${maxWidthClass}`} onClose={handleDialogClose}>
         {!hideHeader && (
           <>
-            <button
-              onClick={() => setShowCancelConfirm(true)}
-              className={CLOSE_BUTTON}
-              aria-label="Close dialog"
-            >
+            <button onClick={onCloseClicked} className={CLOSE_BUTTON} aria-label="Close dialog">
               ×
             </button>
             <h2 className={TITLE}>{title}</h2>
@@ -77,24 +83,20 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
         )}
 
         {children}
-        <hr className={HR} />
-        <div className="flex justify-end gap-[24px]">
-          <SecondaryButton
-            name="button-cancel-demonstration-dialog"
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-          >
-            Cancel
-          </SecondaryButton>
-          {submitButton && submitButton}
-        </div>
+
+        {actions && (
+          <>
+            <hr className={HR} />
+            <div className="flex justify-end gap-[24px]">{actions}</div>
+          </>
+        )}
       </dialog>
 
       {showCancelConfirm && setShowCancelConfirm && (
         <ConfirmCancellationDialog
           isOpen={showCancelConfirm}
           onClose={() => setShowCancelConfirm(false)}
-          onConfirm={hideDialog}
+          onConfirm={onClose}
         />
       )}
     </>
