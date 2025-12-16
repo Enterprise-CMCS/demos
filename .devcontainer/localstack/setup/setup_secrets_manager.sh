@@ -26,7 +26,7 @@ $AWS_CMD secretsmanager create-secret \
         \"password\": \"$DB_PASSWORD\",
         \"host\": \"db\",
         \"port\": \"5432\",
-        \"dbname\": \"demos\"
+        \"dbname\": \"demos\",
     }" >/dev/null
 
 # Delete existing UiPath secret
