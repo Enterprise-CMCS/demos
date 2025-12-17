@@ -12,6 +12,7 @@ import { Demonstration } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 import { SubmitButton } from "components/button/SubmitButton";
+import { isBefore } from "date-fns";
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -47,7 +48,7 @@ const DateInputs: React.FC<{
 
   // Validate expiration date is after effective date
   useEffect(() => {
-    if (expirationDate && effectiveDate && new Date(expirationDate) < new Date(effectiveDate)) {
+    if (expirationDate && effectiveDate && isBefore(expirationDate, effectiveDate)) {
       setErrorMessage(EXPIRATION_DATE_ERROR_MESSAGE);
     } else {
       setErrorMessage("");
@@ -106,7 +107,7 @@ export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
   if (
     demonstration.expirationDate &&
     demonstration.effectiveDate &&
-    new Date(demonstration.expirationDate) < new Date(demonstration.effectiveDate)
+    isBefore(demonstration.expirationDate, demonstration.effectiveDate)
   ) {
     return false;
   }
