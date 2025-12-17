@@ -113,16 +113,6 @@ export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
   return true;
 };
 
-export const checkFormIsSubmittable = (
-  initialDemonstration: DemonstrationDialogFields,
-  updatedDemonstration: DemonstrationDialogFields
-) => {
-  return (
-    checkFormIsValid(updatedDemonstration) &&
-    checkFormHasChanges(initialDemonstration, updatedDemonstration)
-  );
-};
-
 export const DemonstrationDialog: React.FC<{
   onClose: () => void;
   mode: DemonstrationDialogMode;
@@ -132,7 +122,8 @@ export const DemonstrationDialog: React.FC<{
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formIsSubmittable, setFormIsSubmittable] = useState<boolean>(false);
+  const [formHasChanged, setFormHasChanged] = useState<boolean>(false);
+  const [formIsValid, setFormIsValid] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -142,7 +133,8 @@ export const DemonstrationDialog: React.FC<{
 
   const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
     setActiveDemonstration(updatedDemonstration);
-    setFormIsSubmittable(checkFormIsSubmittable(initialDemonstration, updatedDemonstration));
+    setFormIsValid(checkFormIsValid(updatedDemonstration));
+    setFormHasChanged(checkFormHasChanges(initialDemonstration, updatedDemonstration));
   };
 
   return (
@@ -163,7 +155,7 @@ export const DemonstrationDialog: React.FC<{
           </SecondaryButton>
           <SubmitButton
             name={"button-submit-demonstration-dialog"}
-            disabled={!formIsSubmittable}
+            disabled={!formHasChanged || !formIsValid}
             isSubmitting={isSubmitting}
             onClick={handleSubmit}
           />
