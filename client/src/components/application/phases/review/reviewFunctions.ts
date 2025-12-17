@@ -1,18 +1,6 @@
 import { SimplePhase } from "../../ApplicationWorkflow";
 import { format } from "date-fns";
-
-export interface ReviewPhaseFormData {
-  ogcApprovalToShareDate?: string;
-  draftApprovalPackageToPrepDate?: string;
-  ddmeApprovalReceivedDate?: string;
-  stateConcurrenceDate?: string;
-  bnPmtApprovalReceivedDate?: string;
-  draftApprovalPackageSharedDate?: string;
-  receiveOMBConcurrenceDate?: string;
-  receiveOGCLegalClearanceDate?: string;
-  poOGDNotes?: string;
-  ogcOMBNotes?: string;
-}
+import { ReviewPhaseFormData } from "../ReviewPhase";
 
 export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormData {
   const getDateValue = (dateType: string) => {
@@ -33,19 +21,6 @@ export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormD
     poOGDNotes: "",
     ogcOMBNotes: "",
   };
-}
-
-export function isFormComplete(reviewPhaseFormData: ReviewPhaseFormData): boolean {
-  return !!(
-    reviewPhaseFormData.ogcApprovalToShareDate &&
-    reviewPhaseFormData.draftApprovalPackageToPrepDate &&
-    reviewPhaseFormData.ddmeApprovalReceivedDate &&
-    reviewPhaseFormData.stateConcurrenceDate &&
-    reviewPhaseFormData.bnPmtApprovalReceivedDate &&
-    reviewPhaseFormData.draftApprovalPackageSharedDate &&
-    reviewPhaseFormData.receiveOMBConcurrenceDate &&
-    reviewPhaseFormData.receiveOGCLegalClearanceDate
-  );
 }
 
 export function hasFormChanges(

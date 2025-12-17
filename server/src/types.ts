@@ -2,6 +2,7 @@ import {
   ADMIN_DEMONSTRATION_ROLES,
   APPLICATION_STATUS,
   APPLICATION_TYPES,
+  CLEARANCE_LEVEL,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
   DOCUMENT_TYPES,
@@ -77,6 +78,7 @@ export type {
   SetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
+export type ClearanceLevel = (typeof CLEARANCE_LEVEL)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
 export type DateTimeOrLocalDate = Date | LocalDate;
 export type NonEmptyString = string;
@@ -86,8 +88,7 @@ export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export type PhaseName = (typeof PHASE_NAME)[number];
-export type PhaseNameWithTrackedStatus =
-  (typeof PHASE_NAMES_WITH_TRACKED_STATUS)[number];
+export type PhaseNameWithTrackedStatus = (typeof PHASE_NAMES_WITH_TRACKED_STATUS)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
@@ -98,7 +99,5 @@ export type LogLevel = (typeof LOG_LEVELS)[number];
 export type EventType = (typeof EVENT_TYPES)[number];
 export type NoteType = (typeof NOTE_TYPES)[number];
 export type AdminDemonstrationRole = (typeof ADMIN_DEMONSTRATION_ROLES)[number];
-export type CmsUserDemonstrationRole =
-  (typeof CMS_USER_DEMONSTRATION_ROLES)[number];
-export type StateUserDemonstrationRole =
-  (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
+export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[number];
+export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];

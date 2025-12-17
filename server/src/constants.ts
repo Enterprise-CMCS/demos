@@ -1,5 +1,10 @@
 import { DateType, DocumentType, ExpectedTimestamp, PhaseNameWithTrackedStatus } from "./types.js";
 
+export const CLEARANCE_LEVEL = [
+  "COMMS Clearance Required",
+  "CMS (OSORA) Clearance Required",
+] as const;
+
 export const APPLICATION_STATUS = [
   "Pre-Submission",
   "Under Review",
