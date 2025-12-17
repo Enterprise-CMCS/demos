@@ -89,7 +89,7 @@ describe("FederalCommentPhase", () => {
   describe("Step 1 - Upload Section", () => {
     it("renders upload section with title and helper text", () => {
       setup();
-      expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
+      expect(screen.getByText("STEP 2 - UPLOAD")).toBeInTheDocument();
       expect(screen.getByText(/Upload the Internal Analysis Document/)).toBeInTheDocument();
     });
 
@@ -114,7 +114,7 @@ describe("FederalCommentPhase", () => {
   describe("Step 2 - Verify/Complete Section", () => {
     it("renders step 2 title and description", () => {
       setup();
-      expect(screen.getByText("STEP 2 - VERIFY/COMPLETE")).toBeInTheDocument();
+      expect(screen.getByText("STEP 1 - VERIFY/COMPLETE")).toBeInTheDocument();
       expect(
         screen.getByText(/The Federal Comment phase automatically completes after/i)
       ).toBeInTheDocument();
