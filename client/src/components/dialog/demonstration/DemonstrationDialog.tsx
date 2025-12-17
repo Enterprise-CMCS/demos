@@ -93,6 +93,36 @@ export const checkFormHasChanges = (
   );
 };
 
+export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
+  if (!demonstration.name) {
+    return false;
+  }
+  if (!demonstration.stateId) {
+    return false;
+  }
+  if (!demonstration.projectOfficerId) {
+    return false;
+  }
+  if (
+    demonstration.expirationDate &&
+    demonstration.effectiveDate &&
+    new Date(demonstration.expirationDate) < new Date(demonstration.effectiveDate)
+  ) {
+    return false;
+  }
+  return true;
+};
+
+export const checkFormIsSubmittable = (
+  initialDemonstration: DemonstrationDialogFields,
+  updatedDemonstration: DemonstrationDialogFields
+) => {
+  return (
+    checkFormIsValid(updatedDemonstration) &&
+    checkFormHasChanges(initialDemonstration, updatedDemonstration)
+  );
+};
+
 export const DemonstrationDialog: React.FC<{
   onClose: () => void;
   mode: DemonstrationDialogMode;
@@ -102,8 +132,7 @@ export const DemonstrationDialog: React.FC<{
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [validationErrors, setValidationErrors] =
-    useState<Record<keyof DemonstrationDialogFields, string>>();
+  const [formIsSubmittable, setFormIsSubmittable] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -111,23 +140,9 @@ export const DemonstrationDialog: React.FC<{
     setIsSubmitting(false);
   };
 
-  const validateForm = (demonstration: DemonstrationDialogFields) => {
-    const validationErrors: Record<string, string> = {};
-    if (!demonstration.name || demonstration.name.trim() === "") {
-      validationErrors.name = "Demonstration title is required.";
-    }
-    if (!demonstration.stateId) {
-      validationErrors.stateId = "State/Territory is required.";
-    }
-    if (!demonstration.projectOfficerId) {
-      validationErrors.notAField = "Project Officer is required.";
-    }
-    setValidationErrors(validationErrors);
-  };
-
   const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
     setActiveDemonstration(updatedDemonstration);
-    validateForm(updatedDemonstration);
+    setFormIsSubmittable(checkFormIsSubmittable(initialDemonstration, updatedDemonstration));
   };
 
   return (
@@ -148,7 +163,7 @@ export const DemonstrationDialog: React.FC<{
           </SecondaryButton>
           <SubmitButton
             name={"button-submit-demonstration-dialog"}
-            disabled={!formHasChanges}
+            disabled={!formIsSubmittable}
             isSubmitting={isSubmitting}
             onClick={handleSubmit}
           />
