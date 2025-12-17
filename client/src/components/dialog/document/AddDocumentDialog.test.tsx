@@ -45,6 +45,7 @@ afterEach(() => {
 const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "button-confirm-upload-document";
 const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
 const FILE_INPUT_TEST_ID = "input-file";
+const CANCEL_BUTTON_TEST_ID = "button-cancel-upload-document";
 
 describe("AddDocumentDialog", () => {
   const setup = () => {
@@ -167,6 +168,23 @@ describe("AddDocumentDialog", () => {
     const titleSpan = await screen.findByTitle(longName);
 
     expect(titleSpan.textContent).toContain("...");
+  });
+
+  it("disables upload and cancel buttons during upload", async () => {
+    mockMutationFn.mockImplementation(() => new Promise(() => {})); // never resolves
+    setup();
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    const cancelBtn = screen.getByTestId(CANCEL_BUTTON_TEST_ID);
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), { target: { files: [file] } });
+
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+    await waitFor(() => expect(cancelBtn).toBeEnabled());
+
+    fireEvent.click(uploadBtn);
+    await waitFor(() => expect(uploadBtn).toBeDisabled());
+    await waitFor(() => expect(cancelBtn).toBeDisabled());
   });
 });
 
