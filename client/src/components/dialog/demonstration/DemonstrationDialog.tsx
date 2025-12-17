@@ -47,7 +47,7 @@ const DateInputs: React.FC<{
 
   // Validate expiration date is after effective date
   useEffect(() => {
-    if (expirationDate && effectiveDate && expirationDate < effectiveDate) {
+    if (expirationDate && effectiveDate && new Date(expirationDate) < new Date(effectiveDate)) {
       setErrorMessage(EXPIRATION_DATE_ERROR_MESSAGE);
     } else {
       setErrorMessage("");
