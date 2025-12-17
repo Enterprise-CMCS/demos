@@ -99,7 +99,7 @@ export class UiPathProcessor extends Construct {
     // Grants
     this.queue.grantConsumeMessages(uipathLambda.lambda);
     clientSecret.grantRead(uipathLambda.lambda);
-
+    dbSecret.grantRead(uipathLambda.lambda);
     // ✅ allow access to the actual bucket CDK created
     props.documentsBucket.grantReadWrite(uipathLambda.lambda);
 
