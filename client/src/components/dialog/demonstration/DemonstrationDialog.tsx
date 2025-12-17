@@ -122,7 +122,7 @@ export const DemonstrationDialog: React.FC<{
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formHasChanged, setFormHasChanged] = useState<boolean>(false);
+  const [formHasChanges, setFormHasChanges] = useState<boolean>(false);
   const [formIsValid, setFormIsValid] = useState<boolean>(false);
 
   const handleSubmit = async () => {
@@ -133,8 +133,8 @@ export const DemonstrationDialog: React.FC<{
 
   const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
     setActiveDemonstration(updatedDemonstration);
+    setFormHasChanges(checkFormHasChanges(initialDemonstration, updatedDemonstration));
     setFormIsValid(checkFormIsValid(updatedDemonstration));
-    setFormHasChanged(checkFormHasChanges(initialDemonstration, updatedDemonstration));
   };
 
   return (
@@ -155,7 +155,7 @@ export const DemonstrationDialog: React.FC<{
           </SecondaryButton>
           <SubmitButton
             name={"button-submit-demonstration-dialog"}
-            disabled={!formHasChanged || !formIsValid}
+            disabled={!formHasChanges || !formIsValid}
             isSubmitting={isSubmitting}
             onClick={handleSubmit}
           />
