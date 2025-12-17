@@ -102,7 +102,8 @@ export const DemonstrationDialog: React.FC<{
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formHasChanges, setFormHasChanges] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] =
+    useState<Record<keyof DemonstrationDialogFields, string>>();
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -110,9 +111,23 @@ export const DemonstrationDialog: React.FC<{
     setIsSubmitting(false);
   };
 
+  const validateForm = (demonstration: DemonstrationDialogFields) => {
+    const validationErrors: Record<string, string> = {};
+    if (!demonstration.name || demonstration.name.trim() === "") {
+      validationErrors.name = "Demonstration title is required.";
+    }
+    if (!demonstration.stateId) {
+      validationErrors.stateId = "State/Territory is required.";
+    }
+    if (!demonstration.projectOfficerId) {
+      validationErrors.notAField = "Project Officer is required.";
+    }
+    setValidationErrors(validationErrors);
+  };
+
   const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
     setActiveDemonstration(updatedDemonstration);
-    setFormHasChanges(checkFormHasChanges(initialDemonstration, updatedDemonstration));
+    validateForm(updatedDemonstration);
   };
 
   return (
