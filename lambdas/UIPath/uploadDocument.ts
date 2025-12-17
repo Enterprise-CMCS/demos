@@ -2,7 +2,7 @@ import * as fs from "fs";
 import FormData from "form-data";
 import { AxiosProgressEvent } from "axios";
 import { log } from "./log";
-import { duPost, UIPATH_BASE_URL, UIPATH_TENANT, getProjectId } from "./uipathClient";
+import { duPost, UIPATH_TENANT, getProjectId } from "./uipathClient";
 
 export interface UploadResponse {
   documentId: string;
@@ -11,7 +11,7 @@ export interface UploadResponse {
 
 export async function uploadDocument(token: string, fileName: string): Promise<string> {
   const projectId = getProjectId();
-  const url = `${UIPATH_BASE_URL}/${UIPATH_TENANT}/du_/api/framework/projects/${projectId}/digitization/start`;
+  const url = `https://govcloud.uipath.us/${UIPATH_TENANT}/du_/api/framework/projects/${projectId}/digitization/start`;
   log.info({ url }, "Uploading document to UiPath");
   const formData = new FormData();
   formData.append("file", fs.createReadStream(fileName), fileName);
