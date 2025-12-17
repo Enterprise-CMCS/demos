@@ -47,14 +47,16 @@ export class FileUploadStack extends Stack {
       encryptionMasterKey: kmsKey,
     });
 
-    const uploadQueue = new Queue(this, "FileUploadQueue", {
-      removalPolicy: RemovalPolicy.DESTROY,
-      enforceSSL: true,
-      deadLetterQueue: {
-        maxReceiveCount: 5,
-        queue: deadLetterQueue,
-      },
-    });
+   const uploadQueue = new Queue(this, "FileUploadQueue", {
+    removalPolicy: RemovalPolicy.DESTROY,
+    enforceSSL: true,
+    encryption: QueueEncryption.KMS,
+    encryptionMasterKey: kmsKey,
+    deadLetterQueue: {
+      maxReceiveCount: 5,
+      queue: deadLetterQueue,
+    },
+  });
 
     const deleteInfectedFileQueue = new Queue(this, "DeleteInfectedFileQueue", {
       removalPolicy: RemovalPolicy.DESTROY,
@@ -125,6 +127,17 @@ export class FileUploadStack extends Stack {
       publicReadAccess: false,
       serverAccessLogsBucket: accessLogs,
       serverAccessLogsPrefix: "deleted",
+      enforceSSL: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
+    const uiPathDocumentsBucket = new Bucket(this, "UiPathDocumentsBucket", {
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      serverAccessLogsBucket: accessLogs,
+      serverAccessLogsPrefix: "uipath-documents",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
@@ -280,6 +293,8 @@ export class FileUploadStack extends Stack {
       ...props,
       removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       kmsKey,
+      deadLetterQueue,
+      documentsBucket: uiPathDocumentsBucket,
     });
 
     new CfnOutput(this, "cleanBucketName", {
@@ -300,6 +315,11 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "infectedBucketName", {
       exportName: `${props.stage}InfectedBucketName`,
       value: infectedBucket.bucketName,
+    });
+
+    new CfnOutput(this, "uipathDocumentsBucketName", {
+      exportName: `${props.stage}UiPathDocumentsBucketName`,
+      value: uiPathDocumentsBucket.bucketName,
     });
   }
 }

@@ -33,6 +33,26 @@ import { getManyApplications } from "./model/application/applicationResolvers.js
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;
+const DOCUMENT_UNDERSTANDING_QUESTIONS = [
+  {
+    id: "11111111-2222-3333-4444-555555555555",
+    payload: {
+      id: "State",
+      question: "What state is this 1115 waver for?",
+      fieldType: "Text",
+      multiValued: false,
+    },
+  },
+  {
+    id: "66666666-7777-8888-9999-000000000000",
+    payload: {
+      id: "Demonstration Name",
+      question: "What demonstration is this 1115 waiver for?",
+      fieldType: "Text",
+      multiValued: false,
+    },
+  },
+];
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -110,6 +130,23 @@ async function seedDocuments() {
   }
 }
 
+async function seedDocumentUnderstandingQuestions() {
+  console.log("🌱 Seeding document understanding questions...");
+  for (const question of DOCUMENT_UNDERSTANDING_QUESTIONS) {
+    await prisma().$executeRawUnsafe(
+      `
+        INSERT INTO document_understanding_questions (id, question, created_at, updated_at)
+        VALUES ($1::uuid, $2::jsonb, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE
+          SET question = EXCLUDED.question,
+              updated_at = NOW();
+      `,
+      question.id,
+      JSON.stringify(question.payload)
+    );
+  }
+}
+
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
   const randomEnd = faker.date.future({ years: 1, refDate: randomStart });
@@ -184,6 +221,7 @@ async function seedDatabase() {
   checkIfAllowed();
 
   await clearDatabase();
+  await seedDocumentUnderstandingQuestions();
 
   // Setting constants for record generation
   const userCount = 9;

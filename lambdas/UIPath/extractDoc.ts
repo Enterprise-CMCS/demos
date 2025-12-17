@@ -11,7 +11,15 @@ export interface ExtractionPrompt {
   multiValued: boolean;
 }
 
-export async function extractDoc(token: string, docId: string): Promise<string> {
+export async function extractDoc(
+  token: string,
+  docId: string,
+  prompts: ExtractionPrompt[]
+): Promise<string> {
+  if (!prompts?.length) {
+    throw new Error("No document understanding prompts configured.");
+  }
+
   const extractorGuid = getExtractorGuid(); // NOTE: Zoe might make her own. So we may need to query here to get the right GUID
   const projectId = getProjectId();
   const url = `${UIPATH_BASE_URL}/${extractorGuid}/du_/api/framework/projects/${projectId}/extractors/${UIPATH_EXTRACTOR_NAME}/extraction/start?api-version=1.0`;
@@ -19,7 +27,7 @@ export async function extractDoc(token: string, docId: string): Promise<string> 
   const extract = await duPost<ExtractionStartResponse>(url, token, {
     documentId: docId,
     pageRange: null,
-    prompts: activeQuestionBlobs,
+    prompts,
     configuration: null,
   });
 
@@ -29,12 +37,3 @@ export async function extractDoc(token: string, docId: string): Promise<string> 
   }
   return resultUrl;
 }
-
-const activeQuestionBlobs: ExtractionPrompt[] = [
-  {
-    id: "State",
-    question: "What state is this 1115 waver for?",
-    fieldType: "Text",
-    multiValued: false,
-  },
-];

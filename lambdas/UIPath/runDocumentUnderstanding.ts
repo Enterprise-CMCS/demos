@@ -2,7 +2,7 @@ import util from "node:util";
 import { log } from "./log";
 import { getToken } from "./getToken";
 import { uploadDocument } from "./uploadDocument";
-import { extractDoc } from "./extractDoc";
+import { extractDoc, ExtractionPrompt } from "./extractDoc";
 import { fetchExtractionResult, ExtractionStatus } from "./fetchExtractResult";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -12,6 +12,7 @@ export interface RunDocumentUnderstandingOptions {
   logFullResult?: boolean;
   pollIntervalMs?: number;
   maxAttempts?: number;
+  prompts?: ExtractionPrompt[];
 }
 
 export async function runDocumentUnderstanding(
@@ -23,6 +24,7 @@ export async function runDocumentUnderstanding(
     pollIntervalMs = 3000,
     maxAttempts = 500, // Just to put SOME kinda limit on it. DO not want it just running FOREVER!
     logFullResult = true,
+    prompts,
   } = options;
 
   const token = providedToken ?? (await getToken());
@@ -31,7 +33,11 @@ export async function runDocumentUnderstanding(
   const docId = await uploadDocument(token, inputFile);
   log.info({ docId }, "Uploaded document.");
 
-  const resultUrl = await extractDoc(token, docId);
+  if (!prompts?.length) {
+    throw new Error("No document understanding prompts configured.");
+  }
+
+  const resultUrl = await extractDoc(token, docId, prompts);
   log.info({ resultUrl }, "Started extraction.");
 
   let attempt = 0;

@@ -3,6 +3,7 @@ import { Match, Template } from "aws-cdk-lib/assertions";
 import { UiPathProcessor } from "./uipathProcessor";
 import { DeploymentConfigProperties } from "../config";
 import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
+import { Bucket } from "aws-cdk-lib/aws-s3";
 
 const mockProps: DeploymentConfigProperties = {
   project: "demos",
@@ -30,6 +31,7 @@ describe("UiPathProcessor construct", () => {
     new UiPathProcessor(stack, "UiPathProcessor", {
       ...mockProps,
       removalPolicy: RemovalPolicy.DESTROY,
+      documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
     });
 
     const template = Template.fromStack(stack);
