@@ -9,6 +9,7 @@ import {
   DemonstrationDialog,
   checkFormHasChanges,
   DemonstrationDialogFields,
+  checkFormIsValid,
 } from "./DemonstrationDialog";
 import userEvent from "@testing-library/user-event";
 import { SdgDivision, SignatureLevel } from "demos-server";
@@ -201,7 +202,7 @@ describe("DemonstrationDialog", () => {
     expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
   });
 
-  it("should enable submit button when form has changes and disable when reverted", async () => {
+  it("should enable submit button when form has changes and is valid", async () => {
     const user = userEvent.setup();
     const { getByTestId } = render(getDemonstrationDialog("edit"));
 
@@ -211,10 +212,91 @@ describe("DemonstrationDialog", () => {
     const titleInput = getByTestId(TITLE_INPUT_TEST_ID);
     await user.clear(titleInput);
     await user.type(titleInput, "New Name");
+    // verified that if changes, but still invalid, button remains disabled
+    expect(submitButton).toBeDisabled();
+
+    const stateSelect = getByTestId(STATE_SELECT_TEST_ID);
+    await user.clear(stateSelect);
+    await user.type(stateSelect, "North Carolina");
+    await user.click(screen.getByText("North Carolina"));
+    expect(submitButton).toBeDisabled();
+
+    const projectOfficerSelect = getByTestId(SELECT_USERS_TEST_ID);
+    await user.clear(projectOfficerSelect);
+    await user.type(projectOfficerSelect, "Test Officer");
+    await user.click(screen.getByText("Test Officer"));
     expect(submitButton).toBeEnabled();
 
     await user.clear(titleInput);
     expect(submitButton).toBeDisabled();
+  });
+
+  it("should not enable submit button when form is not valid but has changes", async () => {
+    const user = userEvent.setup();
+    const validDemonstration = {
+      ...DEFAULT_DEMONSTRATION,
+      name: "Test Demo",
+      stateId: "NC",
+      projectOfficerId: "test-officer-id",
+    };
+    const { getByTestId } = render(
+      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
+        <DemonstrationDialog
+          {...DEFAULT_PROPS}
+          initialDemonstration={validDemonstration}
+          mode="edit"
+        />
+      </TestProvider>
+    );
+
+    const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(submitButton).toBeDisabled();
+
+    const descriptionInput = getByTestId(DESCRIPTION_TEXTAREA_TEST_ID);
+    await user.clear(descriptionInput);
+    await user.type(descriptionInput, "New Description");
+    expect(submitButton).toBeEnabled();
+
+    await user.clear(descriptionInput);
+    expect(submitButton).toBeDisabled();
+  });
+
+  describe("checkFormIsValid", () => {
+    it("returns false if state is not selected", () => {
+      const invalidForm = { ...DEFAULT_DEMONSTRATION, stateId: "" };
+      expect(checkFormIsValid(invalidForm)).toBe(false);
+    });
+
+    it("returns false if name is empty", () => {
+      const invalidForm = { ...DEFAULT_DEMONSTRATION, name: "" };
+      expect(checkFormIsValid(invalidForm)).toBe(false);
+    });
+
+    it("returns false if project officer is not selected", () => {
+      const invalidForm = { ...DEFAULT_DEMONSTRATION, projectOfficerId: "" };
+      expect(checkFormIsValid(invalidForm)).toBe(false);
+    });
+
+    it("returns false if expiration date is before effective date", () => {
+      const invalidForm = {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-12-01",
+        expirationDate: "2024-11-01",
+      };
+      expect(checkFormIsValid(invalidForm)).toBe(false);
+    });
+
+    it("returns true for a valid form", () => {
+      const validForm = {
+        ...DEFAULT_DEMONSTRATION,
+        name: "Valid Name",
+        stateId: "NC",
+        projectOfficerId: "officer-123",
+        effectiveDate: "2024-11-01",
+        expirationDate: "2024-12-01",
+      };
+      expect(checkFormIsValid(validForm)).toBe(true);
+    });
   });
 
   describe("checkFormChanged", () => {
