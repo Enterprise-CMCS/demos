@@ -59,13 +59,12 @@ export const getConceptPhaseComponentFromDemonstration = (
 const getLatestDocumentDate = (documents: ApplicationWorkflowDocument[]): string => {
   if (documents.length === 0) return "";
 
-  const sortedDocuments = [...documents].sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime();
-    const dateB = new Date(b.createdAt).getTime();
-    return dateB - dateA; // Sort descending (latest first)
+  const createdAtDates = documents.map((doc) => doc.createdAt);
+  const sortedDates = createdAtDates.sort((dateA, dateB) => {
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
 
-  return formatDateForServer(sortedDocuments[0].createdAt);
+  return formatDateForServer(sortedDates[0]);
 };
 
 export interface ConceptProps {
@@ -154,6 +153,7 @@ export const ConceptPhase = ({
       await skipConceptPhase();
     } catch (error) {
       console.error("Error skipping concept phase:", error);
+      return;
     }
 
     showSuccess("Concept phase skipped");
