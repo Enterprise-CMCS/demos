@@ -1,13 +1,12 @@
 import "@testing-library/jest-dom";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { parseISO, format } from "date-fns";
 
-import { ReviewPhase, getReviewPhaseComponentFromDemonstration } from "./ReviewPhase";
-import { ApplicationWorkflowDemonstration, SimplePhase } from "../../ApplicationWorkflow";
-import { ApplicationDate } from "demos-server";
+import { ReviewPhase } from "./ReviewPhase";
+import { ReviewPhaseFormData } from "./ReviewPhase";
 import { TestProvider } from "test-utils/TestProvider";
 
 // Mock formatDateForServer so date output is predictable and uses date-fns (no toISOString slicing)
@@ -18,55 +17,46 @@ vi.mock("util/formatDate", () => ({
   },
 }));
 
-const buildPhase = (dates: Record<string, string>): SimplePhase => ({
-  phaseName: "Review",
-  phaseStatus: "Not Started",
-  phaseDates: Object.entries(dates).map(([dateType, iso]) => ({
-    dateType: dateType as Pick<ApplicationDate, "dateType">["dateType"],
-    dateValue: parseISO(iso),
-  })),
+// Mock the queries
+vi.mock("components/application/date/dateQueries", () => ({
+  useSetApplicationDates: () => ({
+    setApplicationDates: vi.fn(),
+  }),
+}));
+
+vi.mock("../../phase-status/phaseStatusQueries", () => ({
+  useSetPhaseStatus: () => ({
+    setPhaseStatus: vi.fn(),
+  }),
+}));
+
+const buildInitialFormData = (overrides?: Partial<ReviewPhaseFormData>): ReviewPhaseFormData => ({
+  dates: {
+    "OGD Approval to Share with SMEs": "2025-01-01",
+    "Draft Approval Package to Prep": "2025-01-02",
+    "DDME Approval Received": "2025-01-03",
+    "State Concurrence": "2025-01-04",
+    "BN PMT Approval to Send to OMB": "2025-01-05",
+    "Draft Approval Package Shared": "2025-01-06",
+    "Receive OMB Concurrence": "2025-01-07",
+    "Receive OGC Legal Clearance": "2025-01-08",
+    "Package Sent to COMMs Clearance": "2025-01-09",
+    "COMMs Clearance Received": "2025-01-10",
+  },
+  notes: {
+    "PO and OGD": "PO OGD notes",
+    "OGC and OMB": "OGC OMB notes",
+    "COMMs Clearance": "COMMs notes",
+  },
+  clearanceLevel: "COMMs",
+  ...overrides,
 });
 
-const mockDemonstration: ApplicationWorkflowDemonstration = {
-  id: "demo1",
-  status: "Pre-Submission",
-  currentPhaseName: "Review",
-  documents: [],
-  phases: [
-    buildPhase({
-      "OGD Approval to Share with SMEs": "2025-01-01T00:00:00.000Z",
-      "Draft Approval Package to Prep": "2025-01-02T00:00:00.000Z",
-      "DDME Approval Received": "2025-01-03T00:00:00.000Z",
-      "State Concurrence": "2025-01-04T00:00:00.000Z",
-      "BN PMT Approval to Send to OMB": "2025-01-05T00:00:00.000Z",
-      "Draft Approval Package Shared": "2025-01-06T00:00:00.000Z",
-      "Receive OMB Concurrence": "2025-01-07T00:00:00.000Z",
-      "Receive OGC Legal Clearance": "2025-01-08T00:00:00.000Z",
-      "PO OGD Notes": "2025-01-09T00:00:00.000Z",
-      "OGC OMB Notes": "2025-01-10T00:00:00.000Z",
-    }),
-  ],
-};
-
 describe("ReviewPhase Component", () => {
-  const setup = (
-    formData = {
-      ogcApprovalToShareDate: "2025-01-01",
-      draftApprovalPackageToPrepDate: "2025-01-02",
-      ddmeApprovalReceivedDate: "2025-01-03",
-      stateConcurrenceDate: "2025-01-04",
-      bnPmtApprovalReceivedDate: "2025-01-05",
-      draftApprovalPackageSharedDate: "2025-01-06",
-      receiveOMBConcurrenceDate: "2025-01-07",
-      receiveOGCLegalClearanceDate: "2025-01-08",
-      poOGDNotes: "notes1",
-      ogcOMBNotes: "notes2",
-    },
-    demonstrationId = "test-demo-id"
-  ) => {
+  const setup = (initialFormData = buildInitialFormData(), demonstrationId = "test-demo-id") => {
     render(
       <TestProvider>
-        <ReviewPhase formData={formData} demonstrationId={demonstrationId} />
+        <ReviewPhase initialFormData={initialFormData} demonstrationId={demonstrationId} />
       </TestProvider>
     );
   };
@@ -86,70 +76,186 @@ describe("ReviewPhase Component", () => {
     });
   });
 
-  describe("Form fields", () => {
-    it("renders all required date fields", () => {
+  describe("Sections", () => {
+    it("renders three section headers", () => {
       setup();
 
-      const inputTestIds = [
-        "datepicker-ogc-approval-to-share-date",
-        "datepicker-draft-approval-package-to-prep-date",
-        "datepicker-ddme-approval-received-date",
-        "datepicker-state-concurrence-date",
-        "datepicker-bn-pmt-approval-received-date",
-        "datepicker-draft-approval-package-shared-date",
-        "datepicker-receive-omb-concurrence-date",
-        "datepicker-receive-ogc-legal-clearance-date",
-      ];
+      expect(screen.getByText("PO & OGD")).toBeInTheDocument();
+      expect(screen.getByText("OGC & OMB")).toBeInTheDocument();
+      expect(screen.getByText("Comms Clearance")).toBeInTheDocument();
+    });
 
-      inputTestIds.forEach((testId) => {
-        expect(screen.getByTestId(testId)).toBeInTheDocument();
+    it("shows CMS (OSORA) section when clearance level is CMS (OSORA)", () => {
+      setup(buildInitialFormData({ clearanceLevel: "CMS (OSORA)" }));
+
+      expect(screen.getByText("CMS (OSORA) Clearance")).toBeInTheDocument();
+    });
+
+    it("does not show CMS (OSORA) section when clearance level is COMMs", () => {
+      setup(buildInitialFormData({ clearanceLevel: "COMMs" }));
+
+      expect(screen.queryByText("CMS (OSORA) Clearance")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Clearance Level Radio Buttons", () => {
+    it("renders clearance level radio buttons", () => {
+      setup();
+
+      expect(screen.getByText("COMMs Clearance Required")).toBeInTheDocument();
+      expect(screen.getByText("CMS (OSORA) Clearance Required")).toBeInTheDocument();
+    });
+
+    it("selects COMMs clearance level based on setup data", () => {
+      setup();
+
+      const commsRadio = screen.getByLabelText("COMMs Clearance Required");
+      expect(commsRadio).toBeChecked();
+    });
+
+    it("switches to CMS (OSORA) section when CMS radio is selected", async () => {
+      setup();
+
+      const cmsRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
+      await userEvent.click(cmsRadio);
+
+      await waitFor(() => {
+        expect(screen.getByText("CMS (OSORA) Clearance")).toBeInTheDocument();
+        expect(screen.queryByText("Comms Clearance")).not.toBeInTheDocument();
       });
     });
+  });
 
-    it("renders PO OGD Notes and OGC OMB Notes fields", () => {
+  describe("Section completion and expansion", () => {
+    it("marks PO & OGD section as complete when all dates are filled", () => {
       setup();
 
+      expect(screen.getAllByText("Complete")[0]).toBeInTheDocument();
+    });
+
+    it("marks PO & OGD section as incomplete when dates are missing", () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+          "Draft Approval Package to Prep": "2025-01-02",
+          "DDME Approval Received": "2025-01-03",
+          "State Concurrence": "2025-01-04",
+        },
+      });
+      setup(incompleteData);
+      const poOgdSection = screen.getByText("PO & OGD").closest("section");
+      expect(poOgdSection).toHaveTextContent("Incomplete");
+    });
+
+    it("collapses completed sections automatically", () => {
+      setup();
+
+      // Complete sections should be collapsed, so notes fields should not be visible
+      expect(screen.queryByTestId("input-po-ogd-notes")).not.toBeInTheDocument();
+    });
+
+    it("keeps incomplete sections expanded", () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+      });
+      setup(incompleteData);
+
+      // Incomplete section should be expanded, so notes field should be visible
       expect(screen.getByTestId("input-po-ogd-notes")).toBeInTheDocument();
-      expect(screen.getByTestId("input-ogc-omb-notes")).toBeInTheDocument();
-    });
-  });
-
-  describe("Prefill behavior", () => {
-    it("prefills dates correctly", () => {
-      setup();
-
-      expect(screen.getByTestId("datepicker-ogc-approval-to-share-date")).toHaveValue("2025-01-01");
-      expect(screen.getByTestId("datepicker-draft-approval-package-to-prep-date")).toHaveValue(
-        "2025-01-02"
-      );
-      expect(screen.getByTestId("datepicker-ddme-approval-received-date")).toHaveValue(
-        "2025-01-03"
-      );
-      expect(screen.getByTestId("datepicker-state-concurrence-date")).toHaveValue("2025-01-04");
-    });
-  });
-
-  describe("Field updates", () => {
-    it("updates a date field when user types", async () => {
-      setup();
-
-      const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
-
-      await userEvent.clear(dateInput);
-      await userEvent.type(dateInput, "2025-12-25");
-
-      expect(dateInput).toHaveValue("2025-12-25");
     });
 
-    it("updates a notes field when user types", async () => {
-      setup();
+    it("requires COMMs clearance section completion when COMMs is selected", () => {
+      const dataWithoutClearance = buildInitialFormData({
+        clearanceLevel: "COMMs",
+        dates: {
+          "OGD Approval to Share with SMEs": "2025-01-01",
+          "Draft Approval Package to Prep": "2025-01-02",
+          "DDME Approval Received": "2025-01-03",
+          "State Concurrence": "2025-01-04",
+          "BN PMT Approval to Send to OMB": "2025-01-05",
+          "Draft Approval Package Shared": "2025-01-06",
+          "Receive OMB Concurrence": "2025-01-07",
+          "Receive OGC Legal Clearance": "2025-01-08",
+          "Package Sent to COMMs Clearance": "",
+          "COMMs Clearance Received": "",
+        },
+      });
+      setup(dataWithoutClearance);
 
-      const notesInput = screen.getByTestId("input-po-ogd-notes");
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeDisabled();
+    });
 
-      await userEvent.clear(notesInput);
-      await userEvent.type(notesInput, "Updated Note");
+    it("requires CMS (OSORA) clearance section completion when CMS (OSORA) is selected", () => {
+      const dataWithoutOsora = buildInitialFormData({
+        clearanceLevel: "CMS (OSORA)",
+        dates: {
+          "OGD Approval to Share with SMEs": "2025-01-01",
+          "Draft Approval Package to Prep": "2025-01-02",
+          "DDME Approval Received": "2025-01-03",
+          "State Concurrence": "2025-01-04",
+          "BN PMT Approval to Send to OMB": "2025-01-05",
+          "Draft Approval Package Shared": "2025-01-06",
+          "Receive OMB Concurrence": "2025-01-07",
+          "Receive OGC Legal Clearance": "2025-01-08",
+          "Submit Approval Package to OSORA": "",
+          "OSORA R1 Comments Due": "",
+          "OSORA R2 Comments Due": "",
+          "CMS (OSORA) Clearance End": "",
+        },
+      });
+      setup(dataWithoutOsora);
 
-      expect(notesInput).toHaveValue("Updated Note");
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeDisabled();
+    });
+
+    it("enables finish button when CMS (OSORA) section is complete and CMS (OSORA) is selected", () => {
+      const completeOsoraData = buildInitialFormData({
+        clearanceLevel: "CMS (OSORA)",
+        dates: {
+          "OGD Approval to Share with SMEs": "2025-01-01",
+          "Draft Approval Package to Prep": "2025-01-02",
+          "DDME Approval Received": "2025-01-03",
+          "State Concurrence": "2025-01-04",
+          "BN PMT Approval to Send to OMB": "2025-01-05",
+          "Draft Approval Package Shared": "2025-01-06",
+          "Receive OMB Concurrence": "2025-01-07",
+          "Receive OGC Legal Clearance": "2025-01-08",
+          "Submit Approval Package to OSORA": "2025-01-09",
+          "OSORA R1 Comments Due": "2025-01-10",
+          "OSORA R2 Comments Due": "2025-01-11",
+          "CMS (OSORA) Clearance End": "2025-01-12",
+        },
+      });
+      setup(completeOsoraData);
+
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeEnabled();
+    });
+
+    it("enables finish button when COMMs section is complete and COMMs is selected", () => {
+      const completeCommsData = buildInitialFormData({
+        clearanceLevel: "COMMs",
+        dates: {
+          "OGD Approval to Share with SMEs": "2025-01-01",
+          "Draft Approval Package to Prep": "2025-01-02",
+          "DDME Approval Received": "2025-01-03",
+          "State Concurrence": "2025-01-04",
+          "BN PMT Approval to Send to OMB": "2025-01-05",
+          "Draft Approval Package Shared": "2025-01-06",
+          "Receive OMB Concurrence": "2025-01-07",
+          "Receive OGC Legal Clearance": "2025-01-08",
+          "Package Sent to COMMs Clearance": "2025-01-09",
+          "COMMs Clearance Received": "2025-01-10",
+        },
+      });
+      setup(completeCommsData);
+
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeEnabled();
     });
   });
 
@@ -157,32 +263,94 @@ describe("ReviewPhase Component", () => {
     it("renders Save For Later and Finish buttons", () => {
       setup();
 
-      const saveButton = screen.getByTestId("review-save-for-later");
-      const finishButton = screen.getByTestId("review-finish");
+      expect(screen.getByTestId("review-save-for-later")).toBeInTheDocument();
+      expect(screen.getByTestId("review-finish")).toBeInTheDocument();
+    });
 
-      expect(saveButton).toBeInTheDocument();
-      expect(finishButton).toBeInTheDocument();
+    it("disables Save For Later button when no changes are made", () => {
+      setup();
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      expect(saveButton).toBeDisabled();
+    });
+
+    it("enables Save For Later button when changes are made", async () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+      });
+      setup(incompleteData);
+
+      const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+      await userEvent.type(dateInput, "2025-12-25");
+
+      await waitFor(() => {
+        const saveButton = screen.getByTestId("review-save-for-later");
+        expect(saveButton).toBeEnabled();
+      });
+    });
+
+    it("disables Finish button when required sections are incomplete", () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+      });
+      setup(incompleteData);
+
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeDisabled();
+    });
+
+    it("enables Finish button when all required sections are complete", () => {
+      setup();
+
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeEnabled();
+    });
+
+    it("disables Finish button when clearance section is incomplete", () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "Package Sent to COMMs Clearance": "",
+        },
+      });
+      setup(incompleteData);
+
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeDisabled();
     });
   });
-});
 
-describe("getReviewPhaseComponentFromDemonstration", () => {
-  it("renders ReviewPhase when Review phase exists", () => {
-    const component = getReviewPhaseComponentFromDemonstration(mockDemonstration);
-    render(<TestProvider>{component}</TestProvider>);
+  describe("Form data updates", () => {
+    it("updates form data when a date is changed", async () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+      });
+      setup(incompleteData);
 
-    expect(screen.getByText("REVIEW")).toBeInTheDocument();
-  });
+      const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+      await userEvent.type(dateInput, "2025-12-25");
 
-  it("renders error message when review phase is missing", () => {
-    const demo: ApplicationWorkflowDemonstration = {
-      ...mockDemonstration,
-      phases: [],
-    };
+      expect(dateInput).toHaveValue("2025-12-25");
+    });
 
-    const component = getReviewPhaseComponentFromDemonstration(demo);
-    render(component);
+    it("updates form data when notes are changed", async () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+      });
+      setup(incompleteData);
 
-    expect(screen.getByText(/Error: Review Phase not found/i)).toBeInTheDocument();
+      const notesInput = screen.getByTestId("input-po-ogd-notes");
+      await userEvent.clear(notesInput);
+      await userEvent.type(notesInput, "Updated notes");
+
+      expect(notesInput).toHaveValue("Updated notes");
+    });
   });
 });

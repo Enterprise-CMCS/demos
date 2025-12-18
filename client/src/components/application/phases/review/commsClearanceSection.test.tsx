@@ -5,7 +5,6 @@ import { CommsClearanceSection } from "./commsClearanceSection";
 
 describe("CommsClearanceSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsComplete = vi.fn();
   const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
@@ -20,7 +19,6 @@ describe("CommsClearanceSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    setSectionIsComplete: mockSetSectionIsComplete,
     sectionIsExpanded: true,
     setSectionIsExpanded: mockSetSectionIsExpanded,
   };
@@ -117,48 +115,6 @@ describe("CommsClearanceSection", () => {
     render(<CommsClearanceSection {...propsWithNotes} />);
     const textarea = screen.getByTestId("input-comms-clearance-notes");
     expect(textarea).toHaveValue("Existing note");
-  });
-
-  it("marks section as incomplete when any required date is missing", () => {
-    const propsWithPartialDates = {
-      ...defaultProps,
-      sectionFormData: {
-        ...defaultProps.sectionFormData,
-        dates: {
-          "Package Sent to COMMs Clearance": "2025-01-01",
-          "COMMs Clearance Received": "",
-        },
-      },
-    };
-
-    render(<CommsClearanceSection {...propsWithPartialDates} />);
-
-    // When a date change triggers handleChange, it should check completion
-    const textarea = screen.getByTestId("input-comms-clearance-notes");
-    fireEvent.change(textarea, { target: { value: "Test" } });
-
-    expect(mockSetSectionIsComplete).toHaveBeenCalledWith(false);
-  });
-
-  it("marks section as complete when all required dates are filled", () => {
-    const propsWithAllDates = {
-      ...defaultProps,
-      sectionFormData: {
-        ...defaultProps.sectionFormData,
-        dates: {
-          "Package Sent to COMMs Clearance": "2025-01-01",
-          "COMMs Clearance Received": "2025-01-15",
-        },
-      },
-    };
-
-    render(<CommsClearanceSection {...propsWithAllDates} />);
-
-    // Trigger handleChange
-    const textarea = screen.getByTestId("input-comms-clearance-notes");
-    fireEvent.change(textarea, { target: { value: "Test" } });
-
-    expect(mockSetSectionIsComplete).toHaveBeenCalledWith(true);
   });
 
   it("displays completeness badge based on sectionIsComplete prop", () => {

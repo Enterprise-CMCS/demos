@@ -5,7 +5,6 @@ import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 
 describe("CmsOsoraClearanceSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsComplete = vi.fn();
   const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
@@ -22,7 +21,6 @@ describe("CmsOsoraClearanceSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    setSectionIsComplete: mockSetSectionIsComplete,
     sectionIsExpanded: true,
     setSectionIsExpanded: mockSetSectionIsExpanded,
   };
@@ -122,52 +120,6 @@ describe("CmsOsoraClearanceSection", () => {
     render(<CmsOsoraClearanceSection {...propsWithNotes} />);
     const textarea = screen.getByTestId("input-cms-osora-notes");
     expect(textarea).toHaveValue("Existing note");
-  });
-
-  it("marks section as incomplete when any required date is missing", () => {
-    const propsWithPartialDates = {
-      ...defaultProps,
-      sectionFormData: {
-        ...defaultProps.sectionFormData,
-        dates: {
-          "Submit Approval Package to OSORA": "2025-01-01",
-          "OSORA R1 Comments Due": "2025-01-15",
-          "OSORA R2 Comments Due": "",
-          "CMS (OSORA) Clearance End": "2025-02-01",
-        },
-      },
-    };
-
-    render(<CmsOsoraClearanceSection {...propsWithPartialDates} />);
-
-    // When a date change triggers handleChange, it should check completion
-    const textarea = screen.getByTestId("input-cms-osora-notes");
-    fireEvent.change(textarea, { target: { value: "Test" } });
-
-    expect(mockSetSectionIsComplete).toHaveBeenCalledWith(false);
-  });
-
-  it("marks section as complete when all required dates are filled", () => {
-    const propsWithAllDates = {
-      ...defaultProps,
-      sectionFormData: {
-        ...defaultProps.sectionFormData,
-        dates: {
-          "Submit Approval Package to OSORA": "2025-01-01",
-          "OSORA R1 Comments Due": "2025-01-15",
-          "OSORA R2 Comments Due": "2025-01-30",
-          "CMS (OSORA) Clearance End": "2025-02-01",
-        },
-      },
-    };
-
-    render(<CmsOsoraClearanceSection {...propsWithAllDates} />);
-
-    // Trigger handleChange
-    const textarea = screen.getByTestId("input-cms-osora-notes");
-    fireEvent.change(textarea, { target: { value: "Test" } });
-
-    expect(mockSetSectionIsComplete).toHaveBeenCalledWith(true);
   });
 
   it("displays completeness badge based on sectionIsComplete prop", () => {

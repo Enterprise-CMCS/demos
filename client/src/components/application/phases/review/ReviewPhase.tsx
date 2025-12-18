@@ -12,12 +12,12 @@ import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
 import { Option } from "components/input/select/Select";
 
-export const REVIEW_PHASE_DATE_TYPES: DateType[] = [
+export const REVIEW_PHASE_DATE_TYPES = [
   "OGD Approval to Share with SMEs",
   "Draft Approval Package to Prep",
   "DDME Approval Received",
   "State Concurrence",
-  "BNPMT Initial Meeting Date",
+  "BN PMT Approval to Send to OMB",
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
@@ -27,14 +27,14 @@ export const REVIEW_PHASE_DATE_TYPES: DateType[] = [
   "OSORA R1 Comments Due",
   "OSORA R2 Comments Due",
   "CMS (OSORA) Clearance End",
-];
+] as const satisfies DateType[];
 
-const REVIEW_PHASE_NOTE_TYPES: NoteType[] = [
+const REVIEW_PHASE_NOTE_TYPES = [
   "PO and OGD",
   "OGC and OMB",
   "COMMs Clearance",
   "CMS (OSORA) Clearance",
-];
+] as const satisfies NoteType[];
 
 const CLEARANCE_LEVEL_OPTIONS: Option[] = [
   {
@@ -46,6 +46,18 @@ const CLEARANCE_LEVEL_OPTIONS: Option[] = [
     value: "CMS (OSORA)" satisfies ClearanceLevel,
   },
 ];
+
+type ReviewSections = "PO and OGD" | "OMB and OGC" | "COMMs Clearance" | "CMS (OSORA) Clearance";
+export type ReviewPhasePageState = {
+  sectionsExpanded: Record<ReviewSections, boolean>;
+  sectionsComplete: Record<ReviewSections, boolean>;
+};
+
+export type ReviewPhaseFormData = {
+  dates: Partial<Record<(typeof REVIEW_PHASE_DATE_TYPES)[number], string>>;
+  notes: Partial<Record<(typeof REVIEW_PHASE_NOTE_TYPES)[number], string>>;
+  clearanceLevel: ClearanceLevel;
+};
 
 export function hasFormChanges(
   originalFormData: ReviewPhaseFormData,
@@ -95,18 +107,6 @@ const isCmsOsoraComplete = (formData: ReviewPhaseFormData): boolean => {
     formData.dates["OSORA R2 Comments Due"] &&
     formData.dates["CMS (OSORA) Clearance End"]
   );
-};
-
-type ReviewSections = "PO and OGD" | "OMB and OGC" | "COMMs Clearance" | "CMS (OSORA) Clearance";
-export type ReviewPhasePageState = {
-  sectionsExpanded: Record<ReviewSections, boolean>;
-  sectionsComplete: Record<ReviewSections, boolean>;
-};
-
-export type ReviewPhaseFormData = {
-  dates: Partial<Record<(typeof REVIEW_PHASE_DATE_TYPES)[number], string>>;
-  notes: Partial<Record<(typeof REVIEW_PHASE_NOTE_TYPES)[number], string>>;
-  clearanceLevel: ClearanceLevel;
 };
 
 export const ReviewPhase = ({
@@ -214,7 +214,7 @@ export const ReviewPhase = ({
     const cmsOsoraComplete = isCmsOsoraComplete(reviewPhaseFormData);
 
     setReviewPhasePageState((prev) => {
-      // if change doesnt effect completion state, dont update state (it was manually opened)
+      // if change doesnt effect completion state, dont update page state (it was manually opened)
       if (
         prev.sectionsComplete["PO and OGD"] === poAndOgdComplete &&
         prev.sectionsComplete["OMB and OGC"] === ogcAndOmbComplete &&

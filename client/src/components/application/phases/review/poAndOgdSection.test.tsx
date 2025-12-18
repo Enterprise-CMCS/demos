@@ -5,7 +5,6 @@ import { PoAndOgdSection } from "./poAndOgdSection";
 
 describe("PoAndOgdSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsComplete = vi.fn();
   const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
@@ -22,7 +21,6 @@ describe("PoAndOgdSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    setSectionIsComplete: mockSetSectionIsComplete,
     sectionIsExpanded: true,
     setSectionIsExpanded: mockSetSectionIsExpanded,
   };
@@ -125,52 +123,6 @@ describe("PoAndOgdSection", () => {
     render(<PoAndOgdSection {...propsWithNotes} />);
     const textarea = screen.getByTestId("input-po-ogd-notes");
     expect(textarea).toHaveValue("Existing note");
-  });
-
-  it("marks section as incomplete when any required date is missing", () => {
-    const propsWithPartialDates = {
-      ...defaultProps,
-      sectionFormData: {
-        ...defaultProps.sectionFormData,
-        dates: {
-          "OGD Approval to Share with SMEs": "2025-01-01",
-          "Draft Approval Package to Prep": "2025-01-15",
-          "DDME Approval Received": "",
-          "State Concurrence": "2025-02-15",
-        },
-      },
-    };
-
-    render(<PoAndOgdSection {...propsWithPartialDates} />);
-
-    // When a date change triggers handleChange, it should check completion
-    const textarea = screen.getByTestId("input-po-ogd-notes");
-    fireEvent.change(textarea, { target: { value: "Test" } });
-
-    expect(mockSetSectionIsComplete).toHaveBeenCalledWith(false);
-  });
-
-  it("marks section as complete when all required dates are filled", () => {
-    const propsWithAllDates = {
-      ...defaultProps,
-      sectionFormData: {
-        ...defaultProps.sectionFormData,
-        dates: {
-          "OGD Approval to Share with SMEs": "2025-01-01",
-          "Draft Approval Package to Prep": "2025-01-15",
-          "DDME Approval Received": "2025-02-01",
-          "State Concurrence": "2025-02-15",
-        },
-      },
-    };
-
-    render(<PoAndOgdSection {...propsWithAllDates} />);
-
-    // Trigger handleChange
-    const textarea = screen.getByTestId("input-po-ogd-notes");
-    fireEvent.change(textarea, { target: { value: "Test" } });
-
-    expect(mockSetSectionIsComplete).toHaveBeenCalledWith(true);
   });
 
   it("displays completeness badge based on sectionIsComplete prop", () => {

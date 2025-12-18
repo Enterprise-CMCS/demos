@@ -5,7 +5,6 @@ import { OgcAndOmbSection } from "./ogcAndOmbSection";
 
 describe("OgcAndOmbSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsComplete = vi.fn();
   const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
@@ -22,7 +21,6 @@ describe("OgcAndOmbSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    setSectionIsComplete: mockSetSectionIsComplete,
     sectionIsExpanded: true,
     setSectionIsExpanded: mockSetSectionIsExpanded,
   };
@@ -125,52 +123,6 @@ describe("OgcAndOmbSection", () => {
     render(<OgcAndOmbSection {...propsWithNotes} />);
     const textarea = screen.getByTestId("input-ogc-omb-notes");
     expect(textarea).toHaveValue("Existing note");
-  });
-
-  it("marks section as incomplete when any required date is missing", () => {
-    const propsWithPartialDates = {
-      ...defaultProps,
-      sectionFormData: {
-        ...defaultProps.sectionFormData,
-        dates: {
-          "BN PMT Approval to Send to OMB": "2025-01-01",
-          "Draft Approval Package Shared": "2025-01-15",
-          "Receive OMB Concurrence": "",
-          "Receive OGC Legal Clearance": "2025-02-15",
-        },
-      },
-    };
-
-    render(<OgcAndOmbSection {...propsWithPartialDates} />);
-
-    // When a date change triggers handleChange, it should check completion
-    const textarea = screen.getByTestId("input-ogc-omb-notes");
-    fireEvent.change(textarea, { target: { value: "Test" } });
-
-    expect(mockSetSectionIsComplete).toHaveBeenCalledWith(false);
-  });
-
-  it("marks section as complete when all required dates are filled", () => {
-    const propsWithAllDates = {
-      ...defaultProps,
-      sectionFormData: {
-        ...defaultProps.sectionFormData,
-        dates: {
-          "BN PMT Approval to Send to OMB": "2025-01-01",
-          "Draft Approval Package Shared": "2025-01-15",
-          "Receive OMB Concurrence": "2025-02-01",
-          "Receive OGC Legal Clearance": "2025-02-15",
-        },
-      },
-    };
-
-    render(<OgcAndOmbSection {...propsWithAllDates} />);
-
-    // Trigger handleChange
-    const textarea = screen.getByTestId("input-ogc-omb-notes");
-    fireEvent.change(textarea, { target: { value: "Test" } });
-
-    expect(mockSetSectionIsComplete).toHaveBeenCalledWith(true);
   });
 
   it("displays completeness badge based on sectionIsComplete prop", () => {
