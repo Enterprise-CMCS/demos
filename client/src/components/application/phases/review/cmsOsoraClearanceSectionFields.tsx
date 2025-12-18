@@ -10,7 +10,7 @@ type CmsOsoraClearanceSectionFields = {
     | "OSORA R2 Comments Due"
     | "CMS (OSORA) Clearance End"
   >;
-  notes: Pick<ReviewPhaseFormData["notes"], "CMS (OSORA) Clearance Notes">;
+  notes: Pick<ReviewPhaseFormData["notes"], "CMS (OSORA) Clearance">;
 };
 
 export const CmsOsoraClearanceSectionFields = ({
@@ -112,13 +112,13 @@ export const CmsOsoraClearanceSectionFields = ({
           name="input-cms-osora-notes"
           data-testid="input-cms-osora-notes"
           placeholder="Enter notes..."
-          value={cmsOsoraClearanceSectionFormData.notes["CMS (OSORA) Clearance Notes"] || ""}
+          value={cmsOsoraClearanceSectionFormData.notes["CMS (OSORA) Clearance"] || ""}
           onChange={(e) =>
             handleChange({
               ...cmsOsoraClearanceSectionFormData,
               notes: {
                 ...cmsOsoraClearanceSectionFormData.notes,
-                "CMS (OSORA) Clearance Notes": e.target.value,
+                "CMS (OSORA) Clearance": e.target.value,
               },
             })
           }

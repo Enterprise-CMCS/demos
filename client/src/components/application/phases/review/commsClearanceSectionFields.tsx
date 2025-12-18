@@ -7,7 +7,7 @@ type CommsClearanceSectionFields = {
     ReviewPhaseFormData["dates"],
     "Package Sent to COMMs Clearance" | "COMMs Clearance Received"
   >;
-  notes: Pick<ReviewPhaseFormData["notes"], "COMMs Clearance Notes">;
+  notes: Pick<ReviewPhaseFormData["notes"], "COMMs Clearance">;
 };
 
 export const CommsClearanceSectionFields = ({
@@ -71,13 +71,13 @@ export const CommsClearanceSectionFields = ({
           name="input-comms-clearance-notes"
           data-testid="input-comms-clearance-notes"
           placeholder="Enter notes..."
-          value={commsClearanceSectionFormData.notes["COMMs Clearance Notes"] || ""}
+          value={commsClearanceSectionFormData.notes["COMMs Clearance"] || ""}
           onChange={(e) =>
             handleChange({
               ...commsClearanceSectionFormData,
               notes: {
                 ...commsClearanceSectionFormData.notes,
-                "COMMs Clearance Notes": e.target.value,
+                "COMMs Clearance": e.target.value,
               },
             })
           }

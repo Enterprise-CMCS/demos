@@ -1,9 +1,6 @@
 import { DateType, DocumentType, ExpectedTimestamp, PhaseNameWithTrackedStatus } from "./types.js";
 
-export const CLEARANCE_LEVEL = [
-  "COMMS Clearance Required",
-  "CMS (OSORA) Clearance Required",
-] as const;
+export const CLEARANCE_LEVEL = ["COMMS", "CMS (OSORA)"] as const;
 
 export const APPLICATION_STATUS = [
   "Pre-Submission",
@@ -293,10 +290,10 @@ export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
 ] as const;
 
 export const NOTE_TYPES = [
-  "PO OGD Notes",
-  "OGC OMB Notes",
-  "COMMs Clearance Notes",
-  "CMS (OSORA) Clearance Notes",
+  "PO and OGD",
+  "OGC and OMB",
+  "COMMs Clearance",
+  "CMS (OSORA) Clearance",
 ] as const;
 
 export const COMPLETENESS_PHASE_DOCUMENTS: DocumentType[] = [

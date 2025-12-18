@@ -53,9 +53,8 @@ export const ActionButtons = ({
         !reviewSectionsComplete["PO and OGD"] ||
         !reviewSectionsComplete["OMB and OGC"] ||
         !(
-          (selectedClearanceLevel === "COMMS Clearance Required" &&
-            reviewSectionsComplete["COMMs Clearance"]) ||
-          (selectedClearanceLevel === "CMS (OSORA) Clearance Required" &&
+          (selectedClearanceLevel === "COMMS" && reviewSectionsComplete["COMMs Clearance"]) ||
+          (selectedClearanceLevel === "CMS (OSORA)" &&
             reviewSectionsComplete["CMS (OSORA) Clearance"])
         )
       }
@@ -86,7 +85,7 @@ export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormD
   const formData: ReviewPhaseFormData = {
     dates: {},
     notes: {},
-    clearanceLevel: "CMS (OSORA) Clearance Required",
+    clearanceLevel: "CMS (OSORA)",
   };
 
   for (const dateType of REVIEW_PHASE_DATE_TYPES) {
@@ -105,11 +104,11 @@ export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormD
   // formData.clearanceLevel = reviewPhase.
 
   formData.notes = {
-    "PO OGD Notes": "Mock PO OGD Note content",
-    "CMS (OSORA) Clearance Notes": "Mock CMS (OSORA) Clearance Note content",
+    "PO and OGD": "Mock PO and OGD Note content",
+    "CMS (OSORA) Clearance": "Mock CMS (OSORA) Clearance Note content",
   };
 
-  formData.clearanceLevel = "CMS (OSORA) Clearance Required";
+  formData.clearanceLevel = "CMS (OSORA)";
 
   return formData;
 }
@@ -132,10 +131,10 @@ const REVIEW_PHASE_DATE_TYPES: DateType[] = [
 ];
 
 const REVIEW_PHASE_NOTE_TYPES: NoteType[] = [
-  "PO OGD Notes",
-  "OGC OMB Notes",
-  "COMMs Clearance Notes",
-  "CMS (OSORA) Clearance Notes",
+  "PO and OGD",
+  "OGC and OMB",
+  "COMMs Clearance",
+  "CMS (OSORA) Clearance",
 ];
 
 export type ReviewPhaseFormData = {
@@ -159,6 +158,7 @@ export const ReviewPhase = ({
   demonstrationId: string;
 }) => {
   const { showSuccess } = useToast();
+
   const [reviewPhaseFormData, setReviewPhaseFormData] = useState<ReviewPhaseFormData>(formData);
   const [originalFormData, setOriginalFormData] = useState<ReviewPhaseFormData>(formData);
   const [reviewPhasePageState, setReviewPhasePageState] = useState<ReviewPhasePageState>({
@@ -216,6 +216,8 @@ export const ReviewPhase = ({
     if (noteUpdates.length > 0) {
       // TODO: Implement setting notes when backend supports it
     }
+
+    // TODO: Implement setting clearance level when backend supports it
   };
 
   const handleSaveForLater = async () => {
@@ -321,7 +323,7 @@ export const ReviewPhase = ({
               setReviewPhaseFormData((prev) => ({ ...prev, clearanceLevel: clearanceLevel }));
             }}
           />
-          {reviewPhaseFormData.clearanceLevel === "COMMS Clearance Required" && (
+          {reviewPhaseFormData.clearanceLevel === "COMMS" && (
             <ExpandableSection
               title="COMMS Clearance"
               isComplete={reviewPhasePageState.sectionsComplete["COMMs Clearance"]}
@@ -358,7 +360,7 @@ export const ReviewPhase = ({
               />
             </ExpandableSection>
           )}
-          {reviewPhaseFormData.clearanceLevel === "CMS (OSORA) Clearance Required" && (
+          {reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" && (
             <ExpandableSection
               title="CMS (OSORA) Clearance"
               isComplete={reviewPhasePageState.sectionsComplete["CMS (OSORA) Clearance"]}

@@ -10,7 +10,7 @@ type PoAndOgdFields = {
     | "DDME Approval Received"
     | "State Concurrence"
   >;
-  notes: Pick<ReviewPhaseFormData["notes"], "PO OGD Notes">;
+  notes: Pick<ReviewPhaseFormData["notes"], "PO and OGD">;
 };
 
 export const PoAndOgdSectionFields = ({
@@ -114,13 +114,13 @@ export const PoAndOgdSectionFields = ({
           name="input-po-ogd-notes"
           data-testid="input-po-ogd-notes"
           placeholder="Enter notes..."
-          value={poAndOgdSectionFormData.notes["PO OGD Notes"] || ""}
+          value={poAndOgdSectionFormData.notes["PO and OGD"] || ""}
           onChange={(e) =>
             handleChange({
               ...poAndOgdSectionFormData,
               notes: {
                 ...poAndOgdSectionFormData.notes,
-                "PO OGD Notes": e.target.value,
+                "PO and OGD": e.target.value,
               },
             })
           }

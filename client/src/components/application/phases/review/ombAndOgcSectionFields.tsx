@@ -10,7 +10,7 @@ type OmbAndOgcSectionFields = {
     | "Receive OMB Concurrence"
     | "Receive OGC Legal Clearance"
   >;
-  notes: Pick<ReviewPhaseFormData["notes"], "OGC OMB Notes">;
+  notes: Pick<ReviewPhaseFormData["notes"], "OGC and OMB">;
 };
 
 export const OmbAndOgcSectionFields = ({
@@ -112,13 +112,13 @@ export const OmbAndOgcSectionFields = ({
           name="input-ogc-omb-notes"
           data-testid="input-ogc-omb-notes"
           placeholder="Enter notes..."
-          value={ombAndOgcSectionFormData.notes["OGC OMB Notes"] || ""}
+          value={ombAndOgcSectionFormData.notes["OGC and OMB"] || ""}
           onChange={(e) =>
             handleChange({
               ...ombAndOgcSectionFormData,
               notes: {
                 ...ombAndOgcSectionFormData.notes,
-                "OGC OMB Notes": e.target.value,
+                "OGC and OMB": e.target.value,
               },
             })
           }
