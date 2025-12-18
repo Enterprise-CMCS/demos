@@ -2,39 +2,36 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 import { Pool } from "pg";
 import { log } from "./log";
 
+const dbSchema = process.env.DB_SCHEMA || "demos_app";
+
 const secrets = new SecretsManagerClient({
   region: process.env.AWS_REGION ?? "us-east-1",
-  endpoint: process.env.AWS_ENDPOINT_URL,
+  endpoint: process.env.AWS_ENDPOINT_URL ?? undefined,
 });
 
 let poolPromise: Promise<Pool> | null = null;
 
-async function resolveDatabaseUrl(): Promise<string> {
-  if (process.env.DATABASE_URL) {
-    return process.env.DATABASE_URL;
+let databaseUrlCache = "";
+let cacheExpiration = 0;
+
+export async function getDatabaseUrl() {
+  const now = Date.now();
+  if (databaseUrlCache && cacheExpiration > now) {
+    return databaseUrlCache;
   }
 
-  const secretId = process.env.DATABASE_SECRET_ARN;
-  if (!secretId) {
-    throw new Error("DATABASE_URL or DATABASE_SECRET_ARN is required to connect to the database.");
-  }
+  const secretArn = process.env.DATABASE_SECRET_ARN;
+  const command = new GetSecretValueCommand({ SecretId: secretArn });
+  const response = await secrets.send(command);
 
-  const result = await secrets.send(new GetSecretValueCommand({ SecretId: secretId }));
-  const secretString = result.SecretString;
-  if (!secretString) {
-    throw new Error(`Secret ${secretId} did not return a SecretString.`);
+  if (!response.SecretString) {
+    throw new Error("The SecretString value is undefined!");
   }
+  const secretData = JSON.parse(response.SecretString);
+  databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${dbSchema}`;
+  cacheExpiration = now + 60 * 60 * 1000;
 
-  try {
-    const parsed = JSON.parse(secretString) as { url?: string; connectionString?: string };
-    const url = parsed.url ?? parsed.connectionString;
-    if (!url) {
-      throw new Error("Secret did not contain url or connectionString");
-    }
-    return url;
-  } catch {
-    return secretString;
-  }
+  return databaseUrlCache;
 }
 
 export interface QuestionPrompt {
@@ -47,7 +44,7 @@ export interface QuestionPrompt {
 export async function getDbPool(): Promise<Pool> {
   if (!poolPromise) {
     poolPromise = (async () => {
-      const connectionString = await resolveDatabaseUrl();
+      const connectionString = await getDatabaseUrl();
       log.info("Connecting to database for UiPath questions");
       return new Pool({ connectionString, max: 2 });
     })();
