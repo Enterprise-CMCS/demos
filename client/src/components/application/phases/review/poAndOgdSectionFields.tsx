@@ -2,33 +2,35 @@ import React from "react";
 import { ReviewPhaseFormData } from "../ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 
-type PoAndOgdFields = Pick<
-  ReviewPhaseFormData,
-  | "ogcApprovalToShareDate"
-  | "draftApprovalPackageToPrepDate"
-  | "ddmeApprovalReceivedDate"
-  | "stateConcurrenceDate"
-  | "poOGDNotes"
->;
+type PoAndOgdFields = {
+  dates: Pick<
+    ReviewPhaseFormData["dates"],
+    | "OGD Approval to Share with SMEs"
+    | "Draft Approval Package to Prep"
+    | "DDME Approval Received"
+    | "State Concurrence"
+  >;
+  notes: Pick<ReviewPhaseFormData["notes"], "PO OGD Notes">;
+};
 
 export const PoAndOgdSectionFields = ({
-  reviewPhaseFormData,
-  setReviewPhaseFormData,
-  setPhaseComplete,
+  poAndOgdSectionFormData,
+  setPoAndOgdSectionFormData,
+  setPoAndOgdSectionComplete,
 }: {
-  reviewPhaseFormData: PoAndOgdFields;
-  setReviewPhaseFormData: (data: PoAndOgdFields) => void;
-  setPhaseComplete: (isComplete: boolean) => void;
+  poAndOgdSectionFormData: PoAndOgdFields;
+  setPoAndOgdSectionFormData: (data: PoAndOgdFields) => void;
+  setPoAndOgdSectionComplete: (isComplete: boolean) => void;
 }) => {
   const handleChange = (reviewPhaseFormData: PoAndOgdFields) => {
-    setReviewPhaseFormData(reviewPhaseFormData);
+    setPoAndOgdSectionFormData(reviewPhaseFormData);
     const isComplete =
-      reviewPhaseFormData.ogcApprovalToShareDate &&
-      reviewPhaseFormData.draftApprovalPackageToPrepDate &&
-      reviewPhaseFormData.ddmeApprovalReceivedDate &&
-      reviewPhaseFormData.stateConcurrenceDate;
+      reviewPhaseFormData.dates["OGD Approval to Share with SMEs"] &&
+      reviewPhaseFormData.dates["Draft Approval Package to Prep"] &&
+      reviewPhaseFormData.dates["DDME Approval Received"] &&
+      reviewPhaseFormData.dates["State Concurrence"];
 
-    setPhaseComplete(!!isComplete);
+    setPoAndOgdSectionComplete(!!isComplete);
   };
 
   return (
@@ -36,14 +38,17 @@ export const PoAndOgdSectionFields = ({
       <p className="text-sm text-text-placeholder">Record the Sign-Off for Internal Review</p>
       <div className="flex flex-col">
         <DatePicker
-          label="OGC Approval To Share with SMEs"
+          label="OGD Approval To Share with SMEs"
           name="datepicker-ogc-approval-to-share-date"
-          value={reviewPhaseFormData.ogcApprovalToShareDate}
+          value={poAndOgdSectionFormData.dates["OGD Approval to Share with SMEs"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...reviewPhaseFormData,
-              ogcApprovalToShareDate: val,
+              ...poAndOgdSectionFormData,
+              dates: {
+                ...poAndOgdSectionFormData.dates,
+                "OGD Approval to Share with SMEs": val,
+              },
             })
           }
         />
@@ -53,12 +58,15 @@ export const PoAndOgdSectionFields = ({
         <DatePicker
           label="Draft Approval Package to Prep"
           name="datepicker-draft-approval-package-to-prep-date"
-          value={reviewPhaseFormData.draftApprovalPackageToPrepDate}
+          value={poAndOgdSectionFormData.dates["Draft Approval Package to Prep"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...reviewPhaseFormData,
-              draftApprovalPackageToPrepDate: val,
+              ...poAndOgdSectionFormData,
+              dates: {
+                ...poAndOgdSectionFormData.dates,
+                "Draft Approval Package to Prep": val,
+              },
             })
           }
         />
@@ -68,12 +76,15 @@ export const PoAndOgdSectionFields = ({
         <DatePicker
           label="DDME Approval Received"
           name="datepicker-ddme-approval-received-date"
-          value={reviewPhaseFormData.ddmeApprovalReceivedDate}
+          value={poAndOgdSectionFormData.dates["DDME Approval Received"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...reviewPhaseFormData,
-              ddmeApprovalReceivedDate: val,
+              ...poAndOgdSectionFormData,
+              dates: {
+                ...poAndOgdSectionFormData.dates,
+                "DDME Approval Received": val,
+              },
             })
           }
         />
@@ -83,12 +94,15 @@ export const PoAndOgdSectionFields = ({
         <DatePicker
           label="State Concurrence"
           name="datepicker-state-concurrence-date"
-          value={reviewPhaseFormData.stateConcurrenceDate}
+          value={poAndOgdSectionFormData.dates["State Concurrence"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...reviewPhaseFormData,
-              stateConcurrenceDate: val,
+              ...poAndOgdSectionFormData,
+              dates: {
+                ...poAndOgdSectionFormData.dates,
+                "State Concurrence": val,
+              },
             })
           }
         />
@@ -100,11 +114,14 @@ export const PoAndOgdSectionFields = ({
           name="input-po-ogd-notes"
           data-testid="input-po-ogd-notes"
           placeholder="Enter notes..."
-          value={reviewPhaseFormData.poOGDNotes || ""}
+          value={poAndOgdSectionFormData.notes["PO OGD Notes"] || ""}
           onChange={(e) =>
             handleChange({
-              ...reviewPhaseFormData,
-              poOGDNotes: e.target.value,
+              ...poAndOgdSectionFormData,
+              notes: {
+                ...poAndOgdSectionFormData.notes,
+                "PO OGD Notes": e.target.value,
+              },
             })
           }
           className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"

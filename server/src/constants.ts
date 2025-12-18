@@ -116,7 +116,7 @@ export const DATE_TYPES = [
   "OMB Review Complete",
   "PO & OGD Sign-Off",
   "Review Completion Date",
-  "OGC Approval to Share with SMEs",
+  "OGD Approval to Share with SMEs",
   "Draft Approval Package to Prep",
   "DDME Approval Received",
   "State Concurrence",
@@ -126,6 +126,12 @@ export const DATE_TYPES = [
   "Receive OGC Legal Clearance",
   "Approval Package Start Date",
   "Approval Package Completion Date",
+  "Package Sent to COMMs Clearance",
+  "COMMs Clearance Received",
+  "Submit Approval Package to OSORA",
+  "OSORA R1 Comments Due",
+  "OSORA R2 Comments Due",
+  "CMS (OSORA) Clearance End",
 ] as const;
 
 export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
@@ -157,7 +163,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "OMB Review Complete": { expectedTimestamp: "Start of Day" },
   "PO & OGD Sign-Off": { expectedTimestamp: "Start of Day" },
   "Review Completion Date": { expectedTimestamp: "Start of Day" },
-  "OGC Approval to Share with SMEs": { expectedTimestamp: "Start of Day" },
+  "OGD Approval to Share with SMEs": { expectedTimestamp: "Start of Day" },
   "Draft Approval Package to Prep": { expectedTimestamp: "Start of Day" },
   "DDME Approval Received": { expectedTimestamp: "Start of Day" },
   "State Concurrence": { expectedTimestamp: "Start of Day" },
@@ -167,6 +173,12 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Receive OGC Legal Clearance": { expectedTimestamp: "Start of Day" },
   "Approval Package Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Package Completion Date": { expectedTimestamp: "Start of Day" },
+  "Package Sent to COMMs Clearance": { expectedTimestamp: "Start of Day" }, // prospective assignment
+  "COMMs Clearance Received": { expectedTimestamp: "Start of Day" }, // prospective assignment
+  "Submit Approval Package to OSORA": { expectedTimestamp: "Start of Day" }, // prospective assignment
+  "OSORA R1 Comments Due": { expectedTimestamp: "End of Day" }, // prospective assignment
+  "OSORA R2 Comments Due": { expectedTimestamp: "End of Day" }, // prospective assignment
+  "CMS (OSORA) Clearance End": { expectedTimestamp: "End of Day" }, // prospective assignment
 } as const;
 
 export const STATES_AND_TERRITORIES = [
@@ -280,7 +292,12 @@ export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
   "State Application",
 ] as const;
 
-export const NOTE_TYPES = ["PO OGD Notes", "OGC OMB Notes"] as const;
+export const NOTE_TYPES = [
+  "PO OGD Notes",
+  "OGC OMB Notes",
+  "COMMs Clearance Notes",
+  "CMS (OSORA) Clearance Notes",
+] as const;
 
 export const COMPLETENESS_PHASE_DOCUMENTS: DocumentType[] = [
   "General File",

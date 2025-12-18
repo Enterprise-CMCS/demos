@@ -2,26 +2,29 @@ import React from "react";
 import { ReviewPhaseFormData } from "../ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 
-type CommsClearanceSectionFields = Pick<
-  ReviewPhaseFormData,
-  "packageSentForCommsClearanceDate" | "commsClearanceReceivedDate" | "commsClearanceNotes"
->;
+type CommsClearanceSectionFields = {
+  dates: Pick<
+    ReviewPhaseFormData["dates"],
+    "Package Sent to COMMs Clearance" | "COMMs Clearance Received"
+  >;
+  notes: Pick<ReviewPhaseFormData["notes"], "COMMs Clearance Notes">;
+};
 
 export const CommsClearanceSectionFields = ({
-  reviewPhaseFormData,
-  setReviewPhaseFormData,
-  setPhaseComplete,
+  commsClearanceSectionFormData,
+  setCommsClearanceSectionFormData,
+  setCommsClearanceSectionComplete,
 }: {
-  reviewPhaseFormData: CommsClearanceSectionFields;
-  setReviewPhaseFormData: (data: CommsClearanceSectionFields) => void;
-  setPhaseComplete: (isComplete: boolean) => void;
+  commsClearanceSectionFormData: CommsClearanceSectionFields;
+  setCommsClearanceSectionFormData: (data: CommsClearanceSectionFields) => void;
+  setCommsClearanceSectionComplete: (isComplete: boolean) => void;
 }) => {
   const handleChange = (reviewPhaseFormData: CommsClearanceSectionFields) => {
-    setReviewPhaseFormData(reviewPhaseFormData);
+    setCommsClearanceSectionFormData(reviewPhaseFormData);
     const isComplete =
-      reviewPhaseFormData.packageSentForCommsClearanceDate &&
-      reviewPhaseFormData.commsClearanceReceivedDate;
-    setPhaseComplete(!!isComplete);
+      reviewPhaseFormData.dates["Package Sent to COMMs Clearance"] &&
+      reviewPhaseFormData.dates["COMMs Clearance Received"];
+    setCommsClearanceSectionComplete(!!isComplete);
   };
 
   return (
@@ -30,12 +33,15 @@ export const CommsClearanceSectionFields = ({
         <DatePicker
           label="Package Sent for COMMs Clearance"
           name="datepicker-package-sent-for-comms-clearance-date"
-          value={reviewPhaseFormData.packageSentForCommsClearanceDate}
+          value={commsClearanceSectionFormData.dates["Package Sent to COMMs Clearance"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...reviewPhaseFormData,
-              packageSentForCommsClearanceDate: val,
+              ...commsClearanceSectionFormData,
+              dates: {
+                ...commsClearanceSectionFormData.dates,
+                "Package Sent to COMMs Clearance": val,
+              },
             })
           }
         />
@@ -45,12 +51,15 @@ export const CommsClearanceSectionFields = ({
         <DatePicker
           label="COMMs Clearance Received"
           name="datepicker-comms-clearance-received-date"
-          value={reviewPhaseFormData.commsClearanceReceivedDate}
+          value={commsClearanceSectionFormData.dates["COMMs Clearance Received"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...reviewPhaseFormData,
-              commsClearanceReceivedDate: val,
+              ...commsClearanceSectionFormData,
+              dates: {
+                ...commsClearanceSectionFormData.dates,
+                "COMMs Clearance Received": val,
+              },
             })
           }
         />
@@ -62,11 +71,14 @@ export const CommsClearanceSectionFields = ({
           name="input-comms-clearance-notes"
           data-testid="input-comms-clearance-notes"
           placeholder="Enter notes..."
-          value={reviewPhaseFormData.commsClearanceNotes || ""}
+          value={commsClearanceSectionFormData.notes["COMMs Clearance Notes"] || ""}
           onChange={(e) =>
             handleChange({
-              ...reviewPhaseFormData,
-              commsClearanceNotes: e.target.value,
+              ...commsClearanceSectionFormData,
+              notes: {
+                ...commsClearanceSectionFormData.notes,
+                "COMMs Clearance Notes": e.target.value,
+              },
             })
           }
           className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -320,7 +320,7 @@ describe("checkPhaseCompletionRules", () => {
         [
           testApplicationId,
           "Review",
-          "OGC Approval to Share with SMEs",
+          "OGD Approval to Share with SMEs",
           testApplicationDateMapReturn,
         ],
         [

@@ -1,39 +1,17 @@
 import React, { useState } from "react";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
-import { DateType, ApplicationDateInput, LocalDate, ClearanceLevel } from "demos-server";
-import { getFormDataFromPhase, hasFormChanges } from "./review/reviewFunctions";
+import { DateType, ApplicationDateInput, LocalDate, ClearanceLevel, NoteType } from "demos-server";
 import { ExpandableSection } from "./review/expandableSection";
 import { PoAndOgdSectionFields } from "./review/poAndOgdSectionFields";
 import { OmbAndOgcSectionFields } from "./review/ombAndOgcSectionFields";
 import { CommsClearanceSectionFields } from "./review/commsClearanceSectionFields";
 import { CmsOsoraClearanceSectionFields } from "./review/cmsOsoraClearanceSectionFields";
-
-export interface ReviewPhaseFormData {
-  ogcApprovalToShareDate?: string;
-  draftApprovalPackageToPrepDate?: string;
-  ddmeApprovalReceivedDate?: string;
-  stateConcurrenceDate?: string;
-  bnPmtApprovalReceivedDate?: string;
-  draftApprovalPackageSharedDate?: string;
-  receiveOMBConcurrenceDate?: string;
-  receiveOGCLegalClearanceDate?: string;
-  packageSentForCommsClearanceDate?: string;
-  packageReturnedFromCommsClearanceDate?: string;
-  commsClearanceReceivedDate?: string;
-  submitApprovalPackageToOsoraDate?: string;
-  osoraR1CommentsDueDate?: string;
-  osoraR2CommentsDueDate?: string;
-  cmsOsoraClearanceEndDate?: string;
-  poOGDNotes?: string;
-  ogcOMBNotes?: string;
-  commsClearanceNotes?: string;
-  cmsOsoraNotes?: string;
-}
+import { ClearanceLevelRadioButtons } from "./review/clearanceRadioButtons";
 
 export const getReviewPhaseComponentFromDemonstration = (
   demonstration: ApplicationWorkflowDemonstration
@@ -45,49 +23,18 @@ export const getReviewPhaseComponentFromDemonstration = (
   return <ReviewPhase formData={reviewPhaseFormData} demonstrationId={demonstration.id} />;
 };
 
-export const ClearanceLevelRadioButtons = ({
-  selectedClearanceLevel,
-  setSelectedClearanceLevel,
-}: {
-  selectedClearanceLevel: ClearanceLevel;
-  setSelectedClearanceLevel: (clearanceLevel: ClearanceLevel) => void;
-}) => (
-  <div className="col-span-4">
-    <label className="flex items-center gap-2 cursor-pointer">
-      <input
-        type="radio"
-        name="radio-clearance-level"
-        value="COMMS Clearance Required"
-        checked={selectedClearanceLevel === "COMMS Clearance Required"}
-        onChange={(e) => setSelectedClearanceLevel(e.target.value as ClearanceLevel)}
-        className="cursor-pointer"
-      />
-      <span className="text-sm">COMMS Clearance Required</span>
-    </label>
-    <label className="flex items-center gap-2 cursor-pointer">
-      <input
-        type="radio"
-        name="radio-clearance-level"
-        value="CMS (OSORA) Clearance Required"
-        checked={selectedClearanceLevel === "CMS (OSORA) Clearance Required"}
-        onChange={(e) => setSelectedClearanceLevel(e.target.value as ClearanceLevel)}
-        className="cursor-pointer"
-      />
-      <span className="text-sm">CMS (OSORA) Clearance Required</span>
-    </label>
-  </div>
-);
-
 export const ActionButtons = ({
   handleSaveForLater,
   formChanges,
   handleFinish,
   reviewSectionsComplete,
+  selectedClearanceLevel,
 }: {
   handleSaveForLater: () => void;
   formChanges: boolean;
   handleFinish: () => void;
-  reviewSectionsComplete: ReviewSectionsFlag;
+  reviewSectionsComplete: ReviewPhasePageState["sectionsComplete"];
+  selectedClearanceLevel: ClearanceLevel;
 }) => (
   <div className="flex justify-end mt-2 gap-2">
     <SecondaryButton
@@ -103,10 +50,13 @@ export const ActionButtons = ({
       size="large"
       name="review-finish"
       disabled={
+        !reviewSectionsComplete["PO and OGD"] ||
+        !reviewSectionsComplete["OMB and OGC"] ||
         !(
-          reviewSectionsComplete.poAndOgd &&
-          reviewSectionsComplete.ombAndOgc &&
-          (reviewSectionsComplete.commsClearance || reviewSectionsComplete.cmsOsoraClearance)
+          (selectedClearanceLevel === "COMMS Clearance Required" &&
+            reviewSectionsComplete["COMMs Clearance"]) ||
+          (selectedClearanceLevel === "CMS (OSORA) Clearance Required" &&
+            reviewSectionsComplete["CMS (OSORA) Clearance"])
         )
       }
     >
@@ -115,11 +65,90 @@ export const ActionButtons = ({
   </div>
 );
 
-export type ReviewSectionsFlag = {
-  poAndOgd: boolean;
-  ombAndOgc: boolean;
-  commsClearance: boolean;
-  cmsOsoraClearance: boolean;
+export function hasFormChanges(
+  originalFormData: ReviewPhaseFormData,
+  activeFormData: ReviewPhaseFormData
+): boolean {
+  for (const dateType of REVIEW_PHASE_DATE_TYPES) {
+    if (originalFormData.dates[dateType] !== activeFormData.dates[dateType]) {
+      return true;
+    }
+  }
+  for (const noteType of REVIEW_PHASE_NOTE_TYPES) {
+    if (originalFormData.notes[noteType] !== activeFormData.notes[noteType]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormData {
+  const formData: ReviewPhaseFormData = {
+    dates: {},
+    notes: {},
+    clearanceLevel: "CMS (OSORA) Clearance Required",
+  };
+
+  for (const dateType of REVIEW_PHASE_DATE_TYPES) {
+    const date = reviewPhase.phaseDates.find((d) => d.dateType === dateType);
+    if (date) {
+      formData.dates[dateType] = date.dateValue as unknown as string; // temporary workaround, as dateValues are defined as Dates instead of Strings
+    }
+  }
+
+  // MOCKING NOTES AND CLEARANCE LEVEL UNTIL BACKEND SUPPORTS IT
+  // WILL LIKELY END UP LOOKING LIKE THIS
+  // for (const noteType of REVIEW_PHASE_NOTE_TYPES) {
+  //   const note = reviewPhase.phaseNotes.find((n) => n.noteType === noteType);
+  //   if (note) formData.notes[noteType] = note.content;
+  // }
+  // formData.clearanceLevel = reviewPhase.
+
+  formData.notes = {
+    "PO OGD Notes": "Mock PO OGD Note content",
+    "CMS (OSORA) Clearance Notes": "Mock CMS (OSORA) Clearance Note content",
+  };
+
+  formData.clearanceLevel = "CMS (OSORA) Clearance Required";
+
+  return formData;
+}
+
+const REVIEW_PHASE_DATE_TYPES: DateType[] = [
+  "OGD Approval to Share with SMEs",
+  "Draft Approval Package to Prep",
+  "DDME Approval Received",
+  "State Concurrence",
+  "BNPMT Initial Meeting Date",
+  "Draft Approval Package Shared",
+  "Receive OMB Concurrence",
+  "Receive OGC Legal Clearance",
+  "Package Sent to COMMs Clearance",
+  "COMMs Clearance Received",
+  "Submit Approval Package to OSORA",
+  "OSORA R1 Comments Due",
+  "OSORA R2 Comments Due",
+  "CMS (OSORA) Clearance End",
+];
+
+const REVIEW_PHASE_NOTE_TYPES: NoteType[] = [
+  "PO OGD Notes",
+  "OGC OMB Notes",
+  "COMMs Clearance Notes",
+  "CMS (OSORA) Clearance Notes",
+];
+
+export type ReviewPhaseFormData = {
+  dates: Partial<Record<(typeof REVIEW_PHASE_DATE_TYPES)[number], string>>;
+  notes: Partial<Record<(typeof REVIEW_PHASE_NOTE_TYPES)[number], string>>;
+  clearanceLevel: ClearanceLevel;
+};
+
+type ReviewSections = "PO and OGD" | "OMB and OGC" | "COMMs Clearance" | "CMS (OSORA) Clearance";
+
+export type ReviewPhasePageState = {
+  sectionsExpanded: Record<ReviewSections, boolean>;
+  sectionsComplete: Record<ReviewSections, boolean>;
 };
 
 export const ReviewPhase = ({
@@ -132,20 +161,19 @@ export const ReviewPhase = ({
   const { showSuccess } = useToast();
   const [reviewPhaseFormData, setReviewPhaseFormData] = useState<ReviewPhaseFormData>(formData);
   const [originalFormData, setOriginalFormData] = useState<ReviewPhaseFormData>(formData);
-  const [selectedClearanceLevel, setSelectedClearanceLevel] = useState<ClearanceLevel>(
-    "CMS (OSORA) Clearance Required"
-  );
-  const [reviewSectionsExpanded, setReviewSectionsExpanded] = useState<ReviewSectionsFlag>({
-    poAndOgd: true,
-    ombAndOgc: true,
-    commsClearance: true,
-    cmsOsoraClearance: true,
-  });
-  const [reviewSectionsComplete, setReviewSectionsComplete] = useState<ReviewSectionsFlag>({
-    poAndOgd: false,
-    ombAndOgc: false,
-    commsClearance: false,
-    cmsOsoraClearance: false,
+  const [reviewPhasePageState, setReviewPhasePageState] = useState<ReviewPhasePageState>({
+    sectionsExpanded: {
+      "PO and OGD": true,
+      "OMB and OGC": true,
+      "COMMs Clearance": true,
+      "CMS (OSORA) Clearance": true,
+    },
+    sectionsComplete: {
+      "PO and OGD": false,
+      "OMB and OGC": false,
+      "COMMs Clearance": false,
+      "CMS (OSORA) Clearance": false,
+    },
   });
 
   const { setApplicationDates } = useSetApplicationDates();
@@ -155,49 +183,38 @@ export const ReviewPhase = ({
     phaseStatus: "Completed",
   });
 
-  const formChanges = hasFormChanges(originalFormData, reviewPhaseFormData);
-
   const saveFormData = async () => {
-    const dateUpdates: ApplicationDateInput[] = [
-      {
-        dateType: "OGC Approval to Share with SMEs" as DateType,
-        dateValue: reviewPhaseFormData.ogcApprovalToShareDate as LocalDate | null,
-      },
-      {
-        dateType: "Draft Approval Package to Prep" as DateType,
-        dateValue: reviewPhaseFormData.draftApprovalPackageToPrepDate as LocalDate | null,
-      },
-      {
-        dateType: "DDME Approval Received" as DateType,
-        dateValue: reviewPhaseFormData.ddmeApprovalReceivedDate as LocalDate | null,
-      },
-      {
-        dateType: "State Concurrence" as DateType,
-        dateValue: reviewPhaseFormData.stateConcurrenceDate as LocalDate | null,
-      },
-      {
-        dateType: "BN PMT Approval to Send to OMB" as DateType,
-        dateValue: reviewPhaseFormData.bnPmtApprovalReceivedDate as LocalDate | null,
-      },
-      {
-        dateType: "Draft Approval Package Shared" as DateType,
-        dateValue: reviewPhaseFormData.draftApprovalPackageSharedDate as LocalDate | null,
-      },
-      {
-        dateType: "Receive OMB Concurrence" as DateType,
-        dateValue: reviewPhaseFormData.receiveOMBConcurrenceDate as LocalDate | null,
-      },
-      {
-        dateType: "Receive OGC Legal Clearance" as DateType,
-        dateValue: reviewPhaseFormData.receiveOGCLegalClearanceDate as LocalDate | null,
-      },
-    ].filter((dateUpdate) => dateUpdate.dateValue != null);
+    const dateUpdates: ApplicationDateInput[] = [];
+    for (const dateType of REVIEW_PHASE_DATE_TYPES) {
+      const dateValue = reviewPhaseFormData.dates[dateType];
+      if (dateValue) {
+        dateUpdates.push({
+          dateType: dateType as DateType,
+          dateValue: dateValue as LocalDate,
+        });
+      }
+    }
+
+    const noteUpdates: ApplicationDateInput[] = [];
+    for (const noteType of REVIEW_PHASE_NOTE_TYPES) {
+      const noteContent = reviewPhaseFormData.notes[noteType];
+      if (noteContent) {
+        noteUpdates.push({
+          dateType: noteType as DateType,
+          dateValue: noteContent as unknown as LocalDate,
+        });
+      }
+    }
 
     if (dateUpdates.length > 0) {
       await setApplicationDates({
         applicationId: demonstrationId,
         applicationDates: dateUpdates,
       });
+    }
+
+    if (noteUpdates.length > 0) {
+      // TODO: Implement setting notes when backend supports it
     }
   };
 
@@ -233,111 +250,146 @@ export const ReviewPhase = ({
         <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
           <ExpandableSection
             title="STEP 1 - PO & OGD"
-            isComplete={reviewSectionsComplete.poAndOgd}
-            isExpanded={reviewSectionsExpanded.poAndOgd}
+            isComplete={reviewPhasePageState.sectionsComplete["PO and OGD"]}
+            isExpanded={reviewPhasePageState.sectionsExpanded["PO and OGD"]}
             setIsExpanded={(isExpanded) =>
-              setReviewSectionsExpanded((prev) => ({
+              setReviewPhasePageState((prev) => ({
                 ...prev,
-                poAndOgd: isExpanded,
+                sectionsExpanded: {
+                  ...prev.sectionsExpanded,
+                  "PO and OGD": isExpanded,
+                },
               }))
             }
           >
             <PoAndOgdSectionFields
-              reviewPhaseFormData={reviewPhaseFormData}
-              setReviewPhaseFormData={setReviewPhaseFormData}
-              setPhaseComplete={(isComplete) => {
-                setReviewSectionsComplete((prev) => ({
-                  ...prev,
-                  poAndOgd: isComplete,
-                }));
-                setReviewSectionsExpanded((prev) => ({
-                  ...prev,
-                  poAndOgd: isComplete ? false : prev.poAndOgd,
+              poAndOgdSectionFormData={reviewPhaseFormData}
+              setPoAndOgdSectionFormData={(formData) =>
+                setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+              }
+              setPoAndOgdSectionComplete={(isComplete) => {
+                setReviewPhasePageState((prev) => ({
+                  sectionsComplete: {
+                    ...prev.sectionsComplete,
+                    "PO and OGD": isComplete,
+                  },
+                  sectionsExpanded: {
+                    ...prev.sectionsExpanded,
+                    "PO and OGD": isComplete ? false : prev.sectionsExpanded["PO and OGD"],
+                  },
                 }));
               }}
             />
           </ExpandableSection>
           <ExpandableSection
             title="STEP 2 - OGC & OMB"
-            isComplete={reviewSectionsComplete.ombAndOgc}
-            isExpanded={reviewSectionsExpanded.ombAndOgc}
+            isComplete={reviewPhasePageState.sectionsComplete["OMB and OGC"]}
+            isExpanded={reviewPhasePageState.sectionsExpanded["OMB and OGC"]}
             setIsExpanded={(isExpanded) =>
-              setReviewSectionsExpanded((prev) => ({
+              setReviewPhasePageState((prev) => ({
                 ...prev,
-                ombAndOgc: isExpanded,
+                sectionsExpanded: {
+                  ...prev.sectionsExpanded,
+                  "OMB and OGC": isExpanded,
+                },
               }))
             }
           >
             <OmbAndOgcSectionFields
-              reviewPhaseFormData={reviewPhaseFormData}
-              setReviewPhaseFormData={setReviewPhaseFormData}
-              setPhaseComplete={(isComplete) => {
-                setReviewSectionsComplete((prev) => ({
+              ombAndOgcSectionFormData={reviewPhaseFormData}
+              setOmbAndOgcSectionFormData={(formData) =>
+                setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+              }
+              setOmbAndOgcSectionComplete={(isComplete) => {
+                setReviewPhasePageState((prev) => ({
                   ...prev,
-                  ombAndOgc: isComplete,
-                }));
-                setReviewSectionsExpanded((prev) => ({
-                  ...prev,
-                  ombAndOgc: isComplete ? false : prev.ombAndOgc,
+                  sectionsComplete: {
+                    ...prev.sectionsComplete,
+                    "OMB and OGC": isComplete,
+                  },
+                  sectionsExpanded: {
+                    ...prev.sectionsExpanded,
+                    "OMB and OGC": isComplete ? false : prev.sectionsExpanded["OMB and OGC"],
+                  },
                 }));
               }}
             />
           </ExpandableSection>
           <ClearanceLevelRadioButtons
-            selectedClearanceLevel={selectedClearanceLevel}
-            setSelectedClearanceLevel={setSelectedClearanceLevel}
+            selectedClearanceLevel={reviewPhaseFormData.clearanceLevel}
+            setSelectedClearanceLevel={(clearanceLevel) => {
+              setReviewPhaseFormData((prev) => ({ ...prev, clearanceLevel: clearanceLevel }));
+            }}
           />
-          {selectedClearanceLevel === "COMMS Clearance Required" && (
+          {reviewPhaseFormData.clearanceLevel === "COMMS Clearance Required" && (
             <ExpandableSection
               title="COMMS Clearance"
-              isComplete={reviewSectionsComplete.commsClearance}
-              isExpanded={reviewSectionsExpanded.commsClearance}
+              isComplete={reviewPhasePageState.sectionsComplete["COMMs Clearance"]}
+              isExpanded={reviewPhasePageState.sectionsExpanded["COMMs Clearance"]}
               setIsExpanded={(isExpanded) =>
-                setReviewSectionsExpanded((prev) => ({
+                setReviewPhasePageState((prev) => ({
                   ...prev,
-                  commsClearance: isExpanded,
+                  sectionsExpanded: {
+                    ...prev.sectionsExpanded,
+                    "COMMs Clearance": isExpanded,
+                  },
                 }))
               }
             >
               <CommsClearanceSectionFields
-                reviewPhaseFormData={reviewPhaseFormData}
-                setReviewPhaseFormData={setReviewPhaseFormData}
-                setPhaseComplete={(isComplete) => {
-                  setReviewSectionsComplete((prev) => ({
-                    ...prev,
-                    commsClearance: isComplete,
-                  }));
-                  setReviewSectionsExpanded((prev) => ({
-                    ...prev,
-                    commsClearance: isComplete ? false : prev.commsClearance,
+                commsClearanceSectionFormData={reviewPhaseFormData}
+                setCommsClearanceSectionFormData={(formData) =>
+                  setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+                }
+                setCommsClearanceSectionComplete={(isComplete) => {
+                  setReviewPhasePageState((prev) => ({
+                    sectionsComplete: {
+                      ...prev.sectionsComplete,
+                      "COMMs Clearance": isComplete,
+                    },
+                    sectionsExpanded: {
+                      ...prev.sectionsExpanded,
+                      "COMMs Clearance": isComplete
+                        ? false
+                        : prev.sectionsExpanded["COMMs Clearance"],
+                    },
                   }));
                 }}
               />
             </ExpandableSection>
           )}
-          {selectedClearanceLevel === "CMS (OSORA) Clearance Required" && (
+          {reviewPhaseFormData.clearanceLevel === "CMS (OSORA) Clearance Required" && (
             <ExpandableSection
               title="CMS (OSORA) Clearance"
-              isComplete={reviewSectionsComplete.cmsOsoraClearance}
-              isExpanded={reviewSectionsExpanded.cmsOsoraClearance}
+              isComplete={reviewPhasePageState.sectionsComplete["CMS (OSORA) Clearance"]}
+              isExpanded={reviewPhasePageState.sectionsExpanded["CMS (OSORA) Clearance"]}
               setIsExpanded={(isExpanded) =>
-                setReviewSectionsExpanded((prev) => ({
+                setReviewPhasePageState((prev) => ({
                   ...prev,
-                  cmsOsoraClearance: isExpanded,
+                  sectionsExpanded: {
+                    ...prev.sectionsExpanded,
+                    "CMS (OSORA) Clearance": isExpanded,
+                  },
                 }))
               }
             >
               <CmsOsoraClearanceSectionFields
-                reviewPhaseFormData={reviewPhaseFormData}
-                setReviewPhaseFormData={setReviewPhaseFormData}
-                setPhaseComplete={(isComplete) => {
-                  setReviewSectionsComplete((prev) => ({
-                    ...prev,
-                    cmsOsoraClearance: isComplete,
-                  }));
-                  setReviewSectionsExpanded((prev) => ({
-                    ...prev,
-                    cmsOsoraClearance: isComplete ? false : prev.cmsOsoraClearance,
+                cmsOsoraClearanceSectionFormData={reviewPhaseFormData}
+                setCmsOsoraClearanceSectionFormData={(formData) =>
+                  setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
+                }
+                setCmsOsoraClearanceSectionComplete={(isComplete) => {
+                  setReviewPhasePageState((prev) => ({
+                    sectionsComplete: {
+                      ...prev.sectionsComplete,
+                      "CMS (OSORA) Clearance": isComplete,
+                    },
+                    sectionsExpanded: {
+                      ...prev.sectionsExpanded,
+                      "CMS (OSORA) Clearance": isComplete
+                        ? false
+                        : prev.sectionsExpanded["CMS (OSORA) Clearance"],
+                    },
                   }));
                 }}
               />
@@ -346,9 +398,10 @@ export const ReviewPhase = ({
         </div>
         <ActionButtons
           handleSaveForLater={handleSaveForLater}
-          formChanges={formChanges}
+          formChanges={hasFormChanges(originalFormData, reviewPhaseFormData)}
           handleFinish={handleFinish}
-          reviewSectionsComplete={reviewSectionsComplete}
+          reviewSectionsComplete={reviewPhasePageState.sectionsComplete}
+          selectedClearanceLevel={reviewPhaseFormData.clearanceLevel}
         />
       </section>
     </div>

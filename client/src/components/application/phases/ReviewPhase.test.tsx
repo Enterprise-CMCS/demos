@@ -34,7 +34,7 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
   documents: [],
   phases: [
     buildPhase({
-      "OGC Approval to Share with SMEs": "2025-01-01T00:00:00.000Z",
+      "OGD Approval to Share with SMEs": "2025-01-01T00:00:00.000Z",
       "Draft Approval Package to Prep": "2025-01-02T00:00:00.000Z",
       "DDME Approval Received": "2025-01-03T00:00:00.000Z",
       "State Concurrence": "2025-01-04T00:00:00.000Z",
