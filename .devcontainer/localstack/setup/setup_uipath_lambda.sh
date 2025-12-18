@@ -18,7 +18,6 @@ UIPATH_EXTRACTOR_GUID=${UIPATH_EXTRACTOR_GUID:-""}
 UIPATH_CLIENT_ID=${UIPATH_CLIENT_ID:-""}
 UIPATH_DOCUMENT_BUCKET=${UIPATH_DOCUMENT_BUCKET:-"uipath-documents"}
 DATABASE_SECRET_ARN=${DATABASE_SECRET_ARN:-"database-secret"}
-UIPATH_QUESTIONS_QUERY=${UIPATH_QUESTIONS_QUERY:-"select question->>'id' as id, question->>'question' as question, question->>'fieldType' as field_type, (question->>'multiValued')::boolean as multi_valued from document_understanding_questions"}
 LOG_LEVEL=${LOG_LEVEL:-"info"}
 
 # Build Lambda package
@@ -67,7 +66,6 @@ $AWS_CMD lambda create-function \
         UIPATH_EXTRACTOR_GUID=$UIPATH_EXTRACTOR_GUID,
         UIPATH_DOCUMENT_BUCKET=$UIPATH_DOCUMENT_BUCKET,
         DATABASE_SECRET_ARN=$DATABASE_SECRET_ARN,
-        UIPATH_QUESTIONS_QUERY=$UIPATH_QUESTIONS_QUERY,
         LOG_LEVEL=$LOG_LEVEL
     }" >/dev/null
 

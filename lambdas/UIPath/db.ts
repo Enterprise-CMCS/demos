@@ -21,11 +21,15 @@ export async function getDatabaseUrl() {
   }
 
   const secretArn = process.env.DATABASE_SECRET_ARN;
+  if (!secretArn) {
+    throw new Error("DATABASE_SECRET_ARN is required to fetch the database connection string.");
+  }
+
   const command = new GetSecretValueCommand({ SecretId: secretArn });
   const response = await secrets.send(command);
 
   if (!response.SecretString) {
-    throw new Error("The SecretString value is undefined!");
+    throw new Error(`The SecretString value is undefined for secret: ${secretArn}`);
   }
   const secretData = JSON.parse(response.SecretString);
   databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${dbSchema}`;
@@ -57,7 +61,7 @@ export async function fetchQuestionPrompts(): Promise<QuestionPrompt[]> {
     "select question->>'id' as id, question->>'question' as question, " +
     "question->>'fieldType' as field_type, " +
     "(question->>'multiValued')::boolean as multi_valued " +
-    "from document_understanding_questions";
+    "from demos_app.document_understanding_questions";
 
   const pool = await getDbPool();
   const client = await pool.connect();
