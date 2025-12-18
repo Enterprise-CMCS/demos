@@ -20,7 +20,7 @@ export const getReviewPhaseComponentFromDemonstration = (
   if (!reviewPhase) return <div>Error: Review Phase not found.</div>;
 
   const reviewPhaseFormData = getFormDataFromPhase(reviewPhase);
-  return <ReviewPhase formData={reviewPhaseFormData} demonstrationId={demonstration.id} />;
+  return <ReviewPhase initialFormData={reviewPhaseFormData} demonstrationId={demonstration.id} />;
 };
 
 export const ActionButtons = ({
@@ -151,16 +151,16 @@ export type ReviewPhasePageState = {
 };
 
 export const ReviewPhase = ({
-  formData,
+  initialFormData,
   demonstrationId,
 }: {
-  formData: ReviewPhaseFormData;
+  initialFormData: ReviewPhaseFormData;
   demonstrationId: string;
 }) => {
   const { showSuccess } = useToast();
 
-  const [reviewPhaseFormData, setReviewPhaseFormData] = useState<ReviewPhaseFormData>(formData);
-  const [originalFormData, setOriginalFormData] = useState<ReviewPhaseFormData>(formData);
+  const [reviewPhaseFormData, setReviewPhaseFormData] =
+    useState<ReviewPhaseFormData>(initialFormData);
   const [reviewPhasePageState, setReviewPhasePageState] = useState<ReviewPhasePageState>({
     sectionsExpanded: {
       "PO and OGD": true,
@@ -223,7 +223,6 @@ export const ReviewPhase = ({
   const handleSaveForLater = async () => {
     try {
       await saveFormData();
-      setOriginalFormData(reviewPhaseFormData);
       showSuccess(SAVE_FOR_LATER_MESSAGE);
     } catch (error) {
       console.error("Error saving form data:", error);
@@ -400,7 +399,7 @@ export const ReviewPhase = ({
         </div>
         <ActionButtons
           handleSaveForLater={handleSaveForLater}
-          formChanges={hasFormChanges(originalFormData, reviewPhaseFormData)}
+          formChanges={hasFormChanges(initialFormData, reviewPhaseFormData)}
           handleFinish={handleFinish}
           reviewSectionsComplete={reviewPhasePageState.sectionsComplete}
           selectedClearanceLevel={reviewPhaseFormData.clearanceLevel}
