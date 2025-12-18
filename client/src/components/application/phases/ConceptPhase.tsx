@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
@@ -11,12 +11,16 @@ import {
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
-import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
+import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
+import { PhaseName } from "demos-server";
+
+const NEXT_PHASE_NAME: PhaseName = "Application Intake";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -52,63 +56,94 @@ export const getConceptPhaseComponentFromDemonstration = (
   );
 };
 
+const getLatestDocumentDate = (documents: ApplicationWorkflowDocument[]): string => {
+  if (documents.length === 0) return "";
+
+  const sortedDocuments = [...documents].sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return dateB - dateA; // Sort descending (latest first)
+  });
+
+  return formatDateForServer(sortedDocuments[0].createdAt);
+};
+
 export interface ConceptProps {
   demonstrationId: string;
   initialPreSubmissionDocuments: ApplicationWorkflowDocument[];
 }
 
-export const ConceptPhase = ({
-  demonstrationId = "default-demo-id",
-  initialPreSubmissionDocuments,
-}: ConceptProps) => {
+export const ConceptPhase = ({ demonstrationId, initialPreSubmissionDocuments }: ConceptProps) => {
   const { showSuccess } = useToast();
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
-  const [dateSubmitted, setDateSubmitted] = useState<string>("");
-  const [demoType, setDemoType] = useState<string>("");
+  const { setApplicationDate } = useSetApplicationDate();
 
-  const [preSubmissionDocuments] = useState<ApplicationWorkflowDocument[]>(
-    initialPreSubmissionDocuments
+  const [submittedDate, setSubmittedDate] = useState<string>(
+    getLatestDocumentDate(initialPreSubmissionDocuments) || ""
   );
+  const [demonstrationType, setDemonstrationType] = useState<string>("");
+  const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
+  const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
+  const [documents] = useState<ApplicationWorkflowDocument[]>(initialPreSubmissionDocuments);
 
-  const { setPhaseStatus: completeConcept } = useSetPhaseStatus({
+  useEffect(() => {
+    const finishShouldBeEnabled = documents.length > 0 && submittedDate.length > 0;
+    setIsFinishEnabled(finishShouldBeEnabled);
+    setIsSkipEnabled(!finishShouldBeEnabled);
+  }, [submittedDate, documents]);
+
+  const { setPhaseStatus: completeConceptPhase } = useSetPhaseStatus({
     applicationId: demonstrationId,
     phaseName: "Concept",
     phaseStatus: "Completed",
   });
 
-  const { setPhaseStatus: skipConcept } = useSetPhaseStatus({
+  const { setPhaseStatus: skipConceptPhase } = useSetPhaseStatus({
     applicationId: demonstrationId,
     phaseName: "Concept",
     phaseStatus: "Skipped",
   });
 
-  const handleDocumentUploadSucceeded = async () => {
-    setDateSubmitted(getTodayEst());
+  const handleDocumentUploadSucceeded = () => {
+    setSubmittedDate(getTodayEst());
   };
 
-  React.useEffect(() => {
-    if (preSubmissionDocuments.length > 0 && !dateSubmitted) {
-      const latestDoc = preSubmissionDocuments[preSubmissionDocuments.length - 1];
-      if (latestDoc.createdAt) {
-        setDateSubmitted(formatDateForServer(latestDoc.createdAt));
-      }
+  const getDateValidationMessage = (): string => {
+    if (documents.length > 0 && !submittedDate) {
+      return "Date is required when documents are uploaded";
+    } else if (documents.length === 0 && submittedDate) {
+      return "At least one Pre-Submission document is required when date is provided";
     }
-  }, [preSubmissionDocuments, dateSubmitted]);
-
-  const hasPreSubmissionDocuments = preSubmissionDocuments.length > 0;
-  const hasDatePopulated = dateSubmitted.length > 0;
-  const hasAnyActivity = hasPreSubmissionDocuments || hasDatePopulated;
-
-  const isFinishEnabled = hasPreSubmissionDocuments && hasDatePopulated;
-  const isSkipEnabled = !hasAnyActivity;
+    return "";
+  };
 
   const onFinish = async () => {
-    await completeConcept();
+    try {
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Pre-Submission Submitted Date",
+        dateValue: formatDateForServer(submittedDate),
+      });
+    } catch (error) {
+      console.error("Error setting application date:", error);
+    }
+
+    try {
+      await completeConceptPhase();
+    } catch (error) {
+      console.error("Error completing concept phase:", error);
+    }
+
     showSuccess(getPhaseCompletedMessage("Concept"));
   };
 
   const onSkip = async () => {
-    await skipConcept();
+    try {
+      await skipConceptPhase();
+    } catch (error) {
+      console.error("Error skipping concept phase:", error);
+    }
+
     showSuccess("Concept phase skipped");
   };
 
@@ -135,7 +170,7 @@ export const ConceptPhase = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <DocumentList documents={preSubmissionDocuments} />
+      <DocumentList documents={documents} />
     </div>
   );
 
@@ -154,47 +189,28 @@ export const ConceptPhase = ({
           <DatePicker
             name="datepicker-pre-submission-date"
             label="Pre-Submission Document Submitted Date"
-            value={dateSubmitted}
-            onChange={(newDate) => setDateSubmitted(newDate)}
-            isRequired={hasPreSubmissionDocuments}
+            value={submittedDate}
+            onChange={(newDate) => setSubmittedDate(newDate)}
+            isRequired={documents.length > 0}
+            getValidationMessage={getDateValidationMessage}
           />
-          {hasPreSubmissionDocuments && !dateSubmitted && (
-            <div className="text-xs text-text-warn mt-1">
-              Date is required when documents are uploaded
-            </div>
-          )}
-          {!hasPreSubmissionDocuments && dateSubmitted && (
-            <div className="text-xs text-text-warn mt-1">
-              At least one Pre-Submission document is required when date is provided
-            </div>
-          )}
         </div>
 
         <AutoCompleteSelect
           id="demo-type"
           label="Demonstration Type(s) Requested"
           options={DEMONSTRATION_TYPE_OPTIONS}
-          value={demoType}
-          onSelect={(v) => setDemoType(String(v))}
+          value={demonstrationType}
+          onSelect={(v) => setDemonstrationType(String(v))}
         />
       </div>
 
       <div className={STYLES.actions}>
-        <SecondaryButton
-          name="button-skip-concept"
-          onClick={onSkip}
-          size="small"
-          disabled={!isSkipEnabled}
-        >
+        <SecondaryButton name="button-skip-concept" onClick={onSkip} disabled={!isSkipEnabled}>
           Skip
           <ChevronRightIcon />
         </SecondaryButton>
-        <Button
-          name="button-finish-concept"
-          onClick={onFinish}
-          disabled={!isFinishEnabled}
-          size="small"
-        >
+        <Button name="button-finish-concept" onClick={onFinish} disabled={!isFinishEnabled}>
           Finish
         </Button>
       </div>
