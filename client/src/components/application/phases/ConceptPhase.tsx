@@ -18,9 +18,7 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
-import { PhaseName } from "demos-server";
-
-const NEXT_PHASE_NAME: PhaseName = "Application Intake";
+import { PhaseName } from "../phase-selector/PhaseSelector";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -42,7 +40,8 @@ const DEMONSTRATION_TYPE_OPTIONS: Option[] = [
 ];
 
 export const getConceptPhaseComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
+  demonstration: ApplicationWorkflowDemonstration,
+  setSelectedPhase?: (phase: PhaseName) => void
 ) => {
   const preSubmissionDocuments = demonstration.documents.filter(
     (document) => document.documentType === "Pre-Submission"
@@ -52,6 +51,7 @@ export const getConceptPhaseComponentFromDemonstration = (
     <ConceptPhase
       demonstrationId={demonstration.id}
       initialPreSubmissionDocuments={preSubmissionDocuments}
+      setSelectedPhase={setSelectedPhase}
     />
   );
 };
@@ -71,9 +71,14 @@ const getLatestDocumentDate = (documents: ApplicationWorkflowDocument[]): string
 export interface ConceptProps {
   demonstrationId: string;
   initialPreSubmissionDocuments: ApplicationWorkflowDocument[];
+  setSelectedPhase?: (phase: PhaseName) => void;
 }
 
-export const ConceptPhase = ({ demonstrationId, initialPreSubmissionDocuments }: ConceptProps) => {
+export const ConceptPhase = ({
+  demonstrationId,
+  initialPreSubmissionDocuments,
+  setSelectedPhase,
+}: ConceptProps) => {
   const { showSuccess } = useToast();
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const { setApplicationDate } = useSetApplicationDate();
@@ -85,6 +90,10 @@ export const ConceptPhase = ({ demonstrationId, initialPreSubmissionDocuments }:
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
   const [documents] = useState<ApplicationWorkflowDocument[]>(initialPreSubmissionDocuments);
+
+  const advanceToNextPhase = () => {
+    setSelectedPhase?.("Application Intake");
+  };
 
   useEffect(() => {
     const finishShouldBeEnabled = documents.length > 0 && submittedDate.length > 0;
@@ -126,15 +135,18 @@ export const ConceptPhase = ({ demonstrationId, initialPreSubmissionDocuments }:
       });
     } catch (error) {
       console.error("Error setting application date:", error);
+      return;
     }
 
     try {
       await completeConceptPhase();
     } catch (error) {
       console.error("Error completing concept phase:", error);
+      return;
     }
 
     showSuccess(getPhaseCompletedMessage("Concept"));
+    advanceToNextPhase();
   };
 
   const onSkip = async () => {
@@ -145,6 +157,7 @@ export const ConceptPhase = ({ demonstrationId, initialPreSubmissionDocuments }:
     }
 
     showSuccess("Concept phase skipped");
+    advanceToNextPhase();
   };
 
   const UploadSection = () => (
