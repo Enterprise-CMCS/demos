@@ -6,6 +6,6 @@ export const CompletenessBadge = ({ isComplete }: { isComplete: boolean }) => (
       isComplete ? "bg-green-600 text-white" : "bg-yellow-400 text-black"
     }`}
   >
-    <span className="text-sm font-medium">{isComplete ? "Complete" : "Incomplete"}</span>
+    <span className="text-medium font-bold">{isComplete ? "Complete" : "Incomplete"}</span>
   </div>
 );

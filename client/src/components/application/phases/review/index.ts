@@ -1,0 +1,1 @@
+export { getReviewPhaseComponentFromDemonstration } from "./getReviewPhaseComponentFromDemonstration";

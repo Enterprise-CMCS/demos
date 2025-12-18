@@ -4,7 +4,7 @@ import { tw } from "tags/tw";
 const LABEL_CLASSES = tw`text-text-font font-bold text-field-label flex gap-0-5`;
 const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 
-const RADIO_CONTAINER_BASE_CLASSES = tw`flex gap-1`;
+const RADIO_CONTAINER_BASE_CLASSES = tw`flex`;
 const RADIO_OPTION_CLASSES = tw`flex items-center gap-0-5 cursor-pointer`;
 const RADIO_INPUT_BASE_CLASSES = tw`
   form-radio align-middle text-action 
@@ -28,9 +28,10 @@ export interface RadioOption {
 
 export interface RadioGroupProps {
   name: string;
-  title: string;
+  title?: string;
   options: RadioOption[];
-  defaultValue?: string;
+  value: string;
+  onChange: (value: string) => void;
   isRequired?: boolean;
   isDisabled?: boolean;
   isInline?: boolean;
@@ -41,28 +42,28 @@ export const RadioGroup = ({
   name,
   title,
   options,
-  defaultValue = "",
+  value,
+  onChange,
   isRequired = false,
   isDisabled = false,
   isInline = false,
   getValidationMessage,
 }: RadioGroupProps) => {
-  const [value, setValue] = useState(defaultValue);
   const [validationMessage, setValidationMessage] = useState("");
   const radioContainerClasses = isInline
-    ? RADIO_CONTAINER_BASE_CLASSES
-    : `${RADIO_CONTAINER_BASE_CLASSES} flex-col`;
+    ? `${RADIO_CONTAINER_BASE_CLASSES} gap-2`
+    : `${RADIO_CONTAINER_BASE_CLASSES} flex-col gap-1`;
   let radioColorClasses = getRadioColors("");
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     const message = getValidationMessage ? getValidationMessage(newValue) : "";
-    setValue(newValue);
     setValidationMessage(message);
     radioColorClasses = getRadioColors(message);
+    onChange(newValue);
   };
 
   return (
-    <div className="flex flex-col gap-sm">
+    <div className="flex flex-col">
       <label className={LABEL_CLASSES}>
         {isRequired && <span className="text-text-warn">*</span>}
         {title}

@@ -2,7 +2,7 @@ import {
   ADMIN_DEMONSTRATION_ROLES,
   APPLICATION_STATUS,
   APPLICATION_TYPES,
-  CLEARANCE_LEVEL,
+  CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
   DOCUMENT_TYPES,
@@ -78,7 +78,7 @@ export type {
   SetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
-export type ClearanceLevel = (typeof CLEARANCE_LEVEL)[number];
+export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
 export type DateTimeOrLocalDate = Date | LocalDate;
 export type NonEmptyString = string;

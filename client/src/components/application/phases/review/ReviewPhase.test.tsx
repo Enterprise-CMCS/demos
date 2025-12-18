@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { parseISO, format } from "date-fns";
 
 import { ReviewPhase, getReviewPhaseComponentFromDemonstration } from "./ReviewPhase";
-import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "../../ApplicationWorkflow";
 import { ApplicationDate } from "demos-server";
 import { TestProvider } from "test-utils/TestProvider";
 
