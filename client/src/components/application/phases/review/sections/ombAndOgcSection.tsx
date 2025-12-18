@@ -1,8 +1,9 @@
 import React from "react";
-import { ReviewPhaseFormData } from "../ReviewPhase";
+import { ReviewPhaseFormData } from "../../ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
+import { CompletableSection } from "layout/completableSection";
 
-type OmbAndOgcSectionFields = {
+type OmbAndOgcSectionFormData = {
   dates: Pick<
     ReviewPhaseFormData["dates"],
     | "BN PMT Approval to Send to OMB"
@@ -13,111 +14,118 @@ type OmbAndOgcSectionFields = {
   notes: Pick<ReviewPhaseFormData["notes"], "OGC and OMB">;
 };
 
-export const OmbAndOgcSectionFields = ({
-  ombAndOgcSectionFormData,
-  setOmbAndOgcSectionFormData,
-  setOmbAndOgcSectionComplete,
+export const OmbAndOgcSection = ({
+  sectionFormData,
+  setSectionFormData,
+  sectionIsComplete,
+  setSectionIsComplete,
+  sectionIsExpanded,
+  setSectionIsExpanded,
 }: {
-  ombAndOgcSectionFormData: OmbAndOgcSectionFields;
-  setOmbAndOgcSectionFormData: (data: OmbAndOgcSectionFields) => void;
-  setOmbAndOgcSectionComplete: (isComplete: boolean) => void;
+  sectionFormData: OmbAndOgcSectionFormData;
+  setSectionFormData: (data: OmbAndOgcSectionFormData) => void;
+  sectionIsComplete: boolean;
+  setSectionIsComplete: (isComplete: boolean) => void;
+  sectionIsExpanded: boolean;
+  setSectionIsExpanded: (isExpanded: boolean) => void;
 }) => {
-  const handleChange = (reviewPhaseFormData: OmbAndOgcSectionFields) => {
-    setOmbAndOgcSectionFormData(reviewPhaseFormData);
+  const handleChange = (reviewPhaseFormData: OmbAndOgcSectionFormData) => {
+    setSectionFormData(reviewPhaseFormData);
     const isComplete =
       reviewPhaseFormData.dates["BN PMT Approval to Send to OMB"] &&
       reviewPhaseFormData.dates["Draft Approval Package Shared"] &&
       reviewPhaseFormData.dates["Receive OMB Concurrence"] &&
       reviewPhaseFormData.dates["Receive OGC Legal Clearance"];
-    setOmbAndOgcSectionComplete(!!isComplete);
+    setSectionIsComplete(!!isComplete);
   };
   return (
-    <>
+    <CompletableSection
+      title="OGC & OMB"
+      isComplete={sectionIsComplete}
+      isExpanded={sectionIsExpanded}
+      setIsExpanded={setSectionIsExpanded}
+    >
       <p className="text-sm text-text-placeholder">Record the OGC & OMB Review Process</p>
       <div className="flex flex-col">
         <DatePicker
           label="BN PMT Approval to Send to OMB"
           name="datepicker-bn-pmt-approval-received-date"
-          value={ombAndOgcSectionFormData.dates["BN PMT Approval to Send to OMB"]}
+          value={sectionFormData.dates["BN PMT Approval to Send to OMB"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...ombAndOgcSectionFormData,
+              ...sectionFormData,
               dates: {
-                ...ombAndOgcSectionFormData.dates,
+                ...sectionFormData.dates,
                 "BN PMT Approval to Send to OMB": val,
               },
             })
           }
         />
       </div>
-
       <div className="flex flex-col">
         <DatePicker
           label="Draft Approval Package Shared"
           name="datepicker-draft-approval-package-shared-date"
-          value={ombAndOgcSectionFormData.dates["Draft Approval Package Shared"]}
+          value={sectionFormData.dates["Draft Approval Package Shared"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...ombAndOgcSectionFormData,
+              ...sectionFormData,
               dates: {
-                ...ombAndOgcSectionFormData.dates,
+                ...sectionFormData.dates,
                 "Draft Approval Package Shared": val,
               },
             })
           }
         />
       </div>
-
       <div className="flex flex-col">
         <DatePicker
           label="Receive OMB Concurrence"
           name="datepicker-receive-omb-concurrence-date"
-          value={ombAndOgcSectionFormData.dates["Receive OMB Concurrence"]}
+          value={sectionFormData.dates["Receive OMB Concurrence"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...ombAndOgcSectionFormData,
+              ...sectionFormData,
               dates: {
-                ...ombAndOgcSectionFormData.dates,
+                ...sectionFormData.dates,
                 "Receive OMB Concurrence": val,
               },
             })
           }
         />
       </div>
-
       <div className="flex flex-col">
         <DatePicker
           label="Receive OGC Legal Clearance"
           name="datepicker-receive-ogc-legal-clearance-date"
-          value={ombAndOgcSectionFormData.dates["Receive OGC Legal Clearance"]}
+          value={sectionFormData.dates["Receive OGC Legal Clearance"]}
           isRequired
           onChange={(val) =>
             handleChange({
-              ...ombAndOgcSectionFormData,
+              ...sectionFormData,
               dates: {
-                ...ombAndOgcSectionFormData.dates,
+                ...sectionFormData.dates,
                 "Receive OGC Legal Clearance": val,
               },
             })
           }
         />
       </div>
-
       <div className="col-span-2 flex flex-col">
         <label className="text-sm font-bold text-text-font mb-1">Notes</label>
         <textarea
           name="input-ogc-omb-notes"
           data-testid="input-ogc-omb-notes"
           placeholder="Enter notes..."
-          value={ombAndOgcSectionFormData.notes["OGC and OMB"] || ""}
+          value={sectionFormData.notes["OGC and OMB"] || ""}
           onChange={(e) =>
             handleChange({
-              ...ombAndOgcSectionFormData,
+              ...sectionFormData,
               notes: {
-                ...ombAndOgcSectionFormData.notes,
+                ...sectionFormData.notes,
                 "OGC and OMB": e.target.value,
               },
             })
@@ -126,6 +134,6 @@ export const OmbAndOgcSectionFields = ({
           rows={1}
         />
       </div>
-    </>
+    </CompletableSection>
   );
 };

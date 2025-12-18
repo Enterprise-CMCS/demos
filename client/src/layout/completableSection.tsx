@@ -1,17 +1,8 @@
 import React from "react";
-import { ChevronDownIcon, ChevronUpIcon } from "components/icons";
+import { ChevronDownIcon, ChevronRightIcon, ChevronUpIcon } from "components/icons";
+import { CompletenessBadge } from "components/badge/CompletenessBadge";
 
-export const StatusBadge = ({ isComplete }: { isComplete: boolean }) => (
-  <div
-    className={`px-3 py-1 rounded ${
-      isComplete ? "bg-green-600 text-white" : "bg-yellow-400 text-black"
-    }`}
-  >
-    <span className="text-sm font-medium">{isComplete ? "Complete" : "Incomplete"}</span>
-  </div>
-);
-
-export const ExpandableSection = ({
+export const CompletableSection = ({
   isComplete,
   isExpanded,
   setIsExpanded,
@@ -35,9 +26,9 @@ export const ExpandableSection = ({
             <h4 className="text-xl font-bold mb-1 text-black">{title}</h4>
           </div>
           <div className="flex items-center gap-2">
-            <StatusBadge isComplete={isComplete} />
+            <CompletenessBadge isComplete={isComplete} />
             {isExpanded ? (
-              <ChevronUpIcon className="h-2 w-2 text-brand" />
+              <ChevronRightIcon className="h-2 w-2 text-brand" />
             ) : (
               <ChevronDownIcon className="h-2 w-2 text-brand" />
             )}
