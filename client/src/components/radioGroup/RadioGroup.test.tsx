@@ -9,14 +9,17 @@ describe("RadioGroup component", () => {
     { label: "Option B", value: "b" },
   ];
 
+  const mockOnChange = vi.fn();
+
   const requiredProps: RadioGroupProps = {
     name: "test-radio",
-    title: "Test Radio",
     options,
+    value: "a",
+    onChange: mockOnChange,
   };
 
   it("renders title and options", () => {
-    render(<RadioGroup {...requiredProps} />);
+    render(<RadioGroup {...requiredProps} title="Test Radio" />);
     const labelA = screen.getByText("Option A").closest("label");
     const labelB = screen.getByText("Option B").closest("label");
 
@@ -47,28 +50,24 @@ describe("RadioGroup component", () => {
   });
 
   it("selects defaultValue if provided", () => {
-    render(<RadioGroup {...requiredProps} defaultValue="b" />);
+    render(<RadioGroup {...requiredProps} value="b" />);
     const input = screen.getByLabelText("Option B");
     expect(input).toBeChecked();
   });
 
-  it("updates value on change", () => {
+  it("calls onChange when option value changes", () => {
     render(<RadioGroup {...requiredProps} />);
-    const input = screen.getByLabelText("Option B");
-    fireEvent.click(input);
-    expect(input).toBeChecked();
+    const alreadySelectedOption = screen.getByLabelText(/Option A/);
+    fireEvent.click(alreadySelectedOption);
+    expect(mockOnChange).not.toHaveBeenCalled();
+    const newOption = screen.getByLabelText("Option B");
+    fireEvent.click(newOption);
+    expect(mockOnChange).toHaveBeenCalledWith("b");
   });
 
   it("calls getValidationMessage and displays error", () => {
-    const getValidationMessage = vi.fn((val: string) =>
-      val === "b" ? "Invalid choice" : ""
-    );
-    render(
-      <RadioGroup
-        {...requiredProps}
-        getValidationMessage={getValidationMessage}
-      />
-    );
+    const getValidationMessage = vi.fn((val: string) => (val === "b" ? "Invalid choice" : ""));
+    render(<RadioGroup {...requiredProps} getValidationMessage={getValidationMessage} />);
     const input = screen.getByLabelText("Option B");
     fireEvent.click(input);
     expect(getValidationMessage).toHaveBeenCalledWith("b");
@@ -76,21 +75,45 @@ describe("RadioGroup component", () => {
   });
 
   it("clears validation message when input becomes valid", () => {
-    const getValidationMessage = vi.fn((val: string) =>
-      val === "a" ? "" : "Invalid"
-    );
-    render(
+    const getValidationMessage = vi.fn((val: string) => (val === "a" ? "" : "Invalid"));
+    let currentValue = "a";
+    const handleChange = vi.fn((val: string) => {
+      currentValue = val;
+    });
+
+    const { rerender } = render(
       <RadioGroup
         {...requiredProps}
+        value={currentValue}
+        onChange={handleChange}
         getValidationMessage={getValidationMessage}
       />
     );
+
     const bInput = screen.getByText("Option B").closest("label")!.querySelector("input")!;
     fireEvent.click(bInput);
+
+    rerender(
+      <RadioGroup
+        {...requiredProps}
+        value="b"
+        onChange={handleChange}
+        getValidationMessage={getValidationMessage}
+      />
+    );
     expect(screen.getByText("Invalid")).toBeInTheDocument();
 
     const aInput = screen.getByText("Option A").closest("label")!.querySelector("input")!;
     fireEvent.click(aInput);
+
+    rerender(
+      <RadioGroup
+        {...requiredProps}
+        value="a"
+        onChange={handleChange}
+        getValidationMessage={getValidationMessage}
+      />
+    );
     expect(screen.queryByText("Invalid")).not.toBeInTheDocument();
   });
 

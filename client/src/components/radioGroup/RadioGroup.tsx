@@ -56,6 +56,7 @@ export const RadioGroup = ({
   let radioColorClasses = getRadioColors("");
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
+    if (value === newValue) return;
     const message = getValidationMessage ? getValidationMessage(newValue) : "";
     setValidationMessage(message);
     radioColorClasses = getRadioColors(message);
