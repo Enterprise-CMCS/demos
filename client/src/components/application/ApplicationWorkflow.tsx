@@ -48,12 +48,17 @@ export type SimplePhase = {
   phaseName: PhaseName;
   phaseStatus: PhaseStatus;
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
-  // temporary, until we have proper notes handling
+
+  // TODO: Implement setting notes when backend supports it
+  //  - integration - DEMOS-1266
+  //  - backend support - DEMOS-1167
   phaseNotes: {
     noteType: NoteType;
     content: string;
   }[];
-  // temporary, until we have proper clearance handling
+
+  // TODO: Implement setting clearance level when backend supports it
+  //  - integration - DEMOS-1224
   clearanceLevel: ClearanceLevel;
 };
 

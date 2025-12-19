@@ -124,6 +124,7 @@ describe("validateInputDates", () => {
         "Receive OGC Legal Clearance",
         "Approval Package Start Date",
         "Approval Package Completion Date",
+        // Prospective assignments, to be confirmed in DEMOS-1227
         "Package Sent to COMMs Clearance",
         "COMMs Clearance Received",
         "Submit Approval Package to OSORA",
@@ -139,6 +140,7 @@ describe("validateInputDates", () => {
       const endOfDayDateTypes: DateType[] = [
         "Federal Comment Period End Date",
         "Completeness Review Due Date",
+        // Prospective assignments, to be confirmed in DEMOS-1227
         "OSORA R1 Comments Due",
         "OSORA R2 Comments Due",
         "CMS (OSORA) Clearance End",

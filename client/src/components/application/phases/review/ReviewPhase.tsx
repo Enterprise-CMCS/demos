@@ -4,37 +4,14 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useSetPhaseStatus } from "../../phase-status/phaseStatusQueries";
-import { DateType, ApplicationDateInput, LocalDate, ClearanceLevel, NoteType } from "demos-server";
+import { DateType, ApplicationDateInput, LocalDate, ClearanceLevel } from "demos-server";
 import { PoAndOgdSection } from "./poAndOgdSection";
 import { OgcAndOmbSection } from "./ogcAndOmbSection";
 import { CommsClearanceSection } from "./commsClearanceSection";
 import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
 import { Option } from "components/input/select/Select";
-
-export const REVIEW_PHASE_DATE_TYPES = [
-  "OGD Approval to Share with SMEs",
-  "Draft Approval Package to Prep",
-  "DDME Approval Received",
-  "State Concurrence",
-  "BN PMT Approval to Send to OMB",
-  "Draft Approval Package Shared",
-  "Receive OMB Concurrence",
-  "Receive OGC Legal Clearance",
-  "Package Sent to COMMs Clearance",
-  "COMMs Clearance Received",
-  "Submit Approval Package to OSORA",
-  "OSORA R1 Comments Due",
-  "OSORA R2 Comments Due",
-  "CMS (OSORA) Clearance End",
-] as const satisfies DateType[];
-
-const REVIEW_PHASE_NOTE_TYPES = [
-  "PO and OGD",
-  "OGC and OMB",
-  "COMMs Clearance",
-  "CMS (OSORA) Clearance",
-] as const satisfies NoteType[];
+import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
 
 const CLEARANCE_LEVEL_OPTIONS: Option[] = [
   {
@@ -176,9 +153,12 @@ export const ReviewPhase = ({
 
     if (noteUpdates.length > 0) {
       // TODO: Implement setting notes when backend supports it
+      //  - integration - DEMOS-1266
+      //  - backend support - DEMOS-1167
     }
 
     // TODO: Implement setting clearance level when backend supports it
+    //  - integration - DEMOS-1224
   };
 
   const handleSaveForLater = async () => {

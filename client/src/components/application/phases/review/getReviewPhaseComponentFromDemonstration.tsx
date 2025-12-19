@@ -3,8 +3,9 @@ import {
   SimplePhase,
 } from "components/application/ApplicationWorkflow";
 import React from "react";
-import { REVIEW_PHASE_DATE_TYPES, ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
+import {  ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { format } from "date-fns";
+import { REVIEW_PHASE_DATE_TYPES } from "demos-server-constants";
 
 export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormData {
   const formData: ReviewPhaseFormData = {
@@ -21,6 +22,9 @@ export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormD
   }
 
   // TODO: MOCKING NOTES AND CLEARANCE LEVEL UNTIL BACKEND SUPPORTS IT.
+  //  - notes integration - DEMOS-1266
+  //  - notes backend support - DEMOS-1167
+  //  - clearance level integration - DEMOS-1224
   // WILL LIKELY END UP LOOKING LIKE THIS:
   // for (const noteType of REVIEW_PHASE_NOTE_TYPES) {
   //   const note = reviewPhase.phaseNotes.find((n) => n.noteType === noteType);
