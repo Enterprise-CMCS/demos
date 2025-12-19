@@ -15,29 +15,38 @@ export const CompletableSection = ({
   title: string;
   children: React.ReactNode;
 }) => {
+  const sectionId = title.replace(/\s+/g, "-").toLowerCase();
   return (
-    <div className="col-span-4 border-1 border-gray-dark rounded-md gap-1">
-      <div
-        className="flex items-center justify-between cursor-pointer px-2 py-1 gap-1"
+    <section className="col-span-4 border-1 border-gray-dark rounded-md gap-1">
+      <button
+        aria-label={`${title}, ${isComplete ? "complete" : "incomplete"}, ${isExpanded ? "collapse" : "expand"} section`}
+        className="flex items-center justify-between cursor-pointer px-2 py-1 gap-1 w-full text-left"
         onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
+        aria-controls={`section-${sectionId}`}
       >
-        <div>
-          <h4 className="text-xl font-bold text-black">{title}</h4>
-        </div>
+        <h4 id={`heading-${sectionId}`} className="text-xl font-bold text-black">
+          {title}
+        </h4>
         <div className="flex items-center gap-2 mr-1">
           <CompletenessBadge isComplete={isComplete} />
           {isExpanded ? (
-            <ChevronRightIcon className="h-2 w-2 text-brand" />
-          ) : (
             <ChevronDownIcon className="h-2 w-2 text-brand" />
+          ) : (
+            <ChevronRightIcon className="h-2 w-2 text-brand" />
           )}
         </div>
-      </div>
+      </button>
       {isExpanded && (
-        <div className="pr-2 pb-2 pl-2">
+        <div
+          className="pr-2 pb-2 pl-2"
+          id={`section-${sectionId}`}
+          role="region"
+          aria-labelledby={`heading-${sectionId}`}
+        >
           <div className="border-t-1 border-gray-dark">{children}</div>
         </div>
       )}
-    </div>
+    </section>
   );
 };
