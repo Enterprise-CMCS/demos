@@ -124,6 +124,9 @@ describe("validateInputDates", () => {
         "Receive OGC Legal Clearance",
         "Approval Package Start Date",
         "Approval Package Completion Date",
+        "Package Sent to COMMs Clearance",
+        "COMMs Clearance Received",
+        "Submit Approval Package to OSORA",
       ];
       const expectedCalls = startOfDayDateTypes.map((dateType) => [dateType, testDateValue]);
 
@@ -136,6 +139,9 @@ describe("validateInputDates", () => {
       const endOfDayDateTypes: DateType[] = [
         "Federal Comment Period End Date",
         "Completeness Review Due Date",
+        "OSORA R1 Comments Due",
+        "OSORA R2 Comments Due",
+        "CMS (OSORA) Clearance End",
       ];
       const expectedCalls = endOfDayDateTypes.map((dateType) => [dateType, testDateValue]);
 
