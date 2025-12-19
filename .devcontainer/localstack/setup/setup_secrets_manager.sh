@@ -8,9 +8,10 @@ AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 
 DB_PASSWORD="postgres" # pragma: allowlist secret
-UIPATH_SECRET_ID=${UIPATH_SECRET_ID:-"uipath-credentials"}
+UIPATH_SECRET_ID="demos-local/uipath"
 UIPATH_CLIENT_ID=${UIPATH_CLIENT_ID:-"local-uipath-client-id"}
 UIPATH_CLIENT_SECRET=${UIPATH_CLIENT_SECRET:-"local-uipath-client-secret"} # pragma: allowlist secret
+UIPATH_EXTRACTOR_GUID=${UIPATH_EXTRACTOR_GUID:-"local-uipath-extractor-guid"}
 
 # Delete existing secret
 $AWS_CMD secretsmanager delete-secret \
@@ -40,7 +41,8 @@ $AWS_CMD secretsmanager create-secret \
     --description "UiPath client credentials for local development" \
     --secret-string "{
         \"clientId\": \"$UIPATH_CLIENT_ID\",
-        \"clientSecret\": \"$UIPATH_CLIENT_SECRET\"
+        \"clientSecret\": \"$UIPATH_CLIENT_SECRET\",
+        \"extractorGuid\": \"$UIPATH_EXTRACTOR_GUID\"
     }" >/dev/null
 
 echo "✅ Secrets Manager ready"

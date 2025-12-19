@@ -79,16 +79,11 @@ export class UiPathProcessor extends Construct {
       nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty"],
       environment: {
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
-
-        // NOTE: you call it *_ARN but you’re passing secretName. Keep as-is if your code expects name.
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
-        UIPATH_CLIENT_SECRET: clientSecret.secretName,
-
+        UIPATH_SECRET_ID: clientSecret.secretName,
         UIPATH_EXTRACTOR_GUID: process.env.UIPATH_EXTRACTOR_GUID ?? "",
         UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? uiPathDefaultProjectId,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
-
-        // ✅ THIS is the bucket your Lambda must use (not "uipath-documents")
         UIPATH_DOCUMENTS_BUCKET: props.documentsBucket.bucketName,
       },
     });

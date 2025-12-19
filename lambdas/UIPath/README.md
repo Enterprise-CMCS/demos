@@ -5,16 +5,15 @@ TypeScript Lambda that uploads a document to UiPath DU, starts extraction, and p
 ## Env vars (required)
 ```
 UIPATH_CLIENT_ID=...
-UIPATH_CLIENT_SECRET=...
 UIPATH_PROJECT_ID=...
 UIPATH_EXTRACTOR_GUID=...
-UIPATH_SECRET_ID=<optional: Secrets Manager secret name/ARN containing clientId/clientSecret>
+UIPATH_SECRET_ID=<optional: Secrets Manager secret name/ARN containing clientId/clientSecret/extractorGuid>
 # optional
 LOG_LEVEL=info
 INPUT_FILE=ak-behavioral-health-demo-pa.pdf
 ```
 
-If `UIPATH_SECRET_ID` is set, the Lambda will resolve the client id/secret from Secrets Manager (falling back to the environment values for local runs).
+If `UIPATH_SECRET_ID` is set, the Lambda will resolve the client id/secret/extractor guid from Secrets Manager (falling back to the environment values for local runs).
 
 ## Local usage
 ```bash
