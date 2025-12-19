@@ -73,6 +73,9 @@ export function hasFormChanges(
       return true;
     }
   }
+  if (originalFormData.clearanceLevel !== activeFormData.clearanceLevel) {
+    return true;
+  }
   return false;
 }
 
