@@ -4,6 +4,7 @@ import { UiPathProcessor } from "./uipathProcessor";
 import { DeploymentConfigProperties } from "../config";
 import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
 import { Bucket } from "aws-cdk-lib/aws-s3";
+import { Key } from "aws-cdk-lib/aws-kms";
 
 const mockProps: DeploymentConfigProperties = {
   project: "demos",
@@ -32,6 +33,7 @@ describe("UiPathProcessor construct", () => {
       ...mockProps,
       removalPolicy: RemovalPolicy.DESTROY,
       documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
+      kmsKey: new Key(stack, "UiPathKmsKey"),
     });
 
     const template = Template.fromStack(stack);
