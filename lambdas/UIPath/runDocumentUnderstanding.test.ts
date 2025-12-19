@@ -50,6 +50,14 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       logFullResult: false,
+      prompts: [
+        {
+          id: "prompt-1",
+          question: "What is the state?",
+          fieldType: "Text",
+          multiValued: false,
+        },
+      ],
     });
 
     await vi.runAllTimersAsync();
@@ -57,7 +65,14 @@ describe("runDocumentUnderstanding", () => {
 
     expect(getToken).toHaveBeenCalled();
     expect(uploadDocumentMock).toHaveBeenCalledWith("token-123", "file.pdf");
-    expect(extractDocMock).toHaveBeenCalledWith("token-123", "doc-1");
+    expect(extractDocMock).toHaveBeenCalledWith("token-123", "doc-1", [
+      {
+        id: "prompt-1",
+        question: "What is the state?",
+        fieldType: "Text",
+        multiValued: false,
+      },
+    ]);
     expect(fetchExtractionResultMock).toHaveBeenCalledTimes(2);
     expect(result).toMatchObject({ status: "Succeeded" });
   });
@@ -70,6 +85,14 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       maxAttempts: 2,
+      prompts: [
+        {
+          id: "prompt-1",
+          question: "What is the state?",
+          fieldType: "Text",
+          multiValued: false,
+        },
+      ],
     });
 
     const expectation = expect(promise).rejects.toThrow("did not succeed");
