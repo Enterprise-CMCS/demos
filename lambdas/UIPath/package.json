@@ -11,8 +11,8 @@
     "build": "npx esbuild index.ts --bundle --platform=node --format=esm --outdir=dist"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.943.0",
     "@aws-sdk/client-s3": "^3.943.0",
+    "@aws-sdk/client-secrets-manager": "^3.943.0",
     "axios": "^1.13.2",
     "axios-oauth-client": "^2.2.0",
     "dotenv": "^17.2.3",
@@ -23,10 +23,11 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.158",
     "@types/node": "^24.10.1",
+    "@types/pg": "^8.16.0",
     "@vitest/coverage-v8": "^4.0.10",
     "esbuild": "^0.27.0",
-    "tsx": "^4.20.6",
     "pino-pretty": "^11.2.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^4.0.10"
   }
