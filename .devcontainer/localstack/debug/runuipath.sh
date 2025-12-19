@@ -5,15 +5,18 @@ set -e
 # MUST ADD test_uipath.pdf file.
 # but you can either run this like a bash script or copy pasta.
 
+# Set this to empty to trigger REAL AWS
+LOCALSTACK_ENDPOINT="http://localstack:4566"
+
 local QUEUE_URL
-  QUEUE_URL=$(aws --endpoint-url=http://localstack:4566 \
+  QUEUE_URL=$(aws --endpoint-url=$LOCALSTACK_ENDPOINT \
     --region us-east-1 \
     sqs get-queue-url \
     --queue-name uipath-queue \
     --query QueueUrl \
     --output text)
 
-  aws --endpoint-url=http://localstack:4566 \
+  aws --endpoint-url=$LOCALSTACK_ENDPOINT \
     --region us-east-1 \
     sqs send-message \
     --queue-url "$QUEUE_URL" \
