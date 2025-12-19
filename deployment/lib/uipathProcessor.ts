@@ -76,7 +76,7 @@ export class UiPathProcessor extends Construct {
       timeout: Duration.minutes(15),
       asCode: false,
       externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager", "@aws-sdk/client-s3"],
-      nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty"],
+      nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty", "pg"],
       environment: {
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
