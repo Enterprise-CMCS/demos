@@ -1,16 +1,10 @@
 import React from "react";
-import { ReviewPhaseFormData } from "./ReviewPhase";
+import { CMS_OSORA_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
 
 type CmsOsoraClearanceSectionFormData = {
-  dates: Pick<
-    ReviewPhaseFormData["dates"],
-    | "Submit Approval Package to OSORA"
-    | "OSORA R1 Comments Due"
-    | "OSORA R2 Comments Due"
-    | "CMS (OSORA) Clearance End"
-  >;
+  dates: Pick<ReviewPhaseFormData["dates"], (typeof CMS_OSORA_DATE_TYPES)[number]>;
   notes: Pick<ReviewPhaseFormData["notes"], "CMS (OSORA) Clearance">;
 };
 

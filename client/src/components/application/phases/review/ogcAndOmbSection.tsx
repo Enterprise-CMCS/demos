@@ -1,16 +1,10 @@
 import React from "react";
-import { ReviewPhaseFormData } from "./ReviewPhase";
+import { OGC_AND_OMB_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
 
 type OmbAndOgcSectionFormData = {
-  dates: Pick<
-    ReviewPhaseFormData["dates"],
-    | "BN PMT Approval to Send to OMB"
-    | "Draft Approval Package Shared"
-    | "Receive OMB Concurrence"
-    | "Receive OGC Legal Clearance"
-  >;
+  dates: Pick<ReviewPhaseFormData["dates"], (typeof OGC_AND_OMB_DATE_TYPES)[number]>;
   notes: Pick<ReviewPhaseFormData["notes"], "OGC and OMB">;
 };
 

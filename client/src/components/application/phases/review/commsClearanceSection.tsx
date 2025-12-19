@@ -1,13 +1,10 @@
 import React from "react";
-import { ReviewPhaseFormData } from "./ReviewPhase";
+import { COMMS_CLEARANCE_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
 
 type CommsClearanceSectionFormData = {
-  dates: Pick<
-    ReviewPhaseFormData["dates"],
-    "Package Sent to COMMs Clearance" | "COMMs Clearance Received"
-  >;
+  dates: Pick<ReviewPhaseFormData["dates"], (typeof COMMS_CLEARANCE_DATE_TYPES)[number]>;
   notes: Pick<ReviewPhaseFormData["notes"], "COMMs Clearance">;
 };
 

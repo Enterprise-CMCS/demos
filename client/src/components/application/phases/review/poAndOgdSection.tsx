@@ -1,16 +1,10 @@
 import React from "react";
-import { ReviewPhaseFormData } from "./ReviewPhase";
+import { PO_AND_OGD_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
 
 type PoAndOgdFormData = {
-  dates: Pick<
-    ReviewPhaseFormData["dates"],
-    | "OGD Approval to Share with SMEs"
-    | "Draft Approval Package to Prep"
-    | "DDME Approval Received"
-    | "State Concurrence"
-  >;
+  dates: Pick<ReviewPhaseFormData["dates"], (typeof PO_AND_OGD_DATE_TYPES)[number]>;
   notes: Pick<ReviewPhaseFormData["notes"], "PO and OGD">;
 };
 
