@@ -38,14 +38,14 @@ export class FileUploadStack extends Stack {
     });
 
     const deadLetterQueue = new Queue(this, "FileUploadDLQ", {
-      removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       enforceSSL: true,
       encryption: QueueEncryption.KMS,
       encryptionMasterKey: kmsKey,
     });
 
     const uploadQueue = new Queue(this, "FileUploadQueue", {
-      removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       enforceSSL: true,
       deadLetterQueue: {
         maxReceiveCount: 5,
@@ -56,7 +56,7 @@ export class FileUploadStack extends Stack {
     });
 
     const deleteInfectedFileQueue = new Queue(this, "DeleteInfectedFileQueue", {
-      removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       enforceSSL: true,
       encryption: QueueEncryption.KMS,
       encryptionMasterKey: kmsKey,
@@ -93,8 +93,8 @@ export class FileUploadStack extends Stack {
 
     const uploadBucket = new Bucket(this, "FileUploadBucket", {
       versioned: false,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
+      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: props.stage != "prod",
       publicReadAccess: false,
       serverAccessLogsBucket: s3AccessLogBucket,
       serverAccessLogsPrefix: "upload/",
@@ -130,8 +130,8 @@ export class FileUploadStack extends Stack {
 
     const cleanBucket = new Bucket(this, "FileCleanBucket", {
       versioned: true,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
+      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: props.stage != "prod",
       publicReadAccess: false,
       serverAccessLogsBucket: s3AccessLogBucket,
       serverAccessLogsPrefix: "clean/",
@@ -145,8 +145,8 @@ export class FileUploadStack extends Stack {
 
     const deletedBucket = new Bucket(this, "FileDeletedBucket", {
       versioned: true,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
+      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: props.stage != "prod",
       publicReadAccess: false,
       serverAccessLogsBucket: s3AccessLogBucket,
       serverAccessLogsPrefix: "deleted/",
@@ -156,8 +156,8 @@ export class FileUploadStack extends Stack {
 
     const infectedBucket = new Bucket(this, "FileInfectedBucket", {
       versioned: true,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
+      removalPolicy: props.stage == "prod" ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: props.stage != "prod",
       publicReadAccess: false,
       serverAccessLogsBucket: accessLogs,
       serverAccessLogsPrefix: "infected",

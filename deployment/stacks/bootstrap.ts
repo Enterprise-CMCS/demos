@@ -4,8 +4,12 @@ import { Construct } from "constructs";
 import { DeploymentConfigProperties } from "../config";
 import { PrivateHostedZone } from "aws-cdk-lib/aws-route53";
 
+interface BootstrapStackProps {
+  bootstrapProd: boolean;
+}
+
 export class BootstrapStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties) {
+  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties & BootstrapStackProps) {
     super(scope, id, {
       ...props,
       terminationProtection: false,
@@ -141,16 +145,19 @@ export class BootstrapStack extends Stack {
     cbcJenkinsRole.attachInlinePolicy(policy);
 
     // Private Hosted Zones
-
-    createPHZ(commonProps.scope, "dev");
-    createPHZ(commonProps.scope, "test");
-    createPHZ(commonProps.scope, "impl");
+    if (props.bootstrapProd) {
+      createPHZ(commonProps.scope, "prod")
+    } else {
+      createPHZ(commonProps.scope, "dev");
+      createPHZ(commonProps.scope, "test");
+      createPHZ(commonProps.scope, "impl");
+    }
 
     // Wait function
     new aws_lambda.SingletonFunction(commonProps.scope, "SharedWaitLambda", {
       functionName: `cdk-wait-${commonProps.scope.account}`,
       uuid: "c0d7adea-b43d-4022-a438-551724eb7e0f",
-      runtime: aws_lambda.Runtime.NODEJS_22_X,
+      runtime: aws_lambda.Runtime.NODEJS_24_X,
       handler: "index.handler",
       timeout: Duration.minutes(5),
       code: aws_lambda.Code.fromInline(`

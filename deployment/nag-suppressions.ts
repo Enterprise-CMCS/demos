@@ -157,13 +157,12 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
           {
             id: "AwsSolutions-RDS10",
             reason: "Not using deletion protection in non-prod environments",
-          },
-          {
-            id: "AwsSolutions-IAM4",
-            reason: "Using AWS managed policies currently",
-          },
+          }
         ]
-      : []
+      : [{
+            id: "AwsSolutions-RDS3",
+            reason: "REMOVE THIS BEFORE PROD IS LIVE. Leaving non-multi-az until in use",
+          },]
   );
   NagSuppressions.addResourceSuppressionsByPath(
     database,
@@ -172,6 +171,16 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
       {
         id: "AwsSolutions-IAM5",
         reason: "CDK default policy that can't be modified",
+      },
+    ]
+  );
+  NagSuppressions.addResourceSuppressionsByPath(
+    database,
+    `/demos-${stage}-database/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource`, // pragma: allowlist secret
+    [
+      {
+        id: "AwsSolutions-IAM4",
+        reason: "The AWSLambdaBasicExecutionRole for the log retention function doesn't create a risk",
       },
     ]
   );

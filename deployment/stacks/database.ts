@@ -87,7 +87,7 @@ export class DatabaseStack extends Stack {
         instanceType: aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE4_GRAVITON, aws_ec2.InstanceSize.MICRO),
         vpc: commonProps.vpc,
         vpcSubnets: { subnets: props.vpc.privateSubnets },
-        multiAz: commonProps.stage == "prod",
+        multiAz: false, // commonProps.stage == "prod", ENABLE THIS BEFORE PROD IS LIVE
         allocatedStorage: 20,
         databaseName: "demos",
         storageType: aws_rds.StorageType.GP3,
@@ -100,7 +100,7 @@ export class DatabaseStack extends Stack {
         removalPolicy: ["prod", "impl"].includes(commonProps.stage) ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
         deleteAutomatedBackups: true,
         instanceIdentifier: `${commonProps.project}-${commonProps.stage}-rds`,
-        backupRetention: Duration.days(7),
+        backupRetention: commonProps.stage == "prod" ? Duration.days(30) : Duration.days(7),
         cloudwatchLogsExports: ["postgresql", "upgrade"],
         cloudwatchLogsRetention: RetentionDays.THREE_MONTHS,
         storageEncryptionKey: rdsKMSKey,
