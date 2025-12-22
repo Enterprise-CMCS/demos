@@ -13,7 +13,7 @@ export const RadioGroupSandbox: React.FC = () => {
   const [disabled, setDisabled] = useState(false);
   const [isRequired, setIsRequired] = useState(false);
   const [isInline, setIsInline] = useState(false);
-
+  const [value, setValue] = useState("cheese");
   return (
     <div>
       <div className="flex gap-sm mb-sm">
@@ -33,7 +33,8 @@ export const RadioGroupSandbox: React.FC = () => {
         isDisabled={disabled}
         isRequired={isRequired}
         isInline={isInline}
-        defaultValue="cheese"
+        value={value}
+        onChange={setValue}
         getValidationMessage={getValidationMessage}
         options={[
           { label: "Cheese", value: "cheese" },
@@ -41,6 +42,7 @@ export const RadioGroupSandbox: React.FC = () => {
           { label: "Pineapple", value: "pineapple", helperText: "Do Not Chose This Option!" },
         ]}
       />
+      <p>You have selected: {value}</p>
     </div>
   );
 };

@@ -503,7 +503,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
       },
       {
-        dateType: "OGC Approval to Share with SMEs",
+        dateType: "OGD Approval to Share with SMEs",
         dateValue: new Date("2025-02-14T00:00:00.000-05:00"),
       },
       {
