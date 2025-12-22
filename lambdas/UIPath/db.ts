@@ -47,7 +47,7 @@ export interface QuestionPrompt {
 }
 
 export async function getDbPool(): Promise<Pool> {
-  if (!poolPromise) {
+  if (poolPromise === null) {
     poolPromise = (async () => {
       const connectionString = await getDatabaseUrl();
       log.info("Connecting to database for UiPath questions");

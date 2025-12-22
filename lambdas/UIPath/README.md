@@ -12,6 +12,18 @@ UIPATH_SECRET_ID=<optional: Secrets Manager secret name/ARN containing clientId/
 LOG_LEVEL=info
 INPUT_FILE=ak-behavioral-health-demo-pa.pdf
 ```
+## Set your secret using this: (<AWS_ENV_NAME> is dev btw)
+```bash
+AWS_PROFILE=<AWS_ENV_NAME> \
+aws secretsmanager put-secret-value \
+  --secret-id <UIPATH_SECRET_ID> \
+  --secret-string '{"clientId":"...","clientSecret":"...","extractorGuid":"..."}'
+```
+
+# Your vars that need to be stored in your secret manager:
+* clientId
+* clientSecret
+* extractorGuid
 
 If `UIPATH_SECRET_ID` is set, the Lambda will resolve the client id/secret/extractor guid from Secrets Manager (falling back to the environment values for local runs).
 
