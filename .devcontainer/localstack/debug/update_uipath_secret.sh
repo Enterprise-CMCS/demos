@@ -51,4 +51,4 @@ $AWS_CMD secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query Secr
 
 echo ""
 echo "📜 To tail UiPath lambda logs after invoking it:"
-echo "aws --endpoint-url=${LOCALSTACK_ENDPOINT} logs tail /aws/lambda/uipath --since 5m --follow"
+echo "aws --endpoint-url=${LOCALSTACK_ENDPOINT} logs tail /aws/lambdas/uipath --since 5m --follow"

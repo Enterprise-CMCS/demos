@@ -21,7 +21,7 @@ pipeline {
             snykScan('lambdas/fileprocess')
             snykScan('lambdas/emailer')
             snykScan('lambdas/deleteinfectedfile')
-            snykScan('lambdas/uipath')
+            snykScan('lambdas/UIPath')
           }
         }
       }
@@ -79,7 +79,7 @@ pipeline {
           steps {
             script {
               if (hasChange("lambdas")) {
-                dirCon('lambdas/uipath', 'node') {
+                dirCon('lambdas/UIPath', 'node') {
                   sh '''
                   npm ci
                   npm run lint
