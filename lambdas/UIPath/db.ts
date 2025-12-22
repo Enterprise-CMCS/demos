@@ -32,7 +32,8 @@ export async function getDatabaseUrl() {
     throw new Error(`The SecretString value is undefined for secret: ${secretArn}`);
   }
   const secretData = JSON.parse(response.SecretString);
-  databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${dbSchema}`;
+  const sslMode = process.env.DB_SSL_MODE ?? "require";
+  databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${dbSchema}&sslmode=${sslMode}`;
   cacheExpiration = now + 60 * 60 * 1000;
 
   return databaseUrlCache;
