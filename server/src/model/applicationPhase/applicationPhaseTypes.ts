@@ -1,4 +1,7 @@
-import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
+import {
+  ApplicationDate as PrismaApplicationDate,
+  ApplicationNote as PrismaApplicationNote,
+} from "@prisma/client";
 import { DateType, DocumentType, PhaseNameWithTrackedStatus, PhaseStatus } from "../../types.js";
 
 export type ValidationChecks = {
@@ -31,4 +34,9 @@ export type ApplicationPhaseDocumentTypeRecord = Record<PhaseNameWithTrackedStat
 export type PrismaApplicationDateResults = Pick<
   PrismaApplicationDate,
   "dateTypeId" | "dateValue" | "createdAt" | "updatedAt"
+>;
+
+export type PrismaApplicationNoteResults = Pick<
+  PrismaApplicationNote,
+  "noteTypeId" | "content" | "createdAt" | "updatedAt"
 >;
