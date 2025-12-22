@@ -3,15 +3,7 @@ import {
   SimplePhase,
 } from "components/application/ApplicationWorkflow";
 import React from "react";
-import {
-  CMS_OSORA_DATE_TYPES,
-  COMMS_CLEARANCE_DATE_TYPES,
-  OGC_AND_OMB_DATE_TYPES,
-  PO_AND_OGD_DATE_TYPES,
-  ReviewPhase,
-  ReviewPhaseFormData,
-  ReviewPhasePageState,
-} from "./ReviewPhase";
+import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { format } from "date-fns";
 import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
 import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
@@ -106,49 +98,3 @@ export function hasFormChanges(
   }
   return false;
 }
-
-export const getPageStateFromFormData = (
-  prev: ReviewPhasePageState,
-  reviewPhaseFormData: ReviewPhaseFormData
-) => {
-  const poAndOgdComplete = PO_AND_OGD_DATE_TYPES.every(
-    (dateType) => !!reviewPhaseFormData.dates[dateType]
-  );
-  const ogcAndOmbComplete = OGC_AND_OMB_DATE_TYPES.every(
-    (dateType) => !!reviewPhaseFormData.dates[dateType]
-  );
-  const commsClearanceComplete = COMMS_CLEARANCE_DATE_TYPES.every(
-    (dateType) => !!reviewPhaseFormData.dates[dateType]
-  );
-  const cmsOsoraClearanceComplete = CMS_OSORA_DATE_TYPES.every(
-    (dateType) => !!reviewPhaseFormData.dates[dateType]
-  );
-
-  // if change doesnt effect completion state, dont update page state (it was manually opened)
-  if (
-    prev.sectionsComplete["PO and OGD"] === poAndOgdComplete &&
-    prev.sectionsComplete["OGC and OMB"] === ogcAndOmbComplete &&
-    prev.sectionsComplete["COMMs Clearance"] === commsClearanceComplete &&
-    prev.sectionsComplete["CMS (OSORA) Clearance"] === cmsOsoraClearanceComplete
-  ) {
-    return prev;
-  }
-
-  return {
-    ...prev,
-    sectionsComplete: {
-      "PO and OGD": poAndOgdComplete,
-      "OGC and OMB": ogcAndOmbComplete,
-      "COMMs Clearance": commsClearanceComplete,
-      "CMS (OSORA) Clearance": cmsOsoraClearanceComplete,
-    },
-    sectionsExpanded: {
-      "PO and OGD": poAndOgdComplete ? false : prev.sectionsExpanded["PO and OGD"],
-      "OGC and OMB": ogcAndOmbComplete ? false : prev.sectionsExpanded["OGC and OMB"],
-      "COMMs Clearance": commsClearanceComplete ? false : prev.sectionsExpanded["COMMs Clearance"],
-      "CMS (OSORA) Clearance": cmsOsoraClearanceComplete
-        ? false
-        : prev.sectionsExpanded["CMS (OSORA) Clearance"],
-    },
-  };
-};

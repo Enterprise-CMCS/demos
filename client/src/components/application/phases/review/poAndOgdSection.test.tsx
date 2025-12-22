@@ -132,15 +132,4 @@ describe("PoAndOgdSection", () => {
     rerender(<PoAndOgdSection {...defaultProps} sectionIsComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
   });
-
-  it("controls expansion state via sectionIsExpanded prop", () => {
-    const { rerender } = render(<PoAndOgdSection {...defaultProps} />);
-
-    // When expanded, form fields should be visible
-    expect(screen.getByTestId("input-po-ogd-notes")).toBeInTheDocument();
-
-    // When collapsed, form fields should not be visible
-    rerender(<PoAndOgdSection {...defaultProps} sectionIsExpanded={false} />);
-    expect(screen.queryByTestId("input-po-ogd-notes")).not.toBeInTheDocument();
-  });
 });

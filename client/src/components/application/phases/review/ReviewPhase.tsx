@@ -4,17 +4,13 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useSetPhaseStatus } from "../../phase-status/phaseStatusQueries";
-import { ClearanceLevel } from "demos-server";
+import { ClearanceLevel, ReviewPhaseDateTypes, ReviewPhaseNoteTypes } from "demos-server";
 import { PoAndOgdSection } from "./poAndOgdSection";
 import { OgcAndOmbSection } from "./ogcAndOmbSection";
 import { CommsClearanceSection } from "./commsClearanceSection";
 import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
-import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
-import { formatDataForSave, getPageStateFromFormData, hasFormChanges } from "./reviewPhaseData";
-
-export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
-export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
+import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
 
 type ReviewSections = (typeof REVIEW_SECTIONS)[number];
 export const REVIEW_SECTIONS = [
@@ -58,10 +54,7 @@ export const CMS_OSORA_NOTE_TYPES = [
   "CMS (OSORA) Clearance",
 ] as const satisfies ReviewPhaseNoteTypes[];
 
-export type ReviewPhasePageState = {
-  sectionsExpanded: Record<ReviewSections, boolean>;
-  sectionsComplete: Record<ReviewSections, boolean>;
-};
+export type ReviewPhaseSectionsComplete = Record<ReviewSections, boolean>;
 
 export type ReviewPhaseFormData = {
   dates: Partial<Record<ReviewPhaseDateTypes, string>>;
@@ -70,15 +63,11 @@ export type ReviewPhaseFormData = {
 };
 
 const getPhaseStateInitialization = () => {
-  const state = {
-    sectionsExpanded: {} as Record<ReviewSections, boolean>,
-    sectionsComplete: {} as Record<ReviewSections, boolean>,
-  };
+  const sectionsComplete = {} as Record<ReviewSections, boolean>;
   for (const section of REVIEW_SECTIONS) {
-    state.sectionsExpanded[section] = true;
-    state.sectionsComplete[section] = false;
+    sectionsComplete[section] = false;
   }
-  return state;
+  return sectionsComplete;
 };
 
 export const ReviewPhase = ({
@@ -98,9 +87,8 @@ export const ReviewPhase = ({
 
   const [reviewPhaseFormData, setReviewPhaseFormData] =
     useState<ReviewPhaseFormData>(initialFormData);
-  const [reviewPhasePageState, setReviewPhasePageState] = useState<ReviewPhasePageState>(
-    getPhaseStateInitialization()
-  );
+  const [reviewPhaseSectionsComplete, setReviewPhaseSectionsComplete] =
+    useState<ReviewPhaseSectionsComplete>(getPhaseStateInitialization());
 
   const saveFormData = async () => {
     const { dates, notes } = formatDataForSave(reviewPhaseFormData);
@@ -141,18 +129,21 @@ export const ReviewPhase = ({
     }
   };
 
-  const setSectionIsExpanded = (section: ReviewSections, isExpanded: boolean) => {
-    setReviewPhasePageState((prev) => ({
-      ...prev,
-      sectionsExpanded: {
-        ...prev.sectionsExpanded,
-        [section]: isExpanded,
-      },
-    }));
-  };
-
   useEffect(() => {
-    setReviewPhasePageState((prev) => getPageStateFromFormData(prev, reviewPhaseFormData));
+    setReviewPhaseSectionsComplete({
+      "PO and OGD": PO_AND_OGD_DATE_TYPES.every(
+        (dateType) => !!reviewPhaseFormData.dates[dateType]
+      ),
+      "OGC and OMB": OGC_AND_OMB_DATE_TYPES.every(
+        (dateType) => !!reviewPhaseFormData.dates[dateType]
+      ),
+      "COMMs Clearance": COMMS_CLEARANCE_DATE_TYPES.every(
+        (dateType) => !!reviewPhaseFormData.dates[dateType]
+      ),
+      "CMS (OSORA) Clearance": CMS_OSORA_DATE_TYPES.every(
+        (dateType) => !!reviewPhaseFormData.dates[dateType]
+      ),
+    });
   }, [reviewPhaseFormData]);
 
   return (
@@ -169,18 +160,14 @@ export const ReviewPhase = ({
           setSectionFormData={(formData) =>
             setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
           }
-          sectionIsComplete={reviewPhasePageState.sectionsComplete["PO and OGD"]}
-          sectionIsExpanded={reviewPhasePageState.sectionsExpanded["PO and OGD"]}
-          setSectionIsExpanded={(isExpanded) => setSectionIsExpanded("PO and OGD", isExpanded)}
+          sectionIsComplete={reviewPhaseSectionsComplete["PO and OGD"]}
         />
         <OgcAndOmbSection
           sectionFormData={reviewPhaseFormData}
           setSectionFormData={(formData) =>
             setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
           }
-          sectionIsComplete={reviewPhasePageState.sectionsComplete["OGC and OMB"]}
-          sectionIsExpanded={reviewPhasePageState.sectionsExpanded["OGC and OMB"]}
-          setSectionIsExpanded={(isExpanded) => setSectionIsExpanded("OGC and OMB", isExpanded)}
+          sectionIsComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
         />
         <RadioGroup
           name="clearance-level"
@@ -209,11 +196,7 @@ export const ReviewPhase = ({
             setSectionFormData={(formData) =>
               setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
             }
-            sectionIsComplete={reviewPhasePageState.sectionsComplete["COMMs Clearance"]}
-            sectionIsExpanded={reviewPhasePageState.sectionsExpanded["COMMs Clearance"]}
-            setSectionIsExpanded={(isExpanded) =>
-              setSectionIsExpanded("COMMs Clearance", isExpanded)
-            }
+            sectionIsComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
           />
         )}
         {reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" && (
@@ -222,11 +205,7 @@ export const ReviewPhase = ({
             setSectionFormData={(formData) =>
               setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
             }
-            sectionIsComplete={reviewPhasePageState.sectionsComplete["CMS (OSORA) Clearance"]}
-            sectionIsExpanded={reviewPhasePageState.sectionsExpanded["CMS (OSORA) Clearance"]}
-            setSectionIsExpanded={(isExpanded) =>
-              setSectionIsExpanded("CMS (OSORA) Clearance", isExpanded)
-            }
+            sectionIsComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
           />
         )}
         <div className="flex justify-end mt-2 gap-2">
@@ -243,13 +222,13 @@ export const ReviewPhase = ({
             size="large"
             name="review-finish"
             disabled={
-              !reviewPhasePageState.sectionsComplete["PO and OGD"] ||
-              !reviewPhasePageState.sectionsComplete["OGC and OMB"] ||
+              !reviewPhaseSectionsComplete["PO and OGD"] ||
+              !reviewPhaseSectionsComplete["OGC and OMB"] ||
               !(
                 (reviewPhaseFormData.clearanceLevel === "COMMs" &&
-                  reviewPhasePageState.sectionsComplete["COMMs Clearance"]) ||
+                  reviewPhaseSectionsComplete["COMMs Clearance"]) ||
                 (reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" &&
-                  reviewPhasePageState.sectionsComplete["CMS (OSORA) Clearance"])
+                  reviewPhaseSectionsComplete["CMS (OSORA) Clearance"])
               )
             }
           >

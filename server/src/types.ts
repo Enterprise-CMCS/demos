@@ -15,6 +15,8 @@ import {
   PHASE_NAME,
   PHASE_NAMES_WITH_TRACKED_STATUS,
   PHASE_STATUS,
+  REVIEW_PHASE_DATE_TYPES,
+  REVIEW_PHASE_NOTE_TYPES,
   ROLES,
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
@@ -103,3 +105,5 @@ export type NoteType = (typeof NOTE_TYPES)[number];
 export type AdminDemonstrationRole = (typeof ADMIN_DEMONSTRATION_ROLES)[number];
 export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[number];
 export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
+export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
+export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
