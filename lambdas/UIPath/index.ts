@@ -88,15 +88,21 @@ export const handler = async (event: SQSEvent) =>
     return status;
   });
 
+export async function startLocalIfNeeded(): Promise<void> {
+  if (!isLocal()) {
+    return;
+  }
+
+  await als.run(store, async () => {
+    try {
+      await runLocal();
+    } catch (err) {
+      log.error({ err });
+      process.exitCode = 1;
+    }
+  });
+}
+
 if (isLocal()) {
-  (async () => {
-    await als.run(store, async () => {
-      try {
-        await runLocal();
-      } catch (err) {
-        log.error({ err });
-        process.exitCode = 1;
-      }
-    });
-  })();
+  void startLocalIfNeeded();
 }

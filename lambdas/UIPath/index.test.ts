@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { SQSEvent } from "aws-lambda";
 import { Readable } from "node:stream";
 
@@ -9,19 +9,23 @@ vi.mock("./log", () => ({
   store: new Map(),
 }));
 
-const runDocumentUnderstandingMock = vi.fn();
-vi.mock("./runDocumentUnderstanding", () => ({
-  runDocumentUnderstanding: (...args: unknown[]) => runDocumentUnderstandingMock(...args),
+const mocks = vi.hoisted(() => ({
+  runDocumentUnderstandingMock: vi.fn(),
+  fetchQuestionPromptsMock: vi.fn(),
+  sendMock: vi.fn(),
 }));
 
-const fetchQuestionPromptsMock = vi.fn();
+vi.mock("./runDocumentUnderstanding", () => ({
+  runDocumentUnderstanding: (...args: unknown[]) => mocks.runDocumentUnderstandingMock(...args),
+}));
+
 vi.mock("./db", () => ({
-  fetchQuestionPrompts: (...args: unknown[]) => fetchQuestionPromptsMock(...args),
+  fetchQuestionPrompts: (...args: unknown[]) => mocks.fetchQuestionPromptsMock(...args),
 }));
 
 vi.mock("@aws-sdk/client-s3", () => {
   class S3Client {
-    send = vi.fn().mockResolvedValue({ Body: Readable.from(["test"]) });
+    send = mocks.sendMock;
   }
 
   return {
@@ -30,10 +34,14 @@ vi.mock("@aws-sdk/client-s3", () => {
   };
 });
 
-import { handler } from "./index";
-
 describe("handler", () => {
   const prevEnv = { ...process.env };
+
+  beforeEach(() => {
+    mocks.sendMock.mockReset();
+    mocks.fetchQuestionPromptsMock.mockReset();
+    mocks.runDocumentUnderstandingMock.mockReset();
+  });
 
   afterEach(() => {
     process.env = { ...prevEnv };
@@ -45,8 +53,9 @@ describe("handler", () => {
     delete process.env.ENVIRONMENT;
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
-    runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
-    fetchQuestionPromptsMock.mockResolvedValue([
+    mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
+    mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
+    mocks.fetchQuestionPromptsMock.mockResolvedValue([
       {
         id: "prompt-1",
         question: "What is the state?",
@@ -76,9 +85,9 @@ describe("handler", () => {
       ],
     };
 
-    const result = await handler(event);
+    const result = await handlerRef(event);
 
-    expect(runDocumentUnderstandingMock).toHaveBeenCalledWith(
+    expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
       "/tmp/file.pdf",
       expect.objectContaining({
         pollIntervalMs: 5_000,
@@ -101,7 +110,7 @@ describe("handler", () => {
     delete process.env.ENVIRONMENT;
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
-    fetchQuestionPromptsMock.mockResolvedValue([
+    mocks.fetchQuestionPromptsMock.mockResolvedValue([
       {
         id: "prompt-1",
         question: "What is the state?",
@@ -130,6 +139,89 @@ describe("handler", () => {
       ],
     };
 
-    await expect(handler(event)).rejects.toThrow("Missing s3Key");
+    await expect(handlerRef(event)).rejects.toThrow("Missing s3Key");
+  });
+
+  it("throws when S3 body is missing", async () => {
+    delete process.env.RUN_LOCAL;
+    delete process.env.ENVIRONMENT;
+    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
+    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+    mocks.sendMock.mockResolvedValue({ Body: undefined });
+
+    const event: SQSEvent = {
+      Records: [
+        {
+          messageId: "id-1",
+          receiptHandle: "",
+          body: JSON.stringify({ s3Key: "file.pdf" }),
+          attributes: {
+            ApproximateReceiveCount: "1",
+            SentTimestamp: "",
+            SenderId: "",
+            ApproximateFirstReceiveTimestamp: "",
+          },
+          messageAttributes: {},
+          md5OfBody: "",
+          eventSource: "",
+          eventSourceARN: "",
+          awsRegion: "us-east-1",
+        },
+      ],
+    };
+
+    await expect(handlerRef(event)).rejects.toThrow("No body returned when fetching s3://");
+  });
+
+  it("throws when no prompts are available", async () => {
+    delete process.env.RUN_LOCAL;
+    delete process.env.ENVIRONMENT;
+    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
+    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+    mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
+    mocks.fetchQuestionPromptsMock.mockResolvedValue([]);
+
+    const event: SQSEvent = {
+      Records: [
+        {
+          messageId: "id-1",
+          receiptHandle: "",
+          body: JSON.stringify({ s3Key: "file.pdf" }),
+          attributes: {
+            ApproximateReceiveCount: "1",
+            SentTimestamp: "",
+            SenderId: "",
+            ApproximateFirstReceiveTimestamp: "",
+          },
+          messageAttributes: {},
+          md5OfBody: "",
+          eventSource: "",
+          eventSourceARN: "",
+          awsRegion: "us-east-1",
+        },
+      ],
+    };
+
+    await expect(handlerRef(event)).rejects.toThrow("No document understanding prompts available.");
+  });
+
+  it("runs locally when RUN_LOCAL is true", async () => {
+    process.env.RUN_LOCAL = "true";
+    delete process.env.ENVIRONMENT;
+    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
+    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+    mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
+
+    await startLocalIfNeeded();
+
+    expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
+      "ak-behavioral-health-demo-pa.pdf",
+      expect.objectContaining({
+        pollIntervalMs: 1_000,
+        logFullResult: true,
+      })
+    );
   });
 });
+
+import { handler as handlerRef, startLocalIfNeeded } from "./index";
