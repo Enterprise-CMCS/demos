@@ -5,7 +5,6 @@ import { PoAndOgdSection } from "./poAndOgdSection";
 
 describe("PoAndOgdSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
     sectionFormData: {
@@ -21,8 +20,6 @@ describe("PoAndOgdSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    sectionIsExpanded: true,
-    setSectionIsExpanded: mockSetSectionIsExpanded,
   };
 
   beforeEach(() => {

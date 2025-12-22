@@ -5,7 +5,6 @@ import { OgcAndOmbSection } from "./ogcAndOmbSection";
 
 describe("OgcAndOmbSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
     sectionFormData: {
@@ -21,8 +20,6 @@ describe("OgcAndOmbSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    sectionIsExpanded: true,
-    setSectionIsExpanded: mockSetSectionIsExpanded,
   };
 
   beforeEach(() => {

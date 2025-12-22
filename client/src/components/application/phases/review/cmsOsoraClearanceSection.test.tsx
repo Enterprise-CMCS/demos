@@ -5,7 +5,6 @@ import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 
 describe("CmsOsoraClearanceSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
     sectionFormData: {
@@ -21,8 +20,6 @@ describe("CmsOsoraClearanceSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    sectionIsExpanded: true,
-    setSectionIsExpanded: mockSetSectionIsExpanded,
   };
 
   beforeEach(() => {

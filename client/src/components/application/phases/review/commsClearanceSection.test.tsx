@@ -5,7 +5,6 @@ import { CommsClearanceSection } from "./commsClearanceSection";
 
 describe("CommsClearanceSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
     sectionFormData: {
@@ -19,8 +18,6 @@ describe("CommsClearanceSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    sectionIsExpanded: true,
-    setSectionIsExpanded: mockSetSectionIsExpanded,
   };
 
   beforeEach(() => {
