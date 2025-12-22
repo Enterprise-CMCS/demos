@@ -1,9 +1,14 @@
 import { NoteType } from "../../types";
-import { ApplicationNoteInput, SetApplicationNotesInput } from "./applicationNoteSchema";
+import { SetApplicationNotesInput } from "./applicationNoteSchema";
+
+export type ParsedApplicationNoteInput = {
+  noteType: NoteType;
+  content: string;
+};
 
 export interface ParsedSetApplicationNotesInput {
   applicationId: string;
-  applicationNotesToUpsert: ApplicationNoteInput[];
+  applicationNotesToUpsert: ParsedApplicationNoteInput[];
   applicationNotesToDelete: NoteType[];
 }
 

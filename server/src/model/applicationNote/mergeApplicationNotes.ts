@@ -1,10 +1,11 @@
-import { ApplicationNoteInput, NoteType } from "../../types.js";
+import { NoteType } from "../../types.js";
+import { ParsedApplicationNoteInput } from "./parseSetApplicationNotesInput.js";
 
 export function mergeApplicationNotes(
-  existingNotes: ApplicationNoteInput[],
-  newNotes: ApplicationNoteInput[],
+  existingNotes: ParsedApplicationNoteInput[],
+  newNotes: ParsedApplicationNoteInput[],
   notesToDelete: NoteType[]
-): ApplicationNoteInput[] {
+): ParsedApplicationNoteInput[] {
   const resultNoteMap = new Map(
     existingNotes.map((existingNote) => [existingNote.noteType, existingNote])
   );

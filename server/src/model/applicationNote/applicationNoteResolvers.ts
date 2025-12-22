@@ -1,9 +1,9 @@
 import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
-import { prisma, PrismaTransactionClient } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient.js";
 import { NoteType } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { ApplicationNote, SetApplicationNotesInput } from "./applicationNoteSchema.js";
+import { SetApplicationNotesInput } from "./applicationNoteSchema.js";
 import { parseSetApplicationNotesInput } from "./parseSetApplicationNotesInput.js";
 import { upsertApplicationNotes } from "./queries/upsertApplicationNotes.js";
 import { deleteApplicationNotes } from "./queries/deleteApplicationNotes.js";
@@ -26,25 +26,6 @@ export function checkForDuplicateNoteTypes(input: SetApplicationNotesInput): voi
         `these noteTypes: ${duplicatedNoteTypes.join(", ")}.`
     );
   }
-}
-
-export async function getApplicationNotes(
-  applicationId: string,
-  tx: PrismaTransactionClient
-): Promise<Pick<ApplicationNote, "noteType" | "content">[]> {
-  const result = await tx.applicationNote.findMany({
-    select: {
-      noteTypeId: true,
-      content: true,
-    },
-    where: {
-      applicationId: applicationId,
-    },
-  });
-  return result.map((row) => ({
-    noteType: row.noteTypeId as NoteType, // Enforced by database constraints
-    content: row.content,
-  }));
 }
 
 export async function __setApplicationNotes(

@@ -26,7 +26,7 @@ export const applicationNoteSchema = gql`
 
 export type ApplicationNoteInput = {
   noteType: NoteType;
-  content: string;
+  content: string | null;
 };
 
 export interface SetApplicationNotesInput {
