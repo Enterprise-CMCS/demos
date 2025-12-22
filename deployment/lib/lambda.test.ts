@@ -13,15 +13,23 @@ const mockCommonProps = {
   zScalerIps: ["0.1.2.3"],
   cloudfrontHost: "unittest.demos.com",
 };
-const commongAppArgs = {
+
+const mockStackProps = {
+      env: {
+        region: "us-east-1",
+        account: "0123456789",
+      },
+    }
+
+const commonAppArgs = {
       context: {
         [BUNDLING_STACKS]: []
       }
     }
 describe("lambda", () => {
   test("should create a basic lambda function and role", () => {
-    const app = new App(commongAppArgs);
-    const stack = new Stack(app, "TestStack");
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
 
     create(
       {
@@ -80,8 +88,8 @@ describe("lambda", () => {
   });
 
   test("should create a VPC connected lambda function and role", () => {
-    const app = new App(commongAppArgs);
-    const stack = new Stack(app, "TestStack");
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
 
     const mockPrivateSubnets = ["subnet-private1", "subnet-private2"];
     const mockVpc = aws_ec2.Vpc.fromVpcAttributes(stack, "mockVpc", {
@@ -112,8 +120,8 @@ describe("lambda", () => {
   });
 
   test("should create a VPC connected lambda function with security group", () => {
-    const app = new App(commongAppArgs);
-    const stack = new Stack(app, "TestStack");
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
 
     const mockPrivateSubnets = ["subnet-private1", "subnet-private2"];
     const mockVpc = aws_ec2.Vpc.fromVpcAttributes(stack, "mockVpc", {
@@ -153,8 +161,8 @@ describe("lambda", () => {
   });
 
   test("should create a lambda with an alias and canary deploy", () => {
-    const app = new App(commongAppArgs);
-    const stack = new Stack(app, "TestStack");
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
 
     create(
       {
@@ -177,8 +185,8 @@ describe("lambda", () => {
   });
 
   test("should create a lambda with an api gateway trigger and authorizer", () => {
-    const app = new App(commongAppArgs);
-    const stack = new Stack(app, "TestStack");
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
 
     class MockAuthorizer extends aws_apigateway.Authorizer {
       authorizerId: string;
@@ -229,8 +237,8 @@ describe("lambda", () => {
   });
 
   test("should create a lambda with an api gateway trigger targeting alias", () => {
-    const app = new App(commongAppArgs);
-    const stack = new Stack(app, "TestStack");
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
 
     create(
       {
@@ -271,8 +279,8 @@ describe("lambda", () => {
   });
 
   test("should create a lambda defined by directory rather than a single file", () => {
-    const app = new App(commongAppArgs);
-    const stack = new Stack(app, "TestStack");
+    const app = new App(commonAppArgs);
+    const stack = new Stack(app, "TestStack", mockStackProps);
 
     create(
       {
