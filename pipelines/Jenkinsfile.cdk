@@ -1,3 +1,5 @@
+@Library('demos-lib@DEMOS-1312-checkov') _
+
 pipeline {
   agent {
     kubernetes { 
@@ -92,6 +94,20 @@ pipeline {
             dirCon('deployment', 'node') {
               sh '''
               npm run synth:dev
+              '''
+            }
+          }
+        }
+      }
+    }
+    stage('CDK - Checkov') {
+      steps {
+        script {
+          if (hasChange("deployment")) {
+            assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+            dirCon('deployment', 'checkov') {
+              sh '''
+              checkov -d cdk.out --config-file .checkov.yml
               '''
             }
           }
