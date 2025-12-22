@@ -5,7 +5,6 @@ import { OgcAndOmbSection } from "./ogcAndOmbSection";
 
 describe("OgcAndOmbSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
     sectionFormData: {
@@ -21,8 +20,6 @@ describe("OgcAndOmbSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    sectionIsExpanded: true,
-    setSectionIsExpanded: mockSetSectionIsExpanded,
   };
 
   beforeEach(() => {
@@ -131,16 +128,5 @@ describe("OgcAndOmbSection", () => {
 
     rerender(<OgcAndOmbSection {...defaultProps} sectionIsComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
-  });
-
-  it("controls expansion state via sectionIsExpanded prop", () => {
-    const { rerender } = render(<OgcAndOmbSection {...defaultProps} />);
-
-    // When expanded, form fields should be visible
-    expect(screen.getByTestId("input-ogc-omb-notes")).toBeInTheDocument();
-
-    // When collapsed, form fields should not be visible
-    rerender(<OgcAndOmbSection {...defaultProps} sectionIsExpanded={false} />);
-    expect(screen.queryByTestId("input-ogc-omb-notes")).not.toBeInTheDocument();
   });
 });

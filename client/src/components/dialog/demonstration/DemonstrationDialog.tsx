@@ -12,6 +12,7 @@ import { Demonstration } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 import { SubmitButton } from "components/button/SubmitButton";
+import { isBefore } from "date-fns";
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -47,7 +48,7 @@ const DateInputs: React.FC<{
 
   // Validate expiration date is after effective date
   useEffect(() => {
-    if (expirationDate && effectiveDate && expirationDate < effectiveDate) {
+    if (expirationDate && effectiveDate && isBefore(expirationDate, effectiveDate)) {
       setErrorMessage(EXPIRATION_DATE_ERROR_MESSAGE);
     } else {
       setErrorMessage("");
@@ -93,6 +94,26 @@ export const checkFormHasChanges = (
   );
 };
 
+export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
+  if (!demonstration.name) {
+    return false;
+  }
+  if (!demonstration.stateId) {
+    return false;
+  }
+  if (!demonstration.projectOfficerId) {
+    return false;
+  }
+  if (
+    demonstration.expirationDate &&
+    demonstration.effectiveDate &&
+    isBefore(demonstration.expirationDate, demonstration.effectiveDate)
+  ) {
+    return false;
+  }
+  return true;
+};
+
 export const DemonstrationDialog: React.FC<{
   onClose: () => void;
   mode: DemonstrationDialogMode;
@@ -103,6 +124,7 @@ export const DemonstrationDialog: React.FC<{
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formHasChanges, setFormHasChanges] = useState<boolean>(false);
+  const [formIsValid, setFormIsValid] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -113,6 +135,7 @@ export const DemonstrationDialog: React.FC<{
   const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
     setActiveDemonstration(updatedDemonstration);
     setFormHasChanges(checkFormHasChanges(initialDemonstration, updatedDemonstration));
+    setFormIsValid(checkFormIsValid(updatedDemonstration));
   };
 
   return (
@@ -133,7 +156,7 @@ export const DemonstrationDialog: React.FC<{
           </SecondaryButton>
           <SubmitButton
             name={"button-submit-demonstration-dialog"}
-            disabled={!formHasChanges}
+            disabled={!formHasChanges || !formIsValid}
             isSubmitting={isSubmitting}
             onClick={handleSubmit}
           />

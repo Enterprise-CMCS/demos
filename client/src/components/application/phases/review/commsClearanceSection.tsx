@@ -12,22 +12,13 @@ export const CommsClearanceSection = ({
   sectionFormData,
   setSectionFormData,
   sectionIsComplete,
-  sectionIsExpanded,
-  setSectionIsExpanded,
 }: {
   sectionFormData: CommsClearanceSectionFormData;
   setSectionFormData: (data: CommsClearanceSectionFormData) => void;
   sectionIsComplete: boolean;
-  sectionIsExpanded: boolean;
-  setSectionIsExpanded: (isExpanded: boolean) => void;
 }) => {
   return (
-    <CompletableSection
-      title="Comms Clearance"
-      isComplete={sectionIsComplete}
-      isExpanded={sectionIsExpanded}
-      setIsExpanded={setSectionIsExpanded}
-    >
+    <CompletableSection title="Comms Clearance" isComplete={sectionIsComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         OCD Signature and COMMs Clearance are minimal requirements for Demonstrations and
         Amendments.

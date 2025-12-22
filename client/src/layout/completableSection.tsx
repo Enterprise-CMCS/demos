@@ -1,20 +1,27 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import { CompletenessBadge } from "components/badge/CompletenessBadge";
 
 export const CompletableSection = ({
   isComplete,
-  isExpanded,
-  setIsExpanded,
   title,
   children,
 }: {
   isComplete: boolean;
-  isExpanded: boolean;
-  setIsExpanded: (val: boolean) => void;
   title: string;
   children: React.ReactNode;
 }) => {
+  const [isExpanded, setIsExpanded] = React.useState<boolean>(true);
+
+  const previousIsComplete = useRef(isComplete);
+
+  useEffect(() => {
+    if (previousIsComplete.current === false && isComplete === true) {
+      setIsExpanded(false);
+    }
+    previousIsComplete.current = isComplete;
+  }, [isComplete]);
+
   const sectionId = title.replace(/\s+/g, "-").toLowerCase();
   return (
     <section className="col-span-4 border-1 border-gray-dark rounded-md gap-1">

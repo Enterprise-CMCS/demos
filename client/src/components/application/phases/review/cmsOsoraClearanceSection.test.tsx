@@ -5,7 +5,6 @@ import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 
 describe("CmsOsoraClearanceSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
     sectionFormData: {
@@ -21,8 +20,6 @@ describe("CmsOsoraClearanceSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    sectionIsExpanded: true,
-    setSectionIsExpanded: mockSetSectionIsExpanded,
   };
 
   beforeEach(() => {
@@ -128,16 +125,5 @@ describe("CmsOsoraClearanceSection", () => {
 
     rerender(<CmsOsoraClearanceSection {...defaultProps} sectionIsComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
-  });
-
-  it("controls expansion state via sectionIsExpanded prop", () => {
-    const { rerender } = render(<CmsOsoraClearanceSection {...defaultProps} />);
-
-    // When expanded, form fields should be visible
-    expect(screen.getByTestId("input-cms-osora-notes")).toBeInTheDocument();
-
-    // When collapsed, form fields should not be visible
-    rerender(<CmsOsoraClearanceSection {...defaultProps} sectionIsExpanded={false} />);
-    expect(screen.queryByTestId("input-cms-osora-notes")).not.toBeInTheDocument();
   });
 });

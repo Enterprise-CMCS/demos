@@ -12,22 +12,13 @@ export const PoAndOgdSection = ({
   sectionFormData,
   setSectionFormData,
   sectionIsComplete,
-  sectionIsExpanded,
-  setSectionIsExpanded,
 }: {
   sectionFormData: PoAndOgdFormData;
   setSectionFormData: (data: PoAndOgdFormData) => void;
   sectionIsComplete: boolean;
-  sectionIsExpanded: boolean;
-  setSectionIsExpanded: (isExpanded: boolean) => void;
 }) => {
   return (
-    <CompletableSection
-      title="PO & OGD"
-      isComplete={sectionIsComplete}
-      isExpanded={sectionIsExpanded}
-      setIsExpanded={setSectionIsExpanded}
-    >
+    <CompletableSection title="PO & OGD" isComplete={sectionIsComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Record the Sign-Off for the edits End Date.
       </p>

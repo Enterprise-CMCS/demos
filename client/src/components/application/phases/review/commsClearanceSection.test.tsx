@@ -5,7 +5,6 @@ import { CommsClearanceSection } from "./commsClearanceSection";
 
 describe("CommsClearanceSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
     sectionFormData: {
@@ -19,8 +18,6 @@ describe("CommsClearanceSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    sectionIsExpanded: true,
-    setSectionIsExpanded: mockSetSectionIsExpanded,
   };
 
   beforeEach(() => {
@@ -123,16 +120,5 @@ describe("CommsClearanceSection", () => {
 
     rerender(<CommsClearanceSection {...defaultProps} sectionIsComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
-  });
-
-  it("controls expansion state via sectionIsExpanded prop", () => {
-    const { rerender } = render(<CommsClearanceSection {...defaultProps} />);
-
-    // When expanded, form fields should be visible
-    expect(screen.getByTestId("input-comms-clearance-notes")).toBeInTheDocument();
-
-    // When collapsed, form fields should not be visible
-    rerender(<CommsClearanceSection {...defaultProps} sectionIsExpanded={false} />);
-    expect(screen.queryByTestId("input-comms-clearance-notes")).not.toBeInTheDocument();
   });
 });

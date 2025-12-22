@@ -2,15 +2,12 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { CompletableSection } from "./completableSection";
+import userEvent from "@testing-library/user-event";
 
 describe("CompletableSection", () => {
-  const mockSetIsExpanded = vi.fn();
-
   const defaultProps = {
     title: "Test Section",
     isComplete: false,
-    isExpanded: true,
-    setIsExpanded: mockSetIsExpanded,
     children: <div>Test content</div>,
   };
 
@@ -24,14 +21,9 @@ describe("CompletableSection", () => {
       expect(screen.getByText("Test Section")).toBeInTheDocument();
     });
 
-    it("renders children when expanded", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
+    it("renders children by default", () => {
+      render(<CompletableSection {...defaultProps} />);
       expect(screen.getByText("Test content")).toBeInTheDocument();
-    });
-
-    it("does not render children when collapsed", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={false} />);
-      expect(screen.queryByText("Test content")).not.toBeInTheDocument();
     });
 
     it("displays Complete badge when isComplete is true", () => {
@@ -43,55 +35,49 @@ describe("CompletableSection", () => {
       render(<CompletableSection {...defaultProps} isComplete={false} />);
       expect(screen.getByText("Incomplete")).toBeInTheDocument();
     });
-
-    it("shows ChevronDownIcon when expanded", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
-      const button = screen.getByRole("button");
-      const icon = button.querySelector("svg");
-      expect(icon).toBeInTheDocument();
-    });
-
-    it("shows ChevronRightIcon when collapsed", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={false} />);
-      const button = screen.getByRole("button");
-      const icon = button.querySelector("svg");
-      expect(icon).toBeInTheDocument();
-    });
   });
 
   describe("Interaction", () => {
-    it("calls setIsExpanded with opposite value when button is clicked", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
+    it("toggles expansion when button is clicked", () => {
+      render(<CompletableSection {...defaultProps} />);
       const button = screen.getByRole("button");
+      expect(screen.getByText("Test content")).toBeInTheDocument();
 
       fireEvent.click(button);
-      expect(mockSetIsExpanded).toHaveBeenCalledWith(false);
+      expect(screen.queryByText("Test content")).not.toBeInTheDocument();
+
+      fireEvent.click(button);
+      expect(screen.getByText("Test content")).toBeInTheDocument();
     });
 
-    it("calls setIsExpanded with true when collapsed section is clicked", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={false} />);
-      const button = screen.getByRole("button");
+    it("toggles on Enter key press", async () => {
+      const user = userEvent.setup();
+      render(<CompletableSection {...defaultProps} />);
+      expect(screen.getByText("Test content")).toBeInTheDocument();
 
-      fireEvent.click(button);
-      expect(mockSetIsExpanded).toHaveBeenCalledWith(true);
+      const button = screen.getByRole("button");
+      button.focus();
+
+      await user.keyboard("{Enter}");
+      expect(screen.queryByText("Test content")).not.toBeInTheDocument();
+
+      await user.keyboard("{Enter}");
+      expect(screen.getByText("Test content")).toBeInTheDocument();
     });
 
-    it("toggles on Enter key press", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
+    it("toggles on Space key press", async () => {
+      const user = userEvent.setup();
+      render(<CompletableSection {...defaultProps} />);
+      expect(screen.getByText("Test content")).toBeInTheDocument();
+
       const button = screen.getByRole("button");
+      button.focus();
 
-      fireEvent.keyDown(button, { key: "Enter", code: "Enter" });
-      fireEvent.click(button);
-      expect(mockSetIsExpanded).toHaveBeenCalled();
-    });
+      await user.keyboard("{ }");
+      expect(screen.queryByText("Test content")).not.toBeInTheDocument();
 
-    it("toggles on Space key press", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
-      const button = screen.getByRole("button");
-
-      fireEvent.keyDown(button, { key: " ", code: "Space" });
-      fireEvent.click(button);
-      expect(mockSetIsExpanded).toHaveBeenCalled();
+      await user.keyboard("{ }");
+      expect(screen.getByText("Test content")).toBeInTheDocument();
     });
   });
 
@@ -103,31 +89,32 @@ describe("CompletableSection", () => {
     });
 
     it("button has correct aria-expanded when expanded", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
+      render(<CompletableSection {...defaultProps} />);
       const button = screen.getByRole("button");
       expect(button).toHaveAttribute("aria-expanded", "true");
     });
 
     it("button has correct aria-expanded when collapsed", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={false} />);
+      render(<CompletableSection {...defaultProps} />);
       const button = screen.getByRole("button");
+      fireEvent.click(button);
       expect(button).toHaveAttribute("aria-expanded", "false");
     });
 
     it("button has aria-controls pointing to content region", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
+      render(<CompletableSection {...defaultProps} />);
       const button = screen.getByRole("button");
       expect(button).toHaveAttribute("aria-controls", "section-test-section");
     });
 
     it("content region has matching id for aria-controls", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
+      render(<CompletableSection {...defaultProps} />);
       const region = screen.getByRole("region");
       expect(region).toHaveAttribute("id", "section-test-section");
     });
 
     it("content region has role=region when expanded", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
+      render(<CompletableSection {...defaultProps} />);
       const region = screen.getByRole("region");
       expect(region).toBeInTheDocument();
     });
@@ -139,19 +126,20 @@ describe("CompletableSection", () => {
     });
 
     it("content region has aria-labelledby pointing to heading", () => {
-      render(<CompletableSection {...defaultProps} isExpanded={true} />);
+      render(<CompletableSection {...defaultProps} />);
       const region = screen.getByRole("region");
       expect(region).toHaveAttribute("aria-labelledby", "heading-test-section");
     });
 
     it("button has descriptive aria-label when complete and collapsed", () => {
-      render(<CompletableSection {...defaultProps} isComplete={true} isExpanded={false} />);
+      render(<CompletableSection {...defaultProps} isComplete={true} />);
       const button = screen.getByRole("button");
+      fireEvent.click(button);
       expect(button).toHaveAttribute("aria-label", "Test Section, complete, expand section");
     });
 
     it("sanitizes title with spaces for IDs", () => {
-      render(<CompletableSection {...defaultProps} title="PO & OGD" isExpanded={true} />);
+      render(<CompletableSection {...defaultProps} title="PO & OGD" />);
       const button = screen.getByRole("button");
       const region = screen.getByRole("region");
 

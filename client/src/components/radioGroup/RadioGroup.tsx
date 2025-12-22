@@ -63,8 +63,6 @@ export const RadioGroup = ({
     onChange(newValue);
   };
 
-  const validationId = `${name}-validation-message`;
-
   return (
     <fieldset className="flex flex-col border-0 p-0 m-0">
       {title && (
@@ -118,7 +116,7 @@ export const RadioGroup = ({
         <span
           role="alert"
           aria-live="polite"
-          id={validationId}
+          id={`${name}-validation-message`}
           className={VALIDATION_MESSAGE_CLASSES}
         >
           {validationMessage}

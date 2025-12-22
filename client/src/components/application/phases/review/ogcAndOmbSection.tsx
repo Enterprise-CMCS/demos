@@ -12,22 +12,13 @@ export const OgcAndOmbSection = ({
   sectionFormData,
   setSectionFormData,
   sectionIsComplete,
-  sectionIsExpanded,
-  setSectionIsExpanded,
 }: {
   sectionFormData: OmbAndOgcSectionFormData;
   setSectionFormData: (data: OmbAndOgcSectionFormData) => void;
   sectionIsComplete: boolean;
-  sectionIsExpanded: boolean;
-  setSectionIsExpanded: (isExpanded: boolean) => void;
 }) => {
   return (
-    <CompletableSection
-      title="OGC & OMB"
-      isComplete={sectionIsComplete}
-      isExpanded={sectionIsExpanded}
-      setIsExpanded={setSectionIsExpanded}
-    >
+    <CompletableSection title="OGC & OMB" isComplete={sectionIsComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Record the OGC & OMB Review Process.
       </p>

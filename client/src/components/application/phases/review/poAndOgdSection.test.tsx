@@ -5,7 +5,6 @@ import { PoAndOgdSection } from "./poAndOgdSection";
 
 describe("PoAndOgdSection", () => {
   const mockSetSectionFormData = vi.fn();
-  const mockSetSectionIsExpanded = vi.fn();
 
   const defaultProps = {
     sectionFormData: {
@@ -21,8 +20,6 @@ describe("PoAndOgdSection", () => {
     },
     setSectionFormData: mockSetSectionFormData,
     sectionIsComplete: false,
-    sectionIsExpanded: true,
-    setSectionIsExpanded: mockSetSectionIsExpanded,
   };
 
   beforeEach(() => {
@@ -131,16 +128,5 @@ describe("PoAndOgdSection", () => {
 
     rerender(<PoAndOgdSection {...defaultProps} sectionIsComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
-  });
-
-  it("controls expansion state via sectionIsExpanded prop", () => {
-    const { rerender } = render(<PoAndOgdSection {...defaultProps} />);
-
-    // When expanded, form fields should be visible
-    expect(screen.getByTestId("input-po-ogd-notes")).toBeInTheDocument();
-
-    // When collapsed, form fields should not be visible
-    rerender(<PoAndOgdSection {...defaultProps} sectionIsExpanded={false} />);
-    expect(screen.queryByTestId("input-po-ogd-notes")).not.toBeInTheDocument();
   });
 });

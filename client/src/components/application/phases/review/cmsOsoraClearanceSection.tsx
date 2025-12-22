@@ -12,22 +12,13 @@ export const CmsOsoraClearanceSection = ({
   sectionFormData,
   setSectionFormData,
   sectionIsComplete,
-  sectionIsExpanded,
-  setSectionIsExpanded,
 }: {
   sectionFormData: CmsOsoraClearanceSectionFormData;
   setSectionFormData: (data: CmsOsoraClearanceSectionFormData) => void;
   sectionIsComplete: boolean;
-  sectionIsExpanded: boolean;
-  setSectionIsExpanded: (isExpanded: boolean) => void;
 }) => {
   return (
-    <CompletableSection
-      title="CMS (OSORA) Clearance"
-      isComplete={sectionIsComplete}
-      isExpanded={sectionIsExpanded}
-      setIsExpanded={setSectionIsExpanded}
-    >
+    <CompletableSection title="CMS (OSORA) Clearance" isComplete={sectionIsComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Demonstrations with the highest Scruteny require a signature from the Office of the
         Administrator for full federal clearance through OSORA.

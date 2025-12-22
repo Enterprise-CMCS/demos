@@ -3,6 +3,7 @@ export * from "./ApplicationIntakePhase";
 export * from "./CompletenessPhase";
 export * from "./FederalCommentPhase";
 export * from "./SdgPreparationPhase";
-export * from "./review";
+export * from "./review/ReviewPhase";
+export * from "./review/reviewPhaseData";
 export * from "./ApprovalPackagePhase";
 export * from "./ApprovalSummaryPhase";
