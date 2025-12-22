@@ -6,6 +6,7 @@ import {
   aws_secretsmanager,
   aws_kms as kms,
   aws_s3 as s3,
+  aws_ec2 as ec2,
 } from "aws-cdk-lib";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as demosLambda from "./lambda";
@@ -17,6 +18,8 @@ interface UiPathProcessorProps extends DeploymentConfigProperties {
   kmsKey: kms.IKey;
   documentsBucket: s3.IBucket;
   deadLetterQueue?: sqs.IQueue;
+  vpc?: ec2.IVpc;
+  securityGroup?: ec2.ISecurityGroup | ec2.ISecurityGroup[];
 }
 
 export class UiPathProcessor extends Construct {
@@ -77,6 +80,8 @@ export class UiPathProcessor extends Construct {
       asCode: false,
       externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager", "@aws-sdk/client-s3"],
       nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty", "pg"],
+      vpc: props.vpc,
+      securityGroup: props.securityGroup,
       environment: {
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret

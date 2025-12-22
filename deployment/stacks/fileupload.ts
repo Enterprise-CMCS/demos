@@ -215,6 +215,45 @@ export class FileUploadStack extends Stack {
       "Allow traffic to S3"
     );
 
+    const uiPathLambdaSecurityGroup = securityGroup.create({
+      ...props,
+      name: "uiPathSecurityGroup",
+      vpc: props.vpc,
+      scope: this,
+    });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(uiPathLambdaSecurityGroup.securityGroup.securityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from UiPath Security Group",
+      true
+    );
+
+    uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+
+    uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
+
+    uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.anyIpv4(),
+      aws_ec2.Port.HTTPS,
+      "Allow outbound HTTPS to UiPath"
+    );
+
     const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsFileProcessDatabaseSecret",
@@ -295,6 +334,8 @@ export class FileUploadStack extends Stack {
       kmsKey,
       deadLetterQueue,
       documentsBucket: uiPathDocumentsBucket,
+      vpc: props.vpc,
+      securityGroup: uiPathLambdaSecurityGroup.securityGroup,
     });
 
     new CfnOutput(this, "cleanBucketName", {
