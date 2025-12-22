@@ -235,8 +235,8 @@ VALUES
     ('OGC & OMB Review', 'OGC Review Complete'),
     ('OGC & OMB Review', 'OMB Review Complete'),
     ('OGC & OMB Review', 'PO & OGD Sign-Off'),
-
     ('OGC & OMB Review', 'OGC & OMB Review Completion Date');
+
 INSERT INTO
     demos_app.state
 VALUES

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mergeApplicationNotes } from "./mergeApplicationNotes.js";
 import { ParsedApplicationNoteInput } from "./parseSetApplicationNotesInput.js";
 
-describe("mergeApplicationDates", () => {
+describe("mergeApplicationNotes", () => {
   const testExistingNotes: ParsedApplicationNoteInput[] = [
     {
       noteType: "PO and OGD",
