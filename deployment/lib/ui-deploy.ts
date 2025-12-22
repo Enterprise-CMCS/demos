@@ -1,6 +1,7 @@
 import {
   aws_cloudfront,
   aws_iam,
+  aws_lambda,
   aws_s3,
   aws_s3_assets,
   aws_s3_deployment,
@@ -9,6 +10,7 @@ import {
 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
 import path from "path";
+import { Construct } from "constructs";
 
 interface UIDeploymentProps extends CommonProps {
   uiBucket: aws_s3.Bucket;
@@ -28,29 +30,6 @@ export function create(props: UIDeploymentProps) {
     assumedBy: new aws_iam.ServicePrincipal("lambda.amazonaws.com"),
     path: props.iamPath,
     permissionsBoundary: props.iamPermissionsBoundary,
-    inlinePolicies: {
-      InlinePolicy: new aws_iam.PolicyDocument({
-        statements: [
-          new aws_iam.PolicyStatement({
-            actions: [
-              "s3:PutObject",
-              "s3:PutObjectAcl",
-              "s3:DeleteObject",
-              "s3:DeleteObjectVersion",
-              "s3:GetBucketLocation",
-              "s3:GetObject",
-              "s3:ListBucket",
-              "s3:ListBucketVersions",
-            ],
-            resources: [props.uiBucket.bucketArn, `${props.uiBucket.bucketArn}/*`],
-          }),
-          new aws_iam.PolicyStatement({
-            actions: ["cloudfront:CreateInvalidation"],
-            resources: ["*"],
-          }),
-        ],
-      }),
-    },
   });
 
   const deployWebsite = new aws_s3_deployment.BucketDeployment(props.scope, "DeployWebsite", {
@@ -69,6 +48,27 @@ export function create(props: UIDeploymentProps) {
   const buildAsset = new aws_s3_assets.Asset(props.scope, "uiBuildAsset", {
     path: buildOutputPath,
   });
+
+  const cm = deploymentRole.node.tryFindChild("DefaultPolicy")?.node.defaultChild as aws_iam.CfnPolicy;
+  cm.cfnOptions.metadata = {
+    checkov: {
+      skip: [{
+        id: "CKV_AWS_111",
+        reason: "CDK allows invalidation on all by default without options for limiting: https://github.com/aws/aws-cdk/blob/main/packages/aws-cdk-lib/aws-s3-deployment/lib/bucket-deployment.ts#L422"
+      }]
+    }
+  }
+
+  const crh = (deployWebsite.node.findChild("CustomResourceHandler") as aws_lambda.SingletonFunction);
+  const crhLambda = (crh["lambdaFunction"] as Construct).node.defaultChild as aws_lambda.CfnFunction
+  crhLambda.cfnOptions.metadata = {
+    checkov: {
+      skip: [{
+        id: "CKV_AWS_173",
+        reason: "Controlled by CDK internally"
+      }]
+    }
+  }
 
   const gitHashFile = new aws_s3_deployment.DeployTimeSubstitutedFile(props.scope, "gitHashFile", {
     source: path.join("assets", "version.json"),
