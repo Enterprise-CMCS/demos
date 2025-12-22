@@ -90,6 +90,7 @@ export class UiPathProcessor extends Construct {
         UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? uiPathDefaultProjectId,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
         UIPATH_DOCUMENTS_BUCKET: props.documentsBucket.bucketName,
+        NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
     });
 
