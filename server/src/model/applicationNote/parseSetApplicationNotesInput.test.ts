@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { parseSetApplicationNotesInput } from "./parseSetApplicationNotesInput.js";
-import { SetApplicationNotesInput } from "./applicationNoteSchema.js";
+import { parseSetApplicationNotesInput } from ".";
+import { SetApplicationNotesInput } from "../../types";
 
 describe("parseInputApplicationNotes", () => {
   const testApplicationId = "155e76dd-df48-47f6-a50f-b1300c29ca27";

@@ -1,5 +1,5 @@
 import { PrismaTransactionClient } from "../../../prismaClient";
-import { ParsedSetApplicationNotesInput } from "../parseSetApplicationNotesInput";
+import { ParsedSetApplicationNotesInput } from "../";
 
 export async function deleteApplicationNotes(
   parsedInputApplicationNotes: ParsedSetApplicationNotesInput,

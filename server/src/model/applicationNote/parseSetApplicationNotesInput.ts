@@ -1,5 +1,4 @@
-import { NoteType } from "../../types";
-import { SetApplicationNotesInput } from "./applicationNoteSchema";
+import { NoteType, SetApplicationNotesInput } from "../../types";
 
 export type ParsedApplicationNoteInput = {
   noteType: NoteType;

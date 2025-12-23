@@ -1,5 +1,5 @@
 import { NoteType } from "../../types.js";
-import { ParsedApplicationNoteInput } from "./parseSetApplicationNotesInput.js";
+import { ParsedApplicationNoteInput } from ".";
 
 export function mergeApplicationNotes(
   existingNotes: ParsedApplicationNoteInput[],
