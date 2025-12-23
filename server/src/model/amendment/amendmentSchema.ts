@@ -8,6 +8,7 @@ import {
   Document,
   NonEmptyString,
   DateTimeOrLocalDate,
+  ClearanceLevel,
 } from "../../types.js";
 
 export const amendmentSchema = gql`
@@ -24,6 +25,7 @@ export const amendmentSchema = gql`
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+    clearanceLevel: ClearanceLevel!
   }
 
   input CreateAmendmentInput {
@@ -39,6 +41,7 @@ export const amendmentSchema = gql`
     effectiveDate: DateTimeOrLocalDate
     expirationDate: DateTimeOrLocalDate
     status: ApplicationStatus
+    clearanceLevel: ClearanceLevel
   }
 
   type Mutation {
@@ -64,6 +67,7 @@ export interface Amendment {
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];
   documents: Document[];
+  clearanceLevel: ClearanceLevel;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -81,4 +85,5 @@ export interface UpdateAmendmentInput {
   effectiveDate?: DateTimeOrLocalDate | null;
   expirationDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
+  clearanceLevel?: ClearanceLevel;
 }

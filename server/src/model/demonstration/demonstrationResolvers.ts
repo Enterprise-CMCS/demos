@@ -23,6 +23,7 @@ import {
   deleteApplication,
   getApplication,
   getManyApplications,
+  resolveApplicationClearanceLevel,
   resolveApplicationCurrentPhaseName,
   resolveApplicationDocuments,
   resolveApplicationPhases,
@@ -115,7 +116,7 @@ export async function __updateDemonstration(
 ): Promise<PrismaDemonstration> {
   const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(
-    ["name", "status", "stateId", "projectOfficerUserId"],
+    ["name", "status", "stateId", "projectOfficerUserId", "clearanceLevel"],
     input
   );
   try {
@@ -131,6 +132,7 @@ export async function __updateDemonstration(
           signatureLevelId: input.signatureLevel,
           statusId: input.status,
           stateId: input.stateId,
+          clearanceLevelId: input.clearanceLevel,
         },
       });
 
@@ -286,5 +288,6 @@ export const demonstrationResolvers = {
     status: resolveApplicationStatus,
     phases: resolveApplicationPhases,
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
+    clearanceLevel: resolveApplicationClearanceLevel,
   },
 };

@@ -14,6 +14,7 @@ import {
   deleteApplication,
   getApplication,
   getManyApplications,
+  resolveApplicationClearanceLevel,
   resolveApplicationCurrentPhaseName,
   resolveApplicationDocuments,
   resolveApplicationPhases,
@@ -65,7 +66,7 @@ export async function __updateExtension(
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
   const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
-  checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
+  checkOptionalNotNullFields(["demonstrationId", "name", "status", "clearanceLevel"], input);
   try {
     return await prisma().extension.update({
       where: {
@@ -78,6 +79,7 @@ export async function __updateExtension(
         effectiveDate: effectiveDate,
         expirationDate: expirationDate,
         statusId: input.status,
+        clearanceLevelId: input.clearanceLevel,
       },
     });
   } catch (error) {
@@ -120,5 +122,6 @@ export const extensionResolvers = {
     currentPhaseName: resolveApplicationCurrentPhaseName,
     status: resolveApplicationStatus,
     phases: resolveApplicationPhases,
+    clearanceLevel: resolveApplicationClearanceLevel,
   },
 };

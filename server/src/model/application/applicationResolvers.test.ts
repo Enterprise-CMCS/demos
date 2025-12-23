@@ -9,6 +9,7 @@ import {
   __resolveApplicationType,
   resolveApplicationPhases,
   PrismaApplication,
+  resolveApplicationClearanceLevel,
 } from "./applicationResolvers.js";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types.js";
 
@@ -87,6 +88,7 @@ describe("applicationResolvers", () => {
   const testExtensionApplicationTypeId: ApplicationType = "Extension";
   const testPhaseId: PhaseName = "Application Intake";
   const testApplicationStatusId: ApplicationStatus = "Approved";
+  const testApplicationClearanceLevelId = "COMMs";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -289,6 +291,16 @@ describe("applicationResolvers", () => {
       };
       await resolveApplicationPhases(input as PrismaApplication);
       expect(regularMocks.applicationPhase.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    });
+  });
+
+  describe("resolveApplicationClearanceLevel", () => {
+    it("should resolve the current application clearance level", async () => {
+      const input: Partial<PrismaApplication> = {
+        clearanceLevelId: testApplicationClearanceLevelId,
+      };
+      const result = resolveApplicationClearanceLevel(input as PrismaApplication);
+      expect(result).toBe(testApplicationClearanceLevelId);
     });
   });
 });

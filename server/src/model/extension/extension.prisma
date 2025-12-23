@@ -8,6 +8,7 @@ model Extension {
   expirationDate    DateTime? @map("expiration_date") @db.Timestamptz()
   statusId          String    @map("status_id")
   currentPhaseId    String    @map("current_phase_id")
+  clearanceLevelId  String    @map("clearance_level_id") @default("CMS (OSORA)")
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
@@ -16,6 +17,7 @@ model Extension {
   demonstration   Demonstration                 @relation(fields: [demonstrationId], references: [id])
   status          ApplicationStatus             @relation(fields: [statusId], references: [id])
   currentPhase    Phase                         @relation(fields: [currentPhaseId], references: [id])
+  clearanceLevel  ClearanceLevel                @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
 
   @@id([id])
   @@unique([id, applicationTypeId]) // Not required by Postgres, but Prisma requires this notation

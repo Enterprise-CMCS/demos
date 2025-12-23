@@ -1,6 +1,6 @@
 import { prisma } from "../../prismaClient.js";
 import { GraphQLError } from "graphql";
-import { ApplicationType } from "../../types.js";
+import { ApplicationType, ClearanceLevel } from "../../types.js";
 import {
   Demonstration as PrismaDemonstration,
   Amendment as PrismaAmendment,
@@ -190,6 +190,11 @@ export async function resolveApplicationPhases(
     },
   });
   return result!;
+}
+
+export function resolveApplicationClearanceLevel(parent: PrismaApplication): ClearanceLevel {
+  // clearance level casting enforced by database constraints
+  return parent.clearanceLevelId as ClearanceLevel;
 }
 
 export const applicationResolvers = {
