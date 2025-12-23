@@ -4,6 +4,9 @@ import { amendmentResolvers } from "./amendment/amendmentResolvers.js";
 import { applicationDateSchema } from "./applicationDate/applicationDateSchema.js";
 import { applicationDateResolvers } from "./applicationDate/applicationDateResolvers.js";
 
+import { applicationNoteSchema } from "./applicationNote/applicationNoteSchema.js";
+import { applicationNoteResolvers } from "./applicationNote/applicationNoteResolvers.js";
+
 import { applicationPhaseSchema } from "./applicationPhase/applicationPhaseSchema.js";
 import { applicationPhaseResolvers } from "./applicationPhase/applicationPhaseResolvers.js";
 
@@ -42,6 +45,9 @@ import { extensionResolvers } from "./extension/extensionResolvers.js";
 
 import { logLevelSchema } from "./logLevel/logLevelSchema.js";
 import { logLevelResolvers } from "./logLevel/logLevelResolvers.js";
+
+import { noteTypeSchema } from "./noteType/noteTypeSchema.js";
+import { noteTypeResolvers } from "./noteType/noteTypeResolvers.js";
 
 import { personSchema } from "./person/personSchema.js";
 import { personResolvers } from "./person/personResolvers.js";
@@ -84,6 +90,7 @@ const scalarTypes = [
 export const typeDefs = [
   amendmentSchema,
   applicationDateSchema,
+  applicationNoteSchema,
   applicationPhaseSchema,
   applicationSchema,
   applicationStatusSchema,
@@ -96,6 +103,7 @@ export const typeDefs = [
   eventTypeSchema,
   extensionSchema,
   logLevelSchema,
+  noteTypeSchema,
   personSchema,
   personTypeSchema,
   phaseSchema,
@@ -111,6 +119,7 @@ export const typeDefs = [
 export const resolvers = [
   amendmentResolvers,
   applicationDateResolvers,
+  applicationNoteResolvers,
   applicationPhaseResolvers,
   applicationResolvers,
   applicationStatusResolvers,
@@ -124,6 +133,7 @@ export const resolvers = [
   eventTypeResolvers,
   extensionResolvers,
   logLevelResolvers,
+  noteTypeResolvers,
   personResolvers,
   personTypeResolvers,
   phaseResolvers,

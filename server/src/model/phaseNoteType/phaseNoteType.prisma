@@ -1,0 +1,12 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY, NATURAL_KEY
+// Table stores a configuration of which phases allow which documents, and will be largely unchanging.
+model PhaseNoteType {
+  phaseId    String @map("phase_id")
+  noteTypeId String @map("note_type_id")
+
+  phase    Phase    @relation(fields: [phaseId], references: [id])
+  noteType NoteType @relation(fields: [noteTypeId], references: [id])
+
+  @@id([phaseId, noteTypeId])
+  @@map("phase_note_type")
+}
