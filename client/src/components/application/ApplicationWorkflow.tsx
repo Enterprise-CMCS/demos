@@ -9,10 +9,10 @@ import type {
   Document,
   Person,
   ClearanceLevel,
+  ApplicationNote,
 } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
-import { ApplicationNote } from "../../../../server/src/model/applicationNote/applicationNoteSchema";
 
 export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
   query GetApplicationWorkflow($id: ID!) {
