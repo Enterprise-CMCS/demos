@@ -9,13 +9,12 @@ import {
 } from "components/table/tables/ApprovalPackageTable";
 import { DocumentType } from "demos-server";
 import { formatDate } from "util/formatDate";
-import { Button, SecondaryButton } from "components/button";
+import { Button } from "components/button";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { useToast } from "components/toast";
 import {
   FAILED_TO_SAVE_MESSAGE,
   getPhaseCompletedMessage,
-  SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
 
 export interface ApprovalPackagePhaseProps {
@@ -125,10 +124,6 @@ export const ApprovalPackagePhase = ({
     showSuccess(getPhaseCompletedMessage("Approval Package"));
   };
 
-  const handleSaveForLater = () => {
-    showSuccess(SAVE_FOR_LATER_MESSAGE);
-  };
-
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPROVAL</h3>
@@ -142,14 +137,6 @@ export const ApprovalPackagePhase = ({
       <ApprovalPackageTable demonstrationId={demonstrationId} rows={tableRows} />
 
       <div className="mt-8 mb-8 flex justify-end gap-2">
-        <SecondaryButton
-          name="button-skip-concept"
-          onClick={handleSaveForLater}
-          size="small"
-          disabled // Save function to be added later
-        >
-          Save For Later
-        </SecondaryButton>
         <Button
           name="button-finish-concept"
           size="small"
