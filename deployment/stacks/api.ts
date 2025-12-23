@@ -215,12 +215,6 @@ export class ApiStack extends Stack {
       vpc: props.vpc,
     });
 
-    // emailerLambdaSecurityGroup.securityGroup.addEgressRule(
-    //   aws_ec2.Peer.ipv4("10.223.128.0/20"),
-    //   aws_ec2.Port.tcp(587),
-    //   "Allow traffic to cms smtp"
-    // );
-
     const sharedServicesSG = aws_ec2.SecurityGroup.fromLookupByName(
       commonProps.scope,
       "cmsSharedServcices",

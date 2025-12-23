@@ -66,12 +66,10 @@ export const determineDeploymentConfig = async (
     const cloudfrontReady = await getParameter(`/demos/cloudfront/${stage}`)
     if (cloudfrontReady.startsWith("SRR has been configured:") && stage != "bootstrap") {
       srrConfigured = true
-    } else {
-      if (["dev", "test"].includes(stage) || await configuredDistributionExists(stage)) {
+    } else if (["dev", "test"].includes(stage) || await configuredDistributionExists(stage)) {
         throw new Error("A configured distribution already exists. Running this will delete it");
-        
-      }
     }
+    
   } catch (err) {
     if (stage != "bootstrap") {
       throw err
