@@ -9,6 +9,7 @@ import {
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { UpdateApplicationClearanceLevelInput } from "./applicationSchema.js";
 
 export type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
 
@@ -197,7 +198,42 @@ export function resolveApplicationClearanceLevel(parent: PrismaApplication): Cle
   return parent.clearanceLevelId as ClearanceLevel;
 }
 
+export async function updateApplicationClearanceLevel(
+  _: unknown,
+  { input }: { input: UpdateApplicationClearanceLevelInput }
+): Promise<PrismaApplication> {
+  try {
+    const application = await getApplication(input.applicationId);
+    const applicationType = __resolveApplicationType(application);
+
+    switch (applicationType) {
+      case "Demonstration":
+        return await prisma().demonstration.update({
+          where: { id: input.applicationId },
+          data: { clearanceLevelId: input.clearanceLevel },
+        });
+      case "Amendment":
+        return await prisma().amendment.update({
+          where: { id: input.applicationId },
+          data: { clearanceLevelId: input.clearanceLevel },
+        });
+      case "Extension":
+        return await prisma().extension.update({
+          where: { id: input.applicationId },
+          data: { clearanceLevelId: input.clearanceLevel },
+        });
+      default:
+        throw new GraphQLError(`Unknown application type: ${applicationType}`);
+    }
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export const applicationResolvers = {
+  Mutation: {
+    updateApplicationClearanceLevel: updateApplicationClearanceLevel,
+  },
   Application: {
     __resolveType: __resolveApplicationType,
   },
