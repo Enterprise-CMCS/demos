@@ -23,6 +23,7 @@ const eslintConfig = tseslint.config(
     rules: {
       "eol-last": ["error", "always"], // Newline at the end of files
       "no-restricted-exports": ["error", { "restrictDefaultExports": { "direct": true } }], // Disallow default exports
+      "no-restricted-imports": ["error", { "paths": [ { "name": "graphql-tag", "importNames":["default"], "message": "Use named import" } ] }], // Disallow default import for graphql-tag
       "validate-graphql-typescript-match/validate-graphql-typescript-match": "error",
     }
   },
