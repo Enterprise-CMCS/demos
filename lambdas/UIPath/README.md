@@ -39,7 +39,6 @@ npm run execute                    # uses INPUT_FILE or default PDF
 
 # Bundled run (CommonJS bundle)
 npm run build
-RUN_LOCAL=true INPUT_FILE=/path/to/file.pdf node dist/index.js
 
 # Call the runner directly from the bundle
 node -e "import('./dist/runDocumentUnderstanding.js').then(m => m.runDocumentUnderstanding('ak-behavioral-health-demo-pa.pdf', { initialDelayMs: 1000, maxDelayMs: 8000, logFullResult: true })).then(console.log).catch(console.error)"

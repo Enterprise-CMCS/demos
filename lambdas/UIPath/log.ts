@@ -1,7 +1,7 @@
 import pino from "pino";
 import { AsyncLocalStorage } from "node:async_hooks";
 
-const isLocal = () => process.env.ENVIRONMENT === "local" || process.env.RUN_LOCAL === "true";
+const isNotOnAWS = () => !process.env.AWS_EXECUTION_ENV;
 export const setupLogger = (serviceName: string) =>
   pino({
     level: process.env.LOG_LEVEL ?? "info",
@@ -23,7 +23,7 @@ export const setupLogger = (serviceName: string) =>
       },
     },
     // Disable pretty transport in bundled/worker contexts to avoid worker path issues.
-    transport: isLocal()
+    transport: isNotOnAWS()
     ? {
         target: "pino-pretty",
         options: {

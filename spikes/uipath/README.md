@@ -53,7 +53,7 @@ Flow:
 ## Available Extractors
 
 Below is a sample JSON listing all available extractors and their endpoints:
-If you
+If you go to UI Path gov cloud and enter your Oauth creds and go to the extractors GET endpoint, you can get a listing of the available extractor. What we want is "Generative Extractor"
 
 
 ```json

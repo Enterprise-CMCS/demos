@@ -49,8 +49,6 @@ describe("handler", () => {
   });
 
   it("invokes runDocumentUnderstanding with s3Key from SQS body", async () => {
-    delete process.env.RUN_LOCAL;
-    delete process.env.ENVIRONMENT;
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
@@ -106,8 +104,6 @@ describe("handler", () => {
   });
 
   it("throws when s3Key is missing", async () => {
-    delete process.env.RUN_LOCAL;
-    delete process.env.ENVIRONMENT;
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.fetchQuestionPromptsMock.mockResolvedValue([
@@ -143,8 +139,6 @@ describe("handler", () => {
   });
 
   it("throws when S3 body is missing", async () => {
-    delete process.env.RUN_LOCAL;
-    delete process.env.ENVIRONMENT;
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.sendMock.mockResolvedValue({ Body: undefined });
@@ -174,8 +168,6 @@ describe("handler", () => {
   });
 
   it("throws when no prompts are available", async () => {
-    delete process.env.RUN_LOCAL;
-    delete process.env.ENVIRONMENT;
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
@@ -204,24 +196,6 @@ describe("handler", () => {
 
     await expect(handlerRef(event)).rejects.toThrow("No document understanding prompts available.");
   });
-
-  it("runs locally when RUN_LOCAL is true", async () => {
-    process.env.RUN_LOCAL = "true";
-    delete process.env.ENVIRONMENT;
-    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
-    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
-    mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
-
-    await startLocalIfNeeded();
-
-    expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
-      "ak-behavioral-health-demo-pa.pdf",
-      expect.objectContaining({
-        pollIntervalMs: 1_000,
-        logFullResult: true,
-      })
-    );
-  });
 });
 
-import { handler as handlerRef, startLocalIfNeeded } from "./index";
+import { handler as handlerRef } from "./index";

@@ -15,8 +15,6 @@ interface UipathMessage {
   questions?: unknown;
 }
 
-const isLocal = () => process.env.ENVIRONMENT === "local" || process.env.RUN_LOCAL === "true";
-
 const s3 = new S3Client({
   region: process.env.AWS_REGION ?? "us-east-1",
   endpoint: process.env.AWS_ENDPOINT_URL,
@@ -36,24 +34,8 @@ async function downloadFromS3(bucket: string, key: string): Promise<string> {
   return destination;
 }
 
-async function runLocal() {
-  const inputFile = process.env.INPUT_FILE ?? "ak-behavioral-health-demo-pa.pdf";
-  reqIdChild("local-run");
-
-  const status = await runDocumentUnderstanding(inputFile, {
-    pollIntervalMs: 1_000,
-    logFullResult: true,
-  });
-
-  log.info({ status }, "UiPath extraction completed (local)");
-  return status;
-}
-
 export const handler = async (event: SQSEvent) =>
   als.run(store, async () => {
-    if (isLocal()) {
-      return runLocal();
-    }
     log.info({ recordCount: event.Records.length }, "UiPath lambda invoked");
     const firstRecord = event.Records[0];
     reqIdChild(firstRecord?.messageId ?? "n/a");
@@ -86,23 +68,5 @@ export const handler = async (event: SQSEvent) =>
 
     log.info({ status }, "UiPath extraction completed");
     return status;
-  });
-
-export async function startLocalIfNeeded(): Promise<void> {
-  if (!isLocal()) {
-    return;
   }
-
-  await als.run(store, async () => {
-    try {
-      await runLocal();
-    } catch (err) {
-      log.error({ err });
-      process.exitCode = 1;
-    }
-  });
-}
-
-if (isLocal()) {
-  void startLocalIfNeeded();
-}
+);
