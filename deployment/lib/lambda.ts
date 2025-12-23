@@ -61,6 +61,11 @@ export class Lambda extends Construct {
       stage: props.stage,
     });
 
+    let securityGroups: aws_ec2.ISecurityGroup[] | undefined;
+    if (props.vpc && props.securityGroup) {
+      securityGroups = Array.isArray(props.securityGroup) ? props.securityGroup : [props.securityGroup]
+    }
+
     const role = new Role(this, `${id}LambdaExecutionRole`, {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       permissionsBoundary: props.iamPermissionsBoundary,
@@ -68,11 +73,6 @@ export class Lambda extends Construct {
       inlinePolicies: {
         LambdaPolicy: new PolicyDocument({
           statements: [
-            // new PolicyStatement({
-            //   effect: Effect.ALLOW,
-            //   actions: ["ssm:GetParameter"],
-            //   resources: ["*"],
-            // }),
             new PolicyStatement({
               effect: Effect.ALLOW,
               actions: ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
@@ -106,12 +106,7 @@ export class Lambda extends Construct {
       timeout,
       memorySize,
       role,
-      securityGroups:
-        props.vpc && props.securityGroup
-          ? Array.isArray(props.securityGroup)
-            ? props.securityGroup
-            : [props.securityGroup]
-          : undefined,
+      securityGroups,
       bundling: {
         minify: true,
         sourceMap: true,
