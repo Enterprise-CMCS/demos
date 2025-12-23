@@ -187,7 +187,6 @@ describe("amendmentResolvers", () => {
       "demonstrationId",
       "name",
       "status",
-      "clearanceLevel",
     ];
     const testEasternTZDate: EasternTZDate = {
       isEasternTZDate: true,

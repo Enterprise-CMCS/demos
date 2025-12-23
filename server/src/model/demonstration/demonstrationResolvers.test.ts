@@ -177,7 +177,6 @@ describe("demonstrationResolvers", () => {
     demonstrationGrantLevelId: GrantLevel;
     dateValue: Date;
     easternTZDate: EasternTZDate;
-    clearanceLevelId: ClearanceLevel;
   };
   const testValues: TestValues = {
     demonstrationId: "8167c039-9c08-4203-b7d2-9e35ec156993",
@@ -198,7 +197,6 @@ describe("demonstrationResolvers", () => {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),
     },
-    clearanceLevelId: "COMMs",
   };
 
   beforeEach(() => {
@@ -388,7 +386,6 @@ describe("demonstrationResolvers", () => {
       "status",
       "stateId",
       "projectOfficerUserId",
-      "clearanceLevel",
     ];
 
     it("should call update on the demonstration in a transaction", async () => {

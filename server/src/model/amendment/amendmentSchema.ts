@@ -41,7 +41,6 @@ export const amendmentSchema = gql`
     effectiveDate: DateTimeOrLocalDate
     expirationDate: DateTimeOrLocalDate
     status: ApplicationStatus
-    clearanceLevel: ClearanceLevel
   }
 
   type Mutation {
@@ -85,5 +84,4 @@ export interface UpdateAmendmentInput {
   effectiveDate?: DateTimeOrLocalDate | null;
   expirationDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
-  clearanceLevel?: ClearanceLevel;
 }
