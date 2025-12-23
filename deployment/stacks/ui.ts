@@ -23,6 +23,7 @@ import { DeploymentConfigProperties } from "../config";
 import * as uiDeploy from "../lib/ui-deploy";
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { DemosLogGroup } from "../lib/logGroup";
+import { accessDeniedBodyName, createCloudfrontRules, createRegionalRules } from "../lib/waf";
 
 interface UIStackProps {
   cognitoParamNames: {
@@ -99,14 +100,7 @@ export class UiStack extends Stack {
     // WAF
     //
 
-    const ipSet = new aws_wafv2.CfnIPSet(commonProps.scope, "cloudfrontWaf", {
-      name: `${commonProps.stage}AllowVPNIps`,
-      scope: "CLOUDFRONT",
-      ipAddressVersion: "IPV4",
-      addresses: [...commonProps.zScalerIps],
-    });
-
-    const accessDeniedBodyName = "accessDenied";
+    
 
     const customResponseBodies = {
       [accessDeniedBodyName]: {
@@ -122,71 +116,19 @@ export class UiStack extends Stack {
       stage: commonProps.stage,
     });
 
-    const wafRules: aws_wafv2.CfnWebACL.RuleProperty[] = [
-      {
-        name: "AllowZScaler",
-        priority: 0,
-        action: { allow: {} },
-        visibilityConfig: {
-          cloudWatchMetricsEnabled: true,
-          metricName: "AllowZScaler",
-          sampledRequestsEnabled: true,
-        },
-        statement: {
-          ipSetReferenceStatement: {
-            arn: ipSet.attrArn,
-          },
-        },
-      },
-    ];
-
-    if (commonProps.zapHeaderValue && commonProps.zapHeaderValue.trim() != "") {
-      wafRules.push({
-        name: "AllowCMSCloudbees",
-        priority: 10,
-        action: { allow: {} },
-        visibilityConfig: {
-          cloudWatchMetricsEnabled: true,
-          metricName: "AllowCloudbees",
-          sampledRequestsEnabled: true,
-        },
-        statement: {
-          byteMatchStatement: {
-            fieldToMatch: {
-              singleHeader: {
-                name: "x-allow-through",
-              },
-            },
-            positionalConstraint: "EXACTLY",
-            searchString: commonProps.zapHeaderValue,
-            textTransformations: [
-              {
-                priority: 0,
-                type: "NONE",
-              },
-            ],
-          },
-        },
-      });
-    }
-
+    const cloudfrontRules = createCloudfrontRules(commonProps)   
+    const apiRules = createRegionalRules(commonProps) 
+    
     const webAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "cloudfrontWafAcl", {
       scope: "CLOUDFRONT",
-      defaultAction: {
-        block: {
-          customResponse: {
-            responseCode: 403,
-            customResponseBodyKey: accessDeniedBodyName,
-          },
-        },
-      },
+      defaultAction: {allow: {}},
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
         metricName: "WebACL",
         sampledRequestsEnabled: true,
       },
       name: `${commonProps.project}-${commonProps.stage}-acl`,
-      rules: wafRules,
+      rules: cloudfrontRules,
       customResponseBodies,
     });
 
@@ -197,42 +139,14 @@ export class UiStack extends Stack {
 
     const apiAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "apiWaf", {
       scope: "REGIONAL",
-      defaultAction: { block: {} },
+      defaultAction: {allow: {}},
       name: `demos-${commonProps.stage}-api`,
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
         metricName: `${commonProps.stage}ApiWafMetric`,
         sampledRequestsEnabled: true,
       },
-      rules: [
-        {
-          name: "AllowFromCloudfrontHeader",
-          priority: 0,
-          action: { allow: {} },
-          statement: {
-            byteMatchStatement: {
-              fieldToMatch: {
-                singleHeader: {
-                  name: "x-allow-through",
-                },
-              },
-              positionalConstraint: "EXACTLY",
-              searchString: commonProps.cloudfrontWafHeaderValue,
-              textTransformations: [
-                {
-                  priority: 0,
-                  type: "NONE",
-                },
-              ],
-            },
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            metricName: `${commonProps.stage}AllowFromCFHeader`,
-            sampledRequestsEnabled: true,
-          },
-        },
-      ],
+      rules: apiRules,
     });
 
     const apiUrl = Fn.importValue(`${commonProps.stage}ApiGWUrl`);
