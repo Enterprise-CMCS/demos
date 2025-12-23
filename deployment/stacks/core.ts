@@ -1,4 +1,4 @@
-import { CfnOutput, Stack, StackProps, aws_iam, aws_cognito, aws_ec2 } from "aws-cdk-lib";
+import { CfnOutput, Stack, StackProps, aws_iam, aws_cognito, aws_ec2, RemovalPolicy, aws_s3, Duration, aws_kms } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
@@ -6,6 +6,7 @@ import { DeploymentConfigProperties } from "../config";
 import * as cognito from "../lib/cognito";
 import * as ssm from "../lib/ssm-parameter";
 import * as securityGroup from "../lib/security-group";
+import { Bucket } from "aws-cdk-lib/aws-s3";
 
 export class CoreStack extends Stack {
   public readonly cognito_outputs: aws_cognito.UserPool | aws_cognito.IUserPool;
@@ -124,6 +125,42 @@ export class CoreStack extends Stack {
     }
 
     this.secretsManagerVpceSg = secretsManagerEndpointSG;
+
+    const accessLogs = new Bucket(this, "S3AccessLogBucket", {
+          encryption: aws_s3.BucketEncryption.S3_MANAGED,
+          removalPolicy:
+            props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+          blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+          autoDeleteObjects: props.isDev || props.isEphemeral,
+          enforceSSL: true,
+          versioned: false,
+          bucketName: `${commonProps.project}-${commonProps.stage}-s3-access-logs`,
+          lifecycleRules: [
+            {
+              id: "ExpireOldFiles",
+              expiration: Duration.days(commonProps.isEphemeral ? 7 : 90)
+            }
+          ]
+        });
+
+    const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
+    accessLogBucketCfn.cfnOptions.metadata = {
+      checkov: {
+        skip: [{
+          id: "CKV_AWS_18",
+          reason: "the access log bucket itself does not need access logs"
+        },{
+          id: "CKV_AWS_21",
+          reason: "versioning on the access log bucket itself is intentionally disabled"
+        }]
+      }
+    }
+
+    new aws_kms.Key(this, "lambdaEnvEncryption", {
+      enableKeyRotation: true,
+      alias: `alias/demos-${props.stage}-lambda-env`,
+    });
+
     new CfnOutput(commonProps.scope, "secretsManagerVpceSg", {
       value: secretsManagerEndpointSG.securityGroupId,
       exportName: `${commonProps.stage}SecretsManagerVpceSg`,
@@ -142,6 +179,11 @@ export class CoreStack extends Stack {
     new CfnOutput(this, "cognitoClientId", {
       value: cognito_outputs.userPoolClientId,
       exportName: `${commonProps.stage}CognitoClientId`,
+    });
+
+    new CfnOutput(commonProps.scope, "accessLogBucketArn", {
+      value: accessLogs.bucketArn,
+      exportName: `${commonProps.stage}AccessLogBucketArn`,
     });
 
     this.cloudVpnSecurityGroup = aws_ec2.SecurityGroup.fromLookupByName(
