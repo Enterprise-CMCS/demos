@@ -1,5 +1,6 @@
 node_modules/
 .env
 .venv/
-*.pdf
 uipath.log
+*.pdf
+uipath.zip

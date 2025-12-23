@@ -169,7 +169,6 @@ export function applyDatabaseSuppressions(database: Stack, stage: string) {
 }
 
 export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
-
   NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource`,
@@ -215,7 +214,7 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
     ]
   );
 
-  
+
   NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/deleteInfectedFile/deleteInfectedFileLambdaExecutionRole/Resource`,
@@ -227,7 +226,7 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
       },
     ]
   );
-  
+
   NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
     `/demos-${stage}-file-upload/uploadBucketScan/GuardDutyMalwareProtectionRolePolicy/Resource`,
@@ -235,6 +234,27 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
       {
         id: "AwsSolutions-IAM5",
         reason: "Permissions are validated and required",
+      },
+    ]
+  );
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/UiPathProcessor/uipath/uipathLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role. Some wildcards are unavoidable (VPC networking).",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/UiPathProcessor/uipath/uipathLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to specific KMS key and UiPath documents bucket; S3 object ARNs require wildcard suffix.",
       },
     ]
   );
@@ -281,4 +301,5 @@ export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {
       },
     ]
   );
+
 }
