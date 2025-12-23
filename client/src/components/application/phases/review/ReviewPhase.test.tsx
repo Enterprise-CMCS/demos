@@ -20,7 +20,6 @@ vi.mock("util/formatDate", () => ({
 // Mock the queries
 const mockSetApplicationDates = vi.fn();
 const mockSetApplicationNotes = vi.fn();
-const mockSetPhaseStatus = vi.fn();
 
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDates: () => ({
@@ -31,12 +30,6 @@ vi.mock("components/application/date/dateQueries", () => ({
 vi.mock("components/application/note/noteQueries", () => ({
   useSetApplicationNotes: () => ({
     setApplicationNotes: mockSetApplicationNotes,
-  }),
-}));
-
-vi.mock("../../phase-status/phaseStatusQueries", () => ({
-  useSetPhaseStatus: () => ({
-    setPhaseStatus: mockSetPhaseStatus,
   }),
 }));
 
@@ -75,7 +68,6 @@ describe("ReviewPhase Component", () => {
     vi.clearAllMocks();
     mockSetApplicationDates.mockClear();
     mockSetApplicationNotes.mockClear();
-    mockSetPhaseStatus.mockClear();
   });
 
   describe("Header and description", () => {
