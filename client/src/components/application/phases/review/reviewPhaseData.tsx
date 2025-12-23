@@ -8,7 +8,11 @@ import { format } from "date-fns";
 import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
 import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
 
-export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormData {
+export type ReviewPhase = Pick<SimplePhase, "phaseName" | "phaseDates" | "phaseNotes">;
+export type ReviewPhaseDemonstration = Pick<ApplicationWorkflowDemonstration, "id"> & {
+  phases: ReviewPhase[];
+};
+export function getFormDataFromPhase(reviewPhase: ReviewPhase): ReviewPhaseFormData {
   const formData: ReviewPhaseFormData = {
     dates: {},
     notes: {},
@@ -22,29 +26,22 @@ export function getFormDataFromPhase(reviewPhase: SimplePhase): ReviewPhaseFormD
     }
   }
 
-  // TODO: MOCKING NOTES AND CLEARANCE LEVEL UNTIL BACKEND SUPPORTS IT.
-  //  - notes integration - DEMOS-1266
-  //  - notes backend support - DEMOS-1167
+  for (const noteType of REVIEW_PHASE_NOTE_TYPES) {
+    const note = reviewPhase.phaseNotes.find((n) => n.noteType === noteType);
+    if (note) formData.notes[noteType] = note.content;
+  }
+
+  // TODO: MOCKING CLEARANCE LEVEL UNTIL BACKEND SUPPORTS IT.
   //  - clearance level integration - DEMOS-1224
   // WILL LIKELY END UP LOOKING LIKE THIS:
-  // for (const noteType of REVIEW_PHASE_NOTE_TYPES) {
-  //   const note = reviewPhase.phaseNotes.find((n) => n.noteType === noteType);
-  //   if (note) formData.notes[noteType] = note.content;
-  // }
   // formData.clearanceLevel = reviewPhase.clearanceLevel;
-
-  formData.notes = {
-    "PO and OGD": "Mock PO and OGD Note content",
-    "CMS (OSORA) Clearance": "Mock CMS (OSORA) Clearance Note content",
-  };
-
   formData.clearanceLevel = "CMS (OSORA)";
 
   return formData;
 }
 
 export const getReviewPhaseComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
+  demonstration: ReviewPhaseDemonstration
 ) => {
   const reviewPhase = demonstration.phases.find((phase) => phase.phaseName === "Review");
   if (!reviewPhase) return <div>Error: Review Phase not found.</div>;

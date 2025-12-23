@@ -75,7 +75,11 @@ export type {
   SetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
-export type { ApplicationNoteInput } from "./model/applicationNote/applicationNoteSchema.js";
+export type {
+  ApplicationNote,
+  ApplicationNoteInput,
+  SetApplicationNotesInput,
+} from "./model/applicationNote/applicationNoteSchema.js";
 
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };

@@ -5,3 +5,9 @@ export { parseSetApplicationNotesInput } from "./parseSetApplicationNotesInput.j
 // Queries
 export { deleteApplicationNotes } from "./queries/deleteApplicationNotes.js";
 export { upsertApplicationNotes } from "./queries/upsertApplicationNotes.js";
+
+// Types
+export type {
+  ParsedApplicationNoteInput,
+  ParsedSetApplicationNotesInput,
+} from "./parseSetApplicationNotesInput.js";

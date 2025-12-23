@@ -4,10 +4,8 @@ import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application/applicationResolvers";
-import { SetApplicationNotesInput } from "./applicationNoteSchema";
-import { parseSetApplicationNotesInput } from "./parseSetApplicationNotesInput";
-import { upsertApplicationNotes } from "./queries/upsertApplicationNotes";
-import { deleteApplicationNotes } from "./queries/deleteApplicationNotes";
+import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
+import { SetApplicationNotesInput } from "../../types";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
