@@ -709,7 +709,7 @@ describe("checkInputDateFunctions", () => {
         [testTargetDateType, testValues.before],
       ]);
       const expectedError =
-        `The input ${testInputDateType} must be an end of day date (11:59:59.999 in Eastern time), but it is ` +
+        `The input ${testInputDateType} must be an end of day date (23:59:59.999 in Eastern time), but it is ` +
         `${testValues.after.easternTZDate.toISOString()}.`;
 
       expect(() =>

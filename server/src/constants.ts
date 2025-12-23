@@ -1,5 +1,7 @@
 import { DateType, DocumentType, ExpectedTimestamp, PhaseNameWithTrackedStatus } from "./types.js";
 
+export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
+
 export const APPLICATION_STATUS = [
   "Pre-Submission",
   "Under Review",
@@ -73,7 +75,7 @@ export const PHASE_NAMES_WITH_TRACKED_STATUS = [
   "SDG Preparation",
   "Review",
   "Approval Package",
-  "Post Approval",
+  "Approval Summary",
 ] as const;
 
 export const PHASE_NAME = ["None", ...PHASE_NAMES_WITH_TRACKED_STATUS] as const;
@@ -84,6 +86,23 @@ export const PHASE_STATUS = [
   "Completed",
   "Incomplete",
   "Skipped",
+] as const;
+
+export const REVIEW_PHASE_DATE_TYPES = [
+  "OGD Approval to Share with SMEs",
+  "Draft Approval Package to Prep",
+  "DDME Approval Received",
+  "State Concurrence",
+  "BN PMT Approval to Send to OMB",
+  "Draft Approval Package Shared",
+  "Receive OMB Concurrence",
+  "Receive OGC Legal Clearance",
+  "Package Sent to COMMs Clearance",
+  "COMMs Clearance Received",
+  "Submit Approval Package to OSORA",
+  "OSORA R1 Comments Due",
+  "OSORA R2 Comments Due",
+  "CMS (OSORA) Clearance End",
 ] as const;
 
 export const DATE_TYPES = [
@@ -111,16 +130,9 @@ export const DATE_TYPES = [
   "OMB Review Complete",
   "PO & OGD Sign-Off",
   "Review Completion Date",
-  "OGC Approval to Share with SMEs",
-  "Draft Approval Package to Prep",
-  "DDME Approval Received",
-  "State Concurrence",
-  "BN PMT Approval to Send to OMB",
-  "Draft Approval Package Shared",
-  "Receive OMB Concurrence",
-  "Receive OGC Legal Clearance",
   "Approval Package Start Date",
   "Approval Package Completion Date",
+  ...REVIEW_PHASE_DATE_TYPES,
 ] as const;
 
 export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
@@ -152,7 +164,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "OMB Review Complete": { expectedTimestamp: "Start of Day" },
   "PO & OGD Sign-Off": { expectedTimestamp: "Start of Day" },
   "Review Completion Date": { expectedTimestamp: "Start of Day" },
-  "OGC Approval to Share with SMEs": { expectedTimestamp: "Start of Day" },
+  "OGD Approval to Share with SMEs": { expectedTimestamp: "Start of Day" },
   "Draft Approval Package to Prep": { expectedTimestamp: "Start of Day" },
   "DDME Approval Received": { expectedTimestamp: "Start of Day" },
   "State Concurrence": { expectedTimestamp: "Start of Day" },
@@ -162,6 +174,13 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Receive OGC Legal Clearance": { expectedTimestamp: "Start of Day" },
   "Approval Package Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Package Completion Date": { expectedTimestamp: "Start of Day" },
+  // Prospective assignments, to be confirmed in DEMOS-1227
+  "Package Sent to COMMs Clearance": { expectedTimestamp: "Start of Day" },
+  "COMMs Clearance Received": { expectedTimestamp: "Start of Day" },
+  "Submit Approval Package to OSORA": { expectedTimestamp: "Start of Day" },
+  "OSORA R1 Comments Due": { expectedTimestamp: "End of Day" },
+  "OSORA R2 Comments Due": { expectedTimestamp: "End of Day" },
+  "CMS (OSORA) Clearance End": { expectedTimestamp: "End of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [
@@ -275,6 +294,15 @@ export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
   "State Application",
 ] as const;
 
+export const REVIEW_PHASE_NOTE_TYPES = [
+  "PO and OGD",
+  "OGC and OMB",
+  "COMMs Clearance",
+  "CMS (OSORA) Clearance",
+] as const;
+
+export const NOTE_TYPES = [...REVIEW_PHASE_NOTE_TYPES] as const;
+
 export const COMPLETENESS_PHASE_DOCUMENTS: DocumentType[] = [
   "General File",
   "Internal Completeness Review Form",
@@ -297,7 +325,7 @@ export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
   "Signed Decision Memo",
 ] as const;
 
-export const POST_APPROVAL_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+export const APPROVAL_SUMMARY_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 
 export const PHASE_DOCUMENT_TYPE_MAP = {
   None: NONE_PHASE_DOCUMENTS,
@@ -308,7 +336,7 @@ export const PHASE_DOCUMENT_TYPE_MAP = {
   "SDG Preparation": SDG_PREPARATION_PHASE_DOCUMENTS,
   Review: REVIEW_PHASE_DOCUMENTS,
   "Approval Package": APPROVAL_PACKAGE_PHASE_DOCUMENTS,
-  "Post Approval": POST_APPROVAL_PHASE_DOCUMENTS,
+  "Approval Summary": APPROVAL_SUMMARY_PHASE_DOCUMENTS,
 };
 
 type PhaseStartEndDateRecord = Record<
@@ -335,5 +363,5 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
     startDate: "Approval Package Start Date",
     endDate: "Approval Package Completion Date",
   },
-  "Post Approval": {},
+  "Approval Summary": {},
 };

@@ -35,10 +35,31 @@ describe("PhaseSelector", () => {
       "SDG Preparation",
       "Review",
       "Approval Package",
-      "Post Approval",
+      "Approval Summary",
     ].forEach((name) => {
       expect(screen.getByText(name)).toBeInTheDocument();
     });
+  });
+
+  it("renders only three phase group categories", () => {
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
+      status: "Under Review",
+      currentPhaseName: "Federal Comment",
+      phases: [],
+      documents: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(screen.getByText("Pre-Submission")).toBeInTheDocument();
+    expect(screen.getByText("Submission")).toBeInTheDocument();
+    expect(screen.getByText("Approval")).toBeInTheDocument();
+    expect(screen.queryByText("Post-Approval")).not.toBeInTheDocument();
   });
 });
 
@@ -53,11 +74,15 @@ describe("getDisplayedPhaseStatus", () => {
           phaseName: "Concept",
           phaseStatus: "Started",
           phaseDates: [],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Application Intake",
           phaseStatus: "Completed",
           phaseDates: [],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
@@ -77,6 +102,8 @@ describe("getDisplayedPhaseStatus", () => {
           phaseName: "Concept",
           phaseStatus: "Started",
           phaseDates: [],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
@@ -121,6 +148,8 @@ describe("getDisplayedPhaseDate", () => {
           phaseName: "Concept",
           phaseStatus: "Started",
           phaseDates: [],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
@@ -156,6 +185,8 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: completionDate,
             },
           ],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
@@ -187,6 +218,8 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: completeDate,
             },
           ],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
@@ -218,6 +251,8 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: submittedDate,
             },
           ],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
@@ -244,6 +279,8 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: startDate,
             },
           ],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
@@ -275,6 +312,8 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: secondDate,
             },
           ],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
@@ -301,6 +340,8 @@ describe("getDisplayedPhaseDate", () => {
               dateValue,
             },
           ],
+          phaseNotes: [],
+          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],

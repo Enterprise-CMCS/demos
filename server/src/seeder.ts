@@ -5,6 +5,7 @@ import {
   PERSON_TYPES,
   SIGNATURE_LEVEL,
   PHASE_DOCUMENT_TYPE_MAP,
+  NOTE_TYPES,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -66,6 +67,21 @@ function getRandomPhaseDocumentTypeCombination(): {
     phaseName: randomPhase,
     documentType: randomDocumentType,
   };
+}
+
+async function seedNotes() {
+  console.log("🌱 Seeding application notes...");
+  const applications = await prisma().application.findMany();
+  for (const application of applications) {
+    const noteContent = faker.lorem.paragraph();
+    await prisma().applicationNote.create({
+      data: {
+        applicationId: application.id,
+        noteTypeId: faker.helpers.arrayElement(NOTE_TYPES),
+        content: noteContent,
+      },
+    });
+  }
 }
 
 async function seedDocuments() {
@@ -541,7 +557,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
       },
       {
-        dateType: "OGC Approval to Share with SMEs",
+        dateType: "OGD Approval to Share with SMEs",
         dateValue: new Date("2025-02-14T00:00:00.000-05:00"),
       },
       {
@@ -637,8 +653,9 @@ async function seedDatabase() {
   }
 
   await seedDocuments();
-  console.log("🌱 Seeding events (with and without applicationIds)...");
 
+  await seedNotes();
+  console.log("🌱 Seeding events (with and without applicationIds)...");
   // Grab some applications for association
   const numberOfApplicationEvents = 10;
   const applicationsForEvents = await prisma().application.findMany({

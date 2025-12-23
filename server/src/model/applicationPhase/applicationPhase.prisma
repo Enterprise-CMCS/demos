@@ -7,7 +7,6 @@ model ApplicationPhase {
 
   application      Application               @relation(fields: [applicationId], references: [id])
   phase            ApplicationPhaseTypeLimit @relation(fields: [phaseId], references: [id])
-  phaseStatus      PhaseStatus               @relation(fields: [phaseStatusId], references: [id])
   phasePhaseStatus PhasePhaseStatus          @relation(fields: [phaseId, phaseStatusId], references: [phaseId, phaseStatusId])
 
   @@id([applicationId, phaseId])

@@ -1,5 +1,8 @@
 import { PhaseNameWithTrackedStatus } from "../../types.js";
-import { ParsedApplicationDateInput, makeApplicationDateMapFromList } from "../applicationDate";
+import {
+  ParsedApplicationDateInput,
+  makeApplicationDateMapFromList,
+} from "../applicationDate";
 import {
   ApplicationPhaseDocumentTypeRecord,
   ApplicationPhaseStatusRecord,
@@ -17,7 +20,10 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
     phasesMustBeComplete: [],
   },
   "Application Intake": {
-    datesMustExist: ["State Application Submitted Date", "Completeness Review Due Date"],
+    datesMustExist: [
+      "State Application Submitted Date",
+      "Completeness Review Due Date",
+    ],
     documentTypesMustExist: ["State Application"],
     phasesMustBeComplete: [],
   },
@@ -42,9 +48,31 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "BNPMT Initial Meeting Date",
     ],
     documentTypesMustExist: [],
-    phasesMustBeComplete: ["Application Intake", "Completeness", "Federal Comment"],
+    phasesMustBeComplete: [
+      "Application Intake",
+      "Completeness",
+      "Federal Comment",
+    ],
   },
-  Review: "Not Implemented",
+  Review: {
+    datesMustExist: [
+      "OGD Approval to Share with SMEs",
+      "Draft Approval Package to Prep",
+      "DDME Approval Received",
+      "State Concurrence",
+      "BN PMT Approval to Send to OMB",
+      "Draft Approval Package Shared",
+      "Receive OMB Concurrence",
+      "Receive OGC Legal Clearance",
+    ],
+    documentTypesMustExist: [],
+    phasesMustBeComplete: [
+      "Application Intake",
+      "Completeness",
+      "Federal Comment",
+      "SDG Preparation",
+    ],
+  },
   "Approval Package": {
     datesMustExist: [],
     documentTypesMustExist: [
@@ -63,7 +91,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Review",
     ],
   },
-  "Post Approval": "Not Implemented",
+  "Approval Summary": "Not Implemented",
 };
 
 export function checkPhaseCompletionRules(
@@ -71,19 +99,21 @@ export function checkPhaseCompletionRules(
   phaseToValidate: PhaseNameWithTrackedStatus,
   applicationDates: ParsedApplicationDateInput[],
   applicationDocumentTypes: ApplicationPhaseDocumentTypeRecord,
-  applicationPhases: ApplicationPhaseStatusRecord
+  applicationPhases: ApplicationPhaseStatusRecord,
 ): void {
   const validationChecks = VALIDATION_CHECKS[phaseToValidate];
   if (validationChecks === "No Validation") {
     return;
   } else if (validationChecks === "Not Implemented") {
-    throw new Error(`Validation of the ${phaseToValidate} phase via API is not yet implemented.`);
+    throw new Error(
+      `Validation of the ${phaseToValidate} phase via API is not yet implemented.`,
+    );
   }
 
   checkPhaseStartedBeforeCompletion(
     applicationId,
     phaseToValidate,
-    applicationPhases[phaseToValidate]
+    applicationPhases[phaseToValidate],
   );
 
   const applicationDateMap = makeApplicationDateMapFromList(applicationDates);
@@ -97,7 +127,7 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         dateToCheck,
-        applicationDateMap
+        applicationDateMap,
       );
     }
   }
@@ -108,7 +138,7 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         documentTypeToCheck,
-        applicationDocumentTypes
+        applicationDocumentTypes,
       );
     }
   }
@@ -119,7 +149,7 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         phaseToCheckComplete,
-        applicationPhases
+        applicationPhases,
       );
     }
   }

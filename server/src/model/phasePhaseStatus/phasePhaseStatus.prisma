@@ -6,6 +6,8 @@ model PhasePhaseStatus {
   phaseStatusId String @map("phase_status_id")
 
   applicationPhases ApplicationPhase[]
+  phase             Phase              @relation(fields: [phaseId], references: [id])
+  phaseStatus       PhaseStatus        @relation(fields: [phaseStatusId], references: [id])
 
   @@id([phaseId, phaseStatusId])
   @@map("phase_phase_status")

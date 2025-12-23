@@ -67,7 +67,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
     <div aria-labelledby="concept-verify-title">
       <div>
         <h4 id="concept-verify-title" className={STYLES.title}>
-          STEP 2 - VERIFY/COMPLETE
+          STEP 1 - VERIFY/COMPLETE
         </h4>
         <p className={STYLES.helper}>
           The Federal Comment phase automatically completes after the Federal Comment End Date.
@@ -115,13 +115,13 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
+          <VerifyCompleteSection />
           <ApplicationUploadSection
-            title="STEP 1 - UPLOAD"
+            title="STEP 2 - UPLOAD"
             helperText="Upload the Internal Analysis Document (Optional)"
             documents={documents}
             onUploadClick={() => showFederalCommentDocumentUploadDialog(demonstrationId)}
           />
-          <VerifyCompleteSection />
         </div>
       </section>
     </div>

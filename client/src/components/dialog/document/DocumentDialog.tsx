@@ -365,6 +365,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             name="button-cancel-upload-document"
             size="small"
             onClick={() => setShowCancelConfirm(true)}
+            disabled={documentDialogState === "uploading"}
           >
             Cancel
           </SecondaryButton>

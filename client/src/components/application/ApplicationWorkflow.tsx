@@ -8,6 +8,8 @@ import type {
   PhaseStatus,
   Document,
   Person,
+  NoteType,
+  ClearanceLevel,
 } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
@@ -46,14 +48,26 @@ export type SimplePhase = {
   phaseName: PhaseName;
   phaseStatus: PhaseStatus;
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
+
+  // TODO: Implement setting notes when backend supports it
+  //  - integration - DEMOS-1266
+  //  - backend support - DEMOS-1167
+  phaseNotes: {
+    noteType: NoteType;
+    content: string;
+  }[];
+
+  // TODO: Implement setting clearance level when backend supports it
+  //  - integration - DEMOS-1224
+  clearanceLevel: ClearanceLevel;
 };
 
-export type ApplicationWorkflowDocument = (Pick<
+export type ApplicationWorkflowDocument = Pick<
   Document,
   "id" | "name" | "description" | "documentType" | "createdAt"
 > & {
   owner: { person: Pick<Person, "fullName"> };
-});
+};
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,

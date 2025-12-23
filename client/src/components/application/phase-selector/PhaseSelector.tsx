@@ -6,7 +6,7 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  PostApprovalPhase,
+  ApprovalSummaryPhase,
   SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
   getFederalCommentPhaseFromDemonstration,
@@ -27,8 +27,7 @@ const PhaseGroups = () => {
     <>
       <span className="col-span-1">Pre-Submission</span>
       <span className={`col-span-3 ${leftBorderStyles}`}>Submission</span>
-      <span className={`col-span-3 ${leftBorderStyles}`}>Approval</span>
-      <span className={`col-span-1 ${leftBorderStyles}`}>Post-Approval</span>
+      <span className={`col-span-4 ${leftBorderStyles}`}>Approval</span>
     </>
   );
 };
@@ -73,7 +72,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
-    Concept: () => getConceptPhaseComponentFromDemonstration(demonstration),
+    Concept: () => getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase),
     "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
     Completeness: () => getApplicationCompletenessFromDemonstration(demonstration),
     "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
@@ -91,7 +90,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
     },
     Review: () => getReviewPhaseComponentFromDemonstration(demonstration),
     "Approval Package": () => getApprovalPackagePhase(demonstration),
-    "Post Approval": PostApprovalPhase,
+    "Approval Summary": ApprovalSummaryPhase,
   };
 
   const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {

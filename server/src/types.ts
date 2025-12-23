@@ -2,6 +2,7 @@ import {
   ADMIN_DEMONSTRATION_ROLES,
   APPLICATION_STATUS,
   APPLICATION_TYPES,
+  CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
   DOCUMENT_TYPES,
@@ -9,10 +10,13 @@ import {
   EXPECTED_TIMESTAMPS,
   GRANT_LEVELS,
   LOG_LEVELS,
+  NOTE_TYPES,
   PERSON_TYPES,
   PHASE_NAME,
   PHASE_NAMES_WITH_TRACKED_STATUS,
   PHASE_STATUS,
+  REVIEW_PHASE_DATE_TYPES,
+  REVIEW_PHASE_NOTE_TYPES,
   ROLES,
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
@@ -76,6 +80,9 @@ export type {
   SetApplicationDatesInput,
 } from "./model/applicationDate/applicationDateSchema.js";
 
+export type { ApplicationNoteInput } from "./model/applicationNote/applicationNoteSchema.js";
+
+export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
 export type DateTimeOrLocalDate = Date | LocalDate;
 export type NonEmptyString = string;
@@ -94,6 +101,9 @@ export type DateType = (typeof DATE_TYPES)[number];
 export type ExpectedTimestamp = (typeof EXPECTED_TIMESTAMPS)[number];
 export type LogLevel = (typeof LOG_LEVELS)[number];
 export type EventType = (typeof EVENT_TYPES)[number];
+export type NoteType = (typeof NOTE_TYPES)[number];
 export type AdminDemonstrationRole = (typeof ADMIN_DEMONSTRATION_ROLES)[number];
 export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[number];
 export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
+export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
+export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];

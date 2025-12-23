@@ -1,0 +1,10 @@
+// Flags: STATIC_CONSTRAINT
+model NoteType {
+  id String
+
+  applicationNotes ApplicationNote[]
+  phaseNoteTypes   PhaseNoteType[]
+
+  @@id([id])
+  @@map("note_type")
+}

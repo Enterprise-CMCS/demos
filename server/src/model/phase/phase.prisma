@@ -6,9 +6,11 @@ model Phase {
   applicationPhaseTypeLimit ApplicationPhaseTypeLimit[]
   phaseDocumentTypes        PhaseDocumentType[]
   phaseDateTypes            PhaseDateType[]
+  phaseNoteTypes            PhaseNoteType[]
   amendments                Amendment[]
   demonstrations            Demonstration[]
   extensions                Extension[]
+  phasePhaseStatuses        PhasePhaseStatus[]
 
   @@id([id])
   @@unique([phaseNumber])
