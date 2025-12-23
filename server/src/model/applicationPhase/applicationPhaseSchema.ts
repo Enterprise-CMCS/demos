@@ -1,5 +1,10 @@
-import { ApplicationNote } from "@prisma/client";
-import { PhaseNameWithTrackedStatus, PhaseStatus, ApplicationDate, Document } from "../../types.js";
+import {
+  PhaseNameWithTrackedStatus,
+  PhaseStatus,
+  ApplicationDate,
+  Document,
+  ApplicationNote,
+} from "../../types.js";
 import { gql } from "graphql-tag";
 
 export const applicationPhaseSchema = gql`
