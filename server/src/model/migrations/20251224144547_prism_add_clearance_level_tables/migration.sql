@@ -1,11 +1,20 @@
 -- AlterTable
-ALTER TABLE "amendment" ADD COLUMN "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)';
+ALTER TABLE "amendment" ADD COLUMN     "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)';
 
 -- AlterTable
-ALTER TABLE "demonstration" ADD COLUMN "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)';
+ALTER TABLE "amendment_history" ADD COLUMN     "clearance_level_id" TEXT;
 
 -- AlterTable
-ALTER TABLE "extension" ADD COLUMN "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)';
+ALTER TABLE "demonstration" ADD COLUMN     "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)';
+
+-- AlterTable
+ALTER TABLE "demonstration_history" ADD COLUMN     "clearance_level_id" TEXT;
+
+-- AlterTable
+ALTER TABLE "extension" ADD COLUMN     "clearance_level_id" TEXT NOT NULL DEFAULT 'CMS (OSORA)';
+
+-- AlterTable
+ALTER TABLE "extension_history" ADD COLUMN     "clearance_level_id" TEXT;
 
 -- CreateTable
 CREATE TABLE "clearance_level" (
