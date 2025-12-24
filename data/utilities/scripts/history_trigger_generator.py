@@ -8,6 +8,7 @@ TBL_FOLDERS = [
     "amendment",
     "application",
     "applicationDate",
+    "applicationNote",
     "applicationPhase",
     "demonstration",
     "demonstrationRoleAssignment",
@@ -20,7 +21,7 @@ TBL_FOLDERS = [
     "primaryDemonstrationRoleAssignment",
     "rolePermission",
     "systemRoleAssignment",
-    "user"
+    "user",
 ]
 APP_SCHEMA = "demos_app"
 DROP_QUERY = """-- Drop existing history logging functions and triggers
