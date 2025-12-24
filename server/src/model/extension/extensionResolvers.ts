@@ -66,7 +66,7 @@ export async function __updateExtension(
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
   const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
-  checkOptionalNotNullFields(["demonstrationId", "name", "status", "clearanceLevel"], input);
+  checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().extension.update({
       where: {
@@ -79,7 +79,6 @@ export async function __updateExtension(
         effectiveDate: effectiveDate,
         expirationDate: expirationDate,
         statusId: input.status,
-        clearanceLevelId: input.clearanceLevel,
       },
     });
   } catch (error) {

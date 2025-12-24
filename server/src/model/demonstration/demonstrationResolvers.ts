@@ -116,7 +116,7 @@ export async function __updateDemonstration(
 ): Promise<PrismaDemonstration> {
   const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(
-    ["name", "status", "stateId", "projectOfficerUserId", "clearanceLevel"],
+    ["name", "status", "stateId", "projectOfficerUserId"],
     input
   );
   try {
@@ -132,7 +132,6 @@ export async function __updateDemonstration(
           signatureLevelId: input.signatureLevel,
           statusId: input.status,
           stateId: input.stateId,
-          clearanceLevelId: input.clearanceLevel,
         },
       });
 

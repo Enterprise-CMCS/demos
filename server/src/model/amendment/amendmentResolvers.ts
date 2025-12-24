@@ -66,7 +66,7 @@ export async function __updateAmendment(
   { id, input }: { id: string; input: UpdateAmendmentInput }
 ): Promise<PrismaAmendment> {
   const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
-  checkOptionalNotNullFields(["demonstrationId", "name", "status", "clearanceLevel"], input);
+  checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().amendment.update({
       where: {
@@ -79,7 +79,6 @@ export async function __updateAmendment(
         effectiveDate: effectiveDate,
         expirationDate: expirationDate,
         statusId: input.status,
-        clearanceLevelId: input.clearanceLevel,
       },
     });
   } catch (error) {
