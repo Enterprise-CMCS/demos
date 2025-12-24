@@ -23,6 +23,7 @@ import {
   deleteApplication,
   getApplication,
   getManyApplications,
+  resolveApplicationClearanceLevel,
   resolveApplicationCurrentPhaseName,
   resolveApplicationDocuments,
   resolveApplicationPhases,
@@ -286,5 +287,6 @@ export const demonstrationResolvers = {
     status: resolveApplicationStatus,
     phases: resolveApplicationPhases,
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
+    clearanceLevel: resolveApplicationClearanceLevel,
   },
 };

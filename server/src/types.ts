@@ -37,11 +37,6 @@ export type {
   CreateDemonstrationInput,
   Demonstration,
   UpdateDemonstrationInput,
-  DemonstrationDetails,
-  DemonstrationQueryResult,
-  DemonstrationRole,
-  DemonstrationPerson,
-  DemonstrationState,
 } from "./model/demonstration/demonstrationSchema.js";
 
 export type { State } from "./model/state/stateSchema.js";

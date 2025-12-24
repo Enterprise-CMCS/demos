@@ -16,6 +16,7 @@ import {
 import {
   ApplicationStatus,
   ApplicationType,
+  ClearanceLevel,
   CreateDemonstrationInput,
   GrantLevel,
   PersonType,
@@ -45,6 +46,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationStatus,
+  resolveApplicationClearanceLevel,
 } from "../application/applicationResolvers.js";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 
@@ -60,6 +62,7 @@ vi.mock("../application/applicationResolvers.js", () => ({
   resolveApplicationCurrentPhaseName: vi.fn(),
   resolveApplicationStatus: vi.fn(),
   resolveApplicationPhases: vi.fn(),
+  resolveApplicationClearanceLevel: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
