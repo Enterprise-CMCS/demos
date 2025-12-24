@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { deleteApplicationNotes } from "./deleteApplicationNotes.js";
-import { ParsedSetApplicationNotesInput } from "../parseSetApplicationNotesInput.js";
+import { deleteApplicationNotes, ParsedSetApplicationNotesInput } from "../";
 
 describe("deleteApplicationNotes", () => {
   const transactionMocks = {
