@@ -25,7 +25,9 @@ const STYLES = {
   actions: tw`flex justify-end mt-2 gap-2`,
 };
 
-function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationPhaseFormData {
+function getFormDataFromPhase(
+  sdgPreparationPhase: SdgPreparationPhase
+): SdgPreparationPhaseFormData {
   const getDateValue = (dateType: string) => {
     const dateValue = sdgPreparationPhase.phaseDates.find(
       (d) => d.dateType === dateType
@@ -48,12 +50,13 @@ interface SdgPreparationPhaseFormData {
   bnpmtInitialMeetingDate?: string;
 }
 
+export type SdgPreparationPhase = Pick<SimplePhase, "phaseDates">;
 export const SdgPreparationPhase = ({
   demonstrationId,
   sdgPreparationPhase,
 }: {
   demonstrationId: string;
-  sdgPreparationPhase: SimplePhase;
+  sdgPreparationPhase: SdgPreparationPhase;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));

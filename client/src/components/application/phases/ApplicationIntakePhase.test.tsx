@@ -12,11 +12,9 @@ import {
   ApplicationIntakeProps,
   getCompletenessReviewDueDate,
   getApplicationIntakeComponentFromDemonstration,
+  ApplicationIntakePhaseDemonstration,
 } from "./ApplicationIntakePhase";
-import {
-  ApplicationWorkflowDocument,
-  ApplicationWorkflowDemonstration,
-} from "../ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 
 vi.mock("@apollo/client", async () => {
@@ -270,22 +268,17 @@ describe("ApplicationIntakePhase", () => {
 
   describe("getApplicationIntakeComponentFromDemonstration", () => {
     it("should extract demonstration data and return ApplicationIntakePhase component", () => {
-      const mockDemonstration: ApplicationWorkflowDemonstration = {
+      const mockDemonstration: ApplicationIntakePhaseDemonstration = {
         id: "demo-123",
-        status: "Under Review",
-        currentPhaseName: "Application Intake",
         phases: [
           {
             phaseName: "Application Intake",
-            phaseStatus: "Started",
             phaseDates: [
               {
                 dateType: "State Application Submitted Date",
                 dateValue: new Date(2024, 9, 13),
               },
             ],
-            phaseNotes: [],
-            clearanceLevel: "CMS (OSORA)",
           },
         ],
         documents: [

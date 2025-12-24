@@ -4,7 +4,7 @@ import { ApplicationUploadSection } from "components/application/phases/sections
 import { formatDate, formatDateForServer } from "util/formatDate";
 import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { useDialog } from "components/dialog/DialogContext";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
 
 interface FederalCommentPhaseProps {
@@ -28,8 +28,14 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
+export type FederalCommentPhase = Pick<SimplePhase, "phaseName" | "phaseStatus" | "phaseDates">;
+
+export type FederalCommentPhaseDemonstration = Pick<ApplicationWorkflowDemonstration, "id"> & {
+  phases: FederalCommentPhase[];
+};
+
 export const getFederalCommentPhaseFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
+  demonstration: FederalCommentPhaseDemonstration
 ) => {
   const federalCommentPhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Federal Comment"

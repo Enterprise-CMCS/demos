@@ -8,6 +8,7 @@ import { formatDateForServer, getTodayEst } from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
+  SimplePhase,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
@@ -47,8 +48,16 @@ export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: stri
   return addDays(date, 15);
 };
 
+export type ApplicationIntakePhase = Pick<SimplePhase, "phaseName" | "phaseDates">;
+export type ApplicationIntakePhaseDemonstration = Pick<
+  ApplicationWorkflowDemonstration,
+  "id" | "documents"
+> & {
+  phases: ApplicationIntakePhase[];
+};
+
 export const getApplicationIntakeComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
+  demonstration: ApplicationIntakePhaseDemonstration
 ) => {
   const applicationIntakePhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Application Intake"

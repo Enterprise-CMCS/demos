@@ -20,6 +20,7 @@ describe("PhaseSelector", () => {
       currentPhaseName: "Federal Comment",
       phases: [],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     render(
@@ -48,6 +49,7 @@ describe("PhaseSelector", () => {
       currentPhaseName: "Federal Comment",
       phases: [],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     render(
@@ -75,17 +77,16 @@ describe("getDisplayedPhaseStatus", () => {
           phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Application Intake",
           phaseStatus: "Completed",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Started");
@@ -103,10 +104,10 @@ describe("getDisplayedPhaseStatus", () => {
           phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Completeness")).toBe("Not Started");
@@ -119,6 +120,7 @@ describe("getDisplayedPhaseStatus", () => {
       currentPhaseName: "Concept",
       phases: [],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Not Started");
@@ -133,6 +135,7 @@ describe("getDisplayedPhaseDate", () => {
       currentPhaseName: "Concept",
       phases: [],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -149,10 +152,10 @@ describe("getDisplayedPhaseDate", () => {
           phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -186,10 +189,10 @@ describe("getDisplayedPhaseDate", () => {
             },
           ],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
@@ -219,10 +222,10 @@ describe("getDisplayedPhaseDate", () => {
             },
           ],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Review");
@@ -252,10 +255,10 @@ describe("getDisplayedPhaseDate", () => {
             },
           ],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Application Intake");
@@ -280,10 +283,10 @@ describe("getDisplayedPhaseDate", () => {
             },
           ],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Federal Comment");
@@ -313,10 +316,10 @@ describe("getDisplayedPhaseDate", () => {
             },
           ],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "SDG Preparation");
@@ -341,10 +344,10 @@ describe("getDisplayedPhaseDate", () => {
             },
           ],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
       documents: [],
+      clearanceLevel: "CMS (OSORA)",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");

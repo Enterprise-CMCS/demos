@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  getFormDataFromPhase,
+  getPhaseData,
   getReviewPhaseComponentFromDemonstration,
   formatDataForSave,
   hasFormChanges,
@@ -18,11 +18,10 @@ describe("reviewPhaseData", () => {
         phaseNotes: [],
       };
 
-      const result = getFormDataFromPhase(reviewPhase);
+      const result = getPhaseData(reviewPhase);
 
       expect(result.dates).toEqual({});
       expect(result.notes).toEqual({});
-      expect(result.clearanceLevel).toBe("CMS (OSORA)");
     });
 
     it("should convert phase dates to form data format", () => {
@@ -36,7 +35,7 @@ describe("reviewPhaseData", () => {
         phaseNotes: [],
       };
 
-      const result = getFormDataFromPhase(reviewPhase);
+      const result = getPhaseData(reviewPhase);
 
       expect(result.dates["OGD Approval to Share with SMEs"]).toBe("2025-01-15");
       expect(result.dates["Draft Approval Package to Prep"]).toBe("2025-02-20");
@@ -54,7 +53,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getFormDataFromPhase(reviewPhase);
+      const result = getPhaseData(reviewPhase);
 
       expect(result.notes["PO and OGD"]).toBe("PO notes here");
       expect(result.notes["OGC and OMB"]).toBe("OGC notes here");
@@ -73,6 +72,7 @@ describe("reviewPhaseData", () => {
             phaseNotes: [],
           },
         ],
+        clearanceLevel: "CMS (OSORA)",
       };
 
       const result = getReviewPhaseComponentFromDemonstration(demonstration);
@@ -93,6 +93,7 @@ describe("reviewPhaseData", () => {
             phaseNotes: [{ noteType: "PO and OGD", content: "Test note" }],
           },
         ],
+        clearanceLevel: "CMS (OSORA)",
       };
 
       const result = getReviewPhaseComponentFromDemonstration(demonstration);
@@ -125,6 +126,7 @@ describe("reviewPhaseData", () => {
             ],
           },
         ],
+        clearanceLevel: "CMS (OSORA)",
       };
 
       const result = getReviewPhaseComponentFromDemonstration(demonstration);

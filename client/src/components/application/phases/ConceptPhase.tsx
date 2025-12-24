@@ -39,12 +39,15 @@ const DEMONSTRATION_TYPE_OPTIONS: Option[] = [
   { label: "Section 1915(c)", value: "1915c" },
 ];
 
+export type ConceptPhaseDemonstration = Pick<ApplicationWorkflowDemonstration, "id" | "documents">;
+
 export const getConceptPhaseComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
+  demonstration: ConceptPhaseDemonstration,
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
   const preSubmissionDocuments = demonstration.documents.filter(
-    (document) => document.documentType === "Pre-Submission" || document.documentType === "General File"
+    (document) =>
+      document.documentType === "Pre-Submission" || document.documentType === "General File"
   );
 
   return (

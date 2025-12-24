@@ -9,7 +9,7 @@ import {
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { UpdateApplicationClearanceLevelInput } from "./applicationSchema.js";
+import { SetApplicationClearanceLevelInput } from "./applicationSchema.js";
 
 export type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
 
@@ -198,9 +198,9 @@ export function resolveApplicationClearanceLevel(parent: PrismaApplication): Cle
   return parent.clearanceLevelId as ClearanceLevel;
 }
 
-export async function updateApplicationClearanceLevel(
+export async function setApplicationClearanceLevel(
   _: unknown,
-  { input }: { input: UpdateApplicationClearanceLevelInput }
+  { input }: { input: SetApplicationClearanceLevelInput }
 ): Promise<PrismaApplication> {
   try {
     const application = await getApplication(input.applicationId);
@@ -232,7 +232,7 @@ export async function updateApplicationClearanceLevel(
 
 export const applicationResolvers = {
   Mutation: {
-    updateApplicationClearanceLevel: updateApplicationClearanceLevel,
+    setApplicationClearanceLevel: setApplicationClearanceLevel,
   },
   Application: {
     __resolveType: __resolveApplicationType,

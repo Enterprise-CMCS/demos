@@ -8,6 +8,7 @@ import { addDays, parseISO } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
+  SimplePhase,
 } from "../ApplicationWorkflow";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
@@ -54,8 +55,13 @@ export const getInputsForCompletenessPhase = (
   })) as SetApplicationDateInput[];
 };
 
+type CompletenessPhase = Pick<SimplePhase, "phaseName" | "phaseDates" | "phaseStatus">;
+type CompletenessPhaseDemonstration = Pick<ApplicationWorkflowDemonstration, "id" | "documents"> & {
+  phases: CompletenessPhase[];
+};
+
 export const getApplicationCompletenessFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
+  demonstration: CompletenessPhaseDemonstration
 ) => {
   const completenessPhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Completeness"
