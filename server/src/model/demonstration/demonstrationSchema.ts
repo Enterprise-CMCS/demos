@@ -58,7 +58,6 @@ export const demonstrationSchema = gql`
     status: ApplicationStatus
     stateId: ID
     projectOfficerUserId: String
-    clearanceLevel: ClearanceLevel
   }
 
   type Mutation {
@@ -114,5 +113,4 @@ export interface UpdateDemonstrationInput {
   status?: ApplicationStatus;
   stateId?: string;
   projectOfficerUserId?: string;
-  clearanceLevel?: ClearanceLevel;
 }
