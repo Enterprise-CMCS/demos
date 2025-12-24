@@ -3,6 +3,7 @@ import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
+import { useSetApplicationNotes } from "components/application/note/noteQueries";
 import { useSetPhaseStatus } from "../../phase-status/phaseStatusQueries";
 import { ClearanceLevel, ReviewPhaseDateTypes, ReviewPhaseNoteTypes } from "demos-server";
 import { PoAndOgdSection } from "./poAndOgdSection";
@@ -79,6 +80,7 @@ export const ReviewPhase = ({
 }) => {
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
+  const { setApplicationNotes } = useSetApplicationNotes();
   const { setPhaseStatus: completeReviewPhase } = useSetPhaseStatus({
     applicationId: demonstrationId,
     phaseName: "Review",
@@ -101,9 +103,10 @@ export const ReviewPhase = ({
     }
 
     if (notes.length > 0) {
-      // TODO: Implement setting notes when backend supports it
-      //  - integration - DEMOS-1266
-      //  - backend support - DEMOS-1167
+      await setApplicationNotes({
+        applicationId: demonstrationId,
+        applicationNotes: notes,
+      });
     }
 
     // TODO: Implement setting clearance level when backend supports it

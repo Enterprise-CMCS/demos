@@ -1,12 +1,9 @@
 import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import { NoteType } from "../../types.js";
+import { NoteType, SetApplicationNotesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { SetApplicationNotesInput } from "./applicationNoteSchema.js";
-import { parseSetApplicationNotesInput } from "./parseSetApplicationNotesInput.js";
-import { upsertApplicationNotes } from "./queries/upsertApplicationNotes.js";
-import { deleteApplicationNotes } from "./queries/deleteApplicationNotes.js";
+import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
 
 export function checkForDuplicateNoteTypes(input: SetApplicationNotesInput): void {
   const inputNoteTypes = input.applicationNotes.map((applicationNote) => applicationNote.noteType);
