@@ -210,6 +210,57 @@ CREATE OR REPLACE TRIGGER log_changes_application_date_trigger
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_date
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_date();
 
+CREATE OR REPLACE FUNCTION demos_app.log_changes_application_note()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.application_note_history (
+            revision_type,
+            application_id,
+            note_type_id,
+            content,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.application_id,
+            NEW.note_type_id,
+            NEW.content,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.application_note_history (
+            revision_type,
+            application_id,
+            note_type_id,
+            content,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.application_id,
+            OLD.note_type_id,
+            OLD.content,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_application_note_trigger
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_note
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_note();
+
 CREATE OR REPLACE FUNCTION demos_app.log_changes_application_phase()
 RETURNS TRIGGER AS $$
 BEGIN
