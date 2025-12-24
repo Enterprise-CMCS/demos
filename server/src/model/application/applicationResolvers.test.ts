@@ -10,7 +10,7 @@ import {
   resolveApplicationPhases,
   PrismaApplication,
   resolveApplicationClearanceLevel,
-  updateApplicationClearanceLevel,
+  setApplicationClearanceLevel,
 } from "./applicationResolvers.js";
 import { ApplicationStatus, ApplicationType, PhaseName, ClearanceLevel } from "../../types.js";
 
@@ -323,7 +323,7 @@ describe("applicationResolvers", () => {
     });
   });
 
-  describe("updateApplicationClearanceLevel", () => {
+  describe("setApplicationClearanceLevel", () => {
     const testClearanceLevel: ClearanceLevel = "CMS (OSORA)";
     const testUpdatedDemonstration = {
       id: testApplicationId,
@@ -360,7 +360,7 @@ describe("applicationResolvers", () => {
         clearanceLevel: testClearanceLevel,
       };
 
-      const result = await updateApplicationClearanceLevel(undefined, { input });
+      const result = await setApplicationClearanceLevel(undefined, { input });
 
       expect(regularMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith({
         where: { id: testApplicationId },
@@ -390,7 +390,7 @@ describe("applicationResolvers", () => {
         clearanceLevel: testClearanceLevel,
       };
 
-      const result = await updateApplicationClearanceLevel(undefined, { input });
+      const result = await setApplicationClearanceLevel(undefined, { input });
 
       expect(regularMocks.amendment.update).toHaveBeenCalledExactlyOnceWith({
         where: { id: testApplicationId },
@@ -420,7 +420,7 @@ describe("applicationResolvers", () => {
         clearanceLevel: testClearanceLevel,
       };
 
-      const result = await updateApplicationClearanceLevel(undefined, { input });
+      const result = await setApplicationClearanceLevel(undefined, { input });
 
       expect(regularMocks.extension.update).toHaveBeenCalledExactlyOnceWith({
         where: { id: testApplicationId },
@@ -451,7 +451,7 @@ describe("applicationResolvers", () => {
         clearanceLevel: testClearanceLevel,
       };
 
-      await expect(updateApplicationClearanceLevel(undefined, { input })).rejects.toThrowError(
+      await expect(setApplicationClearanceLevel(undefined, { input })).rejects.toThrowError(
         testHandlePrismaError
       );
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
@@ -465,7 +465,7 @@ describe("applicationResolvers", () => {
         clearanceLevel: testClearanceLevel,
       };
 
-      await expect(updateApplicationClearanceLevel(undefined, { input })).rejects.toThrowError();
+      await expect(setApplicationClearanceLevel(undefined, { input })).rejects.toThrowError();
       expect(regularMocks.demonstration.update).not.toHaveBeenCalled();
       expect(regularMocks.amendment.update).not.toHaveBeenCalled();
       expect(regularMocks.extension.update).not.toHaveBeenCalled();

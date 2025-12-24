@@ -5,7 +5,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SdgPreparationPhase } from "./SdgPreparationPhase";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { parseISO } from "date-fns";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -41,53 +40,29 @@ vi.mock("../phase-status/phaseStatusQueries", () => ({
   }),
 }));
 
-const mockDemonstration: ApplicationWorkflowDemonstration = {
-  id: "1",
-  status: "Pre-Submission",
-  currentPhaseName: "SDG Preparation",
-  documents: [],
-  phases: [
+const mockSdgPreparationPhase: SdgPreparationPhase = {
+  phaseDates: [
     {
-      phaseName: "SDG Preparation",
-      phaseStatus: "Not Started",
-      phaseDates: [
-        {
-          dateType: "Expected Approval Date",
-          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-        },
-      ],
-      phaseNotes: [],
-      clearanceLevel: "CMS (OSORA)",
+      dateType: "Expected Approval Date",
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     },
   ],
 };
 
-const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
-  id: "1",
-  status: "Pre-Submission",
-  currentPhaseName: "SDG Preparation",
-  documents: [],
-  phases: [
+const mockCompleteSdgPreparationPhase: SdgPreparationPhase = {
+  phaseDates: [
     {
-      phaseName: "SDG Preparation",
-      phaseStatus: "Not Started",
-      phaseDates: [
-        {
-          dateType: "Expected Approval Date",
-          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-        },
-        { dateType: "SME Review Date", dateValue: parseISO("2025-01-01T05:00:00.000Z") },
-        {
-          dateType: "FRT Initial Meeting Date",
-          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-        },
-        {
-          dateType: "BNPMT Initial Meeting Date",
-          dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-        },
-      ],
-      phaseNotes: [],
-      clearanceLevel: "CMS (OSORA)",
+      dateType: "Expected Approval Date",
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    },
+    { dateType: "SME Review Date", dateValue: parseISO("2025-01-01T05:00:00.000Z") },
+    {
+      dateType: "FRT Initial Meeting Date",
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    },
+    {
+      dateType: "BNPMT Initial Meeting Date",
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     },
   ],
 };
@@ -97,13 +72,8 @@ describe("SdgPreparationPhase", () => {
     vi.clearAllMocks();
   });
 
-  const setup = (demonstration = mockDemonstration): void => {
-    render(
-      <SdgPreparationPhase
-        demonstrationId={demonstration.id}
-        sdgPreparationPhase={demonstration.phases[0]}
-      />
-    );
+  const setup = (sdgPreparationPhase = mockSdgPreparationPhase): void => {
+    render(<SdgPreparationPhase demonstrationId={"1"} sdgPreparationPhase={sdgPreparationPhase} />);
   };
 
   describe("Header and Description", () => {
@@ -228,7 +198,7 @@ describe("SdgPreparationPhase", () => {
     it("shows success toast when Finish succeeds", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
       mockSetPhaseStatus.mockResolvedValue({ data: { setPhaseStatus: { id: "1" } } });
-      setup(mockCompleteDemonstration);
+      setup(mockCompleteSdgPreparationPhase);
 
       const finishButton = await screen.findByRole("button", { name: /finish/i });
       expect(finishButton).toBeEnabled();
@@ -245,7 +215,7 @@ describe("SdgPreparationPhase", () => {
     it("shows error toast when Finish fails", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
       mockSetPhaseStatus.mockRejectedValue(new Error("Mutation failed"));
-      setup(mockCompleteDemonstration);
+      setup(mockCompleteSdgPreparationPhase);
 
       const finishButton = await screen.findByRole("button", { name: /finish/i });
       expect(finishButton).toBeEnabled();

@@ -9,14 +9,18 @@ import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-c
 import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
 
 export type ReviewPhase = Pick<SimplePhase, "phaseName" | "phaseDates" | "phaseNotes">;
-export type ReviewPhaseDemonstration = Pick<ApplicationWorkflowDemonstration, "id"> & {
+export type ReviewPhaseDemonstration = Pick<
+  ApplicationWorkflowDemonstration,
+  "id" | "clearanceLevel"
+> & {
   phases: ReviewPhase[];
 };
-export function getFormDataFromPhase(reviewPhase: ReviewPhase): ReviewPhaseFormData {
-  const formData: ReviewPhaseFormData = {
+export function getPhaseData(
+  reviewPhase: ReviewPhase
+): Omit<ReviewPhaseFormData, "clearanceLevel"> {
+  const formData: Omit<ReviewPhaseFormData, "clearanceLevel"> = {
     dates: {},
     notes: {},
-    clearanceLevel: "CMS (OSORA)",
   };
 
   for (const dateType of REVIEW_PHASE_DATE_TYPES) {
@@ -31,12 +35,6 @@ export function getFormDataFromPhase(reviewPhase: ReviewPhase): ReviewPhaseFormD
     if (note) formData.notes[noteType] = note.content;
   }
 
-  // TODO: MOCKING CLEARANCE LEVEL UNTIL BACKEND SUPPORTS IT.
-  //  - clearance level integration - DEMOS-1224
-  // WILL LIKELY END UP LOOKING LIKE THIS:
-  // formData.clearanceLevel = reviewPhase.clearanceLevel;
-  formData.clearanceLevel = "CMS (OSORA)";
-
   return formData;
 }
 
@@ -46,7 +44,11 @@ export const getReviewPhaseComponentFromDemonstration = (
   const reviewPhase = demonstration.phases.find((phase) => phase.phaseName === "Review");
   if (!reviewPhase) return <div>Error: Review Phase not found.</div>;
 
-  const reviewPhaseFormData = getFormDataFromPhase(reviewPhase);
+  const reviewPhaseFormData: ReviewPhaseFormData = {
+    ...getPhaseData(reviewPhase),
+    clearanceLevel: demonstration.clearanceLevel,
+  };
+
   return <ReviewPhase initialFormData={reviewPhaseFormData} demonstrationId={demonstration.id} />;
 };
 

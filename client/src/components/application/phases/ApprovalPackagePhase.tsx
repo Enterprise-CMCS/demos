@@ -2,6 +2,7 @@ import React from "react";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
+  SimplePhase,
 } from "components/application/ApplicationWorkflow";
 import {
   ApprovalPackageTable,
@@ -12,10 +13,7 @@ import { formatDate } from "util/formatDate";
 import { Button } from "components/button";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { useToast } from "components/toast";
-import {
-  FAILED_TO_SAVE_MESSAGE,
-  getPhaseCompletedMessage,
-} from "util/messages";
+import { FAILED_TO_SAVE_MESSAGE, getPhaseCompletedMessage } from "util/messages";
 
 export interface ApprovalPackagePhaseProps {
   demonstrationId: string;
@@ -32,7 +30,15 @@ const REQUIRED_TYPES: DocumentType[] = [
   "Signed Decision Memo",
 ] as const;
 
-export const getApprovalPackagePhase = (demonstration: ApplicationWorkflowDemonstration) => {
+export type ApprovalPackagePhase = Pick<SimplePhase, "phaseName" | "phaseStatus">;
+export type ApprovalPackagePhaseDemonstration = Pick<
+  ApplicationWorkflowDemonstration,
+  "id" | "documents"
+> & {
+  phases: ApprovalPackagePhase[];
+};
+
+export const getApprovalPackagePhase = (demonstration: ApprovalPackagePhaseDemonstration) => {
   const formulationWorkbookDocument = demonstration?.documents.find(
     (doc) => doc.documentType === "Final Budget Neutrality Formulation Workbook"
   );

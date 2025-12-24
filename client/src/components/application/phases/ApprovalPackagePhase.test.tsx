@@ -3,11 +3,14 @@ import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import { ApprovalPackagePhase, getApprovalPackagePhase } from "./ApprovalPackagePhase";
+import {
+  ApprovalPackagePhase,
+  ApprovalPackagePhaseDemonstration,
+  getApprovalPackagePhase,
+} from "./ApprovalPackagePhase";
 
 import {
   ApplicationWorkflowDocument,
-  ApplicationWorkflowDemonstration,
 } from "components/application/ApplicationWorkflow";
 import { DocumentType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
@@ -189,10 +192,8 @@ describe("ApprovalPackagePhase", () => {
 
 describe("getApprovalPackagePhase", () => {
   it("extracts documents from demonstration and renders phase", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
+    const demonstration: ApprovalPackagePhaseDemonstration = {
       id: "demo-3",
-      status: "Pre-Submission",
-      currentPhaseName: "Approval Package",
       documents: [
         doc({ documentType: "Q&A", name: "Q&A Doc" }),
         doc({ documentType: "Approval Letter", name: "Approval Doc" }),
@@ -201,16 +202,10 @@ describe("getApprovalPackagePhase", () => {
         {
           phaseName: "Completeness",
           phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Approval Package",
           phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
     };
@@ -227,25 +222,17 @@ describe("getApprovalPackagePhase", () => {
   });
 
   it("handles missing documents gracefully", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
+    const demonstration: ApprovalPackagePhaseDemonstration = {
       id: "demo-4",
-      status: "Pre-Submission",
-      currentPhaseName: "Approval Package",
       documents: [],
       phases: [
         {
           phaseName: "Completeness",
           phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Approval Package",
           phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
     };
@@ -270,39 +257,25 @@ describe("getApprovalPackagePhase", () => {
       doc({ documentType: "Signed Decision Memo" }),
     ];
 
-    const demo: ApplicationWorkflowDemonstration = {
+    const demo: ApprovalPackagePhaseDemonstration = {
       id: "demo-all",
-      status: "Under Review",
-      currentPhaseName: "Approval Package",
       documents: completeDocs,
       phases: [
         {
           phaseName: "Concept",
           phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Application Intake",
           phaseStatus: "Skipped",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Completeness",
           phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Approval Package",
           phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
     };
@@ -323,39 +296,25 @@ describe("getApprovalPackagePhase", () => {
       doc({ documentType: "Signed Decision Memo" }),
     ];
 
-    const demo: ApplicationWorkflowDemonstration = {
+    const demo: ApprovalPackagePhaseDemonstration = {
       id: "demo-not",
-      status: "Under Review",
-      currentPhaseName: "Approval Package",
       documents: completeDocs,
       phases: [
         {
           phaseName: "Concept",
           phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Application Intake",
           phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         }, // Not Completed
         {
           phaseName: "Completeness",
           phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Approval Package",
           phaseStatus: "Started",
-          phaseDates: [],
-          phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
     };

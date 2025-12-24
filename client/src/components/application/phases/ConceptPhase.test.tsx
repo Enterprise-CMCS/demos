@@ -7,14 +7,12 @@ import { TestProvider } from "test-utils/TestProvider";
 
 import {
   ConceptPhase,
+  ConceptPhaseDemonstration,
   ConceptProps,
   getConceptPhaseComponentFromDemonstration,
 } from "./ConceptPhase";
 
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -209,11 +207,8 @@ describe("ConceptPhase", () => {
 
   describe("getConceptPhaseComponentFromDemonstration", () => {
     it("should return ConceptPhase component with extracted pre-submission docs", () => {
-      const mockDemonstration: ApplicationWorkflowDemonstration = {
+      const mockDemonstration: ConceptPhaseDemonstration = {
         id: "demo-111",
-        status: "Pre-Submission",
-        currentPhaseName: "Concept",
-        phases: [],
         documents: [
           {
             id: "d1",

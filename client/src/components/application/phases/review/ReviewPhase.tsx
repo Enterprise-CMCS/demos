@@ -12,6 +12,7 @@ import { CommsClearanceSection } from "./commsClearanceSection";
 import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
 import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
+import { useSetApplicationClearanceLevel } from "components/application/clearanceLevel/setApplicationClearanceLevel";
 
 type ReviewSections = (typeof REVIEW_SECTIONS)[number];
 export const REVIEW_SECTIONS = [
@@ -81,6 +82,7 @@ export const ReviewPhase = ({
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
   const { setApplicationNotes } = useSetApplicationNotes();
+  const { setApplicationClearanceLevel } = useSetApplicationClearanceLevel();
   const { setPhaseStatus: completeReviewPhase } = useSetPhaseStatus({
     applicationId: demonstrationId,
     phaseName: "Review",
@@ -109,8 +111,10 @@ export const ReviewPhase = ({
       });
     }
 
-    // TODO: Implement setting clearance level when backend supports it
-    //  - integration - DEMOS-1224
+    await setApplicationClearanceLevel({
+      applicationId: demonstrationId,
+      clearanceLevel: reviewPhaseFormData.clearanceLevel,
+    });
   };
 
   const handleSaveForLater = async () => {
