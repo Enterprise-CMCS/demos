@@ -56,7 +56,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   },
   Review: {
     datesMustExist: [
-      "OGC Approval to Share with SMEs",
+      "OGD Approval to Share with SMEs",
       "Draft Approval Package to Prep",
       "DDME Approval Received",
       "State Concurrence",

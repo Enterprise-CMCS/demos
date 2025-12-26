@@ -8,6 +8,7 @@ import {
   Document,
   NonEmptyString,
   DateTimeOrLocalDate,
+  ClearanceLevel,
 } from "../../types.js";
 
 export const extensionSchema = gql`
@@ -24,6 +25,7 @@ export const extensionSchema = gql`
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+    clearanceLevel: ClearanceLevel!
   }
 
   input CreateExtensionInput {
@@ -64,6 +66,7 @@ export interface Extension {
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];
   documents: Document[];
+  clearanceLevel: ClearanceLevel;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -18,10 +18,14 @@ erDiagram
   phase_phase_status }|--|| phase : "FK071"
   phase_phase_status ||--|{ application_phase  : "FK004"
   phase_date_type }|--|| phase : "FK003"
+  phase_note_type }|--|| phase : "FK075"
   phase_date_type }|--|| date_type: "FK017"
+  phase_note_type }|--|| note_type: "FK076"
   application_phase }|--|| application : "FK005"
   date_type ||--|{ application_date  : "FK001"
+  note_type ||--|{ application_note  : "FK074"
   application_date }|--|| application : "FK002"
+  application_note }|--|| application : "FK073"
   application_phase }|--|| application_phase_type_limit : "FK006"
   application_phase_type_limit ||--|| phase : "FK067"
   application }|--|| application_type : "FK007"
@@ -105,6 +109,10 @@ erDiagram
   }
 
   date_type:::staticConstraint {
+    text id PK
+  }
+
+  note_type:::staticConstraint {
     text id PK
   }
 
@@ -211,6 +219,14 @@ erDiagram
     uuid application_id PK, FK "FK002: application_id ∈ application.id"
     text date_type_id PK, FK "FK001: date_type_id ∈ date_type.id"
     timestamptz date_value
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  application_note:::dataTable {
+    uuid application_id PK, FK "FK073: application_id ∈ application.id"
+    text note_type_id PK, FK "FK074: note_type_id ∈ note_type.id"
+    text content
     timestamptz created_at
     timestamptz updated_at
   }
@@ -361,6 +377,11 @@ erDiagram
   phase_date_type:::associativeTable {
     text phase_id PK, FK "FK003: phase_id ∈ phase.id"
     text date_type_id PK, FK "FK017: date_type_id ∈ date_type.id"
+  }
+
+  phase_note_type:::associativeTable {
+    text phase_id PK, FK "FK075: phase_id ∈ phase.id"
+    text note_type_id PK, FK "FK076: note_type_id ∈ note_type.id"
   }
 
   phase_document_type:::associativeTable {

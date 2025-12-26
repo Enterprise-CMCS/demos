@@ -285,6 +285,8 @@ describe("ApplicationIntakePhase", () => {
                 dateValue: new Date(2024, 9, 13),
               },
             ],
+            phaseNotes: [],
+            clearanceLevel: "CMS (OSORA)",
           },
         ],
         documents: [
@@ -294,7 +296,7 @@ describe("ApplicationIntakePhase", () => {
             description: "Test document",
             documentType: "State Application",
             phaseName: "Application Intake",
-            owner: { person: { fullName: "John Doe" }},
+            owner: { person: { fullName: "John Doe" } },
             createdAt: new Date(2024, 10, 10),
           },
         ],
