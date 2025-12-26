@@ -1,9 +1,9 @@
 import React from "react";
 import { SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
-import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { tw } from "tags/tw";
 import { DocumentList } from "./DocumentList";
+import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
 
 const STYLES = {
   title: tw`text-xl font-semibold mb-2`,
@@ -16,7 +16,7 @@ const STYLES = {
 type Props = {
   title: string;
   helperText: string;
-  documents: DocumentTableDocument[];
+  documents: ApplicationWorkflowDocument[];
   onUploadClick: () => void;
 };
 

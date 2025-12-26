@@ -37,6 +37,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         name
         description
         documentType
+        phaseName
         createdAt
         owner {
           person {
@@ -61,7 +62,7 @@ export type SimplePhase = {
 
 export type ApplicationWorkflowDocument = Pick<
   Document,
-  "id" | "name" | "description" | "documentType" | "createdAt"
+  "id" | "name" | "description" | "documentType" | "phaseName" |"createdAt"
 > & {
   owner: { person: Pick<Person, "fullName"> };
 };

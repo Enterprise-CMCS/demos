@@ -22,15 +22,19 @@ vi.mock("components/dialog/DialogContext", () => ({
 }));
 
 // Helpers
-const mockDocument = (overrides: Partial<ApplicationWorkflowDocument> = {}) => ({
+const mockDocument = (
+  overrides: Partial<ApplicationWorkflowDocument> = {}
+): ApplicationWorkflowDocument => ({
   id: "doc-1",
   name: "Real Doc Name",
   description: "Real Description",
   documentType: "Approval Letter" as DocumentType,
   createdAt: new Date("2025-01-05T00:00:00.000Z"),
+  phaseName: "Approval Package",
   owner: { person: { fullName: "John Doe" } },
   ...overrides,
 });
+
 
 describe("ApprovalPackageTable", () => {
   beforeEach(() => {

@@ -1,10 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { formatDate, formatDateForServer } from "util/formatDate";
-import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { useDialog } from "components/dialog/DialogContext";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
 import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
 
 interface FederalCommentPhaseProps {
@@ -12,7 +11,7 @@ interface FederalCommentPhaseProps {
   phaseStartDate: string;
   phaseEndDate: string;
   phaseComplete: boolean;
-  documents?: DocumentTableDocument[];
+  initialDocuments?: ApplicationWorkflowDocument[];
 }
 
 const STYLES = {
@@ -44,12 +43,17 @@ export const getFederalCommentPhaseFromDemonstration = (
     (date) => date.dateType === "Federal Comment Period End Date"
   );
 
+  const initialDocuments = demonstration.documents.filter(
+    (doc) => doc.phaseName === "Federal Comment"
+  );
+
   return (
     <FederalCommentPhase
       demonstrationId={demonstration.id}
       phaseComplete={phaseComplete}
       phaseStartDate={phaseStartDate?.dateValue ? formatDate(phaseStartDate.dateValue) : ""}
       phaseEndDate={phaseEndDate?.dateValue ? formatDate(phaseEndDate.dateValue) : ""}
+      initialDocuments={initialDocuments}
     />
   );
 };
@@ -59,9 +63,12 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   phaseStartDate,
   phaseEndDate,
   phaseComplete,
-  documents = [],
+  initialDocuments = [],
 }) => {
   const { showFederalCommentDocumentUploadDialog } = useDialog();
+  const [documents] = useState<ApplicationWorkflowDocument[]>(
+    initialDocuments
+  );
 
   const VerifyCompleteSection = () => (
     <div aria-labelledby="concept-verify-title">
