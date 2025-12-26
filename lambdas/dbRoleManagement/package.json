@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@aws-sdk/client-lambda": "^3.943.0",
+    "@aws-sdk/client-lambda": "^3.945.0",
     "@aws-sdk/client-secrets-manager": "^3.943.0",
     "@aws-sdk/client-ssm": "^3.943.0",
     "@types/aws-lambda": "^8.10.159",
