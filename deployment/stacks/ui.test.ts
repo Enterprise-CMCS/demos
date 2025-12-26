@@ -14,7 +14,7 @@ const mockCommonProps: DeploymentConfigProperties = {
   hostEnvironment: "unitTestHost" as "dev",
   cloudfrontWafHeaderValue: "cloudfront-header-for-api",
   cloudfrontHost: "unittest.demos.com",
-  srrConfigured: true
+  srrConfigured: true,
 };
 
 describe("UI Stack", () => {
@@ -31,26 +31,26 @@ describe("UI Stack", () => {
         authority: "authority",
         clientId: "clientId",
       },
-      srrConfigured: false
+      srrConfigured: false,
     });
     const template = Template.fromStack(uiStack);
 
-    const allResources = Object.keys(template.toJSON().Resources)
-    expect(allResources.length).toEqual(1)
+    const allResources = Object.keys(template.toJSON().Resources);
+    expect(allResources.length).toEqual(1);
 
-    console.log(template.toJSON().Resources.CloudFrontDistributionBA64CE3A.Properties.DistributionConfig)
+    console.log(template.toJSON().Resources.CloudFrontDistributionBA64CE3A.Properties.DistributionConfig);
 
     template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: Match.objectLike({
         Origins: Match.arrayWith([
           Match.objectLike({
-            DomainName: "example.com"
-          })
+            DomainName: "example.com",
+          }),
         ]),
-        PriceClass: "PriceClass_All"
-      })
-    })
-  })
+        PriceClass: "PriceClass_All",
+      }),
+    });
+  });
   test("should create proper resources when non-ephemeral", () => {
     const app = new App();
 
@@ -134,10 +134,20 @@ describe("UI Stack", () => {
     template.hasResourceProperties("AWS::WAFv2::WebACL", {
       Rules: Match.arrayWith([
         Match.objectLike({
-          Name: "AllowCMSCloudbees",
+          Name: "ZScalerOrCloudbees",
           Statement: Match.objectLike({
-            ByteMatchStatement: Match.objectLike({
-              SearchString: mockZapHeaderVal,
+            AndStatement: Match.objectLike({
+              Statements: Match.arrayWith([
+                Match.objectLike({
+                  NotStatement: Match.objectLike({
+                    Statement: Match.objectLike({
+                      ByteMatchStatement: Match.objectLike({
+                        SearchString: mockZapHeaderVal,
+                      }),
+                    }),
+                  }),
+                }),
+              ]),
             }),
           }),
         }),
