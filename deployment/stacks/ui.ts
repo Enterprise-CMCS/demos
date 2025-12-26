@@ -135,6 +135,18 @@ export class UiStack extends Stack {
     new aws_wafv2.CfnLoggingConfiguration(commonProps.scope, "cloudfrontWafAclLogConf", {
       logDestinationConfigs: [wafLogs.logGroup.logGroupArn],
       resourceArn: webAcl.attrArn,
+      redactedFields: [
+        {
+          singleHeader: {
+            "Name": "Authorization"
+          }
+        },
+        {
+          singleHeader: {
+            "Name": "cookie",
+          },
+        },
+      ]
     });
 
     const apiAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "apiWaf", {
@@ -161,6 +173,18 @@ export class UiStack extends Stack {
     new aws_wafv2.CfnLoggingConfiguration(commonProps.scope, "apiWafAclLogConf", {
       logDestinationConfigs: [wafLogs.logGroup.logGroupArn],
       resourceArn: apiAcl.attrArn,
+      redactedFields: [
+        {
+          singleHeader: {
+            "Name": "Authorization"
+          }
+        },
+        {
+          singleHeader: {
+            "Name": "cookie",
+          },
+        },
+      ]
     });
 
     const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`);
