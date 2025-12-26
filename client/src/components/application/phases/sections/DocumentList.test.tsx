@@ -22,6 +22,7 @@ describe("DocumentList", () => {
       description: "Description 1",
       documentType: "State Application",
       createdAt: new Date("2024-01-15T10:00:00Z"), // TODO: replace with string date
+      phaseName: "Concept",
       owner: {
         person: {
           fullName: "John Doe",
@@ -34,6 +35,7 @@ describe("DocumentList", () => {
       description: "Description 2",
       documentType: "Approval Letter",
       createdAt: new Date("2024-02-20T15:30:00Z"),
+      phaseName: "Concept",
       owner: {
         person: {
           fullName: "Jane Smith",

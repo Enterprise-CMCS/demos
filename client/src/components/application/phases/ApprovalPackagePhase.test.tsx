@@ -51,6 +51,7 @@ const doc = (overrides: Partial<ApplicationWorkflowDocument>): ApplicationWorkfl
   description: "Sample Desc",
   documentType: "Approval Letter" as DocumentType,
   createdAt: new Date("2025-01-01T00:00:00.000Z"),
+  phaseName: "Approval Package",
   owner: { person: { fullName: "Alice" } },
   ...overrides,
 });
