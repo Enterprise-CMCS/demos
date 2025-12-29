@@ -62,6 +62,8 @@ export type {
   UploadDocumentResponse,
 } from "./model/document/documentSchema.js";
 
+export type { SetApplicationClearanceLevelInput } from "./model/application/applicationSchema.js";
+
 export type {
   ApplicationPhase,
   CompletePhaseInput,
