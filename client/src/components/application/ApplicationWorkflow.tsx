@@ -8,7 +8,6 @@ import type {
   PhaseStatus,
   Document,
   Person,
-  ClearanceLevel,
   ApplicationNote,
 } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
@@ -20,6 +19,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       id
       status
       currentPhaseName
+      clearanceLevel
       phases {
         phaseName
         phaseStatus
@@ -53,10 +53,6 @@ export type SimplePhase = {
   phaseStatus: PhaseStatus;
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
   phaseNotes: Pick<ApplicationNote, "noteType" | "content">[];
-
-  // TODO: Implement setting clearance level when backend supports it
-  //  - integration - DEMOS-1224
-  clearanceLevel: ClearanceLevel;
 };
 
 export type ApplicationWorkflowDocument = Pick<
@@ -68,7 +64,7 @@ export type ApplicationWorkflowDocument = Pick<
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
-  "id" | "status" | "currentPhaseName"
+  "id" | "status" | "currentPhaseName" | "clearanceLevel"
 > & {
   phases: SimplePhase[];
   documents: ApplicationWorkflowDocument[];
