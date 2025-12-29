@@ -1,11 +1,42 @@
 import type { SetApplicationDateInput, SetApplicationDatesInput } from "demos-server";
 import { gql, useMutation } from "@apollo/client";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../ApplicationWorkflow";
 
 const SET_APPLICATION_DATE_MUTATION = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {
     setApplicationDate(input: $input) {
-      __typename
+      ... on Demonstration {
+        id
+        phases {
+          phaseName
+          phaseStatus
+          phaseDates {
+            dateType
+            dateValue
+          }
+        }
+      }
+      ... on Amendment {
+        id
+        phases {
+          phaseName
+          phaseStatus
+          phaseDates {
+            dateType
+            dateValue
+          }
+        }
+      }
+      ... on Extension {
+        id
+        phases {
+          phaseName
+          phaseStatus
+          phaseDates {
+            dateType
+            dateValue
+          }
+        }
+      }
     }
   }
 `;
@@ -13,7 +44,42 @@ const SET_APPLICATION_DATE_MUTATION = gql`
 const SET_APPLICATION_DATES_MUTATION = gql`
   mutation SetApplicationDates($input: SetApplicationDatesInput!) {
     setApplicationDates(input: $input) {
-      __typename
+      ... on Demonstration {
+        id
+        clearanceLevel
+        phases {
+          phaseName
+          phaseStatus
+          phaseDates {
+            dateType
+            dateValue
+          }
+        }
+      }
+      ... on Amendment {
+        id
+        clearanceLevel
+        phases {
+          phaseName
+          phaseStatus
+          phaseDates {
+            dateType
+            dateValue
+          }
+        }
+      }
+      ... on Extension {
+        id
+        clearanceLevel
+        phases {
+          phaseName
+          phaseStatus
+          phaseDates {
+            dateType
+            dateValue
+          }
+        }
+      }
     }
   }
 `;
@@ -36,7 +102,6 @@ export const useSetApplicationDate = () => {
   const setApplicationDate = async (input: SetApplicationDateInput) => {
     return await mutate({
       variables: { input },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
     });
   };
 
@@ -64,7 +129,6 @@ export const useSetApplicationDates = () => {
   const setApplicationDates = async (input: SetApplicationDatesInput) => {
     return await mutate({
       variables: { input },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
     });
   };
 

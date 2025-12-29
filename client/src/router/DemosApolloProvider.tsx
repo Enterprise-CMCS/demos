@@ -64,7 +64,13 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
     () =>
       new ApolloClient({
         link: authLink.concat(httpLink),
-        cache: new InMemoryCache(),
+        cache: new InMemoryCache({
+          typePolicies: {
+            ApplicationPhase: {
+              keyFields: ["phaseName"],
+            },
+          },
+        }),
       }),
     [authLink, httpLink]
   );

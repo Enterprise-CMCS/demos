@@ -19,6 +19,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       id
       status
       currentPhaseName
+      clearanceLevel
       phases {
         phaseName
         phaseStatus

@@ -12,7 +12,26 @@ import { CommsClearanceSection } from "./commsClearanceSection";
 import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
 import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
-import { useSetApplicationClearanceLevel } from "components/application/clearanceLevel/setApplicationClearanceLevel";
+import { gql, useMutation } from "@apollo/client";
+
+const SET_APPLICATION_CLEARANCE_LEVEL = gql`
+  mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
+    setApplicationClearanceLevel(input: $input) {
+      ... on Demonstration {
+        id
+        clearanceLevel
+      }
+      ... on Amendment {
+        id
+        clearanceLevel
+      }
+      ... on Extension {
+        id
+        clearanceLevel
+      }
+    }
+  }
+`;
 
 type ReviewSections = (typeof REVIEW_SECTIONS)[number];
 export const REVIEW_SECTIONS = [
@@ -82,12 +101,12 @@ export const ReviewPhase = ({
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
   const { setApplicationNotes } = useSetApplicationNotes();
-  const { setApplicationClearanceLevel } = useSetApplicationClearanceLevel();
   const { setPhaseStatus: completeReviewPhase } = useSetPhaseStatus({
     applicationId: demonstrationId,
     phaseName: "Review",
     phaseStatus: "Completed",
   });
+  const [setApplicationClearanceLevel] = useMutation(SET_APPLICATION_CLEARANCE_LEVEL);
 
   const [reviewPhaseFormData, setReviewPhaseFormData] =
     useState<ReviewPhaseFormData>(initialFormData);
@@ -112,8 +131,12 @@ export const ReviewPhase = ({
     }
 
     await setApplicationClearanceLevel({
-      applicationId: demonstrationId,
-      clearanceLevel: reviewPhaseFormData.clearanceLevel,
+      variables: {
+        input: {
+          applicationId: demonstrationId,
+          clearanceLevel: reviewPhaseFormData.clearanceLevel,
+        },
+      },
     });
   };
 
