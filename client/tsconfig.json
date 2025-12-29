@@ -22,6 +22,6 @@
       "demos-server-constants": ["../../server/src/constants.ts"]
     }
   },
-  "exclude": ["node_modules", "../../server/**/*"],
+  "exclude": ["node_modules", "../../server/src/types.ts"],
   "include": ["src/**/*"]
 }
