@@ -1,11 +1,10 @@
 import React from "react";
 
 import { Demonstration as ServerDemonstration, Person, State } from "demos-server";
-import { gql } from "graphql-tag";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
-import { useQuery } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 
 export type Demonstration = Pick<
   ServerDemonstration,

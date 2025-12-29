@@ -1,5 +1,5 @@
 import React from "react";
-import { gql, useLazyQuery, useMutation, useApolloClient } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useApolloClient, DocumentNode } from "@apollo/client";
 
 import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
 import {
@@ -59,7 +59,7 @@ interface AddDocumentDialogProps {
   applicationId: string;
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
-  refetchQueries?: string[];
+  refetchQueries?: string[] | DocumentNode[];
   phaseName?: PhaseName;
   onDocumentUploadSucceeded?: () => void;
 }
