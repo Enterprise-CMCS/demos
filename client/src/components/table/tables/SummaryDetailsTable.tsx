@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Demonstration as ServerDemonstration, Person, State } from "demos-server";
-import { gql } from "graphql-tag";
+import { gql } from "@apollo/client";
 import { tw } from "tags/tw";
 import { formatDate } from "util/formatDate";
 
