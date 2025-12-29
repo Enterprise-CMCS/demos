@@ -30,6 +30,7 @@ pipeline {
           if (hasChange(changePaths)) {
             dirCon('client', 'node') {
               sh '''
+              cd ../server && npm ci && cd ../client
               npm ci
               npm run tsc:ci
               npm run lint:ci
