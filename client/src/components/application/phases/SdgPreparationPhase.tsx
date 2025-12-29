@@ -60,7 +60,7 @@ export const SdgPreparationPhase = ({
   const { setApplicationDate } = useSetApplicationDate();
   const { setPhaseStatus: completeSdgPreparationPhase } = useSetPhaseStatus({
     applicationId: demonstrationId,
-    phaseName: "SDG Preparation",
+    phaseName: "Completeness",
     phaseStatus: "Completed",
   });
   const { showSuccess, showError } = useToast();

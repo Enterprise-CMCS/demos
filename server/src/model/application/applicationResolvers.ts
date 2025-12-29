@@ -190,7 +190,6 @@ export async function resolveApplicationPhases(
       applicationId: parent.id,
     },
   });
-  await new Promise((resolve) => setTimeout(resolve, 3000));
   return result!;
 }
 
