@@ -12,6 +12,7 @@ import {
   declareCompletenessPhaseIncomplete,
   skipConceptPhase,
 } from ".";
+import { PrismaApplicationNoteResults } from "./applicationPhaseTypes.js";
 
 export async function __setApplicationPhaseStatus(
   _: unknown,
@@ -75,6 +76,28 @@ export async function __resolveApplicationPhaseDates(
   return rows;
 }
 
+export async function __resolveApplicationPhaseNotes(
+  parent: PrismaApplicationPhase
+): Promise<PrismaApplicationNoteResults[] | null> {
+  const rows = await prisma().applicationNote.findMany({
+    select: {
+      noteTypeId: true,
+      content: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    where: {
+      applicationId: parent.applicationId,
+      noteType: {
+        phaseNoteTypes: {
+          some: { phaseId: parent.phaseId },
+        },
+      },
+    },
+  });
+  return rows;
+}
+
 export async function __resolveApplicationPhaseDocuments(
   parent: PrismaApplicationPhase
 ): Promise<PrismaDocument[]> {
@@ -99,6 +122,7 @@ export const applicationPhaseResolvers = {
     phaseName: __resolveApplicationPhaseName,
     phaseStatus: __resolveApplicationPhaseStatus,
     phaseDates: __resolveApplicationPhaseDates,
+    phaseNotes: __resolveApplicationPhaseNotes,
     documents: __resolveApplicationPhaseDocuments,
   },
 
