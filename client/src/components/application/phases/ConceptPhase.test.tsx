@@ -248,6 +248,7 @@ describe("ConceptPhase", () => {
             name: "FBNF Workbook",
             description: "ignore me",
             documentType: "Final Budget Neutrality Formulation Workbook",
+            phaseName: "Approval Package",
             owner: { person: { fullName: "John Doe" } },
             createdAt: new Date("2024-04-02"),
           },
