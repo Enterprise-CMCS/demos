@@ -3,7 +3,7 @@
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk", "scanner"], opts: [
+      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk", "scanner", "checkov"], opts: [
         NODE_IMAGE: "artifactory.cloud.cms.gov/docker/node:24-alpine"
       ])
     }
