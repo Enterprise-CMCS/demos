@@ -7,9 +7,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { FederalCommentPhase } from "./FederalCommentPhase";
-import { DocumentTableDocument } from "components/table/tables/DocumentTable";
 import { addDays } from "date-fns";
 import { formatDate } from "util/formatDate";
+import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
 
 // Mock icons to avoid SVG rendering complexity
 vi.mock("components/icons", async (importOriginal) => {
@@ -32,11 +32,12 @@ describe("FederalCommentPhase", () => {
   const defaultStart = "2025-01-01";
   const defaultEnd = formatDate(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)); // 3 days ahead
 
-  const mockDoc: DocumentTableDocument = {
+  const mockDoc: ApplicationWorkflowDocument = {
     id: "doc-1",
     name: "Test Document",
     description: "Some test doc",
     documentType: "General File",
+    phaseName: "Federal Comment",
     createdAt: new Date("2025-01-02"),
     owner: { person: { fullName: "Test User" } },
   };
@@ -49,7 +50,7 @@ describe("FederalCommentPhase", () => {
           phaseStartDate={defaultStart}
           phaseEndDate={defaultEnd}
           phaseComplete={false}
-          documents={[]}
+          initialDocuments={[]}
           {...props}
         />
       </TestProvider>
@@ -99,7 +100,7 @@ describe("FederalCommentPhase", () => {
     });
 
     it("renders document row when provided", () => {
-      setup({ documents: [mockDoc] });
+      setup({ initialDocuments: [mockDoc] });
       expect(screen.getByText("Test Document")).toBeInTheDocument();
     });
 

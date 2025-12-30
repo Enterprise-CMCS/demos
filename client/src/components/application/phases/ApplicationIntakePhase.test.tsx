@@ -49,6 +49,7 @@ describe("ApplicationIntakePhase", () => {
     name: "State Application Document 1",
     description: "Test state application document",
     documentType: "State Application",
+    phaseName: "Application Intake",
     owner: { person: { fullName: "John Doe" } },
     createdAt: new Date("2024-01-12"),
   };
@@ -294,6 +295,7 @@ describe("ApplicationIntakePhase", () => {
             name: "State Application 1",
             description: "Test document",
             documentType: "State Application",
+            phaseName: "Application Intake",
             owner: { person: { fullName: "John Doe" } },
             createdAt: new Date(2024, 10, 10),
           },

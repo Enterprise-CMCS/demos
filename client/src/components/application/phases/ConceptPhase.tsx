@@ -44,7 +44,7 @@ export const getConceptPhaseComponentFromDemonstration = (
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
   const preSubmissionDocuments = demonstration.documents.filter(
-    (document) => document.documentType === "Pre-Submission" || document.documentType === "General File"
+    (document) => document.phaseName === "Concept"
   );
 
   return (
