@@ -303,6 +303,7 @@ export class UiStack extends Stack {
       webAclId: webAcl.attrArn,
       enableIpv6: !["dev", "test", "impl"].includes(commonProps.hostEnvironment),
       comment: `Env Name: ${commonProps.stage}`,
+      priceClass: aws_cloudfront.PriceClass.PRICE_CLASS_ALL,
     });
     distribution.applyRemovalPolicy(commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN);
 
