@@ -12,7 +12,7 @@
     "pino": "^10.1.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-ssm": "^3.946.0",
+    "@aws-sdk/client-ssm": "^3.947.0",
     "@types/aws-lambda": "^8.10.159",
     "@types/nodemailer": "^7.0.4",
     "@vitest/coverage-v8": "^4.0.15",
