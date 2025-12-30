@@ -1,13 +1,22 @@
 import { Stack } from "aws-cdk-lib";
 import { NagSuppressions } from "cdk-nag";
 
-export function applyCoreSuppressions(core: Stack) {
+export function applyCoreSuppressions(core: Stack, stage: string) {
   NagSuppressions.addStackSuppressions(core, [
     {
       id: "AwsSolutions-COG3",
       reason: "Advanced security mode is an increased cost and unnecessary since all logins are managed by IDM in PROD",
     },
   ]);
+
+  NagSuppressions.addResourceSuppressionsByPath(core, `/demos-${stage}-core/S3AccessLogBucket/Resource`, 
+    [
+      {
+        id: "AwsSolutions-S1",
+        reason: "The access log bucket should not also have access logs"
+      }
+    ]
+  )
 }
 
 export function applyUISuppressionsCloudfrontOnly(ui: Stack) {

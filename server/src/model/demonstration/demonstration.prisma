@@ -10,6 +10,7 @@ model Demonstration {
   statusId          String    @map("status_id")
   currentPhaseId    String    @map("current_phase_id")
   stateId           String    @map("state_id")
+  clearanceLevelId  String    @map("clearance_level_id") @default("CMS (OSORA)")
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
@@ -23,6 +24,7 @@ model Demonstration {
   amendments                   Amendment[]
   extensions                   Extension[]
   demonstrationRoleAssignments DemonstrationRoleAssignment[]
+  clearanceLevel               ClearanceLevel                    @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
 
   @@id([id])
   @@unique([id, stateId])

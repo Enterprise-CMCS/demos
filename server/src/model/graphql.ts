@@ -79,6 +79,8 @@ import {
   NonEmptyStringTypeDefinition,
 } from "graphql-scalars";
 import { customScalarResolvers } from "../customScalarResolvers.js";
+import { clearanceLevelSchema } from "./clearanceLevel/clearanceLeveSchema.js";
+import { clearanceLevelResolvers } from "./clearanceLevel/clearanceLevelResolvers.js";
 
 const scalarTypes = [
   JSONObjectDefinition,
@@ -113,6 +115,7 @@ export const typeDefs = [
   signatureLevelSchema,
   stateSchema,
   userSchema,
+  clearanceLevelSchema,
   ...scalarTypes,
 ];
 
@@ -143,4 +146,5 @@ export const resolvers = [
   signatureLevelResolvers,
   stateResolvers,
   userResolvers,
+  clearanceLevelResolvers,
 ];

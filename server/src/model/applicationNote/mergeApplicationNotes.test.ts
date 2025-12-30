@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergeApplicationNotes } from "./mergeApplicationNotes.js";
-import { ParsedApplicationNoteInput } from "./parseSetApplicationNotesInput.js";
+import { mergeApplicationNotes, ParsedApplicationNoteInput } from ".";
 
 describe("mergeApplicationNotes", () => {
   const testExistingNotes: ParsedApplicationNoteInput[] = [

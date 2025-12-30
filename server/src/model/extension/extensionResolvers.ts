@@ -14,6 +14,7 @@ import {
   deleteApplication,
   getApplication,
   getManyApplications,
+  resolveApplicationClearanceLevel,
   resolveApplicationCurrentPhaseName,
   resolveApplicationDocuments,
   resolveApplicationPhases,
@@ -120,5 +121,6 @@ export const extensionResolvers = {
     currentPhaseName: resolveApplicationCurrentPhaseName,
     status: resolveApplicationStatus,
     phases: resolveApplicationPhases,
+    clearanceLevel: resolveApplicationClearanceLevel,
   },
 };

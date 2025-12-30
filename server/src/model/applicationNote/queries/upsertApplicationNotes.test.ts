@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { upsertApplicationNotes } from "../index.js";
-import { ParsedSetApplicationNotesInput } from "../parseSetApplicationNotesInput.js";
+import { upsertApplicationNotes, ParsedSetApplicationNotesInput } from "../";
 
 describe("upsertApplicationNotes", () => {
   const transactionMocks = {

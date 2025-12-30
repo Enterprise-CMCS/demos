@@ -18,15 +18,18 @@ vi.mock("util/formatDate", () => ({
 }));
 
 // Mock the queries
+const mockSetApplicationDates = vi.fn();
+const mockSetApplicationNotes = vi.fn();
+
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDates: () => ({
-    setApplicationDates: vi.fn(),
+    setApplicationDates: mockSetApplicationDates,
   }),
 }));
 
-vi.mock("../../phase-status/phaseStatusQueries", () => ({
-  useSetPhaseStatus: () => ({
-    setPhaseStatus: vi.fn(),
+vi.mock("components/application/note/noteQueries", () => ({
+  useSetApplicationNotes: () => ({
+    setApplicationNotes: mockSetApplicationNotes,
   }),
 }));
 
@@ -63,6 +66,8 @@ describe("ReviewPhase Component", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSetApplicationDates.mockClear();
+    mockSetApplicationNotes.mockClear();
   });
 
   describe("Header and description", () => {
@@ -351,6 +356,149 @@ describe("ReviewPhase Component", () => {
       await userEvent.type(notesInput, "Updated notes");
 
       expect(notesInput).toHaveValue("Updated notes");
+    });
+  });
+
+  describe("Save For Later functionality", () => {
+    it("calls setApplicationDates when saving date changes", async () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+          "Draft Approval Package to Prep": "2025-01-02",
+          "DDME Approval Received": "2025-01-03",
+          "State Concurrence": "2025-01-04",
+          "BN PMT Approval to Send to OMB": "2025-01-05",
+          "Draft Approval Package Shared": "2025-01-06",
+          "Receive OMB Concurrence": "2025-01-07",
+          "Receive OGC Legal Clearance": "2025-01-08",
+          "Package Sent to COMMs Clearance": "2025-01-09",
+          "COMMs Clearance Received": "2025-01-10",
+        },
+      });
+      setup(incompleteData, "demo-123");
+
+      const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+      await userEvent.type(dateInput, "2025-12-25");
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalledWith({
+          applicationId: "demo-123",
+          applicationDates: expect.arrayContaining([
+            {
+              dateType: "OGD Approval to Share with SMEs",
+              dateValue: "2025-12-25",
+            },
+            {
+              dateType: "Draft Approval Package to Prep",
+              dateValue: "2025-01-02",
+            },
+          ]),
+        });
+      });
+    });
+
+    it("calls setApplicationNotes when saving note changes", async () => {
+      const initialData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+        notes: {
+          "PO and OGD": "Original note",
+        },
+      });
+      setup(initialData, "demo-456");
+
+      const notesInput = screen.getByTestId("input-po-ogd-notes");
+      await userEvent.clear(notesInput);
+      await userEvent.type(notesInput, "Updated note content");
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationNotes).toHaveBeenCalledWith({
+          applicationId: "demo-456",
+          applicationNotes: expect.arrayContaining([
+            {
+              noteType: "PO and OGD",
+              content: "Updated note content",
+            },
+          ]),
+        });
+      });
+    });
+
+    it("calls both setApplicationDates and setApplicationNotes when both are changed", async () => {
+      const initialData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+        notes: {
+          "PO and OGD": "Original note",
+        },
+      });
+      setup(initialData, "demo-789");
+
+      const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+      await userEvent.type(dateInput, "2025-12-25");
+
+      const notesInput = screen.getByTestId("input-po-ogd-notes");
+      await userEvent.clear(notesInput);
+      await userEvent.type(notesInput, "New note");
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalled();
+        expect(mockSetApplicationNotes).toHaveBeenCalled();
+      });
+    });
+
+    it("does not call setApplicationDates when no dates are filled", async () => {
+      const initialData = buildInitialFormData({
+        dates: {},
+        notes: {
+          "PO and OGD": "Original note",
+        },
+      });
+      setup(initialData, "demo-no-dates");
+
+      const notesInput = screen.getByTestId("input-po-ogd-notes");
+      await userEvent.clear(notesInput);
+      await userEvent.type(notesInput, "Updated note");
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationNotes).toHaveBeenCalled();
+        expect(mockSetApplicationDates).not.toHaveBeenCalled();
+      });
+    });
+
+    it("does not call setApplicationNotes when no notes are filled", async () => {
+      const initialData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+        notes: {},
+      });
+      setup(initialData, "demo-no-notes");
+
+      const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+      await userEvent.type(dateInput, "2025-12-25");
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalled();
+        expect(mockSetApplicationNotes).not.toHaveBeenCalled();
+      });
     });
   });
 });
