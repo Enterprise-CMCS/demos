@@ -147,11 +147,18 @@ export class DBRoleStack extends Stack {
     const crp = new Provider(this, "rolesCrp", {
       onEventHandler: roleManagmentLambda.lambda,
     });
-
     // This override is needed because the latest JS version is returned as node
     // 22 and the function is internal to CDK
     const il = crp.node.tryFindChild("framework-onEvent")?.node.defaultChild as CfnFunction
     il.runtime = aws_lambda.Runtime.NODEJS_24_X.name
+    il.cfnOptions.metadata = {
+    checkov: {
+      skip: [{
+        id: "CKV_AWS_173",
+        reason: "This function is managed by CDK"
+      }]
+    }
+  }
 
     const cr = new CustomResource(this, "dbRoles", {
       serviceToken: crp.serviceToken,
