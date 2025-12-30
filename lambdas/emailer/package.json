@@ -8,16 +8,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "nodemailer": "^7.0.11",
+    "nodemailer": "^7.0.12",
     "pino": "^10.1.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-ssm": "^3.946.0",
+    "@aws-sdk/client-ssm": "^3.958.0",
     "@types/aws-lambda": "^8.10.159",
     "@types/nodemailer": "^7.0.4",
-    "@vitest/coverage-v8": "^4.0.15",
+    "@vitest/coverage-v8": "^4.0.16",
     "aws-sdk-client-mock": "^4.1.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.15"
+    "vitest": "^4.0.16"
   }
 }
