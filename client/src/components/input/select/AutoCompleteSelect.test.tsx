@@ -15,13 +15,16 @@ const options: Option[] = [
 
 describe("AutoCompleteSelect", () => {
   it("renders input with placeholder", () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} placeholder="Pick fruit" />);
+    render(
+      <AutoCompleteSelect value="" options={options} onSelect={onSelect} placeholder="Pick fruit" />
+    );
     expect(screen.getByPlaceholderText("Pick fruit")).toBeInTheDocument();
   });
 
   it("renders label and required indicator", () => {
     render(
       <AutoCompleteSelect
+        value=""
         options={options}
         onSelect={onSelect}
         label="Fruit"
@@ -35,13 +38,19 @@ describe("AutoCompleteSelect", () => {
 
   it("renders disabled input", () => {
     render(
-      <AutoCompleteSelect options={options} onSelect={onSelect} isDisabled placeholder="Disabled" />
+      <AutoCompleteSelect
+        value=""
+        options={options}
+        onSelect={onSelect}
+        isDisabled
+        placeholder="Disabled"
+      />
     );
     expect(screen.getByPlaceholderText("Disabled")).toBeDisabled();
   });
 
   it("opens dropdown on input focus", async () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} />);
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     await userEvent.click(input);
     expect(screen.getByText("Apple")).toBeInTheDocument();
@@ -49,7 +58,7 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("filters options as user types", async () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} />);
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     await userEvent.type(input, "Ban");
     expect(screen.getByText("Banana")).toBeInTheDocument();
@@ -57,14 +66,14 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("shows 'No matches found' if nothing matches", async () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} />);
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     await userEvent.type(input, "zzz");
     expect(screen.getByText(/no matches found/i)).toBeInTheDocument();
   });
 
   it("calls onSelect and closes dropdown on option click", async () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} />);
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     await userEvent.click(input);
     await userEvent.click(screen.getByText("Cherry"));
@@ -73,7 +82,7 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("calls onSelect and closes dropdown on keyboard selection", async () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} />);
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     await userEvent.click(input); // Ensure dropdown is open
     fireEvent.keyDown(input, { key: "ArrowDown" });
@@ -83,7 +92,7 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("keyboard navigation: ArrowDown/ArrowUp moves highlight", async () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} />);
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     input.focus();
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 0
@@ -94,7 +103,7 @@ describe("AutoCompleteSelect", () => {
   });
 
   it("closes dropdown on Escape", async () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} />);
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByRole("textbox");
     await userEvent.click(input);
     fireEvent.keyDown(input, { key: "Escape" });
@@ -104,7 +113,7 @@ describe("AutoCompleteSelect", () => {
   it("closes dropdown on outside click", async () => {
     render(
       <div>
-        <AutoCompleteSelect options={options} onSelect={onSelect} />
+        <AutoCompleteSelect value="" options={options} onSelect={onSelect} />
         <button>outside</button>
       </div>
     );
@@ -115,8 +124,8 @@ describe("AutoCompleteSelect", () => {
     expect(screen.queryByText("Apple")).not.toBeInTheDocument();
   });
 
-  it("prefills input with defaultValue", () => {
-    render(<AutoCompleteSelect options={options} onSelect={onSelect} defaultValue="Banana" />);
+  it("prefills input with starting value", () => {
+    render(<AutoCompleteSelect options={options} onSelect={onSelect} value="banana" />);
     expect(screen.getByDisplayValue("Banana")).toBeInTheDocument();
   });
 });
