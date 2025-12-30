@@ -12,6 +12,26 @@ import { CommsClearanceSection } from "./commsClearanceSection";
 import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
 import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
+import { gql, useMutation } from "@apollo/client";
+
+const SET_APPLICATION_CLEARANCE_LEVEL = gql`
+  mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
+    setApplicationClearanceLevel(input: $input) {
+      ... on Demonstration {
+        id
+        clearanceLevel
+      }
+      ... on Amendment {
+        id
+        clearanceLevel
+      }
+      ... on Extension {
+        id
+        clearanceLevel
+      }
+    }
+  }
+`;
 
 type ReviewSections = (typeof REVIEW_SECTIONS)[number];
 export const REVIEW_SECTIONS = [
@@ -81,6 +101,7 @@ export const ReviewPhase = ({
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
   const { setApplicationNotes } = useSetApplicationNotes();
+  const [setApplicationClearanceLevel] = useMutation(SET_APPLICATION_CLEARANCE_LEVEL);
   const { setPhaseStatus: completeReviewPhase } = useSetPhaseStatus({
     applicationId: demonstrationId,
     phaseName: "Review",
@@ -109,8 +130,14 @@ export const ReviewPhase = ({
       });
     }
 
-    // TODO: Implement setting clearance level when backend supports it
-    //  - integration - DEMOS-1224
+    await setApplicationClearanceLevel({
+      variables: {
+        input: {
+          applicationId: demonstrationId,
+          clearanceLevel: reviewPhaseFormData.clearanceLevel,
+        },
+      },
+    });
   };
 
   const handleSaveForLater = async () => {

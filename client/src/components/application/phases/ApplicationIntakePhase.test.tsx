@@ -275,6 +275,7 @@ describe("ApplicationIntakePhase", () => {
         id: "demo-123",
         status: "Under Review",
         currentPhaseName: "Application Intake",
+        clearanceLevel: "CMS (OSORA)",
         phases: [
           {
             phaseName: "Application Intake",
@@ -286,7 +287,6 @@ describe("ApplicationIntakePhase", () => {
               },
             ],
             phaseNotes: [],
-            clearanceLevel: "CMS (OSORA)",
           },
         ],
         documents: [

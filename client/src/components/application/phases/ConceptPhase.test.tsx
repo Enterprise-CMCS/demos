@@ -214,6 +214,7 @@ describe("ConceptPhase", () => {
         id: "demo-111",
         status: "Pre-Submission",
         currentPhaseName: "Concept",
+        clearanceLevel: "CMS (OSORA)",
         phases: [],
         documents: [
           {

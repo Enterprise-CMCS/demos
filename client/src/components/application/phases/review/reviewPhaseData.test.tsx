@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
-  getFormDataFromPhase,
   getReviewPhaseComponentFromDemonstration,
   formatDataForSave,
   hasFormChanges,
   ReviewPhase,
   ReviewPhaseDemonstration,
+  getPhaseData,
 } from "./reviewPhaseData";
 import { ReviewPhaseFormData } from "./ReviewPhase";
 
@@ -18,11 +18,10 @@ describe("reviewPhaseData", () => {
         phaseNotes: [],
       };
 
-      const result = getFormDataFromPhase(reviewPhase);
+      const result = getPhaseData(reviewPhase);
 
       expect(result.dates).toEqual({});
       expect(result.notes).toEqual({});
-      expect(result.clearanceLevel).toBe("CMS (OSORA)");
     });
 
     it("should convert phase dates to form data format", () => {
@@ -36,7 +35,7 @@ describe("reviewPhaseData", () => {
         phaseNotes: [],
       };
 
-      const result = getFormDataFromPhase(reviewPhase);
+      const result = getPhaseData(reviewPhase);
 
       expect(result.dates["OGD Approval to Share with SMEs"]).toBe("2025-01-15");
       expect(result.dates["Draft Approval Package to Prep"]).toBe("2025-02-20");
@@ -54,7 +53,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getFormDataFromPhase(reviewPhase);
+      const result = getPhaseData(reviewPhase);
 
       expect(result.notes["PO and OGD"]).toBe("PO notes here");
       expect(result.notes["OGC and OMB"]).toBe("OGC notes here");
@@ -66,6 +65,7 @@ describe("reviewPhaseData", () => {
     it("should return error div when review phase is not found", () => {
       const demonstration: ReviewPhaseDemonstration = {
         id: "demo-123",
+        clearanceLevel: "CMS (OSORA)",
         phases: [
           {
             phaseName: "Concept",
@@ -84,6 +84,7 @@ describe("reviewPhaseData", () => {
     it("should return ReviewPhase component when review phase exists", () => {
       const demonstration: ReviewPhaseDemonstration = {
         id: "demo-456",
+        clearanceLevel: "CMS (OSORA)",
         phases: [
           {
             phaseName: "Review",
@@ -104,11 +105,13 @@ describe("reviewPhaseData", () => {
         "2025-01-10"
       );
       expect(result.props.initialFormData.notes["PO and OGD"]).toBe("Test note");
+      expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
     });
 
     it("should pass through converted form data to ReviewPhase component", () => {
       const demonstration: ReviewPhaseDemonstration = {
         id: "demo-789",
+        clearanceLevel: "CMS (OSORA)",
         phases: [
           {
             phaseName: "Review",
@@ -137,6 +140,7 @@ describe("reviewPhaseData", () => {
       );
       expect(result.props.initialFormData.notes["OGC and OMB"]).toBe("OGC note content");
       expect(result.props.initialFormData.notes["COMMs Clearance"]).toBe("COMMs note content");
+      expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
     });
   });
 
@@ -356,6 +360,17 @@ describe("reviewPhaseData", () => {
         notes: {
           "PO and OGD": "Original note",
         },
+      };
+
+      const result = hasFormChanges(baseFormData, activeFormData);
+
+      expect(result).toBe(true);
+    });
+
+    it("should return true when clearance level is changed", () => {
+      const activeFormData: ReviewPhaseFormData = {
+        ...baseFormData,
+        clearanceLevel: "COMMs",
       };
 
       const result = hasFormChanges(baseFormData, activeFormData);

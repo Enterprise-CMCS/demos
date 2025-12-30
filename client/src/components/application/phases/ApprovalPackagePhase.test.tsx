@@ -194,6 +194,7 @@ describe("getApprovalPackagePhase", () => {
       id: "demo-3",
       status: "Pre-Submission",
       currentPhaseName: "Approval Package",
+      clearanceLevel: "CMS (OSORA)",
       documents: [
         doc({ documentType: "Q&A", name: "Q&A Doc" }),
         doc({ documentType: "Approval Letter", name: "Approval Doc" }),
@@ -204,14 +205,12 @@ describe("getApprovalPackagePhase", () => {
           phaseStatus: "Completed",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Approval Package",
           phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
     };
@@ -232,6 +231,7 @@ describe("getApprovalPackagePhase", () => {
       id: "demo-4",
       status: "Pre-Submission",
       currentPhaseName: "Approval Package",
+      clearanceLevel: "CMS (OSORA)",
       documents: [],
       phases: [
         {
@@ -239,14 +239,12 @@ describe("getApprovalPackagePhase", () => {
           phaseStatus: "Completed",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Approval Package",
           phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
     };
@@ -276,34 +274,31 @@ describe("getApprovalPackagePhase", () => {
       status: "Under Review",
       currentPhaseName: "Approval Package",
       documents: completeDocs,
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Concept",
           phaseStatus: "Completed",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Application Intake",
           phaseStatus: "Skipped",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Completeness",
           phaseStatus: "Completed",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Approval Package",
           phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
     };
@@ -329,34 +324,31 @@ describe("getApprovalPackagePhase", () => {
       status: "Under Review",
       currentPhaseName: "Approval Package",
       documents: completeDocs,
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Concept",
           phaseStatus: "Completed",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Application Intake",
           phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         }, // Not Completed
         {
           phaseName: "Completeness",
           phaseStatus: "Completed",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
         {
           phaseName: "Approval Package",
           phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
-          clearanceLevel: "CMS (OSORA)",
         },
       ],
     };

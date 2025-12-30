@@ -20,6 +20,7 @@ vi.mock("util/formatDate", () => ({
 // Mock the queries
 const mockSetApplicationDates = vi.fn();
 const mockSetApplicationNotes = vi.fn();
+const mockSetApplicationClearanceLevel = vi.fn();
 
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDates: () => ({
@@ -32,6 +33,17 @@ vi.mock("components/application/note/noteQueries", () => ({
     setApplicationNotes: mockSetApplicationNotes,
   }),
 }));
+
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: () => [
+      mockSetApplicationClearanceLevel,
+      { data: null, loading: false, error: null },
+    ],
+  };
+});
 
 const buildInitialFormData = (overrides?: Partial<ReviewPhaseFormData>): ReviewPhaseFormData => ({
   dates: {
@@ -68,6 +80,7 @@ describe("ReviewPhase Component", () => {
     vi.clearAllMocks();
     mockSetApplicationDates.mockClear();
     mockSetApplicationNotes.mockClear();
+    mockSetApplicationClearanceLevel.mockClear();
   });
 
   describe("Header and description", () => {
@@ -498,6 +511,118 @@ describe("ReviewPhase Component", () => {
       await waitFor(() => {
         expect(mockSetApplicationDates).toHaveBeenCalled();
         expect(mockSetApplicationNotes).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe("Clearance Level Saving", () => {
+    it("calls setApplicationClearanceLevel with correct values when saving", async () => {
+      const initialData = buildInitialFormData({ clearanceLevel: "CMS (OSORA)" });
+      setup(initialData, "demo-123");
+
+      const osoraRadio = screen.getByLabelText("COMMs Clearance Required");
+      await userEvent.click(osoraRadio);
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
+          variables: {
+            input: {
+              applicationId: "demo-123",
+              clearanceLevel: "COMMs",
+            },
+          },
+        });
+      });
+    });
+
+    it("calls setApplicationClearanceLevel when finish button is clicked", async () => {
+      const completeData = buildInitialFormData({ clearanceLevel: "COMMs" });
+      setup(completeData, "demo-finish");
+
+      const finishButton = screen.getByTestId("review-finish");
+      await userEvent.click(finishButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
+          variables: {
+            input: {
+              applicationId: "demo-finish",
+              clearanceLevel: "COMMs",
+            },
+          },
+        });
+      });
+    });
+
+    it("calls all three mutations in sequence when saving", async () => {
+      const completeData = buildInitialFormData();
+      setup(completeData, "demo-all-mutations");
+
+      // introduce a change to enable button
+      const osoraRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
+      await userEvent.click(osoraRadio);
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalled();
+        expect(mockSetApplicationNotes).toHaveBeenCalled();
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalled();
+      });
+    });
+
+    it("still calls setApplicationClearanceLevel even when no dates or notes exist", async () => {
+      const minimalData = buildInitialFormData({
+        dates: {},
+        notes: {},
+        clearanceLevel: "COMMs",
+      });
+      setup(minimalData, "demo-clearance-only");
+
+      const osoraRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
+      await userEvent.click(osoraRadio);
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).not.toHaveBeenCalled();
+        expect(mockSetApplicationNotes).not.toHaveBeenCalled();
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
+          variables: {
+            input: {
+              applicationId: "demo-clearance-only",
+              clearanceLevel: "CMS (OSORA)",
+            },
+          },
+        });
+      });
+    });
+
+    it("updates clearance level when radio button is changed and saved", async () => {
+      const initialData = buildInitialFormData({ clearanceLevel: "COMMs" });
+      setup(initialData, "demo-change-clearance");
+
+      // Change clearance level to CMS (OSORA)
+      const osoraRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
+      await userEvent.click(osoraRadio);
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
+          variables: {
+            input: {
+              applicationId: "demo-change-clearance",
+              clearanceLevel: "CMS (OSORA)",
+            },
+          },
+        });
       });
     });
   });
