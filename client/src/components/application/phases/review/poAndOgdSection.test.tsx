@@ -19,7 +19,8 @@ describe("PoAndOgdSection", () => {
       },
     },
     setSectionFormData: mockSetSectionFormData,
-    sectionIsComplete: false,
+    isComplete: false,
+    isReadonly: false,
   };
 
   beforeEach(() => {
@@ -122,11 +123,29 @@ describe("PoAndOgdSection", () => {
     expect(textarea).toHaveValue("Existing note");
   });
 
-  it("displays completeness badge based on sectionIsComplete prop", () => {
+  it("displays completeness badge based on isComplete prop", () => {
     const { rerender } = render(<PoAndOgdSection {...defaultProps} />);
     expect(screen.getByText("Incomplete")).toBeInTheDocument();
 
-    rerender(<PoAndOgdSection {...defaultProps} sectionIsComplete={true} />);
+    rerender(<PoAndOgdSection {...defaultProps} isComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
+  });
+
+  describe("Readonly mode", () => {
+    it("disables all date inputs when isReadonly is true", () => {
+      render(<PoAndOgdSection {...defaultProps} isReadonly={true} />);
+
+      expect(screen.getByTestId("datepicker-ogc-approval-to-share-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-draft-approval-package-to-prep-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-ddme-approval-received-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-state-concurrence-date")).toBeDisabled();
+    });
+
+    it("disables notes textarea when isReadonly is true", () => {
+      render(<PoAndOgdSection {...defaultProps} isReadonly={true} />);
+
+      const textarea = screen.getByTestId("input-po-ogd-notes");
+      expect(textarea).toBeDisabled();
+    });
   });
 });
