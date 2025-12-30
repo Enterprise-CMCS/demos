@@ -85,9 +85,16 @@ export const useDialog = () => {
     );
   };
 
-  const showUploadDocumentDialog = (applicationId: string) => {
+  const showUploadDocumentDialog = (
+    applicationId: string,
+    onDocumentUploadSucceeded?: () => void
+  ) => {
     context.showDialog(
-      <AddDocumentDialog onClose={context.hideDialog} applicationId={applicationId} />
+      <AddDocumentDialog
+        onClose={context.hideDialog}
+        applicationId={applicationId}
+        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+      />
     );
   };
 
