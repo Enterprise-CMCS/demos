@@ -105,6 +105,7 @@ describe("reviewPhaseData", () => {
         "2025-01-10"
       );
       expect(result.props.initialFormData.notes["PO and OGD"]).toBe("Test note");
+      expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
     });
 
     it("should pass through converted form data to ReviewPhase component", () => {
@@ -139,6 +140,7 @@ describe("reviewPhaseData", () => {
       );
       expect(result.props.initialFormData.notes["OGC and OMB"]).toBe("OGC note content");
       expect(result.props.initialFormData.notes["COMMs Clearance"]).toBe("COMMs note content");
+      expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
     });
   });
 
@@ -358,6 +360,17 @@ describe("reviewPhaseData", () => {
         notes: {
           "PO and OGD": "Original note",
         },
+      };
+
+      const result = hasFormChanges(baseFormData, activeFormData);
+
+      expect(result).toBe(true);
+    });
+
+    it("should return true when clearance level is changed", () => {
+      const activeFormData: ReviewPhaseFormData = {
+        ...baseFormData,
+        clearanceLevel: "COMMs",
       };
 
       const result = hasFormChanges(baseFormData, activeFormData);
