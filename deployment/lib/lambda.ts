@@ -1,7 +1,7 @@
 import { ICommandHooks, LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
-import { Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_lambda } from "aws-cdk-lib";
+import { Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_kms, aws_lambda } from "aws-cdk-lib";
 import { Role, PolicyDocument, PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
@@ -27,6 +27,7 @@ interface LambdaProps extends CommonProps {
   nodeModules?: string[];
   depsLockFilePath?: string;
   commandHooks?: ICommandHooks;
+  environmentEncryptionKey?: aws_kms.IKey;
 }
 
 export function create(props: LambdaProps, id: string) {
@@ -116,6 +117,7 @@ export class Lambda extends Construct {
         commandHooks: props.commandHooks,
       },
       environment: props.environment,
+      environmentEncryption: props.environmentEncryptionKey,
       vpc: props.vpc,
       vpcSubnets: props.vpc ? { subnets: props.vpc.privateSubnets } : undefined,
       logGroup: logGroup.logGroup,

@@ -1,8 +1,11 @@
-import { App, aws_ec2, Stack } from "aws-cdk-lib";
+import { App, aws_ec2, Stack, RemovalPolicy } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { ApiStack } from "./api";
 import { DeploymentConfigProperties } from "../config";
 import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
+import { UiPathProcessor } from "../lib/uipathProcessor";
+import { Bucket } from "aws-cdk-lib/aws-s3";
+import { Key } from "aws-cdk-lib/aws-kms";
 
 const commongAppArgs = {
   context: {
@@ -89,5 +92,22 @@ describe("Api Stack", () => {
         }),
       ]),
     });
+  });
+
+  test("UiPathProcessor construct synthesizes queue, DLQ, and lambda", () => {
+    const app = new App(commongAppArgs);
+    const stack = new Stack(app, "uipathTest");
+
+    new UiPathProcessor(stack, "UiPathProcessor", {
+      ...mockCommonProps,
+      removalPolicy: RemovalPolicy.DESTROY,
+      env: { account: "0123456789", region: "us-east-1" },
+      documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
+      kmsKey: new Key(stack, "UiPathKmsKey"),
+    });
+
+    const template = Template.fromStack(stack);
+    template.resourceCountIs("AWS::SQS::Queue", 2); // queue + DLQ
+    template.resourceCountIs("AWS::Lambda::Function", 1);
   });
 });

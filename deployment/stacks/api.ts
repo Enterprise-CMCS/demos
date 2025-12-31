@@ -99,7 +99,7 @@ export class ApiStack extends Stack {
     const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
       prefixListName: `com.amazonaws.${this.region}.s3`,
     });
-    
+
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,

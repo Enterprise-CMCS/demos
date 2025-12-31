@@ -41,17 +41,21 @@ echo "4️⃣ Setting up fileprocess Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_fileprocess_lambda.sh
 
 echo ""
-echo "5️⃣ Setting up deleteinfectedfile Lambda..."
+echo "5️⃣ Setting up UiPath Lambda..."
+bash /workspaces/demos/.devcontainer/localstack/setup/setup_uipath_lambda.sh
+
+echo ""
+echo "6️⃣ Setting up deleteinfectedfile Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_deleteinfectedfile_lambda.sh
 
 echo ""
 echo "✅ LocalStack setup complete!"
 echo ""
 echo "📋 Resources created:"
-echo "   - Secrets Manager: database credentials"
-echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue (+ DLQs)"
+echo "   - Secrets Manager: database credentials, UiPath credentials"
+echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue, uipath-queue (+ DLQs)"
 echo "   - S3 Buckets: upload-bucket, clean-bucket, infected-bucket, deleted-bucket"
-echo "   - Lambda Functions: fileprocess, deleteinfectedfile"
+echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile"
 echo "   - EventBridge Rules: s3-upload-to-guardduty"
 echo ""
 echo "🧪 Test the setup:"

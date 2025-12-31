@@ -1,0 +1,8 @@
+model DocumentUnderstandingQuestions {
+  id        String  @id @default(uuid()) @db.Uuid
+  question  Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("document_understanding_questions")
+}

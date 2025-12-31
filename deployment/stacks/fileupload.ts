@@ -12,6 +12,7 @@ import {
   Tags,
   aws_s3_notifications,
 } from "aws-cdk-lib";
+
 import { Construct } from "constructs";
 import { Bucket, HttpMethods } from "aws-cdk-lib/aws-s3";
 import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
@@ -23,6 +24,7 @@ import * as securityGroup from "../lib/security-group";
 import { GuardDutyS3 } from "../lib/guardDutyS3";
 import importNumberValue from "../util/importNumberValue";
 import { backupTags } from "../util/backup";
+import { UiPathProcessor } from "../lib/uipathProcessor";
 
 interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -30,6 +32,7 @@ interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
 
 export class FileUploadStack extends Stack {
   constructor(scope: Construct, id: string, props: FileUploadStackProps) {
+
     super(scope, id, props);
 
     const kmsKey = new aws_kms.Key(this, "queueKey", {
@@ -44,14 +47,16 @@ export class FileUploadStack extends Stack {
       encryptionMasterKey: kmsKey,
     });
 
-    const uploadQueue = new Queue(this, "FileUploadQueue", {
-      removalPolicy: RemovalPolicy.DESTROY,
-      enforceSSL: true,
-      deadLetterQueue: {
-        maxReceiveCount: 5,
-        queue: deadLetterQueue,
-      },
-    });
+   const uploadQueue = new Queue(this, "FileUploadQueue", {
+    removalPolicy: RemovalPolicy.DESTROY,
+    enforceSSL: true,
+    encryption: QueueEncryption.KMS,
+    encryptionMasterKey: kmsKey,
+    deadLetterQueue: {
+      maxReceiveCount: 5,
+      queue: deadLetterQueue,
+    },
+  });
 
     const deleteInfectedFileQueue = new Queue(this, "DeleteInfectedFileQueue", {
       removalPolicy: RemovalPolicy.DESTROY,
@@ -122,6 +127,17 @@ export class FileUploadStack extends Stack {
       publicReadAccess: false,
       serverAccessLogsBucket: accessLogs,
       serverAccessLogsPrefix: "deleted",
+      enforceSSL: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
+    const uiPathDocumentsBucket = new Bucket(this, "UiPathDocumentsBucket", {
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      serverAccessLogsBucket: accessLogs,
+      serverAccessLogsPrefix: "uipath-documents",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
@@ -199,6 +215,45 @@ export class FileUploadStack extends Stack {
       "Allow traffic to S3"
     );
 
+    const uiPathLambdaSecurityGroup = securityGroup.create({
+      ...props,
+      name: "uiPathSecurityGroup",
+      vpc: props.vpc,
+      scope: this,
+    });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(uiPathLambdaSecurityGroup.securityGroup.securityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from UiPath Security Group",
+      true
+    );
+
+    uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
+    );
+
+    uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
+
+    uiPathLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.anyIpv4(),
+      aws_ec2.Port.HTTPS,
+      "Allow outbound HTTPS to UiPath"
+    );
+
     const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsFileProcessDatabaseSecret",
@@ -272,6 +327,17 @@ export class FileUploadStack extends Stack {
     dbSecretDeleteInfectedFile.grantRead(deleteInfectedFileLambda.lambda);
     deleteInfectedFileQueue.grantConsumeMessages(deleteInfectedFileLambda.lambda);
 
+    // UiPath processor (queue + DLQ + lambda) within FileUpload stack
+    new UiPathProcessor(this, "UiPathProcessor", {
+      ...props,
+      removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      kmsKey,
+      deadLetterQueue,
+      documentsBucket: uiPathDocumentsBucket,
+      vpc: props.vpc,
+      securityGroup: uiPathLambdaSecurityGroup.securityGroup,
+    });
+
     new CfnOutput(this, "cleanBucketName", {
       exportName: `${props.stage}CleanBucketName`,
       value: cleanBucket.bucketName,
@@ -290,6 +356,11 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "infectedBucketName", {
       exportName: `${props.stage}InfectedBucketName`,
       value: infectedBucket.bucketName,
+    });
+
+    new CfnOutput(this, "uipathDocumentsBucketName", {
+      exportName: `${props.stage}UiPathDocumentsBucketName`,
+      value: uiPathDocumentsBucket.bucketName,
     });
   }
 }
