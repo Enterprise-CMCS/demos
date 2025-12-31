@@ -88,6 +88,8 @@ export const PHASE_STATUS = [
   "Skipped",
 ] as const;
 
+
+
 export const REVIEW_PHASE_DATE_TYPES = [
   "OGD Approval to Share with SMEs",
   "Draft Approval Package to Prep",
@@ -98,8 +100,9 @@ export const REVIEW_PHASE_DATE_TYPES = [
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
   "Package Sent to COMMs Clearance",
-  "COMMs Clearance Received",
   "Submit Approval Package to OSORA",
+  "Package Sent for COMMs Clearance",
+  "COMMs Clearance Received",
   "OSORA R1 Comments Due",
   "OSORA R2 Comments Due",
   "CMS (OSORA) Clearance End",
@@ -126,9 +129,6 @@ export const DATE_TYPES = [
   "BNPMT Initial Meeting Date",
   "SDG Preparation Completion Date",
   "Review Start Date",
-  "OGC Review Complete",
-  "OMB Review Complete",
-  "PO & OGD Sign-Off",
   "Review Completion Date",
   "Approval Package Start Date",
   "Approval Package Completion Date",
@@ -160,9 +160,6 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },
   "Review Start Date": { expectedTimestamp: "Start of Day" },
-  "OGC Review Complete": { expectedTimestamp: "Start of Day" },
-  "OMB Review Complete": { expectedTimestamp: "Start of Day" },
-  "PO & OGD Sign-Off": { expectedTimestamp: "Start of Day" },
   "Review Completion Date": { expectedTimestamp: "Start of Day" },
   "OGD Approval to Share with SMEs": { expectedTimestamp: "Start of Day" },
   "Draft Approval Package to Prep": { expectedTimestamp: "Start of Day" },
@@ -178,6 +175,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Package Sent to COMMs Clearance": { expectedTimestamp: "Start of Day" },
   "COMMs Clearance Received": { expectedTimestamp: "Start of Day" },
   "Submit Approval Package to OSORA": { expectedTimestamp: "Start of Day" },
+  "Package Sent for COMMs Clearance": { expectedTimestamp: "Start of Day" },
   "OSORA R1 Comments Due": { expectedTimestamp: "End of Day" },
   "OSORA R2 Comments Due": { expectedTimestamp: "End of Day" },
   "CMS (OSORA) Clearance End": { expectedTimestamp: "End of Day" },
