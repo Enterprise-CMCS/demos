@@ -9,6 +9,7 @@ vi.mock("./uipathClient", () => ({
   getExtractorGuid: () => getExtractorGuidMock(),
   getProjectId: () => getProjectIdMock(),
   UIPATH_EXTRACTOR_NAME: "generative_extractor",
+  UIPATH_BASE_URL: "https://govcloud.uipath.us",
 }));
 
 import { extractDoc } from "./extractDoc";

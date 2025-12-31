@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { getUiPathSecret } from "./uipathSecrets";
 
 export const UIPATH_BASE_URL = "https://govcloud.uipath.us";
+// This could be made dynamic if we need to support multiple tenants/environments
 export const UIPATH_TENANT = "globalalliant/Dev";
 export const UIPATH_API_VERSION = "1.0";
 export const UIPATH_EXTRACTOR_NAME = "generative_extractor";

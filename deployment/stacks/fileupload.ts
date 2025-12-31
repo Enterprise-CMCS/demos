@@ -330,7 +330,7 @@ export class FileUploadStack extends Stack {
     // UiPath processor (queue + DLQ + lambda) within FileUpload stack
     new UiPathProcessor(this, "UiPathProcessor", {
       ...props,
-      removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       kmsKey,
       deadLetterQueue,
       documentsBucket: uiPathDocumentsBucket,

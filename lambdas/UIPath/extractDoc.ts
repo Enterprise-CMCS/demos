@@ -2,6 +2,7 @@ import {
   documentUnderstandingPost,
   getExtractorGuid,
   UIPATH_EXTRACTOR_NAME,
+  UIPATH_BASE_URL,
   getProjectId
 } from "./uipathClient";
 
@@ -27,7 +28,10 @@ export async function extractDoc(
 
   const extractorGuid = await getExtractorGuid(); // NOTE: Zoe might make her own. So we may need to query here to get the right GUID
   const projectId = getProjectId();
-  const url = `https://govcloud.uipath.us/${extractorGuid}/du_/api/framework/projects/${projectId}/extractors/${UIPATH_EXTRACTOR_NAME}/extraction/start?api-version=1.0`;
+  if (!UIPATH_BASE_URL) {
+    throw new Error("Missing UiPath base URL configuration.");
+  }
+  const url = `${UIPATH_BASE_URL}/${extractorGuid}/du_/api/framework/projects/${projectId}/extractors/${UIPATH_EXTRACTOR_NAME}/extraction/start?api-version=1.0`;
 
   const extract = await documentUnderstandingPost<ExtractionStartResponse>(url, token, {
     documentId: docId,
