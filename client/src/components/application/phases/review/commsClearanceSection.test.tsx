@@ -9,7 +9,7 @@ describe("CommsClearanceSection", () => {
   const defaultProps = {
     sectionFormData: {
       dates: {
-        "Package Sent to COMMs Clearance": "",
+        "Package Sent for COMMs Clearance": "",
         "COMMs Clearance Received": "",
       },
       notes: {
@@ -59,7 +59,7 @@ describe("CommsClearanceSection", () => {
       ...defaultProps.sectionFormData,
       dates: {
         ...defaultProps.sectionFormData.dates,
-        "Package Sent to COMMs Clearance": "2025-01-01",
+        "Package Sent for COMMs Clearance": "2025-01-01",
       },
     });
   });
@@ -84,7 +84,7 @@ describe("CommsClearanceSection", () => {
       sectionFormData: {
         ...defaultProps.sectionFormData,
         dates: {
-          "Package Sent to COMMs Clearance": "2025-02-01",
+          "Package Sent for COMMs Clearance": "2025-02-01",
           "COMMs Clearance Received": "2025-02-15",
         },
       },

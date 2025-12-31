@@ -99,7 +99,6 @@ export const REVIEW_PHASE_DATE_TYPES = [
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
-  "Package Sent to COMMs Clearance",
   "Submit Approval Package to OSORA",
   "Package Sent for COMMs Clearance",
   "COMMs Clearance Received",
@@ -171,8 +170,6 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Receive OGC Legal Clearance": { expectedTimestamp: "Start of Day" },
   "Approval Package Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Package Completion Date": { expectedTimestamp: "Start of Day" },
-  // Prospective assignments, to be confirmed in DEMOS-1227
-  "Package Sent to COMMs Clearance": { expectedTimestamp: "Start of Day" },
   "COMMs Clearance Received": { expectedTimestamp: "Start of Day" },
   "Submit Approval Package to OSORA": { expectedTimestamp: "Start of Day" },
   "Package Sent for COMMs Clearance": { expectedTimestamp: "Start of Day" },
