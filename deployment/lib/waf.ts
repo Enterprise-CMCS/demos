@@ -174,6 +174,16 @@ const createCombinedBlockRule = (
           },
         })
   }
+  let statement: aws_wafv2.CfnWebACL.StatementProperty;
+  if (statements.length > 1) {
+    statement = {
+      andStatement: {
+        statements
+      }
+    }
+  } else {
+    statement = statements[0]
+  }
 
   return {
   name,
@@ -188,11 +198,7 @@ const createCombinedBlockRule = (
     metricName: name,
     sampledRequestsEnabled: true,
   },
-  statement: {
-    andStatement: {
-      statements,
-    },
-  },
+  statement,
 }
 };
 
