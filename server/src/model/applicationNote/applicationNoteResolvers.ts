@@ -4,6 +4,7 @@ import { NoteType, SetApplicationNotesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
+import { checkForNoteChangesOnCompletedPhase } from "./checkForNoteChangesOnCompletedPhase.js";
 
 export function checkForDuplicateNoteTypes(input: SetApplicationNotesInput): void {
   const inputNoteTypes = input.applicationNotes.map((applicationNote) => applicationNote.noteType);
@@ -35,6 +36,7 @@ export async function __setApplicationNotes(
   try {
     checkForDuplicateNoteTypes(input);
     await prisma().$transaction(async (tx) => {
+      await checkForNoteChangesOnCompletedPhase(tx, input);
       const parsedSetApplicationNotesInput = parseSetApplicationNotesInput(input);
       await upsertApplicationNotes(parsedSetApplicationNotesInput, tx);
       await deleteApplicationNotes(parsedSetApplicationNotesInput, tx);
