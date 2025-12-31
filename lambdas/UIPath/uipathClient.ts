@@ -25,16 +25,15 @@ export async function getExtractorGuid(): Promise<string> {
   throw new Error("Missing UIPATH_EXTRACTOR_GUID Secrets Manager or .env");
 }
 
-type DuPostOptions = AxiosRequestConfig & {
+type documentUnderstandingPostOptions = AxiosRequestConfig & {
   params?: Record<string, string | number | undefined>;
 };
 
-// duPost == Document Understanding POST
-export function duPost<T = unknown>(
+export function documentUnderstandingPost<T = unknown>(
   url: string,
   token: string,
   data: unknown,
-  options: DuPostOptions = {}
+  options: documentUnderstandingPostOptions = {}
 ): Promise<AxiosResponse<T>> {
   const { params = {}, headers = {}, ...rest } = options;
 

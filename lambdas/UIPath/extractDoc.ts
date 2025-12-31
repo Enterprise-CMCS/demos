@@ -1,4 +1,5 @@
-import { duPost,
+import {
+  documentUnderstandingPost,
   getExtractorGuid,
   UIPATH_EXTRACTOR_NAME,
   getProjectId
@@ -28,7 +29,7 @@ export async function extractDoc(
   const projectId = getProjectId();
   const url = `https://govcloud.uipath.us/${extractorGuid}/du_/api/framework/projects/${projectId}/extractors/${UIPATH_EXTRACTOR_NAME}/extraction/start?api-version=1.0`;
 
-  const extract = await duPost<ExtractionStartResponse>(url, token, {
+  const extract = await documentUnderstandingPost<ExtractionStartResponse>(url, token, {
     documentId: docId,
     pageRange: null,
     prompts,

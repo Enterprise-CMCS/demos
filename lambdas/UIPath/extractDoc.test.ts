@@ -1,11 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const duPostMock = vi.fn();
+const documentUnderstandingPostMock = vi.fn();
 const getExtractorGuidMock = vi.fn();
 const getProjectIdMock = vi.fn();
 
 vi.mock("./uipathClient", () => ({
-  duPost: (...args: unknown[]) => duPostMock(...args),
+  documentUnderstandingPost: (...args: unknown[]) => documentUnderstandingPostMock(...args),
   getExtractorGuid: () => getExtractorGuidMock(),
   getProjectId: () => getProjectIdMock(),
   UIPATH_EXTRACTOR_NAME: "generative_extractor",
@@ -15,7 +15,7 @@ import { extractDoc } from "./extractDoc";
 
 describe("extractDoc", () => {
   beforeEach(() => {
-    duPostMock.mockReset();
+    documentUnderstandingPostMock.mockReset();
     getExtractorGuidMock.mockReset();
     getProjectIdMock.mockReset();
   });
@@ -23,7 +23,7 @@ describe("extractDoc", () => {
   it("posts extraction request and returns resultUrl", async () => {
     getExtractorGuidMock.mockResolvedValue("tenant/guid");
     getProjectIdMock.mockReturnValue("project-1");
-    duPostMock.mockResolvedValue({ data: { resultUrl: "result-1" } });
+    documentUnderstandingPostMock.mockResolvedValue({ data: { resultUrl: "result-1" } });
 
     const prompts = [
       {
@@ -36,7 +36,7 @@ describe("extractDoc", () => {
 
     await expect(extractDoc("token-1", "doc-1", prompts)).resolves.toBe("result-1");
 
-    expect(duPostMock).toHaveBeenCalledWith(
+    expect(documentUnderstandingPostMock).toHaveBeenCalledWith(
       "https://govcloud.uipath.us/tenant/guid/du_/api/framework/projects/project-1/extractors/generative_extractor/extraction/start?api-version=1.0",
       "token-1",
       {
@@ -51,7 +51,7 @@ describe("extractDoc", () => {
   it("throws when resultUrl is missing", async () => {
     getExtractorGuidMock.mockResolvedValue("tenant/guid");
     getProjectIdMock.mockReturnValue("project-1");
-    duPostMock.mockResolvedValue({ data: {} });
+    documentUnderstandingPostMock.mockResolvedValue({ data: {} });
 
     await expect(
       extractDoc("token-1", "doc-1", [
