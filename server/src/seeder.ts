@@ -145,21 +145,20 @@ async function seedDocuments() {
     }
   }
 }
-
+// This is going away. So was a quick smiple add. but will eventually be nuked with Zoes model.
 async function seedDocumentUnderstandingQuestions() {
   console.log("🌱 Seeding document understanding questions...");
   for (const question of DOCUMENT_UNDERSTANDING_QUESTIONS) {
-    await prisma().$executeRawUnsafe(
-      `
-        INSERT INTO document_understanding_questions (id, question, created_at, updated_at)
-        VALUES ($1::uuid, $2::jsonb, NOW(), NOW())
-        ON CONFLICT (id) DO UPDATE
-          SET question = EXCLUDED.question,
-              updated_at = NOW();
-      `,
-      question.id,
-      JSON.stringify(question.payload)
-    );
+    await prisma().documentUnderstandingQuestions.upsert({
+      where: { id: question.id },
+      create: {
+        id: question.id,
+        question: question.payload,
+      },
+      update: {
+        question: question.payload,
+      },
+    });
   }
 }
 
