@@ -35,7 +35,6 @@ const EventList = ({ events }: { events: Event[] }) => {
 const LogNewEventForm = () => {
   const { logEvent } = useEvent();
   const { showError, showSuccess } = useToast();
-
   const [eventType, setEventType] = React.useState<EventType>("Login Succeeded");
 
   const handleLogEvent = async () => {
@@ -59,6 +58,7 @@ const LogNewEventForm = () => {
           label: type,
           value: type,
         }))}
+        value={eventType}
         id="eventType"
         label="Event Type"
         onSelect={(eventType) => setEventType(eventType as EventType)}

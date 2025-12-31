@@ -18,7 +18,7 @@ export const SelectDemonstration: React.FC<{
   isRequired?: boolean;
   isDisabled?: boolean;
   onSelect: (id: string) => void;
-  value?: string;
+  value: string;
 }> = ({ isRequired = false, isDisabled = false, onSelect, value }) => {
   const {
     data: demonstrationsData,

@@ -6,13 +6,15 @@ import { Option } from "./Select";
 // This may not be the final type. This is more of just an example of the select.
 
 interface SelectDemoStatusesProps {
-  onStatusChange: (status: string) => void;
+  value: string;
+  onChange: (status: string) => void;
   isRequired?: boolean;
   isDisabled?: boolean;
 }
 
 export const SelectDemoStatuses: React.FC<SelectDemoStatusesProps> = ({
-  onStatusChange,
+  value,
+  onChange,
   isRequired = false,
   isDisabled = false,
 }) => {
@@ -25,9 +27,10 @@ export const SelectDemoStatuses: React.FC<SelectDemoStatusesProps> = ({
     <AutoCompleteSelect
       id="demo-status"
       label="Select Status"
+      value={value}
       options={options}
       placeholder="Select"
-      onSelect={onStatusChange}
+      onSelect={onChange}
       isRequired={isRequired}
       isDisabled={isDisabled}
     />

@@ -124,7 +124,7 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
                 demonstrationId: value,
               });
             }}
-            value={createModificationFormFields.demonstrationId}
+            value={createModificationFormFields.demonstrationId || ""}
           />
         </div>
 
@@ -149,7 +149,7 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
               label="State/Territory"
               isRequired
               isDisabled
-              value={createModificationFormFields.stateId}
+              value={createModificationFormFields.stateId || ""}
               onSelect={() => {}}
             />
           </div>

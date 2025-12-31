@@ -4,7 +4,7 @@ import { AutoCompleteSelect } from "./AutoCompleteSelect";
 import { Option } from "./Select";
 
 export interface SelectUSAStatesProps {
-  value?: string;
+  value: string;
   onSelect: (abbr: string) => void;
   label?: string;
   isRequired?: boolean;
@@ -23,8 +23,6 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
     label: state.name,
   }));
 
-  const selectedOption = options.find((o) => o.value === value);
-
   return (
     <AutoCompleteSelect
       id="us-state"
@@ -35,7 +33,7 @@ export const SelectUSAStates: React.FC<SelectUSAStatesProps> = ({
       onSelect={onSelect}
       isRequired={isRequired}
       isDisabled={isDisabled}
-      value={selectedOption?.value}
+      value={value}
     />
   );
 };

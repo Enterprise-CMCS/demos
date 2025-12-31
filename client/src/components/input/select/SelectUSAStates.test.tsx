@@ -7,7 +7,9 @@ import { SelectUSAStates } from "./SelectUSAStates";
 describe("<SelectUSAStates />", () => {
   it("filters options by input and calls onStateChange with the abbrev", async () => {
     const onStateChange = vi.fn();
-    render(<SelectUSAStates onSelect={onStateChange} isRequired={false} isDisabled={false} />);
+    render(
+      <SelectUSAStates value="" onSelect={onStateChange} isRequired={false} isDisabled={false} />
+    );
 
     // Open the dropdown and type a substring unique to one state
     const input = screen.getByRole("textbox", { name: /state or territory/i });
@@ -26,7 +28,7 @@ describe("<SelectUSAStates />", () => {
   });
 
   it("shows 'No matches found' when filter yields nothing", async () => {
-    render(<SelectUSAStates onSelect={() => {}} />);
+    render(<SelectUSAStates value="" onSelect={() => {}} />);
 
     const input = screen.getByRole("textbox", { name: /state or territory/i });
     await userEvent.click(input);
@@ -36,7 +38,7 @@ describe("<SelectUSAStates />", () => {
   });
 
   it("applies the required and disabled props to the input", () => {
-    render(<SelectUSAStates onSelect={() => {}} isRequired={true} isDisabled={true} />);
+    render(<SelectUSAStates value="" onSelect={() => {}} isRequired={true} isDisabled={true} />);
 
     const input = screen.getByRole("textbox", { name: /state or territory/i });
     expect(input).toBeRequired();

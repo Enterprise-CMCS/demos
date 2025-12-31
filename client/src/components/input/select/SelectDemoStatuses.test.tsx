@@ -10,7 +10,8 @@ describe("<SelectDemoStatuses />", () => {
     const onStatusChange = vi.fn();
     render(
       <SelectDemoStatuses
-        onStatusChange={onStatusChange}
+        value=""
+        onChange={onStatusChange}
         isRequired={false}
         isDisabled={false}
       />
@@ -35,7 +36,7 @@ describe("<SelectDemoStatuses />", () => {
   });
 
   it("shows 'No matches found' when nothing matches", async () => {
-    render(<SelectDemoStatuses onStatusChange={() => {}} />);
+    render(<SelectDemoStatuses value="" onChange={() => {}} />);
 
     const input = screen.getByRole("textbox", { name: /select status/i });
     await userEvent.click(input);
@@ -45,13 +46,7 @@ describe("<SelectDemoStatuses />", () => {
   });
 
   it("applies required and disabled attributes to the input", () => {
-    render(
-      <SelectDemoStatuses
-        onStatusChange={() => {}}
-        isRequired={true}
-        isDisabled={true}
-      />
-    );
+    render(<SelectDemoStatuses value="" onChange={() => {}} isRequired={true} isDisabled={true} />);
 
     const input = screen.getByRole("textbox", { name: /select status/i });
     expect(input).toBeRequired();
