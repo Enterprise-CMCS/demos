@@ -123,11 +123,11 @@ describe("validateAllowedDateChangeByPhase", () => {
       ]);
 
       await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
-        `Cannot modify dates because they are associated with completed phases: ${testDateType1} date on ${testPhaseId1} phase.`
+        `Cannot modify dates because they are associated with finished phases: ${testDateType1} date on ${testPhaseId1} phase.`
       );
     });
 
-    it("should throw error with multiple dates when they are on completed phases", async () => {
+    it("should throw error with multiple dates when they are on finished phases", async () => {
       const input: SetApplicationDatesInput = {
         applicationId: testApplicationId,
         applicationDates: [
@@ -159,7 +159,7 @@ describe("validateAllowedDateChangeByPhase", () => {
       ]);
 
       await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
-        `Cannot modify dates because they are associated with completed phases: ${testDateType1} date on ${testPhaseId1} phase, ${testDateType2} date on ${testPhaseId2} phase.`
+        `Cannot modify dates because they are associated with finished phases: ${testDateType1} date on ${testPhaseId1} phase, ${testDateType2} date on ${testPhaseId2} phase.`
       );
     });
   });

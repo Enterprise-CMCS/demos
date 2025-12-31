@@ -30,7 +30,7 @@ export async function validateAllowedDateChangeByPhase(
       .map((date) => `${date.dateTypeId} date on ${date.phaseId} phase`)
       .join(", ");
     throw new Error(
-      `Cannot modify dates because they are associated with completed phases: ${errors}.`
+      `Cannot modify dates because they are associated with finished phases: ${errors}.`
     );
   }
 }
