@@ -3,19 +3,20 @@ import {
   getReviewPhaseComponentFromDemonstration,
   formatDataForSave,
   hasFormChanges,
-  ReviewPhase,
   ReviewPhaseDemonstration,
   getPhaseData,
 } from "./reviewPhaseData";
 import { ReviewPhaseFormData } from "./ReviewPhase";
+import { SimplePhase } from "components/application/ApplicationWorkflow";
 
 describe("reviewPhaseData", () => {
   describe("getFormDataFromPhase", () => {
     it("should return empty dates and notes when phase has no data", () => {
-      const reviewPhase: ReviewPhase = {
+      const reviewPhase: SimplePhase = {
         phaseName: "Review",
         phaseDates: [],
         phaseNotes: [],
+        phaseStatus: "Started",
       };
 
       const result = getPhaseData(reviewPhase);
@@ -25,7 +26,7 @@ describe("reviewPhaseData", () => {
     });
 
     it("should convert phase dates to form data format", () => {
-      const reviewPhase: ReviewPhase = {
+      const reviewPhase: SimplePhase = {
         phaseName: "Review",
         phaseDates: [
           { dateType: "OGD Approval to Share with SMEs", dateValue: new Date("2025-01-15") },
@@ -33,6 +34,7 @@ describe("reviewPhaseData", () => {
           { dateType: "DDME Approval Received", dateValue: new Date("2025-03-10") },
         ],
         phaseNotes: [],
+        phaseStatus: "Started",
       };
 
       const result = getPhaseData(reviewPhase);
@@ -43,7 +45,7 @@ describe("reviewPhaseData", () => {
     });
 
     it("should convert phase notes to form data format", () => {
-      const reviewPhase: ReviewPhase = {
+      const reviewPhase: SimplePhase = {
         phaseName: "Review",
         phaseDates: [],
         phaseNotes: [
@@ -51,6 +53,7 @@ describe("reviewPhaseData", () => {
           { noteType: "OGC and OMB", content: "OGC notes here" },
           { noteType: "COMMs Clearance", content: "COMMs notes here" },
         ],
+        phaseStatus: "Started",
       };
 
       const result = getPhaseData(reviewPhase);
@@ -71,6 +74,7 @@ describe("reviewPhaseData", () => {
             phaseName: "Concept",
             phaseDates: [],
             phaseNotes: [],
+            phaseStatus: "Started",
           },
         ],
       };
@@ -92,6 +96,7 @@ describe("reviewPhaseData", () => {
               { dateType: "OGD Approval to Share with SMEs", dateValue: new Date("2025-01-10") },
             ],
             phaseNotes: [{ noteType: "PO and OGD", content: "Test note" }],
+            phaseStatus: "Started",
           },
         ],
       };
@@ -106,6 +111,7 @@ describe("reviewPhaseData", () => {
       );
       expect(result.props.initialFormData.notes["PO and OGD"]).toBe("Test note");
       expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
+      expect(result.props.isReadonly).toBe(false);
     });
 
     it("should pass through converted form data to ReviewPhase component", () => {
@@ -126,6 +132,7 @@ describe("reviewPhaseData", () => {
               { noteType: "OGC and OMB", content: "OGC note content" },
               { noteType: "COMMs Clearance", content: "COMMs note content" },
             ],
+            phaseStatus: "Started",
           },
         ],
       };
@@ -141,6 +148,35 @@ describe("reviewPhaseData", () => {
       expect(result.props.initialFormData.notes["OGC and OMB"]).toBe("OGC note content");
       expect(result.props.initialFormData.notes["COMMs Clearance"]).toBe("COMMs note content");
       expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
+      expect(result.props.isReadonly).toBe(false);
+    });
+
+    it("should pass isReadonly as true if the phase is completed", () => {
+      const demonstration: ReviewPhaseDemonstration = {
+        id: "demo-789",
+        clearanceLevel: "CMS (OSORA)",
+        phases: [
+          {
+            phaseName: "Review",
+            phaseDates: [
+              { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-06-15") },
+              {
+                dateType: "Package Sent to COMMs Clearance",
+                dateValue: new Date("2025-07-20"),
+              },
+            ],
+            phaseNotes: [
+              { noteType: "OGC and OMB", content: "OGC note content" },
+              { noteType: "COMMs Clearance", content: "COMMs note content" },
+            ],
+            phaseStatus: "Completed",
+          },
+        ],
+      };
+
+      const result = getReviewPhaseComponentFromDemonstration(demonstration);
+
+      expect(result.props.isReadonly).toBe(true);
     });
   });
 

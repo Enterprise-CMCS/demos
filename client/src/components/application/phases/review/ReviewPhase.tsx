@@ -94,9 +94,11 @@ const getPhaseStateInitialization = () => {
 export const ReviewPhase = ({
   initialFormData,
   demonstrationId,
+  isReadonly,
 }: {
   initialFormData: ReviewPhaseFormData;
   demonstrationId: string;
+  isReadonly: boolean;
 }) => {
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
@@ -190,14 +192,16 @@ export const ReviewPhase = ({
           setSectionFormData={(formData) =>
             setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
           }
-          sectionIsComplete={reviewPhaseSectionsComplete["PO and OGD"]}
+          isComplete={reviewPhaseSectionsComplete["PO and OGD"]}
+          isReadonly={isReadonly}
         />
         <OgcAndOmbSection
           sectionFormData={reviewPhaseFormData}
           setSectionFormData={(formData) =>
             setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
           }
-          sectionIsComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
+          isComplete={reviewPhaseSectionsComplete["OGC and OMB"]}
+          isReadonly={isReadonly}
         />
         <RadioGroup
           name="clearance-level"
@@ -219,6 +223,7 @@ export const ReviewPhase = ({
             }))
           }
           isInline
+          isDisabled={isReadonly}
         />
         {reviewPhaseFormData.clearanceLevel === "COMMs" && (
           <CommsClearanceSection
@@ -226,7 +231,8 @@ export const ReviewPhase = ({
             setSectionFormData={(formData) =>
               setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
             }
-            sectionIsComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
+            isComplete={reviewPhaseSectionsComplete["COMMs Clearance"]}
+            isReadonly={isReadonly}
           />
         )}
         {reviewPhaseFormData.clearanceLevel === "CMS (OSORA)" && (
@@ -235,7 +241,8 @@ export const ReviewPhase = ({
             setSectionFormData={(formData) =>
               setReviewPhaseFormData((prev) => ({ ...prev, ...formData }))
             }
-            sectionIsComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
+            isComplete={reviewPhaseSectionsComplete["CMS (OSORA) Clearance"]}
+            isReadonly={isReadonly}
           />
         )}
         <div className="flex justify-end mt-2 gap-2">
