@@ -6,7 +6,7 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application/applicationResolvers";
 import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
 import { SetApplicationNotesInput } from "../../types";
-import { checkForNoteChangesOnCompletedPhase } from "./checkForNoteChangesOnCompletedPhase";
+import { validateAllowedNoteChangeByPhase } from "./validateAllowedNoteChangeByPhase";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -35,8 +35,8 @@ vi.mock("./queries/deleteApplicationNotes", () => ({
   deleteApplicationNotes: vi.fn(),
 }));
 
-vi.mock("./checkForNoteChangesOnCompletedPhase", () => ({
-  checkForNoteChangesOnCompletedPhase: vi.fn(),
+vi.mock("./validateAllowedNoteChangeByPhase", () => ({
+  validateAllowedNoteChangeByPhase: vi.fn(),
 }));
 
 describe("applicationNoteResolvers", () => {
@@ -136,9 +136,9 @@ describe("applicationNoteResolvers", () => {
       expect(getApplication).not.toHaveBeenCalled();
     });
 
-    it("should call checkForNoteChangesOnCompletedPhase with the correct parameters", async () => {
+    it("should call validateAllowedNoteChangeByPhase with the correct parameters", async () => {
       await __setApplicationNotes(undefined, { input: testInput });
-      expect(checkForNoteChangesOnCompletedPhase).toHaveBeenCalledExactlyOnceWith(
+      expect(validateAllowedNoteChangeByPhase).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         testInput
       );
