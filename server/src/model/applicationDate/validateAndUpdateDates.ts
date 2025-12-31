@@ -9,11 +9,13 @@ import {
   upsertApplicationDates,
   validateInputDates,
 } from ".";
+import { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByPhase";
 
 export async function validateAndUpdateDates(
   setApplicationDateInput: SetApplicationDatesInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
+  await validateAllowedDateChangeByPhase(tx, setApplicationDateInput);
   const parsedSetApplicationDatesInput = parseSetApplicationDatesInput(setApplicationDateInput);
   const existingApplicationDates = await getApplicationDates(
     setApplicationDateInput.applicationId,
