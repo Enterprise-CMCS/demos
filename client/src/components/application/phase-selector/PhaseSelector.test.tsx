@@ -218,7 +218,7 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: startDate,
             },
             {
-              dateType: "OGC Review Complete",
+              dateType: "Review Completion Date",
               dateValue: completeDate,
             },
           ],
