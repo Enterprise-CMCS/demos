@@ -4,6 +4,7 @@ import { describe, it, beforeEach, vi, expect } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
 import { ApprovalPackageUploadDialog } from "./ApprovalPackageUploadDialog";
 import { DocumentType } from "demos-server";
+import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 interface MockAddDocumentDialogProps {
   titleOverride: string;
@@ -33,7 +34,7 @@ vi.mock("components/dialog/document", () => ({
       <div data-testid="document-type">{documentTypeSubset.join(",")}</div>
       <div data-testid="phase-name">{phaseName}</div>
       <button data-testid="button-confirm-upload-document">Upload</button>
-      <button data-testid="button-cancel-upload-document">Cancel</button>
+      <button data-testid={CANCEL_BUTTON_NAME}>Cancel</button>
     </div>
   ),
 }));
@@ -79,7 +80,7 @@ describe("ApprovalPackageUploadDialog", () => {
     it("renders action buttons", () => {
       setup();
       expect(screen.getByTestId("button-confirm-upload-document")).toBeInTheDocument();
-      expect(screen.getByTestId("button-cancel-upload-document")).toBeInTheDocument();
+      expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
     });
   });
 });

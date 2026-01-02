@@ -14,6 +14,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { SdgDivision, SignatureLevel } from "demos-server";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
+import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -33,7 +34,6 @@ const DEFAULT_PROPS = {
 
 // Test ID constants
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
-const CANCEL_BUTTON_TEST_ID = "button-cancel-demonstration-dialog";
 const DESCRIPTION_TEXTAREA_TEST_ID = "textarea-description";
 const TITLE_INPUT_TEST_ID = "input-demonstration-title";
 const STATE_SELECT_TEST_ID = "select-us-state";
@@ -81,7 +81,7 @@ describe("DemonstrationDialog", () => {
 
   it("renders the Cancel and Submit buttons", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByTestId(CANCEL_BUTTON_TEST_ID)).toBeInTheDocument();
+    expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
     expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeInTheDocument();
   });
 
