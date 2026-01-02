@@ -68,10 +68,18 @@ const buildInitialFormData = (overrides?: Partial<ReviewPhaseFormData>): ReviewP
 });
 
 describe("ReviewPhase Component", () => {
-  const setup = (initialFormData = buildInitialFormData(), demonstrationId = "test-demo-id") => {
+  const setup = (
+    initialFormData = buildInitialFormData(),
+    demonstrationId = "test-demo-id",
+    isReadonly = false
+  ) => {
     render(
       <TestProvider>
-        <ReviewPhase initialFormData={initialFormData} demonstrationId={demonstrationId} />
+        <ReviewPhase
+          isReadonly={isReadonly}
+          initialFormData={initialFormData}
+          demonstrationId={demonstrationId}
+        />
       </TestProvider>
     );
   };
@@ -624,6 +632,58 @@ describe("ReviewPhase Component", () => {
           },
         });
       });
+    });
+  });
+
+  describe("Readonly", () => {
+    it("disables all date inputs when isReadonly is true", () => {
+      const incompleteData = buildInitialFormData({
+        dates: {},
+      });
+      setup(incompleteData, "demo-readonly", true);
+
+      const poAndOgdDateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+      const ogcAndOmbDateInput = screen.getByTestId("datepicker-bn-pmt-approval-received-date");
+      const commsClearanceDateInput = screen.getByTestId(
+        "datepicker-package-sent-for-comms-clearance-date"
+      );
+
+      expect(poAndOgdDateInput).toBeDisabled();
+      expect(ogcAndOmbDateInput).toBeDisabled();
+      expect(commsClearanceDateInput).toBeDisabled();
+    });
+
+    it("disables note inputs when isReadonly is true", () => {
+      const incompleteData = buildInitialFormData({
+        dates: {},
+      });
+      setup(incompleteData, "demo-readonly", true);
+
+      const poAndOgdNotes = screen.getByTestId("input-po-ogd-notes");
+      expect(poAndOgdNotes).toBeDisabled();
+    });
+
+    it("disables clearance level radio buttons when isReadonly is true", () => {
+      setup(buildInitialFormData(), "demo-readonly", true);
+
+      const commsRadio = screen.getByLabelText("COMMs Clearance Required");
+      const osoraRadio = screen.getByLabelText("CMS (OSORA) Clearance Required");
+
+      expect(commsRadio).toBeDisabled();
+      expect(osoraRadio).toBeDisabled();
+    });
+
+    it("allows opening and closing sections when isReadonly is true", async () => {
+      setup(buildInitialFormData(), "demo-readonly", true);
+
+      const poAndOgdHeader = screen.getByText("PO & OGD");
+      await userEvent.click(poAndOgdHeader);
+
+      const poAndOgdNotes = screen.getByTestId("input-po-ogd-notes");
+      expect(poAndOgdNotes).toBeInTheDocument();
+
+      await userEvent.click(poAndOgdHeader);
+      expect(poAndOgdNotes).not.toBeVisible();
     });
   });
 });
