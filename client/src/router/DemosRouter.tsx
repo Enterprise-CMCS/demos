@@ -11,6 +11,8 @@ import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
+import { RefetchQueriesDemonstration } from "pages/debug/RefetchQueriesDemonstration/RefetchQueriesDemonstration";
+import { CacheDemonstration } from "pages/debug/cacheDemonstration/CacheDemonstration";
 
 export const DemosRouter: React.FC = () => {
   return (
@@ -31,6 +33,8 @@ export const DemosRouter: React.FC = () => {
                     <Route path="icons" element={<IconLibrary />} />
                     <Route path="events" element={<EventSandbox />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
+                    <Route path="refetch-queries" element={<RefetchQueriesDemonstration />} />
+                    <Route path="cache-demo" element={<CacheDemonstration />} />
                   </>
                 )}
               </Route>

@@ -40,6 +40,8 @@ const debugNavLinks: NavLink[] = [
   { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
   { label: "Events", href: "/events", icon: <CommentIcon /> },
   { label: "Date Simulation", href: "/dates", icon: <DateIcon /> },
+  { label: "Refetch Queries", href: "/refetch-queries", icon: <ActionsIcon /> },
+  { label: "Cache Demo", href: "/cache-demo", icon: <ActionsIcon /> },
 ];
 
 const NavLinks = ({ isCollapsed, navLinks }: { isCollapsed: boolean; navLinks: NavLink[] }) => {
@@ -133,9 +135,8 @@ const CollapseToggleButton = ({
   const iconStyles = "w-[14px] h-[14px] cursor-pointer";
   const collapsedStyles = "p-0 flex justify-center text-text-font";
   const uncollapsedStyles = "p-2 flex justify-end text-action";
-  const containerStyles = `h-[40px] flex items-center shrink-0 ${isCollapsed ?
-    collapsedStyles :
-    uncollapsedStyles
+  const containerStyles = `h-[40px] flex items-center shrink-0 ${
+    isCollapsed ? collapsedStyles : uncollapsedStyles
   }`;
 
   const CollapseButton = () => {
