@@ -1,7 +1,7 @@
 import pino from "pino";
 import { AsyncLocalStorage } from "node:async_hooks";
 
-export const setupLogger = (serviceName: string) =>
+export const setupLogger = (serviceName: string, stream?: pino.DestinationStream) =>
   pino({
     level: process.env.LOG_LEVEL ?? "info",
     // match lambda application logs, which use "timestamp" rather than "time"
@@ -24,9 +24,13 @@ export const setupLogger = (serviceName: string) =>
     transport: process.stdout.isTTY
       ? {
           target: "pino-pretty",
+          options: {
+            colorize:true, 
+            sync: true
+          }
         }
       : undefined,
-  });
+  }, stream);
 
 export const parentLogger = setupLogger("graphql");
 
