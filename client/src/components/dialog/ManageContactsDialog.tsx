@@ -2,7 +2,7 @@ import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from "r
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { SearchIcon } from "components/icons";
+import { SearchIcon, WarningIcon } from "components/icons";
 import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
@@ -119,6 +119,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPrimaryWarning, setShowPrimaryWarning] = useState(false);
 
   const [searchPeople] = useLazyQuery(SEARCH_PEOPLE_QUERY, {
     fetchPolicy: "network-only",
@@ -274,7 +275,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         }
 
         if (!target.isPrimary && existingPrimary) {
-          // Primary contact type was reassigned
+          setShowPrimaryWarning(true);
         }
 
         return prev.map((contact) => {
@@ -285,7 +286,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         });
       } else {
         if (!target.isPrimary && existingPrimary) {
-          // Primary contact type was reassigned
+          setShowPrimaryWarning(true);
         }
 
         const willBePrimary = !target.isPrimary;
@@ -486,6 +487,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       }
 
       setSavedContacts(selectedContacts.map((c) => ({ ...c })));
+      setShowPrimaryWarning(false);
       showSuccess("Contacts have been updated.");
     } catch (e) {
       console.error(e);
@@ -546,6 +548,14 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         }
       >
         <div className="flex flex-col gap-lg">
+          {showPrimaryWarning && (
+            <div className="flex items-center gap-xs text-warning-dark bg-warn-lightest border border-warn px-sm py-xs rounded">
+              <WarningIcon className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm font-medium">
+                You have just reassigned a primary contact type.
+              </span>
+            </div>
+          )}
           <div className="relative">
             <div className="mb-xs text-field-label font-bold">
               <span className="text-error mr-xs">*</span> <span className="font-bold">Search</span>
