@@ -14,6 +14,7 @@ interface BaseDialogProps {
   hasChanges?: boolean;
   maxWidthClass?: string;
   hideHeader?: boolean;
+  cancelButtonIsDisabled?: boolean;
 }
 
 const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative max-h-[85vh] overflow-y-auto space-y-sm backdrop:bg-black/40`;
@@ -29,6 +30,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   hasChanges = true,
   maxWidthClass = "max-w-[720px]",
   hideHeader = false,
+  cancelButtonIsDisabled = false,
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);
@@ -90,7 +92,11 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
           <>
             <hr className={HR} />
             <div className="flex justify-end gap-[24px]">
-              <SecondaryButton name={CANCEL_BUTTON_NAME} onClick={onCloseClicked}>
+              <SecondaryButton
+                name={CANCEL_BUTTON_NAME}
+                onClick={onCloseClicked}
+                disabled={cancelButtonIsDisabled}
+              >
                 Cancel
               </SecondaryButton>
               {actionButton}

@@ -273,6 +273,7 @@ export type DocumentDialogProps = {
   ) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
+  cancelButtonIsDisabled?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -363,6 +364,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           isUploading={documentDialogState === "uploading"}
         />
       }
+      cancelButtonIsDisabled={documentDialogState === "uploading"}
     >
       <DropTarget
         file={file}
