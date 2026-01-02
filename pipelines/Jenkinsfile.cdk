@@ -90,11 +90,15 @@ pipeline {
       steps {
         script {
           if (hasChange("deployment")) {
-            assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+            def deployEnv = (env.BRANCH_NAME == 'main') ? "dev" : "${env.BRANCH_NAME}"
+            if (!(deployEnv in ["prod", "impl", "test", "dev"])) {
+              deployEnv = "dev"
+            }
+            assumeRole(accountEnv: deployEnv)
             dirCon('deployment', 'node') {
-              sh '''
-              npm run synth:dev
-              '''
+              sh """
+              npx cdk synth --context stage=${deployEnv} --all
+              """
             }
           }
         }

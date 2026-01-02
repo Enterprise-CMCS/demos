@@ -27,7 +27,7 @@ pipeline {
         stage('Builds') {
           steps {
             script {
-              assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+              assumeRole(accountEnv: env.STAGE)
               dirCon('deployment', 'node') {
                 sh """
                 mkdir ../client/dist
