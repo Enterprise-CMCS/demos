@@ -11,14 +11,16 @@ type OmbAndOgcSectionFormData = {
 export const OgcAndOmbSection = ({
   sectionFormData,
   setSectionFormData,
-  sectionIsComplete,
+  isComplete,
+  isReadonly,
 }: {
   sectionFormData: OmbAndOgcSectionFormData;
   setSectionFormData: (data: OmbAndOgcSectionFormData) => void;
-  sectionIsComplete: boolean;
+  isComplete: boolean;
+  isReadonly: boolean;
 }) => {
   return (
-    <CompletableSection title="OGC & OMB" isComplete={sectionIsComplete}>
+    <CompletableSection title="OGC & OMB" isComplete={isComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Record the OGC & OMB Review Process.
       </p>
@@ -38,6 +40,7 @@ export const OgcAndOmbSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="flex flex-col">
@@ -55,6 +58,7 @@ export const OgcAndOmbSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="flex flex-col">
@@ -72,6 +76,7 @@ export const OgcAndOmbSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="flex flex-col">
@@ -89,6 +94,7 @@ export const OgcAndOmbSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="col-span-2 flex flex-col">
@@ -109,6 +115,7 @@ export const OgcAndOmbSection = ({
             }
             className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={1}
+            disabled={isReadonly}
           />
         </div>
       </div>

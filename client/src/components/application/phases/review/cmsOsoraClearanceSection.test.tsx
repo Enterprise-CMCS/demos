@@ -19,7 +19,8 @@ describe("CmsOsoraClearanceSection", () => {
       },
     },
     setSectionFormData: mockSetSectionFormData,
-    sectionIsComplete: false,
+    isComplete: false,
+    isReadonly: false,
   };
 
   beforeEach(() => {
@@ -119,11 +120,28 @@ describe("CmsOsoraClearanceSection", () => {
     expect(textarea).toHaveValue("Existing note");
   });
 
-  it("displays completeness badge based on sectionIsComplete prop", () => {
+  it("displays completeness badge based on isComplete prop", () => {
     const { rerender } = render(<CmsOsoraClearanceSection {...defaultProps} />);
     expect(screen.getByText("Incomplete")).toBeInTheDocument();
 
-    rerender(<CmsOsoraClearanceSection {...defaultProps} sectionIsComplete={true} />);
+    rerender(<CmsOsoraClearanceSection {...defaultProps} isComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
+  });
+
+  describe("Readonly mode", () => {
+    it("disables all date inputs when isReadonly is true", () => {
+      render(<CmsOsoraClearanceSection {...defaultProps} isReadonly={true} />);
+
+      expect(screen.getByTestId("datepicker-submit-approval-package-to-osora")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-osora-r1-comments-due-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-osora-r2-comments-due-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-cms-osora-clearance-end-date")).toBeDisabled();
+    });
+
+    it("disables notes textarea when isReadonly is true", () => {
+      render(<CmsOsoraClearanceSection {...defaultProps} isReadonly={true} />);
+
+      expect(screen.getByTestId("input-cms-osora-notes")).toBeDisabled();
+    });
   });
 });
