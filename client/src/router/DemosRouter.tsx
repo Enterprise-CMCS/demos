@@ -5,7 +5,7 @@ import { DemosApolloProvider } from "./DemosApolloProvider";
 import { DemosAuthProvider } from "./DemosAuthProvider";
 import { UserProvider } from "components/user/UserContext";
 import { DemonstrationsPage } from "pages/DemonstrationsPage";
-import { ComponentLibrary } from "pages/debug";
+import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
@@ -31,6 +31,7 @@ export const DemosRouter: React.FC = () => {
                     <Route path="icons" element={<IconLibrary />} />
                     <Route path="events" element={<EventSandbox />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
+                    <Route path="dialogs" element={<DialogSandbox />} />
                   </>
                 )}
               </Route>
