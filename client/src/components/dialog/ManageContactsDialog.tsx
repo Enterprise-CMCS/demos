@@ -489,6 +489,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       setSavedContacts(selectedContacts.map((c) => ({ ...c })));
       setShowPrimaryWarning(false);
       showSuccess("Contacts have been updated.");
+      onClose();
     } catch (e) {
       console.error(e);
       showError("An error occurred while updating contacts.");
