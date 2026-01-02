@@ -161,7 +161,7 @@ describe("reviewPhaseData", () => {
             phaseDates: [
               { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-06-15") },
               {
-                dateType: "Package Sent to COMMs Clearance",
+                dateType: "Package Sent for COMMs Clearance",
                 dateValue: new Date("2025-07-20"),
               },
             ],
