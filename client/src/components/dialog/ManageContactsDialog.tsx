@@ -1,8 +1,8 @@
 import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
-import { Button, SecondaryButton } from "components/button";
+import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { SearchIcon, WarningIcon } from "components/icons";
+import { SearchIcon } from "components/icons";
 import { Table } from "components/table/Table";
 import { useToast } from "components/toast";
 import { ConfirmationToast } from "components/toast/ConfirmationToast";
@@ -116,11 +116,9 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const [savedContacts, setSavedContacts] = useState<ContactRow[]>(
     mapExistingContacts(existingContacts)
   );
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPrimaryWarning, setShowPrimaryWarning] = useState(false);
 
   const [searchPeople] = useLazyQuery(SEARCH_PEOPLE_QUERY, {
     fetchPolicy: "network-only",
@@ -276,7 +274,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         }
 
         if (!target.isPrimary && existingPrimary) {
-          setShowPrimaryWarning(true);
+          // Primary contact type was reassigned
         }
 
         return prev.map((contact) => {
@@ -287,7 +285,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         });
       } else {
         if (!target.isPrimary && existingPrimary) {
-          setShowPrimaryWarning(true);
+          // Primary contact type was reassigned
         }
 
         const willBePrimary = !target.isPrimary;
@@ -489,25 +487,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
       setSavedContacts(selectedContacts.map((c) => ({ ...c })));
       showSuccess("Contacts have been updated.");
-      handleDialogClose();
     } catch (e) {
       console.error(e);
       showError("An error occurred while updating contacts.");
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleDialogClose = useCallback(() => {
-    setShowPrimaryWarning(false);
-    onClose();
-  }, [onClose]);
-
-  const handleClose = () => {
-    if (hasChanges) {
-      setShowCancelConfirm(true);
-    } else {
-      handleDialogClose();
     }
   };
 
@@ -544,43 +528,22 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     ]
   );
 
-  const actions = (
-    <div className="flex items-center justify-between w-full">
-      <div className="flex-1">
-        {showPrimaryWarning && (
-          <div className="flex items-center gap-xs text-warning-dark">
-            <WarningIcon className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              You have just reassigned a primary contact type.
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="flex gap-sm">
-        <SecondaryButton name="button-cancel" size="small" onClick={handleClose}>
-          Cancel
-        </SecondaryButton>
-        <Button
-          name="button-save"
-          size="small"
-          onClick={handleSubmit}
-          disabled={!allValid || !hasChanges || isSubmitting}
-        >
-          {isSubmitting ? "Saving..." : "Save"}
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <>
       <BaseDialog
         title="Manage Contact(s)"
-        onClose={handleDialogClose}
-        showCancelConfirm={showCancelConfirm}
-        setShowCancelConfirm={setShowCancelConfirm}
+        onClose={onClose}
         maxWidthClass="max-w-[1000px]"
-        actions={actions}
+        actionButton={
+          <Button
+            name="button-save"
+            size="small"
+            onClick={handleSubmit}
+            disabled={!allValid || !hasChanges || isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : "Save"}
+          </Button>
+        }
       >
         <div className="flex flex-col gap-lg">
           <div className="relative">

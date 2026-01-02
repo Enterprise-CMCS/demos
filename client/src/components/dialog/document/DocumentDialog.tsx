@@ -303,7 +303,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -357,24 +356,12 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     <BaseDialog
       title={dialogTitle}
       onClose={onClose}
-      showCancelConfirm={showCancelConfirm}
-      setShowCancelConfirm={setShowCancelConfirm}
-      actions={
-        <>
-          <SecondaryButton
-            name="button-cancel-upload-document"
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-            disabled={documentDialogState === "uploading"}
-          >
-            Cancel
-          </SecondaryButton>
-          <UploadButton
-            onClick={onUploadClick}
-            disabled={isMissing}
-            isUploading={documentDialogState === "uploading"}
-          />
-        </>
+      actionButton={
+        <UploadButton
+          onClick={onUploadClick}
+          disabled={isMissing}
+          isUploading={documentDialogState === "uploading"}
+        />
       }
     >
       <DropTarget

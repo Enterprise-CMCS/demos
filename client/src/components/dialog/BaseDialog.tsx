@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
+import { SecondaryButton } from "components/button";
 import { tw } from "tags/tw";
 import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
 
@@ -7,9 +8,8 @@ interface BaseDialogProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  actions?: React.ReactNode;
-  showCancelConfirm?: boolean;
-  setShowCancelConfirm?: (val: boolean) => void;
+  actionButton?: React.ReactNode;
+  hasChanges?: boolean;
   maxWidthClass?: string;
   hideHeader?: boolean;
 }
@@ -23,13 +23,13 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   title,
   onClose,
   children,
-  actions,
-  showCancelConfirm = false,
-  setShowCancelConfirm,
+  actionButton,
+  hasChanges = true,
   maxWidthClass = "max-w-[720px]",
   hideHeader = false,
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -62,8 +62,8 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   };
 
   const onCloseClicked = () => {
-    if (showCancelConfirm && setShowCancelConfirm) {
-      setShowCancelConfirm(true);
+    if (hasChanges) {
+      setIsCancellationConfirmationOpen(true);
     } else {
       onClose();
     }
@@ -84,18 +84,23 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
 
         {children}
 
-        {actions && (
+        {actionButton && (
           <>
             <hr className={HR} />
-            <div className="flex justify-end gap-[24px]">{actions}</div>
+            <div className="flex justify-end gap-[24px]">
+              <SecondaryButton name="button-dialog-cancel" onClick={onCloseClicked}>
+                Cancel
+              </SecondaryButton>
+              {actionButton}
+            </div>
           </>
         )}
       </dialog>
 
-      {showCancelConfirm && setShowCancelConfirm && (
+      {isCancellationConfirmationOpen && (
         <ConfirmCancellationDialog
-          isOpen={showCancelConfirm}
-          onClose={() => setShowCancelConfirm(false)}
+          isOpen={isCancellationConfirmationOpen}
+          onClose={() => setIsCancellationConfirmationOpen(false)}
           onConfirm={onClose}
         />
       )}
