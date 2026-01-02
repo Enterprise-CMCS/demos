@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { FederalCommentUploadDialog } from "./FederalCommentUploadDialog";
-import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 // Mock Apollo Client
 const mockMutation = vi.fn();
@@ -58,7 +58,7 @@ describe("FederalCommentUploadDialog", () => {
     it("renders action buttons", () => {
       setup();
       expect(screen.getByTestId("button-confirm-upload-document")).toBeInTheDocument();
-      expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
     });
   });
 

@@ -11,7 +11,7 @@ import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "./EditDemonstrationDialog";
-import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -136,7 +136,7 @@ describe("EditDemonstrationDialog", () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
       expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeInTheDocument();
     });
   });
@@ -146,10 +146,10 @@ describe("EditDemonstrationDialog", () => {
 
     // Wait for loading to complete first
     await waitFor(() => {
-      expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByTestId(CANCEL_BUTTON_NAME));
+    fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
     expect(screen.getByText(/Are you sure/i)).toBeInTheDocument();
   });
 

@@ -14,7 +14,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { SdgDivision, SignatureLevel } from "demos-server";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
-import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -81,7 +81,7 @@ describe("DemonstrationDialog", () => {
 
   it("renders the Cancel and Submit buttons", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
+    expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
     expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeInTheDocument();
   });
 

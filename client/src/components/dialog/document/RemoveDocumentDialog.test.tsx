@@ -9,7 +9,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 
 import { RemoveDocumentDialog } from "./RemoveDocumentDialog";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const mockQuery = vi.fn();
 
@@ -46,7 +46,7 @@ describe("RemoveDocumentDialog", () => {
     expect(screen.getByText(/Are you sure you want to remove 1 document/)).toBeInTheDocument();
     expect(screen.getByText(/This action cannot be undone/)).toBeInTheDocument();
     expect(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID)).toBeInTheDocument();
-    expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
+    expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
   });
 
   it("renders with multiple documents", () => {
@@ -56,7 +56,7 @@ describe("RemoveDocumentDialog", () => {
 
   it("calls onClose when Cancel is clicked", () => {
     const { onClose } = setup(["1"]);
-    fireEvent.click(screen.getByTestId(CANCEL_BUTTON_NAME));
+    fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
     expect(onClose).toHaveBeenCalled();
   });
 

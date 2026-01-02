@@ -14,7 +14,7 @@ import {
   tryUploadingFileToS3,
   VIRUS_SCAN_MAX_ATTEMPTS,
 } from "./AddDocumentDialog";
-import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 let mockMutationFn = vi.fn();
 let mockLazyQueryFn = vi.fn();
@@ -174,7 +174,7 @@ describe("AddDocumentDialog", () => {
     mockMutationFn.mockImplementation(() => new Promise(() => {})); // never resolves
     setup();
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
-    const cancelBtn = screen.getByTestId(CANCEL_BUTTON_NAME);
+    const cancelBtn = screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME);
 
     const file = new File(["content"], "test.pdf", { type: "application/pdf" });
     fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), { target: { files: [file] } });

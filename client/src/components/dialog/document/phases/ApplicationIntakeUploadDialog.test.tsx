@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
 import { ApplicationIntakeUploadDialog } from "./ApplicationIntakeUploadDialog";
-import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 // Mock Apollo Client
 const mockMutation = vi.fn();
@@ -65,7 +65,7 @@ describe("ApplicationIntakeUploadDialog", () => {
     it("renders action buttons", () => {
       setup();
       expect(screen.getByTestId("button-confirm-upload-document")).toBeInTheDocument();
-      expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
     });
   });
 
@@ -190,7 +190,7 @@ describe("ApplicationIntakeUploadDialog", () => {
 
     it("shows cancel functionality", () => {
       setup();
-      const cancelButton = screen.getByTestId(CANCEL_BUTTON_NAME);
+      const cancelButton = screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME);
       expect(cancelButton).toBeInTheDocument();
       expect(cancelButton).not.toBeDisabled();
     });

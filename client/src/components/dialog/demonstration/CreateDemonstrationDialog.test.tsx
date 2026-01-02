@@ -10,7 +10,7 @@ import {
   CreateDemonstrationDialog,
   CREATE_DEMONSTRATION_MUTATION,
 } from "./CreateDemonstrationDialog";
-import { CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const DEFAULT_PROPS = {
   onClose: vi.fn(),
@@ -79,7 +79,7 @@ describe("CreateDemonstrationDialog", () => {
 
   it("calls onClose when Cancel is clicked", () => {
     render(getCreateDemonstrationDialog());
-    fireEvent.click(screen.getByTestId(CANCEL_BUTTON_NAME));
+    fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
     expect(screen.getByText(/Are you sure/i)).toBeInTheDocument();
   });
 

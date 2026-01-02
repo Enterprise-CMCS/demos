@@ -4,7 +4,7 @@ import { SecondaryButton } from "components/button";
 import { tw } from "tags/tw";
 import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
 
-export const CANCEL_BUTTON_NAME = "button-dialog-cancel";
+export const DIALOG_CANCEL_BUTTON_NAME = "button-dialog-cancel";
 
 interface BaseDialogProps {
   title: string;
@@ -93,7 +93,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
             <hr className={HR} />
             <div className="flex justify-end gap-[24px]">
               <SecondaryButton
-                name={CANCEL_BUTTON_NAME}
+                name={DIALOG_CANCEL_BUTTON_NAME}
                 onClick={onCloseClicked}
                 disabled={cancelButtonIsDisabled}
               >
