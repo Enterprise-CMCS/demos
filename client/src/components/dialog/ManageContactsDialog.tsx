@@ -548,14 +548,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         }
       >
         <div className="flex flex-col gap-lg">
-          {showPrimaryWarning && (
-            <div className="flex items-center gap-xs text-warning-dark bg-warn-lightest border border-warn px-sm py-xs rounded">
-              <WarningIcon className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm font-medium">
-                You have just reassigned a primary contact type.
-              </span>
-            </div>
-          )}
           <div className="relative">
             <div className="mb-xs text-field-label font-bold">
               <span className="text-error mr-xs">*</span> <span className="font-bold">Search</span>
@@ -641,6 +633,14 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
             />
           </div>
         </div>
+        {showPrimaryWarning && (
+          <div className="flex items-center gap-xs text-warning-dark">
+            <WarningIcon className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              You have just reassigned a primary contact type.
+            </span>
+          </div>
+        )}
       </BaseDialog>
 
       {showDeleteConfirm && contactToDelete && (
