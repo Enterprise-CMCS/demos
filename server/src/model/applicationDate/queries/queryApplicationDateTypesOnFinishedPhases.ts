@@ -4,7 +4,6 @@ import { DateType, PhaseStatus } from "../../../types";
 
 const COMPLETED_STATUS: PhaseStatus = "Completed";
 const SKIPPED_STATUS: PhaseStatus = "Skipped";
-const CONCEPT_PHASE_ID = "Concept";
 
 export const queryApplicationDateTypesOnFinishedPhases = async (
   tx: PrismaTransactionClient,
@@ -20,18 +19,9 @@ export const queryApplicationDateTypesOnFinishedPhases = async (
             applicationPhases: {
               some: {
                 applicationId: applicationId,
-                OR: [
-                  {
-                    phaseId: CONCEPT_PHASE_ID,
-                    phaseStatusId: {
-                      in: [COMPLETED_STATUS, SKIPPED_STATUS],
-                    },
-                  },
-                  {
-                    phaseId: { not: CONCEPT_PHASE_ID },
-                    phaseStatusId: COMPLETED_STATUS,
-                  },
-                ],
+                phaseStatusId: {
+                  in: [COMPLETED_STATUS, SKIPPED_STATUS],
+                },
               },
             },
           },

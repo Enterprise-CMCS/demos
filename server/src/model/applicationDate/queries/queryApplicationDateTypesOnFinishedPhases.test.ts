@@ -43,18 +43,9 @@ describe("queryApplicationDateTypesOnFinishedPhases", () => {
               applicationPhases: {
                 some: {
                   applicationId: testApplicationId,
-                  OR: [
-                    {
-                      phaseId: "Concept",
-                      phaseStatusId: {
-                        in: ["Completed" satisfies PhaseStatus, "Skipped" satisfies PhaseStatus],
-                      },
-                    },
-                    {
-                      phaseId: { not: "Concept" },
-                      phaseStatusId: "Completed" satisfies PhaseStatus,
-                    },
-                  ],
+                  phaseStatusId: {
+                    in: ["Completed" satisfies PhaseStatus, "Skipped" satisfies PhaseStatus],
+                  },
                 },
               },
             },
