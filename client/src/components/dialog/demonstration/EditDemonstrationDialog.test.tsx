@@ -29,7 +29,6 @@ const DEFAULT_PROPS = {
 };
 
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
-const CANCEL_BUTTON_TEST_ID = "button-cancel-demonstration-dialog";
 
 describe("EditDemonstrationDialog", () => {
   const TEST_DEMO_ID = "1";
@@ -137,7 +136,7 @@ describe("EditDemonstrationDialog", () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.getByTestId(CANCEL_BUTTON_TEST_ID)).toBeInTheDocument();
+      expect(screen.getByTestId(CANCEL_BUTTON_NAME)).toBeInTheDocument();
       expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeInTheDocument();
     });
   });
