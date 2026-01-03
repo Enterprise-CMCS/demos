@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 
-import { SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { Textarea } from "components/input";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
@@ -121,7 +120,6 @@ export const DemonstrationDialog: React.FC<{
   onSubmit: (demonstration: DemonstrationDialogFields) => Promise<void>;
 }> = ({ onClose, mode, initialDemonstration, onSubmit }) => {
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formHasChanges, setFormHasChanges] = useState<boolean>(false);
   const [formIsValid, setFormIsValid] = useState<boolean>(false);
@@ -142,25 +140,14 @@ export const DemonstrationDialog: React.FC<{
     <BaseDialog
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
       onClose={onClose}
-      showCancelConfirm={showCancelConfirm}
-      setShowCancelConfirm={setShowCancelConfirm}
       maxWidthClass="max-w-[920px]"
-      actions={
-        <>
-          <SecondaryButton
-            name="button-cancel-demonstration-dialog"
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-          >
-            Cancel
-          </SecondaryButton>
-          <SubmitButton
-            name={"button-submit-demonstration-dialog"}
-            disabled={!formHasChanges || !formIsValid}
-            isSubmitting={isSubmitting}
-            onClick={handleSubmit}
-          />
-        </>
+      actionButton={
+        <SubmitButton
+          name={"button-submit-demonstration-dialog"}
+          disabled={!formHasChanges || !formIsValid}
+          isSubmitting={isSubmitting}
+          onClick={handleSubmit}
+        />
       }
     >
       <form id="demonstration-form" className="flex flex-col gap-[24px]">

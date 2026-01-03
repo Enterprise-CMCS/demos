@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { gql } from "@apollo/client";
 import type { MockedResponse } from "@apollo/client/testing";
 import { MockedProvider } from "@apollo/client/testing";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -617,7 +618,7 @@ describe("ManageContactsDialog", () => {
 
     renderWithProviders();
 
-    const cancelButton = screen.getByRole("button", { name: "button-cancel" });
+    const cancelButton = screen.getByRole("button", { name: DIALOG_CANCEL_BUTTON_NAME });
     await user.click(cancelButton);
 
     // This would show the cancel confirmation in BaseDialog
@@ -1004,7 +1005,7 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(props);
 
-      const cancelButton = screen.getByRole("button", { name: "button-cancel" });
+      const cancelButton = screen.getByRole("button", { name: DIALOG_CANCEL_BUTTON_NAME });
       await user.click(cancelButton);
 
       // Should close immediately without confirmation
@@ -1041,7 +1042,7 @@ describe("ManageContactsDialog", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Now try to cancel
-      const cancelButton = screen.getByRole("button", { name: "button-cancel" });
+      const cancelButton = screen.getByRole("button", { name: DIALOG_CANCEL_BUTTON_NAME });
       await user.click(cancelButton);
 
       // Should show confirmation dialog instead of closing immediately
