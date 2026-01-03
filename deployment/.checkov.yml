@@ -1,0 +1,9 @@
+skip-check:
+  - CKV_AWS_115 # lambda reserved concurrency
+  - CKV_AWS_158 # CMK for cloudwatch logs
+  - CKV_AWS_116 # DLQ for lambdas (too many findings from internal CDK and most DEMOS functions don't need it)
+  - CKV_AWS_117 # Lambdas in VPC (only CDK's auto-generated lambdas are an issue here and don't require a vpc)
+quiet: true
+compact: true
+summary-position: bottom
+framework: cloudformation
