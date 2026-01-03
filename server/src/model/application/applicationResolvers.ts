@@ -10,6 +10,7 @@ import {
 } from "@prisma/client";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { SetApplicationClearanceLevelInput } from "./applicationSchema.js";
+import { checkReviewPhaseNotCompleted } from "./checkReviewPhaseNotCompleted.js";
 
 export type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
 
@@ -206,25 +207,33 @@ export async function setApplicationClearanceLevel(
     const application = await getApplication(input.applicationId);
     const applicationType = __resolveApplicationType(application);
 
-    switch (applicationType) {
-      case "Demonstration":
-        return await prisma().demonstration.update({
-          where: { id: input.applicationId },
-          data: { clearanceLevelId: input.clearanceLevel },
-        });
-      case "Amendment":
-        return await prisma().amendment.update({
-          where: { id: input.applicationId },
-          data: { clearanceLevelId: input.clearanceLevel },
-        });
-      case "Extension":
-        return await prisma().extension.update({
-          where: { id: input.applicationId },
-          data: { clearanceLevelId: input.clearanceLevel },
-        });
-      default:
-        throw new GraphQLError(`Unknown application type: ${applicationType}`);
+    if (application.clearanceLevelId === input.clearanceLevel) {
+      return application;
     }
+
+    return prisma().$transaction(async (tx) => {
+      await checkReviewPhaseNotCompleted(tx, input.applicationId);
+
+      switch (applicationType) {
+        case "Demonstration":
+          return await tx.demonstration.update({
+            where: { id: input.applicationId },
+            data: { clearanceLevelId: input.clearanceLevel },
+          });
+        case "Amendment":
+          return await tx.amendment.update({
+            where: { id: input.applicationId },
+            data: { clearanceLevelId: input.clearanceLevel },
+          });
+        case "Extension":
+          return await tx.extension.update({
+            where: { id: input.applicationId },
+            data: { clearanceLevelId: input.clearanceLevel },
+          });
+        default:
+          throw new GraphQLError(`Unknown application type: ${applicationType}`);
+      }
+    });
   } catch (error) {
     handlePrismaError(error);
   }
