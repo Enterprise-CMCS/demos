@@ -58,7 +58,7 @@ export const OGC_AND_OMB_DATE_TYPES = [
 export const OGC_AND_OMB_NOTE_TYPES = ["OGC and OMB"] as const satisfies ReviewPhaseNoteTypes[];
 
 export const COMMS_CLEARANCE_DATE_TYPES = [
-  "Package Sent to COMMs Clearance",
+  "Package Sent for COMMs Clearance",
   "COMMs Clearance Received",
 ] as const satisfies ReviewPhaseDateTypes[];
 export const COMMS_CLEARANCE_NOTE_TYPES = [

@@ -273,6 +273,7 @@ export type DocumentDialogProps = {
   ) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
+  cancelButtonIsDisabled?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -303,7 +304,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -357,25 +357,14 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     <BaseDialog
       title={dialogTitle}
       onClose={onClose}
-      showCancelConfirm={showCancelConfirm}
-      setShowCancelConfirm={setShowCancelConfirm}
-      actions={
-        <>
-          <SecondaryButton
-            name="button-cancel-upload-document"
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-            disabled={documentDialogState === "uploading"}
-          >
-            Cancel
-          </SecondaryButton>
-          <UploadButton
-            onClick={onUploadClick}
-            disabled={isMissing}
-            isUploading={documentDialogState === "uploading"}
-          />
-        </>
+      actionButton={
+        <UploadButton
+          onClick={onUploadClick}
+          disabled={isMissing}
+          isUploading={documentDialogState === "uploading"}
+        />
       }
+      cancelButtonIsDisabled={documentDialogState === "uploading"}
     >
       <DropTarget
         file={file}

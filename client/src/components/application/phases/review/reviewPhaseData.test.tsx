@@ -124,7 +124,7 @@ describe("reviewPhaseData", () => {
             phaseDates: [
               { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-06-15") },
               {
-                dateType: "Package Sent to COMMs Clearance",
+                dateType: "Package Sent for COMMs Clearance",
                 dateValue: new Date("2025-07-20"),
               },
             ],
@@ -142,7 +142,7 @@ describe("reviewPhaseData", () => {
       expect(result.props.initialFormData.dates["Draft Approval Package Shared"]).toBe(
         "2025-06-15"
       );
-      expect(result.props.initialFormData.dates["Package Sent to COMMs Clearance"]).toBe(
+      expect(result.props.initialFormData.dates["Package Sent for COMMs Clearance"]).toBe(
         "2025-07-20"
       );
       expect(result.props.initialFormData.notes["OGC and OMB"]).toBe("OGC note content");
@@ -161,7 +161,7 @@ describe("reviewPhaseData", () => {
             phaseDates: [
               { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-06-15") },
               {
-                dateType: "Package Sent to COMMs Clearance",
+                dateType: "Package Sent for COMMs Clearance",
                 dateValue: new Date("2025-07-20"),
               },
             ],

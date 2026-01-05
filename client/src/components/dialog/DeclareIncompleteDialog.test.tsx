@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DeclareIncompleteDialog } from "./DeclareIncompleteDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
 
 const mockOnClose = vi.fn();
 const mockOnConfirm = vi.fn();
@@ -79,7 +80,7 @@ describe("DeclareIncompleteDialog", () => {
 
   it("calls onClose when cancel button is clicked", async () => {
     setup();
-    const cancelBtn = screen.getByRole("button", { name: /cancel/i });
+    const cancelBtn = screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME);
     await userEvent.click(cancelBtn);
     expect(mockOnClose).toHaveBeenCalled();
   });

@@ -30,7 +30,7 @@ describe("parseInputApplicationDates", () => {
         dateValue: testDateTimeValue1,
       },
       {
-        dateType: "PO & OGD Sign-Off",
+        dateType: "Review Completion Date",
         dateValue: null,
       },
     ],
@@ -49,7 +49,7 @@ describe("parseInputApplicationDates", () => {
 
   it("should add null items to the deletion list", () => {
     const result = parseSetApplicationDatesInput(testInputs);
-    expect(result.applicationDatesToDelete).toEqual(["PO & OGD Sign-Off"]);
+    expect(result.applicationDatesToDelete).toEqual(["Review Completion Date"]);
   });
 
   it("should returl non-null items in the upsert list", () => {

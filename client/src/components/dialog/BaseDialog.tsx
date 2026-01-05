@@ -1,17 +1,20 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
+import { SecondaryButton } from "components/button";
 import { tw } from "tags/tw";
 import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
+
+export const DIALOG_CANCEL_BUTTON_NAME = "button-dialog-cancel";
 
 interface BaseDialogProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  actions?: React.ReactNode;
-  showCancelConfirm?: boolean;
-  setShowCancelConfirm?: (val: boolean) => void;
+  actionButton?: React.ReactNode;
+  dialogHasChanges?: boolean;
   maxWidthClass?: string;
   hideHeader?: boolean;
+  cancelButtonIsDisabled?: boolean;
 }
 
 const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative max-h-[85vh] overflow-y-auto space-y-sm backdrop:bg-black/40`;
@@ -23,13 +26,14 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   title,
   onClose,
   children,
-  actions,
-  showCancelConfirm = false,
-  setShowCancelConfirm,
+  actionButton,
+  dialogHasChanges: hasChanges = true,
   maxWidthClass = "max-w-[720px]",
   hideHeader = false,
+  cancelButtonIsDisabled = false,
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -62,8 +66,8 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   };
 
   const onCloseClicked = () => {
-    if (showCancelConfirm && setShowCancelConfirm) {
-      setShowCancelConfirm(true);
+    if (hasChanges) {
+      setIsCancellationConfirmationOpen(true);
     } else {
       onClose();
     }
@@ -84,18 +88,27 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
 
         {children}
 
-        {actions && (
+        {actionButton && (
           <>
             <hr className={HR} />
-            <div className="flex justify-end gap-[24px]">{actions}</div>
+            <div className="flex justify-end gap-[24px]">
+              <SecondaryButton
+                name={DIALOG_CANCEL_BUTTON_NAME}
+                onClick={onCloseClicked}
+                disabled={cancelButtonIsDisabled}
+              >
+                Cancel
+              </SecondaryButton>
+              {actionButton}
+            </div>
           </>
         )}
       </dialog>
 
-      {showCancelConfirm && setShowCancelConfirm && (
+      {isCancellationConfirmationOpen && (
         <ConfirmCancellationDialog
-          isOpen={showCancelConfirm}
-          onClose={() => setShowCancelConfirm(false)}
+          isOpen={isCancellationConfirmationOpen}
+          onClose={() => setIsCancellationConfirmationOpen(false)}
           onConfirm={onClose}
         />
       )}
