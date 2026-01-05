@@ -15,6 +15,28 @@ import { DemonstrationTab } from "./DemonstrationTab";
 import { ExtensionsTab } from "./ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
 
+export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
+  query GetDemonstrationById($id: ID!) {
+    demonstration(id: $id) {
+      id
+      name
+      description
+      state {
+        id
+        name
+      }
+      roles {
+        isPrimary
+        role
+        person {
+          id
+          fullName
+        }
+      }
+    }
+  }
+`;
+
 export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
     demonstration(id: $id) {
