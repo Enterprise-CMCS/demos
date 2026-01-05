@@ -43,8 +43,13 @@ export const AutomaticRefetchingOnVariableChanges: React.FC<{
   const demonstrations = demonstrationWithId?.demonstrations;
 
   return (
-    <>
+    <div className="flex flex-col gap-1">
       <h2 className="text-lg font-bold mb-2">Automatic Refetching on Variable Changes</h2>
+      <p>
+        Apollo also presents more tools to help keep the frontend updated; one such tool is the
+        automatic requerying when variables input change. This has been implemented in a separate
+        component to further enphasize the data contract concept.
+      </p>
       <p>
         This component demonstrates Apollo Client&apos;s ability to automatically refetch queries
         when their variables change. Here, i display the demonstration&apos;s description, however,
@@ -88,6 +93,6 @@ export const AutomaticRefetchingOnVariableChanges: React.FC<{
           </p>
         </div>
       )}
-    </>
+    </div>
   );
 };

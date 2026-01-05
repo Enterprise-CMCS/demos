@@ -5,6 +5,7 @@ import { Demonstration as ServerDemonstration } from "demos-server";
 import { UseQueryAsADataContract } from "./useQueryAsADataContract";
 import { AutomaticRefetchingOnVariableChanges } from "./automaticRefetchingOnVariableChanges";
 import { CacheCaveats } from "./CacheCaveats";
+import { ListManipulation } from "./ListManipulation/ListManipulation";
 
 const GET_JUST_THE_IDS_OF_ALL_DEMONSTRATIONS = gql`
   query getJustTheIdsOfAllDemonstrations {
@@ -25,7 +26,7 @@ export const CacheDemonstration = () => {
 
   return (
     <>
-      <h1>Cache Demonstration</h1>
+      <h1 className="text-2xl font-bold mb-2">Cache Demonstration</h1>
       <div className="flex flex-col gap-2">
         <p>
           The purpose of this demonstration is to aid in developing understanding of Apollo`&apos;s
@@ -86,6 +87,9 @@ export const CacheDemonstration = () => {
             </div>
             <div className="border-t py-2">
               <AutomaticRefetchingOnVariableChanges demonstrationId={demonstrationId} />
+            </div>
+            <div className="border-t py-2">
+              <ListManipulation demonstrationId={demonstrationId} />
             </div>
             <div className="border-t py-2">
               <CacheCaveats demonstrationId={demonstrationId} />

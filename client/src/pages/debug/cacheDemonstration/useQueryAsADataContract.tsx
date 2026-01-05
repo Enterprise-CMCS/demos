@@ -106,7 +106,7 @@ export const UseQueryAsADataContract = ({ demonstrationId }: { demonstrationId: 
 
   return (
     <>
-      <h2 className="font-bold mb-1">useQuery as a Data Contract</h2>
+      <h2 className="font-bold text-lg">useQuery as a Data Contract</h2>
       <div className="flex flex-col gap-2">
         <p>
           Scenario: we have two components, a Caller and a Callee. Both components need to display
@@ -135,8 +135,9 @@ export const UseQueryAsADataContract = ({ demonstrationId }: { demonstrationId: 
           Big Idea: in the network tab of the browser devtools, we only see a query for
           &quot;GetJustTheDescriptionOfADemonstration&quot; and do not see a second network request
           for &quot;GetJustTheDescriptionOfADemonstration2&quot;. Apollo was able to satisfy the
-          second query from the cache. useQuery then acts as a data contract, ensuring that the data
-          needed is available.
+          second query from the cache.{" "}
+          <span className="font-bold">useQuery then acts as a data contract</span>, ensuring that
+          the data needed is available.
         </p>
         <p>
           Now lets mutate the data from within this component with two different mutators. The first
@@ -145,20 +146,21 @@ export const UseQueryAsADataContract = ({ demonstrationId }: { demonstrationId: 
         </p>
         <ol className="list-disc list-inside flex flex-col">
           <li>
-            Should we use GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION or
-            GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION_2?
+            Should we use <code>GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION</code> or{" "}
+            <code>GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION_2?</code>
           </li>
           <li>
-            what if GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION_2 no longer queries the description
-            field, do we need to point this mutator to a different query?
+            what if <code>GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION_2</code> no longer queries the
+            description field, do we need to point this mutator to a different query?
           </li>
           <li>
             is there a more &quot;core&quot; query that both queries derive from that would be more
             appropriate to refetch?
           </li>
           <li>
-            if we want to modify GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION, should we make sure to
-            also modify GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION_2 to keep them in sync
+            if we want to modify <code>GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION</code>, should we
+            make sure to also modify <code>GET_JUST_THE_DESCRIPTION_OF_A_DEMONSTRATION_2</code> to
+            keep them in sync
           </li>
           <li>
             does this pattern scale when many components need the same data? Do we end up with a web
@@ -173,7 +175,16 @@ export const UseQueryAsADataContract = ({ demonstrationId }: { demonstrationId: 
           The second mutator asks the server for the freshly modified data. Doing so returns data in
           the <em>same</em> request as the mutation; no followup fetching is needed, the changes to
           other referenced queries is irrelevent, and every component that uses the data is
-          automatically updated.
+          automatically updated.{" "}
+          <span className="font-bold">
+            This is the pattern{" "}
+            <a
+              className="text-blue-600 underline"
+              href="https://www.apollographql.com/docs/react/data/mutations#include-modified-objects-in-mutation-responses"
+            >
+              recognized as best practice by Apollo itself
+            </a>
+          </span>
         </p>
         <div className="flex gap-2">
           <input
@@ -196,11 +207,7 @@ export const UseQueryAsADataContract = ({ demonstrationId }: { demonstrationId: 
             Update the description with data returned
           </Button>
         </div>
-        <p>
-          Apollo also presents more tools to help keep the frontend updated; one such tool is the
-          automatic requerying when variables input change. This is demonstrated in a separate
-          component to further enphasize the data contract concept.
-        </p>
+
       </div>
     </>
   );
