@@ -82,17 +82,13 @@ type DescriptionInputProps = {
   value: string;
   onChange: (value: string) => void;
   error?: string;
-  required?: boolean;
 };
 
-const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, error, required }) => {
+const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, error }) => {
   const validationMessage = error ?? "";
-
   return (
     <div className="flex flex-col gap-sm">
-      <label className={LABEL_CLASSES}>
-        Document Description {required ? <span className="text-error-dark">*</span> : null}
-      </label>
+      <label className={LABEL_CLASSES}>Document Description</label>
       <textarea
         rows={2}
         placeholder="Enter"
