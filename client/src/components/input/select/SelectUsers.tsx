@@ -19,7 +19,7 @@ export const GET_USER_SELECT_OPTIONS_QUERY = gql`
 type Person = Pick<ServerPerson, "id" | "fullName" | "personType" | "firstName" | "lastName">;
 
 export interface SelectUsersProps {
-  value?: string;
+  value: string;
   onSelect: (id: string) => void;
   label?: string;
   isRequired?: boolean;

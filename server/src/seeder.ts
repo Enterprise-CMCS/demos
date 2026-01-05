@@ -5,6 +5,7 @@ import {
   PERSON_TYPES,
   SIGNATURE_LEVEL,
   PHASE_DOCUMENT_TYPE_MAP,
+  NOTE_TYPES,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -46,6 +47,21 @@ function getRandomPhaseDocumentTypeCombination(): {
     phaseName: randomPhase,
     documentType: randomDocumentType,
   };
+}
+
+async function seedNotes() {
+  console.log("🌱 Seeding application notes...");
+  const applications = await prisma().application.findMany();
+  for (const application of applications) {
+    const noteContent = faker.lorem.paragraph();
+    await prisma().applicationNote.create({
+      data: {
+        applicationId: application.id,
+        noteTypeId: faker.helpers.arrayElement(NOTE_TYPES),
+        content: noteContent,
+      },
+    });
+  }
 }
 
 async function seedDocuments() {
@@ -487,23 +503,11 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-09T00:00:00.000-05:00"),
       },
       {
-        dateType: "OGC Review Complete",
-        dateValue: new Date("2025-02-10T00:00:00.000-05:00"),
-      },
-      {
-        dateType: "OMB Review Complete",
-        dateValue: new Date("2025-02-11T00:00:00.000-05:00"),
-      },
-      {
-        dateType: "PO & OGD Sign-Off",
-        dateValue: new Date("2025-02-12T00:00:00.000-05:00"),
-      },
-      {
         dateType: "Review Completion Date",
         dateValue: new Date("2025-02-13T00:00:00.000-05:00"),
       },
       {
-        dateType: "OGC Approval to Share with SMEs",
+        dateType: "OGD Approval to Share with SMEs",
         dateValue: new Date("2025-02-14T00:00:00.000-05:00"),
       },
       {
@@ -533,6 +537,30 @@ async function seedDatabase() {
       {
         dateType: "Receive OGC Legal Clearance",
         dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Package Sent for COMMs Clearance",
+        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "COMMs Clearance Received",
+        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "Submit Approval Package to OSORA",
+        dateValue: new Date("2025-02-21T00:00:00.000-05:00"),
+      },
+      {
+        dateType: "OSORA R1 Comments Due",
+        dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
+      },
+      {
+        dateType: "OSORA R2 Comments Due",
+        dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
+      },
+      {
+        dateType: "CMS (OSORA) Clearance End",
+        dateValue: new Date("2025-02-07T23:59:59.999-05:00"),
       },
     ],
   };
@@ -599,8 +627,9 @@ async function seedDatabase() {
   }
 
   await seedDocuments();
-  console.log("🌱 Seeding events (with and without applicationIds)...");
 
+  await seedNotes();
+  console.log("🌱 Seeding events (with and without applicationIds)...");
   // Grab some applications for association
   const numberOfApplicationEvents = 10;
   const applicationsForEvents = await prisma().application.findMany({

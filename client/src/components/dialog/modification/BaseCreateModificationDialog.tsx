@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { BaseDialog } from "../BaseDialog";
-import { Button, SecondaryButton } from "components/button";
+import { Button } from "components/button";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { Textarea, TextInput } from "components/input";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
@@ -46,7 +46,6 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
     useState<CreateModificationFormFields>({
       demonstrationId: initialDemonstrationId,
     });
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const { showError } = useToast();
 
   useQuery<{ demonstration: Demonstration }>(CREATE_MODIFICATION_DIALOG_QUERY, {
@@ -81,32 +80,20 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
     <BaseDialog
       title={`New ${modificationType}`}
       onClose={onClose}
-      showCancelConfirm={showCancelConfirm}
-      setShowCancelConfirm={setShowCancelConfirm}
       maxWidthClass="max-w-[720px]"
-      actions={
-        <>
-          <SecondaryButton
-            name={`button-cancel-create-${modificationType.toLowerCase()}`}
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-          >
-            Cancel
-          </SecondaryButton>
-          <Button
-            name={`button-submit-create-${modificationType.toLowerCase()}`}
-            size="small"
-            type="submit"
-            form={`create-${modificationType.toLowerCase()}`}
-            disabled={
-              !(
-                createModificationFormFields.demonstrationId && createModificationFormFields.name
-              ) || loading
-            }
-          >
-            {loading ? "Saving..." : "Submit"}
-          </Button>
-        </>
+      actionButton={
+        <Button
+          name={`button-submit-create-${modificationType.toLowerCase()}`}
+          size="small"
+          type="submit"
+          form={`create-${modificationType.toLowerCase()}`}
+          disabled={
+            !(createModificationFormFields.demonstrationId && createModificationFormFields.name) ||
+            loading
+          }
+        >
+          {loading ? "Saving..." : "Submit"}
+        </Button>
       }
     >
       <form
@@ -124,7 +111,7 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
                 demonstrationId: value,
               });
             }}
-            value={createModificationFormFields.demonstrationId}
+            value={createModificationFormFields.demonstrationId || ""}
           />
         </div>
 
@@ -149,7 +136,7 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
               label="State/Territory"
               isRequired
               isDisabled
-              value={createModificationFormFields.stateId}
+              value={createModificationFormFields.stateId || ""}
               onSelect={() => {}}
             />
           </div>

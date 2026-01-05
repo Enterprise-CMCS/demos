@@ -45,6 +45,7 @@ describe("ConceptPhase", () => {
     name: "Pre-Submission Document 1",
     description: "Test pre-submission document",
     documentType: "Pre-Submission",
+    phaseName: "Concept",
     owner: { person: { fullName: "John Doe" } },
     createdAt: new Date("2024-01-15"),
   };
@@ -213,6 +214,7 @@ describe("ConceptPhase", () => {
         id: "demo-111",
         status: "Pre-Submission",
         currentPhaseName: "Concept",
+        clearanceLevel: "CMS (OSORA)",
         phases: [],
         documents: [
           {
@@ -220,14 +222,34 @@ describe("ConceptPhase", () => {
             name: "Pre-Sub 1",
             description: "desc",
             documentType: "Pre-Submission",
+            phaseName: "Concept",
             owner: { person: { fullName: "John Doe" } },
             createdAt: new Date("2024-04-01"),
           },
           {
             id: "d2",
             name: "General Doc",
-            description: "ignore me",
+            description: "i am included now",
             documentType: "General File",
+            phaseName: "Concept",
+            owner: { person: { fullName: "John Doe" } },
+            createdAt: new Date("2024-04-02"),
+          },
+          {
+            id: "d3",
+            name: "FBNF Workbook",
+            description: "ignore me",
+            documentType: "Final Budget Neutrality Formulation Workbook",
+            phaseName: "Approval Package",
+            owner: { person: { fullName: "John Doe" } },
+            createdAt: new Date("2024-04-02"),
+          },
+          {
+            id: "d3",
+            name: "FBNF Workbook",
+            description: "ignore me",
+            documentType: "Final Budget Neutrality Formulation Workbook",
+            phaseName: "Approval Package",
             owner: { person: { fullName: "John Doe" } },
             createdAt: new Date("2024-04-02"),
           },
@@ -238,7 +260,7 @@ describe("ConceptPhase", () => {
       expect(component).toBeDefined();
       expect(component.type).toBe(ConceptPhase);
       expect(component.props.demonstrationId).toBe("demo-111");
-      expect(component.props.initialPreSubmissionDocuments).toHaveLength(1);
+      expect(component.props.initialPreSubmissionDocuments).toHaveLength(2);
     });
   });
 });

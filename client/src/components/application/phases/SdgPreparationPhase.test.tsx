@@ -46,6 +46,7 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
   status: "Pre-Submission",
   currentPhaseName: "SDG Preparation",
   documents: [],
+  clearanceLevel: "CMS (OSORA)",
   phases: [
     {
       phaseName: "SDG Preparation",
@@ -56,6 +57,7 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
           dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
       ],
+      phaseNotes: [],
     },
   ],
 };
@@ -64,6 +66,7 @@ const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
   id: "1",
   status: "Pre-Submission",
   currentPhaseName: "SDG Preparation",
+  clearanceLevel: "CMS (OSORA)",
   documents: [],
   phases: [
     {
@@ -84,6 +87,7 @@ const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
           dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
       ],
+      phaseNotes: [],
     },
   ],
 };

@@ -1,6 +1,9 @@
 import React from "react";
 
-import { ApplicationWorkflow } from "components/application/ApplicationWorkflow";
+import {
+  ApplicationWorkflow,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
+} from "components/application/ApplicationWorkflow";
 import { IconButton } from "components/button";
 import {
   AddNewIcon,
@@ -23,6 +26,7 @@ import { Tab, VerticalTabs } from "layout/Tabs";
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { ContactsTab } from "./ContactsTab";
+import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -42,6 +46,13 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
   demonstration,
 }) => {
   const { showUploadDocumentDialog } = useDialog();
+  const client = useApolloClient();
+
+  const refetchApplicationWorkflow = async () => {
+    await client.refetchQueries({
+      include: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+    });
+  };
 
   return (
     <div className="p-[16px]">
@@ -64,7 +75,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               icon={<AddNewIcon />}
               name="add-new-document"
               size="small"
-              onClick={() => showUploadDocumentDialog(demonstration.id)}
+              onClick={() => showUploadDocumentDialog(demonstration.id, refetchApplicationWorkflow)}
             >
               Add Document
             </IconButton>

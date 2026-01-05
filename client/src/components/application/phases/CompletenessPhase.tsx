@@ -222,11 +222,6 @@ export const CompletenessPhase = ({
     showSuccess(getPhaseCompletedMessage("Completeness"));
   };
 
-  const handleSaveForLater = async () => {
-    await saveDates();
-    showSuccess(SAVE_FOR_LATER_MESSAGE);
-  };
-
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
       <h4 id="completeness-upload-title" className={STYLES.title}>
@@ -292,9 +287,6 @@ export const CompletenessPhase = ({
           Declare Incomplete
         </SecondaryButton>
         <div className={STYLES.actionsEnd}>
-          <SecondaryButton name="save-for-later" size="small" onClick={handleSaveForLater}>
-            Save For Later
-          </SecondaryButton>
           <Button
             name="finish-completeness"
             size="small"

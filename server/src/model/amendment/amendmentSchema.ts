@@ -8,6 +8,7 @@ import {
   Document,
   NonEmptyString,
   DateTimeOrLocalDate,
+  ClearanceLevel,
 } from "../../types.js";
 
 export const amendmentSchema = gql`
@@ -24,6 +25,7 @@ export const amendmentSchema = gql`
     documents: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+    clearanceLevel: ClearanceLevel!
   }
 
   input CreateAmendmentInput {
@@ -64,6 +66,7 @@ export interface Amendment {
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];
   documents: Document[];
+  clearanceLevel: ClearanceLevel;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,6 +1,6 @@
 import { prisma } from "../../prismaClient.js";
 import { GraphQLError } from "graphql";
-import { ApplicationType } from "../../types.js";
+import { ApplicationType, ClearanceLevel } from "../../types.js";
 import {
   Demonstration as PrismaDemonstration,
   Amendment as PrismaAmendment,
@@ -9,6 +9,7 @@ import {
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { SetApplicationClearanceLevelInput } from "./applicationSchema.js";
 
 export type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
 
@@ -192,7 +193,47 @@ export async function resolveApplicationPhases(
   return result!;
 }
 
+export function resolveApplicationClearanceLevel(parent: PrismaApplication): ClearanceLevel {
+  // clearance level casting enforced by database constraints
+  return parent.clearanceLevelId as ClearanceLevel;
+}
+
+export async function setApplicationClearanceLevel(
+  _: unknown,
+  { input }: { input: SetApplicationClearanceLevelInput }
+): Promise<PrismaApplication> {
+  try {
+    const application = await getApplication(input.applicationId);
+    const applicationType = __resolveApplicationType(application);
+
+    switch (applicationType) {
+      case "Demonstration":
+        return await prisma().demonstration.update({
+          where: { id: input.applicationId },
+          data: { clearanceLevelId: input.clearanceLevel },
+        });
+      case "Amendment":
+        return await prisma().amendment.update({
+          where: { id: input.applicationId },
+          data: { clearanceLevelId: input.clearanceLevel },
+        });
+      case "Extension":
+        return await prisma().extension.update({
+          where: { id: input.applicationId },
+          data: { clearanceLevelId: input.clearanceLevel },
+        });
+      default:
+        throw new GraphQLError(`Unknown application type: ${applicationType}`);
+    }
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export const applicationResolvers = {
+  Mutation: {
+    setApplicationClearanceLevel: setApplicationClearanceLevel,
+  },
   Application: {
     __resolveType: __resolveApplicationType,
   },

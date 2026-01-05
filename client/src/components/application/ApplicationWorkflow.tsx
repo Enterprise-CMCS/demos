@@ -8,6 +8,7 @@ import type {
   PhaseStatus,
   Document,
   Person,
+  ApplicationNote,
 } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
@@ -18,6 +19,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       id
       status
       currentPhaseName
+      clearanceLevel
       phases {
         phaseName
         phaseStatus
@@ -25,12 +27,17 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
           dateType
           dateValue
         }
+        phaseNotes {
+          noteType
+          content
+        }
       }
       documents {
         id
         name
         description
         documentType
+        phaseName
         createdAt
         owner {
           person {
@@ -46,18 +53,19 @@ export type SimplePhase = {
   phaseName: PhaseName;
   phaseStatus: PhaseStatus;
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
+  phaseNotes: Pick<ApplicationNote, "noteType" | "content">[];
 };
 
-export type ApplicationWorkflowDocument = (Pick<
+export type ApplicationWorkflowDocument = Pick<
   Document,
-  "id" | "name" | "description" | "documentType" | "createdAt"
+  "id" | "name" | "description" | "documentType" | "phaseName" |"createdAt"
 > & {
   owner: { person: Pick<Person, "fullName"> };
-});
+};
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
-  "id" | "status" | "currentPhaseName"
+  "id" | "status" | "currentPhaseName" | "clearanceLevel"
 > & {
   phases: SimplePhase[];
   documents: ApplicationWorkflowDocument[];

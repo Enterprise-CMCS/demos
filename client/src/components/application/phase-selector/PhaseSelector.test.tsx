@@ -18,6 +18,7 @@ describe("PhaseSelector", () => {
       id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
       status: "Under Review",
       currentPhaseName: "Federal Comment",
+      clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
     };
@@ -46,6 +47,7 @@ describe("PhaseSelector", () => {
       id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
       status: "Under Review",
       currentPhaseName: "Federal Comment",
+      clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
     };
@@ -69,16 +71,19 @@ describe("getDisplayedPhaseStatus", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Concept",
           phaseStatus: "Started",
           phaseDates: [],
+          phaseNotes: [],
         },
         {
           phaseName: "Application Intake",
           phaseStatus: "Completed",
           phaseDates: [],
+          phaseNotes: [],
         },
       ],
       documents: [],
@@ -93,11 +98,13 @@ describe("getDisplayedPhaseStatus", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Concept",
           phaseStatus: "Started",
           phaseDates: [],
+          phaseNotes: [],
         },
       ],
       documents: [],
@@ -111,6 +118,7 @@ describe("getDisplayedPhaseStatus", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
     };
@@ -125,6 +133,7 @@ describe("getDisplayedPhaseDate", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
     };
@@ -137,11 +146,13 @@ describe("getDisplayedPhaseDate", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Concept",
           phaseStatus: "Started",
           phaseDates: [],
+          phaseNotes: [],
         },
       ],
       documents: [],
@@ -159,6 +170,7 @@ describe("getDisplayedPhaseDate", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Concept",
@@ -177,6 +189,7 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: completionDate,
             },
           ],
+          phaseNotes: [],
         },
       ],
       documents: [],
@@ -194,6 +207,7 @@ describe("getDisplayedPhaseDate", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Review",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Review",
@@ -204,10 +218,11 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: startDate,
             },
             {
-              dateType: "OGC Review Complete",
+              dateType: "Review Completion Date",
               dateValue: completeDate,
             },
           ],
+          phaseNotes: [],
         },
       ],
       documents: [],
@@ -225,6 +240,7 @@ describe("getDisplayedPhaseDate", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Application Intake",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Application Intake",
@@ -239,6 +255,7 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: submittedDate,
             },
           ],
+          phaseNotes: [],
         },
       ],
       documents: [],
@@ -255,6 +272,7 @@ describe("getDisplayedPhaseDate", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Federal Comment",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Federal Comment",
@@ -265,6 +283,7 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: startDate,
             },
           ],
+          phaseNotes: [],
         },
       ],
       documents: [],
@@ -282,6 +301,7 @@ describe("getDisplayedPhaseDate", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "SDG Preparation",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "SDG Preparation",
@@ -296,6 +316,7 @@ describe("getDisplayedPhaseDate", () => {
               dateValue: secondDate,
             },
           ],
+          phaseNotes: [],
         },
       ],
       documents: [],
@@ -312,6 +333,7 @@ describe("getDisplayedPhaseDate", () => {
       id: "test-id",
       status: "Under Review",
       currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
       phases: [
         {
           phaseName: "Concept",
@@ -322,6 +344,7 @@ describe("getDisplayedPhaseDate", () => {
               dateValue,
             },
           ],
+          phaseNotes: [],
         },
       ],
       documents: [],

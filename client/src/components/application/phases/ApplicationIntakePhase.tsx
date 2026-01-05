@@ -59,7 +59,7 @@ export const getApplicationIntakeComponentFromDemonstration = (
   )?.dateValue;
 
   const stateApplicationDocuments = demonstration.documents.filter(
-    (doc) => doc.documentType === "State Application"
+    (doc) => doc.phaseName === "Application Intake"
   );
 
   return (

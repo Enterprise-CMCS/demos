@@ -6,7 +6,7 @@ import { DocumentType } from "demos-server";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 
 export const DocumentTypeInput: React.FC<{
-  value: string | undefined;
+  value: string;
   onSelect: (value: string) => void;
   documentTypeSubset?: DocumentType[];
 }> = ({ value, onSelect, documentTypeSubset }) => {

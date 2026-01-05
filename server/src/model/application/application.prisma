@@ -9,6 +9,7 @@ model Application {
   demonstration          Demonstration?
   extension              Extension?
   applicationDates       ApplicationDate[]
+  applicationNotes       ApplicationNote[]
   applicationPhases      ApplicationPhase[]
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]

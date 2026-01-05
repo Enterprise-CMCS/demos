@@ -7,6 +7,7 @@ import {
   BaseCreateModificationDialog,
   CREATE_MODIFICATION_DIALOG_QUERY,
 } from "./BaseCreateModificationDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 // Mock toast hook
 const mockShowSuccess = vi.fn();
@@ -182,7 +183,7 @@ describe("BaseCreateModificationDialog", () => {
         </MockedProvider>
       );
 
-      expect(screen.getByTestId("button-cancel-create-amendment")).toBeInTheDocument();
+      expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
       expect(screen.getByTestId("button-submit-create-amendment")).toBeInTheDocument();
     });
   });
@@ -404,7 +405,7 @@ describe("BaseCreateModificationDialog", () => {
         </MockedProvider>
       );
 
-      const cancelButton = screen.getByTestId("button-cancel-create-amendment");
+      const cancelButton = screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME);
       fireEvent.click(cancelButton);
 
       // The BaseDialog should handle the cancel confirmation
@@ -489,7 +490,7 @@ describe("BaseCreateModificationDialog", () => {
         </MockedProvider>
       );
 
-      expect(screen.getByTestId("button-cancel-create-extension")).toBeInTheDocument();
+      expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
       expect(screen.getByTestId("button-submit-create-extension")).toBeInTheDocument();
     });
   });
