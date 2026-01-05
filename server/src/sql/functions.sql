@@ -518,7 +518,8 @@ BEGIN
                 fcpd.federal_comment_start,
                 fcpd.federal_comment_end,
                 max(CASE WHEN ap.phase_id = 'Federal Comment' THEN ap.phase_status_id END) AS federal_comment_phase_status,
-                max(CASE WHEN ap.phase_id = 'SDG Preparation' THEN ap.phase_status_id END) AS sdg_preparation_phase_status
+                max(CASE WHEN ap.phase_id = 'SDG Preparation' THEN ap.phase_status_id END) AS sdg_preparation_phase_status,
+                max(CASE WHEN ap.phase_id = 'Completeness' THEN ap.phase_status_id END) AS completeness_phase_status
             FROM
                 demos_app.application_phase AS ap
             INNER JOIN
@@ -538,19 +539,22 @@ BEGIN
                 federal_comment_end,
                 federal_comment_phase_status,
                 sdg_preparation_phase_status,
+                completeness_phase_status,
                 CASE
                     WHEN
+                        completeness_phase_status = 'Completed' AND
                         CURRENT_TIMESTAMP BETWEEN federal_comment_start AND federal_comment_end AND
                         federal_comment_phase_status = 'Not Started'
-                        THEN TRUE
+                    THEN TRUE
                     ELSE
                         FALSE
                 END AS start_federal_comment_phase,
                 CASE
                     WHEN
+                        completeness_phase_status = 'Completed' AND
                         CURRENT_TIMESTAMP >= federal_comment_end AND
                         (federal_comment_phase_status = 'Started' OR federal_comment_phase_status = 'Not Started')
-                        THEN TRUE
+                    THEN TRUE
                     ELSE
                         FALSE
                 END AS complete_federal_comment_phase,

@@ -5,9 +5,9 @@
   "dependencies": {
     "@apollo/server": "^5.2.0",
     "@as-integrations/aws-lambda": "^4.0.1",
-    "@aws-sdk/client-s3": "^3.948.0",
-    "@aws-sdk/client-secrets-manager": "^3.950.0",
-    "@aws-sdk/s3-request-presigner": "^3.948.0",
+    "@aws-sdk/client-s3": "^3.958.0",
+    "@aws-sdk/client-secrets-manager": "^3.958.0",
+    "@aws-sdk/s3-request-presigner": "^3.958.0",
     "@date-fns/tz": "^1.4.1",
     "@prisma/client": "^6.19.1",
     "date-fns": "^4.1.0",
@@ -47,9 +47,9 @@
     "dbrefresh": "tsx --inspect ./src/refreshDbObjects.ts"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.948.0",
-    "@aws-sdk/client-secrets-manager": "^3.950.0",
-    "@aws-sdk/s3-request-presigner": "^3.948.0",
+    "@aws-sdk/client-s3": "^3.958.0",
+    "@aws-sdk/client-secrets-manager": "^3.958.0",
+    "@aws-sdk/s3-request-presigner": "^3.958.0",
     "@eslint/js": "^9.39.2",
     "@faker-js/faker": "^9.9.0",
     "@graphql-tools/merge": "^9.1.6",
@@ -60,7 +60,7 @@
     "@vitest/ui": "^3.2.4",
     "concurrently": "^9.2.1",
     "depcheck": "^1.4.7",
-    "esbuild": "^0.27.1",
+    "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "eslint-utils": "^3.0.0",
     "graphql": "^16.12.0",
@@ -71,7 +71,7 @@
     "tsc-watch": "^7.2.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.49.0",
+    "typescript-eslint": "^8.51.0",
     "vitest": "^3.2.4",
     "vitest-sonar-reporter": "^2.0.4"
   }

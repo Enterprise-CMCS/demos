@@ -55,7 +55,7 @@ const buildInitialFormData = (overrides?: Partial<ReviewPhaseFormData>): ReviewP
     "Draft Approval Package Shared": "2025-01-06",
     "Receive OMB Concurrence": "2025-01-07",
     "Receive OGC Legal Clearance": "2025-01-08",
-    "Package Sent to COMMs Clearance": "2025-01-09",
+    "Package Sent for COMMs Clearance": "2025-01-09",
     "COMMs Clearance Received": "2025-01-10",
   },
   notes: {
@@ -204,7 +204,7 @@ describe("ReviewPhase Component", () => {
           "Draft Approval Package Shared": "2025-01-06",
           "Receive OMB Concurrence": "2025-01-07",
           "Receive OGC Legal Clearance": "2025-01-08",
-          "Package Sent to COMMs Clearance": "",
+          "Package Sent for COMMs Clearance": "",
           "COMMs Clearance Received": "",
         },
       });
@@ -274,7 +274,7 @@ describe("ReviewPhase Component", () => {
           "Draft Approval Package Shared": "2025-01-06",
           "Receive OMB Concurrence": "2025-01-07",
           "Receive OGC Legal Clearance": "2025-01-08",
-          "Package Sent to COMMs Clearance": "2025-01-09",
+          "Package Sent for COMMs Clearance": "2025-01-09",
           "COMMs Clearance Received": "2025-01-10",
         },
       });
@@ -339,7 +339,7 @@ describe("ReviewPhase Component", () => {
     it("disables Finish button when clearance section is incomplete", () => {
       const incompleteData = buildInitialFormData({
         dates: {
-          "Package Sent to COMMs Clearance": "",
+          "Package Sent for COMMs Clearance": "",
         },
       });
       setup(incompleteData);
@@ -392,7 +392,7 @@ describe("ReviewPhase Component", () => {
           "Draft Approval Package Shared": "2025-01-06",
           "Receive OMB Concurrence": "2025-01-07",
           "Receive OGC Legal Clearance": "2025-01-08",
-          "Package Sent to COMMs Clearance": "2025-01-09",
+          "Package Sent for COMMs Clearance": "2025-01-09",
           "COMMs Clearance Received": "2025-01-10",
         },
       });

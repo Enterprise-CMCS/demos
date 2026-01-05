@@ -22,13 +22,15 @@ def call(Map params) {
   sh "git checkout -b update-dependencies-${dir}-${thisDate}"
 
   // If package.json or package-lock.json aren't changed, exit
-  sh(script: """
-    if [ "$(git diff --name-only | grep '.json$' | wc -l | tr -d '[:space:]')" -gt 0 ]; then
+  def hasChanged = sh(script: """
+    if [ "\$(git diff --name-only | grep '.json\$' | wc -l | tr -d '[:space:]')" -gt 0 ]; then
       echo "true"
     else
       echo "false"
     fi
-  """, returnStdout: true).trim() == "false" {
+  """, returnStdout: true).trim() 
+  
+  if (hasChanged == "false") {
       echo "No dependency updates found in ${dir}."
       return
   }
@@ -37,8 +39,13 @@ def call(Map params) {
     usernamePassword(credentialsId: 'demos-git-svc-account', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN'), // pragma: allowlist secret
   ]) {
   sh "git push -u https://\$GITHUB_USERNAME:\$GITHUB_TOKEN@github.com/Enterprise-CMCS/demos.git update-dependencies-${dir}-${thisDate}"
+
+  def major = "\\n\\n> No major updates are available"
+  if (notUpdated != "") {
+    major = "\\n\\n## Major updates are available\\n\\nThe following packages were not updated, but have major version updates available: \\n```${notUpdated}```"
+  }
   sh """
-  curl -L -X POST -H "Accept: application/vnd.github+json" -H "Authorization: Bearer \$GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/Enterprise-CMCS/demos/pulls -d '{"title":"Upgrade ${dir} npm packages","body":"## Minor and patch updates\n\nAll available *minor* and *patch* updates have been installed. See diff for details.\\n\\n## Major updates are available\\n\\nThe following packages were not updated, but have major version updates available: \\n```${notUpdated}```","head":"update-dependencies-${dir}-${thisDate}","base":"main"}'
+  curl -L -X POST -H "Accept: application/vnd.github+json" -H "Authorization: Bearer \$GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/Enterprise-CMCS/demos/pulls -d '{"title":"Upgrade ${dir} npm packages","body":"## Minor and patch updates\\n\\nAll available *minor* and *patch* updates have been installed. See diff for details.${major}","head":"update-dependencies-${dir}-${thisDate}","base":"main"}'
   echo ${notUpdated}
   """
   }
