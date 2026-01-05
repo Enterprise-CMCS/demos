@@ -2,10 +2,16 @@ import React from "react";
 import { CMS_OSORA_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
+import { addDays, format } from "date-fns";
 
 type CmsOsoraClearanceSectionFormData = {
   dates: Pick<ReviewPhaseFormData["dates"], (typeof CMS_OSORA_DATE_TYPES)[number]>;
   notes: Pick<ReviewPhaseFormData["notes"], "CMS (OSORA) Clearance">;
+};
+
+const calculateTwoWeeksLater = (dateString: string): string => {
+  const date = new Date(dateString);
+  return format(addDays(date, 14), "yyyy-MM-dd");
 };
 
 export const CmsOsoraClearanceSection = ({
@@ -32,15 +38,21 @@ export const CmsOsoraClearanceSection = ({
             name="datepicker-submit-approval-package-to-osora"
             value={sectionFormData.dates["Submit Approval Package to OSORA"]}
             isRequired
-            onChange={(val) =>
+            onChange={(val) => {
+              // if there isnt a clearance end date, set it to two weeks after the submission date
+              let cmsOsoraClearanceEndDate = sectionFormData.dates["CMS (OSORA) Clearance End"];
+              if (!cmsOsoraClearanceEndDate) {
+                cmsOsoraClearanceEndDate = calculateTwoWeeksLater(val);
+              }
               setSectionFormData({
                 ...sectionFormData,
                 dates: {
                   ...sectionFormData.dates,
+                  "CMS (OSORA) Clearance End": cmsOsoraClearanceEndDate,
                   "Submit Approval Package to OSORA": val,
                 },
-              })
-            }
+              });
+            }}
             isDisabled={isReadonly}
           />
         </div>
