@@ -334,14 +334,14 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
-  const isMissingRequiredFields =
+  const isMissing =
     (mode === "add" && !file) ||
     !activeDocument.documentType ||
     !activeDocument.name.trim();
 
   const onUploadClick = async () => {
     if (documentDialogState === "uploading") return;
-    if (isMissingRequiredFields) {
+    if (isMissing) {
       showError(ERROR_MESSAGES.missingField);
       return;
     }
@@ -372,7 +372,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       actionButton={
         <UploadButton
           onClick={onUploadClick}
-          disabled={isMissingRequiredFields}
+          disabled={isMissing}
           isUploading={documentDialogState === "uploading"}
         />
       }
