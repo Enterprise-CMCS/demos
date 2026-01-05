@@ -15,3 +15,9 @@ mutation ACompletelySeparateMutation($updateDemonstrationId: ID!, $input: Update
 
 
 
+{
+  "updateDemonstrationId": "1523d53a-45fd-47bc-85b5-3c4cd11e2554",
+  "input": {
+    "description": "greetings from a whole different mutation from a whole different input method"
+  }
+}
