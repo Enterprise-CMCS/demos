@@ -30,14 +30,14 @@ export const CommsClearanceSection = ({
           <DatePicker
             label="Package Sent for COMMs Clearance"
             name="datepicker-package-sent-for-comms-clearance-date"
-            value={sectionFormData.dates["Package Sent to COMMs Clearance"]}
+            value={sectionFormData.dates["Package Sent for COMMs Clearance"]}
             isRequired
             onChange={(val) =>
               setSectionFormData({
                 ...sectionFormData,
                 dates: {
                   ...sectionFormData.dates,
-                  "Package Sent to COMMs Clearance": val,
+                  "Package Sent for COMMs Clearance": val,
                 },
               })
             }

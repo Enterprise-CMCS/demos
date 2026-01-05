@@ -128,6 +128,7 @@ pipeline {
                   "pullrequest.base": env.CHANGE_TARGET ?: null,
                   "exclusions": "**/*.test.ts,**/*.test.tsx,**/coverage/**,**/jest.config.cjs,**/vite.config.ts",
                   "cpd.exclusions": "**/log.ts,**/index.ts",
+                  "coverage.exclusions": "**/log.ts",
                   "sources": "./",
                   "tests": "./",
                 ]

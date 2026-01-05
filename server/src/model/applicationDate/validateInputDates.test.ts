@@ -110,9 +110,6 @@ describe("validateInputDates", () => {
         "BNPMT Initial Meeting Date",
         "SDG Preparation Completion Date",
         "Review Start Date",
-        "OGC Review Complete",
-        "OMB Review Complete",
-        "PO & OGD Sign-Off",
         "Review Completion Date",
         "OGD Approval to Share with SMEs",
         "Draft Approval Package to Prep",
@@ -124,8 +121,7 @@ describe("validateInputDates", () => {
         "Receive OGC Legal Clearance",
         "Approval Package Start Date",
         "Approval Package Completion Date",
-        // Prospective assignments, to be confirmed in DEMOS-1227
-        "Package Sent to COMMs Clearance",
+        "Package Sent for COMMs Clearance",
         "COMMs Clearance Received",
         "Submit Approval Package to OSORA",
       ];
@@ -140,7 +136,6 @@ describe("validateInputDates", () => {
       const endOfDayDateTypes: DateType[] = [
         "Federal Comment Period End Date",
         "Completeness Review Due Date",
-        // Prospective assignments, to be confirmed in DEMOS-1227
         "OSORA R1 Comments Due",
         "OSORA R2 Comments Due",
         "CMS (OSORA) Clearance End",
