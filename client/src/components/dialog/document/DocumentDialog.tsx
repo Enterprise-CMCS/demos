@@ -331,7 +331,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   }, [file]);
 
   const isMissing =
-    (mode === "add" && !file) ||
+    !file ||
     !activeDocument.documentType ||
     !activeDocument.name.trim();
 
