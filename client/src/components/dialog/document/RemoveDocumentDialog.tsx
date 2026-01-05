@@ -48,7 +48,7 @@ export const RemoveDocumentDialog: React.FC<{
     <BaseDialog
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
       onClose={onClose}
-      hasChanges={false}
+      dialogHasChanges={false}
       actionButton={
         <ErrorButton
           name="button-confirm-delete-document"

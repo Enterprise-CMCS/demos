@@ -537,7 +537,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         title="Manage Contact(s)"
         onClose={onClose}
         maxWidthClass="max-w-[1000px]"
-        hasChanges={hasChanges}
+        dialogHasChanges={hasChanges}
         actionButton={
           <Button
             name="button-save"

@@ -24,7 +24,7 @@ describe("BaseDialog", () => {
 
   it("renders and triggers the close button when hasChanges is false", () => {
     const onClose = vi.fn();
-    render(<BaseDialog {...defaultProps} onClose={onClose} hasChanges={false} />);
+    render(<BaseDialog {...defaultProps} onClose={onClose} dialogHasChanges={false} />);
     const closeBtn = screen.getByLabelText("Close dialog");
     fireEvent.click(closeBtn);
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -94,7 +94,7 @@ describe("BaseDialog", () => {
         {...defaultProps}
         onClose={onClose}
         actionButton={actionButton}
-        hasChanges={true}
+        dialogHasChanges={true}
       />
     );
     const cancelBtn = screen.getByText("Cancel");
@@ -111,7 +111,7 @@ describe("BaseDialog", () => {
         {...defaultProps}
         onClose={onClose}
         actionButton={actionButton}
-        hasChanges={false}
+        dialogHasChanges={false}
       />
     );
     const cancelBtn = screen.getByText("Cancel");

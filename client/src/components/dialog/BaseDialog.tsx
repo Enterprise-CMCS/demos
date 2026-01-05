@@ -11,7 +11,7 @@ interface BaseDialogProps {
   onClose: () => void;
   children: React.ReactNode;
   actionButton?: React.ReactNode;
-  hasChanges?: boolean;
+  dialogHasChanges?: boolean;
   maxWidthClass?: string;
   hideHeader?: boolean;
   cancelButtonIsDisabled?: boolean;
@@ -27,7 +27,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   onClose,
   children,
   actionButton,
-  hasChanges = true,
+  dialogHasChanges: hasChanges = true,
   maxWidthClass = "max-w-[720px]",
   hideHeader = false,
   cancelButtonIsDisabled = false,

@@ -60,7 +60,7 @@ export const DeclareIncompleteDialog: React.FC<DeclareIncompleteDialogProps> = (
     <BaseDialog
       title="Declare Incomplete"
       onClose={onClose}
-      hasChanges={false}
+      dialogHasChanges={false}
       actionButton={
         <ErrorButton
           name="declare-incomplete-confirm"
