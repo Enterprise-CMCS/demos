@@ -3,7 +3,7 @@ import { useToast } from "components/toast";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import React, { useState } from "react";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { ErrorButton, SecondaryButton } from "components/button";
+import { ErrorButton } from "components/button";
 import { ErrorIcon } from "components/icons";
 
 export const DELETE_DOCUMENTS_QUERY = gql`
@@ -48,27 +48,18 @@ export const RemoveDocumentDialog: React.FC<{
     <BaseDialog
       title={`Remove Document${documentIds.length > 1 ? "s" : ""}`}
       onClose={onClose}
-      actions={
-        <>
-          <SecondaryButton
-            name="button-cancel-delete-document"
-            size="small"
-            onClick={onClose}
-            disabled={isDeleting}
-          >
-            Cancel
-          </SecondaryButton>
-          <ErrorButton
-            name="button-confirm-delete-document"
-            size="small"
-            onClick={() => onConfirm(documentIds)}
-            aria-label="Confirm Remove Document"
-            disabled={isDeleting}
-            aria-disabled={isDeleting}
-          >
-            {isDeleting ? "Removing..." : "Remove"}
-          </ErrorButton>
-        </>
+      dialogHasChanges={false}
+      actionButton={
+        <ErrorButton
+          name="button-confirm-delete-document"
+          size="small"
+          onClick={() => onConfirm(documentIds)}
+          aria-label="Confirm Remove Document"
+          disabled={isDeleting}
+          aria-disabled={isDeleting}
+        >
+          {isDeleting ? "Removing..." : "Remove"}
+        </ErrorButton>
       }
     >
       <div className="mb-2 text-sm text-text-filled">

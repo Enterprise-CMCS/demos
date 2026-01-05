@@ -10,13 +10,13 @@ import {
   CreateDemonstrationDialog,
   CREATE_DEMONSTRATION_MUTATION,
 } from "./CreateDemonstrationDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const DEFAULT_PROPS = {
   onClose: vi.fn(),
 };
 
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
-const CANCEL_BUTTON_TEST_ID = "button-cancel-demonstration-dialog";
 const TITLE_INPUT_TEST_ID = "input-demonstration-title";
 const STATE_SELECT_ID = "us-state"; // This is an id, not data-testid
 const DESCRIPTION_TEXTAREA_TEST_ID = "textarea-description";
@@ -79,7 +79,7 @@ describe("CreateDemonstrationDialog", () => {
 
   it("calls onClose when Cancel is clicked", () => {
     render(getCreateDemonstrationDialog());
-    fireEvent.click(screen.getByTestId(CANCEL_BUTTON_TEST_ID));
+    fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
     expect(screen.getByText(/Are you sure/i)).toBeInTheDocument();
   });
 
