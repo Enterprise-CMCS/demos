@@ -20,8 +20,8 @@ vi.mock("./queries/queryApplicationDateTypesOnFinishedPhases", () => ({
 
 describe("validateAllowedDateChangeByPhase", () => {
   const testApplicationId = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
-  const testDateType1: DateType = "OGC Review Complete";
-  const testDateType2: DateType = "PO & OGD Sign-Off";
+  const testDateType1: DateType = "OSORA R1 Comments Due";
+  const testDateType2: DateType = "Submit Approval Package to OSORA";
   const testPhaseId1 = "Application Intake";
   const testPhaseId2 = "Review";
 
