@@ -13,10 +13,7 @@ import {
   STATE_USER_DEMONSTRATION_ROLES,
 } from "demos-server-constants";
 import { useDebounced } from "hooks/useDebounced";
-import {
-  DEMONSTRATION_DETAIL_QUERY,
-  GET_DEMONSTRATION_BY_ID_QUERY,
-} from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 import { gql, useLazyQuery, useMutation } from "@apollo/client";
 
@@ -135,7 +132,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const [setDemonstrationRoles] = useMutation(SET_DEMONSTRATION_ROLE_MUTATION, {
     refetchQueries: [
       { query: DEMONSTRATION_DETAIL_QUERY, variables: { id: demonstrationId } },
-      { query: GET_DEMONSTRATION_BY_ID_QUERY, variables: { id: demonstrationId } },
       { query: DEMONSTRATION_HEADER_DETAILS_QUERY, variables: { demonstrationId } },
     ],
   });
@@ -143,7 +139,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const [unsetDemonstrationRoles] = useMutation(UNSET_DEMONSTRATION_ROLES_MUTATION, {
     refetchQueries: [
       { query: DEMONSTRATION_DETAIL_QUERY, variables: { id: demonstrationId } },
-      { query: GET_DEMONSTRATION_BY_ID_QUERY, variables: { id: demonstrationId } },
       { query: DEMONSTRATION_HEADER_DETAILS_QUERY, variables: { demonstrationId } },
     ],
   });

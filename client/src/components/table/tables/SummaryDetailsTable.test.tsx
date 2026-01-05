@@ -47,14 +47,12 @@ describe("SummaryDetailsTable", () => {
 
     it("renders all field labels correctly", () => {
       expect(screen.getByText("State/Territory")).toBeInTheDocument();
-      expect(screen.getByText("Demonstration")).toBeInTheDocument();
+      expect(screen.getByText("Demonstration Title")).toBeInTheDocument();
       expect(screen.getByText("Project Officer")).toBeInTheDocument();
       expect(screen.getByText("Status")).toBeInTheDocument();
       expect(screen.getByText("Effective Date")).toBeInTheDocument();
       expect(screen.getByText("Expiration Date")).toBeInTheDocument();
-      expect(
-        screen.getByText("Demonstration Description")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Demonstration Description")).toBeInTheDocument();
     });
   });
 

@@ -3,9 +3,6 @@ import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
-import {
-  GET_DEMONSTRATION_BY_ID_QUERY as HOOK_GET_DEMONSTRATION_BY_ID_QUERY,
-} from "../pages/DemonstrationDetail/DemonstrationDetail";
 
 import type { ApplicationStatus } from "demos-server";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
@@ -129,15 +126,6 @@ export const demonstrationMocks: MockedResponse[] = [
         demonstrations: mockDemonstrations,
         people: mockPeople,
       },
-    },
-  },
-  {
-    request: {
-      query: HOOK_GET_DEMONSTRATION_BY_ID_QUERY,
-      variables: { id: "1" },
-    },
-    result: {
-      data: { demonstration: mockDemonstrations[0] },
     },
   },
   {

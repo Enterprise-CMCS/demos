@@ -85,7 +85,7 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
       </div>
 
       <div className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}>
-        <div className={LABEL_CLASSES}>Demonstration</div>
+        <div className={LABEL_CLASSES}>Demonstration Title</div>
         <div className={VALUE_CLASSES}>{displayData.name}</div>
       </div>
 
