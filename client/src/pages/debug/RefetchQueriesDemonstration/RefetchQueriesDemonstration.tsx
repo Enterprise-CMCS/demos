@@ -100,7 +100,7 @@ export const RefetchQueriesDemonstration: React.FC = () => {
         mutate={setApplicationNotesDirectReturn}
       />
       <div className="flex flex-col gap-1">
-        <h2 className="font-bold">Mutation utilizing refetch</h2>
+        <h2 className="font-bold">Mutation utilizing awaited refetch</h2>
       </div>
       <IncrementerButtons
         demonstrationId={demonstration.id}

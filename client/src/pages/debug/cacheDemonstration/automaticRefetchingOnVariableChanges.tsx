@@ -88,8 +88,8 @@ export const AutomaticRefetchingOnVariableChanges: React.FC<{
           </p>
           <p className="font-semibold italic">
             I want to emphasize that this behavior does not require any configurations or deviations
-            from the default behavior of Apollo, extra considerations of when to refetch or how to
-            keep data in sync are not necessary.
+            from the default behavior of Apollo; extra considerations of when to refetch or how to
+            keep data in sync are not necessary in most cases.
           </p>
         </div>
       )}

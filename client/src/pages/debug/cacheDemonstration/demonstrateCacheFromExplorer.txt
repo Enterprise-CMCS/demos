@@ -1,0 +1,17 @@
+The cache is deeply embedded into the expected operation of Apollo, so much so that
+queries sent from the explorer debug tool will update content on the page as they utilize
+the same cache. 
+
+Use the following mutation to demonstrate setting the demonstration's description.
+
+
+
+mutation ACompletelySeparateMutation($updateDemonstrationId: ID!, $input: UpdateDemonstrationInput!) {
+  updateDemonstration(id: $updateDemonstrationId, input: $input) {
+    id
+    description
+  }
+}
+
+
+

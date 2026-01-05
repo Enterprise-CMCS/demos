@@ -95,7 +95,7 @@ export async function __resolveApplicationPhaseNotes(
       },
     },
   });
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, 100));
   return rows;
 }
 
