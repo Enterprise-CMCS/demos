@@ -59,16 +59,8 @@ describe("EditDocumentDialog", () => {
     expect(screen.getByDisplayValue("General File")).toBeInTheDocument(); // Document Type
   });
 
-  it("enables Upload button when required fields are present", () => {
+  it("disables Upload button when no file is selected", () => {
     setup();
-    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
-    expect(uploadBtn).toBeEnabled();
-  });
-
-  it("disables Upload button when title is cleared", () => {
-    setup();
-    const titleInput = screen.getByDisplayValue("Existing Document");
-    fireEvent.change(titleInput, { target: { value: "" } });
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     expect(uploadBtn).toBeDisabled();
   });

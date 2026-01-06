@@ -85,7 +85,7 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
       </div>
 
       <div className={`col-span-2 ${FIELD_CONTAINER_CLASSES}`}>
-        <div className={LABEL_CLASSES}>Demonstration Title</div>
+        <div className={LABEL_CLASSES}>Demonstration (Max Limit - 128 Characters)</div>
         <div className={VALUE_CLASSES}>{displayData.name}</div>
       </div>
 
@@ -114,7 +114,7 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
       </div>
 
       <div className={`col-span-4 ${FIELD_CONTAINER_CLASSES}`}>
-        <div className={LABEL_CLASSES}>Demonstration Description</div>
+        <div className={LABEL_CLASSES}>Demonstration Description (Max Limit - 2048 Characters)</div>
         <div className={VALUE_CLASSES}>{displayData.description}</div>
       </div>
 

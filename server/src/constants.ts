@@ -4,7 +4,6 @@ import {
   ExpectedTimestamp,
   PhaseNameWithTrackedStatus,
   ReviewPhaseDateTypes,
-  ReviewPhaseNoteTypes,
 } from "./types.js";
 
 export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
@@ -95,6 +94,18 @@ export const PHASE_STATUS = [
   "Skipped",
 ] as const;
 
+export const CMS_OSORA_DATE_TYPES = [
+  "Submit Approval Package to OSORA",
+  "OSORA R1 Comments Due",
+  "OSORA R2 Comments Due",
+  "CMS (OSORA) Clearance End",
+] as const;
+
+export const COMMS_CLEARANCE_DATE_TYPES = [
+  "Package Sent for COMMs Clearance",
+  "COMMs Clearance Received",
+] as const;
+
 export const REVIEW_PHASE_DATE_TYPES = [
   "OGD Approval to Share with SMEs",
   "Draft Approval Package to Prep",
@@ -104,45 +115,10 @@ export const REVIEW_PHASE_DATE_TYPES = [
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
-  "Submit Approval Package to OSORA",
-  "Package Sent for COMMs Clearance",
-  "COMMs Clearance Received",
-  "OSORA R1 Comments Due",
-  "OSORA R2 Comments Due",
-  "CMS (OSORA) Clearance End",
+  ...CMS_OSORA_DATE_TYPES,
+  ...COMMS_CLEARANCE_DATE_TYPES,
 ] as const;
 
-export const PO_AND_OGD_DATE_TYPES = [
-  "OGD Approval to Share with SMEs",
-  "Draft Approval Package to Prep",
-  "DDME Approval Received",
-  "State Concurrence",
-] as const satisfies ReviewPhaseDateTypes[];
-export const OGC_AND_OMB_DATE_TYPES = [
-  "BN PMT Approval to Send to OMB",
-  "Draft Approval Package Shared",
-  "Receive OMB Concurrence",
-  "Receive OGC Legal Clearance",
-] as const satisfies ReviewPhaseDateTypes[];
-export const COMMS_CLEARANCE_DATE_TYPES = [
-  "Package Sent for COMMs Clearance",
-  "COMMs Clearance Received",
-] as const satisfies ReviewPhaseDateTypes[];
-export const CMS_OSORA_DATE_TYPES = [
-  "Submit Approval Package to OSORA",
-  "OSORA R1 Comments Due",
-  "OSORA R2 Comments Due",
-  "CMS (OSORA) Clearance End",
-] as const satisfies ReviewPhaseDateTypes[];
-
-export const PO_AND_OGD_NOTE_TYPES = ["PO and OGD"] as const satisfies ReviewPhaseNoteTypes[];
-export const OGC_AND_OMB_NOTE_TYPES = ["OGC and OMB"] as const satisfies ReviewPhaseNoteTypes[];
-export const COMMS_CLEARANCE_NOTE_TYPES = [
-  "COMMs Clearance",
-] as const satisfies ReviewPhaseNoteTypes[];
-export const CMS_OSORA_NOTE_TYPES = [
-  "CMS (OSORA) Clearance",
-] as const satisfies ReviewPhaseNoteTypes[];
 export const DATE_TYPES = [
   "Concept Start Date",
   "Pre-Submission Submitted Date",

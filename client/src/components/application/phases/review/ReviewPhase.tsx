@@ -13,7 +13,7 @@ import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
 import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
 import { gql, useMutation } from "@apollo/client";
-import { CMS_OSORA_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES, OGC_AND_OMB_DATE_TYPES, PO_AND_OGD_DATE_TYPES } from "demos-server-constants";
+import { CMS_OSORA_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 
 const SET_APPLICATION_CLEARANCE_LEVEL = gql`
   mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
@@ -42,7 +42,29 @@ export const REVIEW_SECTIONS = [
   "CMS (OSORA) Clearance",
 ] as const;
 
+export const PO_AND_OGD_DATE_TYPES = [
+  "OGD Approval to Share with SMEs",
+  "Draft Approval Package to Prep",
+  "DDME Approval Received",
+  "State Concurrence",
+] as const satisfies ReviewPhaseDateTypes[];
+export const PO_AND_OGD_NOTE_TYPES = ["PO and OGD"] as const satisfies ReviewPhaseNoteTypes[];
 
+export const OGC_AND_OMB_DATE_TYPES = [
+  "BN PMT Approval to Send to OMB",
+  "Draft Approval Package Shared",
+  "Receive OMB Concurrence",
+  "Receive OGC Legal Clearance",
+] as const satisfies ReviewPhaseDateTypes[];
+export const OGC_AND_OMB_NOTE_TYPES = ["OGC and OMB"] as const satisfies ReviewPhaseNoteTypes[];
+
+export const COMMS_CLEARANCE_NOTE_TYPES = [
+  "COMMs Clearance",
+] as const satisfies ReviewPhaseNoteTypes[];
+
+export const CMS_OSORA_NOTE_TYPES = [
+  "CMS (OSORA) Clearance",
+] as const satisfies ReviewPhaseNoteTypes[];
 
 export type ReviewPhaseSectionsComplete = Record<ReviewSections, boolean>;
 
