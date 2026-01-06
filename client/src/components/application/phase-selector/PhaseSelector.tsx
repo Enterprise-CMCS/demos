@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 
-import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type {
+  PhaseName as ServerPhase,
+  PhaseStatus as ServerPhaseStatus,
+} from "demos-server";
 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
@@ -88,7 +91,10 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
         />
       );
     },
-    Review: () => getReviewPhaseComponentFromDemonstration(demonstration),
+    Review: () =>
+      getReviewPhaseComponentFromDemonstration(demonstration, () =>
+        setSelectedPhase("Approval Package")
+      ),
     "Approval Package": () => getApprovalPackagePhase(demonstration),
     "Approval Summary": ApprovalSummaryPhase,
   };

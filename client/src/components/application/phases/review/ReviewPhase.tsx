@@ -86,10 +86,12 @@ export const ReviewPhase = ({
   initialFormData,
   demonstrationId,
   isReadonly,
+  onFinish,
 }: {
   initialFormData: ReviewPhaseFormData;
   demonstrationId: string;
   isReadonly: boolean;
+  onFinish: () => void;
 }) => {
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
@@ -147,6 +149,7 @@ export const ReviewPhase = ({
       await saveFormData();
       await completeReviewPhase();
       showSuccess(getPhaseCompletedMessage("Review"));
+      onFinish();
     } catch (error) {
       console.error("Error completing Review phase:", error);
     }
