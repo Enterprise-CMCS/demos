@@ -31,7 +31,7 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
   };
 
   return (
-    <div className="overflow-x-auto w-full mb-2">
+    <div className="overflow-x-auto w-full space-y-2">
       {documentColumns && (
         <Table<DocumentTableDocument>
           data={documents}
@@ -47,7 +47,7 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
             const editDisabled = selectedDocs.length !== 1;
             const removeDisabled = selectedDocs.length < 1;
             return (
-              <div className="flex gap-1 ml-4">
+              <div className="flex gap-1 ml-4 mt-2">
                 <CircleButton
                   name="add-document"
                   ariaLabel="Add Document"
