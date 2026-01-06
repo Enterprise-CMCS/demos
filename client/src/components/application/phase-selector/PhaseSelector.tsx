@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 
-import type {
-  PhaseName as ServerPhase,
-  PhaseStatus as ServerPhaseStatus,
-} from "demos-server";
+import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
