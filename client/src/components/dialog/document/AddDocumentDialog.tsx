@@ -103,7 +103,6 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
   const handleDocumentUploadSucceeded = async (): Promise<void> => {
     onDocumentUploadSucceeded?.();
-
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
     }
