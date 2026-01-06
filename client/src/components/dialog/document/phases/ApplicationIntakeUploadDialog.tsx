@@ -6,7 +6,7 @@ import { ApplicationWorkflowDocument } from "components/application/ApplicationW
 
 const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["State Application", "General File"];
 
-const REFETCH_QUERIES = ["GetDemonstrationDetail"];
+const REFETCH_QUERIES = ["DemonstrationDetailQuery"];
 
 type Props = {
   onClose: () => void;
