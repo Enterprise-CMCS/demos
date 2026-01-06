@@ -1,10 +1,4 @@
-import {
-  DateType,
-  DocumentType,
-  ExpectedTimestamp,
-  PhaseNameWithTrackedStatus,
-  ReviewPhaseDateTypes,
-} from "./types.js";
+import { DateType, DocumentType, ExpectedTimestamp, PhaseNameWithTrackedStatus } from "./types.js";
 
 export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
 
@@ -94,7 +88,7 @@ export const PHASE_STATUS = [
   "Skipped",
 ] as const;
 
-export const CMS_OSORA_DATE_TYPES = [
+export const CMS_OSORA_CLEARANCE_DATE_TYPES = [
   "Submit Approval Package to OSORA",
   "OSORA R1 Comments Due",
   "OSORA R2 Comments Due",
@@ -115,7 +109,7 @@ export const REVIEW_PHASE_DATE_TYPES = [
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
-  ...CMS_OSORA_DATE_TYPES,
+  ...CMS_OSORA_CLEARANCE_DATE_TYPES,
   ...COMMS_CLEARANCE_DATE_TYPES,
 ] as const;
 

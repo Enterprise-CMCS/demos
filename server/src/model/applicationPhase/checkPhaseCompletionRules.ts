@@ -9,7 +9,7 @@ import {
   checkPriorPhaseCompleteForCompletion,
   checkPhaseStartedBeforeCompletion,
 } from ".";
-import { CMS_OSORA_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "../../constants.js";
+import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "../../constants.js";
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
@@ -103,7 +103,7 @@ export function checkPhaseCompletionRules(
   let datesToCheck = validationChecks.datesMustExist;
   if (phaseToValidate === "Review") {
     if (applicationClearanceLevel === "CMS (OSORA)") {
-      datesToCheck = [...validationChecks.datesMustExist, ...CMS_OSORA_DATE_TYPES];
+      datesToCheck = [...validationChecks.datesMustExist, ...CMS_OSORA_CLEARANCE_DATE_TYPES];
     } else if (applicationClearanceLevel === "COMMs") {
       datesToCheck = [...validationChecks.datesMustExist, ...COMMS_CLEARANCE_DATE_TYPES];
     }
