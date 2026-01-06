@@ -3,7 +3,7 @@ import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
 import { Option, Select } from "components/input/select/Select";
-import { parseISO, format } from "date-fns";
+import { parseISO, format, isValid, isAfter, isBefore, startOfDay } from "date-fns";
 import { DatePicker } from "components/input/date/DatePicker";
 
 export interface ColumnMetaFilterConfig {
@@ -93,31 +93,58 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
             id={`filter-${selectedColumn}`}
           />
         );
+      case "date": {
+        const today = startOfDay(new Date());
+        const todayValue = format(today, "yyyy-MM-dd");
+        const startDate = filterRangeValue.start;
+        const endDate = filterRangeValue.end;
 
-      case "date":
+        const startValue = startDate && isValid(startDate) ? format(startDate, "yyyy-MM-dd") : "";
+        const endValue = endDate && isValid(endDate) ? format(endDate, "yyyy-MM-dd") : "";
+
+        const endValidationMessage = (value: string) => {
+          if (!startDate || !isValid(startDate) || !value) return "";
+          const parsed = parseISO(value);
+          if (!isValid(parsed)) return "";
+          if (isBefore(parsed, startDate)) {
+            return `${columnDisplayName} To Date cannot be before ${columnDisplayName} From date`;
+          }
+          return "";
+        };
+
         return (
-          <>
+          <div className="whitespace-nowrap grid grid-cols-1 items-end gap-2 sm:grid-cols-[2fr_2fr]">
             <div>
               <DatePicker
                 label={`${columnDisplayName} Start`}
                 name="date-filter-start"
-                value={filterRangeValue.start ? format(filterRangeValue.start, "yyyy-MM-dd") : ""}
-                onChange={(val) => onRangeChange(val ? parseISO(val) : null, filterRangeValue.end)}
+                value={startValue}
+                onChange={(val) => {
+                  const parsed = val ? parseISO(val) : null;
+                  onRangeChange(parsed && isValid(parsed) ? parsed : null, endDate);
+                }}
               />
             </div>
             <div>
               <DatePicker
                 label={`${columnDisplayName} End`}
                 name="date-filter-end"
-                value={filterRangeValue.end ? format(filterRangeValue.end, "yyyy-MM-dd") : ""}
-                onChange={(val) =>
-                  onRangeChange(filterRangeValue.start, val ? parseISO(val) : null)
-                }
+                value={endValue}
+                max={todayValue}
+                getValidationMessage={endValidationMessage}
+                onChange={(val) => {
+                  const parsed = val ? parseISO(val) : null;
+                  if (parsed && isValid(parsed) && isAfter(parsed, today)) {
+                    onRangeChange(startDate, today);
+                    return;
+                  }
+                  onRangeChange(startDate, parsed && isValid(parsed) ? parsed : null);
+                }}
               />
             </div>
-          </>
+          </div>
         );
-
+      }
       case "text":
       default:
         return (
@@ -137,7 +164,7 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   const liveMessage = `Showing ${totalRows} rows`;
 
   return (
-    <div className="grid grid-cols-2 gap-[24px]">
+    <div className="grid grid-cols-1 items-end gap-[24px] sm:grid-cols-2">
       <div className="col-span-1">
         <Select
           label="Filter By"

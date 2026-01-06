@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import { tw } from "tags/tw";
 
 export const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
-export const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-[12px] outline-none focus:ring-2
-bg-surface-white hover:text-text-font
-disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
+export const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-[12px] outline-none 
+  focus:ring-2 bg-surface-white hover:text-text-font disabled:bg-surface-secondary 
+  disabled:border-border-fields disabled:text-text-placeholder`;
 const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 
 export const getInputColors = (validationMessage: string) => {
@@ -32,6 +32,8 @@ export interface InputProps {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   getValidationMessage?: (value: string) => string | undefined;
+  min?: string;
+  max?: string;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -45,12 +47,12 @@ export const Input: React.FC<InputProps> = ({
   onChange,
   defaultValue,
   getValidationMessage,
+  min,
+  max,
 }) => {
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(defaultValue ?? "");
-
   const currentValue = isControlled ? value : internalValue;
-
   const validationMessage = getValidationMessage ? getValidationMessage(currentValue) : "";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +77,8 @@ export const Input: React.FC<InputProps> = ({
         disabled={isDisabled ?? false}
         value={currentValue}
         onChange={handleChange}
+        min={min}
+        max={max}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
