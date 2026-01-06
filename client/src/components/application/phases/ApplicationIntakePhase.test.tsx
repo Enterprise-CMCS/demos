@@ -397,7 +397,7 @@ describe("ApplicationIntakePhase", () => {
 
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeDisabled();
-      
+
       // Date should be cleared when no documents are present (business rule)
       const dateInputs = screen.getAllByDisplayValue("");
       const submittedDateInput = dateInputs.find(

@@ -10,10 +10,7 @@ import {
   ApplicationWorkflowDocument,
 } from "components/application/ApplicationWorkflow";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import {
-  useSetApplicationDate,
-  useSetApplicationDates,
-} from "components/application/date/dateQueries";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";
 import { getPhaseCompletedMessage } from "util/messages";
@@ -88,9 +85,9 @@ export const ApplicationIntakePhase = ({
 }: ApplicationIntakeProps) => {
   const { showSuccess } = useToast();
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
-  const [stateApplicationDocuments, setStateApplicationDocuments] = useState<
-    ApplicationWorkflowDocument[]
-  >(initialStateApplicationDocuments);
+  const [stateApplicationDocuments] = useState<ApplicationWorkflowDocument[]>(
+    initialStateApplicationDocuments
+  );
   const [stateApplicationSubmittedDate, setStateApplicationSubmittedDate] = useState<string>(
     initialStateApplicationSubmittedDate ?? ""
   );
@@ -103,58 +100,19 @@ export const ApplicationIntakePhase = ({
   });
 
   const { setApplicationDate } = useSetApplicationDate();
-  const { setApplicationDates } = useSetApplicationDates();
 
   useEffect(() => {
-    setIsFinishButtonEnabled(
-      stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate)
-    );
+    const finishShouldBeEnabled =
+      stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate);
+    setIsFinishButtonEnabled(finishShouldBeEnabled);
+
+    // Clear date when no documents are present (business rule)
+    if (stateApplicationDocuments.length === 0 && stateApplicationSubmittedDate) {
+      setStateApplicationSubmittedDate("");
+    }
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
 
-  useEffect(() => {
-    setStateApplicationDocuments(initialStateApplicationDocuments);
-  }, [initialStateApplicationDocuments]);
 
-  useEffect(() => {
-    const handleDocumentDeletion = async () => {
-      if (stateApplicationDocuments.length === 0 && stateApplicationSubmittedDate) {
-        setStateApplicationSubmittedDate("");
-
-        try {
-          // Use individual calls instead of batch to handle non-existent records gracefully
-          await setApplicationDate({
-            applicationId: demonstrationId,
-            dateType: "State Application Submitted Date",
-            dateValue: null,
-          });
-        } catch (error) {
-          console.warn("Could not clear State Application Submitted Date:", error);
-        }
-
-        try {
-          await setApplicationDate({
-            applicationId: demonstrationId,
-            dateType: "Completeness Review Due Date",
-            dateValue: null,
-          });
-        } catch (error) {
-          console.warn("Could not clear Completeness Review Due Date:", error);
-        }
-
-        try {
-          await setApplicationDate({
-            applicationId: demonstrationId,
-            dateType: "Completeness Start Date",
-            dateValue: null,
-          });
-        } catch (error) {
-          console.warn("Could not clear Completeness Start Date:", error);
-        }
-      }
-    };
-
-    handleDocumentDeletion();
-  }, [stateApplicationDocuments.length, stateApplicationSubmittedDate, demonstrationId, setApplicationDate]);
 
   const onFinishButtonClick = async () => {
     const todayDate = getTodayEst();
@@ -169,39 +127,9 @@ export const ApplicationIntakePhase = ({
     showSuccess(getPhaseCompletedMessage("Application Intake"));
   };
 
-  const handleDocumentUploadSucceeded = async (
-    uploadedDocuments: ApplicationWorkflowDocument[]
-  ) => {
-    setStateApplicationDocuments((prevDocs) => [...prevDocs, ...uploadedDocuments]);
-
-    const hasStateApplicationDoc = uploadedDocuments.some(
-      (doc) => doc.documentType === "State Application"
-    );
-
-    if (hasStateApplicationDoc && !stateApplicationSubmittedDate) {
-      const todayDate = getTodayEst();
-      const formattedTodayDate = formatDateForServer(todayDate);
-      const completenessReviewDueDate = getCompletenessReviewDueDate(formattedTodayDate);
-
-      setStateApplicationSubmittedDate(formattedTodayDate);
-
-      await setApplicationDates({
-        applicationId: demonstrationId,
-        applicationDates: [
-          {
-            dateType: "State Application Submitted Date",
-            dateValue: formattedTodayDate,
-          },
-          {
-            dateType: "Completeness Review Due Date",
-            dateValue: formatDateForServer(completenessReviewDueDate),
-          },
-          {
-            dateType: "Completeness Start Date",
-            dateValue: formattedTodayDate,
-          },
-        ],
-      });
+  const handleDocumentUploadSucceeded = async () => {
+    if (!stateApplicationSubmittedDate) {
+      setStateApplicationSubmittedDate(getTodayEst());
     }
   };
 
@@ -210,24 +138,16 @@ export const ApplicationIntakePhase = ({
 
     if (newDate) {
       const formattedNewDate = formatDateForServer(newDate);
-      const completenessReviewDueDate = getCompletenessReviewDueDate(newDate);
-
-      await setApplicationDates({
+      await setApplicationDate({
         applicationId: demonstrationId,
-        applicationDates: [
-          {
-            dateType: "State Application Submitted Date",
-            dateValue: formattedNewDate,
-          },
-          {
-            dateType: "Completeness Review Due Date",
-            dateValue: formatDateForServer(completenessReviewDueDate),
-          },
-          {
-            dateType: "Completeness Start Date",
-            dateValue: formattedNewDate,
-          },
-        ],
+        dateType: "State Application Submitted Date",
+        dateValue: formattedNewDate,
+      });
+
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Completeness Start Date",
+        dateValue: formattedNewDate,
       });
     }
   };
@@ -250,7 +170,7 @@ export const ApplicationIntakePhase = ({
         <ExportIcon />
       </SecondaryButton>
 
-      <DocumentList documents={stateApplicationDocuments} />
+      <DocumentList documents={initialStateApplicationDocuments} />
     </div>
   );
 

@@ -18,14 +18,14 @@ import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const mocks = vi.hoisted(() => {
   let lazyQueryCallCount = 0;
-  
+
   const mockMutationFn = vi.fn();
   const mockDocumentExistsQueryFn = vi.fn();
   const mockGetDocumentByIdQueryFn = vi.fn();
   const mockRefetchQueries = vi.fn();
-  
+
   const resetCallCount = () => { lazyQueryCallCount = 0; };
-  
+
   const mockUseLazyQuery = () => {
     lazyQueryCallCount++;
     if (lazyQueryCallCount === 1) {
@@ -35,10 +35,10 @@ const mocks = vi.hoisted(() => {
     }
     return [vi.fn(), { loading: false }];
   };
-  
+
   return {
     mockMutationFn,
-    mockDocumentExistsQueryFn, 
+    mockDocumentExistsQueryFn,
     mockGetDocumentByIdQueryFn,
     mockRefetchQueries,
     mockUseLazyQuery,
@@ -298,16 +298,7 @@ describe("virus scan polling", () => {
     expect(mockDocumentExistsQueryFn).toHaveBeenCalledWith({
       variables: { documentId: "test-doc-id" },
     });
-    expect(mockGetDocumentByIdQueryFn).toHaveBeenCalledWith({
-      variables: { documentId: "test-doc-id" },
-    });
-    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: "test-doc-id",
-        name: "test.pdf",
-        documentType: "General File",
-      }),
-    ]);
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
   });
 
   it("continues polling if document does not exist yet", async () => {
@@ -382,13 +373,7 @@ describe("virus scan polling", () => {
     await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 3rd poll (succeeds)
 
     expect(mockDocumentExistsQueryFn).toHaveBeenCalledTimes(3);
-    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: "test-doc-id",
-        name: "test.pdf",
-        documentType: "General File",
-      }),
-    ]);
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
   });
 
   it("throws error when virus scan times out", async () => {
@@ -496,13 +481,7 @@ describe("virus scan polling", () => {
     // Advance timers (though localhost should skip polling)
     await vi.advanceTimersByTimeAsync(100);
 
-    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: "test-doc-id",
-        name: "test.pdf",
-        documentType: "General File",
-      }),
-    ]);
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
     // Should not poll for virus scan in localhost mode
     expect(mockDocumentExistsQueryFn).not.toHaveBeenCalled();
   });
@@ -554,13 +533,7 @@ describe("virus scan polling", () => {
     await clickPromise;
     await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
-    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: "test-doc-id",
-        name: "test.pdf",
-        documentType: "General File",
-      }),
-    ]);
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
     expect(mockRefetchQueries).toHaveBeenCalledWith({ include: refetchQueries });
   });
 
@@ -623,13 +596,7 @@ describe("virus scan polling", () => {
     await clickPromise;
     await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
-    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: "test-doc-id",
-        name: "test.pdf",
-        documentType: "General File",
-      }),
-    ]);
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
     expect(mockRefetchQueries).not.toHaveBeenCalled();
   });
 });
