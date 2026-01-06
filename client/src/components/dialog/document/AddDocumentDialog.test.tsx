@@ -16,27 +16,57 @@ import {
 } from "./AddDocumentDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
-let mockMutationFn = vi.fn();
-let mockLazyQueryFn = vi.fn();
-let mockRefetchQueries = vi.fn();
+const mocks = vi.hoisted(() => {
+  let lazyQueryCallCount = 0;
+  
+  const mockMutationFn = vi.fn();
+  const mockDocumentExistsQueryFn = vi.fn();
+  const mockGetDocumentByIdQueryFn = vi.fn();
+  const mockRefetchQueries = vi.fn();
+  
+  const resetCallCount = () => { lazyQueryCallCount = 0; };
+  
+  const mockUseLazyQuery = () => {
+    lazyQueryCallCount++;
+    if (lazyQueryCallCount === 1) {
+      return [mockDocumentExistsQueryFn, { loading: false }];
+    } else if (lazyQueryCallCount === 2) {
+      return [mockGetDocumentByIdQueryFn, { loading: false }];
+    }
+    return [vi.fn(), { loading: false }];
+  };
+  
+  return {
+    mockMutationFn,
+    mockDocumentExistsQueryFn, 
+    mockGetDocumentByIdQueryFn,
+    mockRefetchQueries,
+    mockUseLazyQuery,
+    resetCallCount,
+  };
+});
+
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: () => [mocks.mockMutationFn, { loading: false }],
+    useLazyQuery: mocks.mockUseLazyQuery,
+    useApolloClient: () => ({
+      refetchQueries: mocks.mockRefetchQueries,
+    }),
+  };
+});
 
 beforeEach(() => {
-  mockMutationFn = vi.fn();
-  mockLazyQueryFn = vi.fn();
-  mockRefetchQueries = vi.fn();
-
-  vi.mock("@apollo/client", async () => {
-    const actual = await vi.importActual("@apollo/client");
-    return {
-      ...actual,
-      useMutation: () => [mockMutationFn, { loading: false }],
-      useLazyQuery: () => [mockLazyQueryFn, { loading: false }],
-      useApolloClient: () => ({
-        refetchQueries: mockRefetchQueries,
-      }),
-    };
-  });
+  mocks.resetCallCount();
+  mocks.mockMutationFn.mockClear();
+  mocks.mockDocumentExistsQueryFn.mockClear();
+  mocks.mockGetDocumentByIdQueryFn.mockClear();
+  mocks.mockRefetchQueries.mockClear();
 });
+
+const { mockMutationFn, mockDocumentExistsQueryFn, mockGetDocumentByIdQueryFn, mockRefetchQueries } = mocks;
 
 afterEach(() => {
   vi.resetModules();
@@ -210,8 +240,26 @@ describe("virus scan polling", () => {
       },
     });
 
-    mockLazyQueryFn.mockResolvedValue({
+    mockDocumentExistsQueryFn.mockResolvedValue({
       data: { documentExists: true },
+    });
+
+    mockGetDocumentByIdQueryFn.mockResolvedValue({
+      data: {
+        document: {
+          id: "test-doc-id",
+          name: "test.pdf",
+          description: "Test description",
+          documentType: "General File",
+          createdAt: "2026-01-06T00:00:00Z",
+          phaseName: "Application Intake",
+          owner: {
+            person: {
+              fullName: "Test User",
+            },
+          },
+        },
+      },
     });
 
     vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
@@ -247,10 +295,19 @@ describe("virus scan polling", () => {
     // Advance timer to allow polling to complete
     await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
-    expect(mockLazyQueryFn).toHaveBeenCalledWith({
+    expect(mockDocumentExistsQueryFn).toHaveBeenCalledWith({
       variables: { documentId: "test-doc-id" },
     });
-    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(mockGetDocumentByIdQueryFn).toHaveBeenCalledWith({
+      variables: { documentId: "test-doc-id" },
+    });
+    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: "test-doc-id",
+        name: "test.pdf",
+        documentType: "General File",
+      }),
+    ]);
   });
 
   it("continues polling if document does not exist yet", async () => {
@@ -264,12 +321,30 @@ describe("virus scan polling", () => {
     });
 
     let callCount = 0;
-    mockLazyQueryFn.mockImplementation(async () => {
+    mockDocumentExistsQueryFn.mockImplementation(async () => {
       callCount++;
       if (callCount < 3) {
         return { data: { documentExists: false } };
       }
       return { data: { documentExists: true } };
+    });
+
+    mockGetDocumentByIdQueryFn.mockResolvedValue({
+      data: {
+        document: {
+          id: "test-doc-id",
+          name: "test.pdf",
+          description: "Test description",
+          documentType: "General File",
+          createdAt: "2026-01-06T00:00:00Z",
+          phaseName: "Application Intake",
+          owner: {
+            person: {
+              fullName: "Test User",
+            },
+          },
+        },
+      },
     });
 
     vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
@@ -306,8 +381,14 @@ describe("virus scan polling", () => {
     await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 2nd poll (fails)
     await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS); // 3rd poll (succeeds)
 
-    expect(mockLazyQueryFn).toHaveBeenCalledTimes(3);
-    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(mockDocumentExistsQueryFn).toHaveBeenCalledTimes(3);
+    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: "test-doc-id",
+        name: "test.pdf",
+        documentType: "General File",
+      }),
+    ]);
   });
 
   it("throws error when virus scan times out", async () => {
@@ -320,7 +401,7 @@ describe("virus scan polling", () => {
       },
     });
 
-    mockLazyQueryFn.mockResolvedValue({
+    mockDocumentExistsQueryFn.mockResolvedValue({
       data: { documentExists: false },
     });
 
@@ -353,8 +434,8 @@ describe("virus scan polling", () => {
     // Advance timers to reach max attempts
     await vi.advanceTimersByTimeAsync(VIRUS_SCAN_MAX_ATTEMPTS * DOCUMENT_POLL_INTERVAL_MS);
 
-    // Should reach max attempts  and throw timeout error
-    expect(mockLazyQueryFn).toHaveBeenCalledTimes(VIRUS_SCAN_MAX_ATTEMPTS);
+    // Should reach max attempts and throw timeout error
+    expect(mockDocumentExistsQueryFn).toHaveBeenCalledTimes(VIRUS_SCAN_MAX_ATTEMPTS);
   });
 
   it("skips virus scan polling for localhost uploads", async () => {
@@ -363,6 +444,24 @@ describe("virus scan polling", () => {
         uploadDocument: {
           presignedURL: LOCAL_UPLOAD_PREFIX + "/test-file",
           documentId: "test-doc-id",
+        },
+      },
+    });
+
+    mockGetDocumentByIdQueryFn.mockResolvedValue({
+      data: {
+        document: {
+          id: "test-doc-id",
+          name: "test.pdf",
+          description: "Test description",
+          documentType: "General File",
+          createdAt: "2026-01-06T00:00:00Z",
+          phaseName: "Application Intake",
+          owner: {
+            person: {
+              fullName: "Test User",
+            },
+          },
         },
       },
     });
@@ -397,9 +496,15 @@ describe("virus scan polling", () => {
     // Advance timers (though localhost should skip polling)
     await vi.advanceTimersByTimeAsync(100);
 
-    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: "test-doc-id",
+        name: "test.pdf",
+        documentType: "General File",
+      }),
+    ]);
     // Should not poll for virus scan in localhost mode
-    expect(mockLazyQueryFn).not.toHaveBeenCalled();
+    expect(mockDocumentExistsQueryFn).not.toHaveBeenCalled();
   });
 
   it("refetches queries after successful upload when refetchQueries is provided", async () => {
@@ -412,7 +517,7 @@ describe("virus scan polling", () => {
       },
     });
 
-    mockLazyQueryFn.mockResolvedValue({
+    mockDocumentExistsQueryFn.mockResolvedValue({
       data: { documentExists: true },
     });
 
@@ -449,7 +554,13 @@ describe("virus scan polling", () => {
     await clickPromise;
     await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
-    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: "test-doc-id",
+        name: "test.pdf",
+        documentType: "General File",
+      }),
+    ]);
     expect(mockRefetchQueries).toHaveBeenCalledWith({ include: refetchQueries });
   });
 
@@ -463,8 +574,22 @@ describe("virus scan polling", () => {
       },
     });
 
-    mockLazyQueryFn.mockResolvedValue({
+    mockDocumentExistsQueryFn.mockResolvedValue({
       data: { documentExists: true },
+    });
+
+    mockGetDocumentByIdQueryFn.mockResolvedValue({
+      data: {
+        document: {
+          id: "test-doc-id",
+          name: "test.pdf",
+          description: "Test document",
+          documentType: "General File",
+          createdAt: new Date("2024-01-12"),
+          phaseName: "Application Intake",
+          owner: { person: { fullName: "Test User" } },
+        },
+      },
     });
 
     vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
@@ -498,7 +623,13 @@ describe("virus scan polling", () => {
     await clickPromise;
     await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
 
-    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(onDocumentUploadSucceeded).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: "test-doc-id",
+        name: "test.pdf",
+        documentType: "General File",
+      }),
+    ]);
     expect(mockRefetchQueries).not.toHaveBeenCalled();
   });
 });

@@ -30,6 +30,22 @@ vi.mock("@apollo/client", async () => {
   };
 });
 
+const mockSetApplicationDate = vi.fn(() => Promise.resolve({ data: {} }));
+const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
+
+vi.mock("components/application/date/dateQueries", () => ({
+  useSetApplicationDate: vi.fn(() => [
+    mockSetApplicationDate,
+    { loading: false, error: null },
+  ]),
+  useSetApplicationDates: vi.fn(() => ({
+    setApplicationDates: mockSetApplicationDates,
+    loading: false,
+    error: null,
+    data: null,
+  })),
+}));
+
 const showApplicationIntakeDocumentUploadDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
@@ -314,7 +330,9 @@ describe("ApplicationIntakePhase", () => {
 
   describe("handleDateChange", () => {
     it("updates the state application submitted date when user changes date input", async () => {
-      setup();
+      setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
+      });
 
       const dateInputs = screen.getAllByDisplayValue("");
       const submittedDateInput = dateInputs.find(
@@ -327,7 +345,9 @@ describe("ApplicationIntakePhase", () => {
     });
 
     it("updates completeness review due date when state application date changes", async () => {
-      setup();
+      setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
+      });
 
       const dateInputs = screen.getAllByDisplayValue("");
       const submittedDateInput = dateInputs.find(
@@ -377,10 +397,18 @@ describe("ApplicationIntakePhase", () => {
 
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeDisabled();
+      
+      // Date should be cleared when no documents are present (business rule)
+      const dateInputs = screen.getAllByDisplayValue("");
+      const submittedDateInput = dateInputs.find(
+        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      ) as HTMLInputElement;
+      expect(submittedDateInput.value).toBe("");
     });
 
     it("handles empty date value correctly", async () => {
       setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
@@ -400,6 +428,7 @@ describe("ApplicationIntakePhase", () => {
       const todayString = getTodayEst();
 
       setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
         initialStateApplicationSubmittedDate: todayString,
       });
 
