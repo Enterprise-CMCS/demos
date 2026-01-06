@@ -303,132 +303,130 @@ describe("checkPhaseCompletionRules", () => {
   });
 
   describe("Review Phase", () => {
-    describe("Review Phase", () => {
-      it("should run expected checks for the Review phase when clearance level is CMS (OSORA)", () => {
-        checkPhaseCompletionRules(
-          testApplicationId,
-          "Review",
-          testApplicationDates,
-          testApplicationDocumentTypes,
-          testApplicationPhases,
-          testApplicationClearanceLevel
-        );
+    it("should run expected checks for the Review phase when clearance level is CMS (OSORA)", () => {
+      checkPhaseCompletionRules(
+        testApplicationId,
+        "Review",
+        testApplicationDates,
+        testApplicationDocumentTypes,
+        testApplicationPhases,
+        testApplicationClearanceLevel
+      );
 
-        expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
-        expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
+      expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Review",
+        "Started"
+      );
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
+        [
           testApplicationId,
           "Review",
-          "Started"
-        );
-        expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
-          [
-            testApplicationId,
-            "Review",
-            "OGD Approval to Share with SMEs",
-            testApplicationDateMapReturn,
-          ],
-          [
-            testApplicationId,
-            "Review",
-            "Draft Approval Package to Prep",
-            testApplicationDateMapReturn,
-          ],
-          [testApplicationId, "Review", "DDME Approval Received", testApplicationDateMapReturn],
-          [testApplicationId, "Review", "State Concurrence", testApplicationDateMapReturn],
-          [
-            testApplicationId,
-            "Review",
-            "BN PMT Approval to Send to OMB",
-            testApplicationDateMapReturn,
-          ],
-          [
-            testApplicationId,
-            "Review",
-            "Draft Approval Package Shared",
-            testApplicationDateMapReturn,
-          ],
-          [testApplicationId, "Review", "Receive OMB Concurrence", testApplicationDateMapReturn],
-          [testApplicationId, "Review", "Receive OGC Legal Clearance", testApplicationDateMapReturn],
-          [
-            testApplicationId,
-            "Review",
-            "Submit Approval Package to OSORA",
-            testApplicationDateMapReturn,
-          ],
-          [testApplicationId, "Review", "OSORA R1 Comments Due", testApplicationDateMapReturn],
-          [testApplicationId, "Review", "OSORA R2 Comments Due", testApplicationDateMapReturn],
-          [testApplicationId, "Review", "CMS (OSORA) Clearance End", testApplicationDateMapReturn],
-        ]);
-        expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
-        expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
-          [testApplicationId, "Review", "Application Intake", testApplicationPhases],
-          [testApplicationId, "Review", "Completeness", testApplicationPhases],
-          [testApplicationId, "Review", "Federal Comment", testApplicationPhases],
-          [testApplicationId, "Review", "SDG Preparation", testApplicationPhases],
-        ]);
-      });
+          "OGD Approval to Share with SMEs",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Review",
+          "Draft Approval Package to Prep",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "DDME Approval Received", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "State Concurrence", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "Review",
+          "BN PMT Approval to Send to OMB",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Review",
+          "Draft Approval Package Shared",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "Receive OMB Concurrence", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "Receive OGC Legal Clearance", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "Review",
+          "Submit Approval Package to OSORA",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "OSORA R1 Comments Due", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "OSORA R2 Comments Due", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "CMS (OSORA) Clearance End", testApplicationDateMapReturn],
+      ]);
+      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Review", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Review", "Completeness", testApplicationPhases],
+        [testApplicationId, "Review", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Review", "SDG Preparation", testApplicationPhases],
+      ]);
+    });
 
-      it("should run expected checks for the Review phase when clearance level is COMMs", () => {
-        checkPhaseCompletionRules(
-          testApplicationId,
-          "Review",
-          testApplicationDates,
-          testApplicationDocumentTypes,
-          testApplicationPhases,
-          "COMMs"
-        );
+    it("should run expected checks for the Review phase when clearance level is COMMs", () => {
+      checkPhaseCompletionRules(
+        testApplicationId,
+        "Review",
+        testApplicationDates,
+        testApplicationDocumentTypes,
+        testApplicationPhases,
+        "COMMs"
+      );
 
-        expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
-        expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
+      expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Review",
+        "Started"
+      );
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
+        [
           testApplicationId,
           "Review",
-          "Started"
-        );
-        expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
-          [
-            testApplicationId,
-            "Review",
-            "OGD Approval to Share with SMEs",
-            testApplicationDateMapReturn,
-          ],
-          [
-            testApplicationId,
-            "Review",
-            "Draft Approval Package to Prep",
-            testApplicationDateMapReturn,
-          ],
-          [testApplicationId, "Review", "DDME Approval Received", testApplicationDateMapReturn],
-          [testApplicationId, "Review", "State Concurrence", testApplicationDateMapReturn],
-          [
-            testApplicationId,
-            "Review",
-            "BN PMT Approval to Send to OMB",
-            testApplicationDateMapReturn,
-          ],
-          [
-            testApplicationId,
-            "Review",
-            "Draft Approval Package Shared",
-            testApplicationDateMapReturn,
-          ],
-          [testApplicationId, "Review", "Receive OMB Concurrence", testApplicationDateMapReturn],
-          [testApplicationId, "Review", "Receive OGC Legal Clearance", testApplicationDateMapReturn],
-          [
-            testApplicationId,
-            "Review",
-            "Package Sent for COMMs Clearance",
-            testApplicationDateMapReturn,
-          ],
-          [testApplicationId, "Review", "COMMs Clearance Received", testApplicationDateMapReturn],
-        ]);
-        expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
-        expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
-          [testApplicationId, "Review", "Application Intake", testApplicationPhases],
-          [testApplicationId, "Review", "Completeness", testApplicationPhases],
-          [testApplicationId, "Review", "Federal Comment", testApplicationPhases],
-          [testApplicationId, "Review", "SDG Preparation", testApplicationPhases],
-        ]);
-      });
+          "OGD Approval to Share with SMEs",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Review",
+          "Draft Approval Package to Prep",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "DDME Approval Received", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "State Concurrence", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "Review",
+          "BN PMT Approval to Send to OMB",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Review",
+          "Draft Approval Package Shared",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "Receive OMB Concurrence", testApplicationDateMapReturn],
+        [testApplicationId, "Review", "Receive OGC Legal Clearance", testApplicationDateMapReturn],
+        [
+          testApplicationId,
+          "Review",
+          "Package Sent for COMMs Clearance",
+          testApplicationDateMapReturn,
+        ],
+        [testApplicationId, "Review", "COMMs Clearance Received", testApplicationDateMapReturn],
+      ]);
+      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Review", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Review", "Completeness", testApplicationPhases],
+        [testApplicationId, "Review", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Review", "SDG Preparation", testApplicationPhases],
+      ]);
     });
   });
 
