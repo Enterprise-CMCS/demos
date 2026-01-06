@@ -1,7 +1,8 @@
 import React from "react";
-import { OGC_AND_OMB_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
+import { ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
+import { OGC_AND_OMB_DATE_TYPES } from "demos-server-constants";
 
 type OmbAndOgcSectionFormData = {
   dates: Pick<ReviewPhaseFormData["dates"], (typeof OGC_AND_OMB_DATE_TYPES)[number]>;

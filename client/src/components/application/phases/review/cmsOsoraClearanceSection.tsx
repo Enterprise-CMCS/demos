@@ -1,7 +1,8 @@
 import React from "react";
-import { CMS_OSORA_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
+import { ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
+import { CMS_OSORA_DATE_TYPES } from "demos-server-constants";
 
 type CmsOsoraClearanceSectionFormData = {
   dates: Pick<ReviewPhaseFormData["dates"], (typeof CMS_OSORA_DATE_TYPES)[number]>;
