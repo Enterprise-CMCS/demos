@@ -1,5 +1,3 @@
-@Library('demos-lib@DEMOS-1312-checkov') _
-
 pipeline {
   agent {
     kubernetes { 
