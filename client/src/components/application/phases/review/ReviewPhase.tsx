@@ -13,7 +13,7 @@ import { CmsOsoraClearanceSection } from "./cmsOsoraClearanceSection";
 import { RadioGroup } from "components/radioGroup";
 import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
 import { gql, useMutation } from "@apollo/client";
-import { CMS_OSORA_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
+import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 
 const SET_APPLICATION_CLEARANCE_LEVEL = gql`
   mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
@@ -163,7 +163,7 @@ export const ReviewPhase = ({
       "COMMs Clearance": COMMS_CLEARANCE_DATE_TYPES.every(
         (dateType) => !!reviewPhaseFormData.dates[dateType]
       ),
-      "CMS (OSORA) Clearance": CMS_OSORA_DATE_TYPES.every(
+      "CMS (OSORA) Clearance": CMS_OSORA_CLEARANCE_DATE_TYPES.every(
         (dateType) => !!reviewPhaseFormData.dates[dateType]
       ),
     });

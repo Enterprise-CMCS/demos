@@ -3,10 +3,10 @@ import { ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
 import { addDays, format } from "date-fns";
-import { CMS_OSORA_DATE_TYPES } from "demos-server-constants";
+import { CMS_OSORA_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 
 type CmsOsoraClearanceSectionFormData = {
-  dates: Pick<ReviewPhaseFormData["dates"], (typeof CMS_OSORA_DATE_TYPES)[number]>;
+  dates: Pick<ReviewPhaseFormData["dates"], (typeof CMS_OSORA_CLEARANCE_DATE_TYPES)[number]>;
   notes: Pick<ReviewPhaseFormData["notes"], "CMS (OSORA) Clearance">;
 };
 
