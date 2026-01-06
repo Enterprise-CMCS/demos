@@ -9,9 +9,7 @@ import {
   checkPriorPhaseCompleteForCompletion,
   checkPhaseStartedBeforeCompletion,
 } from ".";
-import {
-  makeApplicationDateMapFromList,
-} from "../applicationDate";
+import { makeApplicationDateMapFromList } from "../applicationDate";
 import { ClearanceLevel } from "../../types.js";
 vi.mock(".", () => ({
   checkApplicationDateExistsForCompletion: vi.fn(),
@@ -43,9 +41,7 @@ describe("checkPhaseCompletionRules", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(makeApplicationDateMapFromList).mockReturnValue(
-      testApplicationDateMapReturn,
-    );
+    vi.mocked(makeApplicationDateMapFromList).mockReturnValue(testApplicationDateMapReturn);
   });
 
   describe("Concept Phase", () => {
@@ -56,20 +52,16 @@ describe("checkPhaseCompletionRules", () => {
         testApplicationDates,
         testApplicationDocumentTypes,
         testApplicationPhases,
-        testApplicationClearanceLevel,
+        testApplicationClearanceLevel
       );
 
       expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Concept",
-        "Started",
+        "Started"
       );
-      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(
-        testApplicationDates,
-      );
-      expect(
-        vi.mocked(checkApplicationDateExistsForCompletion).mock.calls,
-      ).toEqual([
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Concept",
@@ -77,15 +69,8 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
       ]);
-      expect(
-        vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls,
-      ).toEqual([
-        [
-          testApplicationId,
-          "Concept",
-          "Pre-Submission",
-          testApplicationDocumentTypes,
-        ],
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Concept", "Pre-Submission", testApplicationDocumentTypes],
       ]);
       expect(checkPriorPhaseCompleteForCompletion).not.toBeCalled();
     });
@@ -99,20 +84,16 @@ describe("checkPhaseCompletionRules", () => {
         testApplicationDates,
         testApplicationDocumentTypes,
         testApplicationPhases,
-        testApplicationClearanceLevel,
+        testApplicationClearanceLevel
       );
 
-      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(
-        testApplicationDates,
-      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
       expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
-        "Started",
+        "Started"
       );
-      expect(
-        vi.mocked(checkApplicationDateExistsForCompletion).mock.calls,
-      ).toEqual([
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Application Intake",
@@ -126,9 +107,7 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
       ]);
-      expect(
-        vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls,
-      ).toEqual([
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Application Intake",
@@ -148,20 +127,16 @@ describe("checkPhaseCompletionRules", () => {
         testApplicationDates,
         testApplicationDocumentTypes,
         testApplicationPhases,
-        testApplicationClearanceLevel,
+        testApplicationClearanceLevel
       );
 
-      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(
-        testApplicationDates,
-      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
       expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Completeness",
-        "Started",
+        "Started"
       );
-      expect(
-        vi.mocked(checkApplicationDateExistsForCompletion).mock.calls,
-      ).toEqual([
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Completeness",
@@ -181,9 +156,7 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDateMapReturn,
         ],
       ]);
-      expect(
-        vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls,
-      ).toEqual([
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Completeness",
@@ -197,15 +170,8 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDocumentTypes,
         ],
       ]);
-      expect(
-        vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls,
-      ).toEqual([
-        [
-          testApplicationId,
-          "Completeness",
-          "Application Intake",
-          testApplicationPhases,
-        ],
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Completeness", "Application Intake", testApplicationPhases],
       ]);
     });
   });
@@ -218,7 +184,7 @@ describe("checkPhaseCompletionRules", () => {
         testApplicationDates,
         testApplicationDocumentTypes,
         testApplicationPhases,
-        testApplicationClearanceLevel,
+        testApplicationClearanceLevel
       );
 
       expect(makeApplicationDateMapFromList).not.toBeCalled();
@@ -237,32 +203,23 @@ describe("checkPhaseCompletionRules", () => {
         testApplicationDates,
         testApplicationDocumentTypes,
         testApplicationPhases,
-        testApplicationClearanceLevel,
+        testApplicationClearanceLevel
       );
 
-      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(
-        testApplicationDates,
-      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
       expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "SDG Preparation",
-        "Started",
+        "Started"
       );
-      expect(
-        vi.mocked(checkApplicationDateExistsForCompletion).mock.calls,
-      ).toEqual([
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "SDG Preparation",
           "Expected Approval Date",
           testApplicationDateMapReturn,
         ],
-        [
-          testApplicationId,
-          "SDG Preparation",
-          "SME Review Date",
-          testApplicationDateMapReturn,
-        ],
+        [testApplicationId, "SDG Preparation", "SME Review Date", testApplicationDateMapReturn],
         [
           testApplicationId,
           "SDG Preparation",
@@ -277,27 +234,10 @@ describe("checkPhaseCompletionRules", () => {
         ],
       ]);
       expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
-      expect(
-        vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls,
-      ).toEqual([
-        [
-          testApplicationId,
-          "SDG Preparation",
-          "Application Intake",
-          testApplicationPhases,
-        ],
-        [
-          testApplicationId,
-          "SDG Preparation",
-          "Completeness",
-          testApplicationPhases,
-        ],
-        [
-          testApplicationId,
-          "SDG Preparation",
-          "Federal Comment",
-          testApplicationPhases,
-        ],
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "SDG Preparation", "Application Intake", testApplicationPhases],
+        [testApplicationId, "SDG Preparation", "Completeness", testApplicationPhases],
+        [testApplicationId, "SDG Preparation", "Federal Comment", testApplicationPhases],
       ]);
     });
   });
@@ -438,33 +378,24 @@ describe("checkPhaseCompletionRules", () => {
         testApplicationDates,
         testApplicationDocumentTypes,
         testApplicationPhases,
-        testApplicationClearanceLevel,
+        testApplicationClearanceLevel
       );
 
-      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(
-        testApplicationDates,
-      );
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
       expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approval Package",
-        "Started",
+        "Started"
       );
       expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
-      expect(
-        vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls,
-      ).toEqual([
+      expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
         [
           testApplicationId,
           "Approval Package",
           "Final Budget Neutrality Formulation Workbook",
           testApplicationDocumentTypes,
         ],
-        [
-          testApplicationId,
-          "Approval Package",
-          "Q&A",
-          testApplicationDocumentTypes,
-        ],
+        [testApplicationId, "Approval Package", "Q&A", testApplicationDocumentTypes],
         [
           testApplicationId,
           "Approval Package",
@@ -477,12 +408,7 @@ describe("checkPhaseCompletionRules", () => {
           "Formal OMB Policy Concurrence Email",
           testApplicationDocumentTypes,
         ],
-        [
-          testApplicationId,
-          "Approval Package",
-          "Approval Letter",
-          testApplicationDocumentTypes,
-        ],
+        [testApplicationId, "Approval Package", "Approval Letter", testApplicationDocumentTypes],
         [
           testApplicationId,
           "Approval Package",
@@ -490,39 +416,12 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDocumentTypes,
         ],
       ]);
-      expect(
-        vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls,
-      ).toEqual([
-        [
-          testApplicationId,
-          "Approval Package",
-          "Application Intake",
-          testApplicationPhases,
-        ],
-        [
-          testApplicationId,
-          "Approval Package",
-          "Completeness",
-          testApplicationPhases,
-        ],
-        [
-          testApplicationId,
-          "Approval Package",
-          "Federal Comment",
-          testApplicationPhases,
-        ],
-        [
-          testApplicationId,
-          "Approval Package",
-          "SDG Preparation",
-          testApplicationPhases,
-        ],
-        [
-          testApplicationId,
-          "Approval Package",
-          "Review",
-          testApplicationPhases,
-        ],
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Approval Package", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Completeness", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Approval Package", "SDG Preparation", testApplicationPhases],
+        [testApplicationId, "Approval Package", "Review", testApplicationPhases],
       ]);
     });
   });
@@ -536,11 +435,9 @@ describe("checkPhaseCompletionRules", () => {
           testApplicationDates,
           testApplicationDocumentTypes,
           testApplicationPhases,
-          testApplicationClearanceLevel,
-        ),
-      ).toThrowError(
-        "Validation of the Approval Summary phase via API is not yet implemented.",
-      );
+          testApplicationClearanceLevel
+        )
+      ).toThrowError("Validation of the Approval Summary phase via API is not yet implemented.");
     });
   });
 });
