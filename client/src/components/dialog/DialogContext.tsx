@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { DocumentType } from "demos-server";
+import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
@@ -112,7 +113,7 @@ export const useDialog = () => {
 
   const showApplicationIntakeDocumentUploadDialog = (
     applicationId: string,
-    onDocumentUploadSucceeded: () => void
+    onDocumentUploadSucceeded: (uploadedDocuments: ApplicationWorkflowDocument[]) => void
   ) => {
     context.showDialog(
       <ApplicationIntakeUploadDialog

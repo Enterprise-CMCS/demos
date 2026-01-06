@@ -8,12 +8,31 @@ import {
   DocumentDialogState,
 } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
+import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
 
 export const UPLOAD_DOCUMENT_QUERY = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
       presignedURL
       documentId
+    }
+  }
+`;
+
+export const GET_DOCUMENT_BY_ID = gql`
+  query GetDocumentById($documentId: ID!) {
+    document(id: $documentId) {
+      id
+      name
+      description
+      documentType
+      createdAt
+      phaseName
+      owner {
+        person {
+          fullName
+        }
+      }
     }
   }
 `;
@@ -61,7 +80,7 @@ interface AddDocumentDialogProps {
   titleOverride?: string;
   refetchQueries?: string[];
   phaseName?: PhaseName;
-  onDocumentUploadSucceeded?: () => void;
+  onDocumentUploadSucceeded?: (uploadedDocuments: ApplicationWorkflowDocument[]) => void;
 }
 
 export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
@@ -78,6 +97,10 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
 
   const [checkDocumentExists] = useLazyQuery(DOCUMENT_EXISTS_QUERY, {
+    fetchPolicy: "network-only",
+  });
+
+  const [getDocumentById] = useLazyQuery(GET_DOCUMENT_BY_ID, {
     fetchPolicy: "network-only",
   });
 
@@ -101,8 +124,33 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     throw new Error("Waiting for virus scan timed out");
   };
 
-  const handleDocumentUploadSucceeded = async (): Promise<void> => {
-    onDocumentUploadSucceeded?.();
+  const handleDocumentUploadSucceeded = async (documentId?: string): Promise<void> => {
+    if (documentId && onDocumentUploadSucceeded) {
+      try {
+        const { data } = await getDocumentById({
+          variables: { documentId },
+        });
+
+        if (data?.document) {
+          const document: ApplicationWorkflowDocument = {
+            id: data.document.id,
+            name: data.document.name,
+            description: data.document.description,
+            documentType: data.document.documentType,
+            createdAt: data.document.createdAt,
+            phaseName: data.document.phaseName,
+            owner: data.document.owner,
+          };
+          onDocumentUploadSucceeded([document]);
+        }
+      } catch (error) {
+        console.error("Error fetching uploaded document:", error);
+        onDocumentUploadSucceeded([]);
+      }
+    } else if (onDocumentUploadSucceeded) {
+      onDocumentUploadSucceeded([]);
+    }
+
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
     }
@@ -140,7 +188,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
     // Local development mode - skip S3 upload and virus scan
     if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
-      await handleDocumentUploadSucceeded();
+      await handleDocumentUploadSucceeded(uploadResult.documentId);
       return;
     }
 
@@ -154,7 +202,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     }
 
     await waitForVirusScan(uploadResult.documentId, setDocumentDialogState);
-    await handleDocumentUploadSucceeded();
+    await handleDocumentUploadSucceeded(uploadResult.documentId);
   };
 
   return (
