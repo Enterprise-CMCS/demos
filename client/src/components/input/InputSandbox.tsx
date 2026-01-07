@@ -6,6 +6,7 @@ import { SelectUsers } from "./select/SelectUsers";
 import { AutoCompleteMultiselect } from "./select/AutoCompleteMultiselect";
 import { Select } from "./select/Select";
 import { Button } from "components/button";
+import { AutoCompleteSelect } from "./select/AutoCompleteSelect";
 
 const getValidationMessage = (value: string) => {
   if (value.includes("z")) {
@@ -18,8 +19,9 @@ export const InputSandbox: React.FC = () => {
   const [disabled, setDisabled] = useState(false);
   const [isRequired, setIsRequired] = useState(false);
   const [status, setStatus] = useState<string>("");
+  const [state, setState] = useState<string>("");
   const [selectValue, setSelectValue] = useState<string>("");
-
+  const [autocompleteValue, setAutocompleteValue] = useState<string>("");
   const [multiselectValues, setMultiselectValues] = useState<string[]>([]);
   // We'll wire this up to use the current cache user
   const currentUserId = 123;
@@ -44,9 +46,27 @@ export const InputSandbox: React.FC = () => {
       />
       <div className="mt-3">
         <SelectDemoStatuses
+          value={status}
           isRequired={isRequired}
           isDisabled={disabled}
-          onStatusChange={setStatus}
+          onChange={setStatus}
+        />
+      </div>
+      <div>
+        <h1>Autocomplete Select</h1>
+        <button onClick={() => setAutocompleteValue("cherry_value")}>Set to Cherry</button>
+        <button onClick={() => setAutocompleteValue("")}>Set to empty string</button>
+        <p>you have selected: {autocompleteValue}</p>
+        <AutoCompleteSelect
+          options={[
+            { label: "Apple", value: "apple_value" },
+            { label: "Banana", value: "banana_value" },
+            { label: "Cherry", value: "cherry_value" },
+            { label: "Date", value: "date_value" },
+            { label: "Elderberry", value: "elderberry_value" },
+          ]}
+          value={autocompleteValue}
+          onSelect={setAutocompleteValue}
         />
       </div>
       <div className="mt-3">
@@ -67,7 +87,17 @@ export const InputSandbox: React.FC = () => {
         />
       </div>
       <div className="mt-3">
-        <SelectUSAStates isRequired={isRequired} isDisabled={disabled} onSelect={setStatus} />
+        <SelectUSAStates
+          value={state}
+          isRequired={isRequired}
+          isDisabled={disabled}
+          onSelect={setState}
+        />
+        {state && (
+          <p className="mt-2">
+            You most recently selected: <strong>{state}</strong>
+          </p>
+        )}
       </div>
       <div className="mt-3">
         <SelectUsers
@@ -78,11 +108,7 @@ export const InputSandbox: React.FC = () => {
           value={String(currentUserId)}
         />
       </div>
-      {status && (
-        <p className="mt-2">
-          You most recently selected: <strong>{status}</strong>
-        </p>
-      )}
+
       <div className="mt-3">
         <Select
           label="Simple Select"

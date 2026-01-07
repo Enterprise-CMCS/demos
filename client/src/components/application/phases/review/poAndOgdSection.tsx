@@ -11,14 +11,16 @@ type PoAndOgdFormData = {
 export const PoAndOgdSection = ({
   sectionFormData,
   setSectionFormData,
-  sectionIsComplete,
+  isComplete,
+  isReadonly,
 }: {
   sectionFormData: PoAndOgdFormData;
   setSectionFormData: (data: PoAndOgdFormData) => void;
-  sectionIsComplete: boolean;
+  isComplete: boolean;
+  isReadonly: boolean;
 }) => {
   return (
-    <CompletableSection title="PO & OGD" isComplete={sectionIsComplete}>
+    <CompletableSection title="PO & OGD" isComplete={isComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Record the Sign-Off for the edits End Date.
       </p>
@@ -38,6 +40,7 @@ export const PoAndOgdSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
 
@@ -56,6 +59,7 @@ export const PoAndOgdSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
 
@@ -74,6 +78,7 @@ export const PoAndOgdSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
 
@@ -92,6 +97,7 @@ export const PoAndOgdSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
 
@@ -113,6 +119,7 @@ export const PoAndOgdSection = ({
             }
             className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={1}
+            disabled={isReadonly}
           />
         </div>
       </div>

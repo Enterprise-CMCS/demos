@@ -9,7 +9,7 @@ describe("CommsClearanceSection", () => {
   const defaultProps = {
     sectionFormData: {
       dates: {
-        "Package Sent to COMMs Clearance": "",
+        "Package Sent for COMMs Clearance": "",
         "COMMs Clearance Received": "",
       },
       notes: {
@@ -17,7 +17,8 @@ describe("CommsClearanceSection", () => {
       },
     },
     setSectionFormData: mockSetSectionFormData,
-    sectionIsComplete: false,
+    isComplete: false,
+    isReadonly: false,
   };
 
   beforeEach(() => {
@@ -59,7 +60,7 @@ describe("CommsClearanceSection", () => {
       ...defaultProps.sectionFormData,
       dates: {
         ...defaultProps.sectionFormData.dates,
-        "Package Sent to COMMs Clearance": "2025-01-01",
+        "Package Sent for COMMs Clearance": "2025-01-01",
       },
     });
   });
@@ -84,7 +85,7 @@ describe("CommsClearanceSection", () => {
       sectionFormData: {
         ...defaultProps.sectionFormData,
         dates: {
-          "Package Sent to COMMs Clearance": "2025-02-01",
+          "Package Sent for COMMs Clearance": "2025-02-01",
           "COMMs Clearance Received": "2025-02-15",
         },
       },
@@ -114,11 +115,27 @@ describe("CommsClearanceSection", () => {
     expect(textarea).toHaveValue("Existing note");
   });
 
-  it("displays completeness badge based on sectionIsComplete prop", () => {
+  it("displays completeness badge based on isComplete prop", () => {
     const { rerender } = render(<CommsClearanceSection {...defaultProps} />);
     expect(screen.getByText("Incomplete")).toBeInTheDocument();
 
-    rerender(<CommsClearanceSection {...defaultProps} sectionIsComplete={true} />);
+    rerender(<CommsClearanceSection {...defaultProps} isComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
+  });
+
+  describe("Readonly", () => {
+    it("disables all date inputs when isReadonly is true", () => {
+      render(<CommsClearanceSection {...defaultProps} isReadonly={true} />);
+
+      expect(screen.getByTestId("datepicker-package-sent-for-comms-clearance-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-comms-clearance-received-date")).toBeDisabled();
+    });
+
+    it("disables notes textarea when isReadonly is true", () => {
+      render(<CommsClearanceSection {...defaultProps} isReadonly={true} />);
+
+      const textarea = screen.getByTestId("input-comms-clearance-notes");
+      expect(textarea).toBeDisabled();
+    });
   });
 });

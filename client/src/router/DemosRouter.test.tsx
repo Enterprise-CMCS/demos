@@ -70,6 +70,7 @@ vi.mock("./DemosApolloProvider", async () => {
 vi.mock("pages/debug", () => ({
   ComponentLibrary: () => <div>ComponentLibrary</div>,
   TestHooks: () => <div>TestHooks</div>,
+  DialogSandbox: () => <div>DialogSandbox</div>,
 }));
 vi.mock("components/auth/AuthDebugComponent", () => ({
   AuthDebugComponent: () => <div>AuthDebugComponent</div>,

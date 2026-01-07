@@ -8,15 +8,14 @@ import { Option } from "./Select";
 
 export interface AutoCompleteSelectProps {
   options: Option[];
-  placeholder?: string;
+  value: string;
   onSelect: (value: string) => void;
-  id?: string;
-  dataTestId?: string;
   label?: string;
+  id?: string;
+  placeholder?: string;
+  dataTestId?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
-  defaultValue?: string;
-  value?: string;
 }
 
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
@@ -25,44 +24,62 @@ const ITEM_CLASSES = tw`px-1 py-1 text-sm text-text-font cursor-pointer hover:bg
 const ITEM_ACTIVE_CLASSES = tw`bg-surface-focus`;
 const EMPTY_CLASSES = tw`px-2 py-1 text-sm text-text-placeholder`;
 
+const filterOptions = (options: Option[], searchTerm: string) => {
+  searchTerm = searchTerm.toLowerCase();
+  return options.filter((opt) => opt.label.toLowerCase().includes(searchTerm));
+};
+
 export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   options,
-  placeholder = "Select",
+  value,
   onSelect,
   id,
   dataTestId,
+  placeholder = "Select",
   label,
   isRequired = false,
   isDisabled = false,
-  defaultValue = "",
-  value,
 }) => {
-  const [inputValue, setInputValue] = useState(defaultValue);
-  const [filtered, setFiltered] = useState<Option[]>(options);
+  const [filterValue, setFilterValue] = useState("");
+  const [selectedOption, setSelectedOption] = useState<Option | undefined>(
+    options.find((opt) => opt.value === value) || undefined
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync external controlled value
   useEffect(() => {
-    if (value !== undefined) {
-      const match = options.find((opt) => opt.value === value);
-      setInputValue(match?.label || "");
-    }
+    const selected = options.find((opt) => opt.value === value);
+    setSelectedOption(selected);
   }, [value, options]);
 
-  // Filter by label
-  useEffect(() => {
-    const low = inputValue.toLowerCase();
-    setFiltered(options.filter((opt) => opt.label.toLowerCase().includes(low)));
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const closeSelect = () => {
+    setIsOpen(false);
     setActiveIndex(-1);
-  }, [inputValue, options]);
+  };
+
+  const openSelect = () => {
+    setIsOpen(true);
+  };
+
+  const handleFilterChange = (filterValue: string) => {
+    setFilterValue(filterValue);
+    setActiveIndex(-1);
+  };
+
+  const handleSelectOption = (option: Option) => {
+    onSelect(option.value);
+    setSelectedOption(option);
+    setFilterValue("");
+    closeSelect();
+  };
 
   // Close on outside click
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+        closeSelect();
       }
     };
     document.addEventListener("mousedown", onClick);
@@ -71,35 +88,19 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen && e.key === "ArrowDown") {
-      setIsOpen(true);
+      openSelect();
       return;
     }
     if (e.key === "ArrowDown") {
-      setActiveIndex((i) => Math.min(i + 1, filtered.length - 1));
+      setActiveIndex((i) => Math.min(i + 1, filterOptions(options, filterValue).length - 1));
     } else if (e.key === "ArrowUp") {
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && activeIndex >= 0) {
-      const choice = filtered[activeIndex];
-      setInputValue(choice.label);
-      onSelect(choice.value);
-      setIsOpen(false);
+      handleSelectOption(filterOptions(options, filterValue)[activeIndex]);
     } else if (e.key === "Escape") {
-      setIsOpen(false);
+      closeSelect();
     }
   };
-
-  const choose = (opt: Option) => {
-    setInputValue(opt.label);
-    onSelect(opt.value);
-    setIsOpen(false);
-  };
-
-  useEffect(() => {
-    const exactMatch = options.find((opt) => opt.label === inputValue);
-    if (exactMatch && isOpen) {
-      setFiltered(options);
-    }
-  }, [inputValue, options, isOpen]);
 
   return (
     <div className="flex flex-col gap-xs" ref={containerRef}>
@@ -116,9 +117,9 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           id={id}
           type="text"
           placeholder={placeholder}
-          value={inputValue}
+          value={isOpen ? filterValue : selectedOption?.label || ""}
           onFocus={() => !isDisabled && setIsOpen(true)}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => handleFilterChange(e.target.value)}
           onKeyDown={onKeyDown}
           required={isRequired}
           disabled={isDisabled}
@@ -132,15 +133,15 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
         {isOpen && (
           <ul className={LIST_CLASSES}>
-            {filtered.length > 0 ? (
-              filtered.map((opt, i) => (
+            {filterOptions(options, filterValue).length > 0 ? (
+              filterOptions(options, filterValue).map((option, i) => (
                 <li
-                  key={opt.value}
+                  key={option.value}
                   className={`${ITEM_CLASSES} ${i === activeIndex ? ITEM_ACTIVE_CLASSES : ""}`}
-                  onMouseDown={() => choose(opt)}
+                  onMouseDown={() => handleSelectOption(option)}
                   onMouseEnter={() => setActiveIndex(i)}
                 >
-                  {opt.label}
+                  {option.label}
                 </li>
               ))
             ) : (

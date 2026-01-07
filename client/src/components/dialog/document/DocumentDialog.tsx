@@ -18,6 +18,7 @@ type DocumentDialogType = "add" | "edit";
 
 export type DocumentDialogState = "idle" | "uploading" | "unknown-error" | "virus-scan-failed";
 
+
 const STYLES = {
   label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
   textarea: tw`w-full border border-border-fields px-xs py-xs text-sm rounded resize-y`,
@@ -71,16 +72,20 @@ const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }>
     name="title"
     label="Document Title"
     placeholder="Enter document title"
+    isRequired
     onChange={(event) => onChange(event.target.value)}
     value={value}
   />
 );
 
-type DescriptionInputProps = { value: string; onChange: (value: string) => void; error?: string };
+type DescriptionInputProps = {
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+};
 
 const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, error }) => {
   const validationMessage = error ?? "";
-
   return (
     <div className="flex flex-col gap-sm">
       <label className={LABEL_CLASSES}>Document Description</label>
@@ -101,6 +106,7 @@ const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, er
     </div>
   );
 };
+
 
 const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({
   progress,
@@ -273,6 +279,7 @@ export type DocumentDialogProps = {
   ) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
+  cancelButtonIsDisabled?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -303,7 +310,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -324,9 +330,10 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
-  const missingType = !activeDocument.documentType;
-  const missingFile = !file;
-  const isMissing = missingType || missingFile;
+  const isMissing =
+    (mode === "add" && !file) ||
+    !activeDocument.documentType ||
+    !activeDocument.name.trim();
 
   const onUploadClick = async () => {
     if (documentDialogState === "uploading") return;
@@ -336,6 +343,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
     await handleUpload();
   };
+
 
   const handleUpload = async () => {
     setDocumentDialogState("uploading");
@@ -357,25 +365,14 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     <BaseDialog
       title={dialogTitle}
       onClose={onClose}
-      showCancelConfirm={showCancelConfirm}
-      setShowCancelConfirm={setShowCancelConfirm}
-      actions={
-        <>
-          <SecondaryButton
-            name="button-cancel-upload-document"
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-            disabled={documentDialogState === "uploading"}
-          >
-            Cancel
-          </SecondaryButton>
-          <UploadButton
-            onClick={onUploadClick}
-            disabled={isMissing}
-            isUploading={documentDialogState === "uploading"}
-          />
-        </>
+      actionButton={
+        <UploadButton
+          onClick={onUploadClick}
+          disabled={isMissing}
+          isUploading={documentDialogState === "uploading"}
+        />
       }
+      cancelButtonIsDisabled={documentDialogState === "uploading"}
     >
       <DropTarget
         file={file}

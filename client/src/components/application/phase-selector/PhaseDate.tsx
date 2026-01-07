@@ -8,7 +8,7 @@ const PAST_DUE_TEXT_CLASS = tw`text-text-warn text-[12px]`;
 
 const PHASE_LABEL_LOOKUP: Record<PhaseStatus, string> = {
   Skipped: "Skipped",
-  Started: "Due",
+  Started: "Started",
   "Not Started": "Not Started",
   Completed: "Completed",
   Incomplete: "Incomplete",
