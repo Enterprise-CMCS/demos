@@ -34,7 +34,7 @@ export const CacheDemonstration = () => {
           changing requirements
         </p>
         <p>Big ideas:</p>
-        <ol className="list-decimal list-inside flex flex-col gap-1">
+        <ul className="list-disc list-inside flex flex-col gap-1">
           <li>
             We are already using the cache; this demonstration does not intend to introduce it, but
             to deepen understanding of its behavior. Many of our existing components already rely on
@@ -64,7 +64,29 @@ export const CacheDemonstration = () => {
             to component. Instead, each component can query the data it needs directly from the
             cache.
           </li>
-        </ol>
+          <li>
+            The GraphQL standard expects that{" "}
+            <a
+              className="text-blue-600 underline"
+              href="https://spec.graphql.org/September2025/#sec-Language.Operations"
+            >
+              mutations perform a write operation and a fetch.
+            </a> and that{" "}
+            <a
+              className="text-blue-600 underline"
+              href="https://spec.graphql.org/September2025/#sec-Non-Null.Nullable-vs-Optional"
+            >
+              the Selection Set returned by a mutation <em>cannot</em> be empty.
+            </a>{" "}
+            Apollo is built around this expectation, and{" "}
+            <a
+              className="text-blue-600 underline"
+              href="https://www.apollographql.com/docs/react/data/mutations#updating-the-cache-directly"
+            >
+              explicitly states returning the modified objects from mutations as a best practice.
+            </a>
+          </li>
+        </ul>
 
         <p>
           for the bulk of this demonstration, we will fetch a single demonstration and pass only its

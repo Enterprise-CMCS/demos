@@ -179,6 +179,54 @@ export const UseQueryAsADataContract = ({ demonstrationId }: { demonstrationId: 
             Update the description with data returned
           </Button>
         </div>
+        <div>
+          <h2 className="font-bold text-lg">Bonus Demonstration:</h2>
+          <p>
+            If you have the developer tools on your browser, you can run a mutation from there and
+            see that the data on the page is updated automatically when returning the data from the
+            mutation.
+          </p>
+          <ul className="ml-1 list-disc list-inside flex flex-col">
+            <li>On this page, open the browser tools</li>
+            <li>Go to the Apollo tab</li>
+            <li>
+              Select the correct Apollo client (usually this is the second from the last one for me)
+            </li>
+            <li>Go to the Explorer tab</li>
+            <li>
+              Add a mutation to the Operation
+              <pre className="ml-1 bg-gray-100 p-1 rounded">
+                <code>
+                  {`mutation ACompletelySeparateMutation($updateDemonstrationId: ID!, $input: UpdateDemonstrationInput!) {
+  updateDemonstration(id: $updateDemonstrationId, input: $input) {
+    id
+    description
+  }
+}`}
+                </code>
+              </pre>
+            </li>
+            <li>Add some variables to the mutation</li>
+            <pre className="ml-1 bg-gray-100 p-1 rounded">
+              <code>
+                {`{
+  "updateDemonstrationId": "${demonstrationId}",
+  "input": {
+    "description": "greetings from a whole different mutation from a whole different input method"
+  }
+}`}
+              </code>
+            </pre>
+            <li>Run the mutation</li>
+          </ul>
+          <p>
+            You should see the description on the page update automatically without any further
+            action needed. This is because the query in this component and the inner component are
+            both relying on the Apollo cache to provide the data, and when the mutation returns the
+            updated data, Apollo updates the cache and all components relying on that data are
+            updated automatically.
+          </p>
+        </div>
       </div>
     </>
   );
