@@ -3,7 +3,7 @@ import { Table } from "@tanstack/react-table";
 import { TextInput } from "components/input";
 import { AutoCompleteMultiselect } from "components/input/select/AutoCompleteMultiselect";
 import { Option, Select } from "components/input/select/Select";
-import { parseISO, format, isValid, isAfter, startOfDay } from "date-fns";
+import { parseISO, format, isValid } from "date-fns";
 import { DatePicker } from "components/input/date/DatePicker";
 
 export interface ColumnMetaFilterConfig {
@@ -94,7 +94,6 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
           />
         );
       case "date": {
-        const today = startOfDay(new Date());
         const startDate = filterRangeValue.start;
         const endDate = filterRangeValue.end;
         const startValue = startDate && isValid(startDate) ? format(startDate, "yyyy-MM-dd") : "";
@@ -119,10 +118,6 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
                 value={endValue}
                 onChange={(val) => {
                   const parsed = val ? parseISO(val) : null;
-                  if (parsed && isValid(parsed) && isAfter(parsed, today)) {
-                    onRangeChange(startDate, today);
-                    return;
-                  }
                   onRangeChange(startDate, parsed && isValid(parsed) ? parsed : null);
                 }}
               />
