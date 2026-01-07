@@ -8,7 +8,7 @@ interface DatePickerProps {
   value?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
-  getValidationMessage?: (value: string) => string | undefined;
+  getValidationMessage?: () => string;
   min?: string;
   max?: string;
 }

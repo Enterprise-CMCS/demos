@@ -98,13 +98,13 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
         const todayValue = format(today, "yyyy-MM-dd");
         const startDate = filterRangeValue.start;
         const endDate = filterRangeValue.end;
-
         const startValue = startDate && isValid(startDate) ? format(startDate, "yyyy-MM-dd") : "";
         const endValue = endDate && isValid(endDate) ? format(endDate, "yyyy-MM-dd") : "";
+        const messagesEnabled = false; // Disabled messages for now - pending HCD review, see DEMOS-1236
 
-        const endValidationMessage = (value: string) => {
-          if (!startDate || !isValid(startDate) || !value) return "";
-          const parsed = parseISO(value);
+        const endValidationMessage = () => {
+          if (!messagesEnabled || !startDate || !isValid(startDate) || !endValue) return "";
+          const parsed = parseISO(endValue);
           if (!isValid(parsed)) return "";
           if (isBefore(parsed, startDate)) {
             return `${columnDisplayName} To Date cannot be before ${columnDisplayName} From date`;
