@@ -1,7 +1,7 @@
 import { ICommandHooks, LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
-import { Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_lambda } from "aws-cdk-lib";
+import { Aws, Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_kms, aws_lambda } from "aws-cdk-lib";
 import { Role, PolicyDocument, PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
@@ -88,6 +88,13 @@ export class Lambda extends Construct {
                 "ec2:AssignPrivateIpAddresses",
                 "ec2:UnassignPrivateIpAddresses",
               ],
+              conditions: {
+                ArnNotEquals: {
+                  "lambda:SourceFunctionArn": [
+                      `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:function:*`
+                  ]
+                }
+              },
               resources: ["*"],
             }),
             ...additionalPolicies,
@@ -96,6 +103,11 @@ export class Lambda extends Construct {
       },
     });
     this.role = role;
+
+    const key = aws_kms.Key.fromLookup(this, "lambdaKmsKey", {
+      aliasName: `alias/demos-${props.stage}-lambda-env`
+    })
+
     this.lambda = new NodejsFunction(this, id, {
       functionName: `${props.project}-${props.stage}-${id}`,
       entry: !asCode ? props.entry : undefined,
@@ -120,6 +132,7 @@ export class Lambda extends Construct {
       vpcSubnets: props.vpc ? { subnets: props.vpc.privateSubnets } : undefined,
       logGroup: logGroup.logGroup,
       loggingFormat: aws_lambda.LoggingFormat.JSON,
+      environmentEncryption: key,
     });
 
     let alias;

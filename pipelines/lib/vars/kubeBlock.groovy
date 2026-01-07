@@ -64,6 +64,20 @@ def call(Map params = [:]) {
     limits:
       cpu: 3000m
       memory: 4Gi
+""",
+      'checkov': """
+- name: checkov
+  image: ${opts.CHECKOV_IMAGE ?: 'artifactory.cloud.cms.gov/docker/bridgecrew/checkov:latest'}
+  command:
+  - cat
+  tty: true
+  resources:
+    requests:
+      cpu: 500m
+      memory: 256Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
 """
     ]
 

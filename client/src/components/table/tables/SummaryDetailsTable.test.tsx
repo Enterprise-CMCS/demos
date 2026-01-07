@@ -47,14 +47,12 @@ describe("SummaryDetailsTable", () => {
 
     it("renders all field labels correctly", () => {
       expect(screen.getByText("State/Territory")).toBeInTheDocument();
-      expect(screen.getByText("Demonstration (Max Limit - 128 Characters)")).toBeInTheDocument();
+      expect(screen.getByText("Demonstration Title")).toBeInTheDocument();
       expect(screen.getByText("Project Officer")).toBeInTheDocument();
       expect(screen.getByText("Status")).toBeInTheDocument();
       expect(screen.getByText("Effective Date")).toBeInTheDocument();
       expect(screen.getByText("Expiration Date")).toBeInTheDocument();
-      expect(
-        screen.getByText("Demonstration Description (Max Limit - 2048 Characters)")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Demonstration Description")).toBeInTheDocument();
     });
   });
 
