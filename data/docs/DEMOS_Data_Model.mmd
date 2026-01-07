@@ -268,8 +268,8 @@ erDiagram
   }
 
   demonstration_type_assignment:::dataTable {
-    uuid demonstration_id FK "FK077: demonstration_id ∈ demonstration.id"
-    text demonstration_type_id FK "FK078: demonstration_type_id ∈ demonstration_type.id"
+    uuid demonstration_id PK, FK "FK077: demonstration_id ∈ demonstration.id"
+    text demonstration_type_id PK, FK "FK078: demonstration_type_id ∈ demonstration_type.id"
     timestamptz effective_date
     timestamptz expiration_date
     timestamptz created_at
@@ -371,8 +371,8 @@ erDiagram
 
   %% Associative Tables
   application_demonstration_type_tag:::associativeTable {
-    uuid application_id FK "FK079: application_id ∈ application.id"
-    text demonstration_type_id FK "F080: demonstration_type_id ∈ demonstration_type.id"
+    uuid application_id PK, FK "FK079: application_id ∈ application.id"
+    text demonstration_type_id PK, FK "FK080: demonstration_type_id ∈ demonstration_type.id"
   }
 
   demonstration_role_assignment:::associativeTable {
