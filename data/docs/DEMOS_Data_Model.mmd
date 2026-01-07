@@ -17,6 +17,9 @@ erDiagram
   phase_status ||--|{ phase_phase_status : "FK072"
   phase_phase_status }|--|| phase : "FK071"
   phase_phase_status ||--|{ application_phase  : "FK004"
+  application ||--|{ application_demonstration_type_tag : "FK079"
+  application_demonstration_type_tag }|--|| demonstration_type : "FK080"
+  demonstration_type_assignment }|--|| demonstration_type : "FK078"
   phase_date_type }|--|| phase : "FK003"
   phase_note_type }|--|| phase : "FK075"
   phase_date_type }|--|| date_type: "FK017"
@@ -32,6 +35,7 @@ erDiagram
   application ||--|| demonstration : "FK008"
   application ||--|| extension : "FK009"
   application ||--|| amendment : "FK058"
+  demonstration ||--|{ demonstration_type_assignment : "FK077"
   demonstration }|--|| sdg_division : "FK010"
   demonstration }|--|| signature_level : "FK011"
   demonstration ||--|{ extension : "FK012"
@@ -100,15 +104,15 @@ erDiagram
     text id PK
   }
 
-  event_type:::staticConstraint {
-    text id PK
-  }
-
-  sdg_division:::staticConstraint {
-    text id PK
-  }
-
   date_type:::staticConstraint {
+    text id PK
+  }
+
+  demonstration_type:::staticConstraint {
+    text id PK
+  }
+
+  event_type:::staticConstraint {
     text id PK
   }
 
@@ -151,6 +155,10 @@ erDiagram
   role:::staticConstraint {
     text id PK, UK "UK: (id, grant_level_id)"
     text grant_level_id FK, UK "FK035: grant_level_id ∈ grant_level.id<br>UK: (id, grant_level_id)"
+  }
+
+  sdg_division:::staticConstraint {
+    text id PK
   }
 
   signature_level:::staticConstraint {
@@ -259,6 +267,15 @@ erDiagram
     BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
   }
 
+  demonstration_type_assignment:::dataTable {
+    uuid demonstration_id FK "FK077: demonstration_id ∈ demonstration.id"
+    text demonstration_type_id FK "FK078: demonstration_type_id ∈ demonstration_type.id"
+    timestamptz effective_date
+    timestamptz expiration_date
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
   document:::dataTable {
     uuid id PK
     text name
@@ -353,6 +370,11 @@ erDiagram
   }
 
   %% Associative Tables
+  application_demonstration_type_tag:::associativeTable {
+    uuid application_id FK "FK079: application_id ∈ application.id"
+    text demonstration_type_id FK "F080: demonstration_type_id ∈ demonstration_type.id"
+  }
+
   demonstration_role_assignment:::associativeTable {
     uuid person_id PK, FK "FK042: (person_id, state_id) ∈ person_state.(person_id, state_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     uuid demonstration_id PK, FK "FK050: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
