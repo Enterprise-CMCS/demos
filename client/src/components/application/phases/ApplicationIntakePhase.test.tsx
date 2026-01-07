@@ -399,10 +399,7 @@ describe("ApplicationIntakePhase", () => {
       expect(finishButton).toBeDisabled();
 
       // Date should be cleared when no documents are present (business rule)
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
-      ) as HTMLInputElement;
+      const submittedDateInput = screen.getByTestId("datepicker-state-application-submitted-date") as HTMLInputElement;
       expect(submittedDateInput.value).toBe("");
     });
 
