@@ -34,10 +34,11 @@ const mockSetApplicationDate = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
 
 vi.mock("components/application/date/dateQueries", () => ({
-  useSetApplicationDate: vi.fn(() => [
-    mockSetApplicationDate,
-    { loading: false, error: null },
-  ]),
+  useSetApplicationDate: vi.fn(() => ({
+    setApplicationDate: mockSetApplicationDate,
+    loading: false,
+    error: null,
+  })),
   useSetApplicationDates: vi.fn(() => ({
     setApplicationDates: mockSetApplicationDates,
     loading: false,
