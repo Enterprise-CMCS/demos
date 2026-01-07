@@ -95,7 +95,6 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
         );
       case "date": {
         const today = startOfDay(new Date());
-        const todayValue = format(today, "yyyy-MM-dd");
         const startDate = filterRangeValue.start;
         const endDate = filterRangeValue.end;
         const startValue = startDate && isValid(startDate) ? format(startDate, "yyyy-MM-dd") : "";
