@@ -13,6 +13,7 @@ import {
   parseSetApplicationDatesInput,
   upsertApplicationDates,
   validateInputDates,
+  validateAllowedDateChangeByPhase,
 } from ".";
 
 vi.mock(".", () => ({
@@ -22,6 +23,7 @@ vi.mock(".", () => ({
   parseSetApplicationDatesInput: vi.fn(),
   upsertApplicationDates: vi.fn(),
   validateInputDates: vi.fn(),
+  validateAllowedDateChangeByPhase: vi.fn(),
 }));
 
 describe("validateAndUpdateDates", () => {
@@ -94,9 +96,14 @@ describe("validateAndUpdateDates", () => {
     vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
     vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
     vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
+    vi.mocked(validateAllowedDateChangeByPhase).mockResolvedValueOnce();
 
     await validateAndUpdateDates(testInput, testPrismaTransaction);
 
+    expect(validateAllowedDateChangeByPhase).toHaveBeenCalledExactlyOnceWith(
+      testPrismaTransaction,
+      testInput
+    );
     expect(parseSetApplicationDatesInput).toHaveBeenCalledExactlyOnceWith(testInput);
     expect(getApplicationDates).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
