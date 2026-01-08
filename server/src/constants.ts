@@ -88,7 +88,17 @@ export const PHASE_STATUS = [
   "Skipped",
 ] as const;
 
+export const CMS_OSORA_CLEARANCE_DATE_TYPES = [
+  "Submit Approval Package to OSORA",
+  "OSORA R1 Comments Due",
+  "OSORA R2 Comments Due",
+  "CMS (OSORA) Clearance End",
+] as const;
 
+export const COMMS_CLEARANCE_DATE_TYPES = [
+  "Package Sent for COMMs Clearance",
+  "COMMs Clearance Received",
+] as const;
 
 export const REVIEW_PHASE_DATE_TYPES = [
   "OGD Approval to Share with SMEs",
@@ -99,12 +109,8 @@ export const REVIEW_PHASE_DATE_TYPES = [
   "Draft Approval Package Shared",
   "Receive OMB Concurrence",
   "Receive OGC Legal Clearance",
-  "Submit Approval Package to OSORA",
-  "Package Sent for COMMs Clearance",
-  "COMMs Clearance Received",
-  "OSORA R1 Comments Due",
-  "OSORA R2 Comments Due",
-  "CMS (OSORA) Clearance End",
+  ...CMS_OSORA_CLEARANCE_DATE_TYPES,
+  ...COMMS_CLEARANCE_DATE_TYPES,
 ] as const;
 
 export const DATE_TYPES = [
