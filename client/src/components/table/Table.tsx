@@ -117,7 +117,7 @@ function TableSearch<T>({
   columnFilter?: (table: TanstackTable<T>) => React.ReactNode;
 }) {
   return (
-    <div className="grid w-full grid-cols-4 gap-[24px]">
+    <div className="grid w-full grid-cols-1 items-end gap-[24px] md:grid-cols-4 sm:grid-cols-1">
       <div className="col-span-1">{keywordSearch && keywordSearch(table)}</div>
       <div className="col-span-2">{columnFilter && columnFilter(table)}</div>
     </div>
@@ -204,9 +204,15 @@ export function Table<T>({
   return (
     <>
       {!hideSearchAndActions && (
-        <div className="flex items-center justify-between mb-[24px]">
-          <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
-          <div className="mr-1">{actionButtons && actionButtons(table)}</div>
+        <div className="flex flex-col gap-4 items-start sm:flex-row sm:items-center justify-between mb-[24px]">
+          <TableSearch
+            table={table}
+            keywordSearch={keywordSearch}
+            columnFilter={columnFilter}
+          />
+          <div className="mr-1">
+            {actionButtons && actionButtons(table)}
+          </div>
         </div>
       )}
 

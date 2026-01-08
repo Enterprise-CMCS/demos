@@ -353,7 +353,7 @@ describe("virus scan polling", () => {
     // Advance timers to reach max attempts
     await vi.advanceTimersByTimeAsync(VIRUS_SCAN_MAX_ATTEMPTS * DOCUMENT_POLL_INTERVAL_MS);
 
-    // Should reach max attempts  and throw timeout error
+    // Should reach max attempts and throw timeout error
     expect(mockLazyQueryFn).toHaveBeenCalledTimes(VIRUS_SCAN_MAX_ATTEMPTS);
   });
 

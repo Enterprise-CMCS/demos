@@ -102,10 +102,17 @@ export const ApplicationIntakePhase = ({
   const { setApplicationDate } = useSetApplicationDate();
 
   useEffect(() => {
-    setIsFinishButtonEnabled(
-      stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate)
-    );
+    const finishShouldBeEnabled =
+      stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate);
+    setIsFinishButtonEnabled(finishShouldBeEnabled);
+
+    // Clear date when no documents are present (business rule)
+    if (stateApplicationDocuments.length === 0 && stateApplicationSubmittedDate) {
+      setStateApplicationSubmittedDate("");
+    }
   }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
+
+
 
   const onFinishButtonClick = async () => {
     const todayDate = getTodayEst();
@@ -121,20 +128,9 @@ export const ApplicationIntakePhase = ({
   };
 
   const handleDocumentUploadSucceeded = async () => {
-    const todayDate = getTodayEst();
-    setStateApplicationSubmittedDate(formatDateForServer(todayDate));
-
-    await setApplicationDate({
-      applicationId: demonstrationId,
-      dateType: "State Application Submitted Date",
-      dateValue: todayDate,
-    });
-
-    await setApplicationDate({
-      applicationId: demonstrationId,
-      dateType: "Completeness Start Date",
-      dateValue: todayDate,
-    });
+    if (!stateApplicationSubmittedDate) {
+      setStateApplicationSubmittedDate(getTodayEst());
+    }
   };
 
   const handleDateChange = async (newDate: string) => {
