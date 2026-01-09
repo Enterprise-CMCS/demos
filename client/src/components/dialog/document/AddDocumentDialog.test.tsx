@@ -46,7 +46,6 @@ afterEach(() => {
 const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "button-confirm-upload-document";
 const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
 const FILE_INPUT_TEST_ID = "input-file";
-const TITLE_INPUT_TEST_ID = "title";
 
 describe("AddDocumentDialog", () => {
   const setup = () => {
@@ -62,12 +61,6 @@ describe("AddDocumentDialog", () => {
     );
     return { onClose };
   };
-
-  // const setTitle = (value: string) => {
-  //   fireEvent.change(screen.getByTestId(TITLE_INPUT_TEST_ID), {
-  //     target: { value },
-  //   });
-  // };
 
   it("renders dialog with title and required fields", () => {
     setup();
@@ -196,12 +189,6 @@ describe("AddDocumentDialog", () => {
 });
 
 describe("virus scan polling", () => {
-  const setTitle = (value: string) => {
-    fireEvent.change(screen.getByTestId(TITLE_INPUT_TEST_ID), {
-      target: { value },
-    });
-  };
-
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     globalThis.fetch = vi.fn();
