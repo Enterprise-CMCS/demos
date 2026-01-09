@@ -374,14 +374,16 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       }
       cancelButtonIsDisabled={documentDialogState === "uploading"}
     >
-      <DropTarget
-        file={file}
-        onRemove={() => setFile(null)}
-        fileInputRef={fileInputRef}
-        uploadStatus={uploadStatus}
-        uploadProgress={uploadProgress}
-        handleFileChange={handleFileChange}
-      />
+      {mode !== "edit" ? (
+        <DropTarget
+          file={file}
+          onRemove={() => setFile(null)}
+          fileInputRef={fileInputRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+          handleFileChange={handleFileChange}
+        />
+      ) : ""}
 
       <DocumentDialogNotice
         documentDialogState={documentDialogState}
