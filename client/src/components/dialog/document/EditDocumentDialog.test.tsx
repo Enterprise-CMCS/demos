@@ -28,7 +28,6 @@ afterEach(() => {
 
 const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "button-confirm-upload-document";
 const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
-const FILE_INPUT_TEST_ID = "input-file";
 
 describe("EditDocumentDialog", () => {
   const existingDocument: DocumentDialogFields = {
@@ -59,54 +58,32 @@ describe("EditDocumentDialog", () => {
     expect(screen.getByDisplayValue("General File")).toBeInTheDocument(); // Document Type
   });
 
-  it("enables Upload button when required fields are present", () => {
+  it("enables 'Save Changes' button after a field is changed", async () => {
     setup();
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
-    expect(uploadBtn).toBeEnabled();
+    expect(uploadBtn).toBeDisabled();
+
+    const titleInput = screen.getByDisplayValue("Existing Document");
+    fireEvent.change(titleInput, { target: { value: "Updated Document" } });
+
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+    expect(uploadBtn).toHaveTextContent("Save Changes");
   });
 
-  it("disables Upload button when title is cleared", () => {
+  it("disables 'Save Changes' button when title is cleared", () => {
     setup();
     const titleInput = screen.getByDisplayValue("Existing Document");
+    fireEvent.change(titleInput, { target: { value: "Updated Document" } });
     fireEvent.change(titleInput, { target: { value: "" } });
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     expect(uploadBtn).toBeDisabled();
   });
 
-  it("enables Upload button when description, type, and file are set", async () => {
+  it("does not render file upload controls in edit mode", () => {
     setup();
 
-    const file = new File(["sample"], "test.pdf", { type: "application/pdf" });
-    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
-      target: { files: [file] },
-    });
-
-    fireEvent.change(screen.getByPlaceholderText("Enter"), {
-      target: { value: "Test document" },
-    });
-
-    // Simulate user selecting document type from autocomplete
-    const typeInput = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
-    fireEvent.focus(typeInput);
-    fireEvent.change(typeInput, { target: { value: "General" } });
-    // Try to select the option if it appears
-    try {
-      const option = await screen.findByText("General File");
-      fireEvent.mouseDown(option);
-    } catch {
-      // Option not found, continue
-    }
-
-    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
-    // Accept either enabled or disabled, but log for debugging
-    if ((uploadBtn as HTMLButtonElement).disabled) {
-      // Optionally, you can fail here or just log
-      // throw new Error("Upload button is still disabled after setting all fields");
-      console.warn("Upload button is still disabled after setting all fields");
-    }
-    await waitFor(() =>
-      expect([true, false]).toContain(!(uploadBtn as HTMLButtonElement).disabled)
-    );
+    expect(screen.queryByTestId("input-file")).not.toBeInTheDocument();
+    expect(screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID)).toHaveTextContent("Save Changes");
   });
 
   it("calls onClose when cancel is confirmed", async () => {
