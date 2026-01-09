@@ -17,6 +17,7 @@ import { ApplicationStatus, ApplicationType, PhaseName, ClearanceLevel } from ".
 // Mock imports
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -27,6 +28,10 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
+}));
+
+vi.mock("../applicationPhase", () => ({
+  getFinishedApplicationPhaseIds: vi.fn(),
 }));
 
 describe("applicationResolvers", () => {
@@ -41,27 +46,21 @@ describe("applicationResolvers", () => {
     applicationPhase: {
       findMany: vi.fn(),
     },
-    demonstration: {
-      update: vi.fn(),
-    },
-    amendment: {
-      update: vi.fn(),
-    },
-    extension: {
-      update: vi.fn(),
-    },
   };
   const transactionMocks = {
     application: {
       delete: vi.fn(),
     },
     demonstration: {
+      update: vi.fn(),
       delete: vi.fn(),
     },
     amendment: {
+      update: vi.fn(),
       delete: vi.fn(),
     },
     extension: {
+      update: vi.fn(),
       delete: vi.fn(),
     },
   };
@@ -71,12 +70,15 @@ describe("applicationResolvers", () => {
     },
     demonstration: {
       delete: transactionMocks.demonstration.delete,
+      update: transactionMocks.demonstration.update,
     },
     amendment: {
       delete: transactionMocks.amendment.delete,
+      update: transactionMocks.amendment.update,
     },
     extension: {
       delete: transactionMocks.extension.delete,
+      update: transactionMocks.extension.update,
     },
   };
   const mockPrismaClient = {
@@ -92,13 +94,13 @@ describe("applicationResolvers", () => {
       findMany: regularMocks.applicationPhase.findMany,
     },
     demonstration: {
-      update: regularMocks.demonstration.update,
+      update: transactionMocks.demonstration.update,
     },
     amendment: {
-      update: regularMocks.amendment.update,
+      update: transactionMocks.amendment.update,
     },
     extension: {
-      update: regularMocks.extension.update,
+      update: transactionMocks.extension.update,
     },
   };
   const testApplicationId = "8167c039-9c08-4203-b7d2-9e35ec156993";
@@ -341,6 +343,10 @@ describe("applicationResolvers", () => {
       clearanceLevelId: testClearanceLevel,
     };
 
+    beforeEach(() => {
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue([]);
+    });
+
     it("should update clearance level for a Demonstration", async () => {
       const mockApplication = {
         id: testApplicationId,
@@ -353,7 +359,7 @@ describe("applicationResolvers", () => {
         extension: null,
       };
       mockPrismaClient.application.findUnique.mockResolvedValue(mockApplication);
-      regularMocks.demonstration.update.mockResolvedValue(testUpdatedDemonstration);
+      transactionMocks.demonstration.update.mockResolvedValue(testUpdatedDemonstration);
 
       const input = {
         applicationId: testApplicationId,
@@ -362,12 +368,12 @@ describe("applicationResolvers", () => {
 
       const result = await setApplicationClearanceLevel(undefined, { input });
 
-      expect(regularMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith({
+      expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith({
         where: { id: testApplicationId },
         data: { clearanceLevelId: testClearanceLevel },
       });
-      expect(regularMocks.amendment.update).not.toHaveBeenCalled();
-      expect(regularMocks.extension.update).not.toHaveBeenCalled();
+      expect(transactionMocks.amendment.update).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.update).not.toHaveBeenCalled();
       expect(result).toEqual(testUpdatedDemonstration);
     });
 
@@ -383,7 +389,7 @@ describe("applicationResolvers", () => {
         extension: null,
       };
       mockPrismaClient.application.findUnique.mockResolvedValue(mockApplication);
-      regularMocks.amendment.update.mockResolvedValue(testUpdatedAmendment);
+      transactionMocks.amendment.update.mockResolvedValue(testUpdatedAmendment);
 
       const input = {
         applicationId: testApplicationId,
@@ -392,12 +398,12 @@ describe("applicationResolvers", () => {
 
       const result = await setApplicationClearanceLevel(undefined, { input });
 
-      expect(regularMocks.amendment.update).toHaveBeenCalledExactlyOnceWith({
+      expect(transactionMocks.amendment.update).toHaveBeenCalledExactlyOnceWith({
         where: { id: testApplicationId },
         data: { clearanceLevelId: testClearanceLevel },
       });
-      expect(regularMocks.demonstration.update).not.toHaveBeenCalled();
-      expect(regularMocks.extension.update).not.toHaveBeenCalled();
+      expect(transactionMocks.demonstration.update).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.update).not.toHaveBeenCalled();
       expect(result).toEqual(testUpdatedAmendment);
     });
 
@@ -413,7 +419,7 @@ describe("applicationResolvers", () => {
         },
       };
       mockPrismaClient.application.findUnique.mockResolvedValue(mockApplication);
-      regularMocks.extension.update.mockResolvedValue(testUpdatedExtension);
+      transactionMocks.extension.update.mockResolvedValue(testUpdatedExtension);
 
       const input = {
         applicationId: testApplicationId,
@@ -422,12 +428,12 @@ describe("applicationResolvers", () => {
 
       const result = await setApplicationClearanceLevel(undefined, { input });
 
-      expect(regularMocks.extension.update).toHaveBeenCalledExactlyOnceWith({
+      expect(transactionMocks.extension.update).toHaveBeenCalledExactlyOnceWith({
         where: { id: testApplicationId },
         data: { clearanceLevelId: testClearanceLevel },
       });
-      expect(regularMocks.demonstration.update).not.toHaveBeenCalled();
-      expect(regularMocks.amendment.update).not.toHaveBeenCalled();
+      expect(transactionMocks.demonstration.update).not.toHaveBeenCalled();
+      expect(transactionMocks.amendment.update).not.toHaveBeenCalled();
       expect(result).toEqual(testUpdatedExtension);
     });
 
@@ -444,7 +450,7 @@ describe("applicationResolvers", () => {
       };
       mockPrismaClient.application.findUnique.mockResolvedValue(mockApplication);
       const testError = new Error("Database update failed");
-      regularMocks.demonstration.update.mockRejectedValueOnce(testError);
+      transactionMocks.demonstration.update.mockRejectedValueOnce(testError);
 
       const input = {
         applicationId: testApplicationId,
@@ -466,9 +472,71 @@ describe("applicationResolvers", () => {
       };
 
       await expect(setApplicationClearanceLevel(undefined, { input })).rejects.toThrowError();
-      expect(regularMocks.demonstration.update).not.toHaveBeenCalled();
-      expect(regularMocks.amendment.update).not.toHaveBeenCalled();
-      expect(regularMocks.extension.update).not.toHaveBeenCalled();
+      expect(transactionMocks.demonstration.update).not.toHaveBeenCalled();
+      expect(transactionMocks.amendment.update).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.update).not.toHaveBeenCalled();
+    });
+
+    it("should prevent clearance level update when Review phase is completed", async () => {
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["Application Intake", "Review"]);
+      const mockApplication = {
+        id: testApplicationId,
+        applicationTypeId: testDemonstrationApplicationTypeId,
+        demonstration: {
+          id: testApplicationId,
+          applicationTypeId: testDemonstrationApplicationTypeId,
+        },
+        amendment: null,
+        extension: null,
+      };
+      mockPrismaClient.application.findUnique.mockResolvedValue(mockApplication);
+
+      const input = {
+        applicationId: testApplicationId,
+        clearanceLevel: testClearanceLevel,
+      };
+
+      await expect(setApplicationClearanceLevel(undefined, { input })).rejects.toThrowError(
+        testHandlePrismaError
+      );
+      expect(transactionMocks.demonstration.update).not.toHaveBeenCalled();
+      expect(transactionMocks.amendment.update).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.update).not.toHaveBeenCalled();
+    });
+
+    it("should allow clearance level update when Review phase is not", async () => {
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue([
+        "Application Intake",
+        "SDG Preparation",
+      ]);
+
+      const mockApplication = {
+        id: testApplicationId,
+        applicationTypeId: testDemonstrationApplicationTypeId,
+        demonstration: {
+          id: testApplicationId,
+          applicationTypeId: testDemonstrationApplicationTypeId,
+        },
+        amendment: null,
+        extension: null,
+      };
+      mockPrismaClient.application.findUnique.mockResolvedValue(mockApplication);
+      transactionMocks.demonstration.update.mockResolvedValue(testUpdatedDemonstration);
+
+      const input = {
+        applicationId: testApplicationId,
+        clearanceLevel: testClearanceLevel,
+      };
+
+      const result = await setApplicationClearanceLevel(undefined, { input });
+
+      expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith({
+        where: { id: testApplicationId },
+        data: { clearanceLevelId: testClearanceLevel },
+      });
+      expect(transactionMocks.amendment.update).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.update).not.toHaveBeenCalled();
+      expect(result).toEqual(testUpdatedDemonstration);
     });
   });
 });

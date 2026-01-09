@@ -10,7 +10,7 @@ import {
 } from "@prisma/client";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { SetApplicationClearanceLevelInput } from "./applicationSchema.js";
-import { getFinishedApplicationPhaseIds } from "../applicationPhase/index.js";
+import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 
 export type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
 
