@@ -18,7 +18,6 @@ type DocumentDialogType = "add" | "edit";
 
 export type DocumentDialogState = "idle" | "uploading" | "unknown-error" | "virus-scan-failed";
 
-
 const STYLES = {
   label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
   textarea: tw`w-full border border-border-fields px-xs py-xs text-sm rounded resize-y`,
@@ -106,7 +105,6 @@ const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, er
     </div>
   );
 };
-
 
 const ProgressBar: React.FC<{ progress: number; uploadStatus: UploadStatus }> = ({
   progress,
@@ -269,6 +267,18 @@ const DEFAULT_DOCUMENT_FIELDS: DocumentDialogFields = {
   documentType: "General File",
 };
 
+export const checkFormHasChanges = (
+  initialDocument: DocumentDialogFields,
+  activeDocument: DocumentDialogFields
+): boolean => {
+  return (
+    activeDocument.name !== initialDocument.name ||
+    activeDocument.description !== initialDocument.description ||
+    activeDocument.documentType !== initialDocument.documentType ||
+    activeDocument.file !== initialDocument.file
+  );
+};
+
 export type DocumentDialogProps = {
   onClose?: () => void;
   mode: DocumentDialogType;
@@ -303,13 +313,24 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   titleOverride,
 }) => {
   const { showSuccess, showError } = useToast();
+  const hydratedInitialDocument = setDefaultDocumentType(
+    DEFAULT_DOCUMENT_FIELDS,
+    documentTypeSubset
+  );
 
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
-    initialDocument || setDefaultDocumentType(DEFAULT_DOCUMENT_FIELDS, documentTypeSubset)
+    initialDocument || hydratedInitialDocument
   );
 
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
+  const [formHasChanges, setFormHasChanges] = useState(false);
+
+  useEffect(() => {
+    setFormHasChanges(
+      checkFormHasChanges(initialDocument || hydratedInitialDocument, activeDocument)
+    );
+  }, [activeDocument]);
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -331,9 +352,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   }, [file]);
 
   const isMissing =
-    (mode === "add" && !file) ||
-    !activeDocument.documentType ||
-    !activeDocument.name.trim();
+    (mode === "add" && !file) || !activeDocument.documentType || !activeDocument.name.trim();
 
   const onUploadClick = async () => {
     if (documentDialogState === "uploading") return;
@@ -343,7 +362,6 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
     await handleUpload();
   };
-
 
   const handleUpload = async () => {
     setDocumentDialogState("uploading");
@@ -361,27 +379,36 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
   };
 
+  const buttonName = mode == "edit" ? "Save Changes" : "Upload Document";
+
   return (
     <BaseDialog
       title={dialogTitle}
       onClose={onClose}
+      dialogHasChanges={formHasChanges}
       actionButton={
         <UploadButton
           onClick={onUploadClick}
-          disabled={isMissing}
+          disabled={isMissing || !formHasChanges}
           isUploading={documentDialogState === "uploading"}
+          label={buttonName}
+          loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
         />
       }
       cancelButtonIsDisabled={documentDialogState === "uploading"}
     >
-      <DropTarget
-        file={file}
-        onRemove={() => setFile(null)}
-        fileInputRef={fileInputRef}
-        uploadStatus={uploadStatus}
-        uploadProgress={uploadProgress}
-        handleFileChange={handleFileChange}
-      />
+      {mode !== "edit" ? (
+        <DropTarget
+          file={file}
+          onRemove={() => setFile(null)}
+          fileInputRef={fileInputRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+          handleFileChange={handleFileChange}
+        />
+      ) : (
+        ""
+      )}
 
       <DocumentDialogNotice
         documentDialogState={documentDialogState}

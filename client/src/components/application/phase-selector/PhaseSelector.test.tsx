@@ -1,16 +1,26 @@
 import React from "react";
 
 import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { getReviewPhaseComponentFromDemonstration } from "../phases";
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({}),
 }));
+
+vi.mock("../phases", async () => {
+  const actual = await vi.importActual("../phases");
+  return {
+    ...actual,
+    getReviewPhaseComponentFromDemonstration: vi.fn(),
+  };
+});
 
 describe("PhaseSelector", () => {
   it("renders all phase names", () => {
@@ -353,5 +363,60 @@ describe("getDisplayedPhaseDate", () => {
     const result = getDisplayedPhaseDate(demonstration, "Concept");
     expect(result).toBeInstanceOf(Date);
     expect(result).toEqual(dateValue);
+  });
+});
+
+describe("Review phase component", () => {
+  it("calls getReviewPhaseComponentFromDemonstration with correct props when Review is selected", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getReviewPhaseComponentFromDemonstration).mockReturnValue(
+      <div>Review Phase Mock</div>
+    );
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      status: "Under Review",
+      currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    // Click on the Review phase box
+    const reviewPhaseBox = screen.getByText("Review");
+    await user.click(reviewPhaseBox);
+
+    // Wait for the component to update and verify Review phase is selected
+    await waitFor(() => {
+      expect(reviewPhaseBox.closest("div")).toHaveClass("scale-110");
+    });
+
+    // Verify getReviewPhaseComponentFromDemonstration was called
+    expect(getReviewPhaseComponentFromDemonstration).toHaveBeenCalledTimes(1);
+    expect(getReviewPhaseComponentFromDemonstration).toHaveBeenCalledWith(
+      demonstration,
+      expect.any(Function)
+    );
+
+    // Extract and invoke the callback to verify it transitions to Approval Package
+    const callback = vi.mocked(getReviewPhaseComponentFromDemonstration).mock.calls[0][1];
+    callback();
+
+    // Wait for state update and verify Approval Package phase becomes selected
+    await waitFor(() => {
+      const approvalPackageBox = screen.getByText("Approval Package");
+      expect(approvalPackageBox.closest("div")).toHaveClass("scale-110");
+    });
+
+    // Verify Review phase is no longer selected
+    await waitFor(() => {
+      expect(reviewPhaseBox.closest("div")).not.toHaveClass("scale-110");
+    });
   });
 });
