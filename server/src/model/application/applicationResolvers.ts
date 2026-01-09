@@ -10,6 +10,7 @@ import {
 } from "@prisma/client";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { SetApplicationClearanceLevelInput } from "./applicationSchema.js";
+import { getFinishedApplicationPhaseIds } from "../applicationPhase/index.js";
 
 export type PrismaApplication = PrismaDemonstration | PrismaAmendment | PrismaExtension;
 
@@ -206,25 +207,36 @@ export async function setApplicationClearanceLevel(
     const application = await getApplication(input.applicationId);
     const applicationType = __resolveApplicationType(application);
 
-    switch (applicationType) {
-      case "Demonstration":
-        return await prisma().demonstration.update({
-          where: { id: input.applicationId },
-          data: { clearanceLevelId: input.clearanceLevel },
-        });
-      case "Amendment":
-        return await prisma().amendment.update({
-          where: { id: input.applicationId },
-          data: { clearanceLevelId: input.clearanceLevel },
-        });
-      case "Extension":
-        return await prisma().extension.update({
-          where: { id: input.applicationId },
-          data: { clearanceLevelId: input.clearanceLevel },
-        });
-      default:
-        throw new GraphQLError(`Unknown application type: ${applicationType}`);
-    }
+    return await prisma().$transaction(async (tx) => {
+      const finishedApplicationPhaseIds = await getFinishedApplicationPhaseIds(
+        tx,
+        input.applicationId
+      );
+
+      if (finishedApplicationPhaseIds.find((phase) => phase === "Review")) {
+        throw new Error("Cannot change clearance level after the Review phase has been completed.");
+      }
+
+      switch (applicationType) {
+        case "Demonstration":
+          return await tx.demonstration.update({
+            where: { id: input.applicationId },
+            data: { clearanceLevelId: input.clearanceLevel },
+          });
+        case "Amendment":
+          return await tx.amendment.update({
+            where: { id: input.applicationId },
+            data: { clearanceLevelId: input.clearanceLevel },
+          });
+        case "Extension":
+          return await tx.extension.update({
+            where: { id: input.applicationId },
+            data: { clearanceLevelId: input.clearanceLevel },
+          });
+        default:
+          throw new GraphQLError(`Unknown application type: ${applicationType}`);
+      }
+    });
   } catch (error) {
     handlePrismaError(error);
   }
