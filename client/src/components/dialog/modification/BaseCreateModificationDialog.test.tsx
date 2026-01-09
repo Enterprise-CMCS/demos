@@ -5,6 +5,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import {
   BaseCreateModificationDialog,
+  checkFormHasChanges,
   CREATE_MODIFICATION_DIALOG_QUERY,
 } from "./BaseCreateModificationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
@@ -103,6 +104,25 @@ const queryErrorMock = {
 };
 
 const handleSubmit = vi.fn();
+
+describe("checkFormHasChanges", () => {
+  it("returns false when name and description are empty", () => {
+    expect(checkFormHasChanges({})).toBe(false);
+    expect(checkFormHasChanges({ name: "", description: "" })).toBe(false);
+  });
+
+  it("returns true when name is filled", () => {
+    expect(checkFormHasChanges({ name: "Test" })).toBe(true);
+  });
+
+  it("returns true when description is filled", () => {
+    expect(checkFormHasChanges({ description: "Test" })).toBe(true);
+  });
+
+  it("ignores demonstrationId and stateId", () => {
+    expect(checkFormHasChanges({ demonstrationId: "demo-1", stateId: "CA" })).toBe(false);
+  });
+});
 
 describe("BaseCreateModificationDialog", () => {
   const mockOnClose = vi.fn();

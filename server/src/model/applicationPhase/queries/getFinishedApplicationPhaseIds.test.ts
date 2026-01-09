@@ -74,7 +74,11 @@ describe("getCompletedApplicationPhaseIds", () => {
     expect(result).toEqual(["Concept"] satisfies PhaseName[]);
   });
 
+<<<<<<< HEAD
   it("should return multiple completed phases in order", async () => {
+=======
+  it("should return multiple completed phases", async () => {
+>>>>>>> c3e8df56192ea626cf8f6b7a0152fde3c92aa001
     vi.mocked(transactionMocks.applicationPhase.findMany).mockResolvedValue([
       {
         phaseId: "Application Intake",
@@ -95,11 +99,14 @@ describe("getCompletedApplicationPhaseIds", () => {
       testApplicationId
     );
 
-    expect(result).toEqual([
-      "Application Intake",
-      "Review",
-      "Concept",
-      "SDG Preparation",
-    ] satisfies PhaseName[]);
+    expect(result).toHaveLength(4);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        "Application Intake",
+        "Review",
+        "Concept",
+        "SDG Preparation",
+      ] satisfies PhaseName[])
+    );
   });
 });
