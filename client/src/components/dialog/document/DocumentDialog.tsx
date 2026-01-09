@@ -274,7 +274,8 @@ export const checkFormHasChanges = (
   return (
     activeDocument.name !== initialDocument.name ||
     activeDocument.description !== initialDocument.description ||
-    activeDocument.documentType !== initialDocument.documentType
+    activeDocument.documentType !== initialDocument.documentType ||
+    activeDocument.file !== initialDocument.file
   );
 };
 
@@ -312,9 +313,13 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   titleOverride,
 }) => {
   const { showSuccess, showError } = useToast();
+  const hydratedInitialDocument = setDefaultDocumentType(
+    DEFAULT_DOCUMENT_FIELDS,
+    documentTypeSubset
+  );
 
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
-    initialDocument || setDefaultDocumentType(DEFAULT_DOCUMENT_FIELDS, documentTypeSubset)
+    initialDocument || hydratedInitialDocument
   );
 
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
@@ -323,7 +328,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   useEffect(() => {
     setFormHasChanges(
-      checkFormHasChanges(initialDocument || DEFAULT_DOCUMENT_FIELDS, activeDocument)
+      checkFormHasChanges(initialDocument || hydratedInitialDocument, activeDocument)
     );
   }, [activeDocument]);
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
