@@ -22,6 +22,7 @@ export { getApplicationPhaseDocumentTypes } from "./queries/getApplicationPhaseD
 export { getApplicationPhaseStatus } from "./queries/getApplicationPhaseStatus.js";
 export { getApplicationPhaseStatuses } from "./queries/getApplicationPhaseStatuses.js";
 export { updatePhaseStatus } from "./queries/updatePhaseStatus.js";
+export { getFinishedApplicationPhaseIds } from "./queries/getFinishedApplicationPhaseIds";
 
 // Types & Constants
 export type {
