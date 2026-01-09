@@ -90,7 +90,6 @@ describe("EditDocumentDialog", () => {
     const { onClose } = setup();
 
     fireEvent.click(screen.getByText("Cancel"));
-    fireEvent.click(screen.getByTestId("button-cc-dialog-discard"));
 
     await waitFor(() => {
       expect(onClose).toHaveBeenCalled();

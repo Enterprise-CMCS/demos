@@ -142,7 +142,22 @@ describe("EditDemonstrationDialog", () => {
   });
 
   it("calls onClose when Cancel is clicked", async () => {
-    render(getEditDemonstrationDialog());
+    const onCloseMock = vi.fn();
+    render(
+      <TestProvider
+        mocks={[
+          GET_DEMONSTRATION_BY_ID_MOCK,
+          GET_USER_SELECT_OPTIONS_MOCK,
+          UPDATE_DEMONSTRATION_MOCK,
+        ]}
+      >
+        <EditDemonstrationDialog
+          {...DEFAULT_PROPS}
+          onClose={onCloseMock}
+          demonstrationId={TEST_DEMO_ID}
+        />
+      </TestProvider>
+    );
 
     // Wait for loading to complete first
     await waitFor(() => {
@@ -150,7 +165,11 @@ describe("EditDemonstrationDialog", () => {
     });
 
     fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
-    expect(screen.getByText(/Are you sure/i)).toBeInTheDocument();
+
+    // Verify onClose was called
+    await waitFor(() => {
+      expect(onCloseMock).toHaveBeenCalled();
+    });
   });
 
   it("renders the description textarea", async () => {
