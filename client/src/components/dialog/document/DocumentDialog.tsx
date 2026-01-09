@@ -354,6 +354,11 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const isMissing =
     (mode === "add" && !file) || !activeDocument.documentType || !activeDocument.name.trim();
 
+  const changesMade =
+    mode !== "edit" ||
+    activeDocument.name !== initialDocument?.name ||
+    activeDocument.description !== initialDocument?.description ||
+    activeDocument.documentType !== initialDocument?.documentType;
   const onUploadClick = async () => {
     if (documentDialogState === "uploading") return;
     if (isMissing) {
@@ -379,6 +384,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
   };
 
+  const buttonName = mode == "edit" ? "Save Changes" : "Upload Document";
+
   return (
     <BaseDialog
       title={dialogTitle}
@@ -387,20 +394,24 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       actionButton={
         <UploadButton
           onClick={onUploadClick}
-          disabled={isMissing}
+          disabled={isMissing || !changesMade}
           isUploading={documentDialogState === "uploading"}
+          label={buttonName}
+          loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
         />
       }
       cancelButtonIsDisabled={documentDialogState === "uploading"}
     >
-      <DropTarget
-        file={file}
-        onRemove={() => setFile(null)}
-        fileInputRef={fileInputRef}
-        uploadStatus={uploadStatus}
-        uploadProgress={uploadProgress}
-        handleFileChange={handleFileChange}
-      />
+      {mode !== "edit" ? (
+        <DropTarget
+          file={file}
+          onRemove={() => setFile(null)}
+          fileInputRef={fileInputRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+          handleFileChange={handleFileChange}
+        />
+      ) : ""}
 
       <DocumentDialogNotice
         documentDialogState={documentDialogState}
