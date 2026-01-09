@@ -88,10 +88,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
         />
       );
     },
-    Review: () =>
-      getReviewPhaseComponentFromDemonstration(demonstration, () =>
-        setSelectedPhase("Approval Package")
-      ),
+    Review: () => getReviewPhaseComponentFromDemonstration(demonstration),
     "Approval Package": () => getApprovalPackagePhase(demonstration),
     "Approval Summary": ApprovalSummaryPhase,
   };

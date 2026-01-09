@@ -6,10 +6,10 @@ import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/Demonstrat
 import { DocumentDialog } from "./DocumentDialog";
 
 export const UPDATE_DOCUMENT_QUERY = gql`
-  mutation UpdateDocument($id: ID!, $input: UpdateDocumentInput!) {
-    updateDocument(id: $id, input: $input) {
+  mutation UpdateDocument($input: UpdateDocumentInput!) {
+    updateDocument(input: $input) {
       id
-      name
+      title
       description
       documentType
     }
@@ -24,16 +24,14 @@ export const EditDocumentDialog: React.FC<{
 
   const handleEdit = async (dialogFields: DocumentDialogFields) => {
     const updateDocumentInput: UpdateDocumentInput = {
+      applicationId: dialogFields.id,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
     };
 
     await updateDocumentTrigger({
-      variables: {
-        id: dialogFields.id,
-        input: updateDocumentInput,
-      },
+      variables: { input: updateDocumentInput },
       refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
     });
   };

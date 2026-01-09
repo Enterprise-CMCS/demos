@@ -1,5 +1,8 @@
-import { ClearanceLevel, PhaseNameWithTrackedStatus } from "../../types.js";
-import { ParsedApplicationDateInput, makeApplicationDateMapFromList } from "../applicationDate";
+import { PhaseNameWithTrackedStatus } from "../../types.js";
+import {
+  ParsedApplicationDateInput,
+  makeApplicationDateMapFromList,
+} from "../applicationDate";
 import {
   ApplicationPhaseDocumentTypeRecord,
   ApplicationPhaseStatusRecord,
@@ -9,7 +12,6 @@ import {
   checkPriorPhaseCompleteForCompletion,
   checkPhaseStartedBeforeCompletion,
 } from ".";
-import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "../../constants.js";
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
@@ -18,7 +20,10 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
     phasesMustBeComplete: [],
   },
   "Application Intake": {
-    datesMustExist: ["State Application Submitted Date", "Completeness Review Due Date"],
+    datesMustExist: [
+      "State Application Submitted Date",
+      "Completeness Review Due Date",
+    ],
     documentTypesMustExist: ["State Application"],
     phasesMustBeComplete: [],
   },
@@ -43,7 +48,11 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "BNPMT Initial Meeting Date",
     ],
     documentTypesMustExist: [],
-    phasesMustBeComplete: ["Application Intake", "Completeness", "Federal Comment"],
+    phasesMustBeComplete: [
+      "Application Intake",
+      "Completeness",
+      "Federal Comment",
+    ],
   },
   Review: {
     datesMustExist: [
@@ -91,31 +100,24 @@ export function checkPhaseCompletionRules(
   applicationDates: ParsedApplicationDateInput[],
   applicationDocumentTypes: ApplicationPhaseDocumentTypeRecord,
   applicationPhases: ApplicationPhaseStatusRecord,
-  applicationClearanceLevel: ClearanceLevel
 ): void {
   const validationChecks = VALIDATION_CHECKS[phaseToValidate];
   if (validationChecks === "No Validation") {
     return;
   } else if (validationChecks === "Not Implemented") {
-    throw new Error(`Validation of the ${phaseToValidate} phase via API is not yet implemented.`);
-  }
-
-  let datesToCheck = validationChecks.datesMustExist;
-  if (phaseToValidate === "Review") {
-    if (applicationClearanceLevel === "CMS (OSORA)") {
-      datesToCheck = [...validationChecks.datesMustExist, ...CMS_OSORA_CLEARANCE_DATE_TYPES];
-    } else if (applicationClearanceLevel === "COMMs") {
-      datesToCheck = [...validationChecks.datesMustExist, ...COMMS_CLEARANCE_DATE_TYPES];
-    }
+    throw new Error(
+      `Validation of the ${phaseToValidate} phase via API is not yet implemented.`,
+    );
   }
 
   checkPhaseStartedBeforeCompletion(
     applicationId,
     phaseToValidate,
-    applicationPhases[phaseToValidate]
+    applicationPhases[phaseToValidate],
   );
 
   const applicationDateMap = makeApplicationDateMapFromList(applicationDates);
+  const datesToCheck = validationChecks.datesMustExist;
   const documentTypesToCheck = validationChecks.documentTypesMustExist;
   const phasesToCheckComplete = validationChecks.phasesMustBeComplete;
 
@@ -125,7 +127,7 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         dateToCheck,
-        applicationDateMap
+        applicationDateMap,
       );
     }
   }
@@ -136,7 +138,7 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         documentTypeToCheck,
-        applicationDocumentTypes
+        applicationDocumentTypes,
       );
     }
   }
@@ -147,7 +149,7 @@ export function checkPhaseCompletionRules(
         applicationId,
         phaseToValidate,
         phaseToCheckComplete,
-        applicationPhases
+        applicationPhases,
       );
     }
   }

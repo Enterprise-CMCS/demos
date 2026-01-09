@@ -9,7 +9,6 @@ import {
   checkPhaseCompletionRules,
 } from ".";
 import { getApplicationDates } from "../applicationDate";
-import { getApplication } from "../application/applicationResolvers";
 
 vi.mock(".", () => ({
   getApplicationPhaseDocumentTypes: vi.fn(),
@@ -19,10 +18,6 @@ vi.mock(".", () => ({
 
 vi.mock("../applicationDate", () => ({
   getApplicationDates: vi.fn(),
-}));
-
-vi.mock("../application/applicationResolvers", () => ({
-  getApplication: vi.fn(),
 }));
 
 describe("validatePhaseCompletion", () => {
@@ -41,9 +36,6 @@ describe("validatePhaseCompletion", () => {
     vi.mocked(getApplicationDates).mockReturnValue(testApplicationDates);
     vi.mocked(getApplicationPhaseDocumentTypes).mockReturnValue(testApplicationPhaseDocumentTypes);
     vi.mocked(getApplicationPhaseStatuses).mockReturnValue(testApplicationPhaseStatuses);
-    vi.mocked(getApplication).mockReturnValue({
-      clearanceLevelId: "CMS (OSORA)",
-    } as any);
 
     await validatePhaseCompletion(testApplicationId, testPhaseName, mockTransaction);
     expect(getApplicationDates).toHaveBeenCalledExactlyOnceWith(testApplicationId, mockTransaction);
@@ -60,8 +52,7 @@ describe("validatePhaseCompletion", () => {
       testPhaseName,
       testApplicationDates,
       testApplicationPhaseDocumentTypes,
-      testApplicationPhaseStatuses,
-      "CMS (OSORA)"
+      testApplicationPhaseStatuses
     );
   });
 });

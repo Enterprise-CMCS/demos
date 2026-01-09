@@ -77,20 +77,10 @@ describe("CreateDemonstrationDialog", () => {
     expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeDisabled();
   });
 
-  it("calls onClose when Cancel is clicked", async () => {
-    const onCloseMock = vi.fn();
-    render(
-      <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <CreateDemonstrationDialog onClose={onCloseMock} />
-      </TestProvider>
-    );
-
+  it("calls onClose when Cancel is clicked", () => {
+    render(getCreateDemonstrationDialog());
     fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
-
-    // Verify onClose was called
-    await waitFor(() => {
-      expect(onCloseMock).toHaveBeenCalled();
-    });
+    expect(screen.getByText(/Are you sure/i)).toBeInTheDocument();
   });
 
   it("renders all required form fields", () => {

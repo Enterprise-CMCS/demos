@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { BaseDialog } from "../BaseDialog";
 import { Button } from "components/button";
@@ -29,11 +29,6 @@ export type CreateModificationFormFields = {
   stateId?: string;
 };
 
-// Form has changes if name or description is filled out (stateId and demonstrationId are non-mutable)
-export const checkFormHasChanges = (formFields: CreateModificationFormFields): boolean => {
-  return !!formFields.name || !!formFields.description;
-};
-
 interface BaseCreateModificationDialogProps {
   onClose: () => void;
   initialDemonstrationId?: string;
@@ -48,13 +43,10 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
 }) => {
   const [loading, setLoading] = useState(false);
   const [createModificationFormFields, setCreateModificationFormFields] =
-    useState<CreateModificationFormFields>({ demonstrationId: initialDemonstrationId });
-  const [formHasChanges, setFormHasChanges] = useState(false);
+    useState<CreateModificationFormFields>({
+      demonstrationId: initialDemonstrationId,
+    });
   const { showError } = useToast();
-
-  useEffect(() => {
-    setFormHasChanges(checkFormHasChanges(createModificationFormFields));
-  }, [createModificationFormFields]);
 
   useQuery<{ demonstration: Demonstration }>(CREATE_MODIFICATION_DIALOG_QUERY, {
     variables: { id: createModificationFormFields.demonstrationId },
@@ -89,7 +81,6 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
       title={`New ${modificationType}`}
       onClose={onClose}
       maxWidthClass="max-w-[720px]"
-      dialogHasChanges={formHasChanges}
       actionButton={
         <Button
           name={`button-submit-create-${modificationType.toLowerCase()}`}

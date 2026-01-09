@@ -1,8 +1,7 @@
 import React from "react";
-import { ReviewPhaseFormData } from "./ReviewPhase";
+import { COMMS_CLEARANCE_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
-import { COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 
 type CommsClearanceSectionFormData = {
   dates: Pick<ReviewPhaseFormData["dates"], (typeof COMMS_CLEARANCE_DATE_TYPES)[number]>;

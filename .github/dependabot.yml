@@ -6,19 +6,7 @@
 
 version: 2
 updates:
-  - package-ecosystem: "devcontainers"
-    directory: "/"
-    schedule:
-      interval: weekly
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: weekly
-    exclude-paths:
-      - spikes/**
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: weekly
-    exclude-paths:
-      - spikes/**
+ - package-ecosystem: "devcontainers"
+   directory: "/"
+   schedule:
+     interval: weekly

@@ -69,6 +69,12 @@ describe("AddDocumentDialog", () => {
     expect(screen.getByText("Select File(s)")).toBeInTheDocument();
   });
 
+  it("shows cancel confirmation dialog when cancel is clicked", () => {
+    setup();
+    fireEvent.click(screen.getByText("Cancel"));
+    expect(screen.getByText("You will lose any unsaved changes in this view.")).toBeInTheDocument();
+  });
+
   it("has disabled button in edit when file is missing", () => {
     setup();
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
@@ -104,6 +110,7 @@ describe("AddDocumentDialog", () => {
   it("calls onClose when confirming cancel", async () => {
     const { onClose } = setup();
     fireEvent.click(screen.getByText("Cancel"));
+    fireEvent.click(screen.getByTestId("button-cc-dialog-discard"));
 
     await waitFor(() => {
       expect(onClose).toHaveBeenCalled();

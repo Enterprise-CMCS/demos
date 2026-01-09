@@ -10,8 +10,6 @@ import { ReviewPhaseFormData } from "./ReviewPhase";
 import { SimplePhase } from "components/application/ApplicationWorkflow";
 
 describe("reviewPhaseData", () => {
-  const mockOnFinish = vi.fn();
-
   describe("getFormDataFromPhase", () => {
     it("should return empty dates and notes when phase has no data", () => {
       const reviewPhase: SimplePhase = {
@@ -81,7 +79,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromDemonstration(demonstration);
 
       expect(result.type).toBe("div");
       expect(result.props.children).toBe("Error: Review Phase not found.");
@@ -103,7 +101,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromDemonstration(demonstration);
 
       expect(result.type.name).toBe("ReviewPhase");
       expect(result.props.demonstrationId).toBe("demo-456");
@@ -139,7 +137,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromDemonstration(demonstration);
 
       expect(result.props.initialFormData.dates["Draft Approval Package Shared"]).toBe(
         "2025-06-15"
@@ -151,7 +149,6 @@ describe("reviewPhaseData", () => {
       expect(result.props.initialFormData.notes["COMMs Clearance"]).toBe("COMMs note content");
       expect(result.props.initialFormData.clearanceLevel).toBe("CMS (OSORA)");
       expect(result.props.isReadonly).toBe(false);
-      expect(result.props.onFinish).toBe(mockOnFinish);
     });
 
     it("should pass isReadonly as true if the phase is completed", () => {
@@ -177,7 +174,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromDemonstration(demonstration);
 
       expect(result.props.isReadonly).toBe(true);
     });

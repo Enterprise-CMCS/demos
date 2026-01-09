@@ -6,23 +6,12 @@ interface UploadButtonProps {
   onClick: () => void;
   disabled?: boolean;
   isUploading: boolean;
-  label?: string;
-  loadingLabel?: string;
-  ariaLabel?: string;
 }
 
-const ButtonText = ({
-  isUploading,
-  label,
-  loadingLabel,
-}: {
-  isUploading: boolean;
-  label: string;
-  loadingLabel: string;
-}) => {
+const ButtonText = ({ isUploading }: { isUploading: boolean }) => {
   const getButtonText = () => {
-    if (isUploading) return loadingLabel;
-    return label;
+    if (isUploading) return "Uploading";
+    return "Upload";
   };
 
   return (
@@ -33,24 +22,16 @@ const ButtonText = ({
   );
 };
 
-export const UploadButton: React.FC<UploadButtonProps> = ({
-  onClick,
-  disabled,
-  isUploading,
-  label = "Upload",
-  loadingLabel = "Uploading",
-  ariaLabel,
-}) => {
-  const resolvedAriaLabel = ariaLabel ?? `${label} Document`;
+export const UploadButton: React.FC<UploadButtonProps> = ({ onClick, disabled, isUploading }) => {
   return (
     <Button
       name="button-confirm-upload-document"
       onClick={onClick}
-      ariaLabel={resolvedAriaLabel}
+      aria-label="Upload Document"
       aria-disabled={disabled || isUploading ? "true" : "false"}
       disabled={disabled || isUploading}
     >
-      <ButtonText isUploading={isUploading} label={label} loadingLabel={loadingLabel} />
+      <ButtonText isUploading={isUploading} />
     </Button>
   );
 };
