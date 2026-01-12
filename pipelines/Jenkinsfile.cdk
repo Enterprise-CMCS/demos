@@ -1,4 +1,4 @@
-@Library('demos-lib@DEMOS-1312-checkov') _
+@Library('demos-lib@DEMOS-1290-init-prod') _
 
 pipeline {
   agent {
@@ -90,7 +90,9 @@ pipeline {
       steps {
         script {
           if (hasChange("deployment")) {
-            def deployEnv = (env.BRANCH_NAME == 'main') ? "dev" : "${env.BRANCH_NAME}"
+            // DO NOT MERGE THIS CHANGE WITH THE DEMOS-1290-init-prod CONDITION BELOW
+          // This is temporary until the pipeline has been tested
+            def deployEnv = (env.BRANCH_NAME == 'main') ? "dev" : (env.BRANCH_NAME == 'DEMOS-1290-init-prod') ? "prod" : "${env.BRANCH_NAME}"
             if (!(deployEnv in ["prod", "impl", "test", "dev"])) {
               deployEnv = "dev"
             }
