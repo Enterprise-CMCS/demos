@@ -15,7 +15,6 @@ import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
-import { PersonType } from "demos-server";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -38,14 +37,6 @@ vi.mock("components/dialog/DialogContext", () => ({
 const mockPO = {
   id: "po-1",
   fullName: "Jane Doe",
-  personType: "demos-state-user" as PersonType,
-  email: "",
-  firstName: "Jane",
-  lastName: "Doe",
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  roles: [],
-  states: [],
 };
 
 describe("ConceptPhase", () => {
@@ -230,7 +221,6 @@ describe("ConceptPhase", () => {
         state: {
           id: "CA",
           name: "California",
-          demonstrations: [],
         },
         primaryProjectOfficer: mockPO,
         status: "Pre-Submission",

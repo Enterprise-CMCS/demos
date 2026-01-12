@@ -9,6 +9,7 @@ import type {
   Document,
   Person,
   ApplicationNote,
+  State,
 } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
@@ -80,9 +81,11 @@ export type ApplicationWorkflowDocument = Pick<
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
   "id" | "status" | "currentPhaseName" | "clearanceLevel" |
-  "name" | "state" | "primaryProjectOfficer" | "effectiveDate" |
-  "expirationDate" | "sdgDivision" | "signatureLevel" | "description"
+  "name" | "effectiveDate" |  "expirationDate" | "sdgDivision" |
+  "signatureLevel" | "description"
 > & {
+  state: Pick<State, "id" | "name">,
+  primaryProjectOfficer: Pick<Person, "id" | "fullName">
   phases: SimplePhase[];
   documents: ApplicationWorkflowDocument[];
 };

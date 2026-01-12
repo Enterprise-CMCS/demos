@@ -9,19 +9,10 @@ import userEvent from "@testing-library/user-event";
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { getReviewPhaseComponentFromDemonstration } from "../phases";
-import { PersonType } from "demos-server";
 
 const mockPO = {
   id: "po-1",
   fullName: "Jane Doe",
-  personType: "demos-state-user" as PersonType,
-  email: "",
-  firstName: "Jane",
-  lastName: "Doe",
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  roles: [],
-  states: [],
 };
 
 vi.mock("components/dialog/DialogContext", () => ({
@@ -44,7 +35,6 @@ describe("PhaseSelector", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -80,7 +70,6 @@ describe("PhaseSelector", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -111,7 +100,6 @@ describe("getDisplayedPhaseStatus", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -145,7 +133,6 @@ describe("getDisplayedPhaseStatus", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -172,7 +159,6 @@ describe("getDisplayedPhaseStatus", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -194,7 +180,6 @@ describe("getDisplayedPhaseDate", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -214,7 +199,6 @@ describe("getDisplayedPhaseDate", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -245,7 +229,6 @@ describe("getDisplayedPhaseDate", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -289,7 +272,6 @@ describe("getDisplayedPhaseDate", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -329,7 +311,6 @@ describe("getDisplayedPhaseDate", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -368,7 +349,6 @@ describe("getDisplayedPhaseDate", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -404,7 +384,6 @@ describe("getDisplayedPhaseDate", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -443,7 +422,6 @@ describe("getDisplayedPhaseDate", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -484,7 +462,6 @@ describe("Review phase component", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",

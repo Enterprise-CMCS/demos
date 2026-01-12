@@ -17,11 +17,11 @@ export type ApplicationDetailsFormData = {
   projectOfficerId: string;
   projectOfficerName: string;
   status: string;
-  effectiveDate: string | undefined;
-  expirationDate: string | undefined;
-  description: string | undefined;
-  sdgDivision: SdgDivision | undefined;
-  signatureLevel: SignatureLevel | undefined;
+  effectiveDate?: string;
+  expirationDate?: string;
+  description?: string;
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
   readonlyFields: Partial<Record<
     | "stateId"
     | "name"

@@ -9,7 +9,7 @@ import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
 } from "components/application/ApplicationWorkflow";
-import { DocumentType, PersonType } from "demos-server";
+import { DocumentType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
 
 vi.mock("components/table/tables/ApprovalPackageTable", () => ({
@@ -56,14 +56,6 @@ const doc = (overrides: Partial<ApplicationWorkflowDocument>): ApplicationWorkfl
 const mockPO = {
   id: "po-1",
   fullName: "Jane Doe",
-  personType: "demos-state-user" as PersonType,
-  email: "",
-  firstName: "Jane",
-  lastName: "Doe",
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  roles: [],
-  states: [],
 };
 
 describe("ApprovalPackagePhase", () => {
@@ -209,7 +201,6 @@ describe("getApprovalPackagePhase", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Pre-Submission",
@@ -253,7 +244,6 @@ describe("getApprovalPackagePhase", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Pre-Submission",
@@ -302,7 +292,6 @@ describe("getApprovalPackagePhase", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
@@ -359,7 +348,6 @@ describe("getApprovalPackagePhase", () => {
       state: {
         id: "CA",
         name: "California",
-        demonstrations: [],
       },
       primaryProjectOfficer: mockPO,
       status: "Under Review",
