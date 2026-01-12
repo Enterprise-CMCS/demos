@@ -2,6 +2,7 @@ import React from "react";
 import { useDialog } from "components/dialog/DialogContext";
 import { Button } from "components/button";
 import { DocumentType } from "demos-server";
+import { ExistingContactType } from "components/dialog/ManageContactsDialog";
 
 export const DialogSandbox: React.FC = () => {
   const {
@@ -22,6 +23,31 @@ export const DialogSandbox: React.FC = () => {
   } = useDialog();
 
   const ID = "1";
+
+  const EXISTING_CONTACTS: ExistingContactType[] = [
+    {
+      id: "contact-1",
+      role: "Project Officer",
+      isPrimary: true,
+      person: {
+        id: "person-1",
+        fullName: "Alice Anderson",
+        email: "alice.anderson@example.com",
+        personType: "non-user-contact",
+      },
+    },
+    {
+      id: "contact-2",
+      role: "Project Officer",
+      isPrimary: false,
+      person: {
+        id: "person-2",
+        fullName: "Bob Brown",
+        email: "bob.brown@example.com",
+        personType: "non-user-contact",
+      },
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-2 p-2">
@@ -96,7 +122,10 @@ export const DialogSandbox: React.FC = () => {
           <Button name="declare-incomplete" onClick={() => showDeclareIncompleteDialog(() => {})}>
             Declare Incomplete
           </Button>
-          <Button name="manage-contacts" onClick={() => showManageContactsDialog(ID)}>
+          <Button
+            name="manage-contacts"
+            onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
+          >
             Manage Contacts
           </Button>
         </div>
