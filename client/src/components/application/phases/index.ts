@@ -5,4 +5,4 @@ export * from "./FederalCommentPhase";
 export * from "./SdgPreparationPhase";
 export * from "./review/";
 export * from "./ApprovalPackagePhase";
-export * from "./ApprovalSummaryPhase";
+export * from "./approval-summary/";

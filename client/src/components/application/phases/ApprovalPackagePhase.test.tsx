@@ -9,7 +9,7 @@ import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
 } from "components/application/ApplicationWorkflow";
-import { DocumentType } from "demos-server";
+import { DocumentType, PersonType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
 
 vi.mock("components/table/tables/ApprovalPackageTable", () => ({
@@ -52,6 +52,19 @@ const doc = (overrides: Partial<ApplicationWorkflowDocument>): ApplicationWorkfl
   owner: { person: { fullName: "Alice" } },
   ...overrides,
 });
+
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+  personType: "demos-state-user" as PersonType,
+  email: "",
+  firstName: "Jane",
+  lastName: "Doe",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  roles: [],
+  states: [],
+};
 
 describe("ApprovalPackagePhase", () => {
   it("renders the section headers", () => {
@@ -192,6 +205,13 @@ describe("getApprovalPackagePhase", () => {
   it("extracts documents from demonstration and renders phase", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "demo-3",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Pre-Submission",
       currentPhaseName: "Approval Package",
       clearanceLevel: "CMS (OSORA)",
@@ -229,6 +249,13 @@ describe("getApprovalPackagePhase", () => {
   it("handles missing documents gracefully", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "demo-4",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Pre-Submission",
       currentPhaseName: "Approval Package",
       clearanceLevel: "CMS (OSORA)",
@@ -271,6 +298,13 @@ describe("getApprovalPackagePhase", () => {
 
     const demo: ApplicationWorkflowDemonstration = {
       id: "demo-all",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Approval Package",
       documents: completeDocs,
@@ -321,6 +355,13 @@ describe("getApprovalPackagePhase", () => {
 
     const demo: ApplicationWorkflowDemonstration = {
       id: "demo-not",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Approval Package",
       documents: completeDocs,

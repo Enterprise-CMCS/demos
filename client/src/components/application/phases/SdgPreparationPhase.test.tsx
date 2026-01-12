@@ -12,6 +12,7 @@ import {
   getPhaseCompletedMessage,
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
+import { PersonType } from "demos-server";
 
 const showSuccess = vi.fn();
 const showError = vi.fn();
@@ -41,8 +42,28 @@ vi.mock("../phase-status/phaseStatusQueries", () => ({
   }),
 }));
 
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+  personType: "demos-state-user" as PersonType,
+  email: "",
+  firstName: "Jane",
+  lastName: "Doe",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  roles: [],
+  states: [],
+};
+
 const mockDemonstration: ApplicationWorkflowDemonstration = {
   id: "1",
+  name: "Test Demo",
+  state: {
+    id: "CA",
+    name: "California",
+    demonstrations: [],
+  },
+  primaryProjectOfficer: mockPO,
   status: "Pre-Submission",
   currentPhaseName: "SDG Preparation",
   documents: [],
@@ -64,6 +85,13 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
 
 const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
   id: "1",
+  name: "Test Demo",
+  state: {
+    id: "CA",
+    name: "California",
+    demonstrations: [],
+  },
+  primaryProjectOfficer: mockPO,
   status: "Pre-Submission",
   currentPhaseName: "SDG Preparation",
   clearanceLevel: "CMS (OSORA)",

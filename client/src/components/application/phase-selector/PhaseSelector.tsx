@@ -6,12 +6,12 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  ApprovalSummaryPhase,
   SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
   getFederalCommentPhaseFromDemonstration,
   getApprovalPackagePhase,
   getReviewPhaseComponentFromDemonstration,
+  getApprovalSummaryPhase,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -93,7 +93,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
         setSelectedPhase("Approval Package")
       ),
     "Approval Package": () => getApprovalPackagePhase(demonstration),
-    "Approval Summary": ApprovalSummaryPhase,
+    "Approval Summary": () => getApprovalSummaryPhase(demonstration),
   };
 
   const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {

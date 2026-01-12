@@ -15,6 +15,7 @@ import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
+import { PersonType } from "demos-server";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -33,6 +34,19 @@ vi.mock("components/dialog/DialogContext", () => ({
     showConceptPreSubmissionDocumentUploadDialog,
   }),
 }));
+
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+  personType: "demos-state-user" as PersonType,
+  email: "",
+  firstName: "Jane",
+  lastName: "Doe",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  roles: [],
+  states: [],
+};
 
 describe("ConceptPhase", () => {
   const defaultProps: ConceptProps = {
@@ -212,6 +226,13 @@ describe("ConceptPhase", () => {
     it("should return ConceptPhase component with extracted pre-submission docs", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-111",
+        name: "Test Demo",
+        state: {
+          id: "CA",
+          name: "California",
+          demonstrations: [],
+        },
+        primaryProjectOfficer: mockPO,
         status: "Pre-Submission",
         currentPhaseName: "Concept",
         clearanceLevel: "CMS (OSORA)",

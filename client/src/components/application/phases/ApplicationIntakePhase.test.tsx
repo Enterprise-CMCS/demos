@@ -18,6 +18,7 @@ import {
   ApplicationWorkflowDemonstration,
 } from "../ApplicationWorkflow";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
+import { PersonType } from "demos-server";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -32,6 +33,19 @@ vi.mock("@apollo/client", async () => {
 
 const mockSetApplicationDate = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
+
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+  personType: "demos-state-user" as PersonType,
+  email: "",
+  firstName: "Jane",
+  lastName: "Doe",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  roles: [],
+  states: [],
+};
 
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDate: vi.fn(() => ({
@@ -290,6 +304,13 @@ describe("ApplicationIntakePhase", () => {
     it("should extract demonstration data and return ApplicationIntakePhase component", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-123",
+        name: "Test Demo",
+        state: {
+          id: "CA",
+          name: "California",
+          demonstrations: [],
+        },
+        primaryProjectOfficer: mockPO,
         status: "Under Review",
         currentPhaseName: "Application Intake",
         clearanceLevel: "CMS (OSORA)",

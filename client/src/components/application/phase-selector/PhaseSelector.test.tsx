@@ -9,6 +9,20 @@ import userEvent from "@testing-library/user-event";
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { getReviewPhaseComponentFromDemonstration } from "../phases";
+import { PersonType } from "demos-server";
+
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+  personType: "demos-state-user" as PersonType,
+  email: "",
+  firstName: "Jane",
+  lastName: "Doe",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  roles: [],
+  states: [],
+};
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({}),
@@ -26,6 +40,13 @@ describe("PhaseSelector", () => {
   it("renders all phase names", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Federal Comment",
       clearanceLevel: "CMS (OSORA)",
@@ -55,6 +76,13 @@ describe("PhaseSelector", () => {
   it("renders only three phase group categories", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Federal Comment",
       clearanceLevel: "CMS (OSORA)",
@@ -79,6 +107,13 @@ describe("getDisplayedPhaseStatus", () => {
   it("returns the phase status when phase exists", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Concept",
       clearanceLevel: "CMS (OSORA)",
@@ -106,6 +141,13 @@ describe("getDisplayedPhaseStatus", () => {
   it("returns 'Not Started' when phase does not exist", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Concept",
       clearanceLevel: "CMS (OSORA)",
@@ -126,6 +168,13 @@ describe("getDisplayedPhaseStatus", () => {
   it("returns 'Not Started' when phases array is empty", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Concept",
       clearanceLevel: "CMS (OSORA)",
@@ -141,6 +190,13 @@ describe("getDisplayedPhaseDate", () => {
   it("returns undefined when phase does not exist", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Concept",
       clearanceLevel: "CMS (OSORA)",
@@ -154,6 +210,13 @@ describe("getDisplayedPhaseDate", () => {
   it("returns undefined when phase has no dates", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Concept",
       clearanceLevel: "CMS (OSORA)",
@@ -178,6 +241,13 @@ describe("getDisplayedPhaseDate", () => {
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Concept",
       clearanceLevel: "CMS (OSORA)",
@@ -215,6 +285,13 @@ describe("getDisplayedPhaseDate", () => {
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Review",
       clearanceLevel: "CMS (OSORA)",
@@ -248,6 +325,13 @@ describe("getDisplayedPhaseDate", () => {
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Application Intake",
       clearanceLevel: "CMS (OSORA)",
@@ -280,6 +364,13 @@ describe("getDisplayedPhaseDate", () => {
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Federal Comment",
       clearanceLevel: "CMS (OSORA)",
@@ -309,6 +400,13 @@ describe("getDisplayedPhaseDate", () => {
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "SDG Preparation",
       clearanceLevel: "CMS (OSORA)",
@@ -341,6 +439,13 @@ describe("getDisplayedPhaseDate", () => {
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Concept",
       clearanceLevel: "CMS (OSORA)",
@@ -375,6 +480,13 @@ describe("Review phase component", () => {
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+        demonstrations: [],
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Concept",
       clearanceLevel: "CMS (OSORA)",

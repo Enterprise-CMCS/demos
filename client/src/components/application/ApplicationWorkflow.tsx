@@ -17,9 +17,19 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
   query GetApplicationWorkflow($id: ID!) {
     demonstration(id: $id) {
       id
+      name
+      description
       status
       currentPhaseName
+      effectiveDate
+      expirationDate
+      sdgDivision
+      signatureLevel
       clearanceLevel
+      state {
+        id
+        name
+      }
       phases {
         phaseName
         phaseStatus
@@ -45,6 +55,10 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
           }
         }
       }
+      primaryProjectOfficer {
+        id
+        fullName
+      }
     }
   }
 `;
@@ -58,14 +72,16 @@ export type SimplePhase = {
 
 export type ApplicationWorkflowDocument = Pick<
   Document,
-  "id" | "name" | "description" | "documentType" | "phaseName" |"createdAt"
+  "id" | "name" | "description" | "documentType" | "phaseName" | "createdAt"
 > & {
   owner: { person: Pick<Person, "fullName"> };
 };
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
-  "id" | "status" | "currentPhaseName" | "clearanceLevel"
+  "id" | "status" | "currentPhaseName" | "clearanceLevel" |
+  "name" | "state" | "primaryProjectOfficer" | "effectiveDate" |
+  "expirationDate" | "sdgDivision" | "signatureLevel" | "description"
 > & {
   phases: SimplePhase[];
   documents: ApplicationWorkflowDocument[];
