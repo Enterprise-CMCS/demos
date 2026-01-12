@@ -34,7 +34,8 @@ describe("ApplicationDetailsSection", () => {
     stateId: "",
     stateName: "",
     name: "",
-    projectOfficer: "",
+    projectOfficerName: "",
+    projectOfficerId: "",
     status: "",
     effectiveDate: undefined,
     expirationDate: undefined,
@@ -99,12 +100,13 @@ describe("ApplicationDetailsSection", () => {
     setup({
       stateId: "CA",
       name: "Demo",
-      projectOfficer: "Officer",
+      projectOfficerId: "Officer",
+      projectOfficerName: "Officer",
       status: "Active",
       effectiveDate: "2025-01-01",
       expirationDate: "2026-01-01",
-      sdgDivision: "SDG",
-      signatureLevel: "Level 1",
+      sdgDivision: "Division of System Reform Demonstrations",
+      signatureLevel: "OA",
     });
 
     const button = screen.getByTestId("application-details-mark-complete");
@@ -116,12 +118,13 @@ describe("ApplicationDetailsSection", () => {
       {
         stateId: "CA",
         name: "Demo",
-        projectOfficer: "Officer",
+        projectOfficerId: "Officer",
+        projectOfficerName: "Officer",
         status: "Active",
         effectiveDate: "2025-01-01",
         expirationDate: "2026-01-01",
-        sdgDivision: "SDG",
-        signatureLevel: "Level 1",
+        sdgDivision: "Division of System Reform Demonstrations",
+        signatureLevel: "OA",
       },
       true,  // isComplete
       false
@@ -137,12 +140,13 @@ describe("ApplicationDetailsSection", () => {
     setup({
       stateId: "CA",
       name: "Demo",
-      projectOfficer: "Officer",
+      projectOfficerId: "Officer",
+      projectOfficerName: "Officer",
       status: "Active",
       effectiveDate: "2025-01-01",
       expirationDate: "2026-01-01",
-      sdgDivision: "SDG",
-      signatureLevel: "Level 1",
+      sdgDivision: "Division of System Reform Demonstrations",
+      signatureLevel: "OA",
     });
 
     const button = screen.getByTestId("application-details-mark-complete");
