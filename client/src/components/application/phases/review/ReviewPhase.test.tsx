@@ -21,6 +21,7 @@ vi.mock("util/formatDate", () => ({
 const mockSetApplicationDates = vi.fn();
 const mockSetApplicationNotes = vi.fn();
 const mockSetApplicationClearanceLevel = vi.fn();
+const mockSetPhaseStatus = vi.fn();
 
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDates: () => ({
@@ -31,6 +32,12 @@ vi.mock("components/application/date/dateQueries", () => ({
 vi.mock("components/application/note/noteQueries", () => ({
   useSetApplicationNotes: () => ({
     setApplicationNotes: mockSetApplicationNotes,
+  }),
+}));
+
+vi.mock("../../phase-status/phaseStatusQueries", () => ({
+  useSetPhaseStatus: () => ({
+    setPhaseStatus: mockSetPhaseStatus,
   }),
 }));
 
@@ -71,7 +78,8 @@ describe("ReviewPhase Component", () => {
   const setup = (
     initialFormData = buildInitialFormData(),
     demonstrationId = "test-demo-id",
-    isReadonly = false
+    isReadonly = false,
+    onFinish = vi.fn()
   ) => {
     render(
       <TestProvider>
@@ -79,6 +87,7 @@ describe("ReviewPhase Component", () => {
           isReadonly={isReadonly}
           initialFormData={initialFormData}
           demonstrationId={demonstrationId}
+          onFinish={onFinish}
         />
       </TestProvider>
     );
@@ -89,6 +98,7 @@ describe("ReviewPhase Component", () => {
     mockSetApplicationDates.mockClear();
     mockSetApplicationNotes.mockClear();
     mockSetApplicationClearanceLevel.mockClear();
+    mockSetPhaseStatus.mockClear();
   });
 
   describe("Header and description", () => {
@@ -684,6 +694,45 @@ describe("ReviewPhase Component", () => {
 
       await userEvent.click(poAndOgdHeader);
       expect(poAndOgdNotes).not.toBeVisible();
+    });
+  });
+
+  describe("Finish button", () => {
+    it("saves all data and completes the phase when clicked", async () => {
+      const mockOnFinish = vi.fn();
+      setup(buildInitialFormData(), "demo-123", false, mockOnFinish);
+
+      const finishButton = screen.getByTestId("review-finish");
+      await userEvent.click(finishButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalledWith({
+          applicationId: "demo-123",
+          applicationDates: expect.arrayContaining([
+            { dateType: "OGD Approval to Share with SMEs", dateValue: "2025-01-01" },
+            { dateType: "Package Sent for COMMs Clearance", dateValue: "2025-01-09" },
+            { dateType: "COMMs Clearance Received", dateValue: "2025-01-10" },
+          ]),
+        });
+        expect(mockSetApplicationNotes).toHaveBeenCalledWith({
+          applicationId: "demo-123",
+          applicationNotes: expect.arrayContaining([
+            { noteType: "PO and OGD", content: "PO OGD notes" },
+            { noteType: "OGC and OMB", content: "OGC OMB notes" },
+            { noteType: "COMMs Clearance", content: "COMMs notes" },
+          ]),
+        });
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
+          variables: {
+            input: {
+              applicationId: "demo-123",
+              clearanceLevel: "COMMs",
+            },
+          },
+        });
+        expect(mockSetPhaseStatus).toHaveBeenCalled();
+        expect(mockOnFinish).toHaveBeenCalledOnce();
+      });
     });
   });
 });

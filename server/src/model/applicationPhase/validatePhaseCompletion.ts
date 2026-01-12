@@ -4,7 +4,8 @@ import {
   checkPhaseCompletionRules,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient.js";
-import { PhaseNameWithTrackedStatus } from "../../types.js";
+import { ClearanceLevel, PhaseNameWithTrackedStatus } from "../../types.js";
+import { getApplication } from "../application/applicationResolvers";
 import { getApplicationDates } from "../applicationDate";
 
 export async function validatePhaseCompletion(
@@ -15,11 +16,17 @@ export async function validatePhaseCompletion(
   const applicationDates = await getApplicationDates(applicationId, tx);
   const applicationPhaseDocumentTypes = await getApplicationPhaseDocumentTypes(applicationId, tx);
   const applicationPhaseStatuses = await getApplicationPhaseStatuses(applicationId, tx);
+  // casting enforced by database schema
+  const applicationClearanceLevel = (await (
+    await getApplication(applicationId)
+  ).clearanceLevelId) as ClearanceLevel;
+
   checkPhaseCompletionRules(
     applicationId,
     phaseName,
     applicationDates,
     applicationPhaseDocumentTypes,
-    applicationPhaseStatuses
+    applicationPhaseStatuses,
+    applicationClearanceLevel
   );
 }

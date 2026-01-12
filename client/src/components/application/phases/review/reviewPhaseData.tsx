@@ -33,7 +33,8 @@ export function getPhaseData(
 }
 
 export const getReviewPhaseComponentFromDemonstration = (
-  demonstration: ReviewPhaseDemonstration
+  demonstration: ReviewPhaseDemonstration,
+  onFinish: () => void
 ) => {
   const reviewPhase = demonstration.phases.find((phase) => phase.phaseName === "Review");
   if (!reviewPhase) return <div>Error: Review Phase not found.</div>;
@@ -47,6 +48,7 @@ export const getReviewPhaseComponentFromDemonstration = (
       isReadonly={reviewPhase.phaseStatus === "Completed"}
       initialFormData={reviewPhaseFormData}
       demonstrationId={demonstration.id}
+      onFinish={onFinish}
     />
   );
 };
