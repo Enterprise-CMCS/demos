@@ -17,7 +17,7 @@ export {
   validateInputDates,
 } from "./validateInputDates.js";
 export { createPhaseStartDate } from "./createPhaseStartDate.js";
-
+export { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByPhase";
 // Queries
 export { deleteApplicationDates } from "./queries/deleteApplicationDates.js";
 export { getApplicationDates } from "./queries/getApplicationDates.js";
