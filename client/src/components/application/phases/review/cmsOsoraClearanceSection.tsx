@@ -2,7 +2,7 @@ import React from "react";
 import { ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
-import { addDays, format } from "date-fns";
+import { addDays, format, parseISO } from "date-fns";
 import { CMS_OSORA_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 
 type CmsOsoraClearanceSectionFormData = {
@@ -38,7 +38,8 @@ export const CmsOsoraClearanceSection = ({
               // if there isnt a clearance end date, set it to two weeks after the submission date
               let cmsOsoraClearanceEndDate = sectionFormData.dates["CMS (OSORA) Clearance End"];
               if (val && !cmsOsoraClearanceEndDate) {
-                cmsOsoraClearanceEndDate = format(addDays(val, 14), "yyyy-MM-dd");
+                const newDate = addDays(parseISO(val), 14);
+                cmsOsoraClearanceEndDate = format(newDate, "yyyy-MM-dd");
               }
               setSectionFormData({
                 ...sectionFormData,
