@@ -477,7 +477,7 @@ describe("applicationResolvers", () => {
       expect(transactionMocks.extension.update).not.toHaveBeenCalled();
     });
 
-    it("should prevent clearance level update when Review phase is completed", async () => {
+    it("should prevent clearance level update when Review phase is finished", async () => {
       vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["Application Intake", "Review"]);
       const mockApplication = {
         id: testApplicationId,
@@ -504,7 +504,7 @@ describe("applicationResolvers", () => {
       expect(transactionMocks.extension.update).not.toHaveBeenCalled();
     });
 
-    it("should allow clearance level update when Review phase is not", async () => {
+    it("should allow clearance level update when Review phase is not finished", async () => {
       vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue([
         "Application Intake",
         "SDG Preparation",

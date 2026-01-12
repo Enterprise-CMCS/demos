@@ -96,7 +96,6 @@ describe("validateAndUpdateDates", () => {
     vi.mocked(parseSetApplicationDatesInput).mockReturnValueOnce(testParsedResult);
     vi.mocked(getApplicationDates).mockResolvedValueOnce(testExistingDates);
     vi.mocked(mergeApplicationDates).mockReturnValueOnce(testMergedDates);
-    vi.mocked(validateAllowedDateChangeByPhase).mockResolvedValueOnce();
 
     await validateAndUpdateDates(testInput, testPrismaTransaction);
 
