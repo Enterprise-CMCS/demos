@@ -53,6 +53,11 @@ const doc = (overrides: Partial<ApplicationWorkflowDocument>): ApplicationWorkfl
   ...overrides,
 });
 
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+};
+
 describe("ApprovalPackagePhase", () => {
   it("renders the section headers", () => {
     render(
@@ -192,6 +197,12 @@ describe("getApprovalPackagePhase", () => {
   it("extracts documents from demonstration and renders phase", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "demo-3",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
       status: "Pre-Submission",
       currentPhaseName: "Approval Package",
       clearanceLevel: "CMS (OSORA)",
@@ -229,6 +240,12 @@ describe("getApprovalPackagePhase", () => {
   it("handles missing documents gracefully", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "demo-4",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
       status: "Pre-Submission",
       currentPhaseName: "Approval Package",
       clearanceLevel: "CMS (OSORA)",
@@ -271,6 +288,12 @@ describe("getApprovalPackagePhase", () => {
 
     const demo: ApplicationWorkflowDemonstration = {
       id: "demo-all",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Approval Package",
       documents: completeDocs,
@@ -321,6 +344,12 @@ describe("getApprovalPackagePhase", () => {
 
     const demo: ApplicationWorkflowDemonstration = {
       id: "demo-not",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
       status: "Under Review",
       currentPhaseName: "Approval Package",
       documents: completeDocs,
