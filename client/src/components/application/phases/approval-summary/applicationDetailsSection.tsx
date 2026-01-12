@@ -15,6 +15,7 @@ export type ApplicationDetailsFormData = {
   stateName: string;
   name: string;
   projectOfficerId: string;
+  projectOfficerName: string;
   status: string;
   effectiveDate: string | undefined;
   expirationDate: string | undefined;
@@ -24,7 +25,7 @@ export type ApplicationDetailsFormData = {
   readonlyFields: Partial<Record<
     | "stateId"
     | "name"
-    | "projectOfficer"
+    | "projectOfficerId"
     | "status"
     | "effectiveDate"
     | "expirationDate"
@@ -92,10 +93,10 @@ export const ApplicationDetailsSection = ({
         </div>
 
         <div className="flex flex-col">
-          {sectionFormData.readonlyFields.projectOfficer ? (
+          {sectionFormData.readonlyFields.projectOfficerId ? (
             <>
               <div className={LABEL_CLASSES}>Project Officer</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.projectOfficerId}</div>
+              <div className={VALUE_CLASSES}>{sectionFormData.projectOfficerName}</div>
             </>
           ) : (
             <SelectUsers

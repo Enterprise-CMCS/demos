@@ -14,7 +14,8 @@ export const getApprovalSummaryFormData = (
     stateId: demonstration.state.id,
     stateName: demonstration.state.name,
     name: demonstration.name,
-    projectOfficer: demonstration.primaryProjectOfficer?.fullName ?? "",
+    projectOfficerId: demonstration.primaryProjectOfficer?.id ?? "",
+    projectOfficerName: demonstration.primaryProjectOfficer?.fullName ?? "",
     status: demonstration.status,
     effectiveDate: demonstration.effectiveDate
       ? format(new Date(demonstration.effectiveDate), "yyyy-MM-dd")
@@ -32,7 +33,7 @@ export const getApprovalSummaryFormData = (
     readonlyFields: {
       stateId: !!formData.stateId,
       name: !!formData.name,
-      projectOfficer: !!formData.projectOfficer,
+      projectOfficerId: !!formData.projectOfficerId,
       status: !!formData.status,
       effectiveDate: !!formData.effectiveDate,
       expirationDate: !!formData.expirationDate,
