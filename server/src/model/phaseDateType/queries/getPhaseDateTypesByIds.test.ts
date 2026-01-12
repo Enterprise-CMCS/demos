@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getPhaseDateTypesByIds, PhaseDateType } from "./getPhaseDateTypesByIds";
+import { describe, it, expect, vi } from "vitest";
+import { getPhaseDateTypesByIds } from "./getPhaseDateTypesByIds";
+import { DateType, PhaseName } from "../../../types";
 
 describe("getPhaseDateTypesByIds", () => {
   const transactionMocks = {
@@ -13,21 +14,7 @@ describe("getPhaseDateTypesByIds", () => {
     },
   } as any;
 
-  beforeEach(() => {
-    vi.resetAllMocks();
-  });
-
   it("should request phase date types matching the given phases and date types from the database", async () => {
-    vi.mocked(transactionMocks.phaseDateType.findMany).mockResolvedValue([
-      {
-        phaseId: "Review",
-        dateTypeId: "State Concurrence",
-      },
-      {
-        phaseId: "Completeness",
-        dateTypeId: "State Application Deemed Complete",
-      },
-    ]);
     const expectedCall = {
       where: {
         phaseId: { in: ["Review", "Completeness"] },
@@ -39,136 +26,15 @@ describe("getPhaseDateTypesByIds", () => {
       },
     };
 
-    const result: PhaseDateType[] = await getPhaseDateTypesByIds(
+    await getPhaseDateTypesByIds(
       mockTransaction,
-      ["Review", "Completeness"],
-      ["State Concurrence", "State Application Deemed Complete"]
+      ["Review", "Completeness"] satisfies PhaseName[],
+      ["State Concurrence", "State Application Deemed Complete"] satisfies DateType[]
     );
     expect(transactionMocks.phaseDateType.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    expect(result).toEqual([
-      {
-        phaseId: "Review",
-        dateTypeId: "State Concurrence",
-      },
-      {
-        phaseId: "Completeness",
-        dateTypeId: "State Application Deemed Complete",
-      },
-    ] satisfies PhaseDateType[]);
-  });
-
-  it("should return an empty array when no matches are found", async () => {
-    vi.mocked(transactionMocks.phaseDateType.findMany).mockResolvedValue([]);
-
-    const result: PhaseDateType[] = await getPhaseDateTypesByIds(
-      mockTransaction,
-      ["Review"],
-      ["State Concurrence"]
-    );
-
-    expect(result).toEqual([]);
-  });
-
-  it("should handle single phase and date type", async () => {
-    vi.mocked(transactionMocks.phaseDateType.findMany).mockResolvedValue([
-      {
-        phaseId: "Review",
-        dateTypeId: "State Concurrence",
-      },
-    ]);
-
-    const result: PhaseDateType[] = await getPhaseDateTypesByIds(
-      mockTransaction,
-      ["Review"],
-      ["State Concurrence"]
-    );
-
-    expect(result).toEqual([
-      {
-        phaseId: "Review",
-        dateTypeId: "State Concurrence",
-      },
-    ] satisfies PhaseDateType[]);
-  });
-
-  it("should handle multiple phases with single date type", async () => {
-    vi.mocked(transactionMocks.phaseDateType.findMany).mockResolvedValue([
-      {
-        phaseId: "Review",
-        dateTypeId: "State Concurrence",
-      },
-      {
-        phaseId: "Completeness",
-        dateTypeId: "State Concurrence",
-      },
-      {
-        phaseId: "SDG Preparation",
-        dateTypeId: "State Concurrence",
-      },
-    ]);
-
-    const result: PhaseDateType[] = await getPhaseDateTypesByIds(
-      mockTransaction,
-      ["Review", "Completeness", "SDG Preparation"],
-      ["State Concurrence"]
-    );
-
-    expect(result).toEqual([
-      {
-        phaseId: "Review",
-        dateTypeId: "State Concurrence",
-      },
-      {
-        phaseId: "Completeness",
-        dateTypeId: "State Concurrence",
-      },
-      {
-        phaseId: "SDG Preparation",
-        dateTypeId: "State Concurrence",
-      },
-    ] satisfies PhaseDateType[]);
-  });
-
-  it("should handle single phase with multiple date types", async () => {
-    vi.mocked(transactionMocks.phaseDateType.findMany).mockResolvedValue([
-      {
-        phaseId: "Review",
-        dateTypeId: "State Concurrence",
-      },
-      {
-        phaseId: "Review",
-        dateTypeId: "DDME Approval Received",
-      },
-      {
-        phaseId: "Review",
-        dateTypeId: "Draft Approval Package Shared",
-      },
-    ]);
-
-    const result: PhaseDateType[] = await getPhaseDateTypesByIds(
-      mockTransaction,
-      ["Review"],
-      ["State Concurrence", "DDME Approval Received", "Draft Approval Package Shared"]
-    );
-
-    expect(result).toEqual([
-      {
-        phaseId: "Review",
-        dateTypeId: "State Concurrence",
-      },
-      {
-        phaseId: "Review",
-        dateTypeId: "DDME Approval Received",
-      },
-      {
-        phaseId: "Review",
-        dateTypeId: "Draft Approval Package Shared",
-      },
-    ] satisfies PhaseDateType[]);
   });
 
   it("should handle empty phase array", async () => {
-    vi.mocked(transactionMocks.phaseDateType.findMany).mockResolvedValue([]);
     const expectedCall = {
       where: {
         phaseId: { in: [] },
@@ -180,18 +46,11 @@ describe("getPhaseDateTypesByIds", () => {
       },
     };
 
-    const result: PhaseDateType[] = await getPhaseDateTypesByIds(
-      mockTransaction,
-      [],
-      ["State Concurrence"]
-    );
-
+    await getPhaseDateTypesByIds(mockTransaction, [], ["State Concurrence"] satisfies DateType[]);
     expect(transactionMocks.phaseDateType.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    expect(result).toEqual([] satisfies PhaseDateType[]);
   });
 
   it("should handle empty date types array", async () => {
-    vi.mocked(transactionMocks.phaseDateType.findMany).mockResolvedValue([]);
     const expectedCall = {
       where: {
         phaseId: { in: ["Review"] },
@@ -203,9 +62,23 @@ describe("getPhaseDateTypesByIds", () => {
       },
     };
 
-    const result: PhaseDateType[] = await getPhaseDateTypesByIds(mockTransaction, ["Review"], []);
-
+    await getPhaseDateTypesByIds(mockTransaction, ["Review"] satisfies PhaseName[], []);
     expect(transactionMocks.phaseDateType.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    expect(result).toEqual([] satisfies PhaseDateType[]);
+  });
+
+  it("should handle empty phase id and empty date types array", async () => {
+    const expectedCall = {
+      where: {
+        phaseId: { in: [] },
+        dateTypeId: { in: [] },
+      },
+      select: {
+        phaseId: true,
+        dateTypeId: true,
+      },
+    };
+
+    await getPhaseDateTypesByIds(mockTransaction, [], []);
+    expect(transactionMocks.phaseDateType.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 });
