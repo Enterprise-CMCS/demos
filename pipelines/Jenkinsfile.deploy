@@ -1,3 +1,5 @@
+@Library('demos-lib@DEMOS-1290-init-prod') _
+
 def advisoryFailures = []
 
 pipeline {
@@ -20,7 +22,9 @@ pipeline {
     stage('Set env from branch') {
       steps {
         script {
-          env.STAGE = (env.BRANCH_NAME == 'main') ? "dev" : "${env.BRANCH_NAME}"
+          // DO NOT MERGE THIS CHANGE WITH THE DEMOS-1290-init-prod CONDITION BELOW
+          // This is temporary until the pipeline has been tested
+          env.STAGE = (env.BRANCH_NAME == 'main') ? "dev" : (env.BRANCH_NAME == 'DEMOS-1290-init-prod') ? "prod" : "${env.BRANCH_NAME}"
         }
       }
     }
@@ -55,7 +59,13 @@ pipeline {
               parallel(
                 'Build Client': {
                   dirCon('deployment','node') {
-                    sh "npx tsx demosctl/index build:client ${env.STAGE}"
+                    // sh "npx tsx demosctl/index build:client ${env.STAGE}"
+                    sh """
+                    mkdir -p ../client/dist
+                    cp ./mock-index.html ../client/dist/index.html
+                    """
+                      
+                      
                   }
                 }, 'Build Server': {
                   dirCon('deployment', 'node') {
@@ -122,7 +132,9 @@ pipeline {
       post {
         failure {
           script {
-            notifyMigrationError(env.STAGE)
+            echo "there was an error with the migrations"
+            // DO NOT MERGE - Remove echo above and uncomment line below after testing
+            // notifyMigrationError(env.STAGE)
           }
         }
       }
