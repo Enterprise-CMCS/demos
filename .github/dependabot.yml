@@ -16,9 +16,11 @@ updates:
       interval: weekly
     exclude-paths:
       - spikes/**
+      - data/**
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: weekly
     exclude-paths:
       - spikes/**
+      - data/**
