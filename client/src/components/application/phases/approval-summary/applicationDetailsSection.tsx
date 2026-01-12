@@ -5,18 +5,22 @@ import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { Textarea, TextInput } from "components/input";
 import { tw } from "tags/tw";
 import { Button } from "components/button";
+import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
+import { SdgDivision, SignatureLevel } from "demos-server";
+import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
+import { SelectUsers } from "components/input/select/SelectUsers";
 
 export type ApplicationDetailsFormData = {
   stateId: string;
   stateName: string;
   name: string;
-  projectOfficer: string;
+  projectOfficerId: string;
   status: string;
   effectiveDate: string | undefined;
   expirationDate: string | undefined;
   description: string | undefined;
-  sdgDivision: string | undefined;
-  signatureLevel: string | undefined;
+  sdgDivision: SdgDivision | undefined;
+  signatureLevel: SignatureLevel | undefined;
   readonlyFields: Partial<Record<
     | "stateId"
     | "name"
@@ -91,16 +95,17 @@ export const ApplicationDetailsSection = ({
           {sectionFormData.readonlyFields.projectOfficer ? (
             <>
               <div className={LABEL_CLASSES}>Project Officer</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.projectOfficer}</div>
+              <div className={VALUE_CLASSES}>{sectionFormData.projectOfficerId}</div>
             </>
           ) : (
-            <TextInput
-              name="input-project-officer"
+            <SelectUsers
               label="Project Officer"
-              isRequired
-              placeholder="Enter project officer"
-              value={sectionFormData.projectOfficer}
-              onChange={(e) => setSectionFormData({ ...sectionFormData, projectOfficer: e.target.value })}
+              isRequired={true}
+              value={sectionFormData.projectOfficerId}
+              onSelect={(projectOfficerId) =>
+                setSectionFormData({ ...sectionFormData, projectOfficerId })
+              }
+              personTypes={["demos-admin", "demos-cms-user"]}
             />
           )}
         </div>
@@ -193,12 +198,9 @@ export const ApplicationDetailsSection = ({
               <div className={VALUE_CLASSES}>{sectionFormData.sdgDivision}</div>
             </>
           ) : (
-            <TextInput
-              name="input-sdg-division"
-              label="SDG Division"
-              placeholder="Enter SDG Division"
-              value={sectionFormData.sdgDivision ?? ""}
-              onChange={(e) => setSectionFormData({ ...sectionFormData, sdgDivision: e.target.value })}
+            <SelectSdgDivision
+              initialValue={sectionFormData.sdgDivision}
+              onSelect={(sdgDivision) => setSectionFormData({ ...sectionFormData, sdgDivision })}
             />
           )}
         </div>
@@ -210,12 +212,9 @@ export const ApplicationDetailsSection = ({
               <div className={VALUE_CLASSES}>{sectionFormData.signatureLevel}</div>
             </>
           ) : (
-            <TextInput
-              name="input-signature-level"
-              label="Signature Level"
-              placeholder="Enter Signature Level"
-              value={sectionFormData.signatureLevel ?? ""}
-              onChange={(e) => setSectionFormData({ ...sectionFormData, signatureLevel: e.target.value })}
+            <SelectSignatureLevel
+              initialValue={sectionFormData.signatureLevel}
+              onSelect={(signatureLevel) => setSectionFormData({ ...sectionFormData, signatureLevel })}
             />
           )}
         </div>
@@ -230,7 +229,7 @@ export const ApplicationDetailsSection = ({
               isComplete ||
               !sectionFormData.stateId ||
               !sectionFormData.name ||
-              !sectionFormData.projectOfficer ||
+              !sectionFormData.projectOfficerId ||
               !sectionFormData.status ||
               !sectionFormData.effectiveDate ||
               !sectionFormData.expirationDate ||
