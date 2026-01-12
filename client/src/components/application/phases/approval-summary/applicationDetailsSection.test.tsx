@@ -3,6 +3,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MockedProvider } from "@apollo/client/testing";
 
 import {
   ApplicationDetailsSection,
@@ -51,13 +52,15 @@ describe("ApplicationDetailsSection", () => {
     isReadonly = false
   ) => {
     render(
-      <ApplicationDetailsSection
-        sectionFormData={{ ...baseFormData, ...overrides }}
-        setSectionFormData={mockSetSectionFormData}
-        isComplete={isComplete}
-        isReadonly={isReadonly}
-        onMarkComplete={mockOnMarkComplete}
-      />
+      <MockedProvider mocks={[]} addTypename={false}>
+        <ApplicationDetailsSection
+          sectionFormData={{ ...baseFormData, ...overrides }}
+          setSectionFormData={mockSetSectionFormData}
+          isComplete={isComplete}
+          isReadonly={isReadonly}
+          onMarkComplete={mockOnMarkComplete}
+        />
+      </MockedProvider>
     );
   };
 
