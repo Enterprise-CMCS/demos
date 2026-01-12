@@ -5,7 +5,7 @@ import { CompletePhaseInput } from "../../types.js";
 // Mock imports
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { validateAndUpdateDates } from "../applicationDate";
+import { validateAndUpdateDates, getApplicationDates } from "../applicationDate";
 import {
   validatePhaseCompletion,
   updatePhaseStatus,
@@ -31,6 +31,7 @@ vi.mock("../application/applicationResolvers.js", () => ({
 
 vi.mock("../applicationDate", () => ({
   validateAndUpdateDates: vi.fn(),
+  getApplicationDates: vi.fn(),
 }));
 
 // The importActual line is necessary to avoid overwriting the constant
@@ -41,6 +42,7 @@ vi.mock(".", async () => {
     validatePhaseCompletion: vi.fn(),
     updatePhaseStatus: vi.fn(),
     setPhaseToStarted: vi.fn(),
+    updateStatusToUnderReviewIfNeeded: vi.fn(),
   };
 });
 
@@ -76,6 +78,8 @@ describe("completePhase", () => {
     );
     vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
     vi.mocked(setPhaseToStarted).mockResolvedValue(true);
+    // Mock getApplicationDates to return empty array by default
+    vi.mocked(getApplicationDates).mockResolvedValue([]);
   });
 
   describe("Concept Phase", () => {
@@ -174,6 +178,47 @@ describe("completePhase", () => {
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
         expectedDateCall,
       );
+      expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+
+    it("should create Completeness Review Due Date when State Application Submitted Date exists", async () => {
+      const testSubmittedDate = new Date("2025-01-01T00:00:00.000-05:00");
+      const mockExistingDates = [
+        {
+          dateType: "State Application Submitted Date",
+          dateValue: {
+            isEasternTZDate: true,
+            easternTZDate: new TZDate(testSubmittedDate, "America/New_York"),
+          },
+        },
+      ];
+      
+      // Mock getApplicationDates to return a State Application Submitted Date
+      vi.mocked(getApplicationDates).mockResolvedValueOnce(mockExistingDates as any);
+      
+      const testInput: CompletePhaseInput = {
+        applicationId: testApplicationId,
+        phaseName: "Application Intake",
+      };
+
+      await completePhase(undefined, { input: testInput });
+
+      // Verify that validateAndUpdateDates was called twice:
+      // 1. First for Completeness Review Due Date (automatically calculated)
+      // 2. Second for the regular phase completion dates
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toHaveLength(2);
+      
+      // Check that the first call was for Completeness Review Due Date
+      expect(vi.mocked(validateAndUpdateDates).mock.calls[0][0]).toMatchObject({
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Completeness Review Due Date",
+            // dateValue will be a TZDate object calculated as submitted date + 15 days
+          },
+        ],
+      });
+      
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });

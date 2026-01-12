@@ -42,6 +42,7 @@ vi.mock(".", async () => {
     getApplicationPhaseStatus: vi.fn(),
     setPhaseToStarted: vi.fn(),
     updatePhaseStatus: vi.fn(),
+    updateStatusToUnderReviewIfNeeded: vi.fn(),
   };
 });
 
