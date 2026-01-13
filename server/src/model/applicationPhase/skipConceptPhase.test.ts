@@ -79,23 +79,30 @@ describe("skipConceptPhase", () => {
   });
 
   it("should take the right actions when completing the Concept phase", async () => {
-    const expectedDateCall = [
-      [
-        {
-          applicationId: testApplicationId,
-          applicationDates: [
-            {
-              dateType: "Concept Skipped Date",
-              dateValue: mockEasternStartOfDayDate,
-            },
-            {
-              dateType: "Application Intake Start Date",
-              dateValue: mockEasternStartOfDayDate,
-            },
-          ],
-        },
-        mockTransaction,
-      ],
+    const validateSkippedDateCall = [
+      {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Concept Skipped Date",
+            dateValue: mockEasternStartOfDayDate,
+          },
+        ],
+      },
+      mockTransaction,
+    ];
+
+    const validateStartDateCall = [
+      {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Application Intake Start Date",
+            dateValue: mockEasternStartOfDayDate,
+          },
+        ],
+      },
+      mockTransaction,
     ];
 
     await skipConceptPhase(undefined, { applicationId: testApplicationId });
@@ -120,7 +127,10 @@ describe("skipConceptPhase", () => {
       "Application Intake",
       mockTransaction
     );
-    expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+    expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
+      validateSkippedDateCall,
+      validateStartDateCall,
+    ]);
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
 
