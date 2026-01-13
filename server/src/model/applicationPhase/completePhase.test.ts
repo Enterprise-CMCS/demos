@@ -6,11 +6,7 @@ import { CompletePhaseInput } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from "../applicationDate";
-import {
-  validatePhaseCompletion,
-  updatePhaseStatus,
-  setPhaseToStarted,
-} from ".";
+import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 
@@ -71,9 +67,7 @@ describe("completePhase", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    mockPrismaClient.$transaction.mockImplementation((callback) =>
-      callback(mockTransaction),
-    );
+    mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     vi.mocked(getEasternNow).mockReturnValue(mockEasternValue);
     vi.mocked(setPhaseToStarted).mockResolvedValue(true);
   });
@@ -84,23 +78,30 @@ describe("completePhase", () => {
         applicationId: testApplicationId,
         phaseName: "Concept",
       };
-      const expectedDateCall = [
-        [
-          {
-            applicationId: testApplicationId,
-            applicationDates: [
-              {
-                dateType: "Concept Completion Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-              {
-                dateType: "Application Intake Start Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-            ],
-          },
-          mockTransaction,
-        ],
+      const validateCompleteDateCall = [
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "Concept Completion Date",
+              dateValue: mockEasternStartOfDayDate,
+            },
+          ],
+        },
+        mockTransaction,
+      ];
+
+      const validateStartDateCall = [
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "Application Intake Start Date",
+              dateValue: mockEasternStartOfDayDate,
+            },
+          ],
+        },
+        mockTransaction,
       ];
 
       await completePhase(undefined, { input: testInput });
@@ -108,22 +109,23 @@ describe("completePhase", () => {
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Concept",
-        mockTransaction,
+        mockTransaction
       );
       expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Concept",
         "Completed",
-        mockTransaction,
+        mockTransaction
       );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
-        mockTransaction,
+        mockTransaction
       );
-      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
-        expectedDateCall,
-      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
+        validateCompleteDateCall,
+        validateStartDateCall,
+      ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
@@ -134,23 +136,30 @@ describe("completePhase", () => {
         applicationId: testApplicationId,
         phaseName: "Application Intake",
       };
-      const expectedDateCall = [
-        [
-          {
-            applicationId: testApplicationId,
-            applicationDates: [
-              {
-                dateType: "Application Intake Completion Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-              {
-                dateType: "Completeness Start Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-            ],
-          },
-          mockTransaction,
-        ],
+      const validateCompleteDateCall = [
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "Application Intake Completion Date",
+              dateValue: mockEasternStartOfDayDate,
+            },
+          ],
+        },
+        mockTransaction,
+      ];
+
+      const validateStartDateCall = [
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "Completeness Start Date",
+              dateValue: mockEasternStartOfDayDate,
+            },
+          ],
+        },
+        mockTransaction,
       ];
 
       await completePhase(undefined, { input: testInput });
@@ -158,22 +167,23 @@ describe("completePhase", () => {
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
-        mockTransaction,
+        mockTransaction
       );
       expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
         "Completed",
-        mockTransaction,
+        mockTransaction
       );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Completeness",
-        mockTransaction,
+        mockTransaction
       );
-      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
-        expectedDateCall,
-      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
+        validateCompleteDateCall,
+        validateStartDateCall,
+      ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
@@ -204,18 +214,16 @@ describe("completePhase", () => {
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Completeness",
-        mockTransaction,
+        mockTransaction
       );
       expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Completeness",
         "Completed",
-        mockTransaction,
+        mockTransaction
       );
       expect(setPhaseToStarted).not.toBeCalled();
-      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
-        expectedDateCall,
-      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
@@ -227,10 +235,8 @@ describe("completePhase", () => {
         phaseName: "Federal Comment",
       };
 
-      await expect(
-        completePhase(undefined, { input: testInput }),
-      ).rejects.toThrowError(
-        "Operations against the Federal Comment phase are not permitted via API.",
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        "Operations against the Federal Comment phase are not permitted via API."
       );
 
       expect(validatePhaseCompletion).not.toHaveBeenCalled();
@@ -247,23 +253,30 @@ describe("completePhase", () => {
         applicationId: testApplicationId,
         phaseName: "SDG Preparation",
       };
-      const expectedDateCall = [
-        [
-          {
-            applicationId: testApplicationId,
-            applicationDates: [
-              {
-                dateType: "SDG Preparation Completion Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-              {
-                dateType: "Review Start Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-            ],
-          },
-          mockTransaction,
-        ],
+      const validateCompleteDateCall = [
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "SDG Preparation Completion Date",
+              dateValue: mockEasternStartOfDayDate,
+            },
+          ],
+        },
+        mockTransaction,
+      ];
+
+      const validateStartDateCall = [
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "Review Start Date",
+              dateValue: mockEasternStartOfDayDate,
+            },
+          ],
+        },
+        mockTransaction,
       ];
 
       await completePhase(undefined, { input: testInput });
@@ -271,22 +284,23 @@ describe("completePhase", () => {
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "SDG Preparation",
-        mockTransaction,
+        mockTransaction
       );
       expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "SDG Preparation",
         "Completed",
-        mockTransaction,
+        mockTransaction
       );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Review",
-        mockTransaction,
+        mockTransaction
       );
-      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
-        expectedDateCall,
-      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
+        validateCompleteDateCall,
+        validateStartDateCall,
+      ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
@@ -297,23 +311,30 @@ describe("completePhase", () => {
         applicationId: testApplicationId,
         phaseName: "Review",
       };
-      const expectedDateCall = [
-        [
-          {
-            applicationId: testApplicationId,
-            applicationDates: [
-              {
-                dateType: "Review Completion Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-              {
-                dateType: "Approval Package Start Date",
-                dateValue: mockEasternStartOfDayDate,
-              },
-            ],
-          },
-          mockTransaction,
-        ],
+      const validateCompleteDateCall = [
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "Review Completion Date",
+              dateValue: mockEasternStartOfDayDate,
+            },
+          ],
+        },
+        mockTransaction,
+      ];
+
+      const validateStartDateCall = [
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "Approval Package Start Date",
+              dateValue: mockEasternStartOfDayDate,
+            },
+          ],
+        },
+        mockTransaction,
       ];
 
       await completePhase(undefined, { input: testInput });
@@ -321,22 +342,23 @@ describe("completePhase", () => {
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Review",
-        mockTransaction,
+        mockTransaction
       );
       expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Review",
         "Completed",
-        mockTransaction,
+        mockTransaction
       );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approval Package",
-        mockTransaction,
+        mockTransaction
       );
-      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
-        expectedDateCall,
-      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([
+        validateCompleteDateCall,
+        validateStartDateCall,
+      ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
@@ -367,22 +389,20 @@ describe("completePhase", () => {
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approval Package",
-        mockTransaction,
+        mockTransaction
       );
       expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approval Package",
         "Completed",
-        mockTransaction,
+        mockTransaction
       );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approval Summary",
-        mockTransaction,
+        mockTransaction
       );
-      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
-        expectedDateCall,
-      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
@@ -394,10 +414,8 @@ describe("completePhase", () => {
         phaseName: "Approval Summary",
       };
 
-      await expect(
-        completePhase(undefined, { input: testInput }),
-      ).rejects.toThrowError(
-        "Completion of the Approval Summary phase via API is not yet implemented.",
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        "Completion of the Approval Summary phase via API is not yet implemented."
       );
 
       expect(validatePhaseCompletion).not.toHaveBeenCalled();
@@ -416,9 +434,9 @@ describe("completePhase", () => {
         phaseName: "Concept",
       };
 
-      await expect(
-        completePhase(undefined, { input: testInput }),
-      ).rejects.toThrowError(testHandlePrismaError);
+      await expect(completePhase(undefined, { input: testInput })).rejects.toThrowError(
+        testHandlePrismaError
+      );
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
     });
 
@@ -448,22 +466,20 @@ describe("completePhase", () => {
       expect(validatePhaseCompletion).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Concept",
-        mockTransaction,
+        mockTransaction
       );
       expect(updatePhaseStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Concept",
         "Completed",
-        mockTransaction,
+        mockTransaction
       );
       expect(setPhaseToStarted).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Application Intake",
-        mockTransaction,
+        mockTransaction
       );
-      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(
-        expectedDateCall,
-      );
+      expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });
