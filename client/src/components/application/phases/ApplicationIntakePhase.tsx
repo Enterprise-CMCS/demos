@@ -85,13 +85,9 @@ export const ApplicationIntakePhase = ({
 }: ApplicationIntakeProps) => {
   const { showSuccess } = useToast();
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
-  const [stateApplicationDocuments] = useState<ApplicationWorkflowDocument[]>(
-    initialStateApplicationDocuments
-  );
   const [stateApplicationSubmittedDate, setStateApplicationSubmittedDate] = useState<string>(
     initialStateApplicationSubmittedDate ?? ""
   );
-  const [isFinishButtonEnabled, setIsFinishButtonEnabled] = useState(false);
 
   const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
     applicationId: demonstrationId,
@@ -102,10 +98,22 @@ export const ApplicationIntakePhase = ({
   const { setApplicationDate } = useSetApplicationDate();
 
   useEffect(() => {
-    setIsFinishButtonEnabled(
-      stateApplicationDocuments.length > 0 && Boolean(stateApplicationSubmittedDate)
-    );
-  }, [stateApplicationDocuments, stateApplicationSubmittedDate]);
+    const hasDocuments = initialStateApplicationDocuments.length > 0;
+    const baseDate = initialStateApplicationSubmittedDate ?? "";
+
+    if (!hasDocuments) {
+      setStateApplicationSubmittedDate("");
+      return;
+    }
+
+    setStateApplicationSubmittedDate(baseDate);
+  }, [initialStateApplicationSubmittedDate, initialStateApplicationDocuments.length]);
+
+  const hasDocuments = initialStateApplicationDocuments.length > 0;
+  const hasSubmittedDate = Boolean(stateApplicationSubmittedDate);
+  const isFinishButtonEnabled = hasDocuments && hasSubmittedDate;
+
+
 
   const onFinishButtonClick = async () => {
     const todayDate = getTodayEst();
@@ -118,23 +126,6 @@ export const ApplicationIntakePhase = ({
     });
 
     showSuccess(getPhaseCompletedMessage("Application Intake"));
-  };
-
-  const handleDocumentUploadSucceeded = async () => {
-    const todayDate = getTodayEst();
-    setStateApplicationSubmittedDate(formatDateForServer(todayDate));
-
-    await setApplicationDate({
-      applicationId: demonstrationId,
-      dateType: "State Application Submitted Date",
-      dateValue: todayDate,
-    });
-
-    await setApplicationDate({
-      applicationId: demonstrationId,
-      dateType: "Completeness Start Date",
-      dateValue: todayDate,
-    });
   };
 
   const handleDateChange = async (newDate: string) => {
@@ -165,7 +156,7 @@ export const ApplicationIntakePhase = ({
 
       <SecondaryButton
         onClick={() =>
-          showApplicationIntakeDocumentUploadDialog(demonstrationId, handleDocumentUploadSucceeded)
+          showApplicationIntakeDocumentUploadDialog(demonstrationId, () => {})
         }
         size="small"
         name="button-open-upload-modal"
@@ -198,7 +189,7 @@ export const ApplicationIntakePhase = ({
             isRequired
             aria-required="true"
           />
-          {!stateApplicationDocuments && stateApplicationSubmittedDate && (
+          {initialStateApplicationDocuments.length === 0 && stateApplicationSubmittedDate && (
             <div className="text-xs text-text-warn mt-1">
               At least one State Application document is required when date is provided
             </div>

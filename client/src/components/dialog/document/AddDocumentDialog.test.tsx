@@ -14,6 +14,7 @@ import {
   tryUploadingFileToS3,
   VIRUS_SCAN_MAX_ATTEMPTS,
 } from "./AddDocumentDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 let mockMutationFn = vi.fn();
 let mockLazyQueryFn = vi.fn();
@@ -45,7 +46,6 @@ afterEach(() => {
 const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "button-confirm-upload-document";
 const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
 const FILE_INPUT_TEST_ID = "input-file";
-const CANCEL_BUTTON_TEST_ID = "button-cancel-upload-document";
 
 describe("AddDocumentDialog", () => {
   const setup = () => {
@@ -67,12 +67,6 @@ describe("AddDocumentDialog", () => {
     expect(screen.getByText("Add New Document")).toBeInTheDocument();
     expect(screen.getByText("Document Description")).toBeInTheDocument();
     expect(screen.getByText("Select File(s)")).toBeInTheDocument();
-  });
-
-  it("shows cancel confirmation dialog when cancel is clicked", () => {
-    setup();
-    fireEvent.click(screen.getByText("Cancel"));
-    expect(screen.getByText("You will lose any unsaved changes in this view.")).toBeInTheDocument();
   });
 
   it("has disabled button in edit when file is missing", () => {
@@ -110,7 +104,6 @@ describe("AddDocumentDialog", () => {
   it("calls onClose when confirming cancel", async () => {
     const { onClose } = setup();
     fireEvent.click(screen.getByText("Cancel"));
-    fireEvent.click(screen.getByTestId("button-cc-dialog-discard"));
 
     await waitFor(() => {
       expect(onClose).toHaveBeenCalled();
@@ -174,7 +167,7 @@ describe("AddDocumentDialog", () => {
     mockMutationFn.mockImplementation(() => new Promise(() => {})); // never resolves
     setup();
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
-    const cancelBtn = screen.getByTestId(CANCEL_BUTTON_TEST_ID);
+    const cancelBtn = screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME);
 
     const file = new File(["content"], "test.pdf", { type: "application/pdf" });
     fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), { target: { files: [file] } });
@@ -353,7 +346,7 @@ describe("virus scan polling", () => {
     // Advance timers to reach max attempts
     await vi.advanceTimersByTimeAsync(VIRUS_SCAN_MAX_ATTEMPTS * DOCUMENT_POLL_INTERVAL_MS);
 
-    // Should reach max attempts  and throw timeout error
+    // Should reach max attempts and throw timeout error
     expect(mockLazyQueryFn).toHaveBeenCalledTimes(VIRUS_SCAN_MAX_ATTEMPTS);
   });
 

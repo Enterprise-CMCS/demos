@@ -47,16 +47,16 @@ export class FileUploadStack extends Stack {
       encryptionMasterKey: kmsKey,
     });
 
-   const uploadQueue = new Queue(this, "FileUploadQueue", {
-    removalPolicy: RemovalPolicy.DESTROY,
-    enforceSSL: true,
-    encryption: QueueEncryption.KMS,
-    encryptionMasterKey: kmsKey,
-    deadLetterQueue: {
-      maxReceiveCount: 5,
-      queue: deadLetterQueue,
-    },
-  });
+    const uploadQueue = new Queue(this, "FileUploadQueue", {
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      deadLetterQueue: {
+        maxReceiveCount: 5,
+        queue: deadLetterQueue,
+      },
+      encryption: QueueEncryption.KMS,
+      encryptionMasterKey: kmsKey,
+    });
 
     const deleteInfectedFileQueue = new Queue(this, "DeleteInfectedFileQueue", {
       removalPolicy: RemovalPolicy.DESTROY,
@@ -78,13 +78,29 @@ export class FileUploadStack extends Stack {
       enforceSSL: true,
     });
 
+    const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
+    accessLogBucketCfn.cfnOptions.metadata = {
+      checkov: {
+        skip: [{
+          id: "CKV_AWS_18",
+          reason: "the access log bucket itself does not need access logs"
+        },{
+          id: "CKV_AWS_21",
+          reason: "versioning on the access log bucket itself is intentionally disabled"
+        }]
+      }
+    }
+
+    const s3AccessLogBucketArn = Fn.importValue(`${props.stage}AccessLogBucketArn`)
+    const s3AccessLogBucket = Bucket.fromBucketArn(this, "coreAccessLogBucket", s3AccessLogBucketArn)
+
     const uploadBucket = new Bucket(this, "FileUploadBucket", {
       versioned: false,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,
-      serverAccessLogsBucket: accessLogs,
-      serverAccessLogsPrefix: "upload",
+      serverAccessLogsBucket: s3AccessLogBucket,
+      serverAccessLogsPrefix: "upload/",
       enforceSSL: true,
       eventBridgeEnabled: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
@@ -96,6 +112,16 @@ export class FileUploadStack extends Stack {
         },
       ],
     });
+
+    const uploadBucketCfn = uploadBucket.node.defaultChild as aws_s3.CfnBucket;
+    uploadBucketCfn.cfnOptions.metadata = {
+      checkov: {
+        skip: [{
+          id: "CKV_AWS_21",
+          reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled"
+        }]
+      }
+    }
 
     new GuardDutyS3(this, "uploadBucketScan", {
       bucket: uploadBucket,
@@ -110,8 +136,8 @@ export class FileUploadStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,
-      serverAccessLogsBucket: accessLogs,
-      serverAccessLogsPrefix: "clean",
+      serverAccessLogsBucket: s3AccessLogBucket,
+      serverAccessLogsPrefix: "clean/",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
@@ -125,8 +151,8 @@ export class FileUploadStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,
-      serverAccessLogsBucket: accessLogs,
-      serverAccessLogsPrefix: "deleted",
+      serverAccessLogsBucket: s3AccessLogBucket,
+      serverAccessLogsPrefix: "deleted/",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });

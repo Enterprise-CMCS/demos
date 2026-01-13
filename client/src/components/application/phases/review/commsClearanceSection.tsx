@@ -1,7 +1,8 @@
 import React from "react";
-import { COMMS_CLEARANCE_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
+import { ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
+import { COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 
 type CommsClearanceSectionFormData = {
   dates: Pick<ReviewPhaseFormData["dates"], (typeof COMMS_CLEARANCE_DATE_TYPES)[number]>;
@@ -11,14 +12,16 @@ type CommsClearanceSectionFormData = {
 export const CommsClearanceSection = ({
   sectionFormData,
   setSectionFormData,
-  sectionIsComplete,
+  isComplete,
+  isReadonly,
 }: {
   sectionFormData: CommsClearanceSectionFormData;
   setSectionFormData: (data: CommsClearanceSectionFormData) => void;
-  sectionIsComplete: boolean;
+  isComplete: boolean;
+  isReadonly: boolean;
 }) => {
   return (
-    <CompletableSection title="Comms Clearance" isComplete={sectionIsComplete}>
+    <CompletableSection title="Comms Clearance" isComplete={isComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         OCD Signature and COMMs Clearance are minimal requirements for Demonstrations and
         Amendments.
@@ -28,17 +31,18 @@ export const CommsClearanceSection = ({
           <DatePicker
             label="Package Sent for COMMs Clearance"
             name="datepicker-package-sent-for-comms-clearance-date"
-            value={sectionFormData.dates["Package Sent to COMMs Clearance"]}
+            value={sectionFormData.dates["Package Sent for COMMs Clearance"]}
             isRequired
             onChange={(val) =>
               setSectionFormData({
                 ...sectionFormData,
                 dates: {
                   ...sectionFormData.dates,
-                  "Package Sent to COMMs Clearance": val,
+                  "Package Sent for COMMs Clearance": val,
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="flex flex-col">
@@ -56,6 +60,7 @@ export const CommsClearanceSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="col-span-2 flex flex-col">
@@ -76,6 +81,7 @@ export const CommsClearanceSection = ({
             }
             className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={1}
+            disabled={isReadonly}
           />
         </div>
       </div>

@@ -41,8 +41,19 @@ vi.mock("../phase-status/phaseStatusQueries", () => ({
   }),
 }));
 
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+};
+
 const mockDemonstration: ApplicationWorkflowDemonstration = {
   id: "1",
+  name: "Test Demo",
+  state: {
+    id: "CA",
+    name: "California",
+  },
+  primaryProjectOfficer: mockPO,
   status: "Pre-Submission",
   currentPhaseName: "SDG Preparation",
   documents: [],
@@ -64,6 +75,12 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
 
 const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
   id: "1",
+  name: "Test Demo",
+  state: {
+    id: "CA",
+    name: "California",
+  },
+  primaryProjectOfficer: mockPO,
   status: "Pre-Submission",
   currentPhaseName: "SDG Preparation",
   clearanceLevel: "CMS (OSORA)",

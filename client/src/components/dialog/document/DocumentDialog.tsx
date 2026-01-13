@@ -71,16 +71,20 @@ const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }>
     name="title"
     label="Document Title"
     placeholder="Enter document title"
+    isRequired
     onChange={(event) => onChange(event.target.value)}
     value={value}
   />
 );
 
-type DescriptionInputProps = { value: string; onChange: (value: string) => void; error?: string };
+type DescriptionInputProps = {
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+};
 
 const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, error }) => {
   const validationMessage = error ?? "";
-
   return (
     <div className="flex flex-col gap-sm">
       <label className={LABEL_CLASSES}>Document Description</label>
@@ -263,6 +267,18 @@ const DEFAULT_DOCUMENT_FIELDS: DocumentDialogFields = {
   documentType: "General File",
 };
 
+export const checkFormHasChanges = (
+  initialDocument: DocumentDialogFields,
+  activeDocument: DocumentDialogFields
+): boolean => {
+  return (
+    activeDocument.name !== initialDocument.name ||
+    activeDocument.description !== initialDocument.description ||
+    activeDocument.documentType !== initialDocument.documentType ||
+    activeDocument.file !== initialDocument.file
+  );
+};
+
 export type DocumentDialogProps = {
   onClose?: () => void;
   mode: DocumentDialogType;
@@ -273,6 +289,7 @@ export type DocumentDialogProps = {
   ) => Promise<void>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
+  cancelButtonIsDisabled?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -296,14 +313,24 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   titleOverride,
 }) => {
   const { showSuccess, showError } = useToast();
+  const hydratedInitialDocument = setDefaultDocumentType(
+    DEFAULT_DOCUMENT_FIELDS,
+    documentTypeSubset
+  );
 
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
-    initialDocument || setDefaultDocumentType(DEFAULT_DOCUMENT_FIELDS, documentTypeSubset)
+    initialDocument || hydratedInitialDocument
   );
 
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [formHasChanges, setFormHasChanges] = useState(false);
+
+  useEffect(() => {
+    setFormHasChanges(
+      checkFormHasChanges(initialDocument || hydratedInitialDocument, activeDocument)
+    );
+  }, [activeDocument]);
   const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -324,9 +351,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
-  const missingType = !activeDocument.documentType;
-  const missingFile = !file;
-  const isMissing = missingType || missingFile;
+  const isMissing =
+    (mode === "add" && !file) || !activeDocument.documentType || !activeDocument.name.trim();
 
   const onUploadClick = async () => {
     if (documentDialogState === "uploading") return;
@@ -353,38 +379,36 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
   };
 
+  const buttonName = mode == "edit" ? "Save Changes" : "Upload Document";
+
   return (
     <BaseDialog
       title={dialogTitle}
       onClose={onClose}
-      showCancelConfirm={showCancelConfirm}
-      setShowCancelConfirm={setShowCancelConfirm}
-      actions={
-        <>
-          <SecondaryButton
-            name="button-cancel-upload-document"
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-            disabled={documentDialogState === "uploading"}
-          >
-            Cancel
-          </SecondaryButton>
-          <UploadButton
-            onClick={onUploadClick}
-            disabled={isMissing}
-            isUploading={documentDialogState === "uploading"}
-          />
-        </>
+      dialogHasChanges={formHasChanges}
+      actionButton={
+        <UploadButton
+          onClick={onUploadClick}
+          disabled={isMissing || !formHasChanges}
+          isUploading={documentDialogState === "uploading"}
+          label={buttonName}
+          loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
+        />
       }
+      cancelButtonIsDisabled={documentDialogState === "uploading"}
     >
-      <DropTarget
-        file={file}
-        onRemove={() => setFile(null)}
-        fileInputRef={fileInputRef}
-        uploadStatus={uploadStatus}
-        uploadProgress={uploadProgress}
-        handleFileChange={handleFileChange}
-      />
+      {mode !== "edit" ? (
+        <DropTarget
+          file={file}
+          onRemove={() => setFile(null)}
+          fileInputRef={fileInputRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+          handleFileChange={handleFileChange}
+        />
+      ) : (
+        ""
+      )}
 
       <DocumentDialogNotice
         documentDialogState={documentDialogState}

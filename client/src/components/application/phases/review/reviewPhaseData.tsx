@@ -8,15 +8,12 @@ import { format } from "date-fns";
 import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
 import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
 
-export type ReviewPhase = Pick<SimplePhase, "phaseName" | "phaseDates" | "phaseNotes">;
 export type ReviewPhaseDemonstration = Pick<
   ApplicationWorkflowDemonstration,
-  "id" | "clearanceLevel"
-> & {
-  phases: ReviewPhase[];
-};
+  "id" | "clearanceLevel" | "phases"
+>;
 export function getPhaseData(
-  reviewPhase: ReviewPhase
+  reviewPhase: SimplePhase
 ): Omit<ReviewPhaseFormData, "clearanceLevel"> {
   const formData: Omit<ReviewPhaseFormData, "clearanceLevel"> = { dates: {}, notes: {} };
 
@@ -36,7 +33,8 @@ export function getPhaseData(
 }
 
 export const getReviewPhaseComponentFromDemonstration = (
-  demonstration: ReviewPhaseDemonstration
+  demonstration: ReviewPhaseDemonstration,
+  onFinish: () => void
 ) => {
   const reviewPhase = demonstration.phases.find((phase) => phase.phaseName === "Review");
   if (!reviewPhase) return <div>Error: Review Phase not found.</div>;
@@ -45,7 +43,14 @@ export const getReviewPhaseComponentFromDemonstration = (
     ...getPhaseData(reviewPhase),
     clearanceLevel: demonstration.clearanceLevel,
   };
-  return <ReviewPhase initialFormData={reviewPhaseFormData} demonstrationId={demonstration.id} />;
+  return (
+    <ReviewPhase
+      isReadonly={reviewPhase.phaseStatus === "Completed"}
+      initialFormData={reviewPhaseFormData}
+      demonstrationId={demonstration.id}
+      onFinish={onFinish}
+    />
+  );
 };
 
 export const formatDataForSave = (reviewPhaseFormData: ReviewPhaseFormData) => {

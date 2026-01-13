@@ -23,7 +23,7 @@ export function create(props: CommonProps) {
       metricsEnabled: false,
       throttlingBurstLimit: 5000,
       throttlingRateLimit: 10000.0,
-      cachingEnabled: false,
+      cachingEnabled: true,
       cacheTtl: Duration.seconds(300),
       cacheDataEncrypted: false,
       accessLogDestination: new aws_apigateway.LogGroupLogDestination(apiAccessLogGroup.logGroup),
@@ -75,7 +75,7 @@ export function create(props: CommonProps) {
   const apiParentResource = api.root.addResource("api");
 
   const healthResource = apiParentResource.addResource("health");
-  healthResource.addMethod("GET", healthEndpoint, {
+  const healthMethod = healthResource.addMethod("GET", healthEndpoint, {
     methodResponses: [
       {
         statusCode: "200",
@@ -85,6 +85,16 @@ export function create(props: CommonProps) {
       },
     ],
   });
+
+  const cm = healthMethod.node.defaultChild as aws_apigateway.CfnMethod;
+  cm.cfnOptions.metadata = {
+    checkov: {
+      skip: [{
+        id: "CKV_AWS_59",
+        reason: "public connectivity endpoint; no sensitive data or backend access"
+      }]
+    }
+  }
 
   return {
     api,

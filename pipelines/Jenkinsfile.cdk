@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes { 
-      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk", "scanner"], opts: [
+      yaml kubeBlock(containerNames:["node", "aws-cli", "snyk", "scanner", "checkov"], opts: [
         NODE_IMAGE: "artifactory.cloud.cms.gov/docker/node:24-alpine"
       ])
     }
@@ -92,6 +92,19 @@ pipeline {
             dirCon('deployment', 'node') {
               sh '''
               npm run synth:dev
+              '''
+            }
+          }
+        }
+      }
+    }
+    stage('CDK - Checkov') {
+      steps {
+        script {
+          if (hasChange("deployment")) {
+            dirCon('deployment', 'checkov') {
+              sh '''
+              checkov -d cdk.out --config-file .checkov.yml
               '''
             }
           }

@@ -19,7 +19,8 @@ describe("CmsOsoraClearanceSection", () => {
       },
     },
     setSectionFormData: mockSetSectionFormData,
-    sectionIsComplete: false,
+    isComplete: false,
+    isReadonly: false,
   };
 
   beforeEach(() => {
@@ -53,6 +54,21 @@ describe("CmsOsoraClearanceSection", () => {
 
   it("calls setSectionFormData when a date is updated", () => {
     render(<CmsOsoraClearanceSection {...defaultProps} />);
+    const datepicker = screen.getByTestId("datepicker-osora-r1-comments-due-date");
+
+    fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
+
+    expect(mockSetSectionFormData).toHaveBeenCalledWith({
+      ...defaultProps.sectionFormData,
+      dates: {
+        ...defaultProps.sectionFormData.dates,
+        "OSORA R1 Comments Due": "2025-01-01",
+      },
+    });
+  });
+
+  it("sets CMS (OSORA) Clearance End date to two weeks after submission date if not already set", () => {
+    render(<CmsOsoraClearanceSection {...defaultProps} />);
     const datepicker = screen.getByTestId("datepicker-submit-approval-package-to-osora");
 
     fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
@@ -62,6 +78,34 @@ describe("CmsOsoraClearanceSection", () => {
       dates: {
         ...defaultProps.sectionFormData.dates,
         "Submit Approval Package to OSORA": "2025-01-01",
+        "CMS (OSORA) Clearance End": "2025-01-15",
+      },
+    });
+  });
+
+  it("does not overwrite CMS (OSORA) Clearance End date if already set", () => {
+    const propsWithClearanceEndDate = {
+      ...defaultProps,
+      sectionFormData: {
+        ...defaultProps.sectionFormData,
+        dates: {
+          ...defaultProps.sectionFormData.dates,
+          "CMS (OSORA) Clearance End": "2025-02-01",
+        },
+      },
+    };
+
+    render(<CmsOsoraClearanceSection {...propsWithClearanceEndDate} />);
+    const datepicker = screen.getByTestId("datepicker-submit-approval-package-to-osora");
+
+    fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
+
+    expect(mockSetSectionFormData).toHaveBeenCalledWith({
+      ...propsWithClearanceEndDate.sectionFormData,
+      dates: {
+        ...propsWithClearanceEndDate.sectionFormData.dates,
+        "Submit Approval Package to OSORA": "2025-01-01",
+        "CMS (OSORA) Clearance End": "2025-02-01", // should remain unchanged
       },
     });
   });
@@ -119,11 +163,28 @@ describe("CmsOsoraClearanceSection", () => {
     expect(textarea).toHaveValue("Existing note");
   });
 
-  it("displays completeness badge based on sectionIsComplete prop", () => {
+  it("displays completeness badge based on isComplete prop", () => {
     const { rerender } = render(<CmsOsoraClearanceSection {...defaultProps} />);
     expect(screen.getByText("Incomplete")).toBeInTheDocument();
 
-    rerender(<CmsOsoraClearanceSection {...defaultProps} sectionIsComplete={true} />);
+    rerender(<CmsOsoraClearanceSection {...defaultProps} isComplete={true} />);
     expect(screen.getByText("Complete")).toBeInTheDocument();
+  });
+
+  describe("Readonly mode", () => {
+    it("disables all date inputs when isReadonly is true", () => {
+      render(<CmsOsoraClearanceSection {...defaultProps} isReadonly={true} />);
+
+      expect(screen.getByTestId("datepicker-submit-approval-package-to-osora")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-osora-r1-comments-due-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-osora-r2-comments-due-date")).toBeDisabled();
+      expect(screen.getByTestId("datepicker-cms-osora-clearance-end-date")).toBeDisabled();
+    });
+
+    it("disables notes textarea when isReadonly is true", () => {
+      render(<CmsOsoraClearanceSection {...defaultProps} isReadonly={true} />);
+
+      expect(screen.getByTestId("input-cms-osora-notes")).toBeDisabled();
+    });
   });
 });

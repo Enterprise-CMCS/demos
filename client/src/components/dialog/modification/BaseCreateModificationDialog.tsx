@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { BaseDialog } from "../BaseDialog";
-import { Button, SecondaryButton } from "components/button";
+import { Button } from "components/button";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { Textarea, TextInput } from "components/input";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
@@ -29,6 +29,11 @@ export type CreateModificationFormFields = {
   stateId?: string;
 };
 
+// Form has changes if name or description is filled out (stateId and demonstrationId are non-mutable)
+export const checkFormHasChanges = (formFields: CreateModificationFormFields): boolean => {
+  return !!formFields.name || !!formFields.description;
+};
+
 interface BaseCreateModificationDialogProps {
   onClose: () => void;
   initialDemonstrationId?: string;
@@ -43,11 +48,13 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
 }) => {
   const [loading, setLoading] = useState(false);
   const [createModificationFormFields, setCreateModificationFormFields] =
-    useState<CreateModificationFormFields>({
-      demonstrationId: initialDemonstrationId,
-    });
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    useState<CreateModificationFormFields>({ demonstrationId: initialDemonstrationId });
+  const [formHasChanges, setFormHasChanges] = useState(false);
   const { showError } = useToast();
+
+  useEffect(() => {
+    setFormHasChanges(checkFormHasChanges(createModificationFormFields));
+  }, [createModificationFormFields]);
 
   useQuery<{ demonstration: Demonstration }>(CREATE_MODIFICATION_DIALOG_QUERY, {
     variables: { id: createModificationFormFields.demonstrationId },
@@ -81,32 +88,21 @@ export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialog
     <BaseDialog
       title={`New ${modificationType}`}
       onClose={onClose}
-      showCancelConfirm={showCancelConfirm}
-      setShowCancelConfirm={setShowCancelConfirm}
       maxWidthClass="max-w-[720px]"
-      actions={
-        <>
-          <SecondaryButton
-            name={`button-cancel-create-${modificationType.toLowerCase()}`}
-            size="small"
-            onClick={() => setShowCancelConfirm(true)}
-          >
-            Cancel
-          </SecondaryButton>
-          <Button
-            name={`button-submit-create-${modificationType.toLowerCase()}`}
-            size="small"
-            type="submit"
-            form={`create-${modificationType.toLowerCase()}`}
-            disabled={
-              !(
-                createModificationFormFields.demonstrationId && createModificationFormFields.name
-              ) || loading
-            }
-          >
-            {loading ? "Saving..." : "Submit"}
-          </Button>
-        </>
+      dialogHasChanges={formHasChanges}
+      actionButton={
+        <Button
+          name={`button-submit-create-${modificationType.toLowerCase()}`}
+          size="small"
+          type="submit"
+          form={`create-${modificationType.toLowerCase()}`}
+          disabled={
+            !(createModificationFormFields.demonstrationId && createModificationFormFields.name) ||
+            loading
+          }
+        >
+          {loading ? "Saving..." : "Submit"}
+        </Button>
       }
     >
       <form

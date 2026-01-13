@@ -70,6 +70,19 @@ export class UiStack extends Stack {
       bucketName: `demos-${commonProps.stage}-ui-server-access`,
     });
 
+    const accessLogBucketCfn = serverAccessLogBucket.node.defaultChild as aws_s3.CfnBucket;
+    accessLogBucketCfn.cfnOptions.metadata = {
+      checkov: {
+        skip: [{
+          id: "CKV_AWS_18",
+          reason: "the access log bucket itself does not need access logs"
+        },{
+          id: "CKV_AWS_21",
+          reason: "versioning on the access log bucket itself is intentionally disabled"
+        }]
+      }
+    }
+
     const cmsCloudLogBucket = aws_s3.Bucket.fromBucketName(
       commonProps.scope,
       "cmsCloudLogsBucket",
@@ -95,6 +108,16 @@ export class UiStack extends Stack {
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
+
+    const uiBucketCfn = uiBucket.node.defaultChild as aws_s3.CfnBucket;
+    uiBucketCfn.cfnOptions.metadata = {
+      checkov: {
+        skip: [{
+          id: "CKV_AWS_21",
+          reason: "versioning is unnecessary for the UI bucket since these files are only static UI files"
+        }]
+      }
+    }
 
     //
     // WAF

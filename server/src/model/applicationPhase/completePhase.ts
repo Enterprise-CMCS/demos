@@ -1,4 +1,4 @@
-import { CompletePhaseInput, ApplicationDateInput } from "../../types.js";
+import { CompletePhaseInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
@@ -22,18 +22,26 @@ export async function completePhase(
 
   try {
     await prisma().$transaction(async (tx) => {
+      // complete current phase
       await validatePhaseCompletion(input.applicationId, input.phaseName, tx);
+      await validateAndUpdateDates(
+        {
+          applicationId: input.applicationId,
+          applicationDates: [
+            {
+              dateType: phaseActions.dateToComplete,
+              dateValue:
+                easternNow[
+                  DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.dateToComplete].expectedTimestamp
+                ].easternTZDate,
+            },
+          ],
+        },
+        tx
+      );
       await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
-      const applicationDatesToUpdate: ApplicationDateInput[] = [];
-      applicationDatesToUpdate.push({
-        dateType: phaseActions.dateToComplete,
-        dateValue:
-          easternNow[
-            DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.dateToComplete].expectedTimestamp
-          ].easternTZDate,
-      });
-
+      // start next phase, if applicable
       if (phaseActions.nextPhase) {
         const nextPhaseWasStarted = await setPhaseToStarted(
           input.applicationId,
@@ -42,22 +50,25 @@ export async function completePhase(
         );
         if (nextPhaseWasStarted) {
           if (phaseActions.nextPhase.dateToStart) {
-            applicationDatesToUpdate.push({
-              dateType: phaseActions.nextPhase.dateToStart,
-              dateValue:
-                easternNow[
-                  DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
-                    .expectedTimestamp
-                ].easternTZDate,
-            });
+            await validateAndUpdateDates(
+              {
+                applicationId: input.applicationId,
+                applicationDates: [
+                  {
+                    dateType: phaseActions.nextPhase.dateToStart,
+                    dateValue:
+                      easternNow[
+                        DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
+                          .expectedTimestamp
+                      ].easternTZDate,
+                  },
+                ],
+              },
+              tx
+            );
           }
         }
       }
-
-      await validateAndUpdateDates(
-        { applicationId: input.applicationId, applicationDates: applicationDatesToUpdate },
-        tx
-      );
     });
   } catch (error) {
     handlePrismaError(error);

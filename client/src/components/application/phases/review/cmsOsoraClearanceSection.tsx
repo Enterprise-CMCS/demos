@@ -1,24 +1,28 @@
 import React from "react";
-import { CMS_OSORA_DATE_TYPES, ReviewPhaseFormData } from "./ReviewPhase";
+import { ReviewPhaseFormData } from "./ReviewPhase";
 import { DatePicker } from "components/input/date/DatePicker";
 import { CompletableSection } from "layout/completableSection";
+import { addDays, format, parseISO } from "date-fns";
+import { CMS_OSORA_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 
 type CmsOsoraClearanceSectionFormData = {
-  dates: Pick<ReviewPhaseFormData["dates"], (typeof CMS_OSORA_DATE_TYPES)[number]>;
+  dates: Pick<ReviewPhaseFormData["dates"], (typeof CMS_OSORA_CLEARANCE_DATE_TYPES)[number]>;
   notes: Pick<ReviewPhaseFormData["notes"], "CMS (OSORA) Clearance">;
 };
 
 export const CmsOsoraClearanceSection = ({
   sectionFormData,
   setSectionFormData,
-  sectionIsComplete,
+  isComplete,
+  isReadonly,
 }: {
   sectionFormData: CmsOsoraClearanceSectionFormData;
   setSectionFormData: (data: CmsOsoraClearanceSectionFormData) => void;
-  sectionIsComplete: boolean;
+  isComplete: boolean;
+  isReadonly: boolean;
 }) => {
   return (
-    <CompletableSection title="CMS (OSORA) Clearance" isComplete={sectionIsComplete}>
+    <CompletableSection title="CMS (OSORA) Clearance" isComplete={isComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Demonstrations with the highest Scruteny require a signature from the Office of the
         Administrator for full federal clearance through OSORA.
@@ -30,15 +34,23 @@ export const CmsOsoraClearanceSection = ({
             name="datepicker-submit-approval-package-to-osora"
             value={sectionFormData.dates["Submit Approval Package to OSORA"]}
             isRequired
-            onChange={(val) =>
+            onChange={(val) => {
+              // if there isnt a clearance end date, set it to two weeks after the submission date
+              let cmsOsoraClearanceEndDate = sectionFormData.dates["CMS (OSORA) Clearance End"];
+              if (val && !cmsOsoraClearanceEndDate) {
+                const newDate = addDays(parseISO(val), 14);
+                cmsOsoraClearanceEndDate = format(newDate, "yyyy-MM-dd");
+              }
               setSectionFormData({
                 ...sectionFormData,
                 dates: {
                   ...sectionFormData.dates,
+                  "CMS (OSORA) Clearance End": cmsOsoraClearanceEndDate,
                   "Submit Approval Package to OSORA": val,
                 },
-              })
-            }
+              });
+            }}
+            isDisabled={isReadonly}
           />
         </div>
         <div className="flex flex-col">
@@ -56,6 +68,7 @@ export const CmsOsoraClearanceSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="flex flex-col">
@@ -73,6 +86,7 @@ export const CmsOsoraClearanceSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="flex flex-col">
@@ -90,6 +104,7 @@ export const CmsOsoraClearanceSection = ({
                 },
               })
             }
+            isDisabled={isReadonly}
           />
         </div>
         <div className="col-span-2 flex flex-col">
@@ -110,6 +125,7 @@ export const CmsOsoraClearanceSection = ({
             }
             className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={1}
+            disabled={isReadonly}
           />
         </div>
       </div>
