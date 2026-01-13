@@ -4,11 +4,12 @@ import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { addDays, parseISO } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDateForServer, getTodayEst } from "util/formatDate";
+import { formatDateForServer } from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "components/application/ApplicationWorkflow";
+import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
@@ -48,7 +49,8 @@ export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: stri
 };
 
 export const getApplicationIntakeComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
+  demonstration: ApplicationWorkflowDemonstration,
+  setSelectedPhase?: (phase: PhaseName) => void
 ) => {
   const applicationIntakePhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Application Intake"
@@ -69,6 +71,7 @@ export const getApplicationIntakeComponentFromDemonstration = (
       initialStateApplicationSubmittedDate={
         stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
       }
+      setSelectedPhase={setSelectedPhase}
     />
   );
 };
@@ -76,12 +79,14 @@ export interface ApplicationIntakeProps {
   demonstrationId: string;
   initialStateApplicationDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
+  setSelectedPhase?: (phase: PhaseName) => void;
 }
 
 export const ApplicationIntakePhase = ({
   demonstrationId,
   initialStateApplicationDocuments,
   initialStateApplicationSubmittedDate,
+  setSelectedPhase,
 }: ApplicationIntakeProps) => {
   const { showSuccess } = useToast();
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
@@ -113,19 +118,12 @@ export const ApplicationIntakePhase = ({
   const hasSubmittedDate = Boolean(stateApplicationSubmittedDate);
   const isFinishButtonEnabled = hasDocuments && hasSubmittedDate;
 
-
-
   const onFinishButtonClick = async () => {
-    const todayDate = getTodayEst();
     await completeApplicationIntake();
-
-    await setApplicationDate({
-      applicationId: demonstrationId,
-      dateType: "Application Intake Completion Date",
-      dateValue: todayDate,
-    });
-
     showSuccess(getPhaseCompletedMessage("Application Intake"));
+
+    // Advance UI to the Completeness phase after successful completion
+    setSelectedPhase?.("Completeness");
   };
 
   const handleDateChange = async (newDate: string) => {
