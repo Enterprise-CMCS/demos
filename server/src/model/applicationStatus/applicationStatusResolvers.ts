@@ -1,6 +1,5 @@
 import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { APPLICATION_STATUS } from "../../constants.js";
-import { ApplicationStatus } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -13,7 +12,7 @@ async function setApplicationStatus(
 ): Promise<PrismaApplication> {
   try {
     await prisma().$transaction(async (tx) => {
-      await updateApplicationStatus(input.applicationId, input.status as ApplicationStatus, tx);
+      await updateApplicationStatus(input.applicationId, input.status, tx);
     });
   } catch (error) {
     handlePrismaError(error);

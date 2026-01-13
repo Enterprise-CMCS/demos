@@ -1,4 +1,5 @@
 import gql from "graphql-tag";
+import type { ApplicationStatus } from "../../types.js";
 
 export const applicationStatusSchema = gql`
   scalar ApplicationStatus
@@ -15,5 +16,5 @@ export const applicationStatusSchema = gql`
 
 export interface SetApplicationStatusInput {
   applicationId: string;
-  status: string; // ApplicationStatus type
+  status: ApplicationStatus;
 }
