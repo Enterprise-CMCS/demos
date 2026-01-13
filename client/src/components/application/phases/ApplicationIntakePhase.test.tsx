@@ -33,6 +33,11 @@ vi.mock("@apollo/client", async () => {
 const mockSetApplicationDate = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
 
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+};
+
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDate: vi.fn(() => ({
     setApplicationDate: mockSetApplicationDate,
@@ -290,6 +295,12 @@ describe("ApplicationIntakePhase", () => {
     it("should extract demonstration data and return ApplicationIntakePhase component", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-123",
+        name: "Test Demo",
+        state: {
+          id: "CA",
+          name: "California",
+        },
+        primaryProjectOfficer: mockPO,
         status: "Under Review",
         currentPhaseName: "Application Intake",
         clearanceLevel: "CMS (OSORA)",

@@ -1,4 +1,3 @@
-import { ApplicationDateInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
@@ -9,7 +8,6 @@ import {
   getApplicationPhaseStatus,
   setPhaseToStarted,
   updatePhaseStatus,
-  updateStatusToUnderReviewIfNeeded,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
@@ -24,35 +22,42 @@ export async function skipConceptPhase(
       const conceptStatus = await getApplicationPhaseStatus(applicationId, "Concept", tx);
       checkConceptPhaseStartedBeforeSkipping(applicationId, conceptStatus);
 
-      // Set dates BEFORE updating phase status to avoid validation conflicts
-      const applicationDatesToUpdate: ApplicationDateInput[] = [];
-      applicationDatesToUpdate.push({
-        dateType: "Concept Skipped Date",
-        dateValue:
-          easternNow[DATE_TYPES_WITH_EXPECTED_TIMESTAMPS["Concept Skipped Date"].expectedTimestamp]
-            .easternTZDate,
-      });
-      const nextPhaseWasStarted = await setPhaseToStarted(applicationId, "Application Intake", tx);
-      if (nextPhaseWasStarted) {
-        applicationDatesToUpdate.push({
-          dateType: "Application Intake Start Date",
-          dateValue:
-            easternNow[
-              DATE_TYPES_WITH_EXPECTED_TIMESTAMPS["Application Intake Start Date"].expectedTimestamp
-            ].easternTZDate,
-        });
-      }
-
       await validateAndUpdateDates(
-        { applicationId: applicationId, applicationDates: applicationDatesToUpdate },
+        {
+          applicationId: applicationId,
+          applicationDates: [
+            {
+              dateType: "Concept Skipped Date",
+              dateValue:
+                easternNow[
+                  DATE_TYPES_WITH_EXPECTED_TIMESTAMPS["Concept Skipped Date"].expectedTimestamp
+                ].easternTZDate,
+            },
+          ],
+        },
         tx
       );
-
-      // Update phase status to "Skipped" AFTER setting dates
       await updatePhaseStatus(applicationId, "Concept", "Skipped", tx);
 
-      // Update application status to "Under Review" when skipping Concept phase
-      await updateStatusToUnderReviewIfNeeded(applicationId, tx);
+      const nextPhaseWasStarted = await setPhaseToStarted(applicationId, "Application Intake", tx);
+      if (nextPhaseWasStarted) {
+        await validateAndUpdateDates(
+          {
+            applicationId: applicationId,
+            applicationDates: [
+              {
+                dateType: "Application Intake Start Date",
+                dateValue:
+                  easternNow[
+                    DATE_TYPES_WITH_EXPECTED_TIMESTAMPS["Application Intake Start Date"]
+                      .expectedTimestamp
+                  ].easternTZDate,
+              },
+            ],
+          },
+          tx
+        );
+      }
     });
   } catch (error) {
     handlePrismaError(error);

@@ -34,6 +34,11 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+const mockPO = {
+  id: "po-1",
+  fullName: "Jane Doe",
+};
+
 describe("ConceptPhase", () => {
   const defaultProps: ConceptProps = {
     demonstrationId: "test-demo-id",
@@ -212,6 +217,12 @@ describe("ConceptPhase", () => {
     it("should return ConceptPhase component with extracted pre-submission docs", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-111",
+        name: "Test Demo",
+        state: {
+          id: "CA",
+          name: "California",
+        },
+        primaryProjectOfficer: mockPO,
         status: "Pre-Submission",
         currentPhaseName: "Concept",
         clearanceLevel: "CMS (OSORA)",
