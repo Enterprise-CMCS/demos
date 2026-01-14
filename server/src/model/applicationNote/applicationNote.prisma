@@ -1,7 +1,7 @@
 model ApplicationNote {
   applicationId String   @map("application_id") @db.Uuid
   noteTypeId    String   @map("note_type_id")
-  content       String   
+  content       String
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
