@@ -30,7 +30,6 @@ export const DemonstrationHealthTypeTags = ({
         You must tag this application with one or more demonstration types involved in this
         request before it can be reviewed and approved.
       </p>
-
       <div className={STYLES.tagList}>
         {tags.map((tag) => (
           <span key={tag} className={STYLES.tagChip}>
@@ -41,7 +40,7 @@ export const DemonstrationHealthTypeTags = ({
               onClick={() => onRemoveTag(tag)}
               aria-label={`Remove ${tag}`}
             >
-              <ExitIcon height="8" className="text-white" />
+              <ExitIcon height="8" includeStroke={true} className="text-white" />
             </button>
           </span>
         ))}
