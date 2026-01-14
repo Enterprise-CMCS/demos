@@ -6,7 +6,12 @@ import { CompletePhaseInput } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from "../applicationDate";
-import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
+import {
+  validatePhaseCompletion,
+  updatePhaseStatus,
+  setPhaseToStarted,
+  updateStatusToUnderReviewIfNeeded,
+} from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 
@@ -37,6 +42,7 @@ vi.mock(".", async () => {
     validatePhaseCompletion: vi.fn(),
     updatePhaseStatus: vi.fn(),
     setPhaseToStarted: vi.fn(),
+    updateStatusToUnderReviewIfNeeded: vi.fn(),
   };
 });
 
@@ -126,6 +132,10 @@ describe("completePhase", () => {
         validateCompleteDateCall,
         validateStartDateCall,
       ]);
+      expect(updateStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        mockTransaction
+      );
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
   });

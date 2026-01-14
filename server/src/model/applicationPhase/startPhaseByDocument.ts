@@ -2,7 +2,7 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { ApplicationDateInput, UploadDocumentInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
 import { createPhaseStartDate } from "../applicationDate";
-import { setPhaseToStarted } from ".";
+import { setPhaseToStarted, updateStatusToUnderReviewIfNeeded } from ".";
 
 export async function startPhaseByDocument(
   tx: PrismaTransactionClient,
@@ -15,6 +15,11 @@ export async function startPhaseByDocument(
   }
   const phaseStarted = await setPhaseToStarted(applicationId, document.phaseName, tx);
   if (phaseStarted) {
+    // Update application status to "Under Review" if starting Application Intake phase
+    if (document.phaseName === "Application Intake") {
+      await updateStatusToUnderReviewIfNeeded(applicationId, tx);
+    }
+    
     const startDateForPhase = createPhaseStartDate(document.phaseName, easternNow);
     if (startDateForPhase) {
       return startDateForPhase;

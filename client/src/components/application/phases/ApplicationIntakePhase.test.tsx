@@ -77,7 +77,7 @@ describe("ApplicationIntakePhase", () => {
   };
 
   const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
-    const finalProps = { ...defaultProps, ...props };
+    const finalProps = { ...defaultProps, ...props } as ApplicationIntakeProps;
 
     render(
       <TestProvider>
@@ -210,6 +210,21 @@ describe("ApplicationIntakePhase", () => {
         setup();
         const skipButton = screen.queryByRole("button", { name: /skip/i });
         expect(skipButton).not.toBeInTheDocument();
+      });
+
+      it("advances to Completeness phase after finishing", async () => {
+        const setSelectedPhase = vi.fn();
+
+        setup({
+          initialStateApplicationDocuments: [mockStateApplicationDocument],
+          initialStateApplicationSubmittedDate: "2020-10-10",
+          setSelectedPhase,
+        });
+
+        const finishButton = screen.getByRole("button", { name: /finish/i });
+        await userEvent.click(finishButton);
+
+        expect(setSelectedPhase).toHaveBeenCalledWith("Completeness");
       });
     });
   });
