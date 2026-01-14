@@ -1,4 +1,4 @@
-// Flags: STATIC_CONSTRAINT
+// Flags: TYPE_LIMITER
 model ApplicationPhaseTypeLimit {
   id String
 

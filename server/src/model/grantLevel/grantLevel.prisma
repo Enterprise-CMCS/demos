@@ -2,10 +2,10 @@
 model GrantLevel {
   id String
 
-  permissions                  Permission[]
-  roles                        Role[]
-  systemGrantLevelLimit        SystemGrantLevelLimit?
-  demonstrationGrantLevelLimit DemonstrationGrantLevelLimit?
+  permissions                      Permission[]
+  roles                            Role[]
+  systemGrantLevelTypeLimit        SystemGrantLevelTypeLimit?
+  demonstrationGrantLevelTypeLimit DemonstrationGrantLevelTypeLimit?
 
   @@id([id])
   @@map("grant_level")

@@ -90,8 +90,8 @@ erDiagram
   demonstration_role_assignment }|--|| person_state : "FK042"
   person_state }|--|| state : "FK043"
   person ||--|{ person_state : "FK044"
-  grant_level ||--|| demonstration_grant_level_limit : "FK045"
-  demonstration_grant_level_limit ||--|{ demonstration_role_assignment : "FK046"
+  grant_level ||--|| demonstration_grant_level_type_limit : "FK045"
+  demonstration_grant_level_type_limit ||--|{ demonstration_role_assignment : "FK046"
   role_person_type ||--|{ demonstration_role_assignment : "FK047"
   person ||--|{ demonstration_role_assignment : "FK048"
   role ||--|{ demonstration_role_assignment : "FK049"
@@ -203,7 +203,7 @@ erDiagram
     text id PK, FK "FK013: id ∈ application_type.id"
   }
 
-  demonstration_grant_level_limit:::typeLimiter {
+  demonstration_grant_level_type_limit:::typeLimiter {
     text id PK, FK "FK045: id ∈ grant_level.id"
   }
 
@@ -423,7 +423,7 @@ erDiagram
     text role_id PK, FK "FK047: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     text state_id FK "FK042: (person_id, state_id) ∈ person_state.(person_id, state_id)<br>FK050: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
     text person_type_id FK "FK047: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
-    text grant_level_id FK "FK046: grant_level_id ∈ demonstration_grant_level_limit.id<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+    text grant_level_id FK "FK046: grant_level_id ∈ demonstration_grant_level_type_limit.id<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
   }
 
   person_state:::associativeTable {
