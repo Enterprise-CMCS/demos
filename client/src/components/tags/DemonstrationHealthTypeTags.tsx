@@ -1,16 +1,15 @@
 import React from "react";
 
 import { SecondaryButton } from "components/button";
+import { ExitIcon } from "components/icons";
 import { tw } from "tags/tw";
 
 const STYLES = {
-  stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
-  title: tw`text-xl font-semibold mb-2`,
-  helper: tw`text-sm text-text-placeholder mb-2`,
-  tagList: tw`flex flex-wrap gap-2 mt-3`,
-  tagChip: tw`inline-flex items-center gap-2 rounded-full border border-border-fields bg-surface-white px-3 py-1 text-sm`,
-  tagRemove: tw`text-text-placeholder hover:text-text-font`,
-  tagActions: tw`mt-4 flex items-center gap-3`,
+  stepThree: tw`font-bold uppercase tracking-wide text-text-placeholder mb-2`,
+  helper: tw`text-sm text-text-placeholder mb-1`,
+  tagList: tw`flex flex-wrap items-center gap-2 mt-2`,
+  tagChip: tw`inline-flex items-center gap-1 rounded-full border border-border-fields bg-surface-white px-1 py-0.75 text-sm`,
+  tagRemove: tw`inline-flex items-center justify-center rounded-full w-[15px] h-[15px] bg-[#5b616b]`,
 };
 
 export interface DemonstrationHealthTypeTagsProps {
@@ -26,18 +25,11 @@ export const DemonstrationHealthTypeTags = ({
 }: DemonstrationHealthTypeTagsProps) => {
   return (
     <div aria-labelledby="state-application-tags-title">
-      <div className={STYLES.stepEyebrow}>Step 3 - Apply Tags</div>
-      <h4 id="state-application-tags-title" className={STYLES.title}>
-        APPLY TAGS
-      </h4>
+      <h4 id="state-application-tags-title" className={STYLES.stepThree}>Step 3 - Apply Tags</h4>
       <p className={STYLES.helper}>
         You must tag this application with one or more demonstration types involved in this
         request before it can be reviewed and approved.
       </p>
-
-      <div className="text-sm text-text-placeholder">
-        Tag selection will move to a dialog once the flow is ready.
-      </div>
 
       <div className={STYLES.tagList}>
         {tags.map((tag) => (
@@ -49,13 +41,10 @@ export const DemonstrationHealthTypeTags = ({
               onClick={() => onRemoveTag(tag)}
               aria-label={`Remove ${tag}`}
             >
-              x
+              <ExitIcon height="8" className="text-white" />
             </button>
           </span>
         ))}
-      </div>
-
-      <div className={STYLES.tagActions}>
         <SecondaryButton
           onClick={onApply}
           size="small"
