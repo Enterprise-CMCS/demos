@@ -366,3 +366,9 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
   },
   "Approval Summary": {},
 };
+
+export const TAG_CONFIGURATION_STATUSES = ["Unreviewed", "Approved"] as const;
+
+export const TAG_CONFIGURATION_SOURCES = ["User", "System"] as const;
+
+export const TAG_TYPES = ["Application", "Demonstration Type"] as const;

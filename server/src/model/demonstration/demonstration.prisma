@@ -14,17 +14,18 @@ model Demonstration {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
-  application                  Application                       @relation(fields: [id, applicationTypeId], references: [id, applicationTypeId])
-  applicationType              DemonstrationApplicationTypeLimit @relation(fields: [applicationTypeId], references: [id])
-  sdgDivision                  SdgDivision?                      @relation(fields: [sdgDivisionId], references: [id], onDelete: Restrict)
-  signatureLevel               SignatureLevel?                   @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
-  status                       ApplicationStatus                 @relation(fields: [statusId], references: [id])
-  currentPhase                 Phase                             @relation(fields: [currentPhaseId], references: [id])
-  state                        State                             @relation(fields: [stateId], references: [id])
-  amendments                   Amendment[]
-  extensions                   Extension[]
-  demonstrationRoleAssignments DemonstrationRoleAssignment[]
-  clearanceLevel               ClearanceLevel                    @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
+  application                     Application                       @relation(fields: [id, applicationTypeId], references: [id, applicationTypeId])
+  applicationType                 DemonstrationApplicationTypeLimit @relation(fields: [applicationTypeId], references: [id])
+  sdgDivision                     SdgDivision?                      @relation(fields: [sdgDivisionId], references: [id], onDelete: Restrict)
+  signatureLevel                  SignatureLevel?                   @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
+  status                          ApplicationStatus                 @relation(fields: [statusId], references: [id])
+  currentPhase                    Phase                             @relation(fields: [currentPhaseId], references: [id])
+  state                           State                             @relation(fields: [stateId], references: [id])
+  amendments                      Amendment[]
+  extensions                      Extension[]
+  demonstrationRoleAssignments    DemonstrationRoleAssignment[]
+  clearanceLevel                  ClearanceLevel                    @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
+  demonstrationTypeTagAssignments DemonstrationTypeTagAssignment[]
 
   @@id([id])
   @@unique([id, stateId])

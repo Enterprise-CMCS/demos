@@ -1,0 +1,10 @@
+model TagHistory {
+  revisionId   Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType RevisionType @map("revision_type")
+  modifiedAt   DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  id           String
+  createdAt    DateTime     @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime     @map("updated_at") @db.Timestamptz()
+
+  @@map("tag_history")
+}

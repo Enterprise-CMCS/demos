@@ -1,0 +1,10 @@
+model Tag {
+  id        String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tagConfigurations TagConfiguration[]
+
+  @@id([id])
+  @@map("tag")
+}

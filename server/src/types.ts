@@ -21,6 +21,9 @@ import {
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
   STATE_USER_DEMONSTRATION_ROLES,
+  TAG_CONFIGURATION_SOURCES,
+  TAG_CONFIGURATION_STATUSES,
+  TAG_TYPES,
 } from "./constants.js";
 
 export type {
@@ -108,3 +111,6 @@ export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[num
 export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
 export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
 export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
+export type TagConfigurationStatus = (typeof TAG_CONFIGURATION_STATUSES)[number];
+export type TagConfigurationSource = (typeof TAG_CONFIGURATION_SOURCES)[number];
+export type TagType = (typeof TAG_TYPES)[number];
