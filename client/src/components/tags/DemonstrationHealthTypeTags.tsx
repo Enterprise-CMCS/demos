@@ -5,11 +5,10 @@ import { ExitIcon } from "components/icons";
 import { tw } from "tags/tw";
 
 const STYLES = {
-  stepThree: tw`font-bold uppercase tracking-wide text-text-placeholder mb-2`,
+  stepThree: tw`font-bold uppercase tracking-wide text-[#242424] mb-2`,
   helper: tw`text-sm text-text-placeholder mb-1`,
   tagList: tw`flex flex-wrap items-center gap-1 mt-2`,
-  // tagChip: tw`inline-flex items-center gap-1 rounded-full border border-border-fields bg-surface-white border-[#d8d9dc]-1 px-1 py-0.75 text-sm`,
-  tagChip: tw`inline-flex items-center gap-1 rounded-full border border-[#5b616b] bg-surface-white px-1 py-0.75 text-sm`,
+  tagChip: tw`inline-flex items-center gap-1 rounded-full border border-[#5b616b] bg-surface-white px-1 py-0.75 text-sm text-black`,
   tagRemove: tw`inline-flex items-center justify-center rounded-full w-[15px] h-[15px] bg-[#5b616b]`,
 };
 
