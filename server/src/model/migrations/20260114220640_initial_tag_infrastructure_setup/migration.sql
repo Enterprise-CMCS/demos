@@ -216,3 +216,5 @@ VALUES
     ('Uncompensated Care', 'Demonstration Type', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Value Based Care (VBC)', 'Demonstration Type', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Vision', 'Demonstration Type', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+ALTER TABLE demos_app.demonstration_type_tag_assignment ADD CONSTRAINT effective_date_check CHECK (effective_date < expiration_date);
