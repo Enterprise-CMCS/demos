@@ -65,20 +65,4 @@ describe("DemonstrationHealthTypeTags", () => {
     await user.click(screen.getByRole("button", { name: "button-apply-application-tags" }));
     expect(onApply).toHaveBeenCalledTimes(1);
   });
-
-  it("disables apply button when there are no tags", () => {
-    render(
-      <DemonstrationHealthTypeTags
-        title="STEP 3 - APPLY TAGS"
-        description="You must tag this application with one or more demonstration types involved."
-        tags={[]}
-        onRemoveTag={() => {}}
-        onApply={() => {}}
-      />
-    );
-
-    expect(
-      screen.getByRole("button", { name: "button-apply-application-tags" })
-    ).toBeDisabled();
-  });
 });

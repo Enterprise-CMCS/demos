@@ -49,11 +49,11 @@ export const DemonstrationHealthTypeTags = ({
             </button>
           </span>
         ))}
+        {/* right now this "saves" the tags, but it could pop open dialog? */}
         <SecondaryButton
           onClick={onApply}
           size="small"
           name="button-apply-application-tags"
-          disabled={tags.length === 0}
         >
           Apply Tags
         </SecondaryButton>
