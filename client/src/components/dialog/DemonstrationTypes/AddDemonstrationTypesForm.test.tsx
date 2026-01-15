@@ -3,7 +3,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AddDemonstrationTypesForm } from "./AddDemonstrationTypesForm";
-import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
 // Only mock the SelectDemonstrationTypeTag since it depends on external queries
 vi.mock("components/input/select/SelectTag/SelectDemonstrationTypeTag", () => ({
@@ -41,9 +40,7 @@ vi.mock("components/input/select/SelectTag/SelectDemonstrationTypeTag", () => ({
 
 describe("AddDemonstrationTypesForm", () => {
   const mockAddDemonstrationType = vi.fn();
-  const existingDemonstrationTypes: DemonstrationType[] = [
-    { tag: "Type A", effectiveDate: "2024-01-01", expirationDate: "2024-12-31" },
-  ];
+  const existingTags: string[] = ["Type A"];
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -52,7 +49,7 @@ describe("AddDemonstrationTypesForm", () => {
   it("renders all form fields", () => {
     render(
       <AddDemonstrationTypesForm
-        demonstrationTypes={existingDemonstrationTypes}
+        existingTags={existingTags}
         addDemonstrationType={mockAddDemonstrationType}
       />
     );
@@ -66,7 +63,7 @@ describe("AddDemonstrationTypesForm", () => {
   it("has add button disabled initially", () => {
     render(
       <AddDemonstrationTypesForm
-        demonstrationTypes={existingDemonstrationTypes}
+        existingTags={existingTags}
         addDemonstrationType={mockAddDemonstrationType}
       />
     );
@@ -77,7 +74,7 @@ describe("AddDemonstrationTypesForm", () => {
   it("filters out existing demonstration types from select options", () => {
     render(
       <AddDemonstrationTypesForm
-        demonstrationTypes={existingDemonstrationTypes}
+        existingTags={existingTags}
         addDemonstrationType={mockAddDemonstrationType}
       />
     );
@@ -94,7 +91,7 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     render(
       <AddDemonstrationTypesForm
-        demonstrationTypes={existingDemonstrationTypes}
+        existingTags={existingTags}
         addDemonstrationType={mockAddDemonstrationType}
       />
     );
@@ -114,7 +111,7 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     render(
       <AddDemonstrationTypesForm
-        demonstrationTypes={existingDemonstrationTypes}
+        existingTags={existingTags}
         addDemonstrationType={mockAddDemonstrationType}
       />
     );
@@ -139,7 +136,7 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     render(
       <AddDemonstrationTypesForm
-        demonstrationTypes={existingDemonstrationTypes}
+        existingTags={existingTags}
         addDemonstrationType={mockAddDemonstrationType}
       />
     );
@@ -160,7 +157,7 @@ describe("AddDemonstrationTypesForm", () => {
     const user = userEvent.setup();
     render(
       <AddDemonstrationTypesForm
-        demonstrationTypes={existingDemonstrationTypes}
+        existingTags={existingTags}
         addDemonstrationType={mockAddDemonstrationType}
       />
     );

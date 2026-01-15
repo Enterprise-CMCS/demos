@@ -5,17 +5,11 @@ import { formatDate } from "util/formatDate";
 
 export const DemonstrationTypesList = ({
   demonstrationTypes,
-  setDemonstrationTypes,
+  removeDemonstrationType,
 }: {
   demonstrationTypes: DemonstrationType[];
-  setDemonstrationTypes: React.Dispatch<React.SetStateAction<DemonstrationType[]>>;
+  removeDemonstrationType: (tag: string) => void;
 }) => {
-  const removeType = (demonstrationTypeTag: string) => () => {
-    setDemonstrationTypes((prevTypes) =>
-      prevTypes.filter((type) => type.tag !== demonstrationTypeTag)
-    );
-  };
-
   return (
     <div className="flex flex-col gap-2">
       <p className="font-bold">Types to be added ({demonstrationTypes.length})</p>
@@ -32,7 +26,11 @@ export const DemonstrationTypesList = ({
                 </span>
               </div>
               <div className="flex items-center">
-                <button className="p-1" onClick={removeType(type.tag)} name="remove-type">
+                <button
+                  className="p-1"
+                  onClick={() => removeDemonstrationType(type.tag)}
+                  name="remove-type"
+                >
                   <DeleteIcon
                     height="20px"
                     width="20px"

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo } from "react";
 import { BaseDialog } from "../BaseDialog";
-import { SubmitButton } from "components/button/SubmitButton";
 import { useDialog } from "../DialogContext";
 import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { AddDemonstrationTypesForm } from "./AddDemonstrationTypesForm";
 import { useToast } from "components/toast";
+import { Button } from "components/button";
 
 export type DemonstrationType = {
   tag: string;
@@ -36,7 +36,7 @@ const getDemonstrationMock = (demonstrationId: string): Demonstration => ({
 export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrationId: string }) => {
   const { closeDialog } = useDialog();
   const { showSuccess } = useToast();
-  const [demonstrationTypes, setDemonstrationTypes] = React.useState<DemonstrationType[]>([]);
+  const [demonstrationTypes, setDemonstrationTypes] = React.useState<DemonstrationType[]>();
   // emulate fetching demonstration data
   const { data, loading, error } = useMemo<{
     loading: boolean;
@@ -65,7 +65,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
   };
 
   const hasChanges = () => {
-    if (initialDemonstrationTypes === undefined) return false;
+    if (!initialDemonstrationTypes || !demonstrationTypes) return false;
     if (initialDemonstrationTypes.length !== demonstrationTypes.length) return true;
 
     return demonstrationTypes.some(
@@ -78,7 +78,14 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
         )
     );
   };
-  const isSubmitting = false;
+
+  const addDemonstrationType = (demonstrationType: DemonstrationType) => {
+    setDemonstrationTypes((prev) => [...(prev || []), demonstrationType]);
+  };
+
+  const removeDemonstrationType = (tag: string) => {
+    setDemonstrationTypes((prev) => (prev || []).filter((type) => type.tag !== tag));
+  };
 
   return (
     <BaseDialog
@@ -86,28 +93,27 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       onClose={closeDialog}
       dialogHasChanges={hasChanges()}
       actionButton={
-        <SubmitButton
+        <Button
           name={"button-submit-demonstration-dialog"}
           disabled={!hasChanges()}
-          isSubmitting={isSubmitting}
           onClick={handleSubmit}
-        />
+        >
+          Apply Type(s)
+        </Button>
       }
     >
       <>
         <h1>DemonstrationId: {demonstrationId}</h1>
         <div className="flex flex-col gap-2">
           <AddDemonstrationTypesForm
-            demonstrationTypes={demonstrationTypes}
-            addDemonstrationType={(demonstrationType) =>
-              setDemonstrationTypes((prev) => [...prev, demonstrationType])
-            }
+            existingTags={(demonstrationTypes || []).map((type) => type.tag)}
+            addDemonstrationType={addDemonstrationType}
           />
           {loading && <p>loading...</p>}
           {error && <p>Error: {error}</p>}
           <DemonstrationTypesList
-            demonstrationTypes={demonstrationTypes}
-            setDemonstrationTypes={setDemonstrationTypes}
+            demonstrationTypes={demonstrationTypes || []}
+            removeDemonstrationType={removeDemonstrationType}
           />
         </div>
       </>

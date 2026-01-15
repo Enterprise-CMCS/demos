@@ -9,10 +9,10 @@ const isValid = (formData: DemonstrationType) => {
 };
 
 export const AddDemonstrationTypesForm = ({
-  demonstrationTypes,
+  existingTags,
   addDemonstrationType,
 }: {
-  demonstrationTypes: DemonstrationType[];
+  existingTags: string[];
   addDemonstrationType: (demonstrationType: DemonstrationType) => void;
 }) => {
   const [formData, setFormData] = React.useState<DemonstrationType>({
@@ -36,7 +36,7 @@ export const AddDemonstrationTypesForm = ({
       <div className="flex gap-2">
         <div className="flex-1">
           <SelectDemonstrationTypeTag
-            filter={(tag) => !demonstrationTypes.map((type) => type.tag).includes(tag)}
+            filter={(tag) => !existingTags.includes(tag)}
             isRequired
             value={formData.tag}
             onSelect={(tag) => setFormData((prev): DemonstrationType => ({ ...prev, tag }))}

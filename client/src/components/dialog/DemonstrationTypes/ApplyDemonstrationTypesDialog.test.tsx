@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ApplyDemonstrationTypesDialog } from "./ApplyDemonstrationTypesDialog";
@@ -63,21 +63,17 @@ vi.mock("components/button/SubmitButton", () => ({
 vi.mock("./DemonstrationTypesList", () => ({
   DemonstrationTypesList: ({
     demonstrationTypes,
-    setDemonstrationTypes,
+    removeDemonstrationType,
   }: {
     demonstrationTypes: DemonstrationType[];
-    setDemonstrationTypes: React.Dispatch<React.SetStateAction<DemonstrationType[]>>;
+    removeDemonstrationType: (tag: string) => void;
   }) => (
     <div data-testid="demonstration-types-list">
       <p>List Count: {demonstrationTypes.length}</p>
       {demonstrationTypes.map((type, index) => (
         <div key={index} data-testid={`list-item-${index}`}>
           <span>{type.tag}</span>
-          <button
-            onClick={() => setDemonstrationTypes((prev) => prev.filter((t) => t.tag !== type.tag))}
-          >
-            Remove {type.tag}
-          </button>
+          <button onClick={() => removeDemonstrationType(type.tag)}>Remove {type.tag}</button>
         </div>
       ))}
     </div>
@@ -93,7 +89,7 @@ vi.mock("./AddDemonstrationTypesForm", () => ({
     addDemonstrationType: (type: DemonstrationType) => void;
   }) => (
     <div data-testid="add-demonstration-types-form">
-      <p>Form knows about {demonstrationTypes.length} existing types</p>
+      <p>Form knows about {demonstrationTypes?.length || []} existing types</p>
       <button
         onClick={() =>
           addDemonstrationType({
@@ -119,7 +115,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
   it("renders dialog with correct title", () => {
     render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
 
-    expect(screen.getByText("Apply Type(s)")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Apply Type(s)" })).toBeInTheDocument();
   });
 
   it("initializes with existing demonstration types from data", () => {
@@ -223,7 +219,9 @@ describe("ApplyDemonstrationTypesDialog", () => {
     render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
 
     // The form should know about the 2 initial types
-    expect(screen.getByText("Form knows about 2 existing types")).toBeInTheDocument();
+    waitFor(() =>
+      expect(screen.getByText("Form knows about 2 existing types")).toBeInTheDocument()
+    );
   });
 
   it("detects changes when adding and removing result in same count", async () => {
