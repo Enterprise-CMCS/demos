@@ -1,6 +1,6 @@
 import React from "react";
 
-import { mockDemonstrations } from "mock-data/demonstrationMocks";
+import { MOCK_DEMONSTRATION } from "mock-data/demonstrationMocks";
 import { mockPeople } from "mock-data/personMocks";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -12,7 +12,7 @@ import { DemonstrationTable } from "./DemonstrationTable";
 // Helper functions
 const renderDemonstrations = () => {
   return render(
-    <DemonstrationTable projectOfficerOptions={mockPeople} demonstrations={mockDemonstrations} />
+    <DemonstrationTable projectOfficerOptions={mockPeople} demonstrations={[MOCK_DEMONSTRATION]} />
   );
 };
 

@@ -17,7 +17,6 @@ export interface DemonstrationHealthTypeTagsProps {
   title: string;
   description?: string;
   onRemoveTag: (tag: string) => void;
-  onApply: () => void;
 }
 // We could make this name more generic for reuse.
 export const DemonstrationHealthTypeTags = ({
@@ -25,16 +24,13 @@ export const DemonstrationHealthTypeTags = ({
   title,
   description,
   onRemoveTag,
-  onApply,
 }: DemonstrationHealthTypeTagsProps) => {
   return (
     <div aria-labelledby="state-application-tags-title">
-      <h4 id="state-application-tags-title" className={STYLES.stepThree}>{title}</h4>
-      {description && description.trim() !== "" && (
-        <p className={STYLES.helper}>
-          {description}
-        </p>
-      )}
+      <h4 id="state-application-tags-title" className={STYLES.stepThree}>
+        {title}
+      </h4>
+      {description && description.trim() !== "" && <p className={STYLES.helper}>{description}</p>}
       <div className={STYLES.tagList}>
         {tags.map((tag) => (
           <span key={tag} className={STYLES.tagChip}>
@@ -49,12 +45,7 @@ export const DemonstrationHealthTypeTags = ({
             </button>
           </span>
         ))}
-        {/* right now this "saves" the tags, but it could pop open dialog? */}
-        <SecondaryButton
-          onClick={onApply}
-          size="small"
-          name="button-apply-application-tags"
-        >
+        <SecondaryButton size="small" name="button-apply-application-tags">
           Apply Tags
         </SecondaryButton>
       </div>

@@ -13,7 +13,6 @@ describe("DemonstrationHealthTypeTags", () => {
         description="You must tag this application with one or more demonstration types involved."
         tags={["Behavioral Health", "Dental"]}
         onRemoveTag={() => {}}
-        onApply={() => {}}
       />
     );
 
@@ -40,7 +39,6 @@ describe("DemonstrationHealthTypeTags", () => {
         description="You must tag this application with one or more demonstration types involved."
         tags={["Behavioral Health", "Dental"]}
         onRemoveTag={onRemoveTag}
-        onApply={() => {}}
       />
     );
 
@@ -58,7 +56,6 @@ describe("DemonstrationHealthTypeTags", () => {
         description="You must tag this application with one or more demonstration types involved."
         tags={["Behavioral Health"]}
         onRemoveTag={() => {}}
-        onApply={onApply}
       />
     );
 
