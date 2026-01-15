@@ -43,7 +43,10 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
+
+// @TRESDON FOLLOW UP TICKET DEMOS-1228: "UI story - Update Application Intake Phase to support tagging Demonstration Types"
 const TEMP_SELECTED_TAGS = ["Basic Health Plan (BHP)", "Behavioral Health", "Dental"];
+// DELETE THIS WHEN DIALOG IS ADDED ^^
 
 // Calculate completeness review due date (submitted date + 15 calendar days)
 export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
