@@ -6,7 +6,6 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
-import { ToastProvider } from "components/toast";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -245,6 +244,17 @@ vi.mock("./DemonstrationTypes/ApplyDemonstrationTypesDialog", () => ({
     </div>
   ),
 }));
+vi.mock("./ApplyTagsDialog", () => ({
+  ApplyTagsDialog: ({ onClose, initialTags }: { onClose: () => void; initialTags: string[] }) => (
+    <div data-testid="apply-tags-dialog">
+      Apply Tags Dialog
+      <div>Tags: {initialTags.join(", ")}</div>
+      <button data-testid="close-apply-tags-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
 
 const mockRoles: ExistingContactType[] = [
   {
@@ -292,6 +302,7 @@ const TestConsumer: React.FC = () => {
     showFederalCommentDocumentUploadDialog,
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
+    showApplyTagsDialog,
     closeDialog,
   } = useDialog();
 
@@ -367,7 +378,13 @@ const TestConsumer: React.FC = () => {
         data-testid="open-apply-demonstration-types-dialog-btn"
         onClick={() => showApplyDemonstrationTypesDialog("app-1")}
       >
-        Open Federal Comment Upload Dialog
+        Open Apply Demonstration Types Dialog
+      </button>
+      <button
+        data-testid="open-apply-tags-btn"
+        onClick={() => showApplyTagsDialog(["Tag1", "Tag2", "Tag3"])}
+      >
+        Open Apply Tags Dialog
       </button>
     </div>
   );
@@ -637,5 +654,21 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-apply-demonstration-types-dialog-btn"));
     expect(screen.getByText("Apply Demonstration Types Dialog")).toBeInTheDocument();
     expect(screen.getByText("Demonstration ID: app-1")).toBeInTheDocument();
+  });
+  it("shows and hides ApplyTagsDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-apply-tags-btn"));
+    expect(screen.getByTestId("apply-tags-dialog")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("close-apply-tags-btn"));
+    expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
   });
 });

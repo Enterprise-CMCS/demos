@@ -1,0 +1,65 @@
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi } from "vitest";
+
+import { ApplyTagsDialog } from "./ApplyTagsDialog";
+
+describe("ApplyTagsDialog", () => {
+  it("renders with initial tags", () => {
+    const onClose = vi.fn();
+    const tags = ["Behavioral Health", "Dental", "CHIP"];
+
+    render(<ApplyTagsDialog onClose={onClose} initialTags={tags} />);
+
+    expect(screen.getByText("Apply Tags")).toBeInTheDocument();
+    expect(screen.getByText("Behavioral Health")).toBeInTheDocument();
+    expect(screen.getByText("Dental")).toBeInTheDocument();
+    expect(screen.getByText("CHIP")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "button-confirm-apply-tags" })).toBeInTheDocument();
+  });
+
+  it("renders empty state when no tags provided", () => {
+    const onClose = vi.fn();
+
+    render(<ApplyTagsDialog onClose={onClose} initialTags={[]} />);
+
+    expect(screen.getByText("Apply Tags")).toBeInTheDocument();
+    expect(screen.getByText("No tags selected")).toBeInTheDocument();
+  });
+
+  it("calls onClose when apply button is clicked", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    const tags = ["Behavioral Health"];
+
+    render(<ApplyTagsDialog onClose={onClose} initialTags={tags} />);
+
+    await user.click(screen.getByRole("button", { name: "button-confirm-apply-tags" }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onClose when dialog is closed via BaseDialog", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+
+    render(<ApplyTagsDialog onClose={onClose} initialTags={["Tag1"]} />);
+
+    const closeButton = screen.getByRole("button", { name: /close/i });
+    await user.click(closeButton);
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("displays multiple tags correctly", () => {
+    const onClose = vi.fn();
+    const tags = ["Tag1", "Tag2", "Tag3", "Tag4", "Tag5"];
+
+    render(<ApplyTagsDialog onClose={onClose} initialTags={tags} />);
+
+    tags.forEach((tag) => {
+      expect(screen.getByText(tag)).toBeInTheDocument();
+    });
+  });
+});

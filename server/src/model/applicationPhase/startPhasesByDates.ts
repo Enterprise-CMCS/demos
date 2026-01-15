@@ -3,7 +3,7 @@ import { PhaseNameWithTrackedStatus, ApplicationDateInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
 import { createPhaseStartDate } from "../applicationDate";
 import { getOrderedPhaseDateTypes } from "../phaseDateType";
-import { setPhaseToStarted } from ".";
+import { setPhaseToStarted, updateStatusToUnderReviewIfNeeded } from ".";
 
 export async function startPhasesByDates(
   tx: PrismaTransactionClient,
@@ -35,6 +35,11 @@ export async function startPhasesByDates(
     const phaseId = phase.phaseId as PhaseNameWithTrackedStatus;
     const phaseStarted = await setPhaseToStarted(applicationId, phaseId, tx);
     if (phaseStarted) {
+      // Update application status to "Under Review" if starting Application Intake phase
+      if (phaseId === "Application Intake") {
+        await updateStatusToUnderReviewIfNeeded(applicationId, tx);
+      }
+      
       const startDateForPhase = createPhaseStartDate(phaseId, easternNow);
 
       // add the start date if it's not already included in the input dates

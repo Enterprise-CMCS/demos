@@ -138,6 +138,8 @@ export const DATE_TYPES = [
   "Approval Package Start Date",
   "Approval Package Completion Date",
   ...REVIEW_PHASE_DATE_TYPES,
+  "Application Details Marked Complete Date",
+  "Application Demonstration Types Marked Complete Date",
 ] as const;
 
 export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
@@ -182,6 +184,8 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "OSORA R1 Comments Due": { expectedTimestamp: "End of Day" },
   "OSORA R2 Comments Due": { expectedTimestamp: "End of Day" },
   "CMS (OSORA) Clearance End": { expectedTimestamp: "End of Day" },
+  "Application Details Marked Complete Date": { expectedTimestamp: "Start of Day" },
+  "Application Demonstration Types Marked Complete Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [
@@ -366,3 +370,9 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
   },
   "Approval Summary": {},
 };
+
+export const TAG_CONFIGURATION_STATUSES = ["Unreviewed", "Approved"] as const;
+
+export const TAG_CONFIGURATION_SOURCES = ["User", "System"] as const;
+
+export const TAG_TYPES = ["Application", "Demonstration Type"] as const;

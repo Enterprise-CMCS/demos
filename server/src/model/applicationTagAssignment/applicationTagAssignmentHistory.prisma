@@ -1,0 +1,10 @@
+model ApplicationTagAssignmentHistory {
+  revisionId    Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType  RevisionType @map("revision_type")
+  modifiedAt    DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  applicationId String       @map("application_id") @db.Uuid
+  tagId         String       @map("tag_id")
+  tagTypeId     String       @map("tag_type_id")
+
+  @@map("application_tag_assignment_history")
+}

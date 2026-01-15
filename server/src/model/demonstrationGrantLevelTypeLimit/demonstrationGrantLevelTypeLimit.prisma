@@ -1,3 +1,4 @@
+// Flags: TYPE_LIMITER
 model DemonstrationGrantLevelLimit {
   id String
 

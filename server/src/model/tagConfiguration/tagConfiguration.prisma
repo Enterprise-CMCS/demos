@@ -1,0 +1,18 @@
+model TagConfiguration {
+  tagId     String   @map("tag_id")
+  tagTypeId String   @map("tag_type_id")
+  sourceId  String   @map("source_id")
+  statusId  String   @map("status_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tag                             Tag                              @relation(fields: [tagId], references: [id])
+  tagType                         TagType                          @relation(fields: [tagTypeId], references: [id])
+  source                          TagConfigurationSource           @relation(fields: [sourceId], references: [id])
+  status                          TagConfigurationStatus           @relation(fields: [statusId], references: [id])
+  applicationTagAssignments       ApplicationTagAssignment[]
+  demonstrationTypeTagAssignments DemonstrationTypeTagAssignment[]
+
+  @@id([tagId, tagTypeId])
+  @@map("tag_configuration")
+}

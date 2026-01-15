@@ -1,3 +1,4 @@
+// Flags: TYPE_LIMITER
 model SystemGrantLevelLimit {
   id String
 

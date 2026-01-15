@@ -8,6 +8,7 @@ import {
   getApplicationPhaseStatus,
   setPhaseToStarted,
   updatePhaseStatus,
+  updateStatusToUnderReviewIfNeeded,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
@@ -57,6 +58,8 @@ export async function skipConceptPhase(
           },
           tx
         );
+
+        await updateStatusToUnderReviewIfNeeded(applicationId, tx);
       }
     });
   } catch (error) {

@@ -11,6 +11,7 @@ import {
   getApplicationPhaseStatus,
   setPhaseToStarted,
   updatePhaseStatus,
+  updateStatusToUnderReviewIfNeeded,
 } from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
 
@@ -42,6 +43,7 @@ vi.mock(".", async () => {
     getApplicationPhaseStatus: vi.fn(),
     setPhaseToStarted: vi.fn(),
     updatePhaseStatus: vi.fn(),
+    updateStatusToUnderReviewIfNeeded: vi.fn(),
   };
 });
 
@@ -131,6 +133,10 @@ describe("skipConceptPhase", () => {
       validateSkippedDateCall,
       validateStartDateCall,
     ]);
+    expect(updateStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
+      testApplicationId,
+      mockTransaction
+    );
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
 
@@ -143,6 +149,7 @@ describe("skipConceptPhase", () => {
       skipConceptPhase(undefined, { applicationId: testApplicationId })
     ).rejects.toThrowError(testHandlePrismaError);
     expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
+    expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
   });
 
   it("should skip changing the date if the next phase is already started", async () => {
@@ -185,6 +192,7 @@ describe("skipConceptPhase", () => {
       mockTransaction
     );
     expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
+    expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
 });

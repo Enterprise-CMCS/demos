@@ -4,7 +4,13 @@ import { prisma } from "../../prismaClient.js";
 import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
-import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
+import {
+  setPhaseToStarted,
+  updatePhaseStatus,
+  validatePhaseCompletion,
+  PHASE_ACTIONS,
+  updateStatusToUnderReviewIfNeeded,
+} from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
 export async function completePhase(
@@ -42,32 +48,35 @@ export async function completePhase(
       await updatePhaseStatus(input.applicationId, input.phaseName, "Completed", tx);
 
       // start next phase, if applicable
+      let nextPhaseWasStarted = false;
       if (phaseActions.nextPhase) {
-        const nextPhaseWasStarted = await setPhaseToStarted(
+        nextPhaseWasStarted = await setPhaseToStarted(
           input.applicationId,
           phaseActions.nextPhase.phaseName,
           tx
         );
-        if (nextPhaseWasStarted) {
-          if (phaseActions.nextPhase.dateToStart) {
-            await validateAndUpdateDates(
-              {
-                applicationId: input.applicationId,
-                applicationDates: [
-                  {
-                    dateType: phaseActions.nextPhase.dateToStart,
-                    dateValue:
-                      easternNow[
-                        DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
-                          .expectedTimestamp
-                      ].easternTZDate,
-                  },
-                ],
-              },
-              tx
-            );
-          }
+        if (nextPhaseWasStarted && phaseActions.nextPhase.dateToStart) {
+          await validateAndUpdateDates(
+            {
+              applicationId: input.applicationId,
+              applicationDates: [
+                {
+                  dateType: phaseActions.nextPhase.dateToStart,
+                  dateValue:
+                    easternNow[
+                      DATE_TYPES_WITH_EXPECTED_TIMESTAMPS[phaseActions.nextPhase.dateToStart]
+                        .expectedTimestamp
+                    ].easternTZDate,
+                },
+              ],
+            },
+            tx
+          );
         }
+      }
+
+      if (phaseActions.nextPhase?.phaseName === "Application Intake" && nextPhaseWasStarted) {
+        await updateStatusToUnderReviewIfNeeded(input.applicationId, tx);
       }
     });
   } catch (error) {
