@@ -9,12 +9,20 @@ describe("DemonstrationHealthTypeTags", () => {
   it("renders tags and apply button", () => {
     render(
       <DemonstrationHealthTypeTags
+        title="STEP 3 - APPLY TAGS"
+        description="You must tag this application with one or more demonstration types involved."
         tags={["Behavioral Health", "Dental"]}
         onRemoveTag={() => {}}
         onApply={() => {}}
       />
     );
 
+    expect(screen.getByText("STEP 3 - APPLY TAGS")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "You must tag this application with one or more demonstration types involved."
+      )
+    ).toBeInTheDocument();
     expect(screen.getByText("Behavioral Health")).toBeInTheDocument();
     expect(screen.getByText("Dental")).toBeInTheDocument();
     expect(
@@ -28,6 +36,8 @@ describe("DemonstrationHealthTypeTags", () => {
 
     render(
       <DemonstrationHealthTypeTags
+        title="STEP 3 - APPLY TAGS"
+        description="You must tag this application with one or more demonstration types involved."
         tags={["Behavioral Health", "Dental"]}
         onRemoveTag={onRemoveTag}
         onApply={() => {}}
@@ -44,6 +54,8 @@ describe("DemonstrationHealthTypeTags", () => {
 
     render(
       <DemonstrationHealthTypeTags
+        title="STEP 3 - APPLY TAGS"
+        description="You must tag this application with one or more demonstration types involved."
         tags={["Behavioral Health"]}
         onRemoveTag={() => {}}
         onApply={onApply}
@@ -56,7 +68,13 @@ describe("DemonstrationHealthTypeTags", () => {
 
   it("disables apply button when there are no tags", () => {
     render(
-      <DemonstrationHealthTypeTags tags={[]} onRemoveTag={() => {}} onApply={() => {}} />
+      <DemonstrationHealthTypeTags
+        title="STEP 3 - APPLY TAGS"
+        description="You must tag this application with one or more demonstration types involved."
+        tags={[]}
+        onRemoveTag={() => {}}
+        onApply={() => {}}
+      />
     );
 
     expect(

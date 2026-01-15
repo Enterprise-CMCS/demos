@@ -14,22 +14,27 @@ const STYLES = {
 
 export interface DemonstrationHealthTypeTagsProps {
   tags: string[];
+  title: string;
+  description?: string;
   onRemoveTag: (tag: string) => void;
   onApply: () => void;
 }
-
+// We could make this name more generic for reuse.
 export const DemonstrationHealthTypeTags = ({
   tags,
+  title,
+  description,
   onRemoveTag,
   onApply,
 }: DemonstrationHealthTypeTagsProps) => {
   return (
     <div aria-labelledby="state-application-tags-title">
-      <h4 id="state-application-tags-title" className={STYLES.stepThree}>Step 3 - Apply Tags</h4>
-      <p className={STYLES.helper}>
-        You must tag this application with one or more demonstration types involved in this
-        request before it can be reviewed and approved.
-      </p>
+      <h4 id="state-application-tags-title" className={STYLES.stepThree}>{title}</h4>
+      {description && description.trim() !== "" && (
+        <p className={STYLES.helper}>
+          {description}
+        </p>
+      )}
       <div className={STYLES.tagList}>
         {tags.map((tag) => (
           <span key={tag} className={STYLES.tagChip}>

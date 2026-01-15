@@ -29,7 +29,6 @@ export const ExitIcon: React.FC<ExitIconProps> = ({
       fill="currentColor"
       stroke={bold ? "currentColor" : "none"}
       strokeWidth={bold ? "1.5" : "0"}
-      strokeLinejoin="round"
     />
   </svg>
 );

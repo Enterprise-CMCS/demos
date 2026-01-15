@@ -256,6 +256,8 @@ export const ApplicationIntakePhase = ({
         </div>
         <div className="mt-8">
           <DemonstrationHealthTypeTags
+            title={"STEP 3 - APPLY TAGS"}
+            description={"You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."}
             tags={selectedTags}
             onRemoveTag={handleRemoveTag}
             onApply={handleApplyTags}
