@@ -17,6 +17,7 @@ import { ConceptPreSubmissionUploadDialog } from "./document/phases/ConceptPreSu
 import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUploadDialog";
 import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
+import { ApplyTagsDialog } from "./ApplyTagsDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -170,6 +171,10 @@ export const useDialog = () => {
     );
   };
 
+  const showApplyTagsDialog = (tags: string[]) => {
+    context.showDialog(<ApplyTagsDialog initialTags={tags} onClose={context.hideDialog} />);
+  };
+
   return {
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
@@ -185,5 +190,6 @@ export const useDialog = () => {
     showFederalCommentDocumentUploadDialog,
     showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
+    showApplyTagsDialog,
   };
 };

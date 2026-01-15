@@ -4,17 +4,19 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
 import { DemonstrationHealthTypeTags } from "./DemonstrationHealthTypeTags";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 describe("DemonstrationHealthTypeTags", () => {
   it("renders tags and apply button", () => {
     render(
-      <DemonstrationHealthTypeTags
-        title="STEP 3 - APPLY TAGS"
-        description="You must tag this application with one or more demonstration types involved."
-        tags={["Behavioral Health", "Dental"]}
-        onRemoveTag={() => {}}
-        onApply={() => {}}
-      />
+      <DialogProvider>
+        <DemonstrationHealthTypeTags
+          title="STEP 3 - APPLY TAGS"
+          description="You must tag this application with one or more demonstration types involved."
+          tags={["Behavioral Health", "Dental"]}
+          onRemoveTag={() => {}}
+        />
+      </DialogProvider>
     );
 
     expect(screen.getByText("STEP 3 - APPLY TAGS")).toBeInTheDocument();
@@ -35,34 +37,17 @@ describe("DemonstrationHealthTypeTags", () => {
     const onRemoveTag = vi.fn();
 
     render(
-      <DemonstrationHealthTypeTags
-        title="STEP 3 - APPLY TAGS"
-        description="You must tag this application with one or more demonstration types involved."
-        tags={["Behavioral Health", "Dental"]}
-        onRemoveTag={onRemoveTag}
-        onApply={() => {}}
-      />
+      <DialogProvider>
+        <DemonstrationHealthTypeTags
+          title="STEP 3 - APPLY TAGS"
+          description="You must tag this application with one or more demonstration types involved."
+          tags={["Behavioral Health", "Dental"]}
+          onRemoveTag={onRemoveTag}
+        />
+      </DialogProvider>
     );
 
     await user.click(screen.getByLabelText("Remove Dental"));
     expect(onRemoveTag).toHaveBeenCalledWith("Dental");
-  });
-
-  it("calls onApply when apply button is clicked", async () => {
-    const user = userEvent.setup();
-    const onApply = vi.fn();
-
-    render(
-      <DemonstrationHealthTypeTags
-        title="STEP 3 - APPLY TAGS"
-        description="You must tag this application with one or more demonstration types involved."
-        tags={["Behavioral Health"]}
-        onRemoveTag={() => {}}
-        onApply={onApply}
-      />
-    );
-
-    await user.click(screen.getByRole("button", { name: "button-apply-application-tags" }));
-    expect(onApply).toHaveBeenCalledTimes(1);
   });
 });

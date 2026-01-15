@@ -2,7 +2,7 @@ import { Event } from "demos-server";
 import { LogEventArguments } from "hooks/event/useEvent";
 import { MockedResponse } from "@apollo/client/testing";
 import { MockUser, mockUsers } from "./userMocks.js";
-import { MockDemonstration, mockDemonstrations } from "./demonstrationMocks.js";
+import { MockDemonstration, MOCK_DEMONSTRATION } from "./demonstrationMocks.js";
 import { LOG_EVENT_MUTATION, GET_EVENTS_QUERY } from "hooks/event/useEvent";
 
 export type MockEvent = Pick<
@@ -25,7 +25,7 @@ const mockEvents = [
     eventData: {
       additionalInfo: "User Created event from events page",
     },
-    application: mockDemonstrations[0],
+    application: MOCK_DEMONSTRATION,
   },
   {
     id: "2",
@@ -36,7 +36,7 @@ const mockEvents = [
     route: "/demonstrations",
     createdAt: new Date(2025, 0, 1),
     eventData: {},
-    application: mockDemonstrations[0],
+    application: MOCK_DEMONSTRATION,
   },
 ] as const satisfies MockEvent[];
 

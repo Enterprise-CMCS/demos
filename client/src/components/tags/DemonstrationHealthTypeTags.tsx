@@ -1,6 +1,7 @@
 import React from "react";
 
 import { SecondaryButton } from "components/button";
+import { useDialog } from "components/dialog/DialogContext";
 import { ExitIcon } from "components/icons";
 import { tw } from "tags/tw";
 
@@ -17,7 +18,6 @@ export interface DemonstrationHealthTypeTagsProps {
   title: string;
   description?: string;
   onRemoveTag: (tag: string) => void;
-  onApply: () => void;
 }
 // We could make this name more generic for reuse.
 export const DemonstrationHealthTypeTags = ({
@@ -25,16 +25,19 @@ export const DemonstrationHealthTypeTags = ({
   title,
   description,
   onRemoveTag,
-  onApply,
 }: DemonstrationHealthTypeTagsProps) => {
+  const { showApplyTagsDialog } = useDialog();
+
+  const handleApplyClick = () => {
+    showApplyTagsDialog(tags);
+  };
+
   return (
     <div aria-labelledby="state-application-tags-title">
-      <h4 id="state-application-tags-title" className={STYLES.stepThree}>{title}</h4>
-      {description && description.trim() !== "" && (
-        <p className={STYLES.helper}>
-          {description}
-        </p>
-      )}
+      <h4 id="state-application-tags-title" className={STYLES.stepThree}>
+        {title}
+      </h4>
+      {description && description.trim() !== "" && <p className={STYLES.helper}>{description}</p>}
       <div className={STYLES.tagList}>
         {tags.map((tag) => (
           <span key={tag} className={STYLES.tagChip}>
@@ -49,11 +52,10 @@ export const DemonstrationHealthTypeTags = ({
             </button>
           </span>
         ))}
-        {/* right now this "saves" the tags, but it could pop open dialog? */}
         <SecondaryButton
-          onClick={onApply}
           size="small"
           name="button-apply-application-tags"
+          onClick={handleApplyClick}
         >
           Apply Tags
         </SecondaryButton>
