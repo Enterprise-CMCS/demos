@@ -1,6 +1,7 @@
 import React from "react";
 
 import { SecondaryButton } from "components/button";
+import { useDialog } from "components/dialog/DialogContext";
 import { ExitIcon } from "components/icons";
 import { tw } from "tags/tw";
 
@@ -25,6 +26,12 @@ export const DemonstrationHealthTypeTags = ({
   description,
   onRemoveTag,
 }: DemonstrationHealthTypeTagsProps) => {
+  const { showApplyTagsDialog } = useDialog();
+
+  const handleApplyClick = () => {
+    showApplyTagsDialog(tags);
+  };
+
   return (
     <div aria-labelledby="state-application-tags-title">
       <h4 id="state-application-tags-title" className={STYLES.stepThree}>
@@ -45,7 +52,11 @@ export const DemonstrationHealthTypeTags = ({
             </button>
           </span>
         ))}
-        <SecondaryButton size="small" name="button-apply-application-tags">
+        <SecondaryButton
+          size="small"
+          name="button-apply-application-tags"
+          onClick={handleApplyClick}
+        >
           Apply Tags
         </SecondaryButton>
       </div>
