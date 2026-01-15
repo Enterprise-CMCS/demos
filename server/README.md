@@ -185,6 +185,9 @@ The flags we've identified as useful are:
 * `STATIC_CONSTRAINT`:
   * Meaning: This table exists entirely as a static constraint table as discussed [above](#static-constraints-tables-vs-enums). If this is present, no other flags should be used.
   * Explanation Comment: Not required.
+* `TYPE_LIMITER`:
+  * Meaning: This table exists entirely to constrain the type of records in another table. It will have similar attributes to a static constraint. If this is present, no other flags should be used.
+  * Explanation Comment: Not required.
 
 ### Scalar Fields
 

@@ -1,9 +1,10 @@
-model SystemGrantLevelLimit {
+// Flags: TYPE_LIMITER
+model SystemGrantLevelTypeLimit {
   id String
 
   grantLevel            GrantLevel             @relation(fields: [id], references: [id])
   systemRoleAssignments SystemRoleAssignment[]
 
   @@id([id])
-  @@map("system_grant_level_limit")
+  @@map("system_grant_level_type_limit")
 }

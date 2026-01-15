@@ -1,9 +1,10 @@
-model DemonstrationGrantLevelLimit {
+// Flags: TYPE_LIMITER
+model DemonstrationGrantLevelTypeLimit {
   id String
 
   grantLevel                   GrantLevel                    @relation(fields: [id], references: [id])
   demonstrationRoleAssignments DemonstrationRoleAssignment[]
 
   @@id([id])
-  @@map("demonstration_grant_level_limit")
+  @@map("demonstration_grant_level_type_limit")
 }
