@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model TagConfigurationStatus {
+  id String
+
+  tagConfigurations TagConfiguration[]
+
+  @@id([id])
+  @@map("tag_configuration_status")
+}

@@ -1,0 +1,11 @@
+// Flags: STATIC_CONSTRAINT
+model TagType {
+  id String
+
+  applicationTagTypeLimit       ApplicationTagTypeLimit[]
+  demonstrationTypeTagTypeLimit DemonstrationTypeTagTypeLimit[]
+  tagConfigurations             TagConfiguration[]
+
+  @@id([id])
+  @@map("tag_type")
+}

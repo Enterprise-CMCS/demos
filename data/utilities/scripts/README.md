@@ -12,10 +12,12 @@ Below is documentation for specific scripts in this folder.
 
 ## history_trigger_generator.py
 
-This script can be used to generate the triggers necessary to populate history tables with changes. Invoke it from the command line in the `/data/utilities/scripts` folder with the name of the migration folder. For example:
+This script can be used to generate the triggers necessary to populate history tables with changes. It now will put these into the correct folder in `sql` within the `server` directory.
 
 ```zsh
-python history_trigger_generator.py 20250623155513_add_history_triggers
+python history_trigger_generator.py
 ```
 
 Note that as new tables are added and have corresponding history tables, the script will need to be updated so as to add those tables to the global variable `TBL_FOLDERS`.
+
+Please also note that this script is brittle and depends on specific formatting being in place (namely, having only one `@@` statement on the history table, which corresponds to the `map` statement).

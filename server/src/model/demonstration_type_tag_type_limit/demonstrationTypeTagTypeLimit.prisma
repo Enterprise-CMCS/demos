@@ -1,0 +1,10 @@
+// Flags: TYPE_LIMITER
+model DemonstrationTypeTagTypeLimit {
+  id String
+
+  tagType                         TagType                          @relation(fields: [id], references: [id])
+  demonstrationTypeTagAssignments DemonstrationTypeTagAssignment[]
+
+  @@id([id])
+  @@map("demonstration_type_tag_type_limit")
+}

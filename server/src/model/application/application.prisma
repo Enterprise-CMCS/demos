@@ -4,17 +4,18 @@ model Application {
   id                String @id @default(uuid()) @db.Uuid
   applicationTypeId String @map("application_type_id")
 
-  applicationType        ApplicationType         @relation(fields: [applicationTypeId], references: [id])
-  amendment              Amendment?
-  demonstration          Demonstration?
-  extension              Extension?
-  applicationDates       ApplicationDate[]
-  applicationNotes       ApplicationNote[]
-  applicationPhases      ApplicationPhase[]
-  documents              Document[]
-  documentsPendingUpload DocumentPendingUpload[]
-  documentsInfected      DocumentInfected[]
-  events                 Event[]
+  applicationType           ApplicationType            @relation(fields: [applicationTypeId], references: [id])
+  amendment                 Amendment?
+  demonstration             Demonstration?
+  extension                 Extension?
+  applicationDates          ApplicationDate[]
+  applicationNotes          ApplicationNote[]
+  applicationPhases         ApplicationPhase[]
+  documents                 Document[]
+  documentsPendingUpload    DocumentPendingUpload[]
+  documentsInfected         DocumentInfected[]
+  events                    Event[]
+  applicationTagAssignments ApplicationTagAssignment[]
 
   @@unique([id, applicationTypeId])
   @@map("application")

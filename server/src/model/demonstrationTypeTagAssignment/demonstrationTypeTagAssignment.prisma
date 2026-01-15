@@ -1,0 +1,16 @@
+model DemonstrationTypeTagAssignment {
+  demonstrationId String   @map("demonstration_id") @db.Uuid
+  tagId           String   @map("tag_id")
+  tagTypeId       String   @map("tag_type_id")
+  effectiveDate   DateTime @map("effective_date") @db.Timestamptz()
+  expirationDate  DateTime @map("expiration_date") @db.Timestamptz()
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  demonstration    Demonstration                 @relation(fields: [demonstrationId], references: [id])
+  tagConfiguration TagConfiguration              @relation(fields: [tagId, tagTypeId], references: [tagId, tagTypeId])
+  tagType          DemonstrationTypeTagTypeLimit @relation(fields: [tagTypeId], references: [id])
+
+  @@id([demonstrationId, tagId])
+  @@map("demonstration_type_tag_assignment")
+}

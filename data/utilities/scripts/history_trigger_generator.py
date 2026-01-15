@@ -10,8 +10,10 @@ TBL_FOLDERS = [
     "applicationDate",
     "applicationNote",
     "applicationPhase",
+    "applicationTagAssignment",
     "demonstration",
     "demonstrationRoleAssignment",
+    "demonstrationTypeTagAssignment",
     "document",
     "documentPendingUpload",
     "documentInfected",
@@ -21,6 +23,8 @@ TBL_FOLDERS = [
     "primaryDemonstrationRoleAssignment",
     "rolePermission",
     "systemRoleAssignment",
+    "tag",
+    "tagConfiguration",
     "user",
 ]
 APP_SCHEMA = "demos_app"
