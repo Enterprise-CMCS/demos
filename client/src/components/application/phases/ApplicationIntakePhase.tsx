@@ -17,6 +17,7 @@ import { DocumentList } from "./sections";
 import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
+import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -42,11 +43,17 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
+
+// @TRESDON FOLLOW UP TICKET DEMOS-1228: "UI story - Update Application Intake Phase to support tagging Demonstration Types"
+const TEMP_SELECTED_TAGS = ["Basic Health Plan (BHP)", "Behavioral Health", "Dental"];
+// DELETE THIS WHEN DIALOG IS ADDED ^^
+
 // Calculate completeness review due date (submitted date + 15 calendar days)
 export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
   const date = parseISO(stateApplicationSubmittedDate);
   return addDays(date, 15);
 };
+
 
 export const getApplicationIntakeComponentFromDemonstration = (
   demonstration: ApplicationWorkflowDemonstration,
@@ -93,6 +100,7 @@ export const ApplicationIntakePhase = ({
   const [stateApplicationSubmittedDate, setStateApplicationSubmittedDate] = useState<string>(
     initialStateApplicationSubmittedDate ?? ""
   );
+  const [selectedTags, setSelectedTags] = useState<string[]>(TEMP_SELECTED_TAGS);
 
   const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
     applicationId: demonstrationId,
@@ -143,6 +151,14 @@ export const ApplicationIntakePhase = ({
         dateValue: formattedNewDate,
       });
     }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setSelectedTags((prev) => prev.filter((item) => item !== tag));
+  };
+
+  const handleApplyTags = () => {
+    showSuccess("Tags applied");
   };
 
   const UploadSection = () => (
@@ -237,6 +253,15 @@ export const ApplicationIntakePhase = ({
           <span aria-hidden className={STYLES.divider} />
           <UploadSection />
           <VerifyCompleteSection />
+        </div>
+        <div className="mt-8">
+          <DemonstrationHealthTypeTags
+            title={"STEP 3 - APPLY TAGS"}
+            description={"You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."}
+            tags={selectedTags}
+            onRemoveTag={handleRemoveTag}
+            onApply={handleApplyTags}
+          />
         </div>
       </section>
     </div>
