@@ -1,7 +1,6 @@
 import React from "react";
 
-import { MOCK_DEMONSTRATION } from "mock-data/demonstrationMocks";
-import { mockPeople } from "mock-data/personMocks";
+import type { Amendment, Demonstration, Extension, Person, State } from "demos-server";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { render, screen, waitFor, within } from "@testing-library/react";
@@ -9,10 +8,123 @@ import userEvent from "@testing-library/user-event";
 
 import { DemonstrationTable } from "./DemonstrationTable";
 
+type TestPerson = Pick<Person, "id" | "fullName">;
+type TestState = Pick<State, "id" | "name">;
+type TestAmendment = Pick<Amendment, "id" | "name" | "status">;
+type TestExtension = Pick<Extension, "id" | "name" | "status">;
+type TestDemonstration = Pick<Demonstration, "id" | "name" | "status"> & {
+  state: TestState;
+  primaryProjectOfficer: TestPerson;
+  amendments: TestAmendment[];
+  extensions: TestExtension[];
+};
+
+type TestDemoConfig = {
+  id: string;
+  name: string;
+  state: string;
+  status: "Approved" | "Under Review" | "Denied";
+  officer: number;
+  amendmentCount: number;
+  extensionCount: number;
+};
+
+const TEST_PEOPLE: TestPerson[] = [
+  { id: "1", fullName: "John Doe" },
+  { id: "2", fullName: "Jane Smith" },
+  { id: "3", fullName: "Jim Smith" },
+];
+
+const TEST_DEMO_CONFIGS: TestDemoConfig[] = [
+  {
+    id: "1",
+    name: "Montana Medicaid Waiver",
+    state: "MT",
+    status: "Approved",
+    officer: 0,
+    amendmentCount: 3,
+    extensionCount: 3,
+  },
+  {
+    id: "2",
+    name: "Florida Health Innovation",
+    state: "FL",
+    status: "Under Review",
+    officer: 1,
+    amendmentCount: 3,
+    extensionCount: 0,
+  },
+  {
+    id: "3",
+    name: "Texas Reform Initiative",
+    state: "TX",
+    status: "Denied",
+    officer: 2,
+    amendmentCount: 0,
+    extensionCount: 0,
+  },
+];
+
+const STATE_NAMES: Record<string, string> = {
+  MT: "Montana",
+  FL: "Florida",
+  TX: "Texas",
+};
+
+const buildDemonstrations = (configs: TestDemoConfig[]): TestDemonstration[] => {
+  // Helper functions to generate test data
+  const createAmendments = (config: TestDemoConfig, startId: number): TestAmendment[] => {
+    return Array.from({ length: config.amendmentCount }, (_, i) => ({
+      id: `${startId + i}`,
+      name: `Amendment ${startId + i} - ${config.name}`,
+      status: i === 0 ? "Under Review" : "Approved",
+    }));
+  };
+
+  const createExtensions = (config: TestDemoConfig, startId: number): TestExtension[] => {
+    return Array.from({ length: config.extensionCount }, (_, i) => ({
+      id: `${startId + i}`,
+      name: `Extension ${startId + i} - ${config.name}`,
+      status: i === 0 ? "Under Review" : "Approved",
+    }));
+  };
+
+  // Generate all amendments with global counter
+  let amendmentId = 1;
+  const allAmendments: TestAmendment[] = configs.flatMap((config) => {
+    const amendments = createAmendments(config, amendmentId);
+    amendmentId += config.amendmentCount;
+    return amendments;
+  });
+
+  // Generate all extensions with global counter
+  let extensionId = 1;
+  const allExtensions: TestExtension[] = configs.flatMap((config) => {
+    const extensions = createExtensions(config, extensionId);
+    extensionId += config.extensionCount;
+    return extensions;
+  });
+
+  // Build demonstrations with their relationships
+  return configs.map((config) => ({
+    id: config.id,
+    name: config.name,
+    status: config.status,
+    state: {
+      id: config.state,
+      name: STATE_NAMES[config.state],
+    },
+    primaryProjectOfficer: TEST_PEOPLE[config.officer],
+    amendments: allAmendments.filter((a) => a.name.includes(config.name)),
+    extensions: allExtensions.filter((e) => e.name.includes(config.name)),
+  }));
+};
+
 // Helper functions
-const renderDemonstrations = () => {
+const renderDemonstrations = (configs: TestDemoConfig[] = TEST_DEMO_CONFIGS) => {
+  const demonstrations = buildDemonstrations(configs);
   return render(
-    <DemonstrationTable projectOfficerOptions={mockPeople} demonstrations={[MOCK_DEMONSTRATION]} />
+    <DemonstrationTable projectOfficerOptions={TEST_PEOPLE} demonstrations={demonstrations} />
   );
 };
 
@@ -107,7 +219,7 @@ describe("Demonstrations", () => {
       render(
         <DemonstrationTable
           emptyRowsMessage="testEmptyRowsMessage"
-          projectOfficerOptions={mockPeople}
+          projectOfficerOptions={TEST_PEOPLE}
           demonstrations={[]}
         />
       );

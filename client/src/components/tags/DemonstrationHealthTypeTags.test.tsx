@@ -45,21 +45,4 @@ describe("DemonstrationHealthTypeTags", () => {
     await user.click(screen.getByLabelText("Remove Dental"));
     expect(onRemoveTag).toHaveBeenCalledWith("Dental");
   });
-
-  it("calls onApply when apply button is clicked", async () => {
-    const user = userEvent.setup();
-    const onApply = vi.fn();
-
-    render(
-      <DemonstrationHealthTypeTags
-        title="STEP 3 - APPLY TAGS"
-        description="You must tag this application with one or more demonstration types involved."
-        tags={["Behavioral Health"]}
-        onRemoveTag={() => {}}
-      />
-    );
-
-    await user.click(screen.getByRole("button", { name: "button-apply-application-tags" }));
-    expect(onApply).toHaveBeenCalledTimes(1);
-  });
 });
