@@ -236,6 +236,18 @@ vi.mock("./DeclareIncompleteDialog", () => ({
   ),
 }));
 
+vi.mock("./ApplyTagsDialog", () => ({
+  ApplyTagsDialog: ({ onClose, initialTags }: { onClose: () => void; initialTags: string[] }) => (
+    <div data-testid="apply-tags-dialog">
+      Apply Tags Dialog
+      <div>Tags: {initialTags.join(", ")}</div>
+      <button data-testid="close-apply-tags-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
 const mockRoles: ExistingContactType[] = [
   {
     role: "Project Officer",
@@ -281,6 +293,7 @@ const TestConsumer: React.FC = () => {
     showConceptPreSubmissionDocumentUploadDialog,
     showFederalCommentDocumentUploadDialog,
     showDeclareIncompleteDialog,
+    showApplyTagsDialog,
   } = useDialog();
 
   return (
@@ -347,6 +360,12 @@ const TestConsumer: React.FC = () => {
         onClick={() => showDeclareIncompleteDialog(vi.fn())}
       >
         Open Declare Incomplete Dialog
+      </button>
+      <button
+        data-testid="open-apply-tags-btn"
+        onClick={() => showApplyTagsDialog(["Tag1", "Tag2", "Tag3"])}
+      >
+        Open Apply Tags Dialog
       </button>
     </div>
   );
@@ -592,5 +611,22 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-declare-incomplete-btn"));
     expect(screen.queryByTestId("declare-incomplete-dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows and hides ApplyTagsDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-apply-tags-btn"));
+    expect(screen.getByTestId("apply-tags-dialog")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("close-apply-tags-btn"));
+    expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
   });
 });
