@@ -5,4 +5,6 @@ export const tagSchema = gql`
   scalar Tag
 `;
 
+// This type alias exists to maintain consistency between GraphQL schema and TypeScript types.
+/* sonar. ignore. nextline TypescriptS4323 */
 export type Tag = string;
