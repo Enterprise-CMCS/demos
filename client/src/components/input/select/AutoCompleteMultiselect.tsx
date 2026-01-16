@@ -124,7 +124,7 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
           disabled={isDisabled}
           className={INPUT_CLASSES}
         />
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center">
+        <div className="pointer-events-none absolute inset-y-0 end-0 pr-1 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
