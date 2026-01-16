@@ -86,7 +86,7 @@ six==1.17.0
     # via mando
 typing-extensions==4.14.0
     # via mypy
-virtualenv==20.31.2
+virtualenv==20.36.1
     # via pre-commit
 wheel==0.45.1
     # via pip-tools
