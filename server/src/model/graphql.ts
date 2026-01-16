@@ -25,6 +25,8 @@ import { dateTypeResolvers } from "./dateType/dateTypeResolvers.js";
 import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
 import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
 
+import { demonstrationTypeTagAssignmentSchema } from "./demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
+
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
 
@@ -70,6 +72,8 @@ import { signatureLevelResolvers } from "./signatureLevel/signatureLevelResolver
 import { stateSchema } from "./state/stateSchema.js";
 import { stateResolvers } from "./state/stateResolvers.js";
 
+import { tagSchema } from "./tag/tagSchema.js";
+
 import { tagConfigurationSourceSchema } from "./tagConfigurationSource/tagConfigurationSourceSchema.js";
 import { tagConfigurationSourceResolvers } from "./tagConfigurationSource/tagConfigurationSourceResolvers.js";
 
@@ -109,6 +113,7 @@ export const typeDefs = [
   dateTypeSchema,
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
+  demonstrationTypeTagAssignmentSchema,
   documentSchema,
   documentTypeSchema,
   eventSchema,
@@ -124,6 +129,7 @@ export const typeDefs = [
   sdgDivisionSchema,
   signatureLevelSchema,
   stateSchema,
+  tagSchema,
   tagConfigurationSourceSchema,
   tagConfigurationStatusSchema,
   tagTypeSchema,

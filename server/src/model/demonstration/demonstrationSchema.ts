@@ -1,19 +1,20 @@
 import { gql } from "graphql-tag";
-import { Document } from "../document/documentSchema.js";
-import { Amendment } from "../amendment/amendmentSchema.js";
-import { Extension } from "../extension/extensionSchema.js";
-import { State } from "../state/stateSchema.js";
 import {
-  SdgDivision,
-  SignatureLevel,
-  PhaseName,
+  Amendment,
   ApplicationPhase,
   ApplicationStatus,
+  ClearanceLevel,
+  DateTimeOrLocalDate,
   DemonstrationRoleAssignment,
+  DemonstrationTypeAssignment,
+  Document,
+  Extension,
   NonEmptyString,
   Person,
-  DateTimeOrLocalDate,
-  ClearanceLevel,
+  PhaseName,
+  SdgDivision,
+  SignatureLevel,
+  State,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
@@ -37,6 +38,7 @@ export const demonstrationSchema = gql`
     roles: [DemonstrationRoleAssignment!]!
     primaryProjectOfficer: Person!
     clearanceLevel: ClearanceLevel!
+    demonstrationTypes: [DemonstrationTypeAssignment!]!
   }
 
   input CreateDemonstrationInput {
@@ -92,6 +94,7 @@ export interface Demonstration {
   roles: DemonstrationRoleAssignment[];
   primaryProjectOfficer: Person;
   clearanceLevel: ClearanceLevel;
+  demonstrationTypes: DemonstrationTypeAssignment[];
 }
 
 export interface CreateDemonstrationInput {

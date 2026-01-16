@@ -86,6 +86,12 @@ export type {
   SetApplicationNotesInput,
 } from "./model/applicationNote/applicationNoteSchema.js";
 
+export type { Tag } from "./model/tag/tagSchema.js";
+
+// Note that the type is intentionally named different from the underlying model name
+// This is because the type is visible in the API documentation, etc
+export type { DemonstrationTypeAssignment } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
+
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
 export type DateTimeOrLocalDate = Date | LocalDate;
