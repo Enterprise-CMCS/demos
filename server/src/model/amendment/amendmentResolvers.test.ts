@@ -29,6 +29,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationPhases,
   resolveApplicationClearanceLevel,
+  resolveApplicationTags,
 } from "../application/applicationResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -51,6 +52,7 @@ vi.mock("../application/applicationResolvers.js", () => ({
   resolveApplicationStatus: vi.fn(),
   resolveApplicationPhases: vi.fn(),
   resolveApplicationClearanceLevel: vi.fn(),
+  resolveApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
@@ -183,11 +185,7 @@ describe("amendmentResolvers", () => {
         description: testAmendmentDescription,
       },
     };
-    const expectedCheckOptionalNotNullFieldList = [
-      "demonstrationId",
-      "name",
-      "status",
-    ];
+    const expectedCheckOptionalNotNullFieldList = ["demonstrationId", "name", "status"];
     const testEasternTZDate: EasternTZDate = {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),

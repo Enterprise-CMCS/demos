@@ -15,6 +15,7 @@ import {
   SdgDivision,
   SignatureLevel,
   State,
+  Tag,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
@@ -38,6 +39,7 @@ export const demonstrationSchema = gql`
     roles: [DemonstrationRoleAssignment!]!
     primaryProjectOfficer: Person!
     clearanceLevel: ClearanceLevel!
+    tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
   }
 
@@ -94,6 +96,7 @@ export interface Demonstration {
   roles: DemonstrationRoleAssignment[];
   primaryProjectOfficer: Person;
   clearanceLevel: ClearanceLevel;
+  tags: Tag[];
   demonstrationTypes: DemonstrationTypeAssignment[];
 }
 

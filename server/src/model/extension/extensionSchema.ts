@@ -9,6 +9,7 @@ import {
   NonEmptyString,
   DateTimeOrLocalDate,
   ClearanceLevel,
+  Tag,
 } from "../../types.js";
 
 export const extensionSchema = gql`
@@ -26,6 +27,7 @@ export const extensionSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
     clearanceLevel: ClearanceLevel!
+    tags: [Tag!]!
   }
 
   input CreateExtensionInput {
@@ -69,6 +71,7 @@ export interface Extension {
   clearanceLevel: ClearanceLevel;
   createdAt: Date;
   updatedAt: Date;
+  tags: Tag[];
 }
 
 export interface CreateExtensionInput {

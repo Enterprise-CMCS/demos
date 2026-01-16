@@ -29,6 +29,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationStatus,
+  resolveApplicationTags,
 } from "../application/applicationResolvers.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
@@ -303,6 +304,7 @@ export const demonstrationResolvers = {
     phases: resolveApplicationPhases,
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
     clearanceLevel: resolveApplicationClearanceLevel,
+    tags: resolveApplicationTags,
     demonstrationTypes: resolveDemonstrationTypes,
   },
 };
