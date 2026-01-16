@@ -52,6 +52,7 @@ vi.mock("../application/applicationResolvers.js", () => ({
   resolveApplicationStatus: vi.fn(),
   resolveApplicationPhases: vi.fn(),
   resolveApplicationClearanceLevel: vi.fn(),
+  resolveApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
