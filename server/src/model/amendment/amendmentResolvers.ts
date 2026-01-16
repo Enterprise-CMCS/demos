@@ -19,6 +19,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationStatus,
+  resolveApplicationTags,
 } from "../application/applicationResolvers.js";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
@@ -122,5 +123,6 @@ export const amendmentResolvers = {
     status: resolveApplicationStatus,
     phases: resolveApplicationPhases,
     clearanceLevel: resolveApplicationClearanceLevel,
+    tags: resolveApplicationTags,
   },
 };

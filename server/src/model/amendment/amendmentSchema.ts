@@ -9,6 +9,7 @@ import {
   NonEmptyString,
   DateTimeOrLocalDate,
   ClearanceLevel,
+  Tag,
 } from "../../types.js";
 
 export const amendmentSchema = gql`
@@ -26,6 +27,7 @@ export const amendmentSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
     clearanceLevel: ClearanceLevel!
+    tags: [Tag!]!
   }
 
   input CreateAmendmentInput {
@@ -69,6 +71,7 @@ export interface Amendment {
   clearanceLevel: ClearanceLevel;
   createdAt: Date;
   updatedAt: Date;
+  tags: Tag[];
 }
 
 export interface CreateAmendmentInput {

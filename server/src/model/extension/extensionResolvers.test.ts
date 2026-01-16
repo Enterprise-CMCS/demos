@@ -29,6 +29,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationPhases,
   resolveApplicationClearanceLevel,
+  resolveApplicationTags,
 } from "../application/applicationResolvers.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -183,11 +184,7 @@ describe("extensionResolvers", () => {
         description: testExtensionDescription,
       },
     };
-    const expectedCheckOptionalNotNullFieldList = [
-      "demonstrationId",
-      "name",
-      "status",
-    ];
+    const expectedCheckOptionalNotNullFieldList = ["demonstrationId", "name", "status"];
     const testEasternTZDate: EasternTZDate = {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),
