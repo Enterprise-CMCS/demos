@@ -19,7 +19,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({ name, label, onChange, check
         data-testid={name}
         type="checkbox"
         className="form-checkbox w-[24px] h-[24px] cursor-pointer text-action focus:ring-2 focus:ring-action"
-        style={{ accentColor: "#0071BC" }}
+        style={{ accentColor: "#0071bc" }}
         checked={checked}
         onChange={handleChange}
       />
