@@ -1,12 +1,13 @@
 import { prisma } from "../../prismaClient.js";
 import { GraphQLError } from "graphql";
-import { ApplicationType, ClearanceLevel } from "../../types.js";
+import { ApplicationType, ClearanceLevel, Tag } from "../../types.js";
 import {
   Demonstration as PrismaDemonstration,
   Amendment as PrismaAmendment,
   Extension as PrismaExtension,
   Document as PrismaDocument,
   ApplicationPhase as PrismaApplicationPhase,
+  ApplicationTagAssignment as PrismaApplicationTagAssignment,
 } from "@prisma/client";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { SetApplicationClearanceLevelInput } from "./applicationSchema.js";
@@ -240,6 +241,19 @@ export async function setApplicationClearanceLevel(
   } catch (error) {
     handlePrismaError(error);
   }
+}
+
+export async function resolveApplicationTags(parent: PrismaApplication): Promise<Tag[]> {
+  const applicationTags: Pick<PrismaApplicationTagAssignment, "tagId">[] =
+    await prisma().applicationTagAssignment.findMany({
+      where: {
+        applicationId: parent.id,
+      },
+      select: {
+        tagId: true,
+      },
+    });
+  return applicationTags.map((tag) => tag.tagId);
 }
 
 export const applicationResolvers = {
