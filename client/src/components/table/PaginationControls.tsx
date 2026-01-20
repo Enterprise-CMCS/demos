@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Table } from "@tanstack/react-table";
 import { Button, SecondaryButton } from "components/button";
+import { ChevronDownIcon } from "components/icons";
 export interface PaginationControlsProps<T> {
   table: Table<T>;
   perPageChoices?: number[];
@@ -78,23 +79,27 @@ export function PaginationControls<T>({
         gap-4 mt-2 pb-1 text-sm"
     >
       <div className="flex items-center gap-2">
-        {/* Label + select: use htmlFor so accessible */}
         <label htmlFor="pagination-page-size" className="text-gray-700">
           Items per page:
         </label>
-        <select
-          id="pagination-page-size"
-          aria-labelledby="pagination-page-size"
-          className="border p-[8px] rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={pageSize}
-          onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-        >
-          {perPageChoices.map((size) => (
-            <option key={size} value={size}>
-              {size < 0 ? "All" : size}
-            </option>
-          ))}
-        </select>
+        <div className="relative inline-flex items-center">
+          <select
+            id="pagination-page-size"
+            aria-labelledby="pagination-page-size"
+            className="appearance-none border py-[12px] pl-[16px] pr-[44px] rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            value={pageSize}
+            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+          >
+            {perPageChoices.map((size) => (
+              <option key={size} value={size}>
+                {size < 0 ? "All" : size}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-[16px] top-1/2 -translate-y-1/2 text-gray-600">
+            <ChevronDownIcon width="16" height="16" className="block" />
+          </span>
+        </div>
         <span className="text-gray-700">
           {totalRows === 0 ? "0 of 0" : `${firstRowIndex} – ${lastRowIndex} of ${totalRows}`}
         </span>
