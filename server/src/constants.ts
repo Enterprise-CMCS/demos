@@ -11,6 +11,8 @@ export const APPLICATION_STATUS = [
   "On-hold",
 ] as const;
 
+export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Approved"];
+
 export const ROLES = [
   "Project Officer",
   "State Point of Contact",

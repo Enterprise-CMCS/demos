@@ -26,6 +26,7 @@ import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment
 import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
 
 import { demonstrationTypeTagAssignmentSchema } from "./demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
+import { demonstrationTypeTagAssignmentResolvers } from "./demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentResolvers.js";
 
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
@@ -149,6 +150,7 @@ export const resolvers = [
   dateTypeResolvers,
   demonstrationResolvers,
   demonstrationRoleAssigmentResolvers,
+  demonstrationTypeTagAssignmentResolvers,
   documentResolvers,
   documentTypeResolvers,
   eventResolvers,
