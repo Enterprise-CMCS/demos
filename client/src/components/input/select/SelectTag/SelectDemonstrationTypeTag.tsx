@@ -1,13 +1,13 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { SelectTag } from "./SelectTag";
+import { gql, useQuery } from "@apollo/client";
+import { Tag } from "mock-data/TagMocks";
 
-const mockDemonstrationTypeTags: string[] = ["Type A", "Type B", "Type C", "Type D"];
-
-const mockDemonstrationTypeQueryResult = () => ({
-  loading: false,
-  error: undefined,
-  data: { demonstrationTypeTags: mockDemonstrationTypeTags },
-});
+export const SELECT_DEMONSTRATION_TYPE_TAG_QUERY = gql`
+  query SelectDemonstrationTypeTagQuery {
+    demonstrationTypeTags
+  }
+`;
 
 export const SelectDemonstrationTypeTag = ({
   value,
@@ -15,18 +15,15 @@ export const SelectDemonstrationTypeTag = ({
   isRequired,
   filter,
 }: {
-  value: string;
-  onSelect: (value: string) => void;
+  value: Tag;
+  onSelect: (value: Tag) => void;
   isRequired?: boolean;
-  filter?: (type: string) => boolean;
+  filter?: (type: Tag) => boolean;
 }) => {
-  // TODO: Replace mock hook with real data fetching logic
   const useDemonstrationTypeQuery = () => {
-    const { data, loading, error } = useMemo<{
-      loading: boolean;
-      error?: string;
-      data?: { demonstrationTypeTags: string[] };
-    }>(mockDemonstrationTypeQueryResult, []);
+    const { loading, error, data } = useQuery<{ demonstrationTypeTags: Tag[] }>(
+      SELECT_DEMONSTRATION_TYPE_TAG_QUERY
+    );
     return {
       data: data ? { tags: data.demonstrationTypeTags } : undefined,
       loading,
